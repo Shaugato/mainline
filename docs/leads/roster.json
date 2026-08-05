@@ -1,0 +1,322 @@
+[
+{
+"domain": "recall",
+"id": "recall-eval-harness"
+},
+{
+"domain": "recall",
+"id": "recall-corpora-goldsets"
+},
+{
+"domain": "recall",
+"id": "recall-providers"
+},
+{
+"domain": "recall",
+"id": "recall-cue-synthesis"
+},
+{
+"domain": "recall",
+"id": "recall-taxonomy-lmb"
+},
+{
+"domain": "recall",
+"id": "recall-ddl-triggers"
+},
+{
+"domain": "recall",
+"id": "recall-ann-arms-explain"
+},
+{
+"domain": "recall",
+"id": "recall-lexical-bm25"
+},
+{
+"domain": "recall",
+"id": "recall-fusion-admission"
+},
+{
+"domain": "recall",
+"id": "recall-orchestrator-per"
+},
+{
+"domain": "kernel",
+"id": "spec-invariants"
+},
+{
+"domain": "kernel",
+"id": "toolchain-and-red"
+},
+{
+"domain": "kernel",
+"id": "render-and-foundation"
+},
+{
+"domain": "kernel",
+"id": "subject-and-pin"
+},
+{
+"domain": "kernel",
+"id": "obligation-and-clearance"
+},
+{
+"domain": "kernel",
+"id": "projection-triggers"
+},
+{
+"domain": "kernel",
+"id": "merge-gate-and-core"
+},
+{
+"domain": "kernel",
+"id": "quickrefuse"
+},
+{
+"domain": "kernel",
+"id": "conformance-corpus"
+},
+{
+"domain": "kernel",
+"id": "reference-model"
+},
+{
+"domain": "algorithms",
+"id": "canon-anchors"
+},
+{
+"domain": "algorithms",
+"id": "quantity-directrix"
+},
+{
+"domain": "algorithms",
+"id": "cat-seal"
+},
+{
+"domain": "algorithms",
+"id": "delta-lattice"
+},
+{
+"domain": "algorithms",
+"id": "abstention-ratchet"
+},
+{
+"domain": "algorithms",
+"id": "origin-diff"
+},
+{
+"domain": "algorithms",
+"id": "candidate-cascade"
+},
+{
+"domain": "algorithms",
+"id": "margin-assignment"
+},
+{
+"domain": "algorithms",
+"id": "cbm-enforcement"
+},
+{
+"domain": "algorithms",
+"id": "mutation-ratchet"
+},
+{
+"domain": "datamodel",
+"id": "dm-runner"
+},
+{
+"domain": "datamodel",
+"id": "dm-foundation"
+},
+{
+"domain": "datamodel",
+"id": "dm-spine"
+},
+{
+"domain": "datamodel",
+"id": "dm-blame"
+},
+{
+"domain": "datamodel",
+"id": "dm-recall-tables"
+},
+{
+"domain": "datamodel",
+"id": "dm-gate"
+},
+{
+"domain": "datamodel",
+"id": "dm-disposition"
+},
+{
+"domain": "datamodel",
+"id": "dm-periphery"
+},
+{
+"domain": "datamodel",
+"id": "dm-functions-triggers"
+},
+{
+"domain": "datamodel",
+"id": "dm-views-rls"
+},
+{
+"domain": "ui",
+"id": "console-foundation"
+},
+{
+"domain": "ui",
+"id": "visual-language"
+},
+{
+"domain": "ui",
+"id": "data-contracts-replay"
+},
+{
+"domain": "ui",
+"id": "cinema-conformance-harness"
+},
+{
+"domain": "ui",
+"id": "gate-refusal-screen"
+},
+{
+"domain": "ui",
+"id": "ancestry-layout-ribbon"
+},
+{
+"domain": "ui",
+"id": "ancestry-walk-3d"
+},
+{
+"domain": "ui",
+"id": "verifier-custody-room"
+},
+{
+"domain": "ui",
+"id": "disposition-lattice-modal"
+},
+{
+"domain": "ui",
+"id": "propagation-silence-ledger"
+},
+{
+"domain": "agents-mcp",
+"id": "agent-contracts-red"
+},
+{
+"domain": "agents-mcp",
+"id": "agentkit-core"
+},
+{
+"domain": "agents-mcp",
+"id": "agent-provenance"
+},
+{
+"domain": "agents-mcp",
+"id": "injection-defence"
+},
+{
+"domain": "agents-mcp",
+"id": "mcp-client-auditor"
+},
+{
+"domain": "agents-mcp",
+"id": "explain-index-truth"
+},
+{
+"domain": "agents-mcp",
+"id": "steward-ops"
+},
+{
+"domain": "agents-mcp",
+"id": "skills-published"
+},
+{
+"domain": "agents-mcp",
+"id": "trappoint-mcp-server"
+},
+{
+"domain": "agents-mcp",
+"id": "determinism-boundary"
+},
+{
+"domain": "corpus-demo",
+"id": "corpus-contract"
+},
+{
+"domain": "corpus-demo",
+"id": "corpus-skeleton"
+},
+{
+"domain": "corpus-demo",
+"id": "corpus-blame-key"
+},
+{
+"domain": "corpus-demo",
+"id": "corpus-spine-authored"
+},
+{
+"domain": "corpus-demo",
+"id": "corpus-render-cache"
+},
+{
+"domain": "corpus-demo",
+"id": "corpus-docx"
+},
+{
+"domain": "corpus-demo",
+"id": "corpus-embed-lift"
+},
+{
+"domain": "corpus-demo",
+"id": "corpus-freeze-load"
+},
+{
+"domain": "corpus-demo",
+"id": "demo-script-honesty"
+},
+{
+"domain": "corpus-demo",
+"id": "demo-harness"
+},
+{
+"domain": "custody",
+"id": "custody-spec-and-red"
+},
+{
+"domain": "custody",
+"id": "jcs-canonicaliser"
+},
+{
+"domain": "custody",
+"id": "merkle-and-proofs"
+},
+{
+"domain": "custody",
+"id": "note-signer-receipt"
+},
+{
+"domain": "custody",
+"id": "sequencer"
+},
+{
+"domain": "custody",
+"id": "verify-core"
+},
+{
+"domain": "custody",
+"id": "verify-crypto"
+},
+{
+"domain": "custody",
+"id": "anchor-and-evidence-infra"
+},
+{
+"domain": "custody",
+"id": "witness-and-custodian"
+},
+{
+"domain": "custody",
+"id": "reference-ledger-and-nemesis"
+}
+]
