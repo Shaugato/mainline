@@ -1,0 +1,64 @@
+{
+  "floors_version": "g4alpha-1",
+  "ratchet": "upward-only",
+  "ratchet_policy": "Loosening any floor requires a pull request that shows up in blame. Floors move up, never down. BUILD_PLAN.md G4-beta.",
+  "authority": [
+    "ARCHITECTURE.md 6.7 (release gates, Wilson lower bound)",
+    "BUILD_PLAN.md K4 exit criteria G4-alpha",
+    "research/05-architecture/diachronic-recall.md 7-8"
+  ],
+  "checkpoint": {
+    "id": "G4alpha",
+    "grade": "checkpoint",
+    "preliminary": true,
+    "claim_note": "No customer-grade floor is claimed at G4-alpha. The claim is the harness, the arithmetic and the refusal, not the score."
+  },
+  "gates": {
+    "retro_recall_at_3_sev5": {
+      "metric": "retro_recall_at_3_sev5",
+      "direction": "floor",
+      "point_floor": 0.90,
+      "lower_bound_floor": 0.80,
+      "gate_on": "both",
+      "g4beta_gate_on": "lower_bound",
+      "rationale": "The money metric. A miss is a fatality exhibit. Gated on the Wilson lower bound as well as the point estimate because with ~200 pairs the interval is wide."
+    },
+    "p_at_block": {
+      "metric": "p_at_block",
+      "direction": "floor",
+      "point_floor": 0.75,
+      "lower_bound_floor": null,
+      "gate_on": "point",
+      "g4beta_gate_on": "lower_bound",
+      "g4beta_lower_bound_floor": 0.75,
+      "rationale": "A false positive is a rubber stamp. At G4-alpha the adjudicated subset is small, so the point estimate gates and the interval is published; G4-beta ratchets to the lower bound."
+    },
+    "nuisance_rate": {
+      "metric": "nuisance_rate",
+      "direction": "ceiling",
+      "ceiling": 0.03,
+      "gate_on": "point",
+      "g4beta_gate_on": "upper_bound",
+      "requires_sensitivity_witness": true,
+      "rationale": "EEMUA 191 / ISA-18.2 translated to a permit budget. A rule that breaches this ceiling is rejected rather than tuned. The sensitivity witness exists because a system that never blocks has a nuisance rate of zero."
+    },
+    "mean_blocking_checks_per_permit": {
+      "metric": "mean_blocking_checks_per_permit",
+      "direction": "ceiling",
+      "ceiling": 1.0,
+      "hard_cap_probabilistic": 3,
+      "gate_on": "point",
+      "g4beta_gate_on": "upper_bound",
+      "requires_bonded_invariant": true,
+      "rationale": "~250 permits/week at ~4 minutes of supervisor attention per disposition is ~4 noise hours/week at a mean of 1.0. The bonded-fatality invariant is required alongside because a silent system also has a mean of zero."
+    },
+    "conservation_l3": {
+      "metric": "conservation_l3",
+      "direction": "invariant",
+      "must_hold": true,
+      "requires_complete_coverage": true,
+      "requires_non_vacuous": true,
+      "rationale": "candidates = blocking + advisory + silenced + deduped, exactly, over every run in the corpus. A law verified over zero candidates holds vacuously and certifies nothing."
+    }
+  }
+}

@@ -1,0 +1,44 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+#
+# ANCHORLOCK class: setpoint  (NOT an identity class)
+#
+# A setpoint anchor is a value + unit as WRITTEN.  This file is the unit
+# vocabulary that makes "10 %" a setpoint and "10 people" prose.
+#
+# TWO THINGS THIS FILE DOES NOT DO, both on purpose:
+#
+# 1. NO SI CONVERSION.  `50 psig` stays `50psig`.  Converting here would mean
+#    deciding gauge-vs-absolute, and `50 psig -> 446 kPa(a)` silently flips a
+#    safe_direction comparison.  Conversion belongs to the quantity algebra
+#    (worker W2), which RAISES on a gauge/absolute crossing rather than guessing.
+# 2. NO IDENTITY.  `setpoint` is deliberately excluded from the identity anchor
+#    classes.  A changed setpoint must reach the lattice as rule R2, not vanish
+#    behind an `unmatched` residue row.
+
+[setpoints]
+version = 1
+
+# Unit tokens, matched case-sensitively (kPa and KPA are both listed where the
+# ambiguity is real).  Longest match wins.
+units = [
+  "kPa", "KPA", "kpa", "MPa", "mbar", "bar", "barg", "bara",
+  "psi", "psig", "psia", "Pa", "atm", "inH2O", "mmHg", "torr",
+  "%", "%LEL", "%UEL", "%vol", "vol%", "ppm", "ppb", "pphm",
+  "degC", "degF", "C", "F", "K",
+  "mm", "cm", "m", "km", "in", "ft", "mil",
+  "mm2", "m2", "m3", "L", "mL", "kL", "gal",
+  "kg", "g", "t", "tonne", "tonnes", "lb", "lbs",
+  "s", "sec", "min", "mins", "h", "hr", "hrs", "hour", "hours",
+  "day", "days", "week", "weeks", "month", "months", "year", "years",
+  "V", "kV", "mV", "A", "mA", "kA", "W", "kW", "MW", "kWh", "Hz", "rpm",
+  "dB", "dBA", "lux", "mSv", "uSv", "Sv", "Bq", "Gy",
+  "N", "kN", "Nm", "kNm", "m/s", "km/h", "L/s", "L/min", "m3/h", "kg/h",
+]
+
+# Qualifiers that may follow the unit and belong to the setpoint.
+qualifiers = ["LEL", "UEL", "O2", "H2S", "CO", "CO2", "SO2", "NOx", "vol", "wt", "TWA", "STEL"]
+
+# Comparators recognised in front of a value.  Folded to ASCII by canon() before
+# extraction runs, so the Unicode forms are listed for documentation only.
+comparators = ["<=", ">=", "<", ">", "=", "+/-", "+-"]

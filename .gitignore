@@ -9,3 +9,8 @@ node_modules/
 out/
 dist/
 .DS_Store
+
+.hypothesis/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/

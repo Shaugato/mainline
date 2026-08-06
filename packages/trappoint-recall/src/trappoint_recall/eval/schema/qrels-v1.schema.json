@@ -1,0 +1,93 @@
+{
+  "$id": "https://mainline.dev/schema/recall/qrels-v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "One line of a recall qrels JSONL file. Grade meanings: 0 = irrelevant: shares no mechanism and no precondition; 1 = related: same equipment or site, different recurrence condition; 2 = highly relevant: shares the mechanism or the precondition; 3 = perfectly relevant: shares mechanism and precondition; this is the precursor. Grades >= 2 count as relevant for binary metrics.",
+  "properties": {
+    "blinded": {
+      "default": false,
+      "description": "True when the judge could not see which system retrieved the document. P@block is only computed over blinded judgements.",
+      "title": "Blinded",
+      "type": "boolean"
+    },
+    "doc_id": {
+      "description": "Candidate event identifier.",
+      "minLength": 1,
+      "title": "Doc Id",
+      "type": "string"
+    },
+    "gold_set": {
+      "description": "Gold set this judgement belongs to, e.g. G1, G2, G3, G4, GS0.",
+      "minLength": 1,
+      "title": "Gold Set",
+      "type": "string"
+    },
+    "grade": {
+      "description": "UMBRELA relevance grade, 0-3. See GRADE_MEANINGS.",
+      "maximum": 3,
+      "minimum": 0,
+      "title": "Grade",
+      "type": "integer"
+    },
+    "judged_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "When the judgement was recorded, if known.",
+      "title": "Judged At"
+    },
+    "judged_by": {
+      "description": "Provenance. LLM-only labels never ship as a precision headline.",
+      "enum": [
+        "human",
+        "llm",
+        "distant_supervision",
+        "authored"
+      ],
+      "title": "Judged By",
+      "type": "string"
+    },
+    "notes": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Free-text rationale.",
+      "title": "Notes"
+    },
+    "query_id": {
+      "description": "Evaluation query identifier.",
+      "minLength": 1,
+      "title": "Query Id",
+      "type": "string"
+    },
+    "scale": {
+      "const": "umbrela-0-3",
+      "default": "umbrela-0-3",
+      "description": "Rubric the grade was produced under.",
+      "title": "Scale",
+      "type": "string"
+    }
+  },
+  "required": [
+    "query_id",
+    "doc_id",
+    "grade",
+    "gold_set",
+    "judged_by"
+  ],
+  "title": "TRAPPOINT recall relevance judgement (UMBRELA 0-3)",
+  "type": "object"
+}

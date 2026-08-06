@@ -1,0 +1,72 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "mainline-recall-agent"
+version = "0.1.0"
+description = "MAINLINE recall agent — model providers (embeddings, Claude listwise judge), offline-first."
+readme = "README.md"
+requires-python = ">=3.13"
+license = "LicenseRef-FSL-1.1-ALv2"
+license-files = ["LICENSE*"]
+authors = [{ name = "MAINLINE contributors" }]
+keywords = ["mainline", "trappoint", "recall", "bedrock", "embeddings"]
+classifiers = [
+  "Private :: Do Not Upload",
+  "Programming Language :: Python :: 3.13",
+  "Typing :: Typed",
+]
+
+# Runtime dependencies.
+#
+# `anthropic` and `boto3` are import-time-light and are declared here because the judge
+# provider and the inference-profile resolver are part of the shipped surface. They are
+# nonetheless imported LAZILY (inside the call that needs them) so that the cassette
+# replay path — the CI and demo default — works in an environment where neither the SDK
+# nor AWS credentials exist.
+#
+# `sentence-transformers` is deliberately an EXTRA, not a runtime dependency: it drags
+# torch (~1 GB of wheels) and, more decisively, the bge-large weights themselves require
+# a network fetch. The package's stated contract is that it runs with no AWS account and
+# no network; a hard dependency that cannot be satisfied offline would make that false.
+# Install `mainline-recall-agent[local-embed]` on a machine that will actually encode.
+dependencies = [
+  "anthropic>=0.40",
+  "boto3>=1.35",
+  "numpy>=2.0",
+  "pydantic>=2.9",
+]
+
+[project.optional-dependencies]
+local-embed = ["sentence-transformers>=3.0"]
+
+[project.urls]
+Homepage = "https://github.com/Shaugato/mainline"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mainline_recall_agent"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"src/mainline_recall_agent/providers/data" = "mainline_recall_agent/providers/data"
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+warn_unreachable = true
+disallow_any_explicit = false
+
+[[tool.mypy.overrides]]
+module = ["boto3.*", "botocore.*", "anthropic.*", "sentence_transformers.*"]
+ignore_missing_imports = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "B", "A", "C4", "RUF", "SIM", "TID", "PL"]
+ignore = ["PLR0913"]

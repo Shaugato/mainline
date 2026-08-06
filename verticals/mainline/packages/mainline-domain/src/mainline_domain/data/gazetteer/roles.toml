@@ -1,0 +1,98 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+#
+# ANCHORLOCK class: named_role  (NOT an identity class)
+#
+# A named role is the human control: "the Authorised Gas Tester shall verify"
+# is a different control from "a competent person may verify".  Roles are
+# matched as PHRASES, longest first, case-insensitively.
+#
+# `[[role]]` entries carry a canonical `norm` and the surface `variants` that
+# map onto it, so Australian/US spellings and the site's local abbreviations
+# collapse to one anchor.  A role is NOT an identity class: two clauses about
+# different roles can still be the same clause (that is a deontic-actor change,
+# which is rule R1's business), so a role swap must not veto a match -- it must
+# be adjudicated.
+
+[roles]
+version = 1
+
+[[role]]
+norm = "AUTHORISED GAS TESTER"
+variants = ["authorised gas tester", "authorized gas tester", "AGT", "gas tester"]
+
+[[role]]
+norm = "PERMIT ISSUER"
+variants = ["permit issuer", "issuing authority", "permit authority"]
+
+[[role]]
+norm = "PERMIT HOLDER"
+variants = ["permit holder", "permit acceptor", "accepting person"]
+
+[[role]]
+norm = "AREA AUTHORITY"
+variants = ["area authority", "area owner", "asset owner", "area supervisor"]
+
+[[role]]
+norm = "ISOLATION OFFICER"
+variants = ["isolation officer", "isolating officer", "isolation authority"]
+
+[[role]]
+norm = "COMPETENT PERSON"
+variants = ["competent person", "competent worker"]
+
+[[role]]
+norm = "RESPONSIBLE PERSON"
+variants = ["responsible person", "responsible officer"]
+
+[[role]]
+norm = "STANDBY PERSON"
+variants = ["standby person", "stand-by person", "standby attendant", "safety observer"]
+
+[[role]]
+norm = "CONFINED SPACE ATTENDANT"
+variants = ["confined space attendant", "confined space sentry", "hole watch", "entry attendant"]
+
+[[role]]
+norm = "FIRE WATCH"
+variants = ["fire watch", "fire watcher", "firewatch"]
+
+[[role]]
+norm = "RESCUE TEAM"
+variants = ["rescue team", "emergency response team", "ERT"]
+
+[[role]]
+norm = "SUPERVISOR"
+variants = ["supervisor", "shift supervisor", "site supervisor"]
+
+[[role]]
+norm = "SITE SENIOR EXECUTIVE"
+variants = ["site senior executive", "SSE"]
+
+[[role]]
+norm = "ELECTRICAL WORKER"
+variants = ["electrical worker", "licensed electrician", "authorised electrical person"]
+
+[[role]]
+norm = "RADIATION SAFETY OFFICER"
+variants = ["radiation safety officer", "RSO"]
+
+[[role]]
+norm = "SCAFFOLD INSPECTOR"
+variants = ["scaffold inspector", "scaffolding inspector"]
+
+[[role]]
+norm = "LIFTING SUPERVISOR"
+variants = ["lifting supervisor", "lift supervisor", "crane supervisor", "dogman", "rigger"]
+
+[[role]]
+norm = "PROCESS ENGINEER"
+variants = ["process engineer", "process authority"]
+
+[[role]]
+norm = "CONTROL ROOM OPERATOR"
+variants = ["control room operator", "panel operator", "board operator", "CRO"]
+
+[[role]]
+norm = "MAINTENANCE TECHNICIAN"
+variants = ["maintenance technician", "maintainer", "tradesperson"]

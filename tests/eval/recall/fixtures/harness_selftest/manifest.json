@@ -1,0 +1,6 @@
+{
+  "name": "harness-selftest",
+  "preliminary": true,
+  "provenance": "Authored by tests/eval/recall/fixtures/generate.py. Contains no real incident data and no real person. Not a gold set: it exists so the G4-alpha assertions are executable before GS0 lands, and it is sized so a correct retriever passes and a silent one fails.",
+  "synthetic": true
+}

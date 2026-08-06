@@ -1,0 +1,55 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: Apache-2.0
+
+[project]
+name = "trappoint-recall"
+version = "0.1.0"
+description = "TRAPPOINT recall substrate — evaluation harness, metrics that never ship a bare point estimate, temporally-blocked splits, and the G4-alpha gate arithmetic."
+readme = "README.md"
+requires-python = ">=3.13"
+license = "Apache-2.0"
+authors = [{ name = "MAINLINE contributors" }]
+keywords = ["retrieval", "evaluation", "wilson-interval", "ablation", "safety"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Scientific/Engineering :: Information Analysis",
+  "Typing :: Typed",
+]
+
+# Deliberately narrow. This package is the *substrate* half of recall: it holds no
+# database driver, no cloud SDK and no MAINLINE domain vocabulary, so that the
+# arithmetic that decides whether the gate ships can be audited by a stranger with
+# nothing installed but Python. import-linter enforces the absence of psycopg,
+# boto3 and mainline_* from this distribution.
+dependencies = [
+  "pydantic>=2.7",
+  "numpy>=2.0",
+  # scipy and scikit-learn are REQUIRED, not optional, and are imported only by
+  # trappoint_recall.eval.crosscheck. They exist so that this package's own Wilson
+  # interval and nDCG implementations can be checked against independent
+  # third-party implementations in CI. Making them optional would let that check
+  # be silently unavailable, which is the failure mode it exists to prevent.
+  "scipy>=1.13",
+  "scikit-learn>=1.5",
+]
+
+[project.urls]
+Homepage = "https://github.com/Shaugato/mainline"
+
+[project.scripts]
+trappoint-recall-eval = "trappoint_recall.eval.cli:main"
+
+[dependency-groups]
+dev = ["pytest>=8.2", "hypothesis>=6.100"]
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/trappoint_recall"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "README.md"]

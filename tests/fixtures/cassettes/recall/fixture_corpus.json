@@ -1,0 +1,152 @@
+{
+  "schema": "mainline.recall.fixture-corpus/1",
+  "synthetic": true,
+  "note": "SYNTHETIC. Twelve invented Recurrence-Condition Cue records used only to exercise the provider layer: batch shapes, unit norms, coarse projection, cassette round trips. They are not drawn from MSHA, CSB or any real incident record, they carry no severity and no event id, and nothing here may be used to measure retrieval quality. The real gold sets are the corpora worker's (tests/fixtures/recall/). Cue text is deliberately terse (<= 60 tokens per facet) because that is the shape the cue synthesiser emits.",
+  "template": "{activity_path} | {asset_class} | {facet}: {cue_text}",
+  "cues": [
+    {
+      "cue_ref": "FX-001",
+      "activity_path": "surface/processing/leach/adr-circuit",
+      "asset_class": "fixed_plant_vessel",
+      "facets": {
+        "mechanism": "Cyanide-bearing barren solution contacted acidic wash water in a shared return line, liberating hydrogen cyanide gas into an occupied elution enclosure.",
+        "precondition": "Two circuits sharing one return header with no positive isolation, while pH monitoring on the barren leg was in bypass for a calibration.",
+        "control_failure": "The pH-low interlock that should have shut the barren pump was bypassed under a maintenance override with no compensating watch.",
+        "recurrence_test": "Any permit that bypasses a pH or conductivity interlock on a circuit sharing a header with a cyanide-bearing stream.",
+        "narrative": "During a night-shift calibration the barren pump continued to run with the pH interlock overridden; gas detection in the elution building alarmed and the area was evacuated."
+      }
+    },
+    {
+      "cue_ref": "FX-002",
+      "activity_path": "underground/development/haulage/decline",
+      "asset_class": "mobile_plant",
+      "facets": {
+        "mechanism": "A loaded haul truck lost service braking on a wet decline and struck the rib after the retarder cut out at low engine speed.",
+        "precondition": "Grade above eight per cent, water inflow across the running surface, and a retarder whose cut-out speed had been raised at a previous service.",
+        "control_failure": "The brake performance test required before descending a graded decline was recorded as complete without the truck being loaded.",
+        "recurrence_test": "Any permit that alters brake test criteria, retarder settings, or decline speed limits on loaded haulage.",
+        "narrative": "The operator reported the pedal going long approaching the second switchback; the unit came to rest against the rib with no injury."
+      }
+    },
+    {
+      "cue_ref": "FX-003",
+      "activity_path": "surface/maintenance/confined-space/thickener",
+      "asset_class": "fixed_plant_vessel",
+      "facets": {
+        "mechanism": "Oxygen deficiency in a drained thickener cone caused by residual sulfide oxidation consuming the atmosphere overnight.",
+        "precondition": "A vessel drained and left closed for more than twelve hours, with atmospheric testing performed only at the access hatch.",
+        "control_failure": "Continuous atmospheric monitoring was replaced by a single pre-entry test because the four-gas unit was out of calibration.",
+        "recurrence_test": "Any permit that reduces confined-space atmospheric testing from continuous to single-point, or extends a pre-entry test's validity.",
+        "narrative": "An entrant became unsteady two metres below the hatch and was retrieved by the standby using the tripod and harness already rigged."
+      }
+    },
+    {
+      "cue_ref": "FX-004",
+      "activity_path": "surface/processing/comminution/sag-mill",
+      "asset_class": "rotating_equipment",
+      "facets": {
+        "mechanism": "Stored rotational energy released when a mill inched under gravity while a reline crew was inside the shell.",
+        "precondition": "An inching drive left clutched in, with the mill charge unbalanced after a partial discharge.",
+        "control_failure": "The isolation applied covered electrical supply only; the stored-energy and gravity-rotation hazard had no lock and no chock.",
+        "recurrence_test": "Any permit whose isolation scope names electrical supply without addressing stored rotational or gravitational energy on a mill or crusher.",
+        "narrative": "The shell rotated roughly fifteen degrees during liner removal; the crew withdrew and the charge was subsequently locked with a mechanical chock."
+      }
+    },
+    {
+      "cue_ref": "FX-005",
+      "activity_path": "surface/utilities/gas/lpg-storage",
+      "asset_class": "pressure_system",
+      "facets": {
+        "mechanism": "A flammable vapour cloud formed from a leaking liquid-phase fitting and reached an ignition source at a nearby switchroom.",
+        "precondition": "A compression fitting reused after a hose change, with the leak test performed on the vapour leg only.",
+        "control_failure": "The pre-commissioning leak test procedure did not require the liquid leg to be tested at operating pressure.",
+        "recurrence_test": "Any permit that reinstates a hydrocarbon service after a fitting change without a liquid-phase pressure test at operating pressure.",
+        "narrative": "A gas detector at the switchroom intake alarmed at twenty per cent LEL; the area was isolated and the fitting replaced."
+      }
+    },
+    {
+      "cue_ref": "FX-006",
+      "activity_path": "underground/ventilation/primary-fan/surface-installation",
+      "asset_class": "rotating_equipment",
+      "facets": {
+        "mechanism": "Loss of primary ventilation allowed diesel particulate and strata gas to accumulate at the working face.",
+        "precondition": "A single primary fan with its standby unavailable for a scheduled motor swap, during a full production shift.",
+        "control_failure": "The requirement to withdraw personnel on loss of primary ventilation was deferred pending a re-start attempt.",
+        "recurrence_test": "Any permit that removes ventilation redundancy or defers a withdrawal trigger while personnel remain underground.",
+        "narrative": "The fan tripped on high vibration; re-start was attempted twice before withdrawal was called nineteen minutes later."
+      }
+    },
+    {
+      "cue_ref": "FX-007",
+      "activity_path": "surface/electrical/hv-switchyard/feeder-bay",
+      "asset_class": "electrical_system",
+      "facets": {
+        "mechanism": "An arc flash on an eleven-kilovolt feeder bay during racking of a circuit breaker that was still energised from the reverse feed.",
+        "precondition": "A dual-fed bay whose reverse source was not represented on the single-line drawing used for isolation planning.",
+        "control_failure": "Proving dead was performed at one point only, and the test instrument was not proved live before and after.",
+        "recurrence_test": "Any permit relying on a single-line drawing to establish isolation points on a bay with more than one source.",
+        "narrative": "The racking mechanism flashed on insertion; the electrician's arc-rated clothing limited the injury to a first-degree burn."
+      }
+    },
+    {
+      "cue_ref": "FX-008",
+      "activity_path": "surface/tailings/embankment/lift-construction",
+      "asset_class": "earth_structure",
+      "facets": {
+        "mechanism": "Liquefaction of loose upstream-placed tailings under an accelerated rate of rise, producing a slump of the crest.",
+        "precondition": "A rate of rise above the design limit sustained for six weeks with piezometer readings above the trigger level.",
+        "control_failure": "The trigger action response plan escalation was not raised because readings were assessed as instrument drift without verification.",
+        "recurrence_test": "Any permit that raises the rate of rise, defers a piezometer verification, or reclassifies a TARP exceedance as instrument error.",
+        "narrative": "A two-metre crest slump was observed on inspection; deposition was stopped and the pond was drawn down."
+      }
+    },
+    {
+      "cue_ref": "FX-009",
+      "activity_path": "surface/mobile/crane/lift-planning",
+      "asset_class": "lifting_equipment",
+      "facets": {
+        "mechanism": "A mobile crane overturned when the load radius exceeded the configured chart during a slew with outriggers partially extended.",
+        "precondition": "A pick-and-carry configuration on soft ground with the rated capacity limiter set to a different boom configuration.",
+        "control_failure": "The lift study was approved for a configuration different from the one rigged, and no field verification of outrigger extension occurred.",
+        "recurrence_test": "Any permit approving a lift whose rigged configuration differs from the studied configuration, or which relies on partial outrigger extension.",
+        "narrative": "The crane tipped onto its outrigger pads during the slew; the load was set down and no person was struck."
+      }
+    },
+    {
+      "cue_ref": "FX-010",
+      "activity_path": "surface/processing/reagent/sulfuric-acid-unloading",
+      "asset_class": "pressure_system",
+      "facets": {
+        "mechanism": "Concentrated sulfuric acid sprayed from an unloading hose when residual pressure was released at the coupling.",
+        "precondition": "An unloading line without a depressurisation step, and a driver-operated coupling with no local pressure indication.",
+        "control_failure": "The depressurise-and-verify step existed in the procedure but had no physical means of verification at the coupling.",
+        "recurrence_test": "Any permit for reagent transfer whose depressurisation step cannot be verified at the point of breaking containment.",
+        "narrative": "The operator was wearing a face shield and acid suit; decontamination shower was used within thirty seconds and no burn resulted."
+      }
+    },
+    {
+      "cue_ref": "FX-011",
+      "activity_path": "underground/ground-control/stope/backfill",
+      "asset_class": "earth_structure",
+      "facets": {
+        "mechanism": "A fill fence failed and released hydraulic fill into an access drive occupied by a bogger operator.",
+        "precondition": "A fill fence built to a standard design without a competent person's check for the increased head of a longer stope.",
+        "control_failure": "The engineering review of the fill fence design for a non-standard stope length was signed off on the basis of the standard drawing.",
+        "recurrence_test": "Any permit applying a standard barricade or fill fence design to a stope outside the geometry the standard was derived for.",
+        "narrative": "The fence deformed and released fill approximately forty minutes after pour commenced; the drive had been cleared on a pour exclusion."
+      }
+    },
+    {
+      "cue_ref": "FX-012",
+      "activity_path": "surface/processing/dust/crusher-transfer",
+      "asset_class": "conveying_system",
+      "facets": {
+        "mechanism": "Respirable crystalline silica exposure well above the occupational limit at a transfer chute with the dust suppression spray isolated.",
+        "precondition": "A water spray system isolated for a pump repair during a period of dry ore, with no alternative suppression in place.",
+        "control_failure": "The requirement to reassess respiratory protection when engineering suppression is unavailable was not triggered by the isolation permit.",
+        "recurrence_test": "Any permit that isolates dust suppression, ventilation or scrubbing without an accompanying change to respiratory protection.",
+        "narrative": "Personal monitoring over the shift returned a result several times the exposure standard; the crew was moved to fit-tested respirators."
+      }
+    }
+  ]
+}

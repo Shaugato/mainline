@@ -1,0 +1,32 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+#
+# ANCHORLOCK class: isolation_point_id  (IDENTITY class)
+#
+# The identifier on the lock, the tag, or the isolation certificate line item.
+# These are the anchors whose disappearance is the loudest: an isolation point
+# that stops being named in a procedure is a point that stops being isolated.
+#
+# A hyphen is MANDATORY for this class.  Without it, `IP66` (an ingress
+# protection rating) reads as isolation point 66.
+
+[isolation]
+version = 1
+
+prefixes = [
+  "LOTO",   # lock-out / tag-out point
+  "LOP",    # lock-out point
+  "LOCK",
+  "ISOL",   # isolation point
+  "ISOPT",
+  "IPT",    # isolation point tag
+  "IP",     # isolation point (hyphen mandatory -- see above)
+  "IPN",
+  "EIP",    # electrical isolation point
+  "MIP",    # mechanical isolation point
+  "PIP",    # process isolation point
+  "BLIND",  # blind / spade list item
+  "SPADE",
+  "SPEC",   # spectacle blind
+  "TAG",
+]

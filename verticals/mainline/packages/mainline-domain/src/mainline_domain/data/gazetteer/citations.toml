@@ -1,0 +1,38 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+#
+# ANCHORLOCK class: regulatory_citation  (IDENTITY class)
+#
+# Two shapes:
+#   `bodies`     -> BODY NUMBER            (AS 2865, AS/NZS 3000, IEC 61511-1)
+#   `regulations`-> NAME reg/r./cl. NUMBER (WHS Reg r.62, MSHR reg 100)
+#
+# NORMALISATION DECISION, stated because it is load-bearing: the EDITION YEAR IS
+# NOT PART OF THE NORM.  `AS 2865:2009` and `AS 2865` normalise to the same
+# anchor.  If the year were in the norm, a descendant citing the same standard
+# without its year would be *disjoint* in an identity class, which
+# `AnchorSet.compatible_with` would read as a conflict, which would manufacture
+# a non-match for an unchanged control.  An edition CHANGE is a real weakening
+# candidate, but it is the lattice's job (it reads the CAT), not the matcher's.
+# The residue reason `citation_unresolved` exists for the cases the lattice
+# cannot settle.
+
+[citations]
+version = 1
+
+bodies = [
+  "AS", "AS/NZS", "NZS", "BS", "BS EN", "EN", "ISO", "IEC", "ANSI", "API",
+  "ASME", "ASTM", "NFPA", "NEMA", "IEEE", "OSHA", "CFR", "SANS", "GB",
+  "ICMM", "IOGP", "CCPS", "ILO", "IMO", "UN", "ADG", "AIIMS", "HB",
+]
+
+regulations = [
+  "WHS", "OHS", "MSHR", "WHS(MPS)", "CMSHR", "MQSHR", "PSMS", "COMAH",
+  "SEVESO", "PSM", "MHF", "HSNO", "HSE", "REACH", "GHS",
+]
+
+# Tokens that introduce a numbered subdivision within a regulation citation.
+subdivision_tokens = [
+  "reg", "regs", "regulation", "regulations", "r", "rr",
+  "cl", "clause", "s", "sec", "section", "sch", "schedule", "part", "div",
+]

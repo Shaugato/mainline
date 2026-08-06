@@ -1,0 +1,34 @@
+{
+  "_comment": "CANONHOLD reflow triple. One clause, three physical presentations: (A) original typesetting with page furniture and two line-wrap hyphens; (B) retypeset with different wrapping, renumbered 7.3.2(b) -> 4.1.1, carrying a ligature, a NO-BREAK SPACE and a U+2010 HYPHEN; (C) an OCR pass over a different typesetting, with a SOFT HYPHEN, a revision stamp, and confusable damage INSIDE NUMERIC LITERALS ONLY (10 -> 1O, 2865 -> 286S). All three MUST canonicalise to one digest.",
+  "canon_version": 1,
+  "expected_canon_text": "Before any intrusive work on P-101A, the Authorised Gas Tester shall first verify that the atmosphere is below 10 % LEL and that isolation point LOTO-4471 is under lock-out, in accordance with AS 2865 and WHS Reg r.62.",
+  "forms": [
+    {
+      "id": "A_original",
+      "printed_label": "7.3.2(b)",
+      "raw": "Page 4 of 31\n7.3.2(b)  Before any intrusive work on P-101A, the Authorised Gas Tester shall first\nverify that the atmosphere is below 10 % LEL and that isola-\ntion point LOTO-4471 is under lock-\nout, in accordance with AS 2865 and WHS Reg r.62.\nUncontrolled when printed\n"
+    },
+    {
+      "id": "B_retypeset_renumbered",
+      "printed_label": "4.1.1",
+      "raw": "4.1.1 Before any intrusive work on P-101A, the Authorised Gas\nTester shall ﬁrst verify that the atmosphere is below 10 % LEL\nand that isolation point LOTO-4471 is under lock‐out, in\naccordance with AS 2865 and WHS Reg r.62.\n"
+    },
+    {
+      "id": "C_ocr_noised",
+      "printed_label": "7.3.2(b)",
+      "raw": "Page 12 of 31\n7.3.2 (b)   Before any intrusive work on P-101A, the Authorised Gas Tester shall first ver-\nify that the atmo­sphere is below 1O % LEL and that isolation point\nLOTO-4471 is under lock-out, in accordance with AS 286S and WHS Reg r.62.\nRev. 3 — 14 Mar 2019\n"
+    }
+  ],
+  "ocr_damage": {
+    "1O": "10",
+    "286S": "2865"
+  },
+  "free_prose_must_not_be_repaired": [
+    "Ill",
+    "Oil",
+    "SOLE",
+    "loss",
+    "IO",
+    "OO"
+  ]
+}

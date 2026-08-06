@@ -1,0 +1,291 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spec.trappoint.org/1.0/binding/vertical.schema.json",
+  "$comment": "Normative schema for vertical.toml: validate the parsed TOML document against it. Prose contract: authority-source.md. Licensing: see vertical.schema.json.license (REUSE sidecar; JSON admits no comment syntax).",
+  "title": "TRAPPOINT vertical binding (vertical.toml)",
+  "description": "What `trappoint render` requires of a vertical before it will emit a single line of gate SQL. The [[authority_source]] array is the compile-time form of spec rule P-2: a projected gate column with no declared authority source is a render error, not a code review comment.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["vertical", "subject", "authority_source", "capabilities"],
+  "properties": {
+    "vertical": { "$ref": "#/$defs/vertical" },
+    "subject": {
+      "description": "One entry per gated subject kind. At least one is required; a binding with two exercises the mirrored-constraint rule R-3.",
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 16,
+      "items": { "$ref": "#/$defs/subject" }
+    },
+    "authority_source": {
+      "description": "One entry per group of projected gate columns. Every column marked with a {# @projects ... #} pragma in a rendered template MUST appear in exactly one entry's `projects` list.",
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 64,
+      "items": { "$ref": "#/$defs/authoritySource" }
+    },
+    "obligation_source": {
+      "description": "Optional. One entry per relation that feeds a projected obligation counter on a subject. A binding that omits an entry simply does not render that counter's trigger, and the conformance cases requiring it are skipped with a reason rather than silently passing.",
+      "type": "array",
+      "maxItems": 64,
+      "items": { "$ref": "#/$defs/obligationSource" }
+    },
+    "capabilities": { "$ref": "#/$defs/capabilities" },
+    "emit_outbox": {
+      "description": "Whether projection triggers additionally write a changefeed outbox row. The substrate must not hard-depend on a table it does not own, so the reference vertical sets this false.",
+      "type": "boolean",
+      "default": false
+    },
+    "roles": {
+      "description": "Optional. SQL roles the binding renders grants for. The role that materialises an obligation MUST NOT be the role that disposes of it.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "gate": { "$ref": "#/$defs/sqlIdentifier" },
+        "projector": { "$ref": "#/$defs/sqlIdentifier" },
+        "disposer": { "$ref": "#/$defs/sqlIdentifier" },
+        "migrator": { "$ref": "#/$defs/sqlIdentifier" },
+        "owner": { "$ref": "#/$defs/sqlIdentifier" },
+        "reader": { "$ref": "#/$defs/sqlIdentifier" }
+      }
+    },
+    "conformance": {
+      "description": "How this binding is exercised by the conformance suite.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["profile"],
+      "properties": {
+        "profile": {
+          "description": "The profile name cases select on, matching `profiles` entries in spec/conformance/manifest.toml.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "maxLength": 64
+        },
+        "skip_requires": {
+          "description": "Capability tokens this binding is known not to provide. Cases whose `requires` intersect this list skip with a reason instead of failing. A token listed here MUST be justified in the binding's README; it is a public admission of reduced coverage.",
+          "type": "array",
+          "items": { "type": "string", "minLength": 1, "maxLength": 128 }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "sqlIdentifier": {
+      "description": "An unquoted, lower-case SQL identifier.",
+      "type": "string",
+      "pattern": "^[a-z_][a-z0-9_]*$",
+      "maxLength": 63
+    },
+    "qualifiedRelation": {
+      "description": "A schema-qualified relation name, e.g. mainline.clause_blame_current.",
+      "type": "string",
+      "pattern": "^[a-z_][a-z0-9_]*\\.[a-z_][a-z0-9_]*$",
+      "maxLength": 127
+    },
+    "qualifiedColumn": {
+      "description": "A relation-qualified column reference, e.g. blocking_check.severity.",
+      "type": "string",
+      "pattern": "^[a-z_][a-z0-9_]*\\.[a-z_][a-z0-9_]*$",
+      "maxLength": 127
+    },
+    "vertical": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "spec_version", "schema", "output_dir"],
+      "properties": {
+        "name": {
+          "description": "Upper-case vertical name. Also the P0001 message prefix this binding's trigger functions must use.",
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]*$",
+          "maxLength": 32
+        },
+        "spec_version": {
+          "description": "The TRAPPOINT specification version this binding targets. A MAJOR mismatch is a render error.",
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(-[0-9A-Za-z.-]+)?$"
+        },
+        "schema": { "$ref": "#/$defs/sqlIdentifier" },
+        "output_dir": {
+          "description": "Repository-relative directory the rendered, committed SQL is written to.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "license": {
+          "description": "SPDX identifier stamped into every rendered file's header.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "description": { "type": "string", "maxLength": 512 }
+      }
+    },
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "table", "id_column", "epoch_column", "state_column", "completing_state", "counters"],
+      "properties": {
+        "kind": {
+          "description": "Wire-level subject kind, matching `subject_kind` in the refusal and obligation payloads.",
+          "$ref": "#/$defs/sqlIdentifier"
+        },
+        "table": { "$ref": "#/$defs/sqlIdentifier" },
+        "id_column": { "$ref": "#/$defs/sqlIdentifier" },
+        "epoch_column": {
+          "description": "The gate epoch. Spec N-1: UNIQUE (id_column, epoch_column) must exist as a foreign-key target.",
+          "$ref": "#/$defs/sqlIdentifier"
+        },
+        "state_column": { "$ref": "#/$defs/sqlIdentifier" },
+        "completing_state": {
+          "description": "The state whose entry the gate defends.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "maxLength": 63
+        },
+        "transition_table": {
+          "description": "Relation holding the legal edge set as data. Defaults to <schema>.subject_transition.",
+          "$ref": "#/$defs/qualifiedRelation"
+        },
+        "event_table": { "$ref": "#/$defs/sqlIdentifier" },
+        "completion_table": { "$ref": "#/$defs/sqlIdentifier" },
+        "epoch_pin_constraint": {
+          "description": "Name of the composite foreign key pinning (subject_id, epoch) on the completion record. Exhibit names are unique schema-wide (spec R-3).",
+          "$ref": "#/$defs/sqlIdentifier"
+        },
+        "counters": {
+          "description": "The projected obligation counters and the CHECK that refuses on each. One CHECK per counter: collapsing them is non-conformant because the constraint name is the exhibit (spec R-2).",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["column", "constraint"],
+            "properties": {
+              "column": { "$ref": "#/$defs/sqlIdentifier" },
+              "constraint": { "$ref": "#/$defs/sqlIdentifier" },
+              "source": {
+                "description": "Relation whose rows the counter counts. Must match an [[obligation_source]] entry when present.",
+                "$ref": "#/$defs/qualifiedRelation"
+              },
+              "polarity": {
+                "description": "zero_when_complete: the counter must be 0 to complete. offset_allowed: a companion counter may offset it (e.g. a countersignature offsetting an unmet reading floor).",
+                "enum": ["zero_when_complete", "offset_allowed"],
+                "default": "zero_when_complete"
+              },
+              "offset_column": { "$ref": "#/$defs/sqlIdentifier" }
+            }
+          }
+        }
+      }
+    },
+    "authoritySource": {
+      "description": "The compile-time form of spec rule P-2. Declares that these projected columns are derived from this relation, by this key, and that a missing row REFUSES.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["projects", "relation", "key", "columns", "on_missing"],
+      "properties": {
+        "projects": {
+          "description": "The gate columns this entry backs, relation-qualified. Must exactly cover the {# @projects #} pragmas of the templates that render them.",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/qualifiedColumn" }
+        },
+        "relation": {
+          "description": "The authoritative relation. It MUST NOT be writable by any role that can write the projected table, or the projection is derived from the inserter and P-2 is violated.",
+          "$ref": "#/$defs/qualifiedRelation"
+        },
+        "key": {
+          "description": "Columns of the projected row used to look up the authority row, in order.",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/sqlIdentifier" }
+        },
+        "columns": {
+          "description": "Columns of the authority relation read, positionally corresponding to `projects`.",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "items": { "$ref": "#/$defs/sqlIdentifier" }
+        },
+        "on_missing": {
+          "description": "The ONLY legal value is \"raise\". A binding that defaults, infers or passes on a missing authority row is not TRAPPOINT. Absence of evidence refuses.",
+          "const": "raise"
+        },
+        "raise_via": {
+          "description": "Optional. \"p0001\" raises directly (default). \"strictest_projection\" projects the strictest legal values and lets a constraint-backed refusal fire with its name attached — required wherever such a constraint exists (spec P-3, errors.md §3.3 corollary 2).",
+          "enum": ["p0001", "strictest_projection"],
+          "default": "p0001"
+        },
+        "strictest": {
+          "description": "Required when raise_via = \"strictest_projection\": the strictest legal value for each projected column, keyed by the unqualified column name.",
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": { "type": ["string", "integer", "boolean"] }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "raise_via": { "const": "strictest_projection" } },
+            "required": ["raise_via"]
+          },
+          "then": { "required": ["strictest"] }
+        }
+      ]
+    },
+    "obligationSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["relation", "counter"],
+      "properties": {
+        "relation": { "$ref": "#/$defs/qualifiedRelation" },
+        "counter": {
+          "description": "The subject column this relation's rows increment.",
+          "$ref": "#/$defs/sqlIdentifier"
+        },
+        "subject_kinds": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/sqlIdentifier" }
+        },
+        "dedupe_key_column": { "$ref": "#/$defs/sqlIdentifier" },
+        "bumps_epoch": {
+          "description": "Spec N-2. Always true for a real obligation; present so a binding cannot omit the epoch bump silently.",
+          "type": "boolean",
+          "default": true
+        }
+      }
+    },
+    "capabilities": {
+      "description": "Render-time switches for platform capabilities whose availability is decided by a dated ground-truth check, never at runtime. Both branches of every switch must emit committed, readable SQL: an unverified capability may not reach a rendered migration, and the fallback is SQL a reviewer can read rather than a branch a reviewer must trust.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["attestation", "stored_digest", "triggerdef"],
+      "properties": {
+        "attestation": {
+          "description": "Repository-relative path to the ground-truth attestation JSON. `trappoint render` exits non-zero if it is absent or marks a required capability UNKNOWN.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "stored_digest": {
+          "description": "Ground-truth gate GT-13 (digest() legal in a STORED generated column). \"stored\" renders the generated dedupe key; \"client_computed\" renders a plain BYTES column with a length CHECK and a verifying trigger.",
+          "enum": ["stored", "client_computed"]
+        },
+        "triggerdef": {
+          "description": "Ground-truth gate GT-05 (pg_get_triggerdef availability). \"pg_get_triggerdef\" gives per-object self-attestation; \"show_create_table\" is the weaker table-granular fallback and the self-attestation claim softens in the same commit that selects it.",
+          "enum": ["pg_get_triggerdef", "show_create_table"]
+        },
+        "isolation": {
+          "description": "Isolation level the gate transaction sets EXPLICITLY. Never inherited from a pool default.",
+          "enum": ["serializable", "read_committed"],
+          "default": "serializable"
+        }
+      }
+    }
+  }
+}

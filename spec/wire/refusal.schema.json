@@ -1,0 +1,327 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spec.trappoint.org/1.0/wire/refusal.schema.json",
+  "$comment": "Normative wire schema for the TRAPPOINT refusal payload. Prose contract: refusal.md. Licensing: see refusal.schema.json.license (REUSE sidecar; JSON admits no comment syntax).",
+  "title": "TRAPPOINT refusal payload",
+  "description": "The irreducible reason set and nearest admissible alternative emitted for every REFUSE-class gate outcome. Invariant I14.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "spec_version",
+    "refusal_id",
+    "observed_at",
+    "class",
+    "sqlstate",
+    "constraint",
+    "message",
+    "subject_kind",
+    "subject_id",
+    "gate_epoch",
+    "diagnosis",
+    "probe_calls",
+    "mus",
+    "naa"
+  ],
+  "properties": {
+    "spec_version": {
+      "description": "TRAPPOINT specification version this payload claims to satisfy.",
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(-[0-9A-Za-z.-]+)?$"
+    },
+    "refusal_id": { "$ref": "#/$defs/uuid" },
+    "observed_at": {
+      "description": "RFC 3339 UTC instant at which the refusal was observed by the emitter.",
+      "type": "string",
+      "format": "date-time"
+    },
+    "profile": {
+      "description": "Conformance profile of the emitting deployment.",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "class": {
+      "description": "Only REFUSE-class outcomes are payloads. RETRY and DENY outcomes are not refusals.",
+      "const": "gate"
+    },
+    "sqlstate": {
+      "description": "The refusal code. 40001 is excluded: an undecided transaction has no reason set.",
+      "enum": ["23514", "23503", "23505", "P0001"]
+    },
+    "constraint": {
+      "description": "The exhibit name. For 23514/23503/23505 the constraint or unique-index name reported by the driver; for P0001 the fully-qualified name of the raising trigger function, UDF or procedure.",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z_][A-Za-z0-9_.$]*$"
+    },
+    "constraint_source": {
+      "description": "reported = taken from driver diagnostics; parsed = recovered from the message text, which is a WEAKENED diagnosis and must be rendered as such.",
+      "enum": ["reported", "parsed"],
+      "default": "reported"
+    },
+    "message": {
+      "description": "The database message verbatim, including its MAINLINE: / TRAPPOINT: prefix.",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048
+    },
+    "subject_kind": {
+      "description": "The gated subject kind as declared in the vertical binding.",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[a-z][a-z0-9_]*$"
+    },
+    "subject_id": { "$ref": "#/$defs/uuid" },
+    "gate_epoch": {
+      "description": "The subject's gate_epoch at the moment of refusal. Without it the refusal cannot be replayed.",
+      "type": "integer",
+      "minimum": 0
+    },
+    "diagnosis": {
+      "description": "How the minimal unsatisfiable subset was obtained.",
+      "enum": ["declarative", "quickxplain", "none"]
+    },
+    "probe_calls": {
+      "description": "Oracle calls consumed by the QuickXplain probe loop. Zero for a declarative diagnosis.",
+      "type": "integer",
+      "minimum": 0
+    },
+    "mus": {
+      "description": "The minimal unsatisfiable subset: remove any one element and the transition would have been admissible.",
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 256,
+      "items": { "$ref": "#/$defs/musAtom" }
+    },
+    "naa": {
+      "description": "The nearest admissible alternative, or null with naa_reason set.",
+      "oneOf": [{ "$ref": "#/$defs/naa" }, { "type": "null" }]
+    },
+    "naa_reason": {
+      "description": "Required and non-null exactly when naa is null.",
+      "oneOf": [
+        {
+          "enum": [
+            "probe_budget_exhausted",
+            "no_legal_verdict_exists",
+            "requires_human_authority",
+            "not_computable"
+          ]
+        },
+        { "type": "null" }
+      ]
+    },
+    "evidence": {
+      "description": "Pointers a third party can follow without the emitter's cooperation.",
+      "type": "array",
+      "maxItems": 64,
+      "items": { "$ref": "#/$defs/evidenceItem" }
+    },
+    "ext": {
+      "description": "Vertical-specific extension object. The substrate never reads it. It MUST NOT carry any score, rating, threshold or characterisation of a named human (invariant I15).",
+      "type": "object"
+    }
+  },
+  "allOf": [
+    {
+      "$comment": "naa null <-> naa_reason non-null.",
+      "if": { "properties": { "naa": { "type": "null" } }, "required": ["naa"] },
+      "then": {
+        "required": ["naa_reason"],
+        "properties": { "naa_reason": { "type": "string" } }
+      },
+      "else": {
+        "properties": { "naa_reason": { "type": "null" } }
+      }
+    },
+    {
+      "$comment": "A declarative diagnosis consumes no probe budget.",
+      "if": { "properties": { "diagnosis": { "const": "declarative" } }, "required": ["diagnosis"] },
+      "then": { "properties": { "probe_calls": { "const": 0 } } }
+    },
+    {
+      "$comment": "diagnosis=none cannot assert a nearest admissible alternative.",
+      "if": { "properties": { "diagnosis": { "const": "none" } }, "required": ["diagnosis"] },
+      "then": { "properties": { "naa": { "type": "null" } } }
+    }
+  ],
+  "$defs": {
+    "uuid": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+    },
+    "digest": {
+      "description": "Prefixed digest, e.g. sha256:<hex>. Presence is not verification.",
+      "type": "string",
+      "pattern": "^(sha256|sha384|sha512):[0-9a-f]+$"
+    },
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "musAtom": {
+      "description": "One fact of the irreducible reason set, tagged by kind.",
+      "type": "object",
+      "required": ["kind"],
+      "oneOf": [
+        {
+          "$comment": "An open obligation attached to the subject.",
+          "additionalProperties": false,
+          "required": ["kind", "obligation_id"],
+          "properties": {
+            "kind": { "const": "obligation" },
+            "obligation_id": { "$ref": "#/$defs/uuid" },
+            "origin": { "$ref": "#/$defs/identifier" },
+            "clause_id": { "$ref": "#/$defs/uuid" },
+            "event_id": { "$ref": "#/$defs/uuid" },
+            "severity": { "type": "integer", "minimum": 0, "maximum": 5 },
+            "virulence": { "$ref": "#/$defs/identifier" },
+            "detail": { "type": "string", "maxLength": 512 }
+          }
+        },
+        {
+          "$comment": "A cited clause whose ancestry armed the gate.",
+          "additionalProperties": false,
+          "required": ["kind", "clause_id"],
+          "properties": {
+            "kind": { "const": "clause" },
+            "clause_id": { "$ref": "#/$defs/uuid" },
+            "commit_id": { "type": "string", "pattern": "^[0-9a-f]+$", "maxLength": 128 },
+            "relation": { "$ref": "#/$defs/identifier" },
+            "detail": { "type": "string", "maxLength": 512 }
+          }
+        },
+        {
+          "$comment": "A precursor event bonded into the ancestry.",
+          "additionalProperties": false,
+          "required": ["kind", "event_id"],
+          "properties": {
+            "kind": { "const": "event" },
+            "event_id": { "$ref": "#/$defs/uuid" },
+            "severity": { "type": "integer", "minimum": 0, "maximum": 5 },
+            "detail": { "type": "string", "maxLength": 512 }
+          }
+        },
+        {
+          "$comment": "The authority source holds no row for this key. The gate failed closed.",
+          "additionalProperties": false,
+          "required": ["kind", "relation", "key"],
+          "properties": {
+            "kind": { "const": "authority_gap" },
+            "relation": { "$ref": "#/$defs/identifier" },
+            "key": {
+              "type": "object",
+              "minProperties": 1,
+              "additionalProperties": { "type": ["string", "integer", "null"] }
+            },
+            "detail": { "type": "string", "maxLength": 512 }
+          }
+        },
+        {
+          "$comment": "A required verdict, credential, predicate or anchor does not exist.",
+          "additionalProperties": false,
+          "required": ["kind", "capability"],
+          "properties": {
+            "kind": { "const": "capability_gap" },
+            "capability": { "$ref": "#/$defs/identifier" },
+            "required_value": { "type": ["string", "integer", "boolean", "null"] },
+            "observed_value": { "type": ["string", "integer", "boolean", "null"] },
+            "detail": { "type": "string", "maxLength": 512 }
+          }
+        }
+      ]
+    },
+    "naa": {
+      "description": "Minimum-cardinality change to the attempted history that restores admissibility.",
+      "type": "object",
+      "required": ["kind", "description"],
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "required": ["kind", "description", "obligation_ids", "cardinality"],
+          "properties": {
+            "kind": { "const": "dispose_obligations" },
+            "obligation_ids": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 256,
+              "items": { "$ref": "#/$defs/uuid" }
+            },
+            "cardinality": { "type": "integer", "minimum": 1 },
+            "legal_kinds": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/identifier" }
+            },
+            "description": { "type": "string", "minLength": 1, "maxLength": 512 }
+          }
+        },
+        {
+          "additionalProperties": false,
+          "required": ["kind", "description", "legal_kinds"],
+          "properties": {
+            "kind": { "const": "substitute_kind" },
+            "legal_kinds": {
+              "type": "array",
+              "minItems": 1,
+              "items": { "$ref": "#/$defs/identifier" }
+            },
+            "cardinality": { "type": "integer", "minimum": 1 },
+            "description": { "type": "string", "minLength": 1, "maxLength": 512 }
+          }
+        },
+        {
+          "additionalProperties": false,
+          "required": ["kind", "description", "required"],
+          "properties": {
+            "kind": { "const": "supply_evidence" },
+            "required": {
+              "type": "array",
+              "minItems": 1,
+              "items": { "$ref": "#/$defs/identifier" }
+            },
+            "cardinality": { "type": "integer", "minimum": 1 },
+            "description": { "type": "string", "minLength": 1, "maxLength": 512 }
+          }
+        },
+        {
+          "additionalProperties": false,
+          "required": ["kind", "description", "relation", "key"],
+          "properties": {
+            "kind": { "const": "materialise_authority" },
+            "relation": { "$ref": "#/$defs/identifier" },
+            "key": {
+              "type": "object",
+              "minProperties": 1,
+              "additionalProperties": { "type": ["string", "integer", "null"] }
+            },
+            "cardinality": { "type": "integer", "minimum": 1 },
+            "description": { "type": "string", "minLength": 1, "maxLength": 512 }
+          }
+        },
+        {
+          "additionalProperties": false,
+          "required": ["kind", "description", "parent_subject_id"],
+          "properties": {
+            "kind": { "const": "fork_subject" },
+            "parent_subject_id": { "$ref": "#/$defs/uuid" },
+            "cardinality": { "type": "integer", "minimum": 1 },
+            "description": { "type": "string", "minLength": 1, "maxLength": 512 }
+          }
+        }
+      ]
+    },
+    "evidenceItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "ref"],
+      "properties": {
+        "kind": { "$ref": "#/$defs/identifier" },
+        "ref": { "type": "string", "minLength": 1, "maxLength": 512 },
+        "digest": { "$ref": "#/$defs/digest" }
+      }
+    }
+  }
+}

@@ -1,0 +1,93 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+#
+# CANONHOLD de-hyphenation lexicon (canon_version = 1).
+#
+# Used ONLY at a line-wrap hyphen ("word-" at end of line, continuation on the
+# next).  The decision order is fixed in mainline_domain.canon.dehyphen:
+#
+#   1. joined-with-hyphen is in `compounds`      -> keep the hyphen
+#   2. joined-without-hyphen is in `words`       -> join
+#   3. both fragments are in `words`             -> keep the hyphen
+#   4. otherwise                                 -> join
+#
+# Rule 4 is the default because a hyphen at a line wrap is overwhelmingly a
+# typesetting artefact.  `compounds` exists to protect the genuine ones, and it
+# is checked FIRST so that a compound whose closed form also happens to be a
+# word ("lock-out" / "lockout") resolves the same way whether or not the line
+# happened to wrap there.  That stability is the whole point: identical text,
+# different wrapping, one digest.
+#
+# Entries are compared casefolded.  Adding an entry changes digests, so it is a
+# canon_version bump, not an edit.
+
+[lexicon]
+version = 1
+
+# Closed forms.  A wrap hyphen inside one of these is an artefact.
+words = [
+  "abnormal", "acceptance", "accordance", "acknowledge", "actuator",
+  "alarm", "ambient", "analyser", "asphyxiant", "assessment", "atmosphere",
+  "atmospheric", "attendant", "authorisation", "authorised", "authority",
+  "barricade", "blanking", "blinding", "breathing", "calibration",
+  "certificate", "certification", "clearance", "combustible", "commissioning",
+  "communication", "competent", "compliance", "component", "condition",
+  "conductor", "confined", "confinement", "confirmation", "connection",
+  "containment", "contamination", "continuous", "contractor", "controlled",
+  "corrosive", "criticality", "cryogenic", "custodian", "dangerous",
+  "decommissioning", "deenergise", "deenergised", "demonstrate", "depressurise",
+  "depressurised", "designated", "detection", "deviation", "discharge",
+  "disconnect", "documentation", "electrical", "elevated", "emergency",
+  "energised", "engineering", "entrant", "environment", "equipment",
+  "escalation", "evacuation", "excavation", "exclusion", "explosive",
+  "exposure", "extinguisher", "fatality", "flammable", "flashback",
+  "flowmeter", "frequency", "generation", "grounding", "hazardous",
+  "hydrocarbon", "hydrostatic", "identification", "ignition", "immediately",
+  "impairment", "incident", "independent", "inspection", "installation",
+  "instruction", "instrument", "instrumentation", "insulation", "integrity",
+  "interlock", "intrusive", "inventory", "investigation", "isolation",
+  "isolated", "laboratory", "legislation", "lifecycle", "lifting",
+  "maintenance", "management", "mandatory", "manufacturer", "measurement",
+  "mechanical", "monitoring", "notification", "obligation", "occupational",
+  "operational", "operator", "overpressure", "oxygen", "penetration",
+  "performance", "permanent", "permissible", "personnel", "pipework",
+  "pneumatic", "positive", "precaution", "pressure", "pressurised",
+  "prevention", "procedure", "protection", "protective", "pyrophoric",
+  "qualification", "radiation", "radiography", "reactive", "receiver",
+  "recognised", "recommendation", "reconciliation", "recording", "reduction",
+  "redundancy", "reference", "registration", "regulation", "regulatory",
+  "reinstate", "reinstatement", "reliability", "requirement", "rescue",
+  "residual", "respirator", "responsibility", "responsible", "restoration",
+  "restricted", "resuscitation", "retention", "reverification", "revalidation",
+  "scaffold", "scaffolding", "signature", "specification", "stakeholder",
+  "standard", "statutory", "sterilisation", "structural", "substance",
+  "supervision", "supervisor", "surveillance", "suspension", "temperature",
+  "temporary", "terminate", "termination", "threshold", "tolerance",
+  "toxicity", "transfer", "transformer", "ultrasonic", "unauthorised",
+  "underground", "ventilation", "verification", "verify", "vessel",
+  "vibration", "witness", "workplace",
+]
+
+# Genuine hyphenated compounds.  A wrap hyphen here is the compound's own.
+compounds = [
+  "arc-flash", "as-built", "back-up", "break-in", "brown-field",
+  "call-out", "change-out", "check-list", "close-out", "cold-work",
+  "come-along", "cross-check", "cross-connection", "cross-reference",
+  "de-energise", "de-energised", "de-isolate", "double-block",
+  "drop-out", "dry-out", "end-of-life", "fail-safe", "fit-for-purpose",
+  "flame-proof", "follow-up", "gas-free", "gas-test", "go-no-go",
+  "hand-back", "hand-over", "hard-barricade", "high-high", "high-risk",
+  "hold-point", "hot-work", "in-service", "in-situ", "intrinsically-safe",
+  "job-safety", "lay-down", "let-down", "life-critical", "line-break",
+  "lock-out", "log-book", "long-term", "low-low", "make-safe",
+  "man-way", "near-miss", "non-conformance", "non-destructive", "non-routine",
+  "non-sparking", "on-site", "over-pressure", "pre-job", "pre-start",
+  "pre-task", "pre-use", "pressure-test", "re-entry", "re-instatement",
+  "re-test", "risk-based", "roll-back", "safety-critical", "self-contained",
+  "self-rescue", "set-point", "shift-change", "short-term", "shut-down",
+  "sign-off", "sign-on", "single-point", "site-specific", "spark-proof",
+  "stand-by", "start-up", "step-back", "stop-work", "sub-surface",
+  "switch-room", "tag-out", "take-five", "third-party", "tie-in",
+  "time-based", "toolbox-talk", "turn-around", "two-man", "walk-down",
+  "work-at-height", "work-permit",
+]

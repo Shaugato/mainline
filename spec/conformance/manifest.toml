@@ -1,0 +1,1098 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# TRAPPOINT conformance manifest — the SINGLE SOURCE OF TRUTH for the suite.
+#
+# Every case is an ILLEGAL HISTORY (or, for class = "admit", a legal one that must stay legal),
+# asserting an EXACT SQLSTATE and an EXACT exhibit name. A test that asserts "an exception was
+# raised" is worthless in a product whose deliverable is the diagnosis.
+#
+# Normative reading: spec/TRAPPOINT-SPEC.md §6, spec/errors.md §3.1, spec/conformance/README.md.
+# Where this file disagrees with prose anywhere in spec/, THIS FILE WINS.
+
+[manifest]
+spec_version = "1.0.0-rc.1"
+case_count = 71
+# Exactly 45 cases carry the "trappoint-ref" profile. `trappoint-conform --profile trappoint-ref`
+# therefore reports 45/45, which is the K1 / G2 exit string.
+ref_profile_case_count = 45
+profiles = ["mainline", "trappoint-ref"]
+
+# The four expectation classes (spec/errors.md §1).
+#   gate   — a REFUSE-class outcome: 23514 / 23503 / 23505 / P0001
+#   retry  — a RETRY-class outcome: 40001, and only 40001
+#   deny   — a DENY-class outcome: 42501, refused BEFORE the gate by grant or policy
+#   admit  — the history must complete: 00000
+classes = ["gate", "retry", "deny", "admit"]
+gate_taxonomy = ["23514", "23503", "23505", "P0001"]
+retry_taxonomy = ["40001"]
+deny_taxonomy = ["42501"]
+
+# `expect_constraint` is the EXHIBIT NAME and is never empty:
+#   23514/23503/23505 -> the constraint or unique-index name from diag.constraint_name
+#   P0001             -> the fully-qualified raising trigger function / UDF / procedure
+#   40001             -> the projected column that carried the materialised conflict
+#   42501             -> grant:<verb>:<object>:<role>, or the RLS policy name
+#   00000             -> the SQL object that had to permit the write
+exhibit_semantics = "spec/errors.md#31-expect_constraint-semantics"
+
+# Anomaly identifiers A1-A14 come from the merge-gate anomaly analysis; "none" means the case is a
+# static illegal history rather than a concurrency anomaly. ANOMALY_COVERAGE.md is generated from
+# these values and CI fails if any of A1-A14 has zero cases.
+anomalies = ["A1","A2","A3","A4","A5","A6","A7","A8","A9","A10","A11","A12","A13","A14","none"]
+
+# ─────────────────────────────────────────────────────────────────────────────
+# GROUP 1 — the merge gate on a permit. The product, six independent refusals.
+# ─────────────────────────────────────────────────────────────────────────────
+
+[[case]]
+id = "CF-01"
+title = "Merge a permit carrying one open blocking check"
+class = "gate"
+invariants = ["I02"]
+mi = ["MI02"]
+anomaly = "none"
+expect_sqlstate = "23514"
+expect_constraint = "gate_closed_when_issued"
+profiles = ["mainline", "trappoint-ref"]
+refusal_depth_min = 2
+milestone = "K1"
+note = "The first case ever written and the first observed RED. The trigger must NOT pre-empt the CHECK: the exhibit is the constraint name."
+
+[[case]]
+id = "CF-02"
+title = "Merge a permit whose only disposition expired before the merge"
+class = "gate"
+invariants = ["I02", "I12"]
+mi = ["MI02"]
+anomaly = "A11"
+expect_sqlstate = "P0001"
+expect_constraint = "mainline.fn_permit_merge_gate"
+profiles = ["mainline", "trappoint-ref"]
+refusal_depth_min = 2
+milestone = "K1"
+note = "now() is not immutable, so no CHECK can hold this. P0001 is legitimate here (errors.md §2.5 case 1)."
+
+[[case]]
+id = "CF-03"
+title = "Merge a permit whose open_blocking counter was forced to zero out of band"
+class = "gate"
+invariants = ["I02"]
+mi = ["MI02"]
+anomaly = "A8"
+expect_sqlstate = "P0001"
+expect_constraint = "mainline.fn_permit_merge_gate"
+profiles = ["mainline", "trappoint-ref"]
+refusal_depth_min = 2
+milestone = "K1"
+note = "Counter drift. The anti-join re-derivation disagrees with the projection and refuses on drift, which is why the projection is enforced and never trusted."
+
+[[case]]
+id = "CF-04"
+title = "Merge a permit with no merged_commit"
+class = "gate"
+invariants = ["I02"]
+mi = ["MI02"]
+anomaly = "none"
+expect_sqlstate = "23514"
+expect_constraint = "merge_evidence"
+profiles = ["mainline", "trappoint-ref"]
+refusal_depth_min = 2
+milestone = "K1"
+
+[[case]]
+id = "CF-05"
+title = "Merge a permit with an unmet reading floor and no countersignature"
+class = "gate"
+invariants = ["I02"]
+mi = []
+anomaly = "none"
+expect_sqlstate = "23514"
+expect_constraint = "reading_floor_when_issued"
+profiles = ["mainline", "trappoint-ref"]
+refusal_depth_min = 2
+milestone = "K1"
+note = "Fast stays legal; it just names a second person. The consequence is priced, not punished."
+
+[[case]]
+id = "CF-06"
+title = "Merge a permit citing a clause for which the authority source holds no row"
+class = "gate"
+invariants = ["I02"]
+mi = ["MI22"]
+anomaly = "none"
+expect_sqlstate = "P0001"
+expect_constraint = "mainline.fn_permit_merge_gate"
+profiles = ["mainline", "trappoint-ref"]
+refusal_depth_min = 2
+milestone = "K1"
+note = "FAIL CLOSED. A stale closure refusing while a missing one admitted was the original bug, and it is the one with physical consequences."
+
+# ─────────────────────────────────────────────────────────────────────────────
+# GROUP 2 — the two named projection cases. CF-07 is the claim the company is built on.
+# ─────────────────────────────────────────────────────────────────────────────
+
+[[case]]
+id = "CF-07"
+title = "A check claiming virulence='routine', severity=1 on a clause whose closure holds max_severity=5, then a mechanism_absent disposition against it"
+class = "gate"
+invariants = ["I02", "I10"]
+mi = ["MI25", "MI11"]
+anomaly = "none"
+expect_sqlstate = "23503"
+expect_constraint = "fk_clearance"
+profiles = ["mainline", "trappoint-ref"]
+refusal_depth_min = 1
+milestone = "K1"
+asserts_stored_row = "blocking_check.severity = 5 AND blocking_check.virulence = 'blood_fatal'"
+note = "THE named case. Two assertions, both required: the check row is REWRITTEN by the projection trigger regardless of what the inserter supplied, and the disposition then fails the clearance lattice by name. Must be the first case green."
+
+[[case]]
+id = "CF-08"
+title = "Rewrite the blame closure: as an UPDATE, then as a new generation with a lowered severity"
+class = "gate"
+invariants = ["I01", "I05"]
+mi = ["MI26", "MI01"]
+anomaly = "none"
+expect_sqlstate = "P0001"
+expect_constraint = "mainline.fn_refuse_mutation"
+secondary_sqlstate = "P0001"
+secondary_constraint = "mainline.fn_closure_guard"
+profiles = ["mainline", "trappoint-ref"]
+refusal_depth_min = 2
+milestone = "K1"
+note = "Both halves are required. Append-only stops the UPDATE; the monotone guard stops the same attack dressed as a new generation."
+
+# ─────────────────────────────────────────────────────────────────────────────
+# GROUP 3 — PIN, the linear head, and the compare-and-swap
+# ─────────────────────────────────────────────────────────────────────────────
+
+[[case]]
+id = "CF-09"
+title = "Merge the same subject twice"
+class = "gate"
+invariants = ["I04"]
+mi = ["MI09"]
+anomaly = "A4"
+expect_sqlstate = "23505"
+expect_constraint = "merge_record_pkey"
+profiles = ["mainline", "trappoint-ref"]
+refusal_depth_min = 2
+milestone = "K1"
+
+[[case]]
+id = "CF-10"
+title = "Materialise a blocking check against an already-merged permit"
+class = "gate"
+invariants = ["I03"]
+mi = ["MI07"]
+anomaly = "A2"
+expect_sqlstate = "P0001"
+expect_constraint = "mainline.fn_check_materialised"
+profiles = ["mainline", "trappoint-ref"]
+refusal_depth_min = 3
+milestone = "K1"
+note = "Depth 3 and it must be proved: delete the RAISE and the write still fails twice over — open_blocking > 0 on a merged row (23514) and a mutated pinned gate_epoch (23503). Runtime observes the RAISE; the redundancy is proved by unwelding only."
+
+[[case]]
+id = "CF-11"
+title = "Materialise the same weaken_over_blood check twice with precursor_event_id NULL"
+class = "admit"
+invariants = ["I02"]
+mi = []
+anomaly = "none"
+expect_sqlstate = "00000"
+expect_constraint = "blocking_check_dedupe_key_key"
+profiles = ["mainline", "trappoint-ref"]
+refusal_depth_min = 1
+milestone = "K1"
+asserts_stored_row = "count(blocking_check) = 1 AND permit.open_blocking = 1"
+note = "NULLs are distinct in a unique index, so a naive ON CONFLICT would fail to dedupe six of the eight origins. The digest with coalesce sentinels is the mechanism and this case is the proof that it absorbs rather than refuses."
+
+[[case]]
+id = "CF-12"
+title = "Two live dispositions against one blocking check"
+class = "gate"
+invariants = ["I09"]
+mi = ["MI08"]
+anomaly = "A6"
+expect_sqlstate = "23505"
+expect_constraint = "one_live_disposition"
+profiles = ["mainline", "trappoint-ref"]
+refusal_depth_min = 1
+milestone = "K1"
+
+[[case]]
+id = "CF-13"
+title = "Transition a permit straight from draft to merged"
+class = "gate"
+invariants = ["I04"]
+mi = ["MI10"]
+anomaly = "A7"
+expect_sqlstate = "23503"
+expect_constraint = "legal_edge"
+profiles = ["mainline", "trappoint-ref"]
+refusal_depth_min = 1
+milestone = "K1"
+note = "An illegal transition is 23503 against queryable data, not an `if` statement a future commit can delete."
+
+[[case]]
+id = "CF-14"
+title = "Two permit_event rows appended from the same head"
+class = "gate"
+invariants = ["I04"]
+mi = ["MI09", "MI24"]
+anomaly = "A4"
+expect_sqlstate = "23505"
+expect_constraint = "linear"
+profiles = ["mainline", "trappoint-ref"]
+refusal_depth_min = 1
+milestone = "K1"
+note = "A chain, not a tree. UNIQUE (permit_id, prev_seq) is a lock-free CAS and holds even at READ COMMITTED."
+
+[[case]]
+id = "CF-15"
+title = "Two cr_event rows appended from the same head"
+class = "gate"
+invariants = ["I04"]
+mi = ["MI09", "MI24"]
+anomaly = "A4"
+expect_sqlstate = "23505"
+expect_constraint = "cr_linear"
+profiles = ["mainline", "trappoint-ref"]
+refusal_depth_min = 1
+milestone = "K1"
+note = "The mirrored exhibit name is required by spec R-3: the constraint name alone must identify the refusal without a qualifying table."
+
+[[case]]
+id = "CF-16"
+title = "Append a permit_event whose prev_digest does not match the predecessor's chain_digest"
+class = "gate"
+invariants = ["I01", "I04"]
+mi = ["MI24"]
+anomaly = "A9"
+expect_sqlstate = "P0001"
+expect_constraint = "mainline.fn_permit_event_chain"
+profiles = ["mainline", "trappoint-ref"]
+refusal_depth_min = 1
+milestone = "K1"
+note = "The chain input is VERIFIED, not trusted. This is the difference between a comment claiming a chain and a chain."
+
+[[case]]
+id = "CF-17"
+title = "Append a permit_event declaring a prev_seq with no predecessor row"
+class = "gate"
+invariants = ["I04"]
+mi = ["MI24"]
+anomaly = "A4"
+expect_sqlstate = "P0001"
+expect_constraint = "mainline.fn_permit_event_chain"
+profiles = ["mainline", "trappoint-ref"]
+refusal_depth_min = 1
+milestone = "K1"
+
+[[case]]
+id = "CF-18"
+title = "Disposition against a (receipt, check) pair that was never materialised to the signing actor"
+class = "gate"
+invariants = ["I09"]
+mi = ["MI12"]
+anomaly = "none"
+expect_sqlstate = "23503"
+expect_constraint = "fk_exposure"
+profiles = ["mainline", "trappoint-ref"]
+refusal_depth_min = 1
+milestone = "K1"
+note = "\"It never showed me\" and \"I signed without looking\" are both violations of one foreign key."
+
+# ─────────────────────────────────────────────────────────────────────────────
+# GROUP 4 — identity, exposure and the signature block
+# ─────────────────────────────────────────────────────────────────────────────
+
+[[case]]
+id = "CF-19"
+title = "Sign with a client-supplied signer_rank of 6 on a person whose live rank is 2"
+class = "gate"
+invariants = ["I02"]
+mi = ["MI27"]
+anomaly = "A14"
+expect_sqlstate = "23514"
+expect_constraint = "rank_floor"
+profiles = ["mainline", "trappoint-ref"]
+refusal_depth_min = 1
+milestone = "K1"
+asserts_stored_row = "disposition.signer_rank = 2"
+note = "The projection overwrites and THEN the CHECK refuses. Asserting only the 23514 would pass against an implementation that trusted the client and happened to have a low floor."
+
+[[case]]
+id = "CF-20"
+title = "Disposition signed by a subject with no person row"
+class = "gate"
+invariants = ["I02"]
+mi = ["MI27"]
+anomaly = "none"
+expect_sqlstate = "P0001"
+expect_constraint = "mainline.fn_disposition_project"
+profiles = ["mainline", "trappoint-ref"]
+refusal_depth_min = 1
+milestone = "K1"
+note = "Fail closed on identity. A missing competency record is not a competency of unknown value."
+
+[[case]]
+id = "CF-21"
+title = "Disposition against an exposure receipt that has already expired"
+class = "gate"
+invariants = ["I09"]
+mi = []
+anomaly = "none"
+expect_sqlstate = "P0001"
+expect_constraint = "mainline.fn_disposition_project"
+profiles = ["mainline", "trappoint-ref"]
+refusal_depth_min = 1
+milestone = "K1"
+
+[[case]]
+id = "CF-22"
+title = "Run the entire gate transaction with FORCE ROW LEVEL SECURITY active, then drop the write policy"
+class = "admit"
+invariants = ["I02"]
+mi = []
+anomaly = "none"
+expect_sqlstate = "00000"
+expect_constraint = "gate_write"
+secondary_sqlstate = "42501"
+secondary_constraint = "gate_write"
+profiles = ["mainline"]
+refusal_depth_min = 1
+milestone = "K1"
+requires = ["policy:mainline.permit"]
+note = "With FORCE and no write policy the default is DENY and the gate locks itself out. SKIP WITH REASON while pg_policies is empty; HARD FAIL once it is not, so it can never quietly pass by absence."
+
+[[case]]
+id = "CF-23"
+title = "accept_residual disposition at virulence blood_major"
+class = "gate"
+invariants = ["I10"]
+mi = ["MI11"]
+anomaly = "none"
+expect_sqlstate = "23503"
+expect_constraint = "fk_clearance"
+profiles = ["mainline", "trappoint-ref"]
+refusal_depth_min = 1
+milestone = "K1"
+note = "One of the three deliberately absent cells. The absence is versioned data with a named approver, so contesting it is an amendment with a signature rather than a code change."
+
+[[case]]
+id = "CF-24"
+title = "Disposition with a rationale shorter than the substantive floor"
+class = "gate"
+invariants = ["I11"]
+mi = []
+anomaly = "A14"
+expect_sqlstate = "23514"
+expect_constraint = "substantive"
+profiles = ["mainline"]
+refusal_depth_min = 1
+milestone = "K1"
+note = "Vertical policy, not a kernel property: the floor is a number the customer signs. A14 cannot be retired by any of this and the corpus must never claim it can."
+
+[[case]]
+id = "CF-25"
+title = "Disposition recorded with user_verified = false"
+class = "gate"
+invariants = ["I09"]
+mi = []
+anomaly = "none"
+expect_sqlstate = "23514"
+expect_constraint = "uv_required"
+profiles = ["mainline", "trappoint-ref"]
+refusal_depth_min = 1
+milestone = "K1"
+note = "The difference between \"a token was present\" and \"a person authenticated\"."
+
+[[case]]
+id = "CF-26"
+title = "Countersignature made with the signer's own credential"
+class = "gate"
+invariants = ["I09"]
+mi = []
+anomaly = "none"
+expect_sqlstate = "23514"
+expect_constraint = "distinct_credential"
+profiles = ["mainline", "trappoint-ref"]
+refusal_depth_min = 1
+milestone = "K1"
+note = "Refuses the shared-tablet defeat: a countersignature means a different key."
+
+[[case]]
+id = "CF-27"
+title = "Clearance kind requiring a second signer, supplied without one"
+class = "gate"
+invariants = ["I10"]
+mi = ["MI11"]
+anomaly = "none"
+expect_sqlstate = "23514"
+expect_constraint = "needs_second_signer"
+profiles = ["mainline", "trappoint-ref"]
+refusal_depth_min = 1
+milestone = "K1"
+
+[[case]]
+id = "CF-28"
+title = "Clearance kind requiring a foreign-org countersigner, countersigned inside the same org"
+class = "gate"
+invariants = ["I10"]
+mi = ["MI11"]
+anomaly = "none"
+expect_sqlstate = "23514"
+expect_constraint = "needs_foreign_org"
+profiles = ["mainline", "trappoint-ref"]
+refusal_depth_min = 1
+milestone = "K1"
+
+[[case]]
+id = "CF-29"
+title = "Clearance kind requiring a compensating control, supplied without one"
+class = "gate"
+invariants = ["I10"]
+mi = ["MI11"]
+anomaly = "none"
+expect_sqlstate = "23514"
+expect_constraint = "needs_compensating"
+profiles = ["mainline", "trappoint-ref"]
+refusal_depth_min = 1
+milestone = "K1"
+
+[[case]]
+id = "CF-30"
+title = "mechanism_absent disposition with no bounded machine-checkable predicate"
+class = "gate"
+invariants = ["I10", "I12"]
+mi = ["MI11"]
+anomaly = "none"
+expect_sqlstate = "23514"
+expect_constraint = "needs_predicate"
+profiles = ["mainline", "trappoint-ref"]
+refusal_depth_min = 1
+milestone = "K1"
+note = "An unquantified mechanism_absent is not a representable state. The constructor is mechanism_absent, never not_applicable — a dismissal is disregard, and disregard is the statutory element."
+
+[[case]]
+id = "CF-31"
+title = "Merge a change_request carrying an undispositioned weaken_over_blood check"
+class = "gate"
+invariants = ["I02"]
+mi = ["MI30"]
+anomaly = "none"
+expect_sqlstate = "23514"
+expect_constraint = "cr_gate_closed_when_merged"
+profiles = ["mainline", "trappoint-ref"]
+refusal_depth_min = 2
+milestone = "K1"
+note = "The named case that makes the thesis \"the REPOSITORY is a protected branch and the permit is one of its refs\" rather than \"the permit is a protected branch\"."
+
+[[case]]
+id = "CF-32"
+title = "Clearance kind requiring reassertion, supplied with no reassert_by"
+class = "gate"
+invariants = ["I10", "I12"]
+mi = ["MI11"]
+anomaly = "none"
+expect_sqlstate = "23514"
+expect_constraint = "needs_reassert"
+profiles = ["mainline", "trappoint-ref"]
+refusal_depth_min = 1
+milestone = "K1"
+
+[[case]]
+id = "CF-33"
+title = "Disposition whose expires_at exceeds signed_at plus the clearance's max_ttl_hours"
+class = "gate"
+invariants = ["I12"]
+mi = ["MI28"]
+anomaly = "none"
+expect_sqlstate = "23514"
+expect_constraint = "ttl_enforced"
+profiles = ["mainline", "trappoint-ref"]
+refusal_depth_min = 1
+milestone = "K1"
+note = "A bounded window means BOUNDED, not merely present."
+
+[[case]]
+id = "CF-34"
+title = "Emergency override signed at a rank below 3 + prior_override_count"
+class = "gate"
+invariants = ["I10"]
+mi = ["MI29"]
+anomaly = "A10"
+expect_sqlstate = "23514"
+expect_constraint = "override_escalates"
+profiles = ["mainline", "trappoint-ref"]
+refusal_depth_min = 1
+milestone = "K1"
+note = "The ladder escalates against the PERSON, across subjects, with no ceiling. prior_override_count is projected, so it cannot be supplied."
+
+[[case]]
+id = "CF-35"
+title = "Waiver at blood_fatal by a signer whose frozen competency snapshot lacks the isolation authorisation"
+class = "gate"
+invariants = ["I10"]
+mi = []
+anomaly = "none"
+expect_sqlstate = "23514"
+expect_constraint = "waiver_authority"
+profiles = ["mainline"]
+refusal_depth_min = 1
+milestone = "K5"
+requires = ["mainline.person"]
+note = "Depends on the vertical's competency vocabulary, so it is not a reference-profile case."
+
+[[case]]
+id = "CF-36"
+title = "mechanism_absent disposition citing only gist evidence"
+class = "gate"
+invariants = ["I11"]
+mi = []
+anomaly = "none"
+expect_sqlstate = "23514"
+expect_constraint = "verbatim_floor"
+profiles = ["mainline", "trappoint-ref"]
+refusal_depth_min = 1
+milestone = "K1"
+note = "Gist may accuse; only verbatim may acquit."
+
+[[case]]
+id = "CF-37"
+title = "Verbatim citation with no object key and no span digest"
+class = "gate"
+invariants = ["I11"]
+mi = []
+anomaly = "none"
+expect_sqlstate = "23514"
+expect_constraint = "verbatim_needs_anchor"
+profiles = ["mainline", "trappoint-ref"]
+refusal_depth_min = 1
+milestone = "K1"
+note = "A clearance must cite a re-verifiable anchor, not a resemblance."
+
+# ─────────────────────────────────────────────────────────────────────────────
+# GROUP 5 — append-only, retraction, and the epoch pin under attack
+# ─────────────────────────────────────────────────────────────────────────────
+
+[[case]]
+id = "CF-38"
+title = "UPDATE a disposition column other than retracted_by"
+class = "gate"
+invariants = ["I01"]
+mi = ["MI01"]
+anomaly = "none"
+expect_sqlstate = "P0001"
+expect_constraint = "mainline.fn_disposition_retract_only"
+profiles = ["mainline", "trappoint-ref"]
+refusal_depth_min = 1
+milestone = "K1"
+note = "retracted_by is the single permitted UPDATE in the operational zone, and only from NULL."
+
+[[case]]
+id = "CF-39"
+title = "UPDATE and DELETE against an append-only obligation table"
+class = "gate"
+invariants = ["I01"]
+mi = ["MI01"]
+anomaly = "A9"
+expect_sqlstate = "P0001"
+expect_constraint = "mainline.fn_refuse_mutation"
+profiles = ["mainline", "trappoint-ref"]
+refusal_depth_min = 2
+milestone = "K1"
+note = "Three independent layers in order — grants, triggers, RLS. No layer is sufficient alone; each is testable alone. This case tests the trigger layer; CF-47 tests the grant layer."
+
+[[case]]
+id = "CF-40"
+title = "Retract a disposition after the permit has merged"
+class = "gate"
+invariants = ["I03"]
+mi = ["MI07"]
+anomaly = "A3"
+expect_sqlstate = "23503"
+expect_constraint = "epoch_pin_permit"
+profiles = ["mainline", "trappoint-ref"]
+refusal_depth_min = 2
+milestone = "K1"
+note = "Retraction re-opens the gate AND bumps the epoch, so a retraction after issue mutates a pinned epoch. Refusal by referential integrity, not by policy."
+
+[[case]]
+id = "CF-41"
+title = "Blocking check naming both a permit and a change request"
+class = "gate"
+invariants = ["I02"]
+mi = []
+anomaly = "none"
+expect_sqlstate = "23514"
+expect_constraint = "exactly_one_subject"
+profiles = ["mainline", "trappoint-ref"]
+refusal_depth_min = 1
+milestone = "K1"
+
+[[case]]
+id = "CF-42"
+title = "Blocking check against a clause version that does not exist"
+class = "gate"
+invariants = ["I02"]
+mi = []
+anomaly = "A5"
+expect_sqlstate = "23503"
+expect_constraint = "fk_check_version"
+profiles = ["mainline", "trappoint-ref"]
+refusal_depth_min = 1
+milestone = "K1"
+note = "Because the obligation FKs the (clause, version) pair, a disposition can never be inherited across a clause revision: a new version materialises a NEW obligation and bumps the epoch."
+
+# ─────────────────────────────────────────────────────────────────────────────
+# GROUP 6 — concurrency, isolation, and the platform's own limits
+# ─────────────────────────────────────────────────────────────────────────────
+
+[[case]]
+id = "CF-43"
+title = "Materialise an obligation concurrently with the merge of the same permit"
+class = "retry"
+invariants = ["I02"]
+mi = ["MI02"]
+anomaly = "A1"
+expect_sqlstate = "40001"
+expect_constraint = "mainline.permit.open_blocking"
+profiles = ["mainline", "trappoint-ref"]
+refusal_depth_min = 1
+milestone = "K1"
+note = "The projected counter is a MATERIALISED conflict: both transactions write the same row, so the loser gets 40001 rather than a phantom nobody detects. 40001 is the only code the client may retry."
+
+[[case]]
+id = "CF-44"
+title = "N parallel merges of one permit yield exactly one merge record"
+class = "gate"
+invariants = ["I04"]
+mi = ["MI09"]
+anomaly = "A4"
+expect_sqlstate = "23505"
+expect_constraint = "merge_record_pkey"
+profiles = ["mainline", "trappoint-ref"]
+refusal_depth_min = 2
+milestone = "K1"
+asserts_stored_row = "count(merge_record WHERE subject_id = $1) = 1"
+note = "Losers observe 23505 on the completion PK or 23505 on the head CAS; both are in taxonomy. Exactly one winner is the assertion."
+
+[[case]]
+id = "CF-45"
+title = "Run the entire gate history at READ COMMITTED"
+class = "gate"
+invariants = ["I02", "I04"]
+mi = ["MI02"]
+anomaly = "A12"
+expect_sqlstate = "23514"
+expect_constraint = "gate_closed_when_issued"
+profiles = ["mainline", "trappoint-ref"]
+refusal_depth_min = 2
+milestone = "K1"
+note = "The gate stays welded because the conflict is materialised in data rather than inferred by the isolation level. This does NOT claim RC is equivalent to SERIALIZABLE: drift DETECTION is weaker at RC and the corpus says so."
+
+[[case]]
+id = "CF-46"
+title = "Reconstruct the subject's state at a past instant from the event chain, and prove AS OF SYSTEM TIME cannot reach it"
+class = "admit"
+invariants = ["I04"]
+mi = ["MI24"]
+anomaly = "A13"
+expect_sqlstate = "00000"
+expect_constraint = "mainline.permit_event.chain_digest"
+profiles = ["mainline", "trappoint-ref"]
+refusal_depth_min = 1
+milestone = "K1"
+asserts_stored_row = "gc.ttlseconds < requested_horizon_seconds"
+note = "Long-horizon history is the application-level commit DAG plus the event chain, full stop. The case asserts the zone configuration so a future default change cannot make the claim quietly false."
+
+# ─────────────────────────────────────────────────────────────────────────────
+# GROUP 7 — the pre-gate boundary: grants and policies (DENY class, 42501)
+# ─────────────────────────────────────────────────────────────────────────────
+
+[[case]]
+id = "CF-47"
+title = "The recall role attempts to insert a blocking check"
+class = "deny"
+invariants = ["I02"]
+mi = []
+anomaly = "none"
+expect_sqlstate = "42501"
+expect_constraint = "grant:INSERT:mainline.blocking_check:agent_recaller"
+profiles = ["mainline"]
+refusal_depth_min = 1
+milestone = "K1"
+requires = ["role:agent_recaller"]
+note = "The role that materialises an obligation is the KERNEL, not the recall agent. That single grant is what makes the flagship claim true: the role that detects a precursor cannot dispose of it."
+
+[[case]]
+id = "CF-48"
+title = "The application role attempts to drop the merge-gate trigger"
+class = "deny"
+invariants = ["I01"]
+mi = []
+anomaly = "A9"
+expect_sqlstate = "42501"
+expect_constraint = "grant:DDL:mainline.permit:agent_gate"
+profiles = ["mainline"]
+refusal_depth_min = 1
+milestone = "K1"
+requires = ["role:agent_gate"]
+note = "The application role holds NO DDL. Without this, a compromised agent drops the trigger and the central invariant evaporates with no schema-change record."
+
+# ─────────────────────────────────────────────────────────────────────────────
+# GROUP 8 — the remaining five merge-gate counters (vertical obligation sources)
+# ─────────────────────────────────────────────────────────────────────────────
+
+[[case]]
+id = "CF-49"
+title = "Merge a permit carrying un-dispositioned identity residue"
+class = "gate"
+invariants = ["I02", "I06"]
+mi = ["MI03"]
+anomaly = "none"
+expect_sqlstate = "23514"
+expect_constraint = "identity_conserved_when_issued"
+profiles = ["mainline"]
+refusal_depth_min = 2
+milestone = "K3"
+requires = ["mainline.identity_residue"]
+
+[[case]]
+id = "CF-50"
+title = "Merge a permit carrying an open fleet conflict"
+class = "gate"
+invariants = ["I02"]
+mi = ["MI04"]
+anomaly = "none"
+expect_sqlstate = "23514"
+expect_constraint = "conflicts_resolved_when_issued"
+profiles = ["mainline"]
+refusal_depth_min = 2
+milestone = "K7"
+requires = ["mainline.merge_conflict"]
+
+[[case]]
+id = "CF-51"
+title = "Merge a permit citing a clause under an open discordance warrant"
+class = "gate"
+invariants = ["I02"]
+mi = ["MI05"]
+anomaly = "none"
+expect_sqlstate = "23514"
+expect_constraint = "no_open_warrant_when_issued"
+profiles = ["mainline"]
+refusal_depth_min = 2
+milestone = "K7"
+requires = ["mainline.discordance_warrant"]
+
+[[case]]
+id = "CF-52"
+title = "Merge a permit whose boundary certificate reports unmodelled or under-declared assets"
+class = "gate"
+invariants = ["I02"]
+mi = ["MI06"]
+anomaly = "none"
+expect_sqlstate = "23514"
+expect_constraint = "boundary_certified_when_issued"
+profiles = ["mainline"]
+refusal_depth_min = 2
+milestone = "K5"
+requires = ["mainline.boundary_certificate"]
+note = "An asset with no modelled energy edges is UNKNOWN, not SAFE, and unknown blocks. The canonical multi-source-isolation fatality is electrical locked out while trapped hydraulic pressure remains."
+
+[[case]]
+id = "CF-53"
+title = "Merge a permit with no boundary certificate at all"
+class = "gate"
+invariants = ["I02"]
+mi = ["MI06"]
+anomaly = "none"
+expect_sqlstate = "P0001"
+expect_constraint = "mainline.fn_permit_merge_gate"
+profiles = ["mainline"]
+refusal_depth_min = 2
+milestone = "K5"
+requires = ["mainline.boundary_certificate"]
+
+# ─────────────────────────────────────────────────────────────────────────────
+# GROUP 9 — evidence typing, ancestry and recall (MAINLINE vertical)
+# ─────────────────────────────────────────────────────────────────────────────
+
+[[case]]
+id = "CF-54"
+title = "A semantically inferred blame edge marked active"
+class = "gate"
+invariants = ["I11"]
+mi = ["MI13"]
+anomaly = "none"
+expect_sqlstate = "23514"
+expect_constraint = "inference_never_blocks"
+profiles = ["mainline"]
+refusal_depth_min = 1
+milestone = "K3"
+requires = ["mainline.blame_edge"]
+note = "An inference may accuse. It may not arm the gate."
+
+[[case]]
+id = "CF-55"
+title = "A model-rated severity used to arm the gate"
+class = "gate"
+invariants = ["I11"]
+mi = ["MI14"]
+anomaly = "none"
+expect_sqlstate = "23514"
+expect_constraint = "model_cannot_arm"
+profiles = ["mainline"]
+refusal_depth_min = 1
+milestone = "K3"
+requires = ["mainline.event"]
+
+[[case]]
+id = "CF-56"
+title = "A clause version whose sev_max is lower than its parent's"
+class = "gate"
+invariants = ["I05"]
+mi = ["MI15"]
+anomaly = "none"
+expect_sqlstate = "P0001"
+expect_constraint = "mainline.fn_clause_version_guard"
+profiles = ["mainline"]
+refusal_depth_min = 1
+milestone = "K3"
+requires = ["mainline.clause_version"]
+note = "Provenance laundering: rewording a control across four revisions until nobody recalls a death wrote it."
+
+[[case]]
+id = "CF-57"
+title = "A severity-5 event bonded to the permit's activity node, materialised as advisory"
+class = "gate"
+invariants = ["I13"]
+mi = ["MI16"]
+anomaly = "none"
+expect_sqlstate = "23514"
+expect_constraint = "bonded_fatalities_all_blocking"
+profiles = ["mainline"]
+refusal_depth_min = 1
+milestone = "K4"
+requires = ["mainline.recall_run"]
+
+[[case]]
+id = "CF-58"
+title = "A recall run whose candidate set is not exactly partitioned into blocking, advisory, silenced and deduped"
+class = "gate"
+invariants = ["I13"]
+mi = ["MI17"]
+anomaly = "none"
+expect_sqlstate = "23514"
+expect_constraint = "candidates_conserved"
+profiles = ["mainline"]
+refusal_depth_min = 1
+milestone = "K4"
+requires = ["mainline.recall_run"]
+note = "Conservation law L3 as a constraint: candidates = blocking + advisory + silenced + deduped, exactly."
+
+[[case]]
+id = "CF-59"
+title = "A recall run under a policy version whose anchoring is absent or outside a cosigned checkpoint"
+class = "gate"
+invariants = ["I07"]
+mi = ["MI18"]
+anomaly = "none"
+expect_sqlstate = "P0001"
+expect_constraint = "mainline.fn_recall_policy_anchored"
+profiles = ["mainline"]
+refusal_depth_min = 1
+milestone = "K4"
+requires = ["mainline_meas.recall_policy"]
+note = "Retro-tuning a threshold to make an omission look reasonable requires the policy to predate the retrieval and to be anchored where we cannot alter it."
+
+[[case]]
+id = "CF-60"
+title = "Supersede a document that still carries a live control series"
+class = "gate"
+invariants = ["I06"]
+mi = ["MI19"]
+anomaly = "none"
+expect_sqlstate = "23514"
+expect_constraint = "no_orphan_controls"
+profiles = ["mainline"]
+refusal_depth_min = 1
+milestone = "K3"
+requires = ["mainline.carriage"]
+
+[[case]]
+id = "CF-61"
+title = "A weakening below the risk frontier citing evidence that predates the frontier move"
+class = "gate"
+invariants = ["I11"]
+mi = ["MI20"]
+anomaly = "none"
+expect_sqlstate = "23514"
+expect_constraint = "frontier_evidence"
+secondary_sqlstate = "P0001"
+secondary_constraint = "mainline.fn_frontier_guard"
+profiles = ["mainline"]
+refusal_depth_min = 2
+milestone = "K7"
+requires = ["mainline.frontier_move"]
+note = "\"As previously approved\" is not evidence. A prior approval is evidentiarily inadmissible over a monotone risk frontier."
+
+[[case]]
+id = "CF-62"
+title = "An UNDETERMINED fixity result used to block"
+class = "gate"
+invariants = ["I08"]
+mi = ["MI21"]
+anomaly = "none"
+expect_sqlstate = "23514"
+expect_constraint = "undetermined_never_blocks"
+profiles = ["mainline"]
+refusal_depth_min = 1
+milestone = "K7"
+requires = ["mainline.observed_assertion"]
+note = "The one place unknown does NOT block, and it is deliberate: an undetermined comparison is not a finding, and treating it as one manufactures alarm fatigue with no argument."
+
+[[case]]
+id = "CF-63"
+title = "Write two ledger leaves at the same sequence position"
+class = "gate"
+invariants = ["I04"]
+mi = ["MI24"]
+anomaly = "A9"
+expect_sqlstate = "23505"
+expect_constraint = "ledger_leaf_pkey"
+profiles = ["mainline"]
+refusal_depth_min = 1
+milestone = "K2"
+requires = ["mainline.ledger_leaf"]
+note = "Gap-free by CAS, not by sequence. CREATE SEQUENCE is banned by a repository lint, because a sequence gap means nothing and a CAS gap means tampering."
+
+[[case]]
+id = "CF-64"
+title = "Propagate a weakening across the fleet"
+class = "gate"
+invariants = ["I12"]
+mi = ["MI23"]
+anomaly = "none"
+expect_sqlstate = "23514"
+expect_constraint = "only_tightenings_travel"
+profiles = ["mainline"]
+refusal_depth_min = 1
+milestone = "K7"
+requires = ["mainline.propagation"]
+
+[[case]]
+id = "CF-65"
+title = "Record an empty retrieval result with no coverage certificate bound to the index generation"
+class = "gate"
+invariants = ["I08"]
+mi = []
+anomaly = "none"
+expect_sqlstate = "23514"
+expect_constraint = "empty_result_certified"
+profiles = ["mainline"]
+refusal_depth_min = 1
+milestone = "K4"
+requires = ["mainline.coverage_certificate"]
+note = "\"No precursors found\" is not insertable as a bare fact. An empty answer is a claim about a universe, and the certificate is what makes the claim checkable."
+
+[[case]]
+id = "CF-66"
+title = "A carried disposition whose expiry exceeds its declared window"
+class = "gate"
+invariants = ["I12"]
+mi = ["MI28"]
+anomaly = "none"
+expect_sqlstate = "23514"
+expect_constraint = "carried_bounded"
+profiles = ["mainline"]
+refusal_depth_min = 1
+milestone = "K5"
+requires = ["mainline.carried_disposition"]
+note = "Mirrored exhibit name per spec R-3: `bounded` on two tables would make the constraint name ambiguous as an exhibit."
+
+[[case]]
+id = "CF-67"
+title = "Mark a checkpoint admissible with cosignatures from fewer than k trust domains, or with none adverse"
+class = "gate"
+invariants = ["I16"]
+mi = []
+anomaly = "none"
+expect_sqlstate = "23514"
+expect_constraint = "witness_quorum"
+profiles = ["mainline"]
+refusal_depth_min = 1
+milestone = "K9"
+requires = ["mainline.cosignature"]
+note = "A q=1 quorum over our own storage is not adverse in the legal sense, and split-view resistance MUST NOT be claimed until a genuinely adverse witness is live."
+
+[[case]]
+id = "CF-68"
+title = "Compute a standing measurement over data predating the customer-signed measurement policy"
+class = "gate"
+invariants = ["I15"]
+mi = []
+anomaly = "none"
+expect_sqlstate = "23514"
+expect_constraint = "measure_policy_predates_data"
+profiles = ["mainline"]
+refusal_depth_min = 1
+milestone = "K8"
+requires = ["mainline_meas.person_measure_policy"]
+note = "A score computed about a person, used against them, and derived from a policy that did not exist when the data was made is an allegation. Not insertable."
+
+[[case]]
+id = "CF-69"
+title = "The audit identity attempts to write outside its single permitted attestation table"
+class = "deny"
+invariants = ["I15"]
+mi = []
+anomaly = "none"
+expect_sqlstate = "42501"
+expect_constraint = "grant:INSERT:mainline.disposition:mainline_auditor"
+profiles = ["mainline"]
+refusal_depth_min = 1
+milestone = "K6"
+requires = ["role:mainline_auditor"]
+note = "The role that certifies the books has no write path to them. The audit write surface is INSERT-ONLY and bound to one relation."
+
+# ─────────────────────────────────────────────────────────────────────────────
+# GROUP 10 — the refusal is explainable (I14). A gate that only says no gets routed around.
+# ─────────────────────────────────────────────────────────────────────────────
+
+[[case]]
+id = "CF-70"
+title = "A permit refused with three obligations of which two are already dispositioned emits a MUS naming exactly the third"
+class = "gate"
+invariants = ["I14", "I02"]
+mi = ["MI02"]
+anomaly = "none"
+expect_sqlstate = "23514"
+expect_constraint = "gate_closed_when_issued"
+profiles = ["mainline", "trappoint-ref"]
+refusal_depth_min = 2
+milestone = "K1"
+payload_schema = "spec/wire/refusal.schema.json"
+asserts_payload = "len(mus) == 1 AND mus[0].kind == 'obligation' AND naa.kind == 'dispose_obligations' AND naa.cardinality == 1"
+note = "Minimality is the assertion, not the presence of a payload. A non-minimal set labelled as a MUS is worse than no MUS, because it is a diagnosis that disagrees with the refusal."
+
+[[case]]
+id = "CF-71"
+title = "A clearance-lattice refusal names exactly the verdict kinds that DO exist at that virulence"
+class = "gate"
+invariants = ["I14", "I10"]
+mi = ["MI11"]
+anomaly = "none"
+expect_sqlstate = "23503"
+expect_constraint = "fk_clearance"
+profiles = ["mainline", "trappoint-ref"]
+refusal_depth_min = 1
+milestone = "K1"
+payload_schema = "spec/wire/refusal.schema.json"
+asserts_payload = "naa.kind == 'substitute_kind' AND set(naa.legal_kinds) == kinds_present_in_clearance_legal(virulence)"
+note = "At blood_fatal with mechanism_absent the NAA lists the four kinds that exist. Where the verdict set is empty by design, naa is null with reason no_legal_verdict_exists — which is the product working, not a diagnoser failure."

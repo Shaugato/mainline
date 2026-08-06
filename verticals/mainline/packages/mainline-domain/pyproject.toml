@@ -1,0 +1,74 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
+[project]
+name = "mainline-domain"
+version = "0.1.0"
+description = "MAINLINE algorithms domain: CANONHOLD, ANCHORLOCK, DIRECTRIX, CATSEAL, DELTALATTICE, CBM."
+readme = "README.md"
+requires-python = ">=3.13"
+# FSL-1.1-ALv2 per the repository licence map (verticals/mainline/* is FSL).
+# The licence TEXT lives in the repo-root LICENSES/ tree, which is outside this
+# project directory and therefore cannot be referenced by `license-files`.
+license = "LicenseRef-FSL-1.1-ALv2"
+authors = [{ name = "MAINLINE contributors" }]
+keywords = ["safety", "clause-identity", "provenance", "cockroachdb"]
+classifiers = [
+  "Programming Language :: Python :: 3.13",
+  "Typing :: Typed",
+  "Private :: Do Not Upload",
+]
+
+# The WHOLE domain dependency set is declared here, once, because ten workers
+# ship into this one distribution and a dependency added per-worker is a
+# dependency nobody reviews.
+#
+# What is DELIBERATELY ABSENT and must stay absent (decision D1 / principle P7):
+# boto3, botocore, anthropic, strands, langchain -- anything that can reach a
+# model.  The lattice in this package decides a state transition, and no
+# component that decides a state transition may reach a model.  Path B lives in
+# the physically separate distribution `mainline-delta-oracle`.
+#
+# Also absent: tenacity/backoff/retrying (a blanket retry helper is forbidden
+# repo-wide), datasketch (MinHash is hand-rolled so the permutation table is a
+# committed, versioned artefact rather than an unpinned seed), and any runtime
+# TOML parser (Python 3.13 ships `tomllib`).
+dependencies = [
+  "pint>=0.24,<1.0",   # W2 quantity algebra; gauge/absolute crossings RAISE
+  "scipy>=1.14",       # W8 sparse linear assignment
+  "numpy>=2.1",        # W7/W8 MinHash signatures and cost matrices
+  "rapidfuzz>=3.14",   # edit distance in the APPLICATION -- CockroachDB has no
+                       # `<->` trigram distance operator and no word_similarity
+]
+
+[project.optional-dependencies]
+db = ["psycopg[binary]>=3.2"]
+
+[dependency-groups]
+dev = [
+  "pytest>=8.3",
+  "hypothesis>=6.100",
+  "mypy>=1.11",
+]
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mainline_domain"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "novelty", "README.md"]
+
+# Committed data files ship with the wheel because `packages` includes every
+# file under the package directory, not only `*.py`.  This matters: a gazetteer
+# that is not shipped turns every anchor-based refusal into a silent pass, which
+# is why `mainline_domain.data.data_file` raises rather than returning None.
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+warn_unreachable = true
+disallow_any_explicit = false
+files = ["src/mainline_domain"]

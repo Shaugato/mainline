@@ -1,0 +1,8 @@
+{
+  "expected": "RED",
+  "expected_gate_tests": 5,
+  "since": "2026-08-04",
+  "reason": "No retrieval implementation exists yet. PL-2 red-before-green: for a product whose deliverable is a refusal, a suite that has never been red asserts nothing. The gates go green one channel at a time as recall-ann-arms-explain, recall-lexical-bm25, recall-fusion-admission and recall-orchestrator-per land.",
+  "flip_procedure": "When the gates pass, change 'expected' to GREEN in a pull request. From that commit the lane fails on any regression to RED. The expectation ratchets RED -> GREEN and never back without a PR that shows up in blame.",
+  "authority": "BUILD_PLAN.md K4 exit criteria G4-alpha; docs/leads/recall.md section 1"
+}

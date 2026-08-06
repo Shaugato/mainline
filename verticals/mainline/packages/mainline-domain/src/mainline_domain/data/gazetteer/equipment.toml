@@ -1,0 +1,61 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+#
+# ANCHORLOCK class: equipment_tag  (IDENTITY class)
+#
+# Plant item tags.  The shape is  [area-]CODE[-]NNNN[SS]  and the CODE is what
+# this file enumerates.  A tag whose CODE is not listed here is STILL extracted
+# as an equipment_tag when it is written with an explicit hyphen -- unknown
+# prefixes fail CLOSED (more anchors means more identity constraints means more
+# blocking, never less).  The gazetteer exists so that a tag written WITHOUT a
+# separator (`P101A`) can be recognised at all, which would otherwise be
+# indistinguishable from a word.
+#
+# `codes` is compared case-sensitively against the uppercase run in the tag.
+
+[equipment]
+version = 1
+
+codes = [
+  "AC",   # air cooler
+  "AG",   # agitator
+  "B",    # blower
+  "BL",   # blower
+  "C",    # compressor
+  "CV",   # control valve body / conveyor
+  "D",    # drum
+  "DR",   # drier
+  "E",    # exchanger
+  "EJ",   # ejector
+  "F",    # filter / furnace
+  "FD",   # feeder
+  "FL",   # flare
+  "FV",   # flow valve
+  "G",    # generator
+  "GB",   # gearbox
+  "H",    # heater
+  "HX",   # heat exchanger
+  "HV",   # hand valve
+  "K",    # compressor (ISA-ish)
+  "KO",   # knock-out drum
+  "M",    # motor
+  "MX",   # mixer
+  "P",    # pump
+  "PSV",  # pressure safety valve
+  "PRV",  # pressure relief valve
+  "PV",   # pressure control valve
+  "R",    # reactor
+  "RD",   # rupture disc
+  "S",    # separator
+  "SC",   # screw conveyor
+  "SG",   # switchgear
+  "SV",   # solenoid valve
+  "T",    # tower / transformer
+  "TK",   # tank
+  "TX",   # transformer
+  "V",    # vessel
+  "VS",   # vessel skirt
+  "XV",   # on/off valve
+  "Z",    # miscellaneous
+  "ZV",   # emergency shutdown valve
+]

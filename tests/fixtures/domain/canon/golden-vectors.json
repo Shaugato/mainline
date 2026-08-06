@@ -1,0 +1,216 @@
+{
+  "_comment": "CANONHOLD golden vectors, locked at canon_version=1.  These digests are what blame edges attach to.  A change to any of them is a canon_version bump plus a re-normalisation migration -- never an edit to this file.",
+  "canon_version": 1,
+  "digest_preimage": "b'mainline/canon/v' + ascii(canon_version) + b'\\x1f' + utf8(canon_text)",
+  "vectors": [
+    {
+      "id": "plain",
+      "raw": "The vessel shall be isolated before entry.",
+      "canon_text": "The vessel shall be isolated before entry.",
+      "canon_sha256_hex": "94499f319324959eea46bfde9adb2c9a8e29d5024e15f58cd248ab5b96353198",
+      "printed_label": null,
+      "numbering_prefix": null,
+      "furniture_spans": [],
+      "ocr_repairs": [],
+      "segment_count": 1
+    },
+    {
+      "id": "numbered",
+      "raw": "7.3.2(b)  Isolate P-101A before entry.",
+      "canon_text": "Isolate P-101A before entry.",
+      "canon_sha256_hex": "79d0d1db298470d818188c6a3dfd8c2d2cf40194358de3116fd2b96cffaea74f",
+      "printed_label": "7.3.2(b)",
+      "numbering_prefix": "7.3.2(b) ",
+      "furniture_spans": [],
+      "ocr_repairs": [],
+      "segment_count": 1
+    },
+    {
+      "id": "renumbered",
+      "raw": "4.1.1 Isolate P-101A before entry.",
+      "canon_text": "Isolate P-101A before entry.",
+      "canon_sha256_hex": "79d0d1db298470d818188c6a3dfd8c2d2cf40194358de3116fd2b96cffaea74f",
+      "printed_label": "4.1.1",
+      "numbering_prefix": "4.1.1 ",
+      "furniture_spans": [],
+      "ocr_repairs": [],
+      "segment_count": 1
+    },
+    {
+      "id": "bracket_label",
+      "raw": "(a) Verify the atmosphere is below 10 % LEL.",
+      "canon_text": "Verify the atmosphere is below 10 % LEL.",
+      "canon_sha256_hex": "9a79438157d250bc6566883c8961f1628f624325199cb9b0d1b2736f34e42ed7",
+      "printed_label": "(a)",
+      "numbering_prefix": "(a) ",
+      "furniture_spans": [],
+      "ocr_repairs": [],
+      "segment_count": 1
+    },
+    {
+      "id": "roman_label",
+      "raw": "iv) Record the result on the permit.",
+      "canon_text": "Record the result on the permit.",
+      "canon_sha256_hex": "988d6eb8a02776e4e43a2e53b8f7a9c16ab215ac19231e5ae6a0d8326bc124c0",
+      "printed_label": "iv",
+      "numbering_prefix": "iv) ",
+      "furniture_spans": [],
+      "ocr_repairs": [],
+      "segment_count": 1
+    },
+    {
+      "id": "bullet",
+      "raw": "• Record the result on the permit.",
+      "canon_text": "Record the result on the permit.",
+      "canon_sha256_hex": "988d6eb8a02776e4e43a2e53b8f7a9c16ab215ac19231e5ae6a0d8326bc124c0",
+      "printed_label": null,
+      "numbering_prefix": "• ",
+      "furniture_spans": [],
+      "ocr_repairs": [],
+      "segment_count": 1
+    },
+    {
+      "id": "keyword_label",
+      "raw": "Section 12.4 Record the result on the permit.",
+      "canon_text": "Record the result on the permit.",
+      "canon_sha256_hex": "988d6eb8a02776e4e43a2e53b8f7a9c16ab215ac19231e5ae6a0d8326bc124c0",
+      "printed_label": "12.4",
+      "numbering_prefix": "Section 12.4 ",
+      "furniture_spans": [],
+      "ocr_repairs": [],
+      "segment_count": 1
+    },
+    {
+      "id": "wrapped_artefact",
+      "raw": "The atmo­sphere shall be tested for isola-\ntion integrity.",
+      "canon_text": "The atmosphere shall be tested for isolation integrity.",
+      "canon_sha256_hex": "fe7c3f41c5e0a1cdcb262d88990dca3f9fd744e750e1461305fe740a24b9cde5",
+      "printed_label": null,
+      "numbering_prefix": null,
+      "furniture_spans": [],
+      "ocr_repairs": [],
+      "segment_count": 1
+    },
+    {
+      "id": "wrapped_compound",
+      "raw": "Apply lock-\nout before removing the blind.",
+      "canon_text": "Apply lock-out before removing the blind.",
+      "canon_sha256_hex": "9785935c98fdc43192c3e9b90b5e7a25b4b0e56c51ce2e8879ea69a4c4995c33",
+      "printed_label": null,
+      "numbering_prefix": null,
+      "furniture_spans": [],
+      "ocr_repairs": [],
+      "segment_count": 1
+    },
+    {
+      "id": "ligature_nbsp",
+      "raw": "The ﬁrst test shall conﬁrm the pressure is below 10 kPa.",
+      "canon_text": "The first test shall confirm the pressure is below 10 kPa.",
+      "canon_sha256_hex": "3f3855adebe1c33ed6d727e6d357ee94f1baac15f445629309e016944ac7b29d",
+      "printed_label": null,
+      "numbering_prefix": null,
+      "furniture_spans": [],
+      "ocr_repairs": [],
+      "segment_count": 1
+    },
+    {
+      "id": "smart_punctuation",
+      "raw": "The “operator’s” limit is 50–60 kPa.",
+      "canon_text": "The \"operator's\" limit is 50-60 kPa.",
+      "canon_sha256_hex": "646a14b465c07fec5d3f09e3315aeea3245efee1e4147f24099b3a6563962996",
+      "printed_label": null,
+      "numbering_prefix": null,
+      "furniture_spans": [],
+      "ocr_repairs": [],
+      "segment_count": 1
+    },
+    {
+      "id": "ocr_numeric",
+      "raw": "Trip the pump at 1O0 kPa and retest after 286S seconds.",
+      "canon_text": "Trip the pump at 100 kPa and retest after 2865 seconds.",
+      "canon_sha256_hex": "4a988685de5df6dd3a1129b8a2cbbf91c11cc524665d8a52147c9e066ac90b9c",
+      "printed_label": null,
+      "numbering_prefix": null,
+      "furniture_spans": [],
+      "ocr_repairs": [
+        {
+          "start": 17,
+          "end": 20,
+          "before": "1O0",
+          "after": "100"
+        },
+        {
+          "start": 42,
+          "end": 46,
+          "before": "286S",
+          "after": "2865"
+        }
+      ],
+      "segment_count": 1
+    },
+    {
+      "id": "ocr_prose_untouched",
+      "raw": "Oil, Ill, IO, loss and SOLE must not be repaired.",
+      "canon_text": "Oil, Ill, IO, loss and SOLE must not be repaired.",
+      "canon_sha256_hex": "c6f9783b716a2a24cbf5807b512445d44a1a731d7a35ab67ab31f19f0d7e9a18",
+      "printed_label": null,
+      "numbering_prefix": null,
+      "furniture_spans": [],
+      "ocr_repairs": [],
+      "segment_count": 1
+    },
+    {
+      "id": "furniture",
+      "raw": "Page 4 of 31\nIsolate the pump.\nUncontrolled when printed",
+      "canon_text": "Isolate the pump.",
+      "canon_sha256_hex": "4bd8d6639582d4d352c82ef49221a72980141c3b6eba17b313e2a90290ac0789",
+      "printed_label": null,
+      "numbering_prefix": null,
+      "furniture_spans": [
+        [
+          0,
+          12
+        ],
+        [
+          31,
+          56
+        ]
+      ],
+      "ocr_repairs": [],
+      "segment_count": 1
+    },
+    {
+      "id": "crlf",
+      "raw": "Isolate the pump.\r\nVerify the isolation.\r\n",
+      "canon_text": "Isolate the pump. Verify the isolation.",
+      "canon_sha256_hex": "f74b7c5c4eb3c987c006a351328cecd23a3b86c09f3bfa27506c701259c9a483",
+      "printed_label": null,
+      "numbering_prefix": null,
+      "furniture_spans": [],
+      "ocr_repairs": [],
+      "segment_count": 1
+    },
+    {
+      "id": "empty",
+      "raw": "",
+      "canon_text": "",
+      "canon_sha256_hex": "28600a943edd95d54663ff13db97a1137f3f30410e4a05eaf002a35260d6d312",
+      "printed_label": null,
+      "numbering_prefix": null,
+      "furniture_spans": [],
+      "ocr_repairs": [],
+      "segment_count": 0
+    },
+    {
+      "id": "long_prose",
+      "raw": "clause token 0 shall be verified against the isolation register clause token 1 shall be verified against the isolation register clause token 2 shall be verified against the isolation register clause token 3 shall be verified against the isolation register clause token 4 shall be verified against the isolation register clause token 5 shall be verified against the isolation register clause token 6 shall be verified against the isolation register clause token 7 shall be verified against the isolation register clause token 8 shall be verified against the isolation register clause token 9 shall be verified against the isolation register clause token 10 shall be verified against the isolation register clause token 11 shall be verified against the isolation register clause token 12 shall be verified against the isolation register clause token 13 shall be verified against the isolation register clause token 14 shall be verified against the isolation register clause token 15 shall be verified against the isolation register clause token 16 shall be verified against the isolation register clause token 17 shall be verified against the isolation register clause token 18 shall be verified against the isolation register clause token 19 shall be verified against the isolation register clause token 20 shall be verified against the isolation register clause token 21 shall be verified against the isolation register clause token 22 shall be verified against the isolation register clause token 23 shall be verified against the isolation register clause token 24 shall be verified against the isolation register clause token 25 shall be verified against the isolation register clause token 26 shall be verified against the isolation register clause token 27 shall be verified against the isolation register clause token 28 shall be verified against the isolation register clause token 29 shall be verified against the isolation register clause token 30 shall be verified against the isolation register clause token 31 shall be verified against the isolation register clause token 32 shall be verified against the isolation register clause token 33 shall be verified against the isolation register clause token 34 shall be verified against the isolation register clause token 35 shall be verified against the isolation register clause token 36 shall be verified against the isolation register clause token 37 shall be verified against the isolation register clause token 38 shall be verified against the isolation register clause token 39 shall be verified against the isolation register",
+      "canon_text": "clause token 0 shall be verified against the isolation register clause token 1 shall be verified against the isolation register clause token 2 shall be verified against the isolation register clause token 3 shall be verified against the isolation register clause token 4 shall be verified against the isolation register clause token 5 shall be verified against the isolation register clause token 6 shall be verified against the isolation register clause token 7 shall be verified against the isolation register clause token 8 shall be verified against the isolation register clause token 9 shall be verified against the isolation register clause token 10 shall be verified against the isolation register clause token 11 shall be verified against the isolation register clause token 12 shall be verified against the isolation register clause token 13 shall be verified against the isolation register clause token 14 shall be verified against the isolation register clause token 15 shall be verified against the isolation register clause token 16 shall be verified against the isolation register clause token 17 shall be verified against the isolation register clause token 18 shall be verified against the isolation register clause token 19 shall be verified against the isolation register clause token 20 shall be verified against the isolation register clause token 21 shall be verified against the isolation register clause token 22 shall be verified against the isolation register clause token 23 shall be verified against the isolation register clause token 24 shall be verified against the isolation register clause token 25 shall be verified against the isolation register clause token 26 shall be verified against the isolation register clause token 27 shall be verified against the isolation register clause token 28 shall be verified against the isolation register clause token 29 shall be verified against the isolation register clause token 30 shall be verified against the isolation register clause token 31 shall be verified against the isolation register clause token 32 shall be verified against the isolation register clause token 33 shall be verified against the isolation register clause token 34 shall be verified against the isolation register clause token 35 shall be verified against the isolation register clause token 36 shall be verified against the isolation register clause token 37 shall be verified against the isolation register clause token 38 shall be verified against the isolation register clause token 39 shall be verified against the isolation register",
+      "canon_sha256_hex": "d1daba8c646d9ecd5436676ddba4621852f4144af7079d2b936243f2547dcdfd",
+      "printed_label": null,
+      "numbering_prefix": null,
+      "furniture_spans": [],
+      "ocr_repairs": [],
+      "segment_count": 3
+    }
+  ]
+}

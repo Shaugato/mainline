@@ -1,0 +1,44 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+#
+# ANCHORLOCK class: instrument_loop  (IDENTITY class)
+#
+# ISA-5.1 loop identifiers: a measured-variable letter, optional modifier, then
+# readout/output/function letters, then the loop number (PIT-1204, LSHH-2301,
+# TAH-101).  This file enumerates the LETTER CODES that make a token an
+# instrument loop rather than an equipment tag; the two classes share a surface
+# shape and are told apart only by the code.
+#
+# A code listed here wins over `equipment.toml` -- the instrument is the thing a
+# procedure interlocks against, and misfiling a trip as a pump would put the
+# anchor in the wrong identity bucket.
+
+[instrument]
+version = 1
+
+codes = [
+  # analysers
+  "AE", "AI", "AIT", "AT", "AAH", "AAHH", "AAL", "AAHL", "ASH", "ASHH",
+  # flow
+  "FE", "FI", "FIC", "FIQ", "FIT", "FQ", "FQI", "FT", "FV", "FAL", "FALL",
+  "FAH", "FSL", "FSLL", "FSH", "FCV",
+  # level
+  "LE", "LG", "LI", "LIC", "LIT", "LT", "LAH", "LAHH", "LAL", "LALL",
+  "LSH", "LSHH", "LSL", "LSLL", "LCV", "LV",
+  # pressure
+  "PE", "PG", "PI", "PIC", "PIT", "PT", "PAH", "PAHH", "PAL", "PALL",
+  "PSH", "PSHH", "PSL", "PSLL", "PDI", "PDIT", "PDT", "PDSH", "PCV",
+  # temperature
+  "TE", "TG", "TI", "TIC", "TIT", "TT", "TAH", "TAHH", "TAL", "TALL",
+  "TSH", "TSHH", "TSL", "TSLL", "TW", "TCV",
+  # vibration, speed, position, weight
+  "VE", "VI", "VIT", "VT", "VAH", "VAHH", "VSH", "VSHH",
+  "SE", "SI", "SIC", "SIT", "ST", "SAH", "SAL",
+  "ZE", "ZI", "ZIT", "ZS", "ZSC", "ZSO", "ZT",
+  "WE", "WI", "WIT", "WT",
+  # hand / interlock / shutdown
+  "HS", "HIC", "HIS", "XA", "XI", "XS", "XY", "XL",
+  "ESD", "SIS", "SIF", "UA", "UC", "UY",
+  # burner / flame / gas detection
+  "BE", "BS", "BSL", "GD", "GDT", "GAH", "GAHH",
+]

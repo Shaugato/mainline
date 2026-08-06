@@ -1,0 +1,22 @@
+{
+  "schema": "mainline.recall.projection/1",
+  "projection_id": "coarse256.provisional-ternary.1",
+  "source_model": "BAAI/bge-large-en-v1.5",
+  "source_revision": null,
+  "in_dim": 1024,
+  "out_dim": 256,
+  "storage": "deterministic_ternary",
+  "fit_method": "sparse_ternary_random_projection",
+  "fit_status": "provisional",
+  "fit_corpus_sha256": null,
+  "explained_variance_ratio": null,
+  "generator": {
+    "algorithm": "blake2b(counter_be64, key=utf8(seed), person='mainline-proj', digest_size=64) keystream; byte b -> +1 if b%6==0, -1 if b%6==1, else 0; row-major (out_dim, in_dim) int8",
+    "seed": "mainline-recall-coarse256-provisional-2026-08-04",
+    "dtype": "int8"
+  },
+  "matrix_sha256": "db15777cec870da5db56b36aadc671c23a92e0cd5601bb4c9096e0ed40eef8b2",
+  "renormalise_output": true,
+  "output_dtype": "float32",
+  "notes": "PROVISIONAL AND NOT PCA. This is a sparse ternary (Achlioptas) random projection. It is committed so that the coarse sweep is runnable, reproducible and bit-stable offline; it preserves pairwise distances only in expectation (Johnson-Lindenstrauss) and preserves nothing about the corpus's variance structure. recall.md D4 requires a PCA fitted on real bge-large embeddings before any recall number is published: run fit_projection.py on a machine holding the pinned weights, which emits storage='raw_f32', fit_status='fitted', a fit_corpus_sha256 and an explained_variance_ratio, under a NEW projection_id. source_revision is null because the bge-large revision sha is not verifiable on the build machine; LocalBGE refuses to construct without an explicit revision argument rather than carrying an unverified default. Set MAINLINE_RECALL_REQUIRE_FITTED_PROJECTION=1 to make loading this artefact a hard failure."
+}
