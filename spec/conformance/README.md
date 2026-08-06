@@ -55,7 +55,8 @@ Two properties make the suite worth anything, and both are easy to lose:
 
 ### 2.1 `asserts_stored_row` is not decoration
 
-Six cases carry it and they are the strongest cases in the suite. `CF-07` asserts that a check
+Five cases carry it — `CF-07`, `CF-11`, `CF-19`, `CF-44`, `CF-46` — and they are the strongest cases
+in the suite. `CF-07` asserts that a check
 inserted claiming `(1, 'routine')` is **stored** as `(5, 'blood_fatal')`; `CF-19` asserts a
 client-supplied rank of 6 is **stored** as 2. Without those assertions both cases would pass against
 an implementation that trusted the client and merely happened to refuse for an unrelated reason.
@@ -121,10 +122,17 @@ is every case expressible against the kernel tables alone, without any vertical'
 fleet or custody schema. `trappoint-conform --profile trappoint-ref` therefore reports `45/45`, and
 that string is the K1 exit criterion.
 
-The remaining twenty-six need a relation, role or policy the reference vertical does not supply. They
-carry `requires`, and a runner that cannot satisfy a requirement **skips with a reason** — printed,
-counted and reported. A skipped case is never a passed case, and a suite that skips silently is a
-suite that passes by absence.
+The remaining twenty-six are `mainline`-only, and they divide two ways. **Twenty-five** need a
+relation, role or policy the reference vertical does not supply; each carries `requires`, and a runner
+that cannot satisfy a requirement **skips with a reason** — printed, counted and reported. A skipped
+case is never a passed case, and a suite that skips silently is a suite that passes by absence.
+
+**One — `CF-24`, the rationale-length floor — carries no `requires` and never will.** It is not a
+kernel property held back by a missing table; it is *vertical policy*, a number the customer signs.
+A `requires` token would imply the reference vertical could earn the case by supplying a relation, and
+it cannot. The distinction is recorded here rather than smoothed over, because "26 cases need more
+schema" and "25 cases need more schema and 1 is not ours to hold" are different sentences and only
+the second is true.
 
 **A vertical raises its own coverage by supplying the relation, not by editing the manifest.** That
 is the entire extension mechanism: two bindings that both render is the substrate claim; one binding

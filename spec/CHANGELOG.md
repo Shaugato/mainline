@@ -95,16 +95,20 @@ reading the architecture documents will find text that predates them.
   `ledger_leaf_pkey` and `blocking_check_dedupe_key_key` follow the conventional
   `<table>_<columns>_key` / `<table>_pkey` form. The runner compares against the name the database
   reports; correcting the manifest to match is a PATCH.
-- **Twenty-six cases carry `requires` and are not runnable on the reference profile.** Each names the
-  relation, role or policy it needs and the milestone at which it can first be green. They skip with
-  a reason; they are never silently absent.
+- **Twenty-six cases are `mainline`-only. Twenty-five of them carry `requires`** — each naming the
+  relation, role or policy it needs and the milestone at which it can first be green — and skip with a
+  printed reason rather than being silently absent. The twenty-sixth, `CF-24` (the rationale-length
+  floor), carries no `requires` and never will: it is vertical policy, not a kernel property held back
+  by a missing table, and a `requires` token would falsely imply the reference vertical could earn it.
 - **`I16` (external witness) has one conformance case and it cannot be green until a genuinely
   adverse witness exists.** Split-view resistance MUST NOT be claimed before then, and the invariant
   file says so in its NOT CLAIMED section.
-- **`I08` (certified null) and `I15` (allegation firewall) each have a single case on the MAINLINE
-  profile only.** Both are under-covered relative to their importance and are the first candidates
-  for new cases at `rc.2` — which, per the versioning rules, is a MINOR bump only if the new cases
-  fail nothing that was already conformant.
+- **`I08` (certified null) and `I15` (allegation firewall) have two cases each, and every one of them
+  is `mainline`-only** — `CF-62`/`CF-65` and `CF-68`/`CF-69` respectively. Neither invariant has a
+  single case runnable on the reference profile, so a `45/45` reference run asserts **nothing** about
+  either. Both are under-covered relative to their importance and are the first candidates for new
+  cases at `rc.2` — which, per the versioning rules, is a MINOR bump only if the new cases fail
+  nothing that was already conformant.
 
 ### Not in this version
 

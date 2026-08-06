@@ -1,0 +1,131 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
+#
+# Novelty fragment per docs/leads/algorithms.md §6.  Validated by
+# tests/unit/domain/novelty/test_novelty_manifest.py (worker W10) and consumed
+# by MECHANISMS.md generation.  Anything not yet proven belongs under
+# `unverified:` and NEVER inside `claim:`.
+
+slug: canonhold
+name: CANONHOLD
+mechanism: M1
+claim: >-
+  Clause identity is taken over a canonical form from which the printed numbering prefix has
+  been excised, so renumbering 7.3.2(b) to 4.1.1 moves no byte that canon_sha256 depends on;
+  and the canonicaliser's version is a schema migration rather than a configuration value, so
+  history cannot be silently re-normalised underneath the blame edges already attached to it.
+
+enforcement:
+  refuses: []
+  refusal_depth: 0
+# CANONHOLD feeds identity; it refuses nothing on its own, and saying otherwise
+# would be the kind of inflation this file exists to prevent.  What it does is
+# make the S1 exact stage of the identity cascade (ARCHITECTURE.md §6) a
+# byte-equality test that survives retypesetting, renumbering and OCR damage.
+# The refusals downstream of it -- identity_conserved_when_issued (23514),
+# cbm_balances (23514) -- belong to ANCHORLOCK and to the CBM LEDGER and are
+# claimed in their own manifests, not here.
+
+position: re-parameterisation
+# Stated plainly because it is true: NFKC folding, lexicon-driven
+# de-hyphenation, layout-first ingest and FastCDC chunking are all published
+# work, and this is those techniques parameterised for safety-procedure text.
+# The one part of the design that the survey below did not find claimed is that
+# `canon_version` is a MIGRATION -- bumping it requires re-canonicalising the
+# affected clause_version rows, re-running the identity cascade over the touched
+# commits, and CBM accounts that still balance afterwards.  Every system found
+# treats its normaliser as a code detail.
+
+prior_art:
+  - url: "https://www.unicode.org/reports/tr15/"
+    what_it_covers: >-
+      UAX #15 defines NFKC: compatibility decomposition followed by canonical composition, which
+      is the fold this pipeline applies to ligatures, full-width forms and compatibility spaces.
+    what_it_does_not: >-
+      UAX #15 is explicitly a text-equivalence standard, not an identity standard for documents.
+      It says nothing about excising a printed label before hashing, nothing about which
+      normaliser version a stored digest was taken under, and nothing about confusable repair,
+      which it correctly treats as out of scope (that is UTS #39's territory, and UTS #39 is a
+      security-spoofing model, not an OCR-damage model).
+  - url: "https://www.usenix.org/conference/atc16/technical-sessions/presentation/xia"
+    what_it_covers: >-
+      FastCDC (Xia et al., USENIX ATC '16): Gear rolling hash, normalised chunking with a hard
+      mask before the average size and an easy mask after it, cut-point skipping below a minimum,
+      and min/avg/max chunk bounds.  The fallback segmenter here is that algorithm.
+    what_it_does_not: >-
+      FastCDC chunks a byte stream for deduplication throughput.  This implementation runs the
+      gear hash over the TOKEN stream instead, so a single character of OCR noise cannot move a
+      boundary, and it derives the 256-entry gear table from a committed domain constant via
+      blake2b so an opposing expert can regenerate it -- deduplication has no reason to care
+      whether the table is reproducible, and evidence has every reason.
+  - url: "https://docs.oasis-open.org/legaldocml/akn-core/v1.0/akn-core-v1.0-part1-vocabulary.html"
+    what_it_covers: >-
+      Akoma Ntoso / OASIS LegalDocML separates @eId (the identifier a provision prints in this
+      expression) from @wId (the identifier it carried before a renumbering), which is exactly
+      the presentation-versus-identity split `printed_label` versus `clause_uuid` implements.
+    what_it_does_not: >-
+      Akoma Ntoso specifies identifiers an author or a converter ASSIGNS in the markup.  It does
+      not derive identity from content, does not define a canonical form to hash, and therefore
+      offers nothing that survives a document arriving as a scanned PDF with no markup at all --
+      which is the normal case for a site's procedure library.
+  - url: "https://docs.oasis-open.org/legaldocml/akn-nc/v1.0/csprd01/akn-nc-v1.0-csprd01.html"
+    what_it_covers: >-
+      The Akoma Ntoso Naming Convention states the eId/wId rules in detail, including that wId is
+      needed precisely when a renumbering has occurred.
+    what_it_does_not: >-
+      It presumes someone recorded the renumbering.  CANONHOLD assumes nobody did: the prefix is
+      excised mechanically before the digest, so an unrecorded renumbering is a non-event rather
+      than a lost link.  The same reasoning is why no word-processor-assigned paragraph id
+      (OOXML w14:paraId and its relatives) is treated as authority anywhere in this package --
+      those ids are editor-assigned, survive a copy-paste, and can be rewritten by the author
+      whose edit is under examination.
+
+implemented_by:
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/canon/version.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/canon/pipeline.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/canon/fold.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/canon/dehyphen.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/canon/furniture.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/canon/numbering.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/canon/ocr.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/canon/segment.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/canon/digest.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/canon/tokens.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/canon/lexicon.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/data/gazetteer/domain-lexicon.toml"
+
+tests:
+  - "tests/unit/domain/canon/test_reflow_triple.py::test_three_forms_yield_one_canon_sha256"
+  - "tests/unit/domain/canon/test_reflow_triple.py::test_printed_labels_differ_but_identity_does_not"
+  - "tests/unit/domain/canon/test_idempotence.py::test_canon_is_idempotent"
+  - "tests/unit/domain/canon/test_idempotence.py::test_numbering_excision_reaches_a_fixpoint"
+  - "tests/unit/domain/canon/test_canon_version.py::test_canon_version_is_an_int_constant"
+  - "tests/unit/domain/canon/test_canon_version.py::test_no_environment_override_anywhere_in_the_canon_package"
+  - "tests/unit/domain/canon/test_canon_version.py::test_canonicalise_takes_no_version_parameter"
+  - "tests/unit/domain/canon/test_canon_version.py::test_the_version_is_bound_into_the_digest_preimage"
+  - "tests/unit/domain/canon/test_canon_version.py::test_no_builtin_hash_anywhere_in_the_package"
+  - "tests/unit/domain/canon/test_ocr_repair.py::test_free_prose_is_never_repaired"
+  - "tests/unit/domain/canon/test_dehyphen_furniture_segment.py::test_a_local_edit_perturbs_only_local_boundaries"
+  - "tests/unit/domain/canon/test_golden_vectors.py::test_golden_vector"
+
+unverified:
+  - >-
+    The re-normalisation migration that a canon_version bump would require does not exist yet.
+    CANON_VERSION is 1 and has never been bumped, so the claim "bumping it is a migration" is
+    currently enforced by documentation, a test that the constant is not configurable, and the
+    version being bound into the digest preimage -- not by a migration anyone has run.
+  - >-
+    The de-hyphenation lexicon is small and hand-built.  Its false-join and false-keep rates on a
+    real site's procedure library are unmeasured; the mutation ratchet (W10, SURVIVE catalogue)
+    is where that number will come from, and until it does, "reflow-invariant" is proven on the
+    committed fixtures and the generated property inputs only.
+  - >-
+    Page-furniture stripping by repetition needs the containing document's pages.  A clause handed
+    over without document context gets only the unconditional patterns, so furniture unique to one
+    page survives into canon_text.  This is a known recall cost, not a correctness bug, and it is
+    why FurnitureModel.from_pages exists.
+  - >-
+    The confusable repair does not fix damage to the LEADING character of a number, nor damage
+    inside an equipment tag, nor a number glued to its unit.  Those are deliberate refusals to
+    guess, and each one costs a match and produces adjudicable residue.  Their frequency in
+    scanned procedure text is unmeasured.

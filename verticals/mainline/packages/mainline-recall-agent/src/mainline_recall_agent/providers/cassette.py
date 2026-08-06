@@ -42,7 +42,7 @@ from .errors import (
     CassetteTampered,
     ProviderError,
 )
-from .judge import TransportReply
+from .judge import JudgeTransport, TransportReply
 from .types import EMBED_DIM, Vector256, Vector1024
 from .vectors import b64_to_vector, vector_to_b64
 
@@ -134,7 +134,13 @@ class CassetteStore:
         return self._read(path, expected_digest=digest)
 
     def _read(self, path: Path, *, expected_digest: str | None = None) -> dict[str, Any]:
-        document = json.loads(path.read_text(encoding="utf-8"))
+        loaded: Any = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(loaded, dict):
+            raise CassetteTampered(
+                "a cassette must be a JSON object", path=str(path),
+                json_type=type(loaded).__name__,
+            )
+        document: dict[str, Any] = loaded
         if document.get("schema") != CASSETTE_SCHEMA:
             raise CassetteTampered(
                 "unknown cassette schema", path=str(path), schema=document.get("schema")
@@ -228,7 +234,7 @@ class RecordingJudgeTransport:
 
     def __init__(
         self,
-        inner: Any,
+        inner: JudgeTransport,
         store: CassetteStore | None = None,
         *,
         provenance: str = "bedrock-live",
@@ -241,7 +247,7 @@ class RecordingJudgeTransport:
         self._note = note
 
     def send(self, request: dict[str, Any]) -> TransportReply:
-        reply = self._inner.send(request)
+        reply: TransportReply = self._inner.send(request)
         self._store.save(
             "judge",
             request,

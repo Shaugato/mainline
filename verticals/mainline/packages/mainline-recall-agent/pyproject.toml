@@ -11,8 +11,12 @@ version = "0.1.0"
 description = "MAINLINE recall agent — model providers (embeddings, Claude listwise judge), offline-first."
 readme = "README.md"
 requires-python = ">=3.13"
+# FSL-1.1-ALv2 per the repository licence map (verticals/mainline/* is FSL).  The licence
+# TEXT lives in the repo-root LICENSES/ tree, which is outside this project directory and
+# therefore cannot be referenced by `license-files` — under PEP 639 a `license-files` glob
+# that matches nothing is a build error, so the key is deliberately absent rather than
+# pointing at a file that is not here.  Matches the sibling `mainline-domain` package.
 license = "LicenseRef-FSL-1.1-ALv2"
-license-files = ["LICENSE*"]
 authors = [{ name = "MAINLINE contributors" }]
 keywords = ["mainline", "trappoint", "recall", "bedrock", "embeddings"]
 classifiers = [
