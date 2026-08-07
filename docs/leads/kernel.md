@@ -295,3 +295,27 @@ The CI lint banning `CREATE SEQUENCE` / `nextval(` / `SERIAL` / `unique_rowid()`
 ## F5 — Residency: inference in Australia, database in Singapore
 
 Sydney (`ap-southeast-2`) is **Advanced-tier only** — absent from the Basic and Standard region lists. **Any claim of end-to-end Australian data residency is FALSE for this deployment** and must not appear in the README, submission, video, console, or any comment. State the split precisely wherever residency is mentioned.
+
+## F6 — A LOCAL CockroachDB node is running, and it DIVERGES from Cloud in one way that matters
+
+A local node is up for the fast red/green loop, pinned to the **exact Cloud version**:
+
+```
+docker run -d --name mainline-crdb -p 26257:26257 -p 8080:8080 \
+  cockroachdb/cockroach:v26.2.5 start-single-node --insecure --store=type=mem,size=2GiB
+```
+**Local DSN:** `postgresql://root@localhost:26257/defaultdb?sslmode=disable` (insecure, in-memory, no TLS).
+
+Measured parity with Cloud: `v26.2.5` OK · `feature.vector_index.enabled = true` OK · vector index creates OK · **hinted** prefix-constrained ANN traverses the index OK (unhinted still does not — F1 stands).
+
+**Performance:** DDL + 5,000 vector inserts took **2.4 seconds locally** vs **>120 seconds for 9 DDL statements** on Cloud Basic. Run the conformance suite, unwelding harness, concurrency tests and property tests **locally**. Cloud is the nightly `cloud-verify` truth check, not the inner loop.
+
+### THE DIVERGENCE — `gc.ttlseconds`
+
+| | Cloud Basic | Local default |
+|---|---|---|
+| `gc.ttlseconds` | **4500** (75 min) | **14400** (4 h) |
+
+**Local is MORE PERMISSIVE than production.** A time-travel test that passes locally can fail on Cloud.
+
+**`compose.yaml` (owned by `kernel/toolchain-and-red`) MUST apply `ALTER RANGE default CONFIGURE ZONE USING gc.ttlseconds = 4500` in an init step**, so every developer and every CI run gets Cloud-truthful behaviour by construction rather than by remembering. Standing rule: where local and Cloud differ, configure local to the **stricter** value.
