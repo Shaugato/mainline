@@ -1,0 +1,139 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://console.mainline.trappoint.org/contracts/1.0/blocking-check.schema.json",
+  "$comment": "The materialised obligation. Licensing: blocking-check.schema.json.license (REUSE sidecar).",
+  "title": "MAINLINE console — blocking checks",
+  "description": "mainline.blocking_check, ARCHITECTURE.md §5.5. severity, virulence and closure_gen are PROJECTIONS overwritten by fn_check_project from clause_blame_current — they are never inputs (S1), and the console renders them with a db:column chip precisely because nobody who wrote the check chose them.",
+  "allOf": [
+    { "$ref": "envelope.schema.json" },
+    {
+      "properties": {
+        "data": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["subject_kind", "subject_id", "gate_epoch", "checks"],
+          "properties": {
+            "subject_kind": { "$ref": "common.schema.json#/$defs/subject_kind" },
+            "subject_id": { "$ref": "common.schema.json#/$defs/uuid" },
+            "gate_epoch": { "$ref": "common.schema.json#/$defs/gate_epoch" },
+            "checks": {
+              "type": "array",
+              "maxItems": 512,
+              "items": { "$ref": "#/$defs/blocking_check" }
+            }
+          }
+        }
+      },
+      "required": ["data"]
+    }
+  ],
+  "$defs": {
+    "blocking_check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "check_id",
+        "subject_kind",
+        "site_id",
+        "clause_uuid",
+        "commit_id",
+        "origin",
+        "severity",
+        "virulence",
+        "closure_gen",
+        "evidence_summary",
+        "materialised_at",
+        "dedupe_key",
+        "open"
+      ],
+      "properties": {
+        "check_id": { "$ref": "common.schema.json#/$defs/uuid" },
+        "subject_kind": { "$ref": "common.schema.json#/$defs/subject_kind" },
+        "permit_id": {
+          "oneOf": [{ "$ref": "common.schema.json#/$defs/uuid" }, { "type": "null" }]
+        },
+        "cr_id": {
+          "oneOf": [{ "$ref": "common.schema.json#/$defs/uuid" }, { "type": "null" }]
+        },
+        "site_id": { "$ref": "common.schema.json#/$defs/uuid" },
+        "clause_uuid": { "$ref": "common.schema.json#/$defs/uuid" },
+        "commit_id": { "$ref": "common.schema.json#/$defs/commit_id" },
+        "clause_label": {
+          "description": "clause_version.printed_label, e.g. '7.3.2(b)'. Presentation only — NEVER identity.",
+          "type": ["string", "null"],
+          "maxLength": 128
+        },
+        "precursor_event_id": {
+          "oneOf": [{ "$ref": "common.schema.json#/$defs/uuid" }, { "type": "null" }]
+        },
+        "origin": { "$ref": "common.schema.json#/$defs/check_origin" },
+        "severity": { "$ref": "common.schema.json#/$defs/severity" },
+        "virulence": { "$ref": "common.schema.json#/$defs/virulence_class" },
+        "closure_gen": {
+          "description": "Which generation of the blame closure armed this check. A mass rewrite downward shows here as a generation gap (S2).",
+          "type": "integer",
+          "minimum": 0
+        },
+        "control_delta": {
+          "oneOf": [{ "$ref": "common.schema.json#/$defs/control_delta" }, { "type": "null" }]
+        },
+        "recall_run_id": {
+          "oneOf": [{ "$ref": "common.schema.json#/$defs/uuid" }, { "type": "null" }]
+        },
+        "evidence_summary": {
+          "description": "The reranker's mechanism-citing justification, verbatim. The console never summarises it further.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "materialised_at": { "$ref": "common.schema.json#/$defs/timestamp" },
+        "dedupe_key": {
+          "description": "The STORED digest column. S5: NULLs are distinct in a unique index, so six of the eight origins would not dedupe without it.",
+          "$ref": "common.schema.json#/$defs/sha256_hex"
+        },
+        "open": {
+          "description": "True when no live (non-retracted) disposition references this check. Computed by the read API from the one_live_disposition partial unique index, never by the console.",
+          "type": "boolean"
+        },
+        "disposition_id": {
+          "oneOf": [{ "$ref": "common.schema.json#/$defs/uuid" }, { "type": "null" }]
+        },
+        "precursor": {
+          "description": "The precursor event, denormalised for display. Carries no person's name — I15 and §11.5's Attribution Rule.",
+          "oneOf": [{ "$ref": "#/$defs/precursor_event" }, { "type": "null" }]
+        }
+      }
+    },
+    "precursor_event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event_id", "kind", "title", "occurred_at", "severity_gate", "severity_basis"],
+      "properties": {
+        "event_id": { "$ref": "common.schema.json#/$defs/uuid" },
+        "kind": { "$ref": "common.schema.json#/$defs/event_kind" },
+        "external_ref": { "type": ["string", "null"], "maxLength": 128 },
+        "title": { "type": "string", "minLength": 1, "maxLength": 512 },
+        "occurred_at": { "$ref": "common.schema.json#/$defs/timestamp" },
+        "severity_actual": {
+          "oneOf": [{ "$ref": "common.schema.json#/$defs/severity" }, { "type": "null" }]
+        },
+        "severity_potential": {
+          "oneOf": [{ "$ref": "common.schema.json#/$defs/severity" }, { "type": "null" }]
+        },
+        "severity_gate": { "$ref": "common.schema.json#/$defs/severity" },
+        "severity_basis": {
+          "description": "CHECK model_cannot_arm: severity_gate >= 4 with basis 'model_rated' is not a representable row. An LLM's potential rating alone may never arm a blocking gate.",
+          "enum": ["coded_field", "regulator_class", "human_rated", "model_rated"]
+        },
+        "source_object_key": {
+          "description": "S3 Object Lock version id of the raw bytes. A pointer a third party can follow.",
+          "type": ["string", "null"],
+          "maxLength": 512
+        },
+        "source_sha256": {
+          "oneOf": [{ "$ref": "common.schema.json#/$defs/sha256_hex" }, { "type": "null" }]
+        }
+      }
+    }
+  }
+}

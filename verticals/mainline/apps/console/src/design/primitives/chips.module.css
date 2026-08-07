@@ -1,0 +1,170 @@
+/*
+ * SPDX-FileCopyrightText: 2026 MAINLINE contributors
+ * SPDX-License-Identifier: FSL-1.1-ALv2
+ *
+ * THE ATTESTATION CHIPS — ProvenanceChip, VerificationSeal, StagedBadge, SeverityBand.
+ *
+ * Each of these is a claim about a claim. Every one of them is outlined rather than
+ * filled: a filled chip needs an inverse ink, an inverse ink needs a second contrast
+ * contract, and a second contract is a second thing that can silently stop being
+ * checked. Outlines cost one border and reuse the ink ramp that is already gated.
+ *
+ * No chip in this file transitions, pulses, or draws attention to itself over time. A
+ * seal that animates is a seal that looks more certain than it is.
+ */
+
+.chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--tp-space-1);
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step--1);
+  line-height: var(--tp-leading-tight);
+  border: var(--tp-hairline) solid var(--tp-rule);
+  border-radius: var(--tp-radius);
+  padding: 0 var(--tp-space-1);
+  white-space: nowrap;
+  color: var(--tp-ink-faint);
+}
+
+.chipDetail {
+  color: var(--tp-ink-dim);
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+/*
+ * ── ProvenanceChip ─────────────────────────────────────────────────────────────
+ *
+ * D5: the console never computes a gate condition. Every number it shows says how it
+ * came to believe it — a column, a constraint, an in-browser recomputation, or a staged
+ * value that no kernel has accepted.
+ *
+ * `db:column` and `db:constraint` are quiet on purpose: they are the normal case and
+ * the reader should not have to filter noise to find the two that are not.
+ */
+.chip[data-kind='recomputed'] {
+  border-color: var(--tp-rule-strong);
+  color: var(--tp-ink-dim);
+}
+
+/*
+ * `staged` is the loudest chip in the console. It marks a value that exists only in
+ * this browser — nothing has been written, nothing has been refused, and nobody has
+ * signed anything. A staged number that reads like a committed one is the exact lie the
+ * honesty chrome exists to prevent.
+ */
+.chip[data-kind='staged'] {
+  color: var(--tp-warn);
+  border-color: currentColor;
+}
+
+/*
+ * ── VerificationSeal ───────────────────────────────────────────────────────────
+ *
+ * THE ONLY GREEN IN THE CONSOLE is the next declaration block. `--tp-ok` may not appear
+ * anywhere else in this package, and `primitives-css.test.ts` fails if it does.
+ *
+ * The component's own prop type makes the state unreachable without a recomputation
+ * record, so this colour cannot be rendered by an optimistic default, a loading state,
+ * or a caller who passed a boolean. There is no green tick without arithmetic behind it
+ * (docs/leads/ui.md D6).
+ */
+.seal[data-state='verified'] {
+  color: var(--tp-ok);
+  border-color: currentColor;
+}
+
+.seal[data-state='failed'] {
+  color: var(--tp-refuse);
+  font-weight: var(--tp-weight-strong);
+  font-size: var(--tp-step-1);
+  border-color: currentColor;
+}
+
+/*
+ * `unverified` is NOT `failed`, and the palette says so. Amber means nobody has run the
+ * arithmetic yet; red means somebody ran it and it disagreed. Collapsing the two would
+ * make an unchecked bundle look like a tampered one and — far worse — would make people
+ * learn to ignore red.
+ */
+.seal[data-state='unverified'],
+.seal[data-state='verifying'] {
+  color: var(--tp-warn);
+  border-color: currentColor;
+}
+
+.sealDetail {
+  color: var(--tp-ink-dim);
+  font-size: var(--tp-step--1);
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/*
+ * ── StagedBadge ────────────────────────────────────────────────────────────────
+ */
+.staged {
+  color: var(--tp-warn);
+  border-color: currentColor;
+  text-transform: uppercase;
+  letter-spacing: var(--tp-tracking-caps);
+}
+
+/*
+ * ── SeverityBand ───────────────────────────────────────────────────────────────
+ *
+ * Four blocks, one per value of `mainline.virulence_class`. Each sets BOTH the colour
+ * and the emphasis weight and size, because the ramp's top bands are emphasis-only
+ * foregrounds under `pairs.ts` and the redundancy is what makes that contract true
+ * rather than aspirational.
+ *
+ * The band NAME is always rendered by the component and there is no prop that removes
+ * it. Colour never carries the band alone: an exhibit gets photocopied, a dichromat
+ * reads a compressed ramp, and a screenshot outlives the stylesheet that gave it
+ * meaning.
+ */
+.band {
+  border-color: currentColor;
+  font-size: var(--tp-step-1);
+  font-weight: var(--tp-weight-strong);
+}
+
+.band[data-virulence='routine'] {
+  color: var(--tp-sev-routine);
+  font-weight: var(--tp-weight-strong);
+  font-size: var(--tp-step-1);
+}
+
+.band[data-virulence='serious'] {
+  color: var(--tp-sev-serious);
+  font-weight: var(--tp-weight-strong);
+  font-size: var(--tp-step-1);
+}
+
+.band[data-virulence='blood_major'] {
+  color: var(--tp-sev-blood-major);
+  font-weight: var(--tp-weight-strong);
+  font-size: var(--tp-step-1);
+}
+
+.band[data-virulence='blood_fatal'] {
+  color: var(--tp-sev-blood-fatal);
+  font-weight: var(--tp-weight-strong);
+  font-size: var(--tp-step-1);
+}
+
+/* The severity integer, when the caller has one. A separate fact from the band, shown
+   as one: the database bands severity into virulence exactly once, in
+   `clause_blame_closure`, and the console never re-derives one from the other. */
+.bandSeverity {
+  color: var(--tp-ink-faint);
+  font-size: var(--tp-step--1);
+  font-weight: var(--tp-weight-regular);
+}
+
+@media print {
+  .chip {
+    border-color: var(--tp-rule-strong);
+  }
+}

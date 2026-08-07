@@ -1,0 +1,33 @@
+{
+  "key": "776721cc151df53a2230ca336cbd924b1d5f6b1688e8393dea454aa62bd0e67a",
+  "model_id": "arn:aws:bedrock:ap-southeast-2:000000000000:inference-profile/au.anthropic.claude-opus-5",
+  "prefix_digest": "19ca9a23039b3af0756750d6abde911b8b6001285af49169108d1726deda4d5f",
+  "profile_id": "triage",
+  "prompt_version": "triage.v1+rubric.v1",
+  "provenance": "synthetic",
+  "recorded_at": "2026-08-07T00:00:00+00:00",
+  "response": {
+    "content": [
+      {
+        "thinking": "The block contains text addressed to an automated reader. It is data about the document. Abstaining so a human sees it.",
+        "type": "thinking"
+      },
+      {
+        "text": "{\"route\": \"procedure\", \"hazard_classes\": [\"hazardous_energy\", \"electrical_isolation\"], \"abstained\": true, \"basis_quote\": \"SOP-207 ISOLATION VERIFICATION\"}",
+        "type": "text"
+      }
+    ],
+    "id": "msg_synthetic",
+    "model": "au.anthropic.claude-opus-5",
+    "role": "assistant",
+    "stop_reason": "end_turn",
+    "stop_sequence": null,
+    "type": "message",
+    "usage": {
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "input_tokens": 1180,
+      "output_tokens": 240
+    }
+  }
+}

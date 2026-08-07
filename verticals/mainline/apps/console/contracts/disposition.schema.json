@@ -1,0 +1,261 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://console.mainline.trappoint.org/contracts/1.0/disposition.schema.json",
+  "$comment": "The disposition screen's read model: the check, the lattice row that governs it, the per-check defeater vocabulary, and any signature already recorded. Licensing: disposition.schema.json.license (REUSE sidecar).",
+  "title": "MAINLINE console — disposition",
+  "description": "mainline.disposition, mainline.clearance_legal and mainline.defeater_option, ARCHITECTURE.md §5.5 and §5.0. The countersigner field exists on this screen when — and only when — the clearance lattice row for (virulence, kind) sets req_second_signer. A feature flag that produced the same field would pass a naive test and is exactly the lie BUILD_PLAN §3 warns about, so the flag is not in this contract and cannot be.",
+  "allOf": [
+    { "$ref": "envelope.schema.json" },
+    {
+      "properties": {
+        "data": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["check_id", "virulence", "lattice", "defeater_options", "signed"],
+          "properties": {
+            "check_id": { "$ref": "common.schema.json#/$defs/uuid" },
+            "virulence": {
+              "description": "Projected onto the disposition from clause_blame_current (S1). It is the first half of the composite FK into clearance_legal, and it is not a field a signer chooses.",
+              "$ref": "common.schema.json#/$defs/virulence_class"
+            },
+            "lattice": {
+              "description": "Every clearance_legal row for this virulence. A (virulence, kind) pair ABSENT from this array is not a disallowed option — it is a NON-EXISTENT one, and attempting it produces SQLSTATE 23503 on fk_clearance. The console renders the absence as an absence.",
+              "type": "array",
+              "maxItems": 16,
+              "items": { "$ref": "#/$defs/clearance_legal" }
+            },
+            "defeater_options": {
+              "description": "Generated PER CHECK. There is no global 'not applicable' anywhere in this product.",
+              "type": "array",
+              "maxItems": 32,
+              "items": { "$ref": "#/$defs/defeater_option" }
+            },
+            "reading_floor": {
+              "description": "S19: t_min(R) = tau0 + (sum of tokens dispositioned against R) / rho. Breaching it does not raise — it records, projects permit.unmet_floor_count, and prices the consequence in a second signature.",
+              "oneOf": [{ "$ref": "#/$defs/reading_floor" }, { "type": "null" }]
+            },
+            "signed": {
+              "description": "The recorded disposition, or null when none exists yet.",
+              "oneOf": [{ "$ref": "#/$defs/disposition" }, { "type": "null" }]
+            }
+          }
+        }
+      },
+      "required": ["data"]
+    }
+  ],
+  "$defs": {
+    "clearance_legal": {
+      "description": "One row of the clearance lattice. The customer's officer approved it; we did not.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "virulence",
+        "kind",
+        "req_compensating",
+        "req_second_signer",
+        "req_foreign_org",
+        "req_predicate",
+        "req_reassert",
+        "min_signer_rank",
+        "max_ttl_hours",
+        "policy_version",
+        "approved_by_sub",
+        "approved_at"
+      ],
+      "properties": {
+        "virulence": { "$ref": "common.schema.json#/$defs/virulence_class" },
+        "kind": { "$ref": "common.schema.json#/$defs/disposition_kind" },
+        "req_compensating": { "type": "boolean" },
+        "req_second_signer": { "type": "boolean" },
+        "req_foreign_org": { "type": "boolean" },
+        "req_predicate": { "type": "boolean" },
+        "req_reassert": { "type": "boolean" },
+        "min_signer_rank": { "type": "integer", "minimum": 1, "maximum": 9 },
+        "max_ttl_hours": { "type": ["integer", "null"], "minimum": 1 },
+        "policy_version": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "approved_by_sub": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "approved_at": { "$ref": "common.schema.json#/$defs/timestamp" }
+      }
+    },
+    "defeater_option": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["check_id", "defeater_code", "prompt", "vocab_sha256"],
+      "properties": {
+        "check_id": { "$ref": "common.schema.json#/$defs/uuid" },
+        "defeater_code": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "prompt": {
+          "description": "e.g. 'which precondition of this mechanism is absent?' — the question the vocabulary answers.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "vocab_sha256": {
+          "description": "Pins WHICH vocabulary was offered. A disposition records the same digest, so a later regeneration cannot silently reinterpret a past signature.",
+          "$ref": "common.schema.json#/$defs/sha256_hex"
+        }
+      }
+    },
+    "reading_floor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tokens_cumulative", "rho_tokens_per_second", "tau0_seconds", "t_min_seconds", "elapsed_seconds", "met"],
+      "properties": {
+        "tokens_cumulative": { "type": "integer", "minimum": 0 },
+        "rho_tokens_per_second": { "type": "number", "exclusiveMinimum": 0 },
+        "tau0_seconds": { "type": "number", "minimum": 0 },
+        "t_min_seconds": { "type": "number", "minimum": 0 },
+        "elapsed_seconds": { "type": "number", "minimum": 0 },
+        "met": {
+          "description": "Positive polarity (D1), and computed by the server, not chosen. The console renders the arithmetic beside it so the number is checkable rather than believable.",
+          "type": "boolean"
+        }
+      }
+    },
+    "disposition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "disposition_id",
+        "check_id",
+        "receipt_id",
+        "permit_id",
+        "kind",
+        "virulence",
+        "closure_gen",
+        "defeater_code",
+        "defeater_vocab_sha256",
+        "rationale",
+        "evidence_sha256",
+        "signature",
+        "requirements",
+        "measurements",
+        "signed_at",
+        "retracted_by"
+      ],
+      "properties": {
+        "disposition_id": { "$ref": "common.schema.json#/$defs/uuid" },
+        "check_id": { "$ref": "common.schema.json#/$defs/uuid" },
+        "receipt_id": { "$ref": "common.schema.json#/$defs/uuid" },
+        "permit_id": { "$ref": "common.schema.json#/$defs/uuid" },
+        "kind": { "$ref": "common.schema.json#/$defs/disposition_kind" },
+        "virulence": { "$ref": "common.schema.json#/$defs/virulence_class" },
+        "closure_gen": { "type": "integer", "minimum": 0 },
+        "defeater_code": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "defeater_vocab_sha256": { "$ref": "common.schema.json#/$defs/sha256_hex" },
+        "rationale": {
+          "description": "CONSTRAINT substantive: length >= 120. The console renders it verbatim and does not truncate it on screen.",
+          "type": "string",
+          "minLength": 120,
+          "maxLength": 16384
+        },
+        "evidence_sha256": { "$ref": "common.schema.json#/$defs/sha256_hex" },
+        "signature": { "$ref": "#/$defs/signature_block" },
+        "requirements": {
+          "description": "The req_* flags PROJECTED onto the disposition row by a BEFORE trigger from clearance_legal. They are on the row so a CHECK can read them; they are in this payload so the screen can prove why a field was demanded.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "req_compensating",
+            "req_second_signer",
+            "req_foreign_org",
+            "req_predicate",
+            "req_reassert",
+            "min_signer_rank"
+          ],
+          "properties": {
+            "req_compensating": { "type": "boolean" },
+            "req_second_signer": { "type": "boolean" },
+            "req_foreign_org": { "type": "boolean" },
+            "req_predicate": { "type": "boolean" },
+            "req_reassert": { "type": "boolean" },
+            "min_signer_rank": { "type": "integer", "minimum": 1, "maximum": 9 },
+            "max_ttl_hours": { "type": ["integer", "null"], "minimum": 1 }
+          }
+        },
+        "compensating_clause_uuid": {
+          "oneOf": [{ "$ref": "common.schema.json#/$defs/uuid" }, { "type": "null" }]
+        },
+        "predicate_id": {
+          "oneOf": [{ "$ref": "common.schema.json#/$defs/uuid" }, { "type": "null" }]
+        },
+        "reassert_by": {
+          "oneOf": [{ "$ref": "common.schema.json#/$defs/timestamp" }, { "type": "null" }]
+        },
+        "expires_at": {
+          "oneOf": [{ "$ref": "common.schema.json#/$defs/timestamp" }, { "type": "null" }]
+        },
+        "anchors": {
+          "description": "Evidentiary asymmetry: gist may accuse, only verbatim may acquit. verbatim_floor refuses a mechanism_absent or mitigated disposition whose verbatim anchor count is below the required count.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["verbatim_anchor_count", "required_anchors"],
+          "properties": {
+            "verbatim_anchor_count": { "type": "integer", "minimum": 0 },
+            "required_anchors": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "measurements": {
+          "description": "NEUTRAL MEASUREMENTS. Recorded, never thresholded here, and never rendered as a characterisation of a named person (I15 / the A-RULE). deliberation_seconds derives from the SERVER clock on exposure_receipt.issued_at (S7).",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "deliberation_seconds",
+            "evidence_opened",
+            "reading_floor_met",
+            "prior_override_count",
+            "severity_snapshot"
+          ],
+          "properties": {
+            "deliberation_seconds": { "type": "integer", "minimum": 0 },
+            "evidence_opened": { "type": "boolean" },
+            "reading_floor_met": { "type": "boolean" },
+            "prior_override_count": { "type": "integer", "minimum": 0 },
+            "severity_snapshot": { "$ref": "common.schema.json#/$defs/severity" }
+          }
+        },
+        "signed_at": { "$ref": "common.schema.json#/$defs/timestamp" },
+        "retracted_by": {
+          "oneOf": [{ "$ref": "common.schema.json#/$defs/uuid" }, { "type": "null" }]
+        }
+      }
+    },
+    "signature_block": {
+      "description": "What a signature actually is (ARCHITECTURE.md §11.4). signer_sub is carried because the record names who signed; D15 forbids it becoming a visual dimension anywhere in the console — never a colour, axis, facet or sort key.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "signer_sub",
+        "signer_rank",
+        "signer_org",
+        "signer_credential_id",
+        "signature_alg",
+        "user_verified"
+      ],
+      "properties": {
+        "signer_sub": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "signer_rank": { "type": "integer", "minimum": 1, "maximum": 9 },
+        "signer_org": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "signer_credential_id": { "$ref": "common.schema.json#/$defs/hex" },
+        "countersigner_sub": { "type": ["string", "null"], "maxLength": 256 },
+        "countersigner_rank": { "type": ["integer", "null"], "minimum": 1, "maximum": 9 },
+        "countersigner_org": { "type": ["string", "null"], "maxLength": 256 },
+        "countersigner_credential_id": {
+          "oneOf": [{ "$ref": "common.schema.json#/$defs/hex" }, { "type": "null" }]
+        },
+        "signature_alg": {
+          "description": "COSE algorithm identifier, e.g. -7 for ES256, rendered as a string.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32
+        },
+        "user_verified": {
+          "description": "CONSTRAINT uv_required: false is not a representable row. The difference between 'a token was present' and 'a person authenticated'.",
+          "const": true
+        },
+        "sign_count": { "type": ["integer", "null"], "minimum": 0 }
+      }
+    }
+  }
+}

@@ -1,0 +1,54 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MI: MI25
+-- I: I02
+-- COUNSEL-GATED: no
+-- RATIONALE: The second half of DR-1's file swap — the ANN index as its own statement, applied immediately after the table and while it is still empty, so the index name `ce_ann` that every pinned recall arm depends on exists under either variant.
+--
+-- migration:  0031a_clause_embedding_ann  (FALLBACK VARIANT — NOT APPLIED, NOT IN the lock file)
+-- band:       0024-0031, 0047-0049 · dm-spine
+-- statements: 1
+-- source:     ARCHITECTURE.md §4.1 law 7 · §6.3 · docs/leads/datamodel.md DR-1
+--             · docs/adr/0002-g1-platform-ground-truth.md GT-04, GT-06b
+-- requires:   0031_clause_embedding.fallback.sql, renamed to 0031_clause_embedding.up.sql
+-- pairs with: 0031_clause_embedding.fallback.sql — the CREATE TABLE half
+-- sqlstate:   none at write time. This is an index; it refuses nothing.
+-- forward-only; no .down.sql exists at or below the protected floor (DM-14).
+--
+-- THIS FILE IS NOT APPLIED. The full swap procedure is written out in the header of
+-- 0031_clause_embedding.fallback.sql; this file is step 3 of it.
+--
+-- THE INDEX NAME IS PART OF THE CONTRACT. G1's GT-06 measured that at demo corpus scale the
+-- optimizer does NOT choose a vector index on its own — the unhinted plan is top-k → render →
+-- filter → scan — and GT-06b measured that naming the index makes it traverse. So every ANN arm
+-- in this system pins the index explicitly:
+--
+--     SELECT … FROM mainline.clause_embedding@ce_ann
+--      WHERE site_id = $1 AND activity_root = $2
+--      ORDER BY embedding <=> $3 LIMIT $4
+--
+-- `ce_ann` is therefore a name application code depends on, not an implementation detail. It is
+-- spelled identically here and in the live 0031, which is what makes the swap invisible to
+-- everything downstream.
+--
+-- ORDER OF PREFIX COLUMNS IS (site_id, activity_root) AND IT IS NOT ARBITRARY. C-SPANN keeps one
+-- k-means tree per distinct prefix VALUE COMBINATION, and every prefix column must be constrained
+-- to a single value for the index to be usable at all — `IN (...)` defeats it. Site first because
+-- every query in the product is site-scoped; activity root second because the ancestor walk
+-- iterates over roots, one pinned query per root, `UNION ALL`-ed and re-ranked.
+--
+-- APPLY IT WHILE THE TABLE IS STILL EMPTY. `CREATE VECTOR INDEX` against a populated table starts
+-- a backfill that BLOCKS TABLE WRITES until it completes and requires `sql_safe_updates` off. At
+-- migration time the table has zero rows, so the statement returns immediately. The letter suffix
+-- `0031a` is what guarantees adjacency: ruling D7 orders lexicographically on the whole stem, so
+-- nothing sorts between `0031` and `0031a`.
+--
+-- `vector_cosine_ops` matches the live variant and pairs with the `<=>` operator. It is not a
+-- default — CockroachDB's default is `vector_l2_ops` and `<->` — so omitting it here would build
+-- an index the pinned queries above cannot use, which would present as "the index exists and the
+-- query is still slow". Stated explicitly for that reason.
+--
+-- UNVERIFIED ON THIS MACHINE: no CockroachDB v26.2 was reachable when this band was authored.
+
+CREATE VECTOR INDEX ce_ann ON mainline.clause_embedding (site_id, activity_root, embedding vector_cosine_ops);

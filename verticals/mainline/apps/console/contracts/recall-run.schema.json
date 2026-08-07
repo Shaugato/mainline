@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://console.mainline.trappoint.org/contracts/1.0/recall-run.schema.json",
+  "$comment": "One recall run and its conservation arithmetic. Licensing: recall-run.schema.json.license (REUSE sidecar).",
+  "title": "MAINLINE console — recall run",
+  "description": "mainline_meas.recall_run (ARCHITECTURE.md §5.7). Two CHECK constraints on this table are product claims and the console renders both as arithmetic the reader can add up: candidates_conserved (n_candidates = blocking + advisory + silenced + deduped) and bonded_fatalities_all_blocking (n_bonded_sev5_blocking = n_bonded_sev5 — 'a fatality in your fonds is always recalled', as a positive invariant rather than a score hack).",
+  "allOf": [
+    { "$ref": "envelope.schema.json" },
+    {
+      "properties": {
+        "data": { "$ref": "#/$defs/recall_run" }
+      },
+      "required": ["data"]
+    }
+  ],
+  "$defs": {
+    "recall_run": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "run_id",
+        "permit_id",
+        "site_id",
+        "corpus_commit",
+        "policy_version",
+        "index_plan_digest",
+        "index_generation",
+        "counts",
+        "arms_degraded",
+        "started_at"
+      ],
+      "properties": {
+        "run_id": { "$ref": "common.schema.json#/$defs/uuid" },
+        "permit_id": { "$ref": "common.schema.json#/$defs/uuid" },
+        "site_id": { "$ref": "common.schema.json#/$defs/uuid" },
+        "corpus_commit": { "$ref": "common.schema.json#/$defs/commit_id" },
+        "policy_version": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "index_plan_digest": {
+          "description": "Hash of the EXPLAIN output ACTUALLY OBSERVED, not of the plan we hoped for. Platform ground truth F1: every ANN arm pins its index explicitly, because at demo-corpus scale an unhinted prefix-constrained query does not traverse the index at all.",
+          "$ref": "common.schema.json#/$defs/sha256_hex"
+        },
+        "index_generation": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "counts": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "n_candidates",
+            "n_blocking",
+            "n_advisory",
+            "n_silenced",
+            "n_deduped",
+            "n_bonded_sev5",
+            "n_bonded_sev5_blocking"
+          ],
+          "properties": {
+            "n_candidates": { "type": "integer", "minimum": 0 },
+            "n_blocking": { "type": "integer", "minimum": 0 },
+            "n_advisory": { "type": "integer", "minimum": 0 },
+            "n_silenced": { "type": "integer", "minimum": 0 },
+            "n_deduped": { "type": "integer", "minimum": 0 },
+            "n_bonded_sev5": { "type": "integer", "minimum": 0 },
+            "n_bonded_sev5_blocking": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "arms": {
+          "description": "Per-channel outcome. A degraded arm is displayed as degraded; the fusion never hides which channel went missing.",
+          "type": "array",
+          "maxItems": 16,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["arm", "degraded"],
+            "properties": {
+              "arm": { "type": "string", "minLength": 1, "maxLength": 64 },
+              "degraded": { "type": "boolean" },
+              "n_returned": { "type": ["integer", "null"], "minimum": 0 },
+              "index_hinted": { "type": ["boolean", "null"] },
+              "detail": { "type": ["string", "null"], "maxLength": 1024 }
+            }
+          }
+        },
+        "arms_degraded": { "type": "boolean" },
+        "started_at": { "$ref": "common.schema.json#/$defs/timestamp" },
+        "latency_ms": { "type": ["integer", "null"], "minimum": 0 }
+      }
+    }
+  }
+}

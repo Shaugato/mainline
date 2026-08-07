@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://console.mainline.trappoint.org/contracts/1.0/change-request.schema.json",
+  "$comment": "The change_request row. Licensing: change-request.schema.json.license (REUSE sidecar).",
+  "title": "MAINLINE console — change request",
+  "description": "mainline.change_request, ARCHITECTURE.md §5.5. S16: making the change request a gated subject is what turns 'the permit is a protected branch' into 'the repository is a protected branch and the permit is one of its refs'. It has three projected counters and four named refusals, not seven and seven — a smaller gate is still a gate, and pretending otherwise would be a schema that lies about the DDL.",
+  "allOf": [
+    { "$ref": "envelope.schema.json" },
+    {
+      "properties": {
+        "data": { "$ref": "#/$defs/change_request" }
+      },
+      "required": ["data"]
+    }
+  ],
+  "$defs": {
+    "change_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cr_id",
+        "site_id",
+        "external_ref",
+        "ref_name",
+        "target_ref",
+        "state",
+        "head_seq",
+        "gate_epoch",
+        "opened_at",
+        "counters",
+        "constraints"
+      ],
+      "properties": {
+        "cr_id": { "$ref": "common.schema.json#/$defs/uuid" },
+        "site_id": { "$ref": "common.schema.json#/$defs/uuid" },
+        "external_ref": {
+          "description": "The customer's management-of-change identifier, e.g. MOC-2026-0413.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "ref_name": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "target_ref": {
+          "description": "The protected branch it wants to merge into.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "state": { "$ref": "common.schema.json#/$defs/subject_state" },
+        "head_seq": { "type": "integer", "minimum": 0 },
+        "gate_epoch": { "$ref": "common.schema.json#/$defs/gate_epoch" },
+        "merged_commit": {
+          "oneOf": [{ "$ref": "common.schema.json#/$defs/commit_id" }, { "type": "null" }]
+        },
+        "opened_at": { "$ref": "common.schema.json#/$defs/timestamp" },
+        "counters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["open_blocking", "open_residue", "open_conflicts"],
+          "properties": {
+            "open_blocking": { "$ref": "common.schema.json#/$defs/counter" },
+            "open_residue": { "$ref": "common.schema.json#/$defs/counter" },
+            "open_conflicts": { "$ref": "common.schema.json#/$defs/counter" }
+          }
+        },
+        "constraints": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "items": { "$ref": "permit.schema.json#/$defs/gate_constraint" }
+        }
+      }
+    }
+  }
+}

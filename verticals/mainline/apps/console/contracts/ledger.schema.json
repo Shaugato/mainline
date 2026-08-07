@@ -1,0 +1,233 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://console.mainline.trappoint.org/contracts/1.0/ledger.schema.json",
+  "$comment": "The custody ledger as the console reads it. Licensing: ledger.schema.json.license (REUSE sidecar).",
+  "title": "MAINLINE console — ledger leaves, nodes, checkpoints and cosignatures",
+  "description": "mainline.ledger_leaf, ledger_node, ledger_checkpoint and cosignature (ARCHITECTURE.md §5.6). This contract carries BYTES, not verdicts: every hash, note and proof path below is material the in-browser verifier (D6, worker verifier-custody-room) recomputes. Nothing in this payload asserts that a proof held, and the console must not render one as though it did.",
+  "allOf": [
+    { "$ref": "envelope.schema.json" },
+    {
+      "properties": {
+        "data": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["site_code", "checkpoints", "leaves", "inclusion_proofs"],
+          "properties": {
+            "site_code": { "type": "string", "minLength": 1, "maxLength": 64 },
+            "checkpoints": {
+              "description": "Ascending tree_size, no duplicates.",
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 64,
+              "items": { "$ref": "#/$defs/checkpoint" }
+            },
+            "leaves": {
+              "description": "seq must be dense from 0. A gap MEANS tampering — there is no sequence generator in this deployment that could have produced one (CREATE SEQUENCE / nextval / SERIAL / unique_rowid are banned by a CI lint, which is load-bearing because the cluster would otherwise accept them).",
+              "type": "array",
+              "maxItems": 512,
+              "items": { "$ref": "#/$defs/leaf" }
+            },
+            "nodes": {
+              "description": "Persisted RFC 6962 interior hashes, tile-addressable. Optional: the verifier can recompute them from the leaves, and their absence downgrades nothing.",
+              "type": "array",
+              "maxItems": 2048,
+              "items": { "$ref": "#/$defs/node" }
+            },
+            "inclusion_proofs": {
+              "type": "array",
+              "maxItems": 512,
+              "items": { "$ref": "#/$defs/inclusion_proof" }
+            },
+            "consistency_proofs": {
+              "type": "array",
+              "maxItems": 64,
+              "items": { "$ref": "#/$defs/consistency_proof" }
+            },
+            "cosignatures": {
+              "type": "array",
+              "maxItems": 64,
+              "items": { "$ref": "#/$defs/cosignature" }
+            },
+            "unwitnessed_debt": {
+              "description": "Going dark stays possible and self-reports. An unreachable witness produces a debt row, never a blocked merge.",
+              "type": "array",
+              "maxItems": 64,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["debt_id", "site_code", "permit_id", "incurred_at", "discharged_tree_size"],
+                "properties": {
+                  "debt_id": { "$ref": "common.schema.json#/$defs/uuid" },
+                  "site_code": { "type": "string", "minLength": 1, "maxLength": 64 },
+                  "permit_id": { "$ref": "common.schema.json#/$defs/uuid" },
+                  "incurred_at": { "$ref": "common.schema.json#/$defs/timestamp" },
+                  "discharged_tree_size": { "type": ["integer", "null"], "minimum": 0 }
+                }
+              }
+            }
+          }
+        }
+      },
+      "required": ["data"]
+    }
+  ],
+  "$defs": {
+    "checkpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["site_code", "tree_size", "root_hex", "note", "canon_src_sha256", "admissible"],
+      "properties": {
+        "site_code": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "tree_size": { "type": "integer", "minimum": 0 },
+        "root_hex": { "$ref": "common.schema.json#/$defs/sha256_hex" },
+        "note": {
+          "description": "The C2SP tlog-checkpoint note text VERBATIM, newlines and signature lines included — these are the signed bytes. tree_size and root_hex are redundant with it ON PURPOSE: a verifier parses the note and compares, and a disagreement is a finding.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8192
+        },
+        "log_key": {
+          "description": "C2SP vkey. A bundle that carries its own trust anchor proves nothing, so a checkpoint verified against a key from this field alone is reported as PASS(self-asserted-key) — a distinct verdict.",
+          "type": ["string", "null"],
+          "maxLength": 512
+        },
+        "log_sig_b64": { "type": ["string", "null"], "maxLength": 1024 },
+        "beacon": {
+          "description": "drand round + signature. LOWER time bound.",
+          "type": ["object", "null"]
+        },
+        "tsa_token_b64": {
+          "description": "RFC 3161 TimeStampToken over SHA-256(note). UPPER time bound. Null downgrades the timestamp check to SKIP(no-tsa-token).",
+          "type": ["string", "null"],
+          "maxLength": 65536
+        },
+        "s3_version": {
+          "description": "Object Lock COMPLIANCE version id. Offline this is a claim by us about our own archive, and the console labels it as one.",
+          "type": ["string", "null"],
+          "maxLength": 256
+        },
+        "canon_src_sha256": {
+          "description": "Hash of the canonicaliser that produced the leaves. Nothing here is 'obviously SHA-256 because everything is'.",
+          "$ref": "common.schema.json#/$defs/sha256_hex"
+        },
+        "admissible": {
+          "description": "Projected: quorum plus trust-domain diversity satisfied. It is the database's word, not the console's arithmetic.",
+          "type": "boolean"
+        },
+        "observed_at": {
+          "oneOf": [{ "$ref": "common.schema.json#/$defs/timestamp" }, { "type": "null" }]
+        }
+      }
+    },
+    "leaf": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "seq",
+        "entry_id",
+        "entry_kind",
+        "subject_id",
+        "payload_ver",
+        "canon_bytes_b64",
+        "leaf_hash_hex",
+        "link_hash_hex",
+        "prev_link_hash_hex",
+        "is_sandbox",
+        "actor",
+        "actor_kind",
+        "recorded_at"
+      ],
+      "properties": {
+        "seq": { "type": "integer", "minimum": 0 },
+        "entry_id": { "$ref": "common.schema.json#/$defs/uuid" },
+        "entry_kind": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "subject_id": { "$ref": "common.schema.json#/$defs/uuid" },
+        "payload_ver": { "type": "integer", "minimum": 1 },
+        "canon_bytes_b64": {
+          "description": "RFC 8785 JCS bytes, base64. THE HASHED BYTES. A verifier that hashes `payload` instead has tested its own JSON library, not this ledger.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 131072
+        },
+        "payload": {
+          "description": "A convenience rendering for humans. Never hashed. A disagreement between this and canon_bytes_b64 is how a substitution attack surfaces as a legible discrepancy rather than as nothing at all."
+        },
+        "leaf_hash_hex": { "$ref": "common.schema.json#/$defs/sha256_hex" },
+        "link_hash_hex": { "$ref": "common.schema.json#/$defs/sha256_hex" },
+        "prev_link_hash_hex": {
+          "description": "Present on every leaf including seq 0, where it is 64 zeroes. An explicit genesis beats a special case, and UNIQUE (site_code, prev_link_hash) depends on it existing.",
+          "$ref": "common.schema.json#/$defs/sha256_hex"
+        },
+        "is_sandbox": {
+          "description": "No leaf in an evidentiary bundle may be true.",
+          "type": "boolean"
+        },
+        "actor": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "actor_kind": { "enum": ["human", "agent", "service", "external"] },
+        "recorded_at": { "$ref": "common.schema.json#/$defs/timestamp" },
+        "batch_id": {
+          "oneOf": [{ "$ref": "common.schema.json#/$defs/uuid" }, { "type": "null" }]
+        }
+      }
+    },
+    "node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["level", "idx", "hash_hex"],
+      "properties": {
+        "level": { "type": "integer", "minimum": 0 },
+        "idx": { "type": "integer", "minimum": 0 },
+        "hash_hex": { "$ref": "common.schema.json#/$defs/sha256_hex" }
+      }
+    },
+    "inclusion_proof": {
+      "description": "RFC 6962 §2.1.1. This is the proof that answers 'this was never in the log' — a proposition nobody can rebut with a chain, only with a tree.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["seq", "tree_size", "path_hex"],
+      "properties": {
+        "seq": { "type": "integer", "minimum": 0 },
+        "tree_size": { "type": "integer", "minimum": 1 },
+        "path_hex": {
+          "type": "array",
+          "maxItems": 64,
+          "items": { "$ref": "common.schema.json#/$defs/sha256_hex" }
+        }
+      }
+    },
+    "consistency_proof": {
+      "description": "RFC 6962 §2.1.2. Required for every consecutive checkpoint pair. This is the check that catches 'delete leaf k, renumber, recompute every link_hash': the link chain recomputes perfectly after that attack; the consistency proof does not.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from_size", "to_size", "path_hex"],
+      "properties": {
+        "from_size": { "type": "integer", "minimum": 1 },
+        "to_size": { "type": "integer", "minimum": 1 },
+        "path_hex": {
+          "type": "array",
+          "maxItems": 64,
+          "items": { "$ref": "common.schema.json#/$defs/sha256_hex" }
+        }
+      }
+    },
+    "cosignature": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tree_size", "witness_id", "trust_domain", "adverse", "sig_b64", "received_at"],
+      "properties": {
+        "tree_size": { "type": "integer", "minimum": 0 },
+        "witness_id": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "trust_domain": {
+          "enum": ["regulator", "insurer", "union_hsr", "external_auditor", "operator"]
+        },
+        "adverse": {
+          "description": "A claim about legal interest, not a cryptographic property. With q=1 over our own infrastructure the verdict is PASS(not-adverse), and split-view resistance MUST NOT be claimed by any screen rendered from this field.",
+          "type": "boolean"
+        },
+        "sig_b64": { "type": "string", "minLength": 1, "maxLength": 2048 },
+        "witness_key": { "type": ["string", "null"], "maxLength": 512 },
+        "received_at": { "$ref": "common.schema.json#/$defs/timestamp" }
+      }
+    }
+  }
+}

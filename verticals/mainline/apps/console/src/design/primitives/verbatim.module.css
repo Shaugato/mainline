@@ -1,0 +1,182 @@
+/*
+ * SPDX-FileCopyrightText: 2026 MAINLINE contributors
+ * SPDX-License-Identifier: FSL-1.1-ALv2
+ *
+ * THE VERBATIM PRIMITIVES — Mono, ConstraintName, Sqlstate, Digest.
+ *
+ * Everything styled here is a string the DATABASE emitted. The mono face is the signal
+ * that says so, and it is the only signal the console has for that distinction, which
+ * makes it load-bearing rather than stylistic: prose is sans, verbatim is mono, and a
+ * reader can tell at a glance which sentences are ours.
+ *
+ * Three rules hold across every selector in this file:
+ *   • the text is real, selectable text — never an image, never a canvas, never a
+ *     pseudo-element `content:` string, so it can be copied into a bug report and
+ *     grepped for in the schema;
+ *   • `user-select` is never `none`; and
+ *   • nothing here transitions. This is the EVIDENCE register: a screenshot of it is a
+ *     complete rendering of it.
+ */
+
+.mono {
+  font-family: var(--tp-mono);
+  font-size: 0.95em;
+  line-height: var(--tp-leading-tight);
+  font-variant-ligatures: none;
+  font-variant-numeric: tabular-nums slashed-zero;
+  overflow-wrap: anywhere;
+  user-select: text;
+}
+
+/*
+ * A constraint name is the most valuable string on the gate screen: it is the exact
+ * identifier a reader can grep for in `verticals/mainline/db/migrations/`. It is set in
+ * the same weight as body text so that it reads as a quotation rather than as our
+ * emphasis — the database said this, we did not.
+ */
+.constraint {
+  color: var(--tp-ink);
+  letter-spacing: 0;
+}
+
+/*
+ * Inside a refusal panel the constraint name and the SQLSTATE take the accent. Both are
+ * EMPHASIS foregrounds, so both blocks carry the emphasis weight and size — the
+ * `pairs.ts` contract, enforced by `primitives-css.test.ts`.
+ */
+.constraint[data-tone='refuse'] {
+  color: var(--tp-refuse);
+  font-weight: var(--tp-weight-strong);
+  font-size: var(--tp-step-1);
+}
+
+.sqlstate {
+  color: var(--tp-ink);
+  border: var(--tp-hairline) solid var(--tp-rule-strong);
+  border-radius: var(--tp-radius);
+  padding: 0 var(--tp-space-1);
+  white-space: nowrap;
+}
+
+.sqlstate[data-tone='refuse'] {
+  color: var(--tp-refuse);
+  font-weight: var(--tp-weight-strong);
+  font-size: var(--tp-step-1);
+  border-color: currentColor;
+}
+
+.sqlstateClass {
+  color: var(--tp-ink-faint);
+  font-size: var(--tp-step--1);
+  margin-left: var(--tp-space-1);
+}
+
+/* ── Digest ─────────────────────────────────────────────────────────────────── */
+
+.digest {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--tp-space-2);
+  max-width: 100%;
+  min-width: 0;
+}
+
+.digestLabel {
+  color: var(--tp-ink-faint);
+  font-size: var(--tp-step--1);
+  text-transform: uppercase;
+  letter-spacing: var(--tp-tracking-caps);
+  white-space: nowrap;
+}
+
+/*
+ * Truncation that shows the PREFIX and never hides the value.
+ *
+ * The whole digest is in the DOM at all times — `text-overflow: ellipsis` clips the
+ * PAINT, not the text — so a drag-select or a Ctrl-A copies all sixty-four characters
+ * even while twelve are showing. On focus (keyboard) or hover (pointer) the clip is
+ * released and the value wraps in full.
+ *
+ * `display: none` on the tail was the obvious implementation and is wrong: it removes
+ * the value from the accessibility tree and from the selection, which turns a verbatim
+ * digest into a decorative prefix.
+ */
+.digestValue {
+  display: inline-block;
+  max-width: var(--digest-prefix-width, 13ch);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
+  color: var(--tp-ink);
+  background: var(--tp-bg-inset);
+  border: var(--tp-hairline) solid var(--tp-rule);
+  border-radius: var(--tp-radius);
+  padding: 0 var(--tp-space-1);
+  user-select: all;
+}
+
+.digestValue:hover,
+.digestValue:focus-visible,
+.digestValue[data-expanded='true'] {
+  max-width: 100%;
+  overflow: visible;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.digestCopy {
+  font-family: var(--tp-sans);
+  font-size: var(--tp-step--1);
+  color: var(--tp-ink-dim);
+  background: none;
+  border: var(--tp-hairline) solid var(--tp-rule-strong);
+  border-radius: var(--tp-radius);
+  padding: 0 var(--tp-space-2);
+  cursor: pointer;
+}
+
+/*
+ * The only transition in this file, and it is under the EVIDENCE ceiling. It exists so
+ * that "copied" does not appear and vanish faster than the eye registers it; it changes
+ * no fact and a screenshot taken at any moment shows a legal state of the control.
+ */
+.digestCopy {
+  transition: border-color var(--tp-duration-evidence) var(--tp-ease-linear);
+}
+
+.digestCopy:hover {
+  border-color: var(--tp-ink-dim);
+}
+
+.digestStatus {
+  color: var(--tp-ink-faint);
+  font-family: var(--tp-sans);
+  font-size: var(--tp-step--1);
+  white-space: nowrap;
+}
+
+/*
+ * A clipboard write that failed says so, in the same place a success would have
+ * appeared. Silence after pressing "copy" is the console asserting something it does
+ * not know.
+ */
+.digestStatus[data-status='failed'] {
+  color: var(--tp-warn);
+}
+
+@media print {
+  /* On paper there is no focus and no hover, so the clip must be released
+     unconditionally: an exhibit that prints `3a91f0c2…` is not an exhibit. */
+  .digestValue {
+    max-width: 100%;
+    overflow: visible;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    border-color: var(--tp-rule-strong);
+  }
+
+  .digestCopy {
+    display: none;
+  }
+}

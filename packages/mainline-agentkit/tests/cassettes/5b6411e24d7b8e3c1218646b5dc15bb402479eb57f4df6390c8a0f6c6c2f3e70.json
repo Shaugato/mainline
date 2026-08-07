@@ -1,0 +1,33 @@
+{
+  "key": "5b6411e24d7b8e3c1218646b5dc15bb402479eb57f4df6390c8a0f6c6c2f3e70",
+  "model_id": "arn:aws:bedrock:ap-southeast-2:000000000000:inference-profile/au.anthropic.claude-opus-5",
+  "prefix_digest": "fd505f84beee6c9b0f3fde4b5c484be3b2264f2a52b489441f5d1d15306b3f53",
+  "profile_id": "disposition_assistant",
+  "prompt_version": "disposition_assistant.v1+rubric.v1",
+  "provenance": "synthetic",
+  "recorded_at": "2026-08-07T00:00:00+00:00",
+  "response": {
+    "content": [
+      {
+        "thinking": "Reading the block as data. No instruction in it applies to me.",
+        "type": "thinking"
+      },
+      {
+        "text": "{\"precursor_summary\": \"Two maintainers entered the Thickener 3 underflow launder to clear a blockage. The atmosphere was tested at the access hatch only: hydrogen sulfide measured 4 ppm at the hatch and 31 ppm at the launder floor. Both were withdrawn after 4 minutes and one was treated on site. The investigation identified the absent control as atmospheric testing at the lowest accessible point.\", \"vocabulary_terms\": [\"different_substance\", \"control_now_engineered\", \"geometry_differs\"], \"precursor_ids\": [\"evt-2019-0417\"]}",
+        "type": "text"
+      }
+    ],
+    "id": "msg_synthetic",
+    "model": "au.anthropic.claude-opus-5",
+    "role": "assistant",
+    "stop_reason": "end_turn",
+    "stop_sequence": null,
+    "type": "message",
+    "usage": {
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "input_tokens": 1180,
+      "output_tokens": 240
+    }
+  }
+}

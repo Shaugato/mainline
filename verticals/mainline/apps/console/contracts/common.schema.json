@@ -1,0 +1,200 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://console.mainline.trappoint.org/contracts/1.0/common.schema.json",
+  "$comment": "Shared definitions for the MAINLINE console read model. Prose contract: contracts/README.md. Licensing: common.schema.json.license (REUSE sidecar; JSON admits no comment syntax).",
+  "title": "MAINLINE console — shared definitions",
+  "description": "Scalar shapes and closed vocabularies the console's read model reuses. Every enumeration here mirrors a SQL type declared in verticals/mainline/db/migrations or a CHECK constraint quoted in ARCHITECTURE.md §5. Nothing in this file is invented by the console.",
+  "$defs": {
+    "uuid": {
+      "description": "RFC 4122 textual UUID, as the read API renders a UUID column.",
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+    },
+    "hex": {
+      "description": "A BYTES column rendered as lowercase hexadecimal, as encode(col,'hex') produces. Even length, because a half byte is not a byte.",
+      "type": "string",
+      "pattern": "^([0-9a-f]{2})*$",
+      "maxLength": 4096
+    },
+    "sha256_hex": {
+      "description": "Exactly 32 bytes of lowercase hexadecimal. Presence is not verification — the console re-derives digests in a Worker (D6) and this shape says nothing about whether one matched.",
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "commit_id": {
+      "$ref": "#/$defs/hex",
+      "description": "mainline.commit_obj.commit_id, hex-rendered. Never truncated for display in the wire payload; truncation is a rendering decision the console makes visibly."
+    },
+    "timestamp": {
+      "description": "RFC 3339 instant. The read API renders every TIMESTAMPTZ in UTC.",
+      "type": "string",
+      "format": "date-time"
+    },
+    "severity": {
+      "description": "mainline.event severity, 0..5. 5 is a fatality.",
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 5
+    },
+    "counter": {
+      "description": "A projected non-negative counter. Written by a trigger from an authoritative table, never by the inserter (P2).",
+      "type": "integer",
+      "minimum": 0
+    },
+    "gate_epoch": {
+      "description": "The subject's gate_epoch. Increments whenever the gate opens; the merge_record composite FK pins it, so an issued subject's epoch physically cannot move (ARCHITECTURE.md §5.5).",
+      "type": "integer",
+      "minimum": 0
+    },
+    "subject_kind": {
+      "description": "The two gated subject kinds. There is no third.",
+      "enum": ["permit", "change_request"]
+    },
+    "subject_state": {
+      "description": "mainline.subject_state, migration 0011.",
+      "enum": [
+        "draft",
+        "checks_materialised",
+        "dispositioned",
+        "merged",
+        "suspended",
+        "closed",
+        "abandoned"
+      ]
+    },
+    "control_delta": {
+      "description": "mainline.control_delta, migration 0010.",
+      "enum": ["introduce", "strengthen", "restate", "weaken", "remove"]
+    },
+    "delta_basis": {
+      "description": "clause_version.delta_basis CHECK, ARCHITECTURE.md §5.3.",
+      "enum": ["lattice", "lattice+model", "abstain_to_weaken", "human"]
+    },
+    "disposition_kind": {
+      "description": "mainline.disposition_kind, migration 0012.",
+      "enum": [
+        "applied",
+        "mitigated",
+        "mechanism_absent",
+        "escalated",
+        "accept_residual",
+        "emergency_override"
+      ]
+    },
+    "virulence_class": {
+      "description": "mainline.virulence_class, migration 0013. Banded exactly once, in clause_blame_closure, and projected everywhere else.",
+      "enum": ["routine", "serious", "blood_major", "blood_fatal"]
+    },
+    "blame_basis": {
+      "description": "mainline.blame_basis, migration 0014. inferred_semantic can never reach state 'active' (constraint inference_never_blocks).",
+      "enum": [
+        "asserted_document",
+        "asserted_human",
+        "derived_documentary",
+        "inferred_semantic"
+      ]
+    },
+    "blame_state": {
+      "description": "mainline.blame_state, migration 0015.",
+      "enum": ["active", "provisional", "dormant", "refuted"]
+    },
+    "prop_state": {
+      "description": "mainline.prop_state, migration 0016.",
+      "enum": [
+        "proposed",
+        "already_present",
+        "conflicted",
+        "adopted",
+        "declined",
+        "revoked"
+      ]
+    },
+    "check_origin": {
+      "description": "blocking_check.origin CHECK, ARCHITECTURE.md §5.5. Eight origins, closed.",
+      "enum": [
+        "blame_ancestry",
+        "weaken_over_blood",
+        "identity_residue",
+        "drift_finding",
+        "fleet_conflict",
+        "discordance_warrant",
+        "severity_downgrade",
+        "recall_probabilistic"
+      ]
+    },
+    "event_kind": {
+      "description": "mainline.event.kind CHECK, ARCHITECTURE.md §5.4.",
+      "enum": [
+        "incident",
+        "near_miss",
+        "regulator_notice",
+        "oem_alert",
+        "audit_finding",
+        "capa"
+      ]
+    },
+    "event_relation": {
+      "description": "mainline.event_edge.relation CHECK, ARCHITECTURE.md §5.4.",
+      "enum": ["recurrence_of", "precursor_of", "supersedes"]
+    },
+    "clause_relation": {
+      "description": "permit_clause.relation CHECK. The change-request side uses cr_relation.",
+      "enum": ["waives", "weakens", "relies_on", "cites"]
+    },
+    "provenance_chip": {
+      "description": "D5: every gate-relevant number is rendered verbatim with a provenance chip. db:column = a column the database wrote; db:constraint = the name of a CHECK/FK the database reported; recomputed = the console re-derived it in a Worker from signed bytes (D6); staged = hand-authored demonstration data with no cluster behind it; derived = computed by the read API from columns it names in statement_refs.",
+      "enum": ["db:column", "db:constraint", "recomputed", "staged", "derived"]
+    },
+    "field_provenance": {
+      "description": "Which chip the console must render beside which value. A pointer absent from this list has NO chip and is rendered without one — an unclaimed provenance is better than a comfortable default. It is a LIST rather than an object keyed by pointer so that the generated TypeScript carries no open-ended index signature: the read model is a closed set of named fields, and its type should say so.",
+      "type": "array",
+      "maxItems": 256,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["pointer", "chip"],
+        "properties": {
+          "pointer": {
+            "description": "RFC 6901 JSON Pointer into `data`.",
+            "type": "string",
+            "pattern": "^/",
+            "maxLength": 256
+          },
+          "chip": { "$ref": "#/$defs/provenance_chip" }
+        }
+      }
+    },
+    "statement_ref": {
+      "description": "Where a payload came from, named precisely enough that a reader can run it. `text` is the statement VERBATIM when the bundle carries one; null when the read API declined to disclose it.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "object"],
+      "properties": {
+        "kind": { "enum": ["table", "view", "procedure", "statement"] },
+        "object": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "text": { "type": ["string", "null"], "maxLength": 16384 },
+        "sql_path": {
+          "description": "Path inside the evidence bundle to the verbatim round trip (sql/*.txt), when one was captured.",
+          "type": ["string", "null"],
+          "maxLength": 256
+        }
+      }
+    },
+    "truncation": {
+      "description": "A truncated closure must never be indistinguishable from a complete one (ARCHITECTURE.md §5.4). Every payload that walks ancestry carries this.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ancestry_complete", "truncated", "cap"],
+      "properties": {
+        "ancestry_complete": { "type": "boolean" },
+        "truncated": { "type": "boolean" },
+        "cap": {
+          "description": "The ancestor cap in force when the closure was computed (512 in ARCHITECTURE.md §5.4).",
+          "type": "integer",
+          "minimum": 1
+        },
+        "spilled_count": { "type": ["integer", "null"], "minimum": 0 }
+      }
+    }
+  }
+}

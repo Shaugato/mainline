@@ -1,0 +1,150 @@
+{
+  "README": "Generated from tests/test_schema_golden.py::GoldenVector by bedrock_schema(). A diff here is a change to a CONTROL (decision A7), not to a fixture. Regenerate only with a matching change to STRIPPED_KEYWORDS and an ADR.",
+  "schema": {
+    "additionalProperties": false,
+    "description": "The golden model. Its JSON Schema is committed under ``tests/golden``.",
+    "properties": {
+      "leaves": {
+        "items": {
+          "additionalProperties": false,
+          "description": "Exercises every stripped keyword in one place.",
+          "properties": {
+            "kind": {
+              "default": "a",
+              "enum": [
+                "a",
+                "b"
+              ],
+              "title": "Kind",
+              "type": "string"
+            },
+            "label": {
+              "title": "Label",
+              "type": "string"
+            },
+            "reading_milli": {
+              "title": "Reading Milli",
+              "type": "integer"
+            },
+            "strictly_between": {
+              "title": "Strictly Between",
+              "type": "integer"
+            },
+            "tags": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Tags",
+              "type": "array"
+            },
+            "unique_codes": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Unique Codes",
+              "type": "array"
+            }
+          },
+          "required": [
+            "label",
+            "reading_milli",
+            "strictly_between"
+          ],
+          "title": "GoldenLeaf",
+          "type": "object"
+        },
+        "title": "Leaves",
+        "type": "array"
+      },
+      "optional_note": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Optional Note"
+      }
+    },
+    "title": "GoldenVector",
+    "type": "object"
+  },
+  "schema_version": "054a843fdccf0338179f27d6ba4623e518c9cdf59015a5959e0bcef104c00e43",
+  "stripped": [
+    {
+      "checkable": true,
+      "keyword": "maxLength",
+      "pointer": "#/properties/leaves/items/properties/label/maxLength",
+      "value": 24
+    },
+    {
+      "checkable": true,
+      "keyword": "minLength",
+      "pointer": "#/properties/leaves/items/properties/label/minLength",
+      "value": 2
+    },
+    {
+      "checkable": true,
+      "keyword": "maximum",
+      "pointer": "#/properties/leaves/items/properties/reading_milli/maximum",
+      "value": 1000
+    },
+    {
+      "checkable": true,
+      "keyword": "minimum",
+      "pointer": "#/properties/leaves/items/properties/reading_milli/minimum",
+      "value": -1000
+    },
+    {
+      "checkable": true,
+      "keyword": "multipleOf",
+      "pointer": "#/properties/leaves/items/properties/reading_milli/multipleOf",
+      "value": 5
+    },
+    {
+      "checkable": true,
+      "keyword": "exclusiveMaximum",
+      "pointer": "#/properties/leaves/items/properties/strictly_between/exclusiveMaximum",
+      "value": 100
+    },
+    {
+      "checkable": true,
+      "keyword": "exclusiveMinimum",
+      "pointer": "#/properties/leaves/items/properties/strictly_between/exclusiveMinimum",
+      "value": 0
+    },
+    {
+      "checkable": true,
+      "keyword": "maxItems",
+      "pointer": "#/properties/leaves/items/properties/tags/maxItems",
+      "value": 3
+    },
+    {
+      "checkable": true,
+      "keyword": "minItems",
+      "pointer": "#/properties/leaves/items/properties/tags/minItems",
+      "value": 1
+    },
+    {
+      "checkable": true,
+      "keyword": "uniqueItems",
+      "pointer": "#/properties/leaves/items/properties/unique_codes/uniqueItems",
+      "value": true
+    },
+    {
+      "checkable": true,
+      "keyword": "maxItems",
+      "pointer": "#/properties/leaves/maxItems",
+      "value": 4
+    },
+    {
+      "checkable": false,
+      "keyword": "maxLength",
+      "pointer": "#/properties/optional_note/anyOf/0/maxLength",
+      "value": 40
+    }
+  ]
+}

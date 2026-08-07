@@ -1,0 +1,21 @@
+$ cockroach sql --url <redacted> --format csv --set errexit=true -e <statement below>
+--- statement ---
+CALL trappoint.materialise_checks(
+  '018f3a2f-9900-7e11-b0cc-5a1122334455'::UUID,
+  '018f3a33-1100-7c00-84cc-a3f617982c5d'::UUID
+);
+--- exit code ---
+1
+--- stdout ---
+
+--- stderr ---
+ERROR: MAINLINE: cannot attach a new obligation to permit WO-88180: merge_record pins
+       (subject_id, gate_epoch) = (018f3a2f-9900-7e11-b0cc-5a1122334455, 4) and this insert would raise gate_epoch to 5.
+       Suspend the permit and fork a child whose gate is cleared afresh.
+SQLSTATE: P0001
+CONTEXT: PL/pgSQL function trappoint.fn_epoch_pin_guard() line 24 at RAISE
+--- notes ---
+STAGED. The mechanism is real and declarative: mainline.merge_record carries a composite foreign key
+onto mainline.permit (permit_id, gate_epoch) with ON UPDATE RESTRICT, so the UPDATE that bumps the
+epoch is refused by the database with 23503 even if the trigger above were removed. The trigger
+exists to name the situation in words a supervisor can act on.

@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://console.mainline.trappoint.org/contracts/1.0/invoke.schema.json",
+  "$comment": "The response shape of the kernel's four POST endpoints. Licensing: invoke.schema.json.license (REUSE sidecar).",
+  "title": "MAINLINE console — kernel procedure result",
+  "description": "ARCHITECTURE.md §8.3: the kernel's API surface is six endpoints, each a thin authenticator in front of exactly one server-side procedure. The console POSTs to three of them (materialise_checks, sign_disposition, merge_permit) plus suspend_permit, and reads the result through this contract. A REFUSED outcome carries the spec/wire refusal payload UNCHANGED — D18: refusals are rendered from the payload only, never from a message the console composes.",
+  "allOf": [
+    { "$ref": "envelope.schema.json" },
+    {
+      "properties": {
+        "data": { "$ref": "#/$defs/invoke_result" }
+      },
+      "required": ["data"]
+    }
+  ],
+  "$defs": {
+    "invoke_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["procedure", "http_status", "outcome", "subject_kind", "subject_id", "gate_epoch", "refusal"],
+      "properties": {
+        "procedure": {
+          "description": "The server-side procedure the endpoint fronts. There is no kernel business logic that is not SQL, and this names the SQL.",
+          "enum": [
+            "trappoint.materialise_checks",
+            "trappoint.sign_disposition",
+            "trappoint.merge_permit",
+            "trappoint.suspend_permit"
+          ]
+        },
+        "http_status": {
+          "description": "The status the kernel returned, carried in the payload as well as on the wire so a replayed frame and a live response are the same object.",
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 599
+        },
+        "outcome": {
+          "description": "committed = the transition happened. refused = the database refused it, and `refusal` says which constraint did. retry = SQLSTATE 40001, an UNDECIDED transaction, which is not a refusal and has no reason set.",
+          "enum": ["committed", "refused", "retry"]
+        },
+        "subject_kind": { "$ref": "common.schema.json#/$defs/subject_kind" },
+        "subject_id": { "$ref": "common.schema.json#/$defs/uuid" },
+        "gate_epoch": {
+          "description": "The subject's epoch at the moment of the attempt. Without it the attempt cannot be replayed.",
+          "$ref": "common.schema.json#/$defs/gate_epoch"
+        },
+        "committed": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["merged_commit", "merged_at"],
+              "properties": {
+                "merged_commit": { "$ref": "common.schema.json#/$defs/commit_id" },
+                "merged_at": { "$ref": "common.schema.json#/$defs/timestamp" },
+                "clearance_digest": {
+                  "oneOf": [
+                    { "$ref": "common.schema.json#/$defs/sha256_hex" },
+                    { "type": "null" }
+                  ]
+                },
+                "checkpoint_tree_size": { "type": ["integer", "null"], "minimum": 0 },
+                "ledger_seq": { "type": ["integer", "null"], "minimum": 0 }
+              }
+            },
+            { "type": "null" }
+          ]
+        },
+        "refusal": {
+          "oneOf": [
+            { "$ref": "https://spec.trappoint.org/1.0/wire/refusal.schema.json" },
+            { "type": "null" }
+          ]
+        },
+        "sql_round_trip": {
+          "description": "Path inside the evidence bundle to the verbatim SQL round trip (sql/*.txt) that produced this outcome, including the SQLSTATE and the constraint name as the driver reported them. Null for a live response that carried none.",
+          "type": ["string", "null"],
+          "maxLength": 256
+        }
+      },
+      "allOf": [
+        {
+          "$comment": "outcome refused <-> refusal non-null. A refusal with no payload is the prettified refusal D18 forbids; a refusal payload on a committed transition is a category error.",
+          "if": { "properties": { "outcome": { "const": "refused" } }, "required": ["outcome"] },
+          "then": {
+            "properties": {
+              "refusal": { "$ref": "https://spec.trappoint.org/1.0/wire/refusal.schema.json" },
+              "committed": { "type": "null" }
+            }
+          },
+          "else": {
+            "properties": { "refusal": { "type": "null" } }
+          }
+        },
+        {
+          "$comment": "A committed transition must carry its evidence, mirroring CONSTRAINT merge_evidence.",
+          "if": {
+            "properties": {
+              "outcome": { "const": "committed" },
+              "procedure": { "const": "trappoint.merge_permit" }
+            },
+            "required": ["outcome", "procedure"]
+          },
+          "then": { "required": ["committed"], "properties": { "committed": { "type": "object" } } }
+        }
+      ]
+    }
+  }
+}

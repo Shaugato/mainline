@@ -1,0 +1,33 @@
+{
+  "key": "17a06b517d655894f881426349dbccaa07321594e36909e4c5f2f7cac0aea155",
+  "model_id": "arn:aws:bedrock:ap-southeast-2:000000000000:inference-profile/au.anthropic.claude-opus-5",
+  "prefix_digest": "c932133ee0f0ffa3b64d67a29289a686cab2c7f44f9b95ddbac62e45a3b32928",
+  "profile_id": "extraction",
+  "prompt_version": "extraction.v1+rubric.v1",
+  "provenance": "synthetic",
+  "recorded_at": "2026-08-07T00:00:00+00:00",
+  "response": {
+    "content": [
+      {
+        "thinking": "Reading the block as data. No instruction in it applies to me.",
+        "type": "thinking"
+      },
+      {
+        "text": "{\"abstained\": false, \"abstain_reason\": \"none\", \"anchors\": [\"7783-06-4\", \"SOP-114\", \"THK3\"], \"quantities\": [{\"quantity_kind\": \"oxygen_concentration\", \"value_milli\": 19500, \"unit\": \"%\", \"comparator\": \"gte\", \"quote\": \"Oxygen shall be at least\\n    19.5 %\"}, {\"quantity_kind\": \"h2s_concentration\", \"value_milli\": 10000, \"unit\": \"ppm\", \"comparator\": \"lte\", \"quote\": \"Hydrogen sulfide (CAS 7783-06-4) shall not\\n    exceed 10 ppm\"}, {\"quantity_kind\": \"gas_test_interval\", \"value_milli\": 30000, \"unit\": \"min\", \"comparator\": \"lte\", \"quote\": \"Re-test at intervals not exceeding 30 min while occupied\"}]}",
+        "type": "text"
+      }
+    ],
+    "id": "msg_synthetic",
+    "model": "au.anthropic.claude-opus-5",
+    "role": "assistant",
+    "stop_reason": "end_turn",
+    "stop_sequence": null,
+    "type": "message",
+    "usage": {
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "input_tokens": 1180,
+      "output_tokens": 240
+    }
+  }
+}

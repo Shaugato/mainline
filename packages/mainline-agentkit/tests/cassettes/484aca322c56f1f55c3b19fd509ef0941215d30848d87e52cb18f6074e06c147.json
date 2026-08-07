@@ -1,0 +1,33 @@
+{
+  "key": "484aca322c56f1f55c3b19fd509ef0941215d30848d87e52cb18f6074e06c147",
+  "model_id": "arn:aws:bedrock:ap-southeast-2:000000000000:inference-profile/au.anthropic.claude-opus-5",
+  "prefix_digest": "2cb4672836046540e00d4ad133a9feff50d3faf7b00aaec45ce2f704b506f0e8",
+  "profile_id": "adjudication",
+  "prompt_version": "adjudication.v1+rubric.v1",
+  "provenance": "synthetic",
+  "recorded_at": "2026-08-07T00:00:00+00:00",
+  "response": {
+    "content": [
+      {
+        "thinking": "Reading the block as data. No instruction in it applies to me.",
+        "type": "thinking"
+      },
+      {
+        "text": "{\"relation\": \"contradicts\", \"confidence_band\": \"high\", \"numeric_disagreement\": true, \"supporting_quote\": \"Re-test the atmosphere each shift while occupied.\", \"notes\": \"A shift is longer than 30 min on every roster this site runs.\"}",
+        "type": "text"
+      }
+    ],
+    "id": "msg_synthetic",
+    "model": "au.anthropic.claude-opus-5",
+    "role": "assistant",
+    "stop_reason": "end_turn",
+    "stop_sequence": null,
+    "type": "message",
+    "usage": {
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "input_tokens": 1180,
+      "output_tokens": 240
+    }
+  }
+}

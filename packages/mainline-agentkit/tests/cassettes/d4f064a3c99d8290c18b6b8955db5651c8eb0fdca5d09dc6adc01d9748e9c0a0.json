@@ -1,0 +1,66 @@
+{
+  "key": "d4f064a3c99d8290c18b6b8955db5651c8eb0fdca5d09dc6adc01d9748e9c0a0",
+  "model_id": "arn:aws:bedrock:ap-southeast-2:000000000000:inference-profile/au.anthropic.claude-opus-5",
+  "prefix_digest": "c932133ee0f0ffa3b64d67a29289a686cab2c7f44f9b95ddbac62e45a3b32928",
+  "profile_id": "extraction",
+  "prompt_version": "extraction.v1+rubric.v1",
+  "provenance": "synthetic",
+  "recorded_at": "2026-08-07T00:00:00+00:00",
+  "response": {
+    "content": [
+      {
+        "thinking": "Forced single-turn tool call.",
+        "type": "thinking"
+      },
+      {
+        "id": "toolu_synthetic",
+        "input": {
+          "abstain_reason": "none",
+          "abstained": false,
+          "anchors": [
+            "7783-06-4",
+            "SOP-114",
+            "THK3"
+          ],
+          "quantities": [
+            {
+              "comparator": "gte",
+              "quantity_kind": "oxygen_concentration",
+              "quote": "Oxygen shall be at least\n    19.5 %",
+              "unit": "%",
+              "value_milli": 19500
+            },
+            {
+              "comparator": "lte",
+              "quantity_kind": "h2s_concentration",
+              "quote": "Hydrogen sulfide (CAS 7783-06-4) shall not\n    exceed 10 ppm",
+              "unit": "ppm",
+              "value_milli": 10000
+            },
+            {
+              "comparator": "lte",
+              "quantity_kind": "gas_test_interval",
+              "quote": "Re-test at intervals not exceeding 30 min while occupied",
+              "unit": "min",
+              "value_milli": 30000
+            }
+          ]
+        },
+        "name": "ExtractionResult",
+        "type": "tool_use"
+      }
+    ],
+    "id": "msg_synthetic_toolform",
+    "model": "au.anthropic.claude-opus-5",
+    "role": "assistant",
+    "stop_reason": "tool_use",
+    "stop_sequence": null,
+    "type": "message",
+    "usage": {
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "input_tokens": 1180,
+      "output_tokens": 210
+    }
+  }
+}

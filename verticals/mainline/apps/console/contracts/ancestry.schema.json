@@ -1,0 +1,209 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://console.mainline.trappoint.org/contracts/1.0/ancestry.schema.json",
+  "$comment": "The blame walk's read model — the input to the deterministic layout the ribbon and the walk share. Licensing: ancestry.schema.json.license (REUSE sidecar).",
+  "title": "MAINLINE console — clause ancestry projection",
+  "description": "mainline.clause_blame_current over mainline.clause_blame_closure (ARCHITECTURE.md §5.4), resolved into the events, event edges and commit chain a renderer needs. NO PERSON APPEARS IN THIS CONTRACT. Events carry titles and severities; people do not. That is I15 and §11.5's Attribution Rule carried into the payload, one hop before it could reach a screenshot (D15).",
+  "allOf": [
+    { "$ref": "envelope.schema.json" },
+    {
+      "properties": {
+        "data": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "clause_uuid",
+            "as_of_commit",
+            "closure",
+            "truncation",
+            "events",
+            "event_edges",
+            "blame_edges",
+            "commit_chain"
+          ],
+          "properties": {
+            "clause_uuid": { "$ref": "common.schema.json#/$defs/uuid" },
+            "as_of_commit": { "$ref": "common.schema.json#/$defs/commit_id" },
+            "corpus_root": {
+              "description": "The ledger checkpoint root this ancestry was closed against. It goes in the printed exhibit's caption block.",
+              "oneOf": [{ "$ref": "common.schema.json#/$defs/sha256_hex" }, { "type": "null" }]
+            },
+            "closure": { "$ref": "#/$defs/blame_closure" },
+            "truncation": { "$ref": "common.schema.json#/$defs/truncation" },
+            "events": {
+              "type": "array",
+              "maxItems": 512,
+              "items": { "$ref": "#/$defs/ancestry_event" }
+            },
+            "event_edges": {
+              "type": "array",
+              "maxItems": 2048,
+              "items": { "$ref": "#/$defs/event_edge" }
+            },
+            "blame_edges": {
+              "type": "array",
+              "maxItems": 512,
+              "items": { "$ref": "#/$defs/blame_edge" }
+            },
+            "commit_chain": {
+              "description": "The identity-preserving reflows: every clause_version of this clause from birth to as_of_commit, oldest first. This is the third axis of the walk — the axis is TIME.",
+              "type": "array",
+              "maxItems": 512,
+              "items": { "$ref": "#/$defs/commit_link" }
+            }
+          }
+        }
+      },
+      "required": ["data"]
+    }
+  ],
+  "$defs": {
+    "blame_closure": {
+      "description": "One row of mainline.clause_blame_current — the DISTINCT ON (clause_uuid, as_of_commit) view taking max(closure_gen). Append-only, generation-versioned, monotone and ledgered (S2): max_severity must be non-decreasing across generations, and a mass rewrite downward either violates that or leaves a generation gap.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "closure_gen",
+        "ancestor_count",
+        "max_severity",
+        "virulence",
+        "depth",
+        "truncated",
+        "computed_by",
+        "projector_ver",
+        "computed_at"
+      ],
+      "properties": {
+        "closure_gen": { "type": "integer", "minimum": 0 },
+        "ancestor_count": { "type": "integer", "minimum": 0 },
+        "max_severity": { "$ref": "common.schema.json#/$defs/severity" },
+        "virulence": { "$ref": "common.schema.json#/$defs/virulence_class" },
+        "depth": { "type": "integer", "minimum": 0 },
+        "truncated": { "type": "boolean" },
+        "computed_by": {
+          "description": "agent_identity of the projector. A projection with no named projector is a projection nobody owns.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "projector_ver": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "computed_at": { "$ref": "common.schema.json#/$defs/timestamp" }
+      }
+    },
+    "ancestry_event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event_id", "kind", "title", "occurred_at", "severity_gate", "severity_basis"],
+      "properties": {
+        "event_id": { "$ref": "common.schema.json#/$defs/uuid" },
+        "kind": { "$ref": "common.schema.json#/$defs/event_kind" },
+        "external_ref": { "type": ["string", "null"], "maxLength": 128 },
+        "title": {
+          "description": "The event's own title. It names a failure, never a person.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "occurred_at": { "$ref": "common.schema.json#/$defs/timestamp" },
+        "ingested_at": {
+          "description": "Bitemporal: both, always. A 2013 event ingested in 2024 must never look like a 2024 event.",
+          "oneOf": [{ "$ref": "common.schema.json#/$defs/timestamp" }, { "type": "null" }]
+        },
+        "severity_gate": { "$ref": "common.schema.json#/$defs/severity" },
+        "severity_basis": {
+          "enum": ["coded_field", "regulator_class", "human_rated", "model_rated"]
+        },
+        "control_failures": {
+          "description": "ICAM/bowtie normalised to one shape. control_class is the join key to a clause's CAT control class.",
+          "type": "array",
+          "maxItems": 32,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["control_class", "barrier_role", "failure_mode", "hazard_energy"],
+            "properties": {
+              "control_class": { "type": "string", "minLength": 1, "maxLength": 128 },
+              "barrier_role": { "enum": ["preventive", "recovery"] },
+              "failure_mode": {
+                "enum": ["absent", "ineffective", "bypassed", "degraded", "not_verified"]
+              },
+              "hazard_energy": {
+                "enum": [
+                  "gravity",
+                  "pressure",
+                  "electrical",
+                  "thermal",
+                  "chemical",
+                  "kinetic",
+                  "biological",
+                  "radiation"
+                ]
+              },
+              "icam_tier": { "type": ["string", "null"], "maxLength": 64 }
+            }
+          }
+        }
+      }
+    },
+    "event_edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["child_event_id", "parent_event_id", "relation"],
+      "properties": {
+        "child_event_id": { "$ref": "common.schema.json#/$defs/uuid" },
+        "parent_event_id": { "$ref": "common.schema.json#/$defs/uuid" },
+        "relation": { "$ref": "common.schema.json#/$defs/event_relation" }
+      }
+    },
+    "blame_edge": {
+      "description": "BASIS-GRADED FORCE. An inferred_semantic edge can never be 'active' (CHECK inference_never_blocks), and the console must render `basis` beside every edge — an inferred edge shown as though it were asserted is precisely the rubber stamp this design refuses to build.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event_id", "clause_uuid", "basis", "state", "commit_id"],
+      "properties": {
+        "event_id": { "$ref": "common.schema.json#/$defs/uuid" },
+        "clause_uuid": { "$ref": "common.schema.json#/$defs/uuid" },
+        "basis": { "$ref": "common.schema.json#/$defs/blame_basis" },
+        "state": { "$ref": "common.schema.json#/$defs/blame_state" },
+        "commit_id": { "$ref": "common.schema.json#/$defs/commit_id" },
+        "p_link": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+        "attribution": {
+          "description": "Prose a human is shown; never a bare number.",
+          "type": ["string", "null"],
+          "maxLength": 2048
+        },
+        "evidence_quote_sha256": {
+          "oneOf": [{ "$ref": "common.schema.json#/$defs/sha256_hex" }, { "type": "null" }]
+        }
+      },
+      "allOf": [
+        {
+          "$comment": "CHECK inference_never_blocks, mirrored in the wire contract so a payload that violates it is refused before it can be drawn.",
+          "if": {
+            "properties": { "basis": { "const": "inferred_semantic" } },
+            "required": ["basis"]
+          },
+          "then": {
+            "properties": { "state": { "not": { "const": "active" } } }
+          }
+        }
+      ]
+    },
+    "commit_link": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["commit_id", "gen", "committed_at", "control_delta"],
+      "properties": {
+        "commit_id": { "$ref": "common.schema.json#/$defs/commit_id" },
+        "gen": { "type": "integer", "minimum": 0 },
+        "committed_at": { "$ref": "common.schema.json#/$defs/timestamp" },
+        "control_delta": { "$ref": "common.schema.json#/$defs/control_delta" },
+        "printed_label": { "type": ["string", "null"], "maxLength": 128 },
+        "sev_max": { "$ref": "common.schema.json#/$defs/severity" },
+        "canon_sha256": {
+          "oneOf": [{ "$ref": "common.schema.json#/$defs/sha256_hex" }, { "type": "null" }]
+        }
+      }
+    }
+  }
+}

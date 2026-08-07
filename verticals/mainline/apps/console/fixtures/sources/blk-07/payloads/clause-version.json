@@ -1,0 +1,161 @@
+{
+  "envelope_version": 1,
+  "resource": "clause_version",
+  "schema_id": "https://console.mainline.trappoint.org/contracts/1.0/clause.schema.json",
+  "observed_at": "2026-08-07T02:15:00.000Z",
+  "server_date": "2026-08-07T02:15:00.000Z",
+  "staged": true,
+  "staged_note": "Hand-authored demonstration bundle. No CockroachDB cluster and no MAINLINE kernel produced these bytes: every payload below was written by the data-contracts-replay worker to exercise the console against its own contracts while the kernel and read API were being built. The SQLSTATEs, constraint names and column names are taken from ARCHITECTURE.md §5 and spec/wire/refusal.md and are therefore real claims about the design; the values are not observations. Any screen fed by this bundle says STAGED, and no number on it may be quoted as a measurement.",
+  "statement_refs": [
+    {
+      "kind": "table",
+      "object": "mainline.clause_version",
+      "text": "SELECT * FROM mainline.clause_version WHERE clause_uuid = $1 AND commit_id = $2",
+      "sql_path": null
+    },
+    {
+      "kind": "table",
+      "object": "mainline.delta_witness",
+      "text": null,
+      "sql_path": null
+    }
+  ],
+  "provenance": [
+    {
+      "pointer": "/version/control_delta",
+      "chip": "db:column"
+    },
+    {
+      "pointer": "/version/delta_basis",
+      "chip": "db:column"
+    },
+    {
+      "pointer": "/version/sev_max",
+      "chip": "db:column"
+    },
+    {
+      "pointer": "/version/canon_sha256",
+      "chip": "db:column"
+    },
+    {
+      "pointer": "/delta/witnesses",
+      "chip": "db:column"
+    }
+  ],
+  "data": {
+    "clause_uuid": "018f3a30-2200-7d10-9f31-0c9a4e77bb02",
+    "version": {
+      "clause_uuid": "018f3a30-2200-7d10-9f31-0c9a4e77bb02",
+      "gen": 5,
+      "commit_id": "5f916282a2a3e5765f916282a2a3e5765f916282a2a3e5765f916282a2a3e576",
+      "site_id": "018f3a2e-0000-7000-8000-000000000001",
+      "doc_id": "018f3a30-4400-7a30-8b53-2e1c60997a24",
+      "activity_root": "A03-ISOLATING-STORED-ENERGY",
+      "parent_version": "3d7f406e8091c3543d7f406e8091c3543d7f406e8091c3543d7f406e8091c354",
+      "ordinal": 732,
+      "printed_label": "7.3.2(b)",
+      "raw_text": "Before any intrusive work on a drive assembly, the electrical supply shall be isolated and locked out, and residual stored energy shall be verified as zero at the hydraulic power unit. Verification shall be recorded on the permit by the isolating officer.",
+      "canon_text": "Before any intrusive work on a drive assembly, the electrical supply shall be isolated and locked out, and residual stored energy shall be verified as zero at the hydraulic power unit. Verification shall be recorded on the permit by the isolating officer.",
+      "canon_version": 2,
+      "canon_sha256": "6a027393b3b4f6876a027393b3b4f6876a027393b3b4f6876a027393b3b4f687",
+      "anchor_set": [
+        "HPU-0412",
+        "ISOLATION_AUTHORITY",
+        "AS/NZS 4024.1",
+        "zero-energy-verification"
+      ],
+      "cat_key": "cat:isolate-stored-energy:verify:zero:hpu",
+      "cat_json": {
+        "control_class": "isolation.stored_energy.verification",
+        "actor": "isolating_officer",
+        "action": "verify",
+        "object": "residual_stored_energy",
+        "quantity": {
+          "value": 0,
+          "unit": "kPa"
+        },
+        "location": "hydraulic_power_unit"
+      },
+      "cat_confidence": "ok",
+      "control_delta": "weaken",
+      "delta_basis": "lattice",
+      "delta_model": null,
+      "delta_prompt_version": null,
+      "blood_root": "8c2495b5d5d618a98c2495b5d5d618a98c2495b5d5d618a98c2495b5d5d618a9",
+      "blood_size": 4,
+      "sev_max": 5
+    },
+    "parent": {
+      "clause_uuid": "018f3a30-2200-7d10-9f31-0c9a4e77bb02",
+      "gen": 4,
+      "commit_id": "3d7f406e8091c3543d7f406e8091c3543d7f406e8091c3543d7f406e8091c354",
+      "site_id": "018f3a2e-0000-7000-8000-000000000001",
+      "doc_id": "018f3a30-4400-7a30-8b53-2e1c60997a24",
+      "activity_root": "A03-ISOLATING-STORED-ENERGY",
+      "parent_version": "2c6e3f5d7f90b2432c6e3f5d7f90b2432c6e3f5d7f90b2432c6e3f5d7f90b243",
+      "ordinal": 732,
+      "printed_label": "7.3.2(b)",
+      "raw_text": "Before any intrusive work on a drive assembly, the electrical supply shall be isolated and locked out, and residual stored energy shall be verified as zero at every accumulator in the isolated circuit. Verification shall be recorded on the permit by the isolating officer and countersigned by the responsible engineer.",
+      "canon_text": "Before any intrusive work on a drive assembly, the electrical supply shall be isolated and locked out, and residual stored energy shall be verified as zero at every accumulator in the isolated circuit. Verification shall be recorded on the permit by the isolating officer and countersigned by the responsible engineer.",
+      "canon_version": 2,
+      "canon_sha256": "7b1384a4c4c507987b1384a4c4c507987b1384a4c4c507987b1384a4c4c50798",
+      "anchor_set": [
+        "HPU-0412",
+        "ISOLATION_AUTHORITY",
+        "AS/NZS 4024.1",
+        "zero-energy-verification",
+        "accumulator",
+        "responsible_engineer"
+      ],
+      "cat_key": "cat:isolate-stored-energy:verify:zero:accumulator",
+      "cat_json": {
+        "control_class": "isolation.stored_energy.verification",
+        "actor": "isolating_officer",
+        "action": "verify",
+        "object": "residual_stored_energy",
+        "quantity": {
+          "value": 0,
+          "unit": "kPa"
+        },
+        "location": "every_accumulator_in_circuit",
+        "countersignature": "responsible_engineer"
+      },
+      "cat_confidence": "ok",
+      "control_delta": "strengthen",
+      "delta_basis": "lattice",
+      "delta_model": null,
+      "delta_prompt_version": null,
+      "blood_root": "8c2495b5d5d618a98c2495b5d5d618a98c2495b5d5d618a98c2495b5d5d618a9",
+      "blood_size": 3,
+      "sev_max": 5
+    },
+    "delta": {
+      "delta": "weaken",
+      "basis": "lattice",
+      "witnesses": [
+        {
+          "rule_id": "R-SCOPE-NARROWED",
+          "field": "cat.location",
+          "from_repr": "every_accumulator_in_circuit",
+          "to_repr": "hydraulic_power_unit",
+          "note": "The verification point moved from every accumulator in the isolated circuit to a single named unit. The 2004 mechanism is an accumulator downstream of the unit, so the narrowed scope no longer covers it."
+        },
+        {
+          "rule_id": "R-COUNTERSIGNATURE-REMOVED",
+          "field": "cat.countersignature",
+          "from_repr": "responsible_engineer",
+          "to_repr": "",
+          "note": "A required second signature was removed. Under the lattice this is a weakening on its own, independent of the scope change."
+        },
+        {
+          "rule_id": "R-ANCHOR-DROPPED",
+          "field": "anchor_set",
+          "from_repr": "accumulator, responsible_engineer",
+          "to_repr": "",
+          "note": "Two anchors present in the ancestor are absent from the descendant. Anchor loss is what the identity cascade uses to refuse a silent re-scope."
+        }
+      ],
+      "minimal": true
+    }
+  }
+}

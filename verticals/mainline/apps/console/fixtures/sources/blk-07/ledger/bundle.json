@@ -1,0 +1,136 @@
+{
+  "bundle_version": 1,
+  "generated_at": "2026-08-07T02:15:00.000Z",
+  "generator": "staged fixture — not produced by trappoint-ledger",
+  "origin": "mainline.staged.invalid/site/BLK-07",
+  "site_code": "BLK-07",
+  "canon": {
+    "payload_ver": 1,
+    "canon_src_sha256": "d17eab2a2a10d0fed17eab2a2a10d0fed17eab2a2a10d0fed17eab2a2a10d0fe"
+  },
+  "checkpoints": [
+    {
+      "tree_size": 5,
+      "root_hex": "8c2495b5d5d618a98c2495b5d5d618a98c2495b5d5d618a98c2495b5d5d618a9",
+      "note": "mainline.staged.invalid/site/BLK-07\n5\njCSVtdXWGKmMJJW11dYYqYwklbXV1hipjCSVtdXWGKk=\n\n— mainline.staged.invalid/site/BLK-07 c3RhZ2VkLW5vLXNpZ25hdHVyZS10aGlzLWlzLWEtZml4dHVyZQ==\n",
+      "log_key": null,
+      "tsa_tokens": [],
+      "observed_at": "2026-08-07T02:15:00.000Z"
+    }
+  ],
+  "consistency_proofs": [],
+  "leaves": [
+    {
+      "seq": 0,
+      "entry_id": "018f3a36-0000-7a00-8000-000000000000",
+      "entry_kind": "schema",
+      "subject_id": "018f3a2f-1104-7c88-b3aa-77c1de40e2b1",
+      "payload_ver": 1,
+      "canon_bytes_b64": "eyJzdGFnZWQiOnRydWUsInNlcSI6MH0=",
+      "payload": {
+        "staged": true,
+        "seq": 0
+      },
+      "leaf_hash_hex": "9d35a6c6e6e729ba9d35a6c6e6e729ba9d35a6c6e6e729ba9d35a6c6e6e729ba",
+      "link_hash_hex": "e28afbb3b3c7e10fe28afbb3b3c7e10fe28afbb3b3c7e10fe28afbb3b3c7e10f",
+      "prev_link_hash_hex": "0000000000000000000000000000000000000000000000000000000000000000",
+      "is_sandbox": false,
+      "actor": "service|sequencer",
+      "actor_kind": "service",
+      "recorded_at": "2026-08-07T02:15:00.000Z",
+      "batch_id": "018f3a36-1000-7b00-8000-0000000000ff"
+    },
+    {
+      "seq": 1,
+      "entry_id": "018f3a36-0000-7a00-8000-000000000001",
+      "entry_kind": "recall",
+      "subject_id": "018f3a2f-1104-7c88-b3aa-77c1de40e2b1",
+      "payload_ver": 1,
+      "canon_bytes_b64": "eyJzdGFnZWQiOnRydWUsInNlcSI6MX0=",
+      "payload": {
+        "staged": true,
+        "seq": 1
+      },
+      "leaf_hash_hex": "ae46b7d7f7f83acbae46b7d7f7f83acbae46b7d7f7f83acbae46b7d7f7f83acb",
+      "link_hash_hex": "f39b0cc4c4d8f210f39b0cc4c4d8f210f39b0cc4c4d8f210f39b0cc4c4d8f210",
+      "prev_link_hash_hex": "e28afbb3b3c7e10fe28afbb3b3c7e10fe28afbb3b3c7e10fe28afbb3b3c7e10f",
+      "is_sandbox": false,
+      "actor": "service|sequencer",
+      "actor_kind": "service",
+      "recorded_at": "2026-08-07T02:15:00.000Z",
+      "batch_id": "018f3a36-1000-7b00-8000-0000000000ff"
+    },
+    {
+      "seq": 2,
+      "entry_id": "018f3a36-0000-7a00-8000-000000000002",
+      "entry_kind": "check_open",
+      "subject_id": "018f3a2f-1104-7c88-b3aa-77c1de40e2b1",
+      "payload_ver": 1,
+      "canon_bytes_b64": "eyJzdGFnZWQiOnRydWUsInNlcSI6Mn0=",
+      "payload": {
+        "staged": true,
+        "seq": 2
+      },
+      "leaf_hash_hex": "bf57c8e808094bdcbf57c8e808094bdcbf57c8e808094bdcbf57c8e808094bdc",
+      "link_hash_hex": "04ac1dd5d5e9032104ac1dd5d5e9032104ac1dd5d5e9032104ac1dd5d5e90321",
+      "prev_link_hash_hex": "f39b0cc4c4d8f210f39b0cc4c4d8f210f39b0cc4c4d8f210f39b0cc4c4d8f210",
+      "is_sandbox": false,
+      "actor": "service|sequencer",
+      "actor_kind": "service",
+      "recorded_at": "2026-08-07T02:15:00.000Z",
+      "batch_id": "018f3a36-1000-7b00-8000-0000000000ff"
+    },
+    {
+      "seq": 3,
+      "entry_id": "018f3a36-0000-7a00-8000-000000000003",
+      "entry_kind": "disposition",
+      "subject_id": "018f3a2f-1104-7c88-b3aa-77c1de40e2b1",
+      "payload_ver": 1,
+      "canon_bytes_b64": "eyJzdGFnZWQiOnRydWUsInNlcSI6M30=",
+      "payload": {
+        "staged": true,
+        "seq": 3
+      },
+      "leaf_hash_hex": "c068d9f9191a5cedc068d9f9191a5cedc068d9f9191a5cedc068d9f9191a5ced",
+      "link_hash_hex": "15bd2ee6e6fa143215bd2ee6e6fa143215bd2ee6e6fa143215bd2ee6e6fa1432",
+      "prev_link_hash_hex": "04ac1dd5d5e9032104ac1dd5d5e9032104ac1dd5d5e9032104ac1dd5d5e90321",
+      "is_sandbox": false,
+      "actor": "oidc|blk07|shift-supervisor-2",
+      "actor_kind": "human",
+      "recorded_at": "2026-08-07T02:15:00.000Z",
+      "batch_id": "018f3a36-1000-7b00-8000-0000000000ff"
+    },
+    {
+      "seq": 4,
+      "entry_id": "018f3a36-0000-7a00-8000-000000000004",
+      "entry_kind": "merge",
+      "subject_id": "018f3a2f-1104-7c88-b3aa-77c1de40e2b1",
+      "payload_ver": 1,
+      "canon_bytes_b64": "eyJzdGFnZWQiOnRydWUsInNlcSI6NH0=",
+      "payload": {
+        "staged": true,
+        "seq": 4
+      },
+      "leaf_hash_hex": "d179eaa2a2b6d0fed179eaa2a2b6d0fed179eaa2a2b6d0fed179eaa2a2b6d0fe",
+      "link_hash_hex": "26ce3ff7f70b254326ce3ff7f70b254326ce3ff7f70b254326ce3ff7f70b2543",
+      "prev_link_hash_hex": "15bd2ee6e6fa143215bd2ee6e6fa143215bd2ee6e6fa143215bd2ee6e6fa1432",
+      "is_sandbox": false,
+      "actor": "service|sequencer",
+      "actor_kind": "service",
+      "recorded_at": "2026-08-07T02:15:00.000Z",
+      "batch_id": "018f3a36-1000-7b00-8000-0000000000ff"
+    }
+  ],
+  "inclusion_proofs": [
+    {
+      "seq": 3,
+      "tree_size": 5,
+      "path_hex": [
+        "bf57c8e808094bdcbf57c8e808094bdcbf57c8e808094bdcbf57c8e808094bdc",
+        "48e521191987476548e521191987476548e521191987476548e5211919874765",
+        "59f6322a2a98587659f6322a2a98587659f6322a2a98587659f6322a2a985876"
+      ]
+    }
+  ],
+  "notes": "STAGED. This file has the shape of spec/wire/evidence-bundle.md v1.0 but carries no real signature, no real Merkle arithmetic and no real timestamp token. It exists so the custody surface can be built and so a reader can see what the transported artefact looks like. Running trappoint-verify against it MUST fail, and that failure is the correct outcome."
+}

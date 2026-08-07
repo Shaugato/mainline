@@ -1,0 +1,169 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://console.mainline.trappoint.org/contracts/1.0/propagation.schema.json",
+  "$comment": "Where a lesson travelled and where it did not. Licensing: propagation.schema.json.license (REUSE sidecar).",
+  "title": "MAINLINE console — fleet propagation and merge conflicts",
+  "description": "mainline.lesson, mainline.propagation and mainline.merge_conflict (ARCHITECTURE.md §5.9). Sites are downstream distributions, not replicas: a mandated RESPONSE beats mandated conformity, because a setpoint that is right at one plant can be an unrevealed hazard at another. only_tightenings_travel is a CHECK, not a policy — weakenings are site-local trade-offs and must be re-earned locally.",
+  "allOf": [
+    { "$ref": "envelope.schema.json" },
+    {
+      "properties": {
+        "data": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["lesson", "propagations", "conflicts"],
+          "properties": {
+            "lesson": { "$ref": "#/$defs/lesson" },
+            "propagations": {
+              "type": "array",
+              "maxItems": 256,
+              "items": { "$ref": "#/$defs/propagation" }
+            },
+            "conflicts": {
+              "type": "array",
+              "maxItems": 256,
+              "items": { "$ref": "#/$defs/merge_conflict" }
+            }
+          }
+        }
+      },
+      "required": ["data"]
+    }
+  ],
+  "$defs": {
+    "lesson": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "lesson_id",
+        "origin_site",
+        "origin_commit",
+        "anchor_event",
+        "max_severity",
+        "control_delta",
+        "patch_digest",
+        "merge_base"
+      ],
+      "properties": {
+        "lesson_id": { "$ref": "common.schema.json#/$defs/uuid" },
+        "origin_site": { "$ref": "common.schema.json#/$defs/uuid" },
+        "origin_commit": { "$ref": "common.schema.json#/$defs/commit_id" },
+        "anchor_event": { "$ref": "common.schema.json#/$defs/uuid" },
+        "max_severity": { "$ref": "common.schema.json#/$defs/severity" },
+        "control_delta": {
+          "description": "CHECK only_tightenings_travel restricts this to introduce, strengthen or restate. A weaken lesson is not a representable row.",
+          "enum": ["introduce", "strengthen", "restate"]
+        },
+        "patch_digest": {
+          "description": "sha256 over the NORMALISED delta set — a git patch-id analogue, so the same change arriving by two routes is one lesson.",
+          "$ref": "common.schema.json#/$defs/sha256_hex"
+        },
+        "merge_base": { "$ref": "common.schema.json#/$defs/commit_id" },
+        "title": { "type": ["string", "null"], "maxLength": 512 }
+      }
+    },
+    "propagation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["lesson_id", "site_id", "state", "score", "model_version", "proposed_at", "due_by", "open_conflicts"],
+      "properties": {
+        "lesson_id": { "$ref": "common.schema.json#/$defs/uuid" },
+        "site_id": { "$ref": "common.schema.json#/$defs/uuid" },
+        "site_code": { "type": ["string", "null"], "maxLength": 64 },
+        "state": { "$ref": "common.schema.json#/$defs/prop_state" },
+        "score": { "type": "number" },
+        "model_version": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "proposed_at": { "$ref": "common.schema.json#/$defs/timestamp" },
+        "due_by": {
+          "description": "Severity-scaled SLA clock. A site that has not answered is displayed as not having answered, never as compliant-by-default.",
+          "$ref": "common.schema.json#/$defs/timestamp"
+        },
+        "adopted_commit": {
+          "oneOf": [{ "$ref": "common.schema.json#/$defs/commit_id" }, { "type": "null" }]
+        },
+        "already_present_clause": {
+          "description": "Convergent evolution: the site already had the control. That is evidence FOR the site, and the console renders it as such.",
+          "oneOf": [{ "$ref": "common.schema.json#/$defs/uuid" }, { "type": "null" }]
+        },
+        "open_conflicts": { "$ref": "common.schema.json#/$defs/counter" },
+        "declination_kind": {
+          "oneOf": [
+            { "enum": ["mitigated", "waiver", "mechanism_absent"] },
+            { "type": "null" }
+          ]
+        },
+        "declination_predicate_id": {
+          "oneOf": [{ "$ref": "common.schema.json#/$defs/uuid" }, { "type": "null" }]
+        },
+        "declination_expires_at": {
+          "oneOf": [{ "$ref": "common.schema.json#/$defs/timestamp" }, { "type": "null" }]
+        }
+      },
+      "allOf": [
+        {
+          "$comment": "CHECK na_is_falsifiable — a mechanism_absent declination without a machine-checkable predicate is not a representable row.",
+          "if": {
+            "properties": { "declination_kind": { "const": "mechanism_absent" } },
+            "required": ["declination_kind"]
+          },
+          "then": {
+            "required": ["declination_predicate_id"],
+            "properties": {
+              "declination_predicate_id": { "$ref": "common.schema.json#/$defs/uuid" }
+            }
+          }
+        },
+        {
+          "$comment": "CHECK waiver_expires.",
+          "if": {
+            "properties": { "declination_kind": { "const": "waiver" } },
+            "required": ["declination_kind"]
+          },
+          "then": {
+            "required": ["declination_expires_at"],
+            "properties": {
+              "declination_expires_at": { "$ref": "common.schema.json#/$defs/timestamp" }
+            }
+          }
+        },
+        {
+          "$comment": "CHECK adopt_needs_commit and adopt_needs_clean.",
+          "if": {
+            "properties": { "state": { "const": "adopted" } },
+            "required": ["state"]
+          },
+          "then": {
+            "required": ["adopted_commit"],
+            "properties": {
+              "adopted_commit": { "$ref": "common.schema.json#/$defs/commit_id" },
+              "open_conflicts": { "const": 0 }
+            }
+          }
+        }
+      ]
+    },
+    "merge_conflict": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["conflict_id", "lesson_id", "site_id", "clause_uuid", "base_digest", "ours_digest", "theirs_digest", "opened_at"],
+      "properties": {
+        "conflict_id": { "$ref": "common.schema.json#/$defs/uuid" },
+        "lesson_id": { "$ref": "common.schema.json#/$defs/uuid" },
+        "site_id": { "$ref": "common.schema.json#/$defs/uuid" },
+        "clause_uuid": { "$ref": "common.schema.json#/$defs/uuid" },
+        "base_digest": { "$ref": "common.schema.json#/$defs/sha256_hex" },
+        "ours_digest": { "$ref": "common.schema.json#/$defs/sha256_hex" },
+        "theirs_digest": { "$ref": "common.schema.json#/$defs/sha256_hex" },
+        "resolved_commit": {
+          "oneOf": [{ "$ref": "common.schema.json#/$defs/commit_id" }, { "type": "null" }]
+        },
+        "resolved_by": { "type": ["string", "null"], "maxLength": 256 },
+        "resolution_source": {
+          "description": "rerere-with-recall back-pointer. A recorded resolution is PROPOSED, never auto-applied — auto-applying a safety-text resolution is precisely the rubber-stamp accelerant this design refuses to build.",
+          "oneOf": [{ "$ref": "common.schema.json#/$defs/uuid" }, { "type": "null" }]
+        },
+        "opened_at": { "$ref": "common.schema.json#/$defs/timestamp" }
+      }
+    }
+  }
+}

@@ -1,0 +1,58 @@
+/*
+ * SPDX-FileCopyrightText: 2026 MAINLINE contributors
+ * SPDX-License-Identifier: FSL-1.1-ALv2
+ *
+ * RegisterFrame and Rule.
+ *
+ * `RegisterFrame` is the runtime half of the register law. The import boundary decides
+ * what a DIRECTORY may depend on; the frame decides what a component INSTANCE may do,
+ * and those are different questions — `Counter` is one file that is an INSTRUMENT
+ * inside the propagation surface and EVIDENCE inside the refusal bar.
+ *
+ * The `data-register` attribute is also what a Playwright spec asserts against and what
+ * a screenshot carries: a reviewer looking at a captured DOM can see which law the
+ * subtree was operating under.
+ */
+
+.frame {
+  min-width: 0;
+}
+
+.frameBordered {
+  background: var(--tp-bg-raised);
+  border: var(--tp-hairline) solid var(--tp-rule-strong);
+  border-radius: var(--tp-radius);
+  padding: var(--tp-space-3);
+}
+
+.frameLabel {
+  display: block;
+  color: var(--tp-ink-faint);
+  font-size: var(--tp-step--1);
+  text-transform: uppercase;
+  letter-spacing: var(--tp-tracking-caps);
+  margin-bottom: var(--tp-space-2);
+}
+
+/*
+ * A separator, and nothing else. `--tp-rule` is the one colour in the set exempt from
+ * the 3:1 non-text floor, and the exemption is written down in `pairs.ts` with its
+ * reason rather than granted by leaving the token out of the gate.
+ */
+.rule {
+  border: 0;
+  border-top: var(--tp-hairline) solid var(--tp-rule);
+  margin: var(--tp-space-3) 0;
+}
+
+/* A section break, which DOES carry meaning and therefore meets 3:1. */
+.ruleStrong {
+  border-top-color: var(--tp-rule-strong);
+}
+
+@media print {
+  .frameBordered {
+    border-color: var(--tp-rule-strong);
+    break-inside: avoid;
+  }
+}

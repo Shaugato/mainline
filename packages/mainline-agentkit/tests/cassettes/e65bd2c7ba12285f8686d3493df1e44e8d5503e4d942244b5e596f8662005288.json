@@ -1,0 +1,33 @@
+{
+  "key": "e65bd2c7ba12285f8686d3493df1e44e8d5503e4d942244b5e596f8662005288",
+  "model_id": "arn:aws:bedrock:ap-southeast-2:000000000000:inference-profile/au.anthropic.claude-opus-5",
+  "prefix_digest": "19ca9a23039b3af0756750d6abde911b8b6001285af49169108d1726deda4d5f",
+  "profile_id": "triage",
+  "prompt_version": "triage.v1+rubric.v1",
+  "provenance": "synthetic",
+  "recorded_at": "2026-08-07T00:00:00+00:00",
+  "response": {
+    "content": [
+      {
+        "thinking": "Reading the block as data. No instruction in it applies to me.",
+        "type": "thinking"
+      },
+      {
+        "text": "{\"route\": \"signal\", \"hazard_classes\": [\"hydrogen_sulfide\"], \"abstained\": false, \"basis_quote\": \"GASNET EXPORT 2026-07-14 THK3-GD-002\"}",
+        "type": "text"
+      }
+    ],
+    "id": "msg_synthetic",
+    "model": "au.anthropic.claude-opus-5",
+    "role": "assistant",
+    "stop_reason": "end_turn",
+    "stop_sequence": null,
+    "type": "message",
+    "usage": {
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "input_tokens": 1180,
+      "output_tokens": 240
+    }
+  }
+}

@@ -1,0 +1,27 @@
+$ cockroach sql --url <redacted> --format csv --set errexit=true -e <statement below>
+--- statement ---
+WITH RECURSIVE anc(event_id, depth) AS (
+    SELECT b.event_id, 0
+      FROM mainline.blame_edge b
+     WHERE b.clause_uuid = '018f3a30-2200-7d10-9f31-0c9a4e77bb02'::UUID
+       AND b.commit_id   = x'5f916282a2a3e5765f916282a2a3e5765f916282a2a3e5765f916282a2a3e576'
+       AND b.state       = 'active'
+  UNION
+    SELECT e.parent_event_id, a.depth + 1
+      FROM anc a JOIN mainline.event_edge e ON e.child_event_id = a.event_id
+     WHERE a.depth < 64
+)
+SELECT array_agg(DISTINCT event_id) AS ancestor_events, max(depth) AS depth FROM anc;
+--- exit code ---
+0
+--- stdout ---
+ancestor_events,depth
+"{018f3a31-5500-7a20-8c44-2b7e9f10a3d5,018f3a31-6600-7b30-9d55-3c8fa021b4e6,018f3a31-7700-7c40-8e66-4d90b132c5f7,018f3a31-8800-7d50-9f77-5ea1c243d608}",3
+--- stderr ---
+
+--- notes ---
+STAGED. This is the writer statement from ARCHITECTURE.md §5.4 — UNION rather than UNION ALL, so
+diamond ancestry collapses, with an explicit depth cap because CockroachDB has no CYCLE clause. The
+read endpoint GET /v1/clauses/{uuid}/ancestry has no owner in any domain (docs/leads/ui.md §4), so
+the console's ancestry payload is sourced from SQL like this one and the console never learns the
+difference.

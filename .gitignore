@@ -14,3 +14,6 @@ dist/
 .pytest_cache/
 .ruff_cache/
 *.egg-info/
+.mypy_cache/
+.import_linter_cache/
+.uv-cache/

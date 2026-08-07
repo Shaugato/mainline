@@ -1,0 +1,164 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://console.mainline.trappoint.org/contracts/1.0/audit.schema.json",
+  "$comment": "The mainline_audit.v_* aggregates and the Managed-MCP call record. Licensing: audit.schema.json.license (REUSE sidecar).",
+  "title": "MAINLINE console — audit views and MCP calls",
+  "description": "ARCHITECTURE.md §17. The v_* views are a PRODUCT SURFACE whose size limit is a functional requirement: each returns <= 25 rows and <= 10 KiB and carries ancestry_complete or an equivalent truncation flag. Their column contracts belong to the recall and MCP domains, not to the console, so this schema describes the GENERIC tabular shape — columns declared by the payload, rows positional against them — and the audit surface renders whatever columns arrive. Inventing a column list here would be the console asserting something about a view it does not own.",
+  "allOf": [
+    { "$ref": "envelope.schema.json" },
+    {
+      "properties": {
+        "data": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["views", "calls"],
+          "properties": {
+            "views": {
+              "type": "array",
+              "maxItems": 32,
+              "items": { "$ref": "#/$defs/audit_view" }
+            },
+            "calls": {
+              "type": "array",
+              "maxItems": 128,
+              "items": { "$ref": "#/$defs/mcp_call" }
+            },
+            "unreachable": {
+              "description": "The negative assertion beside the positive ones: schemas the MCP service account must NOT be able to reach (mainline_qa above all). An empty array is a claim that nothing was checked, not a claim that nothing is reachable.",
+              "type": "array",
+              "maxItems": 16,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["schema_name", "probe", "outcome"],
+                "properties": {
+                  "schema_name": { "type": "string", "minLength": 1, "maxLength": 128 },
+                  "probe": { "type": "string", "minLength": 1, "maxLength": 512 },
+                  "outcome": { "enum": ["refused", "reachable", "not_probed"] },
+                  "sqlstate": { "type": ["string", "null"], "maxLength": 8 }
+                }
+              }
+            }
+          }
+        }
+      },
+      "required": ["data"]
+    }
+  ],
+  "$defs": {
+    "audit_view": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["view", "columns", "rows", "limits", "truncation_flag"],
+      "properties": {
+        "view": {
+          "description": "Fully qualified view name, e.g. mainline_audit.v_open_gate_summary.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-z_][a-z0-9_]*\\.[a-z_][a-z0-9_]*$"
+        },
+        "columns": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name"],
+            "properties": {
+              "name": { "type": "string", "minLength": 1, "maxLength": 128 },
+              "sql_type": { "type": ["string", "null"], "maxLength": 64 }
+            }
+          }
+        },
+        "rows": {
+          "description": "Positional against `columns`. Values are rendered as strings, numbers, booleans or null exactly as the driver produced them; the console does not coerce.",
+          "type": "array",
+          "maxItems": 25,
+          "items": {
+            "type": "array",
+            "maxItems": 64,
+            "items": { "type": ["string", "number", "boolean", "null"] }
+          }
+        },
+        "limits": {
+          "description": "The caps the read ran under. The Managed MCP surface caps a SELECT at 25 rows and a response at 10 KiB; a payload that does not state the caps it ran under cannot be read as complete.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["row_cap", "byte_cap", "rows_returned", "bytes_returned"],
+          "properties": {
+            "row_cap": { "type": "integer", "minimum": 1 },
+            "byte_cap": { "type": "integer", "minimum": 1 },
+            "rows_returned": { "type": "integer", "minimum": 0 },
+            "bytes_returned": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "truncation_flag": {
+          "description": "The name of the column in this view that carries ancestry_complete or its equivalent, and its value. Null when the view declares none — which the console displays as 'this view makes no completeness claim'.",
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["column", "complete"],
+              "properties": {
+                "column": { "type": "string", "minLength": 1, "maxLength": 128 },
+                "complete": { "type": "boolean" }
+              }
+            },
+            { "type": "null" }
+          ]
+        },
+        "statement": {
+          "description": "The single statement that produced these rows, verbatim. The Managed MCP allows ONE statement per call, <= 16384 characters.",
+          "type": ["string", "null"],
+          "maxLength": 16384
+        }
+      }
+    },
+    "mcp_call": {
+      "description": "One Managed-MCP round trip, from mainline_meas.agent_action. The audit screen shows what the read-only account asked and what it got, so that 'the agent could not have written anything' is inspectable rather than asserted.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["action_id", "agent_role", "tool", "transport", "outcome", "granted_scopes", "at"],
+      "properties": {
+        "action_id": { "$ref": "common.schema.json#/$defs/uuid" },
+        "agent_role": {
+          "description": "Maps 1:1 to the SQL role that executed it.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "tool": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "transport": { "enum": ["pgwire", "mcp", "bedrock", "ccloud", "s3"] },
+        "model_id": { "type": ["string", "null"], "maxLength": 128 },
+        "prompt_version": { "type": ["string", "null"], "maxLength": 128 },
+        "subject_kind": { "type": ["string", "null"], "maxLength": 64 },
+        "subject_id": {
+          "oneOf": [{ "$ref": "common.schema.json#/$defs/uuid" }, { "type": "null" }]
+        },
+        "statement": { "type": ["string", "null"], "maxLength": 16384 },
+        "plan_fragment": {
+          "description": "The EXPLAIN fragment returned, if any. EXPLAIN ANALYZE is not available on the Managed MCP surface, so this is a plan, never a measurement, and the console labels it so.",
+          "type": ["string", "null"],
+          "maxLength": 8192
+        },
+        "input_sha256": {
+          "oneOf": [{ "$ref": "common.schema.json#/$defs/sha256_hex" }, { "type": "null" }]
+        },
+        "output_sha256": {
+          "oneOf": [{ "$ref": "common.schema.json#/$defs/sha256_hex" }, { "type": "null" }]
+        },
+        "granted_scopes": {
+          "type": "array",
+          "maxItems": 64,
+          "items": { "type": "string", "minLength": 1, "maxLength": 128 }
+        },
+        "outcome": { "enum": ["ok", "refused", "error", "abstained"] },
+        "sqlstate": { "type": ["string", "null"], "maxLength": 8 },
+        "latency_ms": { "type": ["integer", "null"], "minimum": 0 },
+        "at": { "$ref": "common.schema.json#/$defs/timestamp" }
+      }
+    }
+  }
+}

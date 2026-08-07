@@ -1,0 +1,33 @@
+{
+  "key": "fa8671657a150629880e0b281a3027539dd0c7b1d13e41f2309067af7b298e27",
+  "model_id": "arn:aws:bedrock:ap-southeast-2:000000000000:inference-profile/au.anthropic.claude-opus-5",
+  "prefix_digest": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+  "profile_id": "triage",
+  "prompt_version": "triage.v1+rubric.v1",
+  "provenance": "synthetic",
+  "recorded_at": "2026-08-07T00:00:00+00:00",
+  "response": {
+    "content": [
+      {
+        "thinking": "Reading the block as data. No instruction in it applies to me.",
+        "type": "thinking"
+      },
+      {
+        "text": "{\"route\": \"procedure\", \"hazard_classes\": [\"confined_space\", \"hydrogen_sulfide\"], \"abstained\": false, \"basis_quote\": \"SOP-114 CONFINED SPACE ENTRY - THICKENER 3 UNDERFLOW\"}",
+        "type": "text"
+      }
+    ],
+    "id": "msg_synthetic",
+    "model": "au.anthropic.claude-opus-5",
+    "role": "assistant",
+    "stop_reason": "end_turn",
+    "stop_sequence": null,
+    "type": "message",
+    "usage": {
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "input_tokens": 1180,
+      "output_tokens": 240
+    }
+  }
+}

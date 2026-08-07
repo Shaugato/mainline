@@ -1,0 +1,82 @@
+{
+  "envelope_version": 1,
+  "resource": "materialise_checks",
+  "schema_id": "https://console.mainline.trappoint.org/contracts/1.0/invoke.schema.json",
+  "observed_at": "2026-08-07T02:15:00.000Z",
+  "server_date": "2026-08-07T02:15:00.000Z",
+  "staged": true,
+  "staged_note": "Hand-authored demonstration bundle. No CockroachDB cluster and no MAINLINE kernel produced these bytes: every payload below was written by the data-contracts-replay worker to exercise the console against its own contracts while the kernel and read API were being built. The SQLSTATEs, constraint names and column names are taken from ARCHITECTURE.md §5 and spec/wire/refusal.md and are therefore real claims about the design; the values are not observations. Any screen fed by this bundle says STAGED, and no number on it may be quoted as a measurement.",
+  "statement_refs": [
+    {
+      "kind": "procedure",
+      "object": "trappoint.materialise_checks",
+      "text": "CALL trappoint.materialise_checks($1, $2)",
+      "sql_path": "sql/materialise-refused-p0001.txt"
+    }
+  ],
+  "provenance": [
+    {
+      "pointer": "/refusal/constraint",
+      "chip": "db:constraint"
+    },
+    {
+      "pointer": "/refusal/sqlstate",
+      "chip": "db:constraint"
+    },
+    {
+      "pointer": "/refusal/message",
+      "chip": "db:constraint"
+    }
+  ],
+  "data": {
+    "procedure": "trappoint.materialise_checks",
+    "http_status": 409,
+    "outcome": "refused",
+    "subject_kind": "permit",
+    "subject_id": "018f3a2f-9900-7e11-b0cc-5a1122334455",
+    "gate_epoch": 4,
+    "committed": null,
+    "refusal": {
+      "spec_version": "1.0.0",
+      "refusal_id": "018f3a37-3300-7c30-8d77-4d90b132c5f7",
+      "observed_at": "2026-08-07T01:58:02.000Z",
+      "profile": "mainline-vertical",
+      "class": "gate",
+      "sqlstate": "P0001",
+      "constraint": "trappoint.fn_epoch_pin_guard",
+      "constraint_source": "reported",
+      "message": "MAINLINE: cannot attach a new obligation to permit WO-88180: merge_record pins (subject_id, gate_epoch) = (018f3a2f-9900-7e11-b0cc-5a1122334455, 4) and this insert would raise gate_epoch to 5. Suspend the permit and fork a child whose gate is cleared afresh.",
+      "subject_kind": "permit",
+      "subject_id": "018f3a2f-9900-7e11-b0cc-5a1122334455",
+      "gate_epoch": 4,
+      "diagnosis": "declarative",
+      "probe_calls": 0,
+      "mus": [
+        {
+          "kind": "event",
+          "event_id": "018f3a31-9900-7e60-8088-6fb2d354e719",
+          "severity": 4,
+          "detail": "A precursor bonded to this activity node after the permit was issued. The database will not let it change the epoch of a completed transition, because ON UPDATE RESTRICT on the merge_record composite foreign key makes that physically impossible."
+        }
+      ],
+      "naa": {
+        "kind": "fork_subject",
+        "parent_subject_id": "018f3a2f-9900-7e11-b0cc-5a1122334455",
+        "cardinality": 1,
+        "description": "Suspend WO-88180 and fork a child permit. The child starts at gate_epoch 0 with the new obligation open, and the issued parent keeps the record of what was true when it was issued. This is the git discipline — never rewrite a merged commit, open a revert branch — expressed as referential integrity."
+      },
+      "naa_reason": null,
+      "evidence": [
+        {
+          "kind": "sql_round_trip",
+          "ref": "sql/materialise-refused-p0001.txt"
+        },
+        {
+          "kind": "merge_record",
+          "ref": "018f3a2f-9900-7e11-b0cc-5a1122334455@4"
+        }
+      ]
+    },
+    "sql_round_trip": "sql/materialise-refused-p0001.txt"
+  }
+}

@@ -1,0 +1,148 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://console.mainline.trappoint.org/contracts/1.0/clause.schema.json",
+  "$comment": "Clause identity, content and the delta that armed a check. Licensing: clause.schema.json.license (REUSE sidecar).",
+  "title": "MAINLINE console — clause version and delta witness",
+  "description": "mainline.clause_version (ARCHITECTURE.md §5.3) plus the DeltaVerdict / DeltaWitness contract published by the algorithms domain (mainline_domain.contracts). Decision D8 there: a weaken/remove with delta_basis='lattice' whose witness rows were not written in the same transaction is REFUSED by fn_delta_witness_guard with P0001 — an unexplainable weaken verdict does not get to exist. When the witnesses are nonetheless absent from a payload, the console renders an explicit WITNESS UNAVAILABLE state and never an inferred explanation.",
+  "allOf": [
+    { "$ref": "envelope.schema.json" },
+    {
+      "properties": {
+        "data": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["clause_uuid", "version", "delta"],
+          "properties": {
+            "clause_uuid": { "$ref": "common.schema.json#/$defs/uuid" },
+            "version": { "$ref": "#/$defs/clause_version" },
+            "parent": {
+              "description": "The ancestor version this one edits, when the read API resolved it.",
+              "oneOf": [{ "$ref": "#/$defs/clause_version" }, { "type": "null" }]
+            },
+            "delta": { "$ref": "#/$defs/delta_verdict" }
+          }
+        }
+      },
+      "required": ["data"]
+    }
+  ],
+  "$defs": {
+    "clause_version": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "clause_uuid",
+        "gen",
+        "commit_id",
+        "site_id",
+        "activity_root",
+        "canon_text",
+        "canon_version",
+        "canon_sha256",
+        "anchor_set",
+        "control_delta",
+        "delta_basis",
+        "sev_max"
+      ],
+      "properties": {
+        "clause_uuid": { "$ref": "common.schema.json#/$defs/uuid" },
+        "gen": {
+          "description": "Denormalised from commit_obj for bisect ordering.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "commit_id": { "$ref": "common.schema.json#/$defs/commit_id" },
+        "site_id": { "$ref": "common.schema.json#/$defs/uuid" },
+        "doc_id": {
+          "oneOf": [{ "$ref": "common.schema.json#/$defs/uuid" }, { "type": "null" }]
+        },
+        "activity_root": {
+          "description": "The level-1 archival activity code. It is also the vector-index prefix, which is why blame survives an asset-tag churn.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "parent_version": {
+          "oneOf": [{ "$ref": "common.schema.json#/$defs/commit_id" }, { "type": "null" }]
+        },
+        "ordinal": {
+          "description": "Presentation only, NEVER identity.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "printed_label": { "type": ["string", "null"], "maxLength": 128 },
+        "raw_text": { "type": ["string", "null"], "maxLength": 65536 },
+        "canon_text": {
+          "description": "Offsets are ALWAYS into canon_text. The console highlights spans against this string and no other.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 65536
+        },
+        "canon_version": { "type": "integer", "minimum": 0 },
+        "canon_sha256": { "$ref": "common.schema.json#/$defs/sha256_hex" },
+        "anchor_set": {
+          "description": "Tags, setpoints, citations, CAS numbers, roles. An anchor dropped between versions is one of the residue reasons.",
+          "type": "array",
+          "maxItems": 256,
+          "items": { "type": "string", "minLength": 1, "maxLength": 256 }
+        },
+        "cat_key": { "type": ["string", "null"], "maxLength": 128 },
+        "cat_json": {
+          "description": "The normalised Control Assertion Tuple. Shape is owned by the algorithms domain; the console renders it as structured data and asserts nothing about its internals.",
+          "type": ["object", "null"]
+        },
+        "cat_confidence": { "enum": ["ok", "low", "opaque"] },
+        "control_delta": { "$ref": "common.schema.json#/$defs/control_delta" },
+        "delta_basis": { "$ref": "common.schema.json#/$defs/delta_basis" },
+        "delta_model": { "type": ["string", "null"], "maxLength": 128 },
+        "delta_prompt_version": { "type": ["string", "null"], "maxLength": 128 },
+        "blood_root": {
+          "description": "MMR root over the severity-monotone lineage accumulator (M2).",
+          "oneOf": [{ "$ref": "common.schema.json#/$defs/sha256_hex" }, { "type": "null" }]
+        },
+        "blood_size": { "type": ["integer", "null"], "minimum": 0 },
+        "sev_max": {
+          "description": "The worst severity anywhere in this version's blame lineage. Projected; never chosen.",
+          "$ref": "common.schema.json#/$defs/severity"
+        }
+      }
+    },
+    "delta_witness": {
+      "description": "One element of the minimal unsatisfiable subset behind a delta verdict. Field names mirror mainline_domain.contracts.DeltaWitness exactly.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rule_id", "field", "from_repr", "to_repr", "note"],
+      "properties": {
+        "rule_id": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "field": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "from_repr": { "type": "string", "maxLength": 1024 },
+        "to_repr": { "type": "string", "maxLength": 1024 },
+        "note": { "type": "string", "maxLength": 2048 }
+      }
+    },
+    "delta_verdict": {
+      "description": "mainline_domain.contracts.DeltaVerdict. `witnesses` may be null — meaning the payload carries no witness rows — which the console renders as WITNESS UNAVAILABLE. An empty array is a DIFFERENT claim: the emitter says there are none.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["delta", "basis", "witnesses", "minimal"],
+      "properties": {
+        "delta": { "$ref": "common.schema.json#/$defs/control_delta" },
+        "basis": { "$ref": "common.schema.json#/$defs/delta_basis" },
+        "witnesses": {
+          "oneOf": [
+            {
+              "type": "array",
+              "maxItems": 64,
+              "items": { "$ref": "#/$defs/delta_witness" }
+            },
+            { "type": "null" }
+          ]
+        },
+        "minimal": {
+          "description": "Whether the witness set is a minimal unsatisfiable subset. Null when the emitter did not establish minimality — an unproven claim of minimality is worse than none.",
+          "type": ["boolean", "null"]
+        }
+      }
+    }
+  }
+}

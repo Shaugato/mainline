@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://console.mainline.trappoint.org/contracts/1.0/envelope.schema.json",
+  "$comment": "The response envelope every read resource shares. Licensing: envelope.schema.json.license (REUSE sidecar).",
+  "title": "MAINLINE console — read response envelope",
+  "description": "Every read the console performs returns this shape, over HTTP from the kernel's read API or byte-for-byte out of an evidence bundle frame. The two transports are interchangeable BECAUSE the envelope is the same object; if they differed here they would differ in a code path, and the LIVE/REPLAY badge would be decoration.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["envelope_version", "resource", "schema_id", "staged", "provenance", "data"],
+  "properties": {
+    "envelope_version": {
+      "description": "MUST be 1. A reader that does not recognise the version refuses the payload rather than guessing at it.",
+      "const": 1
+    },
+    "resource": {
+      "description": "The resource key from src/data/resources.ts. The transport asserts this equals the key it asked for — a frame that answers a different question than the one asked is a tampered bundle, not a convenience.",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[a-z][a-z0-9_]*$"
+    },
+    "schema_id": {
+      "description": "The $id of the contract that governs `data`. The console looks the schema up by this value and refuses a payload naming a schema it does not hold — an unknown contract is not a forward-compatible contract.",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "observed_at": {
+      "description": "When the read API produced this payload. Null when the emitter declined to state it; never defaulted to now().",
+      "oneOf": [
+        { "$ref": "common.schema.json#/$defs/timestamp" },
+        { "type": "null" }
+      ]
+    },
+    "server_date": {
+      "description": "The server's own clock at emission, carried so the honesty chrome can show server-vs-local skew (D16) without the console having to trust a header a proxy may have rewritten.",
+      "oneOf": [
+        { "$ref": "common.schema.json#/$defs/timestamp" },
+        { "type": "null" }
+      ]
+    },
+    "staged": {
+      "description": "True when any part of `data` is hand-authored demonstration material rather than a value a cluster produced. The honesty chrome renders this; a bundle of staged frames says STAGED on every screen it feeds.",
+      "type": "boolean"
+    },
+    "staged_note": {
+      "description": "Required and non-null exactly when `staged` is true. Says what was staged and why, in the words of whoever staged it.",
+      "oneOf": [{ "type": "string", "minLength": 1, "maxLength": 1024 }, { "type": "null" }]
+    },
+    "statement_refs": {
+      "description": "Where the payload came from. Empty is legal and means the emitter named no source, which the console displays as an absence rather than hiding.",
+      "type": "array",
+      "maxItems": 32,
+      "items": { "$ref": "common.schema.json#/$defs/statement_ref" }
+    },
+    "provenance": { "$ref": "common.schema.json#/$defs/field_provenance" },
+    "data": {
+      "description": "The resource payload. Constrained by the resource contract named in schema_id, never by this file."
+    }
+  },
+  "allOf": [
+    {
+      "$comment": "staged true <-> staged_note non-null. The same shape spec/wire/refusal.schema.json uses for naa/naa_reason, for the same reason: an unexplained flag is a flag nobody has to justify.",
+      "if": { "properties": { "staged": { "const": true } }, "required": ["staged"] },
+      "then": {
+        "required": ["staged_note"],
+        "properties": { "staged_note": { "type": "string" } }
+      },
+      "else": {
+        "properties": { "staged_note": { "type": "null" } }
+      }
+    }
+  ]
+}

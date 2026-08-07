@@ -1,0 +1,83 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: Apache-2.0
+
+[project]
+name = "mainline-agentkit"
+version = "0.1.0"
+description = "The zero-tool, JSON-Schema-constrained Bedrock call runtime for the MAINLINE Cognition plane: au.* residency, Bedrock-legal schemas, explicit prompt caching, refusal-as-silence, one-retry-then-dead-letter, cassette replay."
+readme = "README.md"
+requires-python = ">=3.13"
+license = "Apache-2.0"
+authors = [{ name = "MAINLINE contributors" }]
+keywords = ["bedrock", "claude", "structured-output", "prompt-injection", "camel", "quarantine"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Security",
+  "Typing :: Typed",
+]
+
+# ONE runtime dependency, and that is a contract rather than a preference.
+#
+# This package is the only thing in the Cognition plane that talks to a model. Every
+# byte it puts on the wire is a byte a residency argument depends on, so its import
+# graph has to be small enough for a reviewer to read in full. Pydantic is here because
+# `bedrock_schema()` derives the wire schema FROM the model that re-imposes the stripped
+# constraints — deriving them from two places is how a "<=60-token cue" becomes an
+# unenforced promise (decision A7).
+#
+# boto3 is an EXTRA, imported lazily inside one function. `MAINLINE_AGENT_PROVIDER`
+# defaults to `cassette`, so the entire test suite, every profile, every schema vector
+# and every refusal path run with no AWS SDK installed and no network at all.
+dependencies = [
+  "pydantic>=2.7",
+]
+
+[project.optional-dependencies]
+# The live Bedrock leg. Off by default: AWS credentials are not valid on the build
+# machine as of 2026-08, and PL-3 forbids putting an unproven capability on a dated
+# path. `MAINLINE_AGENT_PROVIDER=bedrock` plus this extra is the only way to reach it.
+bedrock = ["boto3>=1.34"]
+
+[project.urls]
+Homepage = "https://github.com/Shaugato/mainline"
+
+[dependency-groups]
+dev = ["pytest>=8.2", "mypy>=1.11", "ruff>=0.6"]
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mainline_agentkit"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "tests", "README.md"]
+
+[tool.mypy]
+# Full `--strict`, because this is the Apache-2.0 artefact a stranger forks and the
+# only thing between a fork and a wrong refusal is that the code says what it means.
+# The repository-root `mypy.ini` writes the same policy out flag by flag for the
+# `trappoint-*` distributions; this package is checked by running mypy from its own
+# directory, which is what `just lint` and `agents.yml` do.
+python_version = "3.13"
+strict = true
+warn_unreachable = true
+mypy_path = "src"
+packages = ["mainline_agentkit"]
+
+# boto3 ships no py.typed and its stubs are a very large separate package. It is an
+# OPTIONAL extra here, imported lazily inside two functions, so the whole package
+# type-checks with no AWS SDK installed at all.
+[[tool.mypy.overrides]]
+module = ["boto3", "boto3.*", "botocore.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+# For a bare `pytest packages/mainline-agentkit` from inside the package directory.
+# From the repository root the root `pyproject.toml` wins and `tests/conftest.py`
+# puts `src` on the path instead, so both invocations work with no install step.
+pythonpath = ["src"]
+testpaths = ["tests"]

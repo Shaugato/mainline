@@ -1,0 +1,20 @@
+$ cockroach sql --url <redacted> --format csv --set errexit=true -e <statement below>
+--- statement ---
+CALL trappoint.merge_permit(
+  '018f3a2f-1104-7c88-b3aa-77c1de40e2b1'::UUID,
+  7::INT8
+);
+--- exit code ---
+1
+--- stdout ---
+
+--- stderr ---
+ERROR: failed to satisfy CHECK constraint (state != 'merged' OR open_blocking = 0)
+SQLSTATE: 23514
+CONSTRAINT: gate_closed_when_issued
+DETAIL: Failing row contains (018f3a2f-1104-7c88-b3aa-77c1de40e2b1, ..., merged, 7, 1, 0, 0, 0, 0, 0, 0).
+HINT: MAINLINE: one blocking check is open on this permit. It was materialised from the blame
+      ancestry of clause 7.3.2(b), whose lineage reaches the 2004 fatality ICAM-2004-0031.
+--- notes ---
+STAGED. This round trip was written by hand from the DDL in ARCHITECTURE.md §5.5. The constraint
+name, the SQLSTATE and the predicate are the design's own; the row values are not observations.

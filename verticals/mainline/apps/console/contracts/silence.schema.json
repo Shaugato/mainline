@@ -1,0 +1,161 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://console.mainline.trappoint.org/contracts/1.0/silence.schema.json",
+  "$comment": "Everything the system declined to surface, with its arithmetic. Licensing: silence.schema.json.license (REUSE sidecar).",
+  "title": "MAINLINE console — silence ledger and Proof of Exhausted Recall",
+  "description": "mainline_meas.silence_ledger and mainline_meas.silence_receipt (ARCHITECTURE.md §5.7). The silence ledger answers the plaintiff's actual question — 'your system knew about event X and did not show it' — with arithmetic instead of an adverse inference. Its dark side is that it is a complete list of every warning we chose not to give, and the console renders it in full rather than as a count.",
+  "allOf": [
+    { "$ref": "envelope.schema.json" },
+    {
+      "properties": {
+        "data": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["subject_kind", "subject_id", "entries", "receipt"],
+          "properties": {
+            "subject_kind": { "$ref": "common.schema.json#/$defs/subject_kind" },
+            "subject_id": { "$ref": "common.schema.json#/$defs/uuid" },
+            "entries": {
+              "type": "array",
+              "maxItems": 512,
+              "items": { "$ref": "#/$defs/silence_entry" }
+            },
+            "receipt": {
+              "description": "The PER receipt for the recall run that produced these silences, or null when the run issued none.",
+              "oneOf": [{ "$ref": "#/$defs/silence_receipt" }, { "type": "null" }]
+            }
+          }
+        }
+      },
+      "required": ["data"]
+    }
+  ],
+  "$defs": {
+    "silence_entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["silence_id", "site_id", "source", "reason", "subject_kind", "subject_id", "severity", "arithmetic", "at"],
+      "properties": {
+        "silence_id": { "$ref": "common.schema.json#/$defs/uuid" },
+        "site_id": { "$ref": "common.schema.json#/$defs/uuid" },
+        "source": {
+          "enum": [
+            "recall",
+            "fleet_appraisal",
+            "severity_downgrade",
+            "closure_truncation",
+            "dedup",
+            "delta_neutral",
+            "blame_lapse",
+            "patrol_suppression",
+            "ring_exclusion",
+            "boundary_unmodelled"
+          ]
+        },
+        "reason": {
+          "enum": [
+            "below_tau",
+            "model_refusal",
+            "dedup_sibling",
+            "cap_exceeded",
+            "truncated",
+            "abstained",
+            "bounded_negative",
+            "unreachable"
+          ]
+        },
+        "subject_kind": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "subject_id": { "$ref": "common.schema.json#/$defs/uuid" },
+        "event_id": {
+          "oneOf": [{ "$ref": "common.schema.json#/$defs/uuid" }, { "type": "null" }]
+        },
+        "severity": { "$ref": "common.schema.json#/$defs/severity" },
+        "score": { "type": ["number", "null"] },
+        "threshold": { "type": ["number", "null"] },
+        "arithmetic": {
+          "description": "Components, model version and tau. This is the difference between 'we did not show it' and 'it scored 0.31 against a threshold of 0.45, calibrated on a temporally-blocked gold set; here is the calibration commit and its author'.",
+          "type": "object"
+        },
+        "policy_version": { "type": ["string", "null"], "maxLength": 128 },
+        "at": { "$ref": "common.schema.json#/$defs/timestamp" }
+      }
+    },
+    "silence_receipt": {
+      "description": "Proof of Exhausted Recall, honestly bounded. Because the candidate leaves are SCORE-SORTED, disclosing candidate_root, theta, s, n and the boundary pair with inclusion paths establishes that every leaf beyond position s scored below theta — no item can be hand-excluded without breaking sortedness — while revealing no suppressed content.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "silence_receipt_id",
+        "run_id",
+        "permit_id",
+        "corpus_root",
+        "candidate_root",
+        "theta",
+        "s",
+        "n",
+        "boundary_proof",
+        "policy_version",
+        "issued_at",
+        "bound"
+      ],
+      "properties": {
+        "silence_receipt_id": { "$ref": "common.schema.json#/$defs/uuid" },
+        "run_id": { "$ref": "common.schema.json#/$defs/uuid" },
+        "permit_id": { "$ref": "common.schema.json#/$defs/uuid" },
+        "corpus_root": { "$ref": "common.schema.json#/$defs/sha256_hex" },
+        "candidate_root": {
+          "description": "Merkle root over the score-sorted candidate multiset.",
+          "$ref": "common.schema.json#/$defs/sha256_hex"
+        },
+        "theta": { "type": "number" },
+        "s": { "type": "integer", "minimum": 0 },
+        "n": { "type": "integer", "minimum": 0 },
+        "boundary_proof": {
+          "description": "Inclusion paths for leaves s and s+1. Recomputed in-browser by the verifier; this payload carries only the paths.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["leaf_s", "leaf_s_plus_1"],
+          "properties": {
+            "leaf_s": { "$ref": "#/$defs/boundary_leaf" },
+            "leaf_s_plus_1": {
+              "oneOf": [{ "$ref": "#/$defs/boundary_leaf" }, { "type": "null" }]
+            }
+          }
+        },
+        "policy_version": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "issued_at": { "$ref": "common.schema.json#/$defs/timestamp" },
+        "bound": {
+          "description": "The honest limit, carried as data so no exhibit can be generated without it. ANN is approximate: PER proves exhaustion of the RETRIEVAL THAT RAN, not of the corpus.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["index_generation", "index_plan_digest", "statement"],
+          "properties": {
+            "index_generation": { "type": "string", "minLength": 1, "maxLength": 128 },
+            "index_plan_digest": { "$ref": "common.schema.json#/$defs/sha256_hex" },
+            "statement": {
+              "description": "The bounding sentence, verbatim, to be reproduced on every exhibit rendered from this receipt.",
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            }
+          }
+        }
+      }
+    },
+    "boundary_leaf": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["index", "leaf_hash_hex", "score", "path_hex"],
+      "properties": {
+        "index": { "type": "integer", "minimum": 0 },
+        "leaf_hash_hex": { "$ref": "common.schema.json#/$defs/sha256_hex" },
+        "score": { "type": "number" },
+        "path_hex": {
+          "type": "array",
+          "maxItems": 64,
+          "items": { "$ref": "common.schema.json#/$defs/sha256_hex" }
+        }
+      }
+    }
+  }
+}

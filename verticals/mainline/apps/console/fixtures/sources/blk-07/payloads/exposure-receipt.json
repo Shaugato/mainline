@@ -1,0 +1,63 @@
+{
+  "envelope_version": 1,
+  "resource": "exposure_receipt",
+  "schema_id": "https://console.mainline.trappoint.org/contracts/1.0/exposure.schema.json",
+  "observed_at": "2026-08-07T02:15:00.000Z",
+  "server_date": "2026-08-07T02:15:00.000Z",
+  "staged": true,
+  "staged_note": "Hand-authored demonstration bundle. No CockroachDB cluster and no MAINLINE kernel produced these bytes: every payload below was written by the data-contracts-replay worker to exercise the console against its own contracts while the kernel and read API were being built. The SQLSTATEs, constraint names and column names are taken from ARCHITECTURE.md §5 and spec/wire/refusal.md and are therefore real claims about the design; the values are not observations. Any screen fed by this bundle says STAGED, and no number on it may be quoted as a measurement.",
+  "statement_refs": [
+    {
+      "kind": "table",
+      "object": "mainline.exposure_receipt",
+      "text": null,
+      "sql_path": null
+    }
+  ],
+  "provenance": [
+    {
+      "pointer": "/issued_at",
+      "chip": "db:column"
+    },
+    {
+      "pointer": "/corpus_root",
+      "chip": "db:column"
+    },
+    {
+      "pointer": "/receipt_digest",
+      "chip": "db:column"
+    },
+    {
+      "pointer": "/lines/0/payload_digest",
+      "chip": "db:column"
+    }
+  ],
+  "data": {
+    "receipt_id": "018f3a32-1100-7a80-82aa-81d4f5760a3b",
+    "permit_id": "018f3a2f-1104-7c88-b3aa-77c1de40e2b1",
+    "actor_sub": "oidc|blk07|shift-supervisor-2",
+    "issued_at": "2026-08-06T21:51:03.000Z",
+    "issued_hlc": "1786172263.0000000001",
+    "expires_at": "2026-08-06T23:51:03.000Z",
+    "corpus_root": "8c2495b5d5d618a98c2495b5d5d618a98c2495b5d5d618a98c2495b5d5d618a9",
+    "silence_receipt_id": "018f3a33-2200-7d10-95dd-b407289a3d6e",
+    "policy_version": "BLK-07/recall@2026-07-18",
+    "total_tokens": 1840,
+    "receipt_digest": "6a02734b3b4969876a02734b3b4969876a02734b3b4969876a02734b3b496987",
+    "swept_at": null,
+    "lines": [
+      {
+        "receipt_id": "018f3a32-1100-7a80-82aa-81d4f5760a3b",
+        "check_id": "018f3a31-1000-7b30-9e53-2e1c60997a24",
+        "payload_digest": "7b1845c4c45a7a987b1845c4c45a7a987b1845c4c45a7a987b1845c4c45a7a98",
+        "tokens": 1290
+      },
+      {
+        "receipt_id": "018f3a32-1100-7a80-82aa-81d4f5760a3b",
+        "check_id": "018f3a31-2000-7c40-8f64-3f2d71aa8b35",
+        "payload_digest": "8c2956d5d56b8ba98c2956d5d56b8ba98c2956d5d56b8ba98c2956d5d56b8ba9",
+        "tokens": 550
+      }
+    ]
+  }
+}

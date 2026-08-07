@@ -1,0 +1,156 @@
+{
+  "envelope_version": 1,
+  "resource": "silence",
+  "schema_id": "https://console.mainline.trappoint.org/contracts/1.0/silence.schema.json",
+  "observed_at": "2026-08-07T02:15:00.000Z",
+  "server_date": "2026-08-07T02:15:00.000Z",
+  "staged": true,
+  "staged_note": "Hand-authored demonstration bundle. No CockroachDB cluster and no MAINLINE kernel produced these bytes: every payload below was written by the data-contracts-replay worker to exercise the console against its own contracts while the kernel and read API were being built. The SQLSTATEs, constraint names and column names are taken from ARCHITECTURE.md §5 and spec/wire/refusal.md and are therefore real claims about the design; the values are not observations. Any screen fed by this bundle says STAGED, and no number on it may be quoted as a measurement.",
+  "statement_refs": [
+    {
+      "kind": "table",
+      "object": "mainline_meas.silence_ledger",
+      "text": null,
+      "sql_path": null
+    },
+    {
+      "kind": "table",
+      "object": "mainline_meas.silence_receipt",
+      "text": null,
+      "sql_path": null
+    }
+  ],
+  "provenance": [
+    {
+      "pointer": "/entries/0/score",
+      "chip": "db:column"
+    },
+    {
+      "pointer": "/entries/0/threshold",
+      "chip": "db:column"
+    },
+    {
+      "pointer": "/entries/0/arithmetic",
+      "chip": "db:column"
+    },
+    {
+      "pointer": "/receipt/theta",
+      "chip": "db:column"
+    },
+    {
+      "pointer": "/receipt/candidate_root",
+      "chip": "db:column"
+    }
+  ],
+  "data": {
+    "subject_kind": "permit",
+    "subject_id": "018f3a2f-1104-7c88-b3aa-77c1de40e2b1",
+    "entries": [
+      {
+        "silence_id": "018f3a33-3300-7e20-86ee-c518390b4e7f",
+        "site_id": "018f3a2e-0000-7000-8000-000000000001",
+        "source": "recall",
+        "reason": "below_tau",
+        "subject_kind": "permit",
+        "subject_id": "018f3a2f-1104-7c88-b3aa-77c1de40e2b1",
+        "event_id": "018f3a31-aa00-7f70-9199-70c3e465f82a",
+        "severity": 3,
+        "score": 0.31,
+        "threshold": 0.45,
+        "arithmetic": {
+          "channels": {
+            "ann_scoped": {
+              "cosine": 0.58,
+              "weight": 0.4,
+              "contribution": 0.232
+            },
+            "ann_coarse": {
+              "cosine": 0.41,
+              "weight": 0.15,
+              "contribution": 0.0615
+            },
+            "lexical_bm25": {
+              "score": 1.9,
+              "normalised": 0.11,
+              "weight": 0.25,
+              "contribution": 0.0275
+            },
+            "bond": {
+              "bonded": false,
+              "weight": 0.2,
+              "contribution": 0
+            }
+          },
+          "fused_raw": 0.321,
+          "calibrator": "isotonic@BLK-07/recall-cal-2026-07-18",
+          "p_relevant": 0.31,
+          "tau": {
+            "severity_3": 0.45,
+            "severity_4": 0.3,
+            "severity_5": 0
+          },
+          "embed_model": "amazon.titan-embed-text-v2:0",
+          "index_generation": "ce_ann@2026-07-18"
+        },
+        "policy_version": "BLK-07/recall@2026-07-18",
+        "at": "2026-08-06T21:41:16.000Z"
+      },
+      {
+        "silence_id": "018f3a33-4400-7f30-97ff-d6294a1c5f80",
+        "site_id": "018f3a2e-0000-7000-8000-000000000001",
+        "source": "dedup",
+        "reason": "dedup_sibling",
+        "subject_kind": "permit",
+        "subject_id": "018f3a2f-1104-7c88-b3aa-77c1de40e2b1",
+        "event_id": "018f3a31-7700-7c40-8e66-4d90b132c5f7",
+        "severity": 3,
+        "score": null,
+        "threshold": null,
+        "arithmetic": {
+          "deduped_against_check": "018f3a31-2000-7c40-8f64-3f2d71aa8b35",
+          "dedupe_key_matched": "48e051291927476548e051291927476548e051291927476548e0512919274765",
+          "rule": "A candidate whose (permit, clause, commit, precursor, origin) digest already has a materialised check is not materialised twice."
+        },
+        "policy_version": "BLK-07/recall@2026-07-18",
+        "at": "2026-08-06T21:41:16.000Z"
+      }
+    ],
+    "receipt": {
+      "silence_receipt_id": "018f3a33-2200-7d10-95dd-b407289a3d6e",
+      "run_id": "018f3a33-1100-7c00-84cc-a3f617982c5d",
+      "permit_id": "018f3a2f-1104-7c88-b3aa-77c1de40e2b1",
+      "corpus_root": "8c2495b5d5d618a98c2495b5d5d618a98c2495b5d5d618a98c2495b5d5d618a9",
+      "candidate_root": "59f1623a2a38587659f1623a2a38587659f1623a2a38587659f1623a2a385876",
+      "theta": 0.45,
+      "s": 2,
+      "n": 17,
+      "boundary_proof": {
+        "leaf_s": {
+          "index": 2,
+          "leaf_hash_hex": "26c30f7f7f65254326c30f7f7f65254326c30f7f7f65254326c30f7f7f652543",
+          "score": 0.47,
+          "path_hex": [
+            "48e521191987476548e521191987476548e521191987476548e5211919874765",
+            "59f6322a2a98587659f6322a2a98587659f6322a2a98587659f6322a2a985876"
+          ]
+        },
+        "leaf_s_plus_1": {
+          "index": 3,
+          "leaf_hash_hex": "37d410080876365437d410080876365437d410080876365437d4100808763654",
+          "score": 0.31,
+          "path_hex": [
+            "48e521191987476548e521191987476548e521191987476548e5211919874765",
+            "59f6322a2a98587659f6322a2a98587659f6322a2a98587659f6322a2a985876"
+          ]
+        }
+      },
+      "policy_version": "BLK-07/recall@2026-07-18",
+      "issued_at": "2026-08-06T21:41:17.000Z",
+      "bound": {
+        "index_generation": "ce_ann@2026-07-18",
+        "index_plan_digest": "c06d9a19190fcfedc06d9a19190fcfedc06d9a19190fcfedc06d9a19190fcfed",
+        "statement": "This receipt proves exhaustion of the retrieval that ran, not of the corpus. Approximate nearest-neighbour search may not have returned every relevant candidate; what is proved is that nothing scoring at or above theta was withheld from the set that was returned."
+      }
+    }
+  }
+}

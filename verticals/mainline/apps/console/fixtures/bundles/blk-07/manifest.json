@@ -1,0 +1,153 @@
+{
+  "manifest_version": 1,
+  "bundle_id": "blk-07-staged-2026-08-07",
+  "captured_at": "2026-08-07T02:15:00.000Z",
+  "generator": "capture-bundle.ts stage 1.0",
+  "cluster_fingerprint": {
+    "source": "declared",
+    "product": "CockroachDB CCL",
+    "version": "v26.2.5",
+    "cluster_version": "26.2",
+    "tier": "basic",
+    "region": "aws-ap-southeast-1",
+    "evidence_ref": "Measured against the live cluster on 2026-08-07 and recorded in docs/leads/ui.md, PLATFORM GROUND TRUTH. Declared here rather than observed: this bundle was not produced by that cluster. Residency is split — inference in ap-southeast-2 (Sydney), database in aws-ap-southeast-1 (Singapore) — so no end-to-end Australian residency claim may be made from this bundle."
+  },
+  "schema_version": "migrations 0001-0207 (heads as of 2026-08-07); no digest observed",
+  "staged": true,
+  "staged_note": "Hand-authored demonstration bundle. No CockroachDB cluster and no MAINLINE kernel produced these bytes: every payload below was written by the data-contracts-replay worker to exercise the console against its own contracts while the kernel and read API were being built. The SQLSTATEs, constraint names and column names are taken from ARCHITECTURE.md §5 and spec/wire/refusal.md and are therefore real claims about the design; the values are not observations. Any screen fed by this bundle says STAGED, and no number on it may be quoted as a measurement.",
+  "checkpoint": {
+    "site_code": "BLK-07",
+    "tree_size": 5,
+    "root_hex": "8c2495b5d5d618a98c2495b5d5d618a98c2495b5d5d618a98c2495b5d5d618a9",
+    "note_path": "ledger/checkpoint-000005.note",
+    "custody_bundle_path": "ledger/bundle.json"
+  },
+  "files": [
+    {
+      "path": "frames/GET~20~2Fv1~2Faudit.json",
+      "sha256": "5eb87fa5732aecc53045535942486ce81c3de06de01005b2cf6346fc6fa9f1b1",
+      "bytes": 9158,
+      "media_type": "application/json"
+    },
+    {
+      "path": "frames/GET~20~2Fv1~2Fchecks~2F018f3a31-1000-7b30-9e53-2e1c60997a24~2Fdisposition.json",
+      "sha256": "22573c808ac2d95d194ca62fb075b376b020bfc9ec7d70e0910a1c6b4e8c054a",
+      "bytes": 5690,
+      "media_type": "application/json"
+    },
+    {
+      "path": "frames/GET~20~2Fv1~2Fclauses~2F018f3a30-2200-7d10-9f31-0c9a4e77bb02~2Fancestry~3Fas_of~3D5f916282a2a3e5765f916282a2a3e5765f916282a2a3e5765f916282a2a3e576.json",
+      "sha256": "bd01b8b8a29ff31becdf86d20bf8ede837a5db1eff89c15282ba8c79435d92f6",
+      "bytes": 12975,
+      "media_type": "application/json"
+    },
+    {
+      "path": "frames/GET~20~2Fv1~2Fclauses~2F018f3a30-2200-7d10-9f31-0c9a4e77bb02~2Fversions~2F5f916282a2a3e5765f916282a2a3e5765f916282a2a3e5765f916282a2a3e576.json",
+      "sha256": "a1ec2eea70482d4c9a4210bed54e4920283caf42632b483985f151e522a568ec",
+      "bytes": 10124,
+      "media_type": "application/json"
+    },
+    {
+      "path": "frames/GET~20~2Fv1~2Fledger~3Fsite_code~3DBLK-07.json",
+      "sha256": "5895a7ee4b879111c481f57f8a501bb5beb01b25a6e9119c9bd763f74a7b4381",
+      "bytes": 10765,
+      "media_type": "application/json"
+    },
+    {
+      "path": "frames/GET~20~2Fv1~2Flessons~2F018f3a34-1100-7a40-8811-e73a5b2d6091~2Fpropagation.json",
+      "sha256": "f1996f389ce863413b599ede9cf5bfa08b4b21cd727ff9708b296720eba40acd",
+      "bytes": 5880,
+      "media_type": "application/json"
+    },
+    {
+      "path": "frames/GET~20~2Fv1~2Fpermits~2F018f3a2f-1104-7c88-b3aa-77c1de40e2b1.json",
+      "sha256": "936cc69879616fca61b16f08d1c2fe3e6fe6fe7819ccfbe8895b04c037d79047",
+      "bytes": 7204,
+      "media_type": "application/json"
+    },
+    {
+      "path": "frames/GET~20~2Fv1~2Fpermits~2F018f3a2f-1104-7c88-b3aa-77c1de40e2b1~2Fblocking-checks.json",
+      "sha256": "39ba023f9c1224d735b73e8d8e1a27eb47e404f4de32ca1cd19c5cf80f2c7d25",
+      "bytes": 7796,
+      "media_type": "application/json"
+    },
+    {
+      "path": "frames/GET~20~2Fv1~2Fpermits~2F018f3a2f-1104-7c88-b3aa-77c1de40e2b1~2Fsilence.json",
+      "sha256": "afee6dc4bdc9aa7750871016c6aa21de35b08ee13be41c6df55d60f20ec4ed62",
+      "bytes": 8264,
+      "media_type": "application/json"
+    },
+    {
+      "path": "frames/GET~20~2Fv1~2Fpermits~2F018f3a2f-9900-7e11-b0cc-5a1122334455.json",
+      "sha256": "4edff2f11c35b97086445ee53c496ab3ae9070c26beea9ca9d5b6614c39ac06f",
+      "bytes": 6712,
+      "media_type": "application/json"
+    },
+    {
+      "path": "frames/GET~20~2Fv1~2Frecall-runs~2F018f3a33-1100-7c00-84cc-a3f617982c5d.json",
+      "sha256": "01e7e542ad5f13896f12a5f4d8e4665116ffd092aa035dad91922cf6eef8ec4a",
+      "bytes": 4392,
+      "media_type": "application/json"
+    },
+    {
+      "path": "frames/GET~20~2Fv1~2Freceipts~2F018f3a32-1100-7a80-82aa-81d4f5760a3b.json",
+      "sha256": "0af48531aeb587f4a28ebdc14bb926b051e22165b872b37b983932e1239dce2a",
+      "bytes": 3802,
+      "media_type": "application/json"
+    },
+    {
+      "path": "frames/POST~20~2Fv1~2Fchecks~2F018f3a31-1000-7b30-9e53-2e1c60997a24~2Fdisposition.json",
+      "sha256": "782b4597d87f7c1443cd4f7572a50cec3d377b7e49d76638fad4653539f356c9",
+      "bytes": 5710,
+      "media_type": "application/json"
+    },
+    {
+      "path": "frames/POST~20~2Fv1~2Fpermits~2F018f3a2f-1104-7c88-b3aa-77c1de40e2b1~2Fmerge.json",
+      "sha256": "fa1e73940b8ba3e583a263e42ac0bde9692f295f3b4729451fd9a528bb217fb2",
+      "bytes": 5608,
+      "media_type": "application/json"
+    },
+    {
+      "path": "frames/POST~20~2Fv1~2Fpermits~2F018f3a2f-9900-7e11-b0cc-5a1122334455~2Fchecks~3Amaterialise.json",
+      "sha256": "eaefbb298ea70624ad85c2d5469e04515ac05dd5d6748db8a8f6745a3519dc6b",
+      "bytes": 5610,
+      "media_type": "application/json"
+    },
+    {
+      "path": "ledger/bundle.json",
+      "sha256": "9a0127473f24931ef62e9ef01fbba0d3a8402d0210e14405a885dc6ef46938df",
+      "bytes": 5600,
+      "media_type": "application/json"
+    },
+    {
+      "path": "ledger/checkpoint-000005.note",
+      "sha256": "9e0b318f063bd109738f7dc3a6e117ce47b05073815ab1adda23b3fda4925d4b",
+      "bytes": 177,
+      "media_type": "text/plain; charset=utf-8"
+    },
+    {
+      "path": "sql/ancestry.txt",
+      "sha256": "87f29a9d9f258c0641b3734b7fc5f1425d730f7ead09a40fe2a24f95b5b61e67",
+      "bytes": 1296,
+      "media_type": "text/plain; charset=utf-8"
+    },
+    {
+      "path": "sql/disposition-refused-23503.txt",
+      "sha256": "526ec6018b3bd4a18da95b36024d7ca27f853ee8590d82a0fe93d125ec30d078",
+      "bytes": 964,
+      "media_type": "text/plain; charset=utf-8"
+    },
+    {
+      "path": "sql/materialise-refused-p0001.txt",
+      "sha256": "ceb5037b4ea21b47e80f6a1937b8197c8d251e021eaab5a7dd72e883f1af4491",
+      "bytes": 1032,
+      "media_type": "text/plain; charset=utf-8"
+    },
+    {
+      "path": "sql/merge-refused-23514.txt",
+      "sha256": "b5b569ff93a6b575f25c6034bde65fca17ef98a4e9f976a55da55fe8690b6bc0",
+      "bytes": 879,
+      "media_type": "text/plain; charset=utf-8"
+    }
+  ]
+}

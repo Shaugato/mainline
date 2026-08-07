@@ -1,0 +1,22 @@
+$ cockroach sql --url <redacted> --format csv --set errexit=true -e <statement below>
+--- statement ---
+CALL trappoint.sign_disposition(
+  '018f3a31-1000-7b30-9e53-2e1c60997a24'::UUID,
+  'mechanism_absent'::mainline.disposition_kind,
+  'D-114',
+  '018f3a32-1100-7a80-82aa-81d4f5760a3b'::UUID
+);
+--- exit code ---
+1
+--- stdout ---
+
+--- stderr ---
+ERROR: insert on table "disposition" violates foreign key constraint "fk_clearance"
+SQLSTATE: 23503
+CONSTRAINT: fk_clearance
+DETAIL: Key (virulence, kind)=('blood_fatal', 'mechanism_absent') is not present in table "clearance_legal".
+HINT: MAINLINE: the clearance lattice has no such row. This is not a permission failure and no
+      role can grant it — the pair does not exist in the referenced table.
+--- notes ---
+STAGED, as above. The lattice seed lives in verticals/mainline/db/seeds/00-lattice/clearance_legal.sql
+and the composite foreign key is declared in ARCHITECTURE.md §5.5 as CONSTRAINT fk_clearance.

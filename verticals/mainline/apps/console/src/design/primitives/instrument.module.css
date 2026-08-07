@@ -1,0 +1,134 @@
+/*
+ * SPDX-FileCopyrightText: 2026 MAINLINE contributors
+ * SPDX-License-Identifier: FSL-1.1-ALv2
+ *
+ * THE INSTRUMENT PRIMITIVES — Counter and Meter.
+ *
+ * These are the only two components in the design package that may move, and they move
+ * under one condition: THE TRANSITION IS THE FACT. A counter of open blocking checks
+ * going 1 → 0 is the product working, and marking that instant reports something true.
+ * A counter that animates on mount reports nothing and costs a frame.
+ *
+ * Both components read the surrounding `RegisterFrame`. Inside an EVIDENCE frame — the
+ * refusal bar, the disposition panel — `useMotionAllowed()` answers false and the
+ * `data-transition` attribute is never written, so these selectors never match and the
+ * screenshot is complete. Nothing here degrades: the end state is identical either way.
+ *
+ * Every duration is under the 220 ms INSTRUMENT ceiling and `motion.test.ts` parses
+ * this file to prove it.
+ */
+
+.counter {
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--tp-space-1);
+  min-width: 0;
+}
+
+.counterValue {
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step-3);
+  line-height: var(--tp-leading-tight);
+  font-variant-numeric: tabular-nums slashed-zero;
+  color: var(--tp-ink);
+}
+
+.counterLabel {
+  color: var(--tp-ink-faint);
+  font-size: var(--tp-step--1);
+  text-transform: uppercase;
+  letter-spacing: var(--tp-tracking-caps);
+}
+
+/*
+ * The mark. `data-transition` is written by the component for exactly one duration and
+ * then removed; it is never written at all when motion is refused.
+ *
+ * It is a BORDER, not a colour change and not a scale. A colour change would recruit
+ * the severity ramp to mean "recently changed", which is a second meaning for the one
+ * accent the console has. A scale would move a number a screenshot must be able to
+ * read.
+ */
+.counterValue[data-transition='down'],
+.counterValue[data-transition='up'] {
+  box-shadow: inset 0 calc(-1 * var(--tp-focus-width)) 0 0 currentColor;
+  transition: box-shadow var(--tp-duration-instrument) var(--tp-ease-mechanical);
+}
+
+/*
+ * ── Meter ──────────────────────────────────────────────────────────────────────
+ *
+ * A NEUTRAL measurement. The reading-floor meter shows tokens dispositioned and seconds
+ * elapsed; it never shows a judgement about the person reading it, and it never takes a
+ * colour that reads as accusation. When the floor is unmet the CONSEQUENCE is stated in
+ * words by the surface that owns it — "this permit now requires a countersignature from
+ * a differently-credentialed signer" — and the meter stays grey.
+ *
+ * That is why there is no `[data-below-floor] { color: red }` here, and why adding one
+ * would be a design regression rather than a feature.
+ */
+.meter {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-1);
+  min-width: 12ch;
+}
+
+.meterTrack {
+  position: relative;
+  height: var(--tp-space-2);
+  background: var(--tp-bg-inset);
+  border: var(--tp-hairline) solid var(--tp-rule-strong);
+  border-radius: var(--tp-radius);
+  overflow: hidden;
+}
+
+/*
+ * `background: currentColor` rather than a colour token, so the fill inherits an ink
+ * that the contrast gate already covers as a FOREGROUND. Using a foreground token
+ * directly as a `background` would put it outside `pairs.ts`'s surface list and the
+ * gate would stop covering it.
+ */
+.meterFill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--meter-fraction, 0%);
+  color: var(--tp-ink-dim);
+  background: currentColor;
+}
+
+.meterFill[data-animated='true'] {
+  transition: width var(--tp-duration-instrument) var(--tp-ease-linear);
+}
+
+/* The floor mark. A hairline at the threshold, so the reader can see the distance to it
+   rather than being told a verdict about it. */
+.meterFloor {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--meter-floor, 0%);
+  width: var(--tp-hairline);
+  color: var(--tp-ink);
+  background: currentColor;
+}
+
+.meterCaption {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--tp-space-2);
+  color: var(--tp-ink-dim);
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step--1);
+  font-variant-numeric: tabular-nums;
+}
+
+.meterUnits {
+  color: var(--tp-ink-faint);
+}
+
+@media print {
+  .meterTrack {
+    border-color: var(--tp-rule-strong);
+  }
+}

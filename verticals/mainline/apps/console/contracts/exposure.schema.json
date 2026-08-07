@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://console.mainline.trappoint.org/contracts/1.0/exposure.schema.json",
+  "$comment": "The exposure receipt that binds a signature to what was actually shown. Licensing: exposure.schema.json.license (REUSE sidecar).",
+  "title": "MAINLINE console — exposure receipt",
+  "description": "mainline.exposure_receipt and mainline.exposure_line, ARCHITECTURE.md §5.5. A disposition composite-FKs (receipt_id, check_id) into exposure_line, so 'it never showed me' and 'I signed without looking' are both violations of a foreign key. The console renders the receipt beside the signature for exactly that reason.",
+  "allOf": [
+    { "$ref": "envelope.schema.json" },
+    {
+      "properties": {
+        "data": { "$ref": "#/$defs/exposure_receipt" }
+      },
+      "required": ["data"]
+    }
+  ],
+  "$defs": {
+    "exposure_receipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "receipt_id",
+        "permit_id",
+        "actor_sub",
+        "issued_at",
+        "expires_at",
+        "corpus_root",
+        "silence_receipt_id",
+        "policy_version",
+        "total_tokens",
+        "receipt_digest",
+        "lines"
+      ],
+      "properties": {
+        "receipt_id": { "$ref": "common.schema.json#/$defs/uuid" },
+        "permit_id": { "$ref": "common.schema.json#/$defs/uuid" },
+        "actor_sub": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "issued_at": {
+          "description": "SERVER clock. Deliberation derives from this, never from the browser's (S7).",
+          "$ref": "common.schema.json#/$defs/timestamp"
+        },
+        "issued_hlc": {
+          "description": "ADVISORY ordering only — a provisional timestamp, and the console labels it as one.",
+          "type": ["string", "null"],
+          "maxLength": 64
+        },
+        "expires_at": { "$ref": "common.schema.json#/$defs/timestamp" },
+        "corpus_root": {
+          "description": "The ledger checkpoint root at the read timestamp. This is what proves WHAT THE SYSTEM KNEW at signing time.",
+          "$ref": "common.schema.json#/$defs/sha256_hex"
+        },
+        "silence_receipt_id": { "$ref": "common.schema.json#/$defs/uuid" },
+        "policy_version": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "total_tokens": { "type": "integer", "minimum": 0 },
+        "receipt_digest": {
+          "description": "The Merkle digest of the exact payloads rendered to that person. It is the anchor the WebAuthn challenge reconstructs from, which is what refutes 'he signed a summary, not the warning' by arithmetic.",
+          "$ref": "common.schema.json#/$defs/sha256_hex"
+        },
+        "swept_at": {
+          "description": "receipt_expiry.swept_at. The sweeper MARKS by writing a new row; exposure_receipt itself stays append-only (S28).",
+          "oneOf": [{ "$ref": "common.schema.json#/$defs/timestamp" }, { "type": "null" }]
+        },
+        "lines": {
+          "type": "array",
+          "maxItems": 512,
+          "items": { "$ref": "#/$defs/exposure_line" }
+        }
+      }
+    },
+    "exposure_line": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["receipt_id", "check_id", "payload_digest", "tokens"],
+      "properties": {
+        "receipt_id": { "$ref": "common.schema.json#/$defs/uuid" },
+        "check_id": { "$ref": "common.schema.json#/$defs/uuid" },
+        "payload_digest": {
+          "description": "sha256 of the exact text rendered for this check. The console re-derives it from the rendered string in a Worker (D6) and shows agreement or disagreement — it does not assert agreement.",
+          "$ref": "common.schema.json#/$defs/sha256_hex"
+        },
+        "tokens": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

@@ -1,0 +1,272 @@
+/*
+ * SPDX-FileCopyrightText: 2026 MAINLINE contributors
+ * SPDX-License-Identifier: FSL-1.1-ALv2
+ *
+ * THE TOKEN SET. One file, two registers of light, no third source of colour.
+ *
+ * `docs/visual-language.md` is the spec; this file is its executable form, and
+ * `tests/unit/design/{tokens,contrast,severity}.test.ts` read THIS TEXT — not a copy —
+ * to check every claim the spec makes. Editing a value here re-runs the arithmetic.
+ *
+ * ── Why OKLCH, and what it buys that hex does not ────────────────────────────────
+ *
+ * The severity ramp has to be monotone in lightness and monotone in chroma, and it has
+ * to stay ordered for a protanope and a deuteranope. In hex, "monotone in lightness" is
+ * an opinion. In OKLCH the first coordinate IS perceptual lightness, so the ramp's
+ * defining property is visible in the source text and is checkable by reading the file.
+ * `severity.test.ts` parses these declarations and refuses a non-monotone ramp.
+ *
+ * Every colour is inside the sRGB gamut. This is enforced (`tokens.test.ts`), because
+ * an out-of-gamut `oklch()` is gamut-mapped by the browser in a way that is neither
+ * clipping nor specified across engines — so a contrast number computed from the
+ * authored coordinates would be a claim about a colour nobody is looking at.
+ *
+ * ── The dark register is the default ─────────────────────────────────────────────
+ *
+ * This is control-room software. It is read at 03:00 on a mine site, on a screen next
+ * to a screen showing plant telemetry. The light register exists for ONE purpose: the
+ * printed exhibit (ui.md §1.3 — a court exhibit is a page, not a canvas), and it is
+ * fully specified rather than derived, because "invert the dark theme" produces
+ * unreadable paper and an unusable photocopy.
+ *
+ * The light register is selected by `@media print`, or explicitly by
+ * `<html data-register-theme="light">`. It is deliberately NOT selected by
+ * `prefers-color-scheme: light`: a reader whose OS is in light mode has expressed a
+ * preference about their OS, not a request to be handed the print exhibit.
+ *
+ * ── The one severity accent ──────────────────────────────────────────────────────
+ *
+ * `mainline.virulence_class` is `('routine','serious','blood_major','blood_fatal')`
+ * (ARCHITECTURE.md §5.0). Four bands, one hue, monotone in both coordinates. Severity
+ * rises by DEEPENING and SATURATING, never by changing hue — a hue change across a
+ * severity scale is a rainbow, and a rainbow encodes rank in the one channel a
+ * dichromat cannot read.
+ *
+ * `routine` is nearly neutral on purpose. A routine clause is not an alarm, and a
+ * palette that shouts at every band has no way left to shout at the fatal one.
+ */
+
+:root {
+  /* Dark is the default and is stated unconditionally, so a stylesheet load failure
+     in the light register cannot leave the console unstyled. */
+  color-scheme: dark;
+
+  /* ── Surfaces ───────────────────────────────────────────────────────────────── */
+  --tp-bg: oklch(0.145 0.006 250);
+  --tp-bg-sunken: oklch(0.11 0.006 250);
+  --tp-bg-raised: oklch(0.195 0.007 250);
+  --tp-bg-inset: oklch(0.215 0.008 250);
+
+  /* ── Boundaries ─────────────────────────────────────────────────────────────── */
+  /* `--tp-rule` is a decorative row separator and is NOT a meaningful boundary; it is
+     the only colour in the set exempt from the 3:1 non-text floor, and the pair table
+     records that exemption by name rather than by omission. */
+  --tp-rule: oklch(0.34 0.008 250);
+  --tp-rule-strong: oklch(0.52 0.01 250);
+
+  /* ── Ink ────────────────────────────────────────────────────────────────────── */
+  --tp-ink: oklch(0.94 0.004 250);
+  --tp-ink-dim: oklch(0.8 0.006 250);
+  --tp-ink-faint: oklch(0.685 0.008 250);
+
+  /* ── The severity ramp, banded to mainline.virulence_class ──────────────────── */
+  /* L: 0.845 > 0.775 > 0.705 > 0.635   monotone DECREASING
+     C: 0.016 < 0.085 < 0.150 < 0.200   monotone INCREASING
+     H: 30 throughout                    one accent, never a rainbow                */
+  --tp-sev-routine: oklch(0.845 0.016 30);
+  --tp-sev-serious: oklch(0.775 0.085 30);
+  --tp-sev-blood-major: oklch(0.705 0.15 30);
+  --tp-sev-blood-fatal: oklch(0.635 0.2 30);
+
+  /* ── States ─────────────────────────────────────────────────────────────────── */
+  /* A refusal is the product working, so it gets the accent at full chroma. It is an
+     EMPHASIS foreground only — never small body text (see pairs.ts). */
+  --tp-refuse: oklch(0.655 0.2 27);
+  --tp-refuse-ink: oklch(0.9 0.045 27);
+  /* `unverified` and `staged`. Desaturated amber: an unfilled slot must look unfilled,
+     never alarming, and never reassuring. */
+  --tp-warn: oklch(0.79 0.115 78);
+  /* THE ONLY GREEN IN THE CONSOLE. `--tp-ok` may appear in exactly one declaration
+     block in the whole design package — the VerificationSeal's `verified` state — and
+     `primitives-css.test.ts` fails if it appears anywhere else. There is no green tick
+     without a recomputation behind it (ui.md D6). */
+  --tp-ok: oklch(0.8 0.075 155);
+  --tp-focus: oklch(0.8 0.102 230);
+  --tp-focus-width: 2px;
+  --tp-focus-offset: 2px;
+
+  /* ── Geometry ───────────────────────────────────────────────────────────────── */
+  --tp-hairline: 1px;
+  --tp-radius: 2px;
+
+  /* ── Type ───────────────────────────────────────────────────────────────────── */
+  /*
+   * No webfont is shipped and none is fetched. Two reasons, both load-bearing:
+   * a remote font is a network dependency on a console whose whole claim is that it
+   * works from a static directory with no credentials (D7), and a bundled font is a
+   * licence artefact in a tree where `reuse lint` green is a G6 checklist item.
+   * `system-ui` resolves to a variable face on every platform this ships to.
+   */
+  --tp-sans: system-ui, -apple-system, 'Segoe UI Variable Text', 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif;
+  /*
+   * The mono face is LOAD-BEARING, not stylistic. A constraint name, a SQLSTATE, a
+   * commit id and a digest are things the database emitted verbatim; rendering them in
+   * the prose face makes them look like our sentences. They are always mono, always
+   * selectable text, and never an image.
+   */
+  --tp-mono: ui-monospace, 'SFMono-Regular', 'Cascadia Mono', 'Roboto Mono', Menlo,
+    Consolas, 'Liberation Mono', monospace;
+
+  --tp-step--1: 11px;
+  --tp-step-0: 13px;
+  --tp-step-1: 15px;
+  --tp-step-2: 19px;
+  --tp-step-3: 25px;
+
+  --tp-leading-tight: 1.25;
+  --tp-leading-body: 1.5;
+
+  --tp-weight-regular: 400;
+  --tp-weight-medium: 500;
+  /* The emphasis weight. A pair declared `emphasis` in pairs.ts must be rendered at
+     >= --tp-step-1 and >= --tp-weight-strong; the CSS test enforces the weight half. */
+  --tp-weight-strong: 650;
+
+  --tp-tracking-caps: 0.06em;
+
+  /* ── Space ──────────────────────────────────────────────────────────────────── */
+  --tp-space-1: 4px;
+  --tp-space-2: 8px;
+  --tp-space-3: 12px;
+  --tp-space-4: 20px;
+  --tp-space-5: 32px;
+  --tp-space-6: 52px;
+
+  /* ── Motion ─────────────────────────────────────────────────────────────────── */
+  /* Ceilings, not suggestions. EVIDENCE 160 ms, INSTRUMENT 220 ms (ui.md §1.1).
+     `motion.test.ts` scans every stylesheet in src/design/ and fails on any duration
+     above the ceiling of the register that owns the token. */
+  --tp-duration-evidence: 120ms;
+  --tp-duration-instrument: 200ms;
+  --tp-ease-linear: linear;
+  --tp-ease-mechanical: cubic-bezier(0.2, 0, 0.38, 1);
+}
+
+/*
+ * ── THE LIGHT REGISTER — the printed exhibit ─────────────────────────────────────
+ *
+ * Fully specified, not inverted. The severity ramp keeps its direction (severity
+ * deepens and saturates) but now runs DOWN from a mid grey into a dark blood red,
+ * because on paper the darkest ink is the loudest. Both coordinates stay monotone and
+ * the hue stays at 30, so every property the dark ramp is tested for holds here too —
+ * `severity.test.ts` runs the identical assertions against both registers.
+ */
+@media print {
+  :root {
+    color-scheme: light;
+
+    --tp-bg: oklch(1 0 250);
+    --tp-bg-sunken: oklch(0.965 0.002 250);
+    --tp-bg-raised: oklch(1 0 250);
+    --tp-bg-inset: oklch(0.955 0.003 250);
+
+    --tp-rule: oklch(0.78 0.006 250);
+    --tp-rule-strong: oklch(0.55 0.008 250);
+
+    --tp-ink: oklch(0.17 0.004 250);
+    --tp-ink-dim: oklch(0.38 0.006 250);
+    --tp-ink-faint: oklch(0.5 0.008 250);
+
+    --tp-sev-routine: oklch(0.535 0.016 30);
+    --tp-sev-serious: oklch(0.46 0.088 30);
+    --tp-sev-blood-major: oklch(0.385 0.112 30);
+    --tp-sev-blood-fatal: oklch(0.31 0.122 30);
+
+    --tp-refuse: oklch(0.45 0.155 27);
+    --tp-refuse-ink: oklch(0.28 0.09 27);
+    --tp-warn: oklch(0.52 0.095 78);
+    --tp-ok: oklch(0.45 0.09 155);
+    --tp-focus: oklch(0.5 0.088 230);
+  }
+}
+
+/*
+ * The same register, requested explicitly. `data-register-theme="light"` is what the
+ * exhibit route and the print-preview control set; it exists so that the printed page
+ * can be REVIEWED on screen before it is printed, which is the only way anyone catches
+ * an unreadable exhibit before a hearing.
+ */
+:root[data-register-theme='light'] {
+  color-scheme: light;
+
+  --tp-bg: oklch(1 0 250);
+  --tp-bg-sunken: oklch(0.965 0.002 250);
+  --tp-bg-raised: oklch(1 0 250);
+  --tp-bg-inset: oklch(0.955 0.003 250);
+
+  --tp-rule: oklch(0.78 0.006 250);
+  --tp-rule-strong: oklch(0.55 0.008 250);
+
+  --tp-ink: oklch(0.17 0.004 250);
+  --tp-ink-dim: oklch(0.38 0.006 250);
+  --tp-ink-faint: oklch(0.5 0.008 250);
+
+  --tp-sev-routine: oklch(0.535 0.016 30);
+  --tp-sev-serious: oklch(0.46 0.088 30);
+  --tp-sev-blood-major: oklch(0.385 0.112 30);
+  --tp-sev-blood-fatal: oklch(0.31 0.122 30);
+
+  --tp-refuse: oklch(0.45 0.155 27);
+  --tp-refuse-ink: oklch(0.28 0.09 27);
+  --tp-warn: oklch(0.52 0.095 78);
+  --tp-ok: oklch(0.45 0.09 155);
+  --tp-focus: oklch(0.5 0.088 230);
+}
+
+/*
+ * ── Document defaults ────────────────────────────────────────────────────────────
+ *
+ * The shell's fallback sheet sets these inside `:where()`, which has zero specificity,
+ * so these declarations win in either source order with no `!important` anywhere.
+ * Prose is the sans face; the mono face is applied by the verbatim primitives, never
+ * globally, because "everything is mono" destroys the one signal mono carries.
+ */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--tp-bg);
+  color: var(--tp-ink);
+  font-family: var(--tp-sans);
+  font-size: var(--tp-step-0);
+  line-height: var(--tp-leading-body);
+  -webkit-text-size-adjust: 100%;
+}
+
+/*
+ * One focus treatment for the whole console. Keyboard operability is a gate (D14), and
+ * a focus ring that a feature worker can accidentally style away is not a gate. This is
+ * declared once, here, and no primitive overrides it.
+ */
+:focus-visible {
+  outline: var(--tp-focus-width) solid var(--tp-focus);
+  outline-offset: var(--tp-focus-offset);
+}
+
+/*
+ * D14 — reduced motion is a gate, not a courtesy. This kills every transition and
+ * animation in the document including ones added by a worker who never read §1.1.
+ * `useMotionAllowed()` is the JS half of the same rule; both exist because CSS cannot
+ * stop a component from advancing a value in a rAF loop.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

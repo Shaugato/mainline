@@ -1,0 +1,199 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://console.mainline.trappoint.org/contracts/1.0/bundle.schema.json",
+  "$comment": "The console EvidenceBundle manifest and frame formats. Prose contract: docs/evidence-bundle.md. Licensing: bundle.schema.json.license (REUSE sidecar).",
+  "title": "MAINLINE console — EvidenceBundle manifest",
+  "description": "The console's replay transport (D7). DISTINCT FROM spec/wire/evidence-bundle.md, which is the custody bundle a stranger runs `trappoint-verify` against — that artefact is CARRIED here, verbatim, under ledger/. This one is a content-addressed directory of captured HTTP exchanges; the manifest is the only file whose digest is not listed inside itself, which is why the manifest digest is what the honesty chrome displays.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "manifest_version",
+    "bundle_id",
+    "captured_at",
+    "cluster_fingerprint",
+    "schema_version",
+    "staged",
+    "checkpoint",
+    "files"
+  ],
+  "properties": {
+    "manifest_version": {
+      "description": "MUST be 1. A player that does not recognise the version refuses to serve, rather than guessing which fields still mean what they used to.",
+      "const": 1
+    },
+    "bundle_id": {
+      "description": "Stable identity of this capture. Two bundles with the same id and different file digests are a contradiction the player reports rather than resolves.",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[a-z0-9][a-z0-9._-]*$"
+    },
+    "captured_at": { "$ref": "common.schema.json#/$defs/timestamp" },
+    "generator": {
+      "description": "Provenance, not evidence. No check reads it.",
+      "type": ["string", "null"],
+      "maxLength": 256
+    },
+    "cluster_fingerprint": { "$ref": "#/$defs/cluster_fingerprint" },
+    "schema_version": {
+      "description": "The database schema digest the capture ran against, or a named migration head. A bundle that cannot say which schema produced it cannot be replayed against a claim about that schema.",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "staged": {
+      "description": "True when any frame in this bundle is hand-authored rather than captured from a running system. Every screen fed by a staged bundle says STAGED, permanently and non-dismissibly (D16).",
+      "type": "boolean"
+    },
+    "staged_note": {
+      "description": "Required and non-null exactly when `staged` is true.",
+      "oneOf": [{ "type": "string", "minLength": 1, "maxLength": 2048 }, { "type": "null" }]
+    },
+    "checkpoint": {
+      "description": "The ledger checkpoint this bundle is anchored to, or null. Null means the bundle carries no custody anchor at all, which the console renders as an absence rather than as an unverified state.",
+      "oneOf": [{ "$ref": "#/$defs/checkpoint_ref" }, { "type": "null" }]
+    },
+    "files": {
+      "description": "Every file in the bundle except manifest.json itself, with its digest. Paths are relative, forward-slashed, and may not contain '..' or a leading '/'.",
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 4096,
+      "items": { "$ref": "#/$defs/file_entry" }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "staged": { "const": true } }, "required": ["staged"] },
+      "then": {
+        "required": ["staged_note"],
+        "properties": { "staged_note": { "type": "string" } }
+      },
+      "else": { "properties": { "staged_note": { "type": "null" } } }
+    }
+  ],
+  "$defs": {
+    "named_value": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "value"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "value": { "type": "string", "maxLength": 1024 }
+      }
+    },
+    "file_entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "bytes"],
+      "properties": {
+        "path": {
+          "description": "Relative, forward-slashed, no '..' and no leading '/'. `~` is admitted because it is the escape character in the frame-name encoding (src/data/resources.ts): a request key's reserved bytes become ~XX, which keeps the mapping from request to file name injective without inventing a second index.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "pattern": "^(?!/)(?!.*(^|/)\\.\\.(/|$))[A-Za-z0-9._~/-]+$"
+        },
+        "sha256": { "$ref": "common.schema.json#/$defs/sha256_hex" },
+        "bytes": {
+          "description": "Byte length. A length mismatch is caught before a digest is computed, which is the difference between a clear error and a silent one on a truncated download.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "media_type": { "type": ["string", "null"], "maxLength": 128 }
+      }
+    },
+    "cluster_fingerprint": {
+      "description": "What the bundle claims about the cluster behind it. `source` is load-bearing: observed = read from a live cluster during capture; declared = written by hand from a recorded measurement, which is a weaker claim and is displayed as one.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "product", "version", "region"],
+      "properties": {
+        "source": { "enum": ["observed", "declared"] },
+        "product": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "version": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "cluster_version": { "type": ["string", "null"], "maxLength": 64 },
+        "tier": { "type": ["string", "null"], "maxLength": 64 },
+        "region": {
+          "description": "Stated precisely. Residency claims are split in this deployment — inference in Australia, database in Singapore — and any end-to-end Australian residency claim is FALSE and must not appear on any screen fed by this bundle.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "evidence_ref": {
+          "description": "Where the measurement behind a `declared` fingerprint is recorded.",
+          "type": ["string", "null"],
+          "maxLength": 512
+        }
+      }
+    },
+    "checkpoint_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["site_code", "tree_size", "root_hex", "note_path"],
+      "properties": {
+        "site_code": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "tree_size": { "type": "integer", "minimum": 0 },
+        "root_hex": { "$ref": "common.schema.json#/$defs/sha256_hex" },
+        "note_path": {
+          "description": "Path inside this bundle to the verbatim signed note. It must also appear in `files`.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "custody_bundle_path": {
+          "description": "Path to the spec/wire/evidence-bundle.md v1.0 artefact, if carried. That file is what `uvx trappoint-verify verify --bundle` consumes; this console bundle merely transports it.",
+          "type": ["string", "null"],
+          "maxLength": 512
+        }
+      }
+    },
+    "frame": {
+      "description": "One captured request/response pair. Bodies are base64 so the capture is byte-for-byte: a frame that stored a re-serialised JSON object would be testing our JSON writer, not the server's output.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["frame_version", "key", "request", "response", "captured_at"],
+      "properties": {
+        "frame_version": { "const": 1 },
+        "key": {
+          "description": "The canonical request key, derived by src/data/resources.ts from method, path and sorted query. It is also how the frame's file name is derived, so a player can find a frame without an index — an index is a second place for the truth to live.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "request": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["method", "path"],
+          "properties": {
+            "method": { "enum": ["GET", "POST"] },
+            "path": { "type": "string", "minLength": 1, "maxLength": 512 },
+            "query": {
+              "description": "Ordered name/value pairs. A list rather than an object because the canonical request key sorts them itself, and because an object here would put an index signature into the generated read model.",
+              "type": "array",
+              "maxItems": 32,
+              "items": { "$ref": "#/$defs/named_value" }
+            },
+            "body_b64": { "type": ["string", "null"], "maxLength": 262144 }
+          }
+        },
+        "response": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "body_b64"],
+          "properties": {
+            "status": { "type": "integer", "minimum": 100, "maximum": 599 },
+            "headers": {
+              "description": "Only the headers the console reads — content-type and date. A capture that stored every header would carry credentials, which is why this is an allowlist enforced by the capture script and not a copy of the response.",
+              "type": "array",
+              "maxItems": 16,
+              "items": { "$ref": "#/$defs/named_value" }
+            },
+            "body_b64": { "type": "string", "maxLength": 4194304 }
+          }
+        },
+        "captured_at": { "$ref": "common.schema.json#/$defs/timestamp" },
+        "duration_ms": { "type": ["integer", "null"], "minimum": 0 }
+      }
+    }
+  }
+}

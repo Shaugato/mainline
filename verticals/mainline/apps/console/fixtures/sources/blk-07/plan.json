@@ -1,0 +1,168 @@
+{
+  "manifest": {
+    "bundle_id": "blk-07-staged-2026-08-07",
+    "captured_at": "2026-08-07T02:15:00.000Z",
+    "generator": "capture-bundle.ts stage 1.0",
+    "cluster_fingerprint": {
+      "source": "declared",
+      "product": "CockroachDB CCL",
+      "version": "v26.2.5",
+      "cluster_version": "26.2",
+      "tier": "basic",
+      "region": "aws-ap-southeast-1",
+      "evidence_ref": "Measured against the live cluster on 2026-08-07 and recorded in docs/leads/ui.md, PLATFORM GROUND TRUTH. Declared here rather than observed: this bundle was not produced by that cluster. Residency is split — inference in ap-southeast-2 (Sydney), database in aws-ap-southeast-1 (Singapore) — so no end-to-end Australian residency claim may be made from this bundle."
+    },
+    "schema_version": "migrations 0001-0207 (heads as of 2026-08-07); no digest observed",
+    "staged": true,
+    "staged_note": "Hand-authored demonstration bundle. No CockroachDB cluster and no MAINLINE kernel produced these bytes: every payload below was written by the data-contracts-replay worker to exercise the console against its own contracts while the kernel and read API were being built. The SQLSTATEs, constraint names and column names are taken from ARCHITECTURE.md §5 and spec/wire/refusal.md and are therefore real claims about the design; the values are not observations. Any screen fed by this bundle says STAGED, and no number on it may be quoted as a measurement.",
+    "checkpoint": {
+      "site_code": "BLK-07",
+      "tree_size": 5,
+      "root_hex": "8c2495b5d5d618a98c2495b5d5d618a98c2495b5d5d618a98c2495b5d5d618a9",
+      "note_path": "ledger/checkpoint-000005.note",
+      "custody_bundle_path": "ledger/bundle.json"
+    }
+  },
+  "copy": [
+    "ledger",
+    "sql"
+  ],
+  "steps": [
+    {
+      "resource": "permit",
+      "path": {
+        "permit_id": "018f3a2f-1104-7c88-b3aa-77c1de40e2b1"
+      },
+      "payload": "payloads/permit.json"
+    },
+    {
+      "resource": "permit",
+      "path": {
+        "permit_id": "018f3a2f-9900-7e11-b0cc-5a1122334455"
+      },
+      "payload": "payloads/permit-issued.json"
+    },
+    {
+      "resource": "blocking_checks",
+      "path": {
+        "permit_id": "018f3a2f-1104-7c88-b3aa-77c1de40e2b1"
+      },
+      "payload": "payloads/blocking-checks.json"
+    },
+    {
+      "resource": "disposition",
+      "path": {
+        "check_id": "018f3a31-1000-7b30-9e53-2e1c60997a24"
+      },
+      "payload": "payloads/disposition.json"
+    },
+    {
+      "resource": "exposure_receipt",
+      "path": {
+        "receipt_id": "018f3a32-1100-7a80-82aa-81d4f5760a3b"
+      },
+      "payload": "payloads/exposure-receipt.json"
+    },
+    {
+      "resource": "clause_version",
+      "path": {
+        "clause_uuid": "018f3a30-2200-7d10-9f31-0c9a4e77bb02",
+        "commit_id": "5f916282a2a3e5765f916282a2a3e5765f916282a2a3e5765f916282a2a3e576"
+      },
+      "payload": "payloads/clause-version.json"
+    },
+    {
+      "resource": "clause_ancestry",
+      "path": {
+        "clause_uuid": "018f3a30-2200-7d10-9f31-0c9a4e77bb02"
+      },
+      "query": {
+        "as_of": "5f916282a2a3e5765f916282a2a3e5765f916282a2a3e5765f916282a2a3e576"
+      },
+      "payload": "payloads/ancestry.json",
+      "sql": "sql/ancestry.txt"
+    },
+    {
+      "resource": "ledger",
+      "query": {
+        "site_code": "BLK-07"
+      },
+      "payload": "payloads/ledger.json"
+    },
+    {
+      "resource": "silence",
+      "path": {
+        "permit_id": "018f3a2f-1104-7c88-b3aa-77c1de40e2b1"
+      },
+      "payload": "payloads/silence.json"
+    },
+    {
+      "resource": "recall_run",
+      "path": {
+        "run_id": "018f3a33-1100-7c00-84cc-a3f617982c5d"
+      },
+      "payload": "payloads/recall-run.json"
+    },
+    {
+      "resource": "propagation",
+      "path": {
+        "lesson_id": "018f3a34-1100-7a40-8811-e73a5b2d6091"
+      },
+      "payload": "payloads/propagation.json"
+    },
+    {
+      "resource": "audit",
+      "payload": "payloads/audit.json"
+    },
+    {
+      "resource": "merge_permit",
+      "path": {
+        "permit_id": "018f3a2f-1104-7c88-b3aa-77c1de40e2b1"
+      },
+      "body": {
+        "subject_kind": "permit",
+        "subject_id": "018f3a2f-1104-7c88-b3aa-77c1de40e2b1",
+        "expected_gate_epoch": 7
+      },
+      "status": 409,
+      "payload": "payloads/merge-refused-23514.json",
+      "sql": "sql/merge-refused-23514.txt"
+    },
+    {
+      "resource": "sign_disposition",
+      "path": {
+        "check_id": "018f3a31-1000-7b30-9e53-2e1c60997a24"
+      },
+      "body": {
+        "check_id": "018f3a31-1000-7b30-9e53-2e1c60997a24",
+        "kind": "mechanism_absent",
+        "defeater_code": "D-114",
+        "receipt_id": "018f3a32-1100-7a80-82aa-81d4f5760a3b",
+        "rationale": "The hydraulic power unit on this drive was replaced in 2024 with a unit that has no accumulator, so the 2004 mechanism cannot occur on this asset. The isolation is electrical only and there is no stored pressure to bleed down before intrusive work begins."
+      },
+      "status": 409,
+      "payload": "payloads/disposition-refused-23503.json",
+      "sql": "sql/disposition-refused-23503.txt"
+    },
+    {
+      "resource": "materialise_checks",
+      "path": {
+        "permit_id": "018f3a2f-9900-7e11-b0cc-5a1122334455"
+      },
+      "body": {
+        "subject_kind": "permit",
+        "subject_id": "018f3a2f-9900-7e11-b0cc-5a1122334455",
+        "run_id": "018f3a33-1100-7c00-84cc-a3f617982c5d",
+        "candidates": [
+          {
+            "event_id": "018f3a31-9900-7e60-8088-6fb2d354e719",
+            "outcome": "blocking"
+          }
+        ]
+      },
+      "status": 409,
+      "payload": "payloads/materialise-refused-p0001.json",
+      "sql": "sql/materialise-refused-p0001.txt"
+    }
+  ]
+}

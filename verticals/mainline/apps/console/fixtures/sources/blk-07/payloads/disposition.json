@@ -1,0 +1,108 @@
+{
+  "envelope_version": 1,
+  "resource": "disposition",
+  "schema_id": "https://console.mainline.trappoint.org/contracts/1.0/disposition.schema.json",
+  "observed_at": "2026-08-07T02:15:00.000Z",
+  "server_date": "2026-08-07T02:15:00.000Z",
+  "staged": true,
+  "staged_note": "Hand-authored demonstration bundle. No CockroachDB cluster and no MAINLINE kernel produced these bytes: every payload below was written by the data-contracts-replay worker to exercise the console against its own contracts while the kernel and read API were being built. The SQLSTATEs, constraint names and column names are taken from ARCHITECTURE.md §5 and spec/wire/refusal.md and are therefore real claims about the design; the values are not observations. Any screen fed by this bundle says STAGED, and no number on it may be quoted as a measurement.",
+  "statement_refs": [
+    {
+      "kind": "table",
+      "object": "mainline.clearance_legal",
+      "text": "SELECT * FROM mainline.clearance_legal WHERE virulence = $1 ORDER BY kind",
+      "sql_path": null
+    },
+    {
+      "kind": "table",
+      "object": "mainline.defeater_option",
+      "text": null,
+      "sql_path": null
+    }
+  ],
+  "provenance": [
+    {
+      "pointer": "/virulence",
+      "chip": "db:column"
+    },
+    {
+      "pointer": "/lattice",
+      "chip": "db:column"
+    },
+    {
+      "pointer": "/reading_floor/met",
+      "chip": "derived"
+    }
+  ],
+  "data": {
+    "check_id": "018f3a31-1000-7b30-9e53-2e1c60997a24",
+    "virulence": "blood_fatal",
+    "lattice": [
+      {
+        "virulence": "blood_fatal",
+        "kind": "applied",
+        "req_compensating": false,
+        "req_second_signer": true,
+        "req_foreign_org": false,
+        "req_predicate": false,
+        "req_reassert": false,
+        "min_signer_rank": 5,
+        "max_ttl_hours": null,
+        "policy_version": "BLK-07/clearance@2026-02-01",
+        "approved_by_sub": "oidc|blk07|hse-manager",
+        "approved_at": "2026-02-01T00:00:00.000Z"
+      },
+      {
+        "virulence": "blood_fatal",
+        "kind": "escalated",
+        "req_compensating": false,
+        "req_second_signer": true,
+        "req_foreign_org": true,
+        "req_predicate": false,
+        "req_reassert": false,
+        "min_signer_rank": 6,
+        "max_ttl_hours": null,
+        "policy_version": "BLK-07/clearance@2026-02-01",
+        "approved_by_sub": "oidc|blk07|hse-manager",
+        "approved_at": "2026-02-01T00:00:00.000Z"
+      },
+      {
+        "virulence": "blood_fatal",
+        "kind": "emergency_override",
+        "req_compensating": false,
+        "req_second_signer": true,
+        "req_foreign_org": true,
+        "req_predicate": false,
+        "req_reassert": false,
+        "min_signer_rank": 7,
+        "max_ttl_hours": 12,
+        "policy_version": "BLK-07/clearance@2026-02-01",
+        "approved_by_sub": "oidc|blk07|hse-manager",
+        "approved_at": "2026-02-01T00:00:00.000Z"
+      }
+    ],
+    "defeater_options": [
+      {
+        "check_id": "018f3a31-1000-7b30-9e53-2e1c60997a24",
+        "defeater_code": "D-114",
+        "prompt": "Which precondition of the 2004 mechanism — accumulator retains pressure after electrical isolation — is absent on this job?",
+        "vocab_sha256": "bf5c8908089ebedcbf5c8908089ebedcbf5c8908089ebedcbf5c8908089ebedc"
+      },
+      {
+        "check_id": "018f3a31-1000-7b30-9e53-2e1c60997a24",
+        "defeater_code": "D-115",
+        "prompt": "Which additional control has been applied that interrupts the 2004 mechanism at the accumulator rather than at the pump?",
+        "vocab_sha256": "bf5c8908089ebedcbf5c8908089ebedcbf5c8908089ebedcbf5c8908089ebedc"
+      }
+    ],
+    "reading_floor": {
+      "tokens_cumulative": 1840,
+      "rho_tokens_per_second": 4,
+      "tau0_seconds": 20,
+      "t_min_seconds": 480,
+      "elapsed_seconds": 61,
+      "met": false
+    },
+    "signed": null
+  }
+}
