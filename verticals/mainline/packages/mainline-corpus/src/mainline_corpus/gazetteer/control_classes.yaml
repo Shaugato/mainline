@@ -1,0 +1,367 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+#
+# `control_failure.control_class` (ARCHITECTURE.md §5.4).
+#
+# THIS IS THE JOIN KEY.  It is what turns "did this change address that failure?" from a prose
+# judgement into a set operation: a clause's Control Assertion Tuple names a control class, an
+# event's control failures name control classes, and the intersection is computable.  It is also
+# what `mechanism` recurrence cues are synthesised from.
+#
+# Therefore it must be a CLOSED, SHARED vocabulary written once.  A generator that minted a
+# control class per event would produce a corpus in which no intersection is ever non-empty and
+# every derived_documentary blame edge would be unreachable — the corpus would silently stop
+# testing basis-graded force.
+#
+# `failure_modes` restricts the `failure_mode` CHECK (absent | ineffective | bypassed | degraded
+# | not_verified) to the modes that are physically meaningful for that control.  A pressure
+# relief valve is not "bypassed" in this corpus; it is degraded or not_verified.
+
+version: 1
+
+classes:
+  # ── isolation of stored energy ────────────────────────────────────────────────────────────
+  - key: ENERGY_SOURCE_IDENTIFICATION
+    label: identification of every energy source for the task
+    mue: [ISOLATION-OF-STORED-ENERGY]
+    hazard_energies: [electrical, pressure, kinetic, gravity, thermal]
+    barrier_role: preventive
+    failure_modes: [absent, ineffective, not_verified]
+
+  - key: POSITIVE_ISOLATION_APPLICATION
+    label: application of positive isolation devices and personal locks
+    mue: [ISOLATION-OF-STORED-ENERGY, ELECTRICAL-SAFETY]
+    hazard_energies: [electrical, pressure, kinetic]
+    barrier_role: preventive
+    failure_modes: [absent, bypassed, ineffective]
+
+  - key: STORED_ENERGY_DISSIPATION
+    label: dissipation or restraint of trapped and residual energy
+    mue: [ISOLATION-OF-STORED-ENERGY, PRESSURE-SYSTEM-INTEGRITY]
+    hazard_energies: [pressure, gravity, kinetic, electrical]
+    barrier_role: preventive
+    failure_modes: [absent, ineffective, not_verified]
+
+  - key: ZERO_ENERGY_VERIFICATION
+    label: proving zero energy before intrusive work
+    mue: [ISOLATION-OF-STORED-ENERGY, ELECTRICAL-SAFETY]
+    hazard_energies: [electrical, pressure, kinetic]
+    barrier_role: preventive
+    failure_modes: [absent, ineffective, not_verified, bypassed]
+
+  - key: ISOLATION_HANDBACK_CONTROL
+    label: controlled removal of isolation and return to service
+    mue: [ISOLATION-OF-STORED-ENERGY]
+    hazard_energies: [electrical, kinetic, pressure]
+    barrier_role: preventive
+    failure_modes: [absent, ineffective, bypassed]
+
+  # ── containment of hydrocarbons ───────────────────────────────────────────────────────────
+  - key: SEAL_SUPPORT_SYSTEM_INTEGRITY
+    label: integrity of the mechanical seal support system
+    mue: [CONTAINMENT-OF-HYDROCARBONS]
+    hazard_energies: [chemical, pressure, thermal]
+    barrier_role: preventive
+    failure_modes: [degraded, ineffective, not_verified]
+
+  - key: SEAL_FACE_TEMPERATURE_ALARM
+    label: seal-face high-temperature alarm and trip
+    mue: [CONTAINMENT-OF-HYDROCARBONS, CONTROL-OF-IGNITION-SOURCES]
+    hazard_energies: [thermal, chemical]
+    barrier_role: recovery
+    failure_modes: [ineffective, degraded, not_verified, bypassed]
+
+  - key: HYDROCARBON_TRANSFER_CONTROL
+    label: controlled transfer of hydrocarbon between vessels
+    mue: [CONTAINMENT-OF-HYDROCARBONS]
+    hazard_energies: [chemical, pressure]
+    barrier_role: preventive
+    failure_modes: [absent, ineffective, bypassed]
+
+  - key: BUND_AND_DRAINAGE_CONTAINMENT
+    label: secondary containment by bund and drainage
+    mue: [CONTAINMENT-OF-HYDROCARBONS, HAZARDOUS-SUBSTANCE-EXPOSURE]
+    hazard_energies: [chemical]
+    barrier_role: recovery
+    failure_modes: [degraded, ineffective, not_verified]
+
+  - key: EMERGENCY_ISOLATION_ON_RELEASE
+    label: emergency isolation and depressuring on loss of containment
+    mue: [CONTAINMENT-OF-HYDROCARBONS, FIRE-AND-EMERGENCY-RESPONSE]
+    hazard_energies: [chemical, pressure, thermal]
+    barrier_role: recovery
+    failure_modes: [absent, ineffective, not_verified]
+
+  # ── ignition control ──────────────────────────────────────────────────────────────────────
+  - key: HOT_WORK_AUTHORISATION
+    label: authorisation of hot work adjacent to live plant
+    mue: [CONTROL-OF-IGNITION-SOURCES]
+    hazard_energies: [thermal, chemical]
+    barrier_role: preventive
+    failure_modes: [absent, ineffective, bypassed]
+
+  - key: GAS_TEST_BEFORE_AND_DURING_HOT_WORK
+    label: atmospheric gas testing before and during hot work
+    mue: [CONTROL-OF-IGNITION-SOURCES, CONFINED-SPACE-ENTRY]
+    hazard_energies: [chemical, thermal]
+    barrier_role: preventive
+    failure_modes: [absent, ineffective, not_verified, bypassed]
+
+  - key: FIRE_WATCH_PROVISION
+    label: provision and briefing of a competent fire watch
+    mue: [CONTROL-OF-IGNITION-SOURCES, FIRE-AND-EMERGENCY-RESPONSE]
+    hazard_energies: [thermal, chemical]
+    barrier_role: recovery
+    failure_modes: [absent, ineffective, degraded]
+
+  - key: HAZARDOUS_AREA_EQUIPMENT_INTEGRITY
+    label: integrity of explosion-protected equipment in zoned areas
+    mue: [CONTROL-OF-IGNITION-SOURCES, ELECTRICAL-SAFETY]
+    hazard_energies: [electrical, chemical]
+    barrier_role: preventive
+    failure_modes: [degraded, not_verified, ineffective]
+
+  # ── height and dropped objects ────────────────────────────────────────────────────────────
+  - key: FALL_ARREST_PROVISION
+    label: selection, inspection and use of fall arrest equipment
+    mue: [WORKING-AT-HEIGHT]
+    hazard_energies: [gravity]
+    barrier_role: recovery
+    failure_modes: [absent, degraded, ineffective, not_verified]
+
+  - key: ANCHOR_POINT_CERTIFICATION
+    label: certification and identification of anchor points
+    mue: [WORKING-AT-HEIGHT]
+    hazard_energies: [gravity]
+    barrier_role: preventive
+    failure_modes: [absent, not_verified, degraded]
+
+  - key: DROP_ZONE_EXCLUSION
+    label: exclusion of people from beneath elevated work
+    mue: [WORKING-AT-HEIGHT, LIFTING-AND-SUSPENDED-LOADS]
+    hazard_energies: [gravity, kinetic]
+    barrier_role: preventive
+    failure_modes: [absent, ineffective, bypassed]
+
+  # ── lifting ───────────────────────────────────────────────────────────────────────────────
+  - key: LIFT_STUDY_APPROVAL
+    label: preparation and approval of a lift study
+    mue: [LIFTING-AND-SUSPENDED-LOADS]
+    hazard_energies: [gravity, kinetic]
+    barrier_role: preventive
+    failure_modes: [absent, ineffective, bypassed]
+
+  - key: LIFTING_GEAR_INSPECTION
+    label: inspection and periodic proof testing of lifting gear
+    mue: [LIFTING-AND-SUSPENDED-LOADS]
+    hazard_energies: [gravity]
+    barrier_role: preventive
+    failure_modes: [degraded, not_verified, absent]
+
+  - key: LOAD_SUPPORT_FOR_MAINTENANCE
+    label: mechanical support of a load during maintenance access
+    mue: [LIFTING-AND-SUSPENDED-LOADS, ISOLATION-OF-STORED-ENERGY]
+    hazard_energies: [gravity, pressure]
+    barrier_role: preventive
+    failure_modes: [absent, ineffective, bypassed]
+
+  # ── mobile equipment and transport ────────────────────────────────────────────────────────
+  - key: POSITIVE_COMMUNICATION_BEFORE_APPROACH
+    label: positive communication before approaching mobile equipment
+    mue: [MOBILE-EQUIPMENT-INTERACTION]
+    hazard_energies: [kinetic]
+    barrier_role: preventive
+    failure_modes: [absent, ineffective, bypassed]
+
+  - key: PROXIMITY_DETECTION_AND_SEGREGATION
+    label: segregation of light vehicles and pedestrians from heavy equipment
+    mue: [MOBILE-EQUIPMENT-INTERACTION, LAND-TRANSPORT]
+    hazard_energies: [kinetic]
+    barrier_role: preventive
+    failure_modes: [absent, degraded, ineffective]
+
+  - key: PARK_UP_AND_RESTRAINT
+    label: parking, chocking and restraint of equipment
+    mue: [MOBILE-EQUIPMENT-INTERACTION, ISOLATION-OF-STORED-ENERGY]
+    hazard_energies: [kinetic, gravity]
+    barrier_role: preventive
+    failure_modes: [absent, ineffective, bypassed]
+
+  - key: FATIGUE_AND_FITNESS_CONTROL
+    label: assessment of fatigue and fitness for driving
+    mue: [LAND-TRANSPORT]
+    hazard_energies: [kinetic]
+    barrier_role: preventive
+    failure_modes: [absent, ineffective, not_verified]
+
+  - key: LOAD_RESTRAINT_AND_PLACARDING
+    label: restraint and placarding of transported loads
+    mue: [LAND-TRANSPORT, HAZARDOUS-SUBSTANCE-EXPOSURE]
+    hazard_energies: [kinetic, chemical]
+    barrier_role: preventive
+    failure_modes: [absent, ineffective, degraded]
+
+  # ── confined space ────────────────────────────────────────────────────────────────────────
+  - key: CONFINED_SPACE_ENTRY_PERMIT
+    label: classification of a space and issue of an entry permit
+    mue: [CONFINED-SPACE-ENTRY]
+    hazard_energies: [chemical, gravity, kinetic]
+    barrier_role: preventive
+    failure_modes: [absent, ineffective, bypassed]
+
+  - key: CONTINUOUS_ATMOSPHERIC_MONITORING
+    label: continuous atmospheric monitoring during occupancy
+    mue: [CONFINED-SPACE-ENTRY]
+    hazard_energies: [chemical]
+    barrier_role: preventive
+    failure_modes: [absent, degraded, not_verified]
+
+  - key: STANDBY_ATTENDANCE_AND_RESCUE
+    label: standby attendance and non-entry rescue capability
+    mue: [CONFINED-SPACE-ENTRY, FIRE-AND-EMERGENCY-RESPONSE]
+    hazard_energies: [chemical, gravity]
+    barrier_role: recovery
+    failure_modes: [absent, ineffective, not_verified]
+
+  # ── ground and impoundment ────────────────────────────────────────────────────────────────
+  - key: GROUND_CONDITION_INSPECTION
+    label: inspection and monitoring of highwalls and batters
+    mue: [GROUND-AND-STRATA-CONTROL]
+    hazard_energies: [gravity, kinetic]
+    barrier_role: preventive
+    failure_modes: [absent, degraded, not_verified]
+
+  - key: SLOPE_MONITORING_RESPONSE
+    label: response to slope monitoring alarms
+    mue: [GROUND-AND-STRATA-CONTROL]
+    hazard_energies: [gravity]
+    barrier_role: recovery
+    failure_modes: [ineffective, degraded, not_verified]
+
+  - key: EXCAVATION_SUPPORT
+    label: benching, battering or shoring of an excavation
+    mue: [GROUND-AND-STRATA-CONTROL]
+    hazard_energies: [gravity]
+    barrier_role: preventive
+    failure_modes: [absent, ineffective, degraded]
+
+  - key: IMPOUNDMENT_FREEBOARD_CONTROL
+    label: control of freeboard, beach width and decant
+    mue: [TAILINGS-AND-WATER-IMPOUNDMENT]
+    hazard_energies: [gravity, chemical]
+    barrier_role: preventive
+    failure_modes: [ineffective, degraded, not_verified]
+
+  - key: EMBANKMENT_SURVEILLANCE
+    label: surveillance of embankments and instrumentation
+    mue: [TAILINGS-AND-WATER-IMPOUNDMENT]
+    hazard_energies: [gravity]
+    barrier_role: preventive
+    failure_modes: [absent, degraded, not_verified]
+
+  # ── electrical ────────────────────────────────────────────────────────────────────────────
+  - key: SWITCHING_AUTHORISATION
+    label: authorisation of switching and access to apparatus
+    mue: [ELECTRICAL-SAFETY]
+    hazard_energies: [electrical, thermal]
+    barrier_role: preventive
+    failure_modes: [absent, bypassed, ineffective]
+
+  - key: EARTH_LEAKAGE_PROTECTION
+    label: earth leakage and protection setting integrity
+    mue: [ELECTRICAL-SAFETY]
+    hazard_energies: [electrical]
+    barrier_role: recovery
+    failure_modes: [degraded, not_verified, ineffective]
+
+  - key: ARC_FLASH_PPE_AND_BOUNDARY
+    label: arc flash boundary and protective equipment
+    mue: [ELECTRICAL-SAFETY]
+    hazard_energies: [electrical, thermal]
+    barrier_role: recovery
+    failure_modes: [absent, ineffective, degraded]
+
+  # ── substances, hot material, pressure ────────────────────────────────────────────────────
+  - key: REAGENT_HANDLING_CONTROL
+    label: controlled make-up, decanting and dosing of reagents
+    mue: [HAZARDOUS-SUBSTANCE-EXPOSURE]
+    hazard_energies: [chemical]
+    barrier_role: preventive
+    failure_modes: [absent, ineffective, bypassed]
+
+  - key: EXPOSURE_MONITORING
+    label: monitoring of airborne contaminant exposure
+    mue: [HAZARDOUS-SUBSTANCE-EXPOSURE]
+    hazard_energies: [chemical, biological, radiation]
+    barrier_role: preventive
+    failure_modes: [absent, degraded, not_verified]
+
+  - key: RESPIRATORY_PROTECTION_PROGRAM
+    label: selection, fit testing and maintenance of respirators
+    mue: [HAZARDOUS-SUBSTANCE-EXPOSURE]
+    hazard_energies: [chemical, biological]
+    barrier_role: recovery
+    failure_modes: [degraded, not_verified, ineffective]
+
+  - key: HOT_SURFACE_GUARDING
+    label: insulation, guarding and signing of hot surfaces
+    mue: [MOLTEN-AND-HOT-MATERIAL]
+    hazard_energies: [thermal]
+    barrier_role: preventive
+    failure_modes: [absent, degraded, ineffective]
+
+  - key: STEAM_SYSTEM_WARM_THROUGH
+    label: controlled draining, venting and warm-through of steam systems
+    mue: [MOLTEN-AND-HOT-MATERIAL, PRESSURE-SYSTEM-INTEGRITY]
+    hazard_energies: [thermal, pressure]
+    barrier_role: preventive
+    failure_modes: [absent, ineffective, not_verified]
+
+  - key: PRESSURE_RELIEF_DEVICE_INTEGRITY
+    label: setting, testing and sealing of pressure relief devices
+    mue: [PRESSURE-SYSTEM-INTEGRITY]
+    hazard_energies: [pressure, thermal, chemical]
+    barrier_role: recovery
+    failure_modes: [degraded, not_verified, ineffective]
+
+  - key: PRESSURE_EQUIPMENT_INSPECTION
+    label: in-service inspection of pressure equipment
+    mue: [PRESSURE-SYSTEM-INTEGRITY]
+    hazard_energies: [pressure]
+    barrier_role: preventive
+    failure_modes: [absent, degraded, not_verified]
+
+  # ── fire and emergency, explosives ────────────────────────────────────────────────────────
+  - key: FIXED_FIRE_SYSTEM_AVAILABILITY
+    label: availability and testing of fixed fire protection
+    mue: [FIRE-AND-EMERGENCY-RESPONSE]
+    hazard_energies: [thermal, chemical]
+    barrier_role: recovery
+    failure_modes: [degraded, not_verified, absent]
+
+  - key: MUSTER_AND_ACCOUNTING
+    label: alarm, muster and accounting for people
+    mue: [FIRE-AND-EMERGENCY-RESPONSE]
+    hazard_energies: [thermal, chemical]
+    barrier_role: recovery
+    failure_modes: [ineffective, degraded, not_verified]
+
+  - key: EXPLOSIVES_RECONCILIATION
+    label: receipt, magazining and reconciliation of explosives
+    mue: [EXPLOSIVES-AND-BLASTING]
+    hazard_energies: [chemical, kinetic]
+    barrier_role: preventive
+    failure_modes: [absent, ineffective, not_verified]
+
+  - key: BLAST_GUARDING_AND_CLEARANCE
+    label: guarding, clearance and misfire handling for a blast
+    mue: [EXPLOSIVES-AND-BLASTING]
+    hazard_energies: [chemical, kinetic, thermal]
+    barrier_role: preventive
+    failure_modes: [absent, ineffective, bypassed]
+
+icam_tiers:
+  - absent_or_failed_defence
+  - individual_or_team_action
+  - task_or_environmental_condition
+  - organisational_factor

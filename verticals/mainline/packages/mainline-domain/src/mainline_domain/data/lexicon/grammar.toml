@@ -1,0 +1,177 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+#
+# CATSEAL shallow grammar (worker W3): the closed word lists that carve a
+# canonicalised clause into matrix / condition / exception spans, that name a
+# comparator, and that decide when a clause is OPAQUE.
+#
+# This is a shallow grammar, not a parser, and the difference is the point.  A
+# dependency parser would be more accurate on average and less predictable at
+# the margin; this file is a few dozen closed-class words whose behaviour an
+# opposing expert can enumerate exhaustively.  Path A must be auditable before
+# it is clever (principle P7: the lattice decides a state transition).
+#
+# EVERY LIST IS MATCHED LONGEST-FIRST, case-insensitively, on word boundaries,
+# over canon_text.  canon() has already collapsed all whitespace runs to a
+# single U+0020 and folded smart punctuation to ASCII, so these lists are ASCII
+# and contain no double spaces.
+
+[grammar]
+version = 1
+
+# --------------------------------------------------------------------------- #
+# Subordinators.  A span introduced by one of these is NOT the matrix clause.  #
+# `condition` spans fill CAT.conditions[]; `exception` spans fill              #
+# CAT.exceptions[] -- the slot DELTALATTICE rule R4 diffs for growth.          #
+# --------------------------------------------------------------------------- #
+[grammar.subordinator]
+condition = [
+  "if", "when", "whenever", "where", "wherever", "while", "whilst", "during",
+  "before", "prior to", "after", "following", "once", "as soon as",
+  "in the event that", "in the event of", "in circumstances where",
+  "subject to", "provided that", "on condition that",
+  "for the purposes of", "in order to", "so that", "until", "unless and until",
+]
+# NOT listed: bare "provided".  It is a subordinator perhaps one time in twenty
+# and the passive verb of "ventilation shall be PROVIDED" the other nineteen,
+# and reading the verb as a subordinator swallows the rest of the clause --
+# setpoint, verification and all -- into a condition span.  "provided that" is
+# listed and is unambiguous.
+exception = [
+  "unless", "except that", "except where", "except when", "except for",
+  "except in", "except", "other than", "save that", "save where", "save for",
+  "notwithstanding", "with the exception of", "apart from", "but not",
+  "does not apply", "shall not apply", "is exempt", "are exempt", "exempt from",
+  "this requirement does not apply", "no requirement to",
+]
+
+# --------------------------------------------------------------------------- #
+# Comparators.  Surface phrase -> the CAT.comparator token.  The tokens are     #
+# fixed by verticals/mainline/spec/cat-key-v1.md §2 and are the alphabet        #
+# DELTALATTICE rule R3 orders (<= to < is a loosening; a removed bound is a     #
+# loosening; a widened tolerance is a loosening).                               #
+# --------------------------------------------------------------------------- #
+[grammar.comparator]
+"<=" = [
+  "shall not exceed", "must not exceed", "not exceed", "no more than",
+  "not more than", "maximum of", "a maximum of", "up to a maximum of", "at most",
+  "no greater than", "not greater than", "does not exceed", "not to exceed",
+  "less than or equal to", "or less", "maximum", "max", "<=", "=<",
+]
+">=" = [
+  "at least", "no less than", "not less than", "minimum of", "a minimum of",
+  "no fewer than", "not fewer than", "greater than or equal to", "or more",
+  "or greater", "minimum", "min", ">=", "=>",
+]
+"<" = ["less than", "below", "under", "lower than", "<"]
+">" = ["greater than", "more than", "above", "over", "in excess of", "higher than", ">"]
+"=" = ["equal to", "exactly", "precisely", "set at", "set to", "of", "="]
+"~" = ["approximately", "about", "around", "in the order of", "circa", "nominally", "~"]
+"+/-" = ["plus or minus", "+/-", "+-", "within a tolerance of", "tolerance of"]
+range = ["between", "from", "in the range", "in the range of", "not less than and not more than"]
+
+# Phrases that mark the SECOND bound of a range, used only to find the end of a
+# `range` construction so the lower bound is taken from the right place.
+[grammar.range]
+joiners = ["and", "to", "up to"]
+
+# --------------------------------------------------------------------------- #
+# Reference-class markers for pressures and temperatures.  These are the ONLY  #
+# way a Quantity acquires reference='gauge' or 'absolute' from prose.  Absence  #
+# of a marker gives reference='none' -- "unstated" -- which the quantity        #
+# algebra must refuse to convert rather than assume (decision D5).             #
+# --------------------------------------------------------------------------- #
+[grammar.reference]
+gauge = ["(g)", "gauge", "gage", "g)", "above atmospheric"]
+absolute = ["(a)", "(abs)", "absolute", "abs", "a)", "absolute pressure"]
+delta = ["differential", "delta", "difference", "rise of", "drop of", "increase of", "decrease of", "change of", "dp", "d/p"]
+
+# --------------------------------------------------------------------------- #
+# Frequency vocabulary.  A named frequency becomes an INTERVAL quantity: the    #
+# thing R7 orders is the interval, and lengthening it is the weakening.         #
+# "twice per shift" is 0.5 shift, not 2 -- the inversion is done here so R7     #
+# never has to know whether a number counts events or time.                     #
+# --------------------------------------------------------------------------- #
+[grammar.frequency.named]
+"continuously" = { value = "0", unit = "s" }
+"continuous" = { value = "0", unit = "s" }
+"each shift" = { value = "1", unit = "shift" }
+"every shift" = { value = "1", unit = "shift" }
+"per shift" = { value = "1", unit = "shift" }
+"shiftly" = { value = "1", unit = "shift" }
+"twice per shift" = { value = "0.5", unit = "shift" }
+"daily" = { value = "1", unit = "day" }
+"each day" = { value = "1", unit = "day" }
+"every day" = { value = "1", unit = "day" }
+"per day" = { value = "1", unit = "day" }
+"twice daily" = { value = "0.5", unit = "day" }
+"weekly" = { value = "1", unit = "week" }
+"each week" = { value = "1", unit = "week" }
+"every week" = { value = "1", unit = "week" }
+"fortnightly" = { value = "2", unit = "week" }
+"monthly" = { value = "1", unit = "month" }
+"each month" = { value = "1", unit = "month" }
+"every month" = { value = "1", unit = "month" }
+"quarterly" = { value = "3", unit = "month" }
+"six-monthly" = { value = "6", unit = "month" }
+"six monthly" = { value = "6", unit = "month" }
+"half-yearly" = { value = "6", unit = "month" }
+"annually" = { value = "1", unit = "year" }
+"yearly" = { value = "1", unit = "year" }
+"each year" = { value = "1", unit = "year" }
+"every year" = { value = "1", unit = "year" }
+"biennially" = { value = "2", unit = "year" }
+"hourly" = { value = "1", unit = "hour" }
+"each hour" = { value = "1", unit = "hour" }
+"every hour" = { value = "1", unit = "hour" }
+
+# Phrases that introduce an explicit numeric interval: "at intervals not
+# exceeding 12 months", "every 30 days".
+[grammar.frequency]
+introducers = [
+  "at intervals not exceeding", "at intervals of not more than", "at intervals of",
+  "at a frequency of", "not less frequently than", "no less frequently than",
+  "at least once every", "at least every", "once every", "every", "each",
+  "prior to each", "before each", "after each",
+]
+# Event-anchored frequencies: not a time interval at all.  They become the
+# unit 'use', which no converter knows, so §10 of the spec applies -- identity
+# is exact and the lattice must treat the comparison as unknown.
+event_anchored = [
+  "prior to each use", "before each use", "prior to use", "before use",
+  "prior to each entry", "before each entry", "prior to each lift",
+  "before each lift", "prior to each start", "before start-up", "on each start",
+  "after each use", "on completion", "at handover", "at each changeover",
+]
+
+# --------------------------------------------------------------------------- #
+# Opacity.  These decide confidence='opaque': the clause's control is NOT in    #
+# its prose, so an extractor that returned a CAT would be inventing one.        #
+# Over-blocking here is the correct direction of error and is a stated product  #
+# characteristic (risk R-A3), not a bug to be tuned away.                       #
+# --------------------------------------------------------------------------- #
+[grammar.opacity]
+# A reference to a drawing/figure standing in for the control itself.
+figure_cues = [
+  "figure", "fig.", "fig", "drawing", "dwg", "p&id", "pid", "piping and instrumentation diagram",
+  "diagram", "sketch", "isometric", "layout", "schematic", "chart", "graph", "plot", "nomograph",
+  "table", "appendix", "annexure", "annex", "schedule", "attachment", "matrix",
+]
+# A clause whose entire content is a pointer elsewhere.
+cross_reference_openers = [
+  "see", "refer to", "refer", "as per", "per", "in accordance with", "as detailed in",
+  "as specified in", "as set out in", "as described in", "as shown in", "as listed in",
+  "as defined in", "subject to the requirements of", "comply with", "in compliance with",
+]
+# The table-cell delimiter that survives canonicalisation.  canon() collapses
+# every whitespace run to a single space, so column gutters are gone by the time
+# this module sees the text: the pipe is the only in-band table marker left.
+# Layout-model output (Textract LAYOUT_TABLE) is passed in as an explicit hint
+# instead, which is strictly better evidence than any string heuristic.
+cell_delimiter = "|"
+min_cells = 2
+# A row-shaped fragment: no deontic anywhere, at least this many quantities, and
+# at most this many words.  Deliberately conservative -- a false 'opaque' costs
+# an adjudication, a false 'ok' costs a missed weakening.
+row_max_words = 14
+row_min_quantities = 2

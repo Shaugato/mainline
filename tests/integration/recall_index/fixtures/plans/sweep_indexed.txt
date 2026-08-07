@@ -1,0 +1,11 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+# GOOD. The coarse sweep: one prefix column, one tree, 256 dimensions.
+# Hand-written from the documented fragment; not captured from a cluster.
+  distribution: local
+  vectorized: true
+
+  • vector search
+    table: event_cue_coarse@cue_sweep_idx
+    target count: 24
+    prefix spans: [/'22222222-2222-4222-8222-222222222222' - /'22222222-2222-4222-8222-222222222222']

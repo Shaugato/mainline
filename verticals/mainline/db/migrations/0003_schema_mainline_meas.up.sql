@@ -1,0 +1,29 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MI: MI01
+-- I: I01
+-- COUNSEL-GATED: no
+-- RATIONALE: Measurement rows are contemporaneous business records and must be as append-only as the gate, but they are unprivileged and separately grantable, and with no column-level privileges in CockroachDB the only way to say that is a separate schema.
+--
+-- migration:  0003_schema_mainline_meas
+-- band:       0001-0023 · dm-foundation
+-- statements: 1
+-- source:     ARCHITECTURE.md §4 (schema zones) · §5.7
+-- requires:   0001 mainline_owner
+-- sqlstate:   —
+-- forward-only; no .down.sql exists at or below the protected floor (DM-14).
+--
+-- MEASUREMENT. Recall runs, the silence ledger, calibration, agent action audit, standing, and the
+-- one insert-only table the Managed-MCP identity may write (`external_attestation`, S13).
+--
+-- The zone exists because of SEC-0, the Record Honesty Rule: MAINLINE never chooses not to record
+-- a fact, only where the fact lives and who may read it. `mainline_meas` is where a fact lives
+-- when it is true, contemporaneous, and not something a gate reads — the silence ledger being the
+-- clearest case. It is NOT a lower tier of evidentiary care: nothing here has row-level TTL except
+-- the two caches named in TTL-ALLOWLIST.yaml, and the append-only trigger set covers it.
+--
+-- DM-17 places `silence_ledger` in this unprivileged zone deliberately: the counsel-gated question
+-- is who may read it, and the answer must never be "so we did not write it down".
+
+CREATE SCHEMA mainline_meas AUTHORIZATION mainline_owner;

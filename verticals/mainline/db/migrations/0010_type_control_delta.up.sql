@@ -1,0 +1,34 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MI: MI23, MI20
+-- I: I12
+-- COUNSEL-GATED: no
+-- RATIONALE: `weaken` is the word the entire gate turns on — the blocking check is materialised for a weakening over blood ancestry and for nothing else — so the alphabet must be a closed type the database knows, not a STRING a writer can misspell into silence.
+--
+-- migration:  0010_type_control_delta
+-- band:       0001-0023 · dm-foundation
+-- statements: 1
+-- source:     ARCHITECTURE.md §5.0 (verbatim)
+-- requires:   0002 CREATE SCHEMA mainline
+-- sqlstate:   22P02 on an unknown label; 23514 where a CHECK reads the value
+-- forward-only; no .down.sql exists at or below the protected floor (DM-14).
+--
+-- THE ORDER OF THE LABELS IS PART OF THE TYPE. CockroachDB gives an ENUM a total order following
+-- declaration order, and `only_tightenings_travel` (MI23) is a comparison over that order. The
+-- labels are written here in exactly the §5.0 order and MUST NOT be reordered; adding a label
+-- later is possible, reordering is not, and a typo is permanent because CHECK expressions in
+-- five other migrations quote these strings literally.
+--
+--   introduce   a control that did not exist now does
+--   strengthen  the same control, tighter
+--   restate     no change in obligation; wording only
+--   weaken      THE ONE THAT ARMS THE GATE
+--   remove      the control is gone
+--
+-- `restate` is not cosmetic and is the subtlest label in the set: a restatement that changes what
+-- a reader is obliged to do is a weaken wearing a restate's clothes, which is why the origin-diff
+-- mechanism computes the delta rather than accepting the author's declaration of it.
+
+CREATE TYPE mainline.control_delta AS ENUM
+  ('introduce', 'strengthen', 'restate', 'weaken', 'remove');

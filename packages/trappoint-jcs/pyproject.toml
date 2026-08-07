@@ -1,0 +1,51 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: Apache-2.0
+
+[project]
+name = "trappoint-jcs"
+version = "0.1.0"
+description = "RFC 8785 JSON Canonicalization Scheme, with the evidentiary payload profile that refuses IEEE-754 floats."
+readme = "README.md"
+requires-python = ">=3.13"
+license = "Apache-2.0"
+authors = [{ name = "MAINLINE contributors" }]
+keywords = ["rfc8785", "jcs", "canonicalization", "json", "tamper-evidence"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Security :: Cryptography",
+  "Typing :: Typed",
+]
+
+# ZERO runtime dependencies, and this is a contract rather than a preference.
+#
+# These bytes are what every hash in the custody ledger is taken over. A dependency here
+# is a dependency an opposing expert re-implementing the scheme in Rust would have to
+# reproduce, and it is a dependency `trappoint-verify` — whose floor is `cryptography`
+# and nothing else — would inherit through the vendored copy of `canon_v1`.
+# `packages/trappoint-jcs/tests/test_canon_properties.py::test_zero_runtime_dependencies`
+# asserts this list stays empty, so removing the line does not remove the claim.
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/Shaugato/mainline"
+
+[dependency-groups]
+dev = ["pytest>=8.2", "hypothesis>=6.100"]
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/trappoint_jcs"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "tests", "README.md"]
+
+[tool.pytest.ini_options]
+# `tests/vectors` carries `es6_numgen.py`, the deterministic oracle for the ES6 number
+# file. It is test data, not shipped code, so it lives beside the vectors it generates.
+pythonpath = ["src", "tests/vectors"]
+testpaths = ["tests"]

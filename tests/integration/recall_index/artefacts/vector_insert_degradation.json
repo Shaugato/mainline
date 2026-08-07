@@ -1,0 +1,21 @@
+{
+  "artefact": "vector-insert-degradation-curve",
+  "curves": [],
+  "knees": {},
+  "provenance": {
+    "claim_this_file_makes": "None yet. The shape is committed; the numbers are not, and this file says so rather than carrying an invented threshold that looks like evidence.",
+    "how_to_measure": "MAINLINE_TEST_DSN=postgresql://root@127.0.0.1:26257/defaultdb?sslmode=disable python -m pytest tests/integration/recall_index/test_ix06_ingest_degradation.py -m nightly -s   (or leave MAINLINE_TEST_DSN unset and put `cockroach` on PATH, or start the Docker daemon)",
+    "measured_at": null,
+    "produced_by": "tests/integration/recall_index/test_ix06_ingest_degradation.py",
+    "what_gets_measured": [
+      "live: row-at-a-time and small-batch INSERT straight into mainline.event_cue_embedding, which carries the C-SPANN index and the projection trigger. This is the production path and the loader's batch size must come from THIS curve's knee.",
+      "staged: bulk INSERT into mainline.event_cue_stage, which carries no vector index, followed by keyset-paginated promotion. Promotion is an INSERT into the live table, so every promoted row passes the same projection trigger; staging is a performance path, not a hole in the weld.",
+      "import_then_index: the REJECTED fallback. CREATE VECTOR INDEX on a populated table. Measured so that the decision not to use it has a price tag rather than only a reason. It is the one path into the prefixed sidecar that does not pass through the projection trigger."
+    ],
+    "why_this_file_exists": "CockroachDB's documented guidance is that large batch inserts of VECTOR types can cause performance degradation and that batching should be avoided. That is a direction, not a number. A build that picks a batch size from that sentence has invented a threshold. This artefact replaces the invented number with a measured one, on the cluster the corpus is actually going into.",
+    "unmeasured_because": "No CockroachDB cluster was reachable on the machine this was authored on: no `cockroach` binary on PATH and no running Docker daemon. Nothing in this domain may be claimed on the basis of a skipped run, so the file records the absence instead of a plausible-looking guess.",
+    "note_on_the_corpus_builder": "tests/integration/recall_index/_support.py:CORPUS_BATCH is currently 100 and is labelled a conservative guess. It is the FIRST thing that should be re-set from the `live` knee once this file carries numbers."
+  },
+  "schema_version": 1,
+  "status": "unmeasured"
+}

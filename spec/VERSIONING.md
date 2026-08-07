@@ -118,24 +118,76 @@ The rule exists because the two namespaces collided once already, and a document
 meaning a vertical's schema invariant is a document that will be quoted back at the wrong
 specification.
 
-**Refused** — a bare match of `\bI[0-9]{2}\b` in any file outside `spec/`.
+**The lint is exactly this command, and its definition is the command, not a description of it:**
 
-**Permitted**, and these are the only forms:
+```bash
+grep -rE '\bI[0-9]{2}\b' --include='*.md' . | grep -v '^./spec/'
+```
 
-| Form | Example |
-|---|---|
-| **qualified** — the token is immediately preceded by `TRAPPOINT` | `TRAPPOINT I14` |
-| **linked** — the token appears inside a Markdown link whose target is under `spec/invariants/` | `` `[I14](spec/invariants/I14-minimal-refusal.md)` `` |
-| **the vertical's own namespace**, which does not match the pattern | `MI25` |
+It passes when that pipeline prints nothing. There are **no exemptions** beyond the `spec/` path
+exclusion in the second stage.
 
-**Scope.** The lint runs over every tracked file **except** `spec/**` and `LICENSES/**`. It applies
-to product documents, source, migrations, telemetry configuration and dashboards. It deliberately
-does **not** exempt planning documents: a plan that names an invariant is a document someone will
-read as normative, and the qualified form costs nine characters.
+**Why there is no "qualified" or "linked" escape hatch.** Both were drafted and both are
+unimplementable against this command. `TRAPPOINT I14` still contains a bare match. So does
+`[I14](spec/invariants/I14-minimal-refusal.md)` — twice, once in the link text and once in the path,
+because `-` is not a word character and the token is bounded on both sides. A lint whose stated
+exemptions its own implementation cannot honour is worse than no lint: it invites a reviewer to
+approve a reference the build will reject, or a maintainer to weaken the grep until it agrees with
+the prose. The command is therefore the definition, and the citation convention below is what makes
+it liveable.
 
-An existing document that fails the lint is corrected by qualifying or linking the reference. It is
-never corrected by widening the exemption list, and the exemption list is exactly the two entries
-above.
+### 3.2 How a document outside `spec/` cites an invariant
+
+By **slug**. Every invariant has one — the filename stem with the identifier removed — and no slug
+matches the lint pattern. Write `TRAPPOINT/projected-refusal`, not `I02`.
+
+This table is the mapping, and it is the **only** place both namespaces appear side by side. It is
+inside `spec/`, so it is allowed to write both.
+
+| Identifier | Slug — the form to use outside `spec/` | Invariant |
+|---|---|---|
+| `I01` | `TRAPPOINT/append-only` | Append-only |
+| `I02` | `TRAPPOINT/projected-refusal` | Projected refusal |
+| `I03` | `TRAPPOINT/epoch-pin` | Epoch pin |
+| `I04` | `TRAPPOINT/linear-head` | Linear head |
+| `I05` | `TRAPPOINT/ancestry-monotone` | Ancestry monotone |
+| `I06` | `TRAPPOINT/derived-dependency` | Derived dependency |
+| `I07` | `TRAPPOINT/universe-commitment` | Universe commitment |
+| `I08` | `TRAPPOINT/certified-null` | Certified null |
+| `I09` | `TRAPPOINT/exposure-binding` | Exposure binding |
+| `I10` | `TRAPPOINT/typed-clearance` | Typed clearance |
+| `I11` | `TRAPPOINT/evidence-typing` | Evidence typing |
+| `I12` | `TRAPPOINT/no-decay-without-evidence` | No decay without evidence |
+| `I13` | `TRAPPOINT/silence-logged` | Silence is logged |
+| `I14` | `TRAPPOINT/minimal-refusal` | Minimal refusal |
+| `I15` | `TRAPPOINT/allegation-firewall` | Allegation firewall |
+| `I16` | `TRAPPOINT/external-witness` | External witness |
+
+The slug is the invariant file's stem with the identifier and hyphen removed, so the mapping is
+derivable from a directory listing and cannot drift from the files.
+
+Rules, all mechanical:
+
+- **L-1.** Outside `spec/`, a Markdown document MUST cite an invariant by slug, prefixed
+  `TRAPPOINT/`. A link, if one is wanted, targets the **directory** `spec/invariants/` — never a
+  file, because every filename in it matches the pattern.
+- **L-2.** Inside `spec/`, the identifier form is the normal one and the slug is decoration. The
+  specification is allowed to name its own identifiers.
+- **L-3.** A vertical's own namespace (`MI25`) does not match the pattern and needs no convention.
+  This is the whole reason MAINLINE renumbered.
+- **L-4.** Non-Markdown files are outside the lint's `--include`, so a migration header comment may
+  cite `I02` directly — and the migration linter *requires* every migration to cite at least one
+  `MI` or `I` identifier. The two rules do not conflict because they operate on disjoint file sets;
+  that is deliberate, and moving either one to cover the other's files is a MAJOR-grade change to the
+  build contract.
+
+**Scope.** The lint runs over every tracked `*.md` file outside `spec/`. It applies to product
+documents, READMEs, ADRs, runbooks and planning documents alike. It deliberately does **not** exempt
+planning documents: a plan that names an invariant is a document someone will read as normative, and
+a slug costs no more characters than the identifier it replaces.
+
+An existing document that fails the lint is corrected by rewriting the citation as a slug. It is
+never corrected by widening the grep, and the grep has nothing to widen.
 
 ---
 

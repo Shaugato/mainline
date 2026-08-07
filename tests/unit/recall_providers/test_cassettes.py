@@ -85,6 +85,70 @@ def test_a_cassette_with_an_unknown_provenance_fails_to_load(tmp_path: Path) -> 
         store.load("judge", request)
 
 
+def test_regenerating_an_unchanged_constructed_cassette_produces_no_diff(
+    tmp_path: Path,
+) -> None:
+    """The fixture set must regenerate to the same bytes, or review stops working.
+
+    If every regeneration re-stamped ``recorded_at``, a real change to a fixture — the kind
+    a gate test depends on — would arrive in a diff of 32 files that all look changed, and
+    nobody would find it.  A constructed cassette is not an observation, so its timestamp
+    is stable while its content is.
+    """
+    store = CassetteStore(tmp_path)
+    request = {"kind": "judge", "scenario": "clean"}
+    response = {"stop_reason": "end_turn", "text": "{}"}
+    path = store.save("judge", request, response, provenance="handwritten", note="n")
+
+    # Age the artefact deliberately.  Two saves inside one second would agree by accident
+    # and prove nothing, so the committed timestamp is moved far enough that "kept" and
+    # "re-stamped" cannot be confused.
+    aged = json.loads(path.read_text(encoding="utf-8"))
+    aged["recorded_at"] = "2020-01-01T00:00:00+00:00"
+    path.write_text(json.dumps(aged, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    before = path.read_bytes()
+
+    store.save("judge", request, response, provenance="handwritten", note="n")
+    assert path.read_bytes() == before
+    assert json.loads(path.read_text(encoding="utf-8"))["recorded_at"] == aged["recorded_at"]
+
+
+def test_a_changed_constructed_cassette_does_get_a_fresh_timestamp(tmp_path: Path) -> None:
+    """Stability must not shade into staleness: changed content is newly constructed."""
+    store = CassetteStore(tmp_path)
+    request = {"kind": "judge", "scenario": "clean"}
+    path = store.save(
+        "judge", request, {"stop_reason": "end_turn", "text": "{}"}, provenance="handwritten"
+    )
+    stale = json.loads(path.read_text(encoding="utf-8"))
+    stale["recorded_at"] = "2020-01-01T00:00:00+00:00"
+    path.write_text(json.dumps(stale, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+    store.save(
+        "judge",
+        request,
+        {"stop_reason": "end_turn", "text": '{"changed": true}'},
+        provenance="handwritten",
+    )
+    assert json.loads(path.read_text(encoding="utf-8"))["recorded_at"] != stale["recorded_at"]
+
+
+def test_a_live_cassette_always_restamps_because_its_timestamp_is_evidence(
+    tmp_path: Path,
+) -> None:
+    """A live recording's ``recorded_at`` says when the call was observed. Never reused."""
+    store = CassetteStore(tmp_path)
+    request = {"kind": "judge", "scenario": "clean"}
+    response = {"stop_reason": "end_turn", "text": "{}"}
+    path = store.save("judge", request, response, provenance="bedrock-live")
+    forged = json.loads(path.read_text(encoding="utf-8"))
+    forged["recorded_at"] = "2020-01-01T00:00:00+00:00"
+    path.write_text(json.dumps(forged, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+    store.save("judge", request, response, provenance="bedrock-live")
+    assert json.loads(path.read_text(encoding="utf-8"))["recorded_at"] != forged["recorded_at"]
+
+
 def test_a_miss_names_the_digest_and_how_to_record_it(store: CassetteStore) -> None:
     with pytest.raises(CassetteMiss) as excinfo:
         store.load("embed", embed_request(embed_model="nope", facet="mechanism", text="unseen"))

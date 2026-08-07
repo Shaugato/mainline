@@ -1,0 +1,101 @@
+/*
+ * SPDX-FileCopyrightText: 2026 MAINLINE contributors
+ * SPDX-License-Identifier: FSL-1.1-ALv2
+ *
+ * FALLBACK tokens only.
+ *
+ * The register token set (ui.md §1.1) is owned by the visual-language worker and lands
+ * as `src/design/tokens.css`. These declarations exist so the shell is legible and
+ * contrast-correct BEFORE that file arrives, and so a cut that removes it leaves a
+ * readable console rather than unstyled text.
+ *
+ * Every rule is wrapped in `:where()`, which has ZERO specificity. Any `:root { … }`
+ * from the real token set therefore wins, in either source order, with no `!important`
+ * anywhere and nothing for a later worker to fight.
+ *
+ * One severity accent over a neutral ramp. No gradient, no shadow, no bloom.
+ */
+
+:where(:root) {
+  color-scheme: dark light;
+
+  /* Neutral ramp — dark. Contrast against --tp-bg is checked in the design unit tests. */
+  --tp-bg: #0b0c0d;
+  --tp-bg-raised: #121415;
+  --tp-bg-sunken: #060708;
+  --tp-rule: #2a2c2e;
+  --tp-rule-strong: #3d4043;
+  --tp-ink: #e8e6e3;
+  --tp-ink-dim: #a8a6a3;
+  --tp-ink-faint: #7d7b78;
+
+  /* The single severity accent. Used for a refusal and for nothing decorative. */
+  --tp-refuse: #ff5c4d;
+  --tp-refuse-ink: #ffd9d4;
+
+  /* Two supporting states, deliberately desaturated so they never read as celebratory. */
+  --tp-warn: #d9a441;
+  --tp-ok: #7fae86;
+
+  --tp-mono: ui-monospace, 'SFMono-Regular', 'Cascadia Mono', 'Roboto Mono', Menlo, Consolas,
+    'Liberation Mono', monospace;
+
+  --tp-step-0: 13px;
+  --tp-step-1: 15px;
+  --tp-step-2: 19px;
+  --tp-space-1: 4px;
+  --tp-space-2: 8px;
+  --tp-space-3: 12px;
+  --tp-space-4: 20px;
+  --tp-space-5: 32px;
+
+  /* EVIDENCE register: no easing over 160 ms. This is the ceiling, not a suggestion. */
+  --tp-duration-evidence: 120ms;
+}
+
+:where(html),
+:where(body) {
+  margin: 0;
+  padding: 0;
+  background: var(--tp-bg);
+  color: var(--tp-ink);
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step-0);
+  line-height: 1.5;
+}
+
+:where(a) {
+  color: inherit;
+}
+
+/*
+ * D14 — reduced motion is a gate, not a preference we honour when convenient. Nothing
+ * in the EVIDENCE register animates at all; this makes that true for anything a later
+ * worker adds without reading §1.1 first.
+ */
+@media (prefers-reduced-motion: reduce) {
+  :where(*, *::before, *::after) {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/*
+ * The exhibit form. A court exhibit is a page, not a canvas: the chrome and navigation
+ * are dropped, the ink goes to black on white, and every URL behind a link is printed
+ * so that a photocopy of the printout is still followable.
+ */
+@media print {
+  :where(:root) {
+    --tp-bg: #ffffff;
+    --tp-bg-raised: #ffffff;
+    --tp-bg-sunken: #ffffff;
+    --tp-ink: #000000;
+    --tp-ink-dim: #333333;
+    --tp-ink-faint: #555555;
+    --tp-rule: #999999;
+    --tp-rule-strong: #000000;
+  }
+}

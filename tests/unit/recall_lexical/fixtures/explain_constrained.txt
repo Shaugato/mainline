@@ -1,0 +1,34 @@
+HAND-WRITTEN SPECIMEN of CockroachDB EXPLAIN grammar. NOT a capture from a live cluster.
+It exists so the plan parser and the assertion are themselves testable with no cluster; the
+live assertion is tests/integration/recall_lexical/test_plan_assertion.py. See plan.py.
+
+  distribution: local
+  vectorized: true
+
+  • sort
+  │ estimated row count: 12
+  │ order: -score,+event_id
+  │
+  └── • group (hash)
+      │ estimated row count: 12
+      │ group by: event_id
+      │
+      └── • hash join
+          │ estimated row count: 41
+          │ equality: (event_id) = (event_id)
+          │
+          ├── • lookup join
+          │   │ estimated row count: 41
+          │   │ table: lex_stats@lex_stats_pk
+          │   │ equality: (site_id, term) = (site_id, term)
+          │   │ equality cols are key
+          │   │
+          │   └── • scan
+          │         estimated row count: 41 (0.02% of the table; stats collected 3 minutes ago)
+          │         table: lex_posting@lex_posting_pk
+          │         spans: 3 spans
+          │
+          └── • scan
+                estimated row count: 2,000 (100% of the table; stats collected 3 minutes ago)
+                table: lex_doclen@lex_doclen_pk
+                spans: FULL SCAN

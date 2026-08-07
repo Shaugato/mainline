@@ -73,4 +73,20 @@ target-version = "py313"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "UP", "B", "A", "C4", "RUF", "SIM", "TID", "PL"]
-ignore = ["PLR0913"]
+ignore = [
+  # Keyword-only constructors here take a provider identity (model, revision, region,
+  # transport, store, provenance, side, note). Bundling them into a config object would
+  # hide exactly the fields that must appear in `recall_run`.
+  "PLR0913",
+  # Exception names are the domain vocabulary the callers branch on and the silence
+  # ledger records: `ModelRefusal`, `DeadLetter`, `CassetteMiss`, `ProviderUnavailable`.
+  # `ModelRefusalError` would be worse: a refusal is not our error, it is the model's
+  # answer, and the name is what the reader of a silence_ledger row sees.
+  "N818",
+  # Every deferred import in this package is load-bearing, not laziness: `boto3`,
+  # `anthropic` and `sentence_transformers` must NOT be imported at module scope, because
+  # the cassette replay path — the CI and demo default — has to work on a machine where
+  # none of them is installed. Hoisting them would make `import mainline_recall_agent`
+  # fail offline, which is precisely the failure this package exists to avoid.
+  "PLC0415",
+]

@@ -1,0 +1,83 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# The AWS FIS blackhole game-day: SPECIFIED, NOT RUN.
+#
+# ARCHITECTURE.md §8.2 lists this experiment as the assertion behind E4 — "AWS FIS
+# blackhole of the kernel's SQL egress proves the gate REFUSES rather than admits".
+# §19 GT-16 says task-level FIS network actions on Fargate require the SSM agent in
+# the task definition, and GT-16 is unanswered. Its pre-committed fallback is one
+# sentence long: "Do not promise it on camera."
+#
+# So this file is the promise's receipt. `verified: false` and `may_be_claimed:
+# false` are load-bearing: mainline_boundary.egress.check_fis_record fails the E4
+# suite if either is flipped without an attestation on disk, and fails it again if
+# any camera-facing document says the game-day happened.
+---
+experiment_id: FIS-KERNEL-EGRESS-BLACKHOLE-01
+title: Blackhole the kernel's pgwire egress and assert the gate refuses
+
+status: specified
+verified: false
+may_be_claimed: false
+blocked_by: GT-16
+attestation_path: evidence/fis/FIS-KERNEL-EGRESS-BLACKHOLE-01.attestation.json
+
+blocked_reason: >-
+  GT-16 (ARCHITECTURE.md §19) has not been answered: task-level FIS network
+  actions on Fargate need the SSM agent present in the task definition, and that
+  has not been confirmed against a live task. AWS credentials are additionally
+  not valid on the build machine as of 2026-08, so the experiment cannot be
+  executed even if GT-16 passed today.
+
+hypothesis: >-
+  When the kernel task loses its route to CockroachDB, POST /v1/permits/{id}/merge
+  returns a typed refusal and writes no merge_record, and /readyz stops reporting
+  ready. The failure mode we are hunting is the opposite one: a kernel that,
+  unable to read the blame closure, admits the merge because the check "did not
+  find anything".
+
+expected_gate_behaviour: >-
+  Fail closed. MI22 — the gate fails closed on a stale or absent blame projection
+  (P0001). Zero merges during the blackhole window; every attempt lands in the
+  refusal ledger with a constraint name.
+
+what_this_would_prove: >-
+  That E4's protocol-set assertion is not merely a plan-time reading of a security
+  group, but a live property of the running kernel: remove the only two protocols
+  it is permitted to speak and it refuses rather than degrades.
+
+what_this_would_not_prove: >-
+  Nothing about Bedrock reachability. E1, E2 and E3 carry that claim and do not
+  depend on this experiment ever running.
+
+design:
+  service: AWS Fault Injection Service
+  action: aws:ecs:task-network-blackhole-port
+  parameters:
+    protocol: tcp
+    port: "26257"
+    trafficType: egress
+    duration: PT5M
+  targets:
+    resourceTags:
+      Plane: kernel
+      Component: task
+    selectionMode: ALL
+  preconditions:
+    - SSM agent present in the mainline-kernel task definition (GT-16)
+    - A non-production environment; the experiment is never run against a site
+      holding a live permit
+  stop_conditions:
+    - CloudWatch alarm mainline-gate-availability-burn (S1) — a refusal counts as
+      success under S1, so this alarm firing means something other than a refusal
+      happened
+  observations_required:
+    - count of merge attempts during the window
+    - count of typed refusals, by SQLSTATE and constraint name
+    - count of merge_record rows written during the window (must be zero)
+    - /readyz status transitions
+
+honest_status_sentence: >-
+  The FIS blackhole experiment is designed and unrun. E4 is asserted today over
+  the plan's egress rules, not over a live failure injection.

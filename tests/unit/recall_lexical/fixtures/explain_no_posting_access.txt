@@ -1,0 +1,12 @@
+HAND-WRITTEN SPECIMEN of CockroachDB EXPLAIN grammar. NOT a capture from a live cluster.
+The plan never reads lex_posting at all. A "no full scan of lex_posting" check passes
+vacuously here, which is why the assertion also demands that the table WAS accessed.
+See plan.py.
+
+  distribution: local
+  vectorized: true
+
+  • scan
+        estimated row count: 1 (0.01% of the table)
+        table: lex_doclen@lex_doclen_pk
+        spans: 1 span

@@ -52,6 +52,7 @@ from fixture_schema import (  # noqa: E402
     RerankVerdict,
     judge_payload,
 )
+
 from mainline_recall_agent.providers.base import embed_text  # noqa: E402
 from mainline_recall_agent.providers.cassette import CassetteStore, embed_request  # noqa: E402
 from mainline_recall_agent.providers.judge import BedrockClaudeJudge, TransportReply  # noqa: E402

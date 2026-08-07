@@ -1,0 +1,4760 @@
+{
+  "format_version": "1.2",
+  "terraform_version": "1.10.5",
+  "planned_values": {
+    "root_module": {
+      "resources": [
+        {
+          "address": "aws_vpc.main",
+          "mode": "managed",
+          "type": "aws_vpc",
+          "name": "main",
+          "provider_name": "registry.opentofu.org/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "cidr_block": "10.60.0.0/16",
+            "enable_dns_support": true,
+            "enable_dns_hostnames": true,
+            "tags": {
+              "Plane": "shared",
+              "Component": "vpc",
+              "Environment": "prod",
+              "System": "mainline"
+            },
+            "tags_all": {
+              "Plane": "shared",
+              "Component": "vpc",
+              "Environment": "prod",
+              "System": "mainline"
+            }
+          }
+        },
+        {
+          "address": "aws_subnet.kernel_a",
+          "mode": "managed",
+          "type": "aws_subnet",
+          "name": "kernel_a",
+          "provider_name": "registry.opentofu.org/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "vpc_id": null,
+            "cidr_block": "10.60.1.0/24",
+            "availability_zone": "ap-southeast-2b",
+            "map_public_ip_on_launch": false,
+            "tags": {
+              "Plane": "kernel",
+              "Component": "subnet",
+              "Environment": "prod",
+              "System": "mainline"
+            },
+            "tags_all": {
+              "Plane": "kernel",
+              "Component": "subnet",
+              "Environment": "prod",
+              "System": "mainline"
+            }
+          }
+        },
+        {
+          "address": "aws_subnet.kernel_b",
+          "mode": "managed",
+          "type": "aws_subnet",
+          "name": "kernel_b",
+          "provider_name": "registry.opentofu.org/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "vpc_id": null,
+            "cidr_block": "10.60.2.0/24",
+            "availability_zone": "ap-southeast-2c",
+            "map_public_ip_on_launch": false,
+            "tags": {
+              "Plane": "kernel",
+              "Component": "subnet",
+              "Environment": "prod",
+              "System": "mainline"
+            },
+            "tags_all": {
+              "Plane": "kernel",
+              "Component": "subnet",
+              "Environment": "prod",
+              "System": "mainline"
+            }
+          }
+        },
+        {
+          "address": "aws_subnet.kernel_c",
+          "mode": "managed",
+          "type": "aws_subnet",
+          "name": "kernel_c",
+          "provider_name": "registry.opentofu.org/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "vpc_id": null,
+            "cidr_block": "10.60.3.0/24",
+            "availability_zone": "ap-southeast-2a",
+            "map_public_ip_on_launch": false,
+            "tags": {
+              "Plane": "kernel",
+              "Component": "subnet",
+              "Environment": "prod",
+              "System": "mainline"
+            },
+            "tags_all": {
+              "Plane": "kernel",
+              "Component": "subnet",
+              "Environment": "prod",
+              "System": "mainline"
+            }
+          }
+        },
+        {
+          "address": "aws_subnet.cognition_a",
+          "mode": "managed",
+          "type": "aws_subnet",
+          "name": "cognition_a",
+          "provider_name": "registry.opentofu.org/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "vpc_id": null,
+            "cidr_block": "10.60.11.0/24",
+            "availability_zone": "ap-southeast-2c",
+            "map_public_ip_on_launch": false,
+            "tags": {
+              "Plane": "cognition",
+              "Component": "subnet",
+              "Environment": "prod",
+              "System": "mainline"
+            },
+            "tags_all": {
+              "Plane": "cognition",
+              "Component": "subnet",
+              "Environment": "prod",
+              "System": "mainline"
+            }
+          }
+        },
+        {
+          "address": "aws_subnet.cognition_b",
+          "mode": "managed",
+          "type": "aws_subnet",
+          "name": "cognition_b",
+          "provider_name": "registry.opentofu.org/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "vpc_id": null,
+            "cidr_block": "10.60.12.0/24",
+            "availability_zone": "ap-southeast-2a",
+            "map_public_ip_on_launch": false,
+            "tags": {
+              "Plane": "cognition",
+              "Component": "subnet",
+              "Environment": "prod",
+              "System": "mainline"
+            },
+            "tags_all": {
+              "Plane": "cognition",
+              "Component": "subnet",
+              "Environment": "prod",
+              "System": "mainline"
+            }
+          }
+        },
+        {
+          "address": "aws_subnet.custody_a",
+          "mode": "managed",
+          "type": "aws_subnet",
+          "name": "custody_a",
+          "provider_name": "registry.opentofu.org/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "vpc_id": null,
+            "cidr_block": "10.60.21.0/24",
+            "availability_zone": "ap-southeast-2a",
+            "map_public_ip_on_launch": false,
+            "tags": {
+              "Plane": "custody",
+              "Component": "subnet",
+              "Environment": "prod",
+              "System": "mainline"
+            },
+            "tags_all": {
+              "Plane": "custody",
+              "Component": "subnet",
+              "Environment": "prod",
+              "System": "mainline"
+            }
+          }
+        },
+        {
+          "address": "aws_subnet.custody_b",
+          "mode": "managed",
+          "type": "aws_subnet",
+          "name": "custody_b",
+          "provider_name": "registry.opentofu.org/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "vpc_id": null,
+            "cidr_block": "10.60.22.0/24",
+            "availability_zone": "ap-southeast-2b",
+            "map_public_ip_on_launch": false,
+            "tags": {
+              "Plane": "custody",
+              "Component": "subnet",
+              "Environment": "prod",
+              "System": "mainline"
+            },
+            "tags_all": {
+              "Plane": "custody",
+              "Component": "subnet",
+              "Environment": "prod",
+              "System": "mainline"
+            }
+          }
+        },
+        {
+          "address": "aws_subnet.control_a",
+          "mode": "managed",
+          "type": "aws_subnet",
+          "name": "control_a",
+          "provider_name": "registry.opentofu.org/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "vpc_id": null,
+            "cidr_block": "10.60.31.0/24",
+            "availability_zone": "ap-southeast-2b",
+            "map_public_ip_on_launch": false,
+            "tags": {
+              "Plane": "control",
+              "Component": "subnet",
+              "Environment": "prod",
+              "System": "mainline"
+            },
+            "tags_all": {
+              "Plane": "control",
+              "Component": "subnet",
+              "Environment": "prod",
+              "System": "mainline"
+            }
+          }
+        },
+        {
+          "address": "aws_subnet.endpoint_kernel_a",
+          "mode": "managed",
+          "type": "aws_subnet",
+          "name": "endpoint_kernel_a",
+          "provider_name": "registry.opentofu.org/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "vpc_id": null,
+            "cidr_block": "10.60.41.0/24",
+            "availability_zone": "ap-southeast-2c",
+            "map_public_ip_on_launch": false,
+            "tags": {
+              "Plane": "endpoint",
+              "Component": "subnet",
+              "Environment": "prod",
+              "System": "mainline",
+              "Serves": "kernel"
+            },
+            "tags_all": {
+              "Plane": "endpoint",
+              "Component": "subnet",
+              "Environment": "prod",
+              "System": "mainline",
+              "Serves": "kernel"
+            }
+          }
+        },
+        {
+          "address": "aws_subnet.endpoint_kernel_b",
+          "mode": "managed",
+          "type": "aws_subnet",
+          "name": "endpoint_kernel_b",
+          "provider_name": "registry.opentofu.org/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "vpc_id": null,
+            "cidr_block": "10.60.42.0/24",
+            "availability_zone": "ap-southeast-2a",
+            "map_public_ip_on_launch": false,
+            "tags": {
+              "Plane": "endpoint",
+              "Component": "subnet",
+              "Environment": "prod",
+              "System": "mainline",
+              "Serves": "kernel"
+            },
+            "tags_all": {
+              "Plane": "endpoint",
+              "Component": "subnet",
+              "Environment": "prod",
+              "System": "mainline",
+              "Serves": "kernel"
+            }
+          }
+        },
+        {
+          "address": "aws_subnet.endpoint_cognition_a",
+          "mode": "managed",
+          "type": "aws_subnet",
+          "name": "endpoint_cognition_a",
+          "provider_name": "registry.opentofu.org/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "vpc_id": null,
+            "cidr_block": "10.60.51.0/24",
+            "availability_zone": "ap-southeast-2a",
+            "map_public_ip_on_launch": false,
+            "tags": {
+              "Plane": "endpoint",
+              "Component": "subnet",
+              "Environment": "prod",
+              "System": "mainline",
+              "Serves": "cognition"
+            },
+            "tags_all": {
+              "Plane": "endpoint",
+              "Component": "subnet",
+              "Environment": "prod",
+              "System": "mainline",
+              "Serves": "cognition"
+            }
+          }
+        },
+        {
+          "address": "aws_subnet.endpoint_cognition_b",
+          "mode": "managed",
+          "type": "aws_subnet",
+          "name": "endpoint_cognition_b",
+          "provider_name": "registry.opentofu.org/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "vpc_id": null,
+            "cidr_block": "10.60.52.0/24",
+            "availability_zone": "ap-southeast-2b",
+            "map_public_ip_on_launch": false,
+            "tags": {
+              "Plane": "endpoint",
+              "Component": "subnet",
+              "Environment": "prod",
+              "System": "mainline",
+              "Serves": "cognition"
+            },
+            "tags_all": {
+              "Plane": "endpoint",
+              "Component": "subnet",
+              "Environment": "prod",
+              "System": "mainline",
+              "Serves": "cognition"
+            }
+          }
+        },
+        {
+          "address": "aws_subnet.endpoint_shared_a",
+          "mode": "managed",
+          "type": "aws_subnet",
+          "name": "endpoint_shared_a",
+          "provider_name": "registry.opentofu.org/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "vpc_id": null,
+            "cidr_block": "10.60.61.0/24",
+            "availability_zone": "ap-southeast-2b",
+            "map_public_ip_on_launch": false,
+            "tags": {
+              "Plane": "endpoint",
+              "Component": "subnet",
+              "Environment": "prod",
+              "System": "mainline",
+              "Serves": "shared"
+            },
+            "tags_all": {
+              "Plane": "endpoint",
+              "Component": "subnet",
+              "Environment": "prod",
+              "System": "mainline",
+              "Serves": "shared"
+            }
+          }
+        },
+        {
+          "address": "aws_subnet.public_a",
+          "mode": "managed",
+          "type": "aws_subnet",
+          "name": "public_a",
+          "provider_name": "registry.opentofu.org/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "vpc_id": null,
+            "cidr_block": "10.60.71.0/24",
+            "availability_zone": "ap-southeast-2c",
+            "map_public_ip_on_launch": false,
+            "tags": {
+              "Plane": "shared",
+              "Component": "subnet",
+              "Environment": "prod",
+              "System": "mainline"
+            },
+            "tags_all": {
+              "Plane": "shared",
+              "Component": "subnet",
+              "Environment": "prod",
+              "System": "mainline"
+            }
+          }
+        },
+        {
+          "address": "aws_security_group.kernel",
+          "mode": "managed",
+          "type": "aws_security_group",
+          "name": "kernel",
+          "provider_name": "registry.opentofu.org/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "name": "mainline-kernel-task",
+            "description": "kernel plane",
+            "vpc_id": null,
+            "egress": [],
+            "ingress": [],
+            "tags": {
+              "Plane": "kernel",
+              "Component": "security-group",
+              "Environment": "prod",
+              "System": "mainline"
+            },
+            "tags_all": {
+              "Plane": "kernel",
+              "Component": "security-group",
+              "Environment": "prod",
+              "System": "mainline"
+            }
+          }
+        },
+        {
+          "address": "aws_security_group.cognition",
+          "mode": "managed",
+          "type": "aws_security_group",
+          "name": "cognition",
+          "provider_name": "registry.opentofu.org/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "name": "mainline-cognition-task",
+            "description": "cognition plane",
+            "vpc_id": null,
+            "egress": [],
+            "ingress": [],
+            "tags": {
+              "Plane": "cognition",
+              "Component": "security-group",
+              "Environment": "prod",
+              "System": "mainline"
+            },
+            "tags_all": {
+              "Plane": "cognition",
+              "Component": "security-group",
+              "Environment": "prod",
+              "System": "mainline"
+            }
+          }
+        },
+        {
+          "address": "aws_security_group.custody",
+          "mode": "managed",
+          "type": "aws_security_group",
+          "name": "custody",
+          "provider_name": "registry.opentofu.org/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "name": "mainline-custody-task",
+            "description": "custody plane",
+            "vpc_id": null,
+            "egress": [],
+            "ingress": [],
+            "tags": {
+              "Plane": "custody",
+              "Component": "security-group",
+              "Environment": "prod",
+              "System": "mainline"
+            },
+            "tags_all": {
+              "Plane": "custody",
+              "Component": "security-group",
+              "Environment": "prod",
+              "System": "mainline"
+            }
+          }
+        },
+        {
+          "address": "aws_security_group.control",
+          "mode": "managed",
+          "type": "aws_security_group",
+          "name": "control",
+          "provider_name": "registry.opentofu.org/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "name": "mainline-control-task",
+            "description": "control plane",
+            "vpc_id": null,
+            "egress": [],
+            "ingress": [],
+            "tags": {
+              "Plane": "control",
+              "Component": "security-group",
+              "Environment": "prod",
+              "System": "mainline"
+            },
+            "tags_all": {
+              "Plane": "control",
+              "Component": "security-group",
+              "Environment": "prod",
+              "System": "mainline"
+            }
+          }
+        },
+        {
+          "address": "aws_security_group.endpoint_kernel",
+          "mode": "managed",
+          "type": "aws_security_group",
+          "name": "endpoint_kernel",
+          "provider_name": "registry.opentofu.org/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "name": "mainline-endpoint-kernel",
+            "description": "endpoint plane",
+            "vpc_id": null,
+            "egress": [],
+            "ingress": [],
+            "tags": {
+              "Plane": "endpoint",
+              "Component": "security-group",
+              "Environment": "prod",
+              "System": "mainline",
+              "Serves": "kernel"
+            },
+            "tags_all": {
+              "Plane": "endpoint",
+              "Component": "security-group",
+              "Environment": "prod",
+              "System": "mainline",
+              "Serves": "kernel"
+            }
+          }
+        },
+        {
+          "address": "aws_security_group.endpoint_cognition",
+          "mode": "managed",
+          "type": "aws_security_group",
+          "name": "endpoint_cognition",
+          "provider_name": "registry.opentofu.org/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "name": "mainline-endpoint-cognition",
+            "description": "endpoint plane",
+            "vpc_id": null,
+            "egress": [],
+            "ingress": [],
+            "tags": {
+              "Plane": "endpoint",
+              "Component": "security-group",
+              "Environment": "prod",
+              "System": "mainline",
+              "Serves": "cognition"
+            },
+            "tags_all": {
+              "Plane": "endpoint",
+              "Component": "security-group",
+              "Environment": "prod",
+              "System": "mainline",
+              "Serves": "cognition"
+            }
+          }
+        },
+        {
+          "address": "aws_ec2_managed_prefix_list.crdb_cloud",
+          "mode": "managed",
+          "type": "aws_ec2_managed_prefix_list",
+          "name": "crdb_cloud",
+          "provider_name": "registry.opentofu.org/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "name": "mainline-crdb-cloud-egress",
+            "address_family": "IPv4",
+            "max_entries": 8,
+            "entry": [
+              {
+                "cidr": "203.0.113.0/26",
+                "description": "cockroachdb cloud ap-southeast-2 a"
+              },
+              {
+                "cidr": "203.0.113.64/26",
+                "description": "cockroachdb cloud ap-southeast-2 b"
+              }
+            ],
+            "tags": {
+              "Plane": "database",
+              "Component": "prefix-list",
+              "Environment": "prod",
+              "System": "mainline"
+            },
+            "tags_all": {
+              "Plane": "database",
+              "Component": "prefix-list",
+              "Environment": "prod",
+              "System": "mainline"
+            }
+          }
+        },
+        {
+          "address": "aws_vpc_endpoint.secretsmanager_kernel",
+          "mode": "managed",
+          "type": "aws_vpc_endpoint",
+          "name": "secretsmanager_kernel",
+          "provider_name": "registry.opentofu.org/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "service_name": "com.amazonaws.ap-southeast-2.secretsmanager",
+            "vpc_endpoint_type": "Interface",
+            "private_dns_enabled": true,
+            "vpc_id": null,
+            "subnet_ids": null,
+            "security_group_ids": null,
+            "policy": null,
+            "tags": {
+              "Plane": "kernel",
+              "Component": "vpc-endpoint",
+              "Environment": "prod",
+              "System": "mainline",
+              "Serves": "kernel"
+            },
+            "tags_all": {
+              "Plane": "kernel",
+              "Component": "vpc-endpoint",
+              "Environment": "prod",
+              "System": "mainline",
+              "Serves": "kernel"
+            }
+          }
+        },
+        {
+          "address": "aws_vpc_endpoint.kms_kernel",
+          "mode": "managed",
+          "type": "aws_vpc_endpoint",
+          "name": "kms_kernel",
+          "provider_name": "registry.opentofu.org/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "service_name": "com.amazonaws.ap-southeast-2.kms",
+            "vpc_endpoint_type": "Interface",
+            "private_dns_enabled": true,
+            "vpc_id": null,
+            "subnet_ids": null,
+            "security_group_ids": null,
+            "policy": null,
+            "tags": {
+              "Plane": "kernel",
+              "Component": "vpc-endpoint",
+              "Environment": "prod",
+              "System": "mainline",
+              "Serves": "kernel"
+            },
+            "tags_all": {
+              "Plane": "kernel",
+              "Component": "vpc-endpoint",
+              "Environment": "prod",
+              "System": "mainline",
+              "Serves": "kernel"
+            }
+          }
+        },
+        {
+          "address": "aws_vpc_endpoint.logs_kernel",
+          "mode": "managed",
+          "type": "aws_vpc_endpoint",
+          "name": "logs_kernel",
+          "provider_name": "registry.opentofu.org/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "service_name": "com.amazonaws.ap-southeast-2.logs",
+            "vpc_endpoint_type": "Interface",
+            "private_dns_enabled": true,
+            "vpc_id": null,
+            "subnet_ids": null,
+            "security_group_ids": null,
+            "policy": null,
+            "tags": {
+              "Plane": "kernel",
+              "Component": "vpc-endpoint",
+              "Environment": "prod",
+              "System": "mainline",
+              "Serves": "kernel"
+            },
+            "tags_all": {
+              "Plane": "kernel",
+              "Component": "vpc-endpoint",
+              "Environment": "prod",
+              "System": "mainline",
+              "Serves": "kernel"
+            }
+          }
+        },
+        {
+          "address": "aws_vpc_endpoint.monitoring_kernel",
+          "mode": "managed",
+          "type": "aws_vpc_endpoint",
+          "name": "monitoring_kernel",
+          "provider_name": "registry.opentofu.org/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "service_name": "com.amazonaws.ap-southeast-2.monitoring",
+            "vpc_endpoint_type": "Interface",
+            "private_dns_enabled": true,
+            "vpc_id": null,
+            "subnet_ids": null,
+            "security_group_ids": null,
+            "policy": null,
+            "tags": {
+              "Plane": "kernel",
+              "Component": "vpc-endpoint",
+              "Environment": "prod",
+              "System": "mainline",
+              "Serves": "kernel"
+            },
+            "tags_all": {
+              "Plane": "kernel",
+              "Component": "vpc-endpoint",
+              "Environment": "prod",
+              "System": "mainline",
+              "Serves": "kernel"
+            }
+          }
+        },
+        {
+          "address": "aws_vpc_endpoint.ecr_api_kernel",
+          "mode": "managed",
+          "type": "aws_vpc_endpoint",
+          "name": "ecr_api_kernel",
+          "provider_name": "registry.opentofu.org/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "service_name": "com.amazonaws.ap-southeast-2.ecr.api",
+            "vpc_endpoint_type": "Interface",
+            "private_dns_enabled": true,
+            "vpc_id": null,
+            "subnet_ids": null,
+            "security_group_ids": null,
+            "policy": null,
+            "tags": {
+              "Plane": "kernel",
+              "Component": "vpc-endpoint",
+              "Environment": "prod",
+              "System": "mainline",
+              "Serves": "kernel"
+            },
+            "tags_all": {
+              "Plane": "kernel",
+              "Component": "vpc-endpoint",
+              "Environment": "prod",
+              "System": "mainline",
+              "Serves": "kernel"
+            }
+          }
+        },
+        {
+          "address": "aws_vpc_endpoint.ecr_dkr_kernel",
+          "mode": "managed",
+          "type": "aws_vpc_endpoint",
+          "name": "ecr_dkr_kernel",
+          "provider_name": "registry.opentofu.org/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "service_name": "com.amazonaws.ap-southeast-2.ecr.dkr",
+            "vpc_endpoint_type": "Interface",
+            "private_dns_enabled": true,
+            "vpc_id": null,
+            "subnet_ids": null,
+            "security_group_ids": null,
+            "policy": null,
+            "tags": {
+              "Plane": "kernel",
+              "Component": "vpc-endpoint",
+              "Environment": "prod",
+              "System": "mainline",
+              "Serves": "kernel"
+            },
+            "tags_all": {
+              "Plane": "kernel",
+              "Component": "vpc-endpoint",
+              "Environment": "prod",
+              "System": "mainline",
+              "Serves": "kernel"
+            }
+          }
+        },
+        {
+          "address": "aws_vpc_endpoint.sts_kernel",
+          "mode": "managed",
+          "type": "aws_vpc_endpoint",
+          "name": "sts_kernel",
+          "provider_name": "registry.opentofu.org/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "service_name": "com.amazonaws.ap-southeast-2.sts",
+            "vpc_endpoint_type": "Interface",
+            "private_dns_enabled": true,
+            "vpc_id": null,
+            "subnet_ids": null,
+            "security_group_ids": null,
+            "policy": null,
+            "tags": {
+              "Plane": "kernel",
+              "Component": "vpc-endpoint",
+              "Environment": "prod",
+              "System": "mainline",
+              "Serves": "kernel"
+            },
+            "tags_all": {
+              "Plane": "kernel",
+              "Component": "vpc-endpoint",
+              "Environment": "prod",
+              "System": "mainline",
+              "Serves": "kernel"
+            }
+          }
+        },
+        {
+          "address": "aws_vpc_endpoint.secretsmanager_cog",
+          "mode": "managed",
+          "type": "aws_vpc_endpoint",
+          "name": "secretsmanager_cog",
+          "provider_name": "registry.opentofu.org/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "service_name": "com.amazonaws.ap-southeast-2.secretsmanager",
+            "vpc_endpoint_type": "Interface",
+            "private_dns_enabled": true,
+            "vpc_id": null,
+            "subnet_ids": null,
+            "security_group_ids": null,
+            "policy": null,
+            "tags": {
+              "Plane": "cognition",
+              "Component": "vpc-endpoint",
+              "Environment": "prod",
+              "System": "mainline",
+              "Serves": "cognition"
+            },
+            "tags_all": {
+              "Plane": "cognition",
+              "Component": "vpc-endpoint",
+              "Environment": "prod",
+              "System": "mainline",
+              "Serves": "cognition"
+            }
+          }
+        },
+        {
+          "address": "aws_vpc_endpoint.logs_cog",
+          "mode": "managed",
+          "type": "aws_vpc_endpoint",
+          "name": "logs_cog",
+          "provider_name": "registry.opentofu.org/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "service_name": "com.amazonaws.ap-southeast-2.logs",
+            "vpc_endpoint_type": "Interface",
+            "private_dns_enabled": true,
+            "vpc_id": null,
+            "subnet_ids": null,
+            "security_group_ids": null,
+            "policy": null,
+            "tags": {
+              "Plane": "cognition",
+              "Component": "vpc-endpoint",
+              "Environment": "prod",
+              "System": "mainline",
+              "Serves": "cognition"
+            },
+            "tags_all": {
+              "Plane": "cognition",
+              "Component": "vpc-endpoint",
+              "Environment": "prod",
+              "System": "mainline",
+              "Serves": "cognition"
+            }
+          }
+        },
+        {
+          "address": "aws_vpc_endpoint.textract_cog",
+          "mode": "managed",
+          "type": "aws_vpc_endpoint",
+          "name": "textract_cog",
+          "provider_name": "registry.opentofu.org/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "service_name": "com.amazonaws.ap-southeast-2.textract",
+            "vpc_endpoint_type": "Interface",
+            "private_dns_enabled": true,
+            "vpc_id": null,
+            "subnet_ids": null,
+            "security_group_ids": null,
+            "policy": null,
+            "tags": {
+              "Plane": "cognition",
+              "Component": "vpc-endpoint",
+              "Environment": "prod",
+              "System": "mainline",
+              "Serves": "cognition"
+            },
+            "tags_all": {
+              "Plane": "cognition",
+              "Component": "vpc-endpoint",
+              "Environment": "prod",
+              "System": "mainline",
+              "Serves": "cognition"
+            }
+          }
+        },
+        {
+          "address": "aws_vpc_endpoint.bedrock_runtime_cog",
+          "mode": "managed",
+          "type": "aws_vpc_endpoint",
+          "name": "bedrock_runtime_cog",
+          "provider_name": "registry.opentofu.org/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "service_name": "com.amazonaws.ap-southeast-2.bedrock-runtime",
+            "vpc_endpoint_type": "Interface",
+            "private_dns_enabled": true,
+            "vpc_id": null,
+            "subnet_ids": null,
+            "security_group_ids": null,
+            "policy": null,
+            "tags": {
+              "Plane": "cognition",
+              "Component": "vpc-endpoint",
+              "Environment": "prod",
+              "System": "mainline",
+              "Serves": "cognition"
+            },
+            "tags_all": {
+              "Plane": "cognition",
+              "Component": "vpc-endpoint",
+              "Environment": "prod",
+              "System": "mainline",
+              "Serves": "cognition"
+            }
+          }
+        },
+        {
+          "address": "aws_vpc_endpoint.s3_gateway",
+          "mode": "managed",
+          "type": "aws_vpc_endpoint",
+          "name": "s3_gateway",
+          "provider_name": "registry.opentofu.org/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "service_name": "com.amazonaws.ap-southeast-2.s3",
+            "vpc_endpoint_type": "Gateway",
+            "vpc_id": null,
+            "tags": {
+              "Plane": "shared",
+              "Component": "vpc-endpoint",
+              "Environment": "prod",
+              "System": "mainline"
+            },
+            "tags_all": {
+              "Plane": "shared",
+              "Component": "vpc-endpoint",
+              "Environment": "prod",
+              "System": "mainline"
+            }
+          }
+        },
+        {
+          "address": "aws_vpc_security_group_egress_rule.kernel_pgwire",
+          "mode": "managed",
+          "type": "aws_vpc_security_group_egress_rule",
+          "name": "kernel_pgwire",
+          "provider_name": "registry.opentofu.org/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "security_group_id": null,
+            "ip_protocol": "tcp",
+            "from_port": 26257,
+            "to_port": 26257,
+            "description": "pgwire to the enumerated CockroachDB Cloud egress prefix list",
+            "cidr_ipv4": null,
+            "cidr_ipv6": null,
+            "prefix_list_id": null,
+            "referenced_security_group_id": null,
+            "tags": {
+              "Plane": "shared",
+              "Component": "egress-rule",
+              "Environment": "prod",
+              "System": "mainline"
+            },
+            "tags_all": {
+              "Plane": "shared",
+              "Component": "egress-rule",
+              "Environment": "prod",
+              "System": "mainline"
+            }
+          }
+        },
+        {
+          "address": "aws_vpc_security_group_egress_rule.kernel_endpoints_https",
+          "mode": "managed",
+          "type": "aws_vpc_security_group_egress_rule",
+          "name": "kernel_endpoints_https",
+          "provider_name": "registry.opentofu.org/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "security_group_id": null,
+            "ip_protocol": "tcp",
+            "from_port": 443,
+            "to_port": 443,
+            "description": "HTTPS to the kernel interface-endpoint security group ONLY",
+            "cidr_ipv4": null,
+            "cidr_ipv6": null,
+            "prefix_list_id": null,
+            "referenced_security_group_id": null,
+            "tags": {
+              "Plane": "shared",
+              "Component": "egress-rule",
+              "Environment": "prod",
+              "System": "mainline"
+            },
+            "tags_all": {
+              "Plane": "shared",
+              "Component": "egress-rule",
+              "Environment": "prod",
+              "System": "mainline"
+            }
+          }
+        },
+        {
+          "address": "aws_vpc_security_group_egress_rule.cognition_pgwire",
+          "mode": "managed",
+          "type": "aws_vpc_security_group_egress_rule",
+          "name": "cognition_pgwire",
+          "provider_name": "registry.opentofu.org/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "security_group_id": null,
+            "ip_protocol": "tcp",
+            "from_port": 26257,
+            "to_port": 26257,
+            "description": "pgwire",
+            "cidr_ipv4": null,
+            "cidr_ipv6": null,
+            "prefix_list_id": null,
+            "referenced_security_group_id": null,
+            "tags": {
+              "Plane": "shared",
+              "Component": "egress-rule",
+              "Environment": "prod",
+              "System": "mainline"
+            },
+            "tags_all": {
+              "Plane": "shared",
+              "Component": "egress-rule",
+              "Environment": "prod",
+              "System": "mainline"
+            }
+          }
+        },
+        {
+          "address": "aws_vpc_security_group_egress_rule.cognition_endpoints_https",
+          "mode": "managed",
+          "type": "aws_vpc_security_group_egress_rule",
+          "name": "cognition_endpoints_https",
+          "provider_name": "registry.opentofu.org/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "security_group_id": null,
+            "ip_protocol": "tcp",
+            "from_port": 443,
+            "to_port": 443,
+            "description": "HTTPS to the cognition endpoint SG, which fronts bedrock-runtime",
+            "cidr_ipv4": null,
+            "cidr_ipv6": null,
+            "prefix_list_id": null,
+            "referenced_security_group_id": null,
+            "tags": {
+              "Plane": "shared",
+              "Component": "egress-rule",
+              "Environment": "prod",
+              "System": "mainline"
+            },
+            "tags_all": {
+              "Plane": "shared",
+              "Component": "egress-rule",
+              "Environment": "prod",
+              "System": "mainline"
+            }
+          }
+        },
+        {
+          "address": "aws_vpc_security_group_egress_rule.custody_pgwire",
+          "mode": "managed",
+          "type": "aws_vpc_security_group_egress_rule",
+          "name": "custody_pgwire",
+          "provider_name": "registry.opentofu.org/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "security_group_id": null,
+            "ip_protocol": "tcp",
+            "from_port": 26257,
+            "to_port": 26257,
+            "description": "pgwire",
+            "cidr_ipv4": null,
+            "cidr_ipv6": null,
+            "prefix_list_id": null,
+            "referenced_security_group_id": null,
+            "tags": {
+              "Plane": "shared",
+              "Component": "egress-rule",
+              "Environment": "prod",
+              "System": "mainline"
+            },
+            "tags_all": {
+              "Plane": "shared",
+              "Component": "egress-rule",
+              "Environment": "prod",
+              "System": "mainline"
+            }
+          }
+        },
+        {
+          "address": "aws_vpc_security_group_ingress_rule.endpoint_kernel_443",
+          "mode": "managed",
+          "type": "aws_vpc_security_group_ingress_rule",
+          "name": "endpoint_kernel_443",
+          "provider_name": "registry.opentofu.org/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "security_group_id": null,
+            "ip_protocol": "tcp",
+            "from_port": 443,
+            "to_port": 443,
+            "referenced_security_group_id": null,
+            "description": "HTTPS from the plane this endpoint group serves",
+            "tags": {
+              "Plane": "endpoint",
+              "Component": "ingress-rule",
+              "Environment": "prod",
+              "System": "mainline"
+            },
+            "tags_all": {
+              "Plane": "endpoint",
+              "Component": "ingress-rule",
+              "Environment": "prod",
+              "System": "mainline"
+            }
+          }
+        },
+        {
+          "address": "aws_vpc_security_group_ingress_rule.endpoint_cognition_443",
+          "mode": "managed",
+          "type": "aws_vpc_security_group_ingress_rule",
+          "name": "endpoint_cognition_443",
+          "provider_name": "registry.opentofu.org/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "security_group_id": null,
+            "ip_protocol": "tcp",
+            "from_port": 443,
+            "to_port": 443,
+            "referenced_security_group_id": null,
+            "description": "HTTPS from the plane this endpoint group serves",
+            "tags": {
+              "Plane": "endpoint",
+              "Component": "ingress-rule",
+              "Environment": "prod",
+              "System": "mainline"
+            },
+            "tags_all": {
+              "Plane": "endpoint",
+              "Component": "ingress-rule",
+              "Environment": "prod",
+              "System": "mainline"
+            }
+          }
+        },
+        {
+          "address": "aws_iam_policy.kernel_boundary",
+          "mode": "managed",
+          "type": "aws_iam_policy",
+          "name": "kernel_boundary",
+          "provider_name": "registry.opentofu.org/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "name": "mainline-kernel-boundary",
+            "path": "/boundaries/",
+            "description": "Permissions boundary for the kernel task role. Denies the model plane.",
+            "policy": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Sid\": \"AllowKernelBaseline\",\n      \"Effect\": \"Allow\",\n      \"Action\": [\n        \"logs:CreateLogStream\",\n        \"logs:PutLogEvents\",\n        \"kms:Decrypt\",\n        \"kms:GenerateDataKey\",\n        \"secretsmanager:GetSecretValue\",\n        \"ecr:GetDownloadUrlForLayer\",\n        \"ecr:BatchGetImage\",\n        \"ecr:GetAuthorizationToken\",\n        \"s3:GetObject\",\n        \"sts:AssumeRole\",\n        \"xray:PutTraceSegments\",\n        \"cloudwatch:PutMetricData\"\n      ],\n      \"Resource\": \"*\"\n    },\n    {\n      \"Sid\": \"DenyModelPlaneEntirely\",\n      \"Effect\": \"Deny\",\n      \"Action\": [\n        \"bedrock:*\",\n        \"bedrock-runtime:*\",\n        \"bedrock-agentcore:*\"\n      ],\n      \"Resource\": \"*\"\n    },\n    {\n      \"Sid\": \"DenyOutsideResidencyRegion\",\n      \"Effect\": \"Deny\",\n      \"NotAction\": [\n        \"iam:*\",\n        \"sts:*\",\n        \"cloudfront:*\",\n        \"s3:ListAllMyBuckets\"\n      ],\n      \"Resource\": \"*\",\n      \"Condition\": {\n        \"StringNotEquals\": {\n          \"aws:RequestedRegion\": \"ap-southeast-2\"\n        }\n      }\n    }\n  ]\n}",
+            "tags": {
+              "Plane": "kernel",
+              "Component": "permissions-boundary",
+              "Environment": "prod",
+              "System": "mainline"
+            },
+            "tags_all": {
+              "Plane": "kernel",
+              "Component": "permissions-boundary",
+              "Environment": "prod",
+              "System": "mainline"
+            }
+          }
+        },
+        {
+          "address": "aws_iam_role.kernel_task",
+          "mode": "managed",
+          "type": "aws_iam_role",
+          "name": "kernel_task",
+          "provider_name": "registry.opentofu.org/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "name": "mainline-kernel",
+            "path": "/",
+            "assume_role_policy": "{\"Version\": \"2012-10-17\", \"Statement\": [{\"Effect\": \"Allow\", \"Principal\": {\"Service\": \"ecs-tasks.amazonaws.com\"}, \"Action\": \"sts:AssumeRole\"}]}",
+            "permissions_boundary": null,
+            "force_detach_policies": false,
+            "max_session_duration": 3600,
+            "tags": {
+              "Plane": "kernel",
+              "Component": "task-role",
+              "Environment": "prod",
+              "System": "mainline"
+            },
+            "tags_all": {
+              "Plane": "kernel",
+              "Component": "task-role",
+              "Environment": "prod",
+              "System": "mainline"
+            }
+          }
+        },
+        {
+          "address": "aws_iam_role_policy.kernel_runtime",
+          "mode": "managed",
+          "type": "aws_iam_role_policy",
+          "name": "kernel_runtime",
+          "provider_name": "registry.opentofu.org/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "name": "mainline-kernel-runtime",
+            "role": null,
+            "policy": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Sid\": \"KernelRuntime\",\n      \"Effect\": \"Allow\",\n      \"Action\": [\n        \"secretsmanager:GetSecretValue\",\n        \"kms:Decrypt\",\n        \"logs:PutLogEvents\",\n        \"logs:CreateLogStream\",\n        \"cloudwatch:PutMetricData\"\n      ],\n      \"Resource\": \"*\"\n    }\n  ]\n}"
+          }
+        },
+        {
+          "address": "aws_iam_role.recall_task",
+          "mode": "managed",
+          "type": "aws_iam_role",
+          "name": "recall_task",
+          "provider_name": "registry.opentofu.org/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "name": "mainline-recall",
+            "path": "/",
+            "assume_role_policy": "{\"Version\": \"2012-10-17\", \"Statement\": [{\"Effect\": \"Allow\", \"Principal\": {\"Service\": \"ecs-tasks.amazonaws.com\"}, \"Action\": \"sts:AssumeRole\"}]}",
+            "permissions_boundary": null,
+            "tags": {
+              "Plane": "cognition",
+              "Component": "task-role",
+              "Environment": "prod",
+              "System": "mainline"
+            },
+            "tags_all": {
+              "Plane": "cognition",
+              "Component": "task-role",
+              "Environment": "prod",
+              "System": "mainline"
+            }
+          }
+        },
+        {
+          "address": "aws_iam_role_policy.recall_model",
+          "mode": "managed",
+          "type": "aws_iam_role_policy",
+          "name": "recall_model",
+          "provider_name": "registry.opentofu.org/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "name": "mainline-recall-model",
+            "role": null,
+            "policy": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Sid\": \"RecallModelPlane\",\n      \"Effect\": \"Allow\",\n      \"Action\": [\n        \"bedrock:InvokeModel\",\n        \"bedrock:InvokeModelWithResponseStream\"\n      ],\n      \"Resource\": [\n        \"arn:aws:bedrock:ap-southeast-2:*:inference-profile/au.anthropic.*\"\n      ]\n    }\n  ]\n}"
+          }
+        }
+      ],
+      "child_modules": []
+    }
+  },
+  "resource_changes": [
+    {
+      "address": "aws_vpc.main",
+      "mode": "managed",
+      "type": "aws_vpc",
+      "name": "main",
+      "provider_name": "registry.opentofu.org/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "cidr_block": "10.60.0.0/16",
+          "enable_dns_support": true,
+          "enable_dns_hostnames": true,
+          "tags": {
+            "Plane": "shared",
+            "Component": "vpc",
+            "Environment": "prod",
+            "System": "mainline"
+          },
+          "tags_all": {
+            "Plane": "shared",
+            "Component": "vpc",
+            "Environment": "prod",
+            "System": "mainline"
+          }
+        },
+        "after_unknown": {
+          "id": true,
+          "arn": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_subnet.kernel_a",
+      "mode": "managed",
+      "type": "aws_subnet",
+      "name": "kernel_a",
+      "provider_name": "registry.opentofu.org/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "vpc_id": null,
+          "cidr_block": "10.60.1.0/24",
+          "availability_zone": "ap-southeast-2b",
+          "map_public_ip_on_launch": false,
+          "tags": {
+            "Plane": "kernel",
+            "Component": "subnet",
+            "Environment": "prod",
+            "System": "mainline"
+          },
+          "tags_all": {
+            "Plane": "kernel",
+            "Component": "subnet",
+            "Environment": "prod",
+            "System": "mainline"
+          }
+        },
+        "after_unknown": {
+          "id": true,
+          "arn": true,
+          "vpc_id": true,
+          "owner_id": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_subnet.kernel_b",
+      "mode": "managed",
+      "type": "aws_subnet",
+      "name": "kernel_b",
+      "provider_name": "registry.opentofu.org/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "vpc_id": null,
+          "cidr_block": "10.60.2.0/24",
+          "availability_zone": "ap-southeast-2c",
+          "map_public_ip_on_launch": false,
+          "tags": {
+            "Plane": "kernel",
+            "Component": "subnet",
+            "Environment": "prod",
+            "System": "mainline"
+          },
+          "tags_all": {
+            "Plane": "kernel",
+            "Component": "subnet",
+            "Environment": "prod",
+            "System": "mainline"
+          }
+        },
+        "after_unknown": {
+          "id": true,
+          "arn": true,
+          "vpc_id": true,
+          "owner_id": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_subnet.kernel_c",
+      "mode": "managed",
+      "type": "aws_subnet",
+      "name": "kernel_c",
+      "provider_name": "registry.opentofu.org/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "vpc_id": null,
+          "cidr_block": "10.60.3.0/24",
+          "availability_zone": "ap-southeast-2a",
+          "map_public_ip_on_launch": false,
+          "tags": {
+            "Plane": "kernel",
+            "Component": "subnet",
+            "Environment": "prod",
+            "System": "mainline"
+          },
+          "tags_all": {
+            "Plane": "kernel",
+            "Component": "subnet",
+            "Environment": "prod",
+            "System": "mainline"
+          }
+        },
+        "after_unknown": {
+          "id": true,
+          "arn": true,
+          "vpc_id": true,
+          "owner_id": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_subnet.cognition_a",
+      "mode": "managed",
+      "type": "aws_subnet",
+      "name": "cognition_a",
+      "provider_name": "registry.opentofu.org/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "vpc_id": null,
+          "cidr_block": "10.60.11.0/24",
+          "availability_zone": "ap-southeast-2c",
+          "map_public_ip_on_launch": false,
+          "tags": {
+            "Plane": "cognition",
+            "Component": "subnet",
+            "Environment": "prod",
+            "System": "mainline"
+          },
+          "tags_all": {
+            "Plane": "cognition",
+            "Component": "subnet",
+            "Environment": "prod",
+            "System": "mainline"
+          }
+        },
+        "after_unknown": {
+          "id": true,
+          "arn": true,
+          "vpc_id": true,
+          "owner_id": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_subnet.cognition_b",
+      "mode": "managed",
+      "type": "aws_subnet",
+      "name": "cognition_b",
+      "provider_name": "registry.opentofu.org/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "vpc_id": null,
+          "cidr_block": "10.60.12.0/24",
+          "availability_zone": "ap-southeast-2a",
+          "map_public_ip_on_launch": false,
+          "tags": {
+            "Plane": "cognition",
+            "Component": "subnet",
+            "Environment": "prod",
+            "System": "mainline"
+          },
+          "tags_all": {
+            "Plane": "cognition",
+            "Component": "subnet",
+            "Environment": "prod",
+            "System": "mainline"
+          }
+        },
+        "after_unknown": {
+          "id": true,
+          "arn": true,
+          "vpc_id": true,
+          "owner_id": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_subnet.custody_a",
+      "mode": "managed",
+      "type": "aws_subnet",
+      "name": "custody_a",
+      "provider_name": "registry.opentofu.org/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "vpc_id": null,
+          "cidr_block": "10.60.21.0/24",
+          "availability_zone": "ap-southeast-2a",
+          "map_public_ip_on_launch": false,
+          "tags": {
+            "Plane": "custody",
+            "Component": "subnet",
+            "Environment": "prod",
+            "System": "mainline"
+          },
+          "tags_all": {
+            "Plane": "custody",
+            "Component": "subnet",
+            "Environment": "prod",
+            "System": "mainline"
+          }
+        },
+        "after_unknown": {
+          "id": true,
+          "arn": true,
+          "vpc_id": true,
+          "owner_id": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_subnet.custody_b",
+      "mode": "managed",
+      "type": "aws_subnet",
+      "name": "custody_b",
+      "provider_name": "registry.opentofu.org/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "vpc_id": null,
+          "cidr_block": "10.60.22.0/24",
+          "availability_zone": "ap-southeast-2b",
+          "map_public_ip_on_launch": false,
+          "tags": {
+            "Plane": "custody",
+            "Component": "subnet",
+            "Environment": "prod",
+            "System": "mainline"
+          },
+          "tags_all": {
+            "Plane": "custody",
+            "Component": "subnet",
+            "Environment": "prod",
+            "System": "mainline"
+          }
+        },
+        "after_unknown": {
+          "id": true,
+          "arn": true,
+          "vpc_id": true,
+          "owner_id": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_subnet.control_a",
+      "mode": "managed",
+      "type": "aws_subnet",
+      "name": "control_a",
+      "provider_name": "registry.opentofu.org/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "vpc_id": null,
+          "cidr_block": "10.60.31.0/24",
+          "availability_zone": "ap-southeast-2b",
+          "map_public_ip_on_launch": false,
+          "tags": {
+            "Plane": "control",
+            "Component": "subnet",
+            "Environment": "prod",
+            "System": "mainline"
+          },
+          "tags_all": {
+            "Plane": "control",
+            "Component": "subnet",
+            "Environment": "prod",
+            "System": "mainline"
+          }
+        },
+        "after_unknown": {
+          "id": true,
+          "arn": true,
+          "vpc_id": true,
+          "owner_id": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_subnet.endpoint_kernel_a",
+      "mode": "managed",
+      "type": "aws_subnet",
+      "name": "endpoint_kernel_a",
+      "provider_name": "registry.opentofu.org/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "vpc_id": null,
+          "cidr_block": "10.60.41.0/24",
+          "availability_zone": "ap-southeast-2c",
+          "map_public_ip_on_launch": false,
+          "tags": {
+            "Plane": "endpoint",
+            "Component": "subnet",
+            "Environment": "prod",
+            "System": "mainline",
+            "Serves": "kernel"
+          },
+          "tags_all": {
+            "Plane": "endpoint",
+            "Component": "subnet",
+            "Environment": "prod",
+            "System": "mainline",
+            "Serves": "kernel"
+          }
+        },
+        "after_unknown": {
+          "id": true,
+          "arn": true,
+          "vpc_id": true,
+          "owner_id": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_subnet.endpoint_kernel_b",
+      "mode": "managed",
+      "type": "aws_subnet",
+      "name": "endpoint_kernel_b",
+      "provider_name": "registry.opentofu.org/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "vpc_id": null,
+          "cidr_block": "10.60.42.0/24",
+          "availability_zone": "ap-southeast-2a",
+          "map_public_ip_on_launch": false,
+          "tags": {
+            "Plane": "endpoint",
+            "Component": "subnet",
+            "Environment": "prod",
+            "System": "mainline",
+            "Serves": "kernel"
+          },
+          "tags_all": {
+            "Plane": "endpoint",
+            "Component": "subnet",
+            "Environment": "prod",
+            "System": "mainline",
+            "Serves": "kernel"
+          }
+        },
+        "after_unknown": {
+          "id": true,
+          "arn": true,
+          "vpc_id": true,
+          "owner_id": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_subnet.endpoint_cognition_a",
+      "mode": "managed",
+      "type": "aws_subnet",
+      "name": "endpoint_cognition_a",
+      "provider_name": "registry.opentofu.org/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "vpc_id": null,
+          "cidr_block": "10.60.51.0/24",
+          "availability_zone": "ap-southeast-2a",
+          "map_public_ip_on_launch": false,
+          "tags": {
+            "Plane": "endpoint",
+            "Component": "subnet",
+            "Environment": "prod",
+            "System": "mainline",
+            "Serves": "cognition"
+          },
+          "tags_all": {
+            "Plane": "endpoint",
+            "Component": "subnet",
+            "Environment": "prod",
+            "System": "mainline",
+            "Serves": "cognition"
+          }
+        },
+        "after_unknown": {
+          "id": true,
+          "arn": true,
+          "vpc_id": true,
+          "owner_id": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_subnet.endpoint_cognition_b",
+      "mode": "managed",
+      "type": "aws_subnet",
+      "name": "endpoint_cognition_b",
+      "provider_name": "registry.opentofu.org/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "vpc_id": null,
+          "cidr_block": "10.60.52.0/24",
+          "availability_zone": "ap-southeast-2b",
+          "map_public_ip_on_launch": false,
+          "tags": {
+            "Plane": "endpoint",
+            "Component": "subnet",
+            "Environment": "prod",
+            "System": "mainline",
+            "Serves": "cognition"
+          },
+          "tags_all": {
+            "Plane": "endpoint",
+            "Component": "subnet",
+            "Environment": "prod",
+            "System": "mainline",
+            "Serves": "cognition"
+          }
+        },
+        "after_unknown": {
+          "id": true,
+          "arn": true,
+          "vpc_id": true,
+          "owner_id": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_subnet.endpoint_shared_a",
+      "mode": "managed",
+      "type": "aws_subnet",
+      "name": "endpoint_shared_a",
+      "provider_name": "registry.opentofu.org/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "vpc_id": null,
+          "cidr_block": "10.60.61.0/24",
+          "availability_zone": "ap-southeast-2b",
+          "map_public_ip_on_launch": false,
+          "tags": {
+            "Plane": "endpoint",
+            "Component": "subnet",
+            "Environment": "prod",
+            "System": "mainline",
+            "Serves": "shared"
+          },
+          "tags_all": {
+            "Plane": "endpoint",
+            "Component": "subnet",
+            "Environment": "prod",
+            "System": "mainline",
+            "Serves": "shared"
+          }
+        },
+        "after_unknown": {
+          "id": true,
+          "arn": true,
+          "vpc_id": true,
+          "owner_id": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_subnet.public_a",
+      "mode": "managed",
+      "type": "aws_subnet",
+      "name": "public_a",
+      "provider_name": "registry.opentofu.org/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "vpc_id": null,
+          "cidr_block": "10.60.71.0/24",
+          "availability_zone": "ap-southeast-2c",
+          "map_public_ip_on_launch": false,
+          "tags": {
+            "Plane": "shared",
+            "Component": "subnet",
+            "Environment": "prod",
+            "System": "mainline"
+          },
+          "tags_all": {
+            "Plane": "shared",
+            "Component": "subnet",
+            "Environment": "prod",
+            "System": "mainline"
+          }
+        },
+        "after_unknown": {
+          "id": true,
+          "arn": true,
+          "vpc_id": true,
+          "owner_id": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_security_group.kernel",
+      "mode": "managed",
+      "type": "aws_security_group",
+      "name": "kernel",
+      "provider_name": "registry.opentofu.org/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "name": "mainline-kernel-task",
+          "description": "kernel plane",
+          "vpc_id": null,
+          "egress": [],
+          "ingress": [],
+          "tags": {
+            "Plane": "kernel",
+            "Component": "security-group",
+            "Environment": "prod",
+            "System": "mainline"
+          },
+          "tags_all": {
+            "Plane": "kernel",
+            "Component": "security-group",
+            "Environment": "prod",
+            "System": "mainline"
+          }
+        },
+        "after_unknown": {
+          "id": true,
+          "arn": true,
+          "vpc_id": true,
+          "owner_id": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_security_group.cognition",
+      "mode": "managed",
+      "type": "aws_security_group",
+      "name": "cognition",
+      "provider_name": "registry.opentofu.org/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "name": "mainline-cognition-task",
+          "description": "cognition plane",
+          "vpc_id": null,
+          "egress": [],
+          "ingress": [],
+          "tags": {
+            "Plane": "cognition",
+            "Component": "security-group",
+            "Environment": "prod",
+            "System": "mainline"
+          },
+          "tags_all": {
+            "Plane": "cognition",
+            "Component": "security-group",
+            "Environment": "prod",
+            "System": "mainline"
+          }
+        },
+        "after_unknown": {
+          "id": true,
+          "arn": true,
+          "vpc_id": true,
+          "owner_id": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_security_group.custody",
+      "mode": "managed",
+      "type": "aws_security_group",
+      "name": "custody",
+      "provider_name": "registry.opentofu.org/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "name": "mainline-custody-task",
+          "description": "custody plane",
+          "vpc_id": null,
+          "egress": [],
+          "ingress": [],
+          "tags": {
+            "Plane": "custody",
+            "Component": "security-group",
+            "Environment": "prod",
+            "System": "mainline"
+          },
+          "tags_all": {
+            "Plane": "custody",
+            "Component": "security-group",
+            "Environment": "prod",
+            "System": "mainline"
+          }
+        },
+        "after_unknown": {
+          "id": true,
+          "arn": true,
+          "vpc_id": true,
+          "owner_id": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_security_group.control",
+      "mode": "managed",
+      "type": "aws_security_group",
+      "name": "control",
+      "provider_name": "registry.opentofu.org/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "name": "mainline-control-task",
+          "description": "control plane",
+          "vpc_id": null,
+          "egress": [],
+          "ingress": [],
+          "tags": {
+            "Plane": "control",
+            "Component": "security-group",
+            "Environment": "prod",
+            "System": "mainline"
+          },
+          "tags_all": {
+            "Plane": "control",
+            "Component": "security-group",
+            "Environment": "prod",
+            "System": "mainline"
+          }
+        },
+        "after_unknown": {
+          "id": true,
+          "arn": true,
+          "vpc_id": true,
+          "owner_id": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_security_group.endpoint_kernel",
+      "mode": "managed",
+      "type": "aws_security_group",
+      "name": "endpoint_kernel",
+      "provider_name": "registry.opentofu.org/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "name": "mainline-endpoint-kernel",
+          "description": "endpoint plane",
+          "vpc_id": null,
+          "egress": [],
+          "ingress": [],
+          "tags": {
+            "Plane": "endpoint",
+            "Component": "security-group",
+            "Environment": "prod",
+            "System": "mainline",
+            "Serves": "kernel"
+          },
+          "tags_all": {
+            "Plane": "endpoint",
+            "Component": "security-group",
+            "Environment": "prod",
+            "System": "mainline",
+            "Serves": "kernel"
+          }
+        },
+        "after_unknown": {
+          "id": true,
+          "arn": true,
+          "vpc_id": true,
+          "owner_id": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_security_group.endpoint_cognition",
+      "mode": "managed",
+      "type": "aws_security_group",
+      "name": "endpoint_cognition",
+      "provider_name": "registry.opentofu.org/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "name": "mainline-endpoint-cognition",
+          "description": "endpoint plane",
+          "vpc_id": null,
+          "egress": [],
+          "ingress": [],
+          "tags": {
+            "Plane": "endpoint",
+            "Component": "security-group",
+            "Environment": "prod",
+            "System": "mainline",
+            "Serves": "cognition"
+          },
+          "tags_all": {
+            "Plane": "endpoint",
+            "Component": "security-group",
+            "Environment": "prod",
+            "System": "mainline",
+            "Serves": "cognition"
+          }
+        },
+        "after_unknown": {
+          "id": true,
+          "arn": true,
+          "vpc_id": true,
+          "owner_id": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_ec2_managed_prefix_list.crdb_cloud",
+      "mode": "managed",
+      "type": "aws_ec2_managed_prefix_list",
+      "name": "crdb_cloud",
+      "provider_name": "registry.opentofu.org/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "name": "mainline-crdb-cloud-egress",
+          "address_family": "IPv4",
+          "max_entries": 8,
+          "entry": [
+            {
+              "cidr": "203.0.113.0/26",
+              "description": "cockroachdb cloud ap-southeast-2 a"
+            },
+            {
+              "cidr": "203.0.113.64/26",
+              "description": "cockroachdb cloud ap-southeast-2 b"
+            }
+          ],
+          "tags": {
+            "Plane": "database",
+            "Component": "prefix-list",
+            "Environment": "prod",
+            "System": "mainline"
+          },
+          "tags_all": {
+            "Plane": "database",
+            "Component": "prefix-list",
+            "Environment": "prod",
+            "System": "mainline"
+          }
+        },
+        "after_unknown": {
+          "id": true,
+          "arn": true,
+          "owner_id": true,
+          "version": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_vpc_endpoint.secretsmanager_kernel",
+      "mode": "managed",
+      "type": "aws_vpc_endpoint",
+      "name": "secretsmanager_kernel",
+      "provider_name": "registry.opentofu.org/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "service_name": "com.amazonaws.ap-southeast-2.secretsmanager",
+          "vpc_endpoint_type": "Interface",
+          "private_dns_enabled": true,
+          "vpc_id": null,
+          "subnet_ids": null,
+          "security_group_ids": null,
+          "policy": null,
+          "tags": {
+            "Plane": "kernel",
+            "Component": "vpc-endpoint",
+            "Environment": "prod",
+            "System": "mainline",
+            "Serves": "kernel"
+          },
+          "tags_all": {
+            "Plane": "kernel",
+            "Component": "vpc-endpoint",
+            "Environment": "prod",
+            "System": "mainline",
+            "Serves": "kernel"
+          }
+        },
+        "after_unknown": {
+          "id": true,
+          "arn": true,
+          "vpc_id": true,
+          "subnet_ids": [
+            true,
+            true
+          ],
+          "security_group_ids": [
+            true
+          ],
+          "dns_entry": true,
+          "network_interface_ids": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_vpc_endpoint.kms_kernel",
+      "mode": "managed",
+      "type": "aws_vpc_endpoint",
+      "name": "kms_kernel",
+      "provider_name": "registry.opentofu.org/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "service_name": "com.amazonaws.ap-southeast-2.kms",
+          "vpc_endpoint_type": "Interface",
+          "private_dns_enabled": true,
+          "vpc_id": null,
+          "subnet_ids": null,
+          "security_group_ids": null,
+          "policy": null,
+          "tags": {
+            "Plane": "kernel",
+            "Component": "vpc-endpoint",
+            "Environment": "prod",
+            "System": "mainline",
+            "Serves": "kernel"
+          },
+          "tags_all": {
+            "Plane": "kernel",
+            "Component": "vpc-endpoint",
+            "Environment": "prod",
+            "System": "mainline",
+            "Serves": "kernel"
+          }
+        },
+        "after_unknown": {
+          "id": true,
+          "arn": true,
+          "vpc_id": true,
+          "subnet_ids": [
+            true,
+            true
+          ],
+          "security_group_ids": [
+            true
+          ],
+          "dns_entry": true,
+          "network_interface_ids": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_vpc_endpoint.logs_kernel",
+      "mode": "managed",
+      "type": "aws_vpc_endpoint",
+      "name": "logs_kernel",
+      "provider_name": "registry.opentofu.org/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "service_name": "com.amazonaws.ap-southeast-2.logs",
+          "vpc_endpoint_type": "Interface",
+          "private_dns_enabled": true,
+          "vpc_id": null,
+          "subnet_ids": null,
+          "security_group_ids": null,
+          "policy": null,
+          "tags": {
+            "Plane": "kernel",
+            "Component": "vpc-endpoint",
+            "Environment": "prod",
+            "System": "mainline",
+            "Serves": "kernel"
+          },
+          "tags_all": {
+            "Plane": "kernel",
+            "Component": "vpc-endpoint",
+            "Environment": "prod",
+            "System": "mainline",
+            "Serves": "kernel"
+          }
+        },
+        "after_unknown": {
+          "id": true,
+          "arn": true,
+          "vpc_id": true,
+          "subnet_ids": [
+            true,
+            true
+          ],
+          "security_group_ids": [
+            true
+          ],
+          "dns_entry": true,
+          "network_interface_ids": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_vpc_endpoint.monitoring_kernel",
+      "mode": "managed",
+      "type": "aws_vpc_endpoint",
+      "name": "monitoring_kernel",
+      "provider_name": "registry.opentofu.org/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "service_name": "com.amazonaws.ap-southeast-2.monitoring",
+          "vpc_endpoint_type": "Interface",
+          "private_dns_enabled": true,
+          "vpc_id": null,
+          "subnet_ids": null,
+          "security_group_ids": null,
+          "policy": null,
+          "tags": {
+            "Plane": "kernel",
+            "Component": "vpc-endpoint",
+            "Environment": "prod",
+            "System": "mainline",
+            "Serves": "kernel"
+          },
+          "tags_all": {
+            "Plane": "kernel",
+            "Component": "vpc-endpoint",
+            "Environment": "prod",
+            "System": "mainline",
+            "Serves": "kernel"
+          }
+        },
+        "after_unknown": {
+          "id": true,
+          "arn": true,
+          "vpc_id": true,
+          "subnet_ids": [
+            true,
+            true
+          ],
+          "security_group_ids": [
+            true
+          ],
+          "dns_entry": true,
+          "network_interface_ids": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_vpc_endpoint.ecr_api_kernel",
+      "mode": "managed",
+      "type": "aws_vpc_endpoint",
+      "name": "ecr_api_kernel",
+      "provider_name": "registry.opentofu.org/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "service_name": "com.amazonaws.ap-southeast-2.ecr.api",
+          "vpc_endpoint_type": "Interface",
+          "private_dns_enabled": true,
+          "vpc_id": null,
+          "subnet_ids": null,
+          "security_group_ids": null,
+          "policy": null,
+          "tags": {
+            "Plane": "kernel",
+            "Component": "vpc-endpoint",
+            "Environment": "prod",
+            "System": "mainline",
+            "Serves": "kernel"
+          },
+          "tags_all": {
+            "Plane": "kernel",
+            "Component": "vpc-endpoint",
+            "Environment": "prod",
+            "System": "mainline",
+            "Serves": "kernel"
+          }
+        },
+        "after_unknown": {
+          "id": true,
+          "arn": true,
+          "vpc_id": true,
+          "subnet_ids": [
+            true,
+            true
+          ],
+          "security_group_ids": [
+            true
+          ],
+          "dns_entry": true,
+          "network_interface_ids": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_vpc_endpoint.ecr_dkr_kernel",
+      "mode": "managed",
+      "type": "aws_vpc_endpoint",
+      "name": "ecr_dkr_kernel",
+      "provider_name": "registry.opentofu.org/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "service_name": "com.amazonaws.ap-southeast-2.ecr.dkr",
+          "vpc_endpoint_type": "Interface",
+          "private_dns_enabled": true,
+          "vpc_id": null,
+          "subnet_ids": null,
+          "security_group_ids": null,
+          "policy": null,
+          "tags": {
+            "Plane": "kernel",
+            "Component": "vpc-endpoint",
+            "Environment": "prod",
+            "System": "mainline",
+            "Serves": "kernel"
+          },
+          "tags_all": {
+            "Plane": "kernel",
+            "Component": "vpc-endpoint",
+            "Environment": "prod",
+            "System": "mainline",
+            "Serves": "kernel"
+          }
+        },
+        "after_unknown": {
+          "id": true,
+          "arn": true,
+          "vpc_id": true,
+          "subnet_ids": [
+            true,
+            true
+          ],
+          "security_group_ids": [
+            true
+          ],
+          "dns_entry": true,
+          "network_interface_ids": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_vpc_endpoint.sts_kernel",
+      "mode": "managed",
+      "type": "aws_vpc_endpoint",
+      "name": "sts_kernel",
+      "provider_name": "registry.opentofu.org/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "service_name": "com.amazonaws.ap-southeast-2.sts",
+          "vpc_endpoint_type": "Interface",
+          "private_dns_enabled": true,
+          "vpc_id": null,
+          "subnet_ids": null,
+          "security_group_ids": null,
+          "policy": null,
+          "tags": {
+            "Plane": "kernel",
+            "Component": "vpc-endpoint",
+            "Environment": "prod",
+            "System": "mainline",
+            "Serves": "kernel"
+          },
+          "tags_all": {
+            "Plane": "kernel",
+            "Component": "vpc-endpoint",
+            "Environment": "prod",
+            "System": "mainline",
+            "Serves": "kernel"
+          }
+        },
+        "after_unknown": {
+          "id": true,
+          "arn": true,
+          "vpc_id": true,
+          "subnet_ids": [
+            true,
+            true
+          ],
+          "security_group_ids": [
+            true
+          ],
+          "dns_entry": true,
+          "network_interface_ids": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_vpc_endpoint.secretsmanager_cog",
+      "mode": "managed",
+      "type": "aws_vpc_endpoint",
+      "name": "secretsmanager_cog",
+      "provider_name": "registry.opentofu.org/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "service_name": "com.amazonaws.ap-southeast-2.secretsmanager",
+          "vpc_endpoint_type": "Interface",
+          "private_dns_enabled": true,
+          "vpc_id": null,
+          "subnet_ids": null,
+          "security_group_ids": null,
+          "policy": null,
+          "tags": {
+            "Plane": "cognition",
+            "Component": "vpc-endpoint",
+            "Environment": "prod",
+            "System": "mainline",
+            "Serves": "cognition"
+          },
+          "tags_all": {
+            "Plane": "cognition",
+            "Component": "vpc-endpoint",
+            "Environment": "prod",
+            "System": "mainline",
+            "Serves": "cognition"
+          }
+        },
+        "after_unknown": {
+          "id": true,
+          "arn": true,
+          "vpc_id": true,
+          "subnet_ids": [
+            true,
+            true
+          ],
+          "security_group_ids": [
+            true
+          ],
+          "dns_entry": true,
+          "network_interface_ids": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_vpc_endpoint.logs_cog",
+      "mode": "managed",
+      "type": "aws_vpc_endpoint",
+      "name": "logs_cog",
+      "provider_name": "registry.opentofu.org/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "service_name": "com.amazonaws.ap-southeast-2.logs",
+          "vpc_endpoint_type": "Interface",
+          "private_dns_enabled": true,
+          "vpc_id": null,
+          "subnet_ids": null,
+          "security_group_ids": null,
+          "policy": null,
+          "tags": {
+            "Plane": "cognition",
+            "Component": "vpc-endpoint",
+            "Environment": "prod",
+            "System": "mainline",
+            "Serves": "cognition"
+          },
+          "tags_all": {
+            "Plane": "cognition",
+            "Component": "vpc-endpoint",
+            "Environment": "prod",
+            "System": "mainline",
+            "Serves": "cognition"
+          }
+        },
+        "after_unknown": {
+          "id": true,
+          "arn": true,
+          "vpc_id": true,
+          "subnet_ids": [
+            true,
+            true
+          ],
+          "security_group_ids": [
+            true
+          ],
+          "dns_entry": true,
+          "network_interface_ids": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_vpc_endpoint.textract_cog",
+      "mode": "managed",
+      "type": "aws_vpc_endpoint",
+      "name": "textract_cog",
+      "provider_name": "registry.opentofu.org/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "service_name": "com.amazonaws.ap-southeast-2.textract",
+          "vpc_endpoint_type": "Interface",
+          "private_dns_enabled": true,
+          "vpc_id": null,
+          "subnet_ids": null,
+          "security_group_ids": null,
+          "policy": null,
+          "tags": {
+            "Plane": "cognition",
+            "Component": "vpc-endpoint",
+            "Environment": "prod",
+            "System": "mainline",
+            "Serves": "cognition"
+          },
+          "tags_all": {
+            "Plane": "cognition",
+            "Component": "vpc-endpoint",
+            "Environment": "prod",
+            "System": "mainline",
+            "Serves": "cognition"
+          }
+        },
+        "after_unknown": {
+          "id": true,
+          "arn": true,
+          "vpc_id": true,
+          "subnet_ids": [
+            true,
+            true
+          ],
+          "security_group_ids": [
+            true
+          ],
+          "dns_entry": true,
+          "network_interface_ids": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_vpc_endpoint.bedrock_runtime_cog",
+      "mode": "managed",
+      "type": "aws_vpc_endpoint",
+      "name": "bedrock_runtime_cog",
+      "provider_name": "registry.opentofu.org/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "service_name": "com.amazonaws.ap-southeast-2.bedrock-runtime",
+          "vpc_endpoint_type": "Interface",
+          "private_dns_enabled": true,
+          "vpc_id": null,
+          "subnet_ids": null,
+          "security_group_ids": null,
+          "policy": null,
+          "tags": {
+            "Plane": "cognition",
+            "Component": "vpc-endpoint",
+            "Environment": "prod",
+            "System": "mainline",
+            "Serves": "cognition"
+          },
+          "tags_all": {
+            "Plane": "cognition",
+            "Component": "vpc-endpoint",
+            "Environment": "prod",
+            "System": "mainline",
+            "Serves": "cognition"
+          }
+        },
+        "after_unknown": {
+          "id": true,
+          "arn": true,
+          "vpc_id": true,
+          "subnet_ids": [
+            true,
+            true
+          ],
+          "security_group_ids": [
+            true
+          ],
+          "dns_entry": true,
+          "network_interface_ids": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_vpc_endpoint.s3_gateway",
+      "mode": "managed",
+      "type": "aws_vpc_endpoint",
+      "name": "s3_gateway",
+      "provider_name": "registry.opentofu.org/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "service_name": "com.amazonaws.ap-southeast-2.s3",
+          "vpc_endpoint_type": "Gateway",
+          "vpc_id": null,
+          "tags": {
+            "Plane": "shared",
+            "Component": "vpc-endpoint",
+            "Environment": "prod",
+            "System": "mainline"
+          },
+          "tags_all": {
+            "Plane": "shared",
+            "Component": "vpc-endpoint",
+            "Environment": "prod",
+            "System": "mainline"
+          }
+        },
+        "after_unknown": {
+          "id": true,
+          "arn": true,
+          "vpc_id": true,
+          "route_table_ids": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_vpc_security_group_egress_rule.kernel_pgwire",
+      "mode": "managed",
+      "type": "aws_vpc_security_group_egress_rule",
+      "name": "kernel_pgwire",
+      "provider_name": "registry.opentofu.org/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "security_group_id": null,
+          "ip_protocol": "tcp",
+          "from_port": 26257,
+          "to_port": 26257,
+          "description": "pgwire to the enumerated CockroachDB Cloud egress prefix list",
+          "cidr_ipv4": null,
+          "cidr_ipv6": null,
+          "prefix_list_id": null,
+          "referenced_security_group_id": null,
+          "tags": {
+            "Plane": "shared",
+            "Component": "egress-rule",
+            "Environment": "prod",
+            "System": "mainline"
+          },
+          "tags_all": {
+            "Plane": "shared",
+            "Component": "egress-rule",
+            "Environment": "prod",
+            "System": "mainline"
+          }
+        },
+        "after_unknown": {
+          "id": true,
+          "arn": true,
+          "security_group_id": true,
+          "prefix_list_id": true,
+          "security_group_rule_id": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_vpc_security_group_egress_rule.kernel_endpoints_https",
+      "mode": "managed",
+      "type": "aws_vpc_security_group_egress_rule",
+      "name": "kernel_endpoints_https",
+      "provider_name": "registry.opentofu.org/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "security_group_id": null,
+          "ip_protocol": "tcp",
+          "from_port": 443,
+          "to_port": 443,
+          "description": "HTTPS to the kernel interface-endpoint security group ONLY",
+          "cidr_ipv4": null,
+          "cidr_ipv6": null,
+          "prefix_list_id": null,
+          "referenced_security_group_id": null,
+          "tags": {
+            "Plane": "shared",
+            "Component": "egress-rule",
+            "Environment": "prod",
+            "System": "mainline"
+          },
+          "tags_all": {
+            "Plane": "shared",
+            "Component": "egress-rule",
+            "Environment": "prod",
+            "System": "mainline"
+          }
+        },
+        "after_unknown": {
+          "id": true,
+          "arn": true,
+          "security_group_id": true,
+          "referenced_security_group_id": true,
+          "security_group_rule_id": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_vpc_security_group_egress_rule.cognition_pgwire",
+      "mode": "managed",
+      "type": "aws_vpc_security_group_egress_rule",
+      "name": "cognition_pgwire",
+      "provider_name": "registry.opentofu.org/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "security_group_id": null,
+          "ip_protocol": "tcp",
+          "from_port": 26257,
+          "to_port": 26257,
+          "description": "pgwire",
+          "cidr_ipv4": null,
+          "cidr_ipv6": null,
+          "prefix_list_id": null,
+          "referenced_security_group_id": null,
+          "tags": {
+            "Plane": "shared",
+            "Component": "egress-rule",
+            "Environment": "prod",
+            "System": "mainline"
+          },
+          "tags_all": {
+            "Plane": "shared",
+            "Component": "egress-rule",
+            "Environment": "prod",
+            "System": "mainline"
+          }
+        },
+        "after_unknown": {
+          "id": true,
+          "arn": true,
+          "security_group_id": true,
+          "prefix_list_id": true,
+          "security_group_rule_id": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_vpc_security_group_egress_rule.cognition_endpoints_https",
+      "mode": "managed",
+      "type": "aws_vpc_security_group_egress_rule",
+      "name": "cognition_endpoints_https",
+      "provider_name": "registry.opentofu.org/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "security_group_id": null,
+          "ip_protocol": "tcp",
+          "from_port": 443,
+          "to_port": 443,
+          "description": "HTTPS to the cognition endpoint SG, which fronts bedrock-runtime",
+          "cidr_ipv4": null,
+          "cidr_ipv6": null,
+          "prefix_list_id": null,
+          "referenced_security_group_id": null,
+          "tags": {
+            "Plane": "shared",
+            "Component": "egress-rule",
+            "Environment": "prod",
+            "System": "mainline"
+          },
+          "tags_all": {
+            "Plane": "shared",
+            "Component": "egress-rule",
+            "Environment": "prod",
+            "System": "mainline"
+          }
+        },
+        "after_unknown": {
+          "id": true,
+          "arn": true,
+          "security_group_id": true,
+          "referenced_security_group_id": true,
+          "security_group_rule_id": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_vpc_security_group_egress_rule.custody_pgwire",
+      "mode": "managed",
+      "type": "aws_vpc_security_group_egress_rule",
+      "name": "custody_pgwire",
+      "provider_name": "registry.opentofu.org/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "security_group_id": null,
+          "ip_protocol": "tcp",
+          "from_port": 26257,
+          "to_port": 26257,
+          "description": "pgwire",
+          "cidr_ipv4": null,
+          "cidr_ipv6": null,
+          "prefix_list_id": null,
+          "referenced_security_group_id": null,
+          "tags": {
+            "Plane": "shared",
+            "Component": "egress-rule",
+            "Environment": "prod",
+            "System": "mainline"
+          },
+          "tags_all": {
+            "Plane": "shared",
+            "Component": "egress-rule",
+            "Environment": "prod",
+            "System": "mainline"
+          }
+        },
+        "after_unknown": {
+          "id": true,
+          "arn": true,
+          "security_group_id": true,
+          "prefix_list_id": true,
+          "security_group_rule_id": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_vpc_security_group_ingress_rule.endpoint_kernel_443",
+      "mode": "managed",
+      "type": "aws_vpc_security_group_ingress_rule",
+      "name": "endpoint_kernel_443",
+      "provider_name": "registry.opentofu.org/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "security_group_id": null,
+          "ip_protocol": "tcp",
+          "from_port": 443,
+          "to_port": 443,
+          "referenced_security_group_id": null,
+          "description": "HTTPS from the plane this endpoint group serves",
+          "tags": {
+            "Plane": "endpoint",
+            "Component": "ingress-rule",
+            "Environment": "prod",
+            "System": "mainline"
+          },
+          "tags_all": {
+            "Plane": "endpoint",
+            "Component": "ingress-rule",
+            "Environment": "prod",
+            "System": "mainline"
+          }
+        },
+        "after_unknown": {
+          "id": true,
+          "arn": true,
+          "security_group_id": true,
+          "referenced_security_group_id": true,
+          "security_group_rule_id": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_vpc_security_group_ingress_rule.endpoint_cognition_443",
+      "mode": "managed",
+      "type": "aws_vpc_security_group_ingress_rule",
+      "name": "endpoint_cognition_443",
+      "provider_name": "registry.opentofu.org/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "security_group_id": null,
+          "ip_protocol": "tcp",
+          "from_port": 443,
+          "to_port": 443,
+          "referenced_security_group_id": null,
+          "description": "HTTPS from the plane this endpoint group serves",
+          "tags": {
+            "Plane": "endpoint",
+            "Component": "ingress-rule",
+            "Environment": "prod",
+            "System": "mainline"
+          },
+          "tags_all": {
+            "Plane": "endpoint",
+            "Component": "ingress-rule",
+            "Environment": "prod",
+            "System": "mainline"
+          }
+        },
+        "after_unknown": {
+          "id": true,
+          "arn": true,
+          "security_group_id": true,
+          "referenced_security_group_id": true,
+          "security_group_rule_id": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_iam_policy.kernel_boundary",
+      "mode": "managed",
+      "type": "aws_iam_policy",
+      "name": "kernel_boundary",
+      "provider_name": "registry.opentofu.org/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "name": "mainline-kernel-boundary",
+          "path": "/boundaries/",
+          "description": "Permissions boundary for the kernel task role. Denies the model plane.",
+          "policy": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Sid\": \"AllowKernelBaseline\",\n      \"Effect\": \"Allow\",\n      \"Action\": [\n        \"logs:CreateLogStream\",\n        \"logs:PutLogEvents\",\n        \"kms:Decrypt\",\n        \"kms:GenerateDataKey\",\n        \"secretsmanager:GetSecretValue\",\n        \"ecr:GetDownloadUrlForLayer\",\n        \"ecr:BatchGetImage\",\n        \"ecr:GetAuthorizationToken\",\n        \"s3:GetObject\",\n        \"sts:AssumeRole\",\n        \"xray:PutTraceSegments\",\n        \"cloudwatch:PutMetricData\"\n      ],\n      \"Resource\": \"*\"\n    },\n    {\n      \"Sid\": \"DenyModelPlaneEntirely\",\n      \"Effect\": \"Deny\",\n      \"Action\": [\n        \"bedrock:*\",\n        \"bedrock-runtime:*\",\n        \"bedrock-agentcore:*\"\n      ],\n      \"Resource\": \"*\"\n    },\n    {\n      \"Sid\": \"DenyOutsideResidencyRegion\",\n      \"Effect\": \"Deny\",\n      \"NotAction\": [\n        \"iam:*\",\n        \"sts:*\",\n        \"cloudfront:*\",\n        \"s3:ListAllMyBuckets\"\n      ],\n      \"Resource\": \"*\",\n      \"Condition\": {\n        \"StringNotEquals\": {\n          \"aws:RequestedRegion\": \"ap-southeast-2\"\n        }\n      }\n    }\n  ]\n}",
+          "tags": {
+            "Plane": "kernel",
+            "Component": "permissions-boundary",
+            "Environment": "prod",
+            "System": "mainline"
+          },
+          "tags_all": {
+            "Plane": "kernel",
+            "Component": "permissions-boundary",
+            "Environment": "prod",
+            "System": "mainline"
+          }
+        },
+        "after_unknown": {
+          "id": true,
+          "arn": true,
+          "policy_id": true,
+          "attachment_count": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_iam_role.kernel_task",
+      "mode": "managed",
+      "type": "aws_iam_role",
+      "name": "kernel_task",
+      "provider_name": "registry.opentofu.org/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "name": "mainline-kernel",
+          "path": "/",
+          "assume_role_policy": "{\"Version\": \"2012-10-17\", \"Statement\": [{\"Effect\": \"Allow\", \"Principal\": {\"Service\": \"ecs-tasks.amazonaws.com\"}, \"Action\": \"sts:AssumeRole\"}]}",
+          "permissions_boundary": null,
+          "force_detach_policies": false,
+          "max_session_duration": 3600,
+          "tags": {
+            "Plane": "kernel",
+            "Component": "task-role",
+            "Environment": "prod",
+            "System": "mainline"
+          },
+          "tags_all": {
+            "Plane": "kernel",
+            "Component": "task-role",
+            "Environment": "prod",
+            "System": "mainline"
+          }
+        },
+        "after_unknown": {
+          "id": true,
+          "arn": true,
+          "unique_id": true,
+          "create_date": true,
+          "permissions_boundary": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_iam_role_policy.kernel_runtime",
+      "mode": "managed",
+      "type": "aws_iam_role_policy",
+      "name": "kernel_runtime",
+      "provider_name": "registry.opentofu.org/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "name": "mainline-kernel-runtime",
+          "role": null,
+          "policy": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Sid\": \"KernelRuntime\",\n      \"Effect\": \"Allow\",\n      \"Action\": [\n        \"secretsmanager:GetSecretValue\",\n        \"kms:Decrypt\",\n        \"logs:PutLogEvents\",\n        \"logs:CreateLogStream\",\n        \"cloudwatch:PutMetricData\"\n      ],\n      \"Resource\": \"*\"\n    }\n  ]\n}"
+        },
+        "after_unknown": {
+          "id": true,
+          "role": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_iam_role.recall_task",
+      "mode": "managed",
+      "type": "aws_iam_role",
+      "name": "recall_task",
+      "provider_name": "registry.opentofu.org/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "name": "mainline-recall",
+          "path": "/",
+          "assume_role_policy": "{\"Version\": \"2012-10-17\", \"Statement\": [{\"Effect\": \"Allow\", \"Principal\": {\"Service\": \"ecs-tasks.amazonaws.com\"}, \"Action\": \"sts:AssumeRole\"}]}",
+          "permissions_boundary": null,
+          "tags": {
+            "Plane": "cognition",
+            "Component": "task-role",
+            "Environment": "prod",
+            "System": "mainline"
+          },
+          "tags_all": {
+            "Plane": "cognition",
+            "Component": "task-role",
+            "Environment": "prod",
+            "System": "mainline"
+          }
+        },
+        "after_unknown": {
+          "id": true,
+          "arn": true,
+          "unique_id": true,
+          "create_date": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "aws_iam_role_policy.recall_model",
+      "mode": "managed",
+      "type": "aws_iam_role_policy",
+      "name": "recall_model",
+      "provider_name": "registry.opentofu.org/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "name": "mainline-recall-model",
+          "role": null,
+          "policy": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Sid\": \"RecallModelPlane\",\n      \"Effect\": \"Allow\",\n      \"Action\": [\n        \"bedrock:InvokeModel\",\n        \"bedrock:InvokeModelWithResponseStream\"\n      ],\n      \"Resource\": [\n        \"arn:aws:bedrock:ap-southeast-2:*:inference-profile/au.anthropic.*\"\n      ]\n    }\n  ]\n}"
+        },
+        "after_unknown": {
+          "id": true,
+          "role": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    }
+  ],
+  "configuration": {
+    "provider_config": {
+      "aws": {
+        "name": "aws",
+        "full_name": "registry.opentofu.org/hashicorp/aws",
+        "expressions": {
+          "region": {
+            "constant_value": "ap-southeast-2"
+          }
+        }
+      }
+    },
+    "root_module": {
+      "resources": [
+        {
+          "address": "aws_vpc.main",
+          "mode": "managed",
+          "type": "aws_vpc",
+          "name": "main",
+          "provider_config_key": "aws",
+          "expressions": {
+            "cidr_block": {
+              "constant_value": "10.60.0.0/16"
+            },
+            "tags": {
+              "constant_value": {
+                "Plane": "shared",
+                "Component": "vpc",
+                "Environment": "prod",
+                "System": "mainline"
+              }
+            }
+          },
+          "schema_version": 0
+        },
+        {
+          "address": "aws_subnet.kernel_a",
+          "mode": "managed",
+          "type": "aws_subnet",
+          "name": "kernel_a",
+          "provider_config_key": "aws",
+          "expressions": {
+            "vpc_id": {
+              "references": [
+                "aws_vpc.main.id",
+                "aws_vpc.main"
+              ]
+            },
+            "cidr_block": {
+              "constant_value": "10.60.1.0/24"
+            },
+            "tags": {
+              "constant_value": {
+                "Plane": "kernel",
+                "Component": "subnet",
+                "Environment": "prod",
+                "System": "mainline"
+              }
+            }
+          },
+          "schema_version": 0
+        },
+        {
+          "address": "aws_subnet.kernel_b",
+          "mode": "managed",
+          "type": "aws_subnet",
+          "name": "kernel_b",
+          "provider_config_key": "aws",
+          "expressions": {
+            "vpc_id": {
+              "references": [
+                "aws_vpc.main.id",
+                "aws_vpc.main"
+              ]
+            },
+            "cidr_block": {
+              "constant_value": "10.60.2.0/24"
+            },
+            "tags": {
+              "constant_value": {
+                "Plane": "kernel",
+                "Component": "subnet",
+                "Environment": "prod",
+                "System": "mainline"
+              }
+            }
+          },
+          "schema_version": 0
+        },
+        {
+          "address": "aws_subnet.kernel_c",
+          "mode": "managed",
+          "type": "aws_subnet",
+          "name": "kernel_c",
+          "provider_config_key": "aws",
+          "expressions": {
+            "vpc_id": {
+              "references": [
+                "aws_vpc.main.id",
+                "aws_vpc.main"
+              ]
+            },
+            "cidr_block": {
+              "constant_value": "10.60.3.0/24"
+            },
+            "tags": {
+              "constant_value": {
+                "Plane": "kernel",
+                "Component": "subnet",
+                "Environment": "prod",
+                "System": "mainline"
+              }
+            }
+          },
+          "schema_version": 0
+        },
+        {
+          "address": "aws_subnet.cognition_a",
+          "mode": "managed",
+          "type": "aws_subnet",
+          "name": "cognition_a",
+          "provider_config_key": "aws",
+          "expressions": {
+            "vpc_id": {
+              "references": [
+                "aws_vpc.main.id",
+                "aws_vpc.main"
+              ]
+            },
+            "cidr_block": {
+              "constant_value": "10.60.11.0/24"
+            },
+            "tags": {
+              "constant_value": {
+                "Plane": "cognition",
+                "Component": "subnet",
+                "Environment": "prod",
+                "System": "mainline"
+              }
+            }
+          },
+          "schema_version": 0
+        },
+        {
+          "address": "aws_subnet.cognition_b",
+          "mode": "managed",
+          "type": "aws_subnet",
+          "name": "cognition_b",
+          "provider_config_key": "aws",
+          "expressions": {
+            "vpc_id": {
+              "references": [
+                "aws_vpc.main.id",
+                "aws_vpc.main"
+              ]
+            },
+            "cidr_block": {
+              "constant_value": "10.60.12.0/24"
+            },
+            "tags": {
+              "constant_value": {
+                "Plane": "cognition",
+                "Component": "subnet",
+                "Environment": "prod",
+                "System": "mainline"
+              }
+            }
+          },
+          "schema_version": 0
+        },
+        {
+          "address": "aws_subnet.custody_a",
+          "mode": "managed",
+          "type": "aws_subnet",
+          "name": "custody_a",
+          "provider_config_key": "aws",
+          "expressions": {
+            "vpc_id": {
+              "references": [
+                "aws_vpc.main.id",
+                "aws_vpc.main"
+              ]
+            },
+            "cidr_block": {
+              "constant_value": "10.60.21.0/24"
+            },
+            "tags": {
+              "constant_value": {
+                "Plane": "custody",
+                "Component": "subnet",
+                "Environment": "prod",
+                "System": "mainline"
+              }
+            }
+          },
+          "schema_version": 0
+        },
+        {
+          "address": "aws_subnet.custody_b",
+          "mode": "managed",
+          "type": "aws_subnet",
+          "name": "custody_b",
+          "provider_config_key": "aws",
+          "expressions": {
+            "vpc_id": {
+              "references": [
+                "aws_vpc.main.id",
+                "aws_vpc.main"
+              ]
+            },
+            "cidr_block": {
+              "constant_value": "10.60.22.0/24"
+            },
+            "tags": {
+              "constant_value": {
+                "Plane": "custody",
+                "Component": "subnet",
+                "Environment": "prod",
+                "System": "mainline"
+              }
+            }
+          },
+          "schema_version": 0
+        },
+        {
+          "address": "aws_subnet.control_a",
+          "mode": "managed",
+          "type": "aws_subnet",
+          "name": "control_a",
+          "provider_config_key": "aws",
+          "expressions": {
+            "vpc_id": {
+              "references": [
+                "aws_vpc.main.id",
+                "aws_vpc.main"
+              ]
+            },
+            "cidr_block": {
+              "constant_value": "10.60.31.0/24"
+            },
+            "tags": {
+              "constant_value": {
+                "Plane": "control",
+                "Component": "subnet",
+                "Environment": "prod",
+                "System": "mainline"
+              }
+            }
+          },
+          "schema_version": 0
+        },
+        {
+          "address": "aws_subnet.endpoint_kernel_a",
+          "mode": "managed",
+          "type": "aws_subnet",
+          "name": "endpoint_kernel_a",
+          "provider_config_key": "aws",
+          "expressions": {
+            "vpc_id": {
+              "references": [
+                "aws_vpc.main.id",
+                "aws_vpc.main"
+              ]
+            },
+            "cidr_block": {
+              "constant_value": "10.60.41.0/24"
+            },
+            "tags": {
+              "constant_value": {
+                "Plane": "endpoint",
+                "Component": "subnet",
+                "Environment": "prod",
+                "System": "mainline",
+                "Serves": "kernel"
+              }
+            }
+          },
+          "schema_version": 0
+        },
+        {
+          "address": "aws_subnet.endpoint_kernel_b",
+          "mode": "managed",
+          "type": "aws_subnet",
+          "name": "endpoint_kernel_b",
+          "provider_config_key": "aws",
+          "expressions": {
+            "vpc_id": {
+              "references": [
+                "aws_vpc.main.id",
+                "aws_vpc.main"
+              ]
+            },
+            "cidr_block": {
+              "constant_value": "10.60.42.0/24"
+            },
+            "tags": {
+              "constant_value": {
+                "Plane": "endpoint",
+                "Component": "subnet",
+                "Environment": "prod",
+                "System": "mainline",
+                "Serves": "kernel"
+              }
+            }
+          },
+          "schema_version": 0
+        },
+        {
+          "address": "aws_subnet.endpoint_cognition_a",
+          "mode": "managed",
+          "type": "aws_subnet",
+          "name": "endpoint_cognition_a",
+          "provider_config_key": "aws",
+          "expressions": {
+            "vpc_id": {
+              "references": [
+                "aws_vpc.main.id",
+                "aws_vpc.main"
+              ]
+            },
+            "cidr_block": {
+              "constant_value": "10.60.51.0/24"
+            },
+            "tags": {
+              "constant_value": {
+                "Plane": "endpoint",
+                "Component": "subnet",
+                "Environment": "prod",
+                "System": "mainline",
+                "Serves": "cognition"
+              }
+            }
+          },
+          "schema_version": 0
+        },
+        {
+          "address": "aws_subnet.endpoint_cognition_b",
+          "mode": "managed",
+          "type": "aws_subnet",
+          "name": "endpoint_cognition_b",
+          "provider_config_key": "aws",
+          "expressions": {
+            "vpc_id": {
+              "references": [
+                "aws_vpc.main.id",
+                "aws_vpc.main"
+              ]
+            },
+            "cidr_block": {
+              "constant_value": "10.60.52.0/24"
+            },
+            "tags": {
+              "constant_value": {
+                "Plane": "endpoint",
+                "Component": "subnet",
+                "Environment": "prod",
+                "System": "mainline",
+                "Serves": "cognition"
+              }
+            }
+          },
+          "schema_version": 0
+        },
+        {
+          "address": "aws_subnet.endpoint_shared_a",
+          "mode": "managed",
+          "type": "aws_subnet",
+          "name": "endpoint_shared_a",
+          "provider_config_key": "aws",
+          "expressions": {
+            "vpc_id": {
+              "references": [
+                "aws_vpc.main.id",
+                "aws_vpc.main"
+              ]
+            },
+            "cidr_block": {
+              "constant_value": "10.60.61.0/24"
+            },
+            "tags": {
+              "constant_value": {
+                "Plane": "endpoint",
+                "Component": "subnet",
+                "Environment": "prod",
+                "System": "mainline",
+                "Serves": "shared"
+              }
+            }
+          },
+          "schema_version": 0
+        },
+        {
+          "address": "aws_subnet.public_a",
+          "mode": "managed",
+          "type": "aws_subnet",
+          "name": "public_a",
+          "provider_config_key": "aws",
+          "expressions": {
+            "vpc_id": {
+              "references": [
+                "aws_vpc.main.id",
+                "aws_vpc.main"
+              ]
+            },
+            "cidr_block": {
+              "constant_value": "10.60.71.0/24"
+            },
+            "tags": {
+              "constant_value": {
+                "Plane": "shared",
+                "Component": "subnet",
+                "Environment": "prod",
+                "System": "mainline"
+              }
+            }
+          },
+          "schema_version": 0
+        },
+        {
+          "address": "aws_security_group.kernel",
+          "mode": "managed",
+          "type": "aws_security_group",
+          "name": "kernel",
+          "provider_config_key": "aws",
+          "expressions": {
+            "name": {
+              "constant_value": "mainline-kernel-task"
+            },
+            "vpc_id": {
+              "references": [
+                "aws_vpc.main.id",
+                "aws_vpc.main"
+              ]
+            },
+            "tags": {
+              "constant_value": {
+                "Plane": "kernel",
+                "Component": "security-group",
+                "Environment": "prod",
+                "System": "mainline"
+              }
+            }
+          },
+          "schema_version": 0
+        },
+        {
+          "address": "aws_security_group.cognition",
+          "mode": "managed",
+          "type": "aws_security_group",
+          "name": "cognition",
+          "provider_config_key": "aws",
+          "expressions": {
+            "name": {
+              "constant_value": "mainline-cognition-task"
+            },
+            "vpc_id": {
+              "references": [
+                "aws_vpc.main.id",
+                "aws_vpc.main"
+              ]
+            },
+            "tags": {
+              "constant_value": {
+                "Plane": "cognition",
+                "Component": "security-group",
+                "Environment": "prod",
+                "System": "mainline"
+              }
+            }
+          },
+          "schema_version": 0
+        },
+        {
+          "address": "aws_security_group.custody",
+          "mode": "managed",
+          "type": "aws_security_group",
+          "name": "custody",
+          "provider_config_key": "aws",
+          "expressions": {
+            "name": {
+              "constant_value": "mainline-custody-task"
+            },
+            "vpc_id": {
+              "references": [
+                "aws_vpc.main.id",
+                "aws_vpc.main"
+              ]
+            },
+            "tags": {
+              "constant_value": {
+                "Plane": "custody",
+                "Component": "security-group",
+                "Environment": "prod",
+                "System": "mainline"
+              }
+            }
+          },
+          "schema_version": 0
+        },
+        {
+          "address": "aws_security_group.control",
+          "mode": "managed",
+          "type": "aws_security_group",
+          "name": "control",
+          "provider_config_key": "aws",
+          "expressions": {
+            "name": {
+              "constant_value": "mainline-control-task"
+            },
+            "vpc_id": {
+              "references": [
+                "aws_vpc.main.id",
+                "aws_vpc.main"
+              ]
+            },
+            "tags": {
+              "constant_value": {
+                "Plane": "control",
+                "Component": "security-group",
+                "Environment": "prod",
+                "System": "mainline"
+              }
+            }
+          },
+          "schema_version": 0
+        },
+        {
+          "address": "aws_security_group.endpoint_kernel",
+          "mode": "managed",
+          "type": "aws_security_group",
+          "name": "endpoint_kernel",
+          "provider_config_key": "aws",
+          "expressions": {
+            "name": {
+              "constant_value": "mainline-endpoint-kernel"
+            },
+            "vpc_id": {
+              "references": [
+                "aws_vpc.main.id",
+                "aws_vpc.main"
+              ]
+            },
+            "tags": {
+              "constant_value": {
+                "Plane": "endpoint",
+                "Component": "security-group",
+                "Environment": "prod",
+                "System": "mainline",
+                "Serves": "kernel"
+              }
+            }
+          },
+          "schema_version": 0
+        },
+        {
+          "address": "aws_security_group.endpoint_cognition",
+          "mode": "managed",
+          "type": "aws_security_group",
+          "name": "endpoint_cognition",
+          "provider_config_key": "aws",
+          "expressions": {
+            "name": {
+              "constant_value": "mainline-endpoint-cognition"
+            },
+            "vpc_id": {
+              "references": [
+                "aws_vpc.main.id",
+                "aws_vpc.main"
+              ]
+            },
+            "tags": {
+              "constant_value": {
+                "Plane": "endpoint",
+                "Component": "security-group",
+                "Environment": "prod",
+                "System": "mainline",
+                "Serves": "cognition"
+              }
+            }
+          },
+          "schema_version": 0
+        },
+        {
+          "address": "aws_ec2_managed_prefix_list.crdb_cloud",
+          "mode": "managed",
+          "type": "aws_ec2_managed_prefix_list",
+          "name": "crdb_cloud",
+          "provider_config_key": "aws",
+          "expressions": {
+            "name": {
+              "constant_value": "mainline-crdb-cloud-egress"
+            },
+            "tags": {
+              "constant_value": {
+                "Plane": "database",
+                "Component": "prefix-list",
+                "Environment": "prod",
+                "System": "mainline"
+              }
+            }
+          },
+          "schema_version": 0
+        },
+        {
+          "address": "aws_vpc_endpoint.secretsmanager_kernel",
+          "mode": "managed",
+          "type": "aws_vpc_endpoint",
+          "name": "secretsmanager_kernel",
+          "provider_config_key": "aws",
+          "expressions": {
+            "service_name": {
+              "constant_value": "com.amazonaws.ap-southeast-2.secretsmanager"
+            },
+            "vpc_endpoint_type": {
+              "constant_value": "Interface"
+            },
+            "vpc_id": {
+              "references": [
+                "aws_vpc.main.id",
+                "aws_vpc.main"
+              ]
+            },
+            "subnet_ids": {
+              "references": [
+                "aws_subnet.endpoint_kernel_a.id",
+                "aws_subnet.endpoint_kernel_b.id",
+                "aws_subnet.endpoint_kernel_a",
+                "aws_subnet.endpoint_kernel_b"
+              ]
+            },
+            "security_group_ids": {
+              "references": [
+                "aws_security_group.endpoint_kernel.id",
+                "aws_security_group.endpoint_kernel"
+              ]
+            },
+            "tags": {
+              "constant_value": {
+                "Plane": "kernel",
+                "Component": "vpc-endpoint",
+                "Environment": "prod",
+                "System": "mainline",
+                "Serves": "kernel"
+              }
+            }
+          },
+          "schema_version": 0
+        },
+        {
+          "address": "aws_vpc_endpoint.kms_kernel",
+          "mode": "managed",
+          "type": "aws_vpc_endpoint",
+          "name": "kms_kernel",
+          "provider_config_key": "aws",
+          "expressions": {
+            "service_name": {
+              "constant_value": "com.amazonaws.ap-southeast-2.kms"
+            },
+            "vpc_endpoint_type": {
+              "constant_value": "Interface"
+            },
+            "vpc_id": {
+              "references": [
+                "aws_vpc.main.id",
+                "aws_vpc.main"
+              ]
+            },
+            "subnet_ids": {
+              "references": [
+                "aws_subnet.endpoint_kernel_a.id",
+                "aws_subnet.endpoint_kernel_b.id",
+                "aws_subnet.endpoint_kernel_a",
+                "aws_subnet.endpoint_kernel_b"
+              ]
+            },
+            "security_group_ids": {
+              "references": [
+                "aws_security_group.endpoint_kernel.id",
+                "aws_security_group.endpoint_kernel"
+              ]
+            },
+            "tags": {
+              "constant_value": {
+                "Plane": "kernel",
+                "Component": "vpc-endpoint",
+                "Environment": "prod",
+                "System": "mainline",
+                "Serves": "kernel"
+              }
+            }
+          },
+          "schema_version": 0
+        },
+        {
+          "address": "aws_vpc_endpoint.logs_kernel",
+          "mode": "managed",
+          "type": "aws_vpc_endpoint",
+          "name": "logs_kernel",
+          "provider_config_key": "aws",
+          "expressions": {
+            "service_name": {
+              "constant_value": "com.amazonaws.ap-southeast-2.logs"
+            },
+            "vpc_endpoint_type": {
+              "constant_value": "Interface"
+            },
+            "vpc_id": {
+              "references": [
+                "aws_vpc.main.id",
+                "aws_vpc.main"
+              ]
+            },
+            "subnet_ids": {
+              "references": [
+                "aws_subnet.endpoint_kernel_a.id",
+                "aws_subnet.endpoint_kernel_b.id",
+                "aws_subnet.endpoint_kernel_a",
+                "aws_subnet.endpoint_kernel_b"
+              ]
+            },
+            "security_group_ids": {
+              "references": [
+                "aws_security_group.endpoint_kernel.id",
+                "aws_security_group.endpoint_kernel"
+              ]
+            },
+            "tags": {
+              "constant_value": {
+                "Plane": "kernel",
+                "Component": "vpc-endpoint",
+                "Environment": "prod",
+                "System": "mainline",
+                "Serves": "kernel"
+              }
+            }
+          },
+          "schema_version": 0
+        },
+        {
+          "address": "aws_vpc_endpoint.monitoring_kernel",
+          "mode": "managed",
+          "type": "aws_vpc_endpoint",
+          "name": "monitoring_kernel",
+          "provider_config_key": "aws",
+          "expressions": {
+            "service_name": {
+              "constant_value": "com.amazonaws.ap-southeast-2.monitoring"
+            },
+            "vpc_endpoint_type": {
+              "constant_value": "Interface"
+            },
+            "vpc_id": {
+              "references": [
+                "aws_vpc.main.id",
+                "aws_vpc.main"
+              ]
+            },
+            "subnet_ids": {
+              "references": [
+                "aws_subnet.endpoint_kernel_a.id",
+                "aws_subnet.endpoint_kernel_b.id",
+                "aws_subnet.endpoint_kernel_a",
+                "aws_subnet.endpoint_kernel_b"
+              ]
+            },
+            "security_group_ids": {
+              "references": [
+                "aws_security_group.endpoint_kernel.id",
+                "aws_security_group.endpoint_kernel"
+              ]
+            },
+            "tags": {
+              "constant_value": {
+                "Plane": "kernel",
+                "Component": "vpc-endpoint",
+                "Environment": "prod",
+                "System": "mainline",
+                "Serves": "kernel"
+              }
+            }
+          },
+          "schema_version": 0
+        },
+        {
+          "address": "aws_vpc_endpoint.ecr_api_kernel",
+          "mode": "managed",
+          "type": "aws_vpc_endpoint",
+          "name": "ecr_api_kernel",
+          "provider_config_key": "aws",
+          "expressions": {
+            "service_name": {
+              "constant_value": "com.amazonaws.ap-southeast-2.ecr.api"
+            },
+            "vpc_endpoint_type": {
+              "constant_value": "Interface"
+            },
+            "vpc_id": {
+              "references": [
+                "aws_vpc.main.id",
+                "aws_vpc.main"
+              ]
+            },
+            "subnet_ids": {
+              "references": [
+                "aws_subnet.endpoint_kernel_a.id",
+                "aws_subnet.endpoint_kernel_b.id",
+                "aws_subnet.endpoint_kernel_a",
+                "aws_subnet.endpoint_kernel_b"
+              ]
+            },
+            "security_group_ids": {
+              "references": [
+                "aws_security_group.endpoint_kernel.id",
+                "aws_security_group.endpoint_kernel"
+              ]
+            },
+            "tags": {
+              "constant_value": {
+                "Plane": "kernel",
+                "Component": "vpc-endpoint",
+                "Environment": "prod",
+                "System": "mainline",
+                "Serves": "kernel"
+              }
+            }
+          },
+          "schema_version": 0
+        },
+        {
+          "address": "aws_vpc_endpoint.ecr_dkr_kernel",
+          "mode": "managed",
+          "type": "aws_vpc_endpoint",
+          "name": "ecr_dkr_kernel",
+          "provider_config_key": "aws",
+          "expressions": {
+            "service_name": {
+              "constant_value": "com.amazonaws.ap-southeast-2.ecr.dkr"
+            },
+            "vpc_endpoint_type": {
+              "constant_value": "Interface"
+            },
+            "vpc_id": {
+              "references": [
+                "aws_vpc.main.id",
+                "aws_vpc.main"
+              ]
+            },
+            "subnet_ids": {
+              "references": [
+                "aws_subnet.endpoint_kernel_a.id",
+                "aws_subnet.endpoint_kernel_b.id",
+                "aws_subnet.endpoint_kernel_a",
+                "aws_subnet.endpoint_kernel_b"
+              ]
+            },
+            "security_group_ids": {
+              "references": [
+                "aws_security_group.endpoint_kernel.id",
+                "aws_security_group.endpoint_kernel"
+              ]
+            },
+            "tags": {
+              "constant_value": {
+                "Plane": "kernel",
+                "Component": "vpc-endpoint",
+                "Environment": "prod",
+                "System": "mainline",
+                "Serves": "kernel"
+              }
+            }
+          },
+          "schema_version": 0
+        },
+        {
+          "address": "aws_vpc_endpoint.sts_kernel",
+          "mode": "managed",
+          "type": "aws_vpc_endpoint",
+          "name": "sts_kernel",
+          "provider_config_key": "aws",
+          "expressions": {
+            "service_name": {
+              "constant_value": "com.amazonaws.ap-southeast-2.sts"
+            },
+            "vpc_endpoint_type": {
+              "constant_value": "Interface"
+            },
+            "vpc_id": {
+              "references": [
+                "aws_vpc.main.id",
+                "aws_vpc.main"
+              ]
+            },
+            "subnet_ids": {
+              "references": [
+                "aws_subnet.endpoint_kernel_a.id",
+                "aws_subnet.endpoint_kernel_b.id",
+                "aws_subnet.endpoint_kernel_a",
+                "aws_subnet.endpoint_kernel_b"
+              ]
+            },
+            "security_group_ids": {
+              "references": [
+                "aws_security_group.endpoint_kernel.id",
+                "aws_security_group.endpoint_kernel"
+              ]
+            },
+            "tags": {
+              "constant_value": {
+                "Plane": "kernel",
+                "Component": "vpc-endpoint",
+                "Environment": "prod",
+                "System": "mainline",
+                "Serves": "kernel"
+              }
+            }
+          },
+          "schema_version": 0
+        },
+        {
+          "address": "aws_vpc_endpoint.secretsmanager_cog",
+          "mode": "managed",
+          "type": "aws_vpc_endpoint",
+          "name": "secretsmanager_cog",
+          "provider_config_key": "aws",
+          "expressions": {
+            "service_name": {
+              "constant_value": "com.amazonaws.ap-southeast-2.secretsmanager"
+            },
+            "vpc_endpoint_type": {
+              "constant_value": "Interface"
+            },
+            "vpc_id": {
+              "references": [
+                "aws_vpc.main.id",
+                "aws_vpc.main"
+              ]
+            },
+            "subnet_ids": {
+              "references": [
+                "aws_subnet.endpoint_cognition_a.id",
+                "aws_subnet.endpoint_cognition_b.id",
+                "aws_subnet.endpoint_cognition_a",
+                "aws_subnet.endpoint_cognition_b"
+              ]
+            },
+            "security_group_ids": {
+              "references": [
+                "aws_security_group.endpoint_cognition.id",
+                "aws_security_group.endpoint_cognition"
+              ]
+            },
+            "tags": {
+              "constant_value": {
+                "Plane": "cognition",
+                "Component": "vpc-endpoint",
+                "Environment": "prod",
+                "System": "mainline",
+                "Serves": "cognition"
+              }
+            }
+          },
+          "schema_version": 0
+        },
+        {
+          "address": "aws_vpc_endpoint.logs_cog",
+          "mode": "managed",
+          "type": "aws_vpc_endpoint",
+          "name": "logs_cog",
+          "provider_config_key": "aws",
+          "expressions": {
+            "service_name": {
+              "constant_value": "com.amazonaws.ap-southeast-2.logs"
+            },
+            "vpc_endpoint_type": {
+              "constant_value": "Interface"
+            },
+            "vpc_id": {
+              "references": [
+                "aws_vpc.main.id",
+                "aws_vpc.main"
+              ]
+            },
+            "subnet_ids": {
+              "references": [
+                "aws_subnet.endpoint_cognition_a.id",
+                "aws_subnet.endpoint_cognition_b.id",
+                "aws_subnet.endpoint_cognition_a",
+                "aws_subnet.endpoint_cognition_b"
+              ]
+            },
+            "security_group_ids": {
+              "references": [
+                "aws_security_group.endpoint_cognition.id",
+                "aws_security_group.endpoint_cognition"
+              ]
+            },
+            "tags": {
+              "constant_value": {
+                "Plane": "cognition",
+                "Component": "vpc-endpoint",
+                "Environment": "prod",
+                "System": "mainline",
+                "Serves": "cognition"
+              }
+            }
+          },
+          "schema_version": 0
+        },
+        {
+          "address": "aws_vpc_endpoint.textract_cog",
+          "mode": "managed",
+          "type": "aws_vpc_endpoint",
+          "name": "textract_cog",
+          "provider_config_key": "aws",
+          "expressions": {
+            "service_name": {
+              "constant_value": "com.amazonaws.ap-southeast-2.textract"
+            },
+            "vpc_endpoint_type": {
+              "constant_value": "Interface"
+            },
+            "vpc_id": {
+              "references": [
+                "aws_vpc.main.id",
+                "aws_vpc.main"
+              ]
+            },
+            "subnet_ids": {
+              "references": [
+                "aws_subnet.endpoint_cognition_a.id",
+                "aws_subnet.endpoint_cognition_b.id",
+                "aws_subnet.endpoint_cognition_a",
+                "aws_subnet.endpoint_cognition_b"
+              ]
+            },
+            "security_group_ids": {
+              "references": [
+                "aws_security_group.endpoint_cognition.id",
+                "aws_security_group.endpoint_cognition"
+              ]
+            },
+            "tags": {
+              "constant_value": {
+                "Plane": "cognition",
+                "Component": "vpc-endpoint",
+                "Environment": "prod",
+                "System": "mainline",
+                "Serves": "cognition"
+              }
+            }
+          },
+          "schema_version": 0
+        },
+        {
+          "address": "aws_vpc_endpoint.bedrock_runtime_cog",
+          "mode": "managed",
+          "type": "aws_vpc_endpoint",
+          "name": "bedrock_runtime_cog",
+          "provider_config_key": "aws",
+          "expressions": {
+            "service_name": {
+              "constant_value": "com.amazonaws.ap-southeast-2.bedrock-runtime"
+            },
+            "vpc_endpoint_type": {
+              "constant_value": "Interface"
+            },
+            "vpc_id": {
+              "references": [
+                "aws_vpc.main.id",
+                "aws_vpc.main"
+              ]
+            },
+            "subnet_ids": {
+              "references": [
+                "aws_subnet.endpoint_cognition_a.id",
+                "aws_subnet.endpoint_cognition_b.id",
+                "aws_subnet.endpoint_cognition_a",
+                "aws_subnet.endpoint_cognition_b"
+              ]
+            },
+            "security_group_ids": {
+              "references": [
+                "aws_security_group.endpoint_cognition.id",
+                "aws_security_group.endpoint_cognition"
+              ]
+            },
+            "tags": {
+              "constant_value": {
+                "Plane": "cognition",
+                "Component": "vpc-endpoint",
+                "Environment": "prod",
+                "System": "mainline",
+                "Serves": "cognition"
+              }
+            }
+          },
+          "schema_version": 0
+        },
+        {
+          "address": "aws_vpc_endpoint.s3_gateway",
+          "mode": "managed",
+          "type": "aws_vpc_endpoint",
+          "name": "s3_gateway",
+          "provider_config_key": "aws",
+          "expressions": {
+            "service_name": {
+              "constant_value": "com.amazonaws.ap-southeast-2.s3"
+            },
+            "vpc_endpoint_type": {
+              "constant_value": "Gateway"
+            },
+            "vpc_id": {
+              "references": [
+                "aws_vpc.main.id",
+                "aws_vpc.main"
+              ]
+            },
+            "tags": {
+              "constant_value": {
+                "Plane": "shared",
+                "Component": "vpc-endpoint",
+                "Environment": "prod",
+                "System": "mainline"
+              }
+            }
+          },
+          "schema_version": 0
+        },
+        {
+          "address": "aws_vpc_security_group_egress_rule.kernel_pgwire",
+          "mode": "managed",
+          "type": "aws_vpc_security_group_egress_rule",
+          "name": "kernel_pgwire",
+          "provider_config_key": "aws",
+          "expressions": {
+            "security_group_id": {
+              "references": [
+                "aws_security_group.kernel.id",
+                "aws_security_group.kernel"
+              ]
+            },
+            "ip_protocol": {
+              "constant_value": "tcp"
+            },
+            "from_port": {
+              "constant_value": 26257
+            },
+            "to_port": {
+              "constant_value": 26257
+            },
+            "description": {
+              "constant_value": "pgwire to the enumerated CockroachDB Cloud egress prefix list"
+            },
+            "prefix_list_id": {
+              "references": [
+                "aws_ec2_managed_prefix_list.crdb_cloud.id",
+                "aws_ec2_managed_prefix_list.crdb_cloud"
+              ]
+            }
+          },
+          "schema_version": 0
+        },
+        {
+          "address": "aws_vpc_security_group_egress_rule.kernel_endpoints_https",
+          "mode": "managed",
+          "type": "aws_vpc_security_group_egress_rule",
+          "name": "kernel_endpoints_https",
+          "provider_config_key": "aws",
+          "expressions": {
+            "security_group_id": {
+              "references": [
+                "aws_security_group.kernel.id",
+                "aws_security_group.kernel"
+              ]
+            },
+            "ip_protocol": {
+              "constant_value": "tcp"
+            },
+            "from_port": {
+              "constant_value": 443
+            },
+            "to_port": {
+              "constant_value": 443
+            },
+            "description": {
+              "constant_value": "HTTPS to the kernel interface-endpoint security group ONLY"
+            },
+            "referenced_security_group_id": {
+              "references": [
+                "aws_security_group.endpoint_kernel.id",
+                "aws_security_group.endpoint_kernel"
+              ]
+            }
+          },
+          "schema_version": 0
+        },
+        {
+          "address": "aws_vpc_security_group_egress_rule.cognition_pgwire",
+          "mode": "managed",
+          "type": "aws_vpc_security_group_egress_rule",
+          "name": "cognition_pgwire",
+          "provider_config_key": "aws",
+          "expressions": {
+            "security_group_id": {
+              "references": [
+                "aws_security_group.cognition.id",
+                "aws_security_group.cognition"
+              ]
+            },
+            "ip_protocol": {
+              "constant_value": "tcp"
+            },
+            "from_port": {
+              "constant_value": 26257
+            },
+            "to_port": {
+              "constant_value": 26257
+            },
+            "description": {
+              "constant_value": "pgwire"
+            },
+            "prefix_list_id": {
+              "references": [
+                "aws_ec2_managed_prefix_list.crdb_cloud.id",
+                "aws_ec2_managed_prefix_list.crdb_cloud"
+              ]
+            }
+          },
+          "schema_version": 0
+        },
+        {
+          "address": "aws_vpc_security_group_egress_rule.cognition_endpoints_https",
+          "mode": "managed",
+          "type": "aws_vpc_security_group_egress_rule",
+          "name": "cognition_endpoints_https",
+          "provider_config_key": "aws",
+          "expressions": {
+            "security_group_id": {
+              "references": [
+                "aws_security_group.cognition.id",
+                "aws_security_group.cognition"
+              ]
+            },
+            "ip_protocol": {
+              "constant_value": "tcp"
+            },
+            "from_port": {
+              "constant_value": 443
+            },
+            "to_port": {
+              "constant_value": 443
+            },
+            "description": {
+              "constant_value": "HTTPS to the cognition endpoint SG, which fronts bedrock-runtime"
+            },
+            "referenced_security_group_id": {
+              "references": [
+                "aws_security_group.endpoint_cognition.id",
+                "aws_security_group.endpoint_cognition"
+              ]
+            }
+          },
+          "schema_version": 0
+        },
+        {
+          "address": "aws_vpc_security_group_egress_rule.custody_pgwire",
+          "mode": "managed",
+          "type": "aws_vpc_security_group_egress_rule",
+          "name": "custody_pgwire",
+          "provider_config_key": "aws",
+          "expressions": {
+            "security_group_id": {
+              "references": [
+                "aws_security_group.custody.id",
+                "aws_security_group.custody"
+              ]
+            },
+            "ip_protocol": {
+              "constant_value": "tcp"
+            },
+            "from_port": {
+              "constant_value": 26257
+            },
+            "to_port": {
+              "constant_value": 26257
+            },
+            "description": {
+              "constant_value": "pgwire"
+            },
+            "prefix_list_id": {
+              "references": [
+                "aws_ec2_managed_prefix_list.crdb_cloud.id",
+                "aws_ec2_managed_prefix_list.crdb_cloud"
+              ]
+            }
+          },
+          "schema_version": 0
+        },
+        {
+          "address": "aws_vpc_security_group_ingress_rule.endpoint_kernel_443",
+          "mode": "managed",
+          "type": "aws_vpc_security_group_ingress_rule",
+          "name": "endpoint_kernel_443",
+          "provider_config_key": "aws",
+          "expressions": {
+            "security_group_id": {
+              "references": [
+                "aws_security_group.endpoint_kernel.id",
+                "aws_security_group.endpoint_kernel"
+              ]
+            },
+            "referenced_security_group_id": {
+              "references": [
+                "aws_security_group.kernel.id",
+                "aws_security_group.kernel"
+              ]
+            },
+            "ip_protocol": {
+              "constant_value": "tcp"
+            },
+            "from_port": {
+              "constant_value": 443
+            },
+            "to_port": {
+              "constant_value": 443
+            }
+          },
+          "schema_version": 0
+        },
+        {
+          "address": "aws_vpc_security_group_ingress_rule.endpoint_cognition_443",
+          "mode": "managed",
+          "type": "aws_vpc_security_group_ingress_rule",
+          "name": "endpoint_cognition_443",
+          "provider_config_key": "aws",
+          "expressions": {
+            "security_group_id": {
+              "references": [
+                "aws_security_group.endpoint_cognition.id",
+                "aws_security_group.endpoint_cognition"
+              ]
+            },
+            "referenced_security_group_id": {
+              "references": [
+                "aws_security_group.cognition.id",
+                "aws_security_group.cognition"
+              ]
+            },
+            "ip_protocol": {
+              "constant_value": "tcp"
+            },
+            "from_port": {
+              "constant_value": 443
+            },
+            "to_port": {
+              "constant_value": 443
+            }
+          },
+          "schema_version": 0
+        },
+        {
+          "address": "aws_iam_policy.kernel_boundary",
+          "mode": "managed",
+          "type": "aws_iam_policy",
+          "name": "kernel_boundary",
+          "provider_config_key": "aws",
+          "expressions": {
+            "name": {
+              "constant_value": "mainline-kernel-boundary"
+            },
+            "policy": {
+              "references": [
+                "data.aws_iam_policy_document.kernel_boundary.json",
+                "data.aws_iam_policy_document.kernel_boundary"
+              ]
+            },
+            "tags": {
+              "constant_value": {
+                "Plane": "kernel",
+                "Component": "permissions-boundary",
+                "Environment": "prod",
+                "System": "mainline"
+              }
+            }
+          },
+          "schema_version": 0
+        },
+        {
+          "address": "aws_iam_role.kernel_task",
+          "mode": "managed",
+          "type": "aws_iam_role",
+          "name": "kernel_task",
+          "provider_config_key": "aws",
+          "expressions": {
+            "name": {
+              "constant_value": "mainline-kernel"
+            },
+            "assume_role_policy": {
+              "constant_value": "{\"Version\": \"2012-10-17\", \"Statement\": [{\"Effect\": \"Allow\", \"Principal\": {\"Service\": \"ecs-tasks.amazonaws.com\"}, \"Action\": \"sts:AssumeRole\"}]}"
+            },
+            "permissions_boundary": {
+              "references": [
+                "aws_iam_policy.kernel_boundary.arn",
+                "aws_iam_policy.kernel_boundary"
+              ]
+            },
+            "tags": {
+              "constant_value": {
+                "Plane": "kernel",
+                "Component": "task-role",
+                "Environment": "prod",
+                "System": "mainline"
+              }
+            }
+          },
+          "schema_version": 0
+        },
+        {
+          "address": "aws_iam_role_policy.kernel_runtime",
+          "mode": "managed",
+          "type": "aws_iam_role_policy",
+          "name": "kernel_runtime",
+          "provider_config_key": "aws",
+          "expressions": {
+            "name": {
+              "constant_value": "mainline-kernel-runtime"
+            },
+            "role": {
+              "references": [
+                "aws_iam_role.kernel_task.id",
+                "aws_iam_role.kernel_task"
+              ]
+            },
+            "policy": {
+              "constant_value": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Sid\": \"KernelRuntime\",\n      \"Effect\": \"Allow\",\n      \"Action\": [\n        \"secretsmanager:GetSecretValue\",\n        \"kms:Decrypt\",\n        \"logs:PutLogEvents\",\n        \"logs:CreateLogStream\",\n        \"cloudwatch:PutMetricData\"\n      ],\n      \"Resource\": \"*\"\n    }\n  ]\n}"
+            }
+          },
+          "schema_version": 0
+        },
+        {
+          "address": "aws_iam_role.recall_task",
+          "mode": "managed",
+          "type": "aws_iam_role",
+          "name": "recall_task",
+          "provider_config_key": "aws",
+          "expressions": {
+            "name": {
+              "constant_value": "mainline-recall"
+            },
+            "assume_role_policy": {
+              "constant_value": "{\"Version\": \"2012-10-17\", \"Statement\": [{\"Effect\": \"Allow\", \"Principal\": {\"Service\": \"ecs-tasks.amazonaws.com\"}, \"Action\": \"sts:AssumeRole\"}]}"
+            },
+            "tags": {
+              "constant_value": {
+                "Plane": "cognition",
+                "Component": "task-role",
+                "Environment": "prod",
+                "System": "mainline"
+              }
+            }
+          },
+          "schema_version": 0
+        },
+        {
+          "address": "aws_iam_role_policy.recall_model",
+          "mode": "managed",
+          "type": "aws_iam_role_policy",
+          "name": "recall_model",
+          "provider_config_key": "aws",
+          "expressions": {
+            "name": {
+              "constant_value": "mainline-recall-model"
+            },
+            "role": {
+              "references": [
+                "aws_iam_role.recall_task.id",
+                "aws_iam_role.recall_task"
+              ]
+            },
+            "policy": {
+              "constant_value": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Sid\": \"RecallModelPlane\",\n      \"Effect\": \"Allow\",\n      \"Action\": [\n        \"bedrock:InvokeModel\",\n        \"bedrock:InvokeModelWithResponseStream\"\n      ],\n      \"Resource\": [\n        \"arn:aws:bedrock:ap-southeast-2:*:inference-profile/au.anthropic.*\"\n      ]\n    }\n  ]\n}"
+            }
+          },
+          "schema_version": 0
+        }
+      ],
+      "module_calls": {}
+    }
+  },
+  "timestamp": "2026-08-06T00:00:00Z",
+  "applyable": true,
+  "complete": true,
+  "errored": false
+}

@@ -1,0 +1,42 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MI: MI01
+-- I: I01
+-- COUNSEL-GATED: no
+-- RATIONALE: The owner of every MAINLINE schema must be a principal nobody can become, so that "the application role holds no DDL" (ARCHITECTURE §11.2) is a property of the cluster rather than of a deployment habit.
+--
+-- migration:  0001_role_mainline_owner
+-- band:       0001-0023 · dm-foundation
+-- statements: 1
+-- source:     ARCHITECTURE.md §11.2 (role matrix, final row) · docs/leads/datamodel.md DM-7
+-- requires:   nothing. This is the first object MAINLINE creates.
+-- sqlstate:   —
+-- forward-only; no .down.sql exists at or below the protected floor (DM-14).
+--
+-- WHY THE ROLE IS 0001 AND NOT 0006 — a documented renumber, because a silent one is worse.
+--   The lead's file map had 0001-0005 create the five schemas and 0007 "transfer schema ownership
+--   to mainline_owner". No single SQL statement transfers ownership of five schemas: `ALTER SCHEMA
+--   … OWNER TO` names exactly one schema, and one-DDL-statement-per-file is not negotiable
+--   (ARCHITECTURE §18, datamodel.md §4 rule 1). Five ALTER files would push this band past 0023
+--   and collide with dm-spine. So ownership is taken AT CREATION with `AUTHORIZATION`, which is
+--   strictly stronger than a later transfer: there is never an instant in which a MAINLINE schema
+--   is owned by whoever happened to run the migration. That requires the role to exist first.
+--   Every §18 anchor from 0010 onward is preserved exactly — types 0010-0016, lattice 0017-0020,
+--   site/person/signing_credential 0021-0023.
+--
+-- WHY `IF NOT EXISTS`, WHICH IS NOT LAZINESS.
+--   Roles are CLUSTER state; migrations are DATABASE state (DM-7). One cluster hosts the dev
+--   database, the demo database and every disposable per-session test database, and the second
+--   `CREATE DATABASE … ; apply` must not die on a role the first one created. The cost is that
+--   this statement would silently accept a pre-existing `mainline_owner` that someone had given
+--   LOGIN to — which is why the actual assertion of the role's properties lives in
+--   tests/integration/schema/test_mi_foundation.py::test_mainline_owner_is_unassumable, not here.
+--   A migration cannot check; a probe can.
+--
+-- NOLOGIN is also CockroachDB's default for `CREATE ROLE` (`CREATE USER` is the LOGIN variant).
+-- It is written out anyway: "unassumable" is a load-bearing claim and a reader must not have to
+-- know a default to check it. Unassumability is completed by GRANTS.yaml, which grants membership
+-- in mainline_owner to nobody, and by the probe that asserts the membership set is empty.
+
+CREATE ROLE IF NOT EXISTS mainline_owner WITH NOLOGIN;

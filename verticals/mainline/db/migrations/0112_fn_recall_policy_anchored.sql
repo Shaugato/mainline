@@ -32,6 +32,11 @@
 --
 -- Style (§5.11): PL/pgSQL, row-level, no FOR..IN, no FOREACH, no EXECUTE, no PERFORM, no CASE;
 -- IF/ELSIF plus one scalar lookup and exactly one aggregate SELECT..INTO.
+--
+-- PLATFORM: CockroachDB requires `OLD`/`NEW` to be parenthesised when a COLUMN is read —
+-- `(NEW).policy_version`, not `NEW.policy_version` — a documented known limitation whose own
+-- v26.2 examples read `(NEW).wage` and assign `NEW.wage := …`. ARCHITECTURE §5.11 is written in
+-- the unparenthesised PostgreSQL style; every trigger in the deployment needs this correction.
 
 CREATE FUNCTION mainline.fn_recall_policy_anchored() RETURNS TRIGGER LANGUAGE PLpgSQL AS $$
 DECLARE
@@ -40,7 +45,7 @@ DECLARE
 BEGIN
   SELECT rp.anchored_tree_size INTO anchored_size
     FROM mainline_meas.recall_policy rp
-   WHERE rp.policy_version = NEW.policy_version;
+   WHERE rp.policy_version = (NEW).policy_version;
 
   IF anchored_size IS NULL THEN
     RAISE EXCEPTION USING ERRCODE='P0001',
@@ -53,7 +58,7 @@ BEGIN
     FROM mainline.ledger_checkpoint cp
     JOIN mainline.cosignature cs
       ON cs.site_code = cp.site_code AND cs.tree_size = cp.tree_size
-   WHERE cp.site_code = NEW.site_id::STRING
+   WHERE cp.site_code = ((NEW).site_id)::STRING
      AND cp.tree_size >= anchored_size
      AND cp.admissible;
 

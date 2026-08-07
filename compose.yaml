@@ -1,0 +1,67 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# The local cluster. PL-1 says every proof must run on a stranger's machine with no
+# credential of ours, so the entire kernel — migrations, conformance, unwelding — runs
+# against this file and nothing else. No CockroachDB Cloud organisation, no AWS account,
+# no service account, no network egress beyond one image pull.
+#
+# THE VERSION CONSTANT LIVES HERE AND ONLY HERE. `just`, `db.yml` and `ci.yml` all read
+# it back out with `trappoint migrate image`, which parses the line tagged
+# `trappoint:crdb-image-pin` below. A second copy of a version string is a second thing
+# to forget, and a dev/CI version skew that changes DDL behaviour is precisely the drift
+# the schema fingerprint exists to catch — so it must not be introduced by the harness.
+
+name: trappoint
+
+services:
+  crdb:
+    # trappoint:crdb-image-pin
+    image: cockroachdb/cockroach:v26.2.5
+    container_name: trappoint-crdb
+    # `services:` in GitHub Actions cannot pass a command, and `start-single-node` IS a
+    # command, which is why db.yml runs `docker run` instead of declaring a service.
+    # Here Compose can express it directly.
+    command:
+      - start-single-node
+      - --insecure
+      - --listen-addr=0.0.0.0:26257
+      - --http-addr=0.0.0.0:8080
+      - --cache=.25
+      - --max-sql-memory=.25
+    ports:
+      # 26257 pgwire, 8080 DB Console. Bound to loopback: an --insecure node is a node
+      # with no authentication at all, and it must not be reachable from the LAN.
+      - "127.0.0.1:26257:26257"
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - crdb-data:/cockroach/cockroach-data
+    healthcheck:
+      # `cockroach sql --execute` exercises the pgwire path the migrator will use,
+      # which is the thing we actually need to be up. An HTTP /health probe can pass
+      # while SQL is still initialising.
+      test:
+        - CMD
+        - /cockroach/cockroach
+        - sql
+        - --insecure
+        - --host=127.0.0.1:26257
+        - --execute=SELECT 1
+      interval: 5s
+      timeout: 10s
+      retries: 30
+      start_period: 15s
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    stop_grace_period: 60s
+    restart: "no"
+
+volumes:
+  # Named rather than in-memory so a laptop reboot does not silently discard an applied
+  # migration stream and leave `schema_migration` disagreeing with the cluster. The
+  # unwelding harness, which MUTATES schema, must never run against this volume — it
+  # runs against a throwaway container it creates and destroys itself.
+  crdb-data:
+    name: trappoint-crdb-data

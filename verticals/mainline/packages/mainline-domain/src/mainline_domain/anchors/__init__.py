@@ -26,9 +26,16 @@ from ..contracts import IDENTITY_ANCHOR_CLASSES, Anchor, AnchorClass, AnchorSet
 from .cas import cas_check_digit, is_valid_cas
 from .drop import AnchorDrop, analyse_drops, has_uncompensated_drop, uncompensated_drops
 from .extract import extract_anchors, iter_anchors
-from .gazetteer import Gazetteers, load_gazetteers
+from .gazetteer import (
+    GAZETTEER_FINGERPRINT_DOMAIN,
+    Gazetteers,
+    gazetteer_fingerprint,
+    load_gazetteers,
+    require_version,
+)
 
 __all__ = [
+    "GAZETTEER_FINGERPRINT_DOMAIN",
     "IDENTITY_ANCHOR_CLASSES",
     "Anchor",
     "AnchorClass",
@@ -38,9 +45,11 @@ __all__ = [
     "analyse_drops",
     "cas_check_digit",
     "extract_anchors",
+    "gazetteer_fingerprint",
     "has_uncompensated_drop",
     "is_valid_cas",
     "iter_anchors",
     "load_gazetteers",
+    "require_version",
     "uncompensated_drops",
 ]

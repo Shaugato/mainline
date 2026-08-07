@@ -1,0 +1,81 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+#
+# The four Kestrel Resources sites.  Four exist because fleet siblings need >=3 sites to be a
+# real cohort rather than a coincidence (corpus-demo D16); one appears on camera.
+#
+# `tz_offset_hours` is a FIXED offset, deliberately.  Real Australian sites straddle DST
+# boundaries; a corpus whose timestamps move by an hour depending on the zoneinfo version
+# installed is not byte-reproducible, and byte-reproducibility is the judge-facing claim.
+# Every timestamp in the corpus is emitted at UTC+10:00 and says so.
+#
+# `event_weight` is the relative intensity of the non-homogeneous Poisson process at this site,
+# NOT a probability.  Absolute base rates live in `skeleton/params.py` because they are generator
+# parameters, not vocabulary.
+
+version: 1
+
+sites:
+  - code: MRD
+    name: Marrindal
+    full_name: Marrindal Concentrator and Hydrocarbon Transfer Facility
+    kind: concentrator
+    tz_offset_hours: 10
+    commissioned_on: 1998-09-14
+    ref_slug: marrindal
+    event_weight: 1.00
+    on_camera: true
+    description_facts:
+      - copper-gold concentrator
+      - hydrocarbon transfer and day-tank farm
+      - two-line grinding circuit
+
+  - code: CVY
+    name: Cape Verity
+    full_name: Cape Verity Export Terminal
+    kind: export_terminal
+    tz_offset_hours: 10
+    commissioned_on: 2002-03-01
+    ref_slug: cape-verity
+    event_weight: 0.55
+    on_camera: false
+    description_facts:
+      - product tank farm
+      - marine loading arms
+      - vapour recovery
+
+  - code: YND
+    name: Yandarra Downs
+    full_name: Yandarra Downs Open Cut and Heavy Workshop
+    kind: open_cut
+    tz_offset_hours: 10
+    commissioned_on: 1991-06-24
+    ref_slug: yandarra-downs
+    event_weight: 0.55
+    on_camera: false
+    description_facts:
+      - open-cut mining fleet
+      - heavy vehicle workshop
+      - explosives magazine and dewatering
+
+  - code: TLG
+    name: Tolgarra
+    full_name: Tolgarra Processing and Power Station
+    kind: processing_power
+    tz_offset_hours: 10
+    commissioned_on: 2006-11-30
+    ref_slug: tolgarra
+    event_weight: 0.35
+    on_camera: false
+    description_facts:
+      - reagent handling and dosing
+      - package boilers and steam header
+      - gas-fired generation and HV distribution
+
+operator:
+  legal_name: Kestrel Resources Pty Ltd
+  short_name: Kestrel Resources
+  # The clearance evidence (ASIC / ABN Lookup / IP Australia, dated) is the deliverable of
+  # `corpus-spine-authored` under verticals/mainline/demo/operator/.  This file only names it.
+  clearance_dossier: verticals/mainline/demo/operator/
+  identity_source: https://idp.kestrelresources.example/oidc

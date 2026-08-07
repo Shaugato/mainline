@@ -1,0 +1,257 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# THE ATTACK REGISTRY — fifteen attacks, executed as real scripts against a real cluster
+# and a real bundle by tests/integration/custody/nemesis/.
+#
+# ---------------------------------------------------------------------------------------
+# WHY THIS FILE EXISTS
+# ---------------------------------------------------------------------------------------
+# "Tamper-evident" is an adjective. A regulator cannot read an adjective. This registry,
+# crossed with spec/custody/checks.yaml and with the ACTUAL outcome of a nemesis run,
+# produces evidence/CUSTODY_ATTACK_MATRIX.md: attack x detecting check x detection latency.
+# That is the artefact a regulator can read in ten minutes, and it is generated from a run
+# rather than written by hand.
+#
+# ATTACK-DEPTH, the custody analogue of the kernel's refusal depth:
+#   * CI FAILS if any attack is detected by ZERO checks.
+#   * CI FLAGS (does not fail) any attack detected by EXACTLY ONE check, because a single
+#     detector is a single point of failure in the argument, not in the code.
+#   * An attack that cannot be run today is reported SKIP(reason) and appears in the matrix
+#     as such. NEVER silently absent.
+#
+# The nemesis suite performs destructive UPDATEs and DELETEs. It runs against a single-node
+# Docker CockroachDB only, guarded by a fixture that refuses any DSN whose host is not
+# localhost or 127.0.0.1 -- a nemesis suite that can reach production is itself a T1 attack
+# surface.
+
+schema_version: 1
+frozen_at: "2026-08-07"
+
+# Tier definitions are normative in spec/custody/threat-model.md.
+attacks:
+  - id: A1
+    name: delete_and_relink
+    tier: T1
+    summary: >-
+      Delete leaf k, renumber k+1..n, and recompute every link_hash in one
+      UPDATE ... FROM generate_series. The table is left perfectly self-consistent.
+    why_it_matters: >-
+      This is THE attack. It is one statement, it needs no cleverness, and it defeats every
+      hash chain that lives inside a table the adversary owns. Gap-freedom becomes evidence
+      only when an independent party already holds a commitment to the head.
+    detected_by: [3, 2, 16]
+    primary_detector: 3
+    expected_latency: "immediate on the next verify; undetectable in-database"
+    runnable_today: true
+
+  - id: A2
+    name: renumber_only
+    tier: T1
+    summary: "Shift seq values without re-linking, e.g. to close a gap left by a delete."
+    detected_by: [9, 3, 16]
+    primary_detector: 9
+    expected_latency: immediate
+    runnable_today: true
+
+  - id: A3
+    name: payload_substitute
+    tier: T1
+    summary: "Swap ledger_intake.payload while leaving canon_bytes and leaf_hash untouched."
+    why_it_matters: >-
+      The payload is what a human reads in the console. If it can drift from the bytes that
+      were hashed, the exhibit and the proof describe different documents.
+    detected_by: [1, 16]
+    primary_detector: 1
+    expected_latency: immediate
+    runnable_today: true
+
+  - id: A4
+    name: canon_substitute
+    tier: T1
+    summary: "Swap canon_bytes and recompute leaf_hash together, so check 1 passes."
+    detected_by: [2, 3, 16]
+    primary_detector: 2
+    expected_latency: "immediate against any checkpoint that predates the swap"
+    runnable_today: true
+
+  - id: A5
+    name: canon_version_downgrade
+    tier: T1
+    summary: "Re-canonicalise an old leaf under a different payload_ver to change its bytes legitimately-looking."
+    detected_by: [10, 1, 2]
+    primary_detector: 10
+    expected_latency: immediate
+    runnable_today: true
+    notes: >-
+      Defeated twice over: canon_src_sha256 is inside the signed checkpoint, and
+      scripts/custody/check_vendored_canon.py refuses any modification to a shipped
+      canonicaliser at merge time.
+
+  - id: A6
+    name: fork
+    tier: T1
+    summary: "Two ledger_leaf rows claiming the same head, producing two divergent histories."
+    detected_by: [3, 9]
+    primary_detector: 3
+    expected_latency: "refused at write time; detected at verify time if the constraint were removed"
+    runnable_today: true
+    notes: >-
+      Refusal depth 2 in the database: PRIMARY KEY (site_code, seq) and
+      CONSTRAINT ledger_linear UNIQUE (site_code, prev_link_hash). The nemesis case drops
+      each in turn and asserts the write still fails, then drops both and asserts the
+      verifier catches what the database no longer does.
+
+  - id: A7
+    name: checkpoint_swap
+    tier: T4
+    summary: >-
+      Replace a checkpoint body with a different, internally self-consistent one over a
+      different tree, signed with the same key.
+    detected_by: [3, 5, 7, 8]
+    primary_detector: 5
+    expected_latency: "immediate if a TSA token or a witness cosignature exists for the original"
+    runnable_today: true
+    notes: >-
+      This is where the design stops relying on the database. A T4 adversary can mint a
+      valid signature; they cannot mint an RFC 3161 token dated in the past, and they cannot
+      make a witness un-see the size it already cosigned.
+
+  - id: A8
+    name: backdate_forward
+    tier: T4
+    summary: "Mint history and claim it existed earlier than the timestamp authority saw it."
+    detected_by: [5]
+    primary_detector: 5
+    expected_latency: immediate
+    runnable_today: true
+    single_detector_flag: true
+    notes: >-
+      Detected by exactly one check today, which is why the design uses at least two
+      independent TSAs. Flagged, not failed, by the ATTACK-DEPTH rule.
+
+  - id: A9
+    name: backdate_backward
+    tier: T4
+    summary: "Claim a checkpoint existed BEFORE the beacon round it quotes."
+    detected_by: [6]
+    primary_detector: 6
+    expected_latency: immediate
+    runnable_today: true
+    single_detector_flag: true
+    notes: >-
+      The lower half of the two-sided bracket. Honest limit: extension lines are covered by
+      the 0x02 log signature but not by 0x04/0x06 cosignatures, so against T4 this bound is
+      exactly as strong as the log signature. Stated in spec/wire/checkpoint.md section 4.4.
+
+  - id: A10
+    name: closure_mass_rewrite
+    tier: T1
+    summary: >-
+      UPDATE mainline.clause_blame_closure SET max_severity = 0 WHERE site_id = $1, from the
+      closure projector's Lambda execution role.
+    why_it_matters: >-
+      Adversarial-review finding S2. Every weakening gate evaporates, every mechanism_absent
+      becomes legal at every clause, and every coverage view reports full coverage. It does
+      not even require a rogue DBA -- one bug in an async, batched, at-least-once projector
+      does it.
+    detected_by: [14, 16]
+    primary_detector: 14
+    expected_latency: "immediate at verify; within one checkpoint cadence (60 s) in-cluster"
+    runnable_today: true
+
+  - id: A11
+    name: prev_digest_forgery
+    tier: T1
+    summary: "Insert a permit_event carrying a fabricated prev_digest, forging the state-machine chain."
+    why_it_matters: >-
+      Adversarial-review finding S9. The chain_digest is computed server-side; its INPUT was
+      not, so the chain was whatever the inserter said it was.
+    detected_by: [11]
+    primary_detector: 11
+    expected_latency: "refused at write time by fn_permit_event_chain"
+    runnable_today: true
+    notes: >-
+      The primary defence is a database refusal (P0001), not a verifier finding; see
+      spec/custody/chain-verification.md. Check 11 catches the case where the trigger was
+      removed first.
+
+  - id: A12
+    name: sandbox_smuggle
+    tier: T0
+    summary: "Land an is_sandbox = true leaf inside an evidentiary tree, from the guest demo surface."
+    detected_by: [13, 16]
+    primary_detector: 13
+    expected_latency: immediate
+    runnable_today: true
+
+  - id: A13
+    name: trigger_disable
+    tier: T1
+    summary: "ALTER TABLE ... DISABLE TRIGGER on the merge gate, then merge a permit with open blocking checks."
+    detected_by: [11, 14]
+    primary_detector: 11
+    expected_latency: "one custodian-patrol cycle (target 15 s)"
+    runnable_today: true
+    notes: >-
+      The demo beat. The gate refuses; the raw-SQL bypass refuses; the DROP CONSTRAINT
+      SUCCEEDS -- and the custodian patrol surfaces it as an attested ledger leaf. Showing
+      the successful bypass is the point: a product that claims nothing can be dropped is
+      lying, and one that detects the drop is telling the truth.
+
+  - id: A14
+    name: receipt_orphan
+    tier: T1
+    summary: "Issue a Signed Disposition Receipt and never sequence its leaf."
+    detected_by: [15]
+    primary_detector: 15
+    expected_latency: "MMD + one verify (>= 60 s)"
+    runnable_today: true
+    single_detector_flag: true
+    notes: >-
+      The detection is held by the counterparty, not by us: the signer walks away with a
+      signed statement from us that our own log contradicts. That is why one detector is
+      tolerable here in a way it would not be elsewhere.
+
+  - id: A15
+    name: object_lock_downgrade
+    tier: T2
+    summary: >-
+      Call PutObjectRetention to shorten a COMPLIANCE retention, or DeleteObjectVersion on a
+      checkpoint object.
+    detected_by: [8]
+    primary_detector: 8
+    expected_latency: "immediate against a live bucket"
+    runnable_today: false
+    skip_reason: no-credentials
+    notes: >-
+      AWS credentials are not valid on the build machine today. This attack is reported
+      SKIP(no-credentials) in the matrix and is NEVER silently absent. The static defence is
+      proven instead by policy-as-code over the OpenTofu plan JSON
+      (infra/policy/custody/object_lock.rego), because moto's Object Lock enforcement is
+      incomplete and a green test against a mock that does not enforce the thing is worse
+      than no test.
+
+# ---------------------------------------------------------------------------------------
+# WHAT IS NOT DEFEATED, STATED FIRST BECAUSE SAYING IT FIRST IS THE ONLY VERSION THAT HELPS
+# ---------------------------------------------------------------------------------------
+undefeated:
+  - tier: T3
+    adversary: "Managed-service operator (Cockroach Labs or AWS storage-path staff)"
+    statement: >-
+      No in-database mechanism addresses storage-layer access outside our IAM. Only S3
+      Object Lock in a separate account and external witnesses touch it, and neither is a
+      complete answer. This is stated to the customer, in the README, first.
+  - tier: T4
+    adversary: "Cloud-org admin colluding with the signer"
+    statement: >-
+      Can mint valid-looking history GOING FORWARD. What they cannot do is change history a
+      TSA already timestamped or a witness already cosigned. The window of undetectable
+      mutation is ~60 seconds and that is the honest number; a ledger claiming zero window
+      is lying.
+  - name: rubber_stamping
+    statement: >-
+      Nothing here detects an insincere disposition. The custody chain makes rubber-stamping
+      MEASURABLE (dwell time, rationale edit count, paste-vs-type provenance) and those
+      measurements go in the tree alongside the logged-silence entries. That sharpens the
+      exhibit in BOTH directions, which is the honest position.

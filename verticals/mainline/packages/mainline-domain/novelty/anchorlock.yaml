@@ -1,0 +1,206 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
+#
+# Novelty fragment per docs/leads/algorithms.md §6.  Validated by
+# tests/unit/domain/novelty/test_novelty_manifest.py (worker W10) and consumed
+# by MECHANISMS.md generation.  Anything not yet proven belongs under
+# `unverified:` and NEVER inside `claim:`.
+
+slug: anchorlock
+name: ANCHORLOCK
+mechanism: M1
+claim: >-
+  Seven model-free token classes are extracted from canon_text by regex over committed
+  gazetteers, and the resulting set is used twice against one edit: a CONFLICT in any of the five
+  identity classes VETOES a semantic match the embedding scored 0.97, and an UNCOMPENSATED DROP
+  of an identity anchor raises a control_delta='weaken' candidate with no model in the loop and
+  writes identity_residue.reason='anchor_drop'.  An edit therefore has nowhere to go: keep the
+  tag and the match holds, change the tag and the match is refused, delete the tag and the drop
+  fires — and the drop is the branch the merge gate refuses on.  The word lists that decide all of
+  this are committed, version-declared and folded into one 32-byte gazetteer fingerprint, so an
+  anchor decision can be re-derived years later from the exact bytes that made it.
+
+enforcement:
+  refuses: ["identity_conserved_when_issued (23514)"]
+  refusal_depth: 1
+# Stated at its true depth, not inflated.  This package writes no SQL.  What it
+# produces is `clause_version.anchor_set` and the `identity_residue` rows whose
+# reason is 'anchor_drop'; the refusal itself is `CHECK
+# identity_conserved_when_issued` on permit/change_request (ARCHITECTURE.md
+# §5.5, MI03, 23514), projected by `fn_residue_counter` and owned by the kernel
+# lead, with the second, structural layer (`cbm_balances`) owned by W9 and
+# claimed in cbm-ledger.yaml.  Refusal depth here is 1 because ANCHORLOCK
+# contributes exactly one refusing constraint; depth 2 is CBM's claim, not this
+# one's.  The `unverified:` block below says plainly that those migrations have
+# not landed yet.
+
+position: unclaimed
+# The extraction is not the claim and is not new — see the prior art below, all
+# of which does gazetteer/dictionary entity recognition better than this does.
+# The unclaimed part is the COUPLING, and it has three parts that the surveyed
+# systems do not put together:
+#
+#   (a) an anchor conflict is a VETO OVER COSINE rather than a feature fed into
+#       the score.  A semantic candidate at 0.97 with a different equipment tag
+#       is rejected outright.  Record linkage blocks on identifiers to make the
+#       comparison cheaper; here the identifier is allowed to overrule an
+#       accepted comparison, and it overrules it in the direction of MORE
+#       adjudication, never less.
+#   (b) the DISAPPEARANCE of an anchor between two versions of one clause is an
+#       independent weakening signal, not a diff artefact — and the reference it
+#       is measured against is the BLAME-ORIGIN version, not the parent (W6),
+#       so twenty commits that each drop nothing but whose composition drops an
+#       isolation point are still visible.
+#   (c) the output of (b) is a ROW THE DATABASE REFUSES TO MERGE OVER, not a
+#       report.  The entity-consistency literature scores a rewrite; nothing
+#       found makes an entity's absence a write precondition on a state
+#       transition.
+#
+# 'setpoint' and 'named_role' are deliberately excluded from the identity
+# classes, and that exclusion is part of the claim: were a setpoint an identity
+# anchor, every legitimate setpoint move would present as a non-match and the
+# weakening would hide behind an 'unmatched' residue row instead of being
+# adjudicated as the weakening it is by lattice rule R2_SETPOINT.
+
+prior_art:
+  - url: "https://spacy.io/api/entityruler"
+    what_it_covers: >-
+      spaCy's EntityRuler is a pipeline component for rule-based named entity recognition: it adds
+      entities by token patterns or exact phrase match, standalone or alongside a statistical NER
+      model.  That is precisely the extraction technique used here — patterns plus committed word
+      lists — and it does it with more machinery than this package has.
+    what_it_does_not: >-
+      An EntityRuler produces annotations for a downstream consumer to use as it likes.  It defines
+      no relation between two versions of one document, so it has no notion of an entity's absence
+      being an event; and nothing in the component or its ecosystem overrides a similarity
+      judgement, because a rule-based recogniser has no similarity judgement to override.  The
+      gazetteers here are additionally immutable evidence — loaded once from committed TOML,
+      never fetched — because a word list that can drift between runs makes anchor drop
+      unfalsifiable.
+  - url: "https://www.census.gov/content/dam/Census/library/working-papers/1993/adrm/rr93-8.pdf"
+    what_it_covers: >-
+      Winkler, *Matching and Record Linkage* (U.S. Bureau of the Census RR93-8), states the
+      Fellegi–Sunter probabilistic linkage model and the standard practice of blocking on
+      deterministic identifiers before scoring: identifiers reduce the comparison space and
+      dominate weak evidence.  Hard identifiers constraining a probabilistic match is old, and
+      this manifest does not claim otherwise.
+    what_it_does_not: >-
+      Record linkage decides whether two records describe the same entity, and blocking exists to
+      make that cheaper — a blocking key that disagrees means the pair is never compared, which is
+      a silent negative.  ANCHORLOCK inverts the consequence: a disagreeing identity anchor on an
+      otherwise-accepted pair produces a BLOCKING ROW that a human must dispose of, and a
+      *missing* anchor produces a weakening verdict.  Linkage has no analogue of an anchor
+      disappearing over time, because its records do not have ancestry, and it has no analogue of
+      a refusal, because its output is a linked file rather than a state transition.
+  - url: "https://arxiv.org/abs/1910.12840"
+    what_it_covers: >-
+      Kryściński et al., *Evaluating the Factual Consistency of Abstractive Text Summarization*
+      (FactCC), checks a generated text against its source for factual conflicts, and the entity-
+      overlap family of metrics around it treats named entities that appear in a rewrite but not
+      in the source as a hallucination signal.  Comparing entity sets across a rewrite to detect
+      unfaithfulness is published work.
+    what_it_does_not: >-
+      Those metrics score a document pair and report a number, and they run in the OTHER direction
+      — entities *added* by the model are the hallucination.  Here the signal is an entity
+      *removed* by a human author, measured against the blame-origin version rather than the
+      immediate input, restricted to five typed identity classes so that a paraphrased role or a
+      moved setpoint is routed to the lattice instead of being double-counted, and terminating in
+      a database row rather than a score.  No consistency metric found is a precondition of a
+      write.
+  - url: "https://git-scm.com/docs/gitdiffcore"
+    what_it_covers: >-
+      git's diffcore rename and copy detection matches files across revisions by content
+      similarity with a threshold tunable via -M/-C (default 50%), which is the closest widely
+      deployed analogue of "decide identity across a revision by similarity".
+    what_it_does_not: >-
+      git's similarity is content-only: a rename is accepted at the threshold regardless of which
+      identifiers inside the file changed, and there is no token class whose disagreement can veto
+      an accepted rename or whose disappearance is itself reported.  git also has nothing to
+      refuse — a rename detection that is wrong produces a confusing diff, not an unsafe permit,
+      so the asymmetry that governs every choice in this module does not exist there.
+  - url: "https://www.cas.org/support/documentation/chemical-substances/checkdig"
+    what_it_covers: >-
+      CAS publishes the check-digit rule for a CAS Registry Number (weighted sum over the digits
+      of the first two groups, modulo 10).  The validation implemented in `anchors/cas.py` is that
+      published rule, unchanged.
+    what_it_does_not: >-
+      The published rule exists to catch transcription errors in a chemical database.  It is used
+      here for the opposite failure: an identity-class anchor VETOES matches, so a false CAS
+      anchor manufactures residue for a clause nobody touched.  Validating the checksum — and
+      rejecting zero-padded bodies, which are dates and part numbers wearing the shape — is what
+      keeps `2019-05-1` from becoming a chemical identity and blocking a permit.
+
+implemented_by:
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/contracts.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/anchors/extract.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/anchors/gazetteer.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/anchors/cas.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/anchors/drop.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/data/gazetteer/equipment.toml"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/data/gazetteer/instrument.toml"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/data/gazetteer/isolation.toml"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/data/gazetteer/citations.toml"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/data/gazetteer/roles.toml"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/data/gazetteer/setpoint-units.toml"
+
+tests:
+  - "tests/unit/domain/anchors/test_anchor_incompatible.py::test_p101a_to_p101b_paraphrase_is_anchor_incompatible"
+  - "tests/unit/domain/anchors/test_anchor_incompatible.py::test_same_tag_paraphrase_stays_compatible"
+  - "tests/unit/domain/anchors/test_anchor_incompatible.py::test_the_tag_is_actually_extracted"
+  - "tests/unit/domain/anchors/test_drop_and_compatibility.py::test_deleting_an_isolation_point_is_an_uncompensated_drop"
+  - "tests/unit/domain/anchors/test_drop_and_compatibility.py::test_deleting_a_citation_is_an_uncompensated_drop"
+  - "tests/unit/domain/anchors/test_drop_and_compatibility.py::test_replacing_a_citation_is_compensated_and_therefore_adjudicated"
+  - "tests/unit/domain/anchors/test_drop_and_compatibility.py::test_a_tag_swap_is_a_conflict_not_a_drop"
+  - "tests/unit/domain/anchors/test_drop_and_compatibility.py::test_adding_a_tag_is_not_a_conflict"
+  - "tests/unit/domain/anchors/test_drop_and_compatibility.py::test_setpoint_is_not_an_identity_class"
+  - "tests/unit/domain/anchors/test_drop_and_compatibility.py::test_a_setpoint_change_does_not_break_identity"
+  - "tests/unit/domain/anchors/test_drop_and_compatibility.py::test_compatibility_is_symmetric_and_reflexive"
+  - "tests/unit/domain/anchors/test_extract.py::test_all_seven_classes_are_reachable"
+  - "tests/unit/domain/anchors/test_extract.py::test_cas_checksum_is_enforced"
+  - "tests/unit/domain/anchors/test_extract.py::test_unknown_prefix_fails_closed_to_equipment_tag"
+  - "tests/unit/domain/anchors/test_extract.py::test_shapes_that_must_not_become_anchors"
+  - "tests/unit/domain/anchors/test_extract.py::test_precedence_citation_beats_equipment"
+  - "tests/unit/domain/anchors/test_extract.py::test_precedence_instrument_beats_equipment"
+  - "tests/unit/domain/anchors/test_extract.py::test_precedence_isolation_beats_equipment"
+  - "tests/unit/domain/anchors/test_extract.py::test_extraction_is_deterministic"
+  - "tests/unit/domain/anchors/test_gazetteer_fingerprint.py::test_every_committed_gazetteer_declares_an_integer_version"
+  - "tests/unit/domain/anchors/test_gazetteer_fingerprint.py::test_a_gazetteer_without_a_version_is_refused"
+  - "tests/unit/domain/anchors/test_gazetteer_fingerprint.py::test_the_fingerprint_is_stable_and_reproducible_by_hand"
+  - "tests/unit/domain/anchors/test_gazetteer_fingerprint.py::test_the_fingerprint_moves_when_anything_moves"
+  - "tests/unit/domain/anchors/test_gazetteer_fingerprint.py::test_a_name_boundary_cannot_be_forged"
+
+unverified:
+  - >-
+    The refusal named in `enforcement.refuses` is not yet running.  `identity_conserved_when_issued`
+    lives in DDL owned by the kernel lead (ARCHITECTURE.md §5.5) and the `identity_residue` rows it
+    counts are written by W8's cascade orchestrator; neither migration has landed at the time this
+    fragment was written.  What is proven today is that this package computes the veto and the drop
+    correctly on committed fixtures — the fact that a merge STOPS because of them is, until those
+    migrations exist and an integration test observes 23514, an unproven claim and is deliberately
+    absent from `claim:`.
+  - >-
+    Gazetteer coverage is a corpus question and is unmeasured.  The equipment, instrument,
+    isolation, citation, role and setpoint-unit lists are hand-built from the demo corpus's
+    vocabulary; their recall over a real site's procedure library is unknown.  Under-coverage fails
+    towards MORE anchors, not fewer, because an unknown hyphenated LETTERS-DIGITS token is still
+    extracted as an equipment_tag — so the cost of under-coverage is nuisance adjudication rather
+    than a silent pass.  The false-anchor rate that this fail-closed choice buys is likewise
+    unmeasured until W10's SURVIVE catalogue reports it.
+  - >-
+    Anchor extraction is monolingual (English) and assumes the ISA/tag conventions the demo corpus
+    uses.  Nothing in the design is language-specific, but nothing has been tested outside them.
+  - >-
+    Compensation is decided by CLASS, not by equivalence: a citation replaced by a different
+    citation counts as compensated and is routed to `compatible_with`, which reports a conflict.
+    That routing is correct in every case constructed so far, but "an added anchor of the same
+    class always means the drop was deliberate" is an assumption about author behaviour and is not
+    provable from the data.  The failure mode it admits — drop A and add unrelated B in one edit —
+    is caught by the conflict path rather than the drop path and therefore still blocks; if a case
+    is found where it blocks NEITHER, the compensation rule is the thing that was wrong.
+  - >-
+    `compatible_with` is symmetric and reflexive but NOT transitive, and nothing in the cascade may
+    assume that it is.  This is asserted by test on constructed sets, not proven over the corpus.
+  - >-
+    None of this distinguishes a considered disposition from a rubber stamp (risk R-A8).  ANCHORLOCK
+    decides what must be adjudicated; it says nothing whatsoever about the quality of the
+    adjudication, and it must never be sold as retiring that risk.

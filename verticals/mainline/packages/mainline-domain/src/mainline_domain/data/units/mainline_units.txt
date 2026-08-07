@@ -1,0 +1,168 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+#
+# MAINLINE vendored Pint definitions — worker W2 (DIRECTRIX), decision D5.
+# Loaded onto a FRESH pint.UnitRegistry by mainline_domain.quantity.units.
+# `mainline_units_version` at the bottom of this file is the committed version
+# of these bytes; changing anything here means bumping it, and a test refuses a
+# mismatch.  These definitions decide setpoint comparisons that decide merge
+# refusals, so they are evidence, not configuration.
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# THE ONE THING TO GET RIGHT: WHERE THE OFFSET IS MEASURED
+# ─────────────────────────────────────────────────────────────────────────────
+# Measured on pint 0.25.3, because the documentation does not say it plainly and
+# the two readings differ by four orders of magnitude:
+#
+#   For `name = SCALE * REFERENCE; offset: K`, pint computes
+#       value_in_REFERENCE = value * SCALE + K
+#   so **K is expressed in REFERENCE, not in `name`, and not in the base unit**
+#   unless REFERENCE happens to be the base unit.
+#
+# Pint's own degF is consistent with this and, because its reference IS the base
+# unit, does not distinguish the two readings:
+#
+#     degree_Fahrenheit = 5 / 9 * kelvin; offset: 233.15 + 200 / 9
+#
+# 233.15 + 200/9 = 255.372… KELVIN, which is 0 °F.  Written as `offset: 32`
+# — the value in degrees Fahrenheit — every temperature would be wrong and
+# nothing would raise.
+#
+# For pressure the distinction bites, and it bit here.  All three of these
+# parse, and two of them are catastrophically wrong:
+#
+#   RIGHT:  kilopascal_gauge = 1e3 * pascal;    offset: 101325   ← 101325 Pa
+#   WRONG:  kilopascal_gauge = 1 * kilopascal;  offset: 101325   ← 101325 kPa!
+#   WRONG:  psi_gauge = 6894.757… * pascal;     offset: 14.6959  ← offset in psi
+#
+# The second form was written here first and MEASURED: it converts one
+# atmosphere to −101223.675 kPa_g instead of 0.  The third is subtler — 50 psig
+# becomes 3.44752 bar_g instead of 3.44738 bar_g, a 0.004 % error that no test
+# written by eye would catch and that grows without bound as the reference unit
+# shrinks.
+#
+# So EVERY definition below references `pascal` directly, carries its whole
+# magnitude in the scale factor, and takes `offset: 101325`.  Two committed
+# tests hold that shape in place: every gauge unit must round-trip one standard
+# atmosphere to exactly zero, and every gauge unit's scale must agree with the
+# absolute unit of the same name that Pint already ships.
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# WHY GAUGE UNITS EXIST HERE AT ALL, GIVEN THAT THE ALGEBRA REFUSES TO CROSS
+# ─────────────────────────────────────────────────────────────────────────────
+# `mainline_domain.quantity` REFUSES a gauge↔absolute conversion (D5), so one
+# could ask why the gauge units carry an offset that would let Pint perform the
+# very conversion the layer above forbids.  Two reasons, both load-bearing:
+#
+#   1. GAUGE→GAUGE MUST BE EXACT.  psig → bar_g is a pure scale change *within*
+#      the gauge frame, and Pint computes it by going out to absolute pascals
+#      and back.  The atmospheric offsets cancel, so the answer is right — but
+#      only if both units carry the SAME offset in the SAME (base) unit.  Get
+#      the offset wrong and gauge→gauge silently drifts.  The offset is
+#      therefore not decoration; it is what makes the conversions we DO allow
+#      correct.
+#   2. THE REFUSAL IS TESTABLE ONLY IF THE MISTAKE IS REACHABLE.  A guard
+#      against an impossible operation asserts nothing.  Because these units are
+#      dimensionally compatible with absolute pressure, `Quantity.to()` on the
+#      raw registry WILL turn 50 psig into 446.06 kPa; the domain's red test
+#      demonstrates exactly that, and then demonstrates the refusal.  See
+#      tests/unit/domain/quantity/test_gauge_refusal.py.
+#
+# The reference class of a unit is NOT read from these definitions — Pint has no
+# concept of it.  It is declared in `units.py::UNIT_REFERENCE`, and a unit that
+# appears here without an entry there is refused at import.
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# NEW BASE DIMENSIONS, AND WHY EACH ONE IS NOT DIMENSIONLESS
+# ─────────────────────────────────────────────────────────────────────────────
+# Pint makes `%`, `ppm` and `count` all dimensionless, so `10 %LEL`, `10 %vol`,
+# `10 %` and `10 isolation points` are mutually convertible.  In a gas-testing
+# clause that is not a rounding concern, it is the difference between a
+# flammable atmosphere and an oxygen deficiency.  Each scale below therefore
+# gets its own base dimension, which makes the nonsense comparison a
+# DimensionMismatchError instead of a number.
+
+
+# ── gauge pressure ───────────────────────────────────────────────────────────
+# Reference is `pascal` in every line; offset is 101325 pascals in every line.
+#
+# The three awkward scales are written as the PRODUCT OF THEIR DEFINING
+# CONSTANTS rather than as a copied decimal, so that they cannot drift from the
+# absolute units Pint derives the same way:
+#
+#   psi   = g_0 · pound / inch²   = 9.80665 · 0.45359237 / 0.0254²  Pa
+#   kgf/cm² = g_0 · kilogram / cm² = 9.80665 / 0.0001               Pa
+#   inH2O = inch · ρ_water · g_0  = 0.0254 · 1000 · 9.80665         Pa
+#
+# Checked, not assumed: under a Decimal registry these reproduce Pint's own
+# `psi`, `kgf/cm²` and `inch_H2O` to every digit the test compares.
+
+pascal_gauge = 1 * pascal; offset: 101325 = Pa_g = Pag = pascal_g
+kilopascal_gauge = 1e3 * pascal; offset: 101325 = kPa_g = kPag
+megapascal_gauge = 1e6 * pascal; offset: 101325 = MPa_g = MPag
+bar_gauge = 1e5 * pascal; offset: 101325 = bar_g = barg
+millibar_gauge = 1e2 * pascal; offset: 101325 = mbar_g = mbarg
+psi_gauge = 9.80665 * 0.45359237 / 0.0254 ** 2 * pascal; offset: 101325 = psig = psi_g
+kilopond_per_square_centimetre_gauge = 9.80665 / 0.0001 * pascal; offset: 101325 = kgf_cm2_g
+inch_water_gauge = 0.0254 * 1000 * 9.80665 * pascal; offset: 101325 = inH2O_g = inWG
+millimetre_water_gauge = 0.001 * 1000 * 9.80665 * pascal; offset: 101325 = mmH2O_g
+
+
+# ── absolute pressure, spelled out ───────────────────────────────────────────
+# Same magnitudes as Pint's plain pressure units; separate names so a clause
+# that WROTE 'psia' is distinguishable from one that wrote a bare 'psi'.  A bare
+# pressure unit is reference='none' (frame unstated), not 'absolute' — see
+# units.py.  Guessing that a bare 'kPa' meant absolute is the failure D5 exists
+# to prevent, and it is not made here either.
+
+pascal_absolute = 1 * pascal = Pa_a = Paa
+kilopascal_absolute = 1 * kilopascal = kPa_a = kPaa
+megapascal_absolute = 1 * megapascal = MPa_a = MPaa
+bar_absolute = 1 * bar = bar_a = bara
+psi_absolute = 1 * psi = psia = psi_a
+inch_water_absolute = 1 * inch_H2O = inH2O_a
+
+
+# ── gas concentration scales that must never interconvert ────────────────────
+# %LEL is a fraction of a mixture's lower explosive limit; %vol is a volume
+# fraction; % is a bare ratio.  They share a printed sign and nothing else.
+
+percent_lel = [lel_fraction] = pctLEL
+percent_uel = [uel_fraction] = pctUEL
+percent_volume = [volume_fraction] = pctvol
+parts_per_billion = 1e-9 = ppb
+parts_per_hundred_million = 1e-8 = pphm
+
+
+# ── counting and ordinal scales ──────────────────────────────────────────────
+# `tally` is a count of discrete required things (isolation points, independent
+# verifications, escape routes).  Pint's own `count` is dimensionless, so it
+# would compare equal-dimension with a percentage; this one does not.
+#
+# `rating` is an ORDINAL scale (PPE level, hazard class, competency band).
+# Ordinal arithmetic is meaningless — level 4 is not twice level 2 — so the only
+# operation the algebra permits on a rating is comparison, and unit conversion
+# out of `rating` is impossible because nothing else has this dimension.
+
+tally = [tally] = tallies
+rating = [rating] = ratings
+
+
+# ── sound ────────────────────────────────────────────────────────────────────
+# Pint models dB as a logarithmic unit tied to a reference power.  An
+# A-weighted sound pressure level in an occupational-noise clause is not that:
+# it is a reading on an instrument, and the only meaningful operation is
+# comparison against another reading in the same weighting.  Own dimension.
+
+decibel_a_weighted = [sound_level] = dBA = dB_A
+
+
+# ── version of these bytes ───────────────────────────────────────────────────
+# Not a physical unit: a dimensionless constant whose numeric value is the
+# committed version of this file.  Reading it back through the registry proves
+# that the registry in memory was built from THIS file and not from Pint's
+# defaults or a stale copy — which is a real failure mode, because a definition
+# file that silently fails to load leaves a registry that still answers
+# questions about `psi` and merely lies about `psig`.
+
+mainline_units_version = 1

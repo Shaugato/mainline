@@ -30,6 +30,12 @@
 --
 -- Style (§5.11): PL/pgSQL, row-level, no FOR..IN, no FOREACH, no EXECUTE, no PERFORM, no CASE;
 -- IF plus exactly one SELECT..INTO.
+--
+-- PLATFORM: CockroachDB requires `OLD`/`NEW` to be parenthesised when a COLUMN is read —
+-- `(NEW).event_id`, not `NEW.event_id` — a documented known limitation whose own v26.2 examples
+-- read `(NEW).wage` and assign `NEW.wage := …`. The assignment target below is deliberately
+-- bare, matching that example. ARCHITECTURE §5.11 is written in the unparenthesised PostgreSQL
+-- style; every trigger in the deployment needs this correction.
 
 CREATE FUNCTION mainline.fn_candidate_project() RETURNS TRIGGER LANGUAGE PLpgSQL AS $$
 DECLARE
@@ -37,7 +43,7 @@ DECLARE
 BEGIN
   SELECT e.severity_gate INTO ev_sev
     FROM mainline.event e
-   WHERE e.event_id = NEW.event_id;
+   WHERE e.event_id = (NEW).event_id;
 
   IF ev_sev IS NULL THEN
     RAISE EXCEPTION USING ERRCODE='P0001',

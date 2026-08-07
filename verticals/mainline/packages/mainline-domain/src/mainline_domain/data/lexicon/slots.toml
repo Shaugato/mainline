@@ -1,0 +1,257 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+#
+# CATSEAL slot vocabularies (worker W3): action, object_class, hazard_energy,
+# coverage_quantifier, verification.
+#
+# Each table maps SURFACE PHRASES to a CANONICAL KEY.  The canonical key is what
+# lands in the CAT and therefore in the cat_key preimage, so:
+#
+#   * a key is never renamed in place -- renaming a key re-keys every clause
+#     that used it, which is a migration, not an edit;
+#   * a new surface phrase pointing at an existing key is a safe, additive
+#     change and does not move any cat_key;
+#   * an unrecognised surface phrase does NOT become a key of its own by
+#     accident.  The extractor falls back to the normalised surface token and
+#     records that it did, so a vocabulary gap shows up as an odd-looking key
+#     rather than as a missing slot.
+#
+# `actor` has no table here on purpose.  Actors are resolved against the
+# ANCHORLOCK named_role gazetteer (data/gazetteer/roles.toml, owner W1), because
+# a role is a hard anchor and duplicating the list would let the two drift.  The
+# only actor values this file contributes are the two structural fallbacks in
+# [actor].
+
+[slots]
+version = 1
+
+# --------------------------------------------------------------------------- #
+# actor -- structural fallbacks only; real roles come from the W1 gazetteer     #
+# --------------------------------------------------------------------------- #
+[actor]
+unspecified = "unspecified"
+generic = [
+  # Role-like phrases that the ANCHORLOCK named_role gazetteer does not carry
+  # because they are not site-specific roles.  Kept here rather than proposed
+  # for roles.toml: that file is owned by W1 and a role added there changes the
+  # anchor set, which changes identity; these change only the actor slot.
+  "authorised person",
+  "authorized person",
+  "authorised persons",
+  "any person",
+  "all persons",
+  "all personnel",
+  "personnel",
+  "employees",
+  "workers",
+  "the worker",
+  "the person",
+  "persons",
+  "no person",
+  "nobody",
+  "everyone",
+  "all employees",
+  "site personnel",
+  "the contractor",
+  "contractors",
+  "the operator",
+  "operators",
+  "the crew",
+]
+
+# --------------------------------------------------------------------------- #
+# action -- the verb the obligation binds.                                      #
+#                                                                               #
+# NEGATION NORMALISES INTO THE DEONTIC, NEVER INTO THE ACTION.  "shall not      #
+# exceed" is (MUST_NOT, exceed); it is never (MUST, not_exceed).  Without that  #
+# rule the same control acquires two identities -- one clause writes "shall not #
+# exceed 50 kPa" and its successor writes "shall remain below 50 kPa", the CATs #
+# differ in two slots, and the edit reads as a rewritten control rather than as #
+# the restatement it is.  An identity split is worse than a missed weakening,   #
+# because it detaches the blame edge silently.                                  #
+#                                                                               #
+# [action] holds POSITIVE surfaces.  [action.negating] holds surfaces that mean #
+# the same verb with the polarity reversed; matching one flips the deontic      #
+# (MUST <-> MUST_NOT, SHOULD <-> SHOULD_NOT) and stores the positive key.       #
+# --------------------------------------------------------------------------- #
+[action]
+isolate = ["isolate", "isolated", "isolating", "isolation of", "isolates"]
+lock_out = ["lock out", "locked out", "lockout", "apply a lock", "apply locks", "lock off", "locked off"]
+tag_out = ["tag out", "tagged out", "tagout", "apply a tag", "apply tags", "attach a danger tag"]
+de_energise = ["de-energise", "de-energised", "deenergise", "de-energize", "de-energized", "isolate electrically"]
+depressurise = ["depressurise", "depressurised", "depressurize", "depressurized", "vent to atmosphere", "bleed down"]
+drain = ["drain", "drained", "draining", "empty", "emptied"]
+purge = ["purge", "purged", "purging", "inert", "inerted"]
+flush = ["flush", "flushed", "flushing", "wash out"]
+blank = ["blank", "blanked", "blind", "blinded", "spade", "spaded", "install a blank", "install a spade"]
+test = ["test", "tested", "testing", "carry out a test", "conduct a test", "perform a test", "gas test", "atmospheric test"]
+inspect = ["inspect", "inspected", "inspecting", "carry out an inspection", "conduct an inspection", "examine", "examined"]
+verify = ["verify", "verified", "verifying", "confirm", "confirmed", "check", "checked", "validate", "validated"]
+monitor = ["monitor", "monitored", "monitoring", "continuously monitor", "observe", "observed"]
+calibrate = ["calibrate", "calibrated", "calibrating", "calibration of"]
+maintain = ["maintain", "maintained", "maintaining", "keep", "kept"]
+exceed = ["exceed", "exceeds", "exceeded", "go above", "rise above", "goes above"]
+fall_below = ["fall below", "falls below", "fell below", "drop below", "drops below", "go below"]
+ventilate =["ventilate", "ventilated", "ventilating", "provide ventilation", "force ventilate"]
+evacuate = ["evacuate", "evacuated", "evacuating", "withdraw", "withdrawn", "clear the area"]
+barricade = ["barricade", "barricaded", "cordon off", "cordoned off", "fence off", "hard barricade", "soft barricade"]
+notify = ["notify", "notified", "notifying", "inform", "informed", "report to", "advise", "advised", "escalate"]
+record = ["record", "recorded", "recording", "log", "logged", "document", "documented", "enter in the logbook"]
+sign_off = ["sign off", "signed off", "sign", "signed", "countersign", "countersigned", "endorse", "endorsed"]
+approve = ["approve", "approved", "approving", "authorise", "authorised", "authorize", "authorized", "permit"]
+obtain = ["obtain", "obtained", "obtaining", "secure a permit", "issue a permit", "raise a permit"]
+review = ["review", "reviewed", "reviewing", "reassess", "reassessed", "re-assess"]
+train = ["train", "trained", "training", "be competent", "hold a competency", "be assessed as competent"]
+supervise = ["supervise", "supervised", "supervising", "provide supervision", "directly supervise"]
+wear = ["wear", "worn", "wearing", "don", "donned", "use personal protective equipment", "put on"]
+secure = ["secure", "secured", "securing", "restrain", "restrained", "chock", "chocked"]
+stop = ["stop", "stopped", "cease", "ceased", "shut down", "shutdown", "shut off", "halt", "halted"]
+sample = ["sample", "sampled", "sampling", "take a sample", "collect a sample"]
+enter = ["enter", "entered", "entering", "entry into", "gain entry"]
+work = ["work", "carry out work", "perform work", "undertake work", "commence work"]
+operate = ["operate", "operated", "operating", "start", "started", "energise", "energised"]
+perform = ["carry out", "carried out", "carrying out", "perform", "performed", "undertake", "undertaken", "conduct", "conducted", "complete", "completed"]
+provide = ["provide", "provided", "providing", "supply", "supplied", "make available", "made available"]
+
+# LIGHT VERBS.  These carry no control content of their own: "gas testing shall
+# be CARRIED OUT" is an obligation to test, not an obligation to carry out.  When
+# the post-modality verb resolves to one of these AND the subject nominalises a
+# real predicate, the nominalisation wins -- otherwise half the corpus extracts
+# action='perform' and two clauses about entirely different controls collide.
+[action.light]
+keys = ["perform", "provide"]
+
+# Nominalised predicates.  "Gas TESTING shall be carried out" puts the control
+# verb in the subject and a light verb after the modality; without these
+# surfaces every such clause extracts action='' and cannot be diffed against
+# the clause that replaces it.  They resolve to the same keys as the verbs.
+[action.nominal]
+test = ["gas testing", "atmospheric testing", "a test", "tests"]
+inspect = ["inspection", "inspections", "an inspection"]
+monitor = ["continuous monitoring"]
+calibrate = ["calibration", "recalibration"]
+isolate = ["isolation", "energy isolation"]
+verify = ["verification", "confirmation"]
+ventilate = ["ventilation"]
+supervise = ["supervision"]
+evacuate = ["evacuation", "withdrawal"]
+train = ["refresher training", "induction"]
+notify = ["notification"]
+approve = ["approval", "authorisation"]
+review = ["a review", "reviews"]
+maintain = ["maintenance", "servicing"]
+
+# Surfaces meaning the same verb with reversed polarity.  Matching one stores
+# the key on the left AND flips the clause's deontic.
+[action.negating]
+exceed = [
+  "not exceed", "never exceed", "not be exceeded", "not exceeded",
+  "not to be exceeded", "remain below", "remains below", "be kept below",
+  "kept below", "keep below", "stay below", "be maintained below",
+  "maintained below", "not go above", "not rise above", "not be greater than",
+]
+fall_below = [
+  "not fall below", "not be less than", "remain above", "remains above",
+  "be kept above", "kept above", "keep above", "stay above", "not drop below",
+  "be maintained above", "maintained above", "not be lower than",
+]
+
+# --------------------------------------------------------------------------- #
+# object_class -- what the action is performed on                               #
+# --------------------------------------------------------------------------- #
+[object_class]
+confined_space = ["confined space", "confined spaces", "tank", "vessel interior", "silo", "bin", "sump", "pit"]
+pressure_vessel = ["pressure vessel", "pressure vessels", "receiver", "air receiver", "autoclave", "accumulator"]
+pipeline = ["pipeline", "pipelines", "pipe", "piping", "line", "spool", "hose", "flexible hose"]
+valve = ["valve", "valves", "isolation valve", "relief valve", "psv", "prv", "control valve", "gate valve"]
+pump = ["pump", "pumps", "slurry pump", "centrifugal pump", "positive displacement pump"]
+conveyor = ["conveyor", "conveyors", "belt", "conveyor belt", "feeder"]
+crusher = ["crusher", "crushers", "mill", "sag mill", "ball mill", "screen"]
+mobile_plant = ["mobile plant", "haul truck", "truck", "loader", "excavator", "dozer", "grader", "light vehicle"]
+electrical_equipment = ["switchboard", "switchgear", "substation", "transformer", "motor", "starter", "mcc", "cable"]
+lifting_equipment = ["crane", "hoist", "lifting device", "sling", "shackle", "chain block", "winch", "lifting gear"]
+scaffold = ["scaffold", "scaffolding", "work platform", "ewp", "elevated work platform"]
+ground_support = ["ground support", "roof support", "rock bolt", "mesh", "shotcrete", "backfill"]
+ventilation_system = ["ventilation system", "ventilation", "fan", "auxiliary fan", "ventilation circuit", "airway"]
+atmosphere = ["atmosphere", "air", "workplace atmosphere", "breathing air", "air quality"]
+isolation_point = ["isolation point", "isolation points", "energy isolation device", "isolating device"]
+excavation = ["excavation", "trench", "shaft", "decline", "drive", "stope", "open cut", "bench"]
+tailings_facility = ["tailings storage facility", "tsf", "tailings dam", "dam", "embankment"]
+explosive_magazine = ["magazine", "explosives magazine", "shot", "blast", "charged hole", "blast area"]
+person = ["person", "persons", "worker", "workers", "personnel", "employee", "employees"]
+document = ["permit", "permit to work", "jsa", "swms", "risk assessment", "procedure", "work instruction"]
+plant = ["plant", "equipment", "machinery", "machine", "item of plant"]
+
+# --------------------------------------------------------------------------- #
+# hazard_energy -- the energy the control stands between.  ORDER MATTERS:       #
+# the first key in [hazard_energy.priority] whose cues appear wins, so that a   #
+# clause mentioning both "pressure" and "equipment" resolves to pressure.       #
+# --------------------------------------------------------------------------- #
+[hazard_energy]
+priority = [
+  "explosive", "radiation", "chemical", "electrical", "pressure", "thermal",
+  "gravitational", "kinetic", "mechanical", "hydraulic", "pneumatic",
+  "atmospheric", "noise", "biological", "stored",
+]
+
+[hazard_energy.cues]
+explosive = ["explosive", "explosives", "blasting", "blast", "detonator", "shotfiring", "misfire", "magazine"]
+radiation = ["radiation", "radioactive", "radiography", "nucleonic", "gauge source", "ionising", "x-ray"]
+chemical = ["chemical", "reagent", "acid", "caustic", "cyanide", "sulphuric", "sulfuric", "corrosive", "toxic", "hazardous substance", "dangerous good", "sds", "msds"]
+electrical = ["electrical", "electricity", "voltage", "live", "energised", "energized", "arc flash", "high voltage", "low voltage", "switchboard", "conductor"]
+pressure = ["pressure", "pressurised", "pressurized", "hydrostatic", "pneumatic test", "compressed", "psv", "relief valve", "stored pressure"]
+thermal = ["thermal", "hot work", "welding", "cutting", "grinding", "molten", "steam", "burn", "temperature", "heat"]
+gravitational = ["fall", "falling", "working at height", "height", "dropped object", "suspended load", "overhead load", "edge protection"]
+kinetic = ["moving", "movement", "vehicle", "traffic", "collision", "mobile plant", "rotating", "rotation"]
+mechanical = ["mechanical", "entanglement", "crush", "crushing", "nip point", "pinch point", "guard", "guarding", "shear"]
+hydraulic = ["hydraulic", "hydraulics", "accumulator", "hydraulic fluid", "injection injury"]
+pneumatic = ["pneumatic", "compressed air", "air line", "airline", "air receiver"]
+atmospheric = ["atmosphere", "atmospheric", "oxygen", "oxygen deficient", "irrespirable", "gas", "methane", "carbon monoxide", "hydrogen sulphide", "hydrogen sulfide", "lel", "confined space"]
+noise = ["noise", "sound", "hearing", "decibel", "acoustic"]
+biological = ["biological", "legionella", "asbestos", "silica", "dust", "respirable", "pathogen"]
+stored = ["stored energy", "spring", "residual energy", "capacitive", "potential energy"]
+
+# --------------------------------------------------------------------------- #
+# coverage_quantifier -- R5 diffs this for narrowing (all -> selected).         #
+#                                                                              #
+# Resolution is by PRECEDENCE, not by position: the order in [.precedence] is   #
+# tried in turn and the first class with a cue present wins, wherever in the    #
+# clause it sits.  Position is not evidence -- a clause reading "all valves ... #
+# a representative sample of which ..." is narrowed, and which cue happened to  #
+# come first says nothing about that.                                          #
+#                                                                              #
+# Cues deliberately NOT listed: "those" and "such".  Both are ordinary          #
+# anaphora ("such work shall be supervised") and listing them would classify    #
+# most of the corpus as 'selected', which would make R5 fire on nearly every    #
+# edit and get the rule switched off -- the nuisance-ceiling failure mode in    #
+# risk R-A7.  A rule that breaches the ceiling is rejected, not tuned.          #
+# --------------------------------------------------------------------------- #
+[coverage_quantifier]
+default = "unspecified"
+precedence = ["selected", "typical", "all", "any"]
+
+[coverage_quantifier.cues]
+all = ["all", "every", "each and every", "each", "the whole", "in its entirety", "without exception", "100%", "100 %"]
+any = ["any", "whichever", "either"]
+selected = ["selected", "certain", "nominated", "designated", "identified", "relevant", "applicable", "affected"]
+typical = ["typical", "representative", "a sample of", "spot", "random", "indicative", "a selection of"]
+
+# --------------------------------------------------------------------------- #
+# verification -- R6 diffs this for DELETION.  Every cue is an independent      #
+# check, a second pair of eyes, or a hold point: the things quietly removed     #
+# when a procedure is "streamlined".                                            #
+# --------------------------------------------------------------------------- #
+[verification.cues]
+second_signature = ["second signature", "countersigned", "countersignature", "two signatures", "dual signature", "second signatory"]
+independent_check = ["independent check", "independently verified", "independent verification", "verified by a second person", "second person check", "cross-check", "cross check", "peer check", "four eyes", "second party"]
+hold_point = ["hold point", "hold-point", "witness point", "stop point", "mandatory hold"]
+witness = ["witnessed by", "in the presence of", "witnessed", "observed by"]
+permit_to_work = ["permit to work", "work permit", "hot work permit", "confined space permit", "high risk work permit", "permit issued"]
+isolation_certificate = ["isolation certificate", "isolation permit", "isolation tag register", "lock box", "lockbox", "group isolation"]
+gas_test_record = ["gas test record", "atmospheric test record", "gas test results recorded", "test results recorded", "recorded on the permit"]
+competency_check = ["competency verified", "competency check", "verification of competency", "voc", "assessed as competent", "authorisation verified"]
+sign_off_record = ["signed off", "sign-off", "signature required", "signed record", "signed and dated"]
+photographic_evidence = ["photographic evidence", "photograph taken", "photo record", "photographed"]
+supervisor_approval = ["supervisor approval", "approved by the supervisor", "supervisor sign-off", "manager approval", "authorised by"]
+functional_test = ["functional test", "function test", "proof test", "trip test", "pre-start check", "pre-start inspection"]
+third_party_inspection = ["third party inspection", "independent inspection", "external inspection", "certified by", "registered engineer"]

@@ -1,0 +1,18 @@
+HAND-WRITTEN SPECIMEN of CockroachDB EXPLAIN grammar. NOT a capture from a live cluster.
+lex_posting is reached by a lookup join rather than a constrained scan: the join feeds it
+keys, so there is no span to report and the access is constrained by construction. The
+assertion accepts this shape. See plan.py.
+
+  distribution: local
+  vectorized: true
+
+  • group (hash)
+  │ group by: event_id
+  │
+  └── • lookup join
+      │ estimated row count: 41
+      │ table: lex_posting@lex_posting_pk
+      │ equality: (site_id, term) = (site_id, term)
+      │
+      └── • values
+            size: 2 columns, 3 rows

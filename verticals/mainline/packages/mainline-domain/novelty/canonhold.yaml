@@ -103,6 +103,7 @@ tests:
   - "tests/unit/domain/canon/test_canon_version.py::test_no_environment_override_anywhere_in_the_canon_package"
   - "tests/unit/domain/canon/test_canon_version.py::test_canonicalise_takes_no_version_parameter"
   - "tests/unit/domain/canon/test_canon_version.py::test_the_version_is_bound_into_the_digest_preimage"
+  - "tests/unit/domain/canon/test_canon_version.py::test_the_lexicon_version_tracks_canon_version"
   - "tests/unit/domain/canon/test_canon_version.py::test_no_builtin_hash_anywhere_in_the_package"
   - "tests/unit/domain/canon/test_ocr_repair.py::test_free_prose_is_never_repaired"
   - "tests/unit/domain/canon/test_dehyphen_furniture_segment.py::test_a_local_edit_perturbs_only_local_boundaries"

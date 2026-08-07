@@ -1,0 +1,31 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MI: MI01
+-- I: I01
+-- COUNSEL-GATED: no
+-- RATIONALE: CDC bypasses RLS entirely and changefeed queries FAIL on RLS-enabled and multi-family tables, so there must be exactly one changefeed-query source and it must live outside the business-record zone where RLS is forced.
+--
+-- migration:  0006_schema_mainline_ops
+-- band:       0001-0023 · dm-foundation
+-- statements: 1
+-- source:     ARCHITECTURE.md §4 (schema zones) · §4.1 law 11 · §5.10 · §8.5
+-- requires:   0001 mainline_owner
+-- sqlstate:   —
+-- forward-only; no .down.sql exists at or below the protected floor (DM-14).
+--
+-- INFRASTRUCTURE. `outbox` (the single changefeed source), `sequencer_lease`, `site_register_signal`,
+-- `schema_attestation`, `backfill_cursor`.
+--
+-- The zone is a consequence of platform law 11, not of tidiness: a changefeed cannot read an
+-- RLS-enabled table, and a delete event carries only the primary key. Putting the event spine in
+-- `mainline` would force a choice between "the gate tables have RLS" and "the fleet gets events";
+-- putting it here means neither is compromised and the router has exactly one source to be keyed
+-- on. Two of the three row-level-TTL tables allowed in the entire database are in this zone and
+-- `mainline_meas` (TTL-ALLOWLIST.yaml); schema `mainline` has zero, forever.
+--
+-- `schema_attestation` also lives here: the migration runner records the fingerprint of what it
+-- applied, in the same connection discipline that writes the custody ledger, which is the reason
+-- golang-migrate was rejected.
+
+CREATE SCHEMA mainline_ops AUTHORIZATION mainline_owner;

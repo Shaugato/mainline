@@ -1,0 +1,73 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: Apache-2.0
+
+[project]
+name = "mainline-boundary"
+version = "0.1.0"
+description = "Four independent, separately-runnable proofs that no model can reach the MAINLINE merge gate (E1 IAM, E2 network, E3 code, E4 egress), plus the fleet capability matrix and the determinism CI greps."
+readme = "README.md"
+requires-python = ">=3.13"
+license = "Apache-2.0"
+authors = [{ name = "MAINLINE contributors" }]
+keywords = ["security", "policy-as-code", "opentofu", "iam", "sbom", "determinism"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Security",
+  "Typing :: Typed",
+]
+
+# Deliberately tiny. This package is the thing a regulator reads to satisfy
+# themselves that the merge gate contains no model, so it may not itself depend
+# on anything that could contain one. PyYAML is the only runtime dependency; the
+# AWS SDK is an EXTRA, imported lazily, and is never needed to run any of the
+# four enforcements against a committed plan fixture.
+dependencies = [
+  "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+# The live `iam simulate-principal-policy` leg of E1. Off by default: AWS
+# credentials are not valid on the build machine as of 2026-08, and PL-3
+# forbids putting an unproven capability on a dated path.
+aws = ["boto3>=1.34"]
+
+[project.urls]
+Homepage = "https://github.com/Shaugato/mainline"
+
+[project.scripts]
+mainline-boundary = "mainline_boundary.cli:main"
+
+[dependency-groups]
+dev = ["pytest>=8.2", "types-PyYAML>=6.0", "mypy>=1.11", "ruff>=0.6"]
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mainline_boundary"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "tests", "README.md"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "B", "SIM", "RUF"]
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+warn_unreachable = true
+
+# boto3 ships no py.typed and its stubs are a separate, very large package.
+# It is an OPTIONAL extra here, imported lazily inside one function, so the
+# whole package type-checks and every plan-time enforcement runs with no AWS
+# SDK installed at all.
+[[tool.mypy.overrides]]
+module = ["boto3", "boto3.*", "botocore.*"]
+ignore_missing_imports = true

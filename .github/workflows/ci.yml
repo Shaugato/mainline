@@ -1,0 +1,315 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# THE STATIC LANE. Everything that can be decided without a cluster, a credential or a
+# network round trip: format, lint, types, the four import-linter contracts, workflow
+# syntax, the hermetic unit tests, and the two guards that keep this file's own claims
+# from rotting.
+#
+# Three properties are deliberate.
+#
+# 1. TWELVE-MINUTE WALL-CLOCK BUDGET, enforced per job with `timeout-minutes` and
+#    summarised at the end. A guard lane that takes half an hour is a guard lane people
+#    learn to merge past.
+#
+# 2. NETWORK EGRESS DENY-LIST. Every job blocks outbound traffic except to an explicit
+#    endpoint list. This repository's central claim is that no model can reach the merge
+#    gate; a CI lane that may call anything is a lane that could quietly acquire one.
+#    The policy is `block`, never `audit`.
+#
+# 3. NOTHING HERE NEEDS AWS OR COCKROACHDB CLOUD. PL-1: a proof that needs a credential
+#    of ours is evidence about us, not about the product.
+
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.13"
+  FORCE_COLOR: "1"
+
+jobs:
+  static:
+    name: format · lint · types
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - name: Deny egress except to the package indexes
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            objects.githubusercontent.com:443
+            pypi.org:443
+            files.pythonhosted.org:443
+            astral.sh:443
+
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: The lockfile is authoritative
+        # `--check` fails when uv.lock does not match what the pyproject files imply. A
+        # stranger who resolves a different graph than CI did has not reproduced PL-1's
+        # proof; they have run a different program.
+        run: uv lock --check
+
+      - name: ruff format
+        run: uv run --frozen ruff format --check .
+
+      - name: ruff check
+        run: uv run --frozen ruff check .
+
+      - name: mypy — strict on the Apache substrate
+        # `--strict` is a command-line flag; mypy.ini spells out the same flag set
+        # per-module so a future relaxation is a visible line in a diff rather than a
+        # dropped word in a CI command.
+        run: |
+          uv run --frozen mypy --config-file mypy.ini \
+            packages/trappoint-migrate/src/trappoint_migrate \
+            packages/trappoint-conformance/src/trappoint_conformance
+
+  imports:
+    name: import-linter — four contracts
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - name: Deny egress except to the package indexes
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            objects.githubusercontent.com:443
+            pypi.org:443
+            files.pythonhosted.org:443
+            astral.sh:443
+
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install every workspace member
+        # import-linter builds a REAL import graph, so every root package must be
+        # importable. `--all-packages` is what makes the contracts assert anything.
+        run: uv sync --frozen --all-packages
+
+      - name: The four contracts
+        run: uv run --frozen lint-imports --config .importlinter
+
+      - name: Registry guard — a new distribution cannot be silently unlinted
+        # `root_packages` can only name packages that exist at lint time, so a package
+        # created after this file was written would sit outside every contract and
+        # nobody would be told. This step is the mechanism that tells them: a workspace
+        # distribution must appear either in `root_packages` (its imports are checked)
+        # or in some contract's `forbidden_modules` (importing it is checked). Neither
+        # is a failure; being in neither is.
+        run: |
+          python3 - <<'PY'
+          import pathlib, re, sys
+
+          config = pathlib.Path(".importlinter").read_text(encoding="utf-8")
+          declared = set(re.findall(r"^\s{4}([a-z_][a-z0-9_]*)\s*$", config, re.MULTILINE))
+
+          unregistered = []
+          for pyproject in sorted(pathlib.Path(".").glob("packages/*/pyproject.toml")) + sorted(
+              pathlib.Path(".").glob("verticals/*/packages/*/pyproject.toml")
+          ):
+              src = pyproject.parent / "src"
+              if not src.is_dir():
+                  continue
+              for package in sorted(p.name for p in src.iterdir() if p.is_dir()):
+                  if package not in declared:
+                      unregistered.append(f"{package}  ({pyproject.parent})")
+
+          if unregistered:
+              print("::error::these distributions appear in no .importlinter contract:")
+              for line in unregistered:
+                  print(f"  {line}")
+              print(
+                  "Add each to `root_packages` (to check what IT imports) or to a "
+                  "contract's `forbidden_modules` (to check who imports IT)."
+              )
+              sys.exit(1)
+          print(f"every workspace distribution is accounted for ({len(declared)} names declared)")
+          PY
+
+  hermetic-tests:
+    name: hermetic unit tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - name: Deny egress except to the package indexes
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            objects.githubusercontent.com:443
+            pypi.org:443
+            files.pythonhosted.org:443
+            astral.sh:443
+
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install the kernel toolchain
+        run: |
+          uv sync --frozen \
+            --package trappoint-migrate \
+            --package trappoint-conformance
+
+      - name: trappoint-migrate — no cluster, no credential, no network
+        run: uv run --frozen pytest packages/trappoint-migrate/tests -q --no-header
+
+      - name: The suite lists without a database
+        # `--list` is a documentation act and must not need a driver connection. It is
+        # also the cheapest possible check that spec/conformance/manifest.toml still
+        # parses and that every case carries a non-empty exhibit.
+        run: uv run --frozen trappoint-conform --profile trappoint-ref --list
+
+      - name: The manifest's declared counts are the counts
+        run: |
+          uv run --frozen python - <<'PY'
+          from trappoint_conformance.manifest import load_manifest
+          m = load_manifest()
+          assert len(m.cases) == m.declared_case_count, (
+              f"[manifest].case_count says {m.declared_case_count}, "
+              f"but there are {len(m.cases)} [[case]] entries"
+          )
+          ref = m.for_profile("trappoint-ref")
+          assert len(ref) == m.declared_ref_profile_case_count, (
+              f"[manifest].ref_profile_case_count says "
+              f"{m.declared_ref_profile_case_count}, but {len(ref)} cases carry the "
+              "trappoint-ref profile — and that number is the K1 exit string"
+          )
+          print(f"{len(m.cases)} cases · {len(ref)} on trappoint-ref · spec {m.spec_version}")
+          PY
+
+  workflows:
+    name: actionlint
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - name: Deny egress except to the release host
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            objects.githubusercontent.com:443
+
+      - uses: actions/checkout@v4
+
+      - name: Install actionlint
+        env:
+          ACTIONLINT_VERSION: "1.7.7"
+        run: |
+          set -euo pipefail
+          curl -sSL -o /tmp/actionlint.tar.gz \
+            "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"
+          tar -xzf /tmp/actionlint.tar.gz -C /tmp actionlint
+          sudo install -m 0755 /tmp/actionlint /usr/local/bin/actionlint
+          actionlint --version
+
+      - name: Lint every workflow
+        # shellcheck runs over `run:` blocks as part of actionlint, which is most of the
+        # value: the db lane's cluster-wait loop is shell, and a quoting bug there would
+        # make the red lane fail for the wrong reason.
+        run: actionlint -color
+
+  adr-red-recorded:
+    name: PL-2 — the red run is recorded
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Deny all egress
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+
+      - uses: actions/checkout@v4
+
+      - name: The ADR must name the run that was observed red
+        # PL-2 is satisfied by a job that WAS OBSERVED RED, not by an intention to write
+        # tests first. The evidence is a run URL. Until the repository has pushed CI
+        # history there is no URL to record, so this warns on pull_request and
+        # workflow_dispatch and FAILS on a push to main — which means the first push to
+        # main after the db lane runs is the commit that has to record it.
+        run: |
+          set -euo pipefail
+          adr="docs/adr/0005-red-before-green.md"
+          test -f "$adr"
+          if grep -q 'run_url: *UNRECORDED' "$adr"; then
+            if [ "${{ github.event_name }}" = "push" ] && [ "${{ github.ref }}" = "refs/heads/main" ]; then
+              echo "::error file=${adr}::PL-2: the db lane's red run URL is still UNRECORDED."
+              echo "Open the db workflow run, copy its URL into the ADR's run_url field, and commit."
+              exit 1
+            fi
+            echo "::warning file=${adr}::the red run URL is UNRECORDED; a push to main will fail until it is filled"
+          else
+            echo "red run recorded:"
+            grep 'run_url:' "$adr"
+          fi
+
+  summary:
+    name: CI summary
+    runs-on: ubuntu-24.04
+    needs: [static, imports, hermetic-tests, workflows, adr-red-recorded]
+    if: always()
+    timeout-minutes: 5
+    steps:
+      - name: Fail if any lane did not pass
+        run: |
+          set -euo pipefail
+          {
+            echo "## ci"
+            echo ""
+            echo "| lane | result |"
+            echo "|---|---|"
+            echo "| format · lint · types | ${{ needs.static.result }} |"
+            echo "| import-linter (4 contracts) | ${{ needs.imports.result }} |"
+            echo "| hermetic unit tests | ${{ needs.hermetic-tests.result }} |"
+            echo "| actionlint | ${{ needs.workflows.result }} |"
+            echo "| PL-2 red run recorded | ${{ needs.adr-red-recorded.result }} |"
+            echo ""
+            echo "Nothing in this workflow contacts AWS or CockroachDB Cloud. Egress is"
+            echo "denied by default in every job (PL-1, and the determinism boundary)."
+          } >> "$GITHUB_STEP_SUMMARY"
+          for result in \
+            "${{ needs.static.result }}" \
+            "${{ needs.imports.result }}" \
+            "${{ needs.hermetic-tests.result }}" \
+            "${{ needs.workflows.result }}" \
+            "${{ needs.adr-red-recorded.result }}" ; do
+            if [ "$result" != "success" ]; then
+              echo "a lane reported '$result'"
+              exit 1
+            fi
+          done

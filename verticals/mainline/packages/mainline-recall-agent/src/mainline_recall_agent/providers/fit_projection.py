@@ -30,13 +30,16 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, Final
 
 import numpy as np
 
 from .types import COARSE_DIM, EMBED_DIM
 
 __all__ = ["fit_pca", "main"]
+
+#: An embeddings file is a matrix: (n_samples, EMBED_DIM).
+_MATRIX_NDIM: Final[int] = 2
 
 
 def _load_embeddings(path: Path) -> np.ndarray:
@@ -45,15 +48,15 @@ def _load_embeddings(path: Path) -> np.ndarray:
     elif path.suffix in {".jsonl", ".ndjson"}:
         rows = []
         with path.open("r", encoding="utf-8") as handle:
-            for line in handle:
-                line = line.strip()
+            for raw_line in handle:
+                line = raw_line.strip()
                 if line:
                     rows.append(json.loads(line)["embedding"])
         arr = np.asarray(rows)
     else:
         raise SystemExit(f"unsupported embeddings file: {path.suffix} (use .npy or .jsonl)")
     arr = np.asarray(arr, dtype=np.float64)
-    if arr.ndim != 2 or arr.shape[1] != EMBED_DIM:
+    if arr.ndim != _MATRIX_NDIM or arr.shape[1] != EMBED_DIM:
         raise SystemExit(f"embeddings must have shape (n, {EMBED_DIM}); got {arr.shape}")
     if arr.shape[0] < COARSE_DIM:
         raise SystemExit(

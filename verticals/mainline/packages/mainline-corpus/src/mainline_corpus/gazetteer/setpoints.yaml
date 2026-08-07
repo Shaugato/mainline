@@ -1,0 +1,247 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+#
+# Setpoint patterns.  These are what make `control_delta` decidable without prose judgement:
+# lowering an alarm setpoint is unambiguously a STRENGTHENING, raising it is unambiguously a
+# WEAKENING, and `strengthen_direction` below is the field that says which way is which for each
+# parameter.  The spine turns on exactly this: 150 -> 135 in 2013 (strengthen), 135 -> 150 in
+# 2026 (weaken).
+#
+# ── UNITS: DISPLAY FORM vs ANCHOR FORM ──────────────────────────────────────────────────────
+# `unit_display` is what a controlled document actually prints.  `unit_token` is the form the
+# SHIPPED extractor (`mainline_domain.anchors`) can currently claim as a SETPOINT anchor, and
+# they are not always the same:
+#
+#   * `°C` is NOT in `setpoint-units.toml` and `canonicalise` does not fold the degree sign, so
+#     `150 °C` yields no setpoint anchor.  `150 degC` does.
+#   * `mm/s` is absent from the unit list, and the alternation is built in file order rather
+#     than longest-first, so `11.2 mm/s` is claimed as `11.2mm`.
+#
+# Both are reported to the algorithms lead rather than patched here.  Anything the corpus needs
+# to be ANCHORED on is written with `unit_token`; anything a human reads is written with
+# `unit_display`.  `anchor_safe` records, per parameter, whether the two agree today.
+
+version: 1
+
+parameters:
+  - key: seal_face_temperature_alarm
+    label: seal-face high-temperature alarm
+    unit_display: "°C"
+    unit_token: degC
+    anchor_safe: false
+    strengthen_direction: lower
+    values: [120, 130, 135, 140, 150, 165]
+    control_class: SEAL_FACE_TEMPERATURE_ALARM
+    applies_to_classes: [HTP-CLASS-A]
+    # The spine's protagonist.  150 is the OEM value; 135 is the post-fire value.
+    spine_values: {oem: 150, post_incident: 135}
+
+  - key: bearing_temperature_alarm
+    label: bearing high-temperature alarm
+    unit_display: "°C"
+    unit_token: degC
+    anchor_safe: false
+    strengthen_direction: lower
+    values: [75, 80, 85, 90, 95]
+    control_class: SEAL_SUPPORT_SYSTEM_INTEGRITY
+    applies_to_classes: [HTP-CLASS-A, SLP-CLASS-B, COMP-CLASS-V, GEN-CLASS-A]
+
+  - key: barrier_fluid_pressure_low
+    label: barrier fluid low-pressure alarm
+    unit_display: kPa
+    unit_token: kPa
+    anchor_safe: true
+    strengthen_direction: higher
+    values: [150, 200, 250, 300, 350]
+    control_class: SEAL_SUPPORT_SYSTEM_INTEGRITY
+    applies_to_classes: [HTP-CLASS-A]
+
+  - key: discharge_pressure_high
+    label: discharge high-pressure trip
+    unit_display: kPa
+    unit_token: kPa
+    anchor_safe: true
+    strengthen_direction: lower
+    values: [1200, 1400, 1600, 1800, 2000]
+    control_class: PRESSURE_RELIEF_DEVICE_INTEGRITY
+    applies_to_classes: [HTP-CLASS-A, SLP-CLASS-B, DOSE-CLASS-A]
+
+  - key: relief_valve_set_pressure
+    label: relief valve set pressure
+    unit_display: kPa
+    unit_token: kPa
+    anchor_safe: true
+    strengthen_direction: lower
+    values: [700, 850, 1000, 1200, 1600]
+    control_class: PRESSURE_RELIEF_DEVICE_INTEGRITY
+    applies_to_classes: [PRD-CLASS-A, BOIL-CLASS-A, TANK-CLASS-P]
+
+  - key: flammable_gas_alarm
+    label: flammable gas alarm threshold
+    unit_display: "%LEL"
+    unit_token: "%LEL"
+    anchor_safe: true
+    strengthen_direction: lower
+    values: [5, 10, 15, 20, 25]
+    control_class: GAS_TEST_BEFORE_AND_DURING_HOT_WORK
+    applies_to_classes: [HTP-CLASS-A, TANK-CLASS-H, TANK-CLASS-P, COMP-CLASS-V, LARM-CLASS-A]
+
+  - key: hydrogen_sulfide_alarm
+    label: hydrogen sulfide alarm threshold
+    unit_display: ppm
+    unit_token: ppm
+    anchor_safe: true
+    strengthen_direction: lower
+    values: [5, 10, 15]
+    control_class: CONTINUOUS_ATMOSPHERIC_MONITORING
+    applies_to_classes: [TANK-CLASS-P, TANK-CLASS-H, TANK-CLASS-R]
+
+  - key: confined_space_oxygen_floor
+    label: minimum oxygen concentration for entry
+    unit_display: "%vol"
+    unit_token: "%vol"
+    anchor_safe: true
+    strengthen_direction: higher
+    values: [19.0, 19.5, 20.0]
+    control_class: CONTINUOUS_ATMOSPHERIC_MONITORING
+    applies_to_classes: [TANK-CLASS-P, TANK-CLASS-H, TANK-CLASS-R, BOIL-CLASS-A]
+
+  - key: vibration_trip
+    label: vibration trip level
+    unit_display: mm/s
+    unit_token: mm
+    anchor_safe: false
+    strengthen_direction: lower
+    values: [7.1, 9.0, 11.2, 14.0]
+    control_class: SEAL_SUPPORT_SYSTEM_INTEGRITY
+    applies_to_classes: [HTP-CLASS-A, SLP-CLASS-B, MILL-CLASS-A, COMP-CLASS-V, GEN-CLASS-A]
+
+  - key: tank_level_high_high
+    label: tank high-high level trip
+    unit_display: "%"
+    unit_token: "%"
+    anchor_safe: true
+    strengthen_direction: lower
+    values: [88, 90, 92, 95]
+    control_class: HYDROCARBON_TRANSFER_CONTROL
+    applies_to_classes: [TANK-CLASS-H, TANK-CLASS-P, TANK-CLASS-R]
+
+  - key: earth_leakage_trip
+    label: earth leakage protection trip current
+    unit_display: mA
+    unit_token: mA
+    anchor_safe: true
+    strengthen_direction: lower
+    values: [10, 30, 100, 300]
+    control_class: EARTH_LEAKAGE_PROTECTION
+    applies_to_classes: [ELEC-CLASS-A, GEN-CLASS-A]
+
+  - key: fire_watch_duration_after_hot_work
+    label: fire watch duration after completion of hot work
+    unit_display: min
+    unit_token: min
+    anchor_safe: true
+    strengthen_direction: higher
+    values: [15, 30, 60, 120]
+    control_class: FIRE_WATCH_PROVISION
+    applies_to_classes: [HTP-CLASS-A, TANK-CLASS-H, TANK-CLASS-P, LARM-CLASS-A]
+
+  - key: gas_test_revalidation_interval
+    label: gas test revalidation interval during hot work
+    unit_display: min
+    unit_token: min
+    anchor_safe: true
+    strengthen_direction: lower
+    values: [30, 60, 120, 240]
+    control_class: GAS_TEST_BEFORE_AND_DURING_HOT_WORK
+    applies_to_classes: [HTP-CLASS-A, TANK-CLASS-H, TANK-CLASS-P, COMP-CLASS-V]
+
+  - key: lifting_gear_inspection_interval
+    label: periodic inspection interval for lifting gear
+    unit_display: months
+    unit_token: months
+    anchor_safe: true
+    strengthen_direction: lower
+    values: [3, 6, 12, 24]
+    control_class: LIFTING_GEAR_INSPECTION
+    applies_to_classes: [LIFT-CLASS-W]
+
+  - key: relief_device_test_interval
+    label: pressure relief device test interval
+    unit_display: months
+    unit_token: months
+    anchor_safe: true
+    strengthen_direction: lower
+    values: [12, 24, 36, 60]
+    control_class: PRESSURE_RELIEF_DEVICE_INTEGRITY
+    applies_to_classes: [PRD-CLASS-A, BOIL-CLASS-A]
+
+  - key: light_vehicle_exclusion_radius
+    label: light vehicle exclusion radius from operating haul trucks
+    unit_display: m
+    unit_token: m
+    anchor_safe: true
+    strengthen_direction: higher
+    values: [20, 30, 50, 60]
+    control_class: PROXIMITY_DETECTION_AND_SEGREGATION
+    applies_to_classes: [MOB-CLASS-H, MOB-CLASS-E, MOB-CLASS-L]
+
+  - key: highwall_standoff_distance
+    label: minimum standoff from an unsupported crest
+    unit_display: m
+    unit_token: m
+    anchor_safe: true
+    strengthen_direction: higher
+    values: [5, 8, 10, 15]
+    control_class: GROUND_CONDITION_INSPECTION
+    applies_to_classes: [MOB-CLASS-E, MOB-CLASS-H]
+
+  - key: impoundment_freeboard_minimum
+    label: minimum impoundment freeboard
+    unit_display: m
+    unit_token: m
+    anchor_safe: true
+    strengthen_direction: higher
+    values: [0.6, 0.9, 1.2, 1.5]
+    control_class: IMPOUNDMENT_FREEBOARD_CONTROL
+    applies_to_classes: [THK-CLASS-A]
+
+  - key: reagent_dosing_pressure_alarm
+    label: reagent dosing line high-pressure alarm
+    unit_display: kPa
+    unit_token: kPa
+    anchor_safe: true
+    strengthen_direction: lower
+    values: [400, 600, 800, 1000]
+    control_class: REAGENT_HANDLING_CONTROL
+    applies_to_classes: [DOSE-CLASS-A, TANK-CLASS-R]
+
+  - key: boiler_drum_level_low_low
+    label: boiler drum low-low level trip
+    unit_display: mm
+    unit_token: mm
+    anchor_safe: true
+    strengthen_direction: higher
+    values: [-250, -200, -150, -100]
+    control_class: STEAM_SYSTEM_WARM_THROUGH
+    applies_to_classes: [BOIL-CLASS-A]
+
+  - key: explosives_magazine_reconciliation_interval
+    label: explosives reconciliation interval
+    unit_display: hours
+    unit_token: hours
+    anchor_safe: true
+    strengthen_direction: lower
+    values: [12, 24, 48, 72]
+    control_class: EXPLOSIVES_RECONCILIATION
+    applies_to_classes: [MAG-CLASS-A]
+
+  - key: isolation_verification_interval
+    label: re-verification interval for a long-duration isolation
+    unit_display: hours
+    unit_token: hours
+    anchor_safe: true
+    strengthen_direction: lower
+    values: [8, 12, 24, 72]
+    control_class: ZERO_ENERGY_VERIFICATION
+    applies_to_classes: [ELEC-CLASS-A, HTP-CLASS-A, SLP-CLASS-B, CONV-CLASS-A, MILL-CLASS-A]

@@ -1,0 +1,276 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+#
+# The archival activity taxonomy (ARCHITECTURE.md §5.4 `mainline.activity_node`).
+#
+# It is FUNCTIONAL (ISO 15489 / NAA): classified by the function performed, never by the asset
+# or the org unit.  That is *why* blame survives twenty-two years — asset tags and org charts
+# churn every three years; "isolating stored energy before intrusive work" does not.
+#
+# LEVEL 1 IS FROZEN AND ANCHORED TO THE BUYER'S ICMM MATERIAL UNWANTED EVENT REGISTER.
+#   * `induced_by = 'icmm_mue'`, `frozen = true`  -> satisfies CHECK l1_frozen.
+#   * 16 fonds, inside the 12-25 band that diachronic-recall.md §3 specifies.
+#   * `code` is the value denormalised onto `activity_node.activity_root` AND onto
+#     `clause.activity_root`, and it is a PREFIX COLUMN of the C-SPANN vector index.  Changing a
+#     code is a re-partition, i.e. a migration, not a data edit.
+#   * Each label is A FUNCTION PERFORMED, per the DDL comment.  The MUE it manages is recorded
+#     separately in `mue` so the register linkage stays visible without the label becoming a
+#     noun phrase about a thing.
+#
+# LEVELS 2 AND 3 carry `induced_by = 'human'`, not `'llm_induced'`.  In production they are
+# LLM-induced; in this corpus they are written by hand in this file, and labelling hand-written
+# rows as model-induced would be a lie in a provenance column.  The honesty card states this.
+
+version: 1
+taxonomy_ver: 1
+
+level1:
+  - code: ISOLATION-OF-STORED-ENERGY
+    label: isolating stored energy before intrusive work
+    mue: uncontrolled release of stored energy during maintenance
+    fatal_potential_trigger: true
+    hazard_energies: [pressure, electrical, kinetic, gravity, thermal]
+    series:
+      - label: planning and permitting an isolation
+        files:
+          - identifying every energy source for a task
+          - selecting isolation points and devices
+          - authorising a group isolation
+      - label: applying and verifying an isolation
+        files:
+          - applying locks, tags and personal danger tags
+          - proving dead and testing for zero energy
+          - dissipating trapped and residual energy
+      - label: restoring plant to service
+        files:
+          - removing isolation and returning to operations
+          - handing back a partially completed isolation
+
+  - code: CONTAINMENT-OF-HYDROCARBONS
+    label: containing hydrocarbons and flammable liquids under pressure
+    mue: loss of primary containment of a flammable hydrocarbon
+    fatal_potential_trigger: true
+    hazard_energies: [chemical, pressure, thermal]
+    series:
+      - label: maintaining sealing systems on rotating equipment
+        files:
+          - setting and proving mechanical seal support systems
+          - monitoring seal-face condition and temperature
+          - replacing seals and seal support fluid
+      - label: managing hydrocarbon transfer and storage
+        files:
+          - transferring hydrocarbon between vessels
+          - bunding, drainage and spill containment
+      - label: responding to a loss of containment
+        files:
+          - isolating and depressuring a leaking system
+
+  - code: CONTROL-OF-IGNITION-SOURCES
+    label: controlling ignition sources near flammable atmospheres
+    mue: ignition of a flammable atmosphere during hot work
+    fatal_potential_trigger: true
+    hazard_energies: [thermal, chemical, electrical]
+    series:
+      - label: authorising hot work
+        files:
+          - assessing and permitting hot work adjacent to live plant
+          - gas testing before and during hot work
+          - providing and briefing a fire watch
+      - label: maintaining hazardous-area electrical equipment
+        files:
+          - inspecting Ex equipment and enclosures
+          - controlling portable electrical equipment in zoned areas
+
+  - code: WORKING-AT-HEIGHT
+    label: preventing falls from height during elevated work
+    mue: fall of a person from height
+    fatal_potential_trigger: true
+    hazard_energies: [gravity]
+    series:
+      - label: providing fall protection
+        files:
+          - selecting and inspecting fall-arrest equipment
+          - installing and certifying anchor points
+          - erecting and handing over scaffold
+      - label: preventing dropped objects
+        files:
+          - securing tools and materials at height
+          - establishing and enforcing exclusion zones below
+
+  - code: LIFTING-AND-SUSPENDED-LOADS
+    label: lifting and moving suspended loads
+    mue: uncontrolled movement or release of a suspended load
+    fatal_potential_trigger: true
+    hazard_energies: [gravity, kinetic]
+    series:
+      - label: planning and executing a lift
+        files:
+          - preparing and approving a lift study
+          - selecting and inspecting lifting gear
+          - directing a lift and controlling the drop zone
+      - label: maintaining lifting appliances
+        files:
+          - proof testing and periodic inspection of hoists
+          - supporting a load for maintenance access
+
+  - code: MOBILE-EQUIPMENT-INTERACTION
+    label: separating people from mobile equipment
+    mue: contact between mobile equipment and a person or light vehicle
+    fatal_potential_trigger: true
+    hazard_energies: [kinetic, gravity]
+    series:
+      - label: controlling traffic on operating areas
+        files:
+          - applying positive communication before approach
+          - managing light-vehicle and haul-truck interaction
+          - parking, chocking and restraining equipment
+      - label: operating in reduced visibility
+        files:
+          - working in dust, darkness and weather restrictions
+
+  - code: CONFINED-SPACE-ENTRY
+    label: entering and occupying confined spaces
+    mue: asphyxiation or entrapment in a confined space
+    fatal_potential_trigger: true
+    hazard_energies: [chemical, gravity, kinetic]
+    series:
+      - label: authorising and controlling entry
+        files:
+          - classifying a space and issuing an entry permit
+          - atmospheric testing and continuous monitoring
+          - standby attendance and entry logging
+      - label: rescuing from a confined space
+        files:
+          - planning and rehearsing non-entry rescue
+
+  - code: GROUND-AND-STRATA-CONTROL
+    label: controlling ground and strata failure
+    mue: uncontrolled ground or highwall failure
+    fatal_potential_trigger: true
+    hazard_energies: [gravity, kinetic]
+    series:
+      - label: monitoring and inspecting ground conditions
+        files:
+          - inspecting highwalls and batters
+          - responding to slope-radar and prism alarms
+      - label: designing and controlling excavations
+        files:
+          - benching, battering and shoring an excavation
+          - working near an unsupported edge
+
+  - code: TAILINGS-AND-WATER-IMPOUNDMENT
+    label: impounding tailings and process water
+    mue: loss of containment from a tailings or water impoundment
+    fatal_potential_trigger: true
+    hazard_energies: [gravity, chemical]
+    series:
+      - label: operating an impoundment
+        files:
+          - managing freeboard, beach and decant
+          - inspecting embankments and instrumentation
+      - label: governing the impoundment
+        files:
+          - performing dam-safety review and surveillance
+
+  - code: ELECTRICAL-SAFETY
+    label: working on or near energised electrical apparatus
+    mue: electric shock or arc flash
+    fatal_potential_trigger: true
+    hazard_energies: [electrical, thermal]
+    series:
+      - label: controlling access to energised apparatus
+        files:
+          - switching, racking and access authorisation
+          - testing for dead and applying earths
+          - working live under a documented justification
+      - label: maintaining protective systems
+        files:
+          - testing earth leakage and protection settings
+          - inspecting and maintaining portable equipment
+
+  - code: HAZARDOUS-SUBSTANCE-EXPOSURE
+    label: limiting exposure to hazardous substances
+    mue: acute or chronic exposure to a hazardous substance
+    fatal_potential_trigger: false
+    hazard_energies: [chemical, biological, radiation]
+    series:
+      - label: handling and dosing reagents
+        files:
+          - making up, decanting and dosing reagents
+          - responding to a reagent splash or release
+      - label: controlling airborne contaminants
+        files:
+          - monitoring dust, fume and gas exposure
+          - selecting, fit-testing and maintaining respirators
+
+  - code: MOLTEN-AND-HOT-MATERIAL
+    label: handling molten and hot material
+    mue: contact with molten material, steam or hot surfaces
+    fatal_potential_trigger: false
+    hazard_energies: [thermal]
+    series:
+      - label: operating hot and steam systems
+        files:
+          - draining, venting and warming through steam systems
+          - preventing water ingress to hot material
+      - label: protecting people from hot surfaces
+        files:
+          - insulating, guarding and signing hot surfaces
+
+  - code: PRESSURE-SYSTEM-INTEGRITY
+    label: maintaining pressure system integrity
+    mue: rupture or uncontrolled release from a pressure system
+    fatal_potential_trigger: true
+    hazard_energies: [pressure, thermal, chemical]
+    series:
+      - label: verifying pressure relief and protection
+        files:
+          - setting, testing and sealing pressure relief devices
+          - proving overpressure protection is in service
+      - label: inspecting pressure equipment
+        files:
+          - performing in-service and hydrostatic inspection
+          - managing corrosion and thinning findings
+
+  - code: LAND-TRANSPORT
+    label: operating light and heavy vehicles on and off site
+    mue: vehicle collision or rollover
+    fatal_potential_trigger: true
+    hazard_energies: [kinetic]
+    series:
+      - label: authorising and fitting drivers to vehicles
+        files:
+          - assessing fatigue and fitness for driving
+          - licensing, inducting and authorising drivers
+      - label: transporting materials by road
+        files:
+          - loading, restraining and placarding a load
+
+  - code: FIRE-AND-EMERGENCY-RESPONSE
+    label: responding to fire and site emergencies
+    mue: uncontrolled fire or failed emergency response
+    fatal_potential_trigger: false
+    hazard_energies: [thermal, chemical]
+    series:
+      - label: maintaining fire protection systems
+        files:
+          - testing and inspecting fixed fire systems
+          - maintaining portable and mobile extinguishing equipment
+      - label: mustering and rescuing
+        files:
+          - alarming, mustering and accounting for people
+          - deploying an emergency response team
+
+  - code: EXPLOSIVES-AND-BLASTING
+    label: storing, handling and initiating explosives
+    mue: unintended initiation of explosives
+    fatal_potential_trigger: true
+    hazard_energies: [chemical, kinetic, thermal]
+    series:
+      - label: storing and transporting explosives
+        files:
+          - receiving, magazining and reconciling explosives
+      - label: charging and firing
+        files:
+          - charging, tying in and guarding a blast
+          - clearing misfires and handling residue

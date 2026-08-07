@@ -1,0 +1,557 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+#
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+#  GRANTS.yaml — the MAINLINE role matrix, declarative and idempotently re-asserted (DM-7)
+#  owner:  dm-foundation  ·  source: ARCHITECTURE.md §11.2, §11.3, §4  ·  consumers listed below
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+#
+# WHY THIS IS A FILE AND NOT A MIGRATION
+#   Role membership and object privileges are CLUSTER state. A RESTORE into a new cluster does not
+#   carry them, so a grant applied once in migration 0006 exists in dev and does not exist in the
+#   cluster the restore drill produces — and the restore drill is a K6 deliverable. Cluster state
+#   must be re-asserted and drift-checked, which a forward-only migration is by construction the
+#   wrong instrument for. Migration 0009 is the marker that says so at the point in the numbered
+#   sequence where a reader looks for GRANT statements and does not find them.
+#
+# AND WHY THE MATRIX IS NOT THE REAL CONTROL EITHER
+#   A GRANT is a claim about intent. A 42501 is evidence about behaviour. The control is
+#   tests/integration/schema/test_mi_foundation.py::test_privilege_probe_refuses_ungranted_writes,
+#   which walks every (role, table) pair this file does NOT name and asserts the refusal. This file
+#   is the input to that probe as much as it is the input to `grants apply`.
+#
+# THE HARD PLATFORM FACT THAT SHAPES EVERYTHING BELOW
+#   CockroachDB has NO COLUMN-LEVEL PRIVILEGES (ARCHITECTURE §4). Privilege separation is by
+#   schema, database or cluster, and by nothing else. Every place §11.2 says a role may update
+#   "the head pointer only", "retracted_by only" or "state + counters", THE GRANT IS TABLE-WIDE
+#   UPDATE and the column restriction is enforced by a trigger in band 0130-0199. Those rows are
+#   marked `column_scope_enforced_by: trigger` below. Reading this file as though the column note
+#   were a privilege would be reading a control that does not exist — which is exactly the failure
+#   mode DM-7 says the probe, not the matrix, has to catch.
+#
+# ──────────────────────────────────────────────────────────────────────────────────────────────
+# CONTRACT FOR `trappoint-migrate grants apply`  (dm-runner implements; this file is the schema)
+#
+#   apply_order is authoritative and each phase is idempotent:
+#     1. roles              CREATE ROLE IF NOT EXISTS <name> WITH [NO]LOGIN
+#     2. memberships        GRANT <role> TO <member>          (empty here, deliberately)
+#     3. schema_privileges  GRANT <privs> ON SCHEMA <s> TO <role>
+#     4. table_privileges   GRANT <privs> ON TABLE <s>.<t> TO <role>
+#     5. schema_wide        GRANT <privs> ON ALL TABLES IN SCHEMA <s> TO <role>
+#     6. default_privileges ALTER DEFAULT PRIVILEGES FOR ROLE <owner> IN SCHEMA <s>
+#                             GRANT <privs> ON TABLES TO <role>
+#     7. revocations        REVOKE <privs> ON <object> FROM <grantee>
+#
+#   `since` names the migration at which the object first exists. A row whose object is absent
+#   from the connected database is SKIPPED WITH A WARNING, never an error, and the warning names
+#   the migration — a fresh cluster migrated only to 0023 must be grantable without the operator
+#   being asked to hand-edit the matrix. `grants apply --strict` turns those warnings into errors
+#   and is what CI runs against a fully-migrated cluster.
+#
+#   `denials` are NEVER applied. They are assertions the privilege probe reads.
+#
+#   Unknown keys are ignored, so this file may carry documentation fields the tool does not model.
+# ──────────────────────────────────────────────────────────────────────────────────────────────
+
+version: 1
+generated_from:
+  - "ARCHITECTURE.md §11.2 — the SQL role matrix"
+  - "ARCHITECTURE.md §11.3 — RLS scope roles (site_reader, fleet_hse, signer)"
+  - "ARCHITECTURE.md §4 — schema zones; no column-level privileges"
+  - "docs/leads/datamodel.md DM-7, DM-16"
+owner_role: mainline_owner
+schemas: [mainline, mainline_meas, mainline_audit, mainline_qa, mainline_ops]
+
+apply_order:
+  - roles
+  - memberships
+  - schema_privileges
+  - table_privileges
+  - schema_wide
+  - default_privileges
+  - revocations
+
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+# 1. ROLES
+#    `login: false` everywhere. Every principal reaches a role by GRANT plus SET ROLE, never by
+#    logging in as it, because CURRENT_USER is the RLS scope token (§11.3) and a role that can be
+#    logged in as directly is a role whose scope a credential holder chooses.
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+
+roles:
+  - name: mainline_owner
+    login: false
+    created_by_migration: "0001"
+    purpose: >
+      Owns all five schemas (taken at CREATE SCHEMA … AUTHORIZATION, migrations 0002-0006).
+      NOLOGIN and UNASSUMABLE — it appears in no `memberships` entry and never will. Owning a
+      table matters because an owner is exempt from RLS unless the table also carries FORCE ROW
+      LEVEL SECURITY, and because an owner may DROP TRIGGER. Both of those powers are therefore
+      held by an identity with no credential and no members.
+
+  - name: mainline_migrator
+    login: false
+    purpose: >
+      DDL only (§11.2 final rows). Holds CREATE and USAGE on the five schemas so migrations can be
+      applied by a principal that is not admin. Holds NO application privilege — it cannot INSERT a
+      row anywhere. The converse property is the one that matters: no application role holds DDL,
+      so a compromised agent cannot DROP TRIGGER permit_merge_gate and evaporate the central
+      invariant with no schema-change record. CI asserts 42501.
+
+  - name: agent_ingestor
+    login: false
+    purpose: "Untrusted-document plane. Turns incident PDFs into events, control failures and cues."
+  - name: agent_cartographer
+    login: false
+    purpose: "Clause identity and content; draws blame edges from documents."
+  - name: agent_projector
+    login: false
+    purpose: >
+      Writes mainline.clause_blame_closure AND NOTHING ELSE (S2). One table, one privilege. This
+      is the narrowest role in the system and the narrowness is the point: the closure is the
+      scalar every gate reads, so the set of principals that can extend it is exactly one.
+  - name: agent_recaller
+    login: false
+    purpose: >
+      Runs recall and writes what it found AND WHAT IT DECLINED TO SURFACE. It has no INSERT on
+      blocking_check — the role that detects a precursor cannot materialise the obligation (S1).
+  - name: agent_gate
+    login: false
+    purpose: >
+      The kernel. Writes blocking_check inside the same serializable transaction that issues the
+      exposure receipt. This single grant is what makes the flagship claim true.
+  - name: svc_disposition
+    login: false
+    purpose: >
+      Records human dispositions. Cannot write blocking_check, so it cannot manufacture the
+      obligation it then clears.
+  - name: agent_patroller
+    login: false
+    purpose: "As-documented vs as-operated fixity; drift findings and discordance warrants."
+  - name: agent_sequencer
+    login: false
+    purpose: "Builds the Merkle ledger. Holds the lease it updates and nothing in mainline."
+  - name: agent_relay
+    login: false
+    purpose: >
+      INSERT on ledger_intake and NOTHING ELSE — not even SELECT. A relay that cannot read cannot
+      be induced to exfiltrate, and it does not need to read to append.
+  - name: agent_fleet
+    login: false
+    purpose: "Cross-site lesson propagation. Only tightenings travel (MI23)."
+  - name: agent_assay
+    login: false
+    purpose: "Measurement only; confined to mainline_meas."
+  - name: mainline_auditor
+    login: false
+    purpose: >
+      THE MANAGED-MCP IDENTITY (S13). SELECT on mainline_audit views only; INSERT on exactly one
+      table, mainline_meas.external_attestation. The role that certifies the books has no write
+      path to them. Never granted anything in mainline_qa, ever.
+  - name: auditor_ro
+    login: false
+    purpose: "Human read-only auditor. Reads mainline and mainline_meas; writes nothing."
+  - name: quality_assurance
+    login: false
+    purpose: >
+      SELECT on mainline_qa views only (S14). Nothing else, in any schema — see `denials`. Per-named
+      person detail exists only here, and every SELECT writes a ledger entry (entry_kind
+      'profile_read'): observing the observer.
+  - name: subject_access
+    login: false
+    purpose: >
+      A person reading their own record, RLS-scoped to CURRENT_USER. This role is what makes SEC-3
+      condition (4) real: a score you compute about a person, use against them, and refuse to show
+      them is the definition of an allegation.
+  - name: site_reader
+    login: false
+    purpose: >
+      RLS scope role (§11.3). Policies read `USING (site_role = CURRENT_USER)`, so the ACTUAL
+      site-scoped principals are per-site roles named by mainline.site.site_role, each granted
+      site_reader for its table privileges. site_reader itself is the privilege carrier; the
+      per-site role is the scope token.
+  - name: fleet_hse
+    login: false
+    purpose: "Cross-site HSE reader; RLS policy fleet_scope grants it USING (true)."
+  - name: signer
+    login: false
+    purpose: >
+      A human who signs dispositions. Its restrictive policies are the interesting ones:
+      `peer_blind` on disposition and `standing_blind` on mainline_meas.standing. Access control
+      doing epistemics — it stops "I'll sign what Dave signed", and it is what M10's
+      peer-prediction channel structurally requires.
+
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+# 2. MEMBERSHIPS — deliberately empty.
+#    Nobody is a member of mainline_owner. That is what "unassumable" means, and it is asserted by
+#    test_mi_foundation.py::test_mainline_owner_is_unassumable rather than merely intended here.
+#    Human and service principals are granted their roles by the provisioning service account,
+#    which is the only alterable authority in the grant graph (§11.3); those grants are per
+#    deployment and live in infra/, not in this file.
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+
+memberships: []
+
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+# 3. SCHEMA PRIVILEGES
+#    USAGE is a prerequisite for every table privilege below. CREATE is held by mainline_migrator
+#    and nobody else.
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+
+schema_privileges:
+  - role: mainline_migrator
+    schemas: [mainline, mainline_meas, mainline_audit, mainline_qa, mainline_ops]
+    privileges: [USAGE, CREATE]
+    since: "0006"
+    why: "DDL only. The one role that holds CREATE, and it holds no data privilege anywhere."
+
+  - role: agent_ingestor
+    schemas: [mainline]
+    privileges: [USAGE]
+    since: "0002"
+  - role: agent_cartographer
+    schemas: [mainline]
+    privileges: [USAGE]
+    since: "0002"
+  - role: agent_projector
+    schemas: [mainline]
+    privileges: [USAGE]
+    since: "0002"
+  - role: agent_recaller
+    schemas: [mainline, mainline_meas]
+    privileges: [USAGE]
+    since: "0003"
+  - role: agent_gate
+    schemas: [mainline, mainline_ops]
+    privileges: [USAGE]
+    since: "0006"
+    why: >
+      mainline_ops because the outbox trigger fires as the INVOKING role. See the note under
+      table_privileges for mainline_ops.outbox — this is a real coupling, not a convenience.
+  - role: svc_disposition
+    schemas: [mainline, mainline_ops]
+    privileges: [USAGE]
+    since: "0006"
+  - role: agent_patroller
+    schemas: [mainline]
+    privileges: [USAGE]
+    since: "0002"
+  - role: agent_sequencer
+    schemas: [mainline, mainline_ops]
+    privileges: [USAGE]
+    since: "0006"
+  - role: agent_relay
+    schemas: [mainline]
+    privileges: [USAGE]
+    since: "0002"
+  - role: agent_fleet
+    schemas: [mainline, mainline_ops]
+    privileges: [USAGE]
+    since: "0006"
+  - role: agent_assay
+    schemas: [mainline_meas]
+    privileges: [USAGE]
+    since: "0003"
+  - role: mainline_auditor
+    schemas: [mainline_audit, mainline_meas]
+    privileges: [USAGE]
+    since: "0004"
+    why: >
+      mainline_meas USAGE exists ONLY to reach external_attestation for INSERT. It carries no
+      SELECT — see denials. mainline and mainline_qa are absent from this list on purpose.
+  - role: auditor_ro
+    schemas: [mainline, mainline_meas]
+    privileges: [USAGE]
+    since: "0003"
+  - role: quality_assurance
+    schemas: [mainline_qa]
+    privileges: [USAGE]
+    since: "0005"
+  - role: subject_access
+    schemas: [mainline_qa]
+    privileges: [USAGE]
+    since: "0005"
+  - role: site_reader
+    schemas: [mainline]
+    privileges: [USAGE]
+    since: "0002"
+  - role: fleet_hse
+    schemas: [mainline]
+    privileges: [USAGE]
+    since: "0002"
+  - role: signer
+    schemas: [mainline, mainline_meas]
+    privileges: [USAGE]
+    since: "0003"
+
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+# 4. TABLE PRIVILEGES — the matrix proper.
+#    Every row is (role, object, privileges). `since` is the migration at which the object exists;
+#    rows whose object is absent are skipped with a warning unless --strict.
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+
+table_privileges:
+
+  # ── the foundation band's own tables (0017-0023) ───────────────────────────────────────────
+  # The lattice tables are readable by everything that reads mainline (see schema_wide SELECT
+  # below) and writable by NOTHING. They are seeded by the provisioning path under the migrator's
+  # DDL session; there is no runtime writer, and a runtime writer would be a finding.
+  # mainline.person and mainline.signing_credential are written by the IdP sync, whose role is a
+  # deployment concern in infra/ and is not one of the application roles named here — we never
+  # mint an identity for a human, so no agent role may write one.
+
+  # ── agent_ingestor · the untrusted-document plane ──────────────────────────────────────────
+  - {role: agent_ingestor, object: mainline.event,                    privileges: [INSERT], since: "0033"}
+  - {role: agent_ingestor, object: mainline.control_failure,          privileges: [INSERT], since: "0035"}
+  - {role: agent_ingestor, object: mainline.event_cue,                privileges: [INSERT], since: "0040"}
+  - {role: agent_ingestor, object: mainline.event_cue_embedding,      privileges: [INSERT], since: "0041"}
+  - {role: agent_ingestor, object: mainline.event_cue_coarse,         privileges: [INSERT], since: "0042"}
+  - {role: agent_ingestor, object: mainline.event_cue_stage,          privileges: [INSERT], since: "0088"}
+  - {role: agent_ingestor, object: mainline.lex_posting,              privileges: [INSERT], since: "0043"}
+  - {role: agent_ingestor, object: mainline.lex_stats,                privileges: [INSERT], since: "0044"}
+  - {role: agent_ingestor, object: mainline.lex_doclen,               privileges: [INSERT], since: "0045"}
+  - {role: agent_ingestor, object: mainline.event_bond,               privileges: [INSERT], since: "0046"}
+  - {role: agent_ingestor, object: mainline.document_intake_finding,  privileges: [INSERT], since: "0072", note: "DM-16 orphan: §11.2 grants it, §5 never defined it. dm-periphery creates it."}
+
+  # ── agent_cartographer · clause identity, content, blame edges ─────────────────────────────
+  - {role: agent_cartographer, object: mainline.clause,           privileges: [INSERT, UPDATE], since: "0028",
+     column_scope_enforced_by: trigger,
+     note: "§11.2 says UPDATE on the head pointer ONLY. CockroachDB has no column privileges, so the grant is table-wide and the restriction is a BEFORE UPDATE trigger in band 0130-0199."}
+  - {role: agent_cartographer, object: mainline.clause_version,   privileges: [INSERT], since: "0029"}
+  - {role: agent_cartographer, object: mainline.clause_band,      privileges: [INSERT], since: "0030"}
+  - {role: agent_cartographer, object: mainline.clause_embedding, privileges: [INSERT], since: "0031"}
+  - {role: agent_cartographer, object: mainline.identity_residue, privileges: [INSERT], since: "0049"}
+  - {role: agent_cartographer, object: mainline.blame_edge,       privileges: [INSERT], since: "0037"}
+
+  # ── agent_projector · ONE TABLE (S2) ───────────────────────────────────────────────────────
+  - {role: agent_projector, object: mainline.clause_blame_closure, privileges: [INSERT], since: "0038",
+     why: "The whole role. Adding a second row here is a schema amendment, not a convenience."}
+
+  # ── agent_recaller · finds precursors; may not oblige anyone ───────────────────────────────
+  - {role: agent_recaller, object: mainline_meas.recall_run,       privileges: [INSERT], since: "0081"}
+  - {role: agent_recaller, object: mainline_meas.recall_candidate, privileges: [INSERT], since: "0082"}
+  - {role: agent_recaller, object: mainline_meas.silence_receipt,  privileges: [INSERT], since: "0083"}
+  - {role: agent_recaller, object: mainline_meas.silence_ledger,   privileges: [INSERT], since: "0084",
+     counsel_gated: true, note: "G0 (DM-17). The gate is who may READ it; that it is written is not negotiable (SEC-0)."}
+
+  # ── agent_gate · the kernel ────────────────────────────────────────────────────────────────
+  - {role: agent_gate, object: mainline.blocking_check,        privileges: [INSERT], since: "0058",
+     why: "S1. The role that materialises the obligation is the kernel, not the recall agent. The recall pipeline hands the kernel a candidate set over HTTP; the kernel writes the row inside the same serializable transaction that issues the exposure receipt."}
+  - {role: agent_gate, object: mainline.permit_event,          privileges: [INSERT], since: "0059"}
+  - {role: agent_gate, object: mainline.cr_event,              privileges: [INSERT], since: "0060"}
+  - {role: agent_gate, object: mainline.merge_record,          privileges: [INSERT], since: "0071"}
+  - {role: agent_gate, object: mainline.exposure_receipt,      privileges: [INSERT], since: "0061"}
+  - {role: agent_gate, object: mainline.exposure_line,         privileges: [INSERT], since: "0062"}
+  - {role: agent_gate, object: mainline.boundary_certificate,  privileges: [INSERT], since: "0057"}
+  - {role: agent_gate, object: mainline.ledger_intake,         privileges: [INSERT], since: "0072"}
+  - {role: agent_gate, object: mainline.permit,                privileges: [INSERT, UPDATE], since: "0050",
+     column_scope_enforced_by: trigger,
+     note: "§11.2 says state + counters only. No column privileges in CockroachDB; the counters are trigger-maintained projections and the trigger refuses a client-supplied value (P2)."}
+  - {role: agent_gate, object: mainline.change_request,        privileges: [INSERT, UPDATE], since: "0051",
+     column_scope_enforced_by: trigger}
+  - {role: agent_gate, object: mainline_ops.outbox,            privileges: [INSERT], since: "0099",
+     note: "OPEN COUPLING — see the note at the foot of this file. A trigger fires as the invoking role unless its function is SECURITY DEFINER, so every role that writes a table carrying an outbox trigger needs INSERT here."}
+
+  # ── svc_disposition · records human decisions; cannot create the obligation ─────────────────
+  - {role: svc_disposition, object: mainline.disposition,          privileges: [INSERT, UPDATE], since: "0066",
+     counsel_gated: true, column_scope_enforced_by: trigger,
+     note: "§11.2 says UPDATE on retracted_by only. Table-wide grant; the append-only trigger refuses every other column change with P0001 (MI01)."}
+  - {role: svc_disposition, object: mainline.disposition_citation, privileges: [INSERT], since: "0067", counsel_gated: true}
+  - {role: svc_disposition, object: mainline.override_ledger,      privileges: [INSERT], since: "0068", counsel_gated: true}
+  - {role: svc_disposition, object: mainline_ops.outbox,           privileges: [INSERT], since: "0099"}
+
+  # ── agent_patroller · as-documented vs as-operated ─────────────────────────────────────────
+  - {role: agent_patroller, object: mainline.observed_assertion,   privileges: [INSERT], since: "0090"}
+  - {role: agent_patroller, object: mainline.patrol_run,           privileges: [INSERT], since: "0090"}
+  - {role: agent_patroller, object: mainline.drift_finding,        privileges: [INSERT], since: "0090"}
+  - {role: agent_patroller, object: mainline.time_witness,         privileges: [INSERT], since: "0090"}
+  - {role: agent_patroller, object: mainline.discordance_warrant,  privileges: [INSERT], since: "0090"}
+
+  # ── agent_sequencer · the ledger ───────────────────────────────────────────────────────────
+  - {role: agent_sequencer, object: mainline.ledger_leaf,            privileges: [INSERT], since: "0073"}
+  - {role: agent_sequencer, object: mainline.ledger_node,            privileges: [INSERT], since: "0074"}
+  - {role: agent_sequencer, object: mainline.ledger_checkpoint,      privileges: [INSERT], since: "0075"}
+  - {role: agent_sequencer, object: mainline.cosignature,            privileges: [INSERT], since: "0076"}
+  - {role: agent_sequencer, object: mainline.unwitnessed_debt,       privileges: [INSERT], since: "0077"}
+  - {role: agent_sequencer, object: mainline.custodian_attestation,  privileges: [INSERT], since: "0078"}
+  - {role: agent_sequencer, object: mainline_ops.sequencer_lease,    privileges: [INSERT, UPDATE], since: "0079",
+     why: "The lease is the one genuinely mutable object in the custody plane, and it holds no evidence — CockroachDB has no advisory locks, so the lease IS the lock."}
+  - {role: agent_sequencer, object: mainline.ledger_intake,          privileges: [SELECT], since: "0072",
+     why: "It reads what it sequences. It cannot write intake — that is agent_relay's job — so a compromised sequencer cannot author the entries it then commits to."}
+
+  # ── agent_relay · append and nothing else ──────────────────────────────────────────────────
+  - {role: agent_relay, object: mainline.ledger_intake, privileges: [INSERT], since: "0072",
+     why: "No SELECT anywhere in the system. A relay that cannot read cannot be induced to exfiltrate, and it does not need to read in order to append."}
+
+  # ── agent_fleet · cross-site propagation ───────────────────────────────────────────────────
+  - {role: agent_fleet, object: mainline.lesson,            privileges: [INSERT], since: "0094"}
+  - {role: agent_fleet, object: mainline.propagation,       privileges: [INSERT, UPDATE], since: "0095",
+     column_scope_enforced_by: trigger, note: "§11.2 says UPDATE on prop_state only."}
+  - {role: agent_fleet, object: mainline.merge_conflict,    privileges: [INSERT], since: "0096"}
+  - {role: agent_fleet, object: mainline.resolution_memory, privileges: [INSERT], since: "0097"}
+  - {role: agent_fleet, object: mainline_ops.outbox,        privileges: [INSERT], since: "0099"}
+
+  # ── agent_assay · measurement only ─────────────────────────────────────────────────────────
+  - {role: agent_assay, object: mainline_meas.assay_outcome, privileges: [INSERT], since: "0089",
+     note: "DM-16 orphan: §11.2 grants it, §5 never defined it. dm-periphery creates it."}
+  - {role: agent_assay, object: mainline_meas.standing,      privileges: [INSERT], since: "0089",
+     note: "Ships inert (W = 1.0). The RESTRICTIVE policy standing_blind USING (false) means a signer cannot read their own row through this role — mainline_qa.v_my_record is the disclosure path (SEC-3 condition 4)."}
+
+  # ── mainline_auditor · THE MANAGED-MCP IDENTITY. Exactly one writable object. ───────────────
+  - {role: mainline_auditor, object: mainline_meas.external_attestation, privileges: [INSERT], since: "0089",
+     why: "S13. The entire write surface of the Managed MCP connector, which is itself insert-only, one statement per call, 16 384 chars, 20 s, 10 KiB response. The role that certifies the books has no write path to them."}
+
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+# 5. SCHEMA-WIDE PRIVILEGES — `GRANT … ON ALL TABLES IN SCHEMA`.
+#    Used ONLY for SELECT, and never on mainline_qa, whose views are enumerated by name because a
+#    wildcard there would silently pick up whatever dm-views-rls adds next.
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+
+schema_wide:
+  - {role: agent_ingestor,     schema: mainline,       privileges: [SELECT], since: "0002"}
+  - {role: agent_cartographer, schema: mainline,       privileges: [SELECT], since: "0002"}
+  - {role: agent_projector,    schema: mainline,       privileges: [SELECT], since: "0002"}
+  - {role: agent_recaller,     schema: mainline,       privileges: [SELECT], since: "0002"}
+  - {role: agent_recaller,     schema: mainline_meas,  privileges: [SELECT], since: "0003"}
+  - {role: agent_gate,         schema: mainline,       privileges: [SELECT], since: "0002"}
+  - {role: svc_disposition,    schema: mainline,       privileges: [SELECT], since: "0002"}
+  - {role: agent_patroller,    schema: mainline,       privileges: [SELECT], since: "0002"}
+  - {role: agent_fleet,        schema: mainline,       privileges: [SELECT], since: "0002"}
+  - {role: agent_assay,        schema: mainline_meas,  privileges: [SELECT], since: "0003"}
+  - {role: auditor_ro,         schema: mainline,       privileges: [SELECT], since: "0002"}
+  - {role: auditor_ro,         schema: mainline_meas,  privileges: [SELECT], since: "0003"}
+  - {role: mainline_auditor,   schema: mainline_audit, privileges: [SELECT], since: "0004",
+     why: "Every object in mainline_audit is a view shaped to ≤ 25 rows and ≤ 10 KiB. The wildcard is safe here precisely because the schema is constitutionally view-only."}
+  - {role: quality_assurance,  schema: mainline_qa,    privileges: [SELECT], since: "0005"}
+  - {role: mainline_migrator,  schema: mainline,       privileges: [SELECT], since: "0002",
+     why: "A migrator that cannot read cannot verify what it applied. It holds no INSERT/UPDATE/DELETE anywhere — see denials."}
+  - {role: mainline_migrator,  schema: mainline_meas,  privileges: [SELECT], since: "0003"}
+  - {role: mainline_migrator,  schema: mainline_ops,   privileges: [SELECT], since: "0006"}
+  - {role: site_reader,        schema: mainline,       privileges: [SELECT], since: "0002",
+     why: "Carries the privilege; the RLS policy site_scope USING (site_role = CURRENT_USER) carries the scope. Neither is sufficient alone, which is the point of three layers."}
+  - {role: fleet_hse,          schema: mainline,       privileges: [SELECT], since: "0002"}
+  - {role: signer,             schema: mainline,       privileges: [SELECT], since: "0002",
+     why: "Restricted at read time by the RESTRICTIVE policy peer_blind on disposition: a signer sees their own disposition on a check, and a peer's only once their own exists."}
+
+# `subject_access` is enumerated, not wildcarded: one view, forever.
+subject_access_views:
+  - {role: subject_access, object: mainline_qa.v_my_record, privileges: [SELECT], since: "0205",
+     why: "SEC-3 condition (4). The person the record scores can read their own score and its derivation, and nothing else."}
+
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+# 6. DEFAULT PRIVILEGES — so a view added by a later migration is granted without a matrix edit.
+#    Only for the two view-only schemas; never for a schema containing tables.
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+
+default_privileges:
+  - {for_role: mainline_owner, schema: mainline_audit, object_type: TABLES, privileges: [SELECT], to_role: mainline_auditor}
+  - {for_role: mainline_owner, schema: mainline_audit, object_type: TABLES, privileges: [SELECT], to_role: auditor_ro}
+  - {for_role: mainline_owner, schema: mainline_qa,    object_type: TABLES, privileges: [SELECT], to_role: quality_assurance}
+
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+# 7. REVOCATIONS — re-asserted every run, because drift is additive.
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+
+revocations:
+  - {grantee: public, object_type: SCHEMA, objects: [mainline, mainline_meas, mainline_audit, mainline_qa, mainline_ops], privileges: [ALL],
+     why: "Re-asserts migration 0007. A migration runs once; drift happens continuously."}
+  - {grantee: public, object_type: SCHEMA, objects: [public], privileges: [CREATE],
+     why: "Re-asserts migration 0008 — the one revoke that changes something on a clean cluster."}
+
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+# 8. DENIALS — never applied. Read by the privilege probe, which asserts 42501.
+#    A denial is written here when the ABSENCE of a grant is a claim we make out loud, so that
+#    deleting the grant row is not enough to weaken the system quietly: the probe would still pass,
+#    but the denial makes the intent explicit and CI diffs it.
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+
+denials:
+  - role: mainline_auditor
+    forbidden: [INSERT, UPDATE, DELETE]
+    scope: "every table in every schema EXCEPT mainline_meas.external_attestation"
+    expect_sqlstate: "42501"
+    why: "S13. The MCP write surface is one insert-only table, and that is the whole of it."
+  - role: mainline_auditor
+    forbidden: [SELECT]
+    scope: "every object in schemas mainline, mainline_qa, mainline_ops, and every TABLE in mainline_meas"
+    expect_sqlstate: "42501"
+    why: >
+      The auditor reads mainline_audit views and nothing else. mainline_qa is the one that must
+      never be reachable from an MCP identity, ever (S14) — a Managed-MCP account for per-named-person
+      distributions is the single worst credential this system could issue.
+  - role: quality_assurance
+    forbidden: [SELECT, INSERT, UPDATE, DELETE]
+    scope: "every object outside schema mainline_qa"
+    expect_sqlstate: "42501"
+  - role: agent_projector
+    forbidden: [INSERT, UPDATE, DELETE]
+    scope: "every table except mainline.clause_blame_closure"
+    expect_sqlstate: "42501"
+    why: "S2. One table."
+  - role: agent_recaller
+    forbidden: [INSERT]
+    scope: "mainline.blocking_check"
+    expect_sqlstate: "42501"
+    why: "S1, stated as a denial because it is the grant everyone expects to find and must not. The role that detects a precursor cannot oblige anyone."
+  - role: svc_disposition
+    forbidden: [INSERT]
+    scope: "mainline.blocking_check"
+    expect_sqlstate: "42501"
+    why: "The role that disposes of an obligation cannot manufacture it."
+  - role: agent_gate
+    forbidden: [INSERT, UPDATE]
+    scope: "mainline.disposition"
+    expect_sqlstate: "42501"
+    why: "The kernel writes obligations; it does not sign them off. Separation runs in both directions."
+  - role: agent_relay
+    forbidden: [SELECT]
+    scope: "every object in every schema"
+    expect_sqlstate: "42501"
+  - role: mainline_migrator
+    forbidden: [INSERT, UPDATE, DELETE]
+    scope: "every table in every schema"
+    expect_sqlstate: "42501"
+    why: "DDL only. A migrator that can write rows is an unlogged application role."
+  - roles: [agent_ingestor, agent_cartographer, agent_projector, agent_recaller, agent_gate,
+            svc_disposition, agent_patroller, agent_sequencer, agent_relay, agent_fleet,
+            agent_assay, mainline_auditor, auditor_ro, quality_assurance, subject_access,
+            site_reader, fleet_hse, signer]
+    forbidden: [CREATE]
+    scope: "every schema"
+    expect_sqlstate: "42501"
+    why: >
+      THE APPLICATION ROLE HOLDS NO DDL. Without this, a compromised agent could
+      `DROP TRIGGER permit_merge_gate` and the central invariant would evaporate with no
+      schema-change record. This is the denial that matters most and the one a reviewer should
+      check first.
+  - roles: [agent_ingestor, agent_cartographer, agent_projector, agent_recaller, agent_gate,
+            svc_disposition, agent_patroller, agent_sequencer, agent_relay, agent_fleet,
+            agent_assay, mainline_auditor, auditor_ro, quality_assurance, subject_access,
+            site_reader, fleet_hse, signer, mainline_migrator]
+    forbidden: [DELETE]
+    scope: "every table in every schema"
+    expect_sqlstate: "42501"
+    why: >
+      MI01, layer one of three. No role in this matrix holds DELETE on anything. Permitted deletion
+      is a reviewed two-person job performed by a break-glass identity that writes a
+      destruction_record; it is not a privilege any standing role carries.
+
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+# OPEN COUPLING, RECORDED RATHER THAN HIDDEN — mainline_ops.outbox and trigger execution identity
+#
+#   A PostgreSQL-family trigger executes with the privileges of the INVOKING role unless its
+#   function is declared SECURITY DEFINER. Every table that carries an outbox trigger therefore
+#   forces its writers to hold INSERT on mainline_ops.outbox, which is why agent_gate,
+#   svc_disposition and agent_fleet appear there above. That is four extra grants and one extra
+#   schema USAGE per writer, and it widens each role slightly.
+#
+#   The alternative is to declare the outbox trigger functions SECURITY DEFINER owned by
+#   mainline_owner, at which point no application role needs any privilege in mainline_ops at all.
+#   That is almost certainly the better shape, and it is dm-functions-triggers' call to make,
+#   because it is a property of the function definitions in band 0130-0199 and not of this matrix.
+#   If they take it, delete the three `mainline_ops.outbox` rows and the two `mainline_ops` schema
+#   USAGE rows above, and the probe will start asserting 42501 on them instead.
+#
+#   Recorded here because a grant that exists to work around an unmade decision, with no note
+#   saying so, is indistinguishable from a grant somebody needed.
+# ══════════════════════════════════════════════════════════════════════════════════════════════

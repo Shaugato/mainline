@@ -1,0 +1,318 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+#
+# CATSEAL unit CLASSIFICATION (worker W3).  Read the next paragraph before
+# editing anything in this file.
+#
+# THIS FILE CONTAINS NO CONVERSION FACTORS AND MUST NEVER CONTAIN ANY.
+#
+# It answers exactly two questions about a unit token: what DIMENSION is it, and
+# what pressure REFERENCE does it declare.  Both are needed to construct a
+# `Quantity` at all -- `contracts.Quantity` has a mandatory `dimension` and a
+# mandatory `reference` -- so the CAT extractor cannot avoid owning this
+# judgement.  Arithmetic on quantities (conversion, comparison, SI
+# normalisation) belongs to worker W2's quantity algebra and its vendored Pint
+# definitions in data/units/mainline_units.txt.  If a factor ever appears here
+# there will be two sources of truth for what a kilopascal is, and they will
+# disagree, and the disagreement will surface as a safe_direction comparison
+# that silently flips.  See decision D5.
+#
+# THE UNSTATED-REFERENCE RULE.  A bare pressure unit -- `kPa`, `bar`, `psi` --
+# gets reference='none', which means "the text did not say".  It does NOT get
+# 'absolute'.  Guessing absolute is the exact mistake D5 exists to make
+# unrepresentable: 50 psig is 344.7 kPa gauge and is not 446 kPa absolute, and a
+# system that assumes wrongly turns a weakening into a strengthening on the way
+# past the gate.  A quantity with reference='none' and a pressure dimension is a
+# quantity the algebra must REFUSE to convert into a gauge or absolute frame.
+# The prose markers that upgrade 'none' to 'gauge' or 'absolute' live in
+# grammar.toml [grammar.reference].
+#
+# ONE CANONICAL TOKEN PER UNIT.  [units.dimension] lists ONLY canonical tokens.
+# Every other spelling a procedure might use -- plural, spelled out, differently
+# cased -- lives in [units.alias] and resolves to a canonical one.  This is not
+# tidiness.  If `month` and `months` were both canonical, "at intervals of 12
+# months" and "at intervals of 12 month" would produce different cat_keys for
+# one control, and an identity split detaches a blame edge with nothing
+# anywhere going red.  Adding a token to [units.dimension] that is a variant of
+# an existing one is therefore a bug, not an addition.
+#
+# The token set is kept aligned with the ANCHORLOCK setpoint vocabulary
+# (data/gazetteer/setpoint-units.toml, owner W1): every token that file can
+# produce as a setpoint anchor must RESOLVE here, or the extractor will see a
+# setpoint it cannot turn into a Quantity.  A test asserts the coverage.
+
+[units]
+version = 1
+default_reference = "none"
+
+# --------------------------------------------------------------------------- #
+# CANONICAL token -> dimension.  Matched CASE-SENSITIVELY: `m` (metre) and `M`  #
+# are not the same unit, and folding them would be a unit error rather than a   #
+# spelling one.                                                                 #
+# --------------------------------------------------------------------------- #
+[units.dimension]
+# pressure
+Pa = "pressure"
+kPa = "pressure"
+MPa = "pressure"
+mbar = "pressure"
+bar = "pressure"
+barg = "pressure"
+bara = "pressure"
+psi = "pressure"
+psig = "pressure"
+psia = "pressure"
+atm = "pressure"
+inH2O = "pressure"
+mmHg = "pressure"
+torr = "pressure"
+
+# dimensionless ratios and concentrations
+"%" = "dimensionless"
+"%LEL" = "dimensionless"
+"%UEL" = "dimensionless"
+"%vol" = "dimensionless"
+ppm = "dimensionless"
+ppb = "dimensionless"
+pphm = "dimensionless"
+
+# temperature
+degC = "temperature"
+degF = "temperature"
+K = "temperature"
+
+# length / area / volume
+mm = "length"
+cm = "length"
+m = "length"
+km = "length"
+in = "length"
+ft = "length"
+mil = "length"
+mm2 = "area"
+m2 = "area"
+m3 = "volume"
+L = "volume"
+mL = "volume"
+kL = "volume"
+gal = "volume"
+
+# mass
+kg = "mass"
+g = "mass"
+t = "mass"
+lb = "mass"
+
+# time -- `shift` is a site-defined interval and is deliberately included; see
+# verticals/mainline/spec/cat-key-v1.md §10 for exactly what that costs.
+s = "time"
+min = "time"
+h = "time"
+day = "time"
+week = "time"
+month = "time"
+year = "time"
+shift = "time"
+
+# electrical
+V = "voltage"
+kV = "voltage"
+mV = "voltage"
+A = "current"
+mA = "current"
+kA = "current"
+W = "power"
+kW = "power"
+MW = "power"
+kWh = "energy"
+Hz = "frequency"
+rpm = "frequency"
+
+# other physical
+dB = "sound_pressure"
+dBA = "sound_pressure"
+lux = "illuminance"
+mSv = "dose"
+uSv = "dose"
+Sv = "dose"
+Gy = "dose"
+Bq = "radioactivity"
+N = "force"
+kN = "force"
+Nm = "torque"
+kNm = "torque"
+"m/s" = "velocity"
+"km/h" = "velocity"
+"L/s" = "volumetric_flow"
+"L/min" = "volumetric_flow"
+"m3/h" = "volumetric_flow"
+"kg/h" = "mass_flow"
+
+# Event-anchored pseudo-unit for frequencies like "prior to each use".  Its
+# dimension is one nothing can convert, which is the honest encoding of "this
+# interval is not a duration".
+use = "event"
+
+# --------------------------------------------------------------------------- #
+# ALIAS -> canonical token.  Matched CASE-INSENSITIVELY, so one entry covers    #
+# `Months`, `MONTHS` and `months`.  Procedures are written by people, and       #
+# people write "12 months", "50 metres" and "19.5 per cent"; without these the  #
+# quantity in every such clause is invisible, CAT.value stays None, and the     #
+# clause reads as carrying no setpoint at all -- the quietest possible way to   #
+# lose a control.                                                               #
+# --------------------------------------------------------------------------- #
+[units.alias]
+# pressure
+KPA = "kPa"
+kpa = "kPa"
+pascal = "Pa"
+pascals = "Pa"
+kilopascal = "kPa"
+kilopascals = "kPa"
+megapascal = "MPa"
+megapascals = "MPa"
+millibar = "mbar"
+millibars = "mbar"
+bars = "bar"
+"pounds per square inch" = "psi"
+atmosphere = "atm"
+atmospheres = "atm"
+
+# dimensionless
+"vol%" = "%vol"
+percent = "%"
+"per cent" = "%"
+percentage = "%"
+"parts per million" = "ppm"
+"parts per billion" = "ppb"
+
+# temperature
+C = "degC"
+F = "degF"
+celsius = "degC"
+centigrade = "degC"
+"degrees celsius" = "degC"
+"degree celsius" = "degC"
+fahrenheit = "degF"
+"degrees fahrenheit" = "degF"
+kelvin = "K"
+
+# length / area / volume
+millimetre = "mm"
+millimetres = "mm"
+millimeter = "mm"
+millimeters = "mm"
+centimetre = "cm"
+centimetres = "cm"
+metre = "m"
+metres = "m"
+meter = "m"
+meters = "m"
+kilometre = "km"
+kilometres = "km"
+inch = "in"
+inches = "in"
+foot = "ft"
+feet = "ft"
+"square metre" = "m2"
+"square metres" = "m2"
+"cubic metre" = "m3"
+"cubic metres" = "m3"
+litre = "L"
+litres = "L"
+liter = "L"
+liters = "L"
+millilitre = "mL"
+millilitres = "mL"
+gallons = "gal"
+
+# mass
+tonne = "t"
+tonnes = "t"
+lbs = "lb"
+pound = "lb"
+pounds = "lb"
+kilogram = "kg"
+kilograms = "kg"
+gram = "g"
+grams = "g"
+
+# time
+sec = "s"
+secs = "s"
+second = "s"
+seconds = "s"
+mins = "min"
+minute = "min"
+minutes = "min"
+hr = "h"
+hrs = "h"
+hour = "h"
+hours = "h"
+days = "day"
+weeks = "week"
+months = "month"
+years = "year"
+shifts = "shift"
+uses = "use"
+
+# electrical
+volt = "V"
+volts = "V"
+kilovolt = "kV"
+kilovolts = "kV"
+millivolt = "mV"
+millivolts = "mV"
+amp = "A"
+amps = "A"
+ampere = "A"
+amperes = "A"
+milliamp = "mA"
+milliamps = "mA"
+watt = "W"
+watts = "W"
+kilowatt = "kW"
+kilowatts = "kW"
+megawatt = "MW"
+megawatts = "MW"
+hertz = "Hz"
+"revolutions per minute" = "rpm"
+
+# other physical
+decibel = "dB"
+decibels = "dB"
+"a-weighted decibels" = "dBA"
+newton = "N"
+newtons = "N"
+kilonewton = "kN"
+kilonewtons = "kN"
+"newton metres" = "Nm"
+"metres per second" = "m/s"
+"kilometres per hour" = "km/h"
+"litres per second" = "L/s"
+"litres per minute" = "L/min"
+millisievert = "mSv"
+millisieverts = "mSv"
+microsievert = "uSv"
+microsieverts = "uSv"
+
+# --------------------------------------------------------------------------- #
+# canonical token -> reference.  Only tokens that DECLARE a reference appear    #
+# here.  Everything else takes `default_reference` above, i.e. 'none' =         #
+# unstated.                                                                     #
+# --------------------------------------------------------------------------- #
+[units.reference]
+psig = "gauge"
+barg = "gauge"
+psia = "absolute"
+bara = "absolute"
+atm = "absolute"
+
+# --------------------------------------------------------------------------- #
+# Dimensions in which a pressure/temperature reference means anything at all.   #
+# A reference marker found in the prose is applied only to a quantity in one of #
+# these; "approximately 5 m (gauge)" is a typo, not a gauge length, and letting #
+# it through would put a meaningless discriminator into a cat_key.              #
+# --------------------------------------------------------------------------- #
+[units.referenced_dimensions]
+dimensions = ["pressure", "temperature"]

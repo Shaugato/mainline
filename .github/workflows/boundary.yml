@@ -1,0 +1,235 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# The determinism boundary — four independent enforcements, four independent jobs.
+#
+# ARCHITECTURE.md §8.2 draws the deterministic/LLM boundary physically, with four
+# testable enforcements. The value of four is that they do not share a failure
+# mode, so they do not share a job either: one bad fixture path, one bad regex or
+# one bad parser can take out at most one of these lanes, and the other three
+# still speak.
+#
+# Nothing here needs an AWS account or a cluster. E1/E2/E4 read the committed
+# OpenTofu plan JSON. The live `iam simulate-principal-policy` leg is behind
+# MAINLINE_BOUNDARY_LIVE_AWS=1 and is deliberately NOT set here (PL-3: an
+# unproven capability does not go on a dated path).
+
+name: boundary
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/mainline-boundary/**"
+      - "tests/boundary/**"
+      - "packages/trappoint-*/**"
+      - "verticals/mainline/packages/mainline-gate-svc/**"
+      - "spec/agents/fleet.yaml"
+      - "evidence/sbom/**"
+      - "README.md"
+      - "VERIFY.md"
+      - "docs/deck/**"
+      - ".github/workflows/boundary.yml"
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    # Nightly, because three of the four enforcements assert the ABSENCE of
+    # something, and an absence can be undone by a change to a file none of the
+    # path filters above mention.
+    - cron: "17 19 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: boundary-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.13"
+  # Not set, on purpose. Written here so the absence is a decision a reader can
+  # see rather than an omission they have to infer:
+  #   MAINLINE_BOUNDARY_LIVE_AWS: "1"
+  FORCE_COLOR: "1"
+
+jobs:
+  e1-iam:
+    name: E1 — no model IAM
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install the boundary package
+        run: python -m pip install --disable-pip-version-check ./packages/mainline-boundary pytest
+      - name: Assert the kernel task role cannot reach Bedrock
+        run: python -m pytest tests/boundary/test_e1_iam.py -v --no-header -rs
+      - name: Report
+        if: always()
+        run: python -m mainline_boundary.cli e1 --json || true
+
+  e2-network:
+    name: E2 — no model network path
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install the boundary package
+        run: python -m pip install --disable-pip-version-check ./packages/mainline-boundary pytest
+      - name: Install conftest
+        # E2 is the enforcement a security reviewer believes precisely because it
+        # does not depend on our code being correct, so the Rego leg is not
+        # optional here. tests/boundary/test_e2_network.py skips the Rego tests
+        # when no engine is present; this step is what makes that skip impossible
+        # in CI.
+        env:
+          CONFTEST_VERSION: "0.69.0"
+        run: |
+          set -euo pipefail
+          curl -sSL -o /tmp/conftest.tar.gz \
+            "https://github.com/open-policy-agent/conftest/releases/download/v${CONFTEST_VERSION}/conftest_${CONFTEST_VERSION}_Linux_x86_64.tar.gz"
+          tar -xzf /tmp/conftest.tar.gz -C /tmp conftest
+          sudo install -m 0755 /tmp/conftest /usr/local/bin/conftest
+          conftest --version
+      - name: Assert no bedrock endpoint is reachable from the kernel
+        run: python -m pytest tests/boundary/test_e2_network.py -v --no-header -rs
+      - name: Rego, directly — the second opinion, unmediated by our test harness
+        run: |
+          conftest test --policy tests/boundary/policy --all-namespaces \
+            tests/boundary/fixtures/plan.json
+
+  e3-code:
+    name: E3 — no model code path
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install the boundary package
+        run: python -m pip install --disable-pip-version-check ./packages/mainline-boundary pytest
+      - name: Assert no kernel-plane package can reach a model SDK
+        run: python -m pytest tests/boundary/test_e3_code.py -v --no-header -rs
+      - name: Surface the skips
+        # E3 skips-with-reason while verticals/mainline/packages/mainline-gate-svc
+        # does not exist. That skip must be VISIBLE in the log, because a silent
+        # skip and a pass look identical to everyone who is not reading closely.
+        if: always()
+        run: python -m mainline_boundary.cli e3 || true
+
+  e4-egress:
+    name: E4 — no model prompt path
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install the boundary package
+        run: python -m pip install --disable-pip-version-check ./packages/mainline-boundary pytest
+      - name: Assert the kernel speaks exactly pgwire plus in-VPC HTTPS
+        run: python -m pytest tests/boundary/test_e4_egress.py -v --no-header -rs
+      - name: Restate the FIS blackhole status in the log
+        run: |
+          python - <<'PY'
+          from mainline_boundary.egress import load_fis_record
+          record = load_fis_record()
+          print(f"FIS {record.experiment_id}: status={record.status} "
+                f"verified={record.verified} blocked_by={record.blocked_by}")
+          print(record.raw.get("honest_status_sentence", "").strip())
+          assert record.verified is False, "flip this only with a committed attestation"
+          PY
+
+  fleet-matrix:
+    name: Fleet capability matrix
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install the boundary package
+        run: python -m pip install --disable-pip-version-check ./packages/mainline-boundary pytest
+      - name: Assert every agent's declared capabilities
+        run: python -m pytest tests/boundary/test_fleet_matrix.py -v --no-header -rs
+
+  ci-greps:
+    name: CI greps
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install the boundary package
+        run: python -m pip install --disable-pip-version-check ./packages/mainline-boundary pytest
+      - name: No retry helper, no sampling parameter, no per-signer label, no forbidden claim
+        run: python -m pytest tests/boundary/test_ci_greps.py -v --no-header -rs
+      - name: Repository-wide grep report
+        if: always()
+        run: python -m mainline_boundary.cli greps
+
+  package-unit-tests:
+    name: mainline-boundary unit tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install the boundary package
+        run: |
+          python -m pip install --disable-pip-version-check \
+            ./packages/mainline-boundary pytest ruff mypy types-PyYAML
+      - name: Unit tests
+        run: python -m pytest packages/mainline-boundary/tests -q --no-header
+      - name: ruff
+        run: ruff check packages/mainline-boundary tests/boundary
+      - name: mypy (strict)
+        run: mypy --strict packages/mainline-boundary/src/mainline_boundary
+
+  summary:
+    name: Boundary summary
+    runs-on: ubuntu-24.04
+    needs: [e1-iam, e2-network, e3-code, e4-egress, fleet-matrix, ci-greps, package-unit-tests]
+    if: always()
+    steps:
+      - name: Fail if any enforcement did not pass
+        run: |
+          set -euo pipefail
+          cat >> "$GITHUB_STEP_SUMMARY" <<'EOF'
+          ## Determinism boundary (ARCHITECTURE.md §8.2)
+
+          | # | enforcement | result |
+          |---|---|---|
+          | E1 | no model IAM | ${{ needs.e1-iam.result }} |
+          | E2 | no model network path | ${{ needs.e2-network.result }} |
+          | E3 | no model code path | ${{ needs.e3-code.result }} |
+          | E4 | no model prompt path | ${{ needs.e4-egress.result }} |
+          | — | fleet capability matrix | ${{ needs.fleet-matrix.result }} |
+          | — | CI greps | ${{ needs.ci-greps.result }} |
+
+          E1, E2 and E4 are asserted over a committed OpenTofu plan, not a live
+          account: AWS credentials are not valid on the build machine as of
+          2026-08. They become live checks in `cloud-verify.yml` the day
+          credentials work (PL-3).
+
+          The AWS FIS blackhole game-day named in §8.2 is **specified and unrun**
+          (§19 GT-16). Do not promise it on camera.
+          EOF
+          for result in \
+            "${{ needs.e1-iam.result }}" \
+            "${{ needs.e2-network.result }}" \
+            "${{ needs.e3-code.result }}" \
+            "${{ needs.e4-egress.result }}" \
+            "${{ needs.fleet-matrix.result }}" \
+            "${{ needs.ci-greps.result }}" \
+            "${{ needs.package-unit-tests.result }}" ; do
+            if [ "$result" != "success" ]; then
+              echo "an enforcement lane reported '$result'"
+              exit 1
+            fi
+          done

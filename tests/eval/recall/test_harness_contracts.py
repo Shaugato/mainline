@@ -45,6 +45,7 @@ from trappoint_recall.eval.splits import (
     temporally_blocked_split,
 )
 
+import g4alpha_lane as lane
 from oracles import OracleBackend
 
 PACKAGE_ROOT = Path(__file__).resolve().parents[3] / "packages" / "trappoint-recall"
@@ -418,3 +419,112 @@ def test_cli_floors_and_schema_round_trip(tmp_path: Path) -> None:
 
 def test_cli_selfcheck_passes(tmp_path: Path) -> None:
     assert main(["selfcheck", "--format", "json", "--out", str(tmp_path / "sc.json")]) == 0
+
+
+# --------------------------------------------------------------------------------------
+# The CI lane's decision table
+# --------------------------------------------------------------------------------------
+#
+# The lane runs pytest in-process, so exercising ``run_lane`` from inside a pytest
+# session would nest one run inside another. ``reconcile`` is pure for exactly this
+# reason: the table below is the whole decision, tested without recursion.
+
+
+def _outcome(test_name: str, outcome: str) -> lane.TestOutcome:
+    return lane.TestOutcome(
+        nodeid=f"tests/eval/recall/test_g4alpha_gates.py::{test_name}",
+        test_name=test_name,
+        gate_id=lane.GATE_TEST_NAMES[test_name],
+        outcome=outcome,
+        duration_s=0.0,
+        detail="",
+    )
+
+
+def _full_suite(outcome: str) -> list[lane.TestOutcome]:
+    return [_outcome(name, outcome) for name in lane.GATE_TEST_NAMES]
+
+
+def test_the_lane_maps_every_gate_to_exactly_one_test() -> None:
+    """A gate with no test, or a test with no gate, must be impossible to ship."""
+    assert set(lane.GATE_TEST_NAMES.values()) == set(G4ALPHA_GATE_IDS)
+    assert len(lane.GATE_TEST_NAMES) == len(G4ALPHA_GATE_IDS)
+
+
+def test_the_committed_expectation_is_red_today() -> None:
+    """PL-2: the repository currently commits to a RED G4-alpha lane."""
+    expectation = lane.load_expectation()
+    assert expectation.colour == "RED"
+    assert expectation.gate_tests == len(G4ALPHA_GATE_IDS)
+    assert expectation.flip_procedure, "flipping the expectation must have a written procedure"
+
+
+def test_red_when_red_is_expected_exits_zero() -> None:
+    expectation = lane.load_expectation()
+    colour, verdict, code, _ = lane.reconcile(_full_suite("failed"), expectation)
+    assert (colour, verdict, code) == ("RED", "AS_EXPECTED", lane.EXIT_MATCHES_EXPECTATION)
+
+
+def test_green_while_the_repository_still_expects_red_fails_the_lane() -> None:
+    """Going green is a real result that needs the expectation flipped in a PR."""
+    expectation = lane.load_expectation()
+    colour, verdict, code, message = lane.reconcile(_full_suite("passed"), expectation)
+    assert (colour, verdict, code) == ("GREEN", "UNEXPECTED", lane.EXIT_UNEXPECTED_COLOUR)
+    assert "pull request" in message
+
+
+def test_a_regression_from_green_to_red_fails_the_lane() -> None:
+    expectation = lane.Expectation(
+        colour="GREEN",
+        gate_tests=len(G4ALPHA_GATE_IDS),
+        since="",
+        reason="",
+        flip_procedure="",
+        authority="",
+        source="synthetic",
+    )
+    colour, verdict, code, message = lane.reconcile(_full_suite("failed"), expectation)
+    assert (colour, verdict, code) == ("RED", "UNEXPECTED", lane.EXIT_UNEXPECTED_COLOUR)
+    assert "DEMOTE" in message, "the pre-committed response must be named in the failure"
+
+
+@pytest.mark.parametrize("blocked", ["skipped", "errored", "xfailed", "xpassed"])
+def test_a_gate_that_never_ran_is_undetermined_not_a_colour(blocked: str) -> None:
+    """A release gate that can be skipped or xfailed is not a release gate."""
+    expectation = lane.load_expectation()
+    outcomes = _full_suite("failed")
+    outcomes[0] = _outcome(outcomes[0].test_name, blocked)
+    colour, verdict, code, message = lane.reconcile(outcomes, expectation)
+    assert (colour, verdict, code) == (
+        "UNDETERMINED",
+        "UNDETERMINED",
+        lane.EXIT_CANNOT_DETERMINE,
+    )
+    assert blocked in message
+
+
+def test_an_empty_collection_is_undetermined_not_green() -> None:
+    """A mistyped marker collects nothing; nothing must never read as a pass."""
+    expectation = lane.load_expectation()
+    colour, _, code, message = lane.reconcile([], expectation)
+    assert (colour, code) == ("UNDETERMINED", lane.EXIT_CANNOT_DETERMINE)
+    assert "g4alpha" in message
+
+
+def test_a_missing_gate_test_is_undetermined() -> None:
+    expectation = lane.load_expectation()
+    outcomes = _full_suite("passed")[:-1]
+    colour, _, code, message = lane.reconcile(outcomes, expectation)
+    assert (colour, code) == ("UNDETERMINED", lane.EXIT_CANNOT_DETERMINE)
+    assert "missing" in message
+
+
+def test_the_expectation_file_must_be_unambiguous(tmp_path: Path) -> None:
+    bad = tmp_path / "expected.json"
+    bad.write_text(json.dumps({"expected": "maybe", "expected_gate_tests": 5}), encoding="utf-8")
+    with pytest.raises(lane.LaneError, match="RED"):
+        lane.load_expectation(bad)
+
+    missing = tmp_path / "absent.json"
+    with pytest.raises(lane.LaneError, match="will not infer"):
+        lane.load_expectation(missing)

@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+# BAD — a vector search whose prefix was NOT constrained. The node is present, the index name
+# is right, and the search covered every tree in the table. This is the fixture that proves the
+# assertion checks the spans rather than pattern-matching the words "vector search".
+  distribution: local
+  vectorized: true
+
+  • vector search
+    table: event_cue_embedding@cue_scoped_idx
+    target count: 12
+    prefix spans: []

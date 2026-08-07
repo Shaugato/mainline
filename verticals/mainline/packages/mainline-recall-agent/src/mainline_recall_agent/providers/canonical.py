@@ -40,6 +40,21 @@ _ESCAPES: Final[dict[int, str]] = {
 #: so JCS (which is defined over doubles) can no longer round-trip it.
 _MAX_SAFE_INTEGER: Final[int] = 9007199254740991
 
+#: ECMA-262 7.1.12.1 step 6: fixed notation is used while the decimal exponent ``n``
+#: satisfies ``n <= 21``; above it the algorithm switches to exponential form.
+_ES6_FIXED_MAX_EXPONENT: Final[int] = 21
+
+#: ECMA-262 7.1.12.1 step 8: leading-zero fixed notation ("0.000…") is used while
+#: ``-6 < n <= 0``.  Both bounds are spec constants, not tuning knobs.
+_ES6_FIXED_MIN_EXPONENT: Final[int] = -6
+
+#: JSON requires U+0000-U+001F to be escaped; everything at or above U+0020 is literal.
+_FIRST_LITERAL_CODEPOINT: Final[int] = 0x20
+
+#: Recursion guard.  A cassette request is a shallow document; anything deeper than this is
+#: a cycle or a malformed payload, and blowing the C stack is a worse diagnostic.
+_MAX_DEPTH: Final[int] = 64
+
 
 def es6_number(value: float | int) -> str:
     """Format a number exactly as ECMAScript ``Number::toString`` would.
@@ -75,11 +90,11 @@ def es6_number(value: float | int) -> str:
     k = len(s)
     n = exponent + k  # value == 0.s * 10**n
 
-    if k <= n <= 21:
+    if k <= n <= _ES6_FIXED_MAX_EXPONENT:
         out = s + "0" * (n - k)
-    elif 0 < n <= 21:
+    elif 0 < n <= _ES6_FIXED_MAX_EXPONENT:
         out = s[:n] + "." + s[n:]
-    elif -6 < n <= 0:
+    elif _ES6_FIXED_MIN_EXPONENT < n <= 0:
         out = "0." + "0" * (-n) + s
     else:
         e = n - 1
@@ -95,7 +110,7 @@ def _emit_string(text: str, out: list[str]) -> None:
         escape = _ESCAPES.get(code)
         if escape is not None:
             out.append(escape)
-        elif code < 0x20:
+        elif code < _FIRST_LITERAL_CODEPOINT:
             out.append(f"\\u{code:04x}")
         else:
             out.append(ch)
@@ -108,8 +123,12 @@ def _sort_key(key: str) -> tuple[int, ...]:
     return tuple(int.from_bytes(raw[i : i + 2], "big") for i in range(0, len(raw), 2))
 
 
-def _emit(value: Any, out: list[str], depth: int) -> None:
-    if depth > 64:
+def _emit(value: Any, out: list[str], depth: int) -> None:  # noqa: PLR0912
+    # The branch count is the JSON type lattice itself (null/true/false/string/number/
+    # array/object/reject).  Splitting it into helpers to satisfy a counter would hide the
+    # one property a reader must be able to check by eye: that every reachable Python type
+    # either emits a declared JCS form or raises.
+    if depth > _MAX_DEPTH:
         raise CanonicalisationError("canonicalisation depth limit exceeded")
     if value is None:
         out.append("null")

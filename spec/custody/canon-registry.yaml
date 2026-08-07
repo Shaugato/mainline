@@ -1,0 +1,53 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# THE CANONICALISER REGISTRY — normative.
+#
+# Every canonicaliser MAINLINE has ever shipped is listed here, forever, with the SHA-256
+# of its source. Nothing is ever removed from this file.
+#
+# Why a registry rather than a version number in a comment: `ledger_intake.payload_ver`
+# records which canonicaliser produced each leaf's `canon_bytes`, and `trappoint-verify`
+# dispatches on it. Deleting `canon_v1` would not break code — every new leaf would use
+# `canon_v2` quite happily — it would make every leaf ever written under `canon_v1`
+# permanently unverifiable. That is a breaking change to **evidence**, and it is silent,
+# which is the only reason it needs a machine to refuse it.
+#
+# `scripts/custody/check_vendored_canon.py` enforces three things against this file:
+#   1. every entry's `sha256` still matches the file at `source`;
+#   2. no entry has been removed (`retained: forever` is not a comment, it is a check);
+#   3. every `vendored_into` copy is byte-identical to its `source`.
+#
+# HASHING RULE (normative). The digest is SHA-256 over the source bytes with CRLF
+# sequences normalised to LF. Without that normalisation the pin would be a fingerprint of
+# whether the checkout ran on Windows with `core.autocrlf=true`, not a fingerprint of the
+# code — and `canon_src_sha256` inside a checkpoint would differ between two honest
+# verifiers. `trappoint_jcs.canon_v1.canon_src_sha256()` computes exactly this value, and
+# `spec/wire/checkpoint.md` §5 states the rule for third-party implementers.
+
+schema_version: 1
+hash_rule: sha256-over-lf-normalised-source-bytes
+
+canonicalisers:
+  - payload_ver: 1
+    name: canon_v1
+    status: current
+    retained: forever
+    spec: RFC 8785 (JSON Canonicalization Scheme)
+    profile: >-
+      Full RFC 8785 via canonicalise(); the evidentiary profile canonicalise_payload()
+      additionally raises NonEvidentiaryNumber on any IEEE-754 float (CU-5) and
+      NonInteroperableNumber on any integer outside +/-(2**53 - 1).
+    source: packages/trappoint-jcs/src/trappoint_jcs/canon_v1.py
+    sha256: 260ed37ddc610f1fb94ddce98998fe4ae5ce883698ad5c7033839cd258dcd659
+    vendored_into:
+      # The verifier's dependency floor is `cryptography` and nothing else, so it cannot
+      # depend on `trappoint-jcs`. It carries a byte-identical copy instead, and the
+      # equality is a CI assertion rather than a promise (custody plan §1.4a).
+      - packages/trappoint-verify/src/trappoint_verify/vendor/canon_v1.py
+    first_shipped: 2026-08-07
+    withdrawn: null
+    notes: >-
+      Conformance is asserted on exact bytes against the six cyberphone structural vectors
+      and against the published SHA-256 of the deterministically generated ES6 number file
+      (1 000 and 10 000 line prefixes). See packages/trappoint-jcs/tests/.

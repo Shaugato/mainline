@@ -20,7 +20,8 @@ import uuid
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any, Iterable
+from collections.abc import Iterable
+from typing import Any
 
 import psycopg
 
@@ -75,6 +76,76 @@ def recall_migration_files() -> list[Path]:
             + ", ".join(f"{n:04d}" for n in missing)
         )
     return [found[n] for n in RECALL_MIGRATION_NUMBERS]
+
+
+# ── statement splitting ──────────────────────────────────────────────────────────────────────
+#
+# Three of the reserved files carry two statements (0086, 0114/0138 and 0139 say why in their own
+# headers), and they must be applied ONE AT A TIME. Sending a whole file makes it a single
+# implicit transaction, and a multi-statement DDL transaction on CockroachDB is a different
+# animal from a sequence of schema changes: `CREATE TRIGGER` referring to a function created in
+# the same transaction, and `ALTER TABLE … ADD CONSTRAINT` against a table created in it, are
+# exactly the shapes that behave differently there. The deployed migration runner applies one
+# statement per file (§18); the suite must not be more permissive than the thing it is testing.
+#
+# So there is a splitter, and it is dollar-quote aware — the objection to writing one was that
+# it would have to parse `$$` bodies, which is true, and is thirty lines.
+
+_DOLLAR_TAG = re.compile(r"\$[A-Za-z_][A-Za-z0-9_]*\$|\$\$")
+
+
+def split_statements(sql: str) -> list[str]:
+    """Split a migration file into statements on top-level semicolons.
+
+    Aware of: ``--`` line comments, ``/* */`` block comments, single-quoted strings with ``''``
+    escaping, and dollar-quoted bodies with or without a tag. Anything that is only whitespace
+    or comments is dropped.
+    """
+    statements: list[str] = []
+    start = 0
+    i = 0
+    n = len(sql)
+    while i < n:
+        ch = sql[i]
+        if ch == "-" and sql.startswith("--", i):
+            end = sql.find("\n", i)
+            i = n if end == -1 else end + 1
+        elif ch == "/" and sql.startswith("/*", i):
+            end = sql.find("*/", i + 2)
+            i = n if end == -1 else end + 2
+        elif ch == "'":
+            i += 1
+            while i < n:
+                if sql[i] == "'":
+                    if sql.startswith("''", i):
+                        i += 2
+                        continue
+                    i += 1
+                    break
+                i += 1
+        elif ch == "$":
+            match = _DOLLAR_TAG.match(sql, i)
+            if match is None:
+                i += 1
+                continue
+            tag = match.group(0)
+            end = sql.find(tag, match.end())
+            i = n if end == -1 else end + len(tag)
+        elif ch == ";":
+            statements.append(sql[start:i])
+            i += 1
+            start = i
+        else:
+            i += 1
+    statements.append(sql[start:])
+    return [s for s in statements if _has_code(s)]
+
+
+def _has_code(fragment: str) -> bool:
+    """True when a fragment contains something other than whitespace and comments."""
+    stripped = re.sub(r"/\*.*?\*/", " ", fragment, flags=re.DOTALL)
+    stripped = re.sub(r"--[^\n]*", " ", stripped)
+    return bool(stripped.strip())
 
 
 # ── vectors ──────────────────────────────────────────────────────────────────────────────────

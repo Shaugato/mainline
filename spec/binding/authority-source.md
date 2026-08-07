@@ -45,33 +45,44 @@ The Authority Source Contract makes that absence a thing the build can see.
 
 ```toml
 [[authority_source]]
-projects   = ["blocking_check.severity", "blocking_check.virulence", "blocking_check.closure_gen"]
-relation   = "mainline.clause_blame_current"
-key        = ["clause_uuid", "commit_id"]
-columns    = ["max_severity", "virulence", "closure_gen"]
-on_missing = "raise"          # the ONLY legal value
+projects    = ["blocking_check.severity", "blocking_check.virulence", "blocking_check.closure_gen"]
+relation    = "mainline.clause_blame_current"
+key         = ["clause_uuid", "commit_id"]        # columns of the PROJECTED ROW
+key_columns = ["clause_uuid", "as_of_commit"]     # columns of the AUTHORITY RELATION
+columns     = ["max_severity", "virulence", "closure_gen"]
+on_missing  = "raise"          # the ONLY legal value
 ```
 
 Read it as one English sentence:
 
 > *The columns `severity`, `virulence` and `closure_gen` of `blocking_check` are projections of
-> `max_severity`, `virulence` and `closure_gen` in `mainline.clause_blame_current`, looked up by the
-> inserted row's `(clause_uuid, commit_id)`, and when that lookup finds nothing the write is
-> refused.*
+> `max_severity`, `virulence` and `closure_gen` in `mainline.clause_blame_current`, looked up by
+> matching the inserted row's `(clause_uuid, commit_id)` against the closure's
+> `(clause_uuid, as_of_commit)`, and when that lookup finds nothing the write is refused.*
 
 | Key | Meaning |
 |---|---|
 | `projects` | the gate columns this entry backs, relation-qualified; must exactly cover the templates' `@projects` pragmas |
 | `relation` | the authoritative relation; schema-qualified |
 | `key` | columns **of the projected row** used to look up the authority row, in order |
+| `key_columns` | optional: columns **of the authority relation** matched against `key`, positionally. Defaults to `key` |
 | `columns` | columns **of the authority relation** read, positionally corresponding to `projects` |
 | `on_missing` | `"raise"`. There is no second value |
 | `raise_via` | optional: `"p0001"` (default) or `"strictest_projection"` (§5) |
 | `strictest` | required when `raise_via = "strictest_projection"`: the strictest legal value per column |
 
-`projects` and `columns` are **positional**: `projects[i]` is written from `columns[i]`. The renderer
-refuses a length mismatch, because a silent off-by-one here writes a severity into a generation
-counter and the gate keeps working, wrongly.
+`projects` and `columns` are **positional**: `projects[i]` is written from `columns[i]`. `key` and
+`key_columns` are positional the same way: `key[i]` of the projected row is matched against
+`key_columns[i]` of the authority relation. The renderer refuses a length mismatch on either pair,
+because a silent off-by-one here writes a severity into a generation counter and the gate keeps
+working, wrongly.
+
+**`key_columns` is not sugar, and omitting it from the schema was a defect.** The two sides of the
+lookup are named differently in the one binding that matters: the projected row carries `commit_id`
+and the closure carries `as_of_commit`. A renderer that assumed the names coincided would emit
+`WHERE c.commit_id = NEW.commit_id` against a relation that has no `commit_id`, and the failure would
+surface as `42703` at migration time — outside the refusal taxonomy entirely, which is the wrong
+place to discover a binding error.
 
 ---
 
@@ -90,6 +101,7 @@ warning.
 | **A-6** | `relation` is unqualified, or names a table declared as a subject or obligation table in this binding | `authority relation must not be a gated relation of this binding` |
 | **A-7** | `raise_via = "strictest_projection"` without a `strictest` value for every projected column | `strictest_projection requires a strictest value for …` |
 | **A-8** | the binding's `spec_version` differs in MAJOR from the specification in `spec/` | `binding targets TRAPPOINT 2.x; this tree is 1.x` |
+| **A-9** | `key_columns` is present and `len(key) != len(key_columns)` | `authority_source key/key_columns length mismatch` |
 
 **A-6 is the rule with teeth.** If the authority relation is writable by the role that writes the
 projected table, the projection is derived from the inserter with an extra step, and P-2 is violated
@@ -106,14 +118,14 @@ For the entry above, with `raise_via = "p0001"`:
 
 ```sql
 -- @projects blocking_check.severity, blocking_check.virulence, blocking_check.closure_gen
--- @authority mainline.clause_blame_current (clause_uuid, commit_id)
+-- @authority mainline.clause_blame_current (clause_uuid, as_of_commit) <= NEW (clause_uuid, commit_id)
 -- @on_missing raise
 CREATE FUNCTION mainline.fn_check_project() RETURNS TRIGGER LANGUAGE PLpgSQL AS $$
 DECLARE sev INT2; vir mainline.virulence_class; cgen INT8;
 BEGIN
   SELECT c.max_severity, c.virulence, c.closure_gen INTO sev, vir, cgen
     FROM mainline.clause_blame_current c
-   WHERE c.clause_uuid = NEW.clause_uuid AND c.commit_id = NEW.commit_id;
+   WHERE c.clause_uuid = NEW.clause_uuid AND c.as_of_commit = NEW.commit_id;
   IF sev IS NULL THEN
     RAISE EXCEPTION USING ERRCODE='P0001',
       MESSAGE='MAINLINE: no blame closure for this clause version — cannot arm a check';

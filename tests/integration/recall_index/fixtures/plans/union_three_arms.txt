@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+# GOOD. Three arms unioned: three constrained vector searches, no scan.
+  distribution: local
+  vectorized: true
+
+  • union all
+  │
+  ├── • vector search
+  │     table: event_cue_embedding@cue_scoped_idx
+  │     target count: 12
+  │     prefix spans: [/'1111…'/'6f2c…'/'recurrence_test' - /'1111…'/'6f2c…'/'recurrence_test']
+  │
+  ├── • vector search
+  │     table: event_cue_embedding@cue_scoped_idx
+  │     target count: 12
+  │     prefix spans: [/'1111…'/'9ab1…'/'mechanism' - /'1111…'/'9ab1…'/'mechanism']
+  │
+  └── • vector search
+        table: event_cue_coarse@cue_sweep_idx
+        target count: 24
+        prefix spans: [/'2222…' - /'2222…']

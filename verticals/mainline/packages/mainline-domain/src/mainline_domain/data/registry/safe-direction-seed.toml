@@ -1,0 +1,528 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+#
+# DIRECTRIX seed — the bootstrap content of the REG-SAFE-DIRECTION document.
+#
+# WHAT THIS FILE IS, AND WHAT IT IS NOT
+# -------------------------------------
+# It is NOT the registry.  The registry is a document in the gated commit DAG,
+# one clause per parameter, and the only thing that makes an entry answer is a
+# signed commit carrying it.  This file is the *seed*: the text that a site's
+# first ratification commit proposes, so that the first day of operation does
+# not begin with every parameter abstaining.
+#
+# Nothing here is authoritative once a site exists.  `mainline_domain.registry.
+# loader` never reads this file; it reads `mainline.clause_version`.  A direction
+# changed here and not committed changes nothing at all, which is the point of
+# storing the registry in the DAG in the first place.
+#
+# HOW TO READ A DIRECTION
+# -----------------------
+# `direction` answers one question: which way does a MOVE in this parameter make
+# the operation more dangerous?
+#
+#   lower_is_safer               a decrease is a tightening; an increase weakens
+#   higher_is_safer              an increase is a tightening; a decrease weakens
+#   tighter_tolerance_is_safer   the value is a target and the BAND is the
+#                                control; widening the band weakens, and the
+#                                target moving either way is not by itself a
+#                                weakening
+#
+# INTERVALS ARE THE ONE THAT TRIPS PEOPLE UP.  "Test more often" is safer, and
+# more often means a SHORTER interval, so every `*_interval` here is
+# lower_is_safer.  Writing the same control as a frequency would invert the
+# direction, which is why the registry is keyed on a parameter with a declared
+# dimension rather than on a phrase: `gas_test_interval` in `[time]` and
+# `gas_test_frequency` in `1/[time]` are two different parameters and cannot be
+# confused for one another by the loader.
+#
+# `dimension` is a label from `mainline_domain.quantity.units._LABEL_REPRESENTATIVES`.
+# It is checked at load, and it is checked AGAIN against the clause being
+# classified: a parameter ratified in `[time]` whose clause now measures a count
+# abstains rather than comparing, because the parameter's meaning moved under
+# its own name.
+#
+# COVERAGE IS THE HONEST COST (risk R-A4).  Sixty-odd parameters is a start, not
+# a site.  Under-coverage fails CLOSED — decision D6 turns an unratified
+# parameter into `weaken` — so the cost of a gap is a nuisance block that a
+# signed ratification clears, never a silent pass.
+
+[meta]
+version = 1
+doc_code = "REG-SAFE-DIRECTION"
+title = "Safe-direction registry (DIRECTRIX)"
+encoding_version = 1
+
+
+# ── containment and stored pressure ──────────────────────────────────────────
+
+[[parameter]]
+key = "max_operating_pressure"
+dimension = "pressure"
+direction = "lower_is_safer"
+rationale = "The ceiling bounds the stored energy available to a loss of containment, so raising it enlarges the consequence of every failure downstream of it."
+
+[[parameter]]
+key = "relief_valve_set_pressure"
+dimension = "pressure"
+direction = "lower_is_safer"
+rationale = "The set pressure is the point at which the last passive protection acts; lifting it defers that protection to a higher stored energy."
+
+[[parameter]]
+key = "max_test_pressure"
+dimension = "pressure"
+direction = "lower_is_safer"
+rationale = "Test pressure is applied with people near the equipment, so the ceiling bounds what a test failure can do to them."
+
+[[parameter]]
+key = "max_pipeline_operating_pressure"
+dimension = "pressure"
+direction = "lower_is_safer"
+rationale = "Pipeline MAOP bounds the release rate and jet reach of a full-bore rupture."
+
+[[parameter]]
+key = "max_accumulator_precharge_pressure"
+dimension = "pressure"
+direction = "lower_is_safer"
+rationale = "Precharge is stored energy that survives isolation of the pump, so it is the energy an isolation procedure most often misses."
+
+[[parameter]]
+key = "min_purge_pressure"
+dimension = "pressure"
+direction = "higher_is_safer"
+rationale = "Positive purge pressure is what keeps a flammable atmosphere out of an enclosure; losing margin lets it in."
+
+[[parameter]]
+key = "min_sealing_air_pressure"
+dimension = "pressure"
+direction = "higher_is_safer"
+rationale = "Seal air pressure holds dust and gas out of a bearing housing or motor enclosure and is the ignition control for it."
+
+[[parameter]]
+key = "min_ventilation_differential_pressure"
+dimension = "pressure"
+direction = "higher_is_safer"
+rationale = "Differential pressure across a stopping is what keeps contaminated air out of the intake; a lower differential is a shorter step to reversal."
+
+
+# ── atmosphere ───────────────────────────────────────────────────────────────
+
+[[parameter]]
+key = "lel_test_threshold"
+dimension = "lel_fraction"
+direction = "lower_is_safer"
+rationale = "The threshold at which work stops is a margin against the lower explosive limit; raising it spends the margin."
+
+[[parameter]]
+key = "max_lel_for_hot_work"
+dimension = "lel_fraction"
+direction = "lower_is_safer"
+rationale = "Hot work introduces a competent ignition source by design, so the flammable-gas ceiling for it is the only remaining control."
+
+[[parameter]]
+key = "min_oxygen_concentration"
+dimension = "volume_fraction"
+direction = "higher_is_safer"
+rationale = "Below the entry minimum, an atmosphere is incapacitating before it is unpleasant, and self-rescue stops being possible."
+
+[[parameter]]
+key = "max_oxygen_concentration"
+dimension = "volume_fraction"
+direction = "lower_is_safer"
+rationale = "Oxygen enrichment lowers the ignition energy of ordinary materials, so the upper bound is a fire control and not a health one."
+
+[[parameter]]
+key = "max_methane_concentration_general_body"
+dimension = "volume_fraction"
+direction = "lower_is_safer"
+rationale = "General-body methane is the quantity every underground statutory limit is written against; raising it moves the whole ventilation design closer to its explosive range."
+
+[[parameter]]
+key = "max_h2s_concentration"
+dimension = "ratio"
+direction = "lower_is_safer"
+rationale = "Hydrogen sulphide destroys the sense of smell before it kills, so the exposure limit is the only warning that survives the exposure."
+
+[[parameter]]
+key = "max_co_concentration"
+dimension = "ratio"
+direction = "lower_is_safer"
+rationale = "Carbon monoxide exposure is cumulative and asymptomatic until it is disabling; the limit bounds the dose, not the discomfort."
+
+[[parameter]]
+key = "max_so2_concentration"
+dimension = "ratio"
+direction = "lower_is_safer"
+rationale = "Sulphur dioxide is an acute respiratory irritant at concentrations well below those that are obvious in a working atmosphere."
+
+[[parameter]]
+key = "max_no2_concentration"
+dimension = "ratio"
+direction = "lower_is_safer"
+rationale = "Nitrogen dioxide from blasting fume causes delayed pulmonary oedema, so an exposure that felt survivable at the time is not evidence the limit was adequate."
+
+[[parameter]]
+key = "max_respirable_dust_concentration"
+dimension = "mass_concentration"
+direction = "lower_is_safer"
+rationale = "Respirable silica and coal dust cause irreversible disease with a latency measured in decades; a raised limit is a consequence nobody present will observe."
+
+[[parameter]]
+key = "max_diesel_particulate_matter"
+dimension = "mass_concentration"
+direction = "lower_is_safer"
+rationale = "Diesel particulate is a confirmed carcinogen and the underground exposure is continuous rather than task-based."
+
+
+# ── intervals: shorter is safer, always ──────────────────────────────────────
+
+[[parameter]]
+key = "gas_test_interval"
+dimension = "time"
+direction = "lower_is_safer"
+rationale = "The interval bounds how long an atmosphere may deteriorate unobserved while people are in it; lengthening it is a decision that nobody will be told sooner."
+
+[[parameter]]
+key = "gas_detector_calibration_interval"
+dimension = "time"
+direction = "lower_is_safer"
+rationale = "A detector drifts low as often as high, so the calibration interval bounds how long a reassuring reading may be wrong."
+
+[[parameter]]
+key = "relief_valve_inspection_interval"
+dimension = "time"
+direction = "lower_is_safer"
+rationale = "A relief valve fails to a state nobody can see from outside, so the inspection interval is the only evidence it still lifts."
+
+[[parameter]]
+key = "isolation_lock_audit_interval"
+dimension = "time"
+direction = "lower_is_safer"
+rationale = "The audit is what finds a lock left on an unattended isolation and a lock quietly removed from a live one."
+
+[[parameter]]
+key = "permit_validity_period"
+dimension = "time"
+direction = "lower_is_safer"
+rationale = "A permit is a statement about conditions at the time it was issued; the longer it stays valid the further those conditions may have moved."
+
+[[parameter]]
+key = "breathing_apparatus_service_interval"
+dimension = "time"
+direction = "lower_is_safer"
+rationale = "Self-rescue equipment is used once, unannounced, by somebody who cannot inspect it first."
+
+[[parameter]]
+key = "emergency_egress_drill_interval"
+dimension = "time"
+direction = "lower_is_safer"
+rationale = "Egress performance decays without practice, and the decay is invisible until the day it is measured by an emergency."
+
+[[parameter]]
+key = "winder_rope_inspection_interval"
+dimension = "time"
+direction = "lower_is_safer"
+rationale = "Rope deterioration is progressive and the failure mode is not survivable, which is why rope inspection is statutory nearly everywhere."
+
+[[parameter]]
+key = "fire_suppression_test_interval"
+dimension = "time"
+direction = "lower_is_safer"
+rationale = "A suppression system that has silently failed is indistinguishable from one that works until the fire that needs it."
+
+[[parameter]]
+key = "ground_support_inspection_interval"
+dimension = "time"
+direction = "lower_is_safer"
+rationale = "Ground behaviour changes with stress redistribution and water, and the interval bounds how long a deteriorating back goes unobserved."
+
+[[parameter]]
+key = "max_continuous_work_period"
+dimension = "time"
+direction = "lower_is_safer"
+rationale = "Fatigue degrades hazard recognition before it degrades anything the worker notices, so the ceiling is a control on judgement, not on effort."
+
+[[parameter]]
+key = "max_time_to_isolate_after_alarm"
+dimension = "time"
+direction = "lower_is_safer"
+rationale = "The time between an alarm and a positive isolation is the window in which the hazard that triggered the alarm is still being fed."
+
+[[parameter]]
+key = "min_rest_period_between_shifts"
+dimension = "time"
+direction = "higher_is_safer"
+rationale = "Recovery time is the input to the fatigue control; shortening it weakens every subsequent judgement made on shift."
+
+[[parameter]]
+key = "min_ba_service_duration"
+dimension = "time"
+direction = "higher_is_safer"
+rationale = "The rated duration of self-contained breathing apparatus bounds how far a wearer may travel from fresh air and still return."
+
+
+# ── counts of required things ────────────────────────────────────────────────
+
+[[parameter]]
+key = "isolation_point_count"
+dimension = "count"
+direction = "higher_is_safer"
+rationale = "Each isolation point removes one path by which stored or supply energy can reach the work; removing one leaves a path nobody is watching."
+
+[[parameter]]
+key = "independent_verification_count"
+dimension = "count"
+direction = "higher_is_safer"
+rationale = "Independent verification is the control against a single competent person being wrong, and its strength is exactly the number of independent people."
+
+[[parameter]]
+key = "min_escape_route_count"
+dimension = "count"
+direction = "higher_is_safer"
+rationale = "A single egress route is a single point of failure in the one situation where failure is not recoverable."
+
+[[parameter]]
+key = "min_standby_person_count"
+dimension = "count"
+direction = "higher_is_safer"
+rationale = "Confined-space standby exists to raise the alarm and not to enter; one standby who becomes a second casualty leaves nobody to call."
+
+[[parameter]]
+key = "gas_test_point_count"
+dimension = "count"
+direction = "higher_is_safer"
+rationale = "Gas stratifies, so a single test point measures one elevation of an atmosphere that is not uniform."
+
+[[parameter]]
+key = "min_refuge_chamber_count"
+dimension = "count"
+direction = "higher_is_safer"
+rationale = "Refuge provision is sized against the distance a person can travel while affected, and reducing the count lengthens that distance."
+
+[[parameter]]
+key = "authorised_signature_count"
+dimension = "count"
+direction = "higher_is_safer"
+rationale = "Each required signature is one more person who must independently agree the control is in place before work starts."
+
+[[parameter]]
+key = "min_anchor_point_count"
+dimension = "count"
+direction = "higher_is_safer"
+rationale = "Redundant anchorage is what makes a fall-arrest system survive one failed connection."
+
+
+# ── ordinal rating scales ────────────────────────────────────────────────────
+
+[[parameter]]
+key = "min_ppe_level"
+dimension = "ordinal"
+direction = "higher_is_safer"
+rationale = "PPE class is an ordinal ranking of protection; a lower class is less protection against the same hazard and is not a different way of achieving it."
+
+[[parameter]]
+key = "min_respirator_protection_class"
+dimension = "ordinal"
+direction = "higher_is_safer"
+rationale = "Assigned protection factor rises with class, and the exposure being protected against does not change when the class is lowered."
+
+[[parameter]]
+key = "min_competency_level_for_isolation"
+dimension = "ordinal"
+direction = "higher_is_safer"
+rationale = "Isolation is the control most often defeated by somebody who did not know what the equipment could still do."
+
+[[parameter]]
+key = "min_permit_authority_level"
+dimension = "ordinal"
+direction = "higher_is_safer"
+rationale = "The authority level required to issue is the seniority at which the residual risk is being accepted on the organisation's behalf."
+
+[[parameter]]
+key = "min_fall_arrest_system_class"
+dimension = "ordinal"
+direction = "higher_is_safer"
+rationale = "System class encodes arrest force and free-fall distance together; lowering it changes both in the same direction."
+
+[[parameter]]
+key = "min_equipment_protection_level"
+dimension = "ordinal"
+direction = "higher_is_safer"
+rationale = "Explosion-protection EPL is the ignition-source control for the hazardous zone the equipment sits in, and the zone does not move when the EPL is lowered."
+
+
+# ── distances, depths and geometry ───────────────────────────────────────────
+
+[[parameter]]
+key = "min_exclusion_zone_radius"
+dimension = "length"
+direction = "higher_is_safer"
+rationale = "The exclusion radius is the distance at which a projectile, a collapse or a release stops being able to reach a person."
+
+[[parameter]]
+key = "min_approach_distance_live_conductor"
+dimension = "length"
+direction = "higher_is_safer"
+rationale = "Approach distance is the air gap that prevents flashover, and air does not become a better insulator because a procedure was rewritten."
+
+[[parameter]]
+key = "max_unsupported_span"
+dimension = "length"
+direction = "lower_is_safer"
+rationale = "Unsupported span drives the size of the block that can fall and the load the remaining support must carry."
+
+[[parameter]]
+key = "min_berm_height"
+dimension = "length"
+direction = "higher_is_safer"
+rationale = "A berm is sized to arrest the tyre of the largest vehicle using the road; a lower berm arrests a smaller one."
+
+[[parameter]]
+key = "min_edge_protection_height"
+dimension = "length"
+direction = "higher_is_safer"
+rationale = "Edge protection height is set against centre of mass, and a lower rail becomes a pivot rather than a barrier."
+
+[[parameter]]
+key = "max_trench_depth_without_shoring"
+dimension = "length"
+direction = "lower_is_safer"
+rationale = "A cubic metre of soil weighs more than a tonne, and burial to the chest is fatal without any collapse of the whole face."
+
+[[parameter]]
+key = "min_ground_support_bolt_length"
+dimension = "length"
+direction = "higher_is_safer"
+rationale = "Bolt length must exceed the depth of the failure zone it is anchoring beyond; a shorter bolt anchors inside the ground it is holding up."
+
+[[parameter]]
+key = "max_bench_height"
+dimension = "length"
+direction = "lower_is_safer"
+rationale = "Bench height bounds both the fall height and the energy of material shed from the face."
+
+[[parameter]]
+key = "max_slope_angle"
+dimension = "angle"
+direction = "lower_is_safer"
+rationale = "Slope angle is the primary driver of the factor of safety of a wall, and the wall does not know that the design was revised."
+
+
+# ── ventilation, flow and speed ──────────────────────────────────────────────
+
+[[parameter]]
+key = "min_ventilation_air_quantity"
+dimension = "volumetric_flow"
+direction = "higher_is_safer"
+rationale = "Air quantity is the dilution term for every airborne contaminant at once, so reducing it weakens controls that were never listed on the change."
+
+[[parameter]]
+key = "min_water_spray_flow_rate"
+dimension = "volumetric_flow"
+direction = "higher_is_safer"
+rationale = "Spray flow is simultaneously the dust suppression and the frictional-ignition control on a cutting head."
+
+[[parameter]]
+key = "min_air_velocity_in_return"
+dimension = "velocity"
+direction = "higher_is_safer"
+rationale = "Return velocity must exceed the layering velocity of methane, below which gas accumulates at the roof rather than being carried out."
+
+[[parameter]]
+key = "max_air_velocity_in_travel_way"
+dimension = "velocity"
+direction = "lower_is_safer"
+rationale = "Above roughly eight metres per second, airborne dust becomes an eye and visibility hazard in the places people walk."
+
+[[parameter]]
+key = "max_conveyor_belt_speed"
+dimension = "velocity"
+direction = "lower_is_safer"
+rationale = "Belt speed sets the energy of an entanglement and the reach of material thrown from a damaged belt."
+
+
+# ── electrical ───────────────────────────────────────────────────────────────
+
+[[parameter]]
+key = "max_touch_voltage"
+dimension = "voltage"
+direction = "lower_is_safer"
+rationale = "Touch voltage under fault conditions is what determines whether a body current is let-go or fatal."
+
+[[parameter]]
+key = "max_earth_leakage_trip_current"
+dimension = "current"
+direction = "lower_is_safer"
+rationale = "The trip threshold is the current that must flow through a person before protection operates."
+
+[[parameter]]
+key = "min_insulation_test_voltage"
+dimension = "voltage"
+direction = "higher_is_safer"
+rationale = "Insulation is proved by testing above working voltage; testing lower proves less than the equipment will experience in service."
+
+
+# ── environment and physiology ───────────────────────────────────────────────
+
+[[parameter]]
+key = "max_noise_exposure_level"
+dimension = "sound_level"
+direction = "lower_is_safer"
+rationale = "Noise-induced hearing loss is cumulative and permanent, and three decibels is a doubling of energy."
+
+[[parameter]]
+key = "min_illuminance_at_work_face"
+dimension = "illuminance"
+direction = "higher_is_safer"
+rationale = "Illuminance at the face is the control on hazard recognition for every other hazard present."
+
+[[parameter]]
+key = "max_wet_bulb_globe_temperature"
+dimension = "temperature"
+direction = "lower_is_safer"
+rationale = "Heat illness degrades judgement before it produces symptoms the worker recognises, and the WBGT ceiling is where work must stop."
+
+[[parameter]]
+key = "max_surface_temperature_hot_work_area"
+dimension = "temperature"
+direction = "lower_is_safer"
+rationale = "Surface temperature is the ignition-source control for the flammable atmosphere the hot-work permit assumes is absent."
+
+[[parameter]]
+key = "max_annual_radiation_dose"
+dimension = "radiation_dose"
+direction = "lower_is_safer"
+rationale = "Dose is cumulative over a working life and the effect is stochastic, so an exceedance produces no observable event to learn from."
+
+
+# ── mechanical ───────────────────────────────────────────────────────────────
+
+[[parameter]]
+key = "max_lifting_load"
+dimension = "mass"
+direction = "lower_is_safer"
+rationale = "The rated load is the margin between the lift and the failure of the weakest component in the rigging."
+
+[[parameter]]
+key = "min_sling_safety_factor"
+dimension = "ratio"
+direction = "higher_is_safer"
+rationale = "The safety factor is what absorbs unknown dynamic loading, wear and off-axis pull that the static calculation does not see."
+
+[[parameter]]
+key = "winder_brake_response_time"
+dimension = "time"
+direction = "lower_is_safer"
+rationale = "Brake response time is the distance a conveyance travels after the decision to stop it has already been made."
+
+[[parameter]]
+key = "bolt_torque_specification"
+dimension = "torque"
+direction = "tighter_tolerance_is_safer"
+rationale = "Both under-torque and over-torque fail a bolted joint, one by loosening and one by yielding, so the control is the band and not the target."
+
+[[parameter]]
+key = "detector_calibration_setpoint"
+dimension = "ratio"
+direction = "tighter_tolerance_is_safer"
+rationale = "A calibration setpoint is checked against a certified gas in both directions; widening the acceptance band accepts a detector that reads high or low."

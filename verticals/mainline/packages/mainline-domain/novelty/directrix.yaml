@@ -1,0 +1,291 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
+#
+# Novelty fragment per docs/leads/algorithms.md §6.  Validated by
+# tests/unit/domain/novelty/test_novelty_manifest.py (worker W10) and consumed
+# by MECHANISMS.md generation.  Anything not yet proven belongs under
+# `unverified:` and NEVER inside `claim:`.
+
+slug: directrix
+name: DIRECTRIX
+mechanism: M1
+claim: >-
+  safe_direction(parameter) — the table that decides which way a setpoint move is dangerous — is
+  not a table.  It is a document in the gated commit DAG (doc_code REG-SAFE-DIRECTION), one clause
+  per parameter, carrying its own blame edges, and an entry answers only when its clause says
+  RATIFIED and the commit carrying that clause is signed.  Editing a direction is therefore a
+  change_request against a protected branch, governed by the same merge gate the direction feeds:
+  the gate's own parameters are gated by the gate.  A parameter that is unknown, proposed,
+  withdrawn, retired, duplicated, ambiguous across two merged branches or written in a clause the
+  grammar cannot read yields SafeDirection.ABSTAIN, which resolves to control_delta='weaken' —
+  never to 'neutral' — so under-coverage costs nuisance blocks and never silent passes, and the
+  only way to clear the block is a signed ratification that binds the direction publicly before
+  the edit anybody cares about is proposed.  The registry is read AS OF A COMMIT by walking
+  commit_edge, with no cache anywhere, so a verdict issued last March is re-derivable under the
+  registry that existed last March.
+
+enforcement:
+  refuses: []
+  refusal_depth: 0
+# Stated at its true depth, which today is ZERO, and the honesty here matters more
+# than the number.
+#
+# This worker's only SQL is migration 0207, and 0207 creates a VIEW.  A view has
+# no CHECK, no trigger and no SQLSTATE; it refuses nothing, and its own header
+# says so.  What this package produces is a `ControlDelta.weaken` plus the
+# arithmetic behind it (`SetpointRuling`), which worker W4 turns into a
+# delta_witness set and a lattice verdict, which the kernel lead's
+# `gate_closed_when_issued` / `cr_gate_closed_when_merged` CHECK constraints
+# refuse a merge over.  Every one of those is somebody else's migration and none
+# of them had landed when this fragment was written.  The `unverified:` block
+# below names them.
+#
+# Two things this worker DOES enforce, in Python, and neither is a database
+# refusal, so neither is listed above:
+#   * a gauge-to-absolute pressure conversion raises rather than answering
+#     (decision D5), so the comparison that would invert a verdict cannot be
+#     performed at all; and
+#   * `encode()` refuses to write ABSTAIN into a clause, so "this parameter is
+#     permanently unanswerable" is not a thing a signature can assert.
+
+position: unclaimed
+# The REGISTRY is not the claim and is not new.  A curated per-parameter table of
+# which direction is safer is ordinary safety engineering; the lead's own plan
+# calls it "the honest cost of the design", and §8 of the clause-identity research
+# classes it as hard engineering rather than research.  Sixty-odd seeded
+# parameters is a bootstrap, not a contribution.
+#
+# The claim is the RECURSION, and it has three parts the surveyed systems do not
+# put together:
+#
+#   (a) THE PARAMETER TABLE IS SUBJECT TO THE MECHANISM IT PARAMETERISES.  Held
+#       as a table, the cheapest attack on the whole product is two columns:
+#           UPDATE mainline.safe_direction SET direction = 'higher_is_safer'
+#            WHERE parameter = 'max_operating_pressure';
+#       after which every pressure increase classifies as `strengthen`, nothing
+#       raises, no residue appears, no check opens, and the gate keeps working
+#       perfectly while giving the opposite answer.  Grants and audit logs make
+#       that edit attributable afterwards; they do not make it refusable.  As a
+#       clause it is a change_request over a control with blame edges, which the
+#       weaken gate governs on exactly the terms it governs any other weakening.
+#   (b) RATIFICATION IS THE COMMIT, NOT A FIELD.  `ratified_by_sub` and
+#       `ratification_commit` are read off `commit_obj`, never stored on the
+#       clause, so a clause cannot assert a signature it does not have — P2's
+#       discipline applied to a lookup table rather than to a projected column.
+#   (c) UNRATIFIED FAILS TOWARDS ADJUDICATION, WHICH MAKES COVERAGE SELF-
+#       ENFORCING.  "Absent ⇒ neutral" would make never adding an entry a way to
+#       move a setpoint invisibly, because coverage is under the author's
+#       influence.  D6 inverts the incentive: the way to stop the gate blocking
+#       is to ratify, in public, in advance.
+#
+# The individual ingredients are all old: policy-as-code keeps rules in version
+# control, GitOps reviews configuration through the same pull request as code,
+# exposure-limit registries are published and versioned, and Pint has modelled
+# offset units for a decade.  What this survey did not find is a system in which
+# the safety gate's own decision parameters are a first-class subject of that
+# same gate, with the parameter's provenance carrying blame to the incident that
+# motivated it.
+
+prior_art:
+  - url: "https://www.openpolicyagent.org/docs/latest/policy-language/"
+    what_it_covers: >-
+      Open Policy Agent keeps authorisation and admission rules as Rego source in version control,
+      reviewed and merged like code, and evaluates them as a precondition of an action — an
+      admission controller literally refuses a Kubernetes write when policy says no.  Policy under
+      source control, gating a state transition, is squarely published work and this fragment does
+      not claim otherwise.
+    what_it_does_not: >-
+      OPA's policies govern OTHER resources; nothing makes a change to a policy pass through the
+      admission control that policy implements.  The bundle is deployed by a mechanism outside the
+      policy's own reach, so the equivalent of the two-column UPDATE is a bundle push.  Rego also
+      has no notion of ancestry: a rule carries no link to the incident that motivated it, there is
+      no per-parameter ratification distinct from deployment, and an evaluation cannot be re-run
+      "under the policy that existed on the day the decision was made" without separately
+      reconstructing the bundle.
+  - url: "https://pint.readthedocs.io/en/stable/user/nonmult.html"
+    what_it_covers: >-
+      Pint models non-multiplicative (offset) units, documents that arithmetic on them is
+      ambiguous, and ships `autoconvert_offset_to_baseunit` so a library can choose how much
+      convenience to trade for safety.  The offset machinery this package's gauge units are built
+      on is Pint's, unchanged.
+    what_it_does_not: >-
+      Pint has no concept of a reference FRAME, so gauge and absolute pressure are dimensionally
+      identical to it and `Quantity(50, 'psig').to('kPa')` returns 446.06 with no complaint —
+      measured, and the first test in tests/unit/domain/quantity/test_gauge_refusal.py demonstrates
+      it before demonstrating the refusal.  That is correct behaviour for a units library and
+      catastrophic for a setpoint comparison, because the answer is right only at one standard
+      atmosphere of ambient and the direction of the error is not constant: the same arithmetic
+      that reports a tightening as a weakening on one clause pair hides a real weakening on
+      another.  Nothing in Pint distinguishes an offset that is exact by definition (Celsius to
+      Kelvin, allowed here) from one that is an assumption about the room (gauge to absolute,
+      refused here).
+  - url: "https://www.nist.gov/pml/special-publication-811"
+    what_it_covers: >-
+      NIST SP 811 (Guide for the Use of the International System of Units) states the convention
+      for gauge quantities: the qualifier belongs to the quantity, not to the unit symbol, and a
+      pressure stated without its reference is incompletely specified.  The problem this package's
+      `reference` field encodes is a known and documented one, not a discovery.
+    what_it_does_not: >-
+      A style guide tells an author how to write a quantity.  It has no enforcement, and — more to
+      the point here — no position on what a system should do when it meets a quantity that was
+      written the other way, which is the overwhelmingly common case in a real procedure library.
+      This package's answer is that a bare 'kPa' is `reference='none'` (the author did not say),
+      that 'none' compares only with 'none', and that the resulting refusal becomes a merge block
+      rather than a warning.  Choosing to treat unstated as its own frame — and proving that
+      comparisons within it are still sound, because the frames differ by a monotone additive
+      constant — is not something a notation guide addresses.
+  - url: "https://www.safeworkaustralia.gov.au/doc/workplace-exposure-standards-airborne-contaminants"
+    what_it_covers: >-
+      Safe Work Australia publishes the Workplace Exposure Standards: a curated, versioned,
+      per-substance table of limits with a stated direction of harm, revised through a public
+      process.  A maintained registry of per-parameter safety limits, with an amendment procedure,
+      exists and is a national instrument.
+    what_it_does_not: >-
+      It is a published document consumed by humans and by systems that treat it as a constant.  No
+      software reads it as a precondition of a state transition, an amendment to it is not
+      expressible in the same terms as the controls it governs, and it carries no per-entry link to
+      the exposures that produced it.  It is also silent on the class of parameter that dominates a
+      site's actual controls — isolation point counts, test intervals, PPE levels, verification
+      counts — for which no external registry exists and where the direction has to be ratified
+      locally.
+  - url: "https://git-scm.com/book/en/v2/Git-Internals-Git-Objects"
+    what_it_covers: >-
+      A content-addressed commit DAG in which any state is reconstructible as of any commit, and
+      in which a change to any file is a reviewable, signable commit.  Storing configuration
+      alongside the artefacts it configures, and reading it at a revision, is the everyday practice
+      of every GitOps deployment.
+    what_it_does_not: >-
+      Git refuses nothing on the basis of what a change MEANS.  A commit that flips a safety
+      direction is byte-identical in kind to one that fixes a typo, and branch protection is a
+      review policy enforced by a forge rather than a property of the data.  There is no analogue
+      of a clause carrying blame to an incident, no analogue of a merge the storage layer declines
+      to perform, and no analogue of "this parameter is unratified, so every edit that depends on
+      it is a weakening until somebody signs".
+
+implemented_by:
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/quantity/units.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/quantity/algebra.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/quantity/parse.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/quantity/errors.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/quantity/version.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/registry/doc.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/registry/model.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/registry/encoding.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/registry/source.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/registry/loader.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/registry/resolve.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/registry/seed.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/registry/sql.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/data/units/mainline_units.txt"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/data/registry/safe-direction-seed.toml"
+  - "verticals/mainline/db/migrations/0207_v_safe_direction_current.sql"
+
+tests:
+  - "tests/unit/domain/quantity/test_gauge_refusal.py::test_the_mistake_this_package_refuses_is_reachable_and_wrong"
+  - "tests/unit/domain/quantity/test_gauge_refusal.py::test_psig_to_kpa_raises"
+  - "tests/unit/domain/quantity/test_gauge_refusal.py::test_psig_to_psia_raises_too"
+  - "tests/unit/domain/quantity/test_gauge_refusal.py::test_bare_kpa_is_unstated_and_not_absolute"
+  - "tests/unit/domain/quantity/test_gauge_refusal.py::test_psig_to_barg_succeeds_with_the_right_value"
+  - "tests/unit/domain/quantity/test_gauge_refusal.py::test_gauge_to_gauge_round_trips_exactly"
+  - "tests/unit/domain/quantity/test_gauge_refusal.py::test_temperature_crosses_because_its_offset_is_universal"
+  - "tests/unit/domain/quantity/test_gauge_refusal.py::test_one_atmosphere_is_zero_gauge_in_every_gauge_unit"
+  - "tests/unit/domain/quantity/test_units_definitions.py::test_the_registry_was_built_from_the_committed_file"
+  - "tests/unit/domain/quantity/test_units_definitions.py::test_every_gauge_unit_is_declared_and_every_declared_gauge_unit_exists"
+  - "tests/unit/domain/quantity/test_units_definitions.py::test_each_gauge_unit_agrees_with_its_absolute_twin"
+  - "tests/unit/domain/quantity/test_units_definitions.py::test_the_scales_that_must_not_interconvert_do_not"
+  - "tests/unit/domain/quantity/test_units_definitions.py::test_ambiguous_tokens_are_refused_with_a_reason"
+  - "tests/unit/domain/quantity/test_algebra.py::test_the_sign_convention_is_descendant_minus_ancestor"
+  - "tests/unit/domain/quantity/test_algebra.py::test_comparison_is_exact_and_not_tolerant"
+  - "tests/unit/domain/quantity/test_algebra.py::test_to_si_never_leaves_the_frame"
+  - "tests/unit/domain/quantity/test_algebra.py::test_comparison_is_antisymmetric_and_frame_invariant"
+  - "tests/unit/domain/quantity/test_parse.py::test_a_number_with_no_unit_stays_a_number"
+  - "tests/unit/domain/quantity/test_parse.py::test_an_ambiguous_unit_degrades_to_a_bare_number_rather_than_guessing"
+  - "tests/unit/domain/registry/test_abstain_to_weaken.py::test_the_helper_maps_abstain_to_weaken_and_not_to_neutral"
+  - "tests/unit/domain/registry/test_abstain_to_weaken.py::test_a_proposed_entry_is_not_ratified_and_therefore_abstains"
+  - "tests/unit/domain/registry/test_abstain_to_weaken.py::test_a_ratified_entry_on_an_unsigned_commit_abstains"
+  - "tests/unit/domain/registry/test_abstain_to_weaken.py::test_every_abstention_reason_resolves_to_weaken"
+  - "tests/unit/domain/registry/test_encoding.py::test_canonicalisation_does_not_move_a_registry_clause"
+  - "tests/unit/domain/registry/test_encoding.py::test_abstain_cannot_be_written_to_a_clause"
+  - "tests/unit/domain/registry/test_loader_as_of_commit.py::test_an_earlier_commit_sees_an_earlier_registry"
+  - "tests/unit/domain/registry/test_loader_as_of_commit.py::test_a_later_edit_is_invisible_to_the_commit_that_predates_it"
+  - "tests/unit/domain/registry/test_loader_as_of_commit.py::test_the_loader_holds_no_cache"
+  - "tests/unit/domain/registry/test_loader_as_of_commit.py::test_two_branches_that_disagree_abstain_rather_than_being_tie_broken"
+  - "tests/unit/domain/registry/test_loader_as_of_commit.py::test_a_retirement_reachable_from_the_commit_abstains_and_a_later_one_does_not"
+  - "tests/unit/domain/registry/test_seed_and_rules.py::test_intervals_are_lower_is_safer_and_the_naming_convention_holds"
+  - "tests/unit/domain/registry/test_seed_and_rules.py::test_a_gauge_crossing_reaches_the_gate_as_a_weakening"
+  - "tests/unit/domain/registry/test_seed_and_rules.py::test_a_calendar_month_is_not_thirty_days_and_the_gate_says_so"
+  - "tests/unit/domain/registry/test_seed_and_rules.py::test_the_seed_registry_reconstructs_differently_at_an_earlier_commit"
+  - "tests/integration/algorithms/registry/test_0207_shape.py::test_the_sql_labels_match_the_python_grammar"
+  - "tests/integration/algorithms/registry/test_0207_view.py::test_the_view_returns_the_seeded_parameters"
+  - "tests/integration/algorithms/registry/test_0207_view.py::test_the_sql_source_reproduces_the_python_registry"
+  - "tests/integration/algorithms/registry/test_0207_view.py::test_the_view_follows_the_head_and_the_loader_does_not"
+  - "tests/integration/algorithms/registry/test_0207_view.py::test_there_is_no_safe_direction_table"
+
+unverified:
+  - >-
+    NO REFUSAL IN THIS WORKER HAS BEEN OBSERVED.  `enforcement.refuses` is empty and
+    `refusal_depth` is 0 because that is the truth at the time of writing.  The path from an
+    abstention to a merge that stops runs through worker W4's delta lattice and
+    `fn_delta_witness_guard` (migrations 0205/0211) and then through the kernel lead's
+    `gate_closed_when_issued` / `cr_gate_closed_when_merged` CHECK constraints (ARCHITECTURE.md
+    §5.5, MI02/MI30).  None of those migrations had landed.  What is proven today is that DIRECTRIX
+    answers where it can and abstains to `weaken` where it cannot; that the abstention becomes a
+    23514 is, until an integration test observes it, an unproven claim and is deliberately absent
+    from `claim:`.
+  - >-
+    MIGRATION 0207 HAS NOT BEEN RUN AGAINST A LIVE CLUSTER.  No `cockroach` binary and no Docker
+    daemon were available on the build machine and CockroachDB Cloud credentials were not assumed;
+    the integration suite skips with that reason rather than passing.  What HAS run everywhere is
+    `test_0207_shape.py`, which is static: it holds the migration to one statement, cross-checks the
+    `split_part` literals against the Python clause grammar, and asserts the header's disclaimers
+    are present.  The view's SQL — `split_part` with a multi-character delimiter, the four-way join,
+    the boolean `answers` expression — is shaped against ARCHITECTURE.md §5.2/§5.3 and has NOT been
+    executed by CockroachDB.  The suite additionally applies a STAND-IN spine DDL, because the
+    migrations that create `commit_obj`/`commit_edge`/`doc`/`clause`/`clause_version` belong to the
+    schema lead and had not landed; a green run against the stand-in is a weaker claim than one
+    against the deployed schema, and the suite prints which one happened.
+  - >-
+    DIRECTRIX COVERAGE IS A BOOTSTRAP AND ITS ADEQUACY IS UNMEASURED (risk R-A4).  The seed carries
+    74 parameters chosen from mining and process-safety practice; a real site's blame-bearing
+    controls span a few hundred, and no measurement exists of what fraction of a live procedure
+    library's setpoints they cover.  Under-coverage fails closed by construction — decision D6 —
+    so the cost is nuisance blocking rather than silent passing, but the NUISANCE RATE IS ITSELF
+    UNMEASURED, and §6.7's nuisance ceiling is the thing that decides whether that trade is
+    acceptable.  If the ceiling breaks, the rule is rejected, not tuned.
+  - >-
+    THE SEED'S DIRECTIONS ARE HAND-AUTHORED JUDGEMENTS, NOT DERIVED FACTS.  Each carries a
+    rationale, and the two consistency nets in the test suite (an `*_interval` must be
+    lower_is_safer; a `max_*` must be lower_is_safer and a `min_*` higher_is_safer) catch
+    transcription errors and nothing else.  A direction that is defensible but WRONG for a
+    particular site — and there are real cases, e.g. a minimum ventilation quantity that becomes
+    a dust-entrainment hazard above some upper bound — is not detected by anything here.  That is
+    what per-site ratification is for, and it is a governance answer rather than a technical one.
+  - >-
+    THE QUANTITY PARSER HAS TWO KNOWN GAPS, both failing towards silence and both unmeasured.  A
+    unit token must be adjacent to its number, so "2 isolation points" reads as a bare 2; and
+    spelled-out numerals ("two isolation points") yield no measurement at all.  Relaxing either
+    would read those correctly and would also read "50 metre levels" and "3 shift hours" as things
+    they are not, at a false-positive rate nobody has measured.  Under-reading degrades to
+    `cat_confidence='low'`, which over blood-written ancestry defaults to `weaken`; over-reading
+    would produce a confident wrong comparison.  The gap stays until W10's SURVIVE catalogue
+    measures the alternative on the corpus.
+  - >-
+    EXACT COMPARISON OVER-BLOCKS ON UNIT RESTATEMENTS, and this is a deliberate, arguable choice
+    rather than a proven-correct one.  A calendar month here is 365.25/12 days, so rewriting a
+    "180 days" interval as "6 months" lengthens it by two and a half days and is reported
+    `weaken`.  The alternative — a tolerance on comparisons — is a policy about how much a control
+    may quietly move before anybody is told, and this package's position is that such a policy
+    belongs in a clause somebody signed rather than in an arithmetic helper.  Whether operators
+    accept that position is an adoption question that has not been tested with any operator.
+  - >-
+    RATIFICATION IS A SIGNATURE, NOT A JUDGEMENT (risk R-A8).  Nothing here distinguishes a
+    considered ratification from a rubber stamp, and nothing here can.  DIRECTRIX makes the
+    question unavoidable and the record precise; it says nothing whatsoever about whether the
+    direction somebody signed is the right one, and it must never be sold as retiring that risk.
+  - >-
+    THE ANCESTRY WALK ASSUMES `gen` IS PARENT-DERIVED AND STRICTLY INCREASING, which is the
+    schema's stated invariant (`gen = 1 + max(parent.gen)`) but is enforced by the schema lead's
+    triggers rather than by anything in this package.  If a `gen` were ever written that violated
+    it, the loader would pick the wrong version in force without abstaining.  The same-generation
+    ambiguity path is tested; a MIS-generation path is not, because from here it is
+    indistinguishable from a correct history.

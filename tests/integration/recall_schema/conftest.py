@@ -21,9 +21,9 @@ import socket
 import subprocess
 import time
 import uuid
+from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterator
 
 import pytest
 
@@ -35,17 +35,24 @@ psycopg = pytest.importorskip(
 from _support import (  # noqa: E402  (import after importorskip, deliberately)
     PREREQ_DIR,
     recall_migration_files,
+    split_statements,
     trigger_names,
 )
 
 CRDB_IMAGE = os.environ.get("MAINLINE_CRDB_IMAGE", "cockroachdb/cockroach:latest-v26.2")
 CONTAINER_NAME = "mainline-recall-schema-test"
 READY_TIMEOUT_S = 120.0
+#: A dead Docker daemon does not refuse `docker info`; it blocks. Short, because the only
+#: information wanted from it is "is there a daemon", and the answer to a hang is "no".
+DOCKER_PROBE_TIMEOUT_S = 10.0
+#: Long enough to include an image pull on a cold machine.
+DOCKER_RUN_TIMEOUT_S = 600.0
 
 
 def pytest_configure(config: pytest.Config) -> None:
     config.addinivalue_line("markers", "schema: exercises DDL against a real cluster")
     config.addinivalue_line("markers", "unweld: drops a mechanism and re-asserts the refusal")
+    config.addinivalue_line("markers", "shape: static checks over the band; needs no cluster")
 
 
 def _free_port() -> int:
@@ -114,42 +121,57 @@ def _start_local_binary(tmp: Path) -> Cluster | None:
 def _docker_available() -> bool:
     if shutil.which("docker") is None:
         return False
-    probe = subprocess.run(  # noqa: S603, S607
-        ["docker", "info", "--format", "{{.ServerVersion}}"],
-        capture_output=True,
-        timeout=30,
-        check=False,
-    )
-    return probe.returncode == 0
+    probe = _docker(["info", "--format", "{{.ServerVersion}}"], timeout=DOCKER_PROBE_TIMEOUT_S)
+    return probe is not None and probe.returncode == 0
+
+
+def _docker(args: list[str], *, timeout: float) -> subprocess.CompletedProcess[str] | None:
+    """Run a docker command; return None if it hangs, dies, or is not there.
+
+    A hung probe must never become a test ERROR. The Docker CLI ships with Docker Desktop and
+    stays on PATH after the daemon stops, and `docker info` against a dead daemon does not fail —
+    it BLOCKS. `subprocess.run(timeout=…)` then raises `TimeoutExpired`, which `check=False` does
+    not cover, so the uncaught exception took down every cluster-backed test in this suite with
+    an error instead of the skip the situation actually calls for. That is the machine this band
+    was written on, so it is not a hypothetical: a discoverable-by-running-it defect in the one
+    code path whose whole job is to fail gracefully.
+    """
+    try:
+        return subprocess.run(  # noqa: S603, S607
+            ["docker", *args],
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            check=False,
+        )
+    except (subprocess.TimeoutExpired, OSError):
+        return None
 
 
 def _start_docker() -> Cluster | None:
     if not _docker_available():
         return None
-    subprocess.run(  # noqa: S603, S607
-        ["docker", "rm", "-f", CONTAINER_NAME], capture_output=True, check=False
-    )
+    _docker(["rm", "-f", CONTAINER_NAME], timeout=DOCKER_PROBE_TIMEOUT_S)
     port = _free_port()
-    started = subprocess.run(  # noqa: S603, S607
+    started = _docker(
         [
-            "docker", "run", "-d", "--name", CONTAINER_NAME,
+            "run", "-d", "--name", CONTAINER_NAME,
             "-p", f"{port}:26257",
             CRDB_IMAGE,
             "start-single-node", "--insecure", "--store=type=mem,size=2GiB",
         ],
-        capture_output=True,
-        text=True,
-        check=False,
+        timeout=DOCKER_RUN_TIMEOUT_S,
     )
+    if started is None:
+        print(f"`docker run {CRDB_IMAGE}` hung or could not be executed")
+        return None
     if started.returncode != 0:
         print(f"docker run failed: {started.stderr.strip()}")
         return None
     dsn = f"postgresql://root@127.0.0.1:{port}/defaultdb?sslmode=disable"
     if _wait_until_ready(dsn, time.monotonic() + READY_TIMEOUT_S):
         return Cluster(dsn=dsn, provenance=f"docker {CRDB_IMAGE} on port {port}")
-    subprocess.run(  # noqa: S603, S607
-        ["docker", "rm", "-f", CONTAINER_NAME], capture_output=True, check=False
-    )
+    _docker(["rm", "-f", CONTAINER_NAME], timeout=DOCKER_PROBE_TIMEOUT_S)
     return None
 
 
@@ -181,13 +203,47 @@ def cluster(tmp_path_factory: pytest.TempPathFactory) -> Iterator[Cluster]:
             )
 
 
-def _apply(conn, path: Path) -> None:
-    """Send a migration file as one query.
+def _apply(conn, path: Path) -> int:
+    """Apply a migration file ONE STATEMENT AT A TIME, and say how many there were.
 
-    Whole-file execution is deliberate: a client-side statement splitter would have to parse
-    ``$$`` bodies, and a splitter that gets that wrong applies half a trigger.
+    Not whole-file: on an autocommit connection a multi-statement send is one implicit
+    transaction, and a DDL transaction is not the same thing as a sequence of schema changes on
+    CockroachDB. `_support.split_statements` is dollar-quote aware so a `$$` body is never cut in
+    half; `test_rc00_migration_shape.py` proves that on every file in the band, with no cluster.
     """
-    conn.execute(path.read_text(encoding="utf-8"))
+    statements = split_statements(path.read_text(encoding="utf-8"))
+    if not statements:
+        raise RuntimeError(f"{path.name} contains no SQL statement")
+    for statement in statements:
+        try:
+            conn.execute(statement)
+        except psycopg.Error as exc:
+            raise RuntimeError(
+                f"{path.name} failed to apply.\n"
+                f"  sqlstate: {exc.sqlstate}\n"
+                f"  error:    {exc}\n"
+                f"  statement:\n{statement.strip()[:2000]}"
+            ) from exc
+    return len(statements)
+
+
+#: SQLSTATEs that mean "this cluster does not have that cluster setting", as opposed to
+#: "this cluster refused to change it". v26.2 may have retired `feature.vector_index.enabled`
+#: on the way to GA, and a suite that SKIPS on an unknown setting would report a green-by-absence
+#: result on exactly the cluster the band is meant to run on.
+_UNKNOWN_SETTING = frozenset({"42704", "22023", "42601"})
+
+
+def _enable_vector_indexes(admin) -> str:
+    """Best-effort. Report what happened; never decide the suite's fate from this alone."""
+    try:
+        admin.execute("SET CLUSTER SETTING feature.vector_index.enabled = true")
+    except psycopg.Error as exc:
+        state = exc.sqlstate or ""
+        if state in _UNKNOWN_SETTING:
+            return f"feature.vector_index.enabled is not a setting on this cluster ({state})"
+        return f"could not set feature.vector_index.enabled: {state} {exc}"
+    return "feature.vector_index.enabled = true"
 
 
 @dataclass
@@ -207,14 +263,7 @@ def schema(cluster: Cluster) -> Iterator[Schema]:
     """Apply the whole reserved recall band forward from clean, in one run."""
     database = f"mainline_recall_{uuid.uuid4().hex[:10]}"
     with psycopg.connect(cluster.dsn, autocommit=True) as admin:
-        try:
-            admin.execute("SET CLUSTER SETTING feature.vector_index.enabled = true")
-        except psycopg.Error as exc:
-            pytest.skip(
-                "cannot enable vector indexes on this cluster "
-                f"(feature.vector_index.enabled): {exc}. Migrations 0041/0042 declare inline "
-                "VECTOR INDEXes and cannot be applied without it."
-            )
+        vector_setting = _enable_vector_indexes(admin)
         admin.execute(f"CREATE DATABASE {database}")
 
     # Re-point at the fresh database without string surgery on the URL: an env-supplied DSN may
@@ -226,22 +275,25 @@ def schema(cluster: Cluster) -> Iterator[Schema]:
     dsn = make_conninfo(**parts)
 
     applied: list[str] = []
+    n_statements = 0
     with psycopg.connect(dsn, autocommit=True) as conn:
-        _apply(conn, PREREQ_DIR / "00_consumed_tables.sql")
+        n_statements += _apply(conn, PREREQ_DIR / "00_consumed_tables.sql")
         applied.append("prereq/00_consumed_tables.sql")
         for path in recall_migration_files():
-            _apply(conn, path)
+            n_statements += _apply(conn, path)
             applied.append(path.name)
 
         standin = not trigger_names(conn, "mainline_meas", "silence_ledger")
         if standin:
-            _apply(conn, PREREQ_DIR / "90_append_only_standin.sql")
+            n_statements += _apply(conn, PREREQ_DIR / "90_append_only_standin.sql")
             applied.append("prereq/90_append_only_standin.sql")
 
     print(
-        f"\n[recall_schema] cluster: {cluster.provenance}\n"
+        f"\n[recall_schema] cluster:  {cluster.provenance}\n"
+        f"[recall_schema] vectors:  {vector_setting}\n"
         f"[recall_schema] database: {database}\n"
-        f"[recall_schema] applied {len(applied)} files forward from clean"
+        f"[recall_schema] applied {len(applied)} files "
+        f"({n_statements} statements) forward from clean"
     )
     try:
         yield Schema(

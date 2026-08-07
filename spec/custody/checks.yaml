@@ -1,0 +1,323 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# THE CHECK REGISTRY — normative, machine-readable, and the verifier's contract.
+#
+# Sixteen checks. For each: what it PROVES, what it DEFEATS, which module implements it,
+# which test asserts it, and its STATUS.
+#
+# ---------------------------------------------------------------------------------------
+# WHY `status` EXISTS, AND WHY IT IS THE MOST IMPORTANT COLUMN
+# ---------------------------------------------------------------------------------------
+# A verifier that quietly passes because it did not look is the single worst artefact this
+# domain could ship. So a check may report PASS, FAIL or SKIP(reason) at runtime, SKIP is
+# printed as loudly as FAIL, and any report containing one carries a NOT CHECKED banner.
+#
+# `status` is the build-time analogue:
+#
+#   deferred                    the module does not exist yet. The check ALWAYS reports
+#                               SKIP(not-implemented) at runtime. Never silently absent.
+#   implemented                 module and test both exist and are wired to the CLI.
+#   implemented_but_not_adverse implemented, but a load-bearing precondition of the CLAIM
+#                               is not met (check 7: quorum q=1 over our own
+#                               infrastructure is not adverse in the legal sense).
+#   skipped_with_reason         deliberately not run on the default path, reason stated.
+#
+# CI totality rules, enforced by tests/integration/custody/test_k2_exit.py and by
+# packages/trappoint-verify/tests/test_checks_totality.py:
+#
+#   1. every check id 1..16 appears exactly once;
+#   2. a check with status `implemented` or `implemented_but_not_adverse` MUST name a
+#      module that exists and a test that exists;
+#   3. a check with status `deferred` MUST NOT be reachable as PASS at runtime;
+#   4. a status change MUST cite an ADR in the commit body.
+#
+# At the moment of freezing (K2 entry, 2026-08-07) every check is `deferred`, because no
+# verifier code exists yet. That is the honest state and it is recorded rather than
+# anticipated. `target_status` records what each check is expected to become, so the
+# registry is a contract now and a report later. Workers 6 and 7 flip `status` in the same
+# commit that lands the module and the test; flipping it without both fails rule 2.
+#
+# `offline: true` means the check requires NO access to the MAINLINE database and NO
+# cooperation from us. The set of such checks IS the product claim, and it is computed from
+# this file rather than written in prose anywhere.
+
+schema_version: 1
+frozen_at: "2026-08-07"
+spec_version: "v1.0"
+
+checks:
+  - id: 1
+    name: leaf_hash_recomputation
+    proves: "Each leaf's hash is SHA-256(0x00 || canon_bytes), dispatched on payload_ver."
+    defeats: "record substitution"
+    offline: true
+    module: trappoint_verify.checks.structural
+    test: packages/trappoint-verify/tests/test_structural_checks.py::test_leaf_hash
+    status: deferred
+    target_status: implemented
+    owner: verify-core
+    notes: >-
+      Hashes the carried canon_bytes, never a re-canonicalisation of the parsed payload;
+      re-canonicalising would test our canonicaliser against itself. A payload that
+      disagrees with its own canon_bytes is reported as a discrepancy (attack A3).
+
+  - id: 2
+    name: inclusion_proof
+    proves: "Leaf i is in the tree committed by checkpoint n (RFC 6962 2.1.1)."
+    defeats: "'this was never in the log'"
+    offline: true
+    module: trappoint_verify.checks.structural
+    test: packages/trappoint-verify/tests/test_structural_checks.py::test_inclusion
+    status: deferred
+    target_status: implemented
+    owner: verify-core
+
+  - id: 3
+    name: consistency_proof_every_pair
+    proves: "The tree at size m is a prefix of the tree at size n, for EVERY consecutive checkpoint pair."
+    defeats: "deletion and rewrite (A1, A2)"
+    offline: true
+    module: trappoint_verify.checks.structural
+    test: packages/trappoint-verify/tests/test_structural_checks.py::test_consistency
+    status: deferred
+    target_status: implemented
+    owner: verify-core
+    notes: >-
+      The machine-checkable form of non-omission, which is the proposition plaintiffs
+      actually attack. A missing pair is a finding, not a shrug: it is exactly where a
+      rewritten interval would hide.
+
+  - id: 4
+    name: log_signature
+    proves: "The checkpoint note was signed by the pinned log key (C2SP note type 0x02, ECDSA P-256, DER)."
+    defeats: "forged log; forged receipt"
+    offline: true
+    module: trappoint_verify.checks.signature
+    test: packages/trappoint-verify/tests/crypto/test_signature.py
+    status: deferred
+    target_status: implemented
+    owner: verify-crypto
+    notes: >-
+      Also verifies SDR signatures, since receipts are signed by the same key as the
+      checkpoints for that origin. Online extras behind --kms-pubkey (KMS GetPublicKey)
+      and CloudTrail key-creation record; absent, they report SKIP(offline) and the key is
+      whatever was pinned. A key carried by the bundle itself yields PASS(self-asserted-key).
+
+  - id: 5
+    name: rfc3161_upper_bound
+    proves: "messageImprint == SHA-256(note text); the token chains to a trusted root; genTime is extracted."
+    defeats: "backdating forward (A8)"
+    offline: true
+    module: trappoint_verify.checks.tsa
+    test: packages/trappoint-verify/tests/crypto/test_tsa.py
+    status: deferred
+    target_status: implemented
+    owner: verify-crypto
+    verified_against: locally-minted-chain
+    unverified_lane: >-
+      Real-world interop against FreeTSA and the Sigstore TSA is UNVERIFIED until those
+      fixtures run green in CI. Hand-rolled DER reader (CU-8) because `cryptography` has no
+      CMS SignedData verification API and asn1crypto would break the dependency floor.
+
+  - id: 6
+    name: beacon_lower_bound
+    proves: "The checkpoint quotes a beacon value that did not exist before its round time."
+    defeats: "backdating backward (A9)"
+    offline: true
+    module: trappoint_verify.checks.beacon
+    test: packages/trappoint-verify/tests/crypto/test_beacon.py
+    status: deferred
+    target_status: implemented
+    owner: verify-crypto
+    sub_checks:
+      - id: 6a
+        name: nist_pulse
+        note: >-
+          Fully verified under the dependency floor: RSA PKCS#1 v1.5 over SHA-512 with an
+          X.509 certificate, all of which `cryptography` does.
+      - id: 6b
+        name: drand_round
+        note: >-
+          Round-to-time arithmetic is verified offline; the BLS12-381 G1 signature is NOT,
+          because `cryptography` cannot, and adding a pairing library would break the
+          one-dependency claim. Reports SKIP(optional-extra) unless trappoint-verify[beacon]
+          is installed. Two beacons exist precisely so this SKIP is not fatal.
+    notes: >-
+      Extension lines are covered by the 0x02 log signature but NOT by 0x04/0x06 witness
+      cosignatures. The beacon bound is therefore exactly as strong as the log signature
+      and no stronger; see spec/wire/checkpoint.md section 4.4.
+
+  - id: 7
+    name: witness_quorum
+    proves: "At least q cosignatures over the SAME (size, root), across distinct trust domains, at least one adverse."
+    defeats: "split view"
+    offline: true
+    module: trappoint_verify.checks.witness
+    test: packages/trappoint-verify/tests/crypto/test_witness_quorum.py
+    status: deferred
+    target_status: implemented_but_not_adverse
+    owner: verify-crypto
+    notes: >-
+      `adverse` is a claim about legal interest, not a cryptographic property. Until an
+      insurer, a union HSR or a regulator actually runs the cosigner, the quorum is q = 1
+      over our own S3 plus the ccloud audit stream, which is NOT adverse in the legal sense.
+      The verdict is PASS(not-adverse), a distinct verdict. SPLIT-VIEW RESISTANCE MUST NOT
+      BE CLAIMED, and a CI grep enforces its absence from the README, the deck and the video
+      script.
+
+  - id: 8
+    name: archive_object_lock
+    proves: "The archived object bytes equal the note; ObjectLockMode is COMPLIANCE; LastModified falls inside the time bracket."
+    defeats: "archive tampering (T2), A15"
+    offline: false
+    module: trappoint_verify.checks.archive
+    test: packages/trappoint-verify/tests/crypto/test_archive.py
+    status: deferred
+    target_status: implemented
+    owner: verify-crypto
+    notes: >-
+      Requires --s3; offline it reports SKIP(offline) and the bundle's archive metadata is
+      labelled in the report as a claim by us about our own archive.
+
+  - id: 9
+    name: link_chain_and_density
+    proves: "link_hash recomputes across every leaf, and seq is dense 0..n-1."
+    defeats: "jury-legible chain integrity; A2"
+    offline: true
+    module: trappoint_verify.checks.structural
+    test: packages/trappoint-verify/tests/test_structural_checks.py::test_link_chain
+    status: deferred
+    target_status: implemented
+    owner: verify-core
+    notes: >-
+      A gap MEANS tampering, because CREATE SEQUENCE / nextval / SERIAL / unique_rowid()
+      are banned repository-wide: seq is derived in-transaction by compare-and-swap, so
+      there is no mechanism that could have produced a legitimate gap. The chain is what
+      EXPLAINS non-omission to a jury; check 3 is what PROVES it.
+
+  - id: 10
+    name: canonicaliser_identity
+    proves: "canon_src_sha256 in the checkpoint equals the SHA-256 of the canonicaliser the verifier is running."
+    defeats: "canonicaliser downgrade (A5); the scheme's own code being outside the scheme"
+    offline: true
+    module: trappoint_verify.checks.structural
+    test: packages/trappoint-verify/tests/test_structural_checks.py::test_canon_identity
+    status: deferred
+    target_status: implemented
+    owner: verify-core
+    notes: >-
+      Hashing rule is SHA-256 over LF-normalised source bytes; see
+      spec/custody/canon-registry.yaml. The pin is enforced against drift by
+      scripts/custody/check_vendored_canon.py.
+
+  - id: 11
+    name: gate_self_attestation
+    proves: "The trigger definitions captured at migration time are inside the ledger and match the gate source in the bundle."
+    defeats: "trigger disable / silent gate removal (A13)"
+    offline: true
+    module: trappoint_verify.checks.attestation
+    test: packages/trappoint-verify/tests/crypto/test_attestation.py
+    status: deferred
+    target_status: implemented
+    owner: verify-crypto
+    depends_on_platform: GT-05
+    notes: >-
+      The highest-value check in the set, and the one with an unanswered platform
+      dependency: whether CockroachDB v26.2 implements pg_get_triggerdef(). Fallback is
+      SHOW CREATE TABLE, which loses per-trigger granularity; the check then reports
+      PASS(coarse) and the claim softens IN THE SAME COMMIT. The bundle records which
+      source produced the text, because a report that cannot tell them apart overstates one.
+
+  - id: 12
+    name: webauthn_reverification
+    proves: "The assertion verifies against the ENROLLED COSE key, and the challenge reconstructs from the stored exposure receipt."
+    defeats: "'your server says he signed'"
+    offline: true
+    module: trappoint_verify.checks.webauthn
+    test: packages/trappoint-verify/tests/crypto/test_webauthn.py
+    status: deferred
+    target_status: implemented
+    owner: verify-crypto
+    notes: >-
+      Challenge reconstruction is the half that matters: receipt_digest is the Merkle digest
+      of the exact rendered payloads, so 'he signed a summary, not the warning' is refuted
+      by arithmetic. sign_count regression is an ALARM, not a failure. Carries personal
+      data; --redact-webauthn downgrades this check to SKIP(redacted) rather than removing
+      the section silently.
+
+  - id: 13
+    name: no_sandbox_leaf
+    proves: "No leaf in an evidentiary bundle carries is_sandbox = true."
+    defeats: "anonymous demo writes inside an evidentiary tree (A12)"
+    offline: true
+    module: trappoint_verify.checks.structural
+    test: packages/trappoint-verify/tests/test_structural_checks.py::test_no_sandbox
+    status: deferred
+    target_status: implemented
+    owner: verify-core
+
+  - id: 14
+    name: closure_generation_monotone
+    proves: "For every (clause_uuid, as_of_commit), closure generations are dense from 1 and max_severity is non-decreasing."
+    defeats: "a mass closure rewrite (S2, attack A10)"
+    offline: true
+    module: trappoint_verify.checks.structural
+    test: packages/trappoint-verify/tests/test_structural_checks.py::test_closure_monotone
+    status: deferred
+    target_status: implemented
+    owner: verify-core
+    notes: >-
+      The blame closure sits under EVERY ancestry gate. In the reviewed design it was
+      mutable, un-granted, un-ledgered and unguarded, so one UPDATE from a Lambda execution
+      role would have evaporated every weakening gate while every dashboard reported full
+      coverage. This check makes that attack visible to someone who has never touched the
+      cluster.
+
+  - id: 15
+    name: receipt_coverage
+    proves: "Every Signed Disposition Receipt whose MMD has expired has its leaf present and included under a checkpoint."
+    defeats: "receipt orphaning (A14); silent non-merge of a disposition"
+    offline: true
+    module: trappoint_verify.checks.structural
+    test: packages/trappoint-verify/tests/test_structural_checks.py::test_receipt_coverage
+    status: deferred
+    target_status: implemented
+    owner: verify-core
+    notes: >-
+      Structural only: set membership and MMD arithmetic. The receipt SIGNATURE is verified
+      by check 4, because it uses the same key as the checkpoint. Inside the MMD the verdict
+      is SKIP(within-mmd) with the deadline printed; outside it, this is the only finding in
+      the whole set that accuses the log operator of an act rather than reporting a
+      mismatch, and it is worded that way in the report.
+
+  - id: 16
+    name: bundle_totality
+    proves: >-
+      The bundle is internally consistent and the run looked at everything: each
+      checkpoint's index fields match its parsed note, every leaf has an inclusion proof,
+      every consecutive checkpoint pair has a consistency proof, every checkpoint's canon
+      line matches the bundle's declared canonicaliser, and every absent optional section
+      produced a named SKIP.
+    defeats: "a verifier that passes because it did not look"
+    offline: true
+    module: trappoint_verify.checks.structural
+    test: packages/trappoint-verify/tests/test_checks_totality.py
+    status: deferred
+    target_status: implemented
+    owner: verify-core
+    notes: >-
+      The check that makes the other fifteen honest. If it fails, no other verdict in the
+      report may be read as complete, and the report says so at the top rather than at the
+      bottom.
+
+# ---------------------------------------------------------------------------------------
+# THE CLAIM, COMPUTED FROM THE ROWS ABOVE RATHER THAN ASSERTED IN PROSE
+# ---------------------------------------------------------------------------------------
+# offline: true for checks 1,2,3,4,5,6,7,9,10,11,12,13,14,15,16 -> fifteen of sixteen.
+# Check 8 alone needs network access, and only for its live half.
+claim:
+  sentence: >-
+    Checks 1-7 and 9-16 require no access to our database and no cooperation from us.
+  derived_from: "the `offline` field on every check above"
+  asserted_by: tests/integration/custody/test_k2_exit.py::test_offline_claim_matches_registry

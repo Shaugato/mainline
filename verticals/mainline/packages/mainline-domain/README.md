@@ -147,6 +147,28 @@ the cost of the other choice is a tag that can be swapped without anyone noticin
 CAS anchor is an identity-class anchor and identity-class anchors veto matches — a false one
 manufactures residue for a clause nobody touched.
 
+### The gazetteers are versioned evidence, and they are fingerprinted
+
+Each of the six anchor gazetteers declares an integer `version` that the loader **reads** — a
+declared version nothing reads is decoration — and `load_gazetteers()` returns both
+`versions` and a 32-byte `fingerprint`:
+
+```
+sha256( b"mainline/anchors/gazetteer/v1" || Σ len-prefixed(name, ascii(version), sha256(file bytes)) )
+```
+
+sorted by file name, so it is order-independent and reproducible by hand with `sha256sum` plus
+`tomllib`. This is ANCHORLOCK's analogue of `canon_version` being bound into the CANONHOLD digest
+preimage. Without it a word list could be edited with no version bump, no digest change and no
+trace, and *the set of things that count as an anchor would depend on which checkout ran the
+extractor* — which makes anchor drop unfalsifiable. Rows that record an anchor decision should
+carry `fingerprint` alongside the `identity_policy` hash that decision D11 already puts there, so
+"which gazetteer said that was a tag" is answerable years later.
+
+The fingerprint covers the **bytes** of the committed files, not the parsed entries, so a
+comment-only edit moves it. That is deliberate: the question it answers is which bytes were in the
+tree. Enforced by `tests/unit/domain/anchors/test_gazetteer_fingerprint.py`.
+
 ### Uncompensated drop
 
 An identity anchor in the reference and absent from the descendant, with **nothing of its class
@@ -183,7 +205,7 @@ Stated here because the claim would otherwise be read as larger than it is:
 ## Run it
 
 ```bash
-uv run pytest tests/unit/domain -q            # 193 tests, no network, no cluster, no credentials
+uv run pytest tests/unit/domain -q            # 202 tests, no network, no cluster, no credentials
 uv run mypy --strict src/mainline_domain      # from this directory
 ```
 
@@ -191,7 +213,7 @@ The exit criteria for this worker, and the tests that hold them:
 
 | Criterion | Test |
 |---|---|
-| retypeset + renumbered + OCR-noised ⇒ **one** `canon_sha256` | `tests/unit/domain/canon/test_reflow_triple.py::test_three_forms_yield_one_canon_sha256` |
+| retypeset + renumbered + OCR-noised ⇒ **one** `canon_sha256` (the fixture carries a ligature, a NO-BREAK SPACE, a U+2010 hyphen, a mid-word SOFT HYPHEN, three wrappings, two page-furniture variants, `7.3.2(b) → 4.1.1`, and OCR damage `1O → 10` / `286S → 2865`) | `tests/unit/domain/canon/test_reflow_triple.py::test_three_forms_yield_one_canon_sha256` |
 | `P-101A → P-101B` paraphrase is anchor-**incompatible** | `tests/unit/domain/anchors/test_anchor_incompatible.py::test_p101a_to_p101b_paraphrase_is_anchor_incompatible` |
 | `canon(canon(x)) == canon(x)` over ≥1000 generated inputs | `tests/unit/domain/canon/test_idempotence.py::test_canon_is_idempotent` (1200 examples) |
 | `mypy --strict` clean on `.canon`, `.anchors`, `.contracts` | CI |
@@ -199,6 +221,38 @@ The exit criteria for this worker, and the tests that hold them:
 Both exit-criterion tests were committed and run **before** the implementation existed
 (PL-2 red-before-green); each records its red run in its module docstring. For a product whose
 deliverable is a refusal, a suite that has never been red asserts nothing.
+
+### The suite is not vacuous — checked by mutation, not by assertion
+
+Red-before-green proves the tests were red *once*. It does not prove they are still load-bearing
+after the implementation moved. So each of the eight claims below was re-checked by breaking the
+implementation (or the committed data) on purpose and confirming the named tests go red **for the
+stated reason**; the working tree was restored from git after each mutant. Run on 2026-08-07,
+local, Python 3.14.3 — all eight killed, none survived:
+
+| Mutation applied | Test that caught it |
+|---|---|
+| `excise_numbering` returns the text unchanged | `test_reflow_triple.py::test_three_forms_yield_one_canon_sha256`, `::test_printed_labels_differ_but_identity_does_not` |
+| pipeline runs numbering excision **before** OCR repair (steps 6 and 5 swapped) | `test_idempotence.py::test_canon_is_idempotent` |
+| `AnchorSet.conflicting_classes` returns the empty set | `test_anchor_incompatible.py::test_p101a_to_p101b_paraphrase_is_anchor_incompatible` |
+| OCR repair allowed to fire on a token starting with a letter | `test_ocr_repair.py::test_free_prose_is_never_repaired[SO2\|S02\|IS0]` |
+| every anchor drop reported as `compensated=True` | `test_drop_and_compatibility.py::test_deleting_an_isolation_point_is_an_uncompensated_drop`, `::test_deleting_a_citation_is_an_uncompensated_drop` |
+| `canon_version` dropped from the digest preimage | `test_canon_version.py::test_the_version_is_bound_into_the_digest_preimage`, `::test_digest_is_sha256_of_the_documented_preimage` |
+| equipment-tag fallback removed, so an unknown prefix yields no anchor | `test_extract.py::test_unknown_prefix_fails_closed_to_equipment_tag` |
+| `domain-lexicon.toml` edited to `version = 2` with `CANON_VERSION` left at 1 | `test_canon_version.py::test_the_lexicon_version_tracks_canon_version` |
+
+These seven are the seed of the **SURVIVE**/**KILL** catalogues that worker W10
+(`mutation-ratchet`) turns into a standing, Wilson-bounded metric. This table is a one-off
+manual run, not a harness, and it is recorded as such: nothing in CI re-runs it yet.
+
+## Novelty manifests
+
+`novelty/canonhold.yaml` (position: **re-parameterisation**) and `novelty/anchorlock.yaml`
+(position: **unclaimed**) carry the honest prior-art position of the two algorithms in this
+package, per `docs/leads/algorithms.md` §6. Read the `unverified:` blocks before repeating any
+claim from either file: the refusals ANCHORLOCK names — `identity_conserved_when_issued` (23514) —
+are enforced by DDL owned by the kernel lead and W9, and are listed under `unverified:` until
+those migrations land and an integration test observes the SQLSTATE.
 
 ## Dependencies
 

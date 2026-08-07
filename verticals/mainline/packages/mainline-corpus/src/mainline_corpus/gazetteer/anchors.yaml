@@ -1,0 +1,231 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+#
+# THE DATED STRUCTURAL SPINE.  Everything on camera hangs off one clause; a three-minute video
+# cannot afford a second protagonist (research/06-build/demo-engineering.md §2).
+#
+# ── WHAT IS HERE AND WHAT IS NOT ────────────────────────────────────────────────────────────
+# HERE: external references, dates, sites, assets, severities, document codes, branch names —
+#       the STRUCTURE the generator must plant exactly rather than draw.
+# NOT HERE: a single sentence anybody reads.  The 2013 commit message, the clause bodies and
+#       the ICAM narrative are hand-authored verbatim by `corpus-spine-authored` under
+#       verticals/mainline/fixtures/corpus/authored/, and `test_camera_strings_agree` checks
+#       that string across the authored fixture, VO.md, SHOT-LIST.yaml and the honesty card.
+#       A fifth copy living here would be a fifth thing that can drift, so there is none.
+#
+# ── ID DERIVATION, so no worker has to coordinate ───────────────────────────────────────────
+# Every id in the corpus is `uuid5(CORPUS_NS, "<entity>:<natural key>")` — see `rng.sid`.
+# Therefore any downstream worker can recompute an id from the natural key printed here without
+# reading the skeleton output at all:
+#
+#     event_id(INC-2013-044)   = sid("event",  "INC-2013-044")
+#     cr_id(MOC-2026-0413)     = sid("change_request", "MOC-2026-0413")
+#     permit_id(WO-88213)      = sid("permit", "WO-88213")
+#     site_id(MRD)             = sid("site",   "MRD")
+#     doc_id(MRD/PRO-MEC-014)  = sid("doc",    "MRD/PRO-MEC-014")
+#
+# That is the whole cross-worker interface for identity.  There is no registry to keep in sync.
+
+version: 1
+
+# The demo's fixed "now".  Playwright pins the browser clock to the same instant (decision D14),
+# so on-screen timestamps are byte-identical across takes.
+corpus_now: 2026-08-04T09:14:00+10:00
+corpus_epoch: 2004-01-01T00:00:00+10:00
+tz_offset_hours: 10
+
+spine:
+  site: MRD
+  document_origin: PRO-MEC-014
+  document_after_split: STD-ISO-006
+  clause_label_2011: "7.3"
+  clause_label_2016: "5.2.1"
+  asset_incident: P-4102          # the 2013 fire
+  asset_permit: P-4104            # the 2026 hot work, sibling of the same class
+  asset_class: HTP-CLASS-A
+  setpoint_parameter: seal_face_temperature_alarm
+  setpoint_oem: 150
+  setpoint_post_incident: 135
+  author_2013: "kestrel:okonjo.d"
+  # Dates only; the commit body is authored elsewhere.
+  dates:
+    clause_introduced: 2011-03-14
+    incident: 2013-06-12
+    strengthen_commit: 2013-08-04
+    retypeset: 2016-11-21
+    split: 2019-02-19
+    author_separated: 2021-07-16
+    weaken_moc_opened: 2026-07-28
+    permit_opened: 2026-08-03
+    permit_merge_attempt: 2026-08-04
+  # Which revision each spine date is, and what drove it.  `driven_by_event` and
+  # `driven_by_change` are STRUCTURAL POINTERS, not blame edges: they record that a revision
+  # followed a named event or MOC, which is a documentary fact.  Whether that revision's clause
+  # change is *attributable* to the event is a blame edge, it carries a basis and a signature,
+  # and it is authored by `corpus-blame-key`, not here.
+  revisions:
+    - {effective_on: 2011-03-14, driver: introduce}
+    - {effective_on: 2013-08-04, driver: incident, author: "kestrel:okonjo.d", driven_by_event: INC-2013-044}
+    - {effective_on: 2016-11-21, driver: retypeset}
+    - {effective_on: 2019-02-19, driver: moc, driven_by_change: MOC-2019-0221}
+
+# Branch refs.  `ref.ref_name` is the primary key of `mainline.ref`; the rows themselves are
+# minted by the workers who mint commits.
+refs:
+  site_main: site/marrindal/main
+  permit_branch: permit/WO-88213
+  change_request_branch: cr/MOC-2026-0413
+
+permits:
+  - external_ref: WO-88213
+    site: MRD
+    ref_name: permit/WO-88213
+    target_ref: site/marrindal/main
+    opened_at: 2026-08-03T06:12:00+10:00
+    horizon_at: 2026-08-05T18:00:00+10:00
+    task: hot work on the P-4104 seal housing
+    # The declared boundary and the two under-declared assets live in assets.yaml, because they
+    # are facts about the energy graph, not facts about the permit.
+
+change_requests:
+  - external_ref: MOC-2019-0221
+    site: MRD
+    ref_name: cr/MOC-2019-0221
+    target_ref: site/marrindal/main
+    opened_at: 2019-02-19T08:40:00+10:00
+    terminal_state: merged
+    intent: split
+    activity_root: ISOLATION-OF-STORED-ENERGY
+
+  - external_ref: MOC-2026-0413
+    site: MRD
+    ref_name: cr/MOC-2026-0413
+    target_ref: site/marrindal/main
+    opened_at: 2026-07-28T07:55:00+10:00
+    terminal_state: dispositioned
+    intent: weaken
+    activity_root: CONTAINMENT-OF-HYDROCARBONS
+
+  - external_ref: MOC-2014-0087
+    site: CVY
+    ref_name: cr/MOC-2014-0087
+    target_ref: site/cape-verity/main
+    opened_at: 2014-04-09T09:10:00+10:00
+    terminal_state: merged
+    intent: replace
+    activity_root: CONTAINMENT-OF-HYDROCARBONS
+
+  - external_ref: MOC-2021-0155
+    site: YND
+    ref_name: cr/MOC-2021-0155
+    target_ref: site/yandarra-downs/main
+    opened_at: 2021-05-27T10:25:00+10:00
+    terminal_state: merged
+    intent: strengthen
+    activity_root: MOBILE-EQUIPMENT-INTERACTION
+
+  - external_ref: MOC-2023-0302
+    site: TLG
+    ref_name: cr/MOC-2023-0302
+    target_ref: site/tolgarra/main
+    opened_at: 2023-09-14T13:05:00+10:00
+    terminal_state: merged
+    intent: replace
+    activity_root: HAZARDOUS-SUBSTANCE-EXPOSURE
+
+# ── ANCHORED EVENTS ─────────────────────────────────────────────────────────────────────────
+# Planted exactly.  They are removed from the sampled stream, they consume their share of the
+# severity budget, and the severity-4/5 ones excite the post-incident reporting spike like any
+# other major event — the excitation is not special-cased for them.
+#
+# `severity_basis` is `coded_field` on both blood events: the injury classification is a coded
+# field on the statutory notification, not a model's opinion.  Nothing in this corpus emits
+# `severity_gate >= 4` with `severity_basis = 'model_rated'`; `model_cannot_arm` is a shipped
+# CHECK and the loader would be refused.
+events:
+  - external_ref: INC-2009-011
+    site: YND
+    kind: incident
+    occurred_at: 2009-11-06T10:35:00+10:00
+    reported_lag_hours: 2
+    activity_root: LIFTING-AND-SUSPENDED-LOADS
+    activity_series: maintaining lifting appliances
+    activity_file: supporting a load for maintenance access
+    assets: [HO-9402, PR-9410]
+    severity_actual: 5
+    severity_potential: 5
+    severity_basis: coded_field
+    fatal_potential_trigger: true
+    summary_facts:
+      - suspended component released during workshop maintenance
+      - one fatality
+    control_failures:
+      - {control_class: LOAD_SUPPORT_FOR_MAINTENANCE, barrier_role: preventive, failure_mode: absent, hazard_energy: gravity, icam_tier: absent_or_failed_defence}
+      - {control_class: LIFTING_GEAR_INSPECTION, barrier_role: preventive, failure_mode: degraded, hazard_energy: gravity, icam_tier: task_or_environmental_condition}
+      - {control_class: DROP_ZONE_EXCLUSION, barrier_role: preventive, failure_mode: ineffective, hazard_energy: gravity, icam_tier: individual_or_team_action}
+      - {control_class: LIFT_STUDY_APPROVAL, barrier_role: preventive, failure_mode: absent, hazard_energy: gravity, icam_tier: organisational_factor}
+
+  - external_ref: NM-2012-0184
+    site: MRD
+    kind: near_miss
+    occurred_at: 2012-12-19T16:05:00+10:00
+    reported_lag_hours: 20
+    activity_root: CONTAINMENT-OF-HYDROCARBONS
+    activity_series: maintaining sealing systems on rotating equipment
+    activity_file: monitoring seal-face condition and temperature
+    assets: [P-4103, TT-4103]
+    severity_actual: 0
+    severity_potential: 3
+    severity_basis: human_rated
+    fatal_potential_trigger: false
+    summary_facts:
+      - seal-face temperature excursion detected at the board without ignition
+    control_failures:
+      - {control_class: SEAL_FACE_TEMPERATURE_ALARM, barrier_role: recovery, failure_mode: degraded, hazard_energy: thermal, icam_tier: absent_or_failed_defence}
+      - {control_class: SEAL_SUPPORT_SYSTEM_INTEGRITY, barrier_role: preventive, failure_mode: degraded, hazard_energy: chemical, icam_tier: task_or_environmental_condition}
+
+  - external_ref: INC-2013-044
+    site: MRD
+    kind: incident
+    occurred_at: 2013-06-12T14:20:00+10:00
+    reported_lag_hours: 1
+    activity_root: CONTROL-OF-IGNITION-SOURCES
+    activity_series: authorising hot work
+    activity_file: assessing and permitting hot work adjacent to live plant
+    assets: [P-4102, TT-4102, ACC-4102]
+    severity_actual: 4
+    # Potential is 4, not 5, and deliberately so: the spine calls INC-2013-044 a severity-4
+    # event, and `severity_gate = max(actual, potential_admitted)`.  A potential of 5 with the
+    # fonds' deterministic fatal-potential trigger firing would admit at 5 and the gate would
+    # read 5, contradicting every other artefact that quotes this incident.
+    severity_potential: 4
+    severity_basis: coded_field
+    fatal_potential_trigger: true
+    summary_facts:
+      - gland seal fire during hot work adjacent to a live hydrocarbon line
+      - two contractors sustained partial-thickness burns
+    control_failures:
+      - {control_class: SEAL_FACE_TEMPERATURE_ALARM, barrier_role: recovery, failure_mode: ineffective, hazard_energy: thermal, icam_tier: absent_or_failed_defence}
+      - {control_class: HOT_WORK_AUTHORISATION, barrier_role: preventive, failure_mode: ineffective, hazard_energy: thermal, icam_tier: organisational_factor}
+      - {control_class: GAS_TEST_BEFORE_AND_DURING_HOT_WORK, barrier_role: preventive, failure_mode: not_verified, hazard_energy: chemical, icam_tier: individual_or_team_action}
+      - {control_class: EMERGENCY_ISOLATION_ON_RELEASE, barrier_role: recovery, failure_mode: ineffective, hazard_energy: chemical, icam_tier: absent_or_failed_defence}
+      - {control_class: FIRE_WATCH_PROVISION, barrier_role: recovery, failure_mode: degraded, hazard_energy: thermal, icam_tier: task_or_environmental_condition}
+
+  - external_ref: OEM-2016-002
+    site: MRD
+    kind: oem_alert
+    occurred_at: 2016-03-22T09:00:00+10:00
+    reported_lag_hours: 0
+    activity_root: CONTAINMENT-OF-HYDROCARBONS
+    activity_series: maintaining sealing systems on rotating equipment
+    activity_file: setting and proving mechanical seal support systems
+    assets: [P-4101, P-4102, P-4103, P-4104, P-4105]
+    severity_actual: 0
+    severity_potential: 3
+    severity_basis: regulator_class
+    fatal_potential_trigger: false
+    fleet_sibling_of: ALERT-2016-007
+    summary_facts:
+      - OEM advisory on barrier fluid degradation in the seal support system
+    control_failures:
+      - {control_class: SEAL_SUPPORT_SYSTEM_INTEGRITY, barrier_role: preventive, failure_mode: degraded, hazard_energy: chemical, icam_tier: task_or_environmental_condition}

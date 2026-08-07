@@ -399,8 +399,13 @@ Each has a normative file under [`invariants/`](invariants/) carrying the same f
 
 **Extension.** A vertical MUST NOT renumber, redefine or extend `I01–I16`. A vertical's own schema
 invariants live in its own namespace (`MAINLINE` uses `MI01–MI30`) and map *onto* these; the mapping
-is data, in the vertical's own catalogue, not in this document. The identifier pattern `I<dd>` is
-reserved to `spec/`, and a repository-wide lint enforces it.
+is data, in the vertical's own catalogue, not in this document.
+
+**Namespace.** The identifier pattern `I<dd>` is reserved to `spec/`, enforced by a repository-wide
+lint that is *defined by its grep command* rather than described
+([`VERSIONING.md`](VERSIONING.md) §3.1). Outside `spec/`, an invariant is cited by **slug** —
+`TRAPPOINT/projected-refusal`, not `I02` — because no exemption for a qualified or linked identifier
+survives contact with the command that enforces the rule. The slug table is `VERSIONING.md` §3.2.
 
 ---
 

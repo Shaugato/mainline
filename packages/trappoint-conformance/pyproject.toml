@@ -1,0 +1,51 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: Apache-2.0
+
+[project]
+name = "trappoint-conformance"
+version = "0.1.0"
+description = "The TRAPPOINT conformance runner: illegal histories asserted against an exact SQLSTATE and an exact exhibit name, with a refusal taxonomy that is total by construction."
+readme = "README.md"
+requires-python = ">=3.13"
+license = "Apache-2.0"
+authors = [{ name = "MAINLINE contributors" }]
+keywords = ["cockroachdb", "conformance", "sqlstate", "invariants", "refusal"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Database",
+  "Topic :: Software Development :: Testing",
+  "Typing :: Typed",
+]
+
+# psycopg and the standard library. `tomllib` reads the manifest; there is no TOML
+# dependency and no test framework dependency, because the runner is the artefact a
+# third party runs to check a fork's claim of conformance and every dependency it
+# carries is a dependency that claim inherits.
+#
+# There is no `boto3` and there never will be: `.importlinter` contract 2 forbids a
+# model code path here, and a conformance suite that could call a model is a
+# conformance suite whose verdicts are not reproducible.
+dependencies = [
+  "psycopg[binary]>=3.3.4",
+]
+
+[project.urls]
+Homepage = "https://github.com/Shaugato/mainline"
+
+[project.scripts]
+trappoint-conform = "trappoint_conformance.cli:main"
+
+[dependency-groups]
+dev = ["pytest>=8.2", "mypy>=1.11", "ruff>=0.6"]
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/trappoint_conformance"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "README.md"]

@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+# BAD — the failure this whole domain exists to refuse. No `vector search` node at all: the
+# optimizer read the table and sorted. A silently unused index. Latency would look fine on a
+# small corpus and the plan text would never say the word "wrong".
+  distribution: local
+  vectorized: true
+
+  • top-k
+  │ order: +dist
+  │ k: 12
+  │
+  └── • render
+      │
+      └── • filter
+          │ filter: (site_id = '1111…') AND (scope_id = '6f2c…') AND (facet = 'recurrence_test')
+          │
+          └── • scan
+                estimated row count: 20,000 (100% of the table; stats collected 3 minutes ago)
+                table: event_cue_embedding@event_cue_embedding_pkey
+                spans: FULL SCAN

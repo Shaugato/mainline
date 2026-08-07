@@ -53,6 +53,11 @@ truncation, because bge is not MRL-trained and truncating it would be a false cl
 `assert_homogeneous(rows)` raises if one corpus carries more than one `embed_model`, and
 optionally more than one `index_gen` — cosine across two spaces is a number with no meaning
 and it is a number that reaches a supervisor as `p_relevant`.
+The "never truncation" half of D4 is a test, not a comment:
+`test_local_bge_corpus.py::test_local_bge_coarse_is_a_projection_and_provably_not_a_truncation`
+computes what Matryoshka truncation *would* have returned for every cue in the fixture
+corpus and requires the shipped coarse vector to disagree with it, so replacing
+`LocalBGE.coarse` with a prefix goes red instead of quietly shipping a false claim.
 
 **D5 — the judge's identity is resolved at runtime, never hard-coded.**
 `resolve_inference_profile()` calls `bedrock:ListInferenceProfiles`, asserts the `au.`
@@ -125,6 +130,17 @@ MAINLINE_RECALL_CASSETTE_MODE=record MAINLINE_RECALL_ALLOW_NETWORK=1 \
 # Regenerate the handwritten judge fixtures after a prompt change:
 python tests/unit/recall_providers/make_fixture_cassettes.py
 ```
+
+Regeneration is **idempotent**: a constructed cassette (`handwritten` / `surrogate`) whose
+content is unchanged keeps the `recorded_at` it already had, so re-running the generator
+produces an empty diff and a genuine fixture change is visible in review instead of hiding
+inside 32 re-stamped files. A *live* cassette always re-stamps, because there its timestamp
+says when the call was observed and is evidence.
+
+The suite's offline claim is enforced rather than documented: an autouse fixture in
+`tests/unit/recall_providers/conftest.py` refuses outbound socket connections, so a
+provider that quietly acquired a session and reached the network would fail the suite
+instead of passing it slowly.
 
 ---
 

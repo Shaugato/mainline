@@ -1,0 +1,41 @@
+{
+  "$comment": [
+    "SPDX-FileCopyrightText: 2026 MAINLINE contributors",
+    "SPDX-License-Identifier: FSL-1.1-ALv2",
+    "The TOOLING project: build config, the gate scripts, and the Playwright specs.",
+    "These run under Node 24 with built-in type stripping (`node scripts/check-budgets.ts`),",
+    "so erasableSyntaxOnly is not optional here — it is what makes `node <file>.ts` legal.",
+    "DOM lib is present because Playwright page.evaluate() bodies are browser code."
+  ],
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "moduleDetection": "force",
+    "types": ["node"],
+
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "useUnknownInCatchVariables": true,
+
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "erasableSyntaxOnly": true,
+    // vitest.config.ts imports vite.config.ts by path. Legal because nothing here emits.
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "noEmit": true
+  },
+  "include": ["vite.config.ts", "vitest.config.ts", "playwright.config.ts", "scripts", "tests/browser"],
+  "exclude": ["dist", "node_modules"]
+}

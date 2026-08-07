@@ -1,0 +1,60 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: Apache-2.0
+
+[project]
+name = "trappoint-migrate"
+version = "0.1.0"
+description = "Forward-only CockroachDB schema migration with a real lock table, a dirty marker that refuses to advance, a gap-free-by-CAS attestation chain, and the sequence ban enforced as a lint rather than a convention."
+readme = "README.md"
+requires-python = ">=3.13"
+license = "Apache-2.0"
+authors = [{ name = "MAINLINE contributors" }]
+keywords = ["cockroachdb", "migrations", "ddl", "schema-attestation", "tamper-evidence"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Database",
+  "Typing :: Typed",
+]
+
+# psycopg 3 and nothing else. This package applies DDL and writes the schema
+# attestation inside the SAME connection discipline that writes the ledger, which is
+# the entire reason golang-migrate was dropped (research/06-build/schema-migrations.md
+# §11 rejected the alternatives on tooling grounds; the attestation is what makes the
+# rejection load-bearing). A second dependency here would be a second thing an
+# opposing expert has to trust in the path that records what schema was applied.
+#
+# NO tenacity/backoff/retrying: the `40001` loop is hand-written in `db.py` and is
+# forbidden repo-wide by `.importlinter` contract 4.
+dependencies = [
+  "psycopg[binary,pool]>=3.3.4",
+]
+
+[project.urls]
+Homepage = "https://github.com/Shaugato/mainline"
+
+[project.scripts]
+# `trappoint` is the substrate's one verb-first entry point: `trappoint migrate …`
+# today, `trappoint render …` once packages/trappoint-sql lands. `cli.py` dispatches
+# unknown verbs to their owning distribution and says plainly which one is missing
+# rather than printing an argparse error about an unknown choice.
+trappoint = "trappoint_migrate.cli:main"
+trappoint-migrate = "trappoint_migrate.cli:main_migrate"
+
+[dependency-groups]
+dev = ["pytest>=8.2", "mypy>=1.11", "ruff>=0.6"]
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/trappoint_migrate"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "tests", "README.md"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["--strict-markers", "-ra"]

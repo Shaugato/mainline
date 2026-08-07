@@ -1,0 +1,108 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+#
+# Regulatory and standards citations, bound to the MUE fonds they govern.
+#
+# NEVER SAMPLED AT RANDOM.  A citation is an IDENTITY anchor: two clause versions whose
+# `REGULATORY_CITATION` anchors conflict are not the same clause.  A generator that emitted
+# plausible-looking standard numbers would produce a corpus in which citation resolution has
+# nothing to resolve against, and the "citation that resolves to nothing is a blocking residue
+# row" path would never fire.
+#
+# EVERY `text` BELOW WAS RUN THROUGH `mainline_domain.anchors.iter_anchors` AND CLAIMS A
+# `REGULATORY_CITATION` ANCHOR.  `skeleton/build.py` re-checks this at generation time when
+# mainline_domain is importable and RAISES on a miss — a citation that stopped colliding
+# because the product gazetteer changed is a silent corpus regression, so it is made loud.
+#
+# The edition YEAR is deliberately omitted: `mainline_domain`'s normalisation decision is that
+# `AS 2865:2009` and `AS 2865` are the SAME anchor, because a descendant citing the standard
+# without its year must not read as a conflict.
+
+version: 1
+
+citations:
+  ISOLATION-OF-STORED-ENERGY:
+    - {text: "AS 4024.1603", title: "safety of machinery — prevention of unexpected start-up"}
+    - {text: "AS/NZS 4836", title: "safe working on or near low-voltage installations"}
+    - {text: "IEC 60204-1", title: "electrical equipment of machines — general requirements"}
+    - {text: "WHS Reg r.62", title: "duty in relation to plant with energy sources"}
+
+  CONTAINMENT-OF-HYDROCARBONS:
+    - {text: "API 682", title: "pumps — shaft sealing systems for centrifugal and rotary pumps"}
+    - {text: "AS 1210", title: "pressure vessels"}
+    - {text: "AS 2885.3", title: "pipelines — operation and maintenance"}
+    - {text: "AS 1940", title: "storage and handling of flammable and combustible liquids"}
+
+  CONTROL-OF-IGNITION-SOURCES:
+    - {text: "AS/NZS 60079.14", title: "explosive atmospheres — electrical installations design and selection"}
+    - {text: "AS 1674.2", title: "safety in welding and allied processes — electrical"}
+    - {text: "NFPA 51", title: "design and installation of oxygen-fuel gas systems"}
+    - {text: "WHS Reg r.51", title: "management of risk of hazardous atmosphere and ignition source"}
+
+  WORKING-AT-HEIGHT:
+    - {text: "AS/NZS 1891.4", title: "industrial fall-arrest systems — selection, use and maintenance"}
+    - {text: "AS/NZS 1576.1", title: "scaffolding — general requirements"}
+    - {text: "WHS Reg r.78", title: "management of risk of fall"}
+
+  LIFTING-AND-SUSPENDED-LOADS:
+    - {text: "AS 2550.1", title: "cranes, hoists and winches — safe use"}
+    - {text: "AS 1418.1", title: "cranes, hoists and winches — general requirements"}
+    - {text: "AS 4991", title: "lifting devices"}
+    - {text: "WHS Reg r.216", title: "duty in relation to registered plant"}
+
+  MOBILE-EQUIPMENT-INTERACTION:
+    - {text: "AS 2958.1", title: "earth-moving machinery — safety of operation"}
+    - {text: "ISO 21815-1", title: "earth-moving machinery — collision awareness and avoidance"}
+    - {text: "WHS Reg r.214", title: "powered mobile plant — control of risk"}
+
+  CONFINED-SPACE-ENTRY:
+    - {text: "AS 2865", title: "confined spaces"}
+    - {text: "WHS Reg r.66", title: "confined space entry permit"}
+    - {text: "AS/NZS 1715", title: "selection, use and maintenance of respiratory protective equipment"}
+
+  GROUND-AND-STRATA-CONTROL:
+    - {text: "AS 3798", title: "guidelines on earthworks for commercial and residential developments"}
+    - {text: "MSHR reg 100", title: "principal hazard management plan — ground or strata failure"}
+    - {text: "WHS Reg r.305", title: "excavation work — risk control"}
+
+  TAILINGS-AND-WATER-IMPOUNDMENT:
+    - {text: "ICMM 2020", title: "global industry standard on tailings management"}
+    - {text: "MSHR reg 104", title: "principal hazard management plan — inundation"}
+
+  ELECTRICAL-SAFETY:
+    - {text: "AS/NZS 3000", title: "electrical installations — wiring rules"}
+    - {text: "AS 2067", title: "substations and high voltage installations exceeding 1 kV a.c."}
+    - {text: "AS/NZS 4836", title: "safe working on or near low-voltage installations"}
+    - {text: "AS/NZS 3012", title: "electrical installations — construction and demolition sites"}
+
+  HAZARDOUS-SUBSTANCE-EXPOSURE:
+    - {text: "AS/NZS 1715", title: "selection, use and maintenance of respiratory protective equipment"}
+    - {text: "AS/NZS 1716", title: "respiratory protective devices"}
+    - {text: "WHS Reg r.50", title: "duty to ensure exposure standard is not exceeded"}
+    - {text: "AS 4775", title: "emergency eyewash and shower equipment"}
+
+  MOLTEN-AND-HOT-MATERIAL:
+    - {text: "AS 1674.1", title: "safety in welding and allied processes — fire precautions"}
+    - {text: "AS 4343", title: "pressure equipment — hazard levels"}
+
+  PRESSURE-SYSTEM-INTEGRITY:
+    - {text: "AS 3788", title: "pressure equipment — in-service inspection"}
+    - {text: "AS 1210", title: "pressure vessels"}
+    - {text: "AS 4343", title: "pressure equipment — hazard levels"}
+    - {text: "API 521", title: "pressure-relieving and depressuring systems"}
+
+  LAND-TRANSPORT:
+    - {text: "AS 2809.1", title: "road tank vehicles for dangerous goods — general requirements"}
+    - {text: "AS/NZS 4360", title: "risk management applied to transport operations"}
+    - {text: "WHS Reg r.213", title: "powered mobile plant — general control of risk"}
+
+  FIRE-AND-EMERGENCY-RESPONSE:
+    - {text: "AS 1851", title: "routine service of fire protection systems and equipment"}
+    - {text: "AS 2419.1", title: "fire hydrant installations — system design and installation"}
+    - {text: "NFPA 15", title: "water spray fixed systems for fire protection"}
+    - {text: "AS 3745", title: "planning for emergencies in facilities"}
+
+  EXPLOSIVES-AND-BLASTING:
+    - {text: "AS 2187.2", title: "explosives — use of explosives"}
+    - {text: "AS 2187.1", title: "explosives — storage and transport"}
+    - {text: "MSHR reg 102", title: "principal hazard management plan — explosives"}

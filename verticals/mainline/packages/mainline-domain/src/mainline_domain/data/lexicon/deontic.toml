@@ -1,0 +1,135 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+#
+# CATSEAL controlled deontic lexicon (worker W3).
+#
+# The taxonomy is the standard legal-NLP one -- OBLIGATION / PROHIBITION /
+# PERMISSION / RECOMMENDATION -- as used in deontic-modality classification.
+# The labels below are what fills CAT.deontic and what DELTALATTICE rule R1
+# orders:  MUST > SHOULD > MAY > ABSENT, moving right is a weakening.
+#
+# MATCHING RULES, normative because a cat_key depends on them:
+#
+#   * Matching runs over `canon_text`, case-insensitively, on word boundaries.
+#   * LONGEST CUE WINS at a position.  "shall not" must beat "shall", or every
+#     prohibition in the corpus silently becomes an obligation -- which is the
+#     single worst failure this file can have, because it inverts the control.
+#   * The deontic of record is taken from the MATRIX span of the clause (the
+#     part outside any leading subordinate clause).  A cue that occurs only
+#     inside a condition or exception is not the clause's deontic; if that is
+#     the only cue present, the extraction is marked confidence='low'.
+#
+# WHAT IS DELIBERATELY NOT HERE: hedges.  Australian WHS phrasing such as
+# "so far as is reasonably practicable" reads like a modality and is not one --
+# it qualifies an obligation rather than establishing it.  Hedges live in
+# hedge.toml and are extracted into CAT.exceptions[], where DELTALATTICE rule R4
+# can see one ENTERING a clause.  Treating a hedge as a deontic would let the
+# most common real-world weakening in the corpus disappear into a slot the
+# lattice does not diff for entry.
+
+[deontic]
+version = 1
+
+# Cue phrases per label.  Written lower-case; matching folds case.
+[deontic.cues]
+MUST_NOT = [
+  "shall not",
+  "shall never",
+  "shall at no time",
+  "must not",
+  "must never",
+  "may not",
+  "is not to",
+  "are not to",
+  "is not permitted to",
+  "are not permitted to",
+  "is prohibited from",
+  "are prohibited from",
+  "is prohibited",
+  "are prohibited",
+  "is forbidden",
+  "are forbidden",
+  "under no circumstances",
+  "at no time",
+  "no person shall",
+  "no person may",
+  "nobody shall",
+]
+
+MUST = [
+  "shall",
+  "must",
+  "is to",
+  "are to",
+  "is required to",
+  "are required to",
+  "is required",
+  "are required",
+  "is to be",
+  "are to be",
+  "has a duty to",
+  "have a duty to",
+  "is responsible for",
+  "are responsible for",
+  "it is mandatory",
+  "mandatory",
+  "is obliged to",
+  "are obliged to",
+]
+
+SHOULD_NOT = [
+  "should not",
+  "should never",
+  "ought not to",
+  "ought not",
+  "is not recommended",
+  "are not recommended",
+  "is discouraged",
+  "are discouraged",
+]
+
+SHOULD = [
+  "should",
+  "ought to",
+  "is expected to",
+  "are expected to",
+  "is recommended to",
+  "are recommended to",
+  "it is recommended",
+  "is recommended",
+  "are recommended",
+  "is advisable",
+  "is encouraged to",
+  "are encouraged to",
+  "best practice is to",
+]
+
+MAY = [
+  "may",
+  "can",
+  "is permitted to",
+  "are permitted to",
+  "is allowed to",
+  "are allowed to",
+  "is authorised to",
+  "are authorised to",
+  "at the option of",
+  "is optional",
+  "optionally",
+]
+
+# Label -> taxonomy class.  ABSENT is the fifth state and is not a cue: it is
+# what a clause that asserts no modality gets, and R1 treats it as the weakest.
+[deontic.taxonomy]
+MUST = "OBLIGATION"
+MUST_NOT = "PROHIBITION"
+SHOULD = "RECOMMENDATION"
+SHOULD_NOT = "RECOMMENDATION"
+MAY = "PERMISSION"
+ABSENT = "NONE"
+
+# Cues that mean "the obligation is stated in the passive voice", so the actor
+# is upstream of the cue rather than immediately before it.  Used only to stop
+# the actor heuristic from grabbing the wrong noun phrase; never a deontic.
+[deontic.passive]
+markers = ["is to be", "are to be", "shall be", "must be", "should be", "may be", "shall not be", "must not be"]

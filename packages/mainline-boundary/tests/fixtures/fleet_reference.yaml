@@ -1,0 +1,136 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# A REFERENCE fleet register, not the shipped one.
+#
+# `spec/agents/fleet.yaml` is owned by the agent-contracts-red worker. Until it
+# lands, the capability-matrix checker in mainline_boundary.fleet has nothing to
+# run against, and a checker that has never run against anything is a checker
+# nobody has seen work. This file is that something: nine agents transcribed from
+# ARCHITECTURE.md §8.4 plus the kernel row from §8.2's tier table.
+#
+# tests/boundary/test_fleet_matrix.py prefers the real register whenever it
+# exists and falls back to this one, so the day `spec/agents/fleet.yaml` appears
+# the suite starts asserting over the real thing with no edit.
+#
+# Two transcription notes:
+#  * §8.4 lists tools for the Archivist and the Recall agent (`bedrock`,
+#    `textract`, MCP `select_query`). The shipped register declares an EMPTY tools
+#    list for every T1/T2 Cognition agent, because decision A1 moved the model
+#    call to `quarantined_call()`, which has no `tools` parameter at all. The
+#    capability the agent does not hold is not a capability it declares.
+#  * The Archivist and the Recall agent are "T1+T2" in §8.4. The register carries
+#    the higher-capability tier, T1, because the matrix asks what an agent MAY do.
+---
+version: 1
+source: "ARCHITECTURE.md §8.2 tier table, §8.4 fleet table"
+
+agents:
+  archivist:
+    tier: T1
+    sql_role: [agent_ingestor]
+    iam_role: ingest_fn
+    tools: []
+    may_write_gate_field: false
+    call_profiles: [triage-extract-low, appraise-narrate-high]
+    decision_it_does_not_make: >-
+      Severity. It comes from a coded field, a regulator classification, or a
+      signed human. A model-rated severity never arms the gate.
+
+  cartographer:
+    tier: T1
+    sql_role: [agent_cartographer]
+    iam_role: cartographer_fn
+    tools: []
+    may_write_gate_field: false
+    call_profiles: [identity-adjudication-high]
+    decision_it_does_not_make: >-
+      S1-S5 of the cascade - canon_sha256, MinHash/LSH banding, deterministic
+      fuzzy, prefix-constrained ANN, constrained bipartite assignment - are pure
+      code.
+
+  projector:
+    tier: T0
+    sql_role: [agent_projector]
+    iam_role: projector_fn
+    tools: []
+    may_write_gate_field: false
+    no_model: true
+    decision_it_does_not_make: >-
+      Everything. It computes a closure; it cannot band severity by hand.
+
+  recall:
+    tier: T1
+    sql_role: [agent_recaller]
+    iam_role: recall_task
+    tools: []
+    may_write_gate_field: false
+    call_profiles: [recall-rerank-xhigh, recall-nli-high]
+    decision_it_does_not_make: >-
+      Admission, and it cannot write blocking_check.
+
+  disposition_assistant:
+    tier: T2
+    sql_role: []
+    iam_role: ""
+    tools: []
+    may_write_gate_field: false
+    call_profiles: [disposition-display-t2]
+    decision_it_does_not_make: >-
+      Everything. It may summarise the precursor and render the generated
+      defeater vocabulary. It may not draft rationale, suggest a defeater_code,
+      or pre-fill a field.
+
+  fixity_patrol:
+    tier: T1
+    sql_role: [agent_patroller]
+    iam_role: patrol_fn
+    tools: []
+    may_write_gate_field: false
+    call_profiles: [fixity-triage-low]
+    decision_it_does_not_make: >-
+      weaken - the lattice compare decides, and abstain implies weaken.
+
+  cherry_pick:
+    tier: T1
+    sql_role: [agent_fleet]
+    iam_role: adopter_fn
+    tools: []
+    may_write_gate_field: false
+    call_profiles: [conflict-narration-high]
+    decision_it_does_not_make: >-
+      Applicability. Recorded resolutions are proposed, never auto-applied.
+
+  steward:
+    tier: T1
+    plane: control
+    sql_role: [mainline_auditor]
+    iam_role: steward_task
+    tools: [ccloud, "mcp:read", "mcp:insert_rows"]
+    may_write_gate_field: false
+    call_profiles: [steward-ops-high]
+    decision_it_does_not_make: >-
+      Anything that mutates mainline or mainline_meas.
+
+  auditor:
+    tier: T2
+    plane: control
+    sql_role: [mainline_auditor]
+    iam_role: auditor_ro
+    tools: ["mcp:read"]
+    may_write_gate_field: false
+    call_profiles: [auditor-narrate-high]
+    decision_it_does_not_make: >-
+      Anything - the role holds no INSERT except external_attestation.
+
+  kernel:
+    tier: T0
+    plane: kernel
+    sql_role: [agent_gate, svc_disposition]
+    iam_role: kernel_task
+    tools: []
+    may_write_gate_field: true
+    no_model: true
+    decision_it_does_not_make: >-
+      Nothing is delegated. It is the only tier that may write a gate-visible
+      field, and it holds no model to help it.

@@ -1,0 +1,166 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+#
+# CATSEAL parameter-key lexicon (worker W3): surface phrase -> parameter_key.
+#
+# WHAT THIS FILE IS NOT.  It is not the safe_direction registry.  It says
+# nothing about which way a setpoint move is dangerous.  That judgement lives in
+# DIRECTRIX (worker W2), stored as clauses in the gated commit DAG under doc_code
+# REG-SAFE-DIRECTION, so that editing it is itself a gated change -- the gate's
+# parameter table is gated by the gate.  A direction column here would escape
+# that gate completely, which is why there is none.
+#
+# WHAT IT IS.  The name-resolution half: given the words a clause actually uses
+# ("maximum working pressure", "MAWP", "pressure rating"), which registry key is
+# being talked about.  The key is what lands in CAT.parameter and therefore in
+# the cat_key preimage.
+#
+# THE KEY SPACE IS SHARED WITH W2 AND MUST NOT DRIFT.  Every key on the left is
+# a key DIRECTRIX is expected to carry.  A key here that DIRECTRIX has never
+# ratified is not an error and is not silently dropped: the lookup returns
+# ABSTAIN, decision D6 maps ABSTAIN to `weaken`, and the way to stop the
+# nuisance block is to ratify the parameter with a signed commit.  Under-coverage
+# therefore fails CLOSED and carries its own adoption ratchet.  Never "fix" a
+# nuisance block by deleting a key from this file.
+#
+# UNRECOGNISED PARAMETERS.  A clause with a setpoint whose parameter phrase
+# matches nothing here yields CAT.parameter = '' and confidence='low'.  It does
+# NOT invent a key from the surface text: an invented key would look ratified-
+# but-unknown to DIRECTRIX and would be indistinguishable from a typo forever.
+
+[parameters]
+version = 1
+
+# Longest surface phrase wins.  Matching is case-insensitive over canon_text.
+[parameters.synonyms]
+max_operating_pressure = [
+  "maximum operating pressure", "max operating pressure", "maximum working pressure",
+  "max working pressure", "maximum allowable working pressure", "mawp",
+  "maximum design pressure", "design pressure", "pressure rating", "maximum pressure",
+  "operating pressure limit", "pressure limit",
+]
+min_operating_pressure = ["minimum operating pressure", "min operating pressure", "minimum working pressure"]
+relief_valve_set_pressure = [
+  "relief valve set pressure", "psv set pressure", "set pressure", "relief setting",
+  "safety valve setting", "popping pressure", "burst pressure",
+]
+test_pressure = ["test pressure", "hydrostatic test pressure", "pneumatic test pressure", "proof test pressure"]
+max_operating_temperature = [
+  "maximum operating temperature", "max operating temperature", "maximum temperature",
+  "maximum design temperature", "temperature limit", "maximum surface temperature",
+]
+min_operating_temperature = ["minimum operating temperature", "min operating temperature", "minimum temperature"]
+
+lel_test_threshold = [
+  "lel", "lower explosive limit", "lel threshold", "lel test threshold",
+  "flammable gas concentration", "combustible gas concentration", "explosimeter reading",
+]
+uel_threshold = ["uel", "upper explosive limit"]
+oxygen_concentration = [
+  "oxygen concentration", "oxygen level", "oxygen content", "o2 concentration",
+  "o2 level", "oxygen percentage", "oxygen in air",
+]
+carbon_monoxide_concentration = ["carbon monoxide concentration", "co concentration", "co level", "carbon monoxide level"]
+hydrogen_sulphide_concentration = [
+  "hydrogen sulphide concentration", "hydrogen sulfide concentration",
+  "h2s concentration", "h2s level",
+]
+methane_concentration = ["methane concentration", "methane level", "ch4 concentration", "general body methane"]
+respirable_dust_concentration = ["respirable dust concentration", "respirable dust level", "dust concentration", "dust level"]
+silica_exposure_limit = ["respirable crystalline silica", "silica exposure limit", "rcs limit"]
+exposure_standard = ["exposure standard", "workplace exposure standard", "twa exposure", "8-hour twa", "stel"]
+
+min_ppe_level = [
+  "minimum ppe", "minimum ppe level", "ppe level", "minimum personal protective equipment",
+  "ppe requirement", "minimum protection level", "respiratory protection factor",
+]
+min_isolation_points = [
+  "isolation point count", "number of isolation points", "minimum isolation points",
+  "isolation points required", "points of isolation",
+]
+min_ground_support_density = [
+  "ground support density", "bolt spacing", "rock bolt spacing", "mesh coverage",
+  "support pattern", "bolt pattern",
+]
+min_ventilation_rate = [
+  "ventilation rate", "air quantity", "airflow", "air flow", "minimum air velocity",
+  "air velocity", "ventilation quantity", "minimum airflow",
+]
+min_barricade_distance = [
+  "barricade distance", "exclusion zone", "exclusion zone radius", "clearance distance",
+  "standoff distance", "safe distance", "blast exclusion radius",
+]
+min_edge_setback = ["edge setback", "setback distance", "windrow height", "berm height", "edge protection height"]
+max_working_at_height = ["working at height threshold", "fall height", "height threshold", "fall arrest threshold"]
+max_load_rating = ["safe working load", "swl", "working load limit", "wll", "rated capacity", "load rating"]
+max_speed_limit = ["speed limit", "maximum speed", "site speed limit", "haul road speed"]
+max_noise_exposure = ["noise exposure", "noise exposure level", "daily noise dose", "leq", "peak noise level"]
+max_radiation_dose = ["radiation dose", "dose limit", "annual dose", "dose rate"]
+
+test_interval = [
+  "test interval", "testing interval", "test frequency", "testing frequency",
+  "interval between tests", "proof test interval", "functional test interval",
+]
+inspection_interval = [
+  "inspection interval", "inspection frequency", "interval between inspections",
+  "periodic inspection interval", "statutory inspection interval",
+]
+gas_test_interval = [
+  "gas test interval", "gas testing frequency", "atmospheric test interval",
+  "atmospheric monitoring interval", "gas test frequency", "monitoring interval",
+]
+calibration_interval = ["calibration interval", "calibration frequency", "interval between calibrations", "recalibration interval"]
+maintenance_interval = ["maintenance interval", "service interval", "servicing frequency", "planned maintenance interval"]
+permit_validity_period = ["permit validity", "permit validity period", "permit duration", "validity of the permit"]
+competency_refresh_interval = [
+  "refresher interval", "competency refresh interval", "retraining interval",
+  "reassessment interval", "revalidation period",
+]
+risk_assessment_review_interval = [
+  "review interval", "risk assessment review interval", "review frequency",
+  "reassessment frequency", "procedure review interval",
+]
+isolation_verification_interval = ["isolation verification interval", "isolation check frequency", "re-verification interval"]
+
+min_supervisor_ratio = ["supervision ratio", "supervisor ratio", "span of control", "supervisor to worker ratio"]
+min_competency_level = ["competency level", "minimum competency", "required competency", "authorisation level"]
+min_crew_size = ["crew size", "minimum crew", "minimum number of persons", "two-person rule", "standby person"]
+max_shift_length = ["shift length", "maximum shift length", "maximum hours", "consecutive hours", "fatigue limit"]
+min_rest_period = ["rest period", "minimum rest", "break between shifts", "minimum break"]
+
+max_tailings_freeboard_deficit = ["freeboard", "minimum freeboard", "beach width", "pond level"]
+min_slope_batter_angle = ["batter angle", "slope angle", "bench face angle", "wall angle"]
+max_water_inflow = ["water inflow", "inflow rate", "seepage rate", "pumping capacity"]
+min_escapeway_width = ["escapeway width", "egress width", "travel way width", "second egress"]
+max_travel_distance_to_refuge = ["travel distance to refuge", "distance to refuge chamber", "escape distance"]
+min_refuge_capacity = ["refuge chamber capacity", "refuge capacity", "chamber duration", "refuge duration"]
+min_fire_suppression_capacity = ["fire suppression capacity", "extinguisher rating", "suppression agent quantity"]
+max_explosive_quantity = ["explosive quantity", "maximum explosive charge", "charge weight", "magazine quantity"]
+min_stemming_length = ["stemming length", "stemming height", "collar length"]
+max_misfire_wait_time = ["misfire wait time", "re-entry time", "waiting period after blast", "re-entry period"]
+min_earth_resistance = ["earth resistance", "earthing resistance", "ground resistance"]
+max_arc_flash_energy = ["incident energy", "arc flash energy", "arc rating", "cal/cm2 rating"]
+min_approach_distance = ["approach distance", "minimum approach distance", "mad", "safe approach distance", "live work distance"]
+max_voltage_for_live_work = ["voltage for live work", "live work voltage limit", "maximum live working voltage"]
+min_guard_rating = ["guard rating", "guard strength", "interlock rating", "guard interlock"]
+max_vibration_exposure = ["vibration exposure", "hand-arm vibration", "whole body vibration", "vibration dose"]
+min_lighting_level = ["lighting level", "illuminance level", "minimum lighting", "lux level"]
+min_water_quality = ["potable water quality", "water quality standard", "drinking water standard"]
+max_slurry_density = ["slurry density", "pulp density", "solids concentration"]
+min_pipe_wall_thickness = ["wall thickness", "minimum wall thickness", "retirement thickness", "corrosion allowance"]
+
+# Parameter phrases that are DELIBERATELY not mapped, because the word is a
+# hazard cue rather than a controlled parameter and mapping it would attach a
+# setpoint to the wrong key.  Listed so the omission is visible and stays a
+# decision rather than becoming a gap.
+[parameters.deliberately_unmapped]
+phrases = [
+  "pressure", "temperature", "level", "flow", "concentration", "distance",
+  "height", "time", "frequency",
+  # Direction-ambiguous on their own: "operating pressure" says nothing about
+  # whether the safe move is up or down, so mapping it to max_operating_pressure
+  # would smuggle a direction in through the name-resolution table and past the
+  # gate that governs DIRECTRIX.  A clause using only this phrasing extracts
+  # parameter='' and confidence='low', which blocks rather than guesses.
+  "operating pressure", "working pressure", "design limit",
+]

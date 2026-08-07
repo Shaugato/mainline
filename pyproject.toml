@@ -1,0 +1,72 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# THE WORKSPACE ROOT. Deliberately a *virtual* workspace: there is no `[project]`
+# table here, so nothing named "mainline" is ever built, published or importable.
+# The repository is a set of independently-licensed distributions
+# (Apache-2.0 under `packages/`, FSL-1.1-ALv2 under `verticals/`) that share
+# exactly one resolution — `uv.lock` — and nothing else.
+#
+# One lockfile is a plan invariant, not a preference. PL-1 says every milestone's
+# proof must run on a stranger's machine with no credential of ours; a stranger
+# who resolves a different dependency graph than CI did has not reproduced
+# anything. `uv lock --check` in ci.yml is what makes that sentence true.
+
+[tool.uv.workspace]
+# Every distribution in the repository is a member. The globs are stable and
+# additive: a new package appears in the workspace the moment its
+# `pyproject.toml` lands, with no edit here.
+#
+# `verticals/*/apps/*` is deliberately ABSENT. The console is a pnpm workspace
+# with its own lockfile; mixing a TypeScript SPA into the Python resolution
+# would make `uv.lock` depend on a toolchain that has nothing to do with it.
+members = [
+    "packages/*",
+    "verticals/*/packages/*",
+]
+exclude = [
+    "**/node_modules",
+]
+
+[tool.uv]
+# The substrate must build from source on a machine that has never seen a wheel
+# we published. No index overrides, no find-links, no private index.
+required-version = ">=0.5.0"
+
+[dependency-groups]
+# Workspace-wide developer tooling. These are the tools CI runs, pinned by lower
+# bound here and by exact resolution in `uv.lock`, so `just lint` on a laptop and
+# `ci.yml` on a runner disagree only when someone edits the lockfile.
+dev = [
+    "pytest>=8.2",
+    "pytest-timeout>=2.3",
+    "hypothesis>=6.100",
+    "ruff>=0.6",
+    "mypy>=1.11",
+    "import-linter>=2.1",
+]
+
+[tool.pytest.ini_options]
+minversion = "8.2"
+# Only the trees that exist as test roots today. Each domain's tests are added by
+# the worker that owns them; a missing path here is a visible omission rather
+# than a silent one, because `--strict-markers` makes an unregistered marker fail.
+testpaths = ["tests", "packages"]
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "-ra",
+]
+markers = [
+    "requires_cluster: needs a live CockroachDB; skips with a reason when TRAPPOINT_DSN is unset",
+    "requires_aws: needs live AWS credentials; skips with a reason (PL-3: not on a dated path)",
+    "g4alpha: the recall domain's G4-alpha gate; observed RED by design until K4",
+    "slow: takes more than a second",
+]
+# A test that hangs is a test that has stopped asserting. The 12-minute CI budget
+# is a wall-clock budget for the whole job, so no single test may own it.
+timeout = 120
+filterwarnings = [
+    "error",
+    "default::DeprecationWarning",
+]

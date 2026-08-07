@@ -1,0 +1,89 @@
+/*
+ * SPDX-FileCopyrightText: 2026 MAINLINE contributors
+ * SPDX-License-Identifier: FSL-1.1-ALv2
+ *
+ * The honesty chrome (D16). EVIDENCE register: mono, no motion, no depth, one accent.
+ * Nothing here moves, so a screenshot of it is a complete rendering of it.
+ */
+
+.chrome {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--tp-bg-sunken);
+  border-bottom: 1px solid var(--tp-rule-strong);
+  padding: var(--tp-space-2) var(--tp-space-3);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tp-space-1) var(--tp-space-4);
+  align-items: baseline;
+}
+
+.cell {
+  display: flex;
+  align-items: baseline;
+  gap: var(--tp-space-2);
+  min-width: 0;
+}
+
+.label {
+  color: var(--tp-ink-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 11px;
+}
+
+.value {
+  color: var(--tp-ink);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+/*
+ * The provenance marker (D5). Every number on this strip says how the console came to
+ * believe it. `unset` is the loudest, because an unfilled slot is the one state a
+ * reader must never mistake for a checked one.
+ */
+.provenance {
+  color: var(--tp-ink-faint);
+  border: 1px solid var(--tp-rule);
+  padding: 0 4px;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.cell[data-provenance='unset'] .provenance {
+  color: var(--tp-warn);
+  border-color: var(--tp-warn);
+}
+
+.cell[data-tone='warn'] .value {
+  color: var(--tp-warn);
+}
+
+.cell[data-tone='refuse'] .value {
+  color: var(--tp-refuse);
+  font-weight: 600;
+}
+
+.cell[data-tone='ok'] .value {
+  color: var(--tp-ok);
+}
+
+.detail {
+  margin: var(--tp-space-2) 0 0;
+  color: var(--tp-ink-dim);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+@media print {
+  .chrome {
+    position: static;
+    border-bottom: 1px solid #000;
+  }
+}

@@ -1,0 +1,267 @@
+/*
+ * SPDX-FileCopyrightText: 2026 MAINLINE contributors
+ * SPDX-License-Identifier: FSL-1.1-ALv2
+ *
+ * The shell, the failure states and the NOT-BUILT-YET card. EVIDENCE register
+ * throughout: no motion, no depth, no gradient, one severity accent over the neutral
+ * ramp. Every state on this sheet is fully described by a screenshot of it.
+ */
+
+.shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--tp-bg);
+}
+
+.body {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  align-items: stretch;
+}
+
+/* ── Navigation ─────────────────────────────────────────────────────────── */
+
+.nav {
+  flex: 0 0 auto;
+  width: 15rem;
+  border-right: 1px solid var(--tp-rule);
+  padding: var(--tp-space-4) 0;
+}
+
+.navList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.navLink {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--tp-space-2);
+  padding: var(--tp-space-2) var(--tp-space-3);
+  color: var(--tp-ink-dim);
+  text-decoration: none;
+  border-left: 2px solid transparent;
+}
+
+.navLink:hover,
+.navLink:focus-visible {
+  color: var(--tp-ink);
+  background: var(--tp-bg-raised);
+}
+
+.navLink[aria-current='page'] {
+  color: var(--tp-ink);
+  border-left-color: var(--tp-refuse);
+  background: var(--tp-bg-raised);
+}
+
+/* A surface that is not built says so in the navigation, before the click is spent. */
+.navLink[data-status='declared-missing'] .navTitle {
+  color: var(--tp-ink-faint);
+  text-decoration: line-through;
+  text-decoration-color: var(--tp-rule-strong);
+}
+
+.navTitle {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.navPending {
+  flex: 0 0 auto;
+  color: var(--tp-warn);
+  border: 1px solid var(--tp-warn);
+  padding: 0 4px;
+  font-size: 10px;
+}
+
+/* ── Main ───────────────────────────────────────────────────────────────── */
+
+.main {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: var(--tp-space-5) var(--tp-space-4);
+}
+
+.main:focus {
+  outline: none;
+}
+
+.surface {
+  min-width: 0;
+}
+
+.loading {
+  color: var(--tp-ink-dim);
+}
+
+/* ── Failure states ─────────────────────────────────────────────────────── */
+
+.failure {
+  max-width: 80ch;
+  border: 1px solid var(--tp-refuse);
+  border-left-width: 3px;
+  padding: var(--tp-space-4);
+  background: var(--tp-bg-raised);
+}
+
+.failureTitle {
+  margin: 0 0 var(--tp-space-3);
+  font-size: var(--tp-step-2);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.sqlstate {
+  color: var(--tp-refuse);
+  font-variant-numeric: tabular-nums;
+}
+
+.constraint {
+  color: var(--tp-refuse-ink);
+}
+
+/*
+ * Anything the database emitted is rendered verbatim, in mono, wrapping but never
+ * truncated (D18 / I14). A refusal the console shortened is a different refusal.
+ */
+.verbatim {
+  margin: 0 0 var(--tp-space-3);
+  padding: var(--tp-space-3);
+  background: var(--tp-bg-sunken);
+  border: 1px solid var(--tp-rule);
+  color: var(--tp-ink);
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step-0);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  overflow-x: auto;
+}
+
+.failureMeta,
+.notBuiltMeta {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--tp-space-1) var(--tp-space-3);
+  margin: 0;
+}
+
+.failureMeta dt,
+.notBuiltMeta dt {
+  color: var(--tp-ink-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 11px;
+}
+
+.failureMeta dd,
+.notBuiltMeta dd {
+  margin: 0;
+  color: var(--tp-ink);
+  overflow-wrap: anywhere;
+}
+
+.details {
+  margin-bottom: var(--tp-space-3);
+  color: var(--tp-ink-dim);
+}
+
+.details summary {
+  cursor: pointer;
+  color: var(--tp-ink-dim);
+}
+
+.failureNote {
+  margin: var(--tp-space-3) 0 0;
+  color: var(--tp-ink-dim);
+}
+
+.plainList {
+  margin: var(--tp-space-2) 0 0;
+  padding-left: var(--tp-space-4);
+  color: var(--tp-ink-dim);
+}
+
+/* ── NOT BUILT YET ──────────────────────────────────────────────────────── */
+
+.notBuilt {
+  max-width: 80ch;
+  border: 1px dashed var(--tp-rule-strong);
+  padding: var(--tp-space-4);
+  background: var(--tp-bg-raised);
+}
+
+.notBuiltBadge {
+  margin: 0 0 var(--tp-space-3);
+  display: inline-block;
+  border: 1px solid var(--tp-warn);
+  color: var(--tp-warn);
+  padding: 2px 6px;
+  letter-spacing: 0.12em;
+  font-size: 11px;
+}
+
+.notBuiltTitle {
+  margin: 0 0 var(--tp-space-4);
+  font-size: var(--tp-step-2);
+  font-weight: 600;
+}
+
+.notBuiltSubhead {
+  margin: var(--tp-space-4) 0 var(--tp-space-2);
+  font-size: var(--tp-step-1);
+  font-weight: 600;
+  color: var(--tp-ink);
+}
+
+.notBuiltPromise {
+  margin: 0;
+  color: var(--tp-ink-dim);
+}
+
+.notBuiltNote {
+  margin: var(--tp-space-4) 0 0;
+  padding-top: var(--tp-space-3);
+  border-top: 1px solid var(--tp-rule);
+  color: var(--tp-ink-faint);
+}
+
+/* ── Narrow viewport: the navigation goes above, nothing is hidden ──────── */
+
+@media (max-width: 46rem) {
+  .body {
+    flex-direction: column;
+  }
+
+  .nav {
+    width: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--tp-rule);
+    padding: var(--tp-space-2) 0;
+  }
+
+  .navList {
+    display: flex;
+    flex-wrap: wrap;
+  }
+}
+
+@media print {
+  .nav {
+    display: none;
+  }
+
+  .main {
+    padding: 0;
+  }
+
+  .failure,
+  .notBuilt {
+    border-color: #000;
+    background: #fff;
+  }
+}

@@ -1,0 +1,288 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
+#
+# Novelty fragment per docs/leads/algorithms.md §6.  Validated by
+# tests/unit/domain/novelty/test_novelty_manifest.py (worker W10) and consumed
+# by MECHANISMS.md generation.  Anything not yet proven belongs under
+# `unverified:` and NEVER inside `claim:`.
+
+slug: minhash-band
+name: MINHASH-BAND
+mechanism: M1
+claim: >-
+  The lexical stage of clause identity is a MinHash/LSH banding scheme whose permutation table is
+  a COMMITTED, SELF-VERIFYING ARTEFACT rather than a seeded runtime value: 128 affine permutations
+  over GF(2**61-1), derived by a published blake2b recipe, carrying a digest over their own
+  canonical rendering, and REFUSED AT LOAD by MinHashTableError if either the digest or the
+  re-derivation disagrees.  A signature is therefore reproducible byte-for-byte in any process,
+  any interpreter version and any fresh environment years later -- which is asserted by running
+  the computation in a second interpreter with a different PYTHONHASHSEED, not by inspection.
+  Candidate generation against mainline.clause_band is sixteen primary-key point lookups, and the
+  cost claim that follows is MEASURED rather than argued: over a corpus doubling four times, the
+  number of pairs the stage must rescore grows 1.6x for an 8x corpus, and work per clause falls
+  at every doubling.  The banding's own recall curve is measured against exhaustively-computed
+  Jaccard on a seeded labelled corpus and matched to the analytic S-curve at the knee the
+  parameters actually put it at, 0.7071, rather than at a rounded one.  And because banding is
+  lossy by design, an ancestor the caller declared it must account for and which shared no band
+  is recorded BY NAME as a band_miss at the moment it is missed, so a recall failure is a row
+  rather than an absence.
+
+enforcement:
+  refuses:
+    - "MinHashTableError: an altered or non-re-derivable permutation table (application)"
+    - "MissingAnchorSet: an S4 candidate whose anchor set cannot be resolved (application)"
+    - "ValueError: an ANN arm whose activity_root is not a specific value (application)"
+  refusal_depth: 0
+# Stated at ZERO, deliberately, and it is the honest number.  This package
+# contains no DDL, writes no residue row and gates no state transition.  It
+# produces candidates and recorded refusals; the assignment worker (W8) decides
+# what becomes `identity_residue`, and the constraint that stops a merge
+# (`identity_conserved_when_issued`, 23514) is already claimed at depth 1 by
+# ANCHORLOCK and at depth 2 by the CBM ledger.  Claiming it a third time here
+# would be counting one refusal three times, which is exactly the inflation the
+# `refusal_depth` field exists to make visible.  The three entries above are
+# real refusals and they are labelled `(application)` so that nobody reads them
+# as database enforcement: they stop a RUN, not a MERGE.
+
+position: re-parameterisation
+# The algorithm is textbook and this manifest does not pretend otherwise.
+# Min-wise independent permutations are Broder 1997; banding b x r with the
+# S-curve at (1/b)^(1/r) is the standard treatment in Mining of Massive
+# Datasets; 5-gram shingles, 128 permutations and a band table joined by
+# equality are published practice, and `datasketch` implements all of it with
+# more machinery than this package has.  The parameters here (16 x 8, 5-gram
+# character shingles, blake2b-64 base hash) are a re-parameterisation of that
+# work for one corpus, and they are labelled as such here and in MECHANISMS.md.
+#
+# Three choices around the algorithm are not standard practice, and they are
+# small.  They are stated at their real size rather than dressed up:
+#
+#   (a) THE PERMUTATION TABLE IS EVIDENCE.  Every implementation surveyed seeds
+#       its permutations from an RNG whose seed is a constructor argument or a
+#       library default.  That is fine when the output is a recommendation and
+#       fatal when the output is which ancestor clause a fatality's obligation
+#       was compared against.  Here the coefficients are a file in the
+#       repository with a declared minhash_version, a digest over their own
+#       canonical rendering, and a derivation recipe printed inside the file;
+#       load_params(verify=True) re-runs the recipe and REFUSES the file if it
+#       disagrees.  Changing a permutation is a migration -- it changes every
+#       band_hash in mainline.clause_band -- and the file says so.
+#
+#   (b) A MISS IS A NAMED ROW, NOT AN ABSENCE.  Banding is probabilistic: a
+#       pair at Jaccard 0.5 shares a band about 0.6 % of the time.  Every
+#       system surveyed treats that as an accepted recall loss and reports
+#       aggregate recall.  Here the stage takes the set of ancestors the caller
+#       must account for and emits a `band_miss` naming each one it failed to
+#       surface, at the moment of the failure.  The stage's recall loss is
+#       therefore enumerable per obligation rather than estimable per corpus,
+#       which is what lets the conservation identity in the CBM ledger be an
+#       equality instead of an inequality.
+#
+#   (c) THE SCORE OF RECORD WAS CHOSEN BY MEASUREMENT AND THE MEASUREMENT IS
+#       KEPT.  Character-level indel similarity puts two unrelated English
+#       sentences at about 0.40, so the design's 0.30 auto-reject band would
+#       never have fired on it; the token-level form puts the same pairs at
+#       0.07 and 0.15 and a genuine two-word paraphrase at 0.92.  The stage
+#       scores on tokens for that reason, the character-level numbers are kept
+#       as features beside it, and the pair that decided it is pinned by a test
+#       so the choice can be revisited if the data changes.  None of this is
+#       novel; recording *why* a threshold is where it is, in a form that
+#       breaks when the reason stops holding, is the part that is not routine.
+
+prior_art:
+  - url: "https://doi.org/10.1109/SEQUEN.1997.666900"
+    what_it_covers: >-
+      Broder, *On the Resemblance and Containment of Documents* (SEQUENCES '97), introduces
+      min-wise independent permutations: hash a document's shingle set under k permutations, keep
+      the minimum of each, and the fraction of agreeing minima is an unbiased estimator of the
+      sets' Jaccard similarity.  That is exactly the estimator implemented in `minhash.py`, with
+      no modification whatsoever, and this manifest claims none.
+    what_it_does_not: >-
+      The paper is about an estimator and its variance.  It has nothing to say about where the
+      permutations come from operationally, because in a research setting an RNG is an adequate
+      source.  The requirement that a signature computed today be re-derivable from committed
+      bytes by an adversarial third party years later is an evidentiary requirement, not a
+      statistical one, and it is what makes the permutation table here a versioned artefact with
+      a load-time refusal rather than a seed.
+  - url: "http://www.mmds.org/"
+    what_it_covers: >-
+      Leskovec, Rajaraman and Ullman, *Mining of Massive Datasets*, chapter 3, gives the standard
+      treatment of LSH banding: split a signature of length b*r into b bands of r rows, declare a
+      candidate pair when any band agrees, and note that the probability of that is
+      1 - (1 - J**r)**b with the steepest point near (1/b)**(1/r).  The 16 x 8 geometry, the
+      S-curve and the knee formula in `minhash.py` are that chapter, restated.
+    what_it_does_not: >-
+      The textbook treats the S-curve as a design tool and the resulting recall as an accepted
+      loss to be reported in aggregate.  Nothing in it addresses what happens to a *specific*
+      item the scheme failed to surface, because in a duplicate-detection setting no such
+      obligation exists.  Here it does: the stage is given the set of ancestors it must account
+      for and emits a `band_miss` naming each one it missed, which converts an aggregate recall
+      figure into per-obligation rows a human has to dispose of.
+  - url: "https://ekzhu.com/datasketch/lsh.html"
+    what_it_covers: >-
+      `datasketch`'s MinHashLSH is the widely used implementation of exactly this stage: MinHash
+      signatures, banding, tunable thresholds, and an index that answers approximate-Jaccard
+      queries.  It does the job well and this package does not do it better.
+    what_it_does_not: >-
+      Its permutation coefficients come from a seeded RNG inside a library whose version is a
+      dependency-resolution outcome, so a signature is reproducible only for as long as the
+      resolution is.  It also has no notion of an index whose contents live in a SQL table that
+      other processes join against by equality, which is the shape `mainline.clause_band` needs
+      in order for candidate generation to be sixteen primary-key point lookups with a plan the
+      CI can assert.  The decision not to depend on it (D3) is about evidence and about the
+      storage shape, not about quality.
+  - url: "https://git-scm.com/docs/gitdiffcore"
+    what_it_covers: >-
+      git's diffcore documents both halves of what `patience_diff.py` does: rename detection by
+      content similarity with a tunable threshold, and the histogram/patience diff family that
+      anchors on rare elements before recursing into the gaps.  Bram Cohen's patience algorithm
+      -- unique-common lines, longest increasing subsequence, recurse -- is implemented here
+      unchanged, and git's implementations are more mature than this one.
+    what_it_does_not: >-
+      git produces a diff for a human to read and a rename decision for a merge to use; a wrong
+      rename produces a confusing patch.  Here the diff's job is to be the WITNESS attached to a
+      candidate that a person signs a disposition against, and the tokens the longest increasing
+      subsequence had to drop are reported as moves so that a re-ordering is legible as a
+      re-ordering rather than as a rewrite -- which matters because "this looks like a rewrite"
+      is what an author hiding a deletion inside a reflow would want it to look like.  git also
+      has no analogue of the asymmetry finding recorded in `patience_similarity`: because the
+      number is not symmetric, it is deliberately kept OUT of the score of record.
+  - url: "https://tlsh.org/"
+    what_it_covers: >-
+      TLSH is the strongest published fuzzy-hash family for byte-level document identity, beating
+      ssdeep on accuracy and speed and yielding a distance rather than a bounded score, which
+      lets an operator set explicit false-positive/false-negative trade-offs.
+    what_it_does_not: >-
+      TLSH requires at least 50 bytes and is tuned for binary and document-scale inputs; a great
+      many safety clauses are one sentence, so the primary lexical stage here is MinHash/LSH and
+      TLSH is left to whole-document re-template triage.  That is a scoping decision recorded
+      here so that the absence of TLSH from this package reads as a decision rather than as an
+      oversight.  ssdeep is deliberately absent from the design entirely.
+  - url: "https://www.cockroachlabs.com/docs/stable/vector-indexes"
+    what_it_covers: >-
+      Cockroach Labs documents that a vector index is used only if each prefix column is
+      constrained to a specific value, and gives the ORDER BY <=> ... LIMIT form that an ANN
+      lookup takes against a `vector_cosine_ops` index.  `semantic.py`'s arm is that form.
+    what_it_does_not: >-
+      The documentation states the condition; it does not give a way to know that a particular
+      statement met it.  `explain.py` turns the condition into four separate assertions -- a
+      `vector search` node exists, it reads `ce_ann`, its `prefix spans` are present and
+      non-empty, and no node anywhere in the plan is a FULL SCAN -- and the fourth is the one a
+      reading of the docs would not suggest, because a plan can contain a correct vector search
+      node beside a scan that reads the whole table.  The vendor page has since also noted that
+      multiple prefix values may be filtered with IN while keeping index acceleration; this
+      package still fans out into single-value arms, because a fan-out has exactly one possible
+      plan shape and "may" is not a property a cost claim can rest on.
+
+implemented_by:
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/identity/__init__.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/identity/candidates/__init__.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/identity/candidates/minhash.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/identity/candidates/band.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/identity/candidates/lexical.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/identity/candidates/exact.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/identity/candidates/anchor_stage.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/identity/candidates/semantic.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/identity/candidates/rescore.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/identity/candidates/patience_diff.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/identity/candidates/trigram.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/identity/candidates/explain.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/identity/candidates/pg_arm.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/identity/candidates/calibration.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/identity/candidates/records.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/identity/candidates/thresholds.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/data/minhash/permutations-v1.json"
+
+tests:
+  - "tests/unit/domain/candidates/test_semantic_anchor_veto.py::test_cosine_097_with_a_conflicting_equipment_tag_is_rejected"
+  - "tests/unit/domain/candidates/test_semantic_anchor_veto.py::test_the_rejection_is_recorded_with_its_arithmetic"
+  - "tests/unit/domain/candidates/test_semantic_anchor_veto.py::test_an_incompatible_candidate_is_never_scored"
+  - "tests/unit/domain/candidates/test_semantic_anchor_veto.py::test_a_missing_anchor_set_raises_rather_than_defaulting_to_compatible"
+  - "tests/unit/domain/candidates/test_semantic_anchor_veto.py::test_one_arm_per_activity_root_and_every_arm_fully_constrained"
+  - "tests/unit/domain/candidates/test_minhash_determinism.py::test_signature_is_identical_in_two_interpreter_processes"
+  - "tests/unit/domain/candidates/test_minhash_determinism.py::test_the_child_really_did_randomise_its_hashes"
+  - "tests/unit/domain/candidates/test_permutation_table.py::test_every_coefficient_re_derives_from_the_published_recipe"
+  - "tests/unit/domain/candidates/test_permutation_table.py::test_a_altered_coefficient_is_refused"
+  - "tests/unit/domain/candidates/test_permutation_table.py::test_a_digest_updated_to_match_a_tampered_table_is_still_refused"
+  - "tests/unit/domain/candidates/test_permutation_table.py::test_a_zero_multiplier_is_refused"
+  - "tests/unit/domain/candidates/test_band_recall_scurve.py::test_the_auto_accept_region_is_not_missed"
+  - "tests/unit/domain/candidates/test_band_recall_scurve.py::test_the_noise_region_does_not_flood_the_stage"
+  - "tests/unit/domain/candidates/test_band_recall_scurve.py::test_the_transition_happens_at_the_configured_tau"
+  - "tests/unit/domain/candidates/test_band_recall_scurve.py::test_each_populated_bucket_tracks_the_analytic_curve"
+  - "tests/unit/domain/candidates/test_band_recall_scurve.py::test_reflow_mutations_stay_above_the_knee"
+  - "tests/unit/domain/candidates/test_stages.py::test_s3_records_a_band_miss_for_an_ancestor_it_was_told_to_account_for"
+  - "tests/unit/domain/candidates/test_stages.py::test_s3_never_enumerates_the_unrelated_clause"
+  - "tests/unit/domain/candidates/test_stages.py::test_s2_refuses_a_vacuous_match_between_anchor_free_clauses"
+  - "tests/unit/domain/candidates/test_explain_assertion.py::test_empty_prefix_spans_are_refused"
+  - "tests/unit/domain/candidates/test_explain_assertion.py::test_a_full_scan_beside_a_vector_search_is_refused"
+  - "tests/unit/domain/candidates/test_sql_shapes.py::test_the_probe_binds_the_whole_primary_key_prefix"
+  - "tests/unit/domain/candidates/test_sql_shapes.py::test_an_arm_binds_both_prefix_columns_to_a_specific_value"
+  - "tests/unit/domain/candidates/test_thresholds_and_rescore.py::test_the_character_level_floor_is_real_and_is_why_tokens_won"
+  - "tests/unit/domain/candidates/test_patience_diff.py::test_a_reorder_is_reported_as_a_move_not_as_a_rewrite"
+  - "tests/integration/algorithms/candidates/test_corpus_doubling.py::test_work_grows_sublinearly_as_the_corpus_doubles"
+  - "tests/integration/algorithms/candidates/test_corpus_doubling.py::test_work_per_clause_falls_at_every_doubling"
+  - "tests/integration/algorithms/candidates/test_corpus_doubling.py::test_the_planted_near_duplicates_are_always_found"
+  - "tests/integration/algorithms/candidates/test_arm_explain_live.py::test_every_generated_arm_plans_as_a_prefix_constrained_vector_search"
+  - "tests/integration/algorithms/candidates/test_band_probe_sql.py::test_the_sql_probe_agrees_with_the_reference_implementation"
+  - "tests/integration/algorithms/candidates/test_similarity_matches_cluster.py::test_similarity_matches_the_cluster_on_every_pair"
+
+unverified:
+  - >-
+    NOTHING IN THIS FRAGMENT HAS BEEN RUN AGAINST A COCKROACHDB CLUSTER.  No cluster is reachable
+    from the build machine, `cockroach` is not on PATH and AWS credentials are not valid, so every
+    test under tests/integration/algorithms/candidates/ that needs one SKIPS -- with a message
+    naming what was missing.  What is proven today is the offline half: statement TEXT (each
+    statement is a pure function and its shape is asserted), the plan-assertion machinery (proven
+    to refuse in four separate ways against committed plan fixtures), the reference band index,
+    and the cost curve measured as a count.  The claims that a generated arm really plans as a
+    prefix-constrained `vector search`, that the SQL band probe returns what the reference
+    implementation returns, and that the application's trigram similarity equals the cluster's
+    `similarity()`, are UNPROVEN until those tests run green against a real v26.2.
+  - >-
+    The 16 x 8 band geometry and the 5-character shingle size were transcribed from the design,
+    not calibrated.  The S-curve is measured -- observed band recall tracks the analytic
+    prediction across seven Jaccard buckets on a seeded corpus -- but that corpus is SYNTHETIC and
+    deliberately templated, built from four subjects, four verbs, four objects and three tails.
+    Character 5-grams over a real site's procedure library will not distribute the same way.
+    Whether 16 x 8 puts the knee in the right place FOR THIS PRODUCT is a corpus question and it
+    is open.
+  - >-
+    The stage bands themselves (S2 accept 0.92 with a 0.55 trigram floor, S3 accept 0.90 /
+    reject 0.30, S4 accept 0.93 / reject 0.70) are the design's numbers and are UNCALIBRATED.
+    No labelled corpus of real ancestor-descendant clause pairs exists yet, so no precision or
+    recall figure is claimed for any of them.  The only thing that has been measured about them
+    is that the S3 pair is meaningful against a token-level score and meaningless against a
+    character-level one.
+  - >-
+    The score of record -- token-level indel similarity -- is a choice, not a result.  A weighted
+    blend of the six recorded features would very likely do better and would need weights, and
+    inventing weights and presenting them as measured is the exact failure this file exists to
+    prevent.  Until a labelled corpus exists the score is the one quantity in the set that needs
+    no parameters.
+  - >-
+    `trigram.py` is a re-implementation of `pg_trgm` from its published recipe and its agreement
+    with CockroachDB's `similarity()` is asserted only by a test that currently skips.  Its notion
+    of "alphanumeric" is Python's Unicode-aware `str.isalnum`; PostgreSQL's is locale-aware.  On
+    the ASCII procedure text this system handles the two should agree and outside ASCII they may
+    not.  Nothing has measured it.
+  - >-
+    S2's decision to require anchor-set EQUALITY (rather than compatibility) before it will
+    auto-accept is conservative and untested against real edits.  It means a descendant that adds
+    an equipment tag falls through to S3/S4 instead of being auto-accepted, which costs recall at
+    S2 in exchange for precision.  Whether that trade is right is a corpus question.
+  - >-
+    `patience_similarity` is NOT symmetric -- Hypothesis found a three-token counterexample and it
+    is pinned by a test.  The consequence is bounded by keeping the number out of the score of
+    record, which is symmetric because it is metric-derived; but any future change that promotes
+    the patience number to a score invalidates that reasoning and there is nothing in the build
+    that would notice.
+  - >-
+    Band recall is measured; band PRECISION over a real corpus is not.  The false-candidate rate
+    at low Jaccard is asserted below 10 % on the synthetic corpus and predicted at 2.65 % by the
+    analytic curve, but the operational question -- how many pairs a real 40 000-clause site
+    surfaces per query -- has never been run, and the sublinearity measurement here tops out at
+    800 clauses.
+  - >-
+    None of this distinguishes a considered disposition from a rubber stamp (risk R-A8).  The
+    cascade decides what must be adjudicated; it says nothing whatsoever about the quality of the
+    adjudication, and it must never be sold as retiring that risk.

@@ -1,0 +1,38 @@
+{
+  "$schema_note": "Read by scripts/check-budgets.ts against dist/.vite/manifest.json. Licensing: budgets.json.license (REUSE sidecar; JSON admits no comment syntax).",
+  "rationale": "D13 — budgets are tests. 'Sub-second on a mine-site laptop' is a number or it is marketing. Every threshold below is gzip of the transferred JavaScript and CSS closure, not raw bytes, because gzip is what the wire carries.",
+  "budgets": [
+    {
+      "id": "evidentiary-shell",
+      "title": "Evidentiary shell (entry chunk + its static import closure + CSS)",
+      "why": "The refusal must paint before a supervisor decides the screen is broken. This is the only weight on the critical path; every feature surface is a lazy chunk.",
+      "root": "entry",
+      "follow": "static",
+      "max_gzip_bytes": 225280,
+      "max_gzip_human": "220 KB",
+      "required": true
+    },
+    {
+      "id": "memory-register-walk",
+      "title": "Lazy 3D chunk (the MEMORY-register ancestry walk)",
+      "why": "The one dimensional surface. It is loaded only after a refusal has been shown, only on a machine that passed the capability probe, and it is cut ladder item 1 — so its absence is legal and is NOT a budget failure.",
+      "root": "glob:src/features/ancestry/render3d/**",
+      "follow": "static",
+      "subtract": "entry",
+      "max_gzip_bytes": 614400,
+      "max_gzip_human": "600 KB",
+      "required": false,
+      "absent_note": "render3d/ is not present in this build. BUILD_PLAN §10.2 cut 1 has either been taken or the surface has not landed yet. The ribbon carries every fact the walk does (ui.md §1.3), so this is a texture loss, not a claim loss."
+    }
+  ],
+  "forbidden_in_entry": [
+    {
+      "match": "three",
+      "why": "MEMORY-register libraries must never reach the evidentiary shell. If three.js is statically reachable from the entry chunk, the lazy boundary has been broken and every machine pays for a surface most of them will never render."
+    },
+    {
+      "match": "@react-three",
+      "why": "Same boundary as three.js."
+    }
+  ]
+}

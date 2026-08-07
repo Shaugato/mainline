@@ -49,8 +49,8 @@ from .vectors import b64_to_vector, vector_to_b64
 __all__ = [
     "CASSETTE_SCHEMA",
     "LIVE_PROVENANCE",
-    "CassetteStore",
     "CassetteJudgeTransport",
+    "CassetteStore",
     "RecordingEmbeddingProvider",
     "RecordingJudgeTransport",
     "ReplayEmbeddingProvider",
@@ -63,6 +63,9 @@ CASSETTE_SCHEMA: Final[str] = "mainline.recall.cassette/1"
 LIVE_PROVENANCE: Final[frozenset[str]] = frozenset({"bedrock-live", "local-bge"})
 _VALID_PROVENANCE: Final[frozenset[str]] = LIVE_PROVENANCE | {"handwritten", "surrogate"}
 _RELATIVE_ROOT: Final[tuple[str, ...]] = ("tests", "fixtures", "cassettes", "recall")
+
+#: A cassette filename is the lowercase hex sha256 of its canonical request, nothing else.
+_SHA256_HEX_LEN: Final[int] = 64
 
 
 def _truthy(value: str | None) -> bool:
@@ -113,7 +116,7 @@ class CassetteStore:
     def path_for(self, kind: str, digest: str) -> Path:
         if kind not in {"judge", "embed"}:
             raise ProviderError("unknown cassette kind", kind=kind)
-        if len(digest) != 64 or any(c not in "0123456789abcdef" for c in digest):
+        if len(digest) != _SHA256_HEX_LEN or any(c not in "0123456789abcdef" for c in digest):
             raise ProviderError("cassette digest must be lowercase sha256 hex", digest=digest)
         return self._root / kind / f"{digest}.json"
 
@@ -191,13 +194,62 @@ class CassetteStore:
             "request_digest": digest,
             "provenance": provenance,
             "recorder": recorder,
-            "recorded_at": datetime.now(UTC).isoformat(timespec="seconds"),
+            "recorded_at": self._recorded_at(
+                path,
+                provenance=provenance,
+                recorder=recorder,
+                note=note,
+                request=request,
+                response=response,
+            ),
             "note": note,
             "request": request,
             "response": response,
         }
         path.write_text(json.dumps(document, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         return path
+
+    @staticmethod
+    def _recorded_at(
+        path: Path,
+        *,
+        provenance: str,
+        recorder: str,
+        note: str,
+        request: dict[str, Any],
+        response: dict[str, Any],
+    ) -> str:
+        """Now, unless re-emitting a byte-identical constructed cassette.
+
+        For ``bedrock-live`` / ``local-bge`` the timestamp is *evidence*: it says when the
+        call was actually observed, so a re-record always re-stamps even if the bytes match.
+
+        For ``handwritten`` / ``surrogate`` the cassette is a **construction**, not an
+        observation, and the timestamp carries no evidentiary content.  Re-stamping it would
+        make every regeneration of the fixture set produce a diff in every file, which is
+        how a real change to a fixture — the kind a gate test depends on — becomes invisible
+        in review.  So an unchanged construction keeps the timestamp it already had.
+        """
+        now = datetime.now(UTC).isoformat(timespec="seconds")
+        if provenance in LIVE_PROVENANCE or not path.is_file():
+            return now
+        try:
+            existing = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):  # pragma: no cover - unreadable ⇒ rewrite
+            return now
+        if not isinstance(existing, dict):  # pragma: no cover - malformed ⇒ rewrite
+            return now
+        unchanged = (
+            existing.get("provenance") == provenance
+            and existing.get("recorder") == recorder
+            and existing.get("note") == note
+            and existing.get("request") == request
+            and existing.get("response") == response
+        )
+        previous = existing.get("recorded_at")
+        if unchanged and isinstance(previous, str) and previous:
+            return previous
+        return now
 
     def iter_documents(self, kind: str | None = None) -> list[dict[str, Any]]:
         kinds = [kind] if kind else ["judge", "embed"]

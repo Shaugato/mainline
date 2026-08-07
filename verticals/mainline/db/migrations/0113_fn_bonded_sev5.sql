@@ -40,14 +40,26 @@
 -- precursor cannot land twice for one subject, so the counter cannot double-count. That
 -- dependency is named here rather than defended twice.
 --
+-- NO RECALL RUN, NO ARITHMETIC. If a bonded severity-5 check lands on a permit that has no
+-- `recall_run` row, the UPDATE matches nothing and both counters stay at zero. That is the
+-- correct behaviour and not a hole: `recall_run` is the accounting for a RETRIEVAL, and a
+-- deterministic channel-A check (`fn_weaken_materialise`) materialises without one. MI16 is a
+-- statement about what a run may CLAIM, and a run that does not exist claims nothing. The
+-- obligation itself is already in `blocking_check` and already holds the gate shut.
+--
 -- Style (§5.11): PL/pgSQL, row-level, no FOR..IN, no FOREACH, no EXECUTE, no PERFORM, no CASE;
 -- IF/ELSIF plus exactly one aggregate SELECT..INTO.
+--
+-- PLATFORM: CockroachDB requires `OLD`/`NEW` to be parenthesised when a COLUMN is read —
+-- `(NEW).permit_id`, not `NEW.permit_id` — a documented known limitation whose own v26.2
+-- examples read `(NEW).wage` and assign `NEW.wage := …`. ARCHITECTURE §5.11 is written in the
+-- unparenthesised PostgreSQL style; every trigger in the deployment needs this correction.
 
 CREATE FUNCTION mainline.fn_bonded_sev5() RETURNS TRIGGER LANGUAGE PLpgSQL AS $$
 DECLARE
   n_bonded INT8;
 BEGIN
-  IF NEW.permit_id IS NULL OR NEW.precursor_event_id IS NULL THEN
+  IF (NEW).permit_id IS NULL OR (NEW).precursor_event_id IS NULL THEN
     RETURN NEW;
   END IF;
 
@@ -57,7 +69,7 @@ BEGIN
   SELECT count(*) INTO n_bonded
     FROM mainline.event_bond eb
     JOIN mainline.event ev ON ev.event_id = eb.event_id
-   WHERE eb.event_id = NEW.precursor_event_id
+   WHERE eb.event_id = (NEW).precursor_event_id
      AND ev.severity_gate = 5;
 
   IF n_bonded = 0 THEN
@@ -71,7 +83,7 @@ BEGIN
          n_bonded_sev5_blocking = n_bonded_sev5_blocking + 1
    WHERE run_id = (SELECT r.run_id
                      FROM mainline_meas.recall_run r
-                    WHERE r.permit_id = NEW.permit_id
+                    WHERE r.permit_id = (NEW).permit_id
                     ORDER BY r.started_at DESC
                     LIMIT 1);
 

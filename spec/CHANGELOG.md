@@ -19,6 +19,59 @@ Nothing yet.
 
 ---
 
+## [1.0.0-rc.1] — amended 2026-08-07, before tagging
+
+`rc.1` was never tagged and has no downstream consumer, so these four corrections are folded into it
+rather than issued as `rc.2`. They are listed separately because two of them contradict what the
+document said three days ago, and a specification that edits itself silently is not one.
+
+### Fixed — `key_columns`, a defect that would have broken the first binding
+
+`[[authority_source]]` could name the lookup columns of the **projected row** (`key`) but not the
+columns of the **authority relation** they are matched against. Where the two sides use different
+names — and they do in the only binding that matters, `blocking_check.commit_id` against
+`clause_blame_current.as_of_commit` — a renderer had no way to emit a correct `WHERE` clause and
+would have produced SQL naming a column that does not exist. Added the optional `key_columns` array,
+defaulting to `key`; added render refusal **A-9** on a length mismatch; corrected the worked SQL in
+`binding/authority-source.md` §4, which was wrong in exactly this way.
+
+### Changed — the identifier lint is now defined by its command
+
+`VERSIONING.md` §3.1 previously permitted two escape hatches, a *qualified* form (`TRAPPOINT I14`)
+and a *linked* form (`[I14](spec/invariants/I14-…)`). **Neither is implementable.** The lint is a
+bare `\bI[0-9]{2}\b` grep and both forms contain a bare match — the linked form twice, once in the
+link text and once in the path. A lint whose documented exemptions its own implementation cannot
+honour invites the grep to be weakened until it agrees with the prose, which is how a namespace rule
+dies. The command is now the definition, there are no exemptions, and §3.2 adds the citation
+convention that makes the rule liveable: outside `spec/`, an invariant is cited by **slug**
+(`TRAPPOINT/projected-refusal`), with the full identifier-to-slug mapping in one table.
+
+### Added — four complete refusal payloads and sixteen negative assertions
+
+`wire/refusal.md` §8 carries four payloads — counter refusal, lattice refusal with no legal verdict,
+authority gap, budget-exhausted composite — that validate against the shipped schema with no elision,
+plus §8.5, a table of sixteen mutations the schema **rejects**. The §1 illustration is now marked as
+elided, because it never validated and looked as though it should. An emitter now has something to
+diff against instead of a description to interpret.
+
+### Fixed — a TOML placement trap in the binding, documented where it bites
+
+A bare top-level key written *after* any `[table]` header belongs to that table, so
+`emit_outbox = true` placed below `[capabilities]` parses as `capabilities.emit_outbox` and the
+binding fails validation with a message about the wrong key. This was found by validating a
+MAINLINE-shaped binding against the schema rather than by reading it. The rule is now stated in the
+`emit_outbox` description, which is where a binding author is looking when it happens.
+
+### Known limitation carried forward
+
+The identifier lint runs over `*.md` only, so a migration's `-- I02` header comment is unaffected and
+the migrate linter's requirement that every migration cite one is undisturbed. Nine citations across
+five files outside `spec/` currently fail the lint — four domain plans under `docs/leads/` and the
+repository README. They are owned outside `spec/` and are corrected by rewriting each citation as a
+slug, never by widening the grep.
+
+---
+
 ## [1.0.0-rc.1] — 2026-08-04
 
 First published specification. Everything below is new; the list exists so that `rc.2` has something

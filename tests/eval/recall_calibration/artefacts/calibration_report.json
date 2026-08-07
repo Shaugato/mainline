@@ -1,0 +1,260 @@
+{
+  "baseline": {
+    "calibrated_brier_blocked": 0.20863614136089886,
+    "calibrated_brier_exchangeable_probe": 0.17071709837812926,
+    "naive_squash_brier_blocked": 0.19908826187200798,
+    "naive_squash_brier_exchangeable_probe": 0.19450313006517758,
+    "reading": "The exchangeable probe isolates what isotonic regression buys. The gap between it and the temporally-blocked evaluation is corpus drift, which is the conformal exchangeability assumption being measured rather than restated."
+  },
+  "bins": [
+    {
+      "gap": 0.0,
+      "lower": 0.0,
+      "mean_predicted": 0.0,
+      "n": 3,
+      "observed_lower": 0.0,
+      "observed_rate": 0.0,
+      "observed_upper": 0.5614970317550454,
+      "upper": 0.1
+    },
+    {
+      "gap": -0.006248373567440929,
+      "lower": 0.1,
+      "mean_predicted": 0.15518454378020688,
+      "n": 47,
+      "observed_lower": 0.0740671999643172,
+      "observed_rate": 0.14893617021276595,
+      "observed_upper": 0.2768562242359354,
+      "upper": 0.2
+    },
+    {
+      "gap": 0.1786140979689367,
+      "lower": 0.2,
+      "mean_predicted": 0.24074074074074073,
+      "n": 31,
+      "observed_lower": 0.2641554306731223,
+      "observed_rate": 0.41935483870967744,
+      "observed_upper": 0.5923373750463028,
+      "upper": 0.3
+    },
+    {
+      "gap": 0.0,
+      "lower": 0.3,
+      "mean_predicted": 0.0,
+      "n": 0,
+      "observed_lower": 0.0,
+      "observed_rate": 0.0,
+      "observed_upper": 1.0,
+      "upper": 0.4
+    },
+    {
+      "gap": 0.06906906906906907,
+      "lower": 0.4,
+      "mean_predicted": 0.4444444444444444,
+      "n": 37,
+      "observed_lower": 0.35894896665618803,
+      "observed_rate": 0.5135135135135135,
+      "observed_upper": 0.6655359569698336,
+      "upper": 0.5
+    },
+    {
+      "gap": 0.06631894270250771,
+      "lower": 0.5,
+      "mean_predicted": 0.5336810572974923,
+      "n": 5,
+      "observed_lower": 0.23072428127601302,
+      "observed_rate": 0.6,
+      "observed_upper": 0.882379225767352,
+      "upper": 0.6
+    },
+    {
+      "gap": 0.1339031339031339,
+      "lower": 0.6,
+      "mean_predicted": 0.6438746438746439,
+      "n": 18,
+      "observed_lower": 0.5478541568378739,
+      "observed_rate": 0.7777777777777778,
+      "observed_upper": 0.9099907189139831,
+      "upper": 0.7
+    },
+    {
+      "gap": 0.2857142857142857,
+      "lower": 0.7,
+      "mean_predicted": 0.7142857142857143,
+      "n": 8,
+      "observed_lower": 0.6755924351161198,
+      "observed_rate": 1.0,
+      "observed_upper": 1.0,
+      "upper": 0.8
+    },
+    {
+      "gap": -0.16969381671375527,
+      "lower": 0.8,
+      "mean_predicted": 0.8593489891275484,
+      "n": 29,
+      "observed_lower": 0.5076986576690685,
+      "observed_rate": 0.6896551724137931,
+      "observed_upper": 0.8272438325551679,
+      "upper": 0.9
+    },
+    {
+      "gap": -0.5,
+      "lower": 0.9,
+      "mean_predicted": 1.0,
+      "n": 2,
+      "observed_lower": 0.0945312057342308,
+      "observed_rate": 0.5,
+      "observed_upper": 0.9054687942657692,
+      "upper": 1.0
+    }
+  ],
+  "brier": 0.20863614136089886,
+  "calibrator": {
+    "increasing": true,
+    "interpolation": "linear_between_knots",
+    "out_of_bounds": "clip",
+    "provenance": {
+      "assumption": "The calibration set is assumed exchangeable with the population the gate will see. Safety corpora drift; recalibrate on a schedule and record the commit.",
+      "calibration_set_sha256": "9c0c0e2b5a0d9faa0ba0ece1de4ddf7ca0aeff18b8b354b0272f3e636751ca5b",
+      "feature_spec_sha256": "9fa06c7afa0326d81c3b2b75f15e48adf014dec519f592ff2563c6ffb2328eb5",
+      "fit_folds": [
+        "2019H1",
+        "2019H2",
+        "2020H1",
+        "2020H2"
+      ],
+      "fitted_at": "2026-08-07T11:08:53+00:00",
+      "library": "scikit-learn IsotonicRegression(increasing=True, out_of_bounds='clip')",
+      "method": "isotonic_regression",
+      "n_positive": 169,
+      "n_samples": 360,
+      "note": "calibration lane over selftest:calibration_g2g3.json [SYNTHETIC, PRELIMINARY]",
+      "samples_by_fold": {
+        "2019H1": 90,
+        "2019H2": 90,
+        "2020H1": 90,
+        "2020H2": 90
+      },
+      "samples_by_gold_set": {
+        "G2": 240,
+        "G3": 120
+      },
+      "split_policy_id": "TB-2021-01-01-8ff35f2f",
+      "weights_sha256": ""
+    },
+    "schema": "trappoint.recall.calibrator.isotonic/1",
+    "x": [
+      -1.996627426,
+      -1.944159685,
+      -1.939553546,
+      -1.800055837,
+      -1.754800372,
+      -0.848352159,
+      -0.821305287,
+      -0.618433319,
+      -0.607364061,
+      0.124117059,
+      0.142202011,
+      1.085821839,
+      1.087138395,
+      1.133032605,
+      1.186940949,
+      1.330184804,
+      1.342799056,
+      1.681727846,
+      1.684038434,
+      1.937767467,
+      1.939236194,
+      2.642940769,
+      2.665349049,
+      2.960737218,
+      2.961962586,
+      2.969485631
+    ],
+    "y": [
+      0.0,
+      0.0,
+      0.1,
+      0.1,
+      0.15625,
+      0.15625,
+      0.16666666666666666,
+      0.16666666666666666,
+      0.24074074074074073,
+      0.24074074074074073,
+      0.4444444444444444,
+      0.4444444444444444,
+      0.5,
+      0.5,
+      0.6153846153846154,
+      0.6153846153846154,
+      0.6666666666666666,
+      0.6666666666666666,
+      0.7142857142857143,
+      0.7142857142857143,
+      0.8571428571428571,
+      0.8571428571428571,
+      0.8695652173913043,
+      0.8695652173913043,
+      1.0,
+      1.0
+    ]
+  },
+  "calibrator_digest": "59cfe263f074af2b0ba7cf190fbec011b781944e1bac713756a3047006f4217f",
+  "corpus": {
+    "eval_folds": [
+      "2021H1",
+      "2021H2"
+    ],
+    "fit_folds": [
+      "2019H1",
+      "2019H2",
+      "2020H1",
+      "2020H2"
+    ],
+    "n_eval": 180,
+    "n_fit": 360,
+    "note": "Synthetic G2+G3 stand-in. Generated by make_calibration_fixture.py so the calibration lane runs on a bare checkout. These numbers characterise the calibrator implementation, not the product.",
+    "path": "D:\\CoackroachDBxAWS\\mainline\\tests\\eval\\recall_calibration\\fixtures\\calibration_g2g3.json",
+    "preliminary": true,
+    "source": "selftest",
+    "split": {
+      "as_of_system_time": "refused (gc.ttlseconds=4h)",
+      "corpus_commit": "synthetic-calibration-fixture-1",
+      "kind": "temporally_blocked",
+      "note": "calibration fit/evaluation wall",
+      "policy_id": "TB-2021-01-01-8ff35f2f",
+      "predicates": [
+        "occurred_at < wall",
+        "ingested_at < wall",
+        "corpus_commit <= wall"
+      ],
+      "wall": "2021-01-01T00:00:00+00:00"
+    },
+    "synthetic": true
+  },
+  "ece": 0.10741640135802476,
+  "eval_folds": [
+    "2021H1",
+    "2021H2"
+  ],
+  "feature_spec_sha256": "9fa06c7afa0326d81c3b2b75f15e48adf014dec519f592ff2563c6ffb2328eb5",
+  "fit_folds": [
+    "2019H1",
+    "2019H2",
+    "2020H1",
+    "2020H2"
+  ],
+  "gold_set_counts": {
+    "G2": 120,
+    "G3": 60
+  },
+  "mce": 0.5,
+  "n": 180,
+  "n_positive": 85,
+  "note": "Synthetic G2+G3 stand-in. Generated by make_calibration_fixture.py so the calibration lane runs on a bare checkout. These numbers characterise the calibrator implementation, not the product.",
+  "preliminary": true,
+  "schema": "trappoint.recall.calibration_report/1",
+  "split_policy_id": "TB-2021-01-01-8ff35f2f",
+  "synthetic": true
+}

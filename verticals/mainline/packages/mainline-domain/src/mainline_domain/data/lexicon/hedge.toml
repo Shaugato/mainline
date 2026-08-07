@@ -1,0 +1,134 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+#
+# CATSEAL hedge lexicon (worker W3).
+#
+# A hedge is a phrase that leaves an obligation formally intact and practically
+# optional.  "The vessel shall be isolated" and "the vessel shall be isolated so
+# far as is reasonably practicable" carry the same deontic and are not the same
+# control.  Every phrase here is extracted into CAT.exceptions[], because that
+# is the slot DELTALATTICE rule R4 diffs for GROWTH -- a hedge entering a clause
+# is a weakening, and it is one of the most common real weakenings in a mining
+# document corpus precisely because it does not look like one.
+#
+# WHY A GENEROUS LIST IS CHEAP HERE.  A hedge already present in the ancestor is
+# also present in the descendant, so it appears on both sides of the R4 diff and
+# cancels.  Only a hedge that ENTERS costs anything.  So the false-positive cost
+# of listing a marginal phrase is near zero, while the false-negative cost of
+# omitting a real one is a weakening the lattice cannot see.  The list is long
+# on purpose and should be added to, never trimmed for tidiness.
+#
+# NOT HERE: phrases beginning with an exception subordinator ("unless ...",
+# "except where ...").  Those are already captured as exception spans by
+# grammar.toml, and listing them twice would emit the same exception under two
+# spellings -- normalisation would dedupe the identical strings but not the two
+# different ones, which would make R4 fire on a re-wording.
+#
+# ALSO NOT HERE: deontic cues.  A hedge is not a modality; see deontic.toml.
+
+[hedge]
+version = 1
+
+phrases = [
+  # --- the Australian WHS formulations, in every spelling seen in the corpus ---
+  "so far as is reasonably practicable",
+  "so far as reasonably practicable",
+  "as far as is reasonably practicable",
+  "as far as reasonably practicable",
+  "so far as is practicable",
+  "as far as is practicable",
+  "to the extent reasonably practicable",
+  "to the extent that it is reasonably practicable",
+  "where reasonably practicable",
+  "where practicable",
+  "wherever practicable",
+  "if practicable",
+  "when practicable",
+  "as practicable",
+  "where feasible",
+  "if feasible",
+  "where possible",
+  "wherever possible",
+  "if possible",
+  "as soon as practicable",
+  "as soon as reasonably practicable",
+
+  # --- discretion transfers: the obligation survives, the decision moves ---
+  "at the discretion of the supervisor",
+  "at the supervisor's discretion",
+  "at the discretion of the responsible person",
+  "at the discretion of the site senior executive",
+  "at the discretion of the shift supervisor",
+  "at the discretion of the authorised person",
+  "at the discretion of management",
+  "at the operator's discretion",
+  "as directed by the supervisor",
+  # NOT "unless directed otherwise": the `unless` subordinator already captures
+  # it as the exception "directed otherwise".  Listing it here too would emit
+  # the same qualifier under two spellings, and a re-wording between them would
+  # look to rule R4 like one exception removed and another added.
+  "subject to supervisor approval",
+  "subject to operational requirements",
+  "subject to production requirements",
+  "subject to availability",
+  "where the supervisor considers it necessary",
+  "if the supervisor considers it necessary",
+  "in the judgement of the supervisor",
+
+  # --- soft universals: the rule holds except when it does not ---
+  "where appropriate",
+  "as appropriate",
+  "if appropriate",
+  "where necessary",
+  "if necessary",
+  "as necessary",
+  "where required",
+  "if required",
+  "as required",
+  "where applicable",
+  "if applicable",
+  "as applicable",
+  "where relevant",
+  "if relevant",
+  "where deemed necessary",
+  "if deemed necessary",
+  "as deemed appropriate",
+
+  # --- frequency and coverage softeners ---
+  "normally",
+  "generally",
+  "typically",
+  "ordinarily",
+  "usually",
+  "in general",
+  "as a general rule",
+  "under normal circumstances",
+  "in normal operation",
+  "wherever reasonable",
+  "where reasonable",
+  "to the extent possible",
+  "to the greatest extent possible",
+  "as far as possible",
+  "best endeavours",
+  "reasonable endeavours",
+  "reasonable steps",
+  "all reasonable steps",
+]
+
+# Hedges whose presence is, on its own, enough to force the extraction to
+# confidence='low' even when parameter/comparator/value all filled: the control
+# is stated but its applicability is not machine-decidable.
+[hedge.confidence]
+force_low = [
+  "at the discretion of the supervisor",
+  "at the supervisor's discretion",
+  "at the discretion of the responsible person",
+  "at the discretion of the site senior executive",
+  "at the discretion of the shift supervisor",
+  "at the discretion of the authorised person",
+  "at the discretion of management",
+  "at the operator's discretion",
+  "in the judgement of the supervisor",
+  "subject to operational requirements",
+  "subject to production requirements",
+]

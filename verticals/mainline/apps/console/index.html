@@ -1,0 +1,122 @@
+<!doctype html>
+<!--
+  SPDX-FileCopyrightText: 2026 MAINLINE contributors
+  SPDX-License-Identifier: FSL-1.1-ALv2
+
+  The document shell. It carries no claim about the database, because at this point
+  no bytes have been verified. Everything it says about itself is true before any
+  script runs, and stays true if no script ever runs.
+
+  No external origin is referenced anywhere in this file — no font CDN, no analytics,
+  no icon host. The console must load from file:// and from an air-gapped static host
+  (the offline reproduction tier, BUILD_PLAN §5, never-cut list).
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta
+      name="description"
+      content="MAINLINE console — every claim on screen is re-derived in the browser from signed bytes."
+    />
+    <title>MAINLINE console</title>
+    <style>
+      /*
+        Boot styling only. The register token set (docs/leads/ui.md §1.1) is owned by
+        the visual-language worker and arrives as CSS custom properties; these values
+        are the fallbacks that keep the boot screen legible before it lands, and they
+        are deliberately the same neutral ramp.
+      */
+      :root {
+        color-scheme: dark light;
+        --tp-boot-bg: #0b0c0d;
+        --tp-boot-ink: #e8e6e3;
+        --tp-boot-dim: #8b8b8b;
+        --tp-boot-rule: #2a2c2e;
+        --tp-boot-mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", "Roboto Mono", Menlo,
+          Consolas, "Liberation Mono", monospace;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        min-height: 100%;
+        background: var(--tp-boot-bg);
+        color: var(--tp-boot-ink);
+      }
+      body {
+        font-family: var(--tp-boot-mono);
+        font-size: 14px;
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+      }
+      #root:empty::before {
+        content: "";
+      }
+      .boot {
+        max-width: 62ch;
+        margin: 0;
+        padding: 2rem 1.5rem;
+        border-bottom: 1px solid var(--tp-boot-rule);
+      }
+      .boot h1 {
+        font-size: 14px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin: 0 0 0.75rem;
+      }
+      .boot p {
+        margin: 0 0 0.5rem;
+        color: var(--tp-boot-dim);
+      }
+      .boot code {
+        color: var(--tp-boot-ink);
+      }
+    </style>
+  </head>
+  <body>
+    <!--
+      The failure mode of a single-page application is a white rectangle, which is
+      indistinguishable from "the product has nothing to say". This node is present in
+      the shipped HTML and is removed by src/main.tsx only once React has mounted. If
+      the bundle 404s, if the module graph throws at import time, if JavaScript is
+      disabled or blocked by policy — the reader gets a sentence instead of a void.
+    -->
+    <div id="boot-notice" class="boot">
+      <h1>MAINLINE console — not yet booted</h1>
+      <p>
+        The application bundle has not mounted. If this text is still here after the page has
+        finished loading, the script did not run: check the browser console for the import error,
+        and check that <code>assets/</code> was deployed alongside <code>index.html</code>.
+      </p>
+      <p>
+        This console renders nothing it has not verified. It has verified nothing yet, so it is
+        claiming nothing yet.
+      </p>
+    </div>
+
+    <noscript>
+      <div class="boot">
+        <h1>JavaScript is required, and here is exactly why</h1>
+        <p>
+          This console does not render assertions handed to it by a server. It recomputes — in this
+          browser — the RFC&nbsp;8785 canonical bytes, the RFC&nbsp;6962 inclusion and consistency
+          proofs, and the checkpoint signature behind every claim it displays. That arithmetic runs
+          in a Web Worker; without scripting there is no arithmetic, and a page that showed you the
+          conclusions without them would be exactly the thing this console exists not to be.
+        </p>
+        <p>
+          The same checks are available as a command-line verifier
+          (<code>trappoint-verify</code>) that consumes the identical bytes.
+        </p>
+      </div>
+    </noscript>
+
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

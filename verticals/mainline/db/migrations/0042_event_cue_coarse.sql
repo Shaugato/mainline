@@ -19,8 +19,10 @@
 -- `severity_gate` is denormalised here because it is the sweep's blocking rule: a sweep hit is
 -- never blocking unless `severity_gate = 5`. A denormalised column that decides whether a
 -- fatality blocks a permit is precisely the column an inserter must not be able to write, so it
--- is PROJECTED from `mainline.event` by `mainline.fn_cue_prefix_project` (0114) through
--- `event_cue.event_id`, and a missing parent cue RAISEs P0001.
+-- is PROJECTED from `mainline.event` by `mainline.fn_cue_coarse_project` (0114) through
+-- `event_cue.event_id`, and a missing parent cue RAISEs P0001. That is the coarse sidecar's half
+-- of the one mechanism D1 names; 0114's PLATFORM NOTE 2 says why it is a second function rather
+-- than a second branch of `fn_cue_prefix_project`, and the weld name is unchanged either way.
 --
 -- `tenant_id` is CONSTANT for the deployment and is NOT projected by this domain's trigger:
 -- DM-3 makes `mainline.site` the authoritative source for the tenant/site tokens. Until that

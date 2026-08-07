@@ -1,0 +1,90 @@
+{
+  "_license": "SPDX-FileCopyrightText: 2026 MAINLINE contributors / SPDX-License-Identifier: CC-BY-4.0",
+  "register_id": "icmm-mue-fixture-1",
+  "register_title": "Material Unwanted Event register (FIXTURE)",
+  "provenance": "SYNTHETIC FIXTURE. Modelled on the shape of an ICMM Critical Control Management Material Unwanted Event register as described in ARCHITECTURE.md 5.4 and research/05-architecture/diachronic-recall.md 3, and written for this repository's tests. It is NOT any customer's register and NOT a transcription of an ICMM publication. A deployment replaces this file with the buyer's own register; the loader's refusals are what make that substitution safe.",
+  "frozen": true,
+  "notes": "Two fields per entry carry meaning. 'mue_title' is the register's own wording, kept verbatim so an auditor can match a row to the customer's document; MUE titles name EVENTS. 'label' is the functional rendering that becomes activity_node.label, and it names the WORK, because that is what survives asset re-tagging and org-chart churn. Both are kept so the second can be defended to the person who wrote the first.",
+  "codes": [
+    {
+      "activity_root": "MUE-01",
+      "mue_title": "Ground or strata failure",
+      "label": "supporting excavated ground before people work beneath it"
+    },
+    {
+      "activity_root": "MUE-02",
+      "mue_title": "Slope or wall instability",
+      "label": "monitoring and stabilising engineered slopes"
+    },
+    {
+      "activity_root": "MUE-03",
+      "mue_title": "Person and mobile equipment interaction",
+      "label": "separating people from powered mobile equipment"
+    },
+    {
+      "activity_root": "MUE-04",
+      "mue_title": "Fall from height",
+      "label": "restraining people working at height"
+    },
+    {
+      "activity_root": "MUE-05",
+      "mue_title": "Uncontrolled release of stored energy",
+      "label": "isolating stored energy before intrusive work"
+    },
+    {
+      "activity_root": "MUE-06",
+      "mue_title": "Contact with electricity",
+      "label": "de-energising and proving electrical circuits before contact"
+    },
+    {
+      "activity_root": "MUE-07",
+      "mue_title": "Entanglement with moving machinery",
+      "label": "guarding moving machinery from human contact"
+    },
+    {
+      "activity_root": "MUE-08",
+      "mue_title": "Tyre and rim failure",
+      "label": "inflating and servicing pressurised assemblies at a distance"
+    },
+    {
+      "activity_root": "MUE-09",
+      "mue_title": "Explosives and blasting",
+      "label": "charging and firing explosives"
+    },
+    {
+      "activity_root": "MUE-10",
+      "mue_title": "Tailings and water storage failure",
+      "label": "impounding and decanting stored water and slurry"
+    },
+    {
+      "activity_root": "MUE-11",
+      "mue_title": "Inrush or inundation",
+      "label": "excluding people from potential inrush paths"
+    },
+    {
+      "activity_root": "MUE-12",
+      "mue_title": "Confined space entry",
+      "label": "entering and working inside confined atmospheres"
+    },
+    {
+      "activity_root": "MUE-13",
+      "mue_title": "Fire and explosion",
+      "label": "preventing and extinguishing fire in occupied workings"
+    },
+    {
+      "activity_root": "MUE-14",
+      "mue_title": "Lifting and suspended loads",
+      "label": "lifting and suspending loads over people"
+    },
+    {
+      "activity_root": "MUE-15",
+      "mue_title": "Hazardous substance exposure",
+      "label": "handling and containing hazardous substances"
+    },
+    {
+      "activity_root": "MUE-16",
+      "mue_title": "Road and air transport of personnel",
+      "label": "transporting people between workplaces by road and air"
+    }
+  ]
+}

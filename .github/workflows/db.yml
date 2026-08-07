@@ -1,0 +1,207 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# THE RED LANE.
+#
+# BUILD_PLAN.md §0.2 PL-2: "A milestone begins with the failing test its exit criterion
+# asserts, not with implementation. db.yml runs a CockroachDB service container and ONE
+# FAILING CONFORMANCE CASE BEFORE ANY SCHEMA EXISTS. For a product whose deliverable is
+# a refusal, a suite that has never been red asserts nothing."
+#
+# So this workflow is EXPECTED TO FAIL today, and the failure is the artefact. The
+# `conform` step is not marked `continue-on-error` and never will be: a red lane that
+# reports green is worse than no lane, and the whole reason PL-2 exists is that a solo
+# founder building with coding agents accumulates confidently-written tests that assert
+# nothing faster than anyone else.
+#
+# The run URL of the first red run is recorded in docs/adr/0005-red-before-green.md.
+#
+# No AWS account. No CockroachDB Cloud organisation. No credential of ours. That is
+# PL-1, and it is the reason this lane can be reproduced by a judge on a laptop.
+
+name: db
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/trappoint-migrate/**"
+      - "packages/trappoint-conformance/**"
+      - "packages/trappoint-sql/**"
+      - "verticals/*/db/migrations/**"
+      - "verticals/*/vertical.toml"
+      - "spec/conformance/**"
+      - "spec/errors.md"
+      - "compose.yaml"
+      - "uv.lock"
+      - ".github/workflows/db.yml"
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: db-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.13"
+  # The DSN for the local single-node cluster. `--insecure` means no password; the node
+  # is created and destroyed inside this job and is reachable from nothing else.
+  LOCAL_DSN: "postgresql://root@127.0.0.1:26257/defaultdb?sslmode=disable"
+  FORCE_COLOR: "1"
+
+jobs:
+  kernel:
+    name: migrate + conform (RED until the kernel DDL lands)
+    runs-on: ubuntu-24.04
+    # The whole K1 proof budget. A schema-change job that hangs must fail the lane
+    # rather than occupy a runner.
+    timeout-minutes: 12
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read the ONE version constant out of compose.yaml
+        id: image
+        # `services:` in GitHub Actions cannot pass a command to a container, and
+        # `start-single-node` IS a command — so the cluster is started with `docker run`
+        # rather than declared as a service. The version still comes from compose.yaml
+        # and nowhere else: a second copy of a version string is a second thing to
+        # forget, and a dev/CI skew that changes DDL behaviour is exactly the drift the
+        # schema fingerprint exists to catch.
+        run: |
+          set -euo pipefail
+          image="$(python3 - <<'PY'
+          import pathlib, re
+          lines = pathlib.Path("compose.yaml").read_text(encoding="utf-8").splitlines()
+          for i, line in enumerate(lines):
+              if "trappoint:crdb-image-pin" in line:
+                  for candidate in lines[i + 1 : i + 4]:
+                      m = re.match(r"^\s*image:\s*(\S+)\s*$", candidate)
+                      if m:
+                          print(m.group(1))
+                          raise SystemExit(0)
+          raise SystemExit("compose.yaml carries no marked image pin")
+          PY
+          )"
+          echo "image=${image}" >> "$GITHUB_OUTPUT"
+          echo "CockroachDB image: ${image}"
+
+      - name: Pull the image and record its digest
+        id: digest
+        # Digest pinning without a fabricated hash. The digest is resolved, printed and
+        # written to the step summary on every run; when the repository variable
+        # CRDB_IMAGE_DIGEST is set, it is ASSERTED. An invented digest committed today
+        # would be a lie in the repository; an assertion that activates the moment
+        # somebody records the real one is the honest version of the same control.
+        run: |
+          set -euo pipefail
+          docker pull "${{ steps.image.outputs.image }}"
+          digest="$(docker image inspect --format '{{index .RepoDigests 0}}' "${{ steps.image.outputs.image }}")"
+          echo "digest=${digest}" >> "$GITHUB_OUTPUT"
+          echo "resolved: ${digest}"
+          expected="${{ vars.CRDB_IMAGE_DIGEST }}"
+          if [ -n "${expected}" ] && [ "${expected}" != "${digest}" ]; then
+            echo "::error::image digest ${digest} does not match the pinned ${expected}"
+            exit 1
+          fi
+          if [ -z "${expected}" ]; then
+            echo "::notice::CRDB_IMAGE_DIGEST is unset; the digest is recorded but not asserted"
+          fi
+
+      - name: Start a single-node CockroachDB
+        run: |
+          set -euo pipefail
+          docker run -d --name trappoint-crdb \
+            -p 127.0.0.1:26257:26257 -p 127.0.0.1:8080:8080 \
+            "${{ steps.image.outputs.image }}" \
+            start-single-node --insecure \
+              --listen-addr=0.0.0.0:26257 --http-addr=0.0.0.0:8080 \
+              --store=type=mem,size=2GiB
+          for attempt in $(seq 1 60); do
+            if docker exec trappoint-crdb ./cockroach sql --insecure --execute "SELECT 1" >/dev/null 2>&1; then
+              echo "cluster answering SQL after ${attempt} attempt(s)"
+              docker exec trappoint-crdb ./cockroach sql --insecure --execute "SELECT version()"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::error::the cluster never answered SQL"
+          docker logs trappoint-crdb | tail -50
+          exit 1
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install the kernel toolchain
+        # `--frozen` asserts uv.lock is authoritative: CI must resolve exactly what a
+        # stranger's `uv sync` resolves, or PL-1's "runs on a stranger's machine" is a
+        # claim about our machine.
+        run: |
+          uv sync --frozen \
+            --package trappoint-migrate \
+            --package trappoint-conformance
+
+      - name: The sequence ban and the invariant-citation rule
+        # Passes on an empty tree today. It is placed BEFORE the schema work so that a
+        # migration reintroducing a sequence fails before it is ever applied.
+        run: uv run trappoint migrate lint
+
+      - name: Bootstrap the `trappoint` schema
+        run: uv run trappoint migrate bootstrap --dsn "$LOCAL_DSN"
+
+      - name: Apply the reference vertical (a no-op until the DDL lands)
+        run: |
+          uv run trappoint migrate up \
+            --dsn "$LOCAL_DSN" \
+            --tree trappoint-ref \
+            --migrations packages/trappoint-sql/refvertical/sql
+
+      - name: Attest the schema, twice, and assert the fingerprint is stable
+        run: uv run trappoint migrate attest --dsn "$LOCAL_DSN"
+
+      - name: Status
+        run: |
+          uv run trappoint migrate status \
+            --dsn "$LOCAL_DSN" \
+            --tree trappoint-ref \
+            --migrations packages/trappoint-sql/refvertical/sql
+
+      - name: List the suite the manifest declares
+        run: uv run trappoint-conform --profile trappoint-ref --list
+
+      - name: CONFORMANCE — expected RED until the kernel DDL lands
+        # NOT continue-on-error. This step failing IS the PL-2 proof artefact, and the
+        # commit that makes it pass is the commit that has to earn it.
+        run: |
+          uv run trappoint-conform --dsn "$LOCAL_DSN" --profile trappoint-ref
+
+      - name: Record the outcome in the job summary
+        if: always()
+        run: |
+          {
+            echo "## db lane"
+            echo ""
+            echo "| item | value |"
+            echo "|---|---|"
+            echo "| image | \`${{ steps.image.outputs.image }}\` |"
+            echo "| digest | \`${{ steps.digest.outputs.digest }}\` |"
+            echo "| profile | \`trappoint-ref\` |"
+            echo ""
+            echo "**PL-2.** This lane is expected to be RED until the migration that owns"
+            echo "\`CF-01\` lands. A conformance suite that has never failed for the right"
+            echo "reason has not been observed to assert anything. The run URL of the first"
+            echo "red run is recorded in \`docs/adr/0005-red-before-green.md\`."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Cluster logs on failure
+        if: failure()
+        run: docker logs trappoint-crdb | tail -100
+
+      - name: Tear down
+        if: always()
+        run: docker rm -f trappoint-crdb || true

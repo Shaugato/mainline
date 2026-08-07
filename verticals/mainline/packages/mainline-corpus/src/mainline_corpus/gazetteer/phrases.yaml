@@ -1,0 +1,186 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+#
+# Deterministic surface language: event titles, task phases, consequence phrasing, and the
+# era-banded vocabulary that makes the 2004 -> 2026 drift REAL.
+#
+# ── WHY THE ERA TABLE EXISTS ────────────────────────────────────────────────────────────────
+# The vocabulary-drift injector's entire claim is "lexical retrieval fails across twenty-two
+# years, semantic retrieval succeeds".  That claim is MEASURED by `corpus-embed-lift`, which
+# computes lexical recall@5 versus semantic recall@5 over dated drift pairs and writes
+# `drift_margin` into the lock — and the film only says the line if the margin is positive.
+#
+# A measurement over synthetic drift is only worth having if the drift is real lexical drift:
+# the SAME CONCEPT written in DIFFERENT WORDS, with no shared content term where the industry
+# genuinely changed its language.  `concepts` below is that table.  Each row is one concept and
+# four era surfaces; a 2005 document says "danger tagging", a 2025 document says "positive
+# isolation verification", and a bag-of-words retriever has nothing to match on.
+#
+# Note the deliberate hard cases: `near_miss` keeps the token "near" in two eras, and
+# `management_of_change` keeps "change" in all four.  A corpus where EVERY pair is lexically
+# disjoint would overstate the margin.  The table is authored to be honest about that.
+#
+# Stage 1 uses this file only for `event.title` (structure, not prose).  `event.narrative`,
+# clause bodies and MOC justifications are rendered by `corpus-render-cache` and are NOT
+# produced here.
+
+version: 1
+
+eras:
+  - {key: e1, from: 2004, to: 2009, label: early}
+  - {key: e2, from: 2010, to: 2015, label: mid}
+  - {key: e3, from: 2016, to: 2021, label: late}
+  - {key: e4, from: 2022, to: 2026, label: current}
+
+concepts:
+  - key: energy_isolation
+    e1: danger tagging
+    e2: lock out tag out
+    e3: energy isolation
+    e4: positive isolation verification
+
+  - key: trapped_energy
+    e1: residual pressure
+    e2: stored energy
+    e3: trapped hazardous energy
+    e4: unrelieved potential energy
+
+  - key: near_miss
+    e1: near hit
+    e2: hazard report
+    e3: potential incident
+    e4: high potential incident
+
+  - key: investigation
+    e1: accident investigation
+    e2: root cause analysis
+    e3: ICAM investigation
+    e4: learning team review
+
+  - key: critical_control
+    e1: key safeguard
+    e2: critical safeguard
+    e3: critical control
+    e4: material unwanted event control
+
+  - key: management_of_change
+    e1: engineering change note
+    e2: change request
+    e3: management of change
+    e4: change assurance
+
+  - key: seal_support
+    e1: quench and drain arrangement
+    e2: seal flush plan
+    e3: barrier fluid support system
+    e4: pressurised dual seal support
+
+  - key: gas_testing
+    e1: sniff test
+    e2: atmospheric test
+    e3: gas testing
+    e4: continuous atmospheric monitoring
+
+  - key: exclusion_zone
+    e1: barricading
+    e2: exclusion zone
+    e3: controlled access zone
+    e4: separation control
+
+  - key: permit
+    e1: work clearance
+    e2: work permit
+    e3: permit to work
+    e4: permit and isolation certificate
+
+  - key: contractor
+    e1: outside labour
+    e2: contract partner
+    e3: contract partner
+    e4: engaged provider
+
+  - key: fatigue
+    e1: tiredness
+    e2: fatigue
+    e3: fatigue risk
+    e4: fitness for work
+
+  - key: alarm_management
+    e1: alarm setting
+    e2: alarm setpoint
+    e3: alarm rationalisation
+    e4: alarm philosophy conformance
+
+  - key: verification
+    e1: spot check
+    e2: field verification
+    e3: critical control verification
+    e4: assurance activity
+
+  - key: pressure_relief
+    e1: safety valve
+    e2: relief valve
+    e3: pressure relief device
+    e4: overpressure protection device
+
+  - key: dropped_object
+    e1: falling object
+    e2: dropped object
+    e3: dropped object prevention
+    e4: dropped object exposure control
+
+task_phases:
+  - during routine operation
+  - during a planned shutdown
+  - during an intrusive maintenance task
+  - during start-up after maintenance
+  - during shift handover
+  - during a breakdown response
+  - during commissioning of replacement equipment
+  - during a statutory inspection
+  - during cleaning and preparation
+  - during transfer operations
+
+# Title stems by event kind.  `{concept}` is resolved through the era table using the event's
+# own year, which is what makes a 2005 title and a 2024 title about the same failure share no
+# content word.
+# `task_phases` entries already begin with "during", so a stem must never write "during {phase}".
+title_stems:
+  incident:
+    - "{energy} release {phase} on {asset}"
+    - "loss of containment at {asset} {phase}"
+    - "{concept:energy_isolation} failure on {asset}"
+    - "injury {phase} on {asset}"
+    - "fire on {asset} {phase}"
+    - "uncontrolled movement of {asset} {phase}"
+  near_miss:
+    - "{concept:near_miss} - {energy} exposure at {asset}"
+    - "{concept:near_miss} {phase} on {asset}"
+    - "{concept:trapped_energy} found after isolation of {asset}"
+    - "unplanned release of {energy} energy at {asset}"
+  regulator_notice:
+    - "improvement notice - {concept:critical_control} at {asset}"
+    - "prohibition notice - work stopped {phase} on {asset}"
+    - "regulator directive concerning {concept:energy_isolation} at {asset}"
+  oem_alert:
+    - "OEM advisory - {asset_class} {concept:seal_support}"
+    - "OEM service bulletin affecting {asset_class}"
+    - "vendor notification - premature wear on {asset_class}"
+  audit_finding:
+    - "audit finding - {concept:verification} of {concept:critical_control} at {asset}"
+    - "audit finding - {concept:permit} records incomplete for {asset}"
+    - "audit finding - {concept:management_of_change} not applied to {asset}"
+  capa:
+    - "corrective action - {concept:critical_control} at {asset}"
+    - "corrective action following {concept:investigation} at {asset}"
+    - "preventive action - {concept:alarm_management} on {asset}"
+
+# Consequence phrasing for `consequence_proxy`, graded by severity_actual.  These are FACTS
+# about the outcome, not narrative; the narrative is rendered downstream.
+consequence_bands:
+  0: {injuries: 0, days_lost: 0, label: no injury or loss}
+  1: {injuries: 0, days_lost: 0, label: first aid or minor property damage}
+  2: {injuries: 1, days_lost: 0, label: medical treatment injury}
+  3: {injuries: 1, days_lost: 4, label: lost time injury}
+  4: {injuries: 2, days_lost: 90, label: serious injury requiring hospitalisation}
+  5: {injuries: 1, days_lost: 0, label: fatality}

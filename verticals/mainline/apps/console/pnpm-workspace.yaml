@@ -1,0 +1,40 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+#
+# The console is its OWN pnpm root with its OWN lockfile.
+#
+# It is deliberately not a member of any workspace above it, and it never enters
+# the repository's uv (Python) workspace. Two reasons, both load-bearing:
+#
+#   1. The dependency graph of this directory is a LICENCE and LIABILITY boundary
+#      (scripts/check-licences.ts is a merge gate over it). Hoisting node_modules
+#      into a shared root would make that boundary unauditable.
+#   2. The cut ladder (BUILD_PLAN §10.2) must be able to delete this directory
+#      without touching anything else in the tree.
+#
+# `packages: []` declares a single-package root: no sub-packages, no globs. If a
+# future console package is added it is listed here explicitly, never by wildcard.
+packages: []
+
+# Post-install lifecycle scripts are DENIED by default (pnpm >= 10). Each entry
+# below is an explicit, reviewable grant of arbitrary code execution at install
+# time. Keep this list at zero or one.
+#
+#   esbuild — Vite's transform pipeline. Its install script resolves the platform
+#             binary from @esbuild/<platform> and fails loudly if the binary and
+#             the JS wrapper disagree on version. Without it `vite build` cannot
+#             run at all, so the grant buys a real capability rather than
+#             convenience.
+allowBuilds:
+  esbuild: true
+
+# pnpm's minimum-release-age gate (supply-chain cooldown) is left at its default.
+# Packages listed here were published inside the cooldown window and were pinned
+# deliberately; every entry is an exact version, never a range.
+minimumReleaseAgeExclude:
+  - '@react-three/drei@10.7.8'
+
+# The 3D chunk is a lazy chunk in the MEMORY register (docs/leads/ui.md §1.2).
+# Nothing in the evidentiary shell may import it, so its weight must never be paid
+# by a machine that will only ever render the ribbon.
+# pnpm cannot express that; scripts/check-budgets.ts asserts it after the build.

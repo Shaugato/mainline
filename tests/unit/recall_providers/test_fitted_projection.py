@@ -56,7 +56,8 @@ def _sample_rows(seed: int, count: int) -> np.ndarray:
     latent = rng.standard_normal((count, _LATENT))
     data = latent @ mixing + 0.02 * rng.standard_normal((count, EMBED_DIM)) + 0.4
     norms = np.linalg.norm(data, axis=1, keepdims=True)
-    return data / norms
+    unit: np.ndarray = data / norms
+    return unit
 
 
 def _synthetic_embeddings() -> np.ndarray:
@@ -65,13 +66,15 @@ def _synthetic_embeddings() -> np.ndarray:
 
 def _install_data_dir(monkeypatch: pytest.MonkeyPatch, directory: Path) -> None:
     """Point ``load_projection`` at ``directory`` instead of the packaged ``data/``."""
-    import mainline_recall_agent.providers.projection as projection_module
+    from importlib import resources
 
     class _Base:
         def __truediv__(self, name: str) -> Path:
             return directory / name
 
-    monkeypatch.setattr(projection_module.resources, "files", lambda _pkg: _Base())
+    # projection.py does `from importlib import resources`, so patching the module object
+    # itself is what its call site sees.
+    monkeypatch.setattr(resources, "files", lambda _pkg: _Base())
     load_projection.cache_clear()
 
 

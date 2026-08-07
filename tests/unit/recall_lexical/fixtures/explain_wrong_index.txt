@@ -1,0 +1,15 @@
+HAND-WRITTEN SPECIMEN of CockroachDB EXPLAIN grammar. NOT a capture from a live cluster.
+A secondary index was added and the optimiser chose it. The scan is constrained, so a
+"no full scan" check would pass — but the constraint is on the wrong key prefix and the
+statement's WHERE clause no longer matches the index it was written for. See plan.py.
+
+  distribution: local
+  vectorized: true
+
+  • group (hash)
+  │ group by: event_id
+  │
+  └── • scan
+        estimated row count: 41 (0.02% of the table)
+        table: lex_posting@lex_posting_by_event_idx
+        spans: 1 span

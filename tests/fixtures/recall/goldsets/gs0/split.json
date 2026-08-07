@@ -1,0 +1,6 @@
+{
+  "corpus_commit": "sha256:719c31fa000ff5afa9318fd7467ed76b5ad8ccfb93ac02c66de4602729e0b317",
+  "kind": "temporally_blocked",
+  "note": "Corpus-level head. Each retro query additionally carries its own wall t, enforced by the predicates occurred_at < t AND ingested_at < t AND corpus_commit <= t. AS OF SYSTEM TIME is refused (gc.ttlseconds=4h, recall lead D12).",
+  "wall": "2017-12-28T00:00:00+00:00"
+}

@@ -1,0 +1,33 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MI: MI01
+-- I: I01
+-- COUNSEL-GATED: no
+-- RATIONALE: Every CockroachDB database ships a `public` schema on which the `public` role holds CREATE and USAGE, so without this statement any principal that can connect can create objects inside the evidentiary database, and an unqualified name resolved through `search_path` can be made to hit one of them.
+--
+-- migration:  0008_revoke_create_on_public_schema
+-- band:       0001-0023 · dm-foundation
+-- statements: 1
+-- source:     ARCHITECTURE.md §11.2 · §11.1 adversary T (rogue DBA / app user)
+-- requires:   nothing beyond the database itself; ordered here so the deny posture is complete
+--             before the first object that matters is created.
+-- sqlstate:   —
+-- forward-only; no .down.sql exists at or below the protected floor (DM-14).
+--
+-- THIS IS THE FILE 0007 IS USUALLY MISTAKEN FOR.
+--   0007 revokes on the five MAINLINE zones, where nothing was granted to begin with. THIS file
+--   revokes on the one schema where something genuinely is: `public`, which every database has and
+--   on which the `public` pseudo-role holds CREATE and USAGE out of the box. Left alone, any role
+--   that can log in can create `public.person`, and MAINLINE's own rule "schema-qualify everything,
+--   no search_path reliance" (datamodel.md §4 rule 12) becomes the only thing standing between a
+--   shadow table and a query that reads it. Rules that only hold while everyone remembers them are
+--   not controls.
+--
+-- CREATE is revoked; USAGE is deliberately left in place. Revoking USAGE breaks nothing MAINLINE
+-- does either, but it also protects nothing once no principal can create an object there — there
+-- is nothing in the schema to reach — and it is a known source of confusing failures in client
+-- tooling that resolves an empty `public` on connect. The control is "you may not put an object
+-- here", and that is exactly what is revoked.
+
+REVOKE CREATE ON SCHEMA public FROM public;

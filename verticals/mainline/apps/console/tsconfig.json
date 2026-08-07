@@ -1,0 +1,49 @@
+{
+  "$comment": [
+    "SPDX-FileCopyrightText: 2026 MAINLINE contributors",
+    "SPDX-License-Identifier: FSL-1.1-ALv2",
+    "The APPLICATION project: everything that runs in a browser, plus the unit tests.",
+    "noPropertyAccessFromIndexSignature is deliberately OFF here and ON in the tooling project:",
+    "vite/client types a CSS Module as { readonly [k: string]: string }, so the flag would force",
+    "styles['failureTitle'] on every className in the workspace. That is a real cost paid by ten",
+    "workers for no safety — a missing class name is a styling defect, never an evidentiary one.",
+    "Tooling (vite/vitest config, scripts/, the Playwright specs) lives in tsconfig.node.json,",
+    "which is the only project that may see @types/node. The application must not be able to",
+    "reach a Node global by accident.",
+    "docs/leads/ui.md D1 pins TypeScript 5.9.x with strict + noUncheckedIndexedAccess +",
+    "exactOptionalPropertyTypes. erasableSyntaxOnly is added on top so that no file in this",
+    "workspace can use a construct (enum, namespace, parameter property) that Node's built-in",
+    "type stripping cannot run — scripts/*.ts are executed by `node` directly, with no bundler."
+  ],
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "moduleDetection": "force",
+    "jsx": "react-jsx",
+    "types": ["vite/client", "vitest/globals"],
+
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "useUnknownInCatchVariables": true,
+
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "erasableSyntaxOnly": true,
+    "allowImportingTsExtensions": false,
+    "resolveJsonModule": true,
+    "useDefineForClassFields": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "noEmit": true
+  },
+  "include": ["src", "tests/setup.ts", "tests/unit"],
+  "exclude": ["dist", "node_modules", "tests/browser"]
+}

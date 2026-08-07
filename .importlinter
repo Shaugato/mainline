@@ -1,0 +1,168 @@
+; SPDX-FileCopyrightText: 2026 MAINLINE contributors
+; SPDX-License-Identifier: Apache-2.0
+;
+; FOUR CONTRACTS. Not three, not five. BUILD_PLAN.md §3 K1 names them, and each one
+; exists because a claim made elsewhere in the repository is false without it:
+;
+;   1. licence-boundary  — "the substrate is Apache-2.0 and forkable" is a lie the
+;                          moment an Apache distribution imports an FSL one, because
+;                          the fork cannot then be built.
+;   2. no-model-in-kernel — ARCHITECTURE.md §8.2 draws the deterministic boundary and
+;                          `mainline-boundary`'s E3 enforcement asserts it over the
+;                          dependency graph. This contract asserts the same thing over
+;                          the IMPORT graph, which is the surface E3 cannot see.
+;   3. verifier-minimal   — `trappoint-verify`'s whole value is that an opposing expert
+;                          can run it with one dependency. Every import added to the
+;                          canonicalisation path is a dependency their Rust
+;                          re-implementation would have to reproduce.
+;   4. no-blanket-retry   — spec/errors.md §4: a refusal is attempted exactly once,
+;                          ever. `tenacity`/`backoff`/`retrying` make the retry policy
+;                          a decorator argument nobody reads, and a retried `23514`
+;                          turns the refusal ledger's count into a count of nothing.
+;
+; HOW A NEW PACKAGE JOINS. `root_packages` must name packages that are importable at
+; lint time — import-linter builds a real graph, not a guess — so a package that does
+; not exist yet cannot be listed. The mechanism that stops that from becoming a hole is
+; the `import-linter-registry` job in `.github/workflows/ci.yml`: it fails when a
+; workspace distribution appears in neither `root_packages` nor a contract's
+; `forbidden_modules`. A new package is therefore registered by CI refusing the build,
+; not by anyone remembering.
+
+[importlinter]
+root_packages =
+    trappoint_migrate
+    trappoint_conformance
+    trappoint_jcs
+    trappoint_recall
+    mainline_boundary
+include_external_packages = True
+exclude_type_checking_imports = False
+
+; ─────────────────────────────────────────────────────────────────────────────
+; CONTRACT 1 — the Apache substrate never imports the FSL vertical.
+; ─────────────────────────────────────────────────────────────────────────────
+; Direction matters and only one direction is forbidden. `verticals/mainline/*` MAY
+; import `packages/trappoint-*`: that is the substrate claim working. The reverse makes
+; `packages/` unbuildable outside this repository, which is the entire fork story.
+;
+; Forbidden entries that do not exist yet are skipped by import-linter rather than
+; erroring, so this list is written for the whole vertical up front and the contract
+; starts enforcing each package the day it lands.
+[importlinter:contract:licence-boundary]
+name = 1. The Apache substrate never imports the FSL vertical
+type = forbidden
+source_modules =
+    trappoint_migrate
+    trappoint_conformance
+    trappoint_jcs
+    trappoint_recall
+    mainline_boundary
+forbidden_modules =
+    mainline_domain
+    mainline_corpus
+    mainline_recall_agent
+    mainline_gate_svc
+    mainline_console_api
+    mainline_custody_relay
+    mainline_provisioner
+    mainline_ingest
+    mainline_steward
+allow_indirect_imports = False
+unmatched_ignore_imports_alerting = error
+
+; ─────────────────────────────────────────────────────────────────────────────
+; CONTRACT 2 — no model code path in the kernel.
+; ─────────────────────────────────────────────────────────────────────────────
+; The gate is deterministic SQL and the tools that apply and test it. If a model SDK is
+; importable from the migration runner or the conformance runner, then "no model can
+; reach the merge gate" is a claim about intent rather than about the program.
+;
+; `allow_indirect_imports = False` is the point: a transitive reach through a helper
+; module is the shape this actually takes in practice, never a direct `import boto3`
+; at the top of `runner.py`.
+[importlinter:contract:no-model-in-kernel]
+name = 2. No model code path in the kernel (migrate + conformance)
+type = forbidden
+source_modules =
+    trappoint_migrate
+    trappoint_conformance
+forbidden_modules =
+    boto3
+    botocore
+    anthropic
+    strands
+    strands_agents
+    strands_tools
+    openai
+    langchain
+    langchain_core
+    llama_index
+    transformers
+    sentence_transformers
+    torch
+allow_indirect_imports = False
+unmatched_ignore_imports_alerting = error
+
+; ─────────────────────────────────────────────────────────────────────────────
+; CONTRACT 3 — the offline verifier stays dependency-minimal.
+; ─────────────────────────────────────────────────────────────────────────────
+; `trappoint-jcs` is the canonicaliser the offline verifier vendors, and its
+; `pyproject.toml` declares zero runtime dependencies. That declaration is a promise
+; about the DISTRIBUTION; this contract is the promise about the CODE, which is the one
+; that breaks first — a single `import numpy` inside a canonicalisation helper survives
+; a dependency-list review and then appears in the verifier's install footprint.
+;
+; `trappoint_verify` joins `source_modules` in the same commit that creates it; the
+; registry job in ci.yml refuses the build until it does.
+[importlinter:contract:verifier-minimal]
+name = 3. The offline verifier stays dependency-minimal
+type = forbidden
+source_modules =
+    trappoint_jcs
+forbidden_modules =
+    psycopg
+    psycopg_pool
+    boto3
+    botocore
+    requests
+    httpx
+    urllib3
+    aiohttp
+    numpy
+    scipy
+    pandas
+    sklearn
+    pydantic
+    jinja2
+    yaml
+    anthropic
+allow_indirect_imports = False
+unmatched_ignore_imports_alerting = error
+
+; ─────────────────────────────────────────────────────────────────────────────
+; CONTRACT 4 — no blanket-retry helper exists anywhere.
+; ─────────────────────────────────────────────────────────────────────────────
+; Repository-wide, including the FSL vertical and the evaluation harness. `40001` is the
+; only retryable SQLSTATE (spec/errors.md §2.1) and the loop that retries it is
+; hand-written, bounded, jittered and readable in one screen. A decorator that retries
+; "on exception" cannot distinguish an undecided transaction from a decided refusal, and
+; the difference between those two is the product.
+[importlinter:contract:no-blanket-retry]
+name = 4. No blanket-retry helper exists anywhere
+type = forbidden
+source_modules =
+    trappoint_migrate
+    trappoint_conformance
+    trappoint_jcs
+    trappoint_recall
+    mainline_boundary
+forbidden_modules =
+    tenacity
+    backoff
+    retrying
+    retry
+    retry2
+    stamina
+    aiohttp_retry
+allow_indirect_imports = False
+unmatched_ignore_imports_alerting = error

@@ -19,7 +19,7 @@ from mainline_recall_agent.providers.types import COARSE_DIM, EMBED_DIM
 from mainline_recall_agent.providers.vectors import is_unit, l2_normalise
 
 
-def _ramp(seed: float = 0.37) -> list[float]:
+def _ramp(seed: float = 0.37) -> tuple[float, ...]:
     return l2_normalise([math.sin(i * seed) + 0.03 * i for i in range(EMBED_DIM)])
 
 
@@ -93,6 +93,8 @@ def test_wrong_input_width_is_refused() -> None:
 
 def test_a_tampered_sidecar_fails_to_load(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A projection cannot drift without the load failing."""
+    from importlib import resources
+
     import mainline_recall_agent.providers.projection as projection_module
 
     source = (
@@ -108,7 +110,9 @@ def test_a_tampered_sidecar_fails_to_load(tmp_path: Path, monkeypatch: pytest.Mo
         def __truediv__(self, name: str) -> Path:
             return target_dir / name
 
-    monkeypatch.setattr(projection_module.resources, "files", lambda _pkg: _Base())
+    # projection.py does `from importlib import resources`, so patching the module object
+    # itself is what its call site sees.
+    monkeypatch.setattr(resources, "files", lambda _pkg: _Base())
     load_projection.cache_clear()
     with pytest.raises(ProjectionError) as excinfo:
         load_projection("tampered.json")

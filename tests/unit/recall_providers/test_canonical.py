@@ -50,8 +50,9 @@ def test_object_keys_sort_by_utf16_code_unit_not_code_point() -> None:
     disagreeing here produce two different digests for the same request, and the cassette
     misses for a reason nobody can reproduce.
     """
-    document = {"\U0001f600": 1, "Ｚ": 2, "a": 3}
-    assert canonical_json(document) == '{"a":3,"\U0001f600":1,"Ｚ":2}'.encode()
+    # RUF001: the fullwidth Z is the point of the test, not a typo for ASCII "Z".
+    document = {"\U0001f600": 1, "Ｚ": 2, "a": 3}  # noqa: RUF001
+    assert canonical_json(document) == '{"a":3,"\U0001f600":1,"Ｚ":2}'.encode()  # noqa: RUF001
     # The naive implementation, for contrast:
     import json
 

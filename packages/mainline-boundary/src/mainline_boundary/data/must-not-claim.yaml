@@ -1,0 +1,189 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# ARCHITECTURE.md §11.7 — the must-not-claim list, as executable regexes.
+#
+# Two things about how this file is used, both deliberate.
+#
+# 1. A match is excused when the surrounding line disclaims rather than asserts
+#    (mainline_boundary.greps.GLOBAL_NEGATION), or when it matches one of the
+#    `allow_if` patterns below. Every excuse is RECORDED in the report as an
+#    exemption with its reason, so the hole is arguable rather than invisible.
+# 2. The scan runs only over the documents that face outward — README.md,
+#    VERIFY.md, docs/deck/**, docs/submission/**. §11.7 binds the list into
+#    "README, deck, video and MSA"; the video script and the MSA are prose held
+#    elsewhere and are covered by the same rules when they land in docs/submission.
+---
+claims:
+  - id: RLS-VS-ROGUE-ADMIN
+    description: >-
+      RLS is not a defence against a rogue admin. It is a defence against a
+      compromised application role, and saying otherwise is the claim that
+      collapses first under cross-examination.
+    source: "ARCHITECTURE.md §11.3, §11.7"
+    patterns:
+      - '\bRLS\b[^.\n]{0,80}\b(rogue|malicious|compromised)\s+admin'
+      - '\b(rogue|malicious)\s+admin[^.\n]{0,80}\bRLS\b'
+
+  - id: CMEK-PRIVATELINK-RESIDENCY-ON-CHECKPOINT
+    description: >-
+      CMEK, PrivateLink and Sydney residency are not available on the
+      checkpoint-tier cluster this build runs on. Claiming them requires naming
+      the tier that carries them.
+    source: "ARCHITECTURE.md §11.7, §19 GT-01"
+    patterns:
+      - '\bCMEK\b'
+      - '\bPrivateLink\b'
+      - '\bSydney residency\b'
+    allow_if:
+      - '\bAdvanced tier\b'
+      - '\bwould require\b'
+      - '\bnot on this tier\b'
+
+  - id: SELF-CRITICAL-ANALYSIS-PRIVILEGE
+    description: >-
+      There is no self-critical-analysis privilege in Australian law.
+    source: "ARCHITECTURE.md §11.6, §11.7"
+    patterns:
+      - 'self[- ]critical[- ]analysis privilege'
+
+  - id: PRIVILEGE-OVER-OPERATIONAL-RECORDS
+    description: >-
+      Legal privilege does not extend to operational records or pre-engagement
+      material.
+    source: "ARCHITECTURE.md §11.6, §11.7"
+    patterns:
+      - '\bprivileg\w+[^.\n]{0,50}\boperational records\b'
+      - '\bprivileg\w+[^.\n]{0,50}\bpre[- ]engagement\b'
+
+  - id: DISPOSITION-VERSUS-RUBBER-STAMP
+    description: >-
+      MAINLINE cannot distinguish a considered disposition from a rubber stamp.
+      It can prove one was signed, by whom, against what, and when.
+    source: "ARCHITECTURE.md §11.7"
+    patterns:
+      - 'distinguish\w*[^.\n]{0,60}rubber[- ]stamp'
+      - 'rubber[- ]stamp[^.\n]{0,60}\bdistinguish'
+
+  - id: IDENTITY-PROOFING
+    description: >-
+      We do not identity-proof anyone. We bind a signature to an enrolled
+      credential; who enrolled it is the customer's assertion.
+    source: "ARCHITECTURE.md §11.4, §11.7"
+    patterns:
+      - '\bidentity[- ]proof(ing|ed|s)?\b'
+      - '\bproof of identity\b'
+
+  - id: WEBAUTHN-JUDICIAL-PRECEDENT
+    description: >-
+      There is no judicial precedent for WebAuthn-signed safety records.
+    source: "ARCHITECTURE.md §11.7, §19 GT-15"
+    patterns:
+      - '\bprecedent\b[^.\n]{0,70}WebAuthn'
+      - 'WebAuthn[^.\n]{0,70}\bprecedent\b'
+
+  - id: MULTI-MONTH-AS-OF-SYSTEM-TIME
+    description: >-
+      gc.ttlseconds is 4 h, so AS OF SYSTEM TIME cannot reach months back. The
+      long-horizon record is the application-level commit DAG, not MVCC.
+    source: "ARCHITECTURE.md §11.7, §4.1"
+    patterns:
+      - 'AS OF SYSTEM TIME[^.\n]{0,60}\b(month|months|year|years|decade)\b'
+      - '\b(month|months|year|years|decade)s?\b[^.\n]{0,60}AS OF SYSTEM TIME'
+      - '\btime[- ]travel\b[^.\n]{0,50}\b(month|year|decade)'
+
+  - id: BIT-IDENTICAL-ANN-REPLAY
+    description: >-
+      An ANN result is not bit-identically replayable. The claims are
+      replayability and arithmetic reproducibility.
+    source: "ARCHITECTURE.md §8.2, §11.7"
+    patterns:
+      - '\bbit[- ]identical\b'
+      - '\bbit[- ]for[- ]bit\b[^.\n]{0,40}\b(replay|reproduc)'
+
+  - id: CORPUS-EXHAUSTION
+    description: >-
+      We claim exhaustion of the retrieval that ran, never of the corpus.
+    source: "ARCHITECTURE.md §11.7"
+    patterns:
+      - 'exhaust\w*[^.\n]{0,40}\bcorpus\b'
+      - '\bcorpus\b[^.\n]{0,40}\bexhaust\w*'
+      - '\bevery\b[^.\n]{0,30}\bprecursor in the corpus\b'
+
+  - id: LIVE-OT-OR-AUTO-REMEDIATION
+    description: >-
+      MAINLINE has no live OT connectivity and performs no auto-remediation.
+    source: "ARCHITECTURE.md §11.7, §15"
+    patterns:
+      - '\blive OT\b'
+      - '\bauto[- ]remediat\w+'
+      - '\bcontrol(s)? the plant\b'
+
+  - id: ENCLAVE-ATTESTED-SIGNING
+    description: >-
+      Signing is not enclave-attested. It is KMS with a documented key policy.
+    source: "ARCHITECTURE.md §11.7, §7"
+    patterns:
+      - '\benclave[- ]attest\w+'
+      - '\battested enclave\b'
+
+  - id: SPLIT-VIEW-RESISTANCE
+    description: >-
+      Split-view resistance requires a live adverse witness. Without one the
+      ledger is tamper-evident, not split-view resistant.
+    source: "ARCHITECTURE.md §7.6, §11.7"
+    patterns:
+      - 'split[- ]view[^.\n]{0,30}resistan\w+'
+    allow_if:
+      - '\badverse witness\b'
+      - '\bwitness\b[^.\n]{0,40}\brequired\b'
+
+  - id: PER-PERSON-MEASUREMENT-WITHOUT-POLICY
+    description: >-
+      No per-person measurement operates without a customer-signed notified
+      policy.
+    source: "ARCHITECTURE.md §11.5, §11.7"
+    patterns:
+      - 'per[- ]person (measurement|metric|scor\w+)'
+      - '\bsigner (scorecard|league table|ranking)\b'
+    allow_if:
+      - '\bnotified policy\b'
+      - '\bcustomer[- ]signed\b'
+
+  - id: OPEN-SOURCE-AGENTIC-MEMORY-LAYER
+    description: >-
+      "An open-source agentic memory layer" is the sentence that describes forty
+      other projects. Lead with the refusal.
+    source: "ARCHITECTURE.md §11.7"
+    patterns:
+      - '\bagentic memory layer\b'
+
+  - id: MATERIALISES-A-BLOCKING-CHECK
+    description: >-
+      The kernel materialises a blocking-check ROW. "Materialises a blocking
+      check" reads as though the system invented the obligation.
+    source: "ARCHITECTURE.md §11.7"
+    patterns:
+      - 'materiali[sz]\w*\s+(a|the)\s+blocking\s+check\b(?!\s+row)'
+
+  - id: NOT-APPLICABLE-CONSTRUCTOR
+    description: >-
+      The shipped disposition constructor is `mechanism_absent`. `not_applicable`
+      is the word that lets a signer dismiss a fatality-written control without
+      saying why it cannot happen here.
+    source: "ARCHITECTURE.md §11.7, §5.5"
+    patterns:
+      - '\bnot_applicable\b'
+
+  - id: UPSTREAM-SKILLS-MERGE
+    description: >-
+      We claim the filing, never the merge. Two external skill PRs have sat
+      untouched for weeks.
+    source: "ARCHITECTURE.md §11.7, docs/leads/agents-mcp.md A16/AR-4"
+    patterns:
+      - '\b(merged|accepted)\b[^.\n]{0,50}\bupstream\b'
+      - '\bupstream\b[^.\n]{0,50}\b(merged|accepted)\b'
+      - '\bCockroachDB (has )?(merged|accepted|shipped) our\b'
+    allow_if:
+      - '\bfil(ed|ing)\b'
+      - '\bpull request\b[^.\n]{0,30}\bopen\b'

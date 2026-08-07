@@ -10,8 +10,10 @@ directory may open a socket.
 from __future__ import annotations
 
 import os
+import socket
 import sys
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -42,6 +44,37 @@ _OWNED_ENV = (
     "MAINLINE_BGE_REVISION",
     "AWS_REGION",
 )
+
+
+class NetworkAccessInTest(RuntimeError):
+    """Raised when a test in this directory tries to open a socket.
+
+    The suite's stated property is that it passes with no AWS credentials and no network.
+    A docstring claiming that is worth nothing: a provider could acquire a lazy boto3
+    session, time out after 60 s, fall back to something plausible, and the suite would go
+    green while the offline guarantee quietly died.  So the guarantee is enforced.
+    """
+
+
+@pytest.fixture(autouse=True)
+def no_network(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Make the 'runs with no network' claim structural rather than aspirational.
+
+    Only outbound connection establishment is blocked, which is the operation that would
+    reach Bedrock or Hugging Face.  Socket construction itself is left alone so that
+    anything merely inspecting the module keeps working.
+    """
+
+    def _refuse(*args: Any, **kwargs: Any) -> Any:
+        raise NetworkAccessInTest(
+            "a test in tests/unit/recall_providers attempted an outbound connection. "
+            "This suite must pass with no credentials and no network: use a cassette, a "
+            "stub client, or an explicit skip with a reason."
+        )
+
+    monkeypatch.setattr(socket.socket, "connect", _refuse, raising=True)
+    monkeypatch.setattr(socket.socket, "connect_ex", _refuse, raising=True)
+    monkeypatch.setattr(socket, "create_connection", _refuse, raising=True)
 
 
 @pytest.fixture(autouse=True)
@@ -75,8 +108,8 @@ def package_src() -> Path:
 
 @pytest.fixture
 def fixture_corpus() -> list[dict[str, object]]:
-    from mainline_recall_agent.providers.record import load_fixture_corpus
     from mainline_recall_agent.providers.cassette import CassetteStore
+    from mainline_recall_agent.providers.record import load_fixture_corpus
 
     os.environ.setdefault("MAINLINE_RECALL_CASSETTE_DIR", str(CASSETTE_ROOT))
     return load_fixture_corpus(CassetteStore(CASSETTE_ROOT))

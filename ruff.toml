@@ -1,0 +1,136 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# Repository-wide lint and format baseline, with a DELIBERATE GRADIENT that mirrors
+# mypy.ini's. A package MAY tighten this in its own `pyproject.toml`
+# (`packages/mainline-boundary` does); nothing may loosen it.
+#
+# STRICTEST — `packages/trappoint-*`, the Apache substrate. Docstrings and annotations
+# are required here because this is the artefact a stranger forks, and the only thing
+# between a fork and a wrong refusal is that the code says what it means.
+#
+# STRONG — everywhere else. The rules that stay everywhere are the ones that are
+# load-bearing for a claim made elsewhere in the repository, not the ones that are
+# merely tidy:
+#
+#   * `BLE` / `E722` — a bare or blanket `except` is how a refusal becomes a silence.
+#     In a product whose deliverable is a refusal, swallowing an exception is the defect
+#     class, not a style nit.
+#   * `T20` — `print()` outside a CLI entry point is diagnostic output that no log,
+#     ledger or step summary will ever contain.
+#   * `S` (bandit) — `subprocess` and `assert` reach the provisioning and conformance
+#     paths, where both have consequences.
+#   * `DTZ` — a naive datetime in an evidentiary payload is an unanswerable question in
+#     cross-examination.
+#   * `TRY300` / `RET` — control flow that hides which branch produced a refusal.
+
+line-length = 100
+target-version = "py313"
+extend-exclude = [
+    ".venv",
+    "node_modules",
+    "**/node_modules",
+    "research",
+    "evidence",
+]
+
+[lint]
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # pyflakes
+    "I",      # isort
+    "N",      # pep8-naming
+    "UP",     # pyupgrade
+    "B",      # flake8-bugbear
+    "A",      # flake8-builtins
+    "C4",     # flake8-comprehensions
+    "DTZ",    # flake8-datetimez
+    "ISC",    # implicit str concat
+    "PIE",
+    "PT",     # flake8-pytest-style
+    "RET",
+    "SIM",
+    "ARG",
+    "PTH",
+    "TRY",
+    "RUF",
+    "S",      # flake8-bandit
+    "BLE",    # blind except
+    "T20",    # print
+    "ANN",    # annotations
+    "D",      # pydocstyle
+    "PLC",    # pylint conventions
+    "PLE",    # pylint errors
+    "PLW",    # pylint warnings
+    "PLR",    # pylint refactor
+]
+ignore = [
+    "D203",   # incompatible with D211
+    "D213",   # incompatible with D212
+    "ANN401", # `Any` is occasionally the honest annotation at a driver boundary
+    "TRY003", # long messages inside raise: our refusal messages ARE the product
+    "PLR0913",# argument count: DDL and wire shapes have many fields
+    "PLR0917",# positional-argument count, same reason
+    "ISC001", # conflicts with the formatter
+    # `N818` requires every exception to end in "Error". Refused deliberately. The
+    # refusal vocabulary is a product surface that appears in operator-facing messages
+    # and in the ADRs, and `DirtyMigration`, `LockUnavailable`, `ModelRefusal` and
+    # `UnmodelledRefusal` are the words this system uses for those conditions.
+    # `LockUnavailableError` is worse prose and buys nothing a reader did not have.
+    "N818",
+    # `PLC0415` bans imports inside functions. We use them on purpose and in exactly two
+    # shapes: to keep an optional heavy dependency (a cloud SDK, a driver's binary
+    # wheel) off the import path of a command that must work without it, and to break a
+    # genuine module cycle. Both are documented at each site.
+    "PLC0415",
+]
+
+[lint.per-file-ignores]
+# CLI entry points are exactly where stdout is the interface.
+"**/cli.py" = ["T20"]
+"**/__main__.py" = ["T20"]
+"**/report.py" = ["T20"]
+"scripts/**" = ["T20", "S603", "S607", "D", "ANN", "PLR2004"]
+
+# Tests assert, parametrise, seed generators deterministically, and read fixtures off
+# disk. `S311` is allowed because a *seeded* PRNG is the point — a test of jittered
+# backoff that used a cryptographic generator could not be reproduced.
+"**/tests/**" = [
+    "S101", "S105", "S311", "S603", "S607",
+    "D", "ANN", "PLR2004", "PLR0915", "T20", "SLF001",
+]
+"tests/**" = [
+    "S101", "S105", "S311", "S603", "S607",
+    "D", "ANN", "PLR2004", "PLR0915", "T20", "SLF001",
+]
+
+# THE GRADIENT. Docstring and annotation completeness is required of the Apache
+# substrate and not of the FSL vertical, for the same reason mypy is strict on one and
+# not the other: `packages/trappoint-*` is what a second vertical, a fork, or an
+# opposing expert reads without us in the room.
+"verticals/**" = ["D100", "D101", "D102", "D103", "D104", "D105", "D107", "ANN"]
+"packages/mainline-boundary/**" = ["D100", "D101", "D102", "D103", "D104", "D105", "D107"]
+
+[lint.isort]
+known-first-party = [
+    "trappoint_conformance",
+    "trappoint_core",
+    "trappoint_diagnose",
+    "trappoint_jcs",
+    "trappoint_migrate",
+    "trappoint_recall",
+    "trappoint_sql",
+    "trappoint_verify",
+    "mainline_boundary",
+]
+
+[lint.pydocstyle]
+convention = "pep257"
+
+[format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "lf"
+docstring-code-format = true

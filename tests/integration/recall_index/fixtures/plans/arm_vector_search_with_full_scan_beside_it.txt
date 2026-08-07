@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+# BAD, and the subtle one. There IS a vector search on the right index with real prefix spans —
+# and beside it, a predicate the optimizer could not push into the prefix reappears as a full
+# scan. An assertion that stopped at "vector search present" would pass this plan.
+  distribution: local
+  vectorized: true
+
+  • hash join
+  │ equality: (cue_id) = (cue_id)
+  │
+  ├── • vector search
+  │     table: event_cue_embedding@cue_scoped_idx
+  │     target count: 12
+  │     prefix spans: [/'1111…'/'6f2c…'/'mechanism' - /'1111…'/'6f2c…'/'mechanism']
+  │
+  └── • scan
+        estimated row count: 20,000 (100% of the table)
+        table: event_cue@event_cue_pkey
+        spans: FULL SCAN

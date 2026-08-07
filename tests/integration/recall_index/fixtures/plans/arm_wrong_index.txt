@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+# BAD — a vector search, but on the wrong index. This is what an arm looks like after somebody
+# adds a second vector index and the optimizer picks it: still "using a vector index", still
+# searching a different set of K-means trees than the ancestry the gate asked for.
+  distribution: local
+  vectorized: true
+
+  • vector search
+    table: event_cue_embedding@cue_experimental_idx
+    target count: 12
+    prefix spans: [/'1111…' - /'1111…']

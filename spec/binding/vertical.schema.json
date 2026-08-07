@@ -31,7 +31,7 @@
     },
     "capabilities": { "$ref": "#/$defs/capabilities" },
     "emit_outbox": {
-      "description": "Whether projection triggers additionally write a changefeed outbox row. The substrate must not hard-depend on a table it does not own, so the reference vertical sets this false.",
+      "description": "Whether projection triggers additionally write a changefeed outbox row. The substrate must not hard-depend on a table it does not own, so the reference vertical sets this false. TOML placement matters and silently mis-binds: a bare top-level key written AFTER any [table] header belongs to that table, so `emit_outbox` (and any other top-level scalar) MUST appear before the first table header or validation fails against `capabilities.additionalProperties`.",
       "type": "boolean",
       "default": false
     },
@@ -197,7 +197,15 @@
           "$ref": "#/$defs/qualifiedRelation"
         },
         "key": {
-          "description": "Columns of the projected row used to look up the authority row, in order.",
+          "description": "Columns OF THE PROJECTED ROW used to look up the authority row, in order.",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/sqlIdentifier" }
+        },
+        "key_columns": {
+          "description": "Columns OF THE AUTHORITY RELATION matched against `key`, positionally. Omit only when the two sides use the same names. It is not a convenience: in MAINLINE the projected row carries `commit_id` while the closure carries `as_of_commit`, so a renderer assuming the names coincide would emit SQL naming a column that does not exist. The renderer refuses a length mismatch (authority-source.md A-9), which JSON Schema cannot express.",
           "type": "array",
           "minItems": 1,
           "maxItems": 8,

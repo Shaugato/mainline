@@ -1,0 +1,6 @@
+{
+  "name": "GS0",
+  "preliminary": true,
+  "provenance": "MAINLINE synthetic replica corpus (synthetic_replica, harness_only). Built by trappoint_recall.corpora.build.build_goldsets from committed fixtures. G2 is excluded by construction: a calibrator-only label has no place in a corpus a release gate reads. Retro judgements are distant supervision from investigator citations, overlaid with G3's human-confirmed blinded labels, which are the only labels p_at_block computes over.",
+  "synthetic": true
+}

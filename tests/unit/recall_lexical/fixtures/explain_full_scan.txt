@@ -1,0 +1,25 @@
+HAND-WRITTEN SPECIMEN of CockroachDB EXPLAIN grammar. NOT a capture from a live cluster.
+This is what channel D looks like when the `p.term IN (...)` predicate is dropped: the answer
+is still correct, every test that checks scores still passes, and the posting list is read in
+full on every permit gate. See plan.py.
+
+  distribution: full
+  vectorized: true
+
+  • group (hash)
+  │ estimated row count: 2,000
+  │ group by: event_id
+  │
+  └── • hash join
+      │ estimated row count: 302,411
+      │ equality: (term) = (term)
+      │
+      ├── • scan
+      │     estimated row count: 302,411 (100% of the table; stats collected 3 minutes ago)
+      │     table: lex_posting@lex_posting_pk
+      │     spans: FULL SCAN
+      │
+      └── • scan
+            estimated row count: 18,204 (100% of the table; stats collected 3 minutes ago)
+            table: lex_stats@lex_stats_pk
+            spans: FULL SCAN

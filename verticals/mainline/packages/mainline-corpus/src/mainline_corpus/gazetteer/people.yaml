@@ -1,0 +1,319 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+#
+# The people the record names (ARCHITECTURE.md §5.1 `mainline.person`).
+#
+# NO FAKER, NO MIMESIS.  Two reasons, and the second is the one that matters:
+#
+#  1. `mimesis` is not installed in this environment and nothing in this build may REQUIRE an
+#     unavailable dependency to be considered done.
+#  2. A name provider is a moving target.  `person.signer_sub` is a foreign key from
+#     `commit_obj.author_sub`, `disposition.signer_sub`, `blame_edge.reviewed_by` and the
+#     custody ledger.  If the name pool changes between library versions, every one of those
+#     keys changes, every committed render-cache entry misses, and "regeneration is a no-op
+#     unless a prompt changes" stops being true.  A committed pool cannot drift.
+#
+# APPEND ONLY.  The generator indexes into these lists from a seeded stream; inserting a name in
+# the middle re-keys every person after it.
+#
+# `person` has NO display-name column.  The name a human reads on camera lives in
+# `competency_snapshot` (a JSONB mirror of the HR/LMS record), which is where it belongs: the
+# identity is the `signer_sub` the customer's IdP issued, and the label is theirs to assert.
+
+version: 1
+
+# signer_sub = "kestrel:<surname_lower>.<given_initial_lower>[<n>]" where <n> is appended only to
+# break a collision.  Readable on camera, stable, and derived — never drawn.
+sub_prefix: "kestrel:"
+
+given_names:
+  - {name: Dele, initial: D}
+  - {name: Marisol, initial: M}
+  - {name: Aiden, initial: A}
+  - {name: Priya, initial: P}
+  - {name: Tomas, initial: T}
+  - {name: Ngaire, initial: N}
+  - {name: Hamish, initial: H}
+  - {name: Fatima, initial: F}
+  - {name: Rowan, initial: R}
+  - {name: Ines, initial: I}
+  - {name: Callum, initial: C}
+  - {name: Yuki, initial: Y}
+  - {name: Bram, initial: B}
+  - {name: Sione, initial: S}
+  - {name: Leila, initial: L}
+  - {name: Gareth, initial: G}
+  - {name: Anwen, initial: A}
+  - {name: Mateo, initial: M}
+  - {name: Keeley, initial: K}
+  - {name: Oskar, initial: O}
+  - {name: Tanvi, initial: T}
+  - {name: Declan, initial: D}
+  - {name: Noor, initial: N}
+  - {name: Petra, initial: P}
+  - {name: Hugo, initial: H}
+  - {name: Ariana, initial: A}
+  - {name: Kwame, initial: K}
+  - {name: Sinead, initial: S}
+  - {name: Emeka, initial: E}
+  - {name: Bronwyn, initial: B}
+  - {name: Rafael, initial: R}
+  - {name: Wiremu, initial: W}
+  - {name: Joelle, initial: J}
+  - {name: Anders, initial: A}
+  - {name: Meera, initial: M}
+  - {name: Torin, initial: T}
+  - {name: Elke, initial: E}
+  - {name: Zaid, initial: Z}
+  - {name: Carys, initial: C}
+  - {name: Nikola, initial: N}
+  - {name: Imogen, initial: I}
+  - {name: Rhodri, initial: R}
+  - {name: Suzette, initial: S}
+  - {name: Kofi, initial: K}
+  - {name: Larissa, initial: L}
+  - {name: Fintan, initial: F}
+  - {name: Mira, initial: M}
+  - {name: Dougal, initial: D}
+  - {name: Aroha, initial: A}
+  - {name: Vikram, initial: V}
+  - {name: Greta, initial: G}
+  - {name: Osman, initial: O}
+  - {name: Tegan, initial: T}
+  - {name: Bastian, initial: B}
+  - {name: Lucia, initial: L}
+  - {name: Idris, initial: I}
+  - {name: Halina, initial: H}
+  - {name: Marek, initial: M}
+  - {name: Sian, initial: S}
+  - {name: Jarrah, initial: J}
+  - {name: Ophelia, initial: O}
+  - {name: Ruairi, initial: R}
+  - {name: Nadia, initial: N}
+  - {name: Emlyn, initial: E}
+
+surnames:
+  - Okonjo
+  - Ferreira
+  - Whitlam
+  - Nakagawa
+  - Bergstrom
+  - Adeyemi
+  - Kowalczyk
+  - Tuiletufuga
+  - Marchetti
+  - Halloran
+  - Devereux
+  - Ngata
+  - Bahri
+  - Lindqvist
+  - Oyelaran
+  - Castellanos
+  - Prendergast
+  - Vasquez
+  - Ostrowski
+  - Ferrand
+  - Mbeki
+  - Rasmussen
+  - Chaudhry
+  - Trelawney
+  - Bianchi
+  - Novotny
+  - Aguirre
+  - Kirkpatrick
+  - Sorensen
+  - Waititi
+  - Fassbender
+  - Mustafa
+  - Delacroix
+  - Bramwell
+  - Onwuka
+  - Petrossian
+  - Haverford
+  - Lindgren
+  - Cabral
+  - Ruthven
+  - Nakhle
+  - Stavropoulos
+  - Beaumont
+  - Ilyushin
+  - Fitzgibbon
+  - Achterberg
+  - Molteno
+  - Quintero
+  - Hargreave
+  - Sundaram
+  - Blomqvist
+  - Ekwueme
+  - Corrigan
+  - Vandermeer
+  - Tanaka
+  - Selassie
+  - Brennan
+  - Kaufmann
+  - Ashworth
+  - Dlamini
+  - Pellegrini
+  - Sokolov
+  - Havelock
+  - Nwosu
+  - Bergamini
+  - Larkin
+  - Toussaint
+  - Radcliffe
+  - Amankwah
+  - Vercelli
+  - Strandberg
+  - Coughlan
+  - Iwuchukwu
+  - Mendoza
+  - Pilkington
+  - Rakotomalala
+  - Vanterpool
+  - Grimsby
+  - Achebe
+  - Lauterbach
+  - Zubieta
+  - Fairweather
+  - Osei
+  - Ravensworth
+  - Kirilenko
+  - Bandaranaike
+  - Cholmondeley
+  - Nkemelu
+  - Sandoval
+  - Threlfall
+  - Odhiambo
+  - Winterbourne
+  - Escalante
+  - Farquharson
+  - Gbadamosi
+  - Lindenberg
+
+orgs:
+  - {key: kestrel, name: Kestrel Resources Pty Ltd, kind: operator, weight: 0.72}
+  - {key: verrick, name: Verrick Mechanical Services, kind: contractor, weight: 0.11}
+  - {key: halberd, name: Halberd Industrial Pty Ltd, kind: contractor, weight: 0.08}
+  - {key: southcoast, name: Southcoast Electrical Contracting, kind: contractor, weight: 0.06}
+  # `req_foreign_org` on a blood_major/blood_fatal disposition needs a signer from an
+  # organisation that is not the operator.  This is that organisation.
+  - {key: tarnridge, name: Tarn Ridge Inspection Services, kind: independent_verifier, weight: 0.03}
+
+# rank is the INT2 1..9 of `person.rank`; `clearance_legal.min_signer_rank` reads it.
+roles:
+  - {key: operator,               label: process operator,                    rank: 1, weight: 0.22}
+  - {key: tradesperson,           label: maintenance tradesperson,            rank: 1, weight: 0.18}
+  - {key: electrician,            label: licensed electrician,                rank: 1, weight: 0.07}
+  - {key: gas_tester,             label: authorised gas tester,               rank: 2, weight: 0.05}
+  - {key: supervisor,             label: shift supervisor,                    rank: 2, weight: 0.11}
+  - {key: permit_issuer,          label: permit issuing authority,            rank: 2, weight: 0.06}
+  - {key: isolation_officer,      label: isolation officer,                   rank: 2, weight: 0.04}
+  - {key: planner,                label: maintenance planner,                 rank: 2, weight: 0.04}
+  - {key: reliability_engineer,   label: reliability engineer,                rank: 3, weight: 0.06}
+  - {key: process_engineer,       label: process engineer,                    rank: 3, weight: 0.05}
+  - {key: hse_advisor,            label: health and safety advisor,           rank: 3, weight: 0.05}
+  - {key: superintendent,         label: maintenance superintendent,          rank: 4, weight: 0.03}
+  - {key: area_authority,         label: area authority,                      rank: 4, weight: 0.02}
+  - {key: manager,                label: operations manager,                  rank: 5, weight: 0.01}
+  - {key: sse,                    label: site senior executive,               rank: 6, weight: 0.01}
+
+enrolment_assurance:
+  - {value: hr_system_of_record, weight: 0.80}
+  - {value: in_person_verified,  weight: 0.17}
+  - {value: self_asserted,       weight: 0.03}
+
+competency_tickets:
+  - working at heights
+  - confined space entry
+  - authorised gas testing
+  - electrical isolation authority
+  - high risk work licence (rigging)
+  - high risk work licence (dogging)
+  - permit issuing authority
+  - ICAM lead investigator
+  - hot work permit authority
+  - senior first aid
+  - fire team member
+  - shotfirer licence
+
+# ── ANCHORED PEOPLE ─────────────────────────────────────────────────────────────────────────
+# Named in the spine.  The generator plants these EXACTLY and removes them from the drawn pool.
+# `separated_at` on Okonjo is why the film can say "you cannot simply ask someone".
+anchored:
+  - sub: "kestrel:okonjo.d"
+    given: Dele
+    surname: Okonjo
+    display_name: D. Okonjo
+    org: kestrel
+    role: reliability_engineer
+    rank: 3
+    home_site: MRD
+    effective_from: 2008-02-04
+    separated_at: 2021-07-16
+    enrolment_assurance: hr_system_of_record
+    tickets: [ICAM lead investigator, permit issuing authority, hot work permit authority]
+
+  - sub: "kestrel:trelawney.a"
+    given: Anwen
+    surname: Trelawney
+    display_name: A. Trelawney
+    org: kestrel
+    role: superintendent
+    rank: 4
+    home_site: MRD
+    effective_from: 2010-09-13
+    separated_at: null
+    enrolment_assurance: hr_system_of_record
+    tickets: [permit issuing authority, ICAM lead investigator]
+
+  - sub: "kestrel:vasquez.m"
+    given: Marisol
+    surname: Vasquez
+    display_name: M. Vasquez
+    org: kestrel
+    role: sse
+    rank: 6
+    home_site: MRD
+    effective_from: 2019-03-25
+    separated_at: null
+    enrolment_assurance: in_person_verified
+    tickets: [permit issuing authority]
+
+  - sub: "kestrel:ngata.w"
+    given: Wiremu
+    surname: Ngata
+    display_name: W. Ngata
+    org: kestrel
+    role: permit_issuer
+    rank: 2
+    home_site: MRD
+    effective_from: 2016-01-18
+    separated_at: null
+    enrolment_assurance: hr_system_of_record
+    tickets: [permit issuing authority, authorised gas testing, hot work permit authority]
+
+  - sub: "kestrel:halloran.f"
+    given: Fintan
+    surname: Halloran
+    display_name: F. Halloran
+    org: tarnridge
+    role: reliability_engineer
+    rank: 4
+    home_site: MRD
+    effective_from: 2014-06-02
+    separated_at: null
+    enrolment_assurance: in_person_verified
+    tickets: [ICAM lead investigator]
+
+  - sub: "kestrel:waititi.a"
+    given: Aroha
+    surname: Waititi
+    display_name: A. Waititi
+    org: kestrel
+    role: hse_advisor
+    rank: 3
+    home_site: YND
+    effective_from: 2006-11-06
+    separated_at: null
+    enrolment_assurance: hr_system_of_record
+    tickets: [ICAM lead investigator, senior first aid]

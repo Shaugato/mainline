@@ -1,0 +1,93 @@
+{
+  "files": [
+    {
+      "bytes": 301373,
+      "path": "inputs/msha_part50.psv",
+      "provenance": {
+        "corpus_class": "synthetic_replica",
+        "generator": "trappoint_recall.corpora.synthetic:mainline-recall-corpora-v1",
+        "licence": "Apache-2.0",
+        "notes": "Invented records shaped like MSHA Part 50 extracts, MSHA fatality investigation reports, CSB reports and Australian state-regulator alerts. No real incident, no real person, no real operation. harness_only even though it is synthetic: a corpus that models fatalities has no place in a demo tenant either.",
+        "retrieved_at": null,
+        "source_name": "MAINLINE synthetic replica corpus",
+        "source_url": null,
+        "tenant_use": "harness_only"
+      },
+      "records": 900,
+      "role": "MSHA Part 50 bar-delimited extract (G2 source)",
+      "sha256": "10e555e7571d98d9c9bf44a32e37295bdd42f8e0bade3c171969e62ee3756c18"
+    },
+    {
+      "bytes": 337244,
+      "path": "inputs/msha_fatality_reports.jsonl",
+      "provenance": {
+        "corpus_class": "synthetic_replica",
+        "generator": "trappoint_recall.corpora.synthetic:mainline-recall-corpora-v1",
+        "licence": "Apache-2.0",
+        "notes": "Invented records shaped like MSHA Part 50 extracts, MSHA fatality investigation reports, CSB reports and Australian state-regulator alerts. No real incident, no real person, no real operation. harness_only even though it is synthetic: a corpus that models fatalities has no place in a demo tenant either.",
+        "retrieved_at": null,
+        "source_name": "MAINLINE synthetic replica corpus",
+        "source_url": null,
+        "tenant_use": "harness_only"
+      },
+      "records": 96,
+      "role": "Fatality investigation reports (G1/G4 source)",
+      "sha256": "9e03090da86db3021439f32d4fd2042396f37f2f0ce67216d9b3d20d3b07cf6e"
+    },
+    {
+      "bytes": 17711,
+      "path": "inputs/csb_reports.jsonl",
+      "provenance": {
+        "corpus_class": "synthetic_replica",
+        "generator": "trappoint_recall.corpora.synthetic:mainline-recall-corpora-v1",
+        "licence": "Apache-2.0",
+        "notes": "Invented records shaped like MSHA Part 50 extracts, MSHA fatality investigation reports, CSB reports and Australian state-regulator alerts. No real incident, no real person, no real operation. harness_only even though it is synthetic: a corpus that models fatalities has no place in a demo tenant either.",
+        "retrieved_at": null,
+        "source_name": "MAINLINE synthetic replica corpus",
+        "source_url": null,
+        "tenant_use": "harness_only"
+      },
+      "records": 24,
+      "role": "CSB investigation reports",
+      "sha256": "bdea681b4192c1c9b5b2b2483d33aea413e08d2e064c13d9ad4b2cc2f17be1ca"
+    },
+    {
+      "bytes": 39798,
+      "path": "inputs/au_regulator_alerts.jsonl",
+      "provenance": {
+        "corpus_class": "synthetic_replica",
+        "generator": "trappoint_recall.corpora.synthetic:mainline-recall-corpora-v1",
+        "licence": "Apache-2.0",
+        "notes": "Invented records shaped like MSHA Part 50 extracts, MSHA fatality investigation reports, CSB reports and Australian state-regulator alerts. No real incident, no real person, no real operation. harness_only even though it is synthetic: a corpus that models fatalities has no place in a demo tenant either.",
+        "retrieved_at": null,
+        "source_name": "MAINLINE synthetic replica corpus",
+        "source_url": null,
+        "tenant_use": "harness_only"
+      },
+      "records": 60,
+      "role": "Australian state-regulator safety alerts",
+      "sha256": "7ad122776d0084ace4e7ba88d016074644037a0209e5ab5d2ab9427e3966719d"
+    },
+    {
+      "bytes": 91266,
+      "path": "inputs/g3_adjudication.jsonl",
+      "provenance": {
+        "corpus_class": "synthetic_replica",
+        "generator": "trappoint_recall.corpora.synthetic:mainline-recall-corpora-v1",
+        "licence": "Apache-2.0",
+        "notes": "Invented records shaped like MSHA Part 50 extracts, MSHA fatality investigation reports, CSB reports and Australian state-regulator alerts. No real incident, no real person, no real operation. harness_only even though it is synthetic: a corpus that models fatalities has no place in a demo tenant either.",
+        "retrieved_at": null,
+        "source_name": "MAINLINE synthetic replica corpus",
+        "source_url": null,
+        "tenant_use": "harness_only"
+      },
+      "records": 50,
+      "role": "Returned G3 adjudication worksheet slice",
+      "sha256": "4df89496479febf8bd84674ca4151885cf09b390cd9411a0c4a2704aa17023a1"
+    }
+  ],
+  "generated_by": "trappoint_recall.corpora.build.write_provenance_manifest",
+  "manifest_version": 1,
+  "seed": "mainline-recall-corpora-v1",
+  "statement": "Real corpora are for the evaluation harness. The demo tenant is synthetic. A real fatality is never presented as a fictional site's record. Every fixture below is a synthetic replica; the real corpora are fetched by scripts/recall/fetch_corpora.py into a gitignored cache and are never committed. corpus_class='real_regulator' with tenant_use='demo_tenant' is refused at construction time, not warned about."
+}

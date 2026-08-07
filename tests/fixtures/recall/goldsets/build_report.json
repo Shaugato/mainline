@@ -1,0 +1,146 @@
+{
+  "corpus_commit": "sha256:719c31fa000ff5afa9318fd7467ed76b5ad8ccfb93ac02c66de4602729e0b317",
+  "files": [
+    "goldsets/g1_citations.qrels.jsonl",
+    "goldsets/g2_codes.qrels.jsonl",
+    "goldsets/g3_adjudicated.qrels.jsonl",
+    "goldsets/g4_retro.qrels.jsonl",
+    "goldsets/g4_retro.queries.jsonl",
+    "goldsets/g3_worksheet.jsonl",
+    "goldsets/negative_control.queries.jsonl",
+    "goldsets/gs0/queries.jsonl",
+    "goldsets/gs0/qrels.jsonl",
+    "goldsets/gs0/split.json",
+    "goldsets/gs0/manifest.json",
+    "thymogate_panel.json"
+  ],
+  "g1_citations": {
+    "dropped": {
+      "anchor_mismatch": 16,
+      "duplicate": 16,
+      "no_identifier": 32,
+      "self_citation": 120,
+      "unknown_identifier": 25
+    },
+    "n_dropped": 209,
+    "n_input": 456,
+    "n_judgements": 247,
+    "n_resolved": 247,
+    "note": "Unresolvable citations are dropped by reason and never guessed. no_identifier means the investigator cited a prior incident without naming one; resolving it by proximity would manufacture ground truth.",
+    "resolution_rate_per_1000": 542
+  },
+  "g2_codes": {
+    "calibrator_only": true,
+    "grade": 1,
+    "largest_cluster": 90,
+    "max_pairs_per_query": 4,
+    "n_capped_away": 33495,
+    "n_judgements": 3994,
+    "n_keys": 29,
+    "n_pairs": 3994,
+    "n_records": 1071
+  },
+  "g3_adjudicated": {
+    "cohens_kappa": 0.8185185185185185,
+    "cohens_kappa_undefined_reason": null,
+    "exact_agreement_rate_per_1000": 918,
+    "llm_vs_human": {
+      "llm_more_generous": 3,
+      "llm_stricter": 2,
+      "matches": 42
+    },
+    "n_adjacent_agreement": 49,
+    "n_confirmed": 47,
+    "n_double_graded": 49,
+    "n_exact_agreement": 45,
+    "n_items": 50,
+    "n_llm_only": 1,
+    "n_unresolved": 2,
+    "note": "LLM-only labels are tagged judged_by='llm' and blinded=False, so p_at_block skips them. Humans grade stricter than LLMs (UMBRELA), and the llm_more_generous count is the size of that effect on this set."
+  },
+  "g4_retro": {
+    "dropped": {
+      "no_precursor_before_wall": 15
+    },
+    "n_distinct_walls": 96,
+    "n_dropped": 15,
+    "n_judgements": 981,
+    "n_permits": 96,
+    "n_severity_5": 111,
+    "truth_precursor_basis": {
+      "coded_fields_fallback": 0,
+      "investigator_citation": 96
+    },
+    "wall_enforcement": "predicates occurred_at < t AND ingested_at < t AND corpus_commit <= t; AS OF SYSTEM TIME refused (gc.ttlseconds=4h, recall lead D12)",
+    "wall_range": [
+      "2010-01-11T00:00:00+00:00",
+      "2017-08-29T00:00:00+00:00"
+    ]
+  },
+  "gs0": {
+    "gold_sets_present": [
+      "G3",
+      "G4"
+    ],
+    "n_blinded_human": 47,
+    "n_judgements": 981,
+    "n_queries": 396,
+    "n_retro": 96,
+    "n_routine": 300
+  },
+  "loaders": {
+    "dropped": {
+      "unmapped_degree_of_injury": 9
+    },
+    "n_dropped": 9,
+    "n_kept": 1071,
+    "n_read": 1080,
+    "source": "msha+csb+au"
+  },
+  "negative_control": {
+    "drawn_from": "1071 incident records",
+    "months": 24,
+    "n_activity_paths": 21,
+    "n_asset_classes": 19,
+    "n_permits": 300,
+    "n_sites": 21,
+    "note": "Sites, activity paths and asset classes are drawn from the incident corpus so the control is adversarial: a nuisance rate measured on out-of-distribution text would be low for a reason unrelated to precision.",
+    "permits_per_week": 3,
+    "seed": "mainline-negative-control-v1",
+    "window": [
+      "2015-12-29T00:00:00+00:00",
+      "2017-12-28T00:00:00+00:00"
+    ]
+  },
+  "provenance": {
+    "corpus_class": "synthetic_replica",
+    "generator": "trappoint_recall.corpora.synthetic:mainline-recall-corpora-v1",
+    "licence": "Apache-2.0",
+    "notes": "Invented records shaped like MSHA Part 50 extracts, MSHA fatality investigation reports, CSB reports and Australian state-regulator alerts. No real incident, no real person, no real operation. harness_only even though it is synthetic: a corpus that models fatalities has no place in a demo tenant either.",
+    "retrieved_at": null,
+    "source_name": "MAINLINE synthetic replica corpus",
+    "source_url": null,
+    "tenant_use": "harness_only"
+  },
+  "seed": "mainline-recall-corpora-v1",
+  "thymogate_panel": {
+    "hazard_coverage": {
+      "biological": 1,
+      "chemical": 1,
+      "electrical": 1,
+      "gravity": 1,
+      "kinetic": 1,
+      "pressure": 1,
+      "radiation": 1,
+      "thermal": 1
+    },
+    "panel_digest": "847beb5638a1f7e2d99e6021632766a1be28b7da0a57b390ab4d702072dd7b8a",
+    "panel_id": "TG-PANEL-1",
+    "panel_size": 8,
+    "scope_levels": [
+      1,
+      2,
+      3
+    ]
+  }
+}

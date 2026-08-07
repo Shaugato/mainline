@@ -1,0 +1,421 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+#
+# The 36 controlled documents (ARCHITECTURE.md §5.2 `mainline.doc`), across five code families.
+#
+# 36 ROWS EXACTLY.  An entry with three `sites` is three rows: that is the fleet-sibling shape —
+# one OEM alert, three sites, three local documents, which is what makes "cherry-pick, and
+# dedup-to-one-check" demonstrable rather than asserted.  `skeleton/documents.py` asserts the
+# flattened total is 36 and RAISES otherwise, so an edit here cannot silently change the corpus
+# census that the honesty card quotes.
+#
+# `doc.open_token_count` is a PROJECTED column (a trigger writes it from the control series still
+# carried) and is DELIBERATELY ABSENT from every entry below and from every emitted row.
+#
+# `cadence_years` is the mean interval between revisions of this document.  The actual dates are
+# drawn from a named RNG stream around that mean; the cadence itself is authored, because a
+# procedure that is reissued every 14 months and a standard reissued every 5 years are different
+# objects and a single global rate would flatten the corpus into noise.
+#
+# `retypeset_2016: true` marks the documents that go through the full retypeset injector — every
+# `ord_path` changes and clause identity has to survive it.  That is `corpus-blame-key`'s and
+# `corpus-docx`'s work; this file only says which documents it happens to.
+
+version: 1
+expected_row_count: 36
+
+families:
+  PRO:   {label: procedure, cadence_class: long}
+  STD:   {label: standard, cadence_class: long}
+  MOC:   {label: management of change record, cadence_class: single}
+  PTW:   {label: permit to work form set, cadence_class: medium}
+  ALERT: {label: safety alert, cadence_class: single}
+
+documents:
+  # ── PRO- : procedures (14 rows) ───────────────────────────────────────────────────────────
+  - code: PRO-MEC-014
+    sites: [MRD]
+    title: Hydrocarbon Transfer Pump Maintenance
+    family: PRO
+    mue: CONTAINMENT-OF-HYDROCARBONS
+    asset_classes: [HTP-CLASS-A, HX-CLASS-S]
+    first_issued: 2004-05-11
+    cadence_years: 1.9
+    retypeset_2016: true
+    anchor: spine_origin      # §7.3 in 2011, the clause the whole film hangs off
+    template_generation: 1
+
+  - code: PRO-MEC-021
+    sites: [MRD]
+    title: Mechanical Isolation and Lockout
+    family: PRO
+    mue: ISOLATION-OF-STORED-ENERGY
+    asset_classes: [HTP-CLASS-A, SLP-CLASS-B, CONV-CLASS-A, MILL-CLASS-A]
+    first_issued: 2004-02-23
+    cadence_years: 2.1
+    retypeset_2016: true
+    template_generation: 1
+
+  - code: PRO-ELE-008
+    sites: [MRD]
+    title: Electrical Isolation and Access to Switchgear
+    family: PRO
+    mue: ELECTRICAL-SAFETY
+    asset_classes: [ELEC-CLASS-A]
+    first_issued: 2004-08-30
+    cadence_years: 2.4
+    retypeset_2016: true
+    template_generation: 1
+
+  - code: PRO-OPS-032
+    sites: [MRD]
+    title: Hydrocarbon Transfer Operations
+    family: PRO
+    mue: CONTAINMENT-OF-HYDROCARBONS
+    asset_classes: [TANK-CLASS-H, HTP-CLASS-A, PRD-CLASS-A]
+    first_issued: 2005-03-14
+    cadence_years: 2.0
+    retypeset_2016: true
+    template_generation: 1
+
+  - code: PRO-HSE-005
+    sites: [MRD]
+    title: Hot Work Permit Administration
+    family: PRO
+    mue: CONTROL-OF-IGNITION-SOURCES
+    asset_classes: [HTP-CLASS-A, TANK-CLASS-H]
+    first_issued: 2004-04-19
+    cadence_years: 1.7
+    retypeset_2016: true
+    template_generation: 1
+
+  - code: PRO-MEC-041
+    sites: [CVY]
+    title: Export Transfer Pump Maintenance
+    family: PRO
+    mue: CONTAINMENT-OF-HYDROCARBONS
+    asset_classes: [HTP-CLASS-A]
+    first_issued: 2006-07-25
+    cadence_years: 2.2
+    retypeset_2016: true
+    template_generation: 1
+
+  - code: PRO-OPS-017
+    sites: [CVY]
+    title: Ship Loading and Vapour Recovery
+    family: PRO
+    mue: CONTAINMENT-OF-HYDROCARBONS
+    asset_classes: [LARM-CLASS-A, ESD-CLASS-A, COMP-CLASS-V]
+    first_issued: 2005-11-02
+    cadence_years: 1.8
+    retypeset_2016: false
+    template_generation: 1
+
+  - code: PRO-HSE-012
+    sites: [CVY]
+    title: Confined Space Entry
+    family: PRO
+    mue: CONFINED-SPACE-ENTRY
+    asset_classes: [TANK-CLASS-P, TANK-CLASS-H]
+    first_issued: 2004-10-08
+    cadence_years: 2.3
+    retypeset_2016: true
+    template_generation: 1
+
+  - code: PRO-MIN-003
+    sites: [YND]
+    title: Haul Road and Light Vehicle Interaction
+    family: PRO
+    mue: MOBILE-EQUIPMENT-INTERACTION
+    asset_classes: [MOB-CLASS-H, MOB-CLASS-L, MOB-CLASS-E]
+    first_issued: 2004-01-27
+    cadence_years: 1.6
+    retypeset_2016: true
+    template_generation: 1
+
+  - code: PRO-MEC-055
+    sites: [YND]
+    title: Workshop Component Removal and Load Support
+    family: PRO
+    mue: LIFTING-AND-SUSPENDED-LOADS
+    asset_classes: [LIFT-CLASS-W]
+    first_issued: 2005-06-16
+    cadence_years: 2.0
+    retypeset_2016: true
+    template_generation: 1
+
+  - code: PRO-EXP-002
+    sites: [YND]
+    title: Explosives Receipt and Magazine Control
+    family: PRO
+    mue: EXPLOSIVES-AND-BLASTING
+    asset_classes: [MAG-CLASS-A]
+    first_issued: 2004-09-21
+    cadence_years: 2.6
+    retypeset_2016: false
+    template_generation: 1
+
+  - code: PRO-OPS-044
+    sites: [TLG]
+    title: Boiler Start-Up and Warm Through
+    family: PRO
+    mue: MOLTEN-AND-HOT-MATERIAL
+    asset_classes: [BOIL-CLASS-A, PRD-CLASS-A]
+    first_issued: 2007-04-03
+    cadence_years: 2.1
+    retypeset_2016: true
+    template_generation: 1
+
+  - code: PRO-CHM-009
+    sites: [TLG]
+    title: Reagent Make-Up and Dosing
+    family: PRO
+    mue: HAZARDOUS-SUBSTANCE-EXPOSURE
+    asset_classes: [DOSE-CLASS-A, TANK-CLASS-R, CONV-CLASS-S]
+    first_issued: 2007-02-12
+    cadence_years: 1.9
+    retypeset_2016: true
+    template_generation: 1
+
+  - code: PRO-ELE-026
+    sites: [TLG]
+    title: High Voltage Switching and Access
+    family: PRO
+    mue: ELECTRICAL-SAFETY
+    asset_classes: [ELEC-CLASS-A, GEN-CLASS-A]
+    first_issued: 2007-08-28
+    cadence_years: 2.5
+    retypeset_2016: true
+    template_generation: 1
+
+  # ── STD- : standards (10 rows) ────────────────────────────────────────────────────────────
+  - code: STD-ISO-006
+    sites: [MRD]
+    title: Isolation of Stored Energy
+    family: STD
+    mue: ISOLATION-OF-STORED-ENERGY
+    asset_classes: [HTP-CLASS-A, ELEC-CLASS-A, SLP-CLASS-B, HPU-CLASS-A]
+    first_issued: 2008-07-15
+    cadence_years: 3.4
+    retypeset_2016: true
+    anchor: spine_split_target   # the 2019 MOC moves the spine clause into this document
+    template_generation: 1
+
+  - code: STD-PTW-001
+    sites: [MRD]
+    title: Permit to Work
+    family: STD
+    mue: ISOLATION-OF-STORED-ENERGY
+    asset_classes: [HTP-CLASS-A, ELEC-CLASS-A, TANK-CLASS-H]
+    first_issued: 2004-03-08
+    cadence_years: 3.0
+    retypeset_2016: true
+    template_generation: 1
+
+  - code: STD-HTW-004
+    sites: [MRD]
+    title: Hot Work
+    family: STD
+    mue: CONTROL-OF-IGNITION-SOURCES
+    asset_classes: [HTP-CLASS-A, TANK-CLASS-H, PRD-CLASS-A]
+    first_issued: 2005-01-19
+    cadence_years: 3.2
+    retypeset_2016: true
+    template_generation: 1
+
+  - code: STD-CSE-002
+    sites: [CVY]
+    title: Confined Spaces
+    family: STD
+    mue: CONFINED-SPACE-ENTRY
+    asset_classes: [TANK-CLASS-P, TANK-CLASS-H]
+    first_issued: 2006-05-30
+    cadence_years: 3.6
+    retypeset_2016: true
+    template_generation: 1
+
+  - code: STD-LFT-003
+    sites: [YND]
+    title: Lifting and Cranage
+    family: STD
+    mue: LIFTING-AND-SUSPENDED-LOADS
+    asset_classes: [LIFT-CLASS-W]
+    first_issued: 2004-11-11
+    cadence_years: 3.1
+    retypeset_2016: true
+    template_generation: 1
+
+  - code: STD-MEQ-007
+    sites: [YND]
+    title: Mobile Equipment Interaction
+    family: STD
+    mue: MOBILE-EQUIPMENT-INTERACTION
+    asset_classes: [MOB-CLASS-H, MOB-CLASS-E, MOB-CLASS-L]
+    first_issued: 2005-08-05
+    cadence_years: 2.8
+    retypeset_2016: true
+    template_generation: 1
+
+  - code: STD-PRV-005
+    sites: [TLG]
+    title: Pressure Relief and Overpressure Protection
+    family: STD
+    mue: PRESSURE-SYSTEM-INTEGRITY
+    asset_classes: [PRD-CLASS-A, BOIL-CLASS-A, TANK-CLASS-P]
+    first_issued: 2007-06-21
+    cadence_years: 3.7
+    retypeset_2016: true
+    template_generation: 1
+
+  - code: STD-ELE-009
+    sites: [TLG]
+    title: Electrical Safety
+    family: STD
+    mue: ELECTRICAL-SAFETY
+    asset_classes: [ELEC-CLASS-A, GEN-CLASS-A]
+    first_issued: 2007-03-15
+    cadence_years: 3.3
+    retypeset_2016: true
+    template_generation: 1
+
+  - code: STD-CHM-011
+    sites: [TLG]
+    title: Hazardous Substances
+    family: STD
+    mue: HAZARDOUS-SUBSTANCE-EXPOSURE
+    asset_classes: [TANK-CLASS-R, DOSE-CLASS-A]
+    first_issued: 2008-01-24
+    cadence_years: 3.5
+    retypeset_2016: false
+    template_generation: 1
+
+  - code: STD-EMR-008
+    sites: [CVY]
+    title: Emergency Preparedness and Response
+    family: STD
+    mue: FIRE-AND-EMERGENCY-RESPONSE
+    asset_classes: [TANK-CLASS-P, LARM-CLASS-A, ESD-CLASS-A]
+    first_issued: 2006-09-12
+    cadence_years: 3.8
+    retypeset_2016: true
+    template_generation: 1
+
+  # ── MOC- : management of change records (5 rows) ──────────────────────────────────────────
+  - code: MOC-2019-0221
+    sites: [MRD]
+    title: Split of PRO-MEC-014 and Migration of Isolation Clauses to STD-ISO-006
+    family: MOC
+    mue: ISOLATION-OF-STORED-ENERGY
+    asset_classes: [HTP-CLASS-A]
+    first_issued: 2019-02-19
+    cadence_years: 0
+    retypeset_2016: false
+    anchor: spine_split
+    template_generation: 2
+
+  - code: MOC-2026-0413
+    sites: [MRD]
+    title: Restore OEM Seal-Face Alarm Setpoint on the Hydrocarbon Transfer Pump Family
+    family: MOC
+    mue: CONTAINMENT-OF-HYDROCARBONS
+    asset_classes: [HTP-CLASS-A]
+    first_issued: 2026-07-28
+    cadence_years: 0
+    retypeset_2016: false
+    anchor: spine_weaken
+    template_generation: 2
+
+  - code: MOC-2014-0087
+    sites: [CVY]
+    title: Replacement of Jetty Emergency Shutdown Valve Actuators
+    family: MOC
+    mue: CONTAINMENT-OF-HYDROCARBONS
+    asset_classes: [ESD-CLASS-A]
+    first_issued: 2014-04-09
+    cadence_years: 0
+    retypeset_2016: false
+    template_generation: 1
+
+  - code: MOC-2021-0155
+    sites: [YND]
+    title: Revised Light Vehicle Exclusion Radius on Active Benches
+    family: MOC
+    mue: MOBILE-EQUIPMENT-INTERACTION
+    asset_classes: [MOB-CLASS-H, MOB-CLASS-L]
+    first_issued: 2021-05-27
+    cadence_years: 0
+    retypeset_2016: false
+    template_generation: 2
+
+  - code: MOC-2023-0302
+    sites: [TLG]
+    title: Change of Reagent Dosing Line Material and Pressure Alarm
+    family: MOC
+    mue: HAZARDOUS-SUBSTANCE-EXPOSURE
+    asset_classes: [DOSE-CLASS-A]
+    first_issued: 2023-09-14
+    cadence_years: 0
+    retypeset_2016: false
+    template_generation: 2
+
+  # ── PTW- : permit to work form sets (3 rows) ──────────────────────────────────────────────
+  - code: PTW-STD-002
+    sites: [MRD]
+    title: Permit to Work Form Set
+    family: PTW
+    mue: ISOLATION-OF-STORED-ENERGY
+    asset_classes: [HTP-CLASS-A, ELEC-CLASS-A]
+    first_issued: 2004-03-08
+    cadence_years: 4.5
+    retypeset_2016: true
+    template_generation: 1
+
+  - code: PTW-STD-003
+    sites: [CVY]
+    title: Permit to Work Form Set
+    family: PTW
+    mue: CONTAINMENT-OF-HYDROCARBONS
+    asset_classes: [TANK-CLASS-P, LARM-CLASS-A]
+    first_issued: 2006-05-30
+    cadence_years: 4.8
+    retypeset_2016: true
+    template_generation: 1
+
+  - code: PTW-STD-004
+    sites: [YND]
+    title: Permit to Work Form Set
+    family: PTW
+    mue: ISOLATION-OF-STORED-ENERGY
+    asset_classes: [LIFT-CLASS-W, ELEC-CLASS-A]
+    first_issued: 2004-11-11
+    cadence_years: 5.0
+    retypeset_2016: true
+    template_generation: 1
+
+  # ── ALERT- : safety alerts (4 rows) ───────────────────────────────────────────────────────
+  # ALERT-2016-007 is ONE OEM alert issued to THREE sites, which is the fleet-sibling shape.
+  # Same doc_code, three site_ids; `doc` is UNIQUE (site_id, doc_code), so this is legal and is
+  # what "one canonical event with six bonds, never six checks" is measured against.
+  - code: ALERT-2016-007
+    sites: [MRD, CVY, TLG]
+    title: OEM Advisory - Mechanical Seal Support System Barrier Fluid Degradation
+    family: ALERT
+    mue: CONTAINMENT-OF-HYDROCARBONS
+    asset_classes: [HTP-CLASS-A]
+    first_issued: 2016-03-22
+    cadence_years: 0
+    retypeset_2016: false
+    fleet_sibling: true
+    template_generation: 1
+
+  - code: ALERT-2009-003
+    sites: [YND]
+    title: Fatality - Uncontrolled Descent of a Suspended Component in the Heavy Workshop
+    family: ALERT
+    mue: LIFTING-AND-SUSPENDED-LOADS
+    asset_classes: [LIFT-CLASS-W]
+    first_issued: 2009-11-09
+    cadence_years: 0
+    retypeset_2016: false
+    anchor: fatality_alert
+    template_generation: 1

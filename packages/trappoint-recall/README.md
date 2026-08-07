@@ -35,6 +35,9 @@ grade its own bugs as passes.
 | `crosscheck.py` | This package's arithmetic checked against scipy and scikit-learn. |
 | `cli.py` | `trappoint-recall-eval`. |
 
+The suite that grades against it lives at `tests/eval/recall/`, and its CI lane runner at
+`tests/eval/recall/g4alpha_lane.py`.
+
 ## The suite is red, deliberately
 
 ```console
@@ -53,6 +56,44 @@ Red is only meaningful if green is reachable, so
 corpus and the same floors and requires it to pass all five. It also runs a backend that
 blocks on everything and requires the three noise gates to refuse it — because a
 precision gate that cannot fail an indiscriminate blocker is decorative.
+
+## The CI lane
+
+A job that simply failed on red would be broken from the first commit, which is how a
+red-before-green discipline gets quietly deleted. So the lane compares the **observed**
+colour against the colour this repository **commits to** in
+`tests/eval/recall/g4alpha_expected.json`, and fails on the difference:
+
+```console
+$ python tests/eval/recall/g4alpha_lane.py --out evidence/recall/g4alpha-lane.json
+G4alpha lane: AS_EXPECTED
+  observed colour : RED
+  expected colour : RED
+  outcomes        : failed=5
+```
+
+| exit | meaning |
+|---|---|
+| `0` | observed colour matches the committed expectation — the lane did its job |
+| `1` | they differ: the gates regressed, **or** they went green and nobody has flipped the expectation yet. Both need a human |
+| `2` | no colour could be determined: a gate was **skipped**, errored in setup, or the marked suite does not match `G4ALPHA_GATE_IDS` |
+
+Exit 2 covers `skipped`, `xfailed` and `xpassed` alike. Marking a release gate `xfail`
+converts a refusal into a decoration, and the lane notices that the same way it notices a
+skip. The corpus always resolves — `TRAPPOINT_RECALL_CORPUS`, then GS0, then the
+committed self-test corpus — so there is no legitimate reason for one of these five tests
+not to run.
+
+The expectation **ratchets**. Flipping it to `GREEN` takes a pull request that shows up
+in blame; from that commit, any regression fails the lane, and the failure message names
+the pre-committed DEMOTE response rather than inviting the file to be edited back.
+
+The artefact records the per-test outcomes, the corpus provenance, and a second,
+independent evaluation against the committed default backend (`reference_evaluation`) so
+the per-gate reasons are structured rather than scraped from a log. pytest is the
+authority on the colour; the reference evaluation is evidence. When the suite is later
+pointed at a real retriever the two colours will differ, and that is reported as a fact,
+never as a failure.
 
 ## The five gates
 

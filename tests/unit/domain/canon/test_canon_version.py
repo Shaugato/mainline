@@ -91,6 +91,31 @@ def test_digest_is_sha256_of_the_documented_preimage() -> None:
     assert canon_digest(text) == expected
 
 
+def test_the_lexicon_version_tracks_canon_version() -> None:
+    """Editing the de-hyphenation lexicon IS a ``canon_version`` bump.
+
+    ``domain-lexicon.toml`` says so in its header — "adding an entry changes
+    digests, so it is a canon_version bump, not an edit" — and until this test
+    existed, nothing held anyone to it.  A lexicon entry changes which side of a
+    line-wrap hyphen a word lands on, which changes ``canon_text``, which changes
+    ``canon_sha256`` for every clause containing that compound.  A digest that
+    moves without the version moving is a digest an opposing expert cannot
+    reproduce from the version stamped on the row.
+
+    This is a guard, not a discovery: it was green the moment it was written
+    (both values are 1).  Its bite was checked by mutation — setting
+    ``[lexicon].version = 2`` in the committed file makes it fail, and the
+    working tree was restored afterwards.
+    """
+    from mainline_domain.canon.lexicon import load_lexicon
+    from mainline_domain.canon.version import CANON_VERSION
+
+    assert load_lexicon().version == CANON_VERSION, (
+        "domain-lexicon.toml changed without a CANON_VERSION bump (or vice versa); "
+        "a lexicon edit moves every digest of every clause containing the compound"
+    )
+
+
 def test_no_builtin_hash_anywhere_in_the_package() -> None:
     """``hash()`` is salted per process; every digest here is evidence."""
     import re

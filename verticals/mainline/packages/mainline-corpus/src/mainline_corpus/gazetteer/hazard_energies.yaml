@@ -1,0 +1,53 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+#
+# `control_failure.hazard_energy` (ARCHITECTURE.md §5.4) is a CLOSED vocabulary enforced by a
+# CHECK constraint.  These eight values are the constraint.  Adding a ninth is a migration.
+#
+# The corpus never invents an energy: an event's hazard energy is drawn from the intersection of
+# its asset family's `hazard_energies` and its activity fonds' `hazard_energies`.  If that
+# intersection is empty the generator RAISES rather than falling back to a default — a silent
+# fallback here would produce decoy events that are decoys by accident instead of by design.
+
+version: 1
+
+energies:
+  - key: gravity
+    label: gravity
+    media: [suspended load, stored potential of an elevated component, unsupported ground, person at height]
+    typical_release: fall, collapse, crush
+
+  - key: pressure
+    label: pressure
+    media: [hydraulic accumulator, barrier fluid, process gas, steam header, compressed air, trapped liquid]
+    typical_release: jet release, stored-energy discharge, rupture
+
+  - key: electrical
+    label: electrical
+    media: [HV switchgear, LV distribution, capacitive storage, induced voltage, portable equipment]
+    typical_release: shock, arc flash, unplanned energisation
+
+  - key: thermal
+    label: thermal
+    media: [hot surface, steam, molten material, hot work, exothermic reaction]
+    typical_release: burn, ignition, scald
+
+  - key: chemical
+    label: chemical
+    media: [hydrocarbon, reagent, acid, cyanide solution, hydrogen sulfide, explosives]
+    typical_release: fire, toxic exposure, corrosive contact, detonation
+
+  - key: kinetic
+    label: kinetic
+    media: [rotating equipment, conveyor, mobile equipment, pressurised jet, flying fragment]
+    typical_release: entanglement, impact, crush
+
+  - key: biological
+    label: biological
+    media: [sewage, contaminated water, vector-borne exposure]
+    typical_release: infection
+
+  - key: radiation
+    label: radiation
+    media: [density gauge source, radiography source, UV from welding]
+    typical_release: dose, burn

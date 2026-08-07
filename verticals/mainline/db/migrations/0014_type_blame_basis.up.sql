@@ -1,0 +1,36 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MI: MI13, MI14
+-- I: I11
+-- COUNSEL-GATED: no
+-- RATIONALE: A model's guess and a document's assertion must be different values of a typed column, because MI13 ("an inferred blame edge is never active") is a CHECK over that column and a CHECK cannot tell two strings apart by intent.
+--
+-- migration:  0014_type_blame_basis
+-- band:       0001-0023 · dm-foundation
+-- statements: 1
+-- source:     ARCHITECTURE.md §5.0 (verbatim) · §5.4 · §16 MI13/MI14
+-- requires:   0002 CREATE SCHEMA mainline
+-- sqlstate:   22P02 on an unknown label; 23514 on inference_never_blocks / model_cannot_arm
+-- forward-only; no .down.sql exists at or below the protected floor (DM-14).
+--
+-- THE EVIDENTIARY FORCE OF A BLAME EDGE, AS A TYPE.
+--
+--   asserted_document    the incident report says this control came from this event
+--   asserted_human       a named person says so, on the record
+--   derived_documentary  computed from documents by a deterministic rule, re-derivable
+--   inferred_semantic    a model thinks so
+--
+-- The whole point is the last one. `inferred_semantic` is the only value MI13 names, and the rule
+-- is absolute: an inferred edge may exist, may be displayed, may be reviewed, and may be promoted
+-- by a human to `asserted_human` — but it may never be `active`, which means it can never arm the
+-- gate. A machine may say "look at this"; a machine may not say "you are refused".
+--
+-- That is a deliberate, expensive choice. It means the flagship refusal is always traceable to a
+-- document or a person, and it means an LLM cannot be the reason a permit was blocked. The
+-- alternative — letting inference block — would make the product both more impressive in a demo
+-- and indefensible in a courtroom, because the first cross-examination question would be "who
+-- decided?" and the honest answer would be "a language model, and we cannot show you why".
+
+CREATE TYPE mainline.blame_basis AS ENUM
+  ('asserted_document', 'asserted_human', 'derived_documentary', 'inferred_semantic');

@@ -1,0 +1,559 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+#
+# Asset tags and the control-dependency / energy graph (ARCHITECTURE.md §5.5 `asset_edge`).
+#
+# EVERY MEMBER TAG BELOW IS WRITTEN BY HAND.  Companion tags (motor, instrument, accumulator)
+# are DERIVED from a hand-written member by a rule stated in `derivations` — that is a
+# deterministic derivation from an authored literal, not a random draw, and the distinction is
+# the whole point of this directory.
+#
+# ── EDGE DIRECTION, stated once because a reversed edge silently breaks the boundary
+#    certificate ────────────────────────────────────────────────────────────────────────────
+# Every edge points FROM the energy source or the governing control TOWARD the item a person
+# would be exposed to.  Therefore:
+#
+#     energises      SG-4100 -> M-4104 -> P-4104        (supply toward the exposed machine)
+#     stores_energy  ACC-4104 -> P-4104                 (the store toward where it discharges)
+#     governs        TT-4102 -> P-4102                  (the control toward what it protects)
+#     supersedes     P-4105 -> P-4101                   (the replacement toward the replaced)
+#
+# The energy closure of a declared permit boundary is therefore the **backward** reachable set
+# — every asset that can push energy into something the crew declared.  `permit_slice` in §5.5
+# calls this "the backward slice"; `boundary_certificate.under_declared` counts members of that
+# backward set that the crew did not declare.
+#
+# ── THE DELIBERATE UNDER-DECLARATION ────────────────────────────────────────────────────────
+# `declared_boundaries` below contains the canonical multi-source-isolation fatality in
+# miniature: the 2026 permit isolates the pump electrically (SG-4100, M-4104, P-4104) and the
+# seal-support accumulator ACC-4104 — charged by HPU-4104 — is still holding hydraulic
+# pressure.  Both sit in the backward closure of P-4104 and neither is declared, so
+# `under_declared = 2` and `boundary_certified_when_issued` has something TRUE to refuse on.
+# Nothing in the generator special-cases this; it falls out of the edges.
+
+version: 1
+asset_graph_version: kestrel-ag-1
+
+derivations:
+  # `<n>` is the numeric run of the member tag: P-4104 -> 4104.
+  motor: "M-<n>, one per member, edge  M-<n> energises <member>"
+  supply: "the family's `energised_by` switchgear, edge  <sg> energises M-<n> (or the member directly when the family has no motor)"
+  instrument: "<CODE>-<n> for each code in `instruments`, edge  <CODE>-<n> governs <member>"
+  accumulator: "ACC-<n> for each member listed under `accumulator.members`, edge  ACC-<n> stores_energy <member>"
+
+# ── COLLISION WITH THE SHIPPED ANCHOR EXTRACTOR — measured, not assumed ─────────────────────
+# `mainline_domain.anchors.extract` claims equipment tags with the shape
+# `[AREA-]CODE[-]NNNNN[SS]`.  A code that appears in `equipment.toml` is claimed even WITHOUT a
+# separator; a code that does not appear there is STILL claimed when the tag carries an explicit
+# hyphen ("unknown prefixes fail closed" — extract.py line 26).  EVERY tag in this file carries
+# an explicit hyphen, so every tag is extractable today.
+#
+#   * present in equipment.toml    : B, CV, D, G, HX, K, M, P, PSV, SC, SG, TK, TX, V, ZV
+#   * present in instrument.toml   : LT, PT, TT, VT   (claimed as INSTRUMENT_LOOP, which wins)
+#   * hyphen-only, not in either   : ACC, CY, DZ, EX, HO, HPU, HT, LA, MAG, ML, PR, TH
+#
+# Isolation point ids use the `LOP-` prefix from `isolation.toml`.  The shipped isolation regex
+# is `PREFIX-DIGITS[A-Z]{0,2}` with a `(?![\w-])` tail, so `LOP-4104-01` does NOT match and
+# `LOP-41041` does.  The ids below are written in the form that actually collides.
+codes_used: [ACC, B, CV, CY, D, DZ, EX, G, HO, HPU, HT, HX, K, LA, LT, LV, M, MAG, ML, P, PR, PSV, PT, SC, SG, TH, TK, TT, TX, V, VT, ZV]
+
+families:
+  # ── Marrindal ───────────────────────────────────────────────────────────────────────────
+  - id: MRD-HTP
+    site: MRD
+    label: hydrocarbon transfer pumps
+    asset_class: HTP-CLASS-A
+    mue: CONTAINMENT-OF-HYDROCARBONS
+    hazard_energies: [chemical, thermal, pressure]
+    service: hydrocarbon transfer, single mechanical seal with pressurised barrier-fluid support
+    criticality: critical
+    members: [P-4101, P-4102, P-4103, P-4104, P-4105]
+    has_motor: true
+    energised_by: SG-4100
+    instruments: [TT, PT]
+    accumulator:
+      members: [P-4102, P-4104]
+      medium: hydraulic
+      energy: pressure
+
+  - id: MRD-SEALCOOL
+    site: MRD
+    label: seal support coolers
+    asset_class: HX-CLASS-S
+    mue: CONTAINMENT-OF-HYDROCARBONS
+    hazard_energies: [thermal, pressure]
+    service: barrier-fluid cooling for the hydrocarbon transfer pump family
+    criticality: high
+    members: [HX-4120]
+    has_motor: false
+    energised_by: null
+    instruments: [TT]
+
+  - id: MRD-GRIND
+    site: MRD
+    label: grinding mills
+    asset_class: MILL-CLASS-A
+    mue: ISOLATION-OF-STORED-ENERGY
+    hazard_energies: [kinetic, electrical, gravity]
+    service: two-line ball milling
+    criticality: critical
+    members: [ML-3201, ML-3202]
+    has_motor: true
+    energised_by: SG-3100
+    instruments: [VT]
+
+  - id: MRD-CYC
+    site: MRD
+    label: cyclone clusters
+    asset_class: CYC-CLASS-A
+    mue: PRESSURE-SYSTEM-INTEGRITY
+    hazard_energies: [pressure, kinetic]
+    service: classification duty on the grinding circuit
+    criticality: medium
+    members: [CY-3210, CY-3211, CY-3212]
+    has_motor: false
+    energised_by: null
+    instruments: [PT]
+
+  - id: MRD-SLURRY
+    site: MRD
+    label: slurry transfer pumps
+    asset_class: SLP-CLASS-B
+    mue: ISOLATION-OF-STORED-ENERGY
+    hazard_energies: [kinetic, pressure, electrical]
+    service: cyclone feed and tailings transfer
+    criticality: high
+    members: [P-3220, P-3221, P-3222, P-3223]
+    has_motor: true
+    energised_by: SG-3100
+    instruments: [PT]
+
+  - id: MRD-THICK
+    site: MRD
+    label: tailings thickener
+    asset_class: THK-CLASS-A
+    mue: TAILINGS-AND-WATER-IMPOUNDMENT
+    hazard_energies: [gravity, chemical]
+    service: tailings thickening and decant
+    criticality: high
+    members: [TH-3240]
+    has_motor: true
+    energised_by: SG-3100
+    instruments: [LT]
+
+  - id: MRD-CONV
+    site: MRD
+    label: plant conveyors
+    asset_class: CONV-CLASS-A
+    mue: ISOLATION-OF-STORED-ENERGY
+    hazard_energies: [kinetic, gravity]
+    service: coarse ore and reclaim conveying
+    criticality: high
+    members: [CV-3100, CV-3101, CV-3102, CV-3103]
+    has_motor: true
+    energised_by: SG-3100
+    instruments: []
+
+  - id: MRD-TANK
+    site: MRD
+    label: hydrocarbon day tanks and surge vessel
+    asset_class: TANK-CLASS-H
+    mue: CONTAINMENT-OF-HYDROCARBONS
+    hazard_energies: [chemical, pressure]
+    service: diesel and light hydrocarbon day storage, discharge surge suppression
+    criticality: critical
+    members: [TK-4210, TK-4211, V-4110]
+    has_motor: false
+    energised_by: null
+    instruments: [LT]
+
+  - id: MRD-RELIEF
+    site: MRD
+    label: pressure relief devices
+    asset_class: PRD-CLASS-A
+    mue: PRESSURE-SYSTEM-INTEGRITY
+    hazard_energies: [pressure, chemical]
+    service: overpressure protection on the transfer and storage system
+    criticality: critical
+    members: [PSV-4110, PSV-4111, PSV-4210]
+    has_motor: false
+    energised_by: null
+    instruments: []
+
+  - id: MRD-ELEC
+    site: MRD
+    label: switchgear and transformers
+    asset_class: ELEC-CLASS-A
+    mue: ELECTRICAL-SAFETY
+    hazard_energies: [electrical, thermal]
+    service: plant HV/LV distribution
+    criticality: critical
+    members: [SG-3100, SG-4100, TX-3001, TX-3002]
+    has_motor: false
+    energised_by: null
+    instruments: []
+
+  # ── Cape Verity ─────────────────────────────────────────────────────────────────────────
+  - id: CVY-TANK
+    site: CVY
+    label: product storage tanks
+    asset_class: TANK-CLASS-P
+    mue: CONTAINMENT-OF-HYDROCARBONS
+    hazard_energies: [chemical, pressure]
+    service: export product storage
+    criticality: critical
+    members: [TK-7101, TK-7102, TK-7103, TK-7104]
+    has_motor: false
+    energised_by: null
+    instruments: [LT]
+
+  - id: CVY-RELIEF
+    site: CVY
+    label: tank relief and vent devices
+    asset_class: PRD-CLASS-A
+    mue: PRESSURE-SYSTEM-INTEGRITY
+    hazard_energies: [pressure, chemical]
+    service: tank overpressure and vacuum protection
+    criticality: critical
+    members: [PSV-7101, PSV-7102, PSV-7103, PSV-7104]
+    has_motor: false
+    energised_by: null
+    instruments: []
+
+  - id: CVY-XFER
+    site: CVY
+    label: export transfer pumps
+    asset_class: HTP-CLASS-A
+    mue: CONTAINMENT-OF-HYDROCARBONS
+    hazard_energies: [chemical, pressure, thermal]
+    service: tank-to-jetty product transfer, same seal class as the Marrindal family
+    criticality: critical
+    members: [P-7110, P-7111, P-7112, P-7113]
+    has_motor: true
+    energised_by: SG-7000
+    instruments: [PT]
+
+  - id: CVY-LOAD
+    site: CVY
+    label: marine loading arms
+    asset_class: LARM-CLASS-A
+    mue: CONTAINMENT-OF-HYDROCARBONS
+    hazard_energies: [chemical, kinetic, gravity]
+    service: ship loading
+    criticality: critical
+    members: [LA-7201, LA-7202]
+    has_motor: false
+    energised_by: null
+    instruments: []
+
+  - id: CVY-ESD
+    site: CVY
+    label: emergency shutdown valves
+    asset_class: ESD-CLASS-A
+    mue: CONTAINMENT-OF-HYDROCARBONS
+    hazard_energies: [chemical, pressure]
+    service: jetty and manifold emergency isolation
+    criticality: critical
+    members: [ZV-7210, ZV-7211, ZV-7212]
+    has_motor: false
+    energised_by: null
+    instruments: []
+
+  - id: CVY-VRU
+    site: CVY
+    label: vapour recovery compressor
+    asset_class: COMP-CLASS-V
+    mue: CONTROL-OF-IGNITION-SOURCES
+    hazard_energies: [chemical, pressure, thermal]
+    service: loading vapour recovery
+    criticality: high
+    members: [K-7301]
+    has_motor: true
+    energised_by: SG-7000
+    instruments: [TT, PT]
+
+  - id: CVY-ELEC
+    site: CVY
+    label: terminal switchgear
+    asset_class: ELEC-CLASS-A
+    mue: ELECTRICAL-SAFETY
+    hazard_energies: [electrical, thermal]
+    service: terminal distribution
+    criticality: critical
+    members: [SG-7000, TX-7001]
+    has_motor: false
+    energised_by: null
+    instruments: []
+
+  # ── Yandarra Downs ──────────────────────────────────────────────────────────────────────
+  - id: YND-HAUL
+    site: YND
+    label: haul trucks
+    asset_class: MOB-CLASS-H
+    mue: MOBILE-EQUIPMENT-INTERACTION
+    hazard_energies: [kinetic, gravity]
+    service: waste and ore haulage
+    criticality: critical
+    members: [HT-9001, HT-9002, HT-9003, HT-9004, HT-9005, HT-9006]
+    has_motor: false
+    energised_by: null
+    instruments: []
+
+  - id: YND-EARTH
+    site: YND
+    label: earthmoving fleet
+    asset_class: MOB-CLASS-E
+    mue: GROUND-AND-STRATA-CONTROL
+    hazard_energies: [kinetic, gravity]
+    service: loading and dozing
+    criticality: high
+    members: [EX-9101, DZ-9201]
+    has_motor: false
+    energised_by: null
+    instruments: []
+
+  - id: YND-LV
+    site: YND
+    label: light vehicles
+    asset_class: MOB-CLASS-L
+    mue: LAND-TRANSPORT
+    hazard_energies: [kinetic]
+    service: personnel movement on operating areas
+    criticality: medium
+    members: [LV-9301, LV-9302, LV-9303]
+    has_motor: false
+    energised_by: null
+    instruments: []
+
+  - id: YND-WKSP
+    site: YND
+    label: workshop hoists and press
+    asset_class: LIFT-CLASS-W
+    mue: LIFTING-AND-SUSPENDED-LOADS
+    hazard_energies: [gravity, kinetic, pressure]
+    service: heavy vehicle component removal and pressing
+    criticality: critical
+    members: [HO-9401, HO-9402, HO-9403, PR-9410]
+    has_motor: true
+    energised_by: SG-9000
+    instruments: []
+    accumulator:
+      members: [PR-9410]
+      medium: hydraulic
+      energy: pressure
+
+  - id: YND-DEWA
+    site: YND
+    label: dewatering pumps
+    asset_class: SLP-CLASS-B
+    mue: ISOLATION-OF-STORED-ENERGY
+    hazard_energies: [kinetic, pressure, electrical]
+    service: pit dewatering
+    criticality: high
+    members: [P-9501, P-9502, P-9503, P-9504]
+    has_motor: true
+    energised_by: SG-9000
+    instruments: [PT]
+
+  - id: YND-ELEC
+    site: YND
+    label: mine switchgear
+    asset_class: ELEC-CLASS-A
+    mue: ELECTRICAL-SAFETY
+    hazard_energies: [electrical, thermal]
+    service: pit and workshop distribution
+    criticality: critical
+    members: [SG-9000, TX-9001]
+    has_motor: false
+    energised_by: null
+    instruments: []
+
+  - id: YND-EXPL
+    site: YND
+    label: explosives magazines
+    asset_class: MAG-CLASS-A
+    mue: EXPLOSIVES-AND-BLASTING
+    hazard_energies: [chemical, kinetic, thermal]
+    service: explosives and detonator storage
+    criticality: critical
+    members: [MAG-9601, MAG-9602]
+    has_motor: false
+    energised_by: null
+    instruments: []
+
+  # ── Tolgarra ────────────────────────────────────────────────────────────────────────────
+  - id: TLG-GEN
+    site: TLG
+    label: gas turbine generators
+    asset_class: GEN-CLASS-A
+    mue: ELECTRICAL-SAFETY
+    hazard_energies: [electrical, thermal, kinetic]
+    service: on-site generation
+    criticality: critical
+    members: [G-8101, G-8102, G-8103]
+    has_motor: false
+    energised_by: null
+    instruments: [TT]
+
+  - id: TLG-BOIL
+    site: TLG
+    label: package boilers and deaerator
+    asset_class: BOIL-CLASS-A
+    mue: MOLTEN-AND-HOT-MATERIAL
+    hazard_energies: [thermal, pressure]
+    service: process steam generation and feedwater deaeration
+    criticality: critical
+    members: [B-8201, B-8202, D-8210]
+    has_motor: false
+    energised_by: null
+    instruments: [PT, TT]
+
+  - id: TLG-RELIEF
+    site: TLG
+    label: steam relief devices
+    asset_class: PRD-CLASS-A
+    mue: PRESSURE-SYSTEM-INTEGRITY
+    hazard_energies: [pressure, thermal]
+    service: boiler and deaerator overpressure protection
+    criticality: critical
+    members: [PSV-8201, PSV-8202, PSV-8210]
+    has_motor: false
+    energised_by: null
+    instruments: []
+
+  - id: TLG-REAG
+    site: TLG
+    label: reagent dosing pumps
+    asset_class: DOSE-CLASS-A
+    mue: HAZARDOUS-SUBSTANCE-EXPOSURE
+    hazard_energies: [chemical, pressure, electrical]
+    service: reagent make-up and dosing
+    criticality: high
+    members: [P-8301, P-8302, P-8303, P-8304]
+    has_motor: true
+    energised_by: SG-8000
+    instruments: [PT]
+
+  - id: TLG-REAGTANK
+    site: TLG
+    label: reagent storage tanks
+    asset_class: TANK-CLASS-R
+    mue: HAZARDOUS-SUBSTANCE-EXPOSURE
+    hazard_energies: [chemical]
+    service: bulk reagent storage
+    criticality: critical
+    members: [TK-8310, TK-8311]
+    has_motor: false
+    energised_by: null
+    instruments: [LT]
+
+  - id: TLG-CONV
+    site: TLG
+    label: reagent screw conveyor
+    asset_class: CONV-CLASS-S
+    mue: ISOLATION-OF-STORED-ENERGY
+    hazard_energies: [kinetic, chemical]
+    service: dry reagent transfer
+    criticality: medium
+    members: [SC-8320]
+    has_motor: true
+    energised_by: SG-8000
+    instruments: []
+
+  - id: TLG-ELEC
+    site: TLG
+    label: station switchgear
+    asset_class: ELEC-CLASS-A
+    mue: ELECTRICAL-SAFETY
+    hazard_energies: [electrical, thermal]
+    service: station HV distribution
+    criticality: critical
+    members: [SG-8000, TX-8001]
+    has_motor: false
+    energised_by: null
+    instruments: []
+
+# Assets that exist but belong to no family, because they exist for one structural reason.
+extra_assets:
+  - tag: HPU-4104
+    site: MRD
+    label: seal-support hydraulic power unit
+    asset_class: HPU-CLASS-A
+    mue: ISOLATION-OF-STORED-ENERGY
+    hazard_energies: [pressure, electrical]
+    service: charges the barrier-fluid accumulator on P-4104
+    criticality: high
+
+# Edges that no derivation rule produces.
+extra_edges:
+  # THE UNDER-DECLARATION PATH.  Hydraulic energy reaches P-4104 by a route that has nothing to
+  # do with the switchboard, which is exactly why isolating the switchboard does not make the
+  # pump safe.
+  - {from: HPU-4104, to: ACC-4104, kind: stores_energy, site: MRD}
+  # Fleet siblings share a governing standard: the seal-support cooler serves the whole family.
+  - {from: HX-4120, to: P-4102, kind: governs, site: MRD}
+  - {from: HX-4120, to: P-4104, kind: governs, site: MRD}
+  # Overpressure protection governs what it protects.
+  - {from: PSV-4110, to: V-4110, kind: governs, site: MRD}
+  - {from: PSV-4111, to: V-4110, kind: governs, site: MRD}
+  - {from: PSV-4210, to: TK-4210, kind: governs, site: MRD}
+  - {from: PSV-7101, to: TK-7101, kind: governs, site: CVY}
+  - {from: PSV-7102, to: TK-7102, kind: governs, site: CVY}
+  - {from: PSV-7103, to: TK-7103, kind: governs, site: CVY}
+  - {from: PSV-7104, to: TK-7104, kind: governs, site: CVY}
+  - {from: PSV-8201, to: B-8201, kind: governs, site: TLG}
+  - {from: PSV-8202, to: B-8202, kind: governs, site: TLG}
+  - {from: PSV-8210, to: D-8210, kind: governs, site: TLG}
+  - {from: ZV-7210, to: LA-7201, kind: governs, site: CVY}
+  - {from: ZV-7211, to: LA-7202, kind: governs, site: CVY}
+  - {from: ZV-7212, to: K-7301, kind: governs, site: CVY}
+  # Process routing: the transfer pumps discharge through the surge vessel and day tanks.
+  - {from: TK-4210, to: P-4102, kind: stores_energy, site: MRD}
+  - {from: TK-4210, to: P-4104, kind: stores_energy, site: MRD}
+  - {from: TK-4211, to: P-4101, kind: stores_energy, site: MRD}
+  - {from: V-4110, to: P-4103, kind: stores_energy, site: MRD}
+  - {from: TK-7101, to: P-7110, kind: stores_energy, site: CVY}
+  - {from: TK-7102, to: P-7111, kind: stores_energy, site: CVY}
+  - {from: TK-7103, to: P-7112, kind: stores_energy, site: CVY}
+  - {from: TK-7104, to: P-7113, kind: stores_energy, site: CVY}
+  - {from: TK-8310, to: P-8301, kind: stores_energy, site: TLG}
+  - {from: TK-8311, to: P-8303, kind: stores_energy, site: TLG}
+  - {from: D-8210, to: B-8201, kind: stores_energy, site: TLG}
+  - {from: D-8210, to: B-8202, kind: stores_energy, site: TLG}
+  # Transformers feed switchboards.
+  - {from: TX-3001, to: SG-3100, kind: energises, site: MRD}
+  - {from: TX-3002, to: SG-4100, kind: energises, site: MRD}
+  - {from: TX-7001, to: SG-7000, kind: energises, site: CVY}
+  - {from: TX-9001, to: SG-9000, kind: energises, site: YND}
+  - {from: TX-8001, to: SG-8000, kind: energises, site: TLG}
+  - {from: G-8101, to: TX-8001, kind: energises, site: TLG}
+  - {from: G-8102, to: TX-8001, kind: energises, site: TLG}
+  - {from: G-8103, to: TX-8001, kind: energises, site: TLG}
+
+supersedes:
+  - {new: P-4105, old: P-4101, site: MRD, effective_on: 2018-04-17}
+  - {new: HT-9006, old: HT-9001, site: YND, effective_on: 2015-10-02}
+  - {new: TK-7104, old: TK-7101, site: CVY, effective_on: 2012-08-20}
+  - {new: G-8103, old: G-8101, site: TLG, effective_on: 2020-02-11}
+
+# What a crew DECLARED they isolated (ARCHITECTURE.md §5.5 `permit_boundary`).
+declared_boundaries:
+  - permit_ref: WO-88213
+    site: MRD
+    task: hot work on the P-4104 seal housing
+    # The item the crew is actually working on.  The energy closure is computed FROM here and
+    # HALTS at any declared isolation point — energy upstream of an applied isolation is
+    # contained, which is the whole reason isolations exist.  Without this distinction the
+    # closure would walk through SG-4100 and accuse the site transformer, which is nonsense and
+    # would make `under_declared` a number nobody trusts.
+    work_scope: [P-4104]
+    declared:
+      P-4104: LOP-41041
+      M-4104: LOP-41042
+      SG-4100: LOP-41007
+    # NOT declared, and both are in the backward energy closure of P-4104.
+    known_under_declared: [ACC-4104, HPU-4104]
+    note: >-
+      Electrical energy is positively isolated and proven dead.  The barrier-fluid accumulator
+      ACC-4104 is still charged and HPU-4104 can recharge it, so trapped hydraulic pressure
+      remains inside the boundary the crew believes is dead.
