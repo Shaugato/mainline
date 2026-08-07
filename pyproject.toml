@@ -66,7 +66,12 @@ markers = [
 # A test that hangs is a test that has stopped asserting. The 12-minute CI budget
 # is a wall-clock budget for the whole job, so no single test may own it.
 timeout = 120
+# A warning nobody reads is a defect nobody fixes, so warnings are errors — with three
+# named exemptions for the categories third-party packages emit about themselves and
+# that no change of ours can silence. Any OTHER warning fails the run, on purpose.
 filterwarnings = [
     "error",
     "default::DeprecationWarning",
+    "default::PendingDeprecationWarning",
+    "default::ResourceWarning",
 ]

@@ -345,3 +345,57 @@ never block on their landing.
 
 *Custody plan, K2. The chain is not the evidence. The commitment that left our control before we
 could change our minds is the evidence — and the stranger who can check it without asking us.*
+
+---
+
+# ⚠ PLATFORM GROUND TRUTH — MANDATORY, SUPERSEDES ANY CONFLICTING ASSUMPTION ABOVE
+
+**Measured against the live cluster on 2026-08-07. See `docs/adr/0002-g1-platform-ground-truth.md`.
+These are MEASUREMENTS, not documentation. Where your brief or this plan assumed otherwise, THESE WIN.**
+
+**Cluster:** CockroachDB CCL **v26.2.5**, cluster version 26.2, **Basic tier**, `aws-ap-southeast-1` (**Singapore**).
+**Bedrock:** `ap-southeast-2` (Sydney), 8 `au.*` Claude profiles ACTIVE (incl. `au.anthropic.claude-sonnet-5`, `au.anthropic.claude-opus-5`).
+
+## F1 — Vector index WORKS on Basic, but the optimizer will not choose it
+
+`feature.vector_index.enabled` is **`true` by default**. `VECTOR(n)` columns and prefix-column vector indexes **create and populate successfully on the free Basic tier**. The largest platform risk is retired.
+
+**BUT:** at 5,200 rows an unhinted prefix-constrained ANN query does **NOT** use the index — the plan is `top-k → render → filter → scan`. The index is traversed **only** when named explicitly:
+
+```sql
+SELECT id FROM tbl@tbl_prefix_emb_idx
+WHERE tenant = $1 AND state = $2          -- every prefix column = a single value
+ORDER BY emb <=> $3 LIMIT $4
+```
+
+**RULING:** every ANN arm **pins the index explicitly**. Any CI assertion of the form "EXPLAIN proves the ANN uses the index" must assert traversal of the **named, hinted** index — an unhinted assertion fails at demo corpus scale. This is also the more deterministic engineering: a plan that flips on table statistics must not sit beneath a safety gate.
+
+The `IN (...)` trap is UNCHANGED: every prefix column must still be constrained to a single value, so an ancestor walk is one hinted ANN query per ancestor, `UNION ALL`-ed and re-ranked.
+
+Tunable session vars confirmed present: `vector_search_beam_size = 32`, `vector_search_rerank_multiplier = 50`.
+
+## F2 — The time-travel window is 75 minutes, not 4 hours
+
+`gc.ttlseconds = **4500**` on this cluster (the architecture assumed 14400). **`AS OF SYSTEM TIME` cannot reach beyond ~1 hour.** All long-horizon versioning is the application-level commit DAG. No demo beat, claim, exhibit or test may depend on time-travel reaching further. Verified live: a query past the window is **refused**, not silently wrong — keep that as a conformance case.
+
+## F3 — Confirmed available (build against these freely)
+
+| Capability | Status |
+|---|---|
+| PL/pgSQL triggers with `RAISE EXCEPTION` | ✅ PASS |
+| **CTE inside a UDF** | ✅ PASS — the "no CTE in UDFs" claim was stale (removed v25.1) |
+| `ALTER TABLE … ENABLE ROW LEVEL SECURITY` | ✅ PASS |
+| `STORED` computed column with `digest()` | ✅ PASS — the `dedupe_key` fix (finding S5) is implementable |
+| Partial `UNIQUE` index | ✅ PASS — the one-custodian invariant is implementable |
+| `kv.rangefeed.enabled` | ✅ `true` — changefeeds available |
+| `amazon.titan-embed-text-v2:0` in ap-southeast-2 | ✅ PRESENT (closes a previously-flagged unverified item) |
+| `cohere.embed-v4:0` in ap-southeast-2 | ✅ PRESENT — not in the original design; a benchmark candidate, not a default |
+| Bedrock Rerank in ap-southeast-2 | ❌ ABSENT, as assumed. Take no dependency |
+
+## F4 — `CREATE SEQUENCE` succeeds on this cluster
+
+The CI lint banning `CREATE SEQUENCE` / `nextval(` / `SERIAL` / `unique_rowid()` is therefore **load-bearing, not decorative**. Gap-free-by-CAS is only meaningful while that lint holds.
+
+## F5 — Residency: inference in Australia, database in Singapore
+
+Sydney (`ap-southeast-2`) is **Advanced-tier only** — absent from the Basic and Standard region lists. **Any claim of end-to-end Australian data residency is FALSE for this deployment** and must not appear in the README, submission, video, console, or any comment. State the split precisely wherever residency is mentioned.

@@ -31,7 +31,7 @@ from collections.abc import Sequence
 import pytest
 from mainline_domain.anchors import extract_anchors
 from mainline_domain.contracts import AnchorSet, Candidate
-from mainline_domain.identity.candidates.records import ClauseRef
+from mainline_domain.identity.candidates.records import ClauseRef, StageResult
 from mainline_domain.identity.candidates.semantic import (
     Arm,
     MissingAnchorSetError,
@@ -111,7 +111,7 @@ def anchors() -> dict[tuple[uuid.UUID, bytes], AnchorSet]:
 def _run(
     hits: Sequence[Candidate],
     anchors: dict[tuple[uuid.UUID, bytes], AnchorSet],
-) -> tuple[_FixedRunner, object]:
+) -> tuple[_FixedRunner, StageResult]:
     runner = _FixedRunner(hits)
     result = semantic_stage(
         query_anchors=extract_anchors(DESCENDANT_TEXT),
@@ -144,7 +144,7 @@ def test_cosine_097_with_a_conflicting_equipment_tag_is_rejected(
     """The exit criterion.  0.97 is not enough, and it is not *nearly* enough."""
     _, result = _run([_hit(CONFLICTING, 0.97), _hit(COMPATIBLE, 0.71)], anchors)
 
-    emitted = {c.ancestor_clause_uuid for c in result.candidates}  # type: ignore[attr-defined]
+    emitted = {c.ancestor_clause_uuid for c in result.candidates}
     assert CONFLICTING.clause_uuid not in emitted, (
         "a candidate whose equipment tag conflicts with the query was emitted at "
         "cosine 0.97 — the anchor veto did not fire, so a clause about P-101B is "
@@ -158,11 +158,7 @@ def test_the_rejection_is_recorded_with_its_arithmetic(
     """Dropped, not disappeared.  W8 cannot account for what it cannot see."""
     _, result = _run([_hit(CONFLICTING, 0.97), _hit(COMPATIBLE, 0.71)], anchors)
 
-    dropped = [
-        d
-        for d in result.dropped  # type: ignore[attr-defined]
-        if d.ancestor_clause_uuid == CONFLICTING.clause_uuid
-    ]
+    dropped = [d for d in result.dropped if d.ancestor_clause_uuid == CONFLICTING.clause_uuid]
     assert len(dropped) == 1, "the conflicting candidate left no record of its rejection"
     record = dropped[0]
     assert record.reason == "anchor_conflict"
@@ -183,7 +179,7 @@ def test_an_incompatible_candidate_is_never_scored(
     """
     _, result = _run([_hit(CONFLICTING, 0.10)], anchors)
 
-    reasons = {d.reason for d in result.dropped}  # type: ignore[attr-defined]
+    reasons = {d.reason for d in result.dropped}
     assert reasons == {"anchor_conflict"}
 
 
@@ -193,8 +189,8 @@ def test_a_compatible_candidate_below_the_band_is_dropped_as_auto_reject(
     """The other half of the same proof: compatible pairs *are* judged on score."""
     _, result = _run([_hit(COMPATIBLE, 0.42)], anchors)
 
-    assert result.candidates == ()  # type: ignore[attr-defined]
-    assert [d.reason for d in result.dropped] == ["auto_reject"]  # type: ignore[attr-defined]
+    assert result.candidates == ()
+    assert [d.reason for d in result.dropped] == ["auto_reject"]
 
 
 def test_a_compatible_candidate_above_the_band_survives(
@@ -202,9 +198,7 @@ def test_a_compatible_candidate_above_the_band_survives(
 ) -> None:
     _, result = _run([_hit(COMPATIBLE, 0.94)], anchors)
 
-    assert [c.ancestor_clause_uuid for c in result.candidates] == [  # type: ignore[attr-defined]
-        COMPATIBLE.clause_uuid
-    ]
+    assert [c.ancestor_clause_uuid for c in result.candidates] == [COMPATIBLE.clause_uuid]
 
 
 def test_a_missing_anchor_set_raises_rather_than_defaulting_to_compatible() -> None:

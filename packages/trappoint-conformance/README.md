@@ -9,8 +9,8 @@ The runner for the TRAPPOINT conformance suite. Illegal histories, each assertin
 **exact SQLSTATE** and an **exact exhibit name**.
 
 ```bash
-uv run trappoint-conform --profile trappoint-ref --list        # no database needed
-uv run trappoint-conform --dsn "$LOCAL_DSN" --profile trappoint-ref
+uv run --package trappoint-conformance trappoint-conform --profile trappoint-ref --list        # no database needed
+uv run --package trappoint-conformance trappoint-conform --dsn "$LOCAL_DSN" --profile trappoint-ref
 ```
 
 > **This package currently ships one case and that case fails.** `CF-01` is red because

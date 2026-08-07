@@ -8,13 +8,18 @@ SPDX-License-Identifier: Apache-2.0
 Forward-only CockroachDB schema migrations, with a real lock table, a dirty marker that
 refuses to advance, and a **gap-free-by-compare-and-swap schema attestation chain**.
 
+Every `uv run` below is scoped with `--package`. A bare `uv run` builds every workspace
+member, so an unrelated distribution mid-edit three directories away would break a
+command that has nothing to do with it. `just` wraps all of this: `just bootstrap`,
+`just migrate`, `just status`, `just attest`, `just lint-sql`.
+
 ```bash
 just up                                   # local single-node CockroachDB, no cloud account
-uv run trappoint migrate bootstrap        # the `trappoint` bookkeeping schema
-uv run trappoint migrate up  --tree trappoint-ref --migrations packages/trappoint-sql/refvertical/sql
-uv run trappoint migrate status --tree trappoint-ref
-uv run trappoint migrate attest           # non-zero if the live schema drifted
-uv run trappoint migrate lint             # the sequence ban, and the citation rule
+uv run --package trappoint-migrate trappoint migrate bootstrap        # the `trappoint` bookkeeping schema
+uv run --package trappoint-migrate trappoint migrate up  --tree trappoint-ref --migrations packages/trappoint-sql/refvertical/sql
+uv run --package trappoint-migrate trappoint migrate status --tree trappoint-ref
+uv run --package trappoint-migrate trappoint migrate attest           # non-zero if the live schema drifted
+uv run --package trappoint-migrate trappoint migrate lint             # the sequence ban, and the citation rule
 ```
 
 ---
@@ -121,7 +126,7 @@ A failed statement marks its version `dirty`, records the SQLSTATE and the datab
 own message, and stops. Forward progress is refused until a human resolves it:
 
 ```bash
-uv run trappoint migrate force 0071a_merge_record --incident INC-2026-0042 --resolve applied
+uv run --package trappoint-migrate trappoint migrate force 0071a_merge_record --incident INC-2026-0042 --resolve applied
 ```
 
 `--incident` is required, and `--resolve` has **no default** — `applied` and `pending`

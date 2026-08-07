@@ -12,10 +12,13 @@ convenience.  A signature decides which ancestor clauses are even *looked at*,
 and a signature that cannot be reproduced from committed bytes years later
 makes every downstream refusal unfalsifiable.  So:
 
-* ``hash()`` is **banned**: CPython salts ``str`` hashing per process
-  (``PYTHONHASHSEED``), so two runs of the same code on the same text produce
-  different signatures.  ``blake2b`` is specified, seedless and stable across
-  interpreter versions.
+* the builtin ``hash`` is **banned** repository-wide, and a grep guard in
+  ``tests/unit/domain/canon/test_canon_version.py`` enforces the ban across
+  every file in this distribution -- including this one, which is why the name
+  appears here without its call parentheses.  CPython salts ``str`` hashing per
+  process (``PYTHONHASHSEED``), so two runs of the same code on the same text
+  would produce different signatures.  ``blake2b`` is specified, seedless and
+  stable across interpreter versions.
 * ``datasketch`` is **not a dependency**: its permutations come from a seeded
   RNG inside a library whose version is a dependency-resolution outcome.  Here
   the coefficients are a *file in the repository* with a declared

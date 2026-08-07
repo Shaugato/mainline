@@ -1,0 +1,263 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
+#
+# Novelty fragment per docs/leads/algorithms.md §6.  Validated by
+# tests/unit/domain/novelty/test_novelty_manifest.py (worker W10) and consumed
+# by MECHANISMS.md generation.  Anything not yet proven belongs under
+# `unverified:` and NEVER inside `claim:`.
+
+slug: catseal
+name: CATSEAL
+mechanism: M1
+claim: >-
+  A clause's Control Assertion Tuple — actor, deontic, action, object class, hazard energy,
+  parameter, comparator, value, conditions, exceptions, verification, frequency, coverage — is
+  extracted deterministically from canon_text by a closed-class grammar with no model in the loop,
+  put into one canonical form, and serialised to a length-prefixed typed byte encoding whose
+  SHA-256 becomes clause_version.cat_key.  That gives clause identity a SECOND axis:
+  canon_sha256 answers "is this the same text", cat_key answers "is this the same obligation", and
+  the second survives a rewrite in which every word changes.  The encoding is specified normatively
+  in verticals/mainline/spec/cat-key-v1.md and pinned by fifteen committed golden vectors that a
+  second encoder, written in the test file from the spec prose alone, reproduces byte-for-byte —
+  so a stored cat_key can be re-derived years later by an opposing expert with a hex editor.
+  Three properties are enforced rather than intended: absent and empty are different preimages, so
+  "no exceptions" and "one unnamed exception" are different obligations; a Decimal's
+  REPRESENTATION never reaches the hash, so 50 and 50.0 are one setpoint; and a pressure's
+  reference class does, so 50 psig and 50 psia are two.
+
+enforcement:
+  refuses: ["cat_confidence CHECK ('ok','low','opaque')"]
+  refusal_depth: 1
+# Stated at its true depth, not inflated.  This package writes no SQL and
+# refuses nothing on its own.  What it produces is three columns —
+# clause_version.cat_key, cat_json and cat_confidence — and the only constraint
+# it directly satisfies is the three-value CHECK on cat_confidence
+# (ARCHITECTURE.md §5.3), which the schema lead owns.  Everything downstream
+# that DOES refuse — the weaken gate reading a lattice verdict computed over two
+# CATs (W4), identity_conserved_when_issued over an 'opaque_control' residue row
+# (W8), cbm_balances (W9) — is claimed in those workers' fragments, not this
+# one.  Depth 1 is the honest number for a component whose output is an
+# identity rather than a gate.
+
+position: composition
+# Every ingredient here is published, and the fragment says so plainly:
+#
+#   * quantity-and-context extraction (find the quantity, its unit, its
+#     modifiers, and the entity/property it measures) is MeasEval, SemEval-2021
+#     Task 8, with a shared task and a leaderboard;
+#   * the OBLIGATION / PROHIBITION / PERMISSION / RECOMMENDATION deontic
+#     taxonomy and the shall/should/may lexicon that fills it are standard legal
+#     NLP;
+#   * hashing a normalised tuple into a content address is as old as
+#     content-addressed storage.
+#
+# The composition is what the survey did not find: hashing the extracted CONTROL
+# TUPLE into a second identity axis THAT A BLAME EDGE ATTACHES TO, so that
+# ancestry follows the obligation rather than the sentence.  Rewriting a clause
+# from scratch keeps its cat_key and therefore keeps the incident that wrote it;
+# changing the deontic, the setpoint or the verification step moves the key and
+# the change becomes visible to the lattice.  Frame extraction is normally an
+# input to search, analytics or QA.  Here its hash is an identity that a
+# database state transition is conditioned on.
+#
+# Two smaller choices inside the composition are also unclaimed as far as this
+# survey found, and are argued for in the spec rather than asserted:
+#   (a) negation is normalised into the DEONTIC and never into the action, so
+#       "shall not exceed" and "shall remain below" are one control with one
+#       key.  Frame-semantic parsers keep polarity on the predicate, which is
+#       right for parsing and wrong for identity: it splits one obligation into
+#       two and detaches the blame edge silently.
+#   (b) unreadability is a THIRD state with a product consequence
+#       (cat_confidence='opaque' -> residue reason 'opaque_control' -> an edit
+#       to that clause defaults to weaken), rather than a parse failure to be
+#       retried or a low score to be thresholded.
+
+prior_art:
+  - url: "https://aclanthology.org/2021.semeval-1.38.pdf"
+    what_it_covers: >-
+      Harper et al., *SemEval-2021 Task 8: MeasEval — Counts and Measurements*, defines exactly the
+      extraction problem solved in cat/extract.py: find a quantity, attach its unit and modifiers,
+      and link it to the entity and property being measured, plus qualifiers.  The task ran with
+      annotated scientific text and multiple systems, all of which do the extraction better than
+      this rule-based extractor does.  Nothing about finding a measurement in prose is claimed here.
+    what_it_does_not: >-
+      MeasEval evaluates spans against a gold annotation and reports F1.  It defines no canonical
+      form for the extracted tuple, no serialisation, and therefore no equality between two
+      extractions of two different documents — so it cannot express "these two clauses assert the
+      same control", which is the only question cat_key exists to answer.  It also has no third
+      state: a measurement the system cannot parse is a missed span and a lower score, whereas here
+      it is confidence='opaque' with a documented consequence at a merge gate.
+  - url: "https://aclanthology.org/2023.nllp-1.15/"
+    what_it_covers: >-
+      Liga & Robaldo (NLLP 2023), *Fine-tuning GPT-3 for Legal Rule Classification* and the
+      low-resource deontic-modality literature around it, establish the OBLIGATION / PROHIBITION /
+      PERMISSION taxonomy over legal text and the practice of filling it from modal cues.  The
+      taxonomy in data/lexicon/deontic.toml is that taxonomy, and the cue lists are the standard
+      ones extended with Australian WHS phrasing.
+    what_it_does_not: >-
+      Deontic classification labels a sentence and stops.  It does not order the labels into a
+      ladder a downstream rule can compare across two versions of one clause, it does not separate
+      a HEDGE ("so far as is reasonably practicable") from a modality — which is the distinction
+      that decides whether the commonest real weakening in a mining corpus is visible at all — and
+      it produces no identity.  Here the hedge is routed to CAT.exceptions[], where rule R4 diffs
+      the slot for growth, and the label is one field of a hashed tuple rather than the output.
+  - url: "https://datatracker.ietf.org/doc/html/rfc8785"
+    what_it_covers: >-
+      RFC 8785, *JSON Canonicalization Scheme*, is the standard answer to "serialise a structure so
+      two implementations hash it identically": it fixes property ordering, string escaping and
+      number serialisation.  It is well specified, widely implemented, and is the obvious thing to
+      reach for here.
+    what_it_does_not: >-
+      JCS mandates ECMAScript number serialisation, i.e. IEEE-754 double.  A safety setpoint is a
+      Decimal — 19.5 %% oxygen and 1750 kPa are exact quantities that a gate compares against a
+      safe_direction registry — and routing them through a double is a silent precision decision
+      inside an identity function.  Adopting JCS would also mean vendoring a second canonicaliser
+      beside the repository's existing digest discipline, whose bugs would then be our bugs in the
+      identity axis.  cat-key-v1 removes the same degrees of freedom with type bytes and 4-byte
+      length prefixes in about eighty lines, and keeps decimals as decimals.
+  - url: "https://git-scm.com/book/en/v2/Git-Internals-Git-Objects"
+    what_it_covers: >-
+      git's object model is the reference example of content-addressed identity: a header naming a
+      type and a byte length, then the content, then SHA-1 over the whole thing.  The
+      type-plus-length-plus-payload shape used by cat/preimage.py is that shape, applied per field
+      instead of per object, and the debt is acknowledged rather than disguised.
+    what_it_does_not: >-
+      A git blob's identity IS its bytes: change one character and it is a different object, which
+      is the correct semantics for a file and the wrong semantics for an obligation.  A procedure
+      re-typeset by a new template, renumbered from 7.3.2(b) to 4.1.1 and rewritten for readability
+      is the same control and must keep its ancestry — that is canon_sha256's job on axis 1 and
+      cat_key's on axis 2.  git also has no notion of a semantic slot whose change is a weakening
+      rather than merely a difference.
+  - url: "https://aclanthology.org/2021.findings-emnlp.164/"
+    what_it_covers: >-
+      Koreeda & Manning, *ContractNLI: A Dataset for Document-level Natural Language Inference for
+      Contracts*, frames "does this document entail, contradict or leave neutral this hypothesis"
+      with evidence-span identification, and is the closest published framing of "did this edit
+      change what the document requires".
+    what_it_does_not: >-
+      ContractNLI is a model task over a document/hypothesis pair, producing a label and spans.  It
+      needs a model, so under principle P7 it can never be the thing that decides a state
+      transition here; it is the shape of Path B (mainline-delta-oracle, worker W5), which can only
+      ever RAISE a verdict's force.  CATSEAL is Path A: no model, no network, no clock, no
+      randomness, enforced by an AST walk over this package in
+      tests/unit/domain/cat/test_cat_no_network.py.  ContractNLI also produces no identity and nothing
+      that survives a rewrite.
+
+implemented_by:
+  - "verticals/mainline/spec/cat-key-v1.md"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/cat/version.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/cat/preimage.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/cat/normalise.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/cat/schema.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/cat/extract.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/cat/lexicon.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/cat/quantity_bridge.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/data/lexicon/deontic.toml"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/data/lexicon/hedge.toml"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/data/lexicon/slots.toml"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/data/lexicon/grammar.toml"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/data/lexicon/unit-class.toml"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/data/lexicon/parameter.toml"
+  - "tests/fixtures/domain/cat/golden-vectors.json"
+
+tests:
+  - "tests/unit/domain/cat/test_cat_golden_vectors.py::test_package_reproduces_committed_preimage"
+  - "tests/unit/domain/cat/test_cat_golden_vectors.py::test_package_reproduces_committed_cat_key"
+  - "tests/unit/domain/cat/test_cat_golden_vectors.py::test_independent_spec_encoder_agrees"
+  - "tests/unit/domain/cat/test_cat_golden_vectors.py::test_package_and_spec_encoders_agree"
+  - "tests/unit/domain/cat/test_cat_golden_vectors.py::test_boundary_ambiguity_vectors_differ"
+  - "tests/unit/domain/cat/test_cat_golden_vectors.py::test_absent_and_empty_are_different_keys"
+  - "tests/unit/domain/cat/test_cat_golden_vectors.py::test_canonical_decimal_collapses_representation_but_not_value"
+  - "tests/unit/domain/cat/test_cat_golden_vectors.py::test_list_order_is_significant_in_the_encoder"
+  - "tests/unit/domain/cat/test_cat_preimage_properties.py::test_injective_modulo_value_equality"
+  - "tests/unit/domain/cat/test_cat_preimage_properties.py::test_any_single_field_change_changes_the_key"
+  - "tests/unit/domain/cat/test_cat_preimage_properties.py::test_preimage_is_self_delimiting"
+  - "tests/unit/domain/cat/test_cat_preimage_properties.py::test_canonical_decimal_table"
+  - "tests/unit/domain/cat/test_cat_preimage_properties.py::test_non_finite_decimal_raises"
+  - "tests/unit/domain/cat/test_cat_preimage_properties.py::test_field_order_matches_the_frozen_contract"
+  - "tests/unit/domain/cat/test_cat_extract.py::test_deontic_ladder"
+  - "tests/unit/domain/cat/test_cat_extract.py::test_longest_cue_wins_so_a_prohibition_is_never_an_obligation"
+  - "tests/unit/domain/cat/test_cat_extract.py::test_negation_folds_into_the_deontic"
+  - "tests/unit/domain/cat/test_cat_extract.py::test_double_negative_returns_to_the_positive"
+  - "tests/unit/domain/cat/test_cat_extract.py::test_bare_number_yields_no_value_and_low_confidence"
+  - "tests/unit/domain/cat/test_cat_extract.py::test_gauge_marker_is_read_and_absolute_is_never_assumed"
+  - "tests/unit/domain/cat/test_cat_extract.py::test_unit_carrying_its_own_reference_beats_the_prose"
+  - "tests/unit/domain/cat/test_cat_extract.py::test_longest_comparator_wins_over_the_nearest"
+  - "tests/unit/domain/cat/test_cat_extract.py::test_range_is_lossy_and_says_so"
+  - "tests/unit/domain/cat/test_cat_extract.py::test_whs_hedge_is_an_exception_not_a_deontic"
+  - "tests/unit/domain/cat/test_cat_extract.py::test_exception_subordinator_is_stripped_so_rewording_is_not_a_change"
+  - "tests/unit/domain/cat/test_cat_extract.py::test_verification_cues_collapse_to_keys"
+  - "tests/unit/domain/cat/test_cat_extract.py::test_deleting_a_verification_step_moves_the_key"
+  - "tests/unit/domain/cat/test_cat_extract.py::test_actor_comes_from_a_role_not_from_arbitrary_prose"
+  - "tests/unit/domain/cat/test_cat_extract.py::test_nominalised_predicate_is_recovered_from_the_subject"
+  - "tests/unit/domain/cat/test_cat_extract.py::test_extraction_is_deterministic"
+  - "tests/unit/domain/cat/test_cat_extract.py::test_confidence_is_exactly_the_three_values_the_sql_check_permits"
+  - "tests/unit/domain/cat/test_cat_opacity.py::test_opacity_reasons"
+  - "tests/unit/domain/cat/test_cat_opacity.py::test_layout_hint_beats_every_string_heuristic"
+  - "tests/unit/domain/cat/test_cat_opacity.py::test_readable_clauses_are_not_opaque"
+  - "tests/unit/domain/cat/test_cat_opacity.py::test_opaque_result_still_carries_a_cat_and_therefore_a_key"
+  - "tests/unit/domain/cat/test_cat_normalise.py::test_normalisation_is_idempotent"
+  - "tests/unit/domain/cat/test_cat_normalise.py::test_ordering_is_by_utf8_bytes_not_by_locale"
+  - "tests/unit/domain/cat/test_cat_normalise.py::test_a_converter_that_crosses_references_is_caught"
+  - "tests/unit/domain/cat/test_cat_normalise.py::test_a_reference_crossing_error_propagates_and_is_never_absorbed"
+  - "tests/unit/domain/cat/test_cat_lexicon.py::test_every_anchorlock_setpoint_unit_resolves_to_a_dimension"
+  - "tests/unit/domain/cat/test_cat_lexicon.py::test_vocabularies_are_ordered_longest_first"
+  - "tests/unit/domain/cat/test_cat_lexicon.py::test_negation_beats_the_bare_modality_in_the_deontic_order"
+  - "tests/unit/domain/cat/test_cat_no_network.py::test_module_imports_nothing_forbidden"
+  - "tests/unit/domain/cat/test_cat_no_network.py::test_module_reads_no_environment_and_no_entropy"
+
+unverified:
+  - >-
+    EXTRACTION ACCURACY IS UNMEASURED.  What is proven is that the ENCODING is exact, reproducible
+    and injective, and that the extractor behaves as specified on hand-authored clauses.  How often
+    the extractor fills a slot correctly over a real site's procedure library is unknown until
+    W10's mutation ratchet reports kill rates per mutation class with Wilson lower bounds.  A
+    cat_key is only as good as the tuple it hashes, and this fragment claims nothing about the
+    tuple's fidelity — only about the hash's exactness and the extractor's refusal to guess.
+  - >-
+    The extractor is a shallow closed-class grammar, monolingual (English), and tuned to Australian
+    WHS and ISA tag conventions.  Its actor resolution is closed to the ANCHORLOCK named_role
+    gazetteer plus a small generic list, so a clause naming a role neither list carries extracts
+    actor='unspecified'.  That is a deliberate fail-quiet on ONE slot (an unresolvable noun phrase
+    entering a closed slot would re-key the obligation on every rewording, which is worse), but it
+    is a coverage gap and its size is unmeasured.
+  - >-
+    A `between X and Y` range keeps the LOWER bound and the comparator 'range'; the upper bound is
+    not in the tuple, so two clauses differing only in their upper bound share a cat_key.  The
+    mitigation is that every range extracts confidence='low', which routes it to adjudication.  It
+    is a mitigation, not a fix, and a cat2 encoding would add a second quantity slot.  Recorded in
+    verticals/mainline/spec/cat-key-v1.md §10.
+  - >-
+    SI normalisation is not performed by this package.  cat/quantity_bridge.py classifies a unit's
+    dimension and reads the reference class the prose declares, and holds a Protocol seam to worker
+    W2's quantity algebra; it contains no conversion factor and must never contain one.  Until W2
+    lands and a converter is passed explicitly, a stored cat_key is a function of the unit AS
+    WRITTEN.  That is reproducible and is stated in the spec, but it means two clauses expressing
+    one setpoint in different units currently carry different keys.  The error contract this
+    package asserts on W2 — that a gauge/absolute crossing raises with something that is NOT a
+    LookupError — is pinned by test against fakes here, and is unverified against W2's real
+    converter because it does not yet exist.
+  - >-
+    `frequency` uses the unit as written where no converter knows it.  'shift' is a site-defined
+    interval and 'use' ("prior to each use") is not a duration at all, so both normalise to
+    themselves.  This is correct for identity and wrong for arithmetic: the lattice is REQUIRED to
+    treat an unconvertible frequency comparison as unknown, and unknown resolves to weaken.  That
+    requirement is stated in spec §10 and is enforced in W4's rule R7, not here, so from this
+    package's side it is an assumption about a downstream worker.
+  - >-
+    The parameter key space in data/lexicon/parameter.toml is shared with DIRECTRIX (W2) and is
+    asserted only by convention and by a naming test.  A key here that W2 never ratifies yields
+    ABSTAIN, which decision D6 maps to weaken — so drift fails CLOSED and costs nuisance blocks
+    rather than silent passes — but no test yet cross-checks the two key sets, because W2's seed
+    registry has not landed.
+  - >-
+    The opacity heuristics are conservative and their false-negative rate is unmeasured.  A table
+    row that reaches the extractor with its pipes stripped and no layout hint reads as prose.  The
+    mitigation is that callers holding Textract LAYOUT_* output should pass ClauseHint, which is
+    strictly better evidence than any string heuristic — but whether ingest always does so is a
+    property of the ingest path, not of this package.
+  - >-
+    None of this distinguishes a considered disposition from a rubber stamp (risk R-A8).  CATSEAL
+    makes the question of whether an obligation survived an edit precise and unavoidable; it says
+    nothing whatsoever about the quality of the answer, and it must never be sold as retiring that
+    risk.

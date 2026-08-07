@@ -44,7 +44,7 @@ def build(**overrides: object) -> CAT:
 
 
 # --------------------------------------------------------------------------- #
-# §7.1–7.2 slot and phrase normalisation                                       #
+# §7.1, §7.2 slot and phrase normalisation                                     #
 # --------------------------------------------------------------------------- #
 
 
@@ -196,7 +196,8 @@ def test_no_converter_leaves_units_exactly_as_written() -> None:
 def test_unknown_unit_is_kept_verbatim_by_default() -> None:
     """Spec §10: ``1 shift`` normalises to itself, and says so rather than guessing."""
     cat = normalise_cat(build(), converter=_KnowsNothing())
-    assert cat.value is not None and cat.value.unit == "kPa"
+    assert cat.value is not None
+    assert cat.value.unit == "kPa"
 
 
 def test_unknown_unit_can_be_made_fatal() -> None:

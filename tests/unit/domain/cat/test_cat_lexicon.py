@@ -179,7 +179,8 @@ def test_parameter_keys_are_snake_case_identifiers() -> None:
     for key in LEX.parameters.keys:
         assert key.islower()
         assert key.replace("_", "").isalnum(), key
-        assert not key.startswith("_") and not key.endswith("_")
+        assert not key.startswith("_")
+        assert not key.endswith("_")
 
 
 def test_parameter_lexicon_carries_no_direction() -> None:

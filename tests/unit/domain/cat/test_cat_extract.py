@@ -56,7 +56,8 @@ def test_longest_cue_wins_so_a_prohibition_is_never_an_obligation() -> None:
     """
     negative = cat_of("No person shall enter the confined space.")
     positive = cat_of("Any person shall enter the confined space.")
-    assert negative.cat is not None and positive.cat is not None
+    assert negative.cat is not None
+    assert positive.cat is not None
     assert negative.cat.deontic == "MUST_NOT"
     assert positive.cat.deontic == "MUST"
     assert cat_key(negative.cat) != cat_key(positive.cat)
@@ -118,10 +119,14 @@ def test_gauge_marker_is_read_and_absolute_is_never_assumed() -> None:
     gauge = cat_of("The pressure shall not exceed 1750 kPa (g).")
     bare = cat_of("The pressure shall not exceed 1750 kPa.")
     absolute = cat_of("The pressure shall not exceed 1750 kPa (a).")
-    assert gauge.cat is not None and bare.cat is not None and absolute.cat is not None
-    assert gauge.cat.value is not None and bare.cat.value is not None
+    assert gauge.cat is not None
+    assert bare.cat is not None
+    assert absolute.cat is not None
+    assert gauge.cat.value is not None
+    assert bare.cat.value is not None
     assert gauge.cat.value.reference == "gauge"
-    assert absolute.cat.value is not None and absolute.cat.value.reference == "absolute"
+    assert absolute.cat.value is not None
+    assert absolute.cat.value.reference == "absolute"
     # 'none' means UNSTATED, not 'absolute'.  Decision D5: guessing absolute is
     # how 50 psig becomes 446 kPa(a) and a weakening reads as a strengthening.
     assert bare.cat.value.reference == "none"
@@ -130,13 +135,15 @@ def test_gauge_marker_is_read_and_absolute_is_never_assumed() -> None:
 
 def test_unit_carrying_its_own_reference_beats_the_prose() -> None:
     result = cat_of("The pressure shall not exceed 250 psig.")
-    assert result.cat is not None and result.cat.value is not None
+    assert result.cat is not None
+    assert result.cat.value is not None
     assert (result.cat.value.unit, result.cat.value.reference) == ("psig", "gauge")
 
 
 def test_spelled_out_units_are_read() -> None:
     result = cat_of("The relief valve shall be tested at intervals of 12 months.")
-    assert result.cat is not None and result.cat.frequency is not None
+    assert result.cat is not None
+    assert result.cat.frequency is not None
     assert result.cat.frequency.unit == "month"
 
 
@@ -178,7 +185,8 @@ def test_longest_comparator_wins_over_the_nearest() -> None:
 
 def test_range_is_lossy_and_says_so() -> None:
     result = cat_of("The oxygen concentration shall be between 19.5 % and 23.5 %.")
-    assert result.cat is not None and result.cat.value is not None
+    assert result.cat is not None
+    assert result.cat.value is not None
     assert result.cat.comparator == "range"
     assert str(result.cat.value.value) == "19.5", "the LOWER bound is kept (spec §10)"
     assert result.confidence == "low"
@@ -192,7 +200,8 @@ def test_range_is_lossy_and_says_so() -> None:
 def test_whs_hedge_is_an_exception_not_a_deontic() -> None:
     plain = cat_of("The vessel shall be isolated.")
     hedged = cat_of("The vessel shall be isolated so far as is reasonably practicable.")
-    assert plain.cat is not None and hedged.cat is not None
+    assert plain.cat is not None
+    assert hedged.cat is not None
     assert plain.cat.deontic == hedged.cat.deontic == "MUST"
     assert plain.cat.exceptions == ()
     assert "so far as is reasonably practicable" in hedged.cat.exceptions
@@ -223,7 +232,8 @@ def test_exception_subordinator_is_stripped_so_rewording_is_not_a_change() -> No
     """
     unless = cat_of("The vessel shall be entered, unless the atmosphere is untested.")
     except_where = cat_of("The vessel shall be entered, except where the atmosphere is untested.")
-    assert unless.cat is not None and except_where.cat is not None
+    assert unless.cat is not None
+    assert except_where.cat is not None
     assert unless.cat.exceptions == except_where.cat.exceptions == ("the atmosphere is untested",)
 
 
@@ -234,7 +244,8 @@ def test_exception_subordinator_is_stripped_so_rewording_is_not_a_change() -> No
 
 def test_verification_cues_collapse_to_keys() -> None:
     result = cat_of(
-        "A hold point and a second signature are required, and the permit to work shall be signed off."
+        "A hold point and a second signature are required, "
+        "and the permit to work shall be signed off."
     )
     assert result.cat is not None
     assert "hold_point" in result.cat.verification
@@ -245,7 +256,8 @@ def test_verification_cues_collapse_to_keys() -> None:
 def test_deleting_a_verification_step_moves_the_key() -> None:
     with_check = cat_of("The supervisor shall verify the isolation with an independent check.")
     without = cat_of("The supervisor shall verify the isolation.")
-    assert with_check.cat is not None and without.cat is not None
+    assert with_check.cat is not None
+    assert without.cat is not None
     assert "independent_check" in with_check.cat.verification
     assert without.cat.verification == ()
     assert cat_key(with_check.cat) != cat_key(without.cat)

@@ -12,6 +12,12 @@
 # Bash on every platform, including Windows, where Git Bash ships with Git. `just`'s
 # default Windows shell is cmd.exe, and a repository whose proof command differs by
 # operating system has two proofs.
+#
+# Every `uv run` is SCOPED — `--package`, `--only-group dev`, or `--all-packages` where
+# the check genuinely needs the whole graph. A bare `uv run` builds every workspace
+# member, which would make `just image` fail because some unrelated distribution three
+# directories away is mid-edit. In a repository built by many hands at once that is not
+# a hypothetical; it is Tuesday.
 
 set shell := ["bash", "-euo", "pipefail", "-c"]
 set windows-shell := ["bash", "-euo", "pipefail", "-c"]
@@ -46,7 +52,7 @@ nuke:
 
 # Print the pinned CockroachDB image. One constant, read out of compose.yaml.
 image:
-    @uv run trappoint migrate image
+    @uv run --package trappoint-migrate trappoint migrate image
 
 # Print the local DSN, for `export LOCAL_DSN="$(just dsn)"`.
 dsn:
@@ -58,42 +64,40 @@ sql:
 
 # ── The schema ───────────────────────────────────────────────────────────────
 
-# Create the `trappoint` bootstrap schema: schema_migration, schema_lock,
-# schema_attestation. Outside the numbered sequence by ruling D6.
+# The `trappoint` bookkeeping schema (D6): migration, lock, attestation.
 bootstrap:
-    uv run trappoint migrate bootstrap --dsn '{{LOCAL_DSN}}'
+    uv run --package trappoint-migrate trappoint migrate bootstrap --dsn '{{LOCAL_DSN}}'
 
 # Apply the reference vertical's migrations, forward only, one statement per file.
 migrate:
-    uv run trappoint migrate up --dsn '{{LOCAL_DSN}}' --tree trappoint-ref --migrations '{{REF_MIGRATIONS}}'
+    uv run --package trappoint-migrate trappoint migrate up --dsn '{{LOCAL_DSN}}' --tree trappoint-ref --migrations '{{REF_MIGRATIONS}}'
 
 # Apply the MAINLINE vertical's migrations.
 migrate-mainline:
-    uv run trappoint migrate up --dsn '{{LOCAL_DSN}}' --tree mainline --migrations '{{MAINLINE_MIGRATIONS}}'
+    uv run --package trappoint-migrate trappoint migrate up --dsn '{{LOCAL_DSN}}' --tree mainline --migrations '{{MAINLINE_MIGRATIONS}}'
 
 # What is applied, what is pending, what is dirty, and the attestation chain head.
 status:
-    uv run trappoint migrate status --dsn '{{LOCAL_DSN}}' --tree trappoint-ref --migrations '{{REF_MIGRATIONS}}'
+    uv run --package trappoint-migrate trappoint migrate status --dsn '{{LOCAL_DSN}}' --tree trappoint-ref --migrations '{{REF_MIGRATIONS}}'
 
 # Recompute the schema fingerprint and compare it with the attestation head.
 # Non-zero exit means the live schema drifted from what the ledger says was applied.
 attest:
-    uv run trappoint migrate attest --dsn '{{LOCAL_DSN}}'
+    uv run --package trappoint-migrate trappoint migrate attest --dsn '{{LOCAL_DSN}}'
 
 # ── The refusal ──────────────────────────────────────────────────────────────
 
 # The K1 proof. Exits non-zero until the DDL that owns each case has landed.
 conform:
-    uv run trappoint-conform --dsn '{{LOCAL_DSN}}' --profile trappoint-ref
+    uv run --package trappoint-conformance trappoint-conform --dsn '{{LOCAL_DSN}}' --profile trappoint-ref
 
-# The same suite against the MAINLINE binding. Blocked on the ancestry milestone;
-# see docs/leads/kernel.md §5 risk 1.
+# The same suite against MAINLINE. Blocked on K3; see docs/leads/kernel.md §5 risk 1.
 conform-mainline:
-    uv run trappoint-conform --dsn '{{LOCAL_DSN}}' --profile mainline
+    uv run --package trappoint-conformance trappoint-conform --dsn '{{LOCAL_DSN}}' --profile mainline
 
 # List every case the manifest declares for a profile, and which are implemented.
 cases:
-    uv run trappoint-conform --profile trappoint-ref --list
+    uv run --package trappoint-conformance trappoint-conform --profile trappoint-ref --list
 
 # PL-2, on demand: the whole red-before-green sequence from an empty machine.
 red: up bootstrap
@@ -107,28 +111,31 @@ lint: lint-sql lint-py lint-types lint-imports
 
 # The sequence ban (D10) and the invariant-citation rule, over every migration tree.
 lint-sql:
-    uv run trappoint migrate lint --root '{{REF_MIGRATIONS}}' --root '{{MAINLINE_MIGRATIONS}}' --root packages/trappoint-sql/templates
+    uv run --package trappoint-migrate trappoint migrate lint --root '{{REF_MIGRATIONS}}' --root '{{MAINLINE_MIGRATIONS}}' --root packages/trappoint-sql/templates
 
+# ruff, over the whole repository.
 lint-py:
-    uv run ruff check .
-    uv run ruff format --check .
+    uv run --only-group dev ruff check .
+    uv run --only-group dev ruff format --check .
 
+# mypy, strict on the Apache substrate (see mypy.ini for the gradient).
 lint-types:
-    uv run mypy --config-file mypy.ini packages/trappoint-migrate/src/trappoint_migrate packages/trappoint-conformance/src/trappoint_conformance
+    uv run --only-group dev mypy --config-file mypy.ini packages/trappoint-migrate/src/trappoint_migrate packages/trappoint-conformance/src/trappoint_conformance
 
+# The four contracts. Needs every workspace member installed: `uv sync --all-packages`.
 lint-imports:
-    uv run lint-imports --config .importlinter
+    uv run --all-packages lint-imports --config .importlinter
 
+# Apply the formatter and every safe autofix.
 fmt:
-    uv run ruff format .
-    uv run ruff check --fix .
+    uv run --only-group dev ruff format .
+    uv run --only-group dev ruff check --fix .
 
 # Hermetic tests only: nothing here needs a cluster, a credential or a network.
 test:
-    uv run pytest packages/trappoint-migrate/tests -q
+    uv run --package trappoint-migrate pytest packages/trappoint-migrate/tests -q
 
-# Resolve the lockfile after a package adds a dependency. Conflicts are resolved by
-# re-running this, never by hand-editing uv.lock.
+# Re-resolve uv.lock after a package adds a dependency. Never hand-edit the lockfile.
 lock:
     uv lock
 

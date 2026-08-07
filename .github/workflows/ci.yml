@@ -70,17 +70,17 @@ jobs:
         run: uv lock --check
 
       - name: ruff format
-        run: uv run --frozen ruff format --check .
+        run: uv run --frozen --only-group dev ruff format --check .
 
       - name: ruff check
-        run: uv run --frozen ruff check .
+        run: uv run --frozen --only-group dev ruff check .
 
       - name: mypy — strict on the Apache substrate
         # `--strict` is a command-line flag; mypy.ini spells out the same flag set
         # per-module so a future relaxation is a visible line in a diff rather than a
         # dropped word in a CI command.
         run: |
-          uv run --frozen mypy --config-file mypy.ini \
+          uv run --frozen --only-group dev mypy --config-file mypy.ini \
             packages/trappoint-migrate/src/trappoint_migrate \
             packages/trappoint-conformance/src/trappoint_conformance
 
@@ -113,7 +113,7 @@ jobs:
         run: uv sync --frozen --all-packages
 
       - name: The four contracts
-        run: uv run --frozen lint-imports --config .importlinter
+        run: uv run --frozen --all-packages lint-imports --config .importlinter
 
       - name: Registry guard — a new distribution cannot be silently unlinted
         # `root_packages` can only name packages that exist at lint time, so a package
@@ -182,17 +182,17 @@ jobs:
             --package trappoint-conformance
 
       - name: trappoint-migrate — no cluster, no credential, no network
-        run: uv run --frozen pytest packages/trappoint-migrate/tests -q --no-header
+        run: uv run --frozen --package trappoint-migrate pytest packages/trappoint-migrate/tests -q --no-header
 
       - name: The suite lists without a database
         # `--list` is a documentation act and must not need a driver connection. It is
         # also the cheapest possible check that spec/conformance/manifest.toml still
         # parses and that every case carries a non-empty exhibit.
-        run: uv run --frozen trappoint-conform --profile trappoint-ref --list
+        run: uv run --frozen --package trappoint-conformance trappoint-conform --profile trappoint-ref --list
 
       - name: The manifest's declared counts are the counts
         run: |
-          uv run --frozen python - <<'PY'
+          uv run --frozen --package trappoint-conformance python - <<'PY'
           from trappoint_conformance.manifest import load_manifest
           m = load_manifest()
           assert len(m.cases) == m.declared_case_count, (
@@ -207,6 +207,43 @@ jobs:
           )
           print(f"{len(m.cases)} cases · {len(ref)} on trappoint-ref · spec {m.spec_version}")
           PY
+
+  sql-lint:
+    name: the sequence ban, repository-wide
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - name: Deny egress except to the package indexes
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            objects.githubusercontent.com:443
+            pypi.org:443
+            files.pythonhosted.org:443
+            astral.sh:443
+
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install the migration runner
+        run: uv sync --frozen --package trappoint-migrate
+
+      - name: No sequence anywhere, and every migration cites an invariant
+        # Ruling D10 and ARCHITECTURE.md §18, over EVERY migration tree and every
+        # template in the repository. This is a whole-repository guard and it lives here
+        # rather than in db.yml on purpose: the db lane's failure must mean "the
+        # conformance case is red" and nothing else.
+        #
+        # The claim it protects: the event ledger is gap-free by compare-and-swap, so a
+        # gap MEANS tampering. One reintroduced sequence anywhere and that sentence has
+        # to be withdrawn.
+        run: uv run --frozen --package trappoint-migrate trappoint migrate lint
 
   workflows:
     name: actionlint
@@ -281,7 +318,7 @@ jobs:
   summary:
     name: CI summary
     runs-on: ubuntu-24.04
-    needs: [static, imports, hermetic-tests, workflows, adr-red-recorded]
+    needs: [static, imports, hermetic-tests, sql-lint, workflows, adr-red-recorded]
     if: always()
     timeout-minutes: 5
     steps:
@@ -296,6 +333,7 @@ jobs:
             echo "| format · lint · types | ${{ needs.static.result }} |"
             echo "| import-linter (4 contracts) | ${{ needs.imports.result }} |"
             echo "| hermetic unit tests | ${{ needs.hermetic-tests.result }} |"
+            echo "| sequence ban (repo-wide) | ${{ needs.sql-lint.result }} |"
             echo "| actionlint | ${{ needs.workflows.result }} |"
             echo "| PL-2 red run recorded | ${{ needs.adr-red-recorded.result }} |"
             echo ""
@@ -306,6 +344,7 @@ jobs:
             "${{ needs.static.result }}" \
             "${{ needs.imports.result }}" \
             "${{ needs.hermetic-tests.result }}" \
+            "${{ needs.sql-lint.result }}" \
             "${{ needs.workflows.result }}" \
             "${{ needs.adr-red-recorded.result }}" ; do
             if [ "$result" != "success" ]; then

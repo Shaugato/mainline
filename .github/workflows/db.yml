@@ -146,39 +146,45 @@ jobs:
             --package trappoint-migrate \
             --package trappoint-conformance
 
-      - name: The sequence ban and the invariant-citation rule
-        # Passes on an empty tree today. It is placed BEFORE the schema work so that a
+      - name: The sequence ban and the invariant-citation rule (kernel trees)
+        # Scoped to the trees THIS lane applies. Placed before the schema work so that a
         # migration reintroducing a sequence fails before it is ever applied.
-        run: uv run trappoint migrate lint
+        #
+        # The repository-wide sweep lives in the `sql-lint` job of ci.yml, deliberately.
+        # This lane's failure has to MEAN "the conformance case is red"; if it could also
+        # fail because a migration in a domain three directories away has two statements
+        # in it, the PL-2 artefact would stop being legible.
+        run: |
+          uv run --frozen --package trappoint-migrate trappoint migrate lint             --root packages/trappoint-sql/refvertical/sql             --root packages/trappoint-sql/templates
 
       - name: Bootstrap the `trappoint` schema
-        run: uv run trappoint migrate bootstrap --dsn "$LOCAL_DSN"
+        run: uv run --frozen --package trappoint-migrate trappoint migrate bootstrap --dsn "$LOCAL_DSN"
 
       - name: Apply the reference vertical (a no-op until the DDL lands)
         run: |
-          uv run trappoint migrate up \
+          uv run --frozen --package trappoint-migrate trappoint migrate up \
             --dsn "$LOCAL_DSN" \
             --tree trappoint-ref \
             --migrations packages/trappoint-sql/refvertical/sql
 
       - name: Attest the schema, twice, and assert the fingerprint is stable
-        run: uv run trappoint migrate attest --dsn "$LOCAL_DSN"
+        run: uv run --frozen --package trappoint-migrate trappoint migrate attest --dsn "$LOCAL_DSN"
 
       - name: Status
         run: |
-          uv run trappoint migrate status \
+          uv run --frozen --package trappoint-migrate trappoint migrate status \
             --dsn "$LOCAL_DSN" \
             --tree trappoint-ref \
             --migrations packages/trappoint-sql/refvertical/sql
 
       - name: List the suite the manifest declares
-        run: uv run trappoint-conform --profile trappoint-ref --list
+        run: uv run --frozen --package trappoint-conformance trappoint-conform --profile trappoint-ref --list
 
       - name: CONFORMANCE — expected RED until the kernel DDL lands
         # NOT continue-on-error. This step failing IS the PL-2 proof artefact, and the
         # commit that makes it pass is the commit that has to earn it.
         run: |
-          uv run trappoint-conform --dsn "$LOCAL_DSN" --profile trappoint-ref
+          uv run --frozen --package trappoint-conformance trappoint-conform --dsn "$LOCAL_DSN" --profile trappoint-ref
 
       - name: Record the outcome in the job summary
         if: always()
