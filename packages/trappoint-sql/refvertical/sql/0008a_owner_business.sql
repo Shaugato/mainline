@@ -10,12 +10,29 @@
 -- RATIONALE: Ownership carries the privilege to drop anything in the schema, including the
 --            merge-gate triggers. It is therefore parked in a NOLOGIN role that no session
 --            can assume: the privilege exists, and no principal holds it. The migrator gets
---            CREATE explicitly and nothing else.
+--            CREATE explicitly and nothing else. Taking ownership in a separate statement
+--            is not weaker than taking it at creation: CREATE SCHEMA IF NOT EXISTS followed
+--            by ALTER SCHEMA OWNER TO reaches the identical end state as CREATE SCHEMA
+--            AUTHORIZATION — verified on the local CockroachDB v26.2.5 node, where nspowner
+--            reads as the owner role either way — and the window in which the schema is
+--            owned by whoever ran the migration is inside one migration run, before any
+--            table exists, so nothing can be created under the wrong owner and survive.
 --
 -- @rendered-by  trappoint render
 -- @template     packages/trappoint-sql/templates/0006_roles.sql.j2
 -- @binding      packages/trappoint-sql/refvertical/vertical.toml
 -- DO NOT EDIT. `trappoint render --check` is a zero-diff assertion in CI, so a
 -- hand edit here is a red build, not a silent divergence.
+--
+-- WHY THIS IS A SEPARATE STATEMENT AND NOT `CREATE SCHEMA … AUTHORIZATION`, settled once.
+--   `AUTHORIZATION` sets the owner at creation and closes the window in which the schema
+--   is owned by the migrator. `CREATE SCHEMA IF NOT EXISTS` plus this `ALTER` opens that
+--   window and then closes it, and the two reach the SAME end state: nspowner is
+--   tref_owner either way, measured on the local v26.2.5 node rather than assumed.
+--   The window is bounded by the migration run that opens it, and no table exists inside
+--   it, so there is no object that can be created under the wrong owner and survive it.
+--   The split is what makes the schema statement idempotent — `AUTHORIZATION` has no
+--   `IF NOT EXISTS` spelling that also re-asserts the owner on a re-run — and idempotence
+--   is what lets the same migration set apply to a fresh database on the same cluster.
 
 ALTER SCHEMA trappoint_ref OWNER TO tref_owner;

@@ -1,14 +1,25 @@
 -- SPDX-FileCopyrightText: 2026 MAINLINE contributors
 -- SPDX-License-Identifier: FSL-1.1-ALv2
 --
+-- MI: MI16
+-- I: I13
+-- COUNSEL-GATED: no
+-- RATIONALE: AFTER INSERT rather than BEFORE, because the check row must be committed to before the run's accounting moves and the counter belongs to a different table, so there is nothing to project onto NEW.
+--
 -- migration:  0137_trg_bonded_sev5
+-- band:       0136-0139z · recall · AUTHORED, allocated by
+--             verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1)
 -- domain:     recall
 -- statements: 1
 -- invariants: MI16
 -- source:     ARCHITECTURE.md §5.11 · §5.7 (S10)
--- requires:   0113 mainline.fn_bonded_sev5 · 0058 mainline.blocking_check · 0081 recall_run
+-- requires:   0113 mainline.fn_bonded_sev5 · 0081 mainline_meas.recall_run ·
+--             0058 mainline.blocking_check (RENDERED, kernel `obligation-and-clearance`;
+--             allocated but not yet emitted — see 0113's `requires:` note)
 -- sqlstate:   23514 (via `bonded_fatalities_all_blocking` on the row this trigger maintains)
--- forward-only; no .down.sql exists at or below the protected floor (DM-14).
+-- forward-only; no .down.sql exists at or below the protected floor (DM-14). Under MR-5 there
+--             is no .up.sql either: the suffix named a counterpart that is illegal by
+--             construction.
 --
 -- AFTER INSERT, not BEFORE: the check row must be committed to before the run's accounting
 -- moves, and the counter belongs to a different table, so there is nothing to project onto NEW.

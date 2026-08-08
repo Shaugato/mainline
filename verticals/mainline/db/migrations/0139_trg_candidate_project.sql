@@ -1,58 +1,45 @@
 -- SPDX-FileCopyrightText: 2026 MAINLINE contributors
 -- SPDX-License-Identifier: FSL-1.1-ALv2
 --
+-- MI: MI17, MI25
+-- I: I02
+-- COUNSEL-GATED: no
+-- RATIONALE: The weld is the mechanism: without this trigger `mainline_meas.recall_candidate.severity` is an inserter-supplied number that sets its own evidence threshold, and `pg_get_triggerdef()` snapshots this definition into the custody ledger so that removing it is an act with a record rather than a quiet edit.
+--
 -- migration:  0139_trg_candidate_project
+-- band:       0136-0139z · recall · AUTHORED, allocated by
+--             verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1)
 -- domain:     recall
--- statements: 2 — CREATE FUNCTION then CREATE TRIGGER. The recall band reserves three function
---             numbers (0112–0114) and four trigger numbers (0136–0139), so this projector has
---             no function file of its own; rather than take a number this domain does not own,
---             the function ships welded to its trigger. The side effect is desirable: these two
---             statements can never drift apart across environments.
--- invariants: MI25 (the projection principle), MI17 (this table is the conserved partition)
+-- statements: 1
 -- source:     ARCHITECTURE.md §5.7 ("PROJECTED from event.severity_gate (S10)") · §5.11
--- requires:   0082 mainline_meas.recall_candidate · 0033 mainline.event
--- sqlstate:   P0001
--- forward-only; no .down.sql exists at or below the protected floor (DM-14).
+-- requires:   0110 mainline.fn_candidate_project · 0082 mainline_meas.recall_candidate
+-- sqlstate:   P0001 (raised by the function, on an event that does not exist)
+-- forward-only; no .down.sql exists at or below the protected floor (DM-14). Under MR-5 there
+--             is no .up.sql either: the suffix named a counterpart that is illegal by
+--             construction.
 --
--- WHAT AN INSERTER COULD DO WITH A WRITABLE `severity`. Severity-Graded Admission lowers the
--- evidence bar as severity rises — τ(5)=0.35, τ(4)=0.45, τ(3)=0.60, τ(2)=0.75, τ(1)=0.85 — so
--- severity is not a label on the candidate, it is the threshold the candidate is judged against.
--- An agent able to write `severity=1` on a fatality would move that fatality's bar to 0.85,
--- watch it fall below, and produce a silence-ledger row that reads as a careful, calibrated,
--- well-documented judgement. Every artefact downstream would corroborate it. The projection is
--- what makes that story unwritable: the severity in the row is the severity in `mainline.event`,
--- for every writer, and a candidate naming an event that does not exist cannot be typed at all.
+-- ── THE FUNCTION MOVED OUT OF THIS FILE (migration reconciliation, 2026-08-08) ────────────────
+-- This file used to carry `CREATE FUNCTION mainline.fn_candidate_project()` as its first
+-- statement, on the stated grounds that recall owned no free function number. It owned two:
+-- `migrations.allocation.toml` grants recall `0110`-`0114z`, and `0110` was empty. The function
+-- now lives in `0110_fn_candidate_project.sql`, which is where §18 puts functions — created
+-- before the `0120`-`0139` trigger stratum rather than inside it — and that file's header
+-- carries the full argument, including the two ways the old shape was wrong. Nothing about the
+-- mechanism changed: same function name, same body, same trigger name, same SQLSTATE.
 --
--- Note the asymmetry with `blocking_check.severity` (§5.11 #1), which projects from the blame
--- CLOSURE. A recall candidate is a claim about ONE event, so its authoritative source is that
--- event's own gate severity; a blocking check is a claim about a clause's whole ancestry. Using
--- the closure here would be wrong, and using the event there would be S1 all over again.
+-- BEFORE INSERT, because the point is to REWRITE the row rather than to refuse it — except when
+-- the event does not exist at all, which cannot be repaired by rewriting and is therefore the
+-- one case that RAISEs.
 --
--- Style (§5.11): PL/pgSQL, row-level, no FOR..IN, no FOREACH, no EXECUTE, no PERFORM, no CASE;
--- IF plus exactly one SELECT..INTO.
+-- The trigger NAME is the mechanism's public surface: the unwelding suite and
+-- `pg_get_triggerdef()`'s attestation into `mainline_ops.schema_attestation` both address it by
+-- name, so `candidate_project` is stable across this reconciliation and across any future one.
 --
--- PLATFORM: CockroachDB requires `OLD`/`NEW` to be parenthesised when a COLUMN is read —
--- `(NEW).event_id`, not `NEW.event_id` — a documented known limitation whose own v26.2 examples
--- read `(NEW).wage` and assign `NEW.wage := …`. The assignment target below is deliberately
--- bare, matching that example. ARCHITECTURE §5.11 is written in the unparenthesised PostgreSQL
--- style; every trigger in the deployment needs this correction.
-
-CREATE FUNCTION mainline.fn_candidate_project() RETURNS TRIGGER LANGUAGE PLpgSQL AS $$
-DECLARE
-  ev_sev INT2;
-BEGIN
-  SELECT e.severity_gate INTO ev_sev
-    FROM mainline.event e
-   WHERE e.event_id = (NEW).event_id;
-
-  IF ev_sev IS NULL THEN
-    RAISE EXCEPTION USING ERRCODE='P0001',
-      MESSAGE='MAINLINE: no such event — a recall candidate cannot be typed';
-  END IF;
-
-  NEW.severity := ev_sev;
-  RETURN NEW;
-END $$;
+-- REFUSAL DEPTH, honestly: 1. With this trigger dropped, `severity` becomes an inserter-supplied
+-- number again and only `candidate_sev_range` (0082) still constrains it — to 0..5, which is
+-- exactly the range the attack in `0110`'s header operates inside. What survives the unweld is
+-- the FK on `run_id` and nothing about severity. The suite asserts that rather than implying a
+-- redundancy that is not there.
 
 CREATE TRIGGER candidate_project BEFORE INSERT ON mainline_meas.recall_candidate
   FOR EACH ROW EXECUTE FUNCTION mainline.fn_candidate_project();

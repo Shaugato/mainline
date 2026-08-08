@@ -1,14 +1,25 @@
 -- SPDX-FileCopyrightText: 2026 MAINLINE contributors
 -- SPDX-License-Identifier: FSL-1.1-ALv2
 --
+-- MI: MI18
+-- I: I07
+-- COUNSEL-GATED: no
+-- RATIONALE: The calibrator is serialised as monotone step-function knots and never as a pickle, because `p_relevant` is an exhibit and an exhibit that can only be interpreted by running the defendant's own binary is not an exhibit.
+--
 -- migration:  0085_recall_policy_calibrator
+-- band:       0080-0089z · recall · AUTHORED, allocated by
+--             verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1)
 -- domain:     recall
--- statements: 1 (one ALTER TABLE, two ADD COLUMN subcommands)
+-- statements: 1 (one ALTER TABLE, two ADD COLUMN subcommands — subcommands of a single
+--             top-level statement, which is what `statement_count()` counts and what the
+--             one-statement-per-file rule is about)
 -- invariants: MI18 (the policy row is the anchored artefact a run cites)
 -- source:     docs/leads/recall.md D8 (calibrator) and D14 (THYMOGATE)
 -- requires:   0080 mainline_meas.recall_policy
 -- sqlstate:   —
--- forward-only; no .down.sql exists at or below the protected floor (DM-14).
+-- forward-only; no .down.sql exists at or below the protected floor (DM-14). Under MR-5 there
+--             is no .up.sql either: the suffix named a counterpart that is illegal by
+--             construction.
 --
 -- D8 · THE CALIBRATOR IS SERIALISED AS MONOTONE STEP-FUNCTION KNOTS, NEVER AS A PICKLE.
 -- `p_relevant` is an exhibit. A pickle is neither auditable nor safe to load, and an exhibit
@@ -22,8 +33,9 @@
 --
 -- D14 · `thymogate_certificate_id` IS NULLABLE AT K4 AND BECOMES NOT NULL AT K8. Negative
 -- selection IS an evaluation: the panel is a corpus artefact and the certificate is emitted by
--- a harness run, precisely so that a tuned retriever cannot certify itself. The FK is added in
--- 0086 with the table it points at — the same deferred-cycle shape §18 already uses at 0171.
+-- a harness run, precisely so that a tuned retriever cannot certify itself. The table it points
+-- at is created in 0086 and the FK itself is added in 0086a — the same deferred-cycle shape §18
+-- already uses at 0171, now written as the two statements it has always been.
 
 ALTER TABLE mainline_meas.recall_policy
   ADD COLUMN calibrator JSONB NOT NULL DEFAULT '{}'::JSONB,

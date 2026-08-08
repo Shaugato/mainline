@@ -1,0 +1,52 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: Apache-2.0
+--
+-- TRAPPOINT_REF · 0009f_revoke_create_public_schema.sql
+-- REVOKE CREATE ON SCHEMA public FROM public — close the one schema that ships open
+--
+-- MI: MI01
+-- I: I01
+-- COUNSEL-GATED: no
+-- RATIONALE: Every CockroachDB database ships a `public` schema on which the `public`
+--            pseudo-role holds CREATE and USAGE, so without this statement any principal
+--            that can connect may create objects inside the evidentiary database, and an
+--            unqualified name resolved through search_path can be made to hit one of them.
+--            That is adversary T at tier T0-T1 (app user, rogue DBA — ARCHITECTURE.md
+--            11.1): it needs no privilege anyone granted and it leaves a table that looks
+--            like ours. The five zone REVOKEs at 0007a-0007e close schemas where nothing
+--            was granted in the first place; this closes the one where something is.
+--
+-- @rendered-by  trappoint render
+-- @template     packages/trappoint-sql/templates/0006_roles.sql.j2
+-- @binding      packages/trappoint-sql/refvertical/vertical.toml
+-- DO NOT EDIT. `trappoint render --check` is a zero-diff assertion in CI, so a
+-- hand edit here is a red build, not a silent divergence.
+--
+-- THIS IS THE FILE 0007a-0007e ARE USUALLY MISTAKEN FOR.
+--   0007a-0007e revoke on the five TRAPPOINT_REF zones, where `public` held nothing to
+--   begin with — they are a deny posture asserted rather than assumed. THIS file revokes
+--   on `public`, the schema every CockroachDB database creates for you and on which the
+--   `public` pseudo-role holds CREATE and USAGE out of the box. Left alone, any role that
+--   can log in can create `public.person`, and the rule "schema-qualify everything, never
+--   rely on search_path" becomes the only thing standing between a shadow table and a
+--   query that reads it. A rule that holds only while everyone remembers it is not a
+--   control.
+--
+-- ADVERSARY T, TIERS T0-T1 (ARCHITECTURE.md 11.1). The app user and the rogue DBA both
+--   reach this schema without anyone granting them anything, because the grant is the
+--   database's default. Closing it costs one statement and removes an entire class of
+--   "an object that looks like part of the record but is not" from the exhibit.
+--
+-- CREATE IS REVOKED; USAGE IS DELIBERATELY LEFT IN PLACE. Revoking USAGE as well breaks
+--   nothing this vertical does, but it protects nothing either once no principal can put
+--   an object there — there is nothing left in the schema to reach — and it is a known
+--   source of confusing failures in client tooling that resolves an empty `public` on
+--   connect. The control being asserted is "you may not put an object here", and that is
+--   exactly, and only, what this statement revokes.
+--
+-- Cluster-wide by construction: `public` is per-database, and this migration runs in the
+--   database being migrated, so the revoke lands on that database's `public` and on no
+--   other. That is the right scope — a second vertical on the same cluster asserts its
+--   own floor in its own database rather than inheriting one it cannot see.
+
+REVOKE CREATE ON SCHEMA public FROM public;

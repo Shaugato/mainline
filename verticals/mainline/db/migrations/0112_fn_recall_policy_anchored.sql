@@ -1,14 +1,28 @@
 -- SPDX-FileCopyrightText: 2026 MAINLINE contributors
 -- SPDX-License-Identifier: FSL-1.1-ALv2
 --
+-- MI: MI18
+-- I: I07
+-- COUNSEL-GATED: no
+-- RATIONALE: If a policy row can be authored, edited or back-dated after a run, then every silence in that run is retro-justified by a threshold chosen with knowledge of the outcome — the cheapest available attack on the whole evidentiary claim, requiring no code change and leaving a database that looks entirely consistent.
+--
 -- migration:  0112_fn_recall_policy_anchored
+-- band:       0110-0114z · recall · AUTHORED, allocated by
+--             verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1)
 -- domain:     recall
 -- statements: 1
 -- invariants: MI18 — a recall runs only under an anchored, cosigned policy version.
 -- source:     ARCHITECTURE.md §5.11 (S24: "this replaces the CHECK (true) placeholder") · §5.7
--- requires:   0080 recall_policy · 0081 recall_run · 0072-0079 ledger_checkpoint, cosignature
+-- requires:   0080 mainline_meas.recall_policy · 0081 mainline_meas.recall_run ·
+--             0075 mainline.ledger_checkpoint · 0076 mainline.cosignature
+--             (the last two are custody's; the old `0072-0079` citation was a BAND, and a band
+--             is not a file — naming a range is the habit that produced the 2026-08-08 seam
+--             failure in the first place)
+-- provides:   mainline.fn_recall_policy_anchored() — welded to recall_run by 0136
 -- sqlstate:   P0001
--- forward-only; no .down.sql exists at or below the protected floor (DM-14).
+-- forward-only; no .down.sql exists at or below the protected floor (DM-14). Under MR-5 there
+--             is no .up.sql either: the suffix named a counterpart that is illegal by
+--             construction.
 --
 -- THE ATTACK THIS REFUSES. τ is the number that decides which precursors a supervisor is shown
 -- and which ones become silence-ledger rows. If a policy row can be authored — or edited, or

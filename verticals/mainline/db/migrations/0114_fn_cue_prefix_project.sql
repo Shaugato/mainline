@@ -1,18 +1,28 @@
 -- SPDX-FileCopyrightText: 2026 MAINLINE contributors
 -- SPDX-License-Identifier: FSL-1.1-ALv2
 --
+-- MI: MI25
+-- I: I02
+-- COUNSEL-GATED: no
+-- RATIONALE: C-SPANN keeps a separate K-means tree per distinct prefix value, so `(site_id, scope_id, facet)` does not filter the answer — it chooses which tree is searched — and an inserter that supplies those three columns chooses reachability; this function overwrites all three from the parent cue on every insert.
+--
 -- migration:  0114_fn_cue_prefix_project
+-- band:       0110-0114z · recall · AUTHORED, allocated by
+--             verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1)
 -- domain:     recall
--- statements: 2 — one projector per vector sidecar. See PLATFORM NOTE 2 below: this is a
---             CockroachDB constraint, not a preference, and the alternative shape was written
---             first and rejected.
--- invariants: MI25 (the projection principle, instantiated on the index partition)
+-- statements: 1
 -- proposes:   MI31 — "the vector-index prefix columns are projections of the parent cue, never
 --             inputs; a vector with no parent cue is refused"
 -- source:     docs/leads/recall.md D1 · ARCHITECTURE.md §5.4, §5.11, §6.3
--- requires:   0040 event_cue · 0041 event_cue_embedding · 0042 event_cue_coarse · 0033 event
+-- requires:   0040 mainline.event_cue
+-- provides:   mainline.fn_cue_prefix_project() — welded to mainline.event_cue_embedding by 0138
+-- companion:  0114a_fn_cue_coarse_project.sql — the coarse sidecar's projector. See
+--             PLATFORM NOTE 2 for why the mechanism is two functions and not one, and
+--             THE SPLIT below for why it is now two files.
 -- sqlstate:   P0001
--- forward-only; no .down.sql exists at or below the protected floor (DM-14).
+-- forward-only; no .down.sql exists at or below the protected floor (DM-14). Under MR-5 there
+--             is no .up.sql either: the suffix named a counterpart that is illegal by
+--             construction.
 --
 -- ═══ THE HEADLINE OF THIS DOMAIN ═══
 --
@@ -32,19 +42,12 @@
 -- That is why P2 — *the column a gate reads is written by a trigger from an authoritative
 -- source, never by the inserter* — has to reach one hop upstream of the gate scalar and land on
 -- the index partition itself. There is exactly one authoritative statement of which tree a cue
--- belongs to, and it is the parent row in `mainline.event_cue`. These functions copy it over
--- whatever the inserter supplied, on every insert, on both sidecars, and RAISE when the parent
--- is absent — because a vector with no cue cannot be placed at all, and silently defaulting it
--- somewhere is the same defect with better manners.
+-- belongs to, and it is the parent row in `mainline.event_cue`. This function copies it over
+-- whatever the inserter supplied, on every insert, and RAISEs when the parent is absent —
+-- because a vector with no cue cannot be placed at all, and silently defaulting it somewhere is
+-- the same defect with better manners.
 --
--- ON THE COARSE SIDECAR. `event_cue_coarse` has one deliberately constant prefix (`tenant_id`),
--- so its tree placement is not forgeable — but its `severity_gate` is, and that column decides
--- whether a sweep hit blocks (a sweep hit is never blocking unless severity_gate = 5). It is
--- therefore projected from `mainline.event` through `event_cue.event_id`. `tenant_id` is left
--- alone: DM-3 makes `mainline.site` its authoritative source, and forging a projection from a
--- table this domain does not own would be worse than naming the gap.
---
--- WHAT THESE FUNCTIONS DO NOT DO, said here rather than discovered later: with the trigger
+-- WHAT THIS FUNCTION DOES NOT DO, said here rather than discovered later: with the trigger
 -- dropped, a forged prefix is accepted. The weld's refusal depth is 1. The available
 -- strengthening is a composite FK `(cue_id, site_id, scope_id, facet)` onto a matching UNIQUE
 -- on `event_cue` with ON UPDATE RESTRICT, which would make the forgery 23503 with no trigger at
@@ -79,6 +82,18 @@
 -- one. PL-3: no unproven capability on a dated path. The mechanism, the trigger names, the
 -- SQLSTATE and the diagnosis are unchanged — `fn_cue_prefix_project` keeps the name D1 gives it
 -- and keeps the prefixed sidecar, which is the half the name is about.
+--
+-- ── THE SPLIT (migration reconciliation, 2026-08-08) ─────────────────────────────────────────
+-- PLATFORM NOTE 2 decided there would be two FUNCTIONS. It did not decide there would be one
+-- FILE, and for a while there was: this file carried both `CREATE FUNCTION`s, which made it a
+-- two-statement migration. The runner does not wrap a file body in a transaction, because
+-- CockroachDB DDL is not transactional across statements — so a two-statement file that fails on
+-- its second leaves the schema half-applied with the version unrecorded, and the `dirty` marker
+-- names a FILE rather than a STATEMENT. Here that is not academic: the half-applied state is
+-- exactly "the prefixed sidecar's projector exists and the coarse sidecar's does not", which
+-- 0138a's header shows is the state in which a severity-5 sweep hit stops blocking.
+-- `fn_cue_coarse_project` now lives in `0114a_fn_cue_coarse_project.sql` — a band-overflow
+-- suffix inside recall's own `0110`-`0114z` grant (MR-5), not a borrowed neighbour's number.
 
 CREATE FUNCTION mainline.fn_cue_prefix_project() RETURNS TRIGGER LANGUAGE PLpgSQL AS $$
 DECLARE
@@ -99,24 +114,5 @@ BEGIN
   NEW.site_id  := cue_site;
   NEW.scope_id := cue_scope;
   NEW.facet    := cue_facet;
-  RETURN NEW;
-END $$;
-
-CREATE FUNCTION mainline.fn_cue_coarse_project() RETURNS TRIGGER LANGUAGE PLpgSQL AS $$
-DECLARE
-  cue_sev INT2;
-BEGIN
-  SELECT e.severity_gate
-    INTO cue_sev
-    FROM mainline.event_cue c
-    JOIN mainline.event e ON e.event_id = c.event_id
-   WHERE c.cue_id = (NEW).cue_id;
-
-  IF cue_sev IS NULL THEN
-    RAISE EXCEPTION USING ERRCODE='P0001',
-      MESSAGE='MAINLINE: no parent cue — cannot place a vector in a prefix tree';
-  END IF;
-
-  NEW.severity_gate := cue_sev;
   RETURN NEW;
 END $$;

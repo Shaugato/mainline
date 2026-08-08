@@ -1,18 +1,28 @@
 -- SPDX-FileCopyrightText: 2026 MAINLINE contributors
 -- SPDX-License-Identifier: FSL-1.1-ALv2
 --
+-- MI: MI16, MI17
+-- I: I13
+-- COUNSEL-GATED: no
+-- RATIONALE: There is exactly one authoritative statement of which archival tree a cue belongs to, and it is this row; both vector sidecars take their prefix columns from here by trigger rather than from whoever writes the vector, which is what keeps a fatality cue reachable.
+--
 -- migration:  0040_event_cue
+-- band:       0040-0046z · recall/recall-ddl-triggers · AUTHORED, allocated by
+--             verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1)
 -- domain:     recall
 -- statements: 1
--- invariants: MI16, MI17
 -- source:     ARCHITECTURE.md §5.4 (verbatim, index declared inline per DM-6)
--- requires:   0001 CREATE SCHEMA mainline · 0033 mainline.event
+-- requires:   0001a CREATE SCHEMA mainline (RENDERED; template 0001_schemas.sql.j2) ·
+--             0033 mainline.event
 -- sqlstate:   23505 on the (event_id, scope_id, facet, prompt_version) uniqueness
--- forward-only; no .down.sql exists at or below the protected floor (DM-14).
+-- forward-only; no .down.sql exists at or below the protected floor (DM-14). Under MR-5 there
+--             is no .up.sql either: the suffix named a counterpart that is illegal by
+--             construction.
 --
 -- The ENTITY of the recall memory. No vector column lives here (S21): the vectors are in two
 -- sidecars, 0041 and 0042, and BOTH of them take their prefix columns FROM THIS ROW by trigger
--- (0114/0138). That is the whole point of splitting the entity out — there is exactly one
+-- (0114/0138 for the prefixed sidecar, 0114a/0138a for the coarse one — one mechanism, four
+-- files, see 0114's PLATFORM NOTE 2). That is the whole point of splitting the entity out — there is exactly one
 -- authoritative statement of "which archival tree does this cue belong to", and it is this row.
 --
 -- ONE ROW PER ARCHIVAL LEVEL (Level-Materialised Bonds). A single event contributes a cue row at

@@ -9,6 +9,7 @@ lane indistinguishable from a broken invocation.
 
 from __future__ import annotations
 
+import builtins
 from pathlib import Path
 
 import pytest
@@ -40,14 +41,45 @@ def test_unknown_verb_is_a_usage_error(capsys: pytest.CaptureFixture[str]) -> No
 
 def test_delegated_verb_names_its_distribution_when_absent(
     capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    # `packages/trappoint-sql` is a later worker's deliverable. Until it lands, the
-    # message has to be actionable rather than an argparse complaint.
+    # UNSTALED 2026-08-08. This test was written while `packages/trappoint-sql` was a
+    # later worker's deliverable, so merely invoking `render` exercised the missing
+    # -distribution path for free. trappoint-sql has since landed, and the call now
+    # delegates for real and fails with a render error instead — so the assertion was
+    # passing on an accident of build order and then broke on its own success.
+    #
+    # The guarantee is still worth holding: a fresh clone that has not run `uv sync`
+    # must be told WHICH distribution owns the verb, not handed an ImportError. So the
+    # absence is now simulated explicitly rather than relied upon.
+    real_import = builtins.__import__
+
+    def refuse_trappoint_sql(name: str, *a: object, **kw: object) -> object:
+        if name.startswith("trappoint_sql"):
+            raise ImportError(f"simulated: {name} is not installed")
+        return real_import(name, *a, **kw)  # type: ignore[arg-type]
+
+    monkeypatch.setattr(builtins, "__import__", refuse_trappoint_sql)
+
     code = main(["render", "--binding", "x"])
     assert code == EXIT_USAGE
     err = capsys.readouterr().err
     assert "trappoint-sql" in err
     assert "uv sync --package" in err
+
+
+def test_delegated_verb_actually_delegates_when_present(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    # The other half, which the original test could not express because the
+    # distribution did not exist yet: with trappoint-sql installed, `render` must reach
+    # the real implementation. A non-existent binding is a RENDER error, and crucially
+    # NOT the "not installed" message — that message reappearing here would mean
+    # delegation had silently regressed to the fallback path.
+    code = main(["render", "--binding", "x"])
+    err = capsys.readouterr().err
+    assert "uv sync --package" not in err, "delegation regressed to the not-installed path"
+    assert code != EXIT_OK
 
 
 def test_lint_on_an_empty_tree_exits_zero(

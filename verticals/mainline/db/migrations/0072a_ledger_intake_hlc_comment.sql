@@ -1,0 +1,45 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MI: MI24
+-- I: I04
+-- COUNSEL-GATED: no
+-- RATIONALE: `spec/custody/ledger-schema.md` §5 is normative: "No constraint, no check and no
+-- proof may read `hlc`. THE COLUMN COMMENT MUST SAY SO." A rule that lives only in a repository
+-- nobody has cloned is not a rule for the DBA reading `SHOW CREATE TABLE` at 3am during an
+-- incident. This migration is that sentence, in the database, where it is read.
+--
+-- migration:  0072a_ledger_intake_hlc_comment
+-- band:       0072-0079z · custody · AUTHORED — verticals/mainline/db/migrations.allocation.toml
+-- statements: 1
+-- source:     spec/custody/ledger-schema.md §5 (normative) · ARCHITECTURE.md §5.6 ·
+--             docs/leads/datamodel.md D7 and docs/leads/migration-reconciliation.md MR-5
+--             (letter suffix = a second statement in one slot). MR-5 also records `0072`/`0072a`
+--             as a FALSE POSITIVE in `_migration_collisions.json`: one owner, one legal suffix,
+--             and the runner orders on the whole stem — do not renumber this pair.
+-- requires:   0072 mainline.ledger_intake
+-- sqlstate:   none — this migration adds metadata and can refuse nothing
+-- forward-only; no .down.sql exists at or below the protected floor (DM-14).
+--
+-- WHY A SEPARATE FILE. CockroachDB DDL is not transactional across statements, so the runner
+-- applies exactly one statement per file (ARCHITECTURE.md §18, ruling D7); a slot needing a
+-- second statement takes a lowercase letter suffix, and `0072a` sorting between `0072` and
+-- `0073` under lexicographic comparison of the whole filename stem is the entire mechanism.
+--
+-- WHAT THE COMMENT IS DEFENDING AGAINST. `crdb_internal.cluster_logical_timestamp()` returns the
+-- transaction's PROVISIONAL commit timestamp. CockroachDB may push a transaction's commit
+-- timestamp forward after that value has been read (cockroach#79591), so two rows whose `hlc`
+-- values order one way may have committed the other way. Every part of this system that looks
+-- like it wants a timestamp — batch selection, cadence measurement, an exhibit's chronology —
+-- has a correct source that is not this column: `seq` for order, and the beacon/RFC 3161 bracket
+-- on the checkpoint for time. A column that is ALMOST a clock is more dangerous than no clock,
+-- because it will be used as one by somebody who did not read §5.
+--
+-- UNVERIFIED-ON-THE-TARGET note, per the build discipline: `COMMENT ON COLUMN` is documented and
+-- supported by CockroachDB and was executed successfully against a local `cockroachdb/cockroach:
+-- v26.2.5` single node while writing this file. It has NOT been executed against the Basic-tier
+-- cloud cluster in `aws-ap-southeast-1`; if that cluster refuses it, the fix is to delete this
+-- file and move the sentence into `verticals/mainline/db/MIGRATIONS.md` — nothing in the band
+-- depends on it.
+
+COMMENT ON COLUMN mainline.ledger_intake.hlc IS 'ADVISORY ORDERING HINT ONLY - NOT A TIME AND NOT EVIDENCE. Provisional commit timestamp (cockroach#79591): the KV layer may push a transaction forward after this value is read, so hlc order is not commit order. Authoritative order is mainline.ledger_leaf.seq; authoritative time is the beacon (lower bound) and the RFC 3161 token (upper bound) on the checkpoint. No constraint, CHECK, trigger or proof may read this column, and no exhibit may cite it as a time. Its one legitimate reader is the sequencer batch-selection ORDER BY in spec/custody/ledger-schema.md section 4.';

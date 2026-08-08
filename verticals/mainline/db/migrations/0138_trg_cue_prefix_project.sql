@@ -1,21 +1,25 @@
 -- SPDX-FileCopyrightText: 2026 MAINLINE contributors
 -- SPDX-License-Identifier: FSL-1.1-ALv2
 --
+-- MI: MI25
+-- I: I02
+-- COUNSEL-GATED: no
+-- RATIONALE: This is the weld that makes `event_cue_embedding`'s three prefix columns projections rather than inputs; without it the columns that choose which C-SPANN tree is searched are chosen by whoever writes the vector, and a fatality cue placed in the wrong tree is unreachable forever with no query failing and no row being wrong.
+--
 -- migration:  0138_trg_cue_prefix_project
+-- band:       0136-0139z · recall · AUTHORED, allocated by
+--             verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1)
 -- domain:     recall
--- statements: 2 — DELIBERATE, AND THE ONLY HONEST SHAPE. Two vector sidecars, one mechanism.
---             A migration that welds the projection onto `event_cue_embedding` but not onto
---             `event_cue_coarse` leaves the sweep's blocking column forgeable in every
---             environment where the two files land apart. The pair is atomic or it is a hole.
---             (Only one migration number is reserved for this weld; splitting it would require
---             a number this domain does not own.)
--- invariants: MI25 (the projection principle on the index partition)
+-- statements: 1
 -- proposes:   MI31 (see 0041, 0114)
 -- source:     docs/leads/recall.md D1 · ARCHITECTURE.md §5.4, §5.11
--- requires:   0114 mainline.fn_cue_prefix_project + mainline.fn_cue_coarse_project
---             · 0041 event_cue_embedding · 0042 event_cue_coarse
+-- requires:   0114 mainline.fn_cue_prefix_project · 0041 mainline.event_cue_embedding
+-- companion:  0138a_trg_cue_prefix_project_coarse.sql — the coarse sidecar's half of the same
+--             mechanism. Read its header before deciding either file is optional.
 -- sqlstate:   P0001
--- forward-only; no .down.sql exists at or below the protected floor (DM-14).
+-- forward-only; no .down.sql exists at or below the protected floor (DM-14). Under MR-5 there
+--             is no .up.sql either: the suffix named a counterpart that is illegal by
+--             construction.
 --
 -- BEFORE INSERT, because the point is to REWRITE the row rather than to refuse it. A forged
 -- prefix is not an attack the writer necessarily knows it is making — the common case is a
@@ -23,10 +27,10 @@
 -- unembedded, which is the same unreachability by a different route. The row lands; it lands in
 -- the tree its parent cue names.
 --
--- There is no UPDATE trigger and there is no need for one: `event_cue_embedding` and
--- `event_cue_coarse` are write-once sidecars keyed by `cue_id`, and re-embedding under a new
--- `index_gen` is a delete-and-insert through the same weld. If an UPDATE path is ever
--- introduced, this file gains a BEFORE UPDATE trigger in the same statement or the weld is
+-- There is no UPDATE trigger and there is no need for one: `event_cue_embedding` is a write-once
+-- sidecar keyed by `cue_id`, and re-embedding under a new `index_gen` is a delete-and-insert
+-- through the same weld. If an UPDATE path is ever introduced, this file gains a BEFORE UPDATE
+-- trigger — as its own migration, under the next free suffix in this band — or the weld is
 -- half-open.
 --
 -- TWO FUNCTIONS, ONE MECHANISM. The trigger NAMES are the mechanism's public surface — the
@@ -34,9 +38,30 @@
 -- and they are unchanged. Which function each weld calls is an implementation detail forced by
 -- the platform; 0114's PLATFORM NOTE 2 records why, and records that the reason is unverified
 -- rather than pretending it is settled.
+--
+-- ── THE SPLIT, AND THE ARGUMENT IT REPLACES (reconciliation, 2026-08-08) ─────────────────────
+-- This file used to create BOTH welds, and its header defended that as "DELIBERATE, AND THE ONLY
+-- HONEST SHAPE": a migration that welds the projection onto `event_cue_embedding` but not onto
+-- `event_cue_coarse` leaves the sweep's blocking column forgeable in every environment where the
+-- two files land apart, so "the pair is atomic or it is a hole". The stated reason it could not
+-- be split was that "only one migration number is reserved for this weld; splitting it would
+-- require a number this domain does not own".
+--
+-- **The reason is false and the argument inverts.** `migrations.allocation.toml` grants recall
+-- `0136`-`0139z`, letter space included, so `0138a` is this domain's own number and always was —
+-- MR-5's band overflow exists precisely so a worker that runs out of numbers suffixes instead of
+-- borrowing. And the atomicity the old header wanted is not something a file can provide: the
+-- runner does NOT wrap a file body in a transaction, because CockroachDB DDL is not transactional
+-- across statements. Two `CREATE TRIGGER`s in one file were never atomic. They were two
+-- statements with one version row, so a failure on the second produced exactly the half-welded
+-- deployment the header feared — and produced it in the one form nobody could diagnose, because
+-- `dirty` names a FILE and the operator is told only that "0138" failed.
+--
+-- Split, the same failure is a `dirty` marker naming `0138a`, which is a sentence: the coarse
+-- weld is missing, go look at `event_cue_coarse`. The pair still lands together in every normal
+-- apply — they are adjacent versions in one forward-only chain run by one `trappoint migrate up`
+-- — and when it does not, the tree says which half is open instead of leaving it to be found by
+-- a fatality that failed to block.
 
 CREATE TRIGGER cue_prefix_project_embedding BEFORE INSERT ON mainline.event_cue_embedding
   FOR EACH ROW EXECUTE FUNCTION mainline.fn_cue_prefix_project();
-
-CREATE TRIGGER cue_prefix_project_coarse BEFORE INSERT ON mainline.event_cue_coarse
-  FOR EACH ROW EXECUTE FUNCTION mainline.fn_cue_coarse_project();

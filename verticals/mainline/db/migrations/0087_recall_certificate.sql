@@ -1,14 +1,23 @@
 -- SPDX-FileCopyrightText: 2026 MAINLINE contributors
 -- SPDX-License-Identifier: FSL-1.1-ALv2
 --
+-- MI: MI17
+-- I: I08
+-- COUNSEL-GATED: no
+-- RATIONALE: "We found nothing" is the single most dangerous output this system can produce, because it is indistinguishable to the reader from "there is nothing"; binding a null result to an index generation and a structural fingerprint is what makes the difference legible, and where it cannot be certified the verdict is UNDETERMINED.
+--
 -- migration:  0087_recall_certificate
+-- band:       0080-0089z · recall · AUTHORED, allocated by
+--             verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1)
 -- domain:     recall
 -- statements: 1
 -- invariants: MI17 (the certificate bounds what the conserved partition may be claimed to mean)
 -- source:     BUILD_PLAN K4 (M4 CUE HORIZON) · docs/leads/recall.md §4 · ARCHITECTURE §5.7
 -- requires:   0081 mainline_meas.recall_run
 -- sqlstate:   23514 on `complete_needs_a_basis_that_can_establish_it`
--- forward-only; no .down.sql exists at or below the protected floor (DM-14).
+-- forward-only; no .down.sql exists at or below the protected floor (DM-14). Under MR-5 there
+--             is no .up.sql either: the suffix named a counterpart that is illegal by
+--             construction.
 --
 -- M4 CUE HORIZON — THE CERTIFIED NULL. "We found nothing" is the single most dangerous output
 -- this system can produce, because it is indistinguishable, to the person reading it, from

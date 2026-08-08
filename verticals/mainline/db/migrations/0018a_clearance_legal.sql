@@ -29,6 +29,14 @@
 --
 -- max_ttl_hours NULL means the verdict does not expire. A non-NULL value means bounded,
 -- and bounded means bounded: the expiry is enforced, not merely present.
+--
+-- policy_version and approved_by_sub are NOT NULL, and NOT NULL is not enough for either.
+-- An empty string satisfies NOT NULL and destroys both columns' whole purpose: a row whose
+-- policy_version is '' cannot be re-evaluated against the lattice that was live when it
+-- was signed, and a row whose approved_by_sub is '' is an unapproved cell wearing the
+-- shape of an approved one. `policy_version_not_blank` and `approved_by_sub_not_blank`
+-- close that gap, because the only honest failure mode for these two columns is a refusal
+-- at write time rather than an empty exhibit at read time.
 
 CREATE TABLE mainline.clearance_legal (
   virulence          mainline.virulence_class NOT NULL,
@@ -45,5 +53,7 @@ CREATE TABLE mainline.clearance_legal (
   approved_at        TIMESTAMPTZ NOT NULL,
   CONSTRAINT clearance_rank_range CHECK (min_signer_rank BETWEEN 1 AND 9),
   CONSTRAINT clearance_ttl_positive CHECK (max_ttl_hours IS NULL OR max_ttl_hours > 0),
+  CONSTRAINT policy_version_not_blank CHECK (policy_version <> ''),
+  CONSTRAINT approved_by_sub_not_blank CHECK (approved_by_sub <> ''),
   CONSTRAINT pk_clearance_legal PRIMARY KEY (virulence, kind)
 );

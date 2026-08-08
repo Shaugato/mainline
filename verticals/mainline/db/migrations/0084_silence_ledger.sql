@@ -1,15 +1,26 @@
 -- SPDX-FileCopyrightText: 2026 MAINLINE contributors
 -- SPDX-License-Identifier: FSL-1.1-ALv2
 --
+-- MI: MI01, MI17
+-- I: I01, I13
+-- COUNSEL-GATED: no
+-- RATIONALE: This is the answer to the plaintiff's actual question — *your system knew about event X and did not show it* — and without the table the answer is silence plus an adverse inference; `reason` is a closed vocabulary because a free-text reason column is a way to write "other" forever and "other" is not a defence.
+--
 -- migration:  0084_silence_ledger
+-- band:       0080-0089z · recall · AUTHORED, allocated by
+--             verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1)
 -- domain:     recall
 -- statements: 1
 -- invariants: MI01 (append-only; the mutation guard is `fn_refuse_mutation`, §5.11),
 --             MI17 (every silenced candidate is counted in the conserved partition)
 -- source:     ARCHITECTURE.md §5.7 (verbatim; index declared inline per DM-6)
--- requires:   0003 CREATE SCHEMA mainline_meas
+-- requires:   0002 CREATE SCHEMA mainline_meas (RENDERED; template 0001_schemas.sql.j2 —
+--             corrected 2026-08-08: `0003` is now the AUDIT schema, so the old citation was
+--             not merely stale, it named the wrong schema)
 -- sqlstate:   P0001 on UPDATE/DELETE · 23514 on the closed `source`/`reason` vocabularies
--- forward-only; no .down.sql exists at or below the protected floor (DM-14).
+-- forward-only; no .down.sql exists at or below the protected floor (DM-14). Under MR-5 there
+--             is no .up.sql either: the suffix named a counterpart that is illegal by
+--             construction.
 --
 -- THE LEDGER IS THE ANSWER TO THE PLAINTIFF'S ACTUAL QUESTION — *your system knew about event X
 -- and did not show it*. Without this table the answer is silence plus an adverse inference.

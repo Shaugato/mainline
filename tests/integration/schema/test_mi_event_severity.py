@@ -1,7 +1,8 @@
 # SPDX-FileCopyrightText: 2026 MAINLINE contributors
 # SPDX-License-Identifier: FSL-1.1-ALv2
 """Tier-1 schema suite for migrations 0032-0036 — the activity taxonomy, the event, and the
-severity record (worker ``dm-event-severity``).
+severity record (worker ``dm-blame``, band 0032-0039 in
+``verticals/mainline/db/migrations.allocation.toml``).
 
 What this band owns, and therefore what this file may honestly assert:
 
@@ -88,8 +89,16 @@ BAND_TABLES = (
     "mainline.event_severity_revision",
 )
 
-#: The four mandatory header keys the runner's linter enforces on every `.up.sql`.
+#: The four mandatory header keys the runner's linter enforces on every migration.
 REQUIRED_HEADER_KEYS = ("-- MI:", "-- I:", "-- COUNSEL-GATED:", "-- RATIONALE:")
+
+#: MR-5, the one filename convention: ``NNNN[a-z]_lower_snake_slug.sql``. Four digits, an optional
+#: SINGLE lowercase letter, a snake slug with **no second dot**, and ``.sql``. ``.up.sql`` is banned
+#: — not as a style preference, but because it names a ``.down.sql`` counterpart that is illegal at
+#: or below the protected floor (DM-14), and because ``_version_of()`` strips both suffixes alike,
+#: so a ``.up.sql`` twin of a ``.sql`` file claims the same version and ``discover()`` refuses the
+#: whole tree.
+MR5_FILENAME = re.compile(r"^\d{4}[a-z]?_[a-z0-9_]+\.sql$")
 
 VALID_MI = frozenset(f"MI{n:02d}" for n in range(1, 31))
 VALID_I = frozenset(f"I{n:02d}" for n in range(1, 17))
@@ -97,11 +106,11 @@ VALID_I = frozenset(f"I{n:02d}" for n in range(1, 17))
 #: Constraint names that are quoted in ARCHITECTURE §5.4 / §16 and asserted by name in the
 #: conformance corpus. Renaming one is a breaking change to an exhibit, not a refactor.
 LOAD_BEARING_NAMES = {
-    "0032_activity_node.up.sql": ("l1_frozen",),
-    "0033_event.up.sql": ("model_cannot_arm",),
-    "0034_event_edge.up.sql": ("no_self_edge",),
-    "0035_control_failure.up.sql": ("evidence_span_is_a_pair",),
-    "0036_event_severity_revision.up.sql": ("downgrade_needs_new_rater", "substantive"),
+    "0032_activity_node.sql": ("l1_frozen",),
+    "0033_event.sql": ("model_cannot_arm",),
+    "0034_event_edge.sql": ("no_self_edge",),
+    "0035_control_failure.sql": ("evidence_span_is_a_pair",),
+    "0036_event_severity_revision.sql": ("downgrade_needs_new_rater", "substantive"),
 }
 
 CRDB_IMAGE = os.environ.get("MAINLINE_CRDB_IMAGE", "cockroachdb/cockroach:latest-v26.2")
@@ -264,25 +273,40 @@ def top_level_items(body: str) -> list[str]:
 
 
 def band_files() -> list[Path]:
-    """The 0032-0036 ``.up.sql`` files, ordered by version."""
+    """The 0032-0036 migrations, ordered by version.
+
+    Read by SHAPE (``MR5_FILENAME``) rather than by a hardcoded list, so that a stray file landing
+    inside this band is caught by ``test_band_is_dense_and_exclusive`` instead of being silently
+    skipped. The shape filter is also what excludes a ``.up.sql`` twin: ``_version_of()`` strips
+    ``.sql`` and ``.up.sql`` alike, so a twin claims the same version and would be linted twice
+    while the runner refuses the tree outright.
+    """
     found: list[tuple[int, Path]] = []
-    for path in sorted(MIGRATIONS_DIR.glob("*.up.sql")):
-        match = re.match(r"^(\d{4})_", path.name)
-        if match and BAND_FIRST <= int(match.group(1)) <= BAND_LAST:
-            found.append((int(match.group(1)), path))
+    for path in sorted(MIGRATIONS_DIR.iterdir()):
+        if not path.is_file() or MR5_FILENAME.match(path.name) is None:
+            continue
+        if BAND_FIRST <= int(path.name[:4]) <= BAND_LAST:
+            found.append((int(path.name[:4]), path))
     return [p for _, p in sorted(found)]
 
 
 def prerequisite_files() -> list[Path]:
-    """Every ``.up.sql`` numbered at or below ``PREREQ_LAST`` that currently exists.
+    """Every migration numbered at or below ``PREREQ_LAST`` that currently exists.
 
     ``NNNNa_`` suffixed files are included and ordered after their base number: other bands use
     that spelling for an addendum to a numbered file (``0029a_clause_version_trgm``), and a
     prerequisite reader that silently skipped them would apply an incomplete spine and then blame
     this band for the consequences.
+
+    Selected by shape and never by name. Bands 0001-0031 belong to other domains — most of
+    0001-0023 is RENDERED from ``packages/trappoint-sql/templates/`` under MR-1 — so this file
+    asserts nothing whatever about them; it applies what is there, best-effort, and says so in
+    ``prerequisite_notes`` when one fails.
     """
     found: list[tuple[int, str, Path]] = []
-    for path in sorted(MIGRATIONS_DIR.glob("*.up.sql")):
+    for path in sorted(MIGRATIONS_DIR.iterdir()):
+        if not path.is_file() or MR5_FILENAME.match(path.name) is None:
+            continue
         match = re.match(r"^(\d{4})([a-z]?)_", path.name)
         if match and int(match.group(1)) <= PREREQ_LAST:
             found.append((int(match.group(1)), match.group(2), path))
@@ -324,9 +348,26 @@ def test_band_is_dense_and_exclusive() -> None:
         f"got {numbers}"
     )
     for path in files:
-        assert re.match(r"^\d{4}_[a-z0-9_]+\.up\.sql$", path.name), (
-            f"{path.name} does not match NNNN_snake_name.up.sql"
+        assert MR5_FILENAME.match(path.name), (
+            f"{path.name} does not match NNNN[a-z]_lower_snake_slug.sql (MR-5, the one filename "
+            "convention). Ordering is lexicographic on the whole stem, so a name outside that "
+            "shape has no defined position; `.up.sql` is banned because it names a `.down.sql` "
+            "counterpart that is illegal by construction, and because two suffix chains coexisting "
+            "invisibly is what let two domains implement this band's neighbours twice."
         )
+    strays = sorted(
+        p.name
+        for p in MIGRATIONS_DIR.iterdir()
+        if p.is_file()
+        and re.match(r"^\d{4}", p.name)
+        and BAND_FIRST <= int(p.name[:4]) <= BAND_LAST
+        and MR5_FILENAME.match(p.name) is None
+    )
+    assert not strays, (
+        f"files inside {BAND_FIRST:04d}-{BAND_LAST:04d} that MR-5 refuses: {strays}. A `.up.sql` "
+        "twin claims the same version as its `.sql` sibling and `discover()` refuses the whole "
+        "tree; a second dot in the slug does the same for a different reason."
+    )
 
 
 def test_no_down_migration_in_the_band() -> None:
@@ -453,7 +494,7 @@ def test_model_cannot_arm_is_spelled_exactly_as_mi14_states_it() -> None:
     pass every other test in this file and would not be MI14. So the predicate itself is asserted,
     not merely the presence of a constraint with the right name.
     """
-    body = strip_sql_comments((MIGRATIONS_DIR / "0033_event.up.sql").read_text(encoding="utf-8"))
+    body = strip_sql_comments((MIGRATIONS_DIR / "0033_event.sql").read_text(encoding="utf-8"))
     normalised = " ".join(body.split()).lower()
     assert (
         "constraint model_cannot_arm check (severity_gate < 4 or severity_basis <> 'model_rated')"
@@ -476,7 +517,7 @@ def test_the_gate_severity_is_not_chained_to_the_potential_severity() -> None:
     situation the product was built to handle. This test fails if someone adds it later without
     reading this comment.
     """
-    body = strip_sql_comments((MIGRATIONS_DIR / "0033_event.up.sql").read_text(encoding="utf-8"))
+    body = strip_sql_comments((MIGRATIONS_DIR / "0033_event.sql").read_text(encoding="utf-8"))
     normalised = " ".join(body.split()).lower()
     for forbidden in (
         "severity_gate >= severity_potential",
@@ -505,7 +546,7 @@ def test_closed_vocabularies_agree_with_the_reference_corpus() -> None:
 
     gazetteer = yaml.safe_load(classes_path.read_text(encoding="utf-8"))
     body = strip_sql_comments(
-        (MIGRATIONS_DIR / "0035_control_failure.up.sql").read_text(encoding="utf-8")
+        (MIGRATIONS_DIR / "0035_control_failure.sql").read_text(encoding="utf-8")
     )
 
     def vocabulary(constraint: str) -> set[str]:
@@ -561,7 +602,7 @@ def test_the_taxonomy_gazetteer_satisfies_l1_frozen() -> None:
         assert fonds["series"], f"{code} has no level-2 series, so level 3 is unreachable"
 
     body = strip_sql_comments(
-        (MIGRATIONS_DIR / "0032_activity_node.up.sql").read_text(encoding="utf-8")
+        (MIGRATIONS_DIR / "0032_activity_node.sql").read_text(encoding="utf-8")
     )
     normalised = " ".join(body.split()).lower()
     assert "constraint l1_frozen check (level <> 1 or frozen = true)" in normalised, (

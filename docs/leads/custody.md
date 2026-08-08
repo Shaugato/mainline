@@ -399,3 +399,191 @@ The CI lint banning `CREATE SEQUENCE` / `nextval(` / `SERIAL` / `unique_rowid()`
 ## F5 — Residency: inference in Australia, database in Singapore
 
 Sydney (`ap-southeast-2`) is **Advanced-tier only** — absent from the Basic and Standard region lists. **Any claim of end-to-end Australian data residency is FALSE for this deployment** and must not appear in the README, submission, video, console, or any comment. State the split precisely wherever residency is mentioned.
+
+---
+
+# MIGRATION RECONCILIATION RULING — 2026-08-08, BINDING, SUPERSEDES THE BANDING SECTION ABOVE
+
+<!-- ────────────────────────────────────────────────────────────────────────────────────
+     THIS BLOCK IS REPRODUCED WORD FOR WORD IN FIVE LEAD PLANS:
+       docs/leads/kernel.md · datamodel.md · algorithms.md · recall.md · custody.md
+     Everything down to "END OF THE COMMON BLOCK" is byte-identical in all five by
+     construction. If you are holding a copy that differs from another copy, the
+     difference IS the error — go to the source, not to the copy.
+
+     Source of truth for this ruling : docs/leads/migration-reconciliation.md
+     Machine-readable authority      : verticals/mainline/db/migrations.allocation.toml
+     Generated manifest of the tree  : verticals/mainline/db/migrations.lock.json
+     ──────────────────────────────────────────────────────────────────────────────────── -->
+
+**Why this block exists, in one paragraph.** Two domains independently implemented the same
+section of the migration order, under two conventions and at two granularities, because two lead
+briefs were given overlapping ownership of the migration number space. One side declared ownership
+as numeric *bands* (`0050–0065`), the other as literal *file paths* (`0006a_role_migrator.sql`).
+The pre-dispatch collision check compared those two declarations as strings, found nothing in
+common, and reported **zero collisions**. It was wrong by twenty numbers, and the tree it produced
+would not `discover()` at all. Nothing below is a style preference. Each ruling is the mechanical
+form of a failure that has already happened once, and each is enforced by a command rather than by
+a reader's memory.
+
+**This block does not touch the PLATFORM GROUND TRUTH findings (F1–F6) at the end of this
+document. Those are measurements against v26.2.5 and they still win over everything, including
+this.**
+
+## MR-1 — the seam: RENDERED or AUTHORED, decided by OBJECT
+
+> **`verticals/mainline/db/migrations/` has exactly two kinds of file, and every number in the
+> sequence belongs to exactly one of them: RENDERED (emitted by a template in
+> `packages/trappoint-sql/templates/`, never hand-edited) or AUTHORED (written directly in the
+> vertical, never emitted). The seam is drawn by OBJECT, not by worker and not by band, and the
+> object test is: _would a second TRAPPOINT vertical need this object to pass `trappoint-conform`?_
+> If yes it is SUBSTRATE and it is a template. If no it is VERTICAL and it is authored.**
+
+Apply the test to the object, not to yourself. "I am a kernel worker" and "I am a datamodel
+worker" are not inputs to it; `permit` is substrate whoever types it, and `site` is vertical
+whoever types it. MR-2 fixes the substrate list — the five schemas; the nine roles and the
+privilege floor; the seven enum types; `subject_transition` (+seed); `clearance_legal` (+seed);
+`person`; `signing_credential`; `permit`; `change_request`; `permit_clause`; `cr_clause`;
+`permit_event`; `cr_event`; `blocking_check`; `exposure_receipt`; `exposure_line`;
+`receipt_expiry`; `defeater_option`; `disposition`; `disposition_citation`; `override_ledger`;
+`merge_record` + its two epoch-pin FKs; `refusal_ledger`; the projection function/trigger family;
+the merge procedures and merge-gate triggers; the gap-free CAS append function — and **everything
+else in MAINLINE is VERTICAL.**
+
+Three consequences that are not negotiable:
+
+1. **A rendered file is never deleted to resolve a collision — the next `trappoint render`
+   recreates it.** The kernel side of every collision in this incident was rendered output; it was
+   never hand-written into the migrations directory. A plan that says "delete the kernel's
+   `0006a…0006i`" is a plan that fails on the next render.
+2. **A hand-authored twin of a rendered file is permanently red, and red in the worst way.**
+   `trappoint render --check` is a zero-diff assertion; a twin under a different suffix is not a
+   diff, so `--check` stays green while the *runner* refuses the tree. CI green, deploy dead.
+3. **A change to a rendered file is a change to its template, followed by a re-render of BOTH
+   bindings** (`verticals/mainline/vertical.toml` and
+   `packages/trappoint-sql/refvertical/vertical.toml`). Two bindings that both render is the entire
+   substrate claim; one binding is a template engine with an audience of one.
+
+## MR-5 — THE ONE FILENAME CONVENTION
+
+```
+NNNN[a-z]_lower_snake_slug.sql
+```
+
+Stated exactly:
+
+* **`NNNN`** — exactly four decimal digits, zero-padded, allocated by the table in §3/§4 of
+  `docs/leads/migration-reconciliation.md` and by its machine-readable form
+  `verticals/mainline/db/migrations.allocation.toml`.
+* **`[a-z]`** — an optional **single** lowercase letter. Ordering is lexicographic on the whole
+  stem, so `0006a < 0006b < 0007` and `0119a < 0120`. It has exactly two legal uses:
+  1. **Multi-statement slot.** One logical object that needs more than one top-level statement:
+     `0058_blocking_check.sql` then `0058a_bc_open_index.sql`.
+  2. **Band overflow.** A full band absorbs new work by suffixing its own last number rather than
+     renumbering a neighbour: `0119a_fn_explain_refusal.sql` when `0120` belongs to someone else.
+     *This is the mechanism that prevents this incident from recurring: a worker that runs out of
+     numbers suffixes, it never borrows.*
+  * `x` is reserved for comment/marker-only files (`0009x_covenant_comment.sql`) and sorts last.
+* **`_lower_snake_slug`** — `[a-z0-9_]+`. **No second dot, ever.** `.fallback.sql`, `.variant.sql`,
+  `.v2.sql` fail `_VERSION_RE` and make the entire directory undiscoverable (measured: one such
+  filename made `trappoint migrate` refuse all 121 files beside it). Capability variants live in
+  `verticals/mainline/db/ext/<topic>/` and are selected by a render-time switch (kernel D5), never
+  by a file in the apply path.
+* **Exactly one top-level SQL statement per file.** Enforced by `statement_count()`.
+* **`.sql` and nothing else.** There is **no down-migration counterpart and there never will be**:
+  `discover()` raises on `.down.sql`, and DM-14 forbids one at or below the protected floor.
+  **`.up.sql` is therefore banned** — not as a style preference but because it names a counterpart
+  that is illegal by construction, and because a suffix chain is what let two conventions coexist
+  invisibly. It is removed from `MIGRATION_SUFFIXES` the moment the renames land.
+* Every file keeps the **REUSE SPDX header** and the four linted keys `MI:`, `I:`,
+  `COUNSEL-GATED:`, `RATIONALE:`.
+* Rendered files additionally carry `-- @rendered-by  trappoint render` and **are never hand-edited**
+  — a change to a rendered file is a change to its template followed by a re-render of **both**
+  bindings (MAINLINE and `refvertical`).
+
+`.up.sql` is a `trappoint migrate lint` **failure** today (rule C, `up-sql-suffix`). That rule was
+deliberately red on this tree until the renames landed: a guard that was *observed* red is a guard
+that asserts something, and there is no exemption list, no warning level and no environment
+variable that downgrades it.
+
+## MR-6 lock 1 — `migrations.allocation.toml` is the authority for numbers
+
+**`verticals/mainline/db/migrations.allocation.toml` is the authority for migration numbers, and
+it is enforced by `trappoint migrate lint`.** The band tables in the prose — in the reconciliation
+ruling, in this plan, in any plan — are its *rendering*. Where prose and that file disagree, the
+file is what lint enforces and the file is therefore what is true.
+
+Lint resolves every discovered file against it and refuses three things:
+
+* **Rule A · `filename-convention`** — the filename must match `^\d{4}[a-z]?_[a-z0-9_]+\.sql$`.
+* **Rule B · `allocation-mode` / `allocation-unallocated`** — the file's `(NNNN, letter)` key must
+  fall in a band, and the band's `mode` must agree with the file: a file carrying
+  `-- @rendered-by  trappoint render` in an `authored` band is a refusal, and so is a file without
+  that banner in a `rendered` band. **This is the rule that compares a file against a declaration
+  rather than comparing two declarations with each other, which is the thing the collision check
+  could not do.**
+* **Rule C · `up-sql-suffix`** — `.up.sql` is a failure.
+
+Two further consequences of the authority sitting in one file:
+
+* **`0200` and above is UNALLOCATED and no file may use it, in either mode.** A number space with
+  no owner is exactly what produced two conventions; a range that lint refuses is safer than a
+  range someone can assume into.
+* **Adding or moving a band is not an edit to that file alone.** A new band is carved out of an
+  existing one, both sides are restated, and the result must remain exhaustive and disjoint over
+  the whole key space — `packages/trappoint-migrate/tests/test_allocation.py` refuses an overlap
+  and refuses a gap. A worker who needs a number that is not theirs asks the band's owner; a worker
+  who has run out of numbers suffixes their own last number (MR-5's band overflow).
+
+`verticals/mainline/db/migrations.lock.json` is **generated** by walking
+`trappoint_migrate.discovery.discover()` over the tree and resolving each file against the
+allocation. It is a manifest, not a declaration: a lock file that is hand-written is a second
+source of truth, which is the class of failure this ruling exists to end.
+
+<!-- ──────────────────────────── END OF THE COMMON BLOCK ──────────────────────────── -->
+
+## What this changes in THIS plan — custody
+
+**Band `0072`–`0079` is confirmed.** `migrations.allocation.toml` grants `0072`–`0079z` to custody
+exclusively: ledger intake, leaf, node, checkpoint, cosignature, unwitnessed debt, custodian
+attestation, sequencer lease. No object moves, no object is dissolved into a template, and no SQL
+body changed. The custody ledger is VERTICAL under MR-1's object test — a second TRAPPOINT vertical
+does not need `ledger_intake` to pass `trappoint-conform` — so it stays authored directly in
+`verticals/mainline/db/migrations/`, which is where it already was.
+
+**The only change is the filename suffix.** Nine files were renamed `.up.sql` → `.sql` under MR-5:
+`0072_ledger_intake` · `0072a_ledger_intake_hlc_comment` · `0073_ledger_leaf` · `0074_ledger_node` ·
+`0075_ledger_checkpoint` · `0076_cosignature` · `0077_unwitnessed_debt` ·
+`0078_custodian_attestation` · `0079_sequencer_lease`. Rename only; header `requires:` lines that
+cited the old foundation numbers are corrected to the rendered ones (`0001a` business schema,
+`0002` meas, `0003` audit, `0004` qa, `0005` ops), and those are comments that nothing executes.
+
+**`0072` / `0072a` was a FALSE POSITIVE in the collision report, and it must not be "fixed".**
+`_migration_collisions.json` grouped on the leading four digits and therefore reported
+`0072_ledger_intake` and `0072a_ledger_intake_hlc_comment` as a collision. They are not one. Both
+have a single owner — this domain — and they use the letter suffix exactly as ruling D7 and MR-5's
+first legal use intend: one logical object that needs a second top-level statement. **The runner
+orders on the whole stem, not on the four digits**, so `0072 < 0072a < 0073` and the two files are
+two versions rather than two claims on one. (`0029` / `0029a` in `dm-spine` is the same false
+positive for the same reason.) Anyone re-reading that report should treat the four-digit grouping
+as the report's bug, not as a finding.
+
+**`mainline.site` is now `0020a`, not `0021`.** Every custody FK to it — `0072`, `0074`, `0075`,
+`0077`, `0079` — is unaffected in *behaviour*, because `0020a` still lands well before this band,
+but the `requires:` header lines that named `0021 site` are corrected. `0021` is now the
+substrate's `person`, rendered from `packages/trappoint-sql/templates/0021_identity.sql.j2`; `site`
+moved down rather than up so that it continues to precede `0024`.
+
+**Two cross-references in §3's interface table are resolved by the allocation file rather than by
+this plan.** `spec/custody/ledger-schema.md` and `chain-verification.md` are consumed by
+"migrations `0059`, `0072–0079`, `0100+`": `0059` is now `permit_event`, which is **RENDERED** — it
+sits in band `0058`–`0064z`, whose owner of record is `kernel/obligation-and-clearance`, and MR-8
+assigns the file itself to `kernel/subject-and-pin`. Either way a custody-driven change to it is a
+change to the template and a re-render of both bindings, agreed with that worker — never an edit to
+the vertical. `0100+` resolves through `migrations.allocation.toml` like every other number. The
+`LedgerSink` implementation (W5, against the datamodel lead's `trappoint_migrate.attest.LedgerSink`
+Protocol) is unaffected: it is Python, not a migration.
+
+---
+
+*Migration reconciliation, 2026-08-08. One convention, one authoring mode per number, one owner per band, and a lint that fails before a human has to notice. The collision check reported zero because it compared strings; the replacement compares a file against a declaration.*

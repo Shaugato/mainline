@@ -46,11 +46,15 @@ from .pragma import capabilities_of, projected_columns_of
 __all__ = [
     "MIGRATION_SUFFIXES",
     "RENDERED_BANNER",
+    "CheckFinding",
     "RenderResult",
     "Unit",
     "build_environment",
+    "check_units",
+    "collision_findings",
     "render_binding",
     "split_units",
+    "stem_collisions",
     "version_stem",
     "write_units",
 ]
@@ -550,12 +554,15 @@ class CheckFinding:
 def check_units(result: RenderResult) -> list[CheckFinding]:
     """Compare the rendered units with what is committed. Zero findings is the assertion.
 
-    Three kinds of finding, and the third is the one people forget:
+    Four kinds of finding, and the last two are the ones people forget:
 
     * ``missing`` — the template renders a file that is not committed;
     * ``diff`` — the committed bytes are not the rendered bytes;
     * ``stale`` — a file carrying the rendered-by banner that no template produces any
       more. Without this, deleting a template leaves its output applied forever.
+    * ``collision`` — two committed files claim one migration version. Promoted from
+      advisory by MR-6: zero diff over a tree the runner refuses to discover is a green
+      assertion about a dead deploy.
     """
     findings: list[CheckFinding] = []
     out = result.binding.output_dir
@@ -590,16 +597,38 @@ def check_units(result: RenderResult) -> list[CheckFinding]:
                         "carries the rendered-by banner but no template produces it",
                     )
                 )
+    findings.extend(collision_findings(out))
     return findings
+
+
+def collision_findings(directory: Path) -> list[CheckFinding]:
+    """``stem_collisions()`` as ``--check`` findings — the promotion, in one function."""
+    return [
+        CheckFinding(
+            names[0],
+            "collision",
+            f"{', '.join(names)} all claim migration version {stem!r}. "
+            "`trappoint migrate` refuses to discover this tree, so nothing here applies "
+            "at all; the owner of the non-rendered twin removes it (deleting the "
+            "rendered one only lasts until the next render).",
+        )
+        for stem, names in stem_collisions(directory)
+    ]
 
 
 def stem_collisions(directory: Path) -> list[tuple[str, tuple[str, ...]]]:
     """Report files that would claim the same migration version.
 
-    Advisory, and deliberately not a ``--check`` failure: a foreign file in the output
-    directory is not a *diff*, and ``--check``'s contract is zero-diff. It is reported
-    because ``trappoint migrate`` refuses to discover such a tree, and a reader who sees
-    the render succeed and the migration fail deserves to have been told here.
+    **A ``--check`` FAILURE (MR-6, 2026-08-08), no longer advisory.** The old argument
+    was that a foreign file in the output directory is not a *diff*, and ``--check``'s
+    contract is zero-diff — every clause of which is true, and the conclusion drawn from
+    it was still wrong: ``--check``'s contract is that the committed tree is the one the
+    templates produced, and a tree the migration runner refuses to discover is not that
+    tree, so a green ``--check`` over it asserts something false.
+
+    This is the function that would have caught the incident of 2026-08-08 on day one —
+    seven duplicate stems, ``0010`` to ``0016``, each a rendered ``.sql`` beside a
+    hand-authored ``.up.sql`` — and it was returning its finding to nobody.
     """
     buckets: dict[str, list[str]] = {}
     if not directory.is_dir():

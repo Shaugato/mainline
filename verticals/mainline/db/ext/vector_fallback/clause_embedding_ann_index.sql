@@ -1,0 +1,81 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MI: MI25
+-- I: I02
+-- COUNSEL-GATED: no
+-- RATIONALE: The second half of DR-1's capability fallback — the ANN index as its own statement, applied immediately after the table and while it is still empty, so that the index name `ce_ann` that every pinned recall arm depends on exists under either branch of the switch.
+--
+-- ═════════════════════════════════════════════════════════════════════════════════════════════
+-- THIS IS NOT A MIGRATION. It has no number, it is never discovered, it is never applied.
+--
+-- capability:  inline_vector_index — GT-06 / DR-1. Whether CockroachDB v26.2 accepts an inline
+--              `VECTOR INDEX …` inside `CREATE TABLE`, alongside inline `FAMILY` declarations.
+--              When it does not, the index becomes this standalone statement instead.
+-- switch:      `[capabilities] inline_vector_index` in verticals/mainline/vertical.toml, answered
+--              PASS or FALLBACK-SELECTED in packages/trappoint-sql/g1-attestation.json (kernel
+--              ruling D5 — a render-time switch with committed SQL on both branches).
+--                inline   → the index is a line inside
+--                           verticals/mainline/db/migrations/0031_clause_embedding.sql and this
+--                           file is not emitted at all
+--                fallback → clause_embedding_table.sql, then THIS FILE, emitted into the 0031 slot
+--                           as 0031_clause_embedding.sql + 0031a_clause_embedding_ann.sql
+-- status:      NOT SELECTED. The inline branch is measured PASS on CockroachDB v26.2.5 (see
+--              clause_embedding_table.sql, this directory), so this statement is not emitted. It
+--              was nevertheless executed once against a scratch database on that node, after the
+--              fallback CREATE TABLE, and produced `ce_ann` on an empty table — the swap is proved
+--              rather than asserted. The switch itself is not declared yet: `g1-attestation.json`
+--              carries no `inline_vector_index` entry, and under D5 an undeclared capability is a
+--              render refusal rather than a silent fallback.
+-- ═════════════════════════════════════════════════════════════════════════════════════════════
+--
+-- WHY IT LIVES HERE AND NOT BESIDE 0031. The old filename
+-- `0031a_clause_embedding_ann.fallback.sql` carries a second dot, so `_version_of()` yields the
+-- stem `0031a_clause_embedding_ann.fallback`, which `_VERSION_RE` rejects — and `discover()`
+-- refuses the ENTIRE migrations directory on it, not just this file. A fallback variant that stops
+-- the tree from applying is worse than no fallback; a fallback variant that the runner APPLIES
+-- beside the primary is worse still, because it creates the index twice. MR-5: no second dot,
+-- ever; variants live under verticals/mainline/db/ext/<topic>/ and are selected at render time.
+--
+-- pairs with:  clause_embedding_table.sql (this directory) — the CREATE TABLE half
+-- primary:     verticals/mainline/db/migrations/0031_clause_embedding.sql, whose inline
+--              `VECTOR INDEX ce_ann (…)` line this statement replaces
+-- requires:    clause_embedding_table.sql, already rendered into the 0031 slot and applied
+-- statements:  1
+-- source:      ARCHITECTURE.md §4.1 law 7 · §6.3 · docs/leads/datamodel.md DR-1
+--              · docs/adr/0002-g1-platform-ground-truth.md GT-04, GT-06, GT-06b
+--              · docs/leads/migration-reconciliation.md §5.3, MR-5
+-- sqlstate:    none at write time. This is an index; it refuses nothing.
+-- forward-only; no .down.sql exists at or below the protected floor (DM-14).
+--
+-- THE INDEX NAME IS PART OF THE CONTRACT. G1's GT-06 measured that at demo corpus scale the
+-- optimizer does NOT choose a vector index on its own — the unhinted plan is top-k → render →
+-- filter → scan — and GT-06b measured that naming the index makes it traverse. So every ANN arm
+-- in this system pins the index explicitly:
+--
+--     SELECT … FROM mainline.clause_embedding@ce_ann
+--      WHERE site_id = $1 AND activity_root = $2
+--      ORDER BY embedding <=> $3 LIMIT $4
+--
+-- `ce_ann` is therefore a name application code depends on, not an implementation detail. It is
+-- spelled identically here and in the inline 0031, which is what makes the switch invisible to
+-- everything downstream.
+--
+-- ORDER OF PREFIX COLUMNS IS (site_id, activity_root) AND IT IS NOT ARBITRARY. C-SPANN keeps one
+-- k-means tree per distinct prefix VALUE COMBINATION, and every prefix column must be constrained
+-- to a single value for the index to be usable at all — `IN (...)` defeats it. Site first because
+-- every query in the product is site-scoped; activity root second because the ancestor walk
+-- iterates over roots, one pinned query per root, `UNION ALL`-ed and re-ranked.
+--
+-- APPLY IT WHILE THE TABLE IS STILL EMPTY. `CREATE VECTOR INDEX` against a populated table starts
+-- a backfill that BLOCKS TABLE WRITES until it completes and requires `sql_safe_updates` off. At
+-- migration time the table has zero rows, so the statement returns immediately. The letter suffix
+-- `0031a` on the rendered output is what guarantees adjacency: MR-5 orders lexicographically on
+-- the whole stem, so nothing sorts between `0031` and `0031a`.
+--
+-- `vector_cosine_ops` matches the inline branch and pairs with the `<=>` operator. It is not a
+-- default — CockroachDB's default is `vector_l2_ops` and `<->` — so omitting it here would build
+-- an index the pinned queries above cannot use, which would present as "the index exists and the
+-- query is still slow". Stated explicitly for that reason.
+
+CREATE VECTOR INDEX ce_ann ON mainline.clause_embedding (site_id, activity_root, embedding vector_cosine_ops);

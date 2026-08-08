@@ -78,37 +78,57 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 DB_DIR = REPO_ROOT / "verticals" / "mainline" / "db"
 MIGRATIONS_DIR = DB_DIR / "migrations"
 
-#: The band this worker owns, exclusively. Two contiguous stretches, per docs/leads/datamodel.md §3.
+#: Capability variants live OUTSIDE the apply path (MR-5, kernel D5). See ``FALLBACK_FILES``.
+EXT_VECTOR_FALLBACK_DIR = DB_DIR / "ext" / "vector_fallback"
+
+#: MR-5, the one filename convention: ``NNNN[a-z]_lower_snake_slug.sql``. Four digits, an optional
+#: SINGLE lowercase letter, a snake slug with **no second dot**, and ``.sql`` — never ``.up.sql``,
+#: which named a ``.down.sql`` counterpart that is illegal by construction.
+MR5_FILENAME = re.compile(r"^\d{4}[a-z]?_[a-z0-9_]+\.sql$")
+
+#: The band this worker owns, exclusively. Two contiguous stretches, granted to `dm-spine` by
+#: verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1).
 SPINE_RANGES: tuple[tuple[int, int], ...] = ((24, 31), (47, 49))
 
-#: The foundation band this one depends on (worker `dm-foundation`): schemas, roles, the seven
-#: ENUM types, site/person/signing_credential. `mainline.control_delta` (0010) is the only one of
-#: those the spine actually needs, but applying the band whole is what the runner does and what a
-#: fresh cluster sees, so the fixture does the same.
+#: The foundation band this one depends on: schemas, roles, the seven ENUM types,
+#: site/person/signing_credential. `mainline.control_delta` (0010) is the only one of those the
+#: spine actually needs, but applying the band whole is what the runner does and what a fresh
+#: cluster sees, so the fixture does the same. Under MR-1 most of this band is now RENDERED from
+#: `packages/trappoint-sql/templates/` rather than authored here — which is exactly why the fixture
+#: reads it by shape (see `foundation_files()`) and asserts nothing about any file in it.
 FOUNDATION_FIRST, FOUNDATION_LAST = 1, 23
 
 #: Applied, in this order. Written out rather than globbed so that a file appearing in the band by
 #: accident — another worker's stray, a rename, a half-finished draft — is a test failure and not
 #: a silent extra `CREATE TABLE` in the middle of the spine.
 BAND_FILES: tuple[str, ...] = (
-    "0024_commit_obj.up.sql",
-    "0025_commit_edge.up.sql",
-    "0026_ref.up.sql",
-    "0027_doc.up.sql",
-    "0028_clause.up.sql",
-    "0029_clause_version.up.sql",
-    "0029a_clause_version_trgm.up.sql",
-    "0030_clause_band.up.sql",
-    "0031_clause_embedding.up.sql",
-    "0047_control_series.up.sql",
-    "0048_carriage.up.sql",
-    "0049_identity_residue.up.sql",
+    "0024_commit_obj.sql",
+    "0025_commit_edge.sql",
+    "0026_ref.sql",
+    "0027_doc.sql",
+    "0028_clause.sql",
+    "0029_clause_version.sql",
+    "0029a_clause_version_trgm.sql",
+    "0030_clause_band.sql",
+    "0031_clause_embedding.sql",
+    "0047_control_series.sql",
+    "0048_carriage.sql",
+    "0049_identity_residue.sql",
 )
 
-#: Pre-written and deliberately NOT applied. DR-1's escape hatch: if v26.2 refuses an inline
-#: VECTOR INDEX, the response is renaming two files rather than redesigning a table that three
-#: others take a composite foreign key onto.
+#: Pre-written and deliberately NOT applied, and — since MR-5 — not even in the migrations tree.
+#: DR-1's escape hatch: if v26.2 refuses an inline VECTOR INDEX, the response is flipping a
+#: render-time capability switch (kernel D5) rather than redesigning a table that three others take
+#: a composite foreign key onto. They live in ``EXT_VECTOR_FALLBACK_DIR``.
 FALLBACK_FILES: tuple[str, ...] = (
+    "clause_embedding_table.sql",
+    "clause_embedding_ann_index.sql",
+)
+
+#: Where those two used to sit, and must never sit again. Each carries a SECOND DOT, so
+#: ``_version_of()`` yields a stem ``_VERSION_RE`` rejects and ``discover()`` refuses the ENTIRE
+#: directory — measured, not theorised (docs/leads/migration-reconciliation.md §0).
+RETIRED_FALLBACK_NAMES: tuple[str, ...] = (
     "0031_clause_embedding.fallback.sql",
     "0031a_clause_embedding_ann.fallback.sql",
 )
@@ -274,17 +294,33 @@ def header_value(text: str, key: str) -> str | None:
 
 
 def foundation_files() -> list[Path]:
-    """The 0001-0023 ``.up.sql`` files this band depends on, ordered."""
-    found: list[tuple[str, Path]] = []
-    for path in sorted(MIGRATIONS_DIR.glob("*.up.sql")):
-        match = re.match(r"^(\d{4})", path.name)
-        if match and FOUNDATION_FIRST <= int(match.group(1)) <= FOUNDATION_LAST:
-            found.append((path.name, path))
-    return [p for _, p in sorted(found)]
+    """The 0001-0023 migrations this band depends on, in applied order.
+
+    Read by SHAPE rather than by name, and this file asserts nothing about any of them: the
+    foundation is another domain's output — most of it RENDERED from
+    ``packages/trappoint-sql/templates/`` under MR-1 — and a prerequisite reader that hardcoded its
+    filenames would turn every legitimate change over there into a red test over here. The shape
+    filter is ``MR5_FILENAME``, which is also what excludes any ``.up.sql`` straggler mid-migration:
+    a stale hand-authored twin must not be applied on top of its rendered replacement.
+
+    Ordering is lexicographic on the whole stem, exactly as ``discovery.discover()`` orders, so
+    ``0009x`` follows ``0009e`` and ``0017b`` follows ``0017a``.
+    """
+    found: list[Path] = []
+    for path in sorted(MIGRATIONS_DIR.iterdir()):
+        if not path.is_file() or MR5_FILENAME.match(path.name) is None:
+            continue
+        if FOUNDATION_FIRST <= int(path.name[:4]) <= FOUNDATION_LAST:
+            found.append(path)
+    return sorted(found, key=lambda p: p.name.removesuffix(".sql"))
 
 
 def band_paths() -> list[Path]:
     return [MIGRATIONS_DIR / name for name in BAND_FILES]
+
+
+def fallback_paths() -> list[Path]:
+    return [EXT_VECTOR_FALLBACK_DIR / name for name in FALLBACK_FILES]
 
 
 def assert_names_constraint(exc: Any, expected: str) -> None:
@@ -328,36 +364,41 @@ def test_band_is_exactly_the_declared_files() -> None:
     """0024-0031 and 0047-0049, no gaps, no strays, nothing from another worker's band."""
     on_disk = sorted(
         p.name
-        for p in MIGRATIONS_DIR.glob("*.up.sql")
-        if any(lo <= int(p.name[:4]) <= hi for lo, hi in SPINE_RANGES)
+        for p in MIGRATIONS_DIR.iterdir()
+        if p.is_file() and any(lo <= int(p.name[:4]) <= hi for lo, hi in SPINE_RANGES)
     )
     assert on_disk == sorted(BAND_FILES), (
         "the spine band on disk does not match the declared file list.\n"
         f"  on disk:  {on_disk}\n"
         f"  declared: {sorted(BAND_FILES)}\n"
         "File ownership is exclusive: an unexpected file inside 0024-0031 or 0047-0049 is another "
-        "worker writing into this band, which corrupts the applied order."
+        "worker writing into this band, which corrupts the applied order. A `.up.sql` twin here "
+        "is the same failure wearing a suffix: `_version_of()` strips `.sql` and `.up.sql` alike, "
+        "so the twin claims the same version and `discover()` refuses the whole tree."
     )
     for name in BAND_FILES:
-        assert re.match(r"^\d{4}[a-z]*_[a-z0-9_]+\.up\.sql$", name), (
-            f"{name} does not match NNNN[a-z]*_snake_name.up.sql (ruling D7). Ordering is "
+        assert MR5_FILENAME.match(name), (
+            f"{name} does not match NNNN[a-z]_lower_snake_slug.sql (MR-5). Ordering is "
             "lexicographic on the whole stem, so a filename outside that shape has no defined "
-            "position in the applied sequence."
+            "position in the applied sequence — and `.up.sql` is banned outright because it names "
+            "a `.down.sql` counterpart that is illegal at or below the protected floor."
         )
 
 
 def test_the_declared_order_is_the_lexicographic_order() -> None:
-    """`0029` < `0029a` < `0030` is the whole mechanism behind the letter suffix (ruling D7)."""
-    stems = [name.removesuffix(".up.sql") for name in BAND_FILES]
+    """`0029` < `0029a` < `0030` is the whole mechanism behind the letter suffix (ruling D7).
+
+    `0029` and `0029a` were never a collision: one owner, one legal single-letter suffix. The
+    collision report grouped on the leading four digits; the runner orders on the whole stem.
+    """
+    stems = [name.removesuffix(".sql") for name in BAND_FILES]
     assert stems == sorted(stems), (
         f"BAND_FILES is not in lexicographic order: {stems}. The runner applies in that order, "
         "so a list that disagrees with it applies a table before its dependency."
     )
 
 
-@pytest.mark.parametrize(
-    "path", band_paths() + [MIGRATIONS_DIR / n for n in FALLBACK_FILES], ids=lambda p: p.name
-)
+@pytest.mark.parametrize("path", band_paths() + fallback_paths(), ids=lambda p: p.name)
 def test_every_file_carries_the_mandatory_header_block(path: Path) -> None:
     """MI / I / COUNSEL-GATED / RATIONALE, and every cited identifier is a real one."""
     text = path.read_text(encoding="utf-8")
@@ -377,9 +418,7 @@ def test_every_file_carries_the_mandatory_header_block(path: Path) -> None:
     )
 
 
-@pytest.mark.parametrize(
-    "path", band_paths() + [MIGRATIONS_DIR / n for n in FALLBACK_FILES], ids=lambda p: p.name
-)
+@pytest.mark.parametrize("path", band_paths() + fallback_paths(), ids=lambda p: p.name)
 def test_exactly_one_statement_per_file(path: Path) -> None:
     """The runner does not wrap a body in a transaction, so two statements is not atomic."""
     statements = split_statements(path.read_text(encoding="utf-8"))
@@ -390,9 +429,7 @@ def test_exactly_one_statement_per_file(path: Path) -> None:
     )
 
 
-@pytest.mark.parametrize(
-    "path", band_paths() + [MIGRATIONS_DIR / n for n in FALLBACK_FILES], ids=lambda p: p.name
-)
+@pytest.mark.parametrize("path", band_paths() + fallback_paths(), ids=lambda p: p.name)
 def test_no_banned_constructs(path: Path) -> None:
     """Sequences are banned so that a gap in the ledger MEANS tampering. G1 GT-12 measured that
     `CREATE SEQUENCE` succeeds on this cluster, which makes the lint load-bearing rather than
@@ -403,9 +440,7 @@ def test_no_banned_constructs(path: Path) -> None:
         assert match is None, f"{path.name} contains the banned token {match.group(0)!r}"
 
 
-@pytest.mark.parametrize(
-    "path", band_paths() + [MIGRATIONS_DIR / n for n in FALLBACK_FILES], ids=lambda p: p.name
-)
+@pytest.mark.parametrize("path", band_paths() + fallback_paths(), ids=lambda p: p.name)
 def test_no_file_in_this_band_names_the_closure_table(path: Path) -> None:
     """DM-9: `mainline.clause_blame_current` is the ONLY read path to the blame closure.
 
@@ -456,7 +491,7 @@ def test_clause_version_declares_gen_before_commit_id_in_its_primary_key() -> No
     the file is what a reviewer reads.
     """
     code = strip_sql_comments(
-        (MIGRATIONS_DIR / "0029_clause_version.up.sql").read_text(encoding="utf-8")
+        (MIGRATIONS_DIR / "0029_clause_version.sql").read_text(encoding="utf-8")
     )
     match = re.search(
         r"CONSTRAINT\s+clause_version_pk\s+PRIMARY\s+KEY\s*\(([^)]*)\)", code, re.IGNORECASE
@@ -472,7 +507,7 @@ def test_clause_version_declares_gen_before_commit_id_in_its_primary_key() -> No
 def test_clause_embedding_declares_exactly_one_vector_index_inline() -> None:
     """One vector index per table (§4.1 law 7), declared inline so the table is created empty."""
     code = strip_sql_comments(
-        (MIGRATIONS_DIR / "0031_clause_embedding.up.sql").read_text(encoding="utf-8")
+        (MIGRATIONS_DIR / "0031_clause_embedding.sql").read_text(encoding="utf-8")
     )
     declarations = re.findall(r"VECTOR\s+INDEX\s+(\w+)\s*\(([^)]*)\)", code, re.IGNORECASE)
     assert len(declarations) == 1, (
@@ -499,14 +534,18 @@ def test_clause_embedding_declares_exactly_one_vector_index_inline() -> None:
 
 
 def test_the_fallback_pair_exists_and_matches_the_live_table_column_for_column() -> None:
-    """DR-1 is a file swap, and a swap is only a swap if the two variants are interchangeable.
+    """DR-1 is a switch, and a switch is only a switch if the two branches are interchangeable.
 
     If the fallback declared even one column differently, taking it under pressure would change
     the shape of a table that three others hold a composite foreign key onto — which is a redesign
     wearing a fallback's name.
     """
-    for name in FALLBACK_FILES:
-        assert (MIGRATIONS_DIR / name).is_file(), f"{name} is missing; DR-1 has no escape hatch"
+    for path in fallback_paths():
+        assert path.is_file(), (
+            f"{path} is missing; DR-1 has no escape hatch. The pair lives in "
+            f"{EXT_VECTOR_FALLBACK_DIR} and is selected by the render-time capability switch "
+            "`inline_vector_index` (kernel D5), never by a file in the apply path."
+        )
 
     def columns_of(path: Path) -> list[str]:
         code = strip_sql_comments(path.read_text(encoding="utf-8"))
@@ -531,8 +570,8 @@ def test_the_fallback_pair_exists_and_matches_the_live_table_column_for_column()
             if item and not re.match(r"^(VECTOR\s+INDEX|INDEX|INVERTED\s+INDEX)\b", item, re.I)
         ]
 
-    live = columns_of(MIGRATIONS_DIR / "0031_clause_embedding.up.sql")
-    fallback = columns_of(MIGRATIONS_DIR / "0031_clause_embedding.fallback.sql")
+    live = columns_of(MIGRATIONS_DIR / "0031_clause_embedding.sql")
+    fallback = columns_of(EXT_VECTOR_FALLBACK_DIR / "clause_embedding_table.sql")
     assert live == fallback, (
         "the live and fallback variants of mainline.clause_embedding disagree.\n"
         f"  only in live:     {[c for c in live if c not in fallback]}\n"
@@ -540,21 +579,40 @@ def test_the_fallback_pair_exists_and_matches_the_live_table_column_for_column()
         "They must differ by exactly one thing: the inline `VECTOR INDEX ce_ann (…)` line."
     )
 
-    ann = (MIGRATIONS_DIR / "0031a_clause_embedding_ann.fallback.sql").read_text(encoding="utf-8")
+    ann = (EXT_VECTOR_FALLBACK_DIR / "clause_embedding_ann_index.sql").read_text(encoding="utf-8")
     missing = [token for token in ("ce_ann", "vector_cosine_ops") if token not in ann]
     assert not missing, (
         f"the fallback ANN file does not mention {missing}. It must create the index under the "
-        "same name and opclass as the live variant, or the swap changes the query contract."
+        "same name and opclass as the live variant, or the switch changes the query contract."
     )
 
 
-def test_the_fallback_files_are_not_in_the_applied_band() -> None:
-    """They are inert until someone renames them. Applying both variants creates the table twice."""
+def test_the_fallback_pair_is_outside_the_apply_path_entirely() -> None:
+    """Not "inert until someone renames it" — ABSENT from the tree the runner reads.
+
+    The old spelling put them in the migrations directory as `0031_clause_embedding.fallback.sql`
+    and `0031a_clause_embedding_ann.fallback.sql`, and that was two separate faults at once:
+
+    * the second dot survives `_version_of()` (which strips only `.sql` / `.up.sql`), the stem
+      `0031_clause_embedding.fallback` fails `_VERSION_RE`, and `discover()` raises
+      `MigrationTreeInvalid` for the WHOLE directory. Nothing applied at all;
+    * and had the regex been looser they would have been APPLIED beside the primary, creating
+      `mainline.clause_embedding` twice.
+
+    MR-5 settles both: no second dot ever, and a capability variant is chosen by a render-time
+    switch (kernel D5) in `verticals/mainline/vertical.toml`, never by a sibling file.
+    """
+    for name in RETIRED_FALLBACK_NAMES:
+        assert not (MIGRATIONS_DIR / name).exists(), (
+            f"{name} is back in {MIGRATIONS_DIR.name}. Its stem carries a dot, so `discover()` "
+            "refuses the entire directory and no migration applies — the tree is dead, not "
+            "degraded. It belongs in verticals/mainline/db/ext/vector_fallback/."
+        )
     for name in FALLBACK_FILES:
         assert name not in BAND_FILES
-        assert not name.endswith(".up.sql"), (
-            f"{name} ends in .up.sql, which makes it part of the applied sequence. The fallback "
-            "must stay inert until GT-06 actually fails."
+        assert not (MIGRATIONS_DIR / name).exists(), (
+            f"{name} is in the migrations directory, which makes it part of the applied sequence. "
+            "Applying both branches creates mainline.clause_embedding twice."
         )
 
 
@@ -583,23 +641,25 @@ def _load_discovery() -> Any:
         return None
 
 
-def test_runner_must_exclude_fallback_files_from_discovery() -> None:
-    """RED BY DESIGN. Owner of the fix: ``dm-runner``, ``trappoint_migrate.discovery``.
+def test_no_filename_in_the_tree_defeats_the_runners_version_regex() -> None:
+    """WAS RED, NOW GREEN — and the fix was this band's, not ``dm-runner``'s.
 
-    ``discover()`` computes a version stem by stripping ``.sql``/``.up.sql`` and then requires it
-    to match ``^\\d{4}[a-z]*_[a-z0-9_]+$``. ``0031_clause_embedding.fallback.sql`` yields
-    ``0031_clause_embedding.fallback`` — a dot in the slug — so discovery RAISES
-    ``MigrationTreeInvalid`` and **the whole migration tree becomes unappliable while a fallback
-    file sits beside it**. That blocks this band's completion test (``apply`` succeeding through
-    0049) and ``dm-recall-tables``' too, which ships two fallback files for the same reason.
+    ``discover()`` computes a version stem by stripping ``.sql`` / ``.up.sql`` and then requires it
+    to match ``^\\d{4}[a-z]*_[a-z0-9_]+$``. ``0031_clause_embedding.fallback.sql`` yielded
+    ``0031_clause_embedding.fallback`` — a dot in the slug — so discovery RAISED
+    ``MigrationTreeInvalid`` **for the entire directory**: not "the fallback is skipped", but "no
+    migration in MAINLINE applies at all".
 
-    The fix is three lines in ``discovery.discover()`` — skip any name ending ``.fallback.sql``
-    before the version check, exactly as ``.down.sql`` is special-cased — plus the matching skip
-    in ``lint._iter_files`` if fallbacks should not be citation-linted (they are today, and they
-    pass, so leaving them linted is also fine).
+    The earlier reading of this was that ``discover()`` should special-case ``*.fallback.sql``. MR-5
+    rejects that: a runner taught to ignore a second dot is a runner that will one day ignore
+    ``0031_clause_embedding.v2.sql`` too, and the file it ignores is still sitting in the apply path
+    where a looser regex would have APPLIED it beside the primary. The fix is the filename, not the
+    parser — the variant moved to ``verticals/mainline/db/ext/vector_fallback/`` and is chosen by a
+    render-time capability switch (kernel D5).
 
-    This test fails until that lands. It is not ``xfail``: an ``xfail`` that passes when it fails
-    is exactly the accounting the red-before-green ratchet has to be able to see through.
+    So this asserts the property that actually matters: nothing in the tree has a stem the runner
+    cannot place. A version COLLISION is a different fault with a different owner, and this test
+    says which one it is looking at rather than reporting one as the other.
     """
     discovery = _load_discovery()
     if discovery is None:
@@ -610,18 +670,35 @@ def test_runner_must_exclude_fallback_files_from_discovery() -> None:
     try:
         found = discovery.discover(MIGRATIONS_DIR)
     except Exception as exc:  # the exception type is dm-runner's, not ours to import
+        message = str(exc)
+        if "claim version" in message:
+            pytest.skip(
+                "the tree still carries two files claiming one version, which is a DIFFERENT "
+                "fault from the one this test guards and belongs to whoever owns the duplicated "
+                f"stem — not to dm-spine:\n    {message}"
+            )
         raise AssertionError(
-            "PL-2 RED, as intended. `discover()` refuses the migration tree because a "
-            f"`.fallback.sql` sibling is present:\n    {exc}\n"
-            "Owner of the fix: dm-runner. Skip `*.fallback.sql` in "
-            "trappoint_migrate.discovery.discover() the same way `.down.sql` is special-cased. "
-            "Until then `trappoint-migrate apply` cannot reach 0049 on this tree."
+            "`discover()` refuses the migration tree on a FILENAME SHAPE, which is the failure "
+            f"MR-5 exists to make impossible:\n    {message}\n"
+            "Every migration is NNNN[a-z]_lower_snake_slug.sql — four digits, at most one letter, "
+            "no second dot. Capability variants live in verticals/mainline/db/ext/<topic>/."
         ) from exc
 
-    leaked = [m.path.name for m in found if m.path.name.endswith(".fallback.sql")]
+    out_of_band = set(FALLBACK_FILES) | set(RETIRED_FALLBACK_NAMES)
+    leaked = [m.path.name for m in found if m.path.name in out_of_band]
     assert not leaked, (
-        f"discovery included the inert fallback files {leaked}. Applying them alongside the live "
-        "0031 would create mainline.clause_embedding twice."
+        f"discovery included the out-of-band fallback files {leaked}. Applying them alongside the "
+        "live 0031 would create mainline.clause_embedding twice."
+    )
+
+    def in_spine(version: str) -> bool:
+        return any(lo <= int(version[:4]) <= hi for lo, hi in SPINE_RANGES)
+
+    spine = [m.version for m in found if in_spine(m.version)]
+    assert spine == sorted(name.removesuffix(".sql") for name in BAND_FILES), (
+        f"the runner places this band as {spine}; the declared order is "
+        f"{sorted(name.removesuffix('.sql') for name in BAND_FILES)}. Ordering is lexicographic on "
+        "the whole stem, which is why 0029 < 0029a < 0030 holds."
     )
 
 

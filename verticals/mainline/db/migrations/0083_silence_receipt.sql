@@ -1,14 +1,23 @@
 -- SPDX-FileCopyrightText: 2026 MAINLINE contributors
 -- SPDX-License-Identifier: FSL-1.1-ALv2
 --
+-- MI: MI17
+-- I: I13
+-- COUNSEL-GATED: no
+-- RATIONALE: Because the candidate leaves are score-sorted, disclosing the root, θ, s, n and the boundary pair with their inclusion paths establishes that every leaf beyond position s scored below θ — no item can be hand-excluded without breaking sortedness — while revealing nothing about the suppressed content itself.
+--
 -- migration:  0083_silence_receipt
+-- band:       0080-0089z · recall · AUTHORED, allocated by
+--             verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1)
 -- domain:     recall
 -- statements: 1
 -- invariants: MI17 (the receipt commits to the partition MI17 conserves)
 -- source:     ARCHITECTURE.md §5.7 (verbatim) · M3 Proof of Exhausted Recall
 -- requires:   0081 mainline_meas.recall_run
 -- sqlstate:   23514 on `boundary_sane`
--- forward-only; no .down.sql exists at or below the protected floor (DM-14).
+-- forward-only; no .down.sql exists at or below the protected floor (DM-14). Under MR-5 there
+--             is no .up.sql either: the suffix named a counterpart that is illegal by
+--             construction.
 --
 -- PROOF OF EXHAUSTED RECALL — a cryptographically enforced privilege log. Because the candidate
 -- leaves are SCORE-SORTED, disclosing `candidate_root`, θ, s, n and the boundary pair with their

@@ -1,16 +1,25 @@
 -- SPDX-FileCopyrightText: 2026 MAINLINE contributors
 -- SPDX-License-Identifier: FSL-1.1-ALv2
 --
+-- MI: MI25
+-- I: I02
+-- COUNSEL-GATED: no
+-- RATIONALE: The prefix columns of a C-SPANN index are not metadata, they select the tree that is searched, so MI25's projection principle has to reach one hop upstream of the gate scalar and land on the index partition itself.
+--
 -- migration:  0041_event_cue_embedding
+-- band:       0040-0046z · recall/recall-ddl-triggers · AUTHORED, allocated by
+--             verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1)
 -- domain:     recall
 -- statements: 1
--- invariants: MI25 (the projection principle, instantiated on the INDEX PARTITION)
+-- invariants: MI25 is instantiated here on the INDEX PARTITION rather than on a gate scalar.
 -- proposes:   MI31 — "the vector-index prefix columns are projections of the parent cue, never
 --             inputs"; catalogue entry owed to `dm-runner` (mi_catalogue.yaml).
 -- source:     ARCHITECTURE.md §5.4 · docs/leads/recall.md D1 · §6.3
 -- requires:   0040 mainline.event_cue
 -- sqlstate:   P0001 via 0114/0138 when the parent cue is absent
--- forward-only; no .down.sql exists at or below the protected floor (DM-14).
+-- forward-only; no .down.sql exists at or below the protected floor (DM-14). Under MR-5 there
+--             is no .up.sql either: the suffix named a counterpart that is illegal by
+--             construction.
 --
 -- THE TABLE IS CREATED EMPTY AND THE VECTOR INDEX IS DECLARED INLINE. Both halves of that
 -- sentence are load-bearing on CockroachDB v26.2: `CREATE VECTOR INDEX` on a table that already

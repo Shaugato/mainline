@@ -36,7 +36,27 @@ __all__ = [
 # `.up.sql` is accepted because the repository already carries files written in that
 # convention. There are no down migrations and there will not be: append-only means
 # append-only, and a `.down.sql` file is refused loudly rather than ignored quietly.
-MIGRATION_SUFFIXES: tuple[str, ...] = (".sql", ".up.sql")
+#
+# ── SCHEDULED REMOVAL (MR-5, 2026-08-08) ────────────────────────────────────────────
+# `.up.sql` is BANNED by the one filename convention: it names a `.down.sql` counterpart
+# that is illegal by construction, and a suffix chain is what let two conventions coexist
+# in one directory invisibly — `_version_of()` strips `.up.sql` and `.sql` alike, so
+# `0010_type_control_delta.up.sql` and `0010_type_control_delta.sql` both claim version
+# `0010_type_control_delta` and this function refuses the tree.
+#
+# The ban was enforced during reconciliation by `lint._rule_c_up_sql`, red by design,
+# while workers 3, 4 and 5 landed the 49 renames. The tolerance was deliberately kept
+# until AFTER those renames, because narrowing it early does not refuse an `.up.sql`
+# file — it makes discovery walk PAST it, silently dropping migrations from the apply
+# stream. A tolerance removed too early is worse than one kept too long: the first
+# loses statements without saying so, the second only keeps a lint red.
+#
+# NARROWED 2026-08-08 by the orchestrator, per the handoff from `mr-allocation-and-guard`.
+# Precondition verified before the change: `find verticals packages -name '*.up.sql'`
+# returned 0, and the chain verifier independently confirmed 105/105 files match
+# `^\d{4}[a-z]?_[a-z0-9_]+\.sql$`. `.up.sql` is now unreachable by construction rather
+# than by lint, which is the stronger guarantee.
+MIGRATION_SUFFIXES: tuple[str, ...] = (".sql",)
 
 _DOWN_SUFFIX = ".down.sql"
 _VERSION_RE = re.compile(r"^(?P<num>\d{4})(?P<letter>[a-z]*)_(?P<slug>[a-z0-9_]+)$")

@@ -1,14 +1,23 @@
 -- SPDX-FileCopyrightText: 2026 MAINLINE contributors
 -- SPDX-License-Identifier: FSL-1.1-ALv2
 --
+-- MI: MI17
+-- I: I13
+-- COUNSEL-GATED: no
+-- RATIONALE: For a channel whose entire job is `K-401`, `H2S`, `%LEL` and OEM part numbers, a scorer without IDF is disqualifying because the rare identifier is the signal — so the posting list is an explicit table and BM25 is explicit SQL rather than a `ts_rank` call that silently has neither IDF nor length normalisation.
+--
 -- migration:  0043_lex_posting
+-- band:       0040-0046z · recall/recall-ddl-triggers · AUTHORED, allocated by
+--             verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1)
 -- domain:     recall
 -- statements: 1
--- invariants: MI17 (channel D's hits are counted in the conserved candidate partition)
+-- invariants: MI17 — channel D's hits are counted in the conserved candidate partition.
 -- source:     ARCHITECTURE.md §5.4
--- requires:   0001 CREATE SCHEMA mainline
+-- requires:   0001a CREATE SCHEMA mainline (RENDERED; template 0001_schemas.sql.j2)
 -- sqlstate:   —
--- forward-only; no .down.sql exists at or below the protected floor (DM-14).
+-- forward-only; no .down.sql exists at or below the protected floor (DM-14). Under MR-5 there
+--             is no .up.sql either: the suffix named a counterpart that is illegal by
+--             construction.
 --
 -- CockroachDB has no BM25, and `ts_rank` has neither IDF nor length normalisation (a PostgreSQL
 -- FTS semantics fact, not a CockroachDB gap). For a channel whose entire job is `K-401`, `H2S`,

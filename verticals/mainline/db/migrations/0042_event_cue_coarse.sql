@@ -1,14 +1,24 @@
 -- SPDX-FileCopyrightText: 2026 MAINLINE contributors
 -- SPDX-License-Identifier: FSL-1.1-ALv2
 --
+-- MI: MI16, MI25
+-- I: I02, I13
+-- COUNSEL-GATED: no
+-- RATIONALE: One deliberately unpartitioned tree, so an event the induced taxonomy misclassified is still reachable; and because a sweep hit is never blocking unless `severity_gate = 5`, that column is projected from `mainline.event` rather than supplied by whoever writes the vector.
+--
 -- migration:  0042_event_cue_coarse
+-- band:       0040-0046z · recall/recall-ddl-triggers · AUTHORED, allocated by
+--             verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1)
 -- domain:     recall
 -- statements: 1
--- invariants: MI16 (the sweep's blocking rule reads `severity_gate`), MI25 (projection principle)
+-- invariants: MI16 — the sweep's blocking rule reads `severity_gate`. MI25 — that column is a
+--             projection, never an input.
 -- source:     ARCHITECTURE.md §5.4 (S20) · docs/leads/recall.md D1
 -- requires:   0040 mainline.event_cue · 0033 mainline.event
--- sqlstate:   P0001 via 0114/0138 when the parent cue is absent
--- forward-only; no .down.sql exists at or below the protected floor (DM-14).
+-- sqlstate:   P0001 via 0114a/0138a when the parent cue is absent
+-- forward-only; no .down.sql exists at or below the protected floor (DM-14). Under MR-5 there
+--             is no .up.sql either: the suffix named a counterpart that is illegal by
+--             construction.
 --
 -- SIDECAR 2 — the taxonomy-insurance sweep. ONE tree, deliberately. A constant prefix column
 -- buys nothing for partitioning, and that is exactly what this table wants: one big
@@ -19,10 +29,13 @@
 -- `severity_gate` is denormalised here because it is the sweep's blocking rule: a sweep hit is
 -- never blocking unless `severity_gate = 5`. A denormalised column that decides whether a
 -- fatality blocks a permit is precisely the column an inserter must not be able to write, so it
--- is PROJECTED from `mainline.event` by `mainline.fn_cue_coarse_project` (0114) through
+-- is PROJECTED from `mainline.event` by `mainline.fn_cue_coarse_project` (0114a) through
 -- `event_cue.event_id`, and a missing parent cue RAISEs P0001. That is the coarse sidecar's half
 -- of the one mechanism D1 names; 0114's PLATFORM NOTE 2 says why it is a second function rather
 -- than a second branch of `fn_cue_prefix_project`, and the weld name is unchanged either way.
+-- The function and its trigger were split out of 0114/0138 into 0114a/0138a by the migration
+-- reconciliation of 2026-08-08 — one top-level statement per file. The mechanism did not change;
+-- 0138a's header says why a half-applied pair is the failure that split is guarding against.
 --
 -- `tenant_id` is CONSTANT for the deployment and is NOT projected by this domain's trigger:
 -- DM-3 makes `mainline.site` the authoritative source for the tenant/site tokens. Until that
@@ -32,7 +45,7 @@
 CREATE TABLE mainline.event_cue_coarse (
   cue_id        UUID   NOT NULL REFERENCES mainline.event_cue (cue_id),
   tenant_id     UUID   NOT NULL,                -- CONSTANT for the deployment. One K-means tree.
-  severity_gate INT2   NOT NULL,                -- the sweep's blocking rule  ← PROJECTED (0114)
+  severity_gate INT2   NOT NULL,                -- the sweep's blocking rule ← PROJECTED (0114a)
   embed_model   STRING NOT NULL,
   index_gen     STRING NOT NULL,
   emb_coarse    VECTOR(256) NOT NULL,           -- 256-d, renormalised client-side

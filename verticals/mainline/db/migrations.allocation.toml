@@ -1,0 +1,338 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# ============================================================================
+# MIGRATION NUMBER ALLOCATION — THE AUTHORITY
+#
+# Document:  docs/leads/migration-reconciliation.md  (sections 3 and 4)
+# Date:      2026-08-08
+# Ruling:    MR-6 lock 1.
+#
+# This file is the authority. The tables in sections 3 and 4 of the
+# reconciliation ruling are its RENDERING, not its source: where the prose and
+# this file disagree, this file is what `trappoint migrate lint` enforces and
+# this file is therefore what is true.
+#
+# It exists because the pre-dispatch collision check compared strings. One side
+# declared ownership as a glob-ish band ("0050-0065"), the other as literal
+# paths ("0006a_role_migrator.sql"), the comparison found nothing in common and
+# reported zero collisions. It was wrong by twenty numbers. The replacement does
+# not compare declarations with each other; it compares every file on disk
+# against ONE declaration, which is this one.
+#
+# ---------------------------------------------------------------------------
+# HOW A NUMBER RESOLVES TO A BAND
+#
+# A migration filename is `NNNN[a-z]_lower_snake_slug.sql` (MR-5). Its
+# ALLOCATION KEY is the pair (NNNN as an integer, the optional letter, or the
+# empty string when there is none). Keys are ordered pairwise, and the empty
+# string sorts before "a":
+#
+#     (6, "") < (6, "a") < (6, "i") < (6, "x") < (7, "")
+#
+# `first` and `last` are inclusive keys written in the same shape as a filename
+# prefix: four digits, optionally one lowercase letter. A `last` WITHOUT a
+# letter closes at the bare number and hands that number's letter space to the
+# next band — that is how `0047`-`0049` (datamodel) and `0049a`-`0049z`
+# (algorithms) sit next to each other without either one guessing. A `last`
+# WITH a letter closes at that letter; `z` therefore means "this band owns the
+# whole of its final number, suffixes included", which is what MR-5's band
+# overflow needs: a worker that runs out of numbers suffixes its own last
+# number, it never borrows a neighbour's.
+#
+# The bands below are exhaustive and disjoint over the key space from (1, "")
+# to (9999, "z"). Every key has exactly one owner. There is no unowned number,
+# because an unowned number is precisely what produced two conventions.
+#
+# ---------------------------------------------------------------------------
+# MODE IS BINDING (MR-1)
+#
+#   mode = "rendered"     The file is emitted by a template in
+#                         packages/trappoint-sql/templates/ and carries the
+#                         banner `-- @rendered-by  trappoint render`. It is
+#                         NEVER hand-edited: a change to it is a change to its
+#                         template followed by a re-render of BOTH bindings.
+#                         Deleting it does not resolve anything — the next
+#                         `trappoint render` recreates it.
+#
+#   mode = "authored"     The file is written directly in the vertical and
+#                         carries no banner. It is never emitted.
+#
+#   mode = "unallocated"  Legal on exactly one band, the terminal one, whose
+#                         owner is the literal string "UNALLOCATED". No file may
+#                         use these numbers in either mode. See MRR-7: a range
+#                         that lint refuses is safer than a range someone can
+#                         assume into.
+#
+# The seam is drawn by OBJECT, not by worker and not by band, and the object
+# test is: would a second TRAPPOINT vertical need this object to pass
+# `trappoint-conform`? If yes it is SUBSTRATE and it is a template. If no it is
+# VERTICAL and it is authored. The bands below are the consequence of applying
+# that test to MR-2's object list; they are not the test itself.
+#
+# ---------------------------------------------------------------------------
+# CHANGING THIS FILE
+#
+# Adding a band is not an edit to this file alone. A new band must be carved
+# out of an existing one, both sides restated, and the result must remain
+# exhaustive and disjoint — `packages/trappoint-migrate/tests/test_allocation.py`
+# asserts exactly that and will refuse a range that overlaps or a gap that
+# opens. A worker who needs a number that is not theirs asks the band's owner;
+# a worker who has run out of numbers suffixes their own last number.
+# ============================================================================
+
+# ---------------------------------------------------------------------------
+# SECTION 3 — tables and seeds (0001-0099)
+# ---------------------------------------------------------------------------
+
+[[band]]
+first = "0001"
+last = "0018z"
+owner = "kernel/render-and-foundation"
+mode = "rendered"
+contents = "schemas x5, roles x9, revokes x5, ownership x5, privilege floor x6, covenant comment, types x7, subject_transition +seed, clearance_legal +seed"
+
+[[band]]
+first = "0019"
+last = "0020z"
+owner = "datamodel/dm-foundation"
+mode = "authored"
+contents = "retention_class (0019), adm_decision_class (0020), site (0020a) — all that survives of dm-foundation's revoked 0001-0023 claim"
+
+[[band]]
+first = "0021"
+last = "0023z"
+owner = "kernel/render-and-foundation"
+mode = "rendered"
+contents = "person (0021), signing_credential (0022), its partial index (0023)"
+
+[[band]]
+first = "0024"
+last = "0031z"
+owner = "datamodel/dm-spine"
+mode = "authored"
+contents = "commit_obj, commit_edge, ref, doc, clause, clause_version (+0029a trgm), clause_band, clause_embedding"
+
+[[band]]
+first = "0032"
+last = "0039z"
+owner = "datamodel/dm-blame"
+mode = "authored"
+contents = "activity_node, event, event_edge, control_failure, event_severity_revision, blame_edge, clause_blame_closure, clause_blame_current"
+
+[[band]]
+first = "0040"
+last = "0046z"
+owner = "recall/recall-ddl-triggers"
+mode = "authored"
+contents = "event_cue, two vector sidecars, BM25 x3, event_bond"
+
+[[band]]
+first = "0047"
+last = "0049"
+owner = "datamodel/dm-spine"
+mode = "authored"
+contents = "control_series (0047), carriage (0048), identity_residue (0049) — bare 0049 only; its letter space is the algorithms annexe below"
+
+[[band]]
+first = "0049a"
+last = "0049z"
+owner = "algorithms"
+mode = "authored"
+contents = "delta_witness (0049a) — the algorithms table annexe, granted explicitly and exclusively (MRR-5)"
+
+[[band]]
+first = "0050"
+last = "0053z"
+owner = "kernel/subject-and-pin"
+mode = "rendered"
+contents = "permit (0050), change_request (0051), permit_clause (0052), cr_clause (0053) — 0050a as a primary object is void (MR-8)"
+
+[[band]]
+first = "0054"
+last = "0057z"
+owner = "datamodel/ex-dm-gate"
+mode = "authored"
+contents = "asset_edge, permit_boundary, permit_slice, boundary_certificate"
+
+[[band]]
+first = "0058"
+last = "0064z"
+owner = "kernel/obligation-and-clearance"
+mode = "rendered"
+contents = "blocking_check (0058, +indices 0058a/0058b), permit_event (0059), cr_event (0060), exposure_receipt (0061), exposure_line (0062), receipt_expiry (0063), defeater_option (0064)"
+
+[[band]]
+first = "0065"
+last = "0065z"
+owner = "datamodel/ex-dm-gate"
+mode = "authored"
+contents = "mechanism_predicate, predicate_revocation"
+
+[[band]]
+first = "0066"
+last = "0068z"
+owner = "kernel/obligation-and-clearance"
+mode = "rendered"
+contents = "disposition (0066, +0066a one-live partial unique), disposition_citation (0067), override_ledger (0068) — G0-gated"
+
+[[band]]
+first = "0069"
+last = "0070z"
+owner = "datamodel/ex-dm-disposition"
+mode = "authored"
+contents = "carried_disposition (0069), carried_disposition_use (0070) — G0-gated"
+
+[[band]]
+first = "0071"
+last = "0071z"
+owner = "kernel/subject-and-pin+quickrefuse"
+mode = "rendered"
+contents = "merge_record (0071), epoch_pin_permit (0071a), epoch_pin_cr (0071b) from subject-and-pin; refusal_ledger (0071c) and its index (0071d) from quickrefuse"
+
+[[band]]
+first = "0072"
+last = "0079z"
+owner = "custody"
+mode = "authored"
+contents = "ledger intake/leaf/node/checkpoint, cosignature, unwitnessed debt, custodian attestation, sequencer lease"
+
+[[band]]
+first = "0080"
+last = "0089z"
+owner = "recall"
+mode = "authored"
+contents = "mainline_meas.* recall/silence/certificate family"
+
+[[band]]
+first = "0090"
+last = "0099z"
+owner = "datamodel/dm-periphery"
+mode = "authored"
+contents = "fixity, fleet, governance, frontier, contradiction pair, mainline_ops.*"
+
+# ---------------------------------------------------------------------------
+# SECTION 4 — functions, triggers, views, policies (0100-0199)
+#
+# ARCHITECTURE.md section 18 sized functions at 0100-0114 and triggers at
+# 0115-0139 before the merge procedures, explain_refusal() and the CAS helper
+# existed. Kernel D8 EXTENDS those ranges; datamodel's 0130-0199 / 0200-0279
+# remap is revoked (MR-7). Extending an open range is free; renumbering an
+# anchor that three other domains have already committed against costs
+# everything.
+# ---------------------------------------------------------------------------
+
+[[band]]
+first = "0100"
+last = "0109z"
+owner = "kernel/projection-triggers"
+mode = "rendered"
+contents = "fn_check_project, fn_check_materialised, fn_disposition_project, fn_disposition_close, fn_disposition_retract_only, fn_permit_event_chain, fn_cr_event_chain, fn_refuse_mutation, fn_closure_guard, fn_site_role"
+
+[[band]]
+first = "0110"
+last = "0114z"
+owner = "recall"
+mode = "authored"
+contents = "fn_candidate_project (0110), fn_recall_policy_anchored, fn_bonded_sev5, fn_cue_prefix_project (+0114a coarse)"
+
+[[band]]
+first = "0115"
+last = "0119"
+owner = "kernel/merge-gate-and-core"
+mode = "rendered"
+contents = "fn_permit_merge_gate (0115), fn_cr_merge_gate (0116), proc_merge_permit (0117), proc_merge_change_request (0118), fn_ledger_cas_append (0119) — bare 0119 only; its letter space is quickrefuse's overflow below"
+
+[[band]]
+first = "0119a"
+last = "0119z"
+owner = "kernel/quickrefuse"
+mode = "rendered"
+contents = "fn_explain_refusal (0119a), fn_refusal_ledger_guard (0119b) — band overflow, the mechanism that prevents borrowing a neighbour's number"
+
+[[band]]
+first = "0120"
+last = "0129z"
+owner = "kernel/projection-triggers"
+mode = "rendered"
+contents = "the nine projection triggers"
+
+[[band]]
+first = "0130"
+last = "0135z"
+owner = "kernel/merge-gate-and-core+quickrefuse"
+mode = "rendered"
+contents = "trg_permit_merge_gate (0130), trg_cr_merge_gate (0131) from merge-gate-and-core; trg_refusal_ledger_append_only (0133) from quickrefuse"
+
+[[band]]
+first = "0136"
+last = "0139z"
+owner = "recall"
+mode = "authored"
+contents = "trg_recall_policy_anchored (0136), trg_bonded_sev5 (0137), trg_cue_prefix_project (0138, +0138a coarse), trg_candidate_project (0139)"
+
+[[band]]
+first = "0140"
+last = "0144z"
+owner = "datamodel/dm-functions-triggers+algorithms"
+mode = "authored"
+contents = "vertical PL/pgSQL functions; fn_delta_witness_guard = 0140"
+
+[[band]]
+first = "0145"
+last = "0149z"
+owner = "datamodel/dm-functions-triggers+algorithms"
+mode = "authored"
+contents = "vertical triggers; trg_delta_witness_guard = 0145"
+
+[[band]]
+first = "0150"
+last = "0154z"
+owner = "algorithms"
+mode = "authored"
+contents = "mainline.* business views; v_safe_direction_current = 0150"
+
+[[band]]
+first = "0155"
+last = "0169z"
+owner = "datamodel/dm-views-rls"
+mode = "authored"
+contents = "mainline_audit views, <=25 rows / <=10 KiB each"
+
+[[band]]
+first = "0170"
+last = "0179z"
+owner = "datamodel/dm-views-rls"
+mode = "authored"
+contents = "mainline_qa views"
+
+[[band]]
+first = "0180"
+last = "0198z"
+owner = "datamodel/dm-views-rls"
+mode = "authored"
+contents = "CREATE POLICY (RLS), read-facing tables only, every forced table gets its write policy"
+
+[[band]]
+first = "0199"
+last = "0199z"
+owner = "datamodel/dm-views-rls"
+mode = "authored"
+contents = "ALTER TABLE exposure_receipt ADD CONSTRAINT fk_silence — the deferred cycle"
+
+# ---------------------------------------------------------------------------
+# THE TERMINAL BAND
+#
+# 0200 and above is UNALLOCATED. No file may use it, in either mode. The
+# algorithms 0200-0219 annexe is revoked and its three files move: 0205 ->
+# 0049a, 0207 -> 0150, 0211 -> 0140 + 0145. Section 18 never defined a 0200+
+# space; leaving one open for whoever arrives first is how the algorithms
+# domain came to occupy it in the first place.
+# ---------------------------------------------------------------------------
+
+[[band]]
+first = "0200"
+last = "9999z"
+owner = "UNALLOCATED"
+mode = "unallocated"
+contents = "No file may use these numbers. A number space with no owner is exactly what produced two conventions (MRR-7)."

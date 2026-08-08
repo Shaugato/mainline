@@ -1,18 +1,28 @@
 -- SPDX-FileCopyrightText: 2026 MAINLINE contributors
 -- SPDX-License-Identifier: FSL-1.1-ALv2
 --
+-- MI: MI17, MI25
+-- I: I02, I13
+-- COUNSEL-GATED: no
+-- RATIONALE: Severity is what lowers the evidence bar in Severity-Graded Admission, so an agent that could write it could downgrade a fatality into the band where its own score falls below τ and the resulting silence-ledger row would read as a well-calibrated judgement rather than as the laundering it was; projection makes that arithmetic unreachable.
+--
 -- migration:  0082_recall_candidate
+-- band:       0080-0089z · recall · AUTHORED, allocated by
+--             verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1)
 -- domain:     recall
 -- statements: 1
 -- invariants: MI17 (this table is the partition `candidates_conserved` counts),
 --             MI25 (the projection principle: `severity` is projected, never supplied)
 -- source:     ARCHITECTURE.md §5.7 (verbatim) · S10
 -- requires:   0081 mainline_meas.recall_run · 0033 mainline.event
--- sqlstate:   P0001 via 0139 when the event does not exist
--- forward-only; no .down.sql exists at or below the protected floor (DM-14).
+-- sqlstate:   P0001 via 0110/0139 when the event does not exist
+-- forward-only; no .down.sql exists at or below the protected floor (DM-14). Under MR-5 there
+--             is no .up.sql either: the suffix named a counterpart that is illegal by
+--             construction.
 --
 -- `severity` is PROJECTED from `mainline.event.severity_gate` by `mainline.fn_candidate_project`
--- (0139) and a missing event RAISEs. The reason is S10 and it is not hypothetical: severity is
+-- (created by 0110, welded to this table by 0139) and a missing event RAISEs. The reason is S10
+-- and it is not hypothetical: severity is
 -- what lowers the evidence bar in Severity-Graded Admission (τ(5)=0.35 … τ(1)=0.85). An agent
 -- that could write `severity` could downgrade a fatality into the band where its own score
 -- falls below τ, and the resulting silence-ledger row would read as a well-calibrated judgement

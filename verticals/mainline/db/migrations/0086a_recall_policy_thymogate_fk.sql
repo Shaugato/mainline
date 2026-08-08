@@ -1,0 +1,65 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MI: MI18
+-- I: I08
+-- COUNSEL-GATED: no
+-- RATIONALE: `fk_thymogate_certificate` is what makes `recall_policy.thymogate_certificate_id` a reference to a certificate that was actually issued rather than a UUID somebody typed; without it the M5 negative-selection claim is a column a promoting agent can satisfy by inventing an identifier, and the whole point of THYMOGATE is that a retriever cannot certify itself.
+--
+-- migration:  0086a_recall_policy_thymogate_fk
+-- band:       0080-0089z · recall · AUTHORED, allocated by
+--             verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1). The `a` suffix is
+--             MR-5's multi-statement-slot use: one logical object — the 0085→0086 deferred
+--             cycle — that needs more than one top-level statement, so it takes its own file
+--             under the letter space of the number it belongs to.
+-- domain:     recall
+-- statements: 1
+-- adds:       CONSTRAINT fk_thymogate_certificate
+--             ON mainline_meas.recall_policy (thymogate_certificate_id)
+--             REFERENCES mainline_meas.thymogate_certificate (certificate_id)
+-- source:     docs/leads/recall.md D14 · BUILD_PLAN K4 (M5 THYMOGATE) · ARCHITECTURE.md §18
+--             (the same deferred-cycle shape used at 0171)
+-- requires:   0085 mainline_meas.recall_policy.thymogate_certificate_id (the column) ·
+--             0086 mainline_meas.thymogate_certificate (the referenced table and its PK)
+-- sqlstate:   23503 on a policy citing a certificate that was never issued
+-- forward-only; no .down.sql exists at or below the protected floor (DM-14). Under MR-5 there
+--             is no .up.sql either: the suffix named a counterpart that is illegal by
+--             construction.
+--
+-- ── WHAT THIS CONSTRAINT IS FOR ──────────────────────────────────────────────────────────────
+-- MI18 says a recall runs only under an anchored, cosigned policy version. Anchoring is the S24
+-- half and `fn_recall_policy_anchored` (0112) enforces it. THIS is the M5 half: D14 makes
+-- `thymogate_certificate_id` NULLABLE at K4 and NOT NULL at K8, so from K8 onward a policy
+-- cannot be promoted without a negative-selection certificate — and this FK is what makes the
+-- certificate have to EXIST rather than merely be named.
+--
+-- The distinction is the whole of the mechanism. Negative selection is an evaluation performed
+-- by a harness precisely so that a tuned retriever cannot certify itself. A `thymogate_certificate_id`
+-- with no FK behind it is a field an agent promoting its own policy fills in with a UUID, and
+-- every audit downstream reads a policy that appears to have passed the panel. With the FK, the
+-- identifier has to resolve to a row in `mainline_meas.thymogate_certificate` — a row that
+-- carries `panel_digest`, `n_missed` and a `verdict_matches_arithmetic` CHECK that will not let
+-- it say 'pass' while recording misses. 23503 is the refusal; the constraint name is what the
+-- refusal ledger records and what a reader of the exhibit sees.
+--
+-- ── WHY IT IS A SEPARATE FILE FROM 0086 ──────────────────────────────────────────────────────
+-- `recall_policy` (0080/0085) references `thymogate_certificate` (0086), so the FK cannot be
+-- declared inline in either table: whichever is created first would reference an object that
+-- does not exist. §18 resolves this at 0171 the same way — create both, then ALTER — and this
+-- pair is the recall instance of that shape.
+--
+-- Until 2026-08-08 the ALTER was the second statement of `0086_thymogate_certificate.sql`. That
+-- was one file with two top-level statements, and the runner does not wrap a file body in a
+-- transaction because CockroachDB DDL is not transactional across statements. So the failure
+-- mode was: `CREATE TABLE` succeeds, `ALTER TABLE` fails, the version row is never written, and
+-- the operator is told `0086` is dirty — a marker naming a file, not a statement, on a tree
+-- where the difference between "the table is missing" and "the table is there and unreferenced"
+-- is the difference between a re-runnable migration and a schema that has to be diffed by hand.
+--
+-- Split, re-running is trivial and the diagnosis is free: `0086` dirty means no table, `0086a`
+-- dirty means a table with no FK, and each says what to look at.
+
+ALTER TABLE mainline_meas.recall_policy
+  ADD CONSTRAINT fk_thymogate_certificate
+  FOREIGN KEY (thymogate_certificate_id)
+  REFERENCES mainline_meas.thymogate_certificate (certificate_id);

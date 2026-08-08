@@ -11,7 +11,10 @@
 --            owner and drop a trigger the gate depends on. IF NOT EXISTS because a role is
 --            cluster state, not schema state: a restore does not carry it, two verticals on
 --            one cluster legitimately share the agent roles, and re-asserting one must
---            never be an error.
+--            never be an error. NOLOGIN is spelled out even though CREATE ROLE already
+--            defaults to it in CockroachDB (CREATE USER is the LOGIN variant), because
+--            unassumable is a load-bearing claim and a reader checking it must not have to
+--            know a default in order to check it.
 --
 -- @rendered-by  trappoint render
 -- @template     packages/trappoint-sql/templates/0006_roles.sql.j2
@@ -23,5 +26,23 @@
 -- Name         mainline_owner   (overridable in [roles] of the binding)
 -- NOLOGIN      no session may ever authenticate as this role, so no session may ever
 --              exercise the ownership privileges that could drop a gate trigger.
+--
+-- UNASSUMABILITY IS A THREE-PART CLAIM AND THIS STATEMENT IS ONLY THE FIRST PART.
+--
+--   1. NOLOGIN, here. No session authenticates AS this role. It is written out rather
+--      than left to CockroachDB's default for CREATE ROLE because a reader auditing the
+--      claim must be able to check it from the file, not from a manual.
+--   2. Nobody is a MEMBER of it. Membership is the other way in — a member reaches the
+--      role by SET ROLE without ever authenticating as it — and it is granted by the
+--      binding's declarative grant matrix (GRANTS.yaml), which grants membership in this
+--      role to no principal at all.
+--   3. A probe asserts parts 1 and 2 against the live cluster, and that part is not
+--      optional. IF NOT EXISTS makes this statement silently accept a PRE-EXISTING role
+--      of this name that someone had already granted LOGIN or members to, so the
+--      assertion of the role's properties cannot live in this file: a migration cannot
+--      check, and a probe can.
+--
+-- The three parts are why ownership is a safe place to park the drop privilege. The
+-- privilege exists — something has to own the schema — and no principal holds it.
 
 CREATE ROLE IF NOT EXISTS mainline_owner WITH NOLOGIN;

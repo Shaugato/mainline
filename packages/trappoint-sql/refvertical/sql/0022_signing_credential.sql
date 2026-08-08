@@ -27,6 +27,14 @@
 -- last_sign_count is the WebAuthn signature counter. It goes up or the authenticator
 -- has been cloned; the check belongs to the service that verifies an assertion, and the
 -- column exists so that service has somewhere to compare against.
+--
+-- signer_sub carries no foreign key to `person` — the person key is composite
+-- (signer_sub, effective_from DESC) and a single-column reference would demand a UNIQUE
+-- index on signer_sub, which would be false by design, since a signer has many rows. The
+-- binding is asserted at enrolment and by the projection triggers. That makes
+-- `signer_sub_stated` the only thing standing between this table and a credential
+-- attributed to nobody: NOT NULL admits the empty string, and a key enrolled to '' is a
+-- key whose signatures name no human while verifying perfectly.
 
 CREATE TABLE trappoint_ref.signing_credential (
   credential_id       BYTES NOT NULL,
@@ -45,5 +53,6 @@ CREATE TABLE trappoint_ref.signing_credential (
   CONSTRAINT credential_revocation_reasoned
     CHECK ((revoked_at IS NULL) = (revoke_reason IS NULL)),
   CONSTRAINT credential_sign_count_nonneg CHECK (last_sign_count >= 0),
+  CONSTRAINT signer_sub_stated CHECK (signer_sub <> ''),
   CONSTRAINT pk_signing_credential PRIMARY KEY (credential_id)
 );

@@ -37,6 +37,15 @@
 -- separated_at
 --   A person who has left is not deleted. Their signatures remain valid for the period
 --   they were live, and the gate can tell the difference.
+--
+-- signer_sub / identity_source — NOT NULL is not enough for either.
+--   An empty string satisfies NOT NULL. A person row keyed on signer_sub = '' is an
+--   identity nobody has, and every rank the gate later projects from it is a projection
+--   from a row that names no human; an identity_source of '' is a rank with no issuer,
+--   which is the one thing this table exists to prevent — "every rank the gate ever
+--   enforced can be traced to the system that asserted it" is false the moment the
+--   column is blank. `signer_sub_stated` and `identity_source_stated` make both 23514 at
+--   write time instead of an unanswerable question at read time.
 
 CREATE TABLE mainline.person (
   signer_sub           STRING NOT NULL,
@@ -53,5 +62,7 @@ CREATE TABLE mainline.person (
   CONSTRAINT person_assurance_known
     CHECK (enrolment_assurance IN ('self_asserted', 'in_person_verified', 'hr_system_of_record')),
   CONSTRAINT person_digest_sized CHECK (length(competency_sha256) = 32),
+  CONSTRAINT signer_sub_stated CHECK (signer_sub <> ''),
+  CONSTRAINT identity_source_stated CHECK (identity_source <> ''),
   CONSTRAINT pk_person PRIMARY KEY (signer_sub, effective_from DESC)
 );

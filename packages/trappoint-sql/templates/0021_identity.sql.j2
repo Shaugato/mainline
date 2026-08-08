@@ -50,6 +50,15 @@
 -- separated_at
 --   A person who has left is not deleted. Their signatures remain valid for the period
 --   they were live, and the gate can tell the difference.
+--
+-- signer_sub / identity_source — NOT NULL is not enough for either.
+--   An empty string satisfies NOT NULL. A person row keyed on signer_sub = '' is an
+--   identity nobody has, and every rank the gate later projects from it is a projection
+--   from a row that names no human; an identity_source of '' is a rank with no issuer,
+--   which is the one thing this table exists to prevent — "every rank the gate ever
+--   enforced can be traced to the system that asserted it" is false the moment the
+--   column is blank. `signer_sub_stated` and `identity_source_stated` make both 23514 at
+--   write time instead of an unanswerable question at read time.
 
 CREATE TABLE {{ binding.schema }}.person (
   signer_sub           STRING NOT NULL,
@@ -66,6 +75,8 @@ CREATE TABLE {{ binding.schema }}.person (
   CONSTRAINT person_assurance_known
     CHECK (enrolment_assurance IN ('self_asserted', 'in_person_verified', 'hr_system_of_record')),
   CONSTRAINT person_digest_sized CHECK (length(competency_sha256) = 32),
+  CONSTRAINT signer_sub_stated CHECK (signer_sub <> ''),
+  CONSTRAINT identity_source_stated CHECK (identity_source <> ''),
   CONSTRAINT pk_person PRIMARY KEY (signer_sub, effective_from DESC)
 );
 -- @file 0022_signing_credential.sql
@@ -81,6 +92,14 @@ CREATE TABLE {{ binding.schema }}.person (
 -- last_sign_count is the WebAuthn signature counter. It goes up or the authenticator
 -- has been cloned; the check belongs to the service that verifies an assertion, and the
 -- column exists so that service has somewhere to compare against.
+--
+-- signer_sub carries no foreign key to `person` — the person key is composite
+-- (signer_sub, effective_from DESC) and a single-column reference would demand a UNIQUE
+-- index on signer_sub, which would be false by design, since a signer has many rows. The
+-- binding is asserted at enrolment and by the projection triggers. That makes
+-- `signer_sub_stated` the only thing standing between this table and a credential
+-- attributed to nobody: NOT NULL admits the empty string, and a key enrolled to '' is a
+-- key whose signatures name no human while verifying perfectly.
 
 CREATE TABLE {{ binding.schema }}.signing_credential (
   credential_id       BYTES NOT NULL,
@@ -99,6 +118,7 @@ CREATE TABLE {{ binding.schema }}.signing_credential (
   CONSTRAINT credential_revocation_reasoned
     CHECK ((revoked_at IS NULL) = (revoke_reason IS NULL)),
   CONSTRAINT credential_sign_count_nonneg CHECK (last_sign_count >= 0),
+  CONSTRAINT signer_sub_stated CHECK (signer_sub <> ''),
   CONSTRAINT pk_signing_credential PRIMARY KEY (credential_id)
 );
 -- @file 0023_signing_credential_index.sql

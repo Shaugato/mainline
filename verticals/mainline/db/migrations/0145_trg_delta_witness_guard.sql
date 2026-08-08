@@ -1,0 +1,112 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MI: MI22
+-- I: I14
+-- COUNSEL-GATED: no
+-- RATIONALE: A function that nothing calls refuses nothing. This statement is the whole of the mechanism: it attaches `mainline.fn_delta_witness_guard` to `mainline.clause_version` BEFORE INSERT FOR EACH ROW, which is the only position from which the guard can see the witnesses written earlier in the same transaction and refuse the version row before it exists. Separating it from the function is not tidiness — 0140 and 0145 are two statements and CockroachDB DDL is not transactional across statements, so one file carrying both leaves an operator unable to tell which half applied.
+--
+-- migration:  0145_trg_delta_witness_guard
+-- domain:     algorithms
+-- band:       0145-0149 · datamodel/dm-functions-triggers + algorithms · AUTHORED, allocated by
+--             verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1), which names
+--             `trg_delta_witness_guard = 0145` in the vertical trigger band.
+-- statements: 1  (the CREATE TRIGGER, and nothing else)
+-- invariants: I14  — every refusal emits an irreducible reason set (ARCHITECTURE.md §3.1).
+--             MI22 — the gate fails closed on an absent projection: a lattice weakening whose
+--                    explanation is missing is refused, not stored unexplained.
+-- source:     docs/leads/algorithms.md D8, D10, §9 (written as the second half of 0211;
+--             SPLIT AND RELOCATED to 0145 by docs/leads/migration-reconciliation.md §5.4)
+--             ARCHITECTURE.md §5.3 (clause_version) · §5.11 (trigger style)
+-- requires:   0140 mainline.fn_delta_witness_guard · 0049a mainline.delta_witness
+--             (0140 must exist before this statement can reference it; 0049a must exist because
+--             the function body reads that table on every firing.)
+-- sqlstate:   P0001, twice, raised by the function this statement attaches. Nothing else.
+-- forward-only; no .down.sql exists at or below the protected floor (DM-14).
+--
+-- ═════════════════════════════════════════════════════════════════════════════════════════════
+-- THE OTHER HALF OF THE SPLIT
+-- ═════════════════════════════════════════════════════════════════════════════════════════════
+-- `0211_fn_delta_witness_guard.sql` declared `statements: 2` and carried a CREATE FUNCTION
+-- followed by this CREATE TRIGGER. Both halves have moved:
+--
+--     0211 (revoked band 0200-0219)  ──▶  0140_fn_delta_witness_guard.sql   the function
+--                                    └─▶  0145_trg_delta_witness_guard.sql   this file
+--
+-- Two reasons, and each is sufficient on its own. First, one top-level statement per file is
+-- non-negotiable: the runner does not wrap a migration body in a transaction, because
+-- CockroachDB DDL inside a multi-statement transaction can fail at COMMIT even when every
+-- statement succeeded, so a half-applied file makes the `dirty` marker undiagnosable. Second,
+-- a function and a trigger cannot both sit in the right band — §18 stratifies functions before
+-- triggers, and 0200+ is UNALLOCATED (MR-7), so 0211 was in neither stratum.
+--
+-- Ordering, which is what the split has to get right: 0049a (the table) < 0140 (the function)
+-- < 0145 (this trigger). Lexicographic ordering on the whole filename stem gives exactly that,
+-- and every dependency points backwards.
+--
+-- The FILE slug is `trg_delta_witness_guard` because that is the name the allocation table
+-- gives 0145 and the allocation is the authority. The TRIGGER OBJECT is
+-- `z_delta_witness_required`, unchanged from 0211. The two differ deliberately: the object name
+-- states what the trigger requires of a writer, and its `z_` prefix follows the convention
+-- `z_cbm_gate` sets in docs/leads/algorithms.md §5 for a guard that is deliberately
+-- order-independent. Renaming the object to match the file would silently break
+-- `ALTER TABLE mainline.clause_version DISABLE TRIGGER z_delta_witness_required`, which the
+-- custodian patrol names verbatim.
+--
+-- ── WHY BEFORE INSERT FOR EACH ROW, AND NOT ANYTHING ELSE ────────────────────────────────────
+-- BEFORE, because the refusal must land before the row exists: an AFTER trigger that raises
+-- rolls the statement back too, but it has already let the row be written and re-read by
+-- anything else firing in between, and MI22's claim is that the state never forms.
+-- INSERT only, because a `clause_version` is append-only — there is no UPDATE path to guard.
+-- FOR EACH ROW, because the guard's question is about one (clause_uuid, commit_id) pair; a
+-- statement-level trigger has no NEW to read.
+--
+-- ── THE ORDERING CONTRACT THIS TRIGGER IS THE ENFORCEMENT POINT OF ───────────────────────────
+--
+--     BEGIN;
+--       INSERT INTO mainline.delta_witness (...);   -- FIRST
+--       INSERT INTO mainline.clause_version (...);  -- SECOND, and THIS trigger fires here
+--     COMMIT;
+--
+-- A BEFORE INSERT trigger sees rows already written in its own transaction, so witnesses
+-- inserted first are visible and witnesses inserted afterwards are not. There is no ordering
+-- in which a version row reaches COMMIT having been checked against witnesses that did not yet
+-- exist. 0049a's header states this contract normatively; this file is where it binds.
+--
+-- ── THE TWO REFUSALS THIS STATEMENT PUTS IN THE WRITE PATH ───────────────────────────────────
+-- Both are raised by `mainline.fn_delta_witness_guard` (0140) and both are P0001. They are
+-- reproduced here because this is the file that decides whether they are ever reached, and a
+-- reader of the trigger should not have to open another file to learn what it refuses:
+--
+--   no witnesses at all
+--     MAINLINE: a lattice weakening must carry its minimal witness set
+--
+--   witnesses, but none flagged minimal
+--     MAINLINE: a lattice weakening carries witnesses but none is minimal — I14 asks for an irreducible reason set, not a repair list
+--
+-- They are distinct messages for distinct defects. A refusal that tells the writer the wrong
+-- thing costs an hour, and `tests/integration/algorithms/lattice/test_witness_or_refuse.py`
+-- pins both strings exactly.
+--
+-- ── WHY THE FIRING ORDER OF THIS TRIGGER DOES NOT MATTER (decision D10) ──────────────────────
+-- CockroachDB v26.2 does not document the firing order of multiple row-level triggers on one
+-- table, and PL-3 forbids a dated path resting on an unproven capability. The function this
+-- statement attaches reads ONLY columns the INSERT itself supplies and never a column another
+-- trigger projects, so its answer is the same whatever order it runs in relative to the schema
+-- lead's BLOODLINE guard and `fn_weaken_materialise`. `GT-A1` measures the observed order and
+-- records it; nothing here consults the result. That independence is what makes it safe for
+-- this statement to sit at 0145 without a claim about which of the vertical triggers in
+-- 0145-0149 was created first.
+--
+-- ── REFUSAL DEPTH, HONESTLY ──────────────────────────────────────────────────────────────────
+-- Depth 1. This is a trigger and not a CHECK, and it cannot be a CHECK: §4.1 law 1 forbids a
+-- CHECK expression from seeing another row, and every witness is another row. There is no
+-- structural second layer here and this file does not claim one. What IS structural is
+-- `mainline.delta_witness`'s own `note_stated` CHECK (0049a) — dropping this trigger still
+-- leaves a witness unable to be blank — but that is a weaker statement and is not the same
+-- refusal. `ALTER TABLE mainline.clause_version DISABLE TRIGGER z_delta_witness_required`
+-- succeeds, and the custodian patrol surfaces it as an attested ledger leaf: admin can remove
+-- the guard; admin cannot remove the record that they removed it.
+
+CREATE TRIGGER z_delta_witness_required BEFORE INSERT ON mainline.clause_version
+  FOR EACH ROW EXECUTE FUNCTION mainline.fn_delta_witness_guard();

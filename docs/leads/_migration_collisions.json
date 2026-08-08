@@ -1,0 +1,122 @@
+{
+ "1": [
+  "0001_role_mainline_owner.up.sql",
+  "0001a_schema_mainline.sql"
+ ],
+ "2": [
+  "0002_schema_mainline.up.sql",
+  "0002_schema_meas.sql"
+ ],
+ "3": [
+  "0003_schema_audit.sql",
+  "0003_schema_mainline_meas.up.sql"
+ ],
+ "4": [
+  "0004_schema_mainline_audit.up.sql",
+  "0004_schema_qa.sql"
+ ],
+ "5": [
+  "0005_schema_mainline_qa.up.sql",
+  "0005_schema_ops.sql"
+ ],
+ "6": [
+  "0006_schema_mainline_ops.up.sql",
+  "0006a_role_migrator.sql",
+  "0006b_role_owner.sql",
+  "0006c_role_gate.sql",
+  "0006d_role_projector.sql",
+  "0006e_role_recaller.sql",
+  "0006f_role_disposer.sql",
+  "0006g_role_auditor.sql",
+  "0006h_role_reader.sql",
+  "0006i_role_qa.sql"
+ ],
+ "7": [
+  "0007_revoke_public_on_mainline_schemas.up.sql",
+  "0007a_revoke_public_business.sql",
+  "0007b_revoke_public_meas.sql",
+  "0007c_revoke_public_audit.sql",
+  "0007d_revoke_public_qa.sql",
+  "0007e_revoke_public_ops.sql"
+ ],
+ "8": [
+  "0008_revoke_create_on_public_schema.up.sql",
+  "0008a_owner_business.sql",
+  "0008b_owner_meas.sql",
+  "0008c_owner_audit.sql",
+  "0008d_owner_qa.sql",
+  "0008e_owner_ops.sql"
+ ],
+ "9": [
+  "0009_grants_are_not_migrations.up.sql",
+  "0009a_grant_create_migrator.sql",
+  "0009b_grant_usage_agents.sql",
+  "0009c_grant_usage_auditor.sql",
+  "0009d_grant_usage_qa.sql",
+  "0009e_default_privileges_floor.sql",
+  "0009x_covenant_comment.sql"
+ ],
+ "10": [
+  "0010_type_control_delta.sql",
+  "0010_type_control_delta.up.sql"
+ ],
+ "11": [
+  "0011_type_subject_state.sql",
+  "0011_type_subject_state.up.sql"
+ ],
+ "12": [
+  "0012_type_disposition_kind.sql",
+  "0012_type_disposition_kind.up.sql"
+ ],
+ "13": [
+  "0013_type_virulence_class.sql",
+  "0013_type_virulence_class.up.sql"
+ ],
+ "14": [
+  "0014_type_blame_basis.sql",
+  "0014_type_blame_basis.up.sql"
+ ],
+ "15": [
+  "0015_type_blame_state.sql",
+  "0015_type_blame_state.up.sql"
+ ],
+ "16": [
+  "0016_type_prop_state.sql",
+  "0016_type_prop_state.up.sql"
+ ],
+ "17": [
+  "0017_subject_transition.up.sql",
+  "0017a_subject_transition.sql",
+  "0017b_subject_transition_seed.sql"
+ ],
+ "18": [
+  "0018_clearance_legal.up.sql",
+  "0018a_clearance_legal.sql",
+  "0018b_clearance_legal_seed.sql"
+ ],
+ "21": [
+  "0021_person.sql",
+  "0021_site.up.sql"
+ ],
+ "22": [
+  "0022_person.up.sql",
+  "0022_signing_credential.sql"
+ ],
+ "23": [
+  "0023_signing_credential.up.sql",
+  "0023_signing_credential_index.sql"
+ ],
+ "29": [
+  "0029_clause_version.up.sql",
+  "0029a_clause_version_trgm.up.sql"
+ ],
+ "31": [
+  "0031_clause_embedding.fallback.sql",
+  "0031_clause_embedding.up.sql",
+  "0031a_clause_embedding_ann.fallback.sql"
+ ],
+ "72": [
+  "0072_ledger_intake.up.sql",
+  "0072a_ledger_intake_hlc_comment.up.sql"
+ ]
+}

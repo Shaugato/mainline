@@ -1,7 +1,14 @@
 -- SPDX-FileCopyrightText: 2026 MAINLINE contributors
 -- SPDX-License-Identifier: FSL-1.1-ALv2
 --
+-- MI: MI16, MI17, MI18
+-- I: I07, I13
+-- COUNSEL-GATED: no
+-- RATIONALE: MI17's silence conservation law is one line of arithmetic — n_candidates = n_blocking + n_advisory + n_silenced + n_deduped — and it is the reason the silence ledger cannot be quietly short: a candidate that was retrieved and then vanished from the accounting has nowhere to go, because the row will not insert.
+--
 -- migration:  0081_recall_run
+-- band:       0080-0089z · recall · AUTHORED, allocated by
+--             verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1)
 -- domain:     recall
 -- statements: 1
 -- invariants: MI16 (`bonded_fatalities_all_blocking`), MI17 (`candidates_conserved`),
@@ -9,7 +16,9 @@
 -- source:     ARCHITECTURE.md §5.7 (verbatim; one index added — see RD-2 below)
 -- requires:   0080 mainline_meas.recall_policy
 -- sqlstate:   23514 on either conservation CHECK · P0001 on an unanchored policy
--- forward-only; no .down.sql exists at or below the protected floor (DM-14).
+-- forward-only; no .down.sql exists at or below the protected floor (DM-14). Under MR-5 there
+--             is no .up.sql either: the suffix named a counterpart that is illegal by
+--             construction.
 --
 -- MI17, the silence conservation law, is one line of arithmetic:
 --     n_candidates = n_blocking + n_advisory + n_silenced + n_deduped

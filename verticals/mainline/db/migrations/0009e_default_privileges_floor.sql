@@ -10,12 +10,39 @@
 -- RATIONALE: Every REVOKE in this band describes the tables that exist today. This
 --            statement describes the ones that do not exist yet: a table created later by
 --            the owner arrives with no public privilege, so the floor holds for the whole
---            life of the schema rather than for the length of this migration.
+--            life of the schema rather than for the length of this migration. Roles and
+--            grants are CLUSTER state that a RESTORE into a fresh cluster does not carry,
+--            so they cannot be applied once by a forward-only migration and assumed
+--            thereafter: GRANTS.yaml is the full privilege matrix, re-asserted idempotently
+--            by `trappoint-migrate grants apply` and drift-checked by the privilege probe,
+--            and these five files (0009a-0009e) are only the FLOOR — the minimum grant set
+--            without which the first table migration cannot run, with 0009f closing the
+--            deny half of it.
 --
 -- @rendered-by  trappoint render
 -- @template     packages/trappoint-sql/templates/0006_roles.sql.j2
 -- @binding      verticals/mainline/vertical.toml
 -- DO NOT EDIT. `trappoint render --check` is a zero-diff assertion in CI, so a
 -- hand edit here is a red build, not a silent divergence.
+--
+-- WHERE THE REST OF THE GRANTS ARE — read this before looking for them in the band.
+--   Role membership and object privileges are CLUSTER state, and a RESTORE into a new
+--   cluster does not carry them. A grant applied once by a forward-only migration is a
+--   grant that exists in the environment where the migration ran and nowhere else, which
+--   is the wrong instrument for something that must be re-asserted per environment. So:
+--
+--     0009a-0009e  the GRANT FLOOR — five statements, idempotent, re-asserted on every
+--                  apply. Without them migration 0024 (the first table) cannot run.
+--     0009f        the DENY half of the same floor: CREATE on the `public` schema, which
+--                  the database granted to everyone before we arrived, taken back.
+--     GRANTS.yaml  the FULL MATRIX — every (role, object, privilege) triple, applied by
+--                  `trappoint-migrate grants apply` and diffed by CI, because a grant
+--                  added by hand during an incident is invisible to a migration set and
+--                  visible to a declarative matrix.
+--
+--   The control was never the GRANT. It is the privilege probe that asserts 42501 for
+--   every (role, object) pair the matrix does NOT name: a GRANT is a claim about intent,
+--   a 42501 is evidence about behaviour. Consequence, stated openly: a freshly migrated
+--   cluster is unusable by the application roles until `grants apply` has run.
 
 ALTER DEFAULT PRIVILEGES FOR ROLE mainline_owner IN SCHEMA mainline REVOKE ALL ON TABLES FROM public;

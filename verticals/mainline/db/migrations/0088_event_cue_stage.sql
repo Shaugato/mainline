@@ -1,16 +1,25 @@
 -- SPDX-FileCopyrightText: 2026 MAINLINE contributors
 -- SPDX-License-Identifier: FSL-1.1-ALv2
 --
+-- MI: MI25
+-- I: I02
+-- COUNSEL-GATED: no
+-- RATIONALE: Rows leave this table by INSERT into `event_cue_embedding`, so the bulk path fires the same projection trigger the live path does; the alternative shape — IMPORT INTO the indexed table, then build the index — is rejected precisely because it is the path that bypasses the weld.
+--
 -- migration:  0088_event_cue_stage
+-- band:       0080-0089z · recall · AUTHORED, allocated by
+--             verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1)
 -- domain:     recall
 -- statements: 1
 -- invariants: MI25 (the projection principle: the bulk path may not bypass the prefix weld),
 --             MI31 (proposed, see 0041)
 -- source:     BUILD_PLAN K4 ("both ingestion paths built and measured") · CockroachDB v26.2
 --             vector-index limitation: IMPORT INTO is unsupported on vector-indexed tables
--- requires:   0001 CREATE SCHEMA mainline
+-- requires:   0001a CREATE SCHEMA mainline (RENDERED; template 0001_schemas.sql.j2)
 -- sqlstate:   —
--- forward-only; no .down.sql exists at or below the protected floor (DM-14).
+-- forward-only; no .down.sql exists at or below the protected floor (DM-14). Under MR-5 there
+--             is no .up.sql either: the suffix named a counterpart that is illegal by
+--             construction.
 --
 -- AN INDEX-FREE MIRROR OF `event_cue_embedding`, FOR THE BULK PATH ONLY. CockroachDB v26.2
 -- cannot `IMPORT INTO` a table that carries a vector index, and the documented remedy is
@@ -36,9 +45,12 @@
 --
 -- The alternative shape — `IMPORT INTO event_cue_embedding` then `CREATE VECTOR INDEX` — is
 -- rejected for the production corpus for the same reason: it is exactly the path that bypasses
--- the trigger. It remains available as a measured fallback (`dm-recall-tables` owns the
--- `.fallback.sql` siblings) and if it is ever used, the load is a privileged, attested
--- operation, not a routine one.
+-- the trigger. It remains available as a measured fallback, and if it is ever used the load is a
+-- privileged, attested operation, not a routine one. The fallback DDL no longer sits beside the
+-- primary in the apply path: MR-5 forbids a second dot in a migration filename (a
+-- `.fallback.sql` stem makes the WHOLE directory undiscoverable) and a variant next to the
+-- primary is one glob away from being applied. Capability variants live in
+-- verticals/mainline/db/ext/<topic>/ behind a render-time switch (kernel D5).
 
 CREATE TABLE mainline.event_cue_stage (
   cue_id      UUID   NOT NULL,

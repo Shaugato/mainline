@@ -1,7 +1,14 @@
 -- SPDX-FileCopyrightText: 2026 MAINLINE contributors
 -- SPDX-License-Identifier: FSL-1.1-ALv2
 --
+-- MI: MI16
+-- I: I13
+-- COUNSEL-GATED: no
+-- RATIONALE: MI16 is a POSITIVE invariant and positive invariants cannot be enforced by refusing a write, because the offending write is the one that never happens; the only way to make "every bonded fatality is blocking" refusable is to hold both sides in columns and let a CHECK compare them, with neither side ever written by the party with the incentive.
+--
 -- migration:  0113_fn_bonded_sev5
+-- band:       0110-0114z · recall · AUTHORED, allocated by
+--             verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1)
 -- domain:     recall
 -- statements: 1
 -- invariants: MI16 — every severity-5 event bonded to the permit's activity node or an ancestor
@@ -9,9 +16,16 @@
 --             `bonded_fatalities_all_blocking` (0081) is the half that refuses.
 -- source:     ARCHITECTURE.md §5.11 ("fn_bonded_sev5 (blocking_check → recall_run
 --             .n_bonded_sev5_blocking, S10)") · §5.7 · docs/leads/recall.md D2
--- requires:   0046 event_bond · 0058 blocking_check · 0081 recall_run
+-- requires:   0046 mainline.event_bond · 0081 mainline_meas.recall_run ·
+--             0058 mainline.blocking_check (RENDERED, kernel `obligation-and-clearance`; the
+--             number is fixed by migrations.allocation.toml and is an §18 anchor cited by
+--             mi_catalogue.yaml, but the template has not been written yet — this is a forward
+--             dependency on an allocated slot, not a dangling reference)
+-- provides:   mainline.fn_bonded_sev5() — welded to blocking_check by 0137
 -- sqlstate:   23514 (raised BY THE CHECK, not by this function — see below)
--- forward-only; no .down.sql exists at or below the protected floor (DM-14).
+-- forward-only; no .down.sql exists at or below the protected floor (DM-14). Under MR-5 there
+--             is no .up.sql either: the suffix named a counterpart that is illegal by
+--             construction.
 --
 -- WHY THIS IS A TRIGGER AND NOT AN AGENT RESPONSIBILITY. MI16 is a POSITIVE invariant: it
 -- asserts that something MUST be present. Negative invariants can be enforced by refusing a

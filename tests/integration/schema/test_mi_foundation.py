@@ -1,6 +1,23 @@
 # SPDX-FileCopyrightText: 2026 MAINLINE contributors
 # SPDX-License-Identifier: FSL-1.1-ALv2
-"""Tier-1 schema suite for the foundation band, migrations 0001-0023 (worker ``dm-foundation``).
+"""Tier-1 schema suite for the foundation band, migrations 0001-0023.
+
+The band has TWO owners since the migration reconciliation, and the split is the point:
+
+* **RENDERED (44 files)** — emitted by templates in ``packages/trappoint-sql/templates/`` and
+  never hand-edited. These are SUBSTRATE objects (MR-2): the schemas, the nine roles and the
+  privilege floor, the seven types, both lattices, ``person`` and ``signing_credential``. A
+  second TRAPPOINT vertical needs every one of them to pass ``trappoint-conform``, which is
+  exactly the test that decides whether an object is substrate.
+* **AUTHORED (3 files)** — ``0019_retention_class``, ``0020_adm_decision_class``, ``0020a_site``.
+  These are VERTICAL: MAINLINE's retention schedule, its APP 1.7 disclosure register and its
+  tenancy scope. No other vertical needs them, so no template emits them.
+
+That distinction is why this file no longer asserts a dense ``0001-0023``. Two domains once
+implemented this same band under two conventions — ``NNNN_name.up.sql`` and ``NNNN[a-z]_name.sql``
+— and a density check over the leading four digits was satisfied by BOTH of them at once. The
+band is enumerated now (``EXPECTED_BAND_FILES``) and the filename convention is MR-5, checked
+against the directory rather than against whatever discovery happened to select.
 
 What this band owns, and therefore what this file may honestly assert:
 
@@ -70,9 +87,31 @@ GRANTS_PATH = DB_DIR / "GRANTS.yaml"
 #: The band this worker owns, exclusively.
 BAND_FIRST, BAND_LAST = 1, 23
 
-#: Seeds are applied in this order. `subject_transition` and `clearance_legal` depend on types;
-#: the other two are independent. Order is fixed so the schema+seed fingerprint is stable (DM-12).
+#: Seeds the fixture still applies from `db/seeds/00-lattice/`, in order. Order is fixed so the
+#: schema+seed fingerprint is stable (DM-12).
+#:
+#: `subject_transition.sql` and `clearance_legal.sql` are NO LONGER APPLIED HERE. Under MR-1 both
+#: lattices are SUBSTRATE, so they ship as rendered migrations that carry their own seed —
+#: `0017b_subject_transition_seed.sql` and `0018b_clearance_legal_seed.sql`. Applying the band and
+#: then re-applying those two seed files would insert the same rows twice and fail on 23505, and
+#: the seed a second TRAPPOINT vertical gets must be the one in the template, not one that lives
+#: in MAINLINE's seed directory where no other vertical can see it.
 SEED_ORDER = (
+    "retention_class.sql",
+    "adm_decision_class.sql",
+)
+
+#: The two lattices, now seeded by migration rather than by the seed runner. The files under
+#: `db/seeds/00-lattice/` still exist for the seed tooling; `test_lattice_seed_files_have_not_
+#: drifted_from_the_migrations` is what stops the two copies diverging.
+MIGRATED_LATTICE_SEEDS = (
+    "0017b_subject_transition_seed.sql",
+    "0018b_clearance_legal_seed.sql",
+)
+
+#: Seed files that still exist on disk and must stay deterministic, whether or not the fixture
+#: applies them.
+DETERMINISTIC_SEED_FILES = (
     "subject_transition.sql",
     "clearance_legal.sql",
     "retention_class.sql",
@@ -81,8 +120,87 @@ SEED_ORDER = (
 
 SCHEMAS = ("mainline", "mainline_meas", "mainline_audit", "mainline_qa", "mainline_ops")
 
-#: The four mandatory header keys the runner's linter enforces on every `.up.sql`.
+#: The four mandatory header keys the runner's linter enforces on every migration.
 REQUIRED_HEADER_KEYS = ("-- MI:", "-- I:", "-- COUNSEL-GATED:", "-- RATIONALE:")
+
+#: MR-5, the one filename convention: `NNNN[a-z]_lower_snake_slug.sql`.
+#:
+#: Four digits, an OPTIONAL SINGLE lowercase letter, a lower-snake slug, `.sql`, and **no second
+#: dot ever**. The second-dot prohibition is not tidiness: the runner's `_VERSION_RE` does not
+#: admit `.`, so one `0031_clause_embedding.fallback.sql` makes the WHOLE directory
+#: undiscoverable — every migration, not just that one. `.up.sql` is banned by the same rule and
+#: for a second reason: it names a `.down.sql` counterpart that is illegal by construction at or
+#: below the protected floor (DM-14), and a suffix chain is precisely what let two conventions
+#: coexist invisibly until the chain would not apply.
+MR5_FILENAME_RE = re.compile(r"^(\d{4})([a-z]?)_([a-z0-9_]+)\.sql$")
+
+#: Exactly the files the foundation band must contain after the migration reconciliation, in
+#: runner order. This list is literal on purpose: the band is no longer dense over 0001-0023, so
+#: "no gaps, no duplicates" cannot be expressed as a range any more, and a range test would have
+#: been satisfied by both halves of the collision that caused the reconciliation.
+#:
+#: RENDERED (44) — emitted by a template in `packages/trappoint-sql/templates/`, never hand-edited.
+#: AUTHORED (3)  — `retention_class`, `adm_decision_class`, `site`; VERTICAL objects (MR-2), which
+#:                 a second TRAPPOINT vertical does not need in order to pass `trappoint-conform`.
+EXPECTED_BAND_FILES = (
+    # 0001-0005 · the five schema zones
+    "0001a_schema_mainline.sql",
+    "0002_schema_meas.sql",
+    "0003_schema_audit.sql",
+    "0004_schema_qa.sql",
+    "0005_schema_ops.sql",
+    # 0006a-0006i · the nine roles
+    "0006a_role_migrator.sql",
+    "0006b_role_owner.sql",
+    "0006c_role_gate.sql",
+    "0006d_role_projector.sql",
+    "0006e_role_recaller.sql",
+    "0006f_role_disposer.sql",
+    "0006g_role_auditor.sql",
+    "0006h_role_reader.sql",
+    "0006i_role_qa.sql",
+    # 0007a-0007e · one REVOKE per zone (one statement per file)
+    "0007a_revoke_public_business.sql",
+    "0007b_revoke_public_meas.sql",
+    "0007c_revoke_public_audit.sql",
+    "0007d_revoke_public_qa.sql",
+    "0007e_revoke_public_ops.sql",
+    # 0008a-0008e · one ownership transfer per zone
+    "0008a_owner_business.sql",
+    "0008b_owner_meas.sql",
+    "0008c_owner_audit.sql",
+    "0008d_owner_qa.sql",
+    "0008e_owner_ops.sql",
+    # 0009a-0009f · the privilege floor, and 0009x · the covenant comment
+    "0009a_grant_create_migrator.sql",
+    "0009b_grant_usage_agents.sql",
+    "0009c_grant_usage_auditor.sql",
+    "0009d_grant_usage_qa.sql",
+    "0009e_default_privileges_floor.sql",
+    "0009f_revoke_create_public_schema.sql",
+    "0009x_covenant_comment.sql",
+    # 0010-0016 · the seven ENUM types
+    "0010_type_control_delta.sql",
+    "0011_type_subject_state.sql",
+    "0012_type_disposition_kind.sql",
+    "0013_type_virulence_class.sql",
+    "0014_type_blame_basis.sql",
+    "0015_type_blame_state.sql",
+    "0016_type_prop_state.sql",
+    # 0017-0018 · the two lattices, each as table + seed
+    "0017a_subject_transition.sql",
+    "0017b_subject_transition_seed.sql",
+    "0018a_clearance_legal.sql",
+    "0018b_clearance_legal_seed.sql",
+    # 0019-0020a · AUTHORED, dm-foundation's surviving three
+    "0019_retention_class.sql",
+    "0020_adm_decision_class.sql",
+    "0020a_site.sql",
+    # 0021-0023 · identity
+    "0021_person.sql",
+    "0022_signing_credential.sql",
+    "0023_signing_credential_index.sql",
+)
 
 #: MI01-MI30 (ARCHITECTURE §16). The catalogue file itself is `dm-runner`'s deliverable; this is
 #: the identity check only — "the id you cited is a real id" — not a copy of the catalogue.
@@ -239,12 +357,24 @@ def split_statements(text: str) -> list[str]:
 
 
 def band_files() -> list[Path]:
-    """The 0001-0023 ``.up.sql`` files, ordered by version."""
-    found: list[tuple[int, Path]] = []
-    for path in sorted(MIGRATIONS_DIR.glob("*.up.sql")):
-        match = re.match(r"^(\d{4})_", path.name)
+    """The 0001-0023 migrations, in the order the runner applies them.
+
+    Ordering is **lexicographic on the whole stem**, not numeric on the leading four digits,
+    because that is what ``trappoint_migrate.discovery`` does. It is the difference that makes
+    ``0006a < 0006b < 0007`` and ``0020 < 0020a < 0021`` true, and sorting numerically here would
+    let this suite apply the band in an order the runner never would — a test harness that
+    disagrees with the thing it is testing about *sequence* is worse than no test, because the
+    band is a sequence.
+
+    Only MR-5 names are returned. A file with a second dot in its name (``.up.sql``,
+    ``.fallback.sql``) does not match ``_VERSION_RE`` and is not a migration; it is excluded here
+    rather than tolerated, and ``test_band_carries_only_mr5_filenames`` is what reports it.
+    """
+    found: list[tuple[str, Path]] = []
+    for path in sorted(MIGRATIONS_DIR.glob("*.sql")):
+        match = MR5_FILENAME_RE.match(path.name)
         if match and BAND_FIRST <= int(match.group(1)) <= BAND_LAST:
-            found.append((int(match.group(1)), path))
+            found.append((path.name[: -len(".sql")], path))
     return [p for _, p in sorted(found)]
 
 
@@ -316,18 +446,60 @@ def test_splitter_handles_apostrophes_in_comments() -> None:
 
 
 @pytest.mark.shape
-def test_band_is_dense_and_exclusive() -> None:
-    """0001-0023, no gaps, no duplicates, no strays, and nothing from another band."""
-    files = band_files()
-    numbers = [int(p.name[:4]) for p in files]
-    assert numbers == list(range(BAND_FIRST, BAND_LAST + 1)), (
-        f"the foundation band must be dense over {BAND_FIRST:04d}-{BAND_LAST:04d}; "
-        f"got {numbers}"
+def test_band_is_exactly_the_expected_file_set() -> None:
+    """The band is an explicit list now, not a dense range.
+
+    Before the migration reconciliation this test asserted ``numbers == range(1, 24)``. That
+    assertion is what made the incident invisible for a whole dispatch wave: it grouped on the
+    leading four digits, so a hand-authored ``0006_schema_mainline_ops.up.sql`` and nine rendered
+    ``0006a..0006i_role_*.sql`` both satisfied "0006 is present exactly once" — two competing
+    implementations of the same band, and a green test over the top of them.
+
+    So the set is enumerated, and the diff is printed both ways. An unexpected file is as much a
+    failure as a missing one: an extra file in this band is either a resurrected twin or a worker
+    writing outside its allocation, and both are the defect this suite now exists to catch.
+    """
+    actual = tuple(p.name for p in band_files())
+    missing = [n for n in EXPECTED_BAND_FILES if n not in actual]
+    unexpected = [n for n in actual if n not in EXPECTED_BAND_FILES]
+    assert not missing and not unexpected, (
+        "the foundation band is not the expected file set.\n"
+        f"  missing ({len(missing)}):    {missing}\n"
+        f"  unexpected ({len(unexpected)}): {unexpected}\n"
+        "Rendered files come from packages/trappoint-sql/templates/ — if one is missing, run "
+        "`trappoint render`, do not hand-write it."
     )
-    for path in files:
-        assert re.match(r"^\d{4}_[a-z0-9_]+\.up\.sql$", path.name), (
-            f"{path.name} does not match NNNN_snake_name.up.sql"
-        )
+    assert actual == EXPECTED_BAND_FILES, (
+        "the band contains the right files in the wrong order. Order is lexicographic on the "
+        f"whole stem, which is what the runner applies:\n  {list(actual)}"
+    )
+
+
+@pytest.mark.shape
+def test_band_carries_only_mr5_filenames() -> None:
+    """MR-5, enforced against the directory rather than against what ``band_files()`` selected.
+
+    ``band_files()`` filters to MR-5 names, so on its own it can never see a violation — it would
+    simply return fewer files and every downstream test would pass over a band with a hole in it.
+    This test does the opposite: it globs everything numbered in the band and asserts that each
+    one is a legal name, so a surviving ``.up.sql`` or a ``.fallback.sql`` fails loudly here
+    instead of silently shrinking the band.
+    """
+    offenders: list[str] = []
+    for path in sorted(MIGRATIONS_DIR.iterdir()):
+        if not path.is_file() or ".sql" not in path.name:
+            continue
+        leading = re.match(r"^(\d{4})", path.name)
+        if not leading or not (BAND_FIRST <= int(leading.group(1)) <= BAND_LAST):
+            continue
+        if not MR5_FILENAME_RE.match(path.name):
+            offenders.append(path.name)
+    assert not offenders, (
+        "filenames in the foundation band that are not `NNNN[a-z]_lower_snake_slug.sql` (MR-5):\n  "
+        + "\n  ".join(offenders)
+        + "\nA second dot defeats the runner's `_VERSION_RE` and makes the WHOLE migrations "
+        "directory undiscoverable, not just the offending file."
+    )
 
 
 @pytest.mark.shape
@@ -391,7 +563,7 @@ def test_no_banned_constructs(path: Path) -> None:
 
 
 @pytest.mark.shape
-@pytest.mark.parametrize("name", SEED_ORDER)
+@pytest.mark.parametrize("name", DETERMINISTIC_SEED_FILES)
 def test_seeds_are_deterministic(name: str) -> None:
     """DM-12. The schema+seed fingerprint is the dev/demo/prod parity gate.
 
@@ -415,7 +587,9 @@ def test_clearance_seed_holds_twenty_one_rows_and_omits_three() -> None:
     the one piece of data the company's central claim rests on, "how it got that way" is worth a
     second test.
     """
-    body = strip_sql_comments((SEEDS_DIR / "clearance_legal.sql").read_text(encoding="utf-8"))
+    body = strip_sql_comments(
+        (MIGRATIONS_DIR / "0018b_clearance_legal_seed.sql").read_text(encoding="utf-8")
+    )
     for virulence, kind in ABSENT_CELLS:
         pattern = re.compile(rf"'{virulence}'\s*,\s*'{kind}'")
         assert not pattern.search(body), (
@@ -424,6 +598,66 @@ def test_clearance_seed_holds_twenty_one_rows_and_omits_three() -> None:
         )
     tuples = re.findall(r"\(\s*'(routine|serious|blood_major|blood_fatal)'\s*,\s*'(\w+)'", body)
     assert len(tuples) == 21, f"expected 21 seeded cells, found {len(tuples)}"
+
+
+@pytest.mark.shape
+@pytest.mark.parametrize("name", MIGRATED_LATTICE_SEEDS)
+def test_migrated_lattice_seeds_are_deterministic(name: str) -> None:
+    """DM-12 again, for the two lattices that moved from the seed runner into the migration set.
+
+    Moving a seed into a migration must not lose the property that made it a seed: the same rows,
+    byte-for-byte, in every environment. Otherwise the schema+seed fingerprint that proves the
+    demo cluster and the production cluster hold the same legal surface stops proving it.
+    """
+    body = strip_sql_comments((MIGRATIONS_DIR / name).read_text(encoding="utf-8")).lower()
+    for banned in ("now()", "gen_random_uuid", "current_timestamp", "localtimestamp", "random()"):
+        assert banned not in body, f"{name} contains the non-deterministic construct {banned!r}"
+
+
+@pytest.mark.shape
+def test_lattice_seed_files_have_not_drifted_from_the_migrations() -> None:
+    """Two copies of the lattice now exist. This is the test that stops them diverging.
+
+    The reconciliation moved both lattices into rendered migrations (0017b, 0018b), but the files
+    under ``db/seeds/00-lattice/`` remain for the seed tooling. Two copies of the single most
+    load-bearing piece of *data* in the product is a drift hazard, and drift here is invisible:
+    both files load, both look plausible, and the one that reaches a given cluster depends on
+    which tool ran. So the row sets are compared directly, and the migration is the authority —
+    it is what a second TRAPPOINT vertical receives.
+    """
+    def cells(text: str) -> list[tuple[str, str]]:
+        body = strip_sql_comments(text)
+        return sorted(
+            re.findall(r"\(\s*'(routine|serious|blood_major|blood_fatal)'\s*,\s*'(\w+)'", body)
+        )
+
+    def edges(text: str) -> list[tuple[str, str, str]]:
+        body = strip_sql_comments(text)
+        return sorted(
+            re.findall(r"\(\s*'(permit|change_request)'\s*,\s*'(\w+)'\s*,\s*'(\w+)'", body)
+        )
+
+    seed_cells = cells((SEEDS_DIR / "clearance_legal.sql").read_text(encoding="utf-8"))
+    migr_cells = cells(
+        (MIGRATIONS_DIR / "0018b_clearance_legal_seed.sql").read_text(encoding="utf-8")
+    )
+    assert seed_cells == migr_cells, (
+        "the clearance lattice in db/seeds/00-lattice/clearance_legal.sql has drifted from "
+        "migration 0018b_clearance_legal_seed.sql, which is the authority.\n"
+        f"  only in the seed file: {sorted(set(seed_cells) - set(migr_cells))}\n"
+        f"  only in the migration: {sorted(set(migr_cells) - set(seed_cells))}"
+    )
+
+    seed_edges = edges((SEEDS_DIR / "subject_transition.sql").read_text(encoding="utf-8"))
+    migr_edges = edges(
+        (MIGRATIONS_DIR / "0017b_subject_transition_seed.sql").read_text(encoding="utf-8")
+    )
+    assert seed_edges == migr_edges, (
+        "the transition lattice in db/seeds/00-lattice/subject_transition.sql has drifted from "
+        "migration 0017b_subject_transition_seed.sql, which is the authority.\n"
+        f"  only in the seed file: {sorted(set(seed_edges) - set(migr_edges))}\n"
+        f"  only in the migration: {sorted(set(migr_edges) - set(seed_edges))}"
+    )
 
 
 @pytest.mark.shape
@@ -492,7 +726,8 @@ def test_grants_yaml_is_wellformed_and_covers_the_role_matrix() -> None:
 
 @pytest.mark.shape
 def test_pl2_red_site_projection_is_not_yet_enforced() -> None:
-    """RED BY DESIGN (PL-2). Owner of the fix: ``dm-functions-triggers``, band 0130-0199.
+    """RED BY DESIGN (PL-2). Owner of the fix: kernel ``projection-triggers``, bands 0100-0109
+    (functions, including ``fn_site_role`` at 0109) and 0120-0129 (the nine triggers).
 
     DM-3 makes ``mainline.site`` the authoritative source for every projected ``site_role``,
     ``site_code`` and ``tenant_id``. This band ships the table. A table nothing projects FROM is
@@ -520,12 +755,16 @@ def test_pl2_red_site_projection_is_not_yet_enforced() -> None:
         "PL-2 RED, as intended. No migration defines a function that reads mainline.site and "
         "writes site_role / site_code / tenant_id, so DM-3's authoritative table is shipped but "
         "not yet load-bearing:\n"
-        "  * mainline.site exists (migration 0021, this band);\n"
+        "  * mainline.site exists (migration 0020a, this band);\n"
         "  * event_cue_coarse.tenant_id (0042) is still client-supplied, recorded there as an "
         "unclosed loop;\n"
         "  * permit.site_role — the RLS scope token — has no projection trigger.\n"
-        "Owner of the fix: dm-functions-triggers, band 0130-0199. Promote this test's MI entry in "
-        "mi_catalogue.yaml from `pending` to `enforced` when it goes green."
+        "Owner of the fix: kernel `projection-triggers` — `fn_site_role` at 0109 and its trigger "
+        "in 0120-0129, both RENDERED from packages/trappoint-sql/templates/. (Before the "
+        "migration reconciliation this pointed at dm-functions-triggers/0130-0199; MR-7 moved it, "
+        "because projection is SUBSTRATE — every TRAPPOINT vertical projects its own scope token "
+        "and none may take it from the writer.) Promote this test's MI entry in mi_catalogue.yaml "
+        "from `pending` to `enforced` when it goes green."
     )
 
 
@@ -1110,7 +1349,7 @@ def test_no_row_level_ttl_anywhere_in_schema_mainline(conn: Any) -> None:
 @pytest.mark.schema
 @pytest.mark.mi("MI01")
 def test_mainline_owner_is_unassumable_and_owns_every_zone(conn: Any) -> None:
-    """The claim migration 0001 makes, checked rather than asserted.
+    """The claim migration 0006b makes, checked rather than asserted.
 
     ``CREATE ROLE IF NOT EXISTS`` would silently accept a pre-existing ``mainline_owner`` that
     somebody had given LOGIN to. A migration cannot check that; this can.
@@ -1130,8 +1369,8 @@ def test_mainline_owner_is_unassumable_and_owns_every_zone(conn: Any) -> None:
     rows = _rows_by_column(conn, "SHOW SCHEMAS")
     assert rows and "owner" in rows[0], (
         f"SHOW SCHEMAS did not report an owner column on this cluster; columns were "
-        f"{sorted(rows[0]) if rows else 'none'}. Ownership is the control migrations 0002-0006 "
-        f"assert, so an unreadable owner is a failure, not a reason to skip."
+        f"{sorted(rows[0]) if rows else 'none'}. Ownership is the control migrations "
+        f"0008a-0008e assert, so an unreadable owner is a failure, not a reason to skip."
     )
     owners = {str(r["schema_name"]): str(r["owner"]) for r in rows}
     for schema in SCHEMAS:
@@ -1143,7 +1382,15 @@ def test_mainline_owner_is_unassumable_and_owns_every_zone(conn: Any) -> None:
 @pytest.mark.schema
 @pytest.mark.mi("MI01")
 def test_public_holds_nothing_on_the_mainline_zones(conn: Any) -> None:
-    """Migrations 0007 and 0008, re-asserted by GRANTS.yaml's ``revocations``."""
+    """Migrations 0007a-0007e and 0009f, re-asserted by GRANTS.yaml's ``revocations``.
+
+    The two halves are NOT the same assertion. ``0007a``-``0007e`` revoke on the five MAINLINE
+    zones, where ``public`` held nothing to begin with — a deny posture asserted rather than
+    assumed. ``0009f`` revokes on the built-in ``public`` schema, where CockroachDB really does
+    grant ``public`` both CREATE and USAGE out of the box (measured on v26.2.5). Only the second
+    one changes anything on a clean cluster, and it is the one that stops any principal who can
+    connect from creating an object inside the evidentiary database.
+    """
     # By COLUMN NAME, not by "is the word 'public' anywhere in the row". `SHOW GRANTS ON SCHEMA
     # public` returns rows whose schema_name is literally 'public', so a substring test would
     # report the grantee as `public` on every row of that query and pass or fail for the wrong
@@ -1162,9 +1409,9 @@ def test_public_holds_nothing_on_the_mainline_zones(conn: Any) -> None:
                 r for r in leaked if str(r["privilege_type"]).upper() in {"CREATE", "ALL"}
             ]
             assert not offending, (
-                "`public` still holds CREATE on the built-in public schema. Migration 0008 is the "
-                f"one revoke that changes something on a clean cluster, and it did not take: "
-                f"{offending}"
+                "`public` still holds CREATE on the built-in public schema. Migration "
+                "0009f_revoke_create_public_schema.sql is the one revoke that changes something "
+                f"on a clean cluster, and it did not take: {offending}"
             )
         else:
             assert not leaked, f"`public` holds a privilege on schema {schema}: {leaked}"
@@ -1239,9 +1486,25 @@ def test_probe_harness_distinguishes_refusal_from_rejection(conn: Any) -> None:
             f"probe cannot tell a refusal from a rejection and every negative below is vacuous."
         )
     finally:
+        # CockroachDB refuses `DROP ROLE` while any grant still references the role
+        # (`DependentObjectsStillExist`), so the grants made above must come off first. Without
+        # this the teardown raises, and — because it raises from a `finally` — it REPLACES
+        # whatever the body was trying to report. A cleanup that can mask the assertion it is
+        # cleaning up after is worse than no cleanup, so each statement is also individually
+        # tolerant: the throwaway roles are suffixed with a fresh uuid4 and leaking one is
+        # harmless, while losing the real diagnosis is not.
         conn.execute("RESET ROLE")
-        conn.execute(f"DROP ROLE IF EXISTS {allowed}")
-        conn.execute(f"DROP ROLE IF EXISTS {denied}")
+        for statement in (
+            f"REVOKE INSERT ON TABLE mainline.site FROM {allowed}",
+            f"REVOKE USAGE ON SCHEMA mainline FROM {allowed}",
+            f"REVOKE USAGE ON SCHEMA mainline FROM {denied}",
+            f"DROP ROLE IF EXISTS {allowed}",
+            f"DROP ROLE IF EXISTS {denied}",
+        ):
+            try:
+                conn.execute(statement)
+            except psycopg.Error:  # noqa: PERF203 — per-statement tolerance is the point
+                pass
 
 
 @pytest.mark.schema
@@ -1480,7 +1743,12 @@ def test_person_is_a_temporal_series_not_a_mutable_row(conn: Any) -> None:
             _PERSON_INSERT, (sub, "2029-01-01T00:00:00Z", 11, uuid.uuid4(), b"\x00" * 32)
         )
     assert caught.value.sqlstate == "23514"
-    assert_names_constraint(caught.value, "rank_in_lattice")
+    # `person_rank_range`, not the authored `rank_in_lattice`. MR-1 makes `person` a SUBSTRATE
+    # object emitted from templates/0021_identity.sql.j2, and MRR-2 accepts the rename knowingly:
+    # the constraint name is the courtroom exhibit, only one set can be the exhibit, and it must
+    # be the set a second TRAPPOINT vertical also produces. The corpus asserts exact names, so a
+    # MAINLINE-only name here would be a case that passes for this vertical and no other.
+    assert_names_constraint(caught.value, "person_rank_range")
 
 
 @pytest.mark.schema
@@ -1499,7 +1767,9 @@ def test_signing_credential_refuses_an_unknown_attachment(conn: Any) -> None:
             (b"\x01\x02\x03", b"\x04" * 8, b"\x05" * 16),
         )
     assert caught.value.sqlstate == "23514"
-    assert_names_constraint(caught.value, "attachment_closed")
+    # `credential_attachment_known`, not the authored `attachment_closed` — same MRR-2 reasoning
+    # as `person_rank_range` above.
+    assert_names_constraint(caught.value, "credential_attachment_known")
 
 
 @pytest.mark.schema

@@ -1,0 +1,66 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MI: MI16, MI25
+-- I: I02
+-- COUNSEL-GATED: no
+-- RATIONALE: A sweep hit is never blocking unless `severity_gate = 5`, so without this weld the taxonomy-insurance sweep retrieves the mis-classified fatality and then declines to block on it, on a number the inserter supplied — the retrieval succeeds and the obligation silently does not exist.
+--
+-- migration:  0138a_trg_cue_prefix_project_coarse
+-- band:       0136-0139z · recall · AUTHORED, allocated by
+--             verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1). The `a` suffix is
+--             MR-5's band-overflow use inside recall's own grant — `0139` is this domain's
+--             `trg_candidate_project` and `0140` belongs to datamodel, so the weld that has to
+--             sort immediately after `0138` takes `0138`'s letter space rather than a
+--             neighbour's number.
+-- domain:     recall
+-- statements: 1
+-- proposes:   MI31 (see 0041, 0114, 0114a)
+-- source:     docs/leads/recall.md D1 · ARCHITECTURE.md §5.4 (S20), §5.11
+-- requires:   0114a mainline.fn_cue_coarse_project · 0042 mainline.event_cue_coarse
+-- companion:  0138_trg_cue_prefix_project.sql — the prefixed sidecar's half of the same
+--             mechanism, and the file that carries the argument for splitting them.
+-- sqlstate:   P0001
+-- forward-only; no .down.sql exists at or below the protected floor (DM-14). Under MR-5 there
+--             is no .up.sql either: the suffix named a counterpart that is illegal by
+--             construction.
+--
+-- ── WHY `requires:` CITES 0114a AND NOT 0114 ─────────────────────────────────────────────────
+-- Stated at the top because it is the one line in this file that a careless edit would get
+-- wrong. This trigger executes `mainline.fn_cue_coarse_project`, which is created by
+-- `0114a_fn_cue_coarse_project.sql`, NOT by `0114`. Before the reconciliation both functions were
+-- created by `0114` and citing `0114` was right; it is now a dependency on a file that does not
+-- create the object this file needs, which is the kind of comment that stays true-looking for a
+-- year and then misroutes the one person debugging at 3am.
+--
+-- ── THE HALF THAT GOES QUIET ─────────────────────────────────────────────────────────────────
+-- The coarse sidecar is the taxonomy-insurance sweep: one deliberately unpartitioned K-means
+-- tree, so an event the induced taxonomy MISCLASSIFIED is still reachable. Its prefix
+-- (`tenant_id`) is constant and therefore not forgeable — but `severity_gate` is, and that is
+-- the column the sweep's blocking rule reads. A sweep hit is never blocking unless
+-- `severity_gate = 5`.
+--
+-- So the failure this weld prevents is worse than the one 0138 prevents, not milder. Under a
+-- forged prefix on the prefixed sidecar, the cue is unreachable and nothing is retrieved. Under
+-- a forged `severity_gate` here, the cue IS retrieved: the sweep does its job, the fatality
+-- surfaces as a candidate, the run's accounting counts it — and then it is filed as advisory
+-- because the number that decides says 4. Every artefact reads as a system working correctly.
+-- That is why these two welds are a pair, and why 0138's header calls a deployment carrying one
+-- of them a hole rather than a partial improvement.
+--
+-- BEFORE INSERT, and no UPDATE trigger, for the same reasons 0138 gives: `event_cue_coarse` is a
+-- write-once sidecar keyed by `cue_id`, and re-embedding under a new `index_gen` is a
+-- delete-and-insert through this same weld.
+--
+-- THE TRIGGER NAME IS UNCHANGED. `cue_prefix_project_coarse` is what the unwelding suite and
+-- `pg_get_triggerdef()`'s attestation into `mainline_ops.schema_attestation` address, and it did
+-- not move when the file split. Only the file did.
+--
+-- REFUSAL DEPTH, honestly: 1, and asymmetric with its sibling. Dropping this trigger leaves
+-- `coarse_sev_range` (0042) constraining `severity_gate` to 0..5 — which is the whole range the
+-- attack operates inside, since the attack is to write 4 where the event says 5. Nothing
+-- structural survives the unweld. See
+-- tests/integration/recall_schema/test_unweld.py::test_uw02_prefix_projection_depth_is_one.
+
+CREATE TRIGGER cue_prefix_project_coarse BEFORE INSERT ON mainline.event_cue_coarse
+  FOR EACH ROW EXECUTE FUNCTION mainline.fn_cue_coarse_project();
