@@ -1,0 +1,27 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MAINLINE · 0009b_grant_usage_agents.sql
+-- GRANT USAGE ON the five schemas TO the agent and service roles
+--
+-- MI: MI02
+-- I: I02
+-- COUNSEL-GATED: no
+-- RATIONALE: USAGE on a schema is the right to name an object in it, and nothing more.
+--            Every table privilege these roles hold is granted individually after the table
+--            exists, so this statement widens no write surface; it makes the later, narrow
+--            grants expressible.
+--
+-- @rendered-by  trappoint render
+-- @template     packages/trappoint-sql/templates/0006_roles.sql.j2
+-- @binding      verticals/mainline/vertical.toml
+-- DO NOT EDIT. `trappoint render --check` is a zero-diff assertion in CI, so a
+-- hand edit here is a red build, not a silent divergence.
+--
+-- USAGE is not a write. The role that materialises an obligation (agent_gate) and
+-- the role that disposes of one (svc_disposition) are different roles here and stay
+-- different roles in every later band. agent_recaller appears in this list and in
+-- no INSERT anywhere: it proposes candidates over HTTP, and the kernel writes the
+-- obligation row inside the transaction that issues the exposure receipt (finding S1).
+
+GRANT USAGE ON SCHEMA mainline, mainline_meas, mainline_audit, mainline_qa, mainline_ops TO agent_gate, agent_projector, agent_recaller, svc_disposition, auditor_ro;

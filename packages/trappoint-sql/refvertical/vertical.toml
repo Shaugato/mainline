@@ -1,0 +1,217 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# THE REFERENCE VERTICAL — `trappoint_ref`.
+#
+# This is not a fixture. It is a first-class binding, and it exists so that three things
+# are true from day one rather than from month eighteen:
+#
+#  1. **K1 stops depending on K3.** The kernel's gate reads an AUTHORITY SOURCE; in
+#     MAINLINE that is `mainline.clause_blame_current`, which is the ancestry lead's
+#     migration 0038/0039. If the conformance suite needed that table, K1 could not be
+#     green before K3 — which inverts the milestone lattice. The reference vertical
+#     supplies an isomorphic closure, so `trappoint-conform --profile trappoint-ref` is
+#     green with zero ancestry code in existence.
+#
+#  2. **The extension mechanism is exercised the day it is written.** Two bindings that
+#     both render is the entire substrate claim. One binding is a template engine with
+#     an audience of one.
+#
+#  3. **Adding a vertical is a five-line binding change, not a code change.** This file
+#     is the proof of that sentence: it names different schemas, different roles and a
+#     different authority relation, and renders the identical templates.
+#
+# `emit_outbox` is FALSE here on purpose (ruling D9): the substrate must not hard-depend
+# on a changefeed table it does not own.
+#
+# TOML PLACEMENT WARNING: a bare top-level key written after any [table] header belongs
+# to that table, so every top-level scalar appears above the first header.
+
+emit_outbox = false
+
+[vertical]
+name         = "TRAPPOINT_REF"
+spec_version = "1.0.0-rc.1"
+schema       = "trappoint_ref"
+output_dir   = "packages/trappoint-sql/refvertical/sql"
+license      = "Apache-2.0"
+description  = "The reference vertical: the smallest binding that exercises every TRAPPOINT mechanism, so the substrate can be proved without any domain code in existence."
+
+[capabilities]
+attestation   = "packages/trappoint-sql/g1-attestation.json"
+stored_digest = "stored"
+triggerdef    = "pg_get_triggerdef"
+isolation     = "serializable"
+
+# Distinct role names on purpose. Two bindings sharing one cluster must not collide, and
+# a reference vertical that reused MAINLINE's role names would prove nothing about
+# whether the templates read the binding or hard-code the vertical.
+#
+# `recaller`, `auditor` and `qa` are absent from this table because vertical.schema.json
+# 1.0 has no key for them; the renderer derives them (see the package README).
+[roles]
+migrator  = "tref_migrator"
+owner     = "tref_owner"
+gate      = "tref_gate"
+projector = "tref_projector"
+disposer  = "tref_disposer"
+reader    = "tref_reader"
+
+[conformance]
+profile = "trappoint-ref"
+# Nothing is skipped here, and that is the point: this binding's authority relations all
+# exist in `refvertical/sql/`, so every case that carries the `trappoint-ref` profile can
+# actually run. An empty `skip_requires` on the reference vertical is what lets a
+# non-empty one on a real vertical be read as a specific, temporary gap.
+skip_requires = []
+
+# ── the flagship projection, isomorphic to MAINLINE's ────────────────────────────
+# Same shape, same key rename (`commit_id` on the projected row against `as_of_commit`
+# on the closure), different relation. If the renderer had hard-coded either name, this
+# entry could not exist.
+[[authority_source]]
+projects    = ["blocking_check.severity", "blocking_check.virulence", "blocking_check.closure_gen"]
+relation    = "trappoint_ref.clause_blame_current"
+key         = ["clause_uuid", "commit_id"]
+key_columns = ["clause_uuid", "as_of_commit"]
+columns     = ["max_severity", "virulence", "closure_gen"]
+on_missing  = "raise"
+raise_via   = "p0001"
+
+[[authority_source]]
+projects   = [
+  "disposition.req_compensating", "disposition.req_second_signer",
+  "disposition.req_foreign_org", "disposition.req_predicate",
+  "disposition.req_reassert", "disposition.min_signer_rank",
+]
+relation   = "trappoint_ref.clearance_legal"
+key        = ["virulence", "kind"]
+columns    = [
+  "req_compensating", "req_second_signer", "req_foreign_org",
+  "req_predicate", "req_reassert", "min_signer_rank",
+]
+on_missing = "raise"
+raise_via  = "strictest_projection"
+strictest  = { req_compensating = true, req_second_signer = true, req_foreign_org = true, req_predicate = true, req_reassert = true, min_signer_rank = 9 }
+
+[[authority_source]]
+projects   = ["disposition.signer_rank", "disposition.signer_org", "disposition.competency_sha256"]
+relation   = "trappoint_ref.person"
+key        = ["signer_sub"]
+columns    = ["rank", "org", "competency_sha256"]
+on_missing = "raise"
+raise_via  = "p0001"
+
+[[obligation_source]]
+relation          = "trappoint_ref.blocking_check"
+counter           = "open_blocking"
+subject_kinds     = ["permit", "change_request"]
+dedupe_key_column = "dedupe_key"
+bumps_epoch       = true
+
+[[obligation_source]]
+relation      = "trappoint_ref.identity_residue"
+counter       = "open_residue"
+subject_kinds = ["permit", "change_request"]
+bumps_epoch   = true
+
+[[obligation_source]]
+relation      = "trappoint_ref.merge_conflict"
+counter       = "open_conflicts"
+subject_kinds = ["permit", "change_request"]
+bumps_epoch   = true
+
+[[obligation_source]]
+relation      = "trappoint_ref.discordance_warrant"
+counter       = "open_warrants"
+subject_kinds = ["permit"]
+bumps_epoch   = true
+
+[[obligation_source]]
+relation      = "trappoint_ref.boundary_certificate"
+counter       = "unmodelled_asset_count"
+subject_kinds = ["permit"]
+bumps_epoch   = true
+
+# Two gated subjects, mirroring MAINLINE exactly. Mirroring is deliberate: the ~45
+# illegal histories that carry the `trappoint-ref` profile must exercise the same
+# constraint names on the same counters, or a green reference profile would be proving
+# a smaller machine than the one that ships.
+
+[[subject]]
+kind                 = "permit"
+table                = "permit"
+id_column            = "permit_id"
+epoch_column         = "gate_epoch"
+state_column         = "state"
+completing_state     = "merged"
+transition_table     = "trappoint_ref.subject_transition"
+event_table          = "permit_event"
+completion_table     = "merge_record"
+epoch_pin_constraint = "epoch_pin_permit"
+
+[[subject.counters]]
+column     = "open_blocking"
+constraint = "gate_closed_when_issued"
+source     = "trappoint_ref.blocking_check"
+polarity   = "zero_when_complete"
+
+[[subject.counters]]
+column     = "open_residue"
+constraint = "identity_conserved_when_issued"
+source     = "trappoint_ref.identity_residue"
+polarity   = "zero_when_complete"
+
+[[subject.counters]]
+column     = "open_conflicts"
+constraint = "conflicts_resolved_when_issued"
+source     = "trappoint_ref.merge_conflict"
+polarity   = "zero_when_complete"
+
+[[subject.counters]]
+column     = "open_warrants"
+constraint = "no_open_warrant_when_issued"
+source     = "trappoint_ref.discordance_warrant"
+polarity   = "zero_when_complete"
+
+[[subject.counters]]
+column     = "unmodelled_asset_count"
+constraint = "boundary_certified_when_issued"
+source     = "trappoint_ref.boundary_certificate"
+polarity   = "zero_when_complete"
+
+[[subject.counters]]
+column        = "unmet_floor_count"
+constraint    = "reading_floor_when_issued"
+polarity      = "offset_allowed"
+offset_column = "countersigned_count"
+
+[[subject]]
+kind                 = "change_request"
+table                = "change_request"
+id_column            = "cr_id"
+epoch_column         = "gate_epoch"
+state_column         = "state"
+completing_state     = "merged"
+transition_table     = "trappoint_ref.subject_transition"
+event_table          = "cr_event"
+completion_table     = "merge_record"
+epoch_pin_constraint = "epoch_pin_cr"
+
+[[subject.counters]]
+column     = "open_blocking"
+constraint = "cr_gate_closed_when_merged"
+source     = "trappoint_ref.blocking_check"
+polarity   = "zero_when_complete"
+
+[[subject.counters]]
+column     = "open_residue"
+constraint = "cr_identity_conserved_when_merged"
+source     = "trappoint_ref.identity_residue"
+polarity   = "zero_when_complete"
+
+[[subject.counters]]
+column     = "open_conflicts"
+constraint = "cr_conflicts_resolved_when_merged"
+source     = "trappoint_ref.merge_conflict"
+polarity   = "zero_when_complete"

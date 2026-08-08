@@ -1,0 +1,112 @@
+{# SPDX-FileCopyrightText: 2026 MAINLINE contributors #}
+{# SPDX-License-Identifier: Apache-2.0 #}
+{#
+  Migration 0021-0023 — IDENTITY FIRST (ARCHITECTURE.md §5.1, §18; finding S7).
+
+  Identity comes before the repository spine, before the gate, before everything,
+  because without it six constraints and the entire deliberation measurement are
+  decorative. A rank floor compares against nothing. A second-signer requirement counts
+  strings. A foreign-organisation requirement cannot be evaluated. The clearance lattice
+  above is a table of requirements about people, and until people are rows those
+  requirements are prose.
+
+  WE NEVER MINT AN IDENTITY FOR A HUMAN. Signers arrive by OIDC from the customer's
+  identity provider; enrolment assurance is THEIR assertion, recorded as theirs, in
+  their words. `identity_source` holds the issuer URL so that every rank the gate ever
+  enforced can be traced to the system that asserted it.
+
+  REVOKING A CREDENTIAL NEVER INVALIDATES HISTORY. The old public key stays in the
+  ledger forever, so a signature made in 2029 still verifies in 2036. That is why
+  `signing_credential` is append-only with a `revoked_at` marker rather than a table
+  rows are deleted from, and why the by-signer index is PARTIAL: the live-credential
+  lookup must not walk the revoked ones, and the revoked ones must not disappear.
+
+  `person` is versioned by `effective_from DESC` in the primary key so that the current
+  row for a signer is the FIRST row of the key scan. The gate projects rank and org from
+  this table at the moment a disposition is signed, so a client that supplies its own
+  rank is overwritten before any comparison happens (case CF-19).
+#}
+-- @file 0021_person.sql
+{{ header(file='0021_person.sql',
+          title='CREATE TABLE ' ~ binding.schema ~ '.person — append-only, versioned, IdP-sourced',
+          rationale='Six constraints and the whole deliberation measurement are decorative without this table, so it lands before the repository spine (finding S7). It is append-only and versioned by effective_from: a promotion is a new row, never an update, because a disposition signed last year must still be readable against the rank its signer held last year.',
+          mi=['MI27'], i=['I09']) }}
+--
+-- PRIMARY KEY (signer_sub, effective_from DESC)
+--   DESC is load-bearing, not cosmetic. The projection trigger wants the CURRENT row
+--   for a signer, which under this key is the first row of the scan rather than a sort
+--   over the signer's whole history.
+--
+-- competency_sha256 / competency_snapshot
+--   The snapshot is what the HR or LMS system said, and the digest is what it said it
+--   said. Storing both means a later dispute about a signer's authorisations is
+--   answered from the record rather than from the upstream system's current state.
+--
+-- enrolment_assurance
+--   The customer's claim about how this identity was established, in the customer's
+--   vocabulary. 'self_asserted' is a legal value on purpose: recording weak assurance
+--   honestly is worth more than refusing to record it and losing the signer entirely.
+--
+-- separated_at
+--   A person who has left is not deleted. Their signatures remain valid for the period
+--   they were live, and the gate can tell the difference.
+
+CREATE TABLE {{ binding.schema }}.person (
+  signer_sub           STRING NOT NULL,
+  effective_from       TIMESTAMPTZ NOT NULL,
+  org                  STRING NOT NULL,
+  rank                 INT2 NOT NULL,
+  competency_source_id UUID NOT NULL,
+  competency_sha256    BYTES NOT NULL,
+  competency_snapshot  JSONB NOT NULL,
+  identity_source      STRING NOT NULL,
+  enrolment_assurance  STRING NOT NULL,
+  separated_at         TIMESTAMPTZ NULL,
+  CONSTRAINT person_rank_range CHECK (rank BETWEEN 1 AND 9),
+  CONSTRAINT person_assurance_known
+    CHECK (enrolment_assurance IN ('self_asserted', 'in_person_verified', 'hr_system_of_record')),
+  CONSTRAINT person_digest_sized CHECK (length(competency_sha256) = 32),
+  CONSTRAINT pk_person PRIMARY KEY (signer_sub, effective_from DESC)
+);
+-- @file 0022_signing_credential.sql
+{{ header(file='0022_signing_credential.sql',
+          title='CREATE TABLE ' ~ binding.schema ~ '.signing_credential — enrolled, append-only, ledger-anchored',
+          rationale='The public key is published in the custody ledger at enrolment, so verification of an old signature never depends on this table still holding the key, and revocation never reaches backwards. A shared crew tablet is permitted only with a roaming authenticator: a platform passkey on a shared device is an identity belonging to the device, and the attachment column is what lets enrolment refuse it.',
+          mi=['MI27'], i=['I09']) }}
+--
+-- The partial index is NOT declared inline here. It is migration 0023, one statement
+-- per file, so that a failed index build is a diagnosable version rather than a
+-- half-created table.
+--
+-- last_sign_count is the WebAuthn signature counter. It goes up or the authenticator
+-- has been cloned; the check belongs to the service that verifies an assertion, and the
+-- column exists so that service has somewhere to compare against.
+
+CREATE TABLE {{ binding.schema }}.signing_credential (
+  credential_id       BYTES NOT NULL,
+  signer_sub          STRING NOT NULL,
+  public_key_cose     BYTES NOT NULL,
+  aaguid              BYTES NOT NULL,
+  transports          STRING[] NOT NULL,
+  attachment          STRING NOT NULL,
+  enrolled_at         TIMESTAMPTZ NOT NULL DEFAULT now(),
+  enrolment_assurance STRING NOT NULL,
+  last_sign_count     INT8 NOT NULL DEFAULT 0,
+  revoked_at          TIMESTAMPTZ NULL,
+  revoke_reason       STRING NULL,
+  CONSTRAINT credential_attachment_known
+    CHECK (attachment IN ('cross-platform', 'platform')),
+  CONSTRAINT credential_revocation_reasoned
+    CHECK ((revoked_at IS NULL) = (revoke_reason IS NULL)),
+  CONSTRAINT credential_sign_count_nonneg CHECK (last_sign_count >= 0),
+  CONSTRAINT pk_signing_credential PRIMARY KEY (credential_id)
+);
+-- @file 0023_signing_credential_index.sql
+{{ header(file='0023_signing_credential_index.sql',
+          title='CREATE INDEX signing_credential_by_signer — live credentials only',
+          rationale='Partial on revoked_at IS NULL. The lookup the signing path performs is which credentials may this person sign with NOW, and a revoked key must never be a candidate; the revoked rows stay in the table forever because a 2029 signature must still verify in 2036. Naming the index for its table rather than by_signer keeps exhibit names unique schema-wide.',
+          mi=['MI27'], i=['I09']) }}
+
+CREATE INDEX signing_credential_by_signer
+  ON {{ binding.schema }}.signing_credential (signer_sub)
+  WHERE revoked_at IS NULL;

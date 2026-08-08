@@ -1,0 +1,24 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: Apache-2.0
+--
+-- TRAPPOINT_REF · 0004_schema_qa.sql
+-- CREATE SCHEMA trappoint_ref_qa — per-named-person views. NO MCP ACCOUNT, EVER (finding S14)
+--
+-- MI: MI27
+-- I: I15
+-- COUNSEL-GATED: no
+-- RATIONALE: A machine statement about a named person is an allegation until a human adopts
+--            it. These views are the only place such a statement is readable, they are
+--            granted to one role, and that role is never an MCP identity. The schema
+--            boundary is what makes never checkable.
+--
+-- @rendered-by  trappoint render
+-- @template     packages/trappoint-sql/templates/0001_schemas.sql.j2
+-- @binding      packages/trappoint-sql/refvertical/vertical.toml
+-- DO NOT EDIT. `trappoint render --check` is a zero-diff assertion in CI, so a
+-- hand edit here is a red build, not a silent divergence.
+--
+-- Zone: qa · derived as <schema>_qa
+-- from the single name `trappoint_ref` declared in packages/trappoint-sql/refvertical/vertical.toml.
+
+CREATE SCHEMA IF NOT EXISTS trappoint_ref_qa;

@@ -1,0 +1,116 @@
+{# SPDX-FileCopyrightText: 2026 MAINLINE contributors #}
+{# SPDX-License-Identifier: Apache-2.0 #}
+{#
+  Migration 0018a/0018b — THE CLEARANCE LATTICE (ARCHITECTURE.md §5.0, §18).
+
+  The hardest constraint in the schema, and the one the product is named after. The
+  legal set of clearing verdicts is a function of ANCESTRAL severity — held in
+  versioned data the customer signs, not in code we ship.
+
+  `disposition` composite-foreign-keys to this table and `virulence` is projected onto
+  the disposition from the blame closure by a trigger. The consequence is the sentence
+  the company is built on: THERE IS NO DISPOSITION CONSTRUCTOR THAT DISMISSES A CONTROL
+  WRITTEN BY A FATALITY. Signing one is not a warning and not a flagged event — it is
+  23503, for every writer, including a DBA and including the MCP insert path.
+
+  THREE CELLS ARE DELIBERATELY ABSENT and each is named in 0018b. Absence is the
+  mechanism: a missing row in a foreign-key target is a refusal that no application
+  change can route around, and the refusal names this table.
+
+  Seed timestamps are a FIXED LITERAL, never now(). The schema-plus-seed fingerprint is
+  an environment-parity gate, and a fingerprint that changes because the clock moved is
+  a fingerprint that gets ignored. The value in `approved_by_sub` is 'SEED' precisely so
+  that the row is visibly un-signed until a named officer of the CUSTOMER replaces it.
+#}
+{% set approved_at = "TIMESTAMPTZ '2026-08-05T00:00:00Z'" %}
+{% set policy_version = 'cl-1.0' %}
+{% set lattice = [
+  ('routine',     'applied',            false, false, false, false, false, 1, 'NULL'),
+  ('routine',     'mitigated',          true,  false, false, false, false, 1, 'NULL'),
+  ('routine',     'mechanism_absent',   false, false, false, true,  false, 1, 'NULL'),
+  ('routine',     'escalated',          false, true,  false, false, false, 1, 'NULL'),
+  ('routine',     'accept_residual',    false, false, false, false, false, 2, '4380'),
+  ('routine',     'emergency_override', false, true,  false, false, false, 3, '24'),
+  ('serious',     'applied',            false, false, false, false, false, 2, 'NULL'),
+  ('serious',     'mitigated',          true,  false, false, false, false, 2, 'NULL'),
+  ('serious',     'mechanism_absent',   false, false, false, true,  true,  3, 'NULL'),
+  ('serious',     'escalated',          false, true,  false, false, false, 2, 'NULL'),
+  ('serious',     'accept_residual',    false, true,  false, false, true,  4, '2190'),
+  ('serious',     'emergency_override', false, true,  true,  false, false, 4, '24'),
+  ('blood_major', 'applied',            false, false, false, false, false, 3, 'NULL'),
+  ('blood_major', 'mitigated',          true,  true,  false, false, false, 3, 'NULL'),
+  ('blood_major', 'mechanism_absent',   false, true,  true,  true,  true,  4, 'NULL'),
+  ('blood_major', 'escalated',          false, true,  false, false, false, 3, 'NULL'),
+  ('blood_major', 'emergency_override', false, true,  true,  false, false, 5, '12'),
+  ('blood_fatal', 'applied',            false, false, false, false, false, 4, 'NULL'),
+  ('blood_fatal', 'mitigated',          true,  true,  true,  false, false, 4, 'NULL'),
+  ('blood_fatal', 'escalated',          false, true,  false, false, false, 4, 'NULL'),
+  ('blood_fatal', 'emergency_override', false, true,  true,  false, false, 6, '12'),
+] %}
+-- @file 0018a_clearance_legal.sql
+{{ header(file='0018a_clearance_legal.sql',
+          title='CREATE TABLE ' ~ binding.schema ~ '.clearance_legal — the typed clearance lattice',
+          rationale='The legal set of clearing verdicts is a function of ancestral severity, and it is versioned data with a named approver rather than code. That is what makes disagreeing with it an amendment carrying a signature instead of a pull request. A disposition composite-foreign-keys here, so a verdict outside the lattice is 23503 naming this table, for every writer.',
+          mi=['MI11'], i=['I10']) }}
+--
+-- The primary key IS the mechanism. (virulence, kind) is the foreign-key target a
+-- disposition points at, so a cell that does not exist is a verdict that cannot be
+-- recorded — not a verdict that is recorded and flagged.
+--
+-- min_signer_rank is a floor, not a suggestion: the disposition projects the signer's
+-- LIVE rank from `person` and compares it here, so a client that supplies its own rank
+-- is overwritten before the comparison happens.
+--
+-- max_ttl_hours NULL means the verdict does not expire. A non-NULL value means bounded,
+-- and bounded means bounded: the expiry is enforced, not merely present.
+
+CREATE TABLE {{ binding.schema }}.clearance_legal (
+  virulence          {{ binding.schema }}.virulence_class NOT NULL,
+  kind               {{ binding.schema }}.disposition_kind NOT NULL,
+  req_compensating   BOOL NOT NULL DEFAULT false,
+  req_second_signer  BOOL NOT NULL DEFAULT false,
+  req_foreign_org    BOOL NOT NULL DEFAULT false,
+  req_predicate      BOOL NOT NULL DEFAULT false,
+  req_reassert       BOOL NOT NULL DEFAULT false,
+  min_signer_rank    INT2 NOT NULL DEFAULT 1,
+  max_ttl_hours      INT4 NULL,
+  policy_version     STRING NOT NULL,
+  approved_by_sub    STRING NOT NULL,
+  approved_at        TIMESTAMPTZ NOT NULL,
+  CONSTRAINT clearance_rank_range CHECK (min_signer_rank BETWEEN 1 AND 9),
+  CONSTRAINT clearance_ttl_positive CHECK (max_ttl_hours IS NULL OR max_ttl_hours > 0),
+  CONSTRAINT pk_clearance_legal PRIMARY KEY (virulence, kind)
+);
+-- @file 0018b_clearance_legal_seed.sql
+{{ header(file='0018b_clearance_legal_seed.sql',
+          title='SEED ' ~ binding.schema ~ '.clearance_legal — ' ~ (lattice | length) ~ ' rows, three cells deliberately absent',
+          rationale='Twenty-one rows out of a twenty-four cell product. The three that are missing are the product: a missing row in a foreign-key target refuses, and the refusal names this table rather than an application rule. approved_by_sub is SEED so that every row is visibly awaiting a named officer of the customer, and approved_at is a fixed literal so the schema-and-seed fingerprint is an environment-parity gate rather than a clock reading.',
+          mi=['MI11'], i=['I10']) }}
+--
+-- DELIBERATELY ABSENT — three cells, each named, each for its own reason:
+--
+--   (blood_fatal, mechanism_absent)
+--       There is no such thing as a control written by a fatality whose mechanism is
+--       absent. If the mechanism has genuinely gone, the clause is retired through a
+--       change request that inherits the same ancestry — not dismissed on a permit.
+--
+--   (blood_fatal, accept_residual)
+--       Accepting residual risk on a control a death wrote is the exhibit that ends the
+--       argument. There is no rank, no countersignature and no expiry that makes this
+--       cell legal, so it is not a stricter row: it is no row.
+--
+--   (blood_major, accept_residual)
+--       The one a customer may reasonably contest. It is versioned data with a named
+--       approver, so contesting it is an amendment with a signature rather than a code
+--       change — which is exactly the property this table exists to have.
+--
+-- Every absent cell fails as 23503 on the composite foreign key from `disposition`,
+-- with the constraint name attached. The constraint name is the exhibit.
+
+INSERT INTO {{ binding.schema }}.clearance_legal
+  (virulence, kind, req_compensating, req_second_signer, req_foreign_org,
+   req_predicate, req_reassert, min_signer_rank, max_ttl_hours, policy_version,
+   approved_by_sub, approved_at) VALUES
+{% for row in lattice %}
+  ('{{ row[0] }}', '{{ row[1] }}', {{ 'true ' if row[2] else 'false' }}, {{ 'true ' if row[3] else 'false' }}, {{ 'true ' if row[4] else 'false' }}, {{ 'true ' if row[5] else 'false' }}, {{ 'true ' if row[6] else 'false' }}, {{ row[7] }}, {{ row[8] }}, '{{ policy_version }}', 'SEED', {{ approved_at }}){{ ';' if loop.last else ',' }}
+{% endfor %}

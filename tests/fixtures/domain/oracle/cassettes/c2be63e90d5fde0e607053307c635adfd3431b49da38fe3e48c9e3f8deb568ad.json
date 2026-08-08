@@ -1,0 +1,24 @@
+{
+  "key": "c2be63e90d5fde0e607053307c635adfd3431b49da38fe3e48c9e3f8deb568ad",
+  "model_id": "claude-opus-5",
+  "prefix_digest": "2cb4672836046540e00d4ad133a9feff50d3faf7b00aaec45ce2f704b506f0e8",
+  "profile_id": "adjudication",
+  "prompt_version": "adjudication.v1+rubric.v1",
+  "provenance": "synthetic",
+  "recorded_at": "2026-08-07T14:58:26.906003+00:00",
+  "response": {
+    "content": [
+      {
+        "text": "{\"relation\": \"neutral\", \"confidence_band\": \"high\", \"numeric_disagreement\": false, \"supporting_quote\": \"the Supervisor shall personally supervise every entry\", \"notes\": \"\"}",
+        "type": "text"
+      }
+    ],
+    "id": "msg_synthetic",
+    "model": "claude-opus-5",
+    "stop_reason": "end_turn",
+    "usage": {
+      "input_tokens": 1800,
+      "output_tokens": 180
+    }
+  }
+}

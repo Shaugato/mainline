@@ -1,0 +1,21 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MAINLINE · 0009c_grant_usage_auditor.sql
+-- GRANT USAGE ON mainline_audit and mainline_meas TO mainline_auditor
+--
+-- MI: MI01
+-- I: I16
+-- COUNSEL-GATED: no
+-- RATIONALE: The MCP identity may name objects in exactly two schemas: the audit views it
+--            reads and the measurement schema holding the single table it may write. It is
+--            granted no USAGE on the business schema at all, so a mistaken table grant
+--            there could not even be exercised.
+--
+-- @rendered-by  trappoint render
+-- @template     packages/trappoint-sql/templates/0006_roles.sql.j2
+-- @binding      verticals/mainline/vertical.toml
+-- DO NOT EDIT. `trappoint render --check` is a zero-diff assertion in CI, so a
+-- hand edit here is a red build, not a silent divergence.
+
+GRANT USAGE ON SCHEMA mainline_audit, mainline_meas TO mainline_auditor;

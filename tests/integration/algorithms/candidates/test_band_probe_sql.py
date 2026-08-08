@@ -23,7 +23,7 @@ from __future__ import annotations
 from typing import Any
 
 import pytest
-from _support import SITE, build_corpus
+from _w7_support import SITE, build_corpus
 from mainline_domain.identity.candidates import (
     INSERT_BAND_SQL,
     InMemoryBandIndex,

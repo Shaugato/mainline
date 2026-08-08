@@ -1,0 +1,20 @@
+# CAPTURED FROM A LIVE CLUSTER by tests/integration/recall_index/test_ix02_plan_pgwire.py
+distribution: local
+
+• top-k
+│ order: +column12
+│ k: 12
+│
+└── • render
+    │
+    └── • filter
+        │ filter: ((site_id = '5f4f8a94-b8f1-4d07-ab57-709f4cb09e97') AND (scope_id = '2d8f9695-2bc9-43ad-bfae-72fd42d9beff')) AND (facet >= 'a')
+        │
+        └── • scan
+              missing stats
+              table: event_cue_embedding@event_cue_embedding_pk
+              spans: FULL SCAN
+
+index recommendations: 1
+1. type: index creation
+   SQL command: CREATE INDEX ON mainline_recall_index_fc5e93747e.mainline.event_cue_embedding (site_id, scope_id, facet) STORING (emb);

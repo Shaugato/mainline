@@ -1,0 +1,24 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MAINLINE · 0004_schema_qa.sql
+-- CREATE SCHEMA mainline_qa — per-named-person views. NO MCP ACCOUNT, EVER (finding S14)
+--
+-- MI: MI27
+-- I: I15
+-- COUNSEL-GATED: no
+-- RATIONALE: A machine statement about a named person is an allegation until a human adopts
+--            it. These views are the only place such a statement is readable, they are
+--            granted to one role, and that role is never an MCP identity. The schema
+--            boundary is what makes never checkable.
+--
+-- @rendered-by  trappoint render
+-- @template     packages/trappoint-sql/templates/0001_schemas.sql.j2
+-- @binding      verticals/mainline/vertical.toml
+-- DO NOT EDIT. `trappoint render --check` is a zero-diff assertion in CI, so a
+-- hand edit here is a red build, not a silent divergence.
+--
+-- Zone: qa · derived as <schema>_qa
+-- from the single name `mainline` declared in verticals/mainline/vertical.toml.
+
+CREATE SCHEMA IF NOT EXISTS mainline_qa;

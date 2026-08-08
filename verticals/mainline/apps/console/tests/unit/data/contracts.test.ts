@@ -36,7 +36,7 @@ function flatten(value: Json, pointer = '', out = new Map<string, string>()): Ma
     out.set(pointer, `array(${value.length})`);
     value.forEach((item, index) => flatten(item, `${pointer}/${index}`, out));
   } else if (typeof value === 'object' && value !== null) {
-    const keys = Object.keys(value as Record<string, Json>).sort();
+    const keys = Object.keys(value).sort();
     out.set(pointer, `object(${keys.join(',')})`);
     for (const key of keys) {
       const escaped = key.replace(/~/g, '~0').replace(/\//g, '~1');

@@ -1,0 +1,68 @@
+{# SPDX-FileCopyrightText: 2026 MAINLINE contributors #}
+{# SPDX-License-Identifier: Apache-2.0 #}
+{#
+  Migration 0017a/0017b — the legal state transitions, AS QUERYABLE DATA
+  (ARCHITECTURE.md §5.0, §18; ruling D7 for the letter suffix).
+
+  The point of this table is one sentence: an illegal transition is 23503, not an
+  if-statement someone can delete. A state machine written in application code stops
+  applying the moment a second writer appears — an operator with a psql session, a
+  Lambda, a restored backup being fixed up by hand. A state machine written as a
+  foreign-key target applies to every writer, forever, including the DBA.
+
+  The edge set is IDENTICAL for both subject kinds (finding S16). That identity is the
+  claim: the change request is a gated subject in exactly the sense the permit is, and
+  writing the two edge sets separately would let them drift into two different claims.
+
+  0017a creates the table; 0017b seeds it. Two files because one DDL statement per file
+  is not negotiable, and because a seed that fails must not leave a CREATE TABLE in a
+  half-applied state that nobody can diagnose.
+#}
+{% set edges = [
+     ('draft',               'checks_materialised', 'a subject becomes gated when its precursors are materialised'),
+     ('draft',               'abandoned',           'the only exit that skips the gate, and it merges nothing'),
+     ('checks_materialised', 'checks_materialised', 're-materialisation: a new precursor arrives, the epoch bumps'),
+     ('checks_materialised', 'dispositioned',       'every open obligation now carries a signed disposition'),
+     ('dispositioned',       'checks_materialised', 'a precursor arrived after disposition; the gate re-opens'),
+     ('dispositioned',       'merged',              'THE TRANSITION THE DATABASE DEFENDS'),
+     ('merged',              'suspended',           'a merged subject can be stopped; it is never un-merged'),
+     ('merged',              'closed',              'the ordinary end of a merged subject'),
+     ('suspended',           'closed',              'a suspended subject closes; it does not return to merged'),
+   ] %}
+-- @file 0017a_subject_transition.sql
+{{ header(file='0017a_subject_transition.sql',
+          title='CREATE TABLE ' ~ binding.schema ~ '.subject_transition — the legal edge set as data',
+          rationale='A transition table is a foreign-key target, and a foreign-key target constrains every writer including the one nobody anticipated. Holding the state machine as data rather than as code is what makes an illegal transition 23503 with a constraint name attached, which is the exhibit; an application-level guard produces a stack trace, which is not.',
+          mi=['MI10'], i=['I04']) }}
+--
+-- Kinds admitted: {% for s in subjects %}{{ s.kind }}{{ ', ' if not loop.last }}{% endfor %} — declared by the binding, not by this template.
+-- Every kind carries the identical edge set (finding S16).
+
+CREATE TABLE {{ binding.schema }}.subject_transition (
+  subject_kind STRING NOT NULL,
+  from_state   {{ binding.schema }}.subject_state NOT NULL,
+  to_state     {{ binding.schema }}.subject_state NOT NULL,
+  CONSTRAINT subject_transition_kind_known
+    CHECK (subject_kind IN ({% for s in subjects %}'{{ s.kind }}'{{ ', ' if not loop.last }}{% endfor %})),
+  CONSTRAINT pk_subject_transition PRIMARY KEY (subject_kind, from_state, to_state)
+);
+-- @file 0017b_subject_transition_seed.sql
+{{ header(file='0017b_subject_transition_seed.sql',
+          title='SEED ' ~ binding.schema ~ '.subject_transition — ' ~ (edges | length) ~ ' edges for each of ' ~ (subjects | length) ~ ' kinds',
+          rationale='Seeded as one statement so the edge set is atomic: a partially seeded transition table refuses legal transitions and admits nothing illegal, which is the failure mode hardest to notice because everything still looks safe. The absent edges matter as much as the present ones.',
+          mi=['MI10'], i=['I04']) }}
+--
+-- ABSENT AND DELIBERATE:
+--   * nothing transitions INTO draft. A subject is drafted once.
+--   * merged has no outward edge to checks_materialised or dispositioned. A merged
+--     subject cannot re-enter the gate, which is the state-machine half of the epoch
+--     pin: no obligation may be attached to a completed transition.
+--   * closed and abandoned are terminal.
+
+INSERT INTO {{ binding.schema }}.subject_transition (subject_kind, from_state, to_state) VALUES
+{% for s in subjects %}
+{% set outer = loop %}
+{% for e in edges %}
+  ('{{ s.kind }}', '{{ e[0] }}', '{{ e[1] }}'){{ ';' if (loop.last and outer.last) else ',' }}   -- {{ e[2] }}
+{% endfor %}
+{% endfor %}

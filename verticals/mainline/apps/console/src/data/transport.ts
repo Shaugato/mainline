@@ -199,7 +199,7 @@ export function finishExchange<T>(
     );
   }
 
-  const envelope = parsed as unknown as ReadEnvelopeShape;
+  const envelope = parsed as ReadEnvelopeShape;
 
   if (envelope.resource !== request.resource.key) {
     throw new TransportError(
@@ -362,7 +362,7 @@ export class HttpTransport implements MainlineTransport {
 function looksLikeEnvelope(text: string): boolean {
   try {
     const parsed: unknown = JSON.parse(text);
-    return isRecord(parsed) && parsed['envelope_version'] === 1;
+    return isRecord(parsed) && parsed.envelope_version === 1;
   } catch {
     return false;
   }

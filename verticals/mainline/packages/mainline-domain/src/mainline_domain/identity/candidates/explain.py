@@ -57,6 +57,7 @@ from typing import Final
 __all__ = [
     "EMPTY_SPAN_RENDERINGS",
     "FULL_SCAN_MARKER",
+    "INDEX_REFUSED_SQLSTATE",
     "VECTOR_SEARCH_NODE",
     "ArmPlanAssertion",
     "PlanNode",
@@ -64,6 +65,23 @@ __all__ = [
     "assert_arm_set_plans",
     "parse_plan",
 ]
+
+INDEX_REFUSED_SQLSTATE: Final[str] = "42809"
+"""What CockroachDB returns when a **pinned** ``@ce_ann`` arm breaks the prefix rule.
+
+Measured on a local CockroachDB v26.2.5 node on 2026-08-08 at 6,000 rows::
+
+    index "ce_ann" cannot be used for this query
+
+raised for ``activity_root >= $2`` and for a missing prefix predicate alike.
+This is the reason :mod:`~.semantic` pins the index rather than trusting the
+optimiser: on the pinned form a violation of the prefix rule is a *refusal*,
+and only on the unhinted form is it a silent ``spans: FULL SCAN``.
+
+The plan assertion below is kept beside the refusal rather than replaced by it.
+The refusal covers the statements this package generates today; the assertion
+covers whatever a future edit generates, including an unhinted one.
+"""
 
 VECTOR_SEARCH_NODE: Final[str] = "vector search"
 """The node type CockroachDB prints for a prefix-constrained ANN lookup."""

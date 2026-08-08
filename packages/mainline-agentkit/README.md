@@ -82,10 +82,51 @@ failed import.
 
 ---
 
+## Start-up: nothing serves until residency has been asserted
+
+§10.1 states the residency control in three layers, and the **first** one is *"an `au.*`-prefix
+assertion at process start-up"*. `runtime.py` is that layer. It resolves the inference profile,
+asserts it, pins it, and only then serves; the ARN is never written down in our source, and
+`tests/test_runtime.py` asserts that no ARN literal appears in the module at all.
+
+```python
+from mainline_agentkit import boot_runtime, current_runtime
+
+boot_runtime()  # resolves via bedrock:ListInferenceProfiles, asserts au.*
+runtime = current_runtime()
+validated = runtime.call(TRIAGE, untrusted, trusted_context)
+row = runtime.provenance(validated)  # run id + pinned ARN + input/output digests, one row
+```
+
+| Refused at boot | Because |
+|---|---|
+| a `global.*`/`apac.*` profile, or a bare foundation-model id | it routes outside Australia, or bypasses the ARNs the endpoint policy enumerates |
+| no `au.*` profile for this generation | AR-2: ship the previous generation and say so — a data change, never a code change |
+| a declared ARN that disagrees with the control plane | a deploy-time pin nobody can trust is worse than no pin |
+| a register spanning two model generations | A4: one record pins one ARN, so two generations cannot both be true of it |
+| an offline replay that names no profile at all | a replay that cannot name what it replays cannot carry its provenance either |
+| a replay claiming an ARN the cassettes were never recorded against | it would put a false ARN into every provenance row the process writes |
+
+**A start-up refusal latches.** Every later call — including another `boot_runtime()` — is
+refused with the original reason until `shutdown_runtime(force=True)` clears it, because a
+retry loop around a residency refusal is how a residency refusal becomes a warning.
+
+**A call cannot go through a profile the run record did not pin**, including a profile whose id
+is registered but whose prompt bytes were edited at the call site. That is decision A13 —
+*a prompt edit is a commit, not a call-site argument* — enforced rather than documented.
+
+The run record supplies the four `agent_identity` components this package knows
+(`prompt_version`, `model_id`, `inference_profile_arn`, `schema_version`) through
+`identity_components()`, and deliberately **does not hash them**: `mainline-provenance` owns the
+formula, and two implementations of one digest is one implementation too many.
+
+---
+
 ## What each module is for
 
 | Module | The decision it implements |
 |---|---|
+| `runtime.py` | §10.1 layer 1: resolve at start-up, assert `au.*`, pin the run record, refuse to serve otherwise |
 | `call.py` | The zero-tool call shape, the one-retry-then-dead-letter rule, `warm_then_fanout` |
 | `transport.py` | A3: `bedrock-runtime` `InvokeModel`, Anthropic native body, `au.*` profile ARNs resolved at start-up. A6: the sampling-parameter ban |
 | `schema.py` | A7: Pydantic → Bedrock-legal JSON Schema, stripped keywords re-imposed client-side |
@@ -126,7 +167,7 @@ Everything runs **with no AWS account and no network**. The cassette provider is
 default.
 
 ```bash
-uv run --package mainline-agentkit pytest packages/mainline-agentkit   # 104 tests
+uv run --package mainline-agentkit pytest packages/mainline-agentkit   # 129 tests
 cd packages/mainline-agentkit && mypy && ruff check . && ruff format --check .
 python packages/mainline-agentkit/tests/make_cassettes.py              # re-record
 ```
@@ -138,6 +179,7 @@ python packages/mainline-agentkit/tests/make_cassettes.py              # re-reco
 | `MAINLINE_CASSETTE_DIR` | unset | Where recorded interactions live |
 | `MAINLINE_CASSETTE_MODE` | `replay` | `replay` or `record` |
 | `MAINLINE_BEDROCK_REGION` | `ap-southeast-2` | Where the `au.*` profiles are |
+| `MAINLINE_INFERENCE_PROFILE_ARN` | unset | The profile an **offline** run declares it is replaying. Cross-checked against the cassettes |
 | `MAINLINE_AR1_FALLBACK` | unset | The AR-1 tool-form switch. Off |
 | `MAINLINE_WARM_TIMEOUT_S` | `30` | Fan-out warming budget |
 

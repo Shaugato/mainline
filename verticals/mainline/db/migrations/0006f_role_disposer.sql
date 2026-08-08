@@ -1,0 +1,24 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MAINLINE · 0006f_role_disposer.sql
+-- CREATE ROLE svc_disposition — the disposer slot
+--
+-- MI: MI08
+-- I: I10
+-- COUNSEL-GATED: no
+-- RATIONALE: the only role that disposes of an obligation, and never the role that
+--            materialised it. IF NOT EXISTS because a role is cluster state, not schema
+--            state: a restore does not carry it, two verticals on one cluster legitimately
+--            share the agent roles, and re-asserting one must never be an error.
+--
+-- @rendered-by  trappoint render
+-- @template     packages/trappoint-sql/templates/0006_roles.sql.j2
+-- @binding      verticals/mainline/vertical.toml
+-- DO NOT EDIT. `trappoint render --check` is a zero-diff assertion in CI, so a
+-- hand edit here is a red build, not a silent divergence.
+--
+-- Slot         disposer
+-- Name         svc_disposition   (overridable in [roles] of the binding)
+
+CREATE ROLE IF NOT EXISTS svc_disposition;

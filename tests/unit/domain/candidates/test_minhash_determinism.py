@@ -13,12 +13,23 @@ different signature on every run — and *the code looks fine*, because within o
 process it is perfectly self-consistent.  The only way to catch it is to compute
 the signature in a **second interpreter, with a different PYTHONHASHSEED**, and
 compare.  That is what this file does.
+
+The exit criterion also says *and across a fresh venv*.  A venv is the weak form
+of that claim, so this file asserts the strong one where the machine can: the
+signature is recomputed by a **different CPython installation entirely**, in
+isolated mode (``-I``), which ignores ``PYTHONPATH``, ``PYTHONHOME``, the user
+site directory and every environment variable Python reads.  Nothing is on that
+interpreter's path except the standard library and the one ``src`` directory the
+child is handed — which is exactly the situation an opposing expert reproducing a
+signature in five years is in.  When no second interpreter is installed the test
+**skips with a reason naming what was missing**; it never passes vacuously.
 """
 
 from __future__ import annotations
 
 import json
 import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -89,6 +100,127 @@ def test_signature_is_identical_in_two_interpreter_processes() -> None:
         "signature — something in the hash path is process-salted"
     )
     assert first["bands"] == second["bands"] == list(band_hashes(tuple(local)))
+
+
+#: Interpreters worth trying for the cross-installation check, most specific
+#: first.  Nothing here is required to exist; the test skips when none does.
+_OTHER_INTERPRETERS: tuple[str, ...] = (
+    "python3.14",
+    "python3.13",
+    "python3.12",
+    "python3",
+    "python",
+)
+
+
+def _foreign_interpreter() -> tuple[str, str] | None:
+    """An interpreter that is a *different installation* from the running one.
+
+    Returns ``(path, version)`` or ``None``.  "Different installation" is decided
+    by ``sys.prefix``, not by the executable path: a venv's ``python`` and the
+    interpreter it was created from share a standard library, so proving
+    determinism between them proves nothing about a fresh environment.
+    """
+    mine = sys.prefix
+    seen: set[str] = set()
+    for name in _OTHER_INTERPRETERS:
+        found = shutil.which(name)
+        if found is None or found in seen:
+            continue
+        seen.add(found)
+        try:
+            probe = subprocess.run(
+                [found, "-I", "-c", "import sys; print(sys.prefix); print(sys.version)"],
+                capture_output=True,
+                text=True,
+                check=True,
+                timeout=60,
+            )
+        except (OSError, subprocess.SubprocessError):
+            continue
+        lines = probe.stdout.strip().splitlines()
+        if len(lines) < 2 or lines[0] == mine:
+            continue
+        return found, lines[1]
+    return None
+
+
+@pytest.mark.slow
+def test_signature_survives_a_different_python_installation_in_isolated_mode() -> None:
+    """The 'fresh venv' half of the exit criterion, in its strong form.
+
+    ``-I`` is what makes this a real environment claim rather than a subprocess
+    claim: the child ignores ``PYTHONPATH``, ``PYTHONHOME``, ``PYTHONHASHSEED``
+    and the user site directory, so the only inputs are its own standard library
+    and the committed permutation table.
+    """
+    foreign = _foreign_interpreter()
+    if foreign is None:
+        pytest.skip(
+            "no second CPython installation found on PATH (tried "
+            + ", ".join(_OTHER_INTERPRETERS)
+            + "); the cross-installation half of the determinism claim is UNVERIFIED "
+            "on this machine. The two-process, two-hash-seed half still ran."
+        )
+    executable, version = foreign
+    completed = subprocess.run(
+        [executable, "-I", "-c", _CHILD, str(SRC), CLAUSE],
+        capture_output=True,
+        text=True,
+        check=True,
+        timeout=90,
+    )
+    payload = json.loads(completed.stdout.strip().splitlines()[-1])
+
+    assert payload["signature"] == list(signature(CLAUSE)), (
+        f"a different CPython installation ({version.split()[0]}, isolated mode) "
+        f"produced a different MinHash signature; the committed permutation table "
+        f"does not reproduce and every refusal downstream of it is unfalsifiable"
+    )
+    assert payload["bands"] == list(band_hashes(signature(CLAUSE)))
+
+
+_IMPORT_PROBE = """
+import json, sys
+sys.path.insert(0, sys.argv[1])
+import mainline_domain.identity.candidates as pkg
+sig = pkg.signature(sys.argv[2])
+bands = pkg.band_hashes(sig)
+print(json.dumps({
+    "third_party": sorted(
+        m for m in sys.modules
+        if m.split(".")[0] in {"rapidfuzz", "numpy", "scipy", "pint", "psycopg"}
+    ),
+    "signature": list(sig),
+}))
+"""
+
+
+@pytest.mark.slow
+def test_computing_a_signature_imports_no_third_party_package() -> None:
+    """The import boundary, asserted rather than described.
+
+    The whole reason a signature is reproducible from committed bytes is that
+    computing one needs the standard library and the committed permutation table
+    and nothing else.  ``rapidfuzz`` **is** installed in the interpreter running
+    this test, so a pass here is evidence of deferral rather than of absence:
+    the child imports the package, computes a signature and its band hashes, and
+    the third-party modules are still not in ``sys.modules``.
+    """
+    completed = subprocess.run(
+        [sys.executable, "-c", _IMPORT_PROBE, str(SRC), CLAUSE],
+        capture_output=True,
+        text=True,
+        check=True,
+        timeout=90,
+    )
+    payload = json.loads(completed.stdout.strip().splitlines()[-1])
+    assert payload["third_party"] == [], (
+        "importing the candidate cascade and computing a signature pulled in "
+        f"{payload['third_party']} — a MinHash signature must be reproducible from "
+        "committed bytes, not from committed bytes plus whatever a wheel contains"
+    )
+    assert payload["signature"] == list(signature(CLAUSE))
 
 
 @pytest.mark.slow

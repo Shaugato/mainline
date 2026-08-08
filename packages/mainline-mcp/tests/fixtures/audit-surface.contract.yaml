@@ -1,0 +1,173 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# REFERENCE COPY — NOT THE CONTRACT.
+#
+# The contract of record is `spec/mcp/audit-surface.contract.yaml`, owned by the
+# fleet-contracts worker and implemented as DDL by the data-model lead (decision A12:
+# two leads cannot own one migration band). This file is a transcription of
+# ARCHITECTURE.md §17 used by this package's own tests, so that the loader, the budget
+# prober and the auditor persona are all exercised on a machine with no cluster, no
+# credential, and possibly no contract file yet.
+#
+# `tests/test_catalogue.py::test_reference_fixture_matches_architecture` asserts this
+# file names exactly the thirteen views §17 names. If the contract of record diverges
+# from §17, that test does not notice — `Catalogue.divergence_from_architecture()` and
+# `tests/integration/mcp/test_audit_surface.py` are what notice.
+#
+# On truncation flags: §17 requires each view to carry `ancestry_complete` "or an
+# equivalent truncation flag". Only two views carry a boolean where FALSE means
+# "incomplete", which is the semantic this package's `truncation_flag` field means, so
+# only those two declare one. `v_blame_coverage` reports `truncated_closures` as a
+# COUNT and `v_recall_conservation` reports `any_degraded` as an INVERTED boolean;
+# declaring either here would make the prober read them backwards, so neither is
+# declared and both views are recorded as carrying no flag. That is a real gap in the
+# surface and it is written down rather than papered over.
+
+version: 1
+
+defaults:
+  row_cap: 25
+  byte_budget: 8192
+
+views:
+  - name: v_open_gate_summary
+    schema: mainline_audit
+    purpose: What is blocking merges right now, and where.
+    columns:
+      - site_id
+      - state
+      - permits
+      - open_blocking
+      - open_residue
+      - open_conflicts
+      - open_warrants
+      - unmodelled_assets
+      - overrides_30d
+    truncation_flag: null
+
+  - name: v_weakenings_without_disposition
+    schema: mainline_audit
+    purpose: Weakenings and removals of blood-written controls with no live disposition.
+    columns:
+      - site_id
+      - activity_root
+      - sev_max
+      - n
+      - most_recent
+      - ancestry_complete
+    truncation_flag: ancestry_complete
+
+  - name: v_blame_coverage
+    schema: mainline_audit
+    purpose: How complete the blame ancestry is, and where a closure was truncated.
+    columns:
+      - site_id
+      - virulence
+      - clause_versions
+      - truncated_closures
+      - max_depth
+      - max_closure_gen
+      - total_generations
+    truncation_flag: null
+
+  - name: v_disposition_coverage
+    schema: mainline_audit
+    purpose: Surfaced against dispositioned by quarter, and the orphaned checks.
+    columns:
+      - site_id
+      - q
+      - surfaced
+      - dispositioned
+      - orphans
+      - worst_ancestor
+      - ancestry_complete
+    truncation_flag: ancestry_complete
+
+  - name: v_silence_summary
+    schema: mainline_audit
+    purpose: What was declined, and with what arithmetic.
+    columns:
+      - site_id
+      - source
+      - reason
+      - severity
+      - n
+      - mean_score
+      - mean_threshold
+      - nearest_miss
+    truncation_flag: null
+
+  - name: v_recall_conservation
+    schema: mainline_audit
+    purpose: Candidates in, blocking and advisory out, deduped and silenced, per day.
+    columns:
+      - site_id
+      - d
+      - candidates
+      - blocking
+      - advisory
+      - silenced
+      - deduped
+      - any_degraded
+    truncation_flag: null
+
+  - name: v_ledger_health
+    schema: mainline_audit
+    purpose: Checkpoint cadence, admissibility, and open witness debt.
+    columns:
+      - site_code
+      - tree_size
+      - admissible_checkpoints
+      - inadmissible_checkpoints
+      - open_debt
+    truncation_flag: null
+
+  - name: v_fixity_coverage
+    schema: mainline_audit
+    purpose: Patrol completion, and the share of in-scope items never checked at all.
+    columns:
+      - site_id
+      - patrol_class
+      - last_completed
+      - not_checked_ratio
+    truncation_flag: null
+
+  - name: v_agent_actions
+    schema: mainline_audit
+    purpose: Which agent role used which tool, with what outcome, over the last week.
+    columns:
+      - agent_role
+      - tool
+      - outcome
+      - n
+      - last_at
+    truncation_flag: null
+
+  # The ops family. These four exist because the Managed MCP surface cannot reach
+  # `crdb_internal`, so the Steward's stock CockroachDB skills are pointed at
+  # pre-materialised views instead. The platform's limitation, taken seriously, is the
+  # product's ops API.
+  - name: v_gate_latency_daily
+    schema: mainline_audit
+    purpose: Gate transaction latency by day, for the Steward's observability run.
+    columns: [site_id, d, p50_ms, p95_ms, p99_ms, n]
+    truncation_flag: null
+
+  - name: v_txn_restart_daily
+    schema: mainline_audit
+    purpose: Serializable restart counts by day.
+    columns: [site_id, d, restarts, txns, restart_ratio]
+    truncation_flag: null
+
+  - name: v_unused_indexes
+    schema: mainline_audit
+    purpose: Indexes with no reads in the window, for the weekly operations run.
+    columns: [table_name, index_name, last_read, total_reads]
+    truncation_flag: null
+
+  - name: v_changefeed_health
+    schema: mainline_audit
+    purpose: Changefeed liveness and lag, for the nightly observability run.
+    columns: [feed_name, status, high_water_lag_s, last_error_at]
+    truncation_flag: null

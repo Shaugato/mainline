@@ -1,0 +1,25 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: Apache-2.0
+--
+-- TRAPPOINT_REF · 0006c_role_gate.sql
+-- CREATE ROLE tref_gate — the gate slot
+--
+-- MI: MI02
+-- I: I02
+-- COUNSEL-GATED: no
+-- RATIONALE: the kernel's own identity: the only role that materialises an obligation, and
+--            the only writer of the subject state machine. IF NOT EXISTS because a role is
+--            cluster state, not schema state: a restore does not carry it, two verticals on
+--            one cluster legitimately share the agent roles, and re-asserting one must
+--            never be an error.
+--
+-- @rendered-by  trappoint render
+-- @template     packages/trappoint-sql/templates/0006_roles.sql.j2
+-- @binding      packages/trappoint-sql/refvertical/vertical.toml
+-- DO NOT EDIT. `trappoint render --check` is a zero-diff assertion in CI, so a
+-- hand edit here is a red build, not a silent divergence.
+--
+-- Slot         gate
+-- Name         tref_gate   (overridable in [roles] of the binding)
+
+CREATE ROLE IF NOT EXISTS tref_gate;

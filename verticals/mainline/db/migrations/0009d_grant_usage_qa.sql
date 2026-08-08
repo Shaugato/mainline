@@ -1,0 +1,21 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MAINLINE · 0009d_grant_usage_qa.sql
+-- GRANT USAGE ON mainline_qa TO quality_assurance
+--
+-- MI: MI27
+-- I: I15
+-- COUNSEL-GATED: no
+-- RATIONALE: The per-named-person views are readable by one role and that role holds USAGE
+--            on one schema. Finding S14 is the rule that this role is never an MCP
+--            identity; this statement is what makes the blast radius of breaking that rule
+--            exactly one schema.
+--
+-- @rendered-by  trappoint render
+-- @template     packages/trappoint-sql/templates/0006_roles.sql.j2
+-- @binding      verticals/mainline/vertical.toml
+-- DO NOT EDIT. `trappoint render --check` is a zero-diff assertion in CI, so a
+-- hand edit here is a red build, not a silent divergence.
+
+GRANT USAGE ON SCHEMA mainline_qa TO quality_assurance;

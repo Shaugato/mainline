@@ -1,0 +1,24 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MAINLINE · 0001a_schema_mainline.sql
+-- CREATE SCHEMA mainline — the business records: the gated subjects and everything they cite
+--
+-- MI: MI01
+-- I: I01
+-- COUNSEL-GATED: no
+-- RATIONALE: Every evidentiary table in this vertical lives here, and every one of them is
+--            append-only. The schema is the unit that grants, RLS policies and the append-
+--            only trigger family are all scoped to, so it exists before anything it will
+--            contain.
+--
+-- @rendered-by  trappoint render
+-- @template     packages/trappoint-sql/templates/0001_schemas.sql.j2
+-- @binding      verticals/mainline/vertical.toml
+-- DO NOT EDIT. `trappoint render --check` is a zero-diff assertion in CI, so a
+-- hand edit here is a red build, not a silent divergence.
+--
+-- Zone: business · derived as <schema>
+-- from the single name `mainline` declared in verticals/mainline/vertical.toml.
+
+CREATE SCHEMA IF NOT EXISTS mainline;

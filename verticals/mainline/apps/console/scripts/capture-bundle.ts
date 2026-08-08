@@ -95,7 +95,7 @@ function isContent(relPath: string): boolean {
   return !relPath.endsWith('.license') && !relPath.endsWith('.gitattributes') && relPath !== 'REUSE.toml';
 }
 
-const MEDIA_TYPES: ReadonlyArray<readonly [string, string]> = [
+const MEDIA_TYPES: readonly (readonly [string, string])[] = [
   ['.json', 'application/json'],
   ['.txt', 'text/plain; charset=utf-8'],
   ['.note', 'text/plain; charset=utf-8'],

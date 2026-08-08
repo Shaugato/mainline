@@ -59,7 +59,7 @@ stay there until this suite has run green against a real CockroachDB v26.2.
 
 ## The fixture DDL is a mirror, not the migration
 
-`_support.py` creates a *minimal* `mainline.clause_band` /
+`_w7_support.py` creates a *minimal* `mainline.clause_band` /
 `mainline.clause_embedding` / `mainline.clause_version` inside a throwaway
 database. The real migrations live in `verticals/mainline/db/migrations/` and
 belong to the datamodel lead. Two differences are deliberate and are stated in

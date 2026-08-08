@@ -37,6 +37,8 @@ row names the file that would go red.
 | The severity ramp is monotone, single-hue, and still ordered under protanopia and deuteranopia | `tests/unit/design/severity.test.ts` |
 | No EVIDENCE surface reaches `motion` or `@react-three/*`, directly or transitively | `tests/unit/design/register-boundary.test.ts` |
 | The design package itself reaches neither — the hole that would be invisible everywhere else | `tests/unit/design/register-boundary.test.ts` |
+| The **shipped directory law** refuses a planted import in a real evidence directory, with nothing overridden | `tests/unit/design/register-boundary.test.ts` |
+| `eslint.config.js` — the fast half of the boundary — covers every directory the law names | `tests/unit/design/lint-config-agreement.test.ts` |
 | No stylesheet declares a duration over its register's ceiling, or an easing outside the set | `tests/unit/design/motion.test.ts` |
 | No stylesheet uses a colour the contrast gate has never measured | `tests/unit/design/primitives-css.test.ts` |
 | `--tp-ok` — the only green — appears in exactly one declaration block | `tests/unit/design/primitives-css.test.ts` |
@@ -50,7 +52,16 @@ refused anything asserts nothing:
   `motion` and `three`. `register-boundary.test.ts` declares that directory an EVIDENCE
   register and requires exactly those four violations — including the transitive one, which
   is the case ESLint structurally cannot catch. Delete one of those imports and the suite
-  goes red.
+  goes red. (Verified: removing the `motion/react` import fails the named assertion.)
+- Those fixtures prove the *walker* works; they do not prove the *shipped directory law* is
+  right, because they name their own directory. So `register-boundary.test.ts` also injects a
+  module at a path inside a real EVIDENCE directory and passes no options at all —
+  `registerOf()` alone decides — and requires the refusal. Verified red by deleting
+  `src/features/gate` from `EVIDENCE_DIRECTORIES`: four assertions fail, naming the directory.
+  The injection is in memory because those directories belong to other workers and this suite
+  may not write into their trees; the walker reads text out of a `Map` and cannot tell the
+  difference. The same block requires the identical `three` import to be **permitted** inside
+  `render3d/`, so the boundary is a rule rather than a ban.
 - `contrast.test.ts` runs its own machinery over a deliberately illegal pair and requires it
   to fail, and checks the arithmetic against published reference values so that a
   self-consistent-but-wrong implementation cannot pass.
@@ -561,6 +572,20 @@ package and `primitives-css.test.ts` fails if it appears in a second.
    `severity.test.ts` caught it, which is the argument for a property test over a
    plausible-looking constant — every ramp number would otherwise have been wrong and
    self-consistent.
+8. **`eslint.config.js` hand-writes the boundary instead of spreading it.**
+   `src/design/registers.ts` exports `registerBoundaryConfigs()` so the lint config can be
+   generated from the law, and the console-foundation worker's config currently maintains an
+   equivalent copy. `lint-config-agreement.test.ts` refuses the drift that matters — a
+   directory under a register law with no lint rule — and accepts either form, so the copy can
+   be replaced by the spread with no test change. Its one live divergence is recorded rather
+   than asserted away: the copy lists `motion-utils` but not `motion-utils/**`, so a deep
+   subpath import of that package is refused by the module-graph walk in CI rather than by the
+   lint in the editor. One string in a file this package does not own.
+9. **The register law is a *directory* law, so a file in no listed directory is in no
+   register.** That is why `src/design/**` is checked by its own assertion and why
+   `registerOf()` returning `null` is tested explicitly: a mistyped directory name would
+   silently exempt a surface, and an exemption that reads as a clean result is the one failure
+   this whole package is built to make impossible.
 
 ---
 

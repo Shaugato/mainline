@@ -1,0 +1,122 @@
+{# SPDX-FileCopyrightText: 2026 MAINLINE contributors #}
+{# SPDX-License-Identifier: Apache-2.0 #}
+{#
+  Migration band 0006-0009 — roles, ownership and schema-level grants
+  (ARCHITECTURE.md §11.2 role matrix, §18).
+
+  Two properties of §11.2 are unusual and true, and this template is where they become
+  cluster state rather than prose:
+
+    * the role that DETECTS a precursor cannot DISPOSE of it;
+    * the role that CERTIFIES the books has no write path to them.
+
+  A third matters more than it looks: the application role holds no DDL. Without that,
+  a compromised agent could DROP TRIGGER on the merge gate and the central invariant
+  would evaporate with no schema-change record.
+
+  TABLE-LEVEL grants are deliberately NOT here. Every table this vertical will grant on
+  is created in a later band, and a GRANT on a table that does not exist is an error,
+  not a promise. What this band establishes is the FLOOR: nothing is granted to
+  `public`, every schema is owned by a NOLOGIN role nobody can assume, and the only
+  role holding CREATE is the migrator. Table-level privileges are re-asserted
+  idempotently from the binding's declarative grant table after the tables exist.
+
+  `agent_recaller` receives no INSERT anywhere in this band, and the renderer's rule
+  R-1 refuses any rendered statement that would grant it a write privilege on a
+  declared obligation relation. That is finding S1 enforced at compile time.
+#}
+{% set letters = ['a','b','c','d','e','f','g','h','i'] %}
+{% set role_citations = {
+     'migrator':  {'mi': ['MI01'], 'i': ['I01']},
+     'owner':     {'mi': ['MI01'], 'i': ['I01']},
+     'gate':      {'mi': ['MI02'], 'i': ['I02']},
+     'projector': {'mi': ['MI26'], 'i': ['I05']},
+     'recaller':  {'mi': ['MI25'], 'i': ['I13']},
+     'disposer':  {'mi': ['MI08'], 'i': ['I10']},
+     'auditor':   {'mi': ['MI01'], 'i': ['I16']},
+     'reader':    {'mi': ['MI01'], 'i': ['I01']},
+     'qa':        {'mi': ['MI27'], 'i': ['I15']},
+   } %}
+{% for r in roles %}
+{% set c = role_citations[r.slot] %}
+-- @file 0006{{ letters[loop.index0] }}_role_{{ r.slot }}.sql
+{{ header(file='0006' ~ letters[loop.index0] ~ '_role_' ~ r.slot ~ '.sql',
+          title='CREATE ROLE ' ~ r.name ~ ' — the ' ~ r.slot ~ ' slot',
+          rationale=r.purpose ~ '. IF NOT EXISTS because a role is cluster state, not schema state: a restore does not carry it, two verticals on one cluster legitimately share the agent roles, and re-asserting one must never be an error.',
+          mi=c.mi, i=c.i) }}
+--
+-- Slot         {{ r.slot }}
+-- Name         {{ r.name }}{{ '   (overridable in [roles] of the binding)' if r.overridable else '   (derived; vertical.schema.json 1.0 has no [roles] key for this slot)' }}
+{% if r.nologin %}
+-- NOLOGIN      no session may ever authenticate as this role, so no session may ever
+--              exercise the ownership privileges that could drop a gate trigger.
+{% endif %}
+
+CREATE ROLE IF NOT EXISTS {{ r.name }}{{ ' WITH NOLOGIN' if r.nologin else '' }};
+{% endfor %}
+{% for z in zones %}
+-- @file 0007{{ letters[loop.index0] }}_revoke_public_{{ z.zone }}.sql
+{{ header(file='0007' ~ letters[loop.index0] ~ '_revoke_public_' ~ z.zone ~ '.sql',
+          title='REVOKE ALL ON SCHEMA ' ~ z.name ~ ' FROM public',
+          rationale='Nothing is readable or writable by default. Every privilege in this schema is thereafter something a named migration granted to a named role, which is the only condition under which the grant matrix in the architecture is a description of the cluster rather than a wish.',
+          mi=['MI01'], i=['I01']) }}
+
+REVOKE ALL ON SCHEMA {{ z.name }} FROM public;
+{% endfor %}
+{% for z in zones %}
+-- @file 0008{{ letters[loop.index0] }}_owner_{{ z.zone }}.sql
+{{ header(file='0008' ~ letters[loop.index0] ~ '_owner_' ~ z.zone ~ '.sql',
+          title='ALTER SCHEMA ' ~ z.name ~ ' OWNER TO ' ~ role.owner,
+          rationale='Ownership carries the privilege to drop anything in the schema, including the merge-gate triggers. It is therefore parked in a NOLOGIN role that no session can assume: the privilege exists, and no principal holds it. The migrator gets CREATE explicitly and nothing else.',
+          mi=['MI01'], i=['I01']) }}
+
+ALTER SCHEMA {{ z.name }} OWNER TO {{ role.owner }};
+{% endfor %}
+-- @file 0009a_grant_create_migrator.sql
+{{ header(file='0009a_grant_create_migrator.sql',
+          title='GRANT CREATE ON the five schemas TO ' ~ role.migrator,
+          rationale='The one role that holds DDL. It holds no DML on any evidentiary table, so a compromised migrator can change the shape of the record and cannot change the record — and the change of shape is itself a migration row with a checksum in the attestation chain.',
+          mi=['MI01'], i=['I01']) }}
+
+GRANT CREATE ON SCHEMA {% for z in zones %}{{ z.name }}{{ ', ' if not loop.last }}{% endfor %} TO {{ role.migrator }};
+-- @file 0009b_grant_usage_agents.sql
+{{ header(file='0009b_grant_usage_agents.sql',
+          title='GRANT USAGE ON the five schemas TO the agent and service roles',
+          rationale='USAGE on a schema is the right to name an object in it, and nothing more. Every table privilege these roles hold is granted individually after the table exists, so this statement widens no write surface; it makes the later, narrow grants expressible.',
+          mi=['MI02'], i=['I02']) }}
+--
+-- USAGE is not a write. The role that materialises an obligation ({{ role.gate }}) and
+-- the role that disposes of one ({{ role.disposer }}) are different roles here and stay
+-- different roles in every later band. {{ role.recaller }} appears in this list and in
+-- no INSERT anywhere: it proposes candidates over HTTP, and the kernel writes the
+-- obligation row inside the transaction that issues the exposure receipt (finding S1).
+
+GRANT USAGE ON SCHEMA {% for z in zones %}{{ z.name }}{{ ', ' if not loop.last }}{% endfor %} TO {{ role.gate }}, {{ role.projector }}, {{ role.recaller }}, {{ role.disposer }}, {{ role.reader }};
+-- @file 0009c_grant_usage_auditor.sql
+{{ header(file='0009c_grant_usage_auditor.sql',
+          title='GRANT USAGE ON ' ~ zone.audit ~ ' and ' ~ zone.meas ~ ' TO ' ~ role.auditor,
+          rationale='The MCP identity may name objects in exactly two schemas: the audit views it reads and the measurement schema holding the single table it may write. It is granted no USAGE on the business schema at all, so a mistaken table grant there could not even be exercised.',
+          mi=['MI01'], i=['I16']) }}
+
+GRANT USAGE ON SCHEMA {{ zone.audit }}, {{ zone.meas }} TO {{ role.auditor }};
+-- @file 0009d_grant_usage_qa.sql
+{{ header(file='0009d_grant_usage_qa.sql',
+          title='GRANT USAGE ON ' ~ zone.qa ~ ' TO ' ~ role.qa,
+          rationale='The per-named-person views are readable by one role and that role holds USAGE on one schema. Finding S14 is the rule that this role is never an MCP identity; this statement is what makes the blast radius of breaking that rule exactly one schema.',
+          mi=['MI27'], i=['I15']) }}
+
+GRANT USAGE ON SCHEMA {{ zone.qa }} TO {{ role.qa }};
+-- @file 0009e_default_privileges_floor.sql
+{{ header(file='0009e_default_privileges_floor.sql',
+          title='ALTER DEFAULT PRIVILEGES — no future table is granted to public',
+          rationale='Every REVOKE in this band describes the tables that exist today. This statement describes the ones that do not exist yet: a table created later by the owner arrives with no public privilege, so the floor holds for the whole life of the schema rather than for the length of this migration.',
+          mi=['MI01'], i=['I01']) }}
+
+ALTER DEFAULT PRIVILEGES FOR ROLE {{ role.owner }} IN SCHEMA {{ zone.business }} REVOKE ALL ON TABLES FROM public;
+-- @file 0009x_covenant_comment.sql
+{{ header(file='0009x_covenant_comment.sql',
+          title='COMMENT ON SCHEMA ' ~ zone.business ~ ' — the separation covenant, as a queryable object',
+          rationale='The two separations this schema exists to enforce are written into the catalog, so an auditor can read them out of the database instead of out of a design document. A comment enforces nothing; it makes the claim retrievable at the same moment as the objects it constrains, which is what an evidentiary record owes a reader.',
+          mi=['MI25'], i=['I02']) }}
+
+COMMENT ON SCHEMA {{ zone.business }} IS 'TRAPPOINT separation covenant for {{ binding.name }}. 1. The role that detects a precursor may never write one: {{ role.recaller }} holds no INSERT on any obligation relation of this binding, at any point in this schema history. Only {{ role.gate }} materialises an obligation. 2. The role that materialises an obligation may never dispose of it: only {{ role.disposer }} writes a disposition. 3. The role that certifies the books has no write path to them: {{ role.auditor }} holds INSERT on one measurement table and SELECT on the audit views only. Enforced by grants, by trigger, and by RLS, in that order; asserted at render time by rule R-1 and at run time by the conformance suite expecting 42501.';

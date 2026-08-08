@@ -303,7 +303,7 @@ export class BundleTransport implements MainlineTransport {
         validation.errors,
       );
     }
-    const manifest = parsed as unknown as BundleManifest;
+    const manifest = parsed as BundleManifest;
 
     const byPath = new Map<string, BundleFileEntry>();
     for (const entry of manifest.files) {
@@ -390,7 +390,7 @@ export class BundleTransport implements MainlineTransport {
         frameValidation.errors,
       );
     }
-    const frame = parsedFrame as unknown as BundleFrame;
+    const frame = parsedFrame as BundleFrame;
 
     if (frame.key !== resolved.key) {
       throw new TransportError(
@@ -547,8 +547,8 @@ function deepEqual(a: unknown, b: unknown): boolean {
     return a.every((item, index) => deepEqual(item, b[index]));
   }
   if (typeof a === 'object' && typeof b === 'object') {
-    const aKeys = Object.keys(a as Record<string, unknown>).sort();
-    const bKeys = Object.keys(b as Record<string, unknown>).sort();
+    const aKeys = Object.keys(a).sort();
+    const bKeys = Object.keys(b).sort();
     if (aKeys.length !== bKeys.length || !aKeys.every((key, index) => key === bKeys[index])) {
       return false;
     }

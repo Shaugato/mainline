@@ -1,0 +1,13 @@
+# CAPTURED FROM A LIVE CLUSTER by tests/integration/recall_index/test_ix02_plan_pgwire.py
+distribution: local
+
+• top-k
+│ order: +column12
+│ k: 12
+│
+└── • render
+    │
+    └── • scan
+          missing stats
+          table: event_cue_embedding@event_cue_embedding_pk
+          spans: FULL SCAN

@@ -1,0 +1,21 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MAINLINE · 0009a_grant_create_migrator.sql
+-- GRANT CREATE ON the five schemas TO mainline_migrator
+--
+-- MI: MI01
+-- I: I01
+-- COUNSEL-GATED: no
+-- RATIONALE: The one role that holds DDL. It holds no DML on any evidentiary table, so a
+--            compromised migrator can change the shape of the record and cannot change the
+--            record — and the change of shape is itself a migration row with a checksum in
+--            the attestation chain.
+--
+-- @rendered-by  trappoint render
+-- @template     packages/trappoint-sql/templates/0006_roles.sql.j2
+-- @binding      verticals/mainline/vertical.toml
+-- DO NOT EDIT. `trappoint render --check` is a zero-diff assertion in CI, so a
+-- hand edit here is a red build, not a silent divergence.
+
+GRANT CREATE ON SCHEMA mainline, mainline_meas, mainline_audit, mainline_qa, mainline_ops TO mainline_migrator;

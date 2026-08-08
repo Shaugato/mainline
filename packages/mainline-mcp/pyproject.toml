@@ -1,0 +1,58 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: Apache-2.0
+
+[project]
+name = "mainline-mcp"
+version = "0.1.0"
+description = "A typed client for CockroachDB's Managed MCP Server whose hard limits are types rather than comments, plus the auditor persona, the audit-surface response-budget prober, and the negative reachability probes."
+readme = "README.md"
+requires-python = ">=3.13"
+license = "Apache-2.0"
+authors = [{ name = "MAINLINE contributors" }]
+keywords = ["mcp", "cockroachdb", "audit", "model-context-protocol", "evidence"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Database",
+  "Typing :: Typed",
+]
+
+# Two runtime dependencies, both already in the workspace resolution.
+#
+# `httpx` because the Managed MCP transport is Streamable HTTP: one POST that may
+# answer with either `application/json` or an SSE frame, and a session header that
+# has to survive between calls. `pyyaml` because the audit-surface contract is a
+# YAML file owned by another worker and read here.
+#
+# Deliberately NOT depended on: the `mcp` SDK. This client speaks four JSON-RPC
+# methods to one server and must state a *client-side* refusal for every documented
+# limit before a byte leaves the process; an SDK that transports whatever it is
+# given would move those refusals to the far side of the network, where a truncated
+# answer is indistinguishable from a small one. `packages/trappoint-mcp` (our own
+# server) is where the SDK belongs.
+dependencies = [
+  "httpx>=0.27",
+  "pyyaml>=6.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/Shaugato/mainline"
+
+[dependency-groups]
+dev = ["pytest>=8.2", "types-PyYAML>=6.0", "mypy>=1.11", "ruff>=0.6"]
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mainline_mcp"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "tests", "README.md"]
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+warn_unreachable = true

@@ -34,23 +34,18 @@ import {
   toMap,
 } from '../../../src/design/token-source';
 import tokensCss from '../../../src/design/tokens.css?raw';
+import { componentStylesheets, designStylesheets } from './raw-sources';
+
+/**
+ * Both collections come through `raw-sources.ts`, which throws on an empty glob. These
+ * checks are exhaustive over the stylesheets they are handed, so a glob that matched
+ * nothing would turn every one of them green while covering no CSS.
+ */
 
 /** Component stylesheets only — `tokens.css` DECLARES the palette rather than using it. */
-const COMPONENT_STYLESHEETS = Object.fromEntries(
-  Object.entries(
-    import.meta.glob('/src/design/**/*.css', {
-      query: '?raw',
-      import: 'default',
-      eager: true,
-    }),
-  ).filter(([path]) => !path.endsWith('/tokens.css')),
-);
+const COMPONENT_STYLESHEETS = componentStylesheets();
 
-const ALL_STYLESHEETS = import.meta.glob('/src/design/**/*.css', {
-  query: '?raw',
-  import: 'default',
-  eager: true,
-});
+const ALL_STYLESHEETS = designStylesheets();
 
 const foregroundTokens = new Set(FOREGROUNDS.map((entry) => entry.token));
 const surfaceTokens = new Set(SURFACES);

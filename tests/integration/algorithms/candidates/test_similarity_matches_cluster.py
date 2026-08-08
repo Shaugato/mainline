@@ -72,7 +72,14 @@ def test_the_containment_filter_never_excludes_a_pair_the_floor_would_keep(
             for right in SAMPLES:
                 if trigram_similarity(left, right) < 0.55:
                     continue
-                cur.execute("SELECT %s %% %s", (left, right))
+                # Both operands are cast explicitly.  ``SELECT $1 % $2`` with two
+                # bare placeholders is refused by CockroachDB v26.2.5 with
+                # ``42P18: could not determine data type of placeholder $1`` --
+                # measured, not assumed.  It does not affect ANCHOR_STAGE_SQL,
+                # where the left operand is the ``canon_text`` column and the
+                # placeholder's type is therefore inferable; it affects only a
+                # probe like this one that binds both sides.
+                cur.execute("SELECT %s::STRING %% %s::STRING", (left, right))
                 assert bool(cur.fetchone()[0]), (
                     f"`%` excluded a pair scoring {trigram_similarity(left, right):.3f}, "
                     f"above the 0.55 floor: {left[:24]!r} vs {right[:24]!r}"

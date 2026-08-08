@@ -1,0 +1,75 @@
+{# SPDX-FileCopyrightText: 2026 MAINLINE contributors #}
+{# SPDX-License-Identifier: Apache-2.0 #}
+{#
+  Migration band 0010-0016 — the seven ENUM types (ARCHITECTURE.md §5.0, §18).
+
+  Every value here is a CLOSED SET consumed inside CHECK constraints and composite
+  foreign keys. A typo is permanent: the value is already in a primary key of the
+  clearance lattice and in the state machine's edge table by the time anyone notices,
+  and removing an enum value that a constraint references is not a migration anyone
+  wants to write. So the seven definitions live in one reviewed template rather than in
+  each binding, and both bindings in this repository get byte-identical value lists.
+
+  ⟨K⟩ marks a kernel type a vertical may never redefine; ⟨V⟩ marks a vertical type.
+  Both are rendered for every binding, because the reference vertical exists to prove
+  the substrate end to end and a reference vertical missing three types would prove
+  four sevenths of it.
+
+  IF NOT EXISTS for the same reason as the schemas: a type is namespace scaffolding
+  that a restore may carry without the tables that use it.
+#}
+{% set types = [
+  {'file': '0010_type_control_delta.sql', 'name': 'control_delta', 'owner': 'V',
+   'members': ['introduce','strengthen','restate','weaken','remove'],
+   'title': 'the control lattice',
+   'mi': ['MI23'], 'i': ['I12'],
+   'why': 'The direction a clause moved, and the only axis on which propagation across a fleet is permitted. Only tightenings travel; a weakening is a local decision with a local signature, so the ordering of these five values is what a fleet-propagation CHECK compares against.'},
+  {'file': '0011_type_subject_state.sql', 'name': 'subject_state', 'owner': 'K',
+   'members': ['draft','checks_materialised','dispositioned','merged','suspended','closed','abandoned'],
+   'title': 'the gated-subject state machine alphabet',
+   'mi': ['MI10'], 'i': ['I04'],
+   'why': 'A permit and a change request share ONE alphabet (finding S16). That is what turns the claim from the permit is a protected branch into the repository is a protected branch and the permit is one of its refs. Legal transitions over this alphabet are data in subject_transition, so an illegal transition is 23503 and not an if-statement somebody can delete.'},
+  {'file': '0012_type_disposition_kind.sql', 'name': 'disposition_kind', 'owner': 'K',
+   'members': ['applied','mitigated','mechanism_absent','escalated','accept_residual','emergency_override'],
+   'title': 'the disposition constructors',
+   'mi': ['MI11'], 'i': ['I10'],
+   'why': 'mechanism_absent, never not_applicable. The verdict a signer reaches is a constructor with a name that survives cross-examination, and the legal set of constructors is a function of ancestral severity held in clearance_legal. Renaming one of these values would silently re-open a cell the lattice deliberately leaves empty.'},
+  {'file': '0013_type_virulence_class.sql', 'name': 'virulence_class', 'owner': 'K',
+   'members': ['routine','serious','blood_major','blood_fatal'],
+   'title': 'the ancestral virulence band',
+   'mi': ['MI25'], 'i': ['I02'],
+   'why': 'Derived from BLAME ANCESTRY, never from the changes declared risk. This type is banded exactly once, in the blame closure, and every downstream use is a projection of that banding. The moment a writer can choose its own virulence, the gate is enforcing a claim the writer made about itself.'},
+  {'file': '0014_type_blame_basis.sql', 'name': 'blame_basis', 'owner': 'V',
+   'members': ['asserted_document','asserted_human','derived_documentary','inferred_semantic'],
+   'title': 'the evidential force of a blame edge',
+   'mi': ['MI13'], 'i': ['I11'],
+   'why': 'An inferred link is a claim about the past. Making it block a permit converts every model error directly into a rubber stamp, and rubber stamps are the discoverable exhibit that ends the argument. inferred_semantic is therefore a value the active state can never accompany.'},
+  {'file': '0015_type_blame_state.sql', 'name': 'blame_state', 'owner': 'V',
+   'members': ['active','provisional','dormant','refuted'],
+   'title': 'the lifecycle of a blame edge',
+   'mi': ['MI15'], 'i': ['I05'],
+   'why': 'Only active edges contribute to ancestral severity, and ancestry never shrinks. Retiring an edge is a state transition with a record, not a delete, so the closure that armed a check last year can still be reconstructed this year.'},
+  {'file': '0016_type_prop_state.sql', 'name': 'prop_state', 'owner': 'V',
+   'members': ['proposed','already_present','conflicted','adopted','declined','revoked'],
+   'title': 'fleet propagation state',
+   'mi': ['MI23'], 'i': ['I12'],
+   'why': 'A lesson offered to a sister site is a proposal with a lifecycle, including declined. Recording a decline is what stops fleet propagation from being a broadcast: the sites that said no are part of the record, and their reasons are citable the next time the same lesson arrives.'},
+] %}
+{% for t in types %}
+-- @file {{ t.file }}
+{{ header(file=t.file,
+          title='CREATE TYPE ' ~ binding.schema ~ '.' ~ t.name ~ ' — ' ~ t.title,
+          rationale=t.why,
+          mi=t.mi, i=t.i) }}
+--
+-- Ownership   {{ '⟨K⟩ kernel — a vertical may never redefine this type' if t.owner == 'K' else '⟨V⟩ vertical' }}
+-- Cardinality {{ t.members | length }} values, closed. Consumed inside CHECK constraints and
+--             composite foreign keys, so a value added later is cheap and a value
+--             renamed or removed later is not.
+
+CREATE TYPE IF NOT EXISTS {{ binding.schema }}.{{ t.name }} AS ENUM (
+{% for v in t.members %}
+  '{{ v }}'{{ ',' if not loop.last }}
+{% endfor %}
+);
+{% endfor %}

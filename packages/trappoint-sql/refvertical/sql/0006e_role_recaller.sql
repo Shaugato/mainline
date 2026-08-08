@@ -1,0 +1,25 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: Apache-2.0
+--
+-- TRAPPOINT_REF · 0006e_role_recaller.sql
+-- CREATE ROLE agent_recaller — the recaller slot
+--
+-- MI: MI25
+-- I: I13
+-- COUNSEL-GATED: no
+-- RATIONALE: proposes candidates over HTTP; holds NO INSERT on the obligation table, so the
+--            role that detects a precursor cannot write one (finding S1). IF NOT EXISTS
+--            because a role is cluster state, not schema state: a restore does not carry
+--            it, two verticals on one cluster legitimately share the agent roles, and re-
+--            asserting one must never be an error.
+--
+-- @rendered-by  trappoint render
+-- @template     packages/trappoint-sql/templates/0006_roles.sql.j2
+-- @binding      packages/trappoint-sql/refvertical/vertical.toml
+-- DO NOT EDIT. `trappoint render --check` is a zero-diff assertion in CI, so a
+-- hand edit here is a red build, not a silent divergence.
+--
+-- Slot         recaller
+-- Name         agent_recaller   (derived; vertical.schema.json 1.0 has no [roles] key for this slot)
+
+CREATE ROLE IF NOT EXISTS agent_recaller;

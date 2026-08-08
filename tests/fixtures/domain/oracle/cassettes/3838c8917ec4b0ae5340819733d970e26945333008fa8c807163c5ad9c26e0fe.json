@@ -1,0 +1,20 @@
+{
+  "key": "3838c8917ec4b0ae5340819733d970e26945333008fa8c807163c5ad9c26e0fe",
+  "model_id": "claude-opus-5",
+  "prefix_digest": "2cb4672836046540e00d4ad133a9feff50d3faf7b00aaec45ce2f704b506f0e8",
+  "profile_id": "adjudication",
+  "prompt_version": "adjudication.v1+rubric.v1",
+  "provenance": "synthetic",
+  "recorded_at": "2026-08-07T14:58:26.924006+00:00",
+  "response": {
+    "amazon-bedrock-guardrailAction": "INTERVENED",
+    "content": [],
+    "id": "msg_synthetic",
+    "model": "claude-opus-5",
+    "stop_reason": "end_turn",
+    "usage": {
+      "input_tokens": 1800,
+      "output_tokens": 180
+    }
+  }
+}

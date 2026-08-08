@@ -38,7 +38,7 @@ const CONTRACTS = join(ROOT, 'contracts');
 const OUTPUT = join(ROOT, 'src', 'data', 'types.generated.ts');
 
 type Json = string | number | boolean | null | Json[] | { [key: string]: Json };
-type SchemaObject = { [key: string]: Json };
+type SchemaObject = Record<string, Json>;
 
 interface Document {
   readonly file: string;
@@ -253,7 +253,7 @@ function hasApplicator(schema: SchemaObject): boolean {
 function renderObject(schema: SchemaObject, ctx: Context, indent: string): string {
   const properties = schema['properties'];
   const required = Array.isArray(schema['required'])
-    ? new Set((schema['required'] as Json[]).filter((v): v is string => typeof v === 'string'))
+    ? new Set((schema['required']).filter((v): v is string => typeof v === 'string'))
     : new Set<string>();
   const additional = schema['additionalProperties'];
 

@@ -1,0 +1,21 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: Apache-2.0
+--
+-- TRAPPOINT_REF · 0009d_grant_usage_qa.sql
+-- GRANT USAGE ON trappoint_ref_qa TO quality_assurance
+--
+-- MI: MI27
+-- I: I15
+-- COUNSEL-GATED: no
+-- RATIONALE: The per-named-person views are readable by one role and that role holds USAGE
+--            on one schema. Finding S14 is the rule that this role is never an MCP
+--            identity; this statement is what makes the blast radius of breaking that rule
+--            exactly one schema.
+--
+-- @rendered-by  trappoint render
+-- @template     packages/trappoint-sql/templates/0006_roles.sql.j2
+-- @binding      packages/trappoint-sql/refvertical/vertical.toml
+-- DO NOT EDIT. `trappoint render --check` is a zero-diff assertion in CI, so a
+-- hand edit here is a red build, not a silent divergence.
+
+GRANT USAGE ON SCHEMA trappoint_ref_qa TO quality_assurance;

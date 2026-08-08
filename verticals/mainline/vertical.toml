@@ -1,0 +1,270 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+#
+# THE MAINLINE BINDING — the one file the substrate and the vertical share.
+#
+# The kernel must not know what MAINLINE's authority relation is called, and MAINLINE
+# must not be able to write a gate template. The seam between them is this file, and the
+# one thing it must say before `trappoint render` emits a single line of gate SQL is
+# WHERE THE TRUTH COMES FROM AND WHAT HAPPENS WHEN IT IS ABSENT.
+#
+# A binding that cannot answer that question does not get to render a gate.
+#
+# Normative: spec/binding/vertical.schema.json (validated on every render),
+#            spec/binding/authority-source.md (rules A-1 … A-9).
+#
+# ── TOML PLACEMENT WARNING ────────────────────────────────────────────────────────
+# A bare top-level key written AFTER any [table] header belongs to that table. So every
+# top-level scalar appears HERE, above the first header, or it silently mis-binds and
+# fails validation against `capabilities.additionalProperties`.
+
+emit_outbox = true
+
+# ── the vertical ─────────────────────────────────────────────────────────────────
+[vertical]
+name         = "MAINLINE"
+spec_version = "1.0.0-rc.1"
+schema       = "mainline"
+output_dir   = "verticals/mainline/db/migrations"
+license      = "FSL-1.1-ALv2"
+description  = "Permit-to-work and management-of-change as a protected branch: every clause carries a blame pointer to the incident that wrote it, and the merge is refused until every recalled precursor carries a signed disposition."
+
+# ── render-time capability switches (ruling D5) ──────────────────────────────────
+# Decided by a dated measurement, never at runtime. Both branches of every switch emit
+# committed, readable SQL: the fallback is something a reviewer reads rather than a
+# branch a reviewer must trust. `trappoint render` refuses to run if the attestation is
+# absent, or if it answers a declared capability UNKNOWN.
+[capabilities]
+attestation   = "packages/trappoint-sql/g1-attestation.json"
+stored_digest = "stored"             # GT-13 PASS: digest() is legal in a STORED column
+triggerdef    = "pg_get_triggerdef"  # GT-05 PASS: per-object self-attestation available
+isolation     = "serializable"       # set EXPLICITLY by the gate; never a pool default
+
+# ── SQL roles (ARCHITECTURE.md §11.2) ────────────────────────────────────────────
+# Six slots the specification's schema can name. The renderer derives the other three
+# — recaller, auditor, qa — because `roles` in vertical.schema.json 1.0 has no key for
+# them; see packages/trappoint-sql/README.md for the derivation and the request to add
+# the missing keys in the next MINOR.
+#
+# The role that materialises an obligation is NOT the role that disposes of it, and
+# neither is the role that detects one. That is the whole of finding S1 and it is
+# visible in three lines here.
+[roles]
+migrator  = "mainline_migrator"
+owner     = "mainline_owner"
+gate      = "agent_gate"
+projector = "agent_projector"
+disposer  = "svc_disposition"
+reader    = "auditor_ro"
+
+[conformance]
+profile = "mainline"
+# `--profile mainline` cannot be green until the ancestry lead lands 0029 clause_version
+# and 0038/0039 clause_blame_closure, because `mainline.clause_blame_current` is the
+# authority relation for the check projection below. Until then the substrate is proved
+# on `--profile trappoint-ref`, and this token is the public admission of that gap.
+skip_requires = ["clause_blame_closure"]
+
+# ═════════════════════════════════════════════════════════════════════════════════
+# THE AUTHORITY SOURCE CONTRACT — specification rule P-2, enforced at render time
+# ═════════════════════════════════════════════════════════════════════════════════
+#
+# Read each entry as one English sentence: THESE COLUMNS OF THE PROJECTED ROW ARE
+# PROJECTIONS OF THOSE COLUMNS OF THAT RELATION, LOOKED UP BY THIS KEY, AND WHEN THE
+# LOOKUP FINDS NOTHING THE WRITE IS REFUSED.
+#
+# `projects` and `columns` are POSITIONAL, and so are `key` and `key_columns`. The
+# renderer refuses a length mismatch on either pair, because a silent off-by-one writes
+# a severity into a generation counter and the gate keeps working, wrongly.
+
+# ── the flagship projection (finding S1, invariant MI25) ─────────────────────────
+# `severity` and `virulence` on a blocking check are NOT inputs. An agent that supplied
+# severity = 1 on a clause whose closure holds max_severity = 5 has its row rewritten to
+# (5, blood_fatal) before the row lands, and the mechanism_absent disposition it wanted
+# is then 23503 on fk_clearance. That is conformance case CF-07, and it is the only test
+# of the claim the company is built on.
+#
+# The two sides of the lookup are named DIFFERENTLY, which is why `key_columns` exists:
+# the projected row carries `commit_id` and the closure carries `as_of_commit`. A
+# renderer that assumed the names coincided would emit SQL naming a column that does not
+# exist, and the failure would surface as 42703 at migration time — outside the refusal
+# taxonomy entirely, which is the wrong place to discover a binding error.
+[[authority_source]]
+projects    = ["blocking_check.severity", "blocking_check.virulence", "blocking_check.closure_gen"]
+relation    = "mainline.clause_blame_current"
+key         = ["clause_uuid", "commit_id"]
+key_columns = ["clause_uuid", "as_of_commit"]
+columns     = ["max_severity", "virulence", "closure_gen"]
+on_missing  = "raise"
+raise_via   = "p0001"
+
+# ── the clearance requirements (invariant MI11) ──────────────────────────────────
+# A missing clearance row must NOT raise a synthetic 23503: a synthetic one carries no
+# constraint name, and the constraint name is the exhibit. So the trigger projects the
+# STRICTEST legal values and returns the row, and the real composite foreign key
+# `fk_clearance` then fires 23503 with its name attached (ruling D3).
+#
+# The strictest values are themselves refusing, so if that foreign key were ever
+# dropped the row would still be refused by the rank floor, the second-signer
+# requirement and the rest. Refusal depth of seven, from one declaration.
+[[authority_source]]
+projects   = [
+  "disposition.req_compensating", "disposition.req_second_signer",
+  "disposition.req_foreign_org", "disposition.req_predicate",
+  "disposition.req_reassert", "disposition.min_signer_rank",
+]
+relation   = "mainline.clearance_legal"
+key        = ["virulence", "kind"]
+columns    = [
+  "req_compensating", "req_second_signer", "req_foreign_org",
+  "req_predicate", "req_reassert", "min_signer_rank",
+]
+on_missing = "raise"
+raise_via  = "strictest_projection"
+strictest  = { req_compensating = true, req_second_signer = true, req_foreign_org = true, req_predicate = true, req_reassert = true, min_signer_rank = 9 }
+
+# ── the signer's identity (invariant MI27) ───────────────────────────────────────
+# Rank, organisation and competency are projections of `person`, and a missing person
+# row refuses. A client that signs with signer_rank = 6 on a person whose live rank is 2
+# is overwritten before the rank floor is compared, and the floor then returns 23514.
+# That is conformance case CF-19.
+[[authority_source]]
+projects   = ["disposition.signer_rank", "disposition.signer_org", "disposition.competency_sha256"]
+relation   = "mainline.person"
+key        = ["signer_sub"]
+columns    = ["rank", "org", "competency_sha256"]
+on_missing = "raise"
+raise_via  = "p0001"
+
+# ═════════════════════════════════════════════════════════════════════════════════
+# OBLIGATION SOURCES — the relations whose rows increment a subject's counters
+# ═════════════════════════════════════════════════════════════════════════════════
+# `bumps_epoch = true` on every one of them, stated rather than defaulted, because the
+# epoch bump is what makes the pin work: a new obligation moves the subject to a new
+# (id, epoch) pair, and ON UPDATE RESTRICT on the completion record's composite foreign
+# key then makes attaching that obligation to a completed transition physically
+# impossible.
+
+[[obligation_source]]
+relation          = "mainline.blocking_check"
+counter           = "open_blocking"
+subject_kinds     = ["permit", "change_request"]
+dedupe_key_column = "dedupe_key"
+bumps_epoch       = true
+
+[[obligation_source]]
+relation      = "mainline.identity_residue"
+counter       = "open_residue"
+subject_kinds = ["permit", "change_request"]
+bumps_epoch   = true
+
+[[obligation_source]]
+relation      = "mainline.merge_conflict"
+counter       = "open_conflicts"
+subject_kinds = ["permit", "change_request"]
+bumps_epoch   = true
+
+[[obligation_source]]
+relation      = "mainline.discordance_warrant"
+counter       = "open_warrants"
+subject_kinds = ["permit"]
+bumps_epoch   = true
+
+[[obligation_source]]
+relation      = "mainline.boundary_certificate"
+counter       = "unmodelled_asset_count"
+subject_kinds = ["permit"]
+bumps_epoch   = true
+
+# ═════════════════════════════════════════════════════════════════════════════════
+# THE GATED SUBJECTS
+# ═════════════════════════════════════════════════════════════════════════════════
+# Two of them, and the second is the thesis. Making the change request a gated subject
+# (finding S16) is what turns "the permit is a protected branch" into "THE REPOSITORY is
+# a protected branch and the permit is one of its refs".
+#
+# One CHECK per counter. Collapsing six counters into one would enforce the same
+# invariant and lose the exhibit: "the merge was refused by
+# boundary_certified_when_issued" is a materially better sentence in a courtroom than
+# "a counter was non-zero", and each counter carries an independent trigger, which is
+# what makes the refusal-depth matrix mean anything.
+
+[[subject]]
+kind                 = "permit"
+table                = "permit"
+id_column            = "permit_id"
+epoch_column         = "gate_epoch"
+state_column         = "state"
+completing_state     = "merged"
+transition_table     = "mainline.subject_transition"
+event_table          = "permit_event"
+completion_table     = "merge_record"
+epoch_pin_constraint = "epoch_pin_permit"
+
+[[subject.counters]]
+column     = "open_blocking"
+constraint = "gate_closed_when_issued"
+source     = "mainline.blocking_check"
+polarity   = "zero_when_complete"
+
+[[subject.counters]]
+column     = "open_residue"
+constraint = "identity_conserved_when_issued"
+source     = "mainline.identity_residue"
+polarity   = "zero_when_complete"
+
+[[subject.counters]]
+column     = "open_conflicts"
+constraint = "conflicts_resolved_when_issued"
+source     = "mainline.merge_conflict"
+polarity   = "zero_when_complete"
+
+[[subject.counters]]
+column     = "open_warrants"
+constraint = "no_open_warrant_when_issued"
+source     = "mainline.discordance_warrant"
+polarity   = "zero_when_complete"
+
+[[subject.counters]]
+column     = "unmodelled_asset_count"
+constraint = "boundary_certified_when_issued"
+source     = "mainline.boundary_certificate"
+polarity   = "zero_when_complete"
+
+# Finding S19. The only counter a companion may offset: an unmet reading-rate floor is
+# cleared by a countersignature, not by the floor being met retrospectively.
+[[subject.counters]]
+column        = "unmet_floor_count"
+constraint    = "reading_floor_when_issued"
+polarity      = "offset_allowed"
+offset_column = "countersigned_count"
+
+[[subject]]
+kind                 = "change_request"
+table                = "change_request"
+id_column            = "cr_id"
+epoch_column         = "gate_epoch"
+state_column         = "state"
+completing_state     = "merged"
+transition_table     = "mainline.subject_transition"
+event_table          = "cr_event"
+completion_table     = "merge_record"
+epoch_pin_constraint = "epoch_pin_cr"
+
+[[subject.counters]]
+column     = "open_blocking"
+constraint = "cr_gate_closed_when_merged"
+source     = "mainline.blocking_check"
+polarity   = "zero_when_complete"
+
+[[subject.counters]]
+column     = "open_residue"
+constraint = "cr_identity_conserved_when_merged"
+source     = "mainline.identity_residue"
+polarity   = "zero_when_complete"
+
+[[subject.counters]]
+column     = "open_conflicts"
+constraint = "cr_conflicts_resolved_when_merged"
+source     = "mainline.merge_conflict"
+polarity   = "zero_when_complete"

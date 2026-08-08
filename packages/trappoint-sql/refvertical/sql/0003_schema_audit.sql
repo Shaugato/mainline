@@ -1,0 +1,24 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: Apache-2.0
+--
+-- TRAPPOINT_REF · 0003_schema_audit.sql
+-- CREATE SCHEMA trappoint_ref_audit — the MCP-facing views, each shaped to 25 rows and 10 KiB
+--
+-- MI: MI01
+-- I: I16
+-- COUNSEL-GATED: no
+-- RATIONALE: The managed MCP surface reads views and never base tables. Separating them by
+--            schema means the read surface can be enumerated by listing one schema, which
+--            is what makes the claim about what an external agent can see checkable rather
+--            than asserted.
+--
+-- @rendered-by  trappoint render
+-- @template     packages/trappoint-sql/templates/0001_schemas.sql.j2
+-- @binding      packages/trappoint-sql/refvertical/vertical.toml
+-- DO NOT EDIT. `trappoint render --check` is a zero-diff assertion in CI, so a
+-- hand edit here is a red build, not a silent divergence.
+--
+-- Zone: audit · derived as <schema>_audit
+-- from the single name `trappoint_ref` declared in packages/trappoint-sql/refvertical/vertical.toml.
+
+CREATE SCHEMA IF NOT EXISTS trappoint_ref_audit;

@@ -1,0 +1,3 @@
+# index_plan_digest observed by test_ix02_plan_pgwire.py over the full arm set.
+# This is the value a recall_run row would carry for this arm set on this cluster.
+cb22f18f9dd634902287a8be223e1143478eca6a08ccbcb4207c7e77972e4219

@@ -1,0 +1,39 @@
+{
+  "above": {
+    "full_scan": false,
+    "index_refs": [
+      "event_cue_embedding@cue_scoped_idx"
+    ],
+    "node_types": [
+      "lookup join",
+      "render",
+      "top-k",
+      "vector search"
+    ],
+    "oracle_returned": 12,
+    "recall_at_k": 0.9167,
+    "returned": 12,
+    "spans": 1,
+    "vector_search_nodes": 1
+  },
+  "below": {
+    "full_scan": false,
+    "index_refs": [
+      "event_cue_embedding@cue_scoped_idx"
+    ],
+    "node_types": [
+      "lookup join",
+      "render",
+      "top-k",
+      "vector search"
+    ],
+    "oracle_returned": 12,
+    "recall_at_k": 1.0,
+    "returned": 12,
+    "spans": 2,
+    "vector_search_nodes": 1
+  },
+  "fixture_rows": 5000,
+  "k": 12,
+  "span_limit_read_at_runtime": 0
+}

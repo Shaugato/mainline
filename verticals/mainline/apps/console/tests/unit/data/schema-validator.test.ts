@@ -14,13 +14,12 @@
 import { describe, expect, it } from 'vitest';
 
 import { SchemaCompileError, SchemaRefError, SchemaRegistry } from '../../../src/data/schema';
-import type { SchemaDocument } from '../../../src/data/schema';
 
 const ID = 'https://example.test/s.schema.json';
 
 function registryFor(schema: Record<string, unknown>): SchemaRegistry {
   const registry = new SchemaRegistry();
-  registry.add({ $id: ID, ...schema } as unknown as SchemaDocument);
+  registry.add({ $id: ID, ...schema });
   registry.compileAll();
   return registry;
 }
@@ -33,7 +32,7 @@ describe('the validator refuses what it cannot check', () => {
       type: 'object',
       properties: { a: { type: 'string' } },
       unevaluatedProperties: false,
-    } as unknown as SchemaDocument);
+    });
 
     expect(() => {
       registry.compileAll();
@@ -45,7 +44,7 @@ describe('the validator refuses what it cannot check', () => {
 
   it('throws on a format name it does not implement', () => {
     const registry = new SchemaRegistry();
-    registry.add({ $id: ID, type: 'string', format: 'idn-hostname' } as unknown as SchemaDocument);
+    registry.add({ $id: ID, type: 'string', format: 'idn-hostname' });
     expect(() => {
       registry.compileAll();
     }).toThrow(/format "idn-hostname" is not implemented/);
@@ -56,7 +55,7 @@ describe('the validator refuses what it cannot check', () => {
     registry.add({
       $id: ID,
       properties: { a: { $ref: 'https://example.test/missing.schema.json' } },
-    } as unknown as SchemaDocument);
+    });
     expect(() => {
       registry.compileAll();
     }).toThrow(SchemaRefError);
@@ -68,7 +67,7 @@ describe('the validator refuses what it cannot check', () => {
       $id: ID,
       properties: { a: { $ref: '#/$defs/nope' } },
       $defs: { yes: { type: 'string' } },
-    } as unknown as SchemaDocument);
+    });
     expect(() => {
       registry.compileAll();
     }).toThrow(/does not exist/);
@@ -141,13 +140,13 @@ describe('assertions', () => {
     registry.add({
       $id: 'https://example.test/common.schema.json',
       $defs: { code: { type: 'string', pattern: '^[A-Z]{3}$' } },
-    } as unknown as SchemaDocument);
+    });
     registry.add({
       $id: 'https://example.test/leaf.schema.json',
       type: 'object',
       required: ['code'],
       properties: { code: { $ref: 'common.schema.json#/$defs/code' } },
-    } as unknown as SchemaDocument);
+    });
     registry.compileAll();
 
     const target = 'https://example.test/leaf.schema.json';

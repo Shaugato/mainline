@@ -1,0 +1,25 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MAINLINE · 0006g_role_auditor.sql
+-- CREATE ROLE mainline_auditor — the auditor slot
+--
+-- MI: MI01
+-- I: I16
+-- COUNSEL-GATED: no
+-- RATIONALE: the MCP identity: INSERT on the external attestation table only, SELECT on the
+--            audit views only (finding S13). IF NOT EXISTS because a role is cluster state,
+--            not schema state: a restore does not carry it, two verticals on one cluster
+--            legitimately share the agent roles, and re-asserting one must never be an
+--            error.
+--
+-- @rendered-by  trappoint render
+-- @template     packages/trappoint-sql/templates/0006_roles.sql.j2
+-- @binding      verticals/mainline/vertical.toml
+-- DO NOT EDIT. `trappoint render --check` is a zero-diff assertion in CI, so a
+-- hand edit here is a red build, not a silent divergence.
+--
+-- Slot         auditor
+-- Name         mainline_auditor   (derived; vertical.schema.json 1.0 has no [roles] key for this slot)
+
+CREATE ROLE IF NOT EXISTS mainline_auditor;

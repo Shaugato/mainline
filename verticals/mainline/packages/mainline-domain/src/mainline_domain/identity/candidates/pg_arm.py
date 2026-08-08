@@ -16,29 +16,53 @@ with no database driver installed at all.  That is not tidiness: AWS credentials
 and a CockroachDB Cloud cluster are both unavailable on the build machine, and
 nothing in this domain may *require* either in order to be considered done.
 
-**Unverified.**  No statement in this module has been executed against a
-CockroachDB cluster at the time of writing.  What is proven offline is the
-statement text (a pure function, asserted by test) and the plan assertion in
-:mod:`.explain` (proven against committed plan fixtures).  The live assertions
-live in ``tests/integration/algorithms/candidates/`` and skip, with a reason
-naming the missing DSN, when no cluster is reachable.
+**Verified** against a local CockroachDB **v26.2.5** single node on 2026-08-08:
+:meth:`PgPrefixArmRunner.ann` returns rows a stage can consume and
+:meth:`PgPrefixArmRunner.explain_arm` reports a prefix-constrained ``vector
+search`` on ``clause_embedding@ce_ann``.  **Not** verified on CockroachDB Cloud
+from this machine.  The live assertions live in
+``tests/integration/algorithms/candidates/`` and skip, with a reason naming the
+missing DSN, when no cluster is reachable — a skipped run entitles nobody to say
+the plan was verified, and the skip message says so.
 """
 
 from __future__ import annotations
 
-from collections.abc import Sequence
-from typing import TYPE_CHECKING, Any
+from collections.abc import Iterator, Sequence
+from contextlib import contextmanager
+from typing import TYPE_CHECKING, Any, Final
 from uuid import UUID
 
 from mainline_domain.contracts import Candidate
 
-from .explain import ArmPlanAssertion, assert_arm_plan
-from .semantic import ARM_SQL, Arm
+from .explain import INDEX_REFUSED_SQLSTATE, ArmPlanAssertion, assert_arm_plan
+from .semantic import ARM_INDEX, ARM_SQL, ARM_TABLE, Arm
 
 if TYPE_CHECKING:  # pragma: no cover - typing only
     from psycopg import Connection
 
-__all__ = ["PgPrefixArmRunner"]
+__all__ = ["ArmIndexUnavailableError", "PgPrefixArmRunner"]
+
+INDEX_MISSING_SQLSTATE: Final[str] = "42704"
+"""``undefined_object`` — the pinned index does not exist on this cluster.
+
+Measured on CockroachDB v26.2.5: ``index "nope" not found``.  Together with
+:data:`~.explain.INDEX_REFUSED_SQLSTATE` these are the two ways a pinned arm can
+fail, and both of them are *deployment* failures that must not be swallowed.
+"""
+
+
+class ArmIndexUnavailableError(RuntimeError):
+    """The C-SPANN index an arm pins is missing or unusable for the statement.
+
+    Raised, never absorbed, and never retried.  S4's entire cost claim is that
+    the arm is served by ``ce_ann``; a runner that fell back to an unhinted
+    statement here would turn a loud deployment error into a silent full scan of
+    every clause embedding on the site, and would do it underneath a gate whose
+    output decides whether blame lands on the right clause.
+
+    The pin is what makes this an exception rather than a slow afternoon.
+    """
 
 
 class PgPrefixArmRunner:
@@ -88,7 +112,7 @@ class PgPrefixArmRunner:
         if not activity_root:
             raise ValueError("activity_root must be a specific value, not an empty string")
         arm = Arm(site_id=site_id, activity_root=activity_root)
-        with self._conn.cursor() as cur:
+        with _index_must_be_usable(), self._conn.cursor() as cur:
             cur.execute(ARM_SQL, arm.params(q, k))
             rows = cur.fetchall()
         return tuple(
@@ -120,8 +144,38 @@ class PgPrefixArmRunner:
         this deliberately uses the form both surfaces can produce.
         """
         arm = Arm(site_id=site_id, activity_root=activity_root)
-        with self._conn.cursor() as cur:
+        with _index_must_be_usable(), self._conn.cursor() as cur:
             cur.execute(f"EXPLAIN {ARM_SQL}", arm.params(q, k))
             plan = "\n".join(str(row[0]) for row in cur.fetchall())
         self._last_plan = plan
         return assert_arm_plan(plan, expected_index=expected_index, raises=raises)
+
+
+@contextmanager
+def _index_must_be_usable() -> Iterator[None]:
+    """Translate the two pinned-index SQLSTATEs into one named domain failure.
+
+    Deliberately narrow: only ``42809`` and ``42704`` are converted, and every
+    other database error propagates untouched.  A broad ``except Exception``
+    here would be the same mistake as a fallback — it would let an unrelated
+    failure wear a message about the vector index.
+    """
+    try:
+        yield
+    except Exception as exc:
+        sqlstate = getattr(exc, "sqlstate", None)
+        if sqlstate == INDEX_REFUSED_SQLSTATE:
+            raise ArmIndexUnavailableError(
+                f"{ARM_TABLE}@{ARM_INDEX} refused this arm (SQLSTATE "
+                f"{INDEX_REFUSED_SQLSTATE}): a C-SPANN prefix column was not constrained to a "
+                f"specific value. The arm is NOT retried unhinted — an unhinted arm is a full "
+                f"scan of every clause embedding on the site"
+            ) from exc
+        if sqlstate == INDEX_MISSING_SQLSTATE:
+            raise ArmIndexUnavailableError(
+                f"index {ARM_INDEX} does not exist on {ARM_TABLE} (SQLSTATE "
+                f"{INDEX_MISSING_SQLSTATE}): the C-SPANN index this cluster was migrated to "
+                f"carry is absent, so S4 has no index to be served by and must not pretend "
+                f"otherwise"
+            ) from exc
+        raise

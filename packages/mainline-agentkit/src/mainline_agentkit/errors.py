@@ -39,8 +39,12 @@ __all__ = [
     "DeadLettered",
     "ForbiddenRequestField",
     "ModelRefused",
+    "ProfileNotPinned",
     "ProfileUnknown",
     "ResidencyRefused",
+    "RuntimeAlreadyBooted",
+    "RuntimeNotBooted",
+    "RuntimeRefusing",
     "SchemaViolation",
     "ToolFormDisabled",
     "ToolSurfaceConstructed",
@@ -88,6 +92,63 @@ class ProfileUnknown(ConfigurationRefused):
         """Name the missing profile and list the ones that exist."""
         super().__init__(f"unknown call profile {profile_id!r}; registered: {sorted(known)}")
         self.profile_id = profile_id
+
+
+class ProfileNotPinned(ConfigurationRefused):
+    """A call was attempted through a profile the booted run record does not pin.
+
+    Two shapes reach here and both are the same defect. An id the register never held,
+    and — the sharper one — an id the register *does* hold whose bytes have since been
+    edited at the call site. The run record attests a ``prompt_version`` and a
+    ``prompt_sha256`` per profile; serving a call under different bytes would produce
+    provenance naming a prompt that was never pinned, which is exactly the quiet prompt
+    edit decision A13 exists to make impossible.
+    """
+
+    def __init__(self, profile_id: str, reason: str, pinned: Sequence[str]) -> None:
+        """Name the profile, why it is not the pinned one, and what is pinned."""
+        super().__init__(
+            f"profile {profile_id!r} is not pinned by this run record ({reason}); "
+            f"pinned: {sorted(pinned)}. A prompt edit is a commit, not a call-site "
+            f"argument (ARCHITECTURE.md §8.2, decision A13)."
+        )
+        self.profile_id = profile_id
+        self.reason = reason
+
+
+class RuntimeNotBooted(ConfigurationRefused):
+    """The process runtime was asked to serve before it was booted.
+
+    §10.1 layer 1 is an ``au.*``-prefix assertion **at process start-up**. Returning
+    ``None`` here would let a caller reach the model without that assertion ever having
+    run, so the absence of a runtime is a refusal rather than a missing value.
+    """
+
+
+class RuntimeAlreadyBooted(ConfigurationRefused):
+    """A second boot was attempted while a runtime was already serving.
+
+    A second boot would swap the pinned inference-profile ARN underneath calls already
+    in flight, and the run record they were attributed to would no longer describe the
+    process that served them.
+    """
+
+
+class RuntimeRefusing(ConfigurationRefused):
+    """This process refused to serve at start-up and has not been reset.
+
+    The refusal **latches**. A retry loop around a residency refusal is how a residency
+    refusal becomes a warning, so every later call — including another boot — is refused
+    with the original reason attached until the latch is cleared explicitly.
+    """
+
+    def __init__(self, reason: str) -> None:
+        """Carry the original start-up refusal forward, verbatim."""
+        super().__init__(
+            f"this process refused to serve at start-up and the refusal has not been "
+            f"cleared. Original refusal: {reason}"
+        )
+        self.reason = reason
 
 
 class TransportUnavailable(ConfigurationRefused):

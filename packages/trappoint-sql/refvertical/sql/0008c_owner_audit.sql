@@ -1,0 +1,21 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: Apache-2.0
+--
+-- TRAPPOINT_REF · 0008c_owner_audit.sql
+-- ALTER SCHEMA trappoint_ref_audit OWNER TO tref_owner
+--
+-- MI: MI01
+-- I: I01
+-- COUNSEL-GATED: no
+-- RATIONALE: Ownership carries the privilege to drop anything in the schema, including the
+--            merge-gate triggers. It is therefore parked in a NOLOGIN role that no session
+--            can assume: the privilege exists, and no principal holds it. The migrator gets
+--            CREATE explicitly and nothing else.
+--
+-- @rendered-by  trappoint render
+-- @template     packages/trappoint-sql/templates/0006_roles.sql.j2
+-- @binding      packages/trappoint-sql/refvertical/vertical.toml
+-- DO NOT EDIT. `trappoint render --check` is a zero-diff assertion in CI, so a
+-- hand edit here is a red build, not a silent divergence.
+
+ALTER SCHEMA trappoint_ref_audit OWNER TO tref_owner;

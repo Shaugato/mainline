@@ -9,8 +9,9 @@ substantial and is exactly the part that goes wrong quietly:
 * every band probe binds the whole primary-key prefix (``site_id``,
   ``band_no``, ``band_hash``) to a specific value — the property that makes S3
   sixteen point lookups instead of a scan;
-* every ANN arm binds both C-SPANN prefix columns to a specific value, and no
-  statement anywhere in this package contains ``IN (`` on a prefix column;
+* every ANN arm binds both C-SPANN prefix columns to a specific value, **pins
+  ``@ce_ann`` by name**, and no statement anywhere in this package contains
+  ``IN (`` on a prefix column;
 * no statement orders by a trigram distance operator, because CockroachDB does
   not support one.
 
@@ -26,8 +27,11 @@ import uuid
 import pytest
 from mainline_domain.identity.candidates import (
     ANCHOR_STAGE_SQL,
+    ARM_INDEX,
     ARM_SQL,
+    ARM_TABLE,
     EXACT_SQL,
+    INDEX_REFUSED_SQLSTATE,
     INSERT_BAND_SQL,
     Arm,
     ClauseRef,
@@ -127,6 +131,35 @@ def test_an_arm_binds_both_prefix_columns_to_a_specific_value() -> None:
     assert "site_id = %(site_id)s" in ARM_SQL
     assert "activity_root = %(activity_root)s" in ARM_SQL
     assert "IN (" not in ARM_SQL
+
+
+def test_every_arm_pins_the_ce_ann_index_by_name() -> None:
+    """The F1 ruling, asserted offline so it cannot be lost when CI has no cluster.
+
+    Losing the pin does not break anything visibly: the arm keeps returning the
+    right rows, and on a small corpus it keeps producing the right plan.  What it
+    breaks is the *guarantee* — an unhinted arm was measured to fall back to a
+    scan at Cloud scale, and it is accepted rather than refused when a prefix
+    predicate goes missing.  So the pin is asserted in the statement text, in the
+    one place a test still runs when no cluster is reachable.
+    """
+    assert ARM_TABLE == "mainline.clause_embedding"
+    assert ARM_INDEX == "ce_ann"
+    assert f"FROM {ARM_TABLE}@{ARM_INDEX}" in ARM_SQL
+    assert f"FROM {ARM_TABLE}\n" not in ARM_SQL
+
+
+def test_every_branch_of_the_fan_out_pins_the_index_too() -> None:
+    """One unhinted branch in a union of five is one full scan nobody notices."""
+    for n in (1, 3, 5):
+        sql = arm_union_sql(n)
+        assert sql.count(f"FROM {ARM_TABLE}@{ARM_INDEX}") == n
+        assert f"FROM {ARM_TABLE}\n" not in sql
+
+
+def test_the_refused_sqlstate_is_the_one_the_cluster_returns() -> None:
+    """``42809`` is ``wrong_object_type``; it is what a pinned unusable index raises."""
+    assert INDEX_REFUSED_SQLSTATE == "42809"
 
 
 def test_the_arm_orders_by_the_vector_cosine_operator() -> None:

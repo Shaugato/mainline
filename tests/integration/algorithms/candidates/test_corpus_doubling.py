@@ -32,7 +32,7 @@ import time
 from itertools import pairwise
 
 import pytest
-from _support import build_corpus, prefixes
+from _w7_support import build_corpus, prefixes
 from mainline_domain.identity.candidates import (
     LexicalCorpus,
     band_hashes,
@@ -193,7 +193,7 @@ def test_band_probe_latency_grows_sublinearly(cluster_conn: object) -> None:
     tight bound here would be a flaky test pretending to be a precise one; what
     is being refuted is *linear*, and 4x refutes it.
     """
-    from _support import SITE, build_corpus
+    from _w7_support import SITE, build_corpus
 
     conn: object = cluster_conn
     corpus = build_corpus(LARGEST)

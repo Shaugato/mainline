@@ -13,11 +13,12 @@
 
 import { describe, expect, it } from 'vitest';
 
+import { decodeBase64ToText } from '../../../src/data/bundle';
 import { createContractRegistry } from '../../../src/data/contracts';
 import { formatErrors } from '../../../src/data/schema';
-import { resourceOrThrow } from '../../../src/data/resources';
+import { resolveRequest, resourceOrThrow } from '../../../src/data/resources';
 
-import { sourcePayloads, stagePlan } from './_support';
+import { bundleFiles, sourcePayloads, stagePlan } from './_support';
 
 const registry = createContractRegistry();
 
@@ -158,9 +159,9 @@ describe('the fixture set covers the six situations the demo must be able to sho
     expect(belowTau).toBeDefined();
     expect(belowTau?.score).toBeLessThan(belowTau?.threshold ?? 0);
 
-    const channels = belowTau?.arithmetic['channels'] as Record<string, { contribution: number }>;
+    const channels = belowTau?.arithmetic.channels as Record<string, { contribution: number }>;
     const summed = Object.values(channels).reduce((total, channel) => total + channel.contribution, 0);
-    const fused = belowTau?.arithmetic['fused_raw'] as number;
+    const fused = belowTau?.arithmetic.fused_raw as number;
     // The published components must add up to the published fused score. A silence
     // ledger whose arithmetic does not reconcile is a worse exhibit than none.
     expect(summed).toBeCloseTo(fused, 4);
@@ -188,6 +189,48 @@ describe('the fixture set covers the six situations the demo must be able to sho
     expect(seqs).toEqual(seqs.map((_, index) => index));
     expect(data.leaves.find((leaf) => leaf.seq === 0)?.prev_link_hash_hex).toBe('0'.repeat(64));
   });
+});
+
+/**
+ * `docs/evidence-bundle.md` §8 makes a claim about the producer: *what a reviewer reads
+ * in `fixtures/sources/**` is exactly what the console receives, to the byte.*
+ *
+ * That is the whole reason the fixtures are hand-authored as readable payload files and
+ * then staged, rather than written directly into frames as base64 nobody can review. It
+ * only holds if `stage` copies payload BYTES into the frame instead of parsing and
+ * re-emitting them — a re-serialised capture would be testing our JSON writer, and one
+ * whitespace change would move every digest computed over it.
+ *
+ * So it is asserted rather than described. Every step in the staging plan is walked, the
+ * frame is located by the same key derivation the transport uses, and the decoded body is
+ * compared to the source file character for character.
+ */
+describe('the sealed bundle carries the source payloads byte for byte', () => {
+  const files = bundleFiles();
+  const decoder = new TextDecoder('utf-8', { fatal: true });
+
+  for (const step of plan.steps) {
+    it(`${step.resource} ← ${step.payload}`, () => {
+      const resolved = resolveRequest({
+        resource: step.resource,
+        ...(step.path === undefined ? {} : { path: step.path }),
+        ...(step.query === undefined ? {} : { query: step.query }),
+      });
+
+      const frameBytes = files.get(resolved.framePath);
+      expect(frameBytes, `${resolved.framePath} is missing from the sealed bundle`).toBeDefined();
+
+      const frame = JSON.parse(decoder.decode(frameBytes)) as { response: { body_b64: string } };
+      const served = decodeBase64ToText(resolved.framePath, frame.response.body_b64);
+
+      const source = sourcePayloads().get(step.payload.split('/').slice(-1)[0] ?? step.payload);
+      expect(source, `${step.payload} is missing from fixtures/sources`).toBeDefined();
+
+      // Character for character, not JSON-equal. JSON equality would pass through a
+      // re-serialisation, which is exactly the defect this test exists to catch.
+      expect(served).toBe(source);
+    });
+  }
 });
 
 describe('the fixtures do not overclaim', () => {

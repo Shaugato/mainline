@@ -1,0 +1,21 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: Apache-2.0
+--
+-- TRAPPOINT_REF · 0009a_grant_create_migrator.sql
+-- GRANT CREATE ON the five schemas TO tref_migrator
+--
+-- MI: MI01
+-- I: I01
+-- COUNSEL-GATED: no
+-- RATIONALE: The one role that holds DDL. It holds no DML on any evidentiary table, so a
+--            compromised migrator can change the shape of the record and cannot change the
+--            record — and the change of shape is itself a migration row with a checksum in
+--            the attestation chain.
+--
+-- @rendered-by  trappoint render
+-- @template     packages/trappoint-sql/templates/0006_roles.sql.j2
+-- @binding      packages/trappoint-sql/refvertical/vertical.toml
+-- DO NOT EDIT. `trappoint render --check` is a zero-diff assertion in CI, so a
+-- hand edit here is a red build, not a silent divergence.
+
+GRANT CREATE ON SCHEMA trappoint_ref, trappoint_ref_meas, trappoint_ref_audit, trappoint_ref_qa, trappoint_ref_ops TO tref_migrator;

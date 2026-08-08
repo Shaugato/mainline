@@ -1,0 +1,348 @@
+{
+  "$defs": {
+    "Candidate": {
+      "additionalProperties": false,
+      "description": "One retrieved precursor, with the arithmetic that decided its outcome.",
+      "properties": {
+        "also_matched": {
+          "default": [],
+          "description": "MMR-suppressed siblings, attached to their representative rather than dropped. Visible, not hidden.",
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": "Also Matched",
+          "type": "array"
+        },
+        "bonded_severity_5": {
+          "default": false,
+          "description": "Observed from event_bond join event, never asserted by the retriever. The database re-derives it in fn_bonded_sev5; this flag exists so the wire can be refused before the round trip.",
+          "title": "Bonded Severity 5",
+          "type": "boolean"
+        },
+        "channels": {
+          "items": {
+            "enum": [
+              "A",
+              "B",
+              "C",
+              "C_sweep",
+              "D"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Channels",
+          "type": "array"
+        },
+        "clause_uuid": {
+          "description": "The cited clause this candidate would raise an obligation against.",
+          "format": "uuid",
+          "title": "Clause Uuid",
+          "type": "string"
+        },
+        "commit_id": {
+          "description": "The clause version. blocking_check FKs (clause_uuid, commit_id), which is what makes a disposition uninheritable across a clause revision.",
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Commit Id",
+          "type": "string"
+        },
+        "event_id": {
+          "format": "uuid",
+          "title": "Event Id",
+          "type": "string"
+        },
+        "evidence_summary": {
+          "default": "",
+          "maxLength": 4000,
+          "title": "Evidence Summary",
+          "type": "string"
+        },
+        "features": {
+          "additionalProperties": true,
+          "title": "Features",
+          "type": "object"
+        },
+        "origin": {
+          "enum": [
+            "deterministic_ancestry",
+            "bonded",
+            "recall_probabilistic",
+            "lexical"
+          ],
+          "title": "Origin",
+          "type": "string"
+        },
+        "outcome": {
+          "enum": [
+            "blocking",
+            "advisory",
+            "silenced",
+            "deduped"
+          ],
+          "title": "Outcome",
+          "type": "string"
+        },
+        "p_relevant": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "P Relevant",
+          "type": "number"
+        },
+        "rank": {
+          "minimum": 1,
+          "title": "Rank",
+          "type": "integer"
+        },
+        "severity": {
+          "maximum": 5,
+          "minimum": 0,
+          "title": "Severity",
+          "type": "integer"
+        },
+        "tau_applied": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Tau Applied",
+          "type": "number"
+        }
+      },
+      "required": [
+        "event_id",
+        "clause_uuid",
+        "commit_id",
+        "origin",
+        "channels",
+        "outcome",
+        "rank",
+        "severity",
+        "p_relevant",
+        "tau_applied"
+      ],
+      "title": "Candidate",
+      "type": "object"
+    },
+    "Counts": {
+      "additionalProperties": false,
+      "description": "The conserved partition. These are the integers ``recall_run`` stores.",
+      "properties": {
+        "n_advisory": {
+          "minimum": 0,
+          "title": "N Advisory",
+          "type": "integer"
+        },
+        "n_blocking": {
+          "minimum": 0,
+          "title": "N Blocking",
+          "type": "integer"
+        },
+        "n_candidates": {
+          "minimum": 0,
+          "title": "N Candidates",
+          "type": "integer"
+        },
+        "n_deduped": {
+          "minimum": 0,
+          "title": "N Deduped",
+          "type": "integer"
+        },
+        "n_silenced": {
+          "minimum": 0,
+          "title": "N Silenced",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "n_candidates",
+        "n_blocking",
+        "n_advisory",
+        "n_silenced",
+        "n_deduped"
+      ],
+      "title": "Counts",
+      "type": "object"
+    },
+    "ExposureCueRef": {
+      "additionalProperties": false,
+      "description": "One facet of the permit's exposure cue, and the provenance of the vector it produced.",
+      "properties": {
+        "cue_sha256": {
+          "description": "sha256 of the cue text as emitted, before templating.",
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Cue Sha256",
+          "type": "string"
+        },
+        "embed_model": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Embed Model",
+          "type": "string"
+        },
+        "facet": {
+          "enum": [
+            "mechanism",
+            "precondition",
+            "control_failure",
+            "recurrence_test",
+            "narrative"
+          ],
+          "title": "Facet",
+          "type": "string"
+        },
+        "gen_model": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Gen Model",
+          "type": "string"
+        },
+        "insufficient_evidence": {
+          "default": false,
+          "description": "The per-facet escape hatch. A facet the source could not support is declared, never invented \u2014 and a declared gap is retrievable evidence about the permit.",
+          "title": "Insufficient Evidence",
+          "type": "boolean"
+        },
+        "prompt_version": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Prompt Version",
+          "type": "string"
+        },
+        "template_sha256": {
+          "description": "sha256 of the embedding template (recall lead D3). Identical on the event side and the permit side, or the design degrades to narrative search.",
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Template Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "facet",
+        "cue_sha256",
+        "template_sha256",
+        "gen_model",
+        "prompt_version",
+        "embed_model"
+      ],
+      "title": "ExposureCueRef",
+      "type": "object"
+    }
+  },
+  "$id": "https://mainline.trappoint.dev/schema/candidate-set-v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "The payload of POST /v1/permits/{id}/checks:materialise. The recall agent never writes blocking_check; it hands the kernel this set and the kernel decides what becomes an obligation. Contract version 1. JSON Schema validity is necessary and NOT sufficient. Three laws are cross-field and are enforced by trappoint_recall.run.contract, by mainline_recall_agent.run, and by the database: (1) MI17 candidates_conserved, n_candidates = blocking + advisory + silenced + deduped exactly; (2) at most 3 blocking checks of probabilistic origin, with channels A and B uncapped; (3) MI16, every bonded severity-5 event is blocking. A payload that validates here and violates one of those is refused downstream.",
+  "properties": {
+    "arms_degraded": {
+      "title": "Arms Degraded",
+      "type": "boolean"
+    },
+    "candidate_root": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Candidate Root",
+      "type": "string"
+    },
+    "candidates": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/Candidate"
+      },
+      "title": "Candidates",
+      "type": "array"
+    },
+    "certificate_verdict": {
+      "enum": [
+        "complete",
+        "partial",
+        "UNDETERMINED"
+      ],
+      "title": "Certificate Verdict",
+      "type": "string"
+    },
+    "corpus_commit": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Corpus Commit",
+      "type": "string"
+    },
+    "counts": {
+      "$ref": "#/$defs/Counts"
+    },
+    "exposure_cues": {
+      "items": {
+        "$ref": "#/$defs/ExposureCueRef"
+      },
+      "minItems": 1,
+      "title": "Exposure Cues",
+      "type": "array"
+    },
+    "index_generation": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Index Generation",
+      "type": "string"
+    },
+    "index_plan_digest": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Index Plan Digest",
+      "type": "string"
+    },
+    "not_exhaustive": {
+      "default": false,
+      "title": "Not Exhaustive",
+      "type": "boolean"
+    },
+    "permit_id": {
+      "format": "uuid",
+      "title": "Permit Id",
+      "type": "string"
+    },
+    "policy_version": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Policy Version",
+      "type": "string"
+    },
+    "run_id": {
+      "format": "uuid",
+      "title": "Run Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "silence_receipt_id": {
+      "format": "uuid",
+      "title": "Silence Receipt Id",
+      "type": "string"
+    },
+    "site_id": {
+      "format": "uuid",
+      "title": "Site Id",
+      "type": "string"
+    },
+    "taxonomy_ver": {
+      "minimum": 0,
+      "title": "Taxonomy Ver",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "run_id",
+    "permit_id",
+    "site_id",
+    "policy_version",
+    "taxonomy_ver",
+    "corpus_commit",
+    "index_generation",
+    "index_plan_digest",
+    "arms_degraded",
+    "silence_receipt_id",
+    "candidate_root",
+    "certificate_verdict",
+    "exposure_cues",
+    "counts"
+  ],
+  "title": "MAINLINE recall candidate set",
+  "type": "object"
+}

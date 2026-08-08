@@ -20,7 +20,13 @@
  * becomes decorative: every assertion downstream iterates an empty collection, every one
  * of them passes, and the suite reports green while checking nothing at all.
  *
- * Not a `.test.ts`, so Vitest does not collect it (`include` is `**/*.{test,spec}.*`).
+ * Not a `.test.ts` and not a `.spec.ts`, so Vitest's `include` does not collect it: this
+ * module is imported by the gates, never run as one.
+ *
+ * (The glob that describes Vitest's `include` is not written out here on purpose — the
+ * two characters in the middle of it close a block comment, which detaches the rest of
+ * this file from its documentation and hands `tsc` a page of nonsense. That happened
+ * once; the note is the fix staying fixed.)
  */
 
 /** A glob result before it has been checked. */

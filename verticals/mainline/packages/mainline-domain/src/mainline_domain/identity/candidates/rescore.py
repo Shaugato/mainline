@@ -48,15 +48,26 @@ inserted, in text an adjudicator can read before signing.  ``matched_tokens``
 from the patience anchoring is always ≤ the LCS behind the score, and the gap
 between them is a reordering signature rather than a disagreement.
 
+**``rapidfuzz`` is loaded on first call, never at import time.**  This is the one
+third-party dependency anywhere in the candidate cascade, and deferring it makes
+``import mainline_domain.identity.candidates`` — and therefore
+:func:`~.minhash.signature` and :func:`~.band.band_hashes` — a standard-library-only
+operation.  That matters for one specific claim: a MinHash signature must be
+byte-reproducible from committed bytes by a stranger years from now, and a
+stranger who first has to resolve a wheel from a package index has reproduced the
+signature from committed bytes *and whatever that wheel contains today*.  The
+deferral does not *hide* the dependency — a missing ``rapidfuzz`` raises the
+ordinary :class:`ModuleNotFoundError` on the first :func:`rescore` call, with a
+message saying which extra supplies it.
+
 [cockroach#56820]: https://github.com/cockroachdb/cockroach/issues/56820
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Final
-
-from rapidfuzz.distance import Indel, Levenshtein
+from functools import lru_cache
+from typing import Any, Final
 
 from . import trigram
 from .minhash import (
@@ -69,6 +80,29 @@ from .minhash import (
 from .patience_diff import matched_token_count, moved_blocks, patience_diff, tokenise
 
 __all__ = ["RESCORE_VERSION", "Rescore", "rescore"]
+
+
+@lru_cache(maxsize=1)
+def _distance_backend() -> tuple[Any, Any]:
+    """Return ``(Indel, Levenshtein)`` from ``rapidfuzz``, importing once.
+
+    Cached, so the deferral costs one dictionary lookup per :func:`rescore` call
+    rather than an import.  Typed ``Any`` deliberately: the alternative is a
+    ``TYPE_CHECKING`` alias that would make the module's type-check depend on a
+    package its *runtime* is built not to need at import time.
+    """
+    try:
+        from rapidfuzz.distance import Indel, Levenshtein
+    except ModuleNotFoundError as exc:  # pragma: no cover - depends on the environment
+        raise ModuleNotFoundError(
+            "rescore() needs `rapidfuzz` (a declared dependency of mainline-domain). "
+            "Edit distance is computed in the application because CockroachDB's "
+            "levenshtein() caps its input at 255 characters. Note that MinHash "
+            "signatures and band hashes need no third-party package at all and are "
+            "unaffected by this."
+        ) from exc
+    return Indel, Levenshtein
+
 
 RESCORE_VERSION: Final[str] = "rescore-v1"
 """Stamped onto every feature map so a re-scored corpus is distinguishable from a stale one."""
@@ -135,6 +169,7 @@ def rescore(
     16 bands" and "shared 1 of 16" are very different provenance for the same
     final score.
     """
+    indel, levenshtein = _distance_backend()
     p = params if params is not None else default_params()
 
     a_tokens = tokenise(query_text)
@@ -149,12 +184,14 @@ def rescore(
     )
     estimate = jaccard_estimate(left_sig, right_sig)
 
-    token_indel = Indel.normalized_similarity(a_tokens, b_tokens)
+    token_indel = float(indel.normalized_similarity(a_tokens, b_tokens))
     return Rescore(
         score=token_indel,
         token_indel_similarity=token_indel,
-        char_indel_similarity=Indel.normalized_similarity(query_text, candidate_text),
-        char_levenshtein_similarity=Levenshtein.normalized_similarity(query_text, candidate_text),
+        char_indel_similarity=float(indel.normalized_similarity(query_text, candidate_text)),
+        char_levenshtein_similarity=float(
+            levenshtein.normalized_similarity(query_text, candidate_text)
+        ),
         trigram_similarity=trigram.similarity(query_text, candidate_text),
         patience_similarity=(2 * matched / token_total) if token_total else 0.0,
         minhash_jaccard=estimate,

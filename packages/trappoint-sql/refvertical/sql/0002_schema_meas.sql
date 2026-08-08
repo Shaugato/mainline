@@ -1,0 +1,24 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: Apache-2.0
+--
+-- TRAPPOINT_REF · 0002_schema_meas.sql
+-- CREATE SCHEMA trappoint_ref_meas — measurement: silence, standing, model cache, external attestation
+--
+-- MI: MI17
+-- I: I13
+-- COUNSEL-GATED: no
+-- RATIONALE: Silence is recorded, not inferred. Measurement is kept in its own schema
+--            because the MCP identity holds INSERT on exactly one table in it and SELECT on
+--            none, and a grant that narrow is only auditable if the boundary it crosses is
+--            a schema boundary.
+--
+-- @rendered-by  trappoint render
+-- @template     packages/trappoint-sql/templates/0001_schemas.sql.j2
+-- @binding      packages/trappoint-sql/refvertical/vertical.toml
+-- DO NOT EDIT. `trappoint render --check` is a zero-diff assertion in CI, so a
+-- hand edit here is a red build, not a silent divergence.
+--
+-- Zone: meas · derived as <schema>_meas
+-- from the single name `trappoint_ref` declared in packages/trappoint-sql/refvertical/vertical.toml.
+
+CREATE SCHEMA IF NOT EXISTS trappoint_ref_meas;

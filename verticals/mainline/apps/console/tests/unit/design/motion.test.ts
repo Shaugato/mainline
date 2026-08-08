@@ -32,12 +32,14 @@ import {
 import { REGISTER_LAW, type Register } from '../../../src/design/registers';
 import { parseTokenScopes, stripCssComments, toMap } from '../../../src/design/token-source';
 import tokensCss from '../../../src/design/tokens.css?raw';
+import { designStylesheets } from './raw-sources';
 
-const DESIGN_STYLESHEETS = import.meta.glob('/src/design/**/*.css', {
-  query: '?raw',
-  import: 'default',
-  eager: true,
-});
+/**
+ * Read through `raw-sources.ts`, which refuses an empty glob rather than returning one.
+ * A stylesheet gate whose glob matched nothing iterates an empty collection, passes every
+ * assertion, and reports green while checking no CSS at all.
+ */
+const DESIGN_STYLESHEETS = designStylesheets();
 
 describe('the easing set', () => {
   it('has exactly two entries', () => {

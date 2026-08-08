@@ -1,0 +1,53 @@
+{# SPDX-FileCopyrightText: 2026 MAINLINE contributors #}
+{# SPDX-License-Identifier: Apache-2.0 #}
+{#
+  Migration band 0001-0005 — the five schema zones (ARCHITECTURE.md §5.0, §18).
+
+  A TRAPPOINT vertical occupies five schemas derived from the ONE name its binding
+  declares. Deriving them rather than letting a binding name each one is what makes
+  finding S14 arithmetic instead of a review comment: a per-named-person view cannot
+  end up in the MCP-facing schema, because the two names are computed from the same
+  string by different suffixes and nothing in a binding can make them collide.
+
+  IF NOT EXISTS is deliberate here and NOT on tables. A schema is namespace scaffolding
+  that two migration streams legitimately share — two verticals on one cluster, a
+  restore that carried the namespace but not the tables — whereas a table is owned by
+  exactly one migration, and finding one already present is drift worth failing on.
+#}
+{% set filenames = [
+     '0001a_schema_' ~ binding.schema ~ '.sql',
+     '0002_schema_meas.sql',
+     '0003_schema_audit.sql',
+     '0004_schema_qa.sql',
+     '0005_schema_ops.sql',
+   ] %}
+{% set citations = {
+     'business': {'mi': ['MI01'], 'i': ['I01'],
+       'title': 'the business records: the gated subjects and everything they cite',
+       'why': 'Every evidentiary table in this vertical lives here, and every one of them is append-only. The schema is the unit that grants, RLS policies and the append-only trigger family are all scoped to, so it exists before anything it will contain.'},
+     'meas': {'mi': ['MI17'], 'i': ['I13'],
+       'title': 'measurement: silence, standing, model cache, external attestation',
+       'why': 'Silence is recorded, not inferred. Measurement is kept in its own schema because the MCP identity holds INSERT on exactly one table in it and SELECT on none, and a grant that narrow is only auditable if the boundary it crosses is a schema boundary.'},
+     'audit': {'mi': ['MI01'], 'i': ['I16'],
+       'title': 'the MCP-facing views, each shaped to 25 rows and 10 KiB',
+       'why': 'The managed MCP surface reads views and never base tables. Separating them by schema means the read surface can be enumerated by listing one schema, which is what makes the claim about what an external agent can see checkable rather than asserted.'},
+     'qa': {'mi': ['MI27'], 'i': ['I15'],
+       'title': 'per-named-person views. NO MCP ACCOUNT, EVER (finding S14)',
+       'why': 'A machine statement about a named person is an allegation until a human adopts it. These views are the only place such a statement is readable, they are granted to one role, and that role is never an MCP identity. The schema boundary is what makes never checkable.'},
+     'ops': {'mi': ['MI22'], 'i': ['I06'],
+       'title': 'infrastructure: outbox, cursors, register signals',
+       'why': 'The changefeed outbox and the projector cursors are operational state, not evidence. Keeping them out of the business schema stops an operational truncate from ever being an evidentiary one.'},
+   } %}
+{% for z in zones %}
+{% set c = citations[z.zone] %}
+-- @file {{ filenames[loop.index0] }}
+{{ header(file=filenames[loop.index0],
+          title='CREATE SCHEMA ' ~ z.name ~ ' — ' ~ c.title,
+          rationale=c.why,
+          mi=c.mi, i=c.i) }}
+--
+-- Zone: {{ z.zone }} · derived as <schema>{{ '' if z.zone == 'business' else '_' ~ z.zone }}
+-- from the single name `{{ binding.schema }}` declared in {{ binding.source }}.
+
+CREATE SCHEMA IF NOT EXISTS {{ z.name }};
+{% endfor %}

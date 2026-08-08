@@ -1,0 +1,240 @@
+# CAPTURED FROM A LIVE CLUSTER by tests/integration/recall_index/test_ix02_plan_pgwire.py
+distribution: local
+
+• union all
+│
+├── • union all
+│   │
+│   ├── • union all
+│   │   │
+│   │   ├── • union all
+│   │   │   │
+│   │   │   ├── • union all
+│   │   │   │   │
+│   │   │   │   ├── • union all
+│   │   │   │   │   │
+│   │   │   │   │   ├── • union all
+│   │   │   │   │   │   │
+│   │   │   │   │   │   ├── • union all
+│   │   │   │   │   │   │   │
+│   │   │   │   │   │   │   ├── • union all
+│   │   │   │   │   │   │   │   │
+│   │   │   │   │   │   │   │   ├── • union all
+│   │   │   │   │   │   │   │   │   │
+│   │   │   │   │   │   │   │   │   ├── • union all
+│   │   │   │   │   │   │   │   │   │   │
+│   │   │   │   │   │   │   │   │   │   ├── • union all
+│   │   │   │   │   │   │   │   │   │   │   │
+│   │   │   │   │   │   │   │   │   │   │   ├── • top-k
+│   │   │   │   │   │   │   │   │   │   │   │   │ order: +dist
+│   │   │   │   │   │   │   │   │   │   │   │   │ k: 12
+│   │   │   │   │   │   │   │   │   │   │   │   │
+│   │   │   │   │   │   │   │   │   │   │   │   └── • render
+│   │   │   │   │   │   │   │   │   │   │   │       │
+│   │   │   │   │   │   │   │   │   │   │   │       └── • lookup join
+│   │   │   │   │   │   │   │   │   │   │   │           │ table: event_cue_embedding@event_cue_embedding_pk
+│   │   │   │   │   │   │   │   │   │   │   │           │ equality: (cue_id) = (cue_id)
+│   │   │   │   │   │   │   │   │   │   │   │           │ equality cols are key
+│   │   │   │   │   │   │   │   │   │   │   │           │
+│   │   │   │   │   │   │   │   │   │   │   │           └── • vector search
+│   │   │   │   │   │   │   │   │   │   │   │                 table: event_cue_embedding@cue_scoped_idx
+│   │   │   │   │   │   │   │   │   │   │   │                 target count: 12
+│   │   │   │   │   │   │   │   │   │   │   │                 prefix spans: [/'5f4f8a94-b8f1-4d07-ab57-709f4cb09e97'/'2d8f9695-2bc9-43ad-bfae-72fd42d9beff'/'recurrence_test' - /'5f4f8a94-b8f1-4d07-ab57-709f4cb09e97'/'2d8f9695-2bc9-43ad-bfae-72fd42d9beff'/'recurrence_test']
+│   │   │   │   │   │   │   │   │   │   │   │
+│   │   │   │   │   │   │   │   │   │   │   └── • top-k
+│   │   │   │   │   │   │   │   │   │   │       │ order: +dist
+│   │   │   │   │   │   │   │   │   │   │       │ k: 12
+│   │   │   │   │   │   │   │   │   │   │       │
+│   │   │   │   │   │   │   │   │   │   │       └── • render
+│   │   │   │   │   │   │   │   │   │   │           │
+│   │   │   │   │   │   │   │   │   │   │           └── • lookup join
+│   │   │   │   │   │   │   │   │   │   │               │ table: event_cue_embedding@event_cue_embedding_pk
+│   │   │   │   │   │   │   │   │   │   │               │ equality: (cue_id) = (cue_id)
+│   │   │   │   │   │   │   │   │   │   │               │ equality cols are key
+│   │   │   │   │   │   │   │   │   │   │               │
+│   │   │   │   │   │   │   │   │   │   │               └── • vector search
+│   │   │   │   │   │   │   │   │   │   │                     table: event_cue_embedding@cue_scoped_idx
+│   │   │   │   │   │   │   │   │   │   │                     target count: 12
+│   │   │   │   │   │   │   │   │   │   │                     prefix spans: [/'5f4f8a94-b8f1-4d07-ab57-709f4cb09e97'/'2d8f9695-2bc9-43ad-bfae-72fd42d9beff'/'mechanism' - /'5f4f8a94-b8f1-4d07-ab57-709f4cb09e97'/'2d8f9695-2bc9-43ad-bfae-72fd42d9beff'/'mechanism']
+│   │   │   │   │   │   │   │   │   │   │
+│   │   │   │   │   │   │   │   │   │   └── • top-k
+│   │   │   │   │   │   │   │   │   │       │ order: +dist
+│   │   │   │   │   │   │   │   │   │       │ k: 12
+│   │   │   │   │   │   │   │   │   │       │
+│   │   │   │   │   │   │   │   │   │       └── • render
+│   │   │   │   │   │   │   │   │   │           │
+│   │   │   │   │   │   │   │   │   │           └── • lookup join
+│   │   │   │   │   │   │   │   │   │               │ table: event_cue_embedding@event_cue_embedding_pk
+│   │   │   │   │   │   │   │   │   │               │ equality: (cue_id) = (cue_id)
+│   │   │   │   │   │   │   │   │   │               │ equality cols are key
+│   │   │   │   │   │   │   │   │   │               │
+│   │   │   │   │   │   │   │   │   │               └── • vector search
+│   │   │   │   │   │   │   │   │   │                     table: event_cue_embedding@cue_scoped_idx
+│   │   │   │   │   │   │   │   │   │                     target count: 12
+│   │   │   │   │   │   │   │   │   │                     prefix spans: [/'5f4f8a94-b8f1-4d07-ab57-709f4cb09e97'/'2d8f9695-2bc9-43ad-bfae-72fd42d9beff'/'precondition' - /'5f4f8a94-b8f1-4d07-ab57-709f4cb09e97'/'2d8f9695-2bc9-43ad-bfae-72fd42d9beff'/'precondition']
+│   │   │   │   │   │   │   │   │   │
+│   │   │   │   │   │   │   │   │   └── • top-k
+│   │   │   │   │   │   │   │   │       │ order: +dist
+│   │   │   │   │   │   │   │   │       │ k: 12
+│   │   │   │   │   │   │   │   │       │
+│   │   │   │   │   │   │   │   │       └── • render
+│   │   │   │   │   │   │   │   │           │
+│   │   │   │   │   │   │   │   │           └── • lookup join
+│   │   │   │   │   │   │   │   │               │ table: event_cue_embedding@event_cue_embedding_pk
+│   │   │   │   │   │   │   │   │               │ equality: (cue_id) = (cue_id)
+│   │   │   │   │   │   │   │   │               │ equality cols are key
+│   │   │   │   │   │   │   │   │               │
+│   │   │   │   │   │   │   │   │               └── • vector search
+│   │   │   │   │   │   │   │   │                     table: event_cue_embedding@cue_scoped_idx
+│   │   │   │   │   │   │   │   │                     target count: 12
+│   │   │   │   │   │   │   │   │                     prefix spans: [/'5f4f8a94-b8f1-4d07-ab57-709f4cb09e97'/'2d8f9695-2bc9-43ad-bfae-72fd42d9beff'/'control_failure' - /'5f4f8a94-b8f1-4d07-ab57-709f4cb09e97'/'2d8f9695-2bc9-43ad-bfae-72fd42d9beff'/'control_failure']
+│   │   │   │   │   │   │   │   │
+│   │   │   │   │   │   │   │   └── • top-k
+│   │   │   │   │   │   │   │       │ order: +dist
+│   │   │   │   │   │   │   │       │ k: 12
+│   │   │   │   │   │   │   │       │
+│   │   │   │   │   │   │   │       └── • render
+│   │   │   │   │   │   │   │           │
+│   │   │   │   │   │   │   │           └── • lookup join
+│   │   │   │   │   │   │   │               │ table: event_cue_embedding@event_cue_embedding_pk
+│   │   │   │   │   │   │   │               │ equality: (cue_id) = (cue_id)
+│   │   │   │   │   │   │   │               │ equality cols are key
+│   │   │   │   │   │   │   │               │
+│   │   │   │   │   │   │   │               └── • vector search
+│   │   │   │   │   │   │   │                     table: event_cue_embedding@cue_scoped_idx
+│   │   │   │   │   │   │   │                     target count: 12
+│   │   │   │   │   │   │   │                     prefix spans: [/'5f4f8a94-b8f1-4d07-ab57-709f4cb09e97'/'7d852764-b09e-4f19-afa1-80170f1e4a89'/'recurrence_test' - /'5f4f8a94-b8f1-4d07-ab57-709f4cb09e97'/'7d852764-b09e-4f19-afa1-80170f1e4a89'/'recurrence_test']
+│   │   │   │   │   │   │   │
+│   │   │   │   │   │   │   └── • top-k
+│   │   │   │   │   │   │       │ order: +dist
+│   │   │   │   │   │   │       │ k: 12
+│   │   │   │   │   │   │       │
+│   │   │   │   │   │   │       └── • render
+│   │   │   │   │   │   │           │
+│   │   │   │   │   │   │           └── • lookup join
+│   │   │   │   │   │   │               │ table: event_cue_embedding@event_cue_embedding_pk
+│   │   │   │   │   │   │               │ equality: (cue_id) = (cue_id)
+│   │   │   │   │   │   │               │ equality cols are key
+│   │   │   │   │   │   │               │
+│   │   │   │   │   │   │               └── • vector search
+│   │   │   │   │   │   │                     table: event_cue_embedding@cue_scoped_idx
+│   │   │   │   │   │   │                     target count: 12
+│   │   │   │   │   │   │                     prefix spans: [/'5f4f8a94-b8f1-4d07-ab57-709f4cb09e97'/'7d852764-b09e-4f19-afa1-80170f1e4a89'/'mechanism' - /'5f4f8a94-b8f1-4d07-ab57-709f4cb09e97'/'7d852764-b09e-4f19-afa1-80170f1e4a89'/'mechanism']
+│   │   │   │   │   │   │
+│   │   │   │   │   │   └── • top-k
+│   │   │   │   │   │       │ order: +dist
+│   │   │   │   │   │       │ k: 12
+│   │   │   │   │   │       │
+│   │   │   │   │   │       └── • render
+│   │   │   │   │   │           │
+│   │   │   │   │   │           └── • lookup join
+│   │   │   │   │   │               │ table: event_cue_embedding@event_cue_embedding_pk
+│   │   │   │   │   │               │ equality: (cue_id) = (cue_id)
+│   │   │   │   │   │               │ equality cols are key
+│   │   │   │   │   │               │
+│   │   │   │   │   │               └── • vector search
+│   │   │   │   │   │                     table: event_cue_embedding@cue_scoped_idx
+│   │   │   │   │   │                     target count: 12
+│   │   │   │   │   │                     prefix spans: [/'5f4f8a94-b8f1-4d07-ab57-709f4cb09e97'/'7d852764-b09e-4f19-afa1-80170f1e4a89'/'precondition' - /'5f4f8a94-b8f1-4d07-ab57-709f4cb09e97'/'7d852764-b09e-4f19-afa1-80170f1e4a89'/'precondition']
+│   │   │   │   │   │
+│   │   │   │   │   └── • top-k
+│   │   │   │   │       │ order: +dist
+│   │   │   │   │       │ k: 12
+│   │   │   │   │       │
+│   │   │   │   │       └── • render
+│   │   │   │   │           │
+│   │   │   │   │           └── • lookup join
+│   │   │   │   │               │ table: event_cue_embedding@event_cue_embedding_pk
+│   │   │   │   │               │ equality: (cue_id) = (cue_id)
+│   │   │   │   │               │ equality cols are key
+│   │   │   │   │               │
+│   │   │   │   │               └── • vector search
+│   │   │   │   │                     table: event_cue_embedding@cue_scoped_idx
+│   │   │   │   │                     target count: 12
+│   │   │   │   │                     prefix spans: [/'5f4f8a94-b8f1-4d07-ab57-709f4cb09e97'/'7d852764-b09e-4f19-afa1-80170f1e4a89'/'control_failure' - /'5f4f8a94-b8f1-4d07-ab57-709f4cb09e97'/'7d852764-b09e-4f19-afa1-80170f1e4a89'/'control_failure']
+│   │   │   │   │
+│   │   │   │   └── • top-k
+│   │   │   │       │ order: +dist
+│   │   │   │       │ k: 8
+│   │   │   │       │
+│   │   │   │       └── • render
+│   │   │   │           │
+│   │   │   │           └── • lookup join
+│   │   │   │               │ table: event_cue_embedding@event_cue_embedding_pk
+│   │   │   │               │ equality: (cue_id) = (cue_id)
+│   │   │   │               │ equality cols are key
+│   │   │   │               │
+│   │   │   │               └── • vector search
+│   │   │   │                     table: event_cue_embedding@cue_scoped_idx
+│   │   │   │                     target count: 8
+│   │   │   │                     prefix spans: [/'5f4f8a94-b8f1-4d07-ab57-709f4cb09e97'/'784e005c-b239-41e9-b778-c25e3608d513'/'recurrence_test' - /'5f4f8a94-b8f1-4d07-ab57-709f4cb09e97'/'784e005c-b239-41e9-b778-c25e3608d513'/'recurrence_test']
+│   │   │   │
+│   │   │   └── • top-k
+│   │   │       │ order: +dist
+│   │   │       │ k: 8
+│   │   │       │
+│   │   │       └── • render
+│   │   │           │
+│   │   │           └── • lookup join
+│   │   │               │ table: event_cue_embedding@event_cue_embedding_pk
+│   │   │               │ equality: (cue_id) = (cue_id)
+│   │   │               │ equality cols are key
+│   │   │               │
+│   │   │               └── • vector search
+│   │   │                     table: event_cue_embedding@cue_scoped_idx
+│   │   │                     target count: 8
+│   │   │                     prefix spans: [/'5f4f8a94-b8f1-4d07-ab57-709f4cb09e97'/'784e005c-b239-41e9-b778-c25e3608d513'/'mechanism' - /'5f4f8a94-b8f1-4d07-ab57-709f4cb09e97'/'784e005c-b239-41e9-b778-c25e3608d513'/'mechanism']
+│   │   │
+│   │   └── • top-k
+│   │       │ order: +dist
+│   │       │ k: 8
+│   │       │
+│   │       └── • render
+│   │           │
+│   │           └── • lookup join
+│   │               │ table: event_cue_embedding@event_cue_embedding_pk
+│   │               │ equality: (cue_id) = (cue_id)
+│   │               │ equality cols are key
+│   │               │
+│   │               └── • vector search
+│   │                     table: event_cue_embedding@cue_scoped_idx
+│   │                     target count: 8
+│   │                     prefix spans: [/'5f4f8a94-b8f1-4d07-ab57-709f4cb09e97'/'784e005c-b239-41e9-b778-c25e3608d513'/'precondition' - /'5f4f8a94-b8f1-4d07-ab57-709f4cb09e97'/'784e005c-b239-41e9-b778-c25e3608d513'/'precondition']
+│   │
+│   └── • top-k
+│       │ order: +dist
+│       │ k: 8
+│       │
+│       └── • render
+│           │
+│           └── • lookup join
+│               │ table: event_cue_embedding@event_cue_embedding_pk
+│               │ equality: (cue_id) = (cue_id)
+│               │ equality cols are key
+│               │
+│               └── • vector search
+│                     table: event_cue_embedding@cue_scoped_idx
+│                     target count: 8
+│                     prefix spans: [/'5f4f8a94-b8f1-4d07-ab57-709f4cb09e97'/'784e005c-b239-41e9-b778-c25e3608d513'/'control_failure' - /'5f4f8a94-b8f1-4d07-ab57-709f4cb09e97'/'784e005c-b239-41e9-b778-c25e3608d513'/'control_failure']
+│
+└── • top-k
+    │ order: +dist
+    │ k: 24
+    │
+    └── • render
+        │
+        └── • lookup join
+            │ table: event_cue_coarse@event_cue_coarse_pk
+            │ equality: (cue_id) = (cue_id)
+            │ equality cols are key
+            │
+            └── • vector search
+                  table: event_cue_coarse@cue_sweep_idx
+                  target count: 24
+                  prefix spans: [/'1b090769-6c36-4237-bede-0aa21045a60a' - /'1b090769-6c36-4237-bede-0aa21045a60a']
+
+index recommendations: 2
+1. type: index creation
+   SQL command: CREATE INDEX ON mainline_recall_index_fc5e93747e.mainline.event_cue_coarse (tenant_id) STORING (emb_coarse);
+2. type: index creation
+   SQL command: CREATE INDEX ON mainline_recall_index_fc5e93747e.mainline.event_cue_embedding (site_id, scope_id, facet) STORING (emb);

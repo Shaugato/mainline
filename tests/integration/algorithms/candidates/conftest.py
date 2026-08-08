@@ -43,6 +43,15 @@ _REPO_ROOT = Path(__file__).resolve().parents[4]
 _SRC = _REPO_ROOT / "verticals" / "mainline" / "packages" / "mainline-domain" / "src"
 if str(_SRC) not in sys.path and _SRC.is_dir():
     sys.path.insert(0, str(_SRC))
+# This directory goes on `sys.path` so `_w7_support` imports under pytest's
+# prepend import mode.  The helper module is named `_w7_support`, not `_support`,
+# ON PURPOSE: several integration suites in this repository keep a private helper
+# beside their tests, none of these directories is a package, and two files with
+# the same basename on `sys.path` resolve to whichever suite pytest imported
+# first.  That is a collision that shows up as one worker's conftest importing
+# another worker's constants, in an order that depends on collection sequence.
+# A unique basename costs nothing and removes this suite from that hazard
+# entirely.
 if str(Path(__file__).resolve().parent) not in sys.path:
     sys.path.insert(0, str(Path(__file__).resolve().parent))
 
@@ -140,7 +149,7 @@ def cluster_conn(cluster_dsn: str) -> Iterator[Any]:
     unchanged *and* stay out of the way is to give them their own database.
     """
     psycopg = _psycopg()
-    from _support import (
+    from _w7_support import (
         CREATE_CLAUSE_BAND,
         CREATE_CLAUSE_EMBEDDING,
         CREATE_CLAUSE_VERSION,

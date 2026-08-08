@@ -1,0 +1,27 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MAINLINE · 0006b_role_owner.sql
+-- CREATE ROLE mainline_owner — the owner slot
+--
+-- MI: MI01
+-- I: I01
+-- COUNSEL-GATED: no
+-- RATIONALE: owns every schema; NOLOGIN and unassumable, so no session can ever act as the
+--            owner and drop a trigger the gate depends on. IF NOT EXISTS because a role is
+--            cluster state, not schema state: a restore does not carry it, two verticals on
+--            one cluster legitimately share the agent roles, and re-asserting one must
+--            never be an error.
+--
+-- @rendered-by  trappoint render
+-- @template     packages/trappoint-sql/templates/0006_roles.sql.j2
+-- @binding      verticals/mainline/vertical.toml
+-- DO NOT EDIT. `trappoint render --check` is a zero-diff assertion in CI, so a
+-- hand edit here is a red build, not a silent divergence.
+--
+-- Slot         owner
+-- Name         mainline_owner   (overridable in [roles] of the binding)
+-- NOLOGIN      no session may ever authenticate as this role, so no session may ever
+--              exercise the ownership privileges that could drop a gate trigger.
+
+CREATE ROLE IF NOT EXISTS mainline_owner WITH NOLOGIN;

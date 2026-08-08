@@ -62,7 +62,7 @@ export type JsonValue =
   | { readonly [key: string]: JsonValue };
 
 /** A schema document, as parsed from a `*.schema.json` file. */
-export type SchemaDocument = { readonly [key: string]: JsonValue };
+export type SchemaDocument = Readonly<Record<string, JsonValue>>;
 
 // ── The closed keyword set ─────────────────────────────────────────────────
 
@@ -215,7 +215,7 @@ export class SchemaRegistry {
   private readonly documents = new Map<string, SchemaDocument>();
 
   add(document: SchemaDocument): this {
-    const id = document['$id'];
+    const id = document.$id;
     if (typeof id !== 'string' || id === '') {
       throw new SchemaCompileError('<anonymous>', 'a registered schema document must declare a string $id.');
     }
@@ -284,14 +284,14 @@ export class SchemaRegistry {
     }
 
     if (fragment === '') {
-      return { document, schema: document as JsonValue, path: `${targetId}#` };
+      return { document, schema: document, path: `${targetId}#` };
     }
     if (!fragment.startsWith('/')) {
       throw new SchemaRefError(
         `${baseId}: $ref "${ref}" uses a plain-name fragment. $anchor is not implemented; use a JSON Pointer.`,
       );
     }
-    const schema = resolvePointer(document as JsonValue, fragment);
+    const schema = resolvePointer(document, fragment);
     if (schema === undefined) {
       throw new SchemaRefError(`${baseId}: $ref "${ref}" points at "${fragment}", which does not exist in ${targetId}.`);
     }
@@ -304,7 +304,7 @@ export class SchemaRegistry {
     if (document === undefined) {
       throw new SchemaRefError(`no schema document registered under "${schemaId}".`);
     }
-    const schema = pointer === '' ? (document as JsonValue) : resolvePointer(document as JsonValue, pointer);
+    const schema = pointer === '' ? (document as JsonValue) : resolvePointer(document, pointer);
     if (schema === undefined) {
       throw new SchemaRefError(`"${pointer}" does not exist in ${schemaId}.`);
     }
@@ -372,7 +372,7 @@ function walkSchema(schema: JsonValue, documentId: string, path: string): void {
         if (typeof value !== 'string' || !Object.hasOwn(FORMATS, value)) {
           throw new SchemaCompileError(
             `${documentId}${childPath}`,
-            `format "${String(value)}" is not implemented. This validator asserts formats rather than ` +
+            `format ${JSON.stringify(value) ?? 'undefined'} is not implemented. This validator asserts formats rather than ` +
               'annotating them, so an unknown one is refused instead of quietly passing.',
           );
         }
@@ -417,7 +417,7 @@ function walkSchema(schema: JsonValue, documentId: string, path: string): void {
         if (!Array.isArray(value)) {
           throw new SchemaCompileError(`${documentId}${childPath}`, `${keyword} must be an array of schemas.`);
         }
-        value.forEach((sub, index) => walkSchema(sub, documentId, `${childPath}/${index}`));
+        value.forEach((sub, index) => { walkSchema(sub, documentId, `${childPath}/${index}`); });
         break;
       }
       case 'not':
@@ -443,7 +443,7 @@ function collectRefs(schema: JsonValue, found: string[] = []): readonly string[]
     return found;
   }
   if (!isPlainObject(schema)) return found;
-  const ref = schema['$ref'];
+  const ref = schema.$ref;
   if (typeof ref === 'string') found.push(ref);
   for (const [key, value] of Object.entries(schema)) {
     if (key === '$ref') continue;
@@ -527,7 +527,6 @@ function preview(value: JsonValue): string {
   return text.length > 120 ? `${text.slice(0, 117)}…` : text;
 }
 
-// eslint-disable-next-line complexity -- one function per keyword would scatter a closed, ~30-branch dispatch over thirty files without making any branch clearer.
 function validateNode(registry: SchemaRegistry, schema: JsonValue, instance: JsonValue, ctx: Context): void {
   if (schema === true) return;
   if (schema === false) {
@@ -539,7 +538,7 @@ function validateNode(registry: SchemaRegistry, schema: JsonValue, instance: Jso
     return;
   }
 
-  const ref = schema['$ref'];
+  const ref = schema.$ref;
   if (typeof ref === 'string') {
     const resolved = registry.resolve(ref, ctx.baseId);
     const targetBase = resolved.path.slice(0, resolved.path.indexOf('#'));
@@ -554,7 +553,7 @@ function validateNode(registry: SchemaRegistry, schema: JsonValue, instance: Jso
 
   const kind = typeOf(instance);
 
-  const typeKeyword = schema['type'];
+  const typeKeyword = schema.type;
   if (typeKeyword !== undefined) {
     const names = (Array.isArray(typeKeyword) ? typeKeyword : [typeKeyword]) as readonly string[];
     if (!names.some((name) => matchesType(instance, name))) {
@@ -562,12 +561,12 @@ function validateNode(registry: SchemaRegistry, schema: JsonValue, instance: Jso
     }
   }
 
-  const constKeyword = schema['const'];
+  const constKeyword = schema.const;
   if (constKeyword !== undefined && !jsonEqual(instance, constKeyword)) {
     fail(ctx, 'const', `must equal ${preview(constKeyword)}, got ${preview(instance)}.`);
   }
 
-  const enumKeyword = schema['enum'];
+  const enumKeyword = schema.enum;
   if (Array.isArray(enumKeyword) && !enumKeyword.some((candidate) => jsonEqual(instance, candidate))) {
     fail(ctx, 'enum', `${preview(instance)} is not one of ${preview(enumKeyword as JsonValue)}.`);
   }
@@ -591,20 +590,26 @@ function validateNode(registry: SchemaRegistry, schema: JsonValue, instance: Jso
 function validateString(schema: Record<string, JsonValue>, instance: string, ctx: Context): void {
   // Length is measured in Unicode code points, as the specification requires — not in
   // UTF-16 units, which would make an emoji count twice and a limit mean two things.
+  //
+  // The lint rule below suggests `Intl.Segmenter` for locale-aware decomposition. That
+  // advice is right for text a human reads and wrong here: JSON Schema draft 2020-12
+  // §6.3.1 defines maxLength/minLength over code points, full stop. Grapheme clusters
+  // would make the same document validate differently under different locale data.
+  // eslint-disable-next-line @typescript-eslint/no-misused-spread -- code points are what the specification counts
   const length = [...instance].length;
-  const minLength = schema['minLength'];
+  const minLength = schema.minLength;
   if (typeof minLength === 'number' && length < minLength) {
     fail(ctx, 'minLength', `needs at least ${minLength} characters, has ${length}.`);
   }
-  const maxLength = schema['maxLength'];
+  const maxLength = schema.maxLength;
   if (typeof maxLength === 'number' && length > maxLength) {
     fail(ctx, 'maxLength', `allows at most ${maxLength} characters, has ${length}.`);
   }
-  const pattern = schema['pattern'];
+  const pattern = schema.pattern;
   if (typeof pattern === 'string' && !new RegExp(pattern, 'u').test(instance)) {
     fail(ctx, 'pattern', `${preview(instance)} does not match /${pattern}/.`);
   }
-  const format = schema['format'];
+  const format = schema.format;
   if (typeof format === 'string') {
     const check = FORMATS[format];
     if (check !== undefined && !check(instance)) {
@@ -614,23 +619,23 @@ function validateString(schema: Record<string, JsonValue>, instance: string, ctx
 }
 
 function validateNumber(schema: Record<string, JsonValue>, instance: number, ctx: Context): void {
-  const minimum = schema['minimum'];
+  const minimum = schema.minimum;
   if (typeof minimum === 'number' && instance < minimum) {
     fail(ctx, 'minimum', `must be >= ${minimum}, got ${instance}.`);
   }
-  const maximum = schema['maximum'];
+  const maximum = schema.maximum;
   if (typeof maximum === 'number' && instance > maximum) {
     fail(ctx, 'maximum', `must be <= ${maximum}, got ${instance}.`);
   }
-  const exclusiveMinimum = schema['exclusiveMinimum'];
+  const exclusiveMinimum = schema.exclusiveMinimum;
   if (typeof exclusiveMinimum === 'number' && instance <= exclusiveMinimum) {
     fail(ctx, 'exclusiveMinimum', `must be > ${exclusiveMinimum}, got ${instance}.`);
   }
-  const exclusiveMaximum = schema['exclusiveMaximum'];
+  const exclusiveMaximum = schema.exclusiveMaximum;
   if (typeof exclusiveMaximum === 'number' && instance >= exclusiveMaximum) {
     fail(ctx, 'exclusiveMaximum', `must be < ${exclusiveMaximum}, got ${instance}.`);
   }
-  const multipleOf = schema['multipleOf'];
+  const multipleOf = schema.multipleOf;
   if (typeof multipleOf === 'number' && multipleOf > 0) {
     const quotient = instance / multipleOf;
     if (Math.abs(quotient - Math.round(quotient)) > 1e-9) {
@@ -645,15 +650,15 @@ function validateArray(
   instance: readonly JsonValue[],
   ctx: Context,
 ): void {
-  const minItems = schema['minItems'];
+  const minItems = schema.minItems;
   if (typeof minItems === 'number' && instance.length < minItems) {
     fail(ctx, 'minItems', `needs at least ${minItems} items, has ${instance.length}.`);
   }
-  const maxItems = schema['maxItems'];
+  const maxItems = schema.maxItems;
   if (typeof maxItems === 'number' && instance.length > maxItems) {
     fail(ctx, 'maxItems', `allows at most ${maxItems} items, has ${instance.length}.`);
   }
-  if (schema['uniqueItems'] === true) {
+  if (schema.uniqueItems === true) {
     for (let i = 0; i < instance.length; i += 1) {
       for (let j = i + 1; j < instance.length; j += 1) {
         if (jsonEqual(instance[i] as JsonValue, instance[j] as JsonValue)) {
@@ -663,7 +668,7 @@ function validateArray(
     }
   }
 
-  const prefixItems = schema['prefixItems'];
+  const prefixItems = schema.prefixItems;
   let prefixCount = 0;
   if (Array.isArray(prefixItems)) {
     prefixCount = Math.min(prefixItems.length, instance.length);
@@ -677,14 +682,14 @@ function validateArray(
     }
   }
 
-  const items = schema['items'];
+  const items = schema.items;
   if (items !== undefined) {
     for (let i = prefixCount; i < instance.length; i += 1) {
       validateNode(registry, items, instance[i] as JsonValue, child(ctx, String(i), '/items'));
     }
   }
 
-  const contains = schema['contains'];
+  const contains = schema.contains;
   if (contains !== undefined) {
     let matched = 0;
     for (const item of instance) {
@@ -692,8 +697,8 @@ function validateArray(
       validateNode(registry, contains, item, probe.ctx);
       if (probe.errors.length === 0) matched += 1;
     }
-    const minContains = typeof schema['minContains'] === 'number' ? schema['minContains'] : 1;
-    const maxContains = typeof schema['maxContains'] === 'number' ? schema['maxContains'] : Infinity;
+    const minContains = typeof schema.minContains === 'number' ? schema.minContains : 1;
+    const maxContains = typeof schema.maxContains === 'number' ? schema.maxContains : Infinity;
     if (matched < minContains) {
       fail(ctx, 'contains', `needs at least ${minContains} matching item(s), found ${matched}.`);
     }
@@ -711,7 +716,7 @@ function validateObject(
 ): void {
   const keys = Object.keys(instance);
 
-  const required = schema['required'];
+  const required = schema.required;
   if (Array.isArray(required)) {
     for (const name of required as readonly string[]) {
       if (!Object.hasOwn(instance, name)) {
@@ -720,16 +725,16 @@ function validateObject(
     }
   }
 
-  const minProperties = schema['minProperties'];
+  const minProperties = schema.minProperties;
   if (typeof minProperties === 'number' && keys.length < minProperties) {
     fail(ctx, 'minProperties', `needs at least ${minProperties} properties, has ${keys.length}.`);
   }
-  const maxProperties = schema['maxProperties'];
+  const maxProperties = schema.maxProperties;
   if (typeof maxProperties === 'number' && keys.length > maxProperties) {
     fail(ctx, 'maxProperties', `allows at most ${maxProperties} properties, has ${keys.length}.`);
   }
 
-  const dependentRequired = schema['dependentRequired'];
+  const dependentRequired = schema.dependentRequired;
   if (isPlainObject(dependentRequired)) {
     for (const [trigger, names] of Object.entries(dependentRequired)) {
       if (!Object.hasOwn(instance, trigger) || !Array.isArray(names)) continue;
@@ -741,7 +746,7 @@ function validateObject(
     }
   }
 
-  const dependentSchemas = schema['dependentSchemas'];
+  const dependentSchemas = schema.dependentSchemas;
   if (isPlainObject(dependentSchemas)) {
     for (const [trigger, sub] of Object.entries(dependentSchemas)) {
       if (!Object.hasOwn(instance, trigger)) continue;
@@ -749,16 +754,16 @@ function validateObject(
     }
   }
 
-  const propertyNames = schema['propertyNames'];
+  const propertyNames = schema.propertyNames;
   if (propertyNames !== undefined) {
     for (const key of keys) {
       validateNode(registry, propertyNames, key, child(ctx, key, '/propertyNames'));
     }
   }
 
-  const properties = isPlainObject(schema['properties']) ? schema['properties'] : undefined;
-  const patternProperties = isPlainObject(schema['patternProperties'])
-    ? schema['patternProperties']
+  const properties = isPlainObject(schema.properties) ? schema.properties : undefined;
+  const patternProperties = isPlainObject(schema.patternProperties)
+    ? schema.patternProperties
     : undefined;
 
   if (properties !== undefined) {
@@ -788,7 +793,7 @@ function validateObject(
     }
   }
 
-  const additionalProperties = schema['additionalProperties'];
+  const additionalProperties = schema.additionalProperties;
   if (additionalProperties !== undefined) {
     for (const key of keys) {
       if (properties !== undefined && Object.hasOwn(properties, key)) continue;
@@ -826,14 +831,14 @@ function validateApplicators(
   instance: JsonValue,
   ctx: Context,
 ): void {
-  const allOf = schema['allOf'];
+  const allOf = schema.allOf;
   if (Array.isArray(allOf)) {
     allOf.forEach((sub, index) => {
       validateNode(registry, sub, instance, child(ctx, null, `/allOf/${index}`));
     });
   }
 
-  const anyOf = schema['anyOf'];
+  const anyOf = schema.anyOf;
   if (Array.isArray(anyOf)) {
     const collected: ValidationError[][] = [];
     const ok = anyOf.some((sub, index) => {
@@ -854,7 +859,7 @@ function validateApplicators(
     }
   }
 
-  const oneOf = schema['oneOf'];
+  const oneOf = schema.oneOf;
   if (Array.isArray(oneOf)) {
     const matched: number[] = [];
     const collected: ValidationError[][] = [];
@@ -878,7 +883,7 @@ function validateApplicators(
     }
   }
 
-  const not = schema['not'];
+  const not = schema.not;
   if (not !== undefined) {
     const probe = branch(ctx, '/not');
     validateNode(registry, not, instance, probe.ctx);
@@ -887,12 +892,12 @@ function validateApplicators(
     }
   }
 
-  const ifSchema = schema['if'];
+  const ifSchema = schema.if;
   if (ifSchema !== undefined) {
     const probe = branch(ctx, '/if');
     validateNode(registry, ifSchema, instance, probe.ctx);
     const conditionHeld = probe.errors.length === 0;
-    const consequent = conditionHeld ? schema['then'] : schema['else'];
+    const consequent = conditionHeld ? schema.then : schema.else;
     if (consequent !== undefined) {
       validateNode(registry, consequent, instance, child(ctx, null, conditionHeld ? '/then' : '/else'));
     }

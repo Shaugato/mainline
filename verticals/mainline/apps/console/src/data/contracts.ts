@@ -21,8 +21,9 @@
  *
  * `refusal.schema.json` is a VERBATIM copy of `spec/wire/refusal.schema.json`. It is
  * copied rather than imported because the console workspace may not reach outside
- * itself, and `tests/unit/data/refusal-contract.test.ts` fails the moment the copy and
- * the specification disagree. Never edit it here — edit the specification, then re-copy.
+ * itself, and `tests/unit/data/contracts.test.ts` compares the two JSON-pointer by
+ * JSON-pointer, in both directions, so it fails the moment the copy and the
+ * specification disagree. Never edit it here — edit the specification, then re-copy.
  */
 
 import ancestryRaw from '../../contracts/ancestry.schema.json?raw';
@@ -50,7 +51,7 @@ import { SchemaRegistry } from './schema';
  * File name → source text. The key is the file name because that is what a `$ref` like
  * `common.schema.json#/$defs/uuid` names, and because it is what a human greps for.
  */
-export const CONTRACT_SOURCES: ReadonlyArray<readonly [string, string]> = Object.freeze([
+export const CONTRACT_SOURCES: readonly (readonly [string, string])[] = Object.freeze([
   ['ancestry.schema.json', ancestryRaw],
   ['audit.schema.json', auditRaw],
   ['blocking-check.schema.json', blockingCheckRaw],

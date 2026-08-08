@@ -1,0 +1,21 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MAINLINE · 0009e_default_privileges_floor.sql
+-- ALTER DEFAULT PRIVILEGES — no future table is granted to public
+--
+-- MI: MI01
+-- I: I01
+-- COUNSEL-GATED: no
+-- RATIONALE: Every REVOKE in this band describes the tables that exist today. This
+--            statement describes the ones that do not exist yet: a table created later by
+--            the owner arrives with no public privilege, so the floor holds for the whole
+--            life of the schema rather than for the length of this migration.
+--
+-- @rendered-by  trappoint render
+-- @template     packages/trappoint-sql/templates/0006_roles.sql.j2
+-- @binding      verticals/mainline/vertical.toml
+-- DO NOT EDIT. `trappoint render --check` is a zero-diff assertion in CI, so a
+-- hand edit here is a red build, not a silent divergence.
+
+ALTER DEFAULT PRIVILEGES FOR ROLE mainline_owner IN SCHEMA mainline REVOKE ALL ON TABLES FROM public;

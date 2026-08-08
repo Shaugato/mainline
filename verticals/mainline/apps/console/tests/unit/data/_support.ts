@@ -32,11 +32,11 @@ import type {
 
 const BUNDLE_ROOT = '/fixtures/bundles/blk-07/';
 
-const RAW_FILES = import.meta.glob('/fixtures/bundles/blk-07/**/*', {
+const RAW_FILES = import.meta.glob<string>('/fixtures/bundles/blk-07/**/*', {
   query: '?raw',
   import: 'default',
   eager: true,
-}) as Record<string, string>;
+});
 
 const encoder = new TextEncoder();
 
@@ -64,11 +64,11 @@ export function bundleFiles(): Map<string, Uint8Array> {
 }
 
 /** The raw source payloads, keyed by file name — used to check them against contracts. */
-const RAW_SOURCES = import.meta.glob('/fixtures/sources/blk-07/payloads/*.json', {
+const RAW_SOURCES = import.meta.glob<string>('/fixtures/sources/blk-07/payloads/*.json', {
   query: '?raw',
   import: 'default',
   eager: true,
-}) as Record<string, string>;
+});
 
 export function sourcePayloads(): Map<string, string> {
   const payloads = new Map<string, string>();
@@ -79,11 +79,11 @@ export function sourcePayloads(): Map<string, string> {
 }
 
 /** The staging plan, so a test can walk exactly the steps that produced the bundle. */
-const RAW_PLAN = import.meta.glob('/fixtures/sources/blk-07/plan.json', {
+const RAW_PLAN = import.meta.glob<string>('/fixtures/sources/blk-07/plan.json', {
   query: '?raw',
   import: 'default',
   eager: true,
-}) as Record<string, string>;
+});
 
 export interface StagePlanStep {
   readonly resource: string;

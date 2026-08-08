@@ -96,11 +96,19 @@ a modulo.  ``identity_anchors`` binds a ``STRING[]``; the caller builds it with
 :func:`identity_anchor_array` so the array's ordering and duplicate handling are
 decided in one place.
 
-**Unverified**: this statement has not been run against a CockroachDB cluster
-at the time of writing (no cluster is reachable from the build machine).  What
-is proven is the in-memory :func:`anchor_stage`, and
-``tests/integration/algorithms/candidates/`` asserts the two agree the moment a
-cluster exists.
+**Verified** against a local CockroachDB **v26.2.5** node on 2026-08-08 over a
+60-clause corpus (``test_anchor_stage_sql.py``): the statement runs, the
+``STRING[]`` binding reaches the server as an array, ``@>``/``<@`` decide set
+equality (an anchor *swap* above the trigram floor is not returned), ``%``
+excludes no pair the 0.55 floor would keep, and the server's ``similarity()``
+agrees with :func:`~.trigram.similarity` to six decimal places on every row it
+returns.  The pushdown's kept set equals :func:`anchor_stage`'s kept set.
+
+**Still unverified**: the same statement against the *real*
+``mainline.clause_version`` and its ``INVERTED INDEX cv_anchors``.  The
+integration suite mirrors the two columns it reads into a throwaway database
+(the migration belongs to the datamodel lead), so what is proven is the
+statement's semantics, not the plan the production index gives it.
 """
 
 

@@ -1,0 +1,27 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: Apache-2.0
+--
+-- TRAPPOINT_REF · 0006b_role_owner.sql
+-- CREATE ROLE tref_owner — the owner slot
+--
+-- MI: MI01
+-- I: I01
+-- COUNSEL-GATED: no
+-- RATIONALE: owns every schema; NOLOGIN and unassumable, so no session can ever act as the
+--            owner and drop a trigger the gate depends on. IF NOT EXISTS because a role is
+--            cluster state, not schema state: a restore does not carry it, two verticals on
+--            one cluster legitimately share the agent roles, and re-asserting one must
+--            never be an error.
+--
+-- @rendered-by  trappoint render
+-- @template     packages/trappoint-sql/templates/0006_roles.sql.j2
+-- @binding      packages/trappoint-sql/refvertical/vertical.toml
+-- DO NOT EDIT. `trappoint render --check` is a zero-diff assertion in CI, so a
+-- hand edit here is a red build, not a silent divergence.
+--
+-- Slot         owner
+-- Name         tref_owner   (overridable in [roles] of the binding)
+-- NOLOGIN      no session may ever authenticate as this role, so no session may ever
+--              exercise the ownership privileges that could drop a gate trigger.
+
+CREATE ROLE IF NOT EXISTS tref_owner WITH NOLOGIN;

@@ -1,0 +1,25 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: Apache-2.0
+--
+-- TRAPPOINT_REF · 0006i_role_qa.sql
+-- CREATE ROLE quality_assurance — the qa slot
+--
+-- MI: MI27
+-- I: I15
+-- COUNSEL-GATED: no
+-- RATIONALE: the per-named-person views only (finding S14). Never granted an MCP account,
+--            never granted the business schema. IF NOT EXISTS because a role is cluster
+--            state, not schema state: a restore does not carry it, two verticals on one
+--            cluster legitimately share the agent roles, and re-asserting one must never be
+--            an error.
+--
+-- @rendered-by  trappoint render
+-- @template     packages/trappoint-sql/templates/0006_roles.sql.j2
+-- @binding      packages/trappoint-sql/refvertical/vertical.toml
+-- DO NOT EDIT. `trappoint render --check` is a zero-diff assertion in CI, so a
+-- hand edit here is a red build, not a silent divergence.
+--
+-- Slot         qa
+-- Name         quality_assurance   (derived; vertical.schema.json 1.0 has no [roles] key for this slot)
+
+CREATE ROLE IF NOT EXISTS quality_assurance;

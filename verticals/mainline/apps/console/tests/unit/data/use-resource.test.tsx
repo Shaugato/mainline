@@ -60,7 +60,7 @@ function replayTransport(): MainlineTransport {
 }
 
 /** A transport whose single exchange resolves however the test says. */
-function scriptedTransport(behaviour: () => Promise<Exchange<unknown>>): MainlineTransport {
+function scriptedTransport(behaviour: () => Promise<Exchange>): MainlineTransport {
   return {
     describe(): TransportDescription {
       return { mode: 'live', source: 'scripted', bundleDigestPrefix: null, staged: false, stagedNote: null };
@@ -132,7 +132,7 @@ describe('useResource', () => {
 
     // Re-mount with the same transport: the second exchange fails.
     view.rerender(
-      <Probe transport={transport} request={{ resource: 'permit', path: { permit_id: PERMIT_ID + '' } }} />,
+      <Probe transport={transport} request={{ resource: 'permit', path: { permit_id: PERMIT_ID } }} />,
     );
     view.unmount();
 
@@ -147,11 +147,11 @@ describe('useResource', () => {
 
   it('treats an abort as supersession, not as a failure state', async () => {
     const deferred = (): {
-      promise: Promise<Exchange<unknown>>;
-      resolve: (value: Exchange<unknown>) => void;
+      promise: Promise<Exchange>;
+      resolve: (value: Exchange) => void;
     } => {
-      let resolve!: (value: Exchange<unknown>) => void;
-      const promise = new Promise<Exchange<unknown>>((r) => {
+      let resolve!: (value: Exchange) => void;
+      const promise = new Promise<Exchange>((r) => {
         resolve = r;
       });
       return { promise, resolve };

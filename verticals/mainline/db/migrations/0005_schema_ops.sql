@@ -1,0 +1,23 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MAINLINE · 0005_schema_ops.sql
+-- CREATE SCHEMA mainline_ops — infrastructure: outbox, cursors, register signals
+--
+-- MI: MI22
+-- I: I06
+-- COUNSEL-GATED: no
+-- RATIONALE: The changefeed outbox and the projector cursors are operational state, not
+--            evidence. Keeping them out of the business schema stops an operational
+--            truncate from ever being an evidentiary one.
+--
+-- @rendered-by  trappoint render
+-- @template     packages/trappoint-sql/templates/0001_schemas.sql.j2
+-- @binding      verticals/mainline/vertical.toml
+-- DO NOT EDIT. `trappoint render --check` is a zero-diff assertion in CI, so a
+-- hand edit here is a red build, not a silent divergence.
+--
+-- Zone: ops · derived as <schema>_ops
+-- from the single name `mainline` declared in verticals/mainline/vertical.toml.
+
+CREATE SCHEMA IF NOT EXISTS mainline_ops;

@@ -1,0 +1,25 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: Apache-2.0
+--
+-- TRAPPOINT_REF · 0006d_role_projector.sql
+-- CREATE ROLE tref_projector — the projector slot
+--
+-- MI: MI26
+-- I: I05
+-- COUNSEL-GATED: no
+-- RATIONALE: INSERT on the blame closure and NOTHING else (finding S2). The role that
+--            computes ancestry cannot read a permit into existence. IF NOT EXISTS because a
+--            role is cluster state, not schema state: a restore does not carry it, two
+--            verticals on one cluster legitimately share the agent roles, and re-asserting
+--            one must never be an error.
+--
+-- @rendered-by  trappoint render
+-- @template     packages/trappoint-sql/templates/0006_roles.sql.j2
+-- @binding      packages/trappoint-sql/refvertical/vertical.toml
+-- DO NOT EDIT. `trappoint render --check` is a zero-diff assertion in CI, so a
+-- hand edit here is a red build, not a silent divergence.
+--
+-- Slot         projector
+-- Name         tref_projector   (overridable in [roles] of the binding)
+
+CREATE ROLE IF NOT EXISTS tref_projector;

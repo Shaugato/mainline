@@ -1,0 +1,58 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: Apache-2.0
+
+[project]
+name = "trappoint-sql"
+version = "0.1.0"
+description = "The TRAPPOINT render engine: deterministic SQL from kernel templates plus a vertical binding, with the Authority Source Contract enforced at compile time and every platform capability resolved from a dated ground-truth attestation rather than at runtime."
+readme = "README.md"
+requires-python = ">=3.13"
+license = "Apache-2.0"
+authors = [{ name = "MAINLINE contributors" }]
+keywords = ["cockroachdb", "sql", "codegen", "jinja2", "trappoint", "schema"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Database",
+  "Typing :: Typed",
+]
+
+# Jinja2 and nothing else.
+#
+# The binding validator is a hand-written subset of JSON Schema 2020-12 rather than
+# `jsonschema`, on purpose. This distribution is the thing that decides whether a
+# vertical is allowed to emit gate SQL at all; every dependency it carries is another
+# package an opposing expert has to trust in that decision, and the schema in
+# `spec/binding/vertical.schema.json` uses eleven keywords. Eleven keywords is a
+# afternoon's work and a test suite, not a supply chain.
+#
+# NO dependency on `trappoint-migrate`: that distribution's CLI dispatches `trappoint
+# render` into this one by import, so a dependency here would be a genuine import
+# cycle. The banned-token guard is duplicated (nine lines) rather than shared.
+dependencies = [
+  "jinja2>=3.1",
+]
+
+[project.urls]
+Homepage = "https://github.com/Shaugato/mainline"
+
+[project.scripts]
+trappoint-render = "trappoint_sql.cli:main"
+
+[dependency-groups]
+dev = ["pytest>=8.2", "mypy>=1.11", "ruff>=0.6"]
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/trappoint_sql"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "tests", "templates", "refvertical", "README.md", "g1-attestation.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["--strict-markers", "-ra"]

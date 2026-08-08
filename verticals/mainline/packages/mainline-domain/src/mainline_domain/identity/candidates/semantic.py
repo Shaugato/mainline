@@ -22,23 +22,48 @@ there is no number anyone can tune that reaches it.  The unit suite proves this
 by construction — a *sub-threshold* conflicting pair is dropped for
 ``anchor_conflict``, not for ``auto_reject``.
 
-**2. Every arm is fully constrained.**  CockroachDB's documented rule is that a
-vector index is used only if *each* prefix column is constrained to a specific
-value.  ``mainline.clause_embedding`` declares
+**2. Every arm is fully constrained, and every arm pins the index.**
+``mainline.clause_embedding`` declares
 ``VECTOR INDEX ce_ann (site_id, activity_root, embedding vector_cosine_ops)``,
 so an ancestry walk over several ``activity_root`` values is **N separate
-single-value ANN queries** ``UNION ALL``'d and re-ranked here — never
-``activity_root IN (...)``.
+single-value ANN queries** ``UNION ALL``'d and re-ranked here.
 
-That is a design ruling, not a reading of the docs, and it is worth saying why
-it survives the docs having softened: the vendor page now also says multiple
-prefix values *may* be filtered with ``IN`` while keeping index acceleration.
-"May" is the problem.  The claim this package makes about S4 is that its cost
-does not grow with the corpus, and the evidence for that claim is
-:mod:`.explain` asserting a ``vector search`` node with non-empty ``prefix
-spans`` and no ``FULL SCAN`` — per arm, in CI.  A fan-out of single-value arms
-has exactly one possible plan shape.  If the ``IN`` form is ever *measured* to
-produce the same plan, adopting it is a small change and a measured one.
+The pin (``FROM mainline.clause_embedding@ce_ann``) is the G1/F1 ruling in
+``docs/leads/algorithms.md``: an *unhinted* prefix-constrained ANN query was
+measured on the Cloud Basic cluster at ~5,200 rows **not** to use the index.
+A plan that flips on table statistics must not sit beneath a safety gate.
+
+Naming the index buys something stronger than a stable plan, and this was
+**measured** on a local CockroachDB v26.2.5 node on 2026-08-08 at 6,000 rows:
+
+===============================  =============================================
+arm shape                        outcome
+===============================  =============================================
+pinned, both prefixes bound      ``vector search`` on ``clause_embedding@ce_ann``
+                                 with one non-empty prefix span
+pinned, ``activity_root >= $2``  **refused**: ``42809 index "ce_ann" cannot be
+                                 used for this query``
+pinned, no prefix predicate      **refused**: ``42809``
+unhinted, no prefix predicate    accepted, and plans as ``spans: FULL SCAN``
+===============================  =============================================
+
+So on the pinned form the *database* refuses a violation of the prefix rule,
+where the unhinted form silently degrades to reading the whole table.  That is
+the kernel idiom applied to a query plan, and it is why :mod:`.explain`'s
+four-part plan assertion is kept as well: the refusal covers the arms this
+package generates, the plan assertion covers anything a future edit generates.
+
+**The ``IN (...)`` question, answered by measurement rather than by folklore.**
+On the same node the ``activity_root IN ($2, $3)`` form *did* traverse
+``ce_ann``, printing two prefix spans, hinted or not.  The old blanket claim
+that ``IN`` defeats the vector index is therefore **not true on v26.2.5** and
+is not repeated here.  The fan-out stays anyway, for a reason that survives the
+plan being fine: ``LIMIT k`` on the ``IN`` form is *k rows across all roots
+together* — measured at 6,000 rows, ``LIMIT 8`` returned 6 rows from one root
+and 2 from the other — whereas an ancestry walk needs *k candidates per
+ancestor partition*, which is 8 and 8.  A shared limit lets a dense activity
+root starve a sparse one of candidates, and a starved partition is an ancestor
+that goes unmatched for a reason nobody wrote down.
 
 **No model call happens here.**  Embeddings arrive from committed fixtures or
 from the ingest path; this package holds no SDK and reaches no network
@@ -66,7 +91,9 @@ from .records import DroppedCandidate, StageResult, order_candidates
 from .thresholds import DEFAULT_BANDS, StageBands
 
 __all__ = [
+    "ARM_INDEX",
     "ARM_SQL",
+    "ARM_TABLE",
     "Arm",
     "MissingAnchorSetError",
     "arm_union_sql",
@@ -74,6 +101,20 @@ __all__ = [
     "semantic_stage",
     "vector_literal",
 ]
+
+ARM_TABLE: Final[str] = "mainline.clause_embedding"
+"""The one table S4 reads.  ARCHITECTURE.md §5.3."""
+
+ARM_INDEX: Final[str] = "ce_ann"
+"""The C-SPANN index every arm pins by name.
+
+Declared inline on the table as
+``VECTOR INDEX ce_ann (site_id, activity_root, embedding vector_cosine_ops)``.
+Pinning is the F1 ruling; see the module docstring for the measurement that
+turned it from a preference into a refusal.
+"""
+
+_ARM_FROM: Final[str] = f"{ARM_TABLE}@{ARM_INDEX}"
 
 
 def vector_literal(q: Sequence[float]) -> str:
@@ -88,28 +129,34 @@ def vector_literal(q: Sequence[float]) -> str:
     return "[" + ",".join(repr(float(x)) for x in q) + "]"
 
 
-ARM_SQL: Final[str] = """
+ARM_SQL: Final[str] = f"""
 SELECT clause_uuid, commit_id, 1 - (embedding <=> %(q)s::VECTOR) AS cosine_similarity
-  FROM mainline.clause_embedding
+  FROM {_ARM_FROM}
  WHERE site_id = %(site_id)s
    AND activity_root = %(activity_root)s
  ORDER BY embedding <=> %(q)s::VECTOR
  LIMIT %(k)s
-""".strip()
-"""**One** arm: both prefix columns bound to a specific value.
+""".strip()  # noqa: S608 - interpolates two module constants; every value is a bound parameter
+"""**One** arm: both prefix columns bound to a specific value, index pinned.
 
 ``<=>`` is cosine distance in ``[0, 2]``; ``1 - distance`` is the cosine
 similarity the bands are expressed in.  The ``ORDER BY`` is on the vector
 operator, which is what makes it an index-served ANN lookup rather than a sort
 over a scan — the thing :mod:`.explain` exists to prove really happened.
 
-**Unverified.**  This statement has not been executed against a CockroachDB
-cluster at the time of writing: no cluster is reachable from the build machine
-and AWS credentials are not valid.  Its shape follows the documented example
-and the ``ce_ann`` declaration in ARCHITECTURE.md §5.3, and
-``tests/integration/algorithms/candidates/test_arm_explain_live.py`` asserts
-the plan the moment a cluster exists — skipping, loudly and with a reason, when
-one does not.
+**Verified** on a local CockroachDB **v26.2.5** single node on 2026-08-08, at
+6,000 rows across three activity roots: the plan is a ``vector search`` on
+``clause_embedding@ce_ann`` with one non-empty prefix span, feeding a primary-key
+lookup join.  Relaxing either prefix predicate to a range, or removing it, makes
+the cluster **refuse the statement** with SQLSTATE ``42809`` rather than plan a
+scan (see :data:`~.explain.INDEX_REFUSED_SQLSTATE`).
+
+**Still unverified**: the same plan on CockroachDB **Cloud**.  The G1
+measurement recorded there (``docs/adr/0002``) is that an *unhinted* arm at
+~5,200 rows did not use the index; the pinned form has not been re-measured on
+Cloud from this machine.  ``tests/integration/algorithms/candidates/`` re-runs
+the assertion against whatever cluster it is pointed at, and skips with a reason
+naming the missing DSN when there is none.
 """
 
 
@@ -180,13 +227,18 @@ def arm_union_sql(n_arms: int) -> str:
     arm before returning anything, and — more importantly — the cross-arm
     ordering this package needs is by *cosine after the anchor veto*, which SQL
     cannot express because the veto is not in the database.
+
+    Every branch pins ``@ce_ann``, exactly as :data:`ARM_SQL` does.  A union
+    whose branches were unhinted would be N chances for the optimiser to pick a
+    scan, and the per-branch ``LIMIT`` is what makes this k candidates *per
+    ancestor partition* rather than k shared between them.
     """
     if n_arms < 1:
         raise ValueError(f"n_arms must be >= 1, got {n_arms}")
     return "\nUNION ALL\n".join(
         f"SELECT clause_uuid, commit_id, "  # noqa: S608 - fixed template, no input
         f"1 - (embedding <=> %(q_{i})s::VECTOR) AS cosine_similarity\n"
-        f"  FROM mainline.clause_embedding\n"
+        f"  FROM {_ARM_FROM}\n"
         f" WHERE site_id = %(site_id_{i})s\n"
         f"   AND activity_root = %(activity_root_{i})s\n"
         f" ORDER BY embedding <=> %(q_{i})s::VECTOR\n"

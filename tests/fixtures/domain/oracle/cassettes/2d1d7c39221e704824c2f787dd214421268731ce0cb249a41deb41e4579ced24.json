@@ -1,0 +1,19 @@
+{
+  "key": "2d1d7c39221e704824c2f787dd214421268731ce0cb249a41deb41e4579ced24",
+  "model_id": "claude-opus-5",
+  "prefix_digest": "2cb4672836046540e00d4ad133a9feff50d3faf7b00aaec45ce2f704b506f0e8",
+  "profile_id": "adjudication",
+  "prompt_version": "adjudication.v1+rubric.v1",
+  "provenance": "synthetic",
+  "recorded_at": "2026-08-07T14:58:26.920107+00:00",
+  "response": {
+    "content": [],
+    "id": "msg_synthetic",
+    "model": "claude-opus-5",
+    "stop_reason": "max_tokens",
+    "usage": {
+      "input_tokens": 1800,
+      "output_tokens": 180
+    }
+  }
+}

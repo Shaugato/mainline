@@ -51,23 +51,16 @@ import {
   type Register,
 } from '../../../src/design/registers';
 import { REGISTERS as APP_REGISTERS } from '../../../src/app/surfaces';
+import { applicationSources, plantedSources } from './raw-sources';
 
-/** The real source graph. Vite resolves this against the filesystem at transform time. */
-const SRC = import.meta.glob('/src/**/*.{ts,tsx}', {
-  query: '?raw',
-  import: 'default',
-  eager: true,
-});
-
-/** The planted violations. Real files, real imports, read as text. */
-const PLANTED = import.meta.glob('/tests/unit/design/fixtures/planted/**/*.ts', {
-  query: '?raw',
-  import: 'default',
-  eager: true,
-});
-
-const realGraph: SourceMap = new Map(Object.entries(SRC));
-const plantedGraph: SourceMap = new Map([...Object.entries(SRC), ...Object.entries(PLANTED)]);
+/**
+ * The real source graph, and the planted violations. Both arrive through
+ * `raw-sources.ts`, which refuses a glob that matched fewer files than the checks need —
+ * a walk over an empty graph finds no violation and reports the console clean.
+ */
+const realGraph: SourceMap = applicationSources();
+const PLANTED = plantedSources();
+const plantedGraph: SourceMap = new Map([...realGraph, ...PLANTED]);
 
 const PLANTED_DIR = 'tests/unit/design/fixtures/planted';
 const PLANTED_AS_EVIDENCE = new Map<string, Register>([[PLANTED_DIR, 'evidence']]);
@@ -82,7 +75,7 @@ describe('the walker sees the repository it thinks it sees', () => {
   });
 
   it('found the planted fixtures', () => {
-    expect(Object.keys(PLANTED).length).toBe(5);
+    expect(PLANTED.size).toBe(5);
   });
 
   it('classifies files into the registers the law declares', () => {
@@ -210,6 +203,77 @@ describe('PL-2 — the planted violations (fixtures/planted/)', () => {
       `/${PLANTED_DIR}/transitive-entry.ts`,
       `/${PLANTED_DIR}/transitive-helper.ts`,
     ]);
+  });
+});
+
+/**
+ * PL-2, IN ITS LITERAL FORM — the planted import inside a REAL evidence directory.
+ *
+ * The block above plants files in `tests/unit/design/fixtures/planted/` and tells the
+ * walker to treat that directory as EVIDENCE via `extraDirectories`. That proves the
+ * walker works, but it does NOT prove the production directory law is right: a typo in
+ * `EVIDENCE_DIRECTORIES` would leave `src/features/gate/` classified as nothing, the walk
+ * would never start there, and every assertion above would still be green.
+ *
+ * So these tests inject a module at a path inside a real EVIDENCE directory and pass NO
+ * options at all — `registerOf()` alone decides. The injection is in memory because
+ * `src/features/gate/` belongs to another worker and this suite may not write into their
+ * tree; the walker reads text out of a `Map` and cannot tell the difference, and the
+ * directory law under test is the shipped one.
+ */
+describe('PL-2 — the production law, with nothing overridden', () => {
+  const GATE_STUB = '/src/features/gate/planted-stub.tsx';
+  const RIBBON_STUB = '/src/features/ancestry/ribbon/planted-stub.tsx';
+  const WALK_STUB = '/src/features/ancestry/render3d/planted-stub.tsx';
+
+  const withStub = (path: string, source: string): SourceMap =>
+    new Map([...realGraph, [path, source]]);
+
+  it('refuses `import { motion } from "motion/react"` in the gate surface', () => {
+    const violations = findRegisterViolations(
+      withStub(GATE_STUB, "import { motion } from 'motion/react';\nexport const x = motion;\n"),
+    );
+    const hit = violations.find((violation) => violation.entry === GATE_STUB);
+    expect(
+      hit,
+      'the shipped EVIDENCE directory list does not actually cover src/features/gate/. The ' +
+        'planted-fixture tests above would stay green through exactly this mistake, because ' +
+        'they name their own directory.',
+    ).toBeDefined();
+    expect(hit?.specifier).toBe('motion/react');
+    expect(hit?.register).toBe('evidence');
+  });
+
+  it('refuses a GPU import in the ancestry ribbon, which is EVIDENCE, not MEMORY', () => {
+    const violations = findRegisterViolations(
+      withStub(RIBBON_STUB, "import { Scene } from 'three';\nexport const x = Scene;\n"),
+    );
+    expect(violations.find((violation) => violation.entry === RIBBON_STUB)).toBeDefined();
+  });
+
+  it('refuses a motion import reached one hop away from an evidence surface', () => {
+    // ESLint cannot see this: the gate file imports a local helper, and the helper is in
+    // a directory that is allowed to import motion. Only the graph walk catches it.
+    const graph = new Map([
+      ...realGraph,
+      [GATE_STUB, "import { helper } from '../propagation/planted-helper';\nexport const x = helper;\n"],
+      ['/src/features/propagation/planted-helper.tsx', "import { motion } from 'motion';\nexport const helper = motion;\n"],
+    ]);
+    const hit = findRegisterViolations(graph).find((violation) => violation.entry === GATE_STUB);
+    expect(hit?.chain).toHaveLength(2);
+    expect(hit?.specifier).toBe('motion');
+  });
+
+  it('PERMITS the same GPU import inside render3d/, so the boundary is a rule and not a ban', () => {
+    const violations = findRegisterViolations(
+      withStub(WALK_STUB, "import { Scene } from 'three';\nexport const x = Scene;\n"),
+    );
+    expect(
+      violations.filter((violation) => violation.entry === WALK_STUB),
+      'MEMORY is the one register permitted to import three. A checker that refuses it ' +
+        'everywhere refuses the product’s only dimensional surface and would be “fixed” by ' +
+        'deleting the rule.',
+    ).toEqual([]);
   });
 });
 

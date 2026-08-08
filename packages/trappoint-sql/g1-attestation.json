@@ -1,0 +1,52 @@
+{
+  "attestation_version": "1",
+  "gate": "G1",
+  "generated_at": "2026-08-08T00:00:00Z",
+  "generated_by": "kernel/render-and-foundation",
+  "cluster": {
+    "product": "CockroachDB",
+    "edition": "CCL",
+    "version": "v26.2.5",
+    "cluster_version": "26.2",
+    "tier": "basic",
+    "cloud_region": "aws-ap-southeast-1",
+    "local_image": "cockroachdb/cockroach:v26.2.5",
+    "note": "Cloud Basic runs gc.ttlseconds=4500 (75 minutes). The local node defaults to 14400 and is therefore MORE permissive than production; compose.yaml pins it to 4500 so local behaviour is Cloud-truthful by construction. Where local and Cloud differ, local is configured to the stricter value."
+  },
+  "capabilities": {
+    "stored_digest": {
+      "gate": "GT-13",
+      "question": "Is digest() legal inside a STORED generated column?",
+      "status": "PASS",
+      "selects": "stored",
+      "measured_at": "2026-08-08T00:00:00Z",
+      "measured_on": [
+        "local:cockroachdb/cockroach:v26.2.5 (start-single-node --insecure)"
+      ],
+      "statement": "CREATE TABLE s1.dig (a STRING NOT NULL, b BYTES AS (digest(a,'sha256')) STORED, CONSTRAINT pk PRIMARY KEY (a))",
+      "result": "CREATE TABLE",
+      "evidence": "Accepted without notice or error. Confirms ADR 0002 F3. The dedupe_key fix for finding S5 is implementable as a server-computed column, so the inserter cannot choose its own dedupe identity.",
+      "fallback_if_absent": "client_computed: a plain BYTES column with a length CHECK and a verifying trigger. The sentence 'the server computes the key, the inserter cannot lie' would weaken to 'the trigger verifies the key the inserter supplied'."
+    },
+    "triggerdef": {
+      "gate": "GT-05",
+      "question": "Does pg_get_triggerdef() exist and return a per-object definition?",
+      "status": "PASS",
+      "selects": "pg_get_triggerdef",
+      "measured_at": "2026-08-08T00:00:00Z",
+      "measured_on": [
+        "local:cockroachdb/cockroach:v26.2.5 (start-single-node --insecure)"
+      ],
+      "statement": "SELECT pg_get_triggerdef(oid) FROM pg_trigger WHERE tgname='tg'",
+      "result": "CREATE TRIGGER tg BEFORE INSERT ON probe1.s1.dig FOR EACH ROW EXECUTE FUNCTION probe1.s1.f()",
+      "evidence": "pg_get_triggerdef and pg_get_functiondef are both present in pg_proc and both return a definition. Per-object self-attestation is available; the table-granular SHOW CREATE TABLE fallback is not needed.",
+      "fallback_if_absent": "show_create_table: table-granular self-attestation. Selecting it softens the self-attestation claim in the same commit."
+    }
+  },
+  "unmeasured": {
+    "note": "Capabilities NOT answered here may not be branched on by any template. A template declaring {# @capability <name> #} for a name absent from `capabilities` is a render refusal, not a fallback. Ruling D5, PL-3.",
+    "known_open": [
+      "bedrock_rerank_ap_southeast_2 — measured ABSENT in ADR 0002 F3; no template depends on it, so it is recorded as a design constraint rather than a capability switch."
+    ]
+  }
+}

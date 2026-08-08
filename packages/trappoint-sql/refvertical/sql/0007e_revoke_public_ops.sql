@@ -1,0 +1,21 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: Apache-2.0
+--
+-- TRAPPOINT_REF · 0007e_revoke_public_ops.sql
+-- REVOKE ALL ON SCHEMA trappoint_ref_ops FROM public
+--
+-- MI: MI01
+-- I: I01
+-- COUNSEL-GATED: no
+-- RATIONALE: Nothing is readable or writable by default. Every privilege in this schema is
+--            thereafter something a named migration granted to a named role, which is the
+--            only condition under which the grant matrix in the architecture is a
+--            description of the cluster rather than a wish.
+--
+-- @rendered-by  trappoint render
+-- @template     packages/trappoint-sql/templates/0006_roles.sql.j2
+-- @binding      packages/trappoint-sql/refvertical/vertical.toml
+-- DO NOT EDIT. `trappoint render --check` is a zero-diff assertion in CI, so a
+-- hand edit here is a red build, not a silent divergence.
+
+REVOKE ALL ON SCHEMA trappoint_ref_ops FROM public;

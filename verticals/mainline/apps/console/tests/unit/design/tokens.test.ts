@@ -37,13 +37,14 @@ import {
 } from '../../../src/design/token-source';
 import tokensCss from '../../../src/design/tokens.css?raw';
 import fallbackCss from '../../../src/app/tokens-fallback.css?raw';
+import { designStylesheets } from './raw-sources';
 
-/** Every stylesheet in the design package, so the "is it declared" check is total. */
-const DESIGN_STYLESHEETS = import.meta.glob('/src/design/**/*.css', {
-  query: '?raw',
-  import: 'default',
-  eager: true,
-});
+/**
+ * Every stylesheet in the design package, so the "is it declared" check is total —
+ * through `raw-sources.ts`, which refuses an empty glob rather than making totality
+ * vacuous.
+ */
+const DESIGN_STYLESHEETS = designStylesheets();
 
 const scopes = parseTokenScopes(tokensCss);
 const dark = toMap(scopes[0] ?? { scope: 'dark', selector: ':root', declarations: [] });

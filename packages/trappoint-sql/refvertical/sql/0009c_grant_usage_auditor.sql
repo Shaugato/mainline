@@ -1,0 +1,21 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: Apache-2.0
+--
+-- TRAPPOINT_REF · 0009c_grant_usage_auditor.sql
+-- GRANT USAGE ON trappoint_ref_audit and trappoint_ref_meas TO trappoint_ref_auditor
+--
+-- MI: MI01
+-- I: I16
+-- COUNSEL-GATED: no
+-- RATIONALE: The MCP identity may name objects in exactly two schemas: the audit views it
+--            reads and the measurement schema holding the single table it may write. It is
+--            granted no USAGE on the business schema at all, so a mistaken table grant
+--            there could not even be exercised.
+--
+-- @rendered-by  trappoint render
+-- @template     packages/trappoint-sql/templates/0006_roles.sql.j2
+-- @binding      packages/trappoint-sql/refvertical/vertical.toml
+-- DO NOT EDIT. `trappoint render --check` is a zero-diff assertion in CI, so a
+-- hand edit here is a red build, not a silent divergence.
+
+GRANT USAGE ON SCHEMA trappoint_ref_audit, trappoint_ref_meas TO trappoint_ref_auditor;

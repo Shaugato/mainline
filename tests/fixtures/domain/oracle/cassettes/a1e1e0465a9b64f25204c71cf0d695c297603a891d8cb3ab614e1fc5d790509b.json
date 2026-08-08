@@ -1,0 +1,24 @@
+{
+  "key": "a1e1e0465a9b64f25204c71cf0d695c297603a891d8cb3ab614e1fc5d790509b",
+  "model_id": "claude-opus-5",
+  "prefix_digest": "2cb4672836046540e00d4ad133a9feff50d3faf7b00aaec45ce2f704b506f0e8",
+  "profile_id": "adjudication",
+  "prompt_version": "adjudication.v1+rubric.v1",
+  "provenance": "synthetic",
+  "recorded_at": "2026-08-07T14:58:26.902752+00:00",
+  "response": {
+    "content": [
+      {
+        "text": "{\"relation\": \"abstain\", \"confidence_band\": \"low\", \"numeric_disagreement\": false, \"supporting_quote\": \"as required by that standard\", \"notes\": \"B defers to a document that was not supplied.\"}",
+        "type": "text"
+      }
+    ],
+    "id": "msg_synthetic",
+    "model": "claude-opus-5",
+    "stop_reason": "end_turn",
+    "usage": {
+      "input_tokens": 1800,
+      "output_tokens": 180
+    }
+  }
+}

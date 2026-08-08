@@ -1,0 +1,73 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
+
+[project]
+name = "mainline-delta-oracle"
+version = "0.1.0"
+description = "MAINLINE Path B: the independent semantic opinion on a clause edit, physically separated from the code that decides."
+readme = "README.md"
+requires-python = ">=3.13"
+# FSL-1.1-ALv2 per the repository licence map (verticals/mainline/* is FSL).
+# The licence TEXT lives in the repo-root LICENSES/ tree, outside this project
+# directory, and therefore cannot be referenced by `license-files`.
+license = "LicenseRef-FSL-1.1-ALv2"
+authors = [{ name = "MAINLINE contributors" }]
+keywords = ["bedrock", "claude", "nli", "clause-identity", "abstention"]
+classifiers = [
+  "Programming Language :: Python :: 3.13",
+  "Typing :: Typed",
+  "Private :: Do Not Upload",
+]
+
+# THE WHOLE POINT OF THIS DISTRIBUTION IS ITS DEPENDENCY LIST.
+#
+# `mainline-domain` may not depend on anything that can reach a model (decision
+# D1, principle P7) because the delta lattice inside it decides a state
+# transition. This package is where the model path lives, and the separation is
+# enforced by the arrow below pointing only one way: this distribution imports
+# the domain, and the domain does not import this distribution.
+#
+# `mainline-agentkit` rather than `boto3`: there is exactly ONE model surface in
+# this repository, and a second Bedrock client here would be a second place for
+# the residency assertion, the zero-tool guarantee, the stop_reason-before-content
+# ordering and the one-retry-then-dead-letter rule to be subtly different.
+# agentkit's own runtime dependency is `pydantic` alone; `boto3` is an extra
+# there, so the offline lane installs no AWS SDK at all.
+dependencies = [
+  "mainline-agentkit",
+  "mainline-domain",
+]
+
+[project.optional-dependencies]
+# The live Bedrock leg, off by default and never exercised in CI (decision D12,
+# PL-3). Reaching it needs this extra AND `MAINLINE_AGENT_PROVIDER=bedrock` AND
+# `MAINLINE_AGENT_ALLOW_LIVE=1`.
+bedrock = ["mainline-agentkit[bedrock]"]
+
+[tool.uv.sources]
+mainline-agentkit = { workspace = true }
+mainline-domain = { workspace = true }
+
+[dependency-groups]
+dev = [
+  "pytest>=8.3",
+  "hypothesis>=6.100",
+  "mypy>=1.11",
+]
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mainline_delta_oracle"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "README.md"]
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+warn_unreachable = true
+mypy_path = "src"
+packages = ["mainline_delta_oracle"]

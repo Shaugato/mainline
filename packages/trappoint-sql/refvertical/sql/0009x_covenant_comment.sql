@@ -1,0 +1,22 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: Apache-2.0
+--
+-- TRAPPOINT_REF · 0009x_covenant_comment.sql
+-- COMMENT ON SCHEMA trappoint_ref — the separation covenant, as a queryable object
+--
+-- MI: MI25
+-- I: I02
+-- COUNSEL-GATED: no
+-- RATIONALE: The two separations this schema exists to enforce are written into the
+--            catalog, so an auditor can read them out of the database instead of out of a
+--            design document. A comment enforces nothing; it makes the claim retrievable at
+--            the same moment as the objects it constrains, which is what an evidentiary
+--            record owes a reader.
+--
+-- @rendered-by  trappoint render
+-- @template     packages/trappoint-sql/templates/0006_roles.sql.j2
+-- @binding      packages/trappoint-sql/refvertical/vertical.toml
+-- DO NOT EDIT. `trappoint render --check` is a zero-diff assertion in CI, so a
+-- hand edit here is a red build, not a silent divergence.
+
+COMMENT ON SCHEMA trappoint_ref IS 'TRAPPOINT separation covenant for TRAPPOINT_REF. 1. The role that detects a precursor may never write one: agent_recaller holds no INSERT on any obligation relation of this binding, at any point in this schema history. Only tref_gate materialises an obligation. 2. The role that materialises an obligation may never dispose of it: only tref_disposer writes a disposition. 3. The role that certifies the books has no write path to them: trappoint_ref_auditor holds INSERT on one measurement table and SELECT on the audit views only. Enforced by grants, by trigger, and by RLS, in that order; asserted at render time by rule R-1 and at run time by the conformance suite expecting 42501.';

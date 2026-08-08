@@ -54,14 +54,33 @@ claim made elsewhere:
   ``strict_word_similarity``.  SQL filters with ``%`` and scores with
   ``similarity()``; edit distance is computed here, in the application, because
   ``levenshtein()`` caps its input at 255 characters.
-* **It never issues an ANN query with an unconstrained prefix.**  One arm per
-  ``(site_id, activity_root)``, ``UNION ALL``'d, with the plan asserted.
+* **It never issues an ANN query with an unconstrained prefix, and never issues
+  an unhinted one.**  One arm per ``(site_id, activity_root)``, pinned to
+  ``@ce_ann``, ``UNION ALL``'d, with the plan asserted.  Pinning is the F1
+  ruling and it was measured to be load-bearing: on the pinned form CockroachDB
+  v26.2.5 *refuses* an arm whose prefix is not constrained to specific values
+  (SQLSTATE ``42809``), where the unhinted form plans a ``FULL SCAN`` instead.
 
 The named mechanism is **MINHASH-BAND** and its honest position is recorded in
 ``novelty/minhash-band.yaml``: the banding is a re-parameterisation of published
 practice, and what is unclaimed is the coupling — a committed permutation table
 whose signatures are re-derivable years later, and an anchor veto that overrules
 an accepted cosine in the direction of *more* adjudication.
+
+**Import boundary.**  Importing this package, and every name it exports, requires
+**nothing but the standard library**.  The one third-party dependency —
+``rapidfuzz``, for edit distance — is loaded by :mod:`.rescore` on first use and
+never at import time.
+
+That is not tidiness.  The MinHash claim is that a signature computed today is
+byte-reproducible by a stranger years from now from committed bytes.  A stranger
+who must first resolve a wheel from a package index in order to recompute a hash
+has not reproduced it from committed bytes — they have reproduced it from
+committed bytes *and whatever that wheel contains on the day they ran it*.  An
+import-time dependency would quietly make a third-party package part of the
+evidence chain for a refusal.  ``test_minhash_determinism.py`` asserts the
+property directly, by recomputing the signature under a **different CPython
+installation in isolated mode** where nothing is installed at all.
 """
 
 from __future__ import annotations
@@ -78,7 +97,13 @@ from .band import (
     band_rows,
 )
 from .exact import EXACT_SQL, exact_stage, exact_stage_from_refs
-from .explain import ArmPlanAssertion, assert_arm_plan, assert_arm_set_plans, parse_plan
+from .explain import (
+    INDEX_REFUSED_SQLSTATE,
+    ArmPlanAssertion,
+    assert_arm_plan,
+    assert_arm_set_plans,
+    parse_plan,
+)
 from .lexical import LexicalCorpus, lexical_stage, lexical_stage_from_hits
 from .minhash import (
     MERSENNE_61,
@@ -105,7 +130,9 @@ from .records import (
 )
 from .rescore import RESCORE_VERSION, Rescore, rescore
 from .semantic import (
+    ARM_INDEX,
     ARM_SQL,
+    ARM_TABLE,
     Arm,
     MissingAnchorSetError,
     arm_union_sql,
@@ -118,10 +145,13 @@ from .trigram import similarity as trigram_similarity
 
 __all__ = [
     "ANCHOR_STAGE_SQL",
+    "ARM_INDEX",
     "ARM_SQL",
+    "ARM_TABLE",
     "BAND_HASH_PERSON",
     "DEFAULT_BANDS",
     "EXACT_SQL",
+    "INDEX_REFUSED_SQLSTATE",
     "INSERT_BAND_SQL",
     "MERSENNE_61",
     "RESCORE_VERSION",
