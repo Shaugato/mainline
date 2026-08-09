@@ -1,0 +1,42 @@
+logged in to "Not Applicable" (org-3bkz4) as Shaugato-AWS Paroi
+
+[
+  {
+    "account_id": "",
+    "cloud_provider": "AWS",
+    "cockroach_version": "v26.2.5",
+    "config": {
+      "serverless": {
+        "routing_id": "mainline-dev-31219",
+        "spend_limit": 2500,
+        "usage_limits": {
+          "request_unit_limit": "100000000",
+          "storage_mib_limit": "10240"
+        }
+      }
+    },
+    "created_at": "2026-08-07T10:49:27.186844Z",
+    "creator_id": "b691c873-3772-4fb7-b9fc-a683a3b6f87a",
+    "egress_traffic_policy": "UNSPECIFIED",
+    "id": "7cfc9ee9-f9b4-413d-bcad-d81fca2c6c7e",
+    "name": "mainline-dev",
+    "network_visibility": "PUBLIC",
+    "operation_status": "UNSPECIFIED",
+    "parent_id": "root",
+    "plan": "SERVERLESS",
+    "regions": [
+      {
+        "internal_dns": "mainline-dev-31219.internal-j77.aws-ap-southeast-1.cockroachlabs.cloud",
+        "name": "ap-southeast-1",
+        "node_count": 0,
+        "primary": true,
+        "sql_dns": "mainline-dev-31219.j77.aws-ap-southeast-1.cockroachlabs.cloud",
+        "ui_dns": ""
+      }
+    ],
+    "sql_dns": "mainline-dev-31219.j77.aws-ap-southeast-1.cockroachlabs.cloud",
+    "state": "CREATED",
+    "updated_at": "2026-08-07T10:49:29.436303Z",
+    "upgrade_status": "FINALIZED"
+  }
+]
