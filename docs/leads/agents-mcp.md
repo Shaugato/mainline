@@ -186,3 +186,26 @@ The CI lint banning `CREATE SEQUENCE` / `nextval(` / `SERIAL` / `unique_rowid()`
 ## F5 — Residency: inference in Australia, database in Singapore
 
 Sydney (`ap-southeast-2`) is **Advanced-tier only** — absent from the Basic and Standard region lists. **Any claim of end-to-end Australian data residency is FALSE for this deployment** and must not appear in the README, submission, video, console, or any comment. State the split precisely wherever residency is mentioned.
+
+## F7 — ccloud CLI: MEASURED, and the headless-auth assumption is WRONG
+
+Verified 2026-08-10 against the live cluster. **This corrects a design assumption made in the agents-mcp lead plan and in the `am-steward-ccloud` brief.**
+
+**What is true:**
+- `ccloud` **0.6.12** is the current published Windows build (`https://binaries.cockroachdb.com/ccloud/ccloud_windows-amd64_0.6.12.zip`). Probes for 0.7.0 / 0.8.0 / 0.9.0 / 1.0.0 all return **404** — 0.6.12 is it. Its embedded API stamp reads `CCAPI 2023-04-10`.
+- `-o json` is present as a **global flag on every command** — that part of the "agent-ready" claim holds.
+
+**What is FALSE (and was assumed):**
+- **`ccloud` has NO non-interactive service-account authentication.** `ccloud auth` offers only `login` / `logout` / `whoami`; `login` is browser-based. Setting `CC_API_KEY` in the environment is ignored — every API-touching command returns `Error: not logged in. Use 'ccloud auth login' to login`. There is no credentials file to pre-seed (`~/.ccloud` does not exist until an interactive login creates it).
+- Therefore **an agent cannot drive `ccloud` headlessly from a cold start**, which is what `am-steward-ccloud` was briefed to build.
+
+**The capability IS real — through the Cloud REST API, not the binary.** The same service-account key works immediately as an HTTP Bearer token:
+
+```
+curl -H "Authorization: Bearer $CC_API_KEY" https://cockroachlabs.cloud/api/v1/clusters
+```
+Measured, live: returns `mainline-dev`, `v26.2.5`, plan `BASIC`, provider `AWS`, state `CREATED`, routing id `mainline-dev-31219`, `request_unit_limit: 100000000`. `/sql-users` likewise returns `mainline-sql`. So headless provisioning, inspection, SQL-user management and audit retrieval are all available to an agent — over the API.
+
+**RULING:** the Steward keeps `ccloud` for anything a human runs and for the recorded, replayable transcript (its `-o json` output is genuine and worth showing), but **its headless control-plane path is the Cloud REST API with the service-account bearer token**. Build both, and say exactly which is which.
+
+**Honesty requirement:** do NOT claim "the agent provisions the cluster by driving the ccloud CLI headlessly" — that is not achievable with 0.6.12. The truthful claim is: *"the ccloud CLI is used, with `-o json` parsed rather than screen-scraped, and the same service-account credential drives the Cloud API for headless paths where the CLI requires a browser."* That is still a genuine, demonstrable use of the tool — and being precise about it is worth more to a judge than an overclaim they can falsify in thirty seconds.
