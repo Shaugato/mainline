@@ -38,8 +38,7 @@ from collections import Counter
 from _lattice_fixtures import AS_OF
 from _lattice_strategies import anchor_sets, cats, registries
 from hypothesis import HealthCheck, given, settings
-
-from mainline_domain.contracts import ControlDelta, RULE_IDS
+from mainline_domain.contracts import RULE_IDS, ControlDelta
 from mainline_domain.lattice import RuleFinding, dual, explain
 
 _SETTINGS = settings(
@@ -155,8 +154,8 @@ def test_a_verdict_is_never_silently_reversed_by_reading_the_diff_backwards(  # 
 def test_the_two_non_dual_categories_are_reachable_and_are_the_only_two() -> None:
     """Names the exceptions out loud, with an example of each, so that a third
     category cannot be added without somebody editing this list."""
-    from _lattice_fixtures import cat, empty_registry, qty, registry as make_registry
-
+    from _lattice_fixtures import cat, empty_registry, qty
+    from _lattice_fixtures import registry as make_registry
     from mainline_domain.registry.model import SafeDirection
 
     polarity = explain(cat(deontic="MUST"), cat(deontic="MUST_NOT"), empty_registry(), AS_OF)

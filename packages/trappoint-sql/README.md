@@ -174,9 +174,30 @@ refuses to emit one. Finding `S1`, at compile time.
    and a different authority relation while rendering the identical templates.
 
 Three files under `refvertical/sql/` are **hand-written stubs, not rendered**: they carry
-no rendered-by banner, and `--check` leaves them alone. They are the FK target and the
-blame closure the reference binding's authority source points at, isomorphic to
-ARCHITECTURE.md §5.4.
+no rendered-by banner, and `--check` leaves them alone. They are what the reference
+binding's `[[authority_source]]` entries point at, isomorphic to ARCHITECTURE.md §5.3–5.4:
+
+| File | Why it exists |
+|---|---|
+| `0029_clause_version.sql` | the composite FK target `(clause_uuid, commit_id)` the closure needs |
+| `0038_clause_blame_closure.sql` | the append-only, generation-versioned closure |
+| `0039_clause_blame_current.sql` | the `DISTINCT ON … ORDER BY closure_gen DESC` **view**, which is the relation the binding actually names |
+
+The view is not a convenience. `clause_blame_closure` is append-only, so a recomputation
+writes a *new* generation and overwrites nothing; every reader therefore owes the
+discipline `max(closure_gen)`, and a reader that forgets it projects a **superseded**
+severity onto a live blocking check. An older generation is the one computed with *less*
+ancestry, so forgetting the discipline understates ancestral severity — the one error
+direction with physical consequences. One view is how that discipline stops being
+per-call-site.
+
+> A binding may name an authority relation that no file creates, and the Authority Source
+> Contract cannot see it: the contract validates a *declaration*, not a schema. That gap
+> was live in this tree until `0039` landed — the reference binding named
+> `trappoint_ref.clause_blame_current` while nothing created it, so the contract passed on
+> a relation no projection trigger could ever read. `tests/test_bindings.py` now checks
+> every declared authority relation against the `CREATE TABLE`/`CREATE VIEW` statements in
+> the same vertical's SQL, which is the only place that check can live.
 
 ---
 

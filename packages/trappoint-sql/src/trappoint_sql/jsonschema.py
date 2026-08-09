@@ -75,6 +75,7 @@ class SchemaViolation(Exception):
     """
 
     def __init__(self, pointer: str, message: str) -> None:
+        """Record the JSON Pointer and render it into the exception's own message."""
         self.pointer = pointer or "/"
         self.message = message
         super().__init__(f"{self.pointer}: {message}")
@@ -88,7 +89,9 @@ class UnsupportedKeyword(Exception):
     """
 
 
-def _type_name(value: object) -> str:
+def _type_name(value: object) -> str:  # noqa: PLR0911
+    # One return per JSON type. A dispatch table would satisfy the return-count metric
+    # and would read as indirection over a list of seven facts that never change.
     if isinstance(value, bool):
         return "boolean"
     if isinstance(value, int):
@@ -106,7 +109,8 @@ def _type_name(value: object) -> str:
     return type(value).__name__
 
 
-def _matches_type(value: object, expected: str) -> bool:
+def _matches_type(value: object, expected: str) -> bool:  # noqa: PLR0911
+    # As `_type_name`: one branch per JSON type, deliberately flat.
     if expected == "boolean":
         return isinstance(value, bool)
     if expected == "integer":
@@ -221,7 +225,13 @@ def _validate_object(
             _validate(value[key], additional, root, f"{pointer}/{key}")
 
 
-def _validate(instance: object, schema: object, root: dict[str, Any], pointer: str) -> None:
+def _validate(  # noqa: PLR0912
+    instance: object, schema: object, root: dict[str, Any], pointer: str
+) -> None:
+    # One branch per supported keyword, in the order the module docstring lists them.
+    # Collapsing them behind a dispatch table would hide which keywords are implemented,
+    # and this validator's whole safety argument is that an unimplemented keyword is
+    # REFUSED rather than ignored — a claim a reader has to be able to check by reading.
     if schema is True:
         return
     if schema is False:
@@ -233,14 +243,12 @@ def _validate(instance: object, schema: object, root: dict[str, Any], pointer: s
     _check_keywords(schema)
 
     declared = schema.get("type")
-    if isinstance(declared, str):
-        if not _matches_type(instance, declared):
-            raise SchemaViolation(pointer, f"expected {declared}, got {_type_name(instance)}")
-    elif isinstance(declared, list):
-        if not any(_matches_type(instance, name) for name in declared):
-            raise SchemaViolation(
-                pointer, f"expected one of {', '.join(declared)}, got {_type_name(instance)}"
-            )
+    if isinstance(declared, str) and not _matches_type(instance, declared):
+        raise SchemaViolation(pointer, f"expected {declared}, got {_type_name(instance)}")
+    if isinstance(declared, list) and not any(_matches_type(instance, name) for name in declared):
+        raise SchemaViolation(
+            pointer, f"expected one of {', '.join(declared)}, got {_type_name(instance)}"
+        )
 
     if "const" in schema and instance != schema["const"]:
         raise SchemaViolation(

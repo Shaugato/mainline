@@ -412,9 +412,15 @@ def run_probabilistic(
                 )
         else:
             for reranked in verdict.reranked:
+                # `verdict_code` and `confidence` are PROPERTIES on RerankedCandidate, not
+                # methods. Reading them as attributes is not a style choice: calling them
+                # would raise `TypeError: 'float' object is not callable` at the exact moment
+                # a judge verdict arrives, and the caller's `except ProviderError` would not
+                # catch it — a TypeError here would abort the run instead of degrading it,
+                # turning a healthy rerank into a permit with no obligations.
                 rerank_by_doc[reranked.doc_id] = (
-                    reranked.verdict_code(),
-                    reranked.confidence(),
+                    reranked.verdict_code,
+                    reranked.confidence,
                     reranked.justification,
                 )
             for record in verdict.silence_records:

@@ -43,7 +43,10 @@ __all__ = [
     "load_attestation",
 ]
 
-PASS = "PASS"
+# bandit reads a name ending in a credential-ish word assigned a literal as a secret.
+# These three are the attestation's `status` vocabulary, spelled exactly as they appear
+# in `g1-attestation.json`; there is no credential anywhere in this distribution.
+PASS = "PASS"  # noqa: S105
 FALLBACK = "FALLBACK-SELECTED"
 UNKNOWN = "UNKNOWN"
 STATUSES: tuple[str, ...] = (PASS, FALLBACK, UNKNOWN)

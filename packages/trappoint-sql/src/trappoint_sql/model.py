@@ -103,8 +103,7 @@ _ROLE_PURPOSE: dict[str, str] = {
         "role that detects a precursor cannot write one (finding S1)"
     ),
     "disposer": (
-        "the only role that disposes of an obligation, and never the role that "
-        "materialised it"
+        "the only role that disposes of an obligation, and never the role that materialised it"
     ),
     "auditor": (
         "the MCP identity: INSERT on the external attestation table only, SELECT on the "

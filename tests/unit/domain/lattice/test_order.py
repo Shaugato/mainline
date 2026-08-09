@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 MAINLINE contributors
 # SPDX-License-Identifier: FSL-1.1-ALv2
-"""The join W6 composes with, over the full 5×5 product.
+"""The join W6 composes with, over all twenty-five ordered label pairs.
 
 The equation that matters is::
 
@@ -17,7 +17,6 @@ from __future__ import annotations
 import itertools
 
 import pytest
-
 from mainline_domain.contracts import ControlDelta, force
 from mainline_domain.lattice import CHAIN, NEUTRAL, dual, is_weakening, join, rank
 

@@ -22,7 +22,6 @@ from _lattice_fixtures import AS_OF
 from _lattice_strategies import anchor_sets, cats, registries
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
-
 from mainline_domain.contracts import force
 from mainline_domain.lattice import (
     explain,
@@ -213,9 +212,10 @@ def test_the_minimiser_refuses_a_target_its_input_cannot_reach() -> None:
         minimal_unsatisfiable_subset([], ControlDelta.WEAKEN)
 
 
-@given(st.lists(st.sampled_from(("R1_DEONTIC", "R5_QUANTIFIER")), max_size=0))
-def test_an_empty_finding_set_is_trivially_minimal(_: list[str]) -> None:
+@given(empty=st.lists(st.sampled_from(("R1_DEONTIC", "R5_QUANTIFIER")), max_size=0))
+def test_an_empty_finding_set_is_trivially_minimal(empty: list[str]) -> None:
     from mainline_domain.contracts import ControlDelta
 
-    assert minimal_unsatisfiable_subset([]) == ()
+    assert empty == [], "the strategy is max_size=0; a non-empty draw is a Hypothesis bug"
+    assert minimal_unsatisfiable_subset(empty) == ()
     assert is_irredundant((), ControlDelta.RESTATE)

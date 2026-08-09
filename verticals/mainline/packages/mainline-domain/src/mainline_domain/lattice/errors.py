@@ -24,7 +24,8 @@ class LatticeError(Exception):
     * both sides of the comparison are ``None``, so there is no edit to judge;
     * the registry handed in was read at a commit other than the one under test,
       which would let a verdict be re-derived under a registry that has since
-      moved — the retro-tuning hazard migration 0207's header names;
+      moved — the retro-tuning hazard ``0150_v_safe_direction_current.sql``'s
+      header names;
     * the emitted witness set failed its own minimality post-condition, which is
       an internal contradiction rather than a document state.
     """
@@ -39,8 +40,9 @@ class WitnesslessWeakenError(LatticeError, ValueError):
 
     **This is not the gate.**  ``contracts.DeltaVerdict`` is a plain frozen
     dataclass owned by worker W1 and can hold the forbidden shape; the refusal
-    that matters is ``mainline.fn_delta_witness_guard`` (migration 0211), which
-    raises ``P0001`` for every writer, forever, including one that has never
-    imported this package.  This exception exists so the projector fails at the
-    point the mistake was made rather than one round trip later.
+    that matters is ``mainline.fn_delta_witness_guard`` (migration ``0140``,
+    attached to ``mainline.clause_version`` by ``0145``), which raises ``P0001``
+    for every writer, forever, including one that has never imported this
+    package.  This exception exists so the projector fails at the point the
+    mistake was made rather than one round trip later.
     """

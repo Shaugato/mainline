@@ -213,6 +213,11 @@ class RecallOrchestrator:
         self._asset_match_resolver = asset_match_resolver
         self._clock = clock
         self._cap = cap
+        # Rebuilt wholesale by `_admit` on every run, and read only by the `_candidate_set`
+        # call that follows it in the same `run()`. Declared here so the attribute exists on a
+        # freshly constructed orchestrator: an evidence map that only comes into being partway
+        # through a method is an attribute a later refactor can read before it is written.
+        self._evidence: dict[UUID, str] = {}
 
     # ── resolvers ────────────────────────────────────────────────────────────────────
 
@@ -592,6 +597,7 @@ class RecallOrchestrator:
 
         admission_input: list[AdmissionCandidate] = []
         pre_silenced: list[CandidateRow] = []
+        pre_silenced_ledger: list[SilenceRow] = []
         rank_of: dict[UUID, int] = {}
         for position, event_id in enumerate(
             sorted(origin_of, key=lambda key: (-severities.get(key, 0), str(key))), start=1
@@ -617,6 +623,32 @@ class RecallOrchestrator:
                         features={
                             "channels": list(channels),
                             "reason": "no admission threshold exists below severity 1",
+                        },
+                    )
+                )
+                # I13: a candidate that was retrieved and not shown is a withheld warning, and
+                # a withheld warning that leaves no ledger row is exactly the silence the
+                # ledger exists to replace. `bounded_negative` is the honest reason — nothing
+                # was compared against anything, because there is no tau(0) to compare with.
+                pre_silenced_ledger.append(
+                    SilenceRow(
+                        subject_kind="event",
+                        subject_id=event_id,
+                        reason="bounded_negative",
+                        severity=severity,
+                        score=scored.p_relevant if scored is not None else None,
+                        threshold=None,
+                        arithmetic={
+                            "rule": (
+                                "Severity-Graded Admission is defined on severities 1..5; "
+                                "there is no tau(0). A candidate whose projected severity is "
+                                "below 1 is recorded as a bounded negative rather than "
+                                "compared against a bar nobody calibrated."
+                            ),
+                            "channels": list(channels),
+                            "origin": origin_of[event_id],
+                            "projected_severity": severity,
+                            "policy_version": policy_version,
                         },
                     )
                 )
@@ -688,7 +720,7 @@ class RecallOrchestrator:
                 )
             )
 
-        cap_rows = [
+        cap_rows = [*pre_silenced_ledger] + [
             SilenceRow(
                 subject_kind="event",
                 subject_id=UUID(record.subject_id),
@@ -740,6 +772,37 @@ class RecallOrchestrator:
             payload["coarse_only"] = scored.coarse_only
             payload["also_matched"] = [str(item) for item in scored.also_matched]
         return payload
+
+    @staticmethod
+    def _evidence_without_a_judge(row: CandidateRow) -> str:
+        """The justification for a candidate the listwise judge never spoke about.
+
+        ``blocking_check.evidence_summary`` is ``NOT NULL`` and the wire contract refuses an
+        empty one, for the good reason that an obligation nobody can read is an obligation
+        nobody will action. But in a degraded run the judge produced no text — it refused, a
+        guardrail blocked the call, or the candidate sat past the rerank depth — and there are
+        only two possible responses. Raise the candidate with a machine-derived justification
+        that says exactly that, or refuse the whole set and hand the permit **no** obligations.
+
+        The second is the one failure this product exists to make impossible: *a precursor the
+        model declined to summarise must still block the merge* (ARCHITECTURE 8.4). So the
+        text below is deterministic, model-free, and explicit that no shared mechanism is being
+        claimed — which is materially different from a judge's citation and is written so a
+        reader can tell the two apart at a glance.
+        """
+        channels = ", ".join(str(channel) for channel in row.features.get("channels", ()))
+        demotion = str(row.features.get("demotion", ""))
+        return (
+            f"Retrieval evidence only. Event {row.event_id} was returned by channel(s) "
+            f"[{channels}] and calibrated to p_relevant={row.p_relevant:.6f} against "
+            f"tau={row.tau_applied:.6f}. The listwise judge produced no verdict for this "
+            "candidate — it refused, was blocked, or never ranked it — so NO shared mechanism "
+            "and NO shared precondition are asserted here, and this justification is not a "
+            "judge's citation. The candidate is raised regardless: a precursor the model "
+            "declined to summarise must still block the merge, and this run is recorded with "
+            "arms_degraded set."
+            + (f" Admission demotion: {demotion}." if demotion else "")
+        )
 
     def _observation(
         self,
@@ -827,6 +890,13 @@ class RecallOrchestrator:
             scored = scored_by_id.get(row.event_id)
             features = dict(row.features)
             features["clause_binding"] = binding
+            if row.outcome in {"blocking", "advisory"}:
+                summary = self._evidence.get(row.event_id, "").strip()
+                if not summary:
+                    summary = self._evidence_without_a_judge(row)
+                    features["evidence_source"] = "retrieval_only_no_judge_verdict"
+            else:
+                summary = ""
             candidates.append(
                 Candidate(
                     event_id=row.event_id,
@@ -840,9 +910,7 @@ class RecallOrchestrator:
                     p_relevant=row.p_relevant,
                     tau_applied=row.tau_applied,
                     features=features,
-                    evidence_summary=self._evidence.get(row.event_id, "")
-                    if row.outcome in {"blocking", "advisory"}
-                    else "",
+                    evidence_summary=summary,
                     also_matched=tuple(scored.also_matched) if scored is not None else (),
                     bonded_severity_5=row.event_id in bonded_ids,
                 )
@@ -876,7 +944,6 @@ class RecallOrchestrator:
         :class:`~mainline_recall_agent.run.errors.UnmodelledSqlstate`, because a database that
         refused for an unmodelled reason has told us an assumption is wrong.
         """
-        last: Exception | None = None
         for attempt in range(1, MAX_WRITE_ATTEMPTS + 1):
             try:
                 with self._writer.transaction() as session:
@@ -886,9 +953,20 @@ class RecallOrchestrator:
                 if sqlstate is None:
                     raise
                 kind = classify_sqlstate(sqlstate)
-                if kind == "retryable" and attempt < MAX_WRITE_ATTEMPTS:
-                    last = exc
-                    continue
+                if kind == "retryable":
+                    if attempt < MAX_WRITE_ATTEMPTS:
+                        continue
+                    # The allowance is exhausted. This is a refusal in its own right and it
+                    # gets its own message: re-raising the driver's `40001` here would tell a
+                    # reader that one attempt was contended, when what happened is that every
+                    # attempt was, which is a different fact about the cluster.
+                    raise RunRefused(
+                        f"the recall write transaction was refused with 40001 on all "
+                        f"{MAX_WRITE_ATTEMPTS} attempts and did not commit. 40001 is the "
+                        "only retryable SQLSTATE and this allowance is bounded on purpose: "
+                        "an unbounded retry turns contention into a permit that quietly "
+                        f"never got its obligations. Last error: {exc}"
+                    ) from exc
                 if kind == "unmodelled":
                     raise UnmodelledSqlstate(
                         f"the recall write transaction failed with SQLSTATE {sqlstate}, "
@@ -896,10 +974,9 @@ class RecallOrchestrator:
                         "(23514/23503/23505/P0001). The schema moved or an assumption is "
                         f"wrong: {exc}"
                     ) from exc
+                # A modelled gate refusal: 23514 / 23503 / 23505 / P0001. Attempted exactly
+                # once, ever, and re-raised with its SQLSTATE intact so the caller and the
+                # refusal ledger both see the constraint name.
                 raise
             else:
                 return
-        raise RunRefused(
-            f"the recall write transaction retried {MAX_WRITE_ATTEMPTS} times on 40001 and "
-            f"did not commit: {last}"
-        )

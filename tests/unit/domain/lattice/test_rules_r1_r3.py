@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import pytest
 from _lattice_fixtures import AS_OF, anchors, cat, empty_registry, qty, registry
-
 from mainline_domain.contracts import AnchorClass, ControlDelta
 from mainline_domain.lattice import (
     RuleInput,
@@ -86,8 +85,9 @@ def test_r1_an_unknown_label_fails_closed_rather_than_raising() -> None:
     branch is for something upstream to have skipped validation, and that is
     exactly when a fail-closed default earns its keep.
     """
-    from mainline_domain.cat.schema import EMPTY_CAT
     from dataclasses import replace
+
+    from mainline_domain.cat.schema import EMPTY_CAT
 
     broken = replace(EMPTY_CAT, deontic="OUGHT")
     findings = r1_deontic(_inp(cat(deontic="MUST"), broken))
@@ -227,7 +227,8 @@ def test_r3_a_bound_inversion_weakens_both_ways(before: str, after: str) -> None
     backward = r3_comparator(_inp(_with_comparator(after), _with_comparator(before)))
     assert [f.delta for f in forward] == [ControlDelta.WEAKEN]
     assert [f.delta for f in backward] == [ControlDelta.WEAKEN]
-    assert forward[0].orderable is False and backward[0].orderable is False
+    assert forward[0].orderable is False
+    assert backward[0].orderable is False
 
 
 def test_r3_negative_an_unchanged_comparator_is_silent() -> None:

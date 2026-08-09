@@ -30,7 +30,7 @@ separate them:
   because "something moved" is strictly more than "nothing moved".
 
 The property that is actually load-bearing — and that
-``tests/unit/domain/lattice/test_order.py`` proves over the full 5×5 product — is
+``tests/unit/domain/lattice/test_order.py`` proves over all 25 label pairs — is
 that **force is monotone non-decreasing along the chain**, hence::
 
     force(join(a, b)) == max(force(a), force(b))

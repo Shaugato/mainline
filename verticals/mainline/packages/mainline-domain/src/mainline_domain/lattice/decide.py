@@ -25,11 +25,11 @@ WHY ``as_of`` IS AN ARGUMENT AND IS CHECKED
 A DIRECTRIX registry knows the commit it was read at.  Handing this function a
 registry read at a *different* commit would silently re-derive last March's
 verdict under a registry that has moved since — which is precisely the
-retro-tuning attack migration 0207's header describes, rebuilt one layer up.  So
-``as_of`` is passed separately and compared, and a mismatch raises rather than
-answering.  A verdict issued at commit ``c`` must be re-derivable under the
-registry that existed at ``c``, and this is the one line that makes that
-checkable rather than merely intended.
+retro-tuning attack ``0150_v_safe_direction_current.sql``'s header describes,
+rebuilt one layer up.  So ``as_of`` is passed separately and compared, and a
+mismatch raises rather than answering.  A verdict issued at commit ``c`` must be
+re-derivable under the registry that existed at ``c``, and this is the one line
+that makes that checkable rather than merely intended.
 """
 
 from __future__ import annotations
@@ -195,9 +195,11 @@ def decide(
 
     Every witness in the returned verdict must be written to
     ``mainline.delta_witness`` **before** the ``clause_version`` row, in the same
-    transaction; ``mainline.fn_delta_witness_guard`` (migration 0211) refuses the
-    version row otherwise.  Migration 0205's header states that ordering contract
-    normatively.
+    transaction; ``mainline.fn_delta_witness_guard`` (migration ``0140``, attached
+    to ``clause_version`` by ``0145``) refuses the version row otherwise.
+    ``0049a_delta_witness.sql``'s header states that ordering contract normatively,
+    and ``tests/integration/algorithms/lattice/test_verdict_round_trip.py`` writes
+    a real verdict through it against a real cluster.
     """
     return explain(
         reference,

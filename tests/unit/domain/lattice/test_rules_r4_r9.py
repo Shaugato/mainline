@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import pytest
 from _lattice_fixtures import anchors, cat, empty_registry, qty
-
 from mainline_domain.cat.schema import COVERAGE_QUANTIFIERS
 from mainline_domain.contracts import AnchorClass, ControlDelta
 from mainline_domain.lattice import (
@@ -43,7 +42,11 @@ def test_r4_positive_a_hedge_entering_is_a_weakening_and_the_note_names_it() -> 
     not look like one: the deontic is untouched and the sentence still says
     "shall"."""
     before = cat(deontic="MUST", action="isolate")
-    after = cat(deontic="MUST", action="isolate", exceptions=("so far as is reasonably practicable",))
+    after = cat(
+        deontic="MUST",
+        action="isolate",
+        exceptions=("so far as is reasonably practicable",),
+    )
     findings = r4_exception(_inp(before, after))
     assert [f.delta for f in findings] == [ControlDelta.WEAKEN]
     assert "hedge" in findings[0].witness.note
@@ -90,13 +93,17 @@ def test_r4_negative_reordering_the_same_exceptions_is_not_a_change() -> None:
 
 
 def test_r5_positive_all_to_selected_narrows() -> None:
-    findings = r5_quantifier(_inp(cat(coverage_quantifier="all"), cat(coverage_quantifier="selected")))
+    findings = r5_quantifier(
+        _inp(cat(coverage_quantifier="all"), cat(coverage_quantifier="selected"))
+    )
     assert [f.delta for f in findings] == [ControlDelta.WEAKEN]
     assert findings[0].witness.field == "coverage_quantifier"
 
 
 def test_r5_positive_all_to_typical_narrows_further() -> None:
-    findings = r5_quantifier(_inp(cat(coverage_quantifier="all"), cat(coverage_quantifier="typical")))
+    findings = r5_quantifier(
+        _inp(cat(coverage_quantifier="all"), cat(coverage_quantifier="typical"))
+    )
     assert [f.delta for f in findings] == [ControlDelta.WEAKEN]
 
 
@@ -109,7 +116,9 @@ def test_r5_dropping_the_word_all_entirely_is_the_cheapest_weakening_and_is_caug
 
 
 def test_r5_widening_strengthens() -> None:
-    findings = r5_quantifier(_inp(cat(coverage_quantifier="typical"), cat(coverage_quantifier="all")))
+    findings = r5_quantifier(
+        _inp(cat(coverage_quantifier="typical"), cat(coverage_quantifier="all"))
+    )
     assert [f.delta for f in findings] == [ControlDelta.STRENGTHEN]
 
 
@@ -188,7 +197,10 @@ def test_r7_the_interval_vanishing_weakens_because_an_unstated_interval_is_unbou
 def test_r7_negative_the_same_interval_in_different_units_is_not_a_change() -> None:
     """``168 hours`` is ``7 days`` exactly; the comparison is on magnitudes, not
     on spellings."""
-    assert r7_frequency(_inp(cat(frequency=qty("7", "day")), cat(frequency=qty("168", "hour")))) == ()
+    weekly, one_hundred_and_sixty_eight_hours = qty("7", "day"), qty("168", "hour")
+    assert r7_frequency(
+        _inp(cat(frequency=weekly), cat(frequency=one_hundred_and_sixty_eight_hours))
+    ) == ()
 
 
 def test_r7_negative_no_frequency_on_either_side_is_silent() -> None:
@@ -301,5 +313,6 @@ def test_the_cat_slot_rules_stand_down_when_one_side_is_absent(rule) -> None:  #
     """Only R9 speaks about a missing CAT.  A rule that read ``None.exceptions``
     would raise; a rule that treated absence as an empty tuple would report the
     deletion of a whole control as four separate slot weakenings."""
-    assert rule(_inp(cat(exceptions=("x",), verification=("y",), frequency=qty("7", "day")), None)) == ()
+    populated = cat(exceptions=("x",), verification=("y",), frequency=qty("7", "day"))
+    assert rule(_inp(populated, None)) == ()
     assert rule(_inp(None, cat(exceptions=("x",), verification=("y",)))) == ()

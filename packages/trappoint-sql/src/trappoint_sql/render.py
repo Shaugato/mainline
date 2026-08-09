@@ -68,12 +68,26 @@ _HEADER_WIDTH = 92
 _DOLLAR_TAG = re.compile(r"\$(?:[A-Za-z_]\w*)?\$")
 _ONE_STATEMENT = 1
 
+# Rule `R-1`, matched on word boundaries. See `_guard_recaller_covenant` for why a
+# substring test is not merely imprecise here but actively unshippable.
+_GRANT = re.compile(r"\bGRANT\b", re.I)
+_WRITE_PRIVILEGE = re.compile(r"\b(?:INSERT|UPDATE|DELETE|TRUNCATE|ALL(?:\s+PRIVILEGES)?)\b", re.I)
+
+
+def _word(token: str) -> re.Pattern[str]:
+    """Build a pattern matching *token* as a whole SQL identifier, dots included."""
+    return re.compile(rf"(?<![\w.]){re.escape(token)}(?![\w.])")
+
+
 # Ruling D10, duplicated here rather than imported from `trappoint-migrate`: that
 # distribution's CLI dispatches `trappoint render` into this one, so depending on it
 # would be a genuine import cycle. Nine lines is a cheaper price than a cycle, and the
 # guard has to fire at render time or the linter finds it one commit too late.
 _BANNED: tuple[tuple[str, re.Pattern[str]], ...] = (
-    ("CREATE SEQUENCE", re.compile(r"\bCREATE\s+(?:TEMP\s+|TEMPORARY\s+|UNLOGGED\s+)*SEQUENCE\b", re.I)),
+    (
+        "CREATE SEQUENCE",
+        re.compile(r"\bCREATE\s+(?:TEMP\s+|TEMPORARY\s+|UNLOGGED\s+)*SEQUENCE\b", re.I),
+    ),
     ("nextval(", re.compile(r"\bnextval\s*\(", re.I)),
     ("SERIAL", re.compile(r"\b(?:BIG|SMALL)?SERIAL[248]?\b", re.I)),
     ("unique_rowid()", re.compile(r"\bunique_rowid\s*\(", re.I)),
@@ -227,14 +241,19 @@ def build_environment(templates_dir: Path) -> Environment:
     ``autoescape`` is off because the output is SQL, and HTML-escaping SQL would corrupt
     every string literal in the schema.
     """
-    return Environment(  # noqa: S701 - SQL output; HTML escaping would corrupt every literal
+    return Environment(
         loader=FileSystemLoader(str(templates_dir), encoding="utf-8"),
         undefined=StrictUndefined,
         trim_blocks=True,
         lstrip_blocks=True,
         keep_trailing_newline=True,
         newline_sequence="\n",
-        autoescape=False,
+        # S701 warns about XSS from an unescaped template. The output here is SQL written
+        # to a file and applied by `trappoint migrate`; HTML-escaping it would corrupt
+        # every string literal in the schema — `'don''t'` and every `>` in a CHECK. The
+        # suppression sits on this line rather than the call because that is where ruff
+        # anchors the diagnostic, and a `noqa` on the wrong line is reported as unused.
+        autoescape=False,  # noqa: S701
         auto_reload=False,
         optimized=True,
     )
@@ -299,8 +318,7 @@ def _guard_unit(unit: Unit, binding: Binding) -> None:
             )
     if not _CITATION.search(_header_block(unit.text)):
         raise RenderRefused(
-            f"{unit.name}: the header comment cites no MInn or Inn identifier "
-            "(ARCHITECTURE.md §18)"
+            f"{unit.name}: the header comment cites no MInn or Inn identifier (ARCHITECTURE.md §18)"
         )
     count = _statement_count(unit.text)
     if count != _ONE_STATEMENT:
@@ -325,27 +343,40 @@ def _header_block(sql: str) -> str:
 
 
 def _guard_recaller_covenant(unit: Unit, binding: Binding) -> None:
-    """`R-1`: the role that detects a precursor may never be granted INSERT on one.
+    """`R-1`: the role that detects a precursor may never be granted a WRITE on one.
 
     Finding `S1` in one line of enforcement. ``agent_recaller`` proposes candidates over
     HTTP; the kernel writes the obligation row inside the serializable transaction that
     issues the exposure receipt. A ``GRANT INSERT`` that quietly reunited those two
     would leave every constraint in place and every test green while the flagship claim
     became false, so the renderer refuses to emit one.
+
+    **The privilege and the relation are matched on WORD BOUNDARIES, and that is not a
+    tidiness point.** A plain substring test for ``ALL`` finds one inside
+    ``agent_recALLer`` — so every ``GRANT SELECT ... TO agent_recaller`` was refused as a
+    write, and the covenant became "the recaller may not read the obligation table
+    either". That is a rule nobody can ship a grant band under, and a guard that refuses
+    correct SQL gets relaxed rather than fixed, which is how the real rule dies. Same
+    reasoning for the relation: ``blocking_check`` is a prefix of a plausible
+    ``blocking_check_history``, and refusing a grant on the second in the name of the
+    first is a refusal with no argument behind it.
+
+    The covenant is about WRITES only. The recaller must be able to READ what it is
+    proposing against; forbidding that would be a different rule with a different
+    justification, and this one has neither.
     """
     body = _strip_line_comments(unit.text)
-    if "GRANT" not in body.upper():
+    if not _GRANT.search(body):
         return
     recaller = binding.role("recaller")
-    if recaller not in body:
+    if not _word(recaller).search(body):
         return
-    upper = body.upper()
-    if "INSERT" not in upper and "ALL" not in upper:
+    if not _WRITE_PRIVILEGE.search(body):
         return
     targets = {relation.split(".", 1)[-1] for relation in binding.obligation_relations}
     targets |= binding.obligation_relations
     for target in sorted(targets):
-        if target and target in body:
+        if target and _word(target).search(body):
             raise RenderRefused(
                 f"R-1: {unit.name} grants {recaller!r} a write privilege on {target!r}. "
                 "The role that detects a precursor may not be the role that writes one "
@@ -436,7 +467,7 @@ def render_binding(
     )
 
 
-def _header_factory(binding: Binding, *, template_name: str) -> Any:  # noqa: ANN401
+def _header_factory(binding: Binding, *, template_name: str) -> Any:
     """Bind ``header()`` to this binding and template, so templates cannot get it wrong."""
     template_rel = f"packages/trappoint-sql/templates/{template_name}"
     binding_rel = _relative(binding.source, binding.repo_root)

@@ -21,15 +21,23 @@ happily hold a witness-free ``weaken`` — :func:`test_the_raw_dataclass_is_not_
 demonstrates exactly that, on purpose.  The Python refusal lives in
 :func:`mainline_domain.lattice.verdict`, the one sanctioned construction path in
 this domain, and the *real* refusal lives in the database:
-``fn_delta_witness_guard`` (migration 0211) raises ``P0001`` for every writer,
+``fn_delta_witness_guard`` (migration ``0140``, attached to
+``mainline.clause_version`` by ``0145``) raises ``P0001`` for every writer,
 forever, including one that never imports this package.  Decision D8.
+
+That database refusal is executed, not asserted:
+``tests/integration/algorithms/lattice/test_witness_or_refuse.py`` runs the same
+INSERT against two schemas differing only in whether ``0145`` was applied.  The
+one without the trigger accepts the row; the one with it raises ``P0001``.  That
+is the same red-before-green discipline as this file, kept as a fixture rather
+than performed once — because "the INSERT was refused" is otherwise equally
+consistent with a ``NOT NULL``, a foreign key, or a typo in the test.
 """
 
 from __future__ import annotations
 
 import pytest
 from _lattice_fixtures import AS_OF, cat, empty_registry
-
 from mainline_domain.contracts import ControlDelta, DeltaVerdict
 from mainline_domain.lattice import WitnesslessWeakenError, decide, verdict
 

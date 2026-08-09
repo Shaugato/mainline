@@ -20,9 +20,8 @@ import ast
 import importlib.util
 from pathlib import Path
 
-import pytest
-
 import mainline_domain.lattice as lattice_pkg
+import pytest
 
 _PACKAGE = Path(lattice_pkg.__file__).resolve().parent
 _MODULES = sorted(_PACKAGE.glob("*.py"))
@@ -140,7 +139,6 @@ def test_a_verdict_is_reproducible_byte_for_byte_across_two_runs() -> None:
     opposing expert gets the same answer, so it is checked rather than argued.
     """
     from _lattice_fixtures import AS_OF, cat, empty_registry, qty
-
     from mainline_domain.lattice import explain, rule_catalogue_fingerprint
 
     reference = cat(

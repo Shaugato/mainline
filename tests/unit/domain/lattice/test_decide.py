@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import pytest
 from _lattice_fixtures import AS_OF, anchors, cat, empty_registry, qty, registry
-
 from mainline_domain.contracts import AnchorClass, ControlDelta
 from mainline_domain.lattice import (
     LATTICE_VERSION,
@@ -169,7 +168,8 @@ def test_a_setpoint_move_against_a_ratified_direction_is_the_headline_case() -> 
     assert decision.delta is ControlDelta.WEAKEN
     assert [w.rule_id for w in decision.verdict.witnesses] == ["R2_SETPOINT"]
     witness = decision.verdict.witnesses[0]
-    assert "1750" in witness.from_repr and "2100" in witness.to_repr
+    assert "1750" in witness.from_repr, witness.from_repr
+    assert "2100" in witness.to_repr, witness.to_repr
     assert "LOWER_IS_SAFER" in witness.note
 
 

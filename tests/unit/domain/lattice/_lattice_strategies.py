@@ -20,7 +20,6 @@ from __future__ import annotations
 
 from _lattice_fixtures import anchors, cat, qty, registry
 from hypothesis import strategies as st
-
 from mainline_domain.cat.schema import COVERAGE_QUANTIFIERS, DEONTIC_LABELS
 from mainline_domain.contracts import CAT, AnchorClass, AnchorSet
 from mainline_domain.registry.model import SafeDirection, SafeDirectionRegistry

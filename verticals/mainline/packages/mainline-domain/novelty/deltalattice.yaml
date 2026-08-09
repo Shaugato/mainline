@@ -1,0 +1,308 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
+#
+# Novelty fragment per docs/leads/algorithms.md §6.  Validated by
+# tests/unit/domain/novelty/test_novelty_manifest.py (worker W10) and consumed
+# by MECHANISMS.md generation.  Anything not yet proven belongs under
+# `unverified:` and NEVER inside `claim:`.
+
+slug: deltalattice
+name: DELTALATTICE
+mechanism: M1
+claim: >-
+  Given two Control Assertion Tuples, nine deterministic rules — deontic rung, setpoint against
+  the DIRECTRIX direction, comparator family, exceptions, coverage quantifier, verification steps,
+  frequency, anchors, and the existence of the control at all — each emit zero or more witness
+  rows, and their join along introduce ≺ restate ≺ strengthen ≺ weaken ≺ remove is the
+  control_delta of record.  No model, no network, no clock, no randomness: the same two tuples and
+  the same signed registry produce the same verdict on any machine in any year, which is the only
+  property that makes "the database refused this merge, and here is why" survive cross-examination.
+  The verdict then carries the MINIMAL UNSATISFIABLE SUBSET of its own findings — the set from
+  which removing any member changes the answer, computed by deletion to a fixpoint and verified
+  against its own post-condition before it is returned — alongside the MINIMAL CORRECTION SET, the
+  smallest set whose removal would make the edit admissible.  I14 asks for both and they are not
+  the same set.
+  What makes this more than a classifier is decision D8, and D8 is SQL: `mainline.clause_version`
+  carries a BEFORE INSERT trigger (`z_delta_witness_required`, migration 0145, calling
+  `mainline.fn_delta_witness_guard`, migration 0140) that raises P0001 when a row declares
+  `control_delta IN ('weaken','remove')` on `delta_basis IN ('lattice','lattice+model')` and no
+  `mainline.delta_witness` row exists for its own (clause_uuid, commit_id).  An unexplainable
+  weakening verdict does not get to exist in this database — not "is flagged", not "is logged":
+  cannot be stored.  A second, distinct P0001 refuses a witness set with no member flagged
+  `minimal`, because I14 asks for an irreducible reason set and not a repair list.
+
+enforcement:
+  refuses:
+    - "z_delta_witness_required / fn_delta_witness_guard (P0001) — a lattice weaken or remove with no delta_witness row for its own (clause_uuid, commit_id)"
+    - "z_delta_witness_required / fn_delta_witness_guard (P0001) — witnesses present, none flagged minimal"
+    - "delta_witness.note_stated (23514) — a witness that explains nothing"
+    - "delta_witness.field_stated (23514) — a witness that names no slot"
+    - "delta_witness.rule_id_closed (23514) — a rule id outside the nine"
+  refusal_depth: 1
+# Depth 1, and the honesty is worth more than a bigger number.
+#
+# The load-bearing refusal is a TRIGGER, and it cannot be a CHECK: §4.1 law 1
+# forbids a CHECK expression from seeing another row, and every witness is
+# another row.  So `ALTER TABLE mainline.clause_version DISABLE TRIGGER
+# z_delta_witness_required` succeeds — admin can remove the guard, and what the
+# custodian patrol makes impossible is removing the RECORD that they removed it.
+# `tests/integration/algorithms/lattice/test_witness_or_refuse.py::test_the_guard_can_be_disabled_and_the_disabling_is_the_record`
+# demonstrates the disabling rather than leaving it for a reviewer to find.
+#
+# The three 23514s ARE structural and they do survive DISABLE TRIGGER, but they
+# are a strictly weaker statement — they refuse a blank or mislabelled witness,
+# not a missing one — so they are listed separately rather than counted as a
+# second layer under the same claim.
+#
+# What this fragment does NOT claim as its own: the merge refusal itself.  A
+# `weaken` over severity ≥ 4 ancestry materialises a blocking check and the
+# kernel lead's `gate_closed_when_issued` / `cr_gate_closed_when_merged`
+# constraints refuse the merge (MI30).  Those are that lead's migrations and that
+# lead's claim.  This worker's contribution ends at making the verdict, and the
+# reasons behind it, unfalsifiable-by-omission at the moment of writing.
+
+position: unclaimed
+# Every ingredient is published and this fragment says so plainly:
+#
+#   * a rule catalogue that compares two versions of an artefact and decides
+#     whether the change is breaking — cargo-semver-checks, japicmp, revapi, and
+#     every API-compatibility checker of the last twenty years.  cargo-semver-checks
+#     even calls its evidence a WITNESS.  Nothing about "run N rules over a diff
+#     and report which fired" is claimed here;
+#   * MUST / SHOULD / MAY as an ordered modality ladder — RFC 2119, and the
+#     deontic-classification literature in legal NLP that fills it from modal cues;
+#   * minimal unsatisfiable subsets — Liffiton & Sakallah and thirty years of SAT
+#     and constraint-programming work on explaining infeasibility.  The minimiser
+#     in witness.py is textbook deletion-based MUS extraction and is labelled as
+#     such in its own docstring;
+#   * a lattice/join over an ordered label set — undergraduate order theory.
+#
+# The claim is the composition, and it has one part that the survey did not find
+# anywhere:
+#
+#   THE ABSENCE OF THE EXPLANATION IS A WRITE REFUSAL.
+#
+# Every system above computes an explanation and then RENDERS it.  The
+# explanation is an output — a report, a CI annotation, a lint message — and
+# nothing anywhere refuses to record the verdict when the explanation is missing.
+# That asymmetry is not incidental: it is what lets a verdict be stored, cited in
+# a decision, and later be impossible to reconstruct.  Here the reasons are a
+# PRECONDITION of the state transition, enforced by the storage layer against
+# every writer including one that has never imported this package, and the two
+# statements have a normative order (witnesses first, version row second, one
+# transaction) precisely because a BEFORE INSERT trigger cannot see rows written
+# after it.
+#
+# Two smaller choices are also unclaimed as far as this survey found:
+#
+#   (a) THE MINIMAL SET AND THE CORRECTION SET ARE BOTH STORED AND ARE
+#       DISTINGUISHED BY A COLUMN.  When four rules each independently force
+#       `weaken`, the irreducible reason is any one of them and undoing one fixes
+#       nothing.  Storing only the singleton is truthful and useless; storing all
+#       four undifferentiated is a dump.  `delta_witness.minimal` is the column
+#       that keeps I14's two questions apart, and its DEFAULT is `true` — the
+#       conservative direction, so a writer that never heard of the column still
+#       produces a row treated as part of the reason set.
+#   (b) THE DELTA OF RECORD IS THE JOIN OF THE PARENT DIFF AND THE BLAME-ORIGIN
+#       DIFF (decision D7, implemented by worker W6 over this package's `join`).
+#       Twenty individually-neutral commits whose composition weakens are refused
+#       at commit twenty.  No synchronic system can express that, because it has
+#       no baseline other than the parent.
+
+prior_art:
+  - url: "https://github.com/obi1kenobi/cargo-semver-checks"
+    what_it_covers: >-
+      The closest published thing to this lattice, and the closest by a wide margin.  It runs many
+      dozens of lints over two versions of a crate's public API and reports which specific rule
+      fired — function_missing, and so on — with the offending item named.  Its newer, unstable
+      "witness" feature generates a minimal downstream example that compiles against the baseline
+      and fails against the current version, and for some lints a result whose witness does not
+      confirm the breakage is DISCARDED.  That is a stronger evidential standard than anything in
+      this lattice: a cargo-semver-checks witness is executable and can falsify its own finding,
+      whereas a DeltaWitness is a claim about two tuples that no machine can check.  The idea of
+      "a rule catalogue over two versions, each rule carrying the evidence that it fired" is
+      theirs and is not claimed here.
+    what_it_does_not: >-
+      Nothing refuses to record a breaking-change verdict whose witness is missing.  The report is
+      an output — a CI annotation a maintainer reads, a lint that can be allowed, a run that can be
+      skipped — and the verdict is not stored anywhere that a later state transition is conditioned
+      on.  There is also no baseline other than the previous release: a chain of individually
+      non-breaking changes whose composition breaks a downstream user is not expressible, because
+      there is no ancestry to diff against.  And the subject is an API, not a control with blame
+      edges to an incident, so no rule can be made louder because of what the artefact is
+      answerable to.
+  - url: "https://link.springer.com/article/10.1007/s10817-007-9084-z"
+    what_it_covers: >-
+      Liffiton & Sakallah, *Algorithms for Computing Minimal Unsatisfiable Subsets of Constraints*
+      (Journal of Automated Reasoning 40(1), 2008), is the reference treatment of extracting the
+      irreducible core of an infeasible constraint system, including the deletion-based extraction
+      that `witness.minimal_unsatisfiable_subset` implements and the MUS/MCS duality that
+      `minimal_correction_set` leans on.  The minimiser here is that algorithm at a scale of nine
+      items, and it is a re-implementation rather than a contribution.  The paper's algorithms are
+      sound, complete and enumerate ALL MUSes; this one returns one, which is strictly less.
+    what_it_does_not: >-
+      An MUS explains why a constraint system is unsatisfiable.  It says nothing about how the
+      explanation is stored, who may write one, or what happens when nobody writes one — the
+      question that this fragment's claim turns on.  It is also an explanation of a computation
+      over constraints supplied to a solver, not a precondition on a database write performed by an
+      arbitrary party, and the constraint system in this domain is not adversarial in the way a
+      commit author is.
+  - url: "https://datatracker.ietf.org/doc/html/rfc2119"
+    what_it_covers: >-
+      RFC 2119 fixes MUST / MUST NOT / SHOULD / SHOULD NOT / MAY as an ordered vocabulary of
+      requirement levels and is why rule R1's ladder needs no defence: the rungs and their relative
+      force are the interoperability community's, not this project's, and the Australian WHS
+      phrasing layered on top by `data/lexicon/deontic.toml` is standard drafting practice.
+    what_it_does_not: >-
+      RFC 2119 orders the keywords and stops.  It defines no comparison between two versions of one
+      requirement, no notion that moving down the ladder is a distinct kind of change from rewording
+      it, and no consequence for doing so.  It also has no answer for the MUST ↔ MUST NOT polarity
+      inversion, which this lattice deliberately treats as non-orderable — reading that edit
+      backwards does not make it a strengthening, and both directions resolve to `weaken`.
+  - url: "https://aclanthology.org/2023.nllp-1.15/"
+    what_it_covers: >-
+      Liga & Robaldo (NLLP 2023) and the deontic-modality classification literature around it
+      establish the OBLIGATION / PROHIBITION / PERMISSION taxonomy over legal text and the practice
+      of assigning it from modal cues.  Detecting that a sentence's modality has been downgraded is
+      published work in legal NLP and is not claimed here.
+    what_it_does_not: >-
+      Deontic classification labels a sentence.  It does not diff two versions of one clause, does
+      not separate a modality from a HEDGE ("so far as is reasonably practicable" — routed here to
+      CAT.exceptions[] where rule R4 sees it as growth), produces no irreducible reason set, and
+      produces nothing a database refuses.  It is also a model task, so under principle P7 it can
+      never be the component that decides a state transition; that is the shape of Path B
+      (mainline-delta-oracle, worker W5), which may only ever RAISE a verdict's force.
+  - url: "https://en.wikipedia.org/wiki/Management_of_change"
+    what_it_covers: >-
+      Management of Change is the incumbent, and it is worth naming as prior art precisely because
+      it is what a site does today: a procedure edit is routed to a review board, a competent person
+      judges whether it weakens a control, and the judgement is recorded in the MOC record.  Every
+      question this lattice answers is already answered under MOC, by people, and usually better
+      than nine rules answer it.
+    what_it_does_not: >-
+      The judgement is a human artefact in a workflow system, and the workflow can be completed
+      without it: an MOC record can be approved with an empty rationale field, and no system state
+      prevents it.  It is also synchronic — the reviewer sees the current text and the proposed
+      text, not the incident that wrote the clause twenty years ago and not the twenty intervening
+      edits.  The contribution here is not judging better than a review board.  It is making the
+      absence of a reason a thing the storage layer will not accept, and making the baseline the
+      blame origin rather than the parent.
+
+implemented_by:
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/lattice/__init__.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/lattice/rules.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/lattice/order.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/lattice/witness.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/lattice/decide.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/lattice/version.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/lattice/errors.py"
+  - "verticals/mainline/db/migrations/0049a_delta_witness.sql"
+  - "verticals/mainline/db/migrations/0140_fn_delta_witness_guard.sql"
+  - "verticals/mainline/db/migrations/0145_trg_delta_witness_guard.sql"
+
+tests:
+  # PL-2: the two that were red before one line of the lattice existed.
+  - "tests/unit/domain/lattice/test_red_first.py::test_must_to_should_is_one_witness_and_it_is_r1"
+  - "tests/unit/domain/lattice/test_red_first.py::test_a_witnessless_lattice_weaken_cannot_be_built"
+  - "tests/unit/domain/lattice/test_red_first.py::test_the_raw_dataclass_is_not_the_gate"
+  # The nine rules, positive and negative.
+  - "tests/unit/domain/lattice/test_rules_r1_r3.py"
+  - "tests/unit/domain/lattice/test_rules_r4_r9.py"
+  # Minimality, over >= 1000 Hypothesis cases per property.
+  - "tests/unit/domain/lattice/test_minimality.py::test_removing_any_emitted_witness_changes_the_verdict"
+  - "tests/unit/domain/lattice/test_minimality.py::test_a_weaken_verdict_never_reaches_the_database_without_a_witness"
+  - "tests/unit/domain/lattice/test_minimality.py::test_the_repair_set_is_what_would_have_to_change_and_no_more"
+  - "tests/unit/domain/lattice/test_minimality.py::test_the_minimal_set_and_the_repair_set_answer_different_questions"
+  # The order, the duality, and the AST walk that keeps Path A alone.
+  - "tests/unit/domain/lattice/test_order.py"
+  - "tests/unit/domain/lattice/test_duality.py"
+  - "tests/unit/domain/lattice/test_path_a_is_alone.py"
+  - "tests/unit/domain/lattice/test_decide.py"
+  # D8 against a real CockroachDB v26.2 — the exit criterion, and its red half.
+  - "tests/integration/algorithms/lattice/test_witness_or_refuse.py::test_a_weaken_with_no_witness_is_refused_with_p0001_and_the_exact_message"
+  - "tests/integration/algorithms/lattice/test_witness_or_refuse.py::test_the_same_insert_with_witnesses_first_succeeds"
+  - "tests/integration/algorithms/lattice/test_witness_or_refuse.py::test_the_refused_insert_is_accepted_when_0145_is_withheld"
+  - "tests/integration/algorithms/lattice/test_witness_or_refuse.py::test_witnesses_present_but_none_minimal_is_a_different_refusal"
+  - "tests/integration/algorithms/lattice/test_witness_or_refuse.py::test_witnesses_written_after_the_version_row_are_witnesses_the_guard_never_saw"
+  - "tests/integration/algorithms/lattice/test_witness_or_refuse.py::test_lattice_plus_model_is_in_scope_because_p7_says_so"
+  # The seam: a verdict this package computed, written through the guard.
+  - "tests/integration/algorithms/lattice/test_verdict_round_trip.py::test_the_canonical_weakening_survives_the_whole_path"
+  - "tests/integration/algorithms/lattice/test_verdict_round_trip.py::test_a_four_rule_weakening_stores_one_reason_and_the_whole_repair_list"
+  - "tests/integration/algorithms/lattice/test_verdict_round_trip.py::test_every_rule_s_witness_satisfies_the_tables_checks"
+  # The static checks that still hold when no cluster is reachable.
+  - "tests/integration/algorithms/lattice/test_0049a_shape.py::test_the_sql_vocabulary_is_exactly_the_python_vocabulary"
+  - "tests/integration/algorithms/lattice/test_guard_shape.py::test_the_guard_reads_only_columns_the_insert_supplies"
+
+unverified:
+  - >-
+    DELTA FALSE NEGATIVES ARE IRREDUCIBLE AND UNMEASURED (risk R-A1).  A real weakening that nine
+    rules classify as `restate` is not argued away anywhere in this design.  It will be MEASURED by
+    worker W10's mutation ratchet, per mutation class, with Wilson lower bounds, and published as a
+    standing residual-risk number rather than as a launch claim.  Until that harness has reported a
+    SURVIVING mutant on a deliberately weakened lattice, no kill rate from this domain means
+    anything.
+  - >-
+    THE GUARD MAKES A WEAKENING CARRY AN EXPLANATION.  IT CANNOT MAKE THE EXPLANATION TRUE.  A
+    writer who inserts a fabricated delta_witness row and then the version row satisfies it, and
+    `test_witness_or_refuse.py::test_a_fabricated_witness_satisfies_the_guard` demonstrates exactly
+    that on purpose.  No trigger on `clause_version` could do better: the truth of a witness is a
+    fact about two Control Assertion Tuples, and §4.1 law 1 forbids a CHECK from seeing another
+    row.  The dodge that a writer declares `restate` on an edit that is really a weakening is also
+    NOT closed here — it is closed, if it is closed, by the matcher and the CONSERVATION OF BLAME
+    MASS ledger (W8/W9) accounting for every blood-written obligation across the commit
+    independently.  D8 closes one hole and names the others.
+  - >-
+    REFUSAL DEPTH IS 1 AND THE GUARD IS DISABLEABLE.  `ALTER TABLE mainline.clause_version DISABLE
+    TRIGGER z_delta_witness_required` succeeds; a test in this suite performs it.  The claim that
+    the disabling is itself an attested ledger leaf belongs to the custody domain and is NOT
+    verified by this worker.
+  - >-
+    THE MINIMAL UNSATISFIABLE SUBSET IS A SINGLETON FOR EVERY FINDING COMBINATION THIS LATTICE CAN
+    CURRENTLY PRODUCE.  The verdict is a join over nine independent rules, so the single most
+    forceful finding attains the maximum on its own.  That is a true fact about the decision and
+    not a weakness of the minimiser, and it is recorded here rather than dressed up: the general
+    algorithm is implemented and property-tested so that a future rule whose finding is forcing
+    only IN COMBINATION does not silently break the guarantee, but no such rule exists today and
+    the general path is therefore exercised only by synthetic findings.
+  - >-
+    TWO CAT SLOTS ARE DELIBERATELY UNJUDGED AND THE COST IS UNMEASURED.  `conditions` has no rule,
+    because adding a condition can narrow a control's applicability (a weakening) or state a
+    pre-existing scope explicitly (a restatement) and this lattice cannot tell those apart;
+    guessing fail-closed would fire on a very large fraction of ordinary edits and breach the
+    nuisance ceiling (risk R-A7, under which a rule is REJECTED, not tuned).  `actor` / `action` /
+    `object_class` / `hazard_energy` have no rule because a change in them is a change of IDENTITY,
+    which the matcher decides.  How many real weakenings hide in those slots is unknown.
+  - >-
+    RULE R8 DOES NOT RUN WHEN THE CALLER SUPPLIES NO ANCHOR SETS, and the omission is silent by
+    design — `LatticeDecision.anchors_considered` is how a caller finds out, and a caller that never
+    reads it gets an eight-rule verdict that looks identical to a nine-rule one.  Nothing in this
+    package can force a caller to pass anchors.
+  - >-
+    THE DELTA OF RECORD (decision D7 — the join of the parent diff and the blame-origin diff) IS
+    NOT IMPLEMENTED HERE.  This package supplies `join` and a `reference` argument that does not
+    care which baseline it was handed; resolving the blame origin and calling `decide` twice is
+    worker W6's ORIGINDIFF.  The salami defence is therefore claimed by that fragment, not this
+    one, and this package's tests prove nothing about it.
+  - >-
+    THE RULE CATALOGUE IS FINGERPRINTED BUT THE FINGERPRINT IS NOT YET STAMPED ON A STORED ROW.
+    `rule_catalogue_fingerprint()` digests the four hand-authored decision tables so that a verdict
+    computed under a quietly-edited comparator table is visibly a verdict from a different lattice —
+    the same retro-tuning defence DIRECTRIX applies to `safe_direction` and M3 applies to τ.
+    `mainline.clause_version` has no column for it and adding one is a schema-lead change this
+    worker did not make, so today the fingerprint is computable and unrecorded.
+  - >-
+    THE SQL SUITE'S SPINE IS THE REAL MIGRATIONS AND IS VERIFIED ONLY WHERE A CLUSTER IS REACHABLE.
+    Executed against CockroachDB CCL v26.2.5 on 2026-08-08; on a machine with no `cockroach` binary,
+    no `MAINLINE_TEST_DSN` and no Docker daemon the cluster suite SKIPS with a reason, and a skipped
+    run verifies nothing.  The two shape suites still run everywhere and are what remains.
+  - >-
+    MEASURED PLATFORM DETAIL, RECORDED BECAUSE AN EXHIBIT DEPENDS ON IT: a CockroachDB v26.2.5
+    `23514` names the CHECK EXPRESSION and not the constraint — `failed to satisfy CHECK constraint
+    (note != '':::STRING)` — where PostgreSQL names the constraint.  Any refusal exhibit or console
+    rendering that promises to show an operator a constraint NAME for a 23514 must supply the name
+    itself.  The P0001 messages are unaffected: those are ours and arrive verbatim.
+  - >-
+    NONE OF THIS DISTINGUISHES A CONSIDERED DISPOSITION FROM A RUBBER STAMP (risk R-A8).
+    DELTALATTICE makes the question "did this edit weaken a safety control, and for what reason"
+    precise, unavoidable and impossible to leave blank.  It says nothing whatsoever about the
+    quality of the answer, and it must never be sold as retiring that risk.

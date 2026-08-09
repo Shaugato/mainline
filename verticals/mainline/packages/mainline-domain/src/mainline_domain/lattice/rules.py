@@ -116,7 +116,7 @@ class RuleInput:
 
     @property
     def both_present(self) -> bool:
-        """``True`` when there are two tuples to compare (rules R1–R8 need this)."""
+        """``True`` when there are two tuples to compare (rules R1 to R8 need this)."""
         return self.reference is not None and self.descendant is not None
 
 
@@ -240,9 +240,8 @@ def r1_deontic(inp: RuleInput) -> tuple[RuleFinding, ...]:
       extractor is broken, and a broken extractor must not be able to produce a
       quiet ``restate``.  ``weaken``, not orderable.
     """
-    if not inp.both_present:
+    if inp.reference is None or inp.descendant is None:  # i.e. not inp.both_present
         return ()
-    assert inp.reference is not None and inp.descendant is not None
     before, after = inp.reference.deontic, inp.descendant.deontic
     if before == after:
         return ()
@@ -419,9 +418,8 @@ def r3_comparator(inp: RuleInput) -> tuple[RuleFinding, ...]:
     two never both fire on one edit: when the family changes R2 falls silent, and
     when it does not, this table's cells are all within-family or empty.
     """
-    if not inp.both_present:
+    if inp.reference is None or inp.descendant is None:  # i.e. not inp.both_present
         return ()
-    assert inp.reference is not None and inp.descendant is not None
     before, after = inp.reference.comparator, inp.descendant.comparator
     if before == after:
         return ()
@@ -505,14 +503,17 @@ def _nothing_moved(reference: CAT, descendant: CAT) -> bool:
     """
     return (
         reference.parameter == descendant.parameter
-        and COMPARATOR_FAMILY.get(reference.comparator) == COMPARATOR_FAMILY.get(descendant.comparator)
+        and COMPARATOR_FAMILY.get(reference.comparator)
+        == COMPARATOR_FAMILY.get(descendant.comparator)
         and reference.value == descendant.value
     )
 
 
 def r2_setpoint(inp: RuleInput) -> tuple[RuleFinding, ...]:
-    """Setpoint direction: after SI normalisation, did the value move *against*
-    ``safe_direction(parameter)``?
+    """Setpoint direction — whether the value moved against ``safe_direction``.
+
+    After SI normalisation, and only after it: a magnitude compared in the
+    document's own units is a comparison between two different questions.
 
     The direction comes from DIRECTRIX (worker W2), read **as of the commit under
     test**, and an unknown, proposed, withdrawn, retired, duplicated, ambiguous or
@@ -532,9 +533,8 @@ def r2_setpoint(inp: RuleInput) -> tuple[RuleFinding, ...]:
     * the comparator **family** changed, so R3 owns the edit and R2 would be
       double-counting it.
     """
-    if not inp.both_present:
+    if inp.reference is None or inp.descendant is None:  # i.e. not inp.both_present
         return ()
-    assert inp.reference is not None and inp.descendant is not None
     reference, descendant = inp.reference, inp.descendant
 
     asserted = any(
@@ -688,9 +688,8 @@ def r4_exception(inp: RuleInput) -> tuple[RuleFinding, ...]:
     property is a property of this rule, and a rule that only ever fired one way
     could not be checked against its own inverse.
     """
-    if not inp.both_present:
+    if inp.reference is None or inp.descendant is None:  # i.e. not inp.both_present
         return ()
-    assert inp.reference is not None and inp.descendant is not None
     before = inp.reference.exceptions
     after = inp.descendant.exceptions
     before_set, after_set = set(before), set(after)
@@ -761,9 +760,8 @@ so a sixth quantifier cannot appear in the lexicon without appearing here.
 
 def r5_quantifier(inp: RuleInput) -> tuple[RuleFinding, ...]:
     """Quantifier narrowing: ``all → selected``, ``every → typical``, scope shrinks."""
-    if not inp.both_present:
+    if inp.reference is None or inp.descendant is None:  # i.e. not inp.both_present
         return ()
-    assert inp.reference is not None and inp.descendant is not None
     before = inp.reference.coverage_quantifier
     after = inp.descendant.coverage_quantifier
     if before == after:
@@ -820,9 +818,8 @@ def r6_verification(inp: RuleInput) -> tuple[RuleFinding, ...]:
     things quietly removed when a procedure is "streamlined".  One finding per
     deleted check, because which one went is the whole content of the refusal.
     """
-    if not inp.both_present:
+    if inp.reference is None or inp.descendant is None:  # i.e. not inp.both_present
         return ()
-    assert inp.reference is not None and inp.descendant is not None
     before = inp.reference.verification
     after = inp.descendant.verification
     before_set, after_set = set(before), set(after)
@@ -879,9 +876,8 @@ def r7_frequency(inp: RuleInput) -> tuple[RuleFinding, ...]:
     against a duration raises :class:`QuantityError`, and an uncomparable pair
     fails closed rather than being quietly skipped.
     """
-    if not inp.both_present:
+    if inp.reference is None or inp.descendant is None:  # i.e. not inp.both_present
         return ()
-    assert inp.reference is not None and inp.descendant is not None
     before, after = inp.reference.frequency, inp.descendant.frequency
     if before is None and after is None:
         return ()
@@ -910,7 +906,24 @@ def r7_frequency(inp: RuleInput) -> tuple[RuleFinding, ...]:
             ),
         )
 
-    assert before is not None and after is not None
+    if before is None or after is None:  # pragma: no cover - the three branches above cover it
+        # (None, None), (x, None) and (None, y) have all returned, so this is
+        # unreachable today.  It is written FAIL-CLOSED rather than `return ()`
+        # because P3 says the failure mode of a safety gate is a block, and an
+        # unreachable branch that would fail OPEN is one refactor away from being
+        # reachable.
+        return (
+            _finding(
+                "R7_FREQUENCY",
+                ControlDelta.WEAKEN,
+                "frequency",
+                _q(before),
+                _q(after),
+                "the two frequencies could not both be read; an interval comparison "
+                "this rule cannot perform is treated as a loosening (P3)",
+                orderable=False,
+            ),
+        )
     if before == after:
         return ()
     try:

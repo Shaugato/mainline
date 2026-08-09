@@ -42,7 +42,7 @@ import tomllib
 from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Final, Literal
 
 from .errors import AuthoritySourceRefused, BindingInvalid, UsageError
 from .jsonschema import SchemaViolation, UnsupportedKeyword, validate
@@ -66,7 +66,11 @@ __all__ = [
 
 _SCHEMA_RELPATH = Path("spec/binding/vertical.schema.json")
 _MANIFEST_RELPATH = Path("spec/conformance/manifest.toml")
-_LEGAL_ON_MISSING = "raise"
+# The ONLY legal value, typed as the literal it is. `AuthoritySource.on_missing` is
+# `Literal["raise"]` because there is no second value: a binding that defaults, infers
+# or passes on a missing authority row is not TRAPPOINT (rule `A-2`). Widening this to
+# `str` would make the type system stop saying so.
+_LEGAL_ON_MISSING: Final[Literal["raise"]] = "raise"
 _STRICTEST_PROJECTION = "strictest_projection"
 
 
@@ -231,7 +235,9 @@ def load_binding(path: Path, *, root: Path | None = None) -> Binding:
         emit_outbox=bool(document.get("emit_outbox", False)),
         role_overrides={str(k): str(v) for k, v in document.get("roles", {}).items()},
         conformance_profile=(
-            str(conformance["profile"]) if isinstance(conformance, Mapping) and "profile" in conformance else None
+            str(conformance["profile"])
+            if isinstance(conformance, Mapping) and "profile" in conformance
+            else None
         ),
         skip_requires=(
             _as_str_tuple(conformance.get("skip_requires", []))
@@ -265,7 +271,7 @@ class AuthorityReport:
         )
 
 
-def check_authority_contract(
+def check_authority_contract(  # noqa: PLR0912
     binding: Binding,
     template_projections: Mapping[str, tuple[str, ...]],
     *,
@@ -285,6 +291,15 @@ def check_authority_contract(
 
     Raises:
         AuthoritySourceRefused: any of `A-1` … `A-9`.
+
+    Note:
+        ``PLR0912`` (branch count) is suppressed rather than satisfied. The branches are
+        nine independent rules of a published contract, each one section-numbered in
+        ``authority-source.md`` and each one a distinct refusal message. Splitting them
+        into nine private helpers to satisfy a metric would scatter the contract across
+        the file and make "is every rule enforced?" — the question a reviewer actually
+        asks here — answerable only by chasing call sites. The section banners below are
+        the structure; the count is the price of keeping them in reading order.
     """
     # ── A-8: MAJOR agreement with the specification in this tree ────────────────
     if _major(binding.vertical.spec_version) != _major(tree_spec_version):
@@ -378,10 +393,13 @@ def check_authority_contract(
         if column in declared_by_template:
             backed.append(column)
         elif relation in rendered_relations:
+            rendered_here = sorted(
+                name for name in declared_by_template if name.startswith(relation + ".")
+            )
             raise AuthoritySourceRefused(
                 f"A-5: authority_source projects an unrendered column: {column}. "
                 f"Templates in this tree already render projections onto {relation!r} "
-                f"({', '.join(sorted(c for c in declared_by_template if c.startswith(relation + '.')))}), "
+                f"({', '.join(rendered_here)}), "
                 "so this declaration is stale rather than early. Remove it, or add the "
                 "pragma that projects it."
             )

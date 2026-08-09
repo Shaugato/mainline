@@ -165,7 +165,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         templates = args.templates or (root / _TEMPLATES_RELPATH)
         bindings = list(args.bindings) if args.bindings else discover_bindings(root)
         if not bindings:
-            raise UsageError(
+            # TRY301 wants this abstracted into a helper. It stays here: the `except`
+            # below is the single place this CLI converts a refusal vocabulary into an
+            # exit code, and a raise lifted out of the block would be one raise not
+            # obviously covered by it.
+            raise UsageError(  # noqa: TRY301
                 f"no vertical.toml found under {root}. Pass --binding explicitly, or "
                 "check that you are inside the workspace."
             )
