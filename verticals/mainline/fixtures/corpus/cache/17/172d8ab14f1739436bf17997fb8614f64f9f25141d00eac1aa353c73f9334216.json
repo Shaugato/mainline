@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 36,
+    "doc_code": "PRO-MEC-055",
+    "doc_family": "PRO",
+    "doc_title": "Workshop Component Removal and Load Support",
+    "driver": "retypeset",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2016-11-21",
+    "required_citations": [
+      {
+        "control_label": "mechanical support of a load during maintenance access",
+        "event_ref": "NM-2016-0003",
+        "event_title": "potential incident during a planned shutdown on HO-9402",
+        "hazard_energy": "kinetic",
+        "kind": "investigation_recommendation",
+        "quote_ref": "quote:YND/PRO-MEC-055/008#investigation_recommendation/NM-2016-0003",
+        "severity_gate": 2
+      }
+    ],
+    "rev_no": 8,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "ICAM investigation",
+      "management_of_change": "management of change",
+      "near_miss": "potential incident"
+    }
+  },
+  "key": "172d8ab14f1739436bf17997fb8614f64f9f25141d00eac1aa353c73f9334216",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:YND/PRO-MEC-055/008",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "d69580881f3330a9fe4003c205e1f62e85cd1f5aa4e05209415f27fe09147988",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The ICAM investigation into NM-2016-0003 recommended that the mechanical support of a load during maintenance access be strengthened in this procedure.",
+        "quote_ref": "quote:YND/PRO-MEC-055/008#investigation_recommendation/NM-2016-0003"
+      }
+    ],
+    "reason": "Full retypeset to the 2016 house style; numbering reissued, requirements unchanged."
+  },
+  "response_sha256": "9c246732548c988b757bcae8c748e0496ff245753bd1b3383df1ce65589d6704",
+  "source": null
+}

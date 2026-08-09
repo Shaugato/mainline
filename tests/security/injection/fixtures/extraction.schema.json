@@ -1,0 +1,99 @@
+{
+  "$license": "SPDX-FileCopyrightText: 2026 MAINLINE contributors / SPDX-License-Identifier: FSL-1.1-ALv2",
+  "$purpose": "The wire schema layer-3 corpus cases are contained by. Committed so the corpus runs with no dependency on mainline-agentkit being installed.",
+  "$provenance": "Emitted by mainline_agentkit.schema.bedrock_schema(ExtractionResult) at prompt_version extraction.v1+rubric.v1, schema_version 2a6e49bc46fa144b994b537a0c85f813ebb2273ceacde107e7151a5e6541304c. tests/security/injection/test_layers.py re-derives it whenever mainline_agentkit imports and fails on any difference, so this copy is a drift alarm rather than a fork.",
+  "profile_id": "extraction",
+  "schema_name": "ExtractionResult",
+  "prompt_version": "extraction.v1+rubric.v1",
+  "schema_version": "2a6e49bc46fa144b994b537a0c85f813ebb2273ceacde107e7151a5e6541304c",
+  "schema": {
+    "additionalProperties": false,
+    "description": "The second, independent reading of one clause.",
+    "properties": {
+      "abstained": {
+        "description": "True when no reliable extraction was possible.",
+        "title": "Abstained",
+        "type": "boolean"
+      },
+      "abstain_reason": {
+        "description": "Why the extraction abstained; 'none' when it did not.",
+        "enum": [
+          "no_quantity",
+          "ambiguous_unit",
+          "conflicting_values",
+          "none"
+        ],
+        "title": "Abstain Reason",
+        "type": "string"
+      },
+      "anchors": {
+        "description": "Verbatim hard anchors: tags, citations, CAS numbers, substances.",
+        "items": {
+          "type": "string"
+        },
+        "title": "Anchors",
+        "type": "array"
+      },
+      "quantities": {
+        "description": "Measurable requirements found.",
+        "items": {
+          "additionalProperties": false,
+          "description": "One measurable requirement, in integer milli-units, with the span it came from.",
+          "properties": {
+            "quantity_kind": {
+              "description": "Lowercase underscored name of what is measured.",
+              "title": "Quantity Kind",
+              "type": "string"
+            },
+            "value_milli": {
+              "description": "The value times one thousand, as an integer. Never a decimal.",
+              "title": "Value Milli",
+              "type": "integer"
+            },
+            "unit": {
+              "description": "SI or plant unit symbol.",
+              "title": "Unit",
+              "type": "string"
+            },
+            "comparator": {
+              "description": "Named comparator; never a symbol.",
+              "enum": [
+                "lt",
+                "lte",
+                "eq",
+                "gte",
+                "gt",
+                "between",
+                "none"
+              ],
+              "title": "Comparator",
+              "type": "string"
+            },
+            "quote": {
+              "description": "Verbatim span containing the number and its comparator words.",
+              "title": "Quote",
+              "type": "string"
+            }
+          },
+          "required": [
+            "quantity_kind",
+            "value_milli",
+            "unit",
+            "comparator",
+            "quote"
+          ],
+          "title": "ExtractedQuantity",
+          "type": "object"
+        },
+        "title": "Quantities",
+        "type": "array"
+      }
+    },
+    "required": [
+      "abstained",
+      "abstain_reason"
+    ],
+    "title": "ExtractionResult",
+    "type": "object"
+  }
+}

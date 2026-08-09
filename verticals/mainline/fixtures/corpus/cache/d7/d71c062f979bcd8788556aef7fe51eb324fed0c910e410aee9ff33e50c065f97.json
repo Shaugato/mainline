@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 5,
+    "doc_code": "STD-MEQ-007",
+    "doc_family": "STD",
+    "doc_title": "Mobile Equipment Interaction",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2009-07-15",
+    "required_citations": [
+      {
+        "control_label": "segregation of light vehicles and pedestrians from heavy equipment",
+        "event_ref": "INC-2008-006",
+        "event_title": "injury during transfer operations on LV-9301",
+        "hazard_energy": "kinetic",
+        "kind": "investigation_recommendation",
+        "quote_ref": "quote:YND/STD-MEQ-007/002#investigation_recommendation/INC-2008-006",
+        "severity_gate": 2
+      }
+    ],
+    "rev_no": 2,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "accident investigation",
+      "management_of_change": "engineering change note",
+      "near_miss": "near hit"
+    }
+  },
+  "key": "d71c062f979bcd8788556aef7fe51eb324fed0c910e410aee9ff33e50c065f97",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:YND/STD-MEQ-007/002",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "70d02be808b41e1eddb70a45a741940776c11c7f59e2d059274a54e92f5fbdca",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The accident investigation into INC-2008-006 recommended that the segregation of light vehicles and pedestrians from heavy equipment be strengthened in this standard.",
+        "quote_ref": "quote:YND/STD-MEQ-007/002#investigation_recommendation/INC-2008-006"
+      }
+    ],
+    "reason": "Scheduled review at revision 2; 5 clauses restated."
+  },
+  "response_sha256": "363543551bb7a6b810ddd2a7c5c750069bade6984d56145053436a8b9d125ad9",
+  "source": null
+}

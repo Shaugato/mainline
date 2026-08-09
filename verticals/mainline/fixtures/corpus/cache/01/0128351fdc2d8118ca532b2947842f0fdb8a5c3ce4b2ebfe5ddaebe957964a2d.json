@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "barrier_role": "preventive",
+    "control_class": "ENERGY_SOURCE_IDENTIFICATION",
+    "control_delta": "restate",
+    "control_label": "identification of every energy source for the task",
+    "doc_code": "STD-HTW-004",
+    "doc_family": "STD",
+    "doc_title": "Hot Work",
+    "effective_on": "2022-04-02",
+    "printed_label": "1.1.1",
+    "setpoint": null,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "energy_isolation": "positive isolation verification",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "0128351fdc2d8118ca532b2947842f0fdb8a5c3ce4b2ebfe5ddaebe957964a2d",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/STD-HTW-004/007#MRD/PRO-MEC-021/3.4.1(b)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "0617a048840b847bbaaf0ebc911fa95e85c82893db83289b34d3584745623d02",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The identification of every energy source for the task shall be provided and maintained wherever this standard applies, and its condition shall be treated as a material unwanted event control. This clause applies to activities archived under ISOLATION-OF-STORED-ENERGY at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "d843e063cf3749e824acf91090c3bf2ab6585b06a85d88e50476a80673edcc75",
+  "source": null
+}

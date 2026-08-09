@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "EXPLOSIVES-AND-BLASTING",
+    "barrier_role": "preventive",
+    "control_class": "BLAST_GUARDING_AND_CLEARANCE",
+    "control_delta": "strengthen",
+    "control_label": "guarding, clearance and misfire handling for a blast",
+    "doc_code": "PRO-EXP-002",
+    "doc_family": "PRO",
+    "doc_title": "Explosives Receipt and Magazine Control",
+    "effective_on": "2014-08-16",
+    "printed_label": "7.1",
+    "setpoint": null,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "energy_isolation": "lock out tag out",
+      "verification": "field verification"
+    }
+  },
+  "key": "5743b205759dd31206a69f1046465ace3404688f881fd44eaae021fee66cf6f0",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:YND/PRO-EXP-002/004#YND/PRO-EXP-002/7.1",
+  "prompt_kind": "clause",
+  "prompt_sha256": "18bb50f6aac80e3640f0a6fe84b5b012c5bba03d529ad14d190eff807933fc0a",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The guarding, clearance and misfire handling for a blast must be provided, and its effectiveness must be recorded as a field verification before the task proceeds. This clause applies to activities archived under EXPLOSIVES-AND-BLASTING at Yandarra Downs Open Cut and Heavy Workshop.",
+    "obligation_verb": "must"
+  },
+  "response_sha256": "81989727c82111cb265b4f9e6588d040d626251e3872122564fc27b7251b47fe",
+  "source": null
+}

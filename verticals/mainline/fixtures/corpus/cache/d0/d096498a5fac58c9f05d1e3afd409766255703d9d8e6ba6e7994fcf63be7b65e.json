@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONFINED-SPACE-ENTRY",
+    "barrier_role": "preventive",
+    "control_class": "CONFINED_SPACE_ENTRY_PERMIT",
+    "control_delta": "restate",
+    "control_label": "classification of a space and issue of an entry permit",
+    "doc_code": "STD-CSE-002",
+    "doc_family": "STD",
+    "doc_title": "Confined Spaces",
+    "effective_on": "2023-10-08",
+    "printed_label": "1.1.1",
+    "setpoint": null,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "energy_isolation": "positive isolation verification",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "d096498a5fac58c9f05d1e3afd409766255703d9d8e6ba6e7994fcf63be7b65e",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:CVY/STD-CSE-002/006#CVY/STD-CSE-002/1.2",
+  "prompt_kind": "clause",
+  "prompt_sha256": "52961a77c3be3fb6a2a89dd5fbfb20ee7e6e5b961f3f15bdad37d91d003f4c69",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The classification of a space and issue of an entry permit shall be provided and maintained wherever this standard applies, and its condition shall be treated as a material unwanted event control. This clause applies to activities archived under CONFINED-SPACE-ENTRY at Cape Verity Export Terminal.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "7ac854452a1911e9024a1e45e294e754a4a564304d54e7e495919c4c874fdf32",
+  "source": null
+}

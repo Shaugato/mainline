@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "FIRE-AND-EMERGENCY-RESPONSE",
+    "barrier_role": "recovery",
+    "control_class": "MUSTER_AND_ACCOUNTING",
+    "control_delta": "restate",
+    "control_label": "alarm, muster and accounting for people",
+    "doc_code": "STD-EMR-008",
+    "doc_family": "STD",
+    "doc_title": "Emergency Preparedness and Response",
+    "effective_on": "2016-11-21",
+    "printed_label": "5.2.1",
+    "setpoint": null,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "66bf9cf02053cd61b5a146d99952f8a2dc4d5a37d04cfba8b071e38548ffa6d5",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:CVY/STD-EMR-008/004#CVY/STD-EMR-008/1.3",
+  "prompt_kind": "clause",
+  "prompt_sha256": "783763a343e0eccc60563948c9b3495942455524ef287e5c004e75f18e7c2f32",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The alarm, muster and accounting for people shall be provided and maintained wherever this standard applies, and its condition shall be treated as a critical control. This clause applies to activities archived under FIRE-AND-EMERGENCY-RESPONSE at Cape Verity Export Terminal.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "68b3b7d080e9e1334940306e334f8ed0d8fa681d49bb683bdf303ec9f6809689",
+  "source": null
+}

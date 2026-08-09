@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "barrier_role": "preventive",
+    "control_class": "HYDROCARBON_TRANSFER_CONTROL",
+    "control_delta": "introduce",
+    "control_label": "controlled transfer of hydrocarbon between vessels",
+    "doc_code": "ALERT-2016-007",
+    "doc_family": "ALERT",
+    "doc_title": "OEM Advisory - Mechanical Seal Support System Barrier Fluid Degradation",
+    "effective_on": "2016-03-22",
+    "printed_label": "1.2",
+    "setpoint": null,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "7eda38e67114907bb703b32c7313b941ec836eaff1eeabe69754fc9fe5731926",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:TLG/ALERT-2016-007/001#TLG/ALERT-2016-007/1.2",
+  "prompt_kind": "clause",
+  "prompt_sha256": "8e3798f125e2e48b3691b51422205b0a5153ab0c5e4da525e829777f699f2a29",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The controlled transfer of hydrocarbon between vessels shall be provided and maintained for work covered by this safety alert. This clause applies to activities archived under CONTAINMENT-OF-HYDROCARBONS at Tolgarra Processing and Power Station.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "a607783c55eabd3358f3447ecb09a2bf2733b57c589a6bef4fb79c05b736b2db",
+  "source": null
+}

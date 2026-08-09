@@ -1,0 +1,102 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "managing light-vehicle and haul-truck interaction",
+    "activity_root": "MOBILE-EQUIPMENT-INTERACTION",
+    "activity_series": "controlling traffic on operating areas",
+    "assets": [
+      {
+        "asset_class": "MOB-CLASS-H",
+        "label": "haul trucks",
+        "service": "waste and ore haulage",
+        "tag": "HT-9006"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "PARK_UP_AND_RESTRAINT",
+        "control_label": "parking, chocking and restraint of equipment",
+        "failure_mode": "absent",
+        "hazard_energy": "gravity",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "POSITIVE_COMMUNICATION_BEFORE_APPROACH",
+        "control_label": "positive communication before approaching mobile equipment",
+        "failure_mode": "ineffective",
+        "hazard_energy": "kinetic",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "PROXIMITY_DETECTION_AND_SEGREGATION",
+        "control_label": "segregation of light vehicles and pedestrians from heavy equipment",
+        "failure_mode": "absent",
+        "hazard_energy": "kinetic",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "INC-2020-023",
+    "hazard_energy": "gravity",
+    "hazard_media": [
+      "suspended load",
+      "stored potential of an elevated component",
+      "unsupported ground",
+      "person at height"
+    ],
+    "hazard_release": "fall, collapse, crush",
+    "kind": "incident",
+    "occurred_on": "2020-12-29",
+    "severity_actual": 1,
+    "severity_potential": 1,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during routine operation",
+    "title": "gravity release during routine operation on HT-9006",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "5c8b4c1cf2a8b200ffaa57864e0b9c9a155c2edc38eab4641239ef165fc2662e",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2020-023",
+  "prompt_kind": "icam",
+  "prompt_sha256": "e9a8e8d611bd75b0359a3e13c7422f8ece512dcaf13f1e6327ccc4b7e4e415f8",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage.",
+    "defences": [
+      {
+        "control_class": "PARK_UP_AND_RESTRAINT",
+        "finding": "Control PARK_UP_AND_RESTRAINT: the parking, chocking and restraint of equipment was not in place, and the ICAM investigation classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "POSITIVE_COMMUNICATION_BEFORE_APPROACH",
+        "finding": "Control POSITIVE_COMMUNICATION_BEFORE_APPROACH: the positive communication before approaching mobile equipment was in place but did not perform, and the ICAM investigation classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "PROXIMITY_DETECTION_AND_SEGREGATION",
+        "finding": "Control PROXIMITY_DETECTION_AND_SEGREGATION: the segregation of light vehicles and pedestrians from heavy equipment was not in place, and the ICAM investigation classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next critical control verification that the parking, chocking and restraint of equipment on HT-9006 performs as designed."
+    ],
+    "sequence": "Work was under way in controlling traffic on operating areas, specifically managing light-vehicle and haul-truck interaction. HT-9006 (haul trucks) is in service for waste and ore haulage. The task proceeded during routine operation while the parking, chocking and restraint of equipment was not in place. The gravity energy involved is held as suspended load, and the recorded presentation was fall, collapse, crush.",
+    "summary": "On 29 December 2020 an incident occurred on HT-9006 at Yandarra Downs Open Cut and Heavy Workshop during routine operation, releasing gravity energy held as suspended load."
+  },
+  "response_sha256": "8341f7cb15c156213cb8a7cf10979dc4ec3e974639dd614a39a90c706d9d913b",
+  "source": null
+}

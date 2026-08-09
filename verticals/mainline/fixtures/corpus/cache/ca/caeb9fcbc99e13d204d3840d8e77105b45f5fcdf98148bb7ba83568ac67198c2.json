@@ -1,0 +1,103 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "working live under a documented justification",
+    "activity_root": "ELECTRICAL-SAFETY",
+    "activity_series": "controlling access to energised apparatus",
+    "assets": [
+      {
+        "asset_class": "GEN-CLASS-A",
+        "label": "gas turbine generators",
+        "service": "on-site generation",
+        "tag": "G-8101"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "HAZARDOUS_AREA_EQUIPMENT_INTEGRITY",
+        "control_label": "integrity of explosion-protected equipment in zoned areas",
+        "failure_mode": "ineffective",
+        "hazard_energy": "electrical",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "SWITCHING_AUTHORISATION",
+        "control_label": "authorisation of switching and access to apparatus",
+        "failure_mode": "bypassed",
+        "hazard_energy": "electrical",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "ZERO_ENERGY_VERIFICATION",
+        "control_label": "proving zero energy before intrusive work",
+        "failure_mode": "absent",
+        "hazard_energy": "electrical",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "NM-2010-0012",
+    "hazard_energy": "electrical",
+    "hazard_media": [
+      "HV switchgear",
+      "LV distribution",
+      "capacitive storage",
+      "induced voltage",
+      "portable equipment"
+    ],
+    "hazard_release": "shock, arc flash, unplanned energisation",
+    "kind": "near_miss",
+    "occurred_on": "2010-07-20",
+    "severity_actual": 0,
+    "severity_potential": 2,
+    "site": "Tolgarra Processing and Power Station",
+    "summary_facts": [],
+    "task_phase": "during a breakdown response",
+    "title": "unplanned release of electrical energy at G-8101",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "caeb9fcbc99e13d204d3840d8e77105b45f5fcdf98148bb7ba83568ac67198c2",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2010-0012",
+  "prompt_kind": "icam",
+  "prompt_sha256": "8a9df2096473c25fe568fcab9abfad5e624c5eb56494446ad158142a6a4888c1",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 2 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "HAZARDOUS_AREA_EQUIPMENT_INTEGRITY",
+        "finding": "Control HAZARDOUS_AREA_EQUIPMENT_INTEGRITY: the integrity of explosion-protected equipment in zoned areas was in place but did not perform, and the root cause analysis classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "SWITCHING_AUTHORISATION",
+        "finding": "Control SWITCHING_AUTHORISATION: the authorisation of switching and access to apparatus had been bypassed, and the root cause analysis classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "ZERO_ENERGY_VERIFICATION",
+        "finding": "Control ZERO_ENERGY_VERIFICATION: the proving zero energy before intrusive work was not in place, and the root cause analysis classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Restore the authorisation of switching and access to apparatus on G-8101 and record the field verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in controlling access to energised apparatus, specifically working live under a documented justification. G-8101 (gas turbine generators) is in service for on-site generation. The task proceeded during a breakdown response while the integrity of explosion-protected equipment in zoned areas was in place but did not perform. The electrical energy involved is held as HV switchgear, and the recorded presentation was shock, arc flash, unplanned energisation.",
+    "summary": "On 20 July 2010 a hazard report was recorded on G-8101 at Tolgarra Processing and Power Station during a breakdown response; electrical energy held as HV switchgear was not released."
+  },
+  "response_sha256": "2096eae025a3ab23cb393d09c38dad441d226f20bfb6721007f9259c86a8a9de",
+  "source": null
+}

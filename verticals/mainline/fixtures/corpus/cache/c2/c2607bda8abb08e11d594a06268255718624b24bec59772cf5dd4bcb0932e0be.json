@@ -1,0 +1,79 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "benching, battering and shoring an excavation",
+    "activity_root": "GROUND-AND-STRATA-CONTROL",
+    "activity_series": "designing and controlling excavations",
+    "assets": [
+      {
+        "asset_class": "MOB-CLASS-E",
+        "label": "earthmoving fleet",
+        "service": "loading and dozing",
+        "tag": "DZ-9201"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "EXCAVATION_SUPPORT",
+        "control_label": "benching, battering or shoring of an excavation",
+        "failure_mode": "ineffective",
+        "hazard_energy": "gravity",
+        "icam_tier": "organisational_factor"
+      }
+    ],
+    "event_ref": "OEM-2014-002",
+    "hazard_energy": "kinetic",
+    "hazard_media": [
+      "rotating equipment",
+      "conveyor",
+      "mobile equipment",
+      "pressurised jet",
+      "flying fragment"
+    ],
+    "hazard_release": "entanglement, impact, crush",
+    "kind": "oem_alert",
+    "occurred_on": "2014-10-24",
+    "severity_actual": 1,
+    "severity_potential": 2,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during routine operation",
+    "title": "vendor notification - premature wear on MOB-CLASS-E",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "c2607bda8abb08e11d594a06268255718624b24bec59772cf5dd4bcb0932e0be",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:OEM-2014-002",
+  "prompt_kind": "icam",
+  "prompt_sha256": "266c84b48b49e40502dba6e05d3d0e8b58ec04429318eefeabcff91897fe906d",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage. The potential outcome was rated 2 against the site's consequence scale, above the 1 actually realised.",
+    "defences": [
+      {
+        "control_class": "EXCAVATION_SUPPORT",
+        "finding": "Control EXCAVATION_SUPPORT: the benching, battering or shoring of an excavation was in place but did not perform, and the root cause analysis classified this as an organisational factor."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next field verification that the benching, battering or shoring of an excavation on DZ-9201 performs as designed."
+    ],
+    "sequence": "Work was under way in designing and controlling excavations, specifically benching, battering and shoring an excavation. DZ-9201 (earthmoving fleet) is in service for loading and dozing. The task proceeded during routine operation while the benching, battering or shoring of an excavation was in place but did not perform. The kinetic energy involved is held as rotating equipment, and the recorded presentation was entanglement, impact, crush.",
+    "summary": "On 24 October 2014 the original equipment manufacturer issued an advisory affecting DZ-9201 at Yandarra Downs Open Cut and Heavy Workshop."
+  },
+  "response_sha256": "65cfb7dd619ae80094287592e96bbe74eb1f62405bca8f5f01f86b4d766b064b",
+  "source": null
+}

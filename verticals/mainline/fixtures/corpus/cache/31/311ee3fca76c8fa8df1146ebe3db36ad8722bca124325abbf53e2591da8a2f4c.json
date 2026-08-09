@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "MOBILE-EQUIPMENT-INTERACTION",
+    "barrier_role": "preventive",
+    "control_class": "PROXIMITY_DETECTION_AND_SEGREGATION",
+    "control_delta": "weaken",
+    "control_label": "segregation of light vehicles and pedestrians from heavy equipment",
+    "doc_code": "STD-MEQ-007",
+    "doc_family": "STD",
+    "doc_title": "Mobile Equipment Interaction",
+    "effective_on": "2016-04-02",
+    "printed_label": "3.1",
+    "setpoint": {
+      "from": 30.0,
+      "key": "light_vehicle_exclusion_radius",
+      "label": "light vehicle exclusion radius from operating haul trucks",
+      "strengthen_direction": "higher",
+      "to": 20.0,
+      "unit": "m"
+    },
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "311ee3fca76c8fa8df1146ebe3db36ad8722bca124325abbf53e2591da8a2f4c",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:YND/STD-MEQ-007/004#YND/STD-MEQ-007/3.1",
+  "prompt_kind": "clause",
+  "prompt_sha256": "90f437e156f66a15e5d06e299422702832a0c022ba9d473cd5df84acb8317fea",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The segregation of light vehicles and pedestrians from heavy equipment should be provided; the critical control verification may be recorded at the next scheduled review rather than before the task proceeds. The light vehicle exclusion radius from operating haul trucks should be set at 20 m. This clause applies to activities archived under MOBILE-EQUIPMENT-INTERACTION at Yandarra Downs Open Cut and Heavy Workshop.",
+    "obligation_verb": "should"
+  },
+  "response_sha256": "2d5cbb21b3c2e7babe19c6d77a80632d54ee2404f77f9174ca9155f6b5e0b9f9",
+  "source": null
+}

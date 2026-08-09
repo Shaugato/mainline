@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "barrier_role": "recovery",
+    "control_class": "EMERGENCY_ISOLATION_ON_RELEASE",
+    "control_delta": "strengthen",
+    "control_label": "emergency isolation and depressuring on loss of containment",
+    "doc_code": "PTW-STD-003",
+    "doc_family": "PTW",
+    "doc_title": "Permit to Work Form Set",
+    "effective_on": "2011-02-09",
+    "printed_label": "3.4.3(c)",
+    "setpoint": null,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "energy_isolation": "lock out tag out",
+      "verification": "field verification"
+    }
+  },
+  "key": "7fca1c58cfae0bc0954589f6458e5670408a14cde63392ff071a2c60c4344b52",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:CVY/PTW-STD-003/002#CVY/PTW-STD-003/3.4.3(c)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "21082d1a5b4f5fc9236a2354d765d3ce506eda433be9a60fd4ccbf68431d03b3",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The emergency isolation and depressuring on loss of containment must be provided, and its effectiveness must be recorded as a field verification before the task proceeds. This clause applies to activities archived under CONTAINMENT-OF-HYDROCARBONS at Cape Verity Export Terminal.",
+    "obligation_verb": "must"
+  },
+  "response_sha256": "19aedbaf12d4ff9801dfa5a4d299d0b88ff6b19d79975793a05bb02871962ee1",
+  "source": null
+}

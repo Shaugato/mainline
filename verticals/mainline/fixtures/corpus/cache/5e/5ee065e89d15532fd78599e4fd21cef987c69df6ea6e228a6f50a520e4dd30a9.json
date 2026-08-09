@@ -1,0 +1,79 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "responding to slope-radar and prism alarms",
+    "activity_root": "GROUND-AND-STRATA-CONTROL",
+    "activity_series": "monitoring and inspecting ground conditions",
+    "assets": [
+      {
+        "asset_class": "MOB-CLASS-L",
+        "label": "light vehicles",
+        "service": "personnel movement on operating areas",
+        "tag": "LV-9303"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "GROUND_CONDITION_INSPECTION",
+        "control_label": "inspection and monitoring of highwalls and batters",
+        "failure_mode": "degraded",
+        "hazard_energy": "kinetic",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "INC-2012-012",
+    "hazard_energy": "kinetic",
+    "hazard_media": [
+      "rotating equipment",
+      "conveyor",
+      "mobile equipment",
+      "pressurised jet",
+      "flying fragment"
+    ],
+    "hazard_release": "entanglement, impact, crush",
+    "kind": "incident",
+    "occurred_on": "2012-09-28",
+    "severity_actual": 1,
+    "severity_potential": 1,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during shift handover",
+    "title": "injury during shift handover on LV-9303",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "5ee065e89d15532fd78599e4fd21cef987c69df6ea6e228a6f50a520e4dd30a9",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2012-012",
+  "prompt_kind": "icam",
+  "prompt_sha256": "6877942f664f032599225f344c855e7b01d81d26c7b15bb5f1d68322e62c61b0",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage.",
+    "defences": [
+      {
+        "control_class": "GROUND_CONDITION_INSPECTION",
+        "finding": "Control GROUND_CONDITION_INSPECTION: the inspection and monitoring of highwalls and batters had degraded below its design intent, and the root cause analysis classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next field verification that the inspection and monitoring of highwalls and batters on LV-9303 performs as designed."
+    ],
+    "sequence": "Work was under way in monitoring and inspecting ground conditions, specifically responding to slope-radar and prism alarms. LV-9303 (light vehicles) is in service for personnel movement on operating areas. The task proceeded during shift handover while the inspection and monitoring of highwalls and batters had degraded below its design intent. The kinetic energy involved is held as rotating equipment, and the recorded presentation was entanglement, impact, crush.",
+    "summary": "On 28 September 2012 an incident occurred on LV-9303 at Yandarra Downs Open Cut and Heavy Workshop during shift handover, releasing kinetic energy held as rotating equipment."
+  },
+  "response_sha256": "71b6b001e267566e68d359712c8ffd2d02a5063c5ccfefd9a5041fe08cd20995",
+  "source": null
+}

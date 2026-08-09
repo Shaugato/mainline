@@ -1,0 +1,109 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "working live under a documented justification",
+    "activity_root": "ELECTRICAL-SAFETY",
+    "activity_series": "controlling access to energised apparatus",
+    "assets": [
+      {
+        "asset_class": "ELEC-CLASS-A",
+        "label": "switchgear and transformers",
+        "service": "plant HV/LV distribution",
+        "tag": "SG-4100"
+      },
+      {
+        "asset_class": "ELEC-CLASS-A",
+        "label": "switchgear and transformers",
+        "service": "plant HV/LV distribution",
+        "tag": "TX-3002"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 1,
+      "label": "medical treatment injury"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "EARTH_LEAKAGE_PROTECTION",
+        "control_label": "earth leakage and protection setting integrity",
+        "failure_mode": "degraded",
+        "hazard_energy": "electrical",
+        "icam_tier": "organisational_factor"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "POSITIVE_ISOLATION_APPLICATION",
+        "control_label": "application of positive isolation devices and personal locks",
+        "failure_mode": "ineffective",
+        "hazard_energy": "electrical",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "ZERO_ENERGY_VERIFICATION",
+        "control_label": "proving zero energy before intrusive work",
+        "failure_mode": "bypassed",
+        "hazard_energy": "electrical",
+        "icam_tier": "organisational_factor"
+      }
+    ],
+    "event_ref": "INC-2020-013",
+    "hazard_energy": "thermal",
+    "hazard_media": [
+      "hot surface",
+      "steam",
+      "molten material",
+      "hot work",
+      "exothermic reaction"
+    ],
+    "hazard_release": "burn, ignition, scald",
+    "kind": "incident",
+    "occurred_on": "2020-10-25",
+    "severity_actual": 2,
+    "severity_potential": 3,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during transfer operations",
+    "title": "loss of containment at SG-4100 during transfer operations",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "d480afe81ec64350b1f44d228dac626837888442922ce42b9c15ca96e442de42",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2020-013",
+  "prompt_kind": "icam",
+  "prompt_sha256": "ca09569ca6758a7a99f6dc69cbf9a94d346cd485f94d9b122d4ad64a5692c96c",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was medical treatment injury, with 1 person injured. The potential outcome was rated 3 against the site's consequence scale, above the 2 actually realised.",
+    "defences": [
+      {
+        "control_class": "EARTH_LEAKAGE_PROTECTION",
+        "finding": "Control EARTH_LEAKAGE_PROTECTION: the earth leakage and protection setting integrity had degraded below its design intent, and the ICAM investigation classified this as an organisational factor."
+      },
+      {
+        "control_class": "POSITIVE_ISOLATION_APPLICATION",
+        "finding": "Control POSITIVE_ISOLATION_APPLICATION: the application of positive isolation devices and personal locks was in place but did not perform, and the ICAM investigation classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "ZERO_ENERGY_VERIFICATION",
+        "finding": "Control ZERO_ENERGY_VERIFICATION: the proving zero energy before intrusive work had been bypassed, and the ICAM investigation classified this as an organisational factor."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next critical control verification that the earth leakage and protection setting integrity on SG-4100 and TX-3002 performs as designed."
+    ],
+    "sequence": "Work was under way in controlling access to energised apparatus, specifically working live under a documented justification. SG-4100 (switchgear and transformers) is in service for plant HV/LV distribution. The task proceeded during transfer operations while the earth leakage and protection setting integrity had degraded below its design intent. The thermal energy involved is held as hot surface, and the recorded presentation was burn, ignition, scald.",
+    "summary": "On 25 October 2020 an incident occurred on SG-4100 and TX-3002 at Marrindal Concentrator and Hydrocarbon Transfer Facility during transfer operations, releasing thermal energy held as hot surface."
+  },
+  "response_sha256": "73dfff3db04f1a9d963da5036df16e58d4dc72368b9f5dddcf02a8f3f88ee662",
+  "source": null
+}

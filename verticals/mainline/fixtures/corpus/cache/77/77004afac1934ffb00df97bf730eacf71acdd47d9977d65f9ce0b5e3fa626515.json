@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "barrier_role": "recovery",
+    "control_class": "EMERGENCY_ISOLATION_ON_RELEASE",
+    "control_delta": "restate",
+    "control_label": "emergency isolation and depressuring on loss of containment",
+    "doc_code": "PRO-MEC-014",
+    "doc_family": "PRO",
+    "doc_title": "Hydrocarbon Transfer Pump Maintenance",
+    "effective_on": "2019-02-19",
+    "printed_label": "3.2.6",
+    "setpoint": null,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "77004afac1934ffb00df97bf730eacf71acdd47d9977d65f9ce0b5e3fa626515",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/PRO-MEC-014/011#MRD/PRO-MEC-014/8.2",
+  "prompt_kind": "clause",
+  "prompt_sha256": "11a40bf1121a11b0038c550162219b5377789d6fbaef7a72d8f6c00614e7e47f",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The emergency isolation and depressuring on loss of containment shall be provided and maintained wherever this procedure applies, and its condition shall be treated as a critical control. This clause applies to activities archived under CONTAINMENT-OF-HYDROCARBONS at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "e8aee1d7e859a3eea584928018e39b6c54119b69a80e6ac11e6c19c56070f536",
+  "source": null
+}

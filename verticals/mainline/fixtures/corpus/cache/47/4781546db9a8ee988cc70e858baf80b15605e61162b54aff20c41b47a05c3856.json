@@ -1,0 +1,64 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 4,
+    "doc_code": "PRO-MIN-003",
+    "doc_family": "PRO",
+    "doc_title": "Haul Road and Light Vehicle Interaction",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2017-05-29",
+    "required_citations": [
+      {
+        "control_label": "segregation of light vehicles and pedestrians from heavy equipment",
+        "event_ref": "AF-2017-001",
+        "event_title": "audit finding - critical control verification of critical control at HT-9005",
+        "hazard_energy": "gravity",
+        "kind": "capa_action",
+        "quote_ref": "quote:YND/PRO-MIN-003/010#capa_action/AF-2017-001",
+        "severity_gate": 3
+      },
+      {
+        "control_label": "segregation of light vehicles and pedestrians from heavy equipment",
+        "event_ref": "AF-2017-001",
+        "event_title": "audit finding - critical control verification of critical control at HT-9005",
+        "hazard_energy": "gravity",
+        "kind": "regulator_requirement",
+        "quote_ref": "quote:YND/PRO-MIN-003/010#regulator_requirement/AF-2017-001",
+        "severity_gate": 3
+      }
+    ],
+    "rev_no": 10,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "ICAM investigation",
+      "management_of_change": "management of change",
+      "near_miss": "potential incident"
+    }
+  },
+  "key": "4781546db9a8ee988cc70e858baf80b15605e61162b54aff20c41b47a05c3856",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:YND/PRO-MIN-003/010",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "934e0ed6ee0c52c3adb9141fabae509fc8ecde342b86d76eb3525742543039c0",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The corrective action recorded against AF-2017-001 required the segregation of light vehicles and pedestrians from heavy equipment to be restated in this procedure.",
+        "quote_ref": "quote:YND/PRO-MIN-003/010#capa_action/AF-2017-001"
+      },
+      {
+        "line": "A regulatory requirement arising from AF-2017-001 obliges this procedure to carry the segregation of light vehicles and pedestrians from heavy equipment.",
+        "quote_ref": "quote:YND/PRO-MIN-003/010#regulator_requirement/AF-2017-001"
+      }
+    ],
+    "reason": "Scheduled review at revision 10; 4 clauses restated."
+  },
+  "response_sha256": "d4812a0e3474a945d024da763c63d3788661f73f86b04315d72b314fc1789e8d",
+  "source": null
+}

@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 5,
+    "doc_code": "PRO-OPS-017",
+    "doc_family": "PRO",
+    "doc_title": "Ship Loading and Vapour Recovery",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2009-04-11",
+    "required_citations": [
+      {
+        "control_label": "emergency isolation and depressuring on loss of containment",
+        "event_ref": "INC-2009-002",
+        "event_title": "injury during commissioning of replacement equipment on TX-7001",
+        "hazard_energy": "thermal",
+        "kind": "investigation_recommendation",
+        "quote_ref": "quote:CVY/PRO-OPS-017/003#investigation_recommendation/INC-2009-002",
+        "severity_gate": 3
+      }
+    ],
+    "rev_no": 3,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "accident investigation",
+      "management_of_change": "engineering change note",
+      "near_miss": "near hit"
+    }
+  },
+  "key": "85f659fe19c9708cd04d3e3ddcf4b841c6ea3d68094afca00775b1d0b2c620ec",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:CVY/PRO-OPS-017/003",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "1db4546cd1fd3136a9a8a0822e259972c142da0215070a7f542900ffc73dddfa",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The accident investigation into INC-2009-002 recommended that the emergency isolation and depressuring on loss of containment be strengthened in this procedure.",
+        "quote_ref": "quote:CVY/PRO-OPS-017/003#investigation_recommendation/INC-2009-002"
+      }
+    ],
+    "reason": "Scheduled review at revision 3; 5 clauses restated."
+  },
+  "response_sha256": "c6ce32f558439f981108f6df2e250c2fac7406fd983a30b4cf98a4c95d659aab",
+  "source": null
+}

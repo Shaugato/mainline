@@ -1,0 +1,97 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "removing isolation and returning to operations",
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "activity_series": "restoring plant to service",
+    "assets": [
+      {
+        "asset_class": "SLP-CLASS-B",
+        "label": "slurry transfer pumps",
+        "service": "cyclone feed and tailings transfer",
+        "tag": "P-3220"
+      },
+      {
+        "asset_class": "INST-CLASS-A",
+        "label": "instrument loop",
+        "service": "governs P-3220",
+        "tag": "PT-3220"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "LOAD_SUPPORT_FOR_MAINTENANCE",
+        "control_label": "mechanical support of a load during maintenance access",
+        "failure_mode": "absent",
+        "hazard_energy": "pressure",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "POSITIVE_ISOLATION_APPLICATION",
+        "control_label": "application of positive isolation devices and personal locks",
+        "failure_mode": "bypassed",
+        "hazard_energy": "kinetic",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "NM-2012-0007",
+    "hazard_energy": "kinetic",
+    "hazard_media": [
+      "rotating equipment",
+      "conveyor",
+      "mobile equipment",
+      "pressurised jet",
+      "flying fragment"
+    ],
+    "hazard_release": "entanglement, impact, crush",
+    "kind": "near_miss",
+    "occurred_on": "2012-03-22",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during a planned shutdown",
+    "title": "hazard report - kinetic exposure at P-3220",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "38fb1613dfa873beaf2b70e49e4324f2a014d0bc0ca185493ac47690de907302",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2012-0007",
+  "prompt_kind": "icam",
+  "prompt_sha256": "63120b3e15aa23e3ab02429033b2b83af17b043fa5fd82fed4bf5d53c6c9bf35",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "LOAD_SUPPORT_FOR_MAINTENANCE",
+        "finding": "Control LOAD_SUPPORT_FOR_MAINTENANCE: the mechanical support of a load during maintenance access was not in place, and the root cause analysis classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "POSITIVE_ISOLATION_APPLICATION",
+        "finding": "Control POSITIVE_ISOLATION_APPLICATION: the application of positive isolation devices and personal locks had been bypassed, and the root cause analysis classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the application of positive isolation devices and personal locks on P-3220 and PT-3220 and record the field verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in restoring plant to service, specifically removing isolation and returning to operations. P-3220 (slurry transfer pumps) is in service for cyclone feed and tailings transfer. The task proceeded during a planned shutdown while the mechanical support of a load during maintenance access was not in place. The kinetic energy involved is held as rotating equipment, and the recorded presentation was entanglement, impact, crush.",
+    "summary": "On 22 March 2012 a hazard report was recorded on P-3220 and PT-3220 at Marrindal Concentrator and Hydrocarbon Transfer Facility during a planned shutdown; kinetic energy held as rotating equipment was not released."
+  },
+  "response_sha256": "2a532d91e2f24fec7c59b5ddbf340d2dcf671e4f96a7724d59fbbd02c9bd37e1",
+  "source": null
+}

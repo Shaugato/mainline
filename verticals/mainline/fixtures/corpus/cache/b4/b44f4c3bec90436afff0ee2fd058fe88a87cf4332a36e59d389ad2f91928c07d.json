@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "barrier_role": "recovery",
+    "control_class": "EMERGENCY_ISOLATION_ON_RELEASE",
+    "control_delta": "restate",
+    "control_label": "emergency isolation and depressuring on loss of containment",
+    "doc_code": "PRO-OPS-017",
+    "doc_family": "PRO",
+    "doc_title": "Ship Loading and Vapour Recovery",
+    "effective_on": "2016-07-28",
+    "printed_label": "4.2.2(a)",
+    "setpoint": null,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "b44f4c3bec90436afff0ee2fd058fe88a87cf4332a36e59d389ad2f91928c07d",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:CVY/PRO-OPS-017/007#CVY/PRO-OPS-017/4.2.2(a)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "0258a1aad82240bafe00d0efc302b2f643e482e6401c890a9586bfd7f2f6260a",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The emergency isolation and depressuring on loss of containment shall be provided and maintained wherever this procedure applies, and its condition shall be treated as a critical control. This clause applies to activities archived under CONTAINMENT-OF-HYDROCARBONS at Cape Verity Export Terminal.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "80f21968e3b432577969f653631e5d92431fd463585cbff71be3cc74e45b3106",
+  "source": null
+}

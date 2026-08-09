@@ -1,0 +1,104 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "directing a lift and controlling the drop zone",
+    "activity_root": "LIFTING-AND-SUSPENDED-LOADS",
+    "activity_series": "planning and executing a lift",
+    "assets": [
+      {
+        "asset_class": "LIFT-CLASS-W",
+        "label": "workshop hoists and press",
+        "service": "heavy vehicle component removal and pressing",
+        "tag": "HO-9402"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "LIFTING_GEAR_INSPECTION",
+        "control_label": "inspection and periodic proof testing of lifting gear",
+        "failure_mode": "not_verified",
+        "hazard_energy": "gravity",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "LIFT_STUDY_APPROVAL",
+        "control_label": "preparation and approval of a lift study",
+        "failure_mode": "bypassed",
+        "hazard_energy": "kinetic",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "LOAD_SUPPORT_FOR_MAINTENANCE",
+        "control_label": "mechanical support of a load during maintenance access",
+        "failure_mode": "absent",
+        "hazard_energy": "gravity",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "AF-2008-003",
+    "hazard_energy": "gravity",
+    "hazard_media": [
+      "suspended load",
+      "stored potential of an elevated component",
+      "unsupported ground",
+      "person at height"
+    ],
+    "hazard_release": "fall, collapse, crush",
+    "kind": "audit_finding",
+    "occurred_on": "2008-06-01",
+    "severity_actual": 0,
+    "severity_potential": 2,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during shift handover",
+    "title": "audit finding - spot check of key safeguard at HO-9402",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "investigation": "accident investigation",
+      "near_miss": "near hit",
+      "verification": "spot check"
+    }
+  },
+  "key": "5978a1b1d057ca2b9032a0b005705591a9f4e316c8cb342d2b6d602ced2a2f78",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:AF-2008-003",
+  "prompt_kind": "icam",
+  "prompt_sha256": "a7cf275c9da2442122feb2515a71dec48c09b4f4b7c672951e0dc112d7a874fa",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 2 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "LIFTING_GEAR_INSPECTION",
+        "finding": "Control LIFTING_GEAR_INSPECTION: the inspection and periodic proof testing of lifting gear was never verified as effective, and the accident investigation classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "LIFT_STUDY_APPROVAL",
+        "finding": "Control LIFT_STUDY_APPROVAL: the preparation and approval of a lift study had been bypassed, and the accident investigation classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "LOAD_SUPPORT_FOR_MAINTENANCE",
+        "finding": "Control LOAD_SUPPORT_FOR_MAINTENANCE: the mechanical support of a load during maintenance access was not in place, and the accident investigation classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the inspection and periodic proof testing of lifting gear on HO-9402 and record the spot check before this task is next authorised.",
+      "Restore the preparation and approval of a lift study on HO-9402 and record the spot check before this task is next authorised.",
+      "Restore the mechanical support of a load during maintenance access on HO-9402 and record the spot check before this task is next authorised."
+    ],
+    "sequence": "Work was under way in planning and executing a lift, specifically directing a lift and controlling the drop zone. HO-9402 (workshop hoists and press) is in service for heavy vehicle component removal and pressing. The task proceeded during shift handover while the inspection and periodic proof testing of lifting gear was never verified as effective. The gravity energy involved is held as suspended load, and the recorded presentation was fall, collapse, crush.",
+    "summary": "On 1 June 2008 a planned spot check of HO-9402 at Yandarra Downs Open Cut and Heavy Workshop found the inspection and periodic proof testing of lifting gear not effective."
+  },
+  "response_sha256": "b64ca68b6c988fcfc18eb0ea3ead7a8dce01be393b0c857428f2b1d1765b1cec",
+  "source": null
+}

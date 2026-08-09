@@ -1,0 +1,133 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "proving dead and testing for zero energy",
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "activity_series": "applying and verifying an isolation",
+    "assets": [
+      {
+        "asset_class": "CONV-CLASS-A",
+        "label": "plant conveyors",
+        "service": "coarse ore and reclaim conveying",
+        "tag": "CV-3102"
+      },
+      {
+        "asset_class": "MOTOR-CLASS-A",
+        "label": "drive motor",
+        "service": "drives CV-3102",
+        "tag": "M-3102"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "ENERGY_SOURCE_IDENTIFICATION",
+        "control_label": "identification of every energy source for the task",
+        "failure_mode": "absent",
+        "hazard_energy": "kinetic",
+        "icam_tier": "organisational_factor"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "ISOLATION_HANDBACK_CONTROL",
+        "control_label": "controlled removal of isolation and return to service",
+        "failure_mode": "absent",
+        "hazard_energy": "kinetic",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "PARK_UP_AND_RESTRAINT",
+        "control_label": "parking, chocking and restraint of equipment",
+        "failure_mode": "bypassed",
+        "hazard_energy": "kinetic",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "POSITIVE_ISOLATION_APPLICATION",
+        "control_label": "application of positive isolation devices and personal locks",
+        "failure_mode": "bypassed",
+        "hazard_energy": "kinetic",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "STORED_ENERGY_DISSIPATION",
+        "control_label": "dissipation or restraint of trapped and residual energy",
+        "failure_mode": "ineffective",
+        "hazard_energy": "gravity",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "INC-2010-008",
+    "hazard_energy": "kinetic",
+    "hazard_media": [
+      "rotating equipment",
+      "conveyor",
+      "mobile equipment",
+      "pressurised jet",
+      "flying fragment"
+    ],
+    "hazard_release": "entanglement, impact, crush",
+    "kind": "incident",
+    "occurred_on": "2010-09-09",
+    "severity_actual": 1,
+    "severity_potential": 2,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during shift handover",
+    "title": "uncontrolled movement of CV-3102 during shift handover",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "1b4fec4a2b838f49c2a8c65448bd0b1d51350306e37f9dd0d1f01be29966dd34",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2010-008",
+  "prompt_kind": "icam",
+  "prompt_sha256": "ef65aa4c941e0509cb87678c49cb56137f586b77287a75084b61bde683c10445",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage. The potential outcome was rated 2 against the site's consequence scale, above the 1 actually realised.",
+    "defences": [
+      {
+        "control_class": "ENERGY_SOURCE_IDENTIFICATION",
+        "finding": "Control ENERGY_SOURCE_IDENTIFICATION: the identification of every energy source for the task was not in place, and the root cause analysis classified this as an organisational factor."
+      },
+      {
+        "control_class": "ISOLATION_HANDBACK_CONTROL",
+        "finding": "Control ISOLATION_HANDBACK_CONTROL: the controlled removal of isolation and return to service was not in place, and the root cause analysis classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "PARK_UP_AND_RESTRAINT",
+        "finding": "Control PARK_UP_AND_RESTRAINT: the parking, chocking and restraint of equipment had been bypassed, and the root cause analysis classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "POSITIVE_ISOLATION_APPLICATION",
+        "finding": "Control POSITIVE_ISOLATION_APPLICATION: the application of positive isolation devices and personal locks had been bypassed, and the root cause analysis classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "STORED_ENERGY_DISSIPATION",
+        "finding": "Control STORED_ENERGY_DISSIPATION: the dissipation or restraint of trapped and residual energy was in place but did not perform, and the root cause analysis classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next field verification that the identification of every energy source for the task on CV-3102 and M-3102 performs as designed."
+    ],
+    "sequence": "Work was under way in applying and verifying an isolation, specifically proving dead and testing for zero energy. CV-3102 (plant conveyors) is in service for coarse ore and reclaim conveying. The task proceeded during shift handover while the identification of every energy source for the task was not in place. The kinetic energy involved is held as rotating equipment, and the recorded presentation was entanglement, impact, crush.",
+    "summary": "On 9 September 2010 an incident occurred on CV-3102 and M-3102 at Marrindal Concentrator and Hydrocarbon Transfer Facility during shift handover, releasing kinetic energy held as rotating equipment."
+  },
+  "response_sha256": "a1c9531984c323d7f1dafa7b02706f439776d46b0b3ef68c511bda87bc8f3d90",
+  "source": null
+}

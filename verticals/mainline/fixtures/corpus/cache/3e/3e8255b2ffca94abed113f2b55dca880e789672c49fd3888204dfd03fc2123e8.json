@@ -1,0 +1,78 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "inspecting embankments and instrumentation",
+    "activity_root": "TAILINGS-AND-WATER-IMPOUNDMENT",
+    "activity_series": "operating an impoundment",
+    "assets": [
+      {
+        "asset_class": "CONV-CLASS-A",
+        "label": "plant conveyors",
+        "service": "coarse ore and reclaim conveying",
+        "tag": "CV-3102"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "EMBANKMENT_SURVEILLANCE",
+        "control_label": "surveillance of embankments and instrumentation",
+        "failure_mode": "degraded",
+        "hazard_energy": "gravity",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "NM-2024-0016",
+    "hazard_energy": "gravity",
+    "hazard_media": [
+      "suspended load",
+      "stored potential of an elevated component",
+      "unsupported ground",
+      "person at height"
+    ],
+    "hazard_release": "fall, collapse, crush",
+    "kind": "near_miss",
+    "occurred_on": "2024-09-09",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during shift handover",
+    "title": "high potential incident - gravity exposure at CV-3102",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "3e8255b2ffca94abed113f2b55dca880e789672c49fd3888204dfd03fc2123e8",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2024-0016",
+  "prompt_kind": "icam",
+  "prompt_sha256": "9f71acfa57636ff0ebe6c89f19d2f7e16e2f97bd1f7544e5a181d21bc7876fd9",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "EMBANKMENT_SURVEILLANCE",
+        "finding": "Control EMBANKMENT_SURVEILLANCE: the surveillance of embankments and instrumentation had degraded below its design intent, and the learning team review classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next assurance activity that the surveillance of embankments and instrumentation on CV-3102 performs as designed."
+    ],
+    "sequence": "Work was under way in operating an impoundment, specifically inspecting embankments and instrumentation. CV-3102 (plant conveyors) is in service for coarse ore and reclaim conveying. The task proceeded during shift handover while the surveillance of embankments and instrumentation had degraded below its design intent. The gravity energy involved is held as suspended load, and the recorded presentation was fall, collapse, crush.",
+    "summary": "On 9 September 2024 a high potential incident was recorded on CV-3102 at Marrindal Concentrator and Hydrocarbon Transfer Facility during shift handover; gravity energy held as suspended load was not released."
+  },
+  "response_sha256": "2b9456890772daa26bae7f934a0c9628fd0e084be8b7dcb12f9b5fa25bcc3b91",
+  "source": null
+}

@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "HAZARDOUS-SUBSTANCE-EXPOSURE",
+    "barrier_role": "preventive",
+    "control_class": "REAGENT_HANDLING_CONTROL",
+    "control_delta": "restate",
+    "control_label": "controlled make-up, decanting and dosing of reagents",
+    "doc_code": "PRO-CHM-009",
+    "doc_family": "PRO",
+    "doc_title": "Reagent Make-Up and Dosing",
+    "effective_on": "2016-11-21",
+    "printed_label": "4.1.2",
+    "setpoint": null,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "5186cc4bacb54087aff345e1c4a67c42eb53edecdb8ab632c37bc6c8dae455b6",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:TLG/PRO-CHM-009/006#TLG/PRO-CHM-009/1.5.1(c)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "40aa00fe6197fd41f52b607c12917980e8333f654c1cc7f26c62bbcdae3539cb",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The controlled make-up, decanting and dosing of reagents shall be provided and maintained wherever this procedure applies, and its condition shall be treated as a critical control. This clause applies to activities archived under HAZARDOUS-SUBSTANCE-EXPOSURE at Tolgarra Processing and Power Station.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "1040cebade58db0de1ef729959dff6ac80df7280f2d492d008fdcdb2b0ccf50b",
+  "source": null
+}

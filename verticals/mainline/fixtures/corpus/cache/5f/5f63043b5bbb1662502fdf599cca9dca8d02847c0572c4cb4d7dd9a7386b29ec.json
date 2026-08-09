@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ELECTRICAL-SAFETY",
+    "barrier_role": "preventive",
+    "control_class": "SWITCHING_AUTHORISATION",
+    "control_delta": "introduce",
+    "control_label": "authorisation of switching and access to apparatus",
+    "doc_code": "PRO-ELE-026",
+    "doc_family": "PRO",
+    "doc_title": "High Voltage Switching and Access",
+    "effective_on": "2007-08-28",
+    "printed_label": "11.4",
+    "setpoint": null,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "5f63043b5bbb1662502fdf599cca9dca8d02847c0572c4cb4d7dd9a7386b29ec",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:TLG/PRO-ELE-026/001#TLG/PRO-ELE-026/11.4",
+  "prompt_kind": "clause",
+  "prompt_sha256": "bd18e4971bdf0f50de9b8669d9c800b7f31ab594c296bf491ebab659e3f5418f",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The authorisation of switching and access to apparatus shall be provided and maintained for work covered by this procedure. This clause applies to activities archived under ELECTRICAL-SAFETY at Tolgarra Processing and Power Station.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "e399d55dd37a612dc6f3d3f6646d2441ad0867bf967c3ba0f018714a842bb36f",
+  "source": null
+}

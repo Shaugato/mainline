@@ -1,0 +1,45 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 5,
+    "doc_codes": [
+      "PRO-ELE-008"
+    ],
+    "intent": "replace",
+    "moc_ref": "MOC-2013-0056",
+    "opened_on": "2013-02-13",
+    "precursor_events": [
+      {
+        "event_ref": "INC-2013-014",
+        "severity_gate": null
+      },
+      {
+        "event_ref": "INC-2023-004",
+        "severity_gate": null
+      }
+    ],
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "management_of_change": "change request",
+      "verification": "field verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "0829a11d0c9c30406cd89ac87033d0ab88ff617c35894e7fb5d9e15e8ad29993",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2013-0056",
+  "prompt_kind": "moc",
+  "prompt_sha256": "f1493b5e54be56cdb30bbc9d80daf18c0212e37b67efeadc6973a8c1aef421c3",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2013-0056 was raised at Marrindal Concentrator and Hydrocarbon Transfer Facility on 13 February 2013 following 2 recorded events in the archive, including INC-2013-014 and INC-2023-004. The change request record covers 5 clauses across 1 controlled document. The intent is to replace an existing requirement with one written to the current house style. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical safeguard set is preserved.",
+    "scope_note": "The documents in scope are PRO-ELE-008."
+  },
+  "response_sha256": "7e5029307a7c63bd5f17da5042cf290c548d3cf82bb07679e887ea8e0b8c60a4",
+  "source": null
+}

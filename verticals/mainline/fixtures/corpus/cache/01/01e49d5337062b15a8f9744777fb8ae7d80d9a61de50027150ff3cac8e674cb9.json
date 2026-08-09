@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "barrier_role": "preventive",
+    "control_class": "ISOLATION_HANDBACK_CONTROL",
+    "control_delta": "introduce",
+    "control_label": "controlled removal of isolation and return to service",
+    "doc_code": "PTW-STD-004",
+    "doc_family": "PTW",
+    "doc_title": "Permit to Work Form Set",
+    "effective_on": "2004-11-11",
+    "printed_label": "3.3",
+    "setpoint": null,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "01e49d5337062b15a8f9744777fb8ae7d80d9a61de50027150ff3cac8e674cb9",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:YND/PTW-STD-004/001#YND/PTW-STD-004/3.3",
+  "prompt_kind": "clause",
+  "prompt_sha256": "da8c08832306999b99ee598ec1f22d5f95464acef334e34f7dceb18be7b240b9",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The controlled removal of isolation and return to service shall be provided and maintained for work covered by this permit-to-work form set. This clause applies to activities archived under ISOLATION-OF-STORED-ENERGY at Yandarra Downs Open Cut and Heavy Workshop.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "438a770d155198542e27007edd43cf9345e343aeaeff995a261f40bb3d486946",
+  "source": null
+}

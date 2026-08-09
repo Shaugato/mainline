@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "_fixture": true,
+  "_fixture_note": "NOT the frozen corpus. verticals/mainline/fixtures/corpus/corpus.lock.json is owned by the corpus-freeze-load worker and does not exist yet. This stand-in exists so gen_card.py is runnable, testable and reviewable today; every number in it is either copied from a committed artefact (see _sources) or marked as an estimate. gen_card.py stamps a full-width banner on any card built from it, so a fixture-built card can never be mistaken for the real one on camera.",
+  "_sources": {
+    "counts.clause": "verticals/mainline/fixtures/corpus/answer-key/index.json#counts.clause",
+    "counts.clause_version": "verticals/mainline/fixtures/corpus/answer-key/index.json#counts.clause_revision",
+    "counts.blame_edge": "verticals/mainline/fixtures/corpus/answer-key/index.json#counts.blame_edge",
+    "counts.person": "verticals/mainline/fixtures/corpus/answer-key/injector_author_churn.json#total_people",
+    "gold_set": "verticals/mainline/fixtures/corpus/answer-key/index.json#counts.gs0",
+    "gazetteer_sha256": "verticals/mainline/fixtures/corpus/answer-key/index.json#gazetteer_sha256",
+    "seed": "verticals/mainline/fixtures/corpus/answer-key/index.json#seed",
+    "counts.event": "ESTIMATE — stage 1 skeleton has not published a count yet",
+    "counts.site": "ESTIMATE — four sites per docs/leads/corpus-demo.md D12/D16",
+    "counts.doc": "ESTIMATE",
+    "counts.permit": "ESTIMATE",
+    "severity_histogram": "ESTIMATE",
+    "renderer_census": "ESTIMATE — offline-by-default renderer, so bedrock is 0 by construction",
+    "embeddings": "ESTIMATE — the encoder's true dimension is asserted at build time, never read from a model card"
+  },
+
+  "stage": "freeze",
+  "generator_version": "corpus-1.0.0",
+  "skeleton_generator_version": "skeleton-1.0.0",
+  "blame_generator_version": "blame-1.0.0",
+  "seed": "0xMAINLINE",
+  "corpus_now": "2026-08-04T09:14:00+10:00",
+  "frozen_at": "2026-08-09T00:00:00Z",
+
+  "counts": {
+    "site": 4,
+    "person": 140,
+    "doc": 118,
+    "clause": 893,
+    "clause_version": 2597,
+    "event": 1042,
+    "control_failure": 1876,
+    "blame_edge": 441,
+    "permit": 96,
+    "change_request": 61
+  },
+
+  "severity_histogram": {
+    "1": 402,
+    "2": 331,
+    "3": 197,
+    "4": 106,
+    "5": 6
+  },
+
+  "gold_set": {
+    "name": "GS0",
+    "rows": 761,
+    "true_links": 441,
+    "decoys": 60,
+    "negative_controls": 260,
+    "p_doc_trace_mean": 0.5579
+  },
+
+  "renderer_census": {
+    "authored": 16,
+    "bedrock": 0,
+    "template": 3607,
+    "unit": "documents",
+    "authored_words": 9214,
+    "bedrock_words": 0,
+    "template_words": 512883,
+    "on_camera_tier": "authored",
+    "note": "Every word that appears on camera comes from the `authored` tier. `bedrock` is zero because the renderer is offline by default and --allow-live was never passed."
+  },
+
+  "prompt_versions": {
+    "icam_narrative": "none — offline",
+    "clause_body": "none — offline",
+    "moc_rationale": "none — offline"
+  },
+
+  "embeddings": {
+    "provider": "offline",
+    "encoder_id": "minishlab/potion-base-8M",
+    "encoder_licence": "MIT",
+    "native_dimension": 256,
+    "lift": "fixed orthonormal 256 -> 1024",
+    "lift_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "target_dimension": 1024,
+    "dtype_on_disk": "float16",
+    "dtype_at_load": "float32",
+    "cosine_error_max": 1e-05,
+    "drift_margin": null,
+    "note": "Not Titan v2. The C-SPANN claim concerns the index and its EXPLAIN fragment, which is unaffected by which encoder produced the vectors. drift_margin is null until corpus-embed-lift measures it."
+  },
+
+  "docx_templates": {
+    "generation_1_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "generation_2_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "byte_reproducible": true,
+    "member_timestamp": "1980-01-01T00:00:00"
+  },
+
+  "gazetteer_sha256": "6e62437c0064a9b47cf424e2c6da40d087b422d8f57089443bea550dd6aa71aa",
+
+  "seed_tables": {
+    "mainline.site": 4,
+    "mainline.person": 140,
+    "mainline.doc": 118,
+    "mainline.clause": 893,
+    "mainline.clause_version": 2597,
+    "mainline.event": 1042,
+    "mainline.control_failure": 1876,
+    "mainline.blame_edge": 441,
+    "mainline.permit": 96
+  },
+
+  "demo_row": {
+    "permit_external_ref": "WO-88213",
+    "expected_state": "dispositioned",
+    "expected_open_blocking": 1
+  }
+}

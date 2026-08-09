@@ -1,0 +1,91 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "isolating and depressuring a leaking system",
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "activity_series": "responding to a loss of containment",
+    "assets": [
+      {
+        "asset_class": "HTP-CLASS-A",
+        "label": "hydrocarbon transfer pumps",
+        "service": "hydrocarbon transfer, single mechanical seal with pressurised barrier-fluid support",
+        "tag": "P-4101"
+      },
+      {
+        "asset_class": "INST-CLASS-A",
+        "label": "instrument loop",
+        "service": "governs P-4101",
+        "tag": "PT-4101"
+      },
+      {
+        "asset_class": "TANK-CLASS-H",
+        "label": "hydrocarbon day tanks and surge vessel",
+        "service": "diesel and light hydrocarbon day storage, discharge surge suppression",
+        "tag": "TK-4211"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "BUND_AND_DRAINAGE_CONTAINMENT",
+        "control_label": "secondary containment by bund and drainage",
+        "failure_mode": "not_verified",
+        "hazard_energy": "chemical",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "AF-2021-004",
+    "hazard_energy": "thermal",
+    "hazard_media": [
+      "hot surface",
+      "steam",
+      "molten material",
+      "hot work",
+      "exothermic reaction"
+    ],
+    "hazard_release": "burn, ignition, scald",
+    "kind": "audit_finding",
+    "occurred_on": "2021-08-27",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during routine operation",
+    "title": "audit finding - critical control verification of critical control at P-4101",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "6c6cf08c15f8d1e231d8fbadf1871f63339e2ceed44ec1510c15e102b1ef2090",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:AF-2021-004",
+  "prompt_kind": "icam",
+  "prompt_sha256": "79b479172f1da044e778067717a76316d54b467a0d568306bc9c2c97e9573a37",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "BUND_AND_DRAINAGE_CONTAINMENT",
+        "finding": "Control BUND_AND_DRAINAGE_CONTAINMENT: the secondary containment by bund and drainage was never verified as effective, and the ICAM investigation classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next critical control verification that the secondary containment by bund and drainage on P-4101, PT-4101 and TK-4211 performs as designed."
+    ],
+    "sequence": "Work was under way in responding to a loss of containment, specifically isolating and depressuring a leaking system. P-4101 (hydrocarbon transfer pumps) is in service for hydrocarbon transfer, single mechanical seal with pressurised barrier-fluid support. The task proceeded during routine operation while the secondary containment by bund and drainage was never verified as effective. The thermal energy involved is held as hot surface, and the recorded presentation was burn, ignition, scald.",
+    "summary": "On 27 August 2021 a planned critical control verification of P-4101, PT-4101 and TK-4211 at Marrindal Concentrator and Hydrocarbon Transfer Facility found the secondary containment by bund and drainage not effective."
+  },
+  "response_sha256": "a23f265d93d1daf44594615398cee692e66f0d581ae68444018990ad6799f06b",
+  "source": null
+}

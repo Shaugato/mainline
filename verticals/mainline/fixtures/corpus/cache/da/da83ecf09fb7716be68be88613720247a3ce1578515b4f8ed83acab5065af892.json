@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 7,
+    "doc_code": "PRO-CHM-009",
+    "doc_family": "PRO",
+    "doc_title": "Reagent Make-Up and Dosing",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2026-06-28",
+    "required_citations": [
+      {
+        "control_label": "controlled make-up, decanting and dosing of reagents",
+        "event_ref": "RN-2026-004",
+        "event_title": "improvement notice - material unwanted event control at P-8303",
+        "hazard_energy": "chemical",
+        "kind": "capa_action",
+        "quote_ref": "quote:TLG/PRO-CHM-009/013#capa_action/RN-2026-004",
+        "severity_gate": 2
+      }
+    ],
+    "rev_no": 13,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "learning team review",
+      "management_of_change": "change assurance",
+      "near_miss": "high potential incident"
+    }
+  },
+  "key": "da83ecf09fb7716be68be88613720247a3ce1578515b4f8ed83acab5065af892",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:TLG/PRO-CHM-009/013",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "6fc52e9a18774186f44324c78bcd03b9bf1cf5acabfff42a9b4fa05100ec2a58",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The corrective action recorded against RN-2026-004 required the controlled make-up, decanting and dosing of reagents to be restated in this procedure.",
+        "quote_ref": "quote:TLG/PRO-CHM-009/013#capa_action/RN-2026-004"
+      }
+    ],
+    "reason": "Scheduled review at revision 13; 7 clauses restated."
+  },
+  "response_sha256": "20c458149b8cbabc7e4056394e9c73ccafa46a0aa1f4b734a3632b985ac3c3d1",
+  "source": null
+}

@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "barrier_role": "recovery",
+    "control_class": "SEAL_FACE_TEMPERATURE_ALARM",
+    "control_delta": "strengthen",
+    "control_label": "seal-face high-temperature alarm and trip",
+    "doc_code": "PRO-OPS-017",
+    "doc_family": "PRO",
+    "doc_title": "Ship Loading and Vapour Recovery",
+    "effective_on": "2009-04-11",
+    "printed_label": "3.1.3(b)",
+    "setpoint": null,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "ef81a1a52e8929546ac71853ded65e0751c583c10410b3686c951704fa2a1fa3",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:CVY/PRO-OPS-017/003#CVY/PRO-OPS-017/3.1.3(b)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "e50b119dc99def7b4dde61137ee3ac23d302a5a9e65f525e8985098dfcacd420",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The seal-face high-temperature alarm and trip must be provided, and its effectiveness must be recorded as a spot check before the task proceeds. This clause applies to activities archived under CONTAINMENT-OF-HYDROCARBONS at Cape Verity Export Terminal.",
+    "obligation_verb": "must"
+  },
+  "response_sha256": "51c3381844b03340a84b013083793eea9d605fa32ba6c8283042e83da8a6cf1c",
+  "source": null
+}

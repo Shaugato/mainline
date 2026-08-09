@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "HAZARDOUS-SUBSTANCE-EXPOSURE",
+    "barrier_role": "recovery",
+    "control_class": "BUND_AND_DRAINAGE_CONTAINMENT",
+    "control_delta": "introduce",
+    "control_label": "secondary containment by bund and drainage",
+    "doc_code": "PRO-CHM-009",
+    "doc_family": "PRO",
+    "doc_title": "Reagent Make-Up and Dosing",
+    "effective_on": "2007-02-12",
+    "printed_label": "2.3.3(c)",
+    "setpoint": null,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "f5ccaaf88fab2f8d64f8ddc505e881efd20d544abc7fae15a2a2d203fe386134",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:TLG/PRO-CHM-009/001#TLG/PRO-CHM-009/2.3.3(c)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "59a36ed68aa0aa92ffa696fe9d0a0792b04b47cca54163c5e86f3a7c3e956c73",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The secondary containment by bund and drainage shall be provided and maintained for work covered by this procedure. This clause applies to activities archived under HAZARDOUS-SUBSTANCE-EXPOSURE at Tolgarra Processing and Power Station.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "96781f13f499fa0defa57f1da0bf95957962631dd92aaf7a882b07acb5be1476",
+  "source": null
+}

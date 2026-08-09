@@ -1,0 +1,104 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "making up, decanting and dosing reagents",
+    "activity_root": "HAZARDOUS-SUBSTANCE-EXPOSURE",
+    "activity_series": "handling and dosing reagents",
+    "assets": [
+      {
+        "asset_class": "HTP-CLASS-A",
+        "label": "hydrocarbon transfer pumps",
+        "service": "hydrocarbon transfer, single mechanical seal with pressurised barrier-fluid support",
+        "tag": "P-4101"
+      },
+      {
+        "asset_class": "HTP-CLASS-A",
+        "label": "hydrocarbon transfer pumps",
+        "service": "hydrocarbon transfer, single mechanical seal with pressurised barrier-fluid support",
+        "tag": "P-4105"
+      },
+      {
+        "asset_class": "INST-CLASS-A",
+        "label": "instrument loop",
+        "service": "governs P-4101",
+        "tag": "PT-4101"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "LOAD_RESTRAINT_AND_PLACARDING",
+        "control_label": "restraint and placarding of transported loads",
+        "failure_mode": "absent",
+        "hazard_energy": "chemical",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "REAGENT_HANDLING_CONTROL",
+        "control_label": "controlled make-up, decanting and dosing of reagents",
+        "failure_mode": "absent",
+        "hazard_energy": "chemical",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "CAPA-2010-007",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "capa",
+    "occurred_on": "2010-11-11",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during start-up after maintenance",
+    "title": "corrective action - critical safeguard at P-4101",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "de4c916827dab606760a1ba46a44ee35b48816ee474e69cc7f81d44d147eac0a",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:CAPA-2010-007",
+  "prompt_kind": "icam",
+  "prompt_sha256": "6902ca9c0418ec6648584ea3cf61b7e4dc8ba8c0e1a02b047a525f0a00701acb",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "LOAD_RESTRAINT_AND_PLACARDING",
+        "finding": "Control LOAD_RESTRAINT_AND_PLACARDING: the restraint and placarding of transported loads was not in place, and the root cause analysis classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "REAGENT_HANDLING_CONTROL",
+        "finding": "Control REAGENT_HANDLING_CONTROL: the controlled make-up, decanting and dosing of reagents was not in place, and the root cause analysis classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next field verification that the restraint and placarding of transported loads on P-4101, P-4105 and PT-4101 performs as designed."
+    ],
+    "sequence": "Work was under way in handling and dosing reagents, specifically making up, decanting and dosing reagents. P-4101 (hydrocarbon transfer pumps) is in service for hydrocarbon transfer, single mechanical seal with pressurised barrier-fluid support. The task proceeded during start-up after maintenance while the restraint and placarding of transported loads was not in place. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 11 November 2010 a corrective action on P-4101, P-4105 and PT-4101 at Marrindal Concentrator and Hydrocarbon Transfer Facility was reviewed against the critical safeguard it was raised to restore."
+  },
+  "response_sha256": "5c0559accc0d3e63ebcd28957e189810f1b3501f4549f60d4b745bf2f3c71f7e",
+  "source": null
+}

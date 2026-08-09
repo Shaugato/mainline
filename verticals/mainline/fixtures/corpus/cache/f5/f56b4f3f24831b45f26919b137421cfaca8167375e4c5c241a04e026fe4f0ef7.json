@@ -1,0 +1,80 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "proving overpressure protection is in service",
+    "activity_root": "PRESSURE-SYSTEM-INTEGRITY",
+    "activity_series": "verifying pressure relief and protection",
+    "assets": [
+      {
+        "asset_class": "PRD-CLASS-A",
+        "label": "pressure relief devices",
+        "service": "overpressure protection on the transfer and storage system",
+        "tag": "PSV-4110"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "PRESSURE_EQUIPMENT_INSPECTION",
+        "control_label": "in-service inspection of pressure equipment",
+        "failure_mode": "degraded",
+        "hazard_energy": "pressure",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "NM-2026-0017",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "near_miss",
+    "occurred_on": "2026-05-15",
+    "severity_actual": 1,
+    "severity_potential": 2,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during a statutory inspection",
+    "title": "unrelieved potential energy found after isolation of PSV-4110",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "f56b4f3f24831b45f26919b137421cfaca8167375e4c5c241a04e026fe4f0ef7",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2026-0017",
+  "prompt_kind": "icam",
+  "prompt_sha256": "11a20ced3efbcacbb1fb69ac29b66a9e157f50df69f6f53da6df92fbb54dc99e",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage. The potential outcome was rated 2 against the site's consequence scale, above the 1 actually realised.",
+    "defences": [
+      {
+        "control_class": "PRESSURE_EQUIPMENT_INSPECTION",
+        "finding": "Control PRESSURE_EQUIPMENT_INSPECTION: the in-service inspection of pressure equipment had degraded below its design intent, and the learning team review classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next assurance activity that the in-service inspection of pressure equipment on PSV-4110 performs as designed."
+    ],
+    "sequence": "Work was under way in verifying pressure relief and protection, specifically proving overpressure protection is in service. PSV-4110 (pressure relief devices) is in service for overpressure protection on the transfer and storage system. The task proceeded during a statutory inspection while the in-service inspection of pressure equipment had degraded below its design intent. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 15 May 2026 a high potential incident was recorded on PSV-4110 at Marrindal Concentrator and Hydrocarbon Transfer Facility during a statutory inspection; chemical energy held as hydrocarbon was not released."
+  },
+  "response_sha256": "7c42cb01fca588b3cef2137ea7410e7e1fdb482ea017abd19ccd06c72275b6c6",
+  "source": null
+}

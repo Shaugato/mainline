@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "barrier_role": "preventive",
+    "control_class": "SEAL_SUPPORT_SYSTEM_INTEGRITY",
+    "control_delta": "remove",
+    "control_label": "integrity of the mechanical seal support system",
+    "doc_code": "PRO-OPS-032",
+    "doc_family": "PRO",
+    "doc_title": "Hydrocarbon Transfer Operations",
+    "effective_on": "2017-04-03",
+    "printed_label": "4.1.6",
+    "setpoint": {
+      "from": 7.1,
+      "key": "vibration_trip",
+      "label": "vibration trip level",
+      "strengthen_direction": "lower",
+      "to": 7.1,
+      "unit": "mm/s"
+    },
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "ba6426548dfde80dda218b80e8516d1c0d9b2200c9fffeff79c06413628b3203",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/PRO-OPS-032/007#MRD/PRO-OPS-032/6.6",
+  "prompt_kind": "clause",
+  "prompt_sha256": "cf7cd3716af01a413d996c289e4cbcd120fcffb18aa29b1b12730bdff8b7a064",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "This requirement is withdrawn. The integrity of the mechanical seal support system is no longer imposed by this procedure; the duty is discharged under the document that supersedes this clause. The vibration trip level shall be set at 7.1 mm/s.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "bc82ba9ece021d024b65e4f0d2270e5d9411aa11531ab6ad88ecae2d7077eba1",
+  "source": null
+}

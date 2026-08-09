@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 5,
+    "doc_code": "STD-LFT-003",
+    "doc_family": "STD",
+    "doc_title": "Lifting and Cranage",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2009-01-24",
+    "required_citations": [
+      {
+        "control_label": "inspection and periodic proof testing of lifting gear",
+        "event_ref": "AF-2008-003",
+        "event_title": "audit finding - spot check of key safeguard at HO-9402",
+        "hazard_energy": "gravity",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:YND/STD-LFT-003/003#revision_history_line/AF-2008-003",
+        "severity_gate": 2
+      }
+    ],
+    "rev_no": 3,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "accident investigation",
+      "management_of_change": "engineering change note",
+      "near_miss": "near hit"
+    }
+  },
+  "key": "e574cd03e17ea5ffefd3cb1e7302da7234def7a895ec53dd978b112590c98443",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:YND/STD-LFT-003/003",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "1c350654172d597c5efc87a99c5bce2d545745905d35843dbab55c23e0304983",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "Revision 3 was raised in response to AF-2008-003, and the inspection and periodic proof testing of lifting gear was amended as a result.",
+        "quote_ref": "quote:YND/STD-LFT-003/003#revision_history_line/AF-2008-003"
+      }
+    ],
+    "reason": "Scheduled review at revision 3; 5 clauses restated."
+  },
+  "response_sha256": "3a679cbc3677d9d4c49893c1fff682d2055aaa59dc7dd492b191c36cecf8dc8d",
+  "source": null
+}

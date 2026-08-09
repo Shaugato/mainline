@@ -1,0 +1,53 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MAINLINE · 0187b_policy_standing_blind.sql
+-- CREATE POLICY standing_blind ON mainline_meas.standing — USING (false), and not 'your own row'
+--
+-- MI: MI28
+-- I: I15
+-- COUNSEL-GATED: yes
+-- RATIONALE: Not 'a signer may read their own row' — nothing at all. M10's peer-prediction
+--            channel is defeated by a participant who can see the scoring, so a signer
+--            reading their own standing through the operational role would degrade the
+--            mechanism while looking like a privacy feature. The disclosure SEC-3 condition
+--            (4) requires is a different path with a different role and a ledger entry
+--            attached.
+--
+-- migration:  0187b_policy_standing_blind
+-- domain:     datamodel / dm-views-rls
+-- band:       0180-0198z · datamodel/dm-views-rls · AUTHORED, allocated by
+--             verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1)
+-- statements: 1
+-- matrix:     verticals/mainline/db/RLS-MATRIX.yaml — this file is a RENDERING of one entry
+--             there; tests/integration/schema/test_mi_rls.py asserts the two agree
+-- source:     ARCHITECTURE.md §11.3 (RLS, SEC-1) · §4.1 law 10 · correction S22 · §11.5 (SEC-3 condition 4) · §3.3 M10
+-- requires:   0089 mainline_meas.standing · 0187 ENABLE · 0187a FORCE
+-- sqlstate:   no error — a filtered row is absent, not refused.
+-- forward-only; no .down.sql exists at or below the protected floor.
+--
+-- ────────────────────────────────────────────────────────────────────────────
+-- THE DISCLOSURE PATH, NAMED, SO THIS POLICY IS NOT MISTAKEN FOR CONCEALMENT
+-- ────────────────────────────────────────────────────────────────────────────
+-- `mainline_qa.v_my_record` (migration 0172), reached through the `subject_access` role,
+-- scoped in the view body to `current_user`, and — like every read of `mainline_qa` —
+-- written into the ledger as a `profile_read` entry. So the score is obtainable BY THE
+-- PERSON IT IS ABOUT, on request, with the request itself on the record. A score you
+-- compute about a person, use against them, and refuse to show them is the definition of an
+-- allegation; this policy blinds the LATERAL read and not the SUBJECT's.
+--
+-- ────────────────────────────────────────────────────────────────────────────
+-- WHY THERE IS NO PERMISSIVE POLICY FOR `signer` HERE, UNLIKE ON `disposition`
+-- ────────────────────────────────────────────────────────────────────────────
+-- On `disposition` the pair `signer_read` + `peer_blind` is required because the partition
+-- is conditional — a signer must see SOME rows. Here the intended set is empty, so the
+-- restrictive policy alone is sufficient and a permissive one would be a hole waiting to be
+-- OR-ed open. `USING (false)` on a role with no permissive policy is doubly closed, and
+-- that redundancy is deliberate: it survives somebody adding a permissive SELECT policy for
+-- `signer` later without reading this file.
+--
+
+CREATE POLICY standing_blind ON mainline_meas.standing
+  AS RESTRICTIVE FOR SELECT TO signer
+  USING (false);
+

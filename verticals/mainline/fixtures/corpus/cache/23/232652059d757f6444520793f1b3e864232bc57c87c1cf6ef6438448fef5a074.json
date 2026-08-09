@@ -1,0 +1,90 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "selecting and inspecting fall-arrest equipment",
+    "activity_root": "WORKING-AT-HEIGHT",
+    "activity_series": "providing fall protection",
+    "assets": [
+      {
+        "asset_class": "LIFT-CLASS-W",
+        "label": "workshop hoists and press",
+        "service": "heavy vehicle component removal and pressing",
+        "tag": "HO-9403"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "ANCHOR_POINT_CERTIFICATION",
+        "control_label": "certification and identification of anchor points",
+        "failure_mode": "absent",
+        "hazard_energy": "gravity",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "DROP_ZONE_EXCLUSION",
+        "control_label": "exclusion of people from beneath elevated work",
+        "failure_mode": "bypassed",
+        "hazard_energy": "gravity",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "OEM-2018-001",
+    "hazard_energy": "gravity",
+    "hazard_media": [
+      "suspended load",
+      "stored potential of an elevated component",
+      "unsupported ground",
+      "person at height"
+    ],
+    "hazard_release": "fall, collapse, crush",
+    "kind": "oem_alert",
+    "occurred_on": "2018-04-02",
+    "severity_actual": 1,
+    "severity_potential": 2,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during start-up after maintenance",
+    "title": "vendor notification - premature wear on LIFT-CLASS-W",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "232652059d757f6444520793f1b3e864232bc57c87c1cf6ef6438448fef5a074",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:OEM-2018-001",
+  "prompt_kind": "icam",
+  "prompt_sha256": "d163696f9e98d6982bcdcd6b790220e9401d960b9140e29767b6b6917d36c5cc",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage. The potential outcome was rated 2 against the site's consequence scale, above the 1 actually realised.",
+    "defences": [
+      {
+        "control_class": "ANCHOR_POINT_CERTIFICATION",
+        "finding": "Control ANCHOR_POINT_CERTIFICATION: the certification and identification of anchor points was not in place, and the ICAM investigation classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "DROP_ZONE_EXCLUSION",
+        "finding": "Control DROP_ZONE_EXCLUSION: the exclusion of people from beneath elevated work had been bypassed, and the ICAM investigation classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next critical control verification that the certification and identification of anchor points on HO-9403 performs as designed."
+    ],
+    "sequence": "Work was under way in providing fall protection, specifically selecting and inspecting fall-arrest equipment. HO-9403 (workshop hoists and press) is in service for heavy vehicle component removal and pressing. The task proceeded during start-up after maintenance while the certification and identification of anchor points was not in place. The gravity energy involved is held as suspended load, and the recorded presentation was fall, collapse, crush.",
+    "summary": "On 2 April 2018 the original equipment manufacturer issued an advisory affecting HO-9403 at Yandarra Downs Open Cut and Heavy Workshop."
+  },
+  "response_sha256": "e7168bcdd3b14fc0bc09bbc4f387f5d7c1f553aced34594a058c1b9347bdb31d",
+  "source": null
+}

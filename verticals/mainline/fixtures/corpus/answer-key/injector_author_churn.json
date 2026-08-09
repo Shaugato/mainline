@@ -1,0 +1,14 @@
+{
+  "camera_author": "D. Okonjo",
+  "camera_author_separation_month": "2021-07",
+  "clause_revisions_by_departed": 531,
+  "clause_revisions_total": 2597,
+  "consumed_from": "stage 1 person.separated_at; this module measures and never re-derives",
+  "edges_by_departed": 122,
+  "edges_total": 441,
+  "orphan_edges_by_departed": 3,
+  "separated_fraction": 0.3071,
+  "separated_people": 43,
+  "severe_edges_by_departed": 32,
+  "total_people": 140
+}

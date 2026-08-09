@@ -1,0 +1,92 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "isolating and depressuring a leaking system",
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "activity_series": "responding to a loss of containment",
+    "assets": [
+      {
+        "asset_class": "ESD-CLASS-A",
+        "label": "emergency shutdown valves",
+        "service": "jetty and manifold emergency isolation",
+        "tag": "ZV-7212"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "HYDROCARBON_TRANSFER_CONTROL",
+        "control_label": "controlled transfer of hydrocarbon between vessels",
+        "failure_mode": "ineffective",
+        "hazard_energy": "pressure",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "SEAL_SUPPORT_SYSTEM_INTEGRITY",
+        "control_label": "integrity of the mechanical seal support system",
+        "failure_mode": "ineffective",
+        "hazard_energy": "pressure",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "INC-2013-008",
+    "hazard_energy": "pressure",
+    "hazard_media": [
+      "hydraulic accumulator",
+      "barrier fluid",
+      "process gas",
+      "steam header",
+      "compressed air",
+      "trapped liquid"
+    ],
+    "hazard_release": "jet release, stored-energy discharge, rupture",
+    "kind": "incident",
+    "occurred_on": "2013-06-06",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Cape Verity Export Terminal",
+    "summary_facts": [],
+    "task_phase": "during a breakdown response",
+    "title": "uncontrolled movement of ZV-7212 during a breakdown response",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "927d0dec446c2ef88c9b8b8b355dcdd758b346165a71793c8fa26f81ca988f9e",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2013-008",
+  "prompt_kind": "icam",
+  "prompt_sha256": "4f4483fe2856d17060d6ed6f09a954d2a4df293e0b4bd22ef4e6f14e902da858",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "HYDROCARBON_TRANSFER_CONTROL",
+        "finding": "Control HYDROCARBON_TRANSFER_CONTROL: the controlled transfer of hydrocarbon between vessels was in place but did not perform, and the root cause analysis classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "SEAL_SUPPORT_SYSTEM_INTEGRITY",
+        "finding": "Control SEAL_SUPPORT_SYSTEM_INTEGRITY: the integrity of the mechanical seal support system was in place but did not perform, and the root cause analysis classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next field verification that the controlled transfer of hydrocarbon between vessels on ZV-7212 performs as designed."
+    ],
+    "sequence": "Work was under way in responding to a loss of containment, specifically isolating and depressuring a leaking system. ZV-7212 (emergency shutdown valves) is in service for jetty and manifold emergency isolation. The task proceeded during a breakdown response while the controlled transfer of hydrocarbon between vessels was in place but did not perform. The pressure energy involved is held as hydraulic accumulator, and the recorded presentation was jet release, stored-energy discharge, rupture.",
+    "summary": "On 6 June 2013 an incident occurred on ZV-7212 at Cape Verity Export Terminal during a breakdown response, releasing pressure energy held as hydraulic accumulator."
+  },
+  "response_sha256": "fe6cead48dd026c2e3a7ba9945a59f7d57e4e1551ef905bf60098591a331008f",
+  "source": null
+}

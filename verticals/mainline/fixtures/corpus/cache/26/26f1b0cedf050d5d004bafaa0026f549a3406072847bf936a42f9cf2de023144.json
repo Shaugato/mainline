@@ -1,0 +1,104 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "inspecting embankments and instrumentation",
+    "activity_root": "TAILINGS-AND-WATER-IMPOUNDMENT",
+    "activity_series": "operating an impoundment",
+    "assets": [
+      {
+        "asset_class": "THK-CLASS-A",
+        "label": "tailings thickener",
+        "service": "tailings thickening and decant",
+        "tag": "TH-3240"
+      },
+      {
+        "asset_class": "INST-CLASS-A",
+        "label": "instrument loop",
+        "service": "governs TH-3240",
+        "tag": "LT-3240"
+      },
+      {
+        "asset_class": "MOTOR-CLASS-A",
+        "label": "drive motor",
+        "service": "drives TH-3240",
+        "tag": "M-3240"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 1,
+      "label": "medical treatment injury"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "EMBANKMENT_SURVEILLANCE",
+        "control_label": "surveillance of embankments and instrumentation",
+        "failure_mode": "absent",
+        "hazard_energy": "gravity",
+        "icam_tier": "organisational_factor"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "IMPOUNDMENT_FREEBOARD_CONTROL",
+        "control_label": "control of freeboard, beach width and decant",
+        "failure_mode": "degraded",
+        "hazard_energy": "gravity",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "INC-2007-011",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "incident",
+    "occurred_on": "2007-05-18",
+    "severity_actual": 2,
+    "severity_potential": 2,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during transfer operations",
+    "title": "chemical release during transfer operations on TH-3240",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "investigation": "accident investigation",
+      "near_miss": "near hit",
+      "verification": "spot check"
+    }
+  },
+  "key": "26f1b0cedf050d5d004bafaa0026f549a3406072847bf936a42f9cf2de023144",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2007-011",
+  "prompt_kind": "icam",
+  "prompt_sha256": "f55a6121c1e2ffc80e9f19ca5f70311d0d9967b4254117fc7aa158b363b9ac7d",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was medical treatment injury, with 1 person injured.",
+    "defences": [
+      {
+        "control_class": "EMBANKMENT_SURVEILLANCE",
+        "finding": "Control EMBANKMENT_SURVEILLANCE: the surveillance of embankments and instrumentation was not in place, and the accident investigation classified this as an organisational factor."
+      },
+      {
+        "control_class": "IMPOUNDMENT_FREEBOARD_CONTROL",
+        "finding": "Control IMPOUNDMENT_FREEBOARD_CONTROL: the control of freeboard, beach width and decant had degraded below its design intent, and the accident investigation classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next spot check that the surveillance of embankments and instrumentation on TH-3240, LT-3240 and M-3240 performs as designed."
+    ],
+    "sequence": "Work was under way in operating an impoundment, specifically inspecting embankments and instrumentation. TH-3240 (tailings thickener) is in service for tailings thickening and decant. The task proceeded during transfer operations while the surveillance of embankments and instrumentation was not in place. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 18 May 2007 an incident occurred on TH-3240, LT-3240 and M-3240 at Marrindal Concentrator and Hydrocarbon Transfer Facility during transfer operations, releasing chemical energy held as hydrocarbon."
+  },
+  "response_sha256": "d7f5609db2a60b85cfa77382d53544e802c227d3f5836ee6ea2c82d67fac227e",
+  "source": null
+}

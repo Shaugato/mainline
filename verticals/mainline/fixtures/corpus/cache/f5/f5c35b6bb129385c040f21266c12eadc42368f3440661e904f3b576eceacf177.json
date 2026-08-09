@@ -1,0 +1,91 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "working live under a documented justification",
+    "activity_root": "ELECTRICAL-SAFETY",
+    "activity_series": "controlling access to energised apparatus",
+    "assets": [
+      {
+        "asset_class": "ELEC-CLASS-A",
+        "label": "switchgear and transformers",
+        "service": "plant HV/LV distribution",
+        "tag": "TX-3001"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "SWITCHING_AUTHORISATION",
+        "control_label": "authorisation of switching and access to apparatus",
+        "failure_mode": "absent",
+        "hazard_energy": "thermal",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "ZERO_ENERGY_VERIFICATION",
+        "control_label": "proving zero energy before intrusive work",
+        "failure_mode": "absent",
+        "hazard_energy": "electrical",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "CAPA-2010-002",
+    "hazard_energy": "thermal",
+    "hazard_media": [
+      "hot surface",
+      "steam",
+      "molten material",
+      "hot work",
+      "exothermic reaction"
+    ],
+    "hazard_release": "burn, ignition, scald",
+    "kind": "capa",
+    "occurred_on": "2010-02-05",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during cleaning and preparation",
+    "title": "preventive action - alarm setpoint on TX-3001",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "f5c35b6bb129385c040f21266c12eadc42368f3440661e904f3b576eceacf177",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:CAPA-2010-002",
+  "prompt_kind": "icam",
+  "prompt_sha256": "0ee9607c6189453dc29a4dfd6d7e6010cdae1690a48b1a2d233d685a0fbdd141",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "SWITCHING_AUTHORISATION",
+        "finding": "Control SWITCHING_AUTHORISATION: the authorisation of switching and access to apparatus was not in place, and the root cause analysis classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "ZERO_ENERGY_VERIFICATION",
+        "finding": "Control ZERO_ENERGY_VERIFICATION: the proving zero energy before intrusive work was not in place, and the root cause analysis classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the proving zero energy before intrusive work on TX-3001 and record the field verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in controlling access to energised apparatus, specifically working live under a documented justification. TX-3001 (switchgear and transformers) is in service for plant HV/LV distribution. The task proceeded during cleaning and preparation while the authorisation of switching and access to apparatus was not in place. The thermal energy involved is held as hot surface, and the recorded presentation was burn, ignition, scald.",
+    "summary": "On 5 February 2010 a corrective action on TX-3001 at Marrindal Concentrator and Hydrocarbon Transfer Facility was reviewed against the critical safeguard it was raised to restore."
+  },
+  "response_sha256": "e7434e9f1ebf933f22e83dd1cf57ff19f0d866ef545c6ba71af53bfcf9202a93",
+  "source": null
+}

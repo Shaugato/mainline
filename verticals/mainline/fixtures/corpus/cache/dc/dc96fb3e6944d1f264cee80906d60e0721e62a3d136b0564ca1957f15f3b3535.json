@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "FIRE-AND-EMERGENCY-RESPONSE",
+    "barrier_role": "recovery",
+    "control_class": "FIXED_FIRE_SYSTEM_AVAILABILITY",
+    "control_delta": "restate",
+    "control_label": "availability and testing of fixed fire protection",
+    "doc_code": "STD-EMR-008",
+    "doc_family": "STD",
+    "doc_title": "Emergency Preparedness and Response",
+    "effective_on": "2023-07-01",
+    "printed_label": "3.2.3",
+    "setpoint": null,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "energy_isolation": "positive isolation verification",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "dc96fb3e6944d1f264cee80906d60e0721e62a3d136b0564ca1957f15f3b3535",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:CVY/STD-EMR-008/006#CVY/STD-EMR-008/4.2.3(b)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "de06b7778509a7a0f5696b1cefa68e456e98c76099757108d10869591d7a437e",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The availability and testing of fixed fire protection shall be provided and maintained wherever this standard applies, and its condition shall be treated as a material unwanted event control. This clause applies to activities archived under FIRE-AND-EMERGENCY-RESPONSE at Cape Verity Export Terminal.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "4f3c9619db35ac833a6df49b60e030a0f708d60b65480d141f5f9f09a39f3bed",
+  "source": null
+}

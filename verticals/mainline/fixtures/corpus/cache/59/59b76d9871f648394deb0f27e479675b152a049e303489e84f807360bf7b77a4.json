@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "FIRE-AND-EMERGENCY-RESPONSE",
+    "barrier_role": "recovery",
+    "control_class": "EMERGENCY_ISOLATION_ON_RELEASE",
+    "control_delta": "introduce",
+    "control_label": "emergency isolation and depressuring on loss of containment",
+    "doc_code": "STD-EMR-008",
+    "doc_family": "STD",
+    "doc_title": "Emergency Preparedness and Response",
+    "effective_on": "2019-05-27",
+    "printed_label": "1.2.5",
+    "setpoint": null,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "59b76d9871f648394deb0f27e479675b152a049e303489e84f807360bf7b77a4",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:CVY/STD-EMR-008/005#CVY/STD-EMR-008/6.4",
+  "prompt_kind": "clause",
+  "prompt_sha256": "dfea00bd783c12276d140d17d73e58cc7e1972a238e6a12e233ea326f335b070",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The emergency isolation and depressuring on loss of containment shall be provided and maintained for work covered by this standard. This clause applies to activities archived under FIRE-AND-EMERGENCY-RESPONSE at Cape Verity Export Terminal.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "eba38e25fb3de7f68a175a52c9472562165840e8fe5e6703ba12d1c07dff7c52",
+  "source": null
+}

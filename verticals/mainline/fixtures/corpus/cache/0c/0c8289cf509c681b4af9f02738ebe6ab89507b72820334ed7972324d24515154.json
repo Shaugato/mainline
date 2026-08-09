@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONFINED-SPACE-ENTRY",
+    "barrier_role": "preventive",
+    "control_class": "CONTINUOUS_ATMOSPHERIC_MONITORING",
+    "control_delta": "restate",
+    "control_label": "continuous atmospheric monitoring during occupancy",
+    "doc_code": "PRO-HSE-012",
+    "doc_family": "PRO",
+    "doc_title": "Confined Space Entry",
+    "effective_on": "2015-04-10",
+    "printed_label": "7.4",
+    "setpoint": {
+      "from": 15.0,
+      "key": "hydrogen_sulfide_alarm",
+      "label": "hydrogen sulfide alarm threshold",
+      "strengthen_direction": "lower",
+      "to": 15.0,
+      "unit": "ppm"
+    },
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "energy_isolation": "lock out tag out",
+      "verification": "field verification"
+    }
+  },
+  "key": "0c8289cf509c681b4af9f02738ebe6ab89507b72820334ed7972324d24515154",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:CVY/PRO-HSE-012/005#CVY/PRO-HSE-012/7.4",
+  "prompt_kind": "clause",
+  "prompt_sha256": "38a5e02413f6828381802c8a1932cbb986804ac445a3ced72a80a00a96886686",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The continuous atmospheric monitoring during occupancy shall be provided and maintained wherever this procedure applies, and its condition shall be treated as a critical safeguard. The hydrogen sulfide alarm threshold shall be set at 15 ppm. This clause applies to activities archived under CONFINED-SPACE-ENTRY at Cape Verity Export Terminal.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "fb628c4cabac2c823ba025d795a422be6a10bf89268b654632d05c9f988a8de7",
+  "source": null
+}

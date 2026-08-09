@@ -1,0 +1,55 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 2,
+    "doc_codes": [
+      "MOC-2021-0155",
+      "PRO-MIN-003",
+      "STD-MEQ-007"
+    ],
+    "intent": "introduce",
+    "moc_ref": "MOC-2015-0063",
+    "opened_on": "2015-07-16",
+    "precursor_events": [
+      {
+        "event_ref": "AF-2017-001",
+        "severity_gate": null
+      },
+      {
+        "event_ref": "INC-2015-001",
+        "severity_gate": null
+      },
+      {
+        "event_ref": "INC-2019-003",
+        "severity_gate": null
+      },
+      {
+        "event_ref": "INC-2020-014",
+        "severity_gate": null
+      }
+    ],
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "management_of_change": "change request",
+      "verification": "field verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "32edd670e679dc1d017c4514a28e922bb42454913e38ab8a506cb37787fa0be0",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2015-0063",
+  "prompt_kind": "moc",
+  "prompt_sha256": "3b4b79af9c1f4c9d990a075dd3db14ca194f3af26a04537181e34b23238733d0",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2015-0063 was raised at Yandarra Downs Open Cut and Heavy Workshop on 16 July 2015 following 4 recorded events in the archive, including AF-2017-001, INC-2015-001 and INC-2019-003. The change request record covers 2 clauses across 3 controlled documents. The intent is to introduce a duty the documents in scope did not previously carry. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical safeguard set is preserved.",
+    "scope_note": "The documents in scope are MOC-2021-0155, PRO-MIN-003 and STD-MEQ-007."
+  },
+  "response_sha256": "007f2a6f939005b397664e65d15c5662e24d0eadfd856a95234500898e9a580f",
+  "source": null
+}

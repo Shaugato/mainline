@@ -1,0 +1,92 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "monitoring seal-face condition and temperature",
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "activity_series": "maintaining sealing systems on rotating equipment",
+    "assets": [
+      {
+        "asset_class": "HTP-CLASS-A",
+        "label": "export transfer pumps",
+        "service": "tank-to-jetty product transfer, same seal class as the Marrindal family",
+        "tag": "P-7113"
+      },
+      {
+        "asset_class": "MOTOR-CLASS-A",
+        "label": "drive motor",
+        "service": "drives P-7113",
+        "tag": "M-7113"
+      },
+      {
+        "asset_class": "INST-CLASS-A",
+        "label": "instrument loop",
+        "service": "governs P-7113",
+        "tag": "PT-7113"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "SEAL_SUPPORT_SYSTEM_INTEGRITY",
+        "control_label": "integrity of the mechanical seal support system",
+        "failure_mode": "ineffective",
+        "hazard_energy": "thermal",
+        "icam_tier": "organisational_factor"
+      }
+    ],
+    "event_ref": "CAPA-2007-005",
+    "hazard_energy": "pressure",
+    "hazard_media": [
+      "hydraulic accumulator",
+      "barrier fluid",
+      "process gas",
+      "steam header",
+      "compressed air",
+      "trapped liquid"
+    ],
+    "hazard_release": "jet release, stored-energy discharge, rupture",
+    "kind": "capa",
+    "occurred_on": "2007-05-18",
+    "severity_actual": 0,
+    "severity_potential": 2,
+    "site": "Cape Verity Export Terminal",
+    "summary_facts": [],
+    "task_phase": "during a statutory inspection",
+    "title": "preventive action - alarm setting on P-7113",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "investigation": "accident investigation",
+      "near_miss": "near hit",
+      "verification": "spot check"
+    }
+  },
+  "key": "c99bb1a8895ad167fde1fceeb925a221dcac55d0eaf90bd13f7effb6fe6d2e34",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:CAPA-2007-005",
+  "prompt_kind": "icam",
+  "prompt_sha256": "7620f4dd9a1ec84e57845b4d23115d2018ff6eb9ade056de9ab171de17e45e88",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 2 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "SEAL_SUPPORT_SYSTEM_INTEGRITY",
+        "finding": "Control SEAL_SUPPORT_SYSTEM_INTEGRITY: the integrity of the mechanical seal support system was in place but did not perform, and the accident investigation classified this as an organisational factor."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next spot check that the integrity of the mechanical seal support system on P-7113, M-7113 and PT-7113 performs as designed."
+    ],
+    "sequence": "Work was under way in maintaining sealing systems on rotating equipment, specifically monitoring seal-face condition and temperature. P-7113 (export transfer pumps) is in service for tank-to-jetty product transfer, same seal class as the Marrindal family. The task proceeded during a statutory inspection while the integrity of the mechanical seal support system was in place but did not perform. The pressure energy involved is held as hydraulic accumulator, and the recorded presentation was jet release, stored-energy discharge, rupture.",
+    "summary": "On 18 May 2007 a corrective action on P-7113, M-7113 and PT-7113 at Cape Verity Export Terminal was reviewed against the key safeguard it was raised to restore."
+  },
+  "response_sha256": "71349d388961401d169c2e3fff34dc45be314058225e85a79cd2b3b35a6f94b7",
+  "source": null
+}

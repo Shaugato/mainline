@@ -1,0 +1,85 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "preventing water ingress to hot material",
+    "activity_root": "MOLTEN-AND-HOT-MATERIAL",
+    "activity_series": "operating hot and steam systems",
+    "assets": [
+      {
+        "asset_class": "BOIL-CLASS-A",
+        "label": "package boilers and deaerator",
+        "service": "process steam generation and feedwater deaeration",
+        "tag": "B-8201"
+      },
+      {
+        "asset_class": "INST-CLASS-A",
+        "label": "instrument loop",
+        "service": "governs B-8201",
+        "tag": "TT-8201"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "HOT_SURFACE_GUARDING",
+        "control_label": "insulation, guarding and signing of hot surfaces",
+        "failure_mode": "ineffective",
+        "hazard_energy": "thermal",
+        "icam_tier": "organisational_factor"
+      }
+    ],
+    "event_ref": "NM-2008-0016",
+    "hazard_energy": "thermal",
+    "hazard_media": [
+      "hot surface",
+      "steam",
+      "molten material",
+      "hot work",
+      "exothermic reaction"
+    ],
+    "hazard_release": "burn, ignition, scald",
+    "kind": "near_miss",
+    "occurred_on": "2008-12-31",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Tolgarra Processing and Power Station",
+    "summary_facts": [],
+    "task_phase": "during start-up after maintenance",
+    "title": "near hit during start-up after maintenance on B-8201",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "investigation": "accident investigation",
+      "near_miss": "near hit",
+      "verification": "spot check"
+    }
+  },
+  "key": "b921601291d9c056529a7e5a2c10b05fc7bbda44c2dbee85ccbbc5ea954205dd",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2008-0016",
+  "prompt_kind": "icam",
+  "prompt_sha256": "b05f0d9592be59c2de9366b1f306fa0deb590cd5114fbdceb2cbf9da0c9a4acd",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "HOT_SURFACE_GUARDING",
+        "finding": "Control HOT_SURFACE_GUARDING: the insulation, guarding and signing of hot surfaces was in place but did not perform, and the accident investigation classified this as an organisational factor."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next spot check that the insulation, guarding and signing of hot surfaces on B-8201 and TT-8201 performs as designed."
+    ],
+    "sequence": "Work was under way in operating hot and steam systems, specifically preventing water ingress to hot material. B-8201 (package boilers and deaerator) is in service for process steam generation and feedwater deaeration. The task proceeded during start-up after maintenance while the insulation, guarding and signing of hot surfaces was in place but did not perform. The thermal energy involved is held as hot surface, and the recorded presentation was burn, ignition, scald.",
+    "summary": "On 31 December 2008 a near hit was recorded on B-8201 and TT-8201 at Tolgarra Processing and Power Station during start-up after maintenance; thermal energy held as hot surface was not released."
+  },
+  "response_sha256": "6a8d41207596437cdb6f0f73bfa8638147b3ccd81b1297ef0ef38d89c321aa89",
+  "source": null
+}

@@ -1,0 +1,80 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "inspecting embankments and instrumentation",
+    "activity_root": "TAILINGS-AND-WATER-IMPOUNDMENT",
+    "activity_series": "operating an impoundment",
+    "assets": [
+      {
+        "asset_class": "ESD-CLASS-A",
+        "label": "emergency shutdown valves",
+        "service": "jetty and manifold emergency isolation",
+        "tag": "ZV-7212"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "IMPOUNDMENT_FREEBOARD_CONTROL",
+        "control_label": "control of freeboard, beach width and decant",
+        "failure_mode": "degraded",
+        "hazard_energy": "chemical",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "CAPA-2017-004",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "capa",
+    "occurred_on": "2017-03-16",
+    "severity_actual": 1,
+    "severity_potential": 2,
+    "site": "Cape Verity Export Terminal",
+    "summary_facts": [],
+    "task_phase": "during a statutory inspection",
+    "title": "corrective action following ICAM investigation at ZV-7212",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "f66e2e91d6893d41de7b9d66afec3870385938f52a895c773756b46abe0ff5cc",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:CAPA-2017-004",
+  "prompt_kind": "icam",
+  "prompt_sha256": "02a8d503ec825b775b50b2736bcde621d496d3b52d57ea503d459bb57172332c",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage. The potential outcome was rated 2 against the site's consequence scale, above the 1 actually realised.",
+    "defences": [
+      {
+        "control_class": "IMPOUNDMENT_FREEBOARD_CONTROL",
+        "finding": "Control IMPOUNDMENT_FREEBOARD_CONTROL: the control of freeboard, beach width and decant had degraded below its design intent, and the ICAM investigation classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the control of freeboard, beach width and decant on ZV-7212 and record the critical control verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in operating an impoundment, specifically inspecting embankments and instrumentation. ZV-7212 (emergency shutdown valves) is in service for jetty and manifold emergency isolation. The task proceeded during a statutory inspection while the control of freeboard, beach width and decant had degraded below its design intent. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 16 March 2017 a corrective action on ZV-7212 at Cape Verity Export Terminal was reviewed against the critical control it was raised to restore."
+  },
+  "response_sha256": "2590968d7376a3914d1f6bf01c9ef017d53f70eaf4f91a7d7040896022e33886",
+  "source": null
+}

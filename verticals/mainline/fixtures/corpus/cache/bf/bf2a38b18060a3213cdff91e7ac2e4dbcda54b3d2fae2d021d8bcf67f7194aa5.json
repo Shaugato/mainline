@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 31,
+    "doc_code": "STD-CSE-002",
+    "doc_family": "STD",
+    "doc_title": "Confined Spaces",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2023-10-08",
+    "required_citations": [],
+    "rev_no": 6,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "learning team review",
+      "management_of_change": "change assurance",
+      "near_miss": "high potential incident"
+    }
+  },
+  "key": "bf2a38b18060a3213cdff91e7ac2e4dbcda54b3d2fae2d021d8bcf67f7194aa5",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:CVY/STD-CSE-002/006",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "c1fd98f7a612fa646d38c4feb048fdb3156dfb7b26091318df1ec15f1c5a8ab3",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [],
+    "reason": "Scheduled review at revision 6; 31 clauses restated."
+  },
+  "response_sha256": "2483378bb5b18ba65408da7f6202270760afe80c13cd9ae1be2407c557914c45",
+  "source": null
+}

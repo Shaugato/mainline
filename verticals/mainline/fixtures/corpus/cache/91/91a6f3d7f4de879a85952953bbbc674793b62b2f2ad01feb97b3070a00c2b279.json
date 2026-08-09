@@ -1,0 +1,80 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "proving overpressure protection is in service",
+    "activity_root": "PRESSURE-SYSTEM-INTEGRITY",
+    "activity_series": "verifying pressure relief and protection",
+    "assets": [
+      {
+        "asset_class": "PRD-CLASS-A",
+        "label": "steam relief devices",
+        "service": "boiler and deaerator overpressure protection",
+        "tag": "PSV-8210"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "PRESSURE_RELIEF_DEVICE_INTEGRITY",
+        "control_label": "setting, testing and sealing of pressure relief devices",
+        "failure_mode": "degraded",
+        "hazard_energy": "thermal",
+        "icam_tier": "organisational_factor"
+      }
+    ],
+    "event_ref": "AF-2025-001",
+    "hazard_energy": "pressure",
+    "hazard_media": [
+      "hydraulic accumulator",
+      "barrier fluid",
+      "process gas",
+      "steam header",
+      "compressed air",
+      "trapped liquid"
+    ],
+    "hazard_release": "jet release, stored-energy discharge, rupture",
+    "kind": "audit_finding",
+    "occurred_on": "2025-01-26",
+    "severity_actual": 0,
+    "severity_potential": 2,
+    "site": "Tolgarra Processing and Power Station",
+    "summary_facts": [],
+    "task_phase": "during a planned shutdown",
+    "title": "audit finding - assurance activity of material unwanted event control at PSV-8210",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "91a6f3d7f4de879a85952953bbbc674793b62b2f2ad01feb97b3070a00c2b279",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:AF-2025-001",
+  "prompt_kind": "icam",
+  "prompt_sha256": "6de3061e5a8ebee00fc823a74ff2400bb60413b13a6308d07dbc9a1fa8e10810",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 2 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "PRESSURE_RELIEF_DEVICE_INTEGRITY",
+        "finding": "Control PRESSURE_RELIEF_DEVICE_INTEGRITY: the setting, testing and sealing of pressure relief devices had degraded below its design intent, and the learning team review classified this as an organisational factor."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next assurance activity that the setting, testing and sealing of pressure relief devices on PSV-8210 performs as designed."
+    ],
+    "sequence": "Work was under way in verifying pressure relief and protection, specifically proving overpressure protection is in service. PSV-8210 (steam relief devices) is in service for boiler and deaerator overpressure protection. The task proceeded during a planned shutdown while the setting, testing and sealing of pressure relief devices had degraded below its design intent. The pressure energy involved is held as hydraulic accumulator, and the recorded presentation was jet release, stored-energy discharge, rupture.",
+    "summary": "On 26 January 2025 a planned assurance activity of PSV-8210 at Tolgarra Processing and Power Station found the setting, testing and sealing of pressure relief devices not effective."
+  },
+  "response_sha256": "4541eaca0ec1a0b11663b82c19c007d6753c9035ae7a0415c8dd1c425acca142",
+  "source": null
+}

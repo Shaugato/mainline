@@ -1,0 +1,89 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MAINLINE · 0145c_trg_cbm_gate_permit.sql
+-- CREATE TRIGGER z_cbm_gate — recall of the arithmetic is a precondition of the merge
+--
+-- MI: MI03, MI22, MI25
+-- I: I02
+-- COUNSEL-GATED: no
+-- RATIONALE: This is the statement that puts CONSERVATION OF BLAME MASS in the write path of a
+--            state transition rather than in a report about one. It fires only on the
+--            draft/open → merged edge, and it refuses when a commit the permit cites has no
+--            blame accounting at all, or has one that no longer describes the world. Said the
+--            way it will be said under oath: the merge was refused because the commit's blame
+--            accounting was never done — five obligations went in and nobody counted what came
+--            out.
+--
+-- migration:  0145c_trg_cbm_gate_permit
+-- domain:     algorithms
+-- band:       0145-0149z · datamodel/dm-functions-triggers + algorithms · AUTHORED, allocated
+--             by verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1). MR-5 band
+--             overflow of this domain's own `0145`.
+-- statements: 1  (the CREATE TRIGGER, and nothing else)
+-- invariants: MI03, MI22, MI25, I02.
+-- source:     docs/leads/algorithms.md §5 (REFUSE (gate)) · ARCHITECTURE.md §5.11
+--             (permit_merge_gate's WHEN clause, which this mirrors) · §16.
+-- requires:   0050 mainline.permit · 0052 mainline.permit_clause ·
+--             0140c mainline.fn_cbm_gate_permit
+-- sqlstate:   P0001, twice, raised by the function this statement attaches:
+--                 MAINLINE: merge refused — blame accounting absent for a cited commit
+--                 MAINLINE: merge refused — blame accounting is stale for a cited commit
+-- forward-only; no .down.sql exists at or below the protected floor (DM-14).
+--
+-- ═════════════════════════════════════════════════════════════════════════════════════════════
+-- A TRIGGER ON A RENDERED TABLE IS NOT AN EDIT TO A RENDERED FILE
+-- ═════════════════════════════════════════════════════════════════════════════════════════════
+-- `mainline.permit` is RENDERED SUBSTRATE: allocation band `0050`-`0053z`, mode `rendered`,
+-- emitted from `packages/trappoint-sql/templates/0050_permit.sql.j2`, and MR-1 says a rendered
+-- file is never hand-edited. This file edits nothing. It is a separate, AUTHORED statement in an
+-- authored band that ATTACHES a vertical trigger to a substrate table, and the seam test
+-- (MR-1: "would a second TRAPPOINT vertical need this object to pass `trappoint-conform`?")
+-- answers plainly: no. `z_cbm_gate` is about blame mass over safety controls, which is
+-- MAINLINE's product and not the substrate's. `trappoint render --check` stays a zero-diff
+-- assertion because `0050_permit.sql` is untouched.
+--
+-- What is NOT done here, and is genuinely a template change: `permit.unbalanced_cbm_count INT8
+-- NOT NULL DEFAULT 0` plus `CONSTRAINT cbm_balanced_when_issued CHECK (state <> 'merged' OR
+-- unbalanced_cbm_count = 0)`. That is a new COLUMN on a rendered table and therefore an edit to
+-- the `.j2`, agreed with `kernel/subject-and-pin` and re-rendered into BOTH bindings
+-- (`verticals/mainline/vertical.toml` and `packages/trappoint-sql/refvertical/vertical.toml`).
+-- Typing it as an `ALTER` in the vertical would produce a hand-authored twin, which MR-1
+-- consequence 2 describes as red in the worst way: `--check` stays green because a twin is not a
+-- diff, and the runner refuses the tree. It is left undone and written down.
+--
+-- ── THE `WHEN` CLAUSE, AND THE PARENTHESES THAT ARE NOT OPTIONAL ─────────────────────────────
+-- MEASURED on CockroachDB CCL v26.2.5, 2026-08-09: `WHEN (NEW.state = 'merged' AND OLD.state <>
+-- 'merged')` — the form ARCHITECTURE.md §5.11 is written in, and the form PostgreSQL accepts —
+-- fails with `42P01 no data source matches prefix: new in this context`
+-- (go.crdb.dev/issue-v/114687/v26.2). `(NEW).state` and `(OLD).state` apply. Every trigger in
+-- this deployment needs the correction and this one records it where the next reader will hit it.
+--
+-- The `WHEN` clause is what keeps the gate off every ordinary permit UPDATE. Without it the
+-- accounting query would run on each `under_hold` toggle and each counter projection, which is
+-- both wasteful and wrong: a permit that is not completing a transition has no obligation to
+-- have its arithmetic current.
+--
+-- ── THE ENUM CAST IS EXPLICIT ON PURPOSE ─────────────────────────────────────────────────────
+-- `state` is `mainline.subject_state`. Literal-to-enum inference in a trigger `WHEN` clause is
+-- standard PostgreSQL behaviour and is very likely fine here; an explicit `::mainline.subject_state`
+-- costs one token and removes the question, which is the right trade under a gate.
+--
+-- ── D10: THIS TRIGGER MAKES NO CLAIM ABOUT WHAT FIRES AROUND IT ──────────────────────────────
+-- `mainline.permit` also carries the kernel's `permit_merge_gate` on the same edge. Both are
+-- refusals, both read only `(NEW).permit_id` plus other tables, and a transition that trips
+-- either is refused whichever ran first. The `z_` prefix is cosmetic; CockroachDB v26.2 does not
+-- document multi-trigger firing order and nothing here depends on it.
+--
+-- ── REFUSAL DEPTH, HONESTLY ──────────────────────────────────────────────────────────────────
+-- Depth 1 at the merge. `ALTER TABLE mainline.permit DISABLE TRIGGER z_cbm_gate` succeeds and
+-- restores merges over unaccounted commits. The structural second layer is the
+-- `cbm_balanced_when_issued` CHECK described above, which is not built. What IS depth 2 in this
+-- domain is the account itself (0049c `cbm_balances` + 0145a's overwrite), and that layer is
+-- upstream of this one rather than beside it.
+
+CREATE TRIGGER z_cbm_gate BEFORE UPDATE ON mainline.permit
+  FOR EACH ROW
+  WHEN ((NEW).state = 'merged'::mainline.subject_state
+        AND (OLD).state <> 'merged'::mainline.subject_state)
+  EXECUTE FUNCTION mainline.fn_cbm_gate_permit();

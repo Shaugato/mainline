@@ -1,0 +1,92 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "charging, tying in and guarding a blast",
+    "activity_root": "EXPLOSIVES-AND-BLASTING",
+    "activity_series": "charging and firing",
+    "assets": [
+      {
+        "asset_class": "MAG-CLASS-A",
+        "label": "explosives magazines",
+        "service": "explosives and detonator storage",
+        "tag": "MAG-9601"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "BLAST_GUARDING_AND_CLEARANCE",
+        "control_label": "guarding, clearance and misfire handling for a blast",
+        "failure_mode": "ineffective",
+        "hazard_energy": "kinetic",
+        "icam_tier": "individual_or_team_action"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "EXPLOSIVES_RECONCILIATION",
+        "control_label": "receipt, magazining and reconciliation of explosives",
+        "failure_mode": "ineffective",
+        "hazard_energy": "chemical",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "OEM-2004-001",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "oem_alert",
+    "occurred_on": "2004-10-19",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during cleaning and preparation",
+    "title": "vendor notification - premature wear on MAG-CLASS-A",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "investigation": "accident investigation",
+      "near_miss": "near hit",
+      "verification": "spot check"
+    }
+  },
+  "key": "117c899024a761f10e27d9aabff86399f9bef7d6212f6e80322dabb912f6f461",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:OEM-2004-001",
+  "prompt_kind": "icam",
+  "prompt_sha256": "268842036b4225168584799ea1217a0c7ce716fb185a08ae6e6efbb2b341b711",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "BLAST_GUARDING_AND_CLEARANCE",
+        "finding": "Control BLAST_GUARDING_AND_CLEARANCE: the guarding, clearance and misfire handling for a blast was in place but did not perform, and the accident investigation classified this as an individual or team action."
+      },
+      {
+        "control_class": "EXPLOSIVES_RECONCILIATION",
+        "finding": "Control EXPLOSIVES_RECONCILIATION: the receipt, magazining and reconciliation of explosives was in place but did not perform, and the accident investigation classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next spot check that the guarding, clearance and misfire handling for a blast on MAG-9601 performs as designed."
+    ],
+    "sequence": "Work was under way in charging and firing, specifically charging, tying in and guarding a blast. MAG-9601 (explosives magazines) is in service for explosives and detonator storage. The task proceeded during cleaning and preparation while the guarding, clearance and misfire handling for a blast was in place but did not perform. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 19 October 2004 the original equipment manufacturer issued an advisory affecting MAG-9601 at Yandarra Downs Open Cut and Heavy Workshop."
+  },
+  "response_sha256": "66f8087ae6be18361d41ba6a63a34e31c4664b91affb9ed7361db31bf1bfea4f",
+  "source": null
+}

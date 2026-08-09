@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "LIFTING-AND-SUSPENDED-LOADS",
+    "barrier_role": "preventive",
+    "control_class": "DROP_ZONE_EXCLUSION",
+    "control_delta": "strengthen",
+    "control_label": "exclusion of people from beneath elevated work",
+    "doc_code": "PRO-MEC-055",
+    "doc_family": "PRO",
+    "doc_title": "Workshop Component Removal and Load Support",
+    "effective_on": "2007-06-08",
+    "printed_label": "1.2",
+    "setpoint": null,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "5d830ffaa881c9308f3d1074d58dface26a31688f7b74f9166730fa285c95618",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:YND/PRO-MEC-055/002#YND/PRO-MEC-055/1.2",
+  "prompt_kind": "clause",
+  "prompt_sha256": "0b94fa9da8b45a7d7155efc396762f6517c80da40697f217ac0c884d29da3eeb",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The exclusion of people from beneath elevated work must be provided, and its effectiveness must be recorded as a spot check before the task proceeds. This clause applies to activities archived under LIFTING-AND-SUSPENDED-LOADS at Yandarra Downs Open Cut and Heavy Workshop.",
+    "obligation_verb": "must"
+  },
+  "response_sha256": "7f2d697812037f3f2f1024609a0b769783a29c884206ab2f70c828e10249420a",
+  "source": null
+}

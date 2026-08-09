@@ -1,0 +1,110 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "proving overpressure protection is in service",
+    "activity_root": "PRESSURE-SYSTEM-INTEGRITY",
+    "activity_series": "verifying pressure relief and protection",
+    "assets": [
+      {
+        "asset_class": "BOIL-CLASS-A",
+        "label": "package boilers and deaerator",
+        "service": "process steam generation and feedwater deaeration",
+        "tag": "B-8202"
+      },
+      {
+        "asset_class": "PRD-CLASS-A",
+        "label": "steam relief devices",
+        "service": "boiler and deaerator overpressure protection",
+        "tag": "PSV-8202"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "PRESSURE_EQUIPMENT_INSPECTION",
+        "control_label": "in-service inspection of pressure equipment",
+        "failure_mode": "degraded",
+        "hazard_energy": "pressure",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "PRESSURE_RELIEF_DEVICE_INTEGRITY",
+        "control_label": "setting, testing and sealing of pressure relief devices",
+        "failure_mode": "degraded",
+        "hazard_energy": "pressure",
+        "icam_tier": "individual_or_team_action"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "STORED_ENERGY_DISSIPATION",
+        "control_label": "dissipation or restraint of trapped and residual energy",
+        "failure_mode": "absent",
+        "hazard_energy": "pressure",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "NM-2014-0010",
+    "hazard_energy": "pressure",
+    "hazard_media": [
+      "hydraulic accumulator",
+      "barrier fluid",
+      "process gas",
+      "steam header",
+      "compressed air",
+      "trapped liquid"
+    ],
+    "hazard_release": "jet release, stored-energy discharge, rupture",
+    "kind": "near_miss",
+    "occurred_on": "2014-06-19",
+    "severity_actual": 0,
+    "severity_potential": 2,
+    "site": "Tolgarra Processing and Power Station",
+    "summary_facts": [],
+    "task_phase": "during shift handover",
+    "title": "hazard report during shift handover on B-8202",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "df8398ce672ff8ab61d96d841cf255cea3fe8d933232780745b0bcfdbd1e7da0",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2014-0010",
+  "prompt_kind": "icam",
+  "prompt_sha256": "f24f8eb73a3b77fc91f91bb2d2ddbc36dd7672d17cd03dfbc860bd6fb06752e5",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 2 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "PRESSURE_EQUIPMENT_INSPECTION",
+        "finding": "Control PRESSURE_EQUIPMENT_INSPECTION: the in-service inspection of pressure equipment had degraded below its design intent, and the root cause analysis classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "PRESSURE_RELIEF_DEVICE_INTEGRITY",
+        "finding": "Control PRESSURE_RELIEF_DEVICE_INTEGRITY: the setting, testing and sealing of pressure relief devices had degraded below its design intent, and the root cause analysis classified this as an individual or team action."
+      },
+      {
+        "control_class": "STORED_ENERGY_DISSIPATION",
+        "finding": "Control STORED_ENERGY_DISSIPATION: the dissipation or restraint of trapped and residual energy was not in place, and the root cause analysis classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Restore the in-service inspection of pressure equipment on B-8202 and PSV-8202 and record the field verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in verifying pressure relief and protection, specifically proving overpressure protection is in service. B-8202 (package boilers and deaerator) is in service for process steam generation and feedwater deaeration. The task proceeded during shift handover while the in-service inspection of pressure equipment had degraded below its design intent. The pressure energy involved is held as hydraulic accumulator, and the recorded presentation was jet release, stored-energy discharge, rupture.",
+    "summary": "On 19 June 2014 a hazard report was recorded on B-8202 and PSV-8202 at Tolgarra Processing and Power Station during shift handover; pressure energy held as hydraulic accumulator was not released."
+  },
+  "response_sha256": "ea4a1a44c6456630be034149ef13b9d7fed8b05f1b8a4f523727209172694c9d",
+  "source": null
+}

@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "PRESSURE-SYSTEM-INTEGRITY",
+    "barrier_role": "preventive",
+    "control_class": "STEAM_SYSTEM_WARM_THROUGH",
+    "control_delta": "restate",
+    "control_label": "controlled draining, venting and warm-through of steam systems",
+    "doc_code": "STD-PRV-005",
+    "doc_family": "STD",
+    "doc_title": "Pressure Relief and Overpressure Protection",
+    "effective_on": "2010-11-28",
+    "printed_label": "8.1",
+    "setpoint": {
+      "from": -100.0,
+      "key": "boiler_drum_level_low_low",
+      "label": "boiler drum low-low level trip",
+      "strengthen_direction": "higher",
+      "to": -100.0,
+      "unit": "mm"
+    },
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "energy_isolation": "lock out tag out",
+      "verification": "field verification"
+    }
+  },
+  "key": "80172d8bbdb9fee008462e401f9057ee7c939750b2d25ddf6b925688173bb7b1",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:TLG/STD-PRV-005/002#TLG/STD-PRV-005/8.1",
+  "prompt_kind": "clause",
+  "prompt_sha256": "14cebaf571f3f628a73103ae0afd4072de6243adbfb41e319e5f166bf087eb97",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The controlled draining, venting and warm-through of steam systems shall be provided and maintained wherever this standard applies, and its condition shall be treated as a critical safeguard. The boiler drum low-low level trip shall be set at -100 mm. This clause applies to activities archived under PRESSURE-SYSTEM-INTEGRITY at Tolgarra Processing and Power Station.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "d1f9a08f71a6cfc075ce6e1518cad581e13a4a01503102310d6a995a2ad0dc5e",
+  "source": null
+}

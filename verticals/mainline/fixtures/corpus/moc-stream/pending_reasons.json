@@ -1,0 +1,20 @@
+{
+  "cr_clause.commit_id": {
+    "column": "commit_id",
+    "owner": "the worker that mints the commit DAG (commit_obj / commit_edge / ref)",
+    "reason": "Declared scope is pinned to a clause VERSION, not to a clause: the foreign key is onto (clause_uuid, commit_id) so a re-authored clause cannot silently carry an old declaration forward into text nobody read. commit_id is sha256 over the JCS envelope and cannot be chosen, and nothing in the corpus lane mints commits. Each row carries commit_for_revision_key in the registry, which is the natural key of the revision whose commit closes it, so this is closed deterministically rather than by search.",
+    "table": "mainline.cr_clause"
+  },
+  "cr_event.prev_digest": {
+    "column": "prev_digest",
+    "owner": "the database: mainline.merge_change_request (0118 step 3) reads it; mainline.fn_cr_event_chain (0106) verifies it",
+    "reason": "chain_digest is a STORED generated column computed by the server over CockroachDB's own JSONB rendering, and fn_cr_event_chain refuses any row whose prev_digest is not byte-equal to the stored predecessor's. Reimplementing that normaliser in Python would stake reproducibility on our copy never diverging from the server's, and a digest the client can predict no longer proves the server saw the payload it hashed. The corpus therefore emits a PLAN of acts and the loader performs them, so the chain is minted where it can only honestly be minted.",
+    "table": "mainline.cr_event"
+  },
+  "cr_event.seq": {
+    "column": "seq",
+    "owner": "the database: derived in-transaction and defended by UNIQUE (cr_id, prev_seq)",
+    "reason": "There is no generator anywhere in this schema and CREATE SEQUENCE is banned, which is what lets the ledger claim a gap MEANS tampering. A sequence position allocated outside the transaction that writes the row would destroy exactly that claim, so the corpus supplies an ORDER (step) and never a position.",
+    "table": "mainline.cr_event"
+  }
+}

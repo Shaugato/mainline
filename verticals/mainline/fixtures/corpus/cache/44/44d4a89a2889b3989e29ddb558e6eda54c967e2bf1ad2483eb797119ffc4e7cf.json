@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "barrier_role": "preventive",
+    "control_class": "ZERO_ENERGY_VERIFICATION",
+    "control_delta": "restate",
+    "control_label": "proving zero energy before intrusive work",
+    "doc_code": "PRO-MEC-021",
+    "doc_family": "PRO",
+    "doc_title": "Mechanical Isolation and Lockout",
+    "effective_on": "2024-12-31",
+    "printed_label": "7.1.6",
+    "setpoint": {
+      "from": 72.0,
+      "key": "isolation_verification_interval",
+      "label": "re-verification interval for a long-duration isolation",
+      "strengthen_direction": "lower",
+      "to": 72.0,
+      "unit": "hours"
+    },
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "energy_isolation": "positive isolation verification",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "44d4a89a2889b3989e29ddb558e6eda54c967e2bf1ad2483eb797119ffc4e7cf",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/PRO-MEC-021/012#MRD/PRO-MEC-021/4.2",
+  "prompt_kind": "clause",
+  "prompt_sha256": "7b0464f0c30eaab97528e426844f0b8f2809824263de956a3f295598d04ee43f",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The proving zero energy before intrusive work shall be provided and maintained wherever this procedure applies, and its condition shall be treated as a material unwanted event control. The re-verification interval for a long-duration isolation shall be set at 72 hours. This clause applies to activities archived under ISOLATION-OF-STORED-ENERGY at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "561fcfc5eb664fe73d75793b80a4c9b3bfc9cd47d9d619f2761c09caba1be39b",
+  "source": null
+}

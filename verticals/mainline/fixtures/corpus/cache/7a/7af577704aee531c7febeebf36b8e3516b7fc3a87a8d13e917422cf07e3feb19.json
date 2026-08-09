@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "barrier_role": "preventive",
+    "control_class": "HYDROCARBON_TRANSFER_CONTROL",
+    "control_delta": "restate",
+    "control_label": "controlled transfer of hydrocarbon between vessels",
+    "doc_code": "PRO-MEC-041",
+    "doc_family": "PRO",
+    "doc_title": "Export Transfer Pump Maintenance",
+    "effective_on": "2016-11-21",
+    "printed_label": "1.1.2",
+    "setpoint": null,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "7af577704aee531c7febeebf36b8e3516b7fc3a87a8d13e917422cf07e3feb19",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:CVY/PRO-MEC-041/006#CVY/PRO-MEC-041/1.5.2(d)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "7579682f1ea6ad2594705658768219006bdfef3f39520d55d12af162af653852",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The controlled transfer of hydrocarbon between vessels shall be provided and maintained wherever this procedure applies, and its condition shall be treated as a critical control. This clause applies to activities archived under CONTAINMENT-OF-HYDROCARBONS at Cape Verity Export Terminal.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "d5791f5194dc8f02c30c45551576134a0376717af62b419b6dfeb6053bdbffb0",
+  "source": null
+}

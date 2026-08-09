@@ -1,0 +1,110 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "inspecting Ex equipment and enclosures",
+    "activity_root": "CONTROL-OF-IGNITION-SOURCES",
+    "activity_series": "maintaining hazardous-area electrical equipment",
+    "assets": [
+      {
+        "asset_class": "BOIL-CLASS-A",
+        "label": "package boilers and deaerator",
+        "service": "process steam generation and feedwater deaeration",
+        "tag": "B-8201"
+      },
+      {
+        "asset_class": "INST-CLASS-A",
+        "label": "instrument loop",
+        "service": "governs B-8201",
+        "tag": "TT-8201"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "FIRE_WATCH_PROVISION",
+        "control_label": "provision and briefing of a competent fire watch",
+        "failure_mode": "absent",
+        "hazard_energy": "thermal",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "GAS_TEST_BEFORE_AND_DURING_HOT_WORK",
+        "control_label": "atmospheric gas testing before and during hot work",
+        "failure_mode": "not_verified",
+        "hazard_energy": "thermal",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "HOT_WORK_AUTHORISATION",
+        "control_label": "authorisation of hot work adjacent to live plant",
+        "failure_mode": "ineffective",
+        "hazard_energy": "thermal",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "AF-2021-002",
+    "hazard_energy": "thermal",
+    "hazard_media": [
+      "hot surface",
+      "steam",
+      "molten material",
+      "hot work",
+      "exothermic reaction"
+    ],
+    "hazard_release": "burn, ignition, scald",
+    "kind": "audit_finding",
+    "occurred_on": "2021-02-20",
+    "severity_actual": 0,
+    "severity_potential": 3,
+    "site": "Tolgarra Processing and Power Station",
+    "summary_facts": [],
+    "task_phase": "during cleaning and preparation",
+    "title": "audit finding - management of change not applied to B-8201",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "5b485ee0630a7ab1cf0e197ce7b76f5aa3e58dae18c0dd1f94409445614d26f4",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:AF-2021-002",
+  "prompt_kind": "icam",
+  "prompt_sha256": "2a231c62197fb3118206dc644503710286f34de9e4054a10be01b2a3facefd31",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 3 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "FIRE_WATCH_PROVISION",
+        "finding": "Control FIRE_WATCH_PROVISION: the provision and briefing of a competent fire watch was not in place, and the ICAM investigation classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "GAS_TEST_BEFORE_AND_DURING_HOT_WORK",
+        "finding": "Control GAS_TEST_BEFORE_AND_DURING_HOT_WORK: the atmospheric gas testing before and during hot work was never verified as effective, and the ICAM investigation classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "HOT_WORK_AUTHORISATION",
+        "finding": "Control HOT_WORK_AUTHORISATION: the authorisation of hot work adjacent to live plant was in place but did not perform, and the ICAM investigation classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the atmospheric gas testing before and during hot work on B-8201 and TT-8201 and record the critical control verification before this task is next authorised.",
+      "Restore the authorisation of hot work adjacent to live plant on B-8201 and TT-8201 and record the critical control verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in maintaining hazardous-area electrical equipment, specifically inspecting Ex equipment and enclosures. B-8201 (package boilers and deaerator) is in service for process steam generation and feedwater deaeration. The task proceeded during cleaning and preparation while the provision and briefing of a competent fire watch was not in place. The thermal energy involved is held as hot surface, and the recorded presentation was burn, ignition, scald.",
+    "summary": "On 20 February 2021 a planned critical control verification of B-8201 and TT-8201 at Tolgarra Processing and Power Station found the provision and briefing of a competent fire watch not effective."
+  },
+  "response_sha256": "1c2e052443ae3867c03456b4e5c068a279126b2f2cf945e61e9f46976ebaa7eb",
+  "source": null
+}

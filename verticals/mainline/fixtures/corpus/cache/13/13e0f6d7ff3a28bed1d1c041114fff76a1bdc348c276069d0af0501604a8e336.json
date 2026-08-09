@@ -1,0 +1,80 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "isolating and depressuring a leaking system",
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "activity_series": "responding to a loss of containment",
+    "assets": [
+      {
+        "asset_class": "ESD-CLASS-A",
+        "label": "emergency shutdown valves",
+        "service": "jetty and manifold emergency isolation",
+        "tag": "ZV-7210"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "HYDROCARBON_TRANSFER_CONTROL",
+        "control_label": "controlled transfer of hydrocarbon between vessels",
+        "failure_mode": "absent",
+        "hazard_energy": "pressure",
+        "icam_tier": "organisational_factor"
+      }
+    ],
+    "event_ref": "AF-2010-003",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "audit_finding",
+    "occurred_on": "2010-03-20",
+    "severity_actual": 0,
+    "severity_potential": 2,
+    "site": "Cape Verity Export Terminal",
+    "summary_facts": [],
+    "task_phase": "during a statutory inspection",
+    "title": "audit finding - change request not applied to ZV-7210",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "13e0f6d7ff3a28bed1d1c041114fff76a1bdc348c276069d0af0501604a8e336",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:AF-2010-003",
+  "prompt_kind": "icam",
+  "prompt_sha256": "4cd3707a9a809a4c43bfdf0dffc3698c5c23c17ce2791f03e0dd0395e0fda588",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 2 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "HYDROCARBON_TRANSFER_CONTROL",
+        "finding": "Control HYDROCARBON_TRANSFER_CONTROL: the controlled transfer of hydrocarbon between vessels was not in place, and the root cause analysis classified this as an organisational factor."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next field verification that the controlled transfer of hydrocarbon between vessels on ZV-7210 performs as designed."
+    ],
+    "sequence": "Work was under way in responding to a loss of containment, specifically isolating and depressuring a leaking system. ZV-7210 (emergency shutdown valves) is in service for jetty and manifold emergency isolation. The task proceeded during a statutory inspection while the controlled transfer of hydrocarbon between vessels was not in place. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 20 March 2010 a planned field verification of ZV-7210 at Cape Verity Export Terminal found the controlled transfer of hydrocarbon between vessels not effective."
+  },
+  "response_sha256": "809e410549203332c764181cbd8eaf8bf7dc8e56da836f387b437566047fbb39",
+  "source": null
+}

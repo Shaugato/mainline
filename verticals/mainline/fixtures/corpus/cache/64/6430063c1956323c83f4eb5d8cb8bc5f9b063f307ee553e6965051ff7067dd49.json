@@ -1,0 +1,128 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "removing isolation and returning to operations",
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "activity_series": "restoring plant to service",
+    "assets": [
+      {
+        "asset_class": "SLP-CLASS-B",
+        "label": "dewatering pumps",
+        "service": "pit dewatering",
+        "tag": "P-9503"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "ISOLATION_HANDBACK_CONTROL",
+        "control_label": "controlled removal of isolation and return to service",
+        "failure_mode": "absent",
+        "hazard_energy": "electrical",
+        "icam_tier": "organisational_factor"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "LOAD_SUPPORT_FOR_MAINTENANCE",
+        "control_label": "mechanical support of a load during maintenance access",
+        "failure_mode": "bypassed",
+        "hazard_energy": "pressure",
+        "icam_tier": "organisational_factor"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "POSITIVE_ISOLATION_APPLICATION",
+        "control_label": "application of positive isolation devices and personal locks",
+        "failure_mode": "ineffective",
+        "hazard_energy": "electrical",
+        "icam_tier": "individual_or_team_action"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "STORED_ENERGY_DISSIPATION",
+        "control_label": "dissipation or restraint of trapped and residual energy",
+        "failure_mode": "ineffective",
+        "hazard_energy": "electrical",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "ZERO_ENERGY_VERIFICATION",
+        "control_label": "proving zero energy before intrusive work",
+        "failure_mode": "ineffective",
+        "hazard_energy": "electrical",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "INC-2016-002",
+    "hazard_energy": "pressure",
+    "hazard_media": [
+      "hydraulic accumulator",
+      "barrier fluid",
+      "process gas",
+      "steam header",
+      "compressed air",
+      "trapped liquid"
+    ],
+    "hazard_release": "jet release, stored-energy discharge, rupture",
+    "kind": "incident",
+    "occurred_on": "2016-01-27",
+    "severity_actual": 0,
+    "severity_potential": 2,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during a breakdown response",
+    "title": "energy isolation failure on P-9503",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "6430063c1956323c83f4eb5d8cb8bc5f9b063f307ee553e6965051ff7067dd49",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2016-002",
+  "prompt_kind": "icam",
+  "prompt_sha256": "74dc66a670167a25ae6a88528104b4f68c72862321713b4afe32fa34349df5a0",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 2 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "ISOLATION_HANDBACK_CONTROL",
+        "finding": "Control ISOLATION_HANDBACK_CONTROL: the controlled removal of isolation and return to service was not in place, and the ICAM investigation classified this as an organisational factor."
+      },
+      {
+        "control_class": "LOAD_SUPPORT_FOR_MAINTENANCE",
+        "finding": "Control LOAD_SUPPORT_FOR_MAINTENANCE: the mechanical support of a load during maintenance access had been bypassed, and the ICAM investigation classified this as an organisational factor."
+      },
+      {
+        "control_class": "POSITIVE_ISOLATION_APPLICATION",
+        "finding": "Control POSITIVE_ISOLATION_APPLICATION: the application of positive isolation devices and personal locks was in place but did not perform, and the ICAM investigation classified this as an individual or team action."
+      },
+      {
+        "control_class": "STORED_ENERGY_DISSIPATION",
+        "finding": "Control STORED_ENERGY_DISSIPATION: the dissipation or restraint of trapped and residual energy was in place but did not perform, and the ICAM investigation classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "ZERO_ENERGY_VERIFICATION",
+        "finding": "Control ZERO_ENERGY_VERIFICATION: the proving zero energy before intrusive work was in place but did not perform, and the ICAM investigation classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the proving zero energy before intrusive work on P-9503 and record the critical control verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in restoring plant to service, specifically removing isolation and returning to operations. P-9503 (dewatering pumps) is in service for pit dewatering. The task proceeded during a breakdown response while the controlled removal of isolation and return to service was not in place. The pressure energy involved is held as hydraulic accumulator, and the recorded presentation was jet release, stored-energy discharge, rupture.",
+    "summary": "On 27 January 2016 an incident occurred on P-9503 at Yandarra Downs Open Cut and Heavy Workshop during a breakdown response, releasing pressure energy held as hydraulic accumulator."
+  },
+  "response_sha256": "a13ae4fde8ccdf8d8fb26d73b0b90698273e6b0c5a34e1affa10f0a36ab261fb",
+  "source": null
+}

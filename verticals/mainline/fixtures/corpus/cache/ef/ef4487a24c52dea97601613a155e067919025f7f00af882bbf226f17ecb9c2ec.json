@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "LIFTING-AND-SUSPENDED-LOADS",
+    "barrier_role": "preventive",
+    "control_class": "LIFTING_GEAR_INSPECTION",
+    "control_delta": "restate",
+    "control_label": "inspection and periodic proof testing of lifting gear",
+    "doc_code": "PRO-MEC-055",
+    "doc_family": "PRO",
+    "doc_title": "Workshop Component Removal and Load Support",
+    "effective_on": "2017-04-13",
+    "printed_label": "2.1.4",
+    "setpoint": {
+      "from": 3.0,
+      "key": "lifting_gear_inspection_interval",
+      "label": "periodic inspection interval for lifting gear",
+      "strengthen_direction": "lower",
+      "to": 3.0,
+      "unit": "months"
+    },
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "ef4487a24c52dea97601613a155e067919025f7f00af882bbf226f17ecb9c2ec",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:YND/PRO-MEC-055/009#YND/PRO-MEC-055/5.2.2(b)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "c696fb29b5ce1bbb536307d277bd7888576aafc51202a88f2fa82d9173812a44",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The inspection and periodic proof testing of lifting gear shall be provided and maintained wherever this procedure applies, and its condition shall be treated as a critical control. The periodic inspection interval for lifting gear shall be set at 3 months. This clause applies to activities archived under LIFTING-AND-SUSPENDED-LOADS at Yandarra Downs Open Cut and Heavy Workshop.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "c8e1e4c4fe780bf8ac49e2e878b0985a75ec8ec3ddf579936b9e09fa4b933f93",
+  "source": null
+}

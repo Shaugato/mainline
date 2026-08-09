@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "PRESSURE-SYSTEM-INTEGRITY",
+    "barrier_role": "recovery",
+    "control_class": "PRESSURE_RELIEF_DEVICE_INTEGRITY",
+    "control_delta": "strengthen",
+    "control_label": "setting, testing and sealing of pressure relief devices",
+    "doc_code": "STD-PRV-005",
+    "doc_family": "STD",
+    "doc_title": "Pressure Relief and Overpressure Protection",
+    "effective_on": "2013-09-19",
+    "printed_label": "3.4.3(d)",
+    "setpoint": {
+      "from": 1200.0,
+      "key": "relief_valve_set_pressure",
+      "label": "relief valve set pressure",
+      "strengthen_direction": "lower",
+      "to": 1000.0,
+      "unit": "kPa"
+    },
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "energy_isolation": "lock out tag out",
+      "verification": "field verification"
+    }
+  },
+  "key": "ae6e7c6da14e19472cabf17097486c469f42530577baded58dde76488f045849",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:TLG/STD-PRV-005/003#TLG/STD-PRV-005/3.4.3(d)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "7686592fe0fdeb7edc2cec485c8b2841ea4d62be13c98c423620717d405dd8fc",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The setting, testing and sealing of pressure relief devices must be provided, and its effectiveness must be recorded as a field verification before the task proceeds. The relief valve set pressure must be set at 1000 kPa. This clause applies to activities archived under PRESSURE-SYSTEM-INTEGRITY at Tolgarra Processing and Power Station.",
+    "obligation_verb": "must"
+  },
+  "response_sha256": "7d71d1ad154e7450aca3967d475dfd2581a17fed09ea50d94a381b5f4a69ac2f",
+  "source": null
+}

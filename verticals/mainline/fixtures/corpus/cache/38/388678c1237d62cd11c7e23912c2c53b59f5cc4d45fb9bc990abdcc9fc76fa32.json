@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 3,
+    "doc_code": "PRO-OPS-017",
+    "doc_family": "PRO",
+    "doc_title": "Ship Loading and Vapour Recovery",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2013-05-29",
+    "required_citations": [],
+    "rev_no": 5,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "root cause analysis",
+      "management_of_change": "change request",
+      "near_miss": "hazard report"
+    }
+  },
+  "key": "388678c1237d62cd11c7e23912c2c53b59f5cc4d45fb9bc990abdcc9fc76fa32",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:CVY/PRO-OPS-017/005",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "110f220b5831b36c3d4357543c18c0ea34c4d27cc66c63d19edd04361830dccd",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [],
+    "reason": "Scheduled review at revision 5; 3 clauses restated."
+  },
+  "response_sha256": "fbd2006eb3e54d7fb0cbd7f560cd049c6614ccda7b49e3e0bac15bfe8dc7f38d",
+  "source": null
+}

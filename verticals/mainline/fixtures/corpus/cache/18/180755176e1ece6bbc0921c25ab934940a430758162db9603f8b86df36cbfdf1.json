@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "barrier_role": "recovery",
+    "control_class": "SEAL_FACE_TEMPERATURE_ALARM",
+    "control_delta": "remove",
+    "control_label": "seal-face high-temperature alarm and trip",
+    "doc_code": "PRO-OPS-017",
+    "doc_family": "PRO",
+    "doc_title": "Ship Loading and Vapour Recovery",
+    "effective_on": "2009-04-11",
+    "printed_label": "2.3.1(b)",
+    "setpoint": null,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "180755176e1ece6bbc0921c25ab934940a430758162db9603f8b86df36cbfdf1",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:CVY/PRO-OPS-017/003#CVY/PRO-OPS-017/2.3.1(b)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "ae2dd88c02244add430c8aca5a2cfd0eb4f35c67762a7da0fd401865c9a521e1",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "This requirement is withdrawn. The seal-face high-temperature alarm and trip is no longer imposed by this procedure; the duty is discharged under the document that supersedes this clause.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "1f2a868b6c2a76b6783ba34456b7a4764a1bb689f91e4682b897852608c8af9c",
+  "source": null
+}

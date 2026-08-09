@@ -1,0 +1,313 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
+#
+# Novelty fragment per docs/leads/algorithms.md §6.  Validated by
+# tests/unit/domain/novelty/test_novelty_manifest.py (this worker) and consumed
+# by MECHANISMS.md generation.  Anything not yet proven belongs under
+# `unverified:` and NEVER inside `claim:`.
+#
+# WHY THIS FILE IS HERE AND NOT IN mainline-domain/novelty/
+# ----------------------------------------------------------
+# §6 says "one file per algorithm, per worker, so ten workers never touch one
+# manifest".  `verticals/mainline/packages/mainline-domain/novelty/` is not in
+# this worker's deliverable_paths, and writing into another worker's directory
+# is exactly the file-ownership violation the fleet discipline forbids.  So the
+# fragment lives in this worker's own distribution and the validator globs BOTH
+# directories.  The manifest is a set of files, not a directory.
+
+slug: mutation-ratchet
+name: MUTATION RATCHET
+mechanism: M1
+claim: >-
+  Two mutation catalogues and one harness measure the residual risk of the clause-identity and
+  delta machinery, and the number is PUBLISHED as a standing metric rather than asserted as a
+  launch claim.  KILL is sixteen classes of control mutation the pipeline must react to — deontic
+  downgrade, setpoint nudges at 1 %, 5 % and 25 % against the DIRECTRIX safe direction, comparator
+  loosening, hedge insertion, exception insertion, quantifier narrowing, verification-step
+  deletion, frequency lengthening, uncompensated anchor drop, clause split-and-dilute, N-step
+  salami at 5, 10 and 20, and adversarial paraphrase from committed cassettes.  SURVIVE is twelve
+  classes of identity-preserving reformat it must ignore — retypeset, renumber, reflow, document
+  split and merge, OCR noise, table-to-prose, heading level, whitespace churn, template migration,
+  appendix relocation and cross-reference renumbering.  The two are reported SEPARATELY and there
+  is no combined "accuracy" figure anywhere in the design (decision D13), because a missed
+  weakening and a manufactured false positive are different products and one number hides both.
+  Every published proportion is a WILSON LOWER BOUND, per class and per document family, computed
+  by six lines of arithmetic whose preimage is written out in the module docstring rather than
+  imported from a statistics package.  Three of three killed is a point estimate of 1.0 and a 95 %
+  lower bound of 0.44; publishing 1.0 there is not optimism, it is a false statement about how
+  much evidence exists.  Every number carries the harness version, the catalogue digest, the
+  SOURCE-TEXT fingerprint of every registered operator, the identity-policy digest and the
+  lattice rule-catalogue fingerprint, so a figure quoted anywhere can be re-derived from committed
+  bytes or shown to be unreproducible.
+  The harness has been observed RED: run against a lattice with rule R1_DEONTIC switched off
+  through an injection point that lives in the measurement package and not in the lattice, it
+  reports a kill rate strictly below the intact arm's with `deontic_downgrade` named as a
+  surviving class.  A harness that has only ever reported 100 % has not been observed to assert
+  anything.
+
+enforcement:
+  # DELIBERATELY EMPTY, and this is the only fragment in the domain for which
+  # that is true. docs/leads/algorithms.md §2 records this mechanism's
+  # enforcement as "(measures; never gates)". Nothing reads
+  # mainline_meas.mutation_run to decide anything: no permit column is projected
+  # from it, no blocking_check is materialised by it, no merge consults it, and
+  # the CLI exits 0 whatever the kill rate is. A number that could stop a merge
+  # would acquire an incentive to be high, and the whole value of this one is
+  # that it is allowed to be bad.
+  #
+  # The two refusals below are about the INTEGRITY OF THE RECORD, not about the
+  # measurement gating anything. They are listed because they are real and
+  # because the row a publisher would most like to delete is `outcome =
+  # 'survived'` — deleting four survivor rows raises a run's kill rate from 0.96
+  # to 1.00 and leaves a table entirely consistent with itself.
+  refuses:
+    - "mainline_meas.mutation_result append_only / fn_refuse_mutation (P0001) — a survivor row cannot be deleted or edited, only superseded by a later run"
+    - "mainline_meas.mutation_run append_only / fn_refuse_mutation (P0001) — a published figure cannot be quietly improved after the fact"
+    - "mutation_run.arm_is_consistent (23514) — a crippled run cannot be recorded under the production label, and an intact one cannot claim a disabled rule"
+    - "mutation_result.outcome_matches_kind (23514) — a SURVIVE mutant cannot be scored as 'killed', which is the mislabelling that moves an aggregate in the flattering direction"
+    - "mutation_run.kill_interval_ordered / survive_interval_ordered (23514) — a lower bound cannot exceed its own point estimate"
+  refusal_depth: 1
+
+position: re-parameterisation
+# Stated plainly and without hedging, because §2 already labels it so.
+#
+# Mutation testing is fifty years old. DeMillo, Lipton & Sayward (1978) and Hamlet
+# (1977) define it; PIT, Stryker, mutmut and Google's industrial deployment are
+# the modern practice; "mutation score" is a term of art. Seeding known faults
+# into an artefact, running the detector and counting what survives is theirs,
+# entirely, and nothing about the METHOD is claimed here.
+#
+# The Wilson score interval is Wilson (1927). Reporting a lower bound rather than
+# a ratio is standard statistical practice and is not a contribution.
+#
+# What the survey did not find is the COMBINATION of three choices, and they are
+# small choices that are only interesting together:
+#
+#   (a) THE MUTANTS ARE SAFETY-CONTROL WEAKENINGS, NOT CODE FAULTS. The artefact
+#       under mutation is a procedure clause and the "test suite" is a delta
+#       lattice plus a matcher. A surviving mutant is not an untested branch; it
+#       is a control weakening that would have reached a permit undetected.
+#
+#   (b) THE SECOND CATALOGUE. Software mutation testing has no SURVIVE
+#       catalogue, because there is no such thing as a code change that must NOT
+#       be detected. Here there is: a reformat that changes clause identity is a
+#       manufactured blocking row, and enough of them breach the nuisance ceiling
+#       that risk R-A7 says gets a rule REJECTED, not tuned. Measuring both
+#       directions separately, and refusing to average them, is the part of the
+#       design that follows from the product rather than from the method.
+#
+#   (c) THE NUMBER IS THE DELIVERABLE, NOT THE GATE. Mutation score in industrial
+#       practice is a CI threshold: a build fails below 80 %. Here the figure
+#       gates nothing and is published with its confidence bound, its catalogue
+#       digest and its named survivors, as the residual risk the design declines
+#       to argue away (R-A1). The incentive difference is the whole point — a
+#       number that can fail a build is a number somebody will tune the
+#       catalogue to satisfy.
+#
+# None of (a), (b) or (c) is a research contribution and this fragment does not
+# present them as one. The honest summary is: a well-known method, applied to an
+# unusual artefact, with the result published instead of enforced.
+
+prior_art:
+  - url: "https://ieeexplore.ieee.org/document/1646911"
+    what_it_covers: >-
+      DeMillo, Lipton & Sayward, *Hints on Test Data Selection: Help for the Practicing Programmer*
+      (IEEE Computer 11(4), 1978), is the founding statement of mutation testing: seed small
+      faults into a program, run the test suite, and treat the fraction of seeded faults the suite
+      detects as a measure of the suite's adequacy. The competent-programmer hypothesis and the
+      coupling effect — that simple seeded faults stand in for complex real ones — are the
+      assumptions this harness inherits wholesale and does not improve on. Every structural idea
+      in `mainline-mutation` is theirs: an operator catalogue, a kill/survive dichotomy, a rate.
+    what_it_does_not: >-
+      The mutated artefact is a program and the detector is a test suite, so a surviving mutant is
+      a gap in testing. Nothing in that literature has a second catalogue of mutations that must
+      NOT be detected, because a code change that a test suite is required to ignore is not a
+      coherent notion; here it is the central one, and it is where the false-positive cost that
+      decides whether a safety gate stays switched on gets measured. Nor is the score published
+      with a confidence bound and a content digest as a standing statement of residual risk: it is
+      a development metric, usually a CI threshold.
+  - url: "https://research.google/pubs/state-of-mutation-testing-at-google/"
+    what_it_covers: >-
+      Petrovic & Ivankovic, *State of Mutation Testing at Google* (ICSE-SEIP 2018), is the
+      reference account of running mutation testing at industrial scale, including the finding
+      that most mutants are not worth showing to a developer and the productivity-driven filtering
+      that follows from it. The engineering discipline of a curated, reviewed mutation catalogue
+      rather than an exhaustive generated one is theirs and is what this catalogue imitates.
+    what_it_does_not: >-
+      The output is a developer-facing suggestion during code review, tuned for acceptance rate.
+      It is explicitly a productivity instrument, not an evidentiary one: it carries no confidence
+      interval, no content digest of the operator set, no seed, and no claim that a number from
+      2018 could be recomputed today. It also has no notion of an artefact whose mutation is a
+      hazard to a person rather than a defect in a product.
+  - url: "https://www.jstor.org/stable/2276774"
+    what_it_covers: >-
+      Wilson, *Probable Inference, the Law of Succession, and Statistical Inference* (JASA 22(158),
+      1927), gives the score interval this package reports. The interval is his; the six-line
+      implementation in `wilson.py` is a transcription of the closed form and is a
+      re-implementation rather than a contribution. Brown, Cai & DasGupta (2001) is the reference
+      for why it is preferred to the Wald interval at the extremes, which is exactly where a kill
+      rate lives.
+    what_it_does_not: >-
+      A confidence interval says nothing about which proportion is worth publishing, or about the
+      obligation to publish the bound rather than the ratio. The choice to make the LOWER bound the
+      claim everywhere — so that three of three reports 0.44 and not 1.0 — is an editorial
+      discipline, not a statistical result, and no statistics text imposes it.
+  - url: "https://pitest.org/"
+    what_it_covers: >-
+      PIT is the reference production mutation-testing tool for the JVM and is what "a mutation
+      testing harness" means in practice: a declared operator set, incremental analysis, and a
+      mutation score reported per class. Its operator catalogue — conditionals boundary, negate
+      conditionals, math, void method calls — is the model for a catalogue that is curated and
+      named rather than exhaustively generated.
+    what_it_does_not: >-
+      PIT's score is a build threshold; `pitest-maven` fails the build below a configured
+      percentage. That is the opposite of the choice here and the difference is not stylistic: a
+      number that can fail a build acquires an incentive to be high, and the cheapest way to raise
+      a mutation score is to remove the mutants a system fails on. This catalogue keeps them —
+      `comparator_loosening` survives on five fixtures and is documented in the operator rather
+      than deleted — precisely because the figure gates nothing.
+  - url: "https://en.wikipedia.org/wiki/Management_of_change"
+    what_it_covers: >-
+      Management of Change is what a site does today about the risk this harness measures: a
+      procedure edit is routed to a review board and a competent person judges whether it weakens
+      a control. The incumbent's residual risk — how often a review board misses a weakening — is
+      a real, studied quantity in process-safety practice, and any claim made here is a claim
+      relative to that baseline.
+    what_it_does_not: >-
+      No MOC system publishes its own miss rate. The judgement is a human artefact in a workflow
+      record, there is no seeded-fault corpus against which the board's detection could be
+      measured, and the question "what fraction of deliberately weakened clauses would this
+      process have caught" is not asked anywhere in the practice. This harness does not answer it
+      for humans either — it measures the machine path only, and the comparison against a review
+      board is UNVERIFIED and appears below rather than in the claim.
+
+implemented_by:
+  - "verticals/mainline/packages/mainline-mutation/src/mainline_mutation/__init__.py"
+  - "verticals/mainline/packages/mainline-mutation/src/mainline_mutation/wilson.py"
+  - "verticals/mainline/packages/mainline-mutation/src/mainline_mutation/model.py"
+  - "verticals/mainline/packages/mainline-mutation/src/mainline_mutation/catalogue.py"
+  - "verticals/mainline/packages/mainline-mutation/src/mainline_mutation/fixtures.py"
+  - "verticals/mainline/packages/mainline-mutation/src/mainline_mutation/operators/kill.py"
+  - "verticals/mainline/packages/mainline-mutation/src/mainline_mutation/operators/survive.py"
+  - "verticals/mainline/packages/mainline-mutation/src/mainline_mutation/paraphrase.py"
+  - "verticals/mainline/packages/mainline-mutation/src/mainline_mutation/lattice_injection.py"
+  - "verticals/mainline/packages/mainline-mutation/src/mainline_mutation/pipeline.py"
+  - "verticals/mainline/packages/mainline-mutation/src/mainline_mutation/residue.py"
+  - "verticals/mainline/packages/mainline-mutation/src/mainline_mutation/judge.py"
+  - "verticals/mainline/packages/mainline-mutation/src/mainline_mutation/metrics.py"
+  - "verticals/mainline/packages/mainline-mutation/src/mainline_mutation/runner.py"
+  - "verticals/mainline/packages/mainline-mutation/src/mainline_mutation/report.py"
+  - "verticals/mainline/packages/mainline-mutation/src/mainline_mutation/sql.py"
+  - "verticals/mainline/packages/mainline-mutation/src/mainline_mutation/cli.py"
+  - "verticals/mainline/packages/mainline-mutation/src/mainline_mutation/data/catalogue-v1.toml"
+  - "verticals/mainline/packages/mainline-mutation/src/mainline_mutation/data/fixtures-v1.toml"
+  - "verticals/mainline/packages/mainline-mutation/src/mainline_mutation/data/paraphrase-cassettes-v1.json"
+  - "verticals/mainline/db/migrations/0049y_meas_mutation_run.sql"
+  - "verticals/mainline/db/migrations/0049z_meas_mutation_result.sql"
+  - "verticals/mainline/db/migrations/0149y_trg_mutation_run_append_only.sql"
+  - "verticals/mainline/db/migrations/0149z_trg_mutation_result_append_only.sql"
+  - ".github/workflows/mutation-ratchet.yml"
+
+tests:
+  # PL-2: the ones that were red before an operator existed.
+  - "tests/e2e/mutation/test_red_first.py::test_crippling_r1_lowers_the_kill_rate"
+  - "tests/e2e/mutation/test_red_first.py::test_the_surviving_class_is_named"
+  - "tests/e2e/mutation/test_red_first.py::test_the_intact_arm_kills_more"
+  - "tests/e2e/mutation/test_red_first.py::test_some_mutant_survives_even_intact"
+  # The bound, checked against values a reader can verify with a calculator.
+  - "tests/e2e/mutation/test_wilson.py::test_three_of_three_is_not_one_point_zero"
+  - "tests/e2e/mutation/test_wilson.py::test_the_interval_matches_the_formula_in_the_docstring"
+  - "tests/e2e/mutation/test_wilson.py::test_no_evidence_gives_the_worst_answer"
+  # Coverage: every declared class produced a trial.
+  - "tests/e2e/mutation/test_catalogue_coverage.py"
+  # The injection point is the production path when nothing is disabled.
+  - "tests/e2e/mutation/test_injection.py::test_empty_disabled_is_the_production_path"
+  - "tests/e2e/mutation/test_injection.py::test_a_typo_raises_rather_than_disabling_nothing"
+  # ORIGINDIFF, measured: adjacent steps invisible, composition a weakening.
+  - "tests/e2e/mutation/test_operators.py::test_every_salami_chain_is_individually_invisible"
+  - "tests/e2e/mutation/test_operators.py::test_the_reformatting_classes_leave_the_digest_alone"
+  # Reproducibility, PL-1.
+  - "tests/e2e/mutation/test_determinism.py::test_two_runs_of_one_seed_render_identically"
+  # The fixtures still say what the TOML claims.
+  - "tests/e2e/mutation/test_fixtures.py"
+  # PL-3: no model, no network, no environment variable.
+  - "tests/e2e/mutation/test_no_model_reach.py"
+  # The SQL vocabulary and the Python vocabulary are one vocabulary.
+  - "tests/e2e/mutation/test_sql_shape.py"
+  # The manifest validator itself.
+  - "tests/unit/domain/novelty/test_novelty_manifest.py"
+
+unverified:
+  - >-
+    THE FIXTURE CORPUS IS TWELVE AUTHORED CLAUSES, NOT A SITE'S PROCEDURE LIBRARY. Every published
+    bound is a bound over THIS corpus and generalises to nothing. Twelve clauses across four
+    document families cannot support a claim about a real library's distribution of drafting
+    styles, table usage, cross-reference density or OCR quality, and the per-(class, family) cells
+    frequently have one or two trials, where the Wilson lower bound is near zero and correctly so.
+    The number is a floor on a fixture set, published because a floor on a fixture set is more
+    than anybody else publishes, and not because it is a floor on a site.
+  - >-
+    THE ADVERSARY IS A PERSON, NOT A MODEL. The `adversarial_paraphrase` cassettes are
+    HAND-AUTHORED. AWS credentials are not valid on the build machine (PL-3) and decision D12
+    keeps the live Bedrock path off by default and out of CI, so a cassette recorded from a live
+    call cannot be produced honestly today. They are what a competent adversary WOULD write, and
+    the artefact says so in a field called `paraphrase_provenance` rather than in a footnote. A
+    real adversarial-paraphrase kill rate is UNMEASURED.
+  - >-
+    RESIDUE IS DERIVED BY A STAND-IN. Worker W8 (`margin-assignment`) owns residue emission and
+    had not landed when this harness was written, so `mainline_mutation.residue` derives the five
+    reasons from the same authoritative facts and stamps `residue_source =
+    'mutation-harness-local/v1'` on every row. No figure here is a measurement of W8's
+    implementation, and the KILL catalogue's success condition — a weakening verdict OR a residue
+    row — is therefore half-measured against a stand-in.
+  - >-
+    THE CONSERVATION OF BLAME MASS LEDGER IS NOT EXERCISED. Worker W9's accounting needs a
+    cluster, a commit DAG and `clause_blame_closure` rows, none of which a fixture corpus has. The
+    flagship claim of this domain — that under-emitting residue is a `23514` at the moment of
+    accounting — is therefore NOT part of what this harness measures, and a KILL mutant recorded
+    as `survived` here might still be refused at merge by machinery this harness never ran.
+  - >-
+    PATH B IS NEVER CONSULTED, SO THE FIGURE IS A FLOOR AND NOT AN ESTIMATE. The published kill
+    rate is the model-free floor. The ABSTENTION RATCHET can only ever RAISE a verdict's force, so
+    an oracle could only improve these numbers. What the harness ALSO measured, and records on
+    every row, is that `resolve(path_a, oracle=None, theta)` returns `weaken` for every pair
+    including a pure retypeset — an absent oracle is an abstaining one and D6 makes an abstention
+    a weakening. A deployment that never runs Path B therefore blocks on everything. That is the
+    ratchet failing closed exactly as specified, it is why the outcome is judged on Path A, and
+    the operational consequence has NOT been measured against a real permit workload.
+  - >-
+    CASCADE STAGE S4 IS NOT DRIVEN. Identity recovery is measured over S1 (digest), S2 (anchor set
+    plus trigram) and S3 (MinHash/LSH rescored) only. The anchor-gated ANN arm needs embeddings
+    and a cluster and PL-3 forbids a dated path on either, so every `identity_changed` outcome in
+    the SURVIVE catalogue is an outcome a semantic stage might have recovered. The false-identity
+    change rate is therefore an UPPER estimate of the failure and the corresponding preservation
+    bound is conservative — which is the correct direction, and is stated rather than relied on.
+  - >-
+    THE MATCHER IS MEASURED AGAINST A ONE-MEMBER CORPUS. A SURVIVE mutant is asked "are you still
+    recognisable as THIS ancestor", never "do you beat every other clause in the library". The
+    discrimination question is worker W8's assignment problem and is a different measurement; a
+    one-member corpus cannot produce a degenerate optimum, which is why `ambiguous` residue is
+    never emitted here and why decision D4's degeneracy-as-residue rule is entirely untested by
+    this harness.
+  - >-
+    A MEASURED COVERAGE GAP BETWEEN TWO COMMITTED TABLES, RECORDED HERE BECAUSE IT IS THIS
+    HARNESS THAT FOUND IT. `data/lexicon/parameter.toml` can extract 60 parameter keys;
+    `data/registry/safe-direction-seed.toml` ratifies 74; the INTERSECTION is 6. Every clause
+    whose parameter falls outside that intersection ABSTAINS, and decision D6 turns an abstention
+    into `weaken`. That is R-A4 failing closed exactly as designed and it is not a defect — but it
+    means the great majority of setpoint clauses in this corpus would block on their own
+    reformatting for a vocabulary reason rather than a safety one, and the nuisance cost of that
+    has NOT been quantified. The intersection is recomputed on every run and printed into the
+    artefact as `directrix_ratified_and_extractable` so the number cannot rot into a comment.
+  - >-
+    A KILL RATE SAYS NOTHING ABOUT THE MUTATIONS NOBODY THOUGHT OF. The catalogue is curated, and
+    a curated catalogue measures the adversary its authors imagined. The classes here are the ones
+    the brief named plus the salami construction the lattice's own documented silences make
+    possible; a real adversary who found a different silence would not appear in any of these
+    numbers. Mutation testing's competent-programmer hypothesis is inherited here as an
+    assumption and is not tested.
+  - >-
+    NONE OF THIS DISTINGUISHES A CONSIDERED DISPOSITION FROM A RUBBER STAMP (risk R-A8). The
+    ratchet measures whether the machine noticed. It says nothing whatsoever about whether the
+    person who then adjudicated the blocking row read it, and it must never be sold as retiring
+    that risk.

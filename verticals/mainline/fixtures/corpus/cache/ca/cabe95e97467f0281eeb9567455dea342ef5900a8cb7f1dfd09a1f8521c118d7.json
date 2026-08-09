@@ -1,0 +1,104 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "monitoring seal-face condition and temperature",
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "activity_series": "maintaining sealing systems on rotating equipment",
+    "assets": [
+      {
+        "asset_class": "HTP-CLASS-A",
+        "label": "hydrocarbon transfer pumps",
+        "service": "hydrocarbon transfer, single mechanical seal with pressurised barrier-fluid support",
+        "tag": "P-4102"
+      },
+      {
+        "asset_class": "ACC-CLASS-A",
+        "label": "hydraulic energy accumulator",
+        "service": "stores hydraulic energy released at P-4102",
+        "tag": "ACC-4102"
+      },
+      {
+        "asset_class": "MOTOR-CLASS-A",
+        "label": "drive motor",
+        "service": "drives P-4102",
+        "tag": "M-4102"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "HYDROCARBON_TRANSFER_CONTROL",
+        "control_label": "controlled transfer of hydrocarbon between vessels",
+        "failure_mode": "absent",
+        "hazard_energy": "chemical",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "SEAL_SUPPORT_SYSTEM_INTEGRITY",
+        "control_label": "integrity of the mechanical seal support system",
+        "failure_mode": "not_verified",
+        "hazard_energy": "pressure",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "RN-2022-002",
+    "hazard_energy": "thermal",
+    "hazard_media": [
+      "hot surface",
+      "steam",
+      "molten material",
+      "hot work",
+      "exothermic reaction"
+    ],
+    "hazard_release": "burn, ignition, scald",
+    "kind": "regulator_notice",
+    "occurred_on": "2022-04-18",
+    "severity_actual": 1,
+    "severity_potential": 3,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during shift handover",
+    "title": "regulator directive concerning positive isolation verification at P-4102",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "cabe95e97467f0281eeb9567455dea342ef5900a8cb7f1dfd09a1f8521c118d7",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:RN-2022-002",
+  "prompt_kind": "icam",
+  "prompt_sha256": "38fcf61f0e4874dfca57b2832ea424f83795b54a1b5c71d874052c7b1cd0230e",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage. The potential outcome was rated 3 against the site's consequence scale, above the 1 actually realised.",
+    "defences": [
+      {
+        "control_class": "HYDROCARBON_TRANSFER_CONTROL",
+        "finding": "Control HYDROCARBON_TRANSFER_CONTROL: the controlled transfer of hydrocarbon between vessels was not in place, and the learning team review classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "SEAL_SUPPORT_SYSTEM_INTEGRITY",
+        "finding": "Control SEAL_SUPPORT_SYSTEM_INTEGRITY: the integrity of the mechanical seal support system was never verified as effective, and the learning team review classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the controlled transfer of hydrocarbon between vessels on P-4102, ACC-4102 and M-4102 and record the assurance activity before this task is next authorised.",
+      "Restore the integrity of the mechanical seal support system on P-4102, ACC-4102 and M-4102 and record the assurance activity before this task is next authorised."
+    ],
+    "sequence": "Work was under way in maintaining sealing systems on rotating equipment, specifically monitoring seal-face condition and temperature. P-4102 (hydrocarbon transfer pumps) is in service for hydrocarbon transfer, single mechanical seal with pressurised barrier-fluid support. The task proceeded during shift handover while the controlled transfer of hydrocarbon between vessels was not in place. The thermal energy involved is held as hot surface, and the recorded presentation was burn, ignition, scald.",
+    "summary": "On 18 April 2022 a regulatory notice was issued concerning P-4102, ACC-4102 and M-4102 at Marrindal Concentrator and Hydrocarbon Transfer Facility following shift handover."
+  },
+  "response_sha256": "c4df766242ac2d6e775f5211556ced4e8ec3802bf314d85079544b9eca665a77",
+  "source": null
+}

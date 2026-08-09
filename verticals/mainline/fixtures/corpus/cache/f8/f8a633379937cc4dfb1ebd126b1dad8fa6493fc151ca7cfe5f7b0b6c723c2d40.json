@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTROL-OF-IGNITION-SOURCES",
+    "barrier_role": "recovery",
+    "control_class": "SEAL_FACE_TEMPERATURE_ALARM",
+    "control_delta": "strengthen",
+    "control_label": "seal-face high-temperature alarm and trip",
+    "doc_code": "PRO-HSE-005",
+    "doc_family": "PRO",
+    "doc_title": "Hot Work Permit Administration",
+    "effective_on": "2014-05-16",
+    "printed_label": "3.3.1(c)",
+    "setpoint": null,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "energy_isolation": "lock out tag out",
+      "verification": "field verification"
+    }
+  },
+  "key": "f8a633379937cc4dfb1ebd126b1dad8fa6493fc151ca7cfe5f7b0b6c723c2d40",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/PRO-HSE-005/007#MRD/PRO-HSE-005/3.3.1(c)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "bd107e88564b55bc897bff931b51cc269a9e468eee81df527c3a4972936916fe",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The seal-face high-temperature alarm and trip must be provided, and its effectiveness must be recorded as a field verification before the task proceeds. This clause applies to activities archived under CONTROL-OF-IGNITION-SOURCES at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "must"
+  },
+  "response_sha256": "5ff3562802937c4875d09453fc4e1e50c52e9401c0a07d58a99bf726f7bf7be1",
+  "source": null
+}

@@ -1,0 +1,64 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 5,
+    "doc_code": "STD-PTW-001",
+    "doc_family": "STD",
+    "doc_title": "Permit to Work",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2011-04-02",
+    "required_citations": [
+      {
+        "control_label": "application of positive isolation devices and personal locks",
+        "event_ref": "AF-2009-005",
+        "event_title": "audit finding - spot check of key safeguard at V-4110",
+        "hazard_energy": "pressure",
+        "kind": "capa_action",
+        "quote_ref": "quote:MRD/STD-PTW-001/003#capa_action/AF-2009-005",
+        "severity_gate": 2
+      },
+      {
+        "control_label": "dissipation or restraint of trapped and residual energy",
+        "event_ref": "RN-2011-003",
+        "event_title": "improvement notice - critical safeguard at PSV-4111",
+        "hazard_energy": "chemical",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:MRD/STD-PTW-001/003#revision_history_line/RN-2011-003",
+        "severity_gate": 4
+      }
+    ],
+    "rev_no": 3,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "root cause analysis",
+      "management_of_change": "change request",
+      "near_miss": "hazard report"
+    }
+  },
+  "key": "fd4089f9cd390c9deac17879457c5aa1d42ce66a52f9403526a1f8320b9af4af",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/STD-PTW-001/003",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "627d098ce0127bf7d8df1262ca8a3d8c74e7c0acb1156838cc4c732ef746f893",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The corrective action recorded against AF-2009-005 required the application of positive isolation devices and personal locks to be restated in this standard.",
+        "quote_ref": "quote:MRD/STD-PTW-001/003#capa_action/AF-2009-005"
+      },
+      {
+        "line": "Revision 3 was raised in response to RN-2011-003, and the dissipation or restraint of trapped and residual energy was amended as a result.",
+        "quote_ref": "quote:MRD/STD-PTW-001/003#revision_history_line/RN-2011-003"
+      }
+    ],
+    "reason": "Scheduled review at revision 3; 5 clauses restated."
+  },
+  "response_sha256": "0b1e60c15386910379c29d57f7e42502b21945ac55388b7a4fb4924d47164192",
+  "source": null
+}

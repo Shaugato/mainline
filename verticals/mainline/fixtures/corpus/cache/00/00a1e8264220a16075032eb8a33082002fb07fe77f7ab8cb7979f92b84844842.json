@@ -1,0 +1,111 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "isolating and depressuring a leaking system",
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "activity_series": "responding to a loss of containment",
+    "assets": [
+      {
+        "asset_class": "TANK-CLASS-P",
+        "label": "product storage tanks",
+        "service": "export product storage",
+        "tag": "TK-7102"
+      },
+      {
+        "asset_class": "PRD-CLASS-A",
+        "label": "tank relief and vent devices",
+        "service": "tank overpressure and vacuum protection",
+        "tag": "PSV-7102"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "BUND_AND_DRAINAGE_CONTAINMENT",
+        "control_label": "secondary containment by bund and drainage",
+        "failure_mode": "ineffective",
+        "hazard_energy": "chemical",
+        "icam_tier": "individual_or_team_action"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "EMERGENCY_ISOLATION_ON_RELEASE",
+        "control_label": "emergency isolation and depressuring on loss of containment",
+        "failure_mode": "ineffective",
+        "hazard_energy": "pressure",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "SEAL_FACE_TEMPERATURE_ALARM",
+        "control_label": "seal-face high-temperature alarm and trip",
+        "failure_mode": "bypassed",
+        "hazard_energy": "chemical",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "NM-2012-0017",
+    "hazard_energy": "pressure",
+    "hazard_media": [
+      "hydraulic accumulator",
+      "barrier fluid",
+      "process gas",
+      "steam header",
+      "compressed air",
+      "trapped liquid"
+    ],
+    "hazard_release": "jet release, stored-energy discharge, rupture",
+    "kind": "near_miss",
+    "occurred_on": "2012-10-15",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Cape Verity Export Terminal",
+    "summary_facts": [],
+    "task_phase": "during a breakdown response",
+    "title": "hazard report during a breakdown response on TK-7102",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "00a1e8264220a16075032eb8a33082002fb07fe77f7ab8cb7979f92b84844842",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2012-0017",
+  "prompt_kind": "icam",
+  "prompt_sha256": "62c0fc3764645c9392b9837806ccb2b0cf83a3a36b62d1421978a96fd00e4525",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "BUND_AND_DRAINAGE_CONTAINMENT",
+        "finding": "Control BUND_AND_DRAINAGE_CONTAINMENT: the secondary containment by bund and drainage was in place but did not perform, and the root cause analysis classified this as an individual or team action."
+      },
+      {
+        "control_class": "EMERGENCY_ISOLATION_ON_RELEASE",
+        "finding": "Control EMERGENCY_ISOLATION_ON_RELEASE: the emergency isolation and depressuring on loss of containment was in place but did not perform, and the root cause analysis classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "SEAL_FACE_TEMPERATURE_ALARM",
+        "finding": "Control SEAL_FACE_TEMPERATURE_ALARM: the seal-face high-temperature alarm and trip had been bypassed, and the root cause analysis classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the emergency isolation and depressuring on loss of containment on TK-7102 and PSV-7102 and record the field verification before this task is next authorised.",
+      "Restore the seal-face high-temperature alarm and trip on TK-7102 and PSV-7102 and record the field verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in responding to a loss of containment, specifically isolating and depressuring a leaking system. TK-7102 (product storage tanks) is in service for export product storage. The task proceeded during a breakdown response while the secondary containment by bund and drainage was in place but did not perform. The pressure energy involved is held as hydraulic accumulator, and the recorded presentation was jet release, stored-energy discharge, rupture.",
+    "summary": "On 15 October 2012 a hazard report was recorded on TK-7102 and PSV-7102 at Cape Verity Export Terminal during a breakdown response; pressure energy held as hydraulic accumulator was not released."
+  },
+  "response_sha256": "2144d2b58d9d900bd19af49e3785a8e463521ca36c516c56b0d8255f13342745",
+  "source": null
+}

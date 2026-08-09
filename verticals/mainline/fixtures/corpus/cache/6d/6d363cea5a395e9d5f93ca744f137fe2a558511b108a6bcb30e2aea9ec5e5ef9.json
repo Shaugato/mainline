@@ -1,0 +1,91 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "directing a lift and controlling the drop zone",
+    "activity_root": "LIFTING-AND-SUSPENDED-LOADS",
+    "activity_series": "planning and executing a lift",
+    "assets": [
+      {
+        "asset_class": "LIFT-CLASS-W",
+        "label": "workshop hoists and press",
+        "service": "heavy vehicle component removal and pressing",
+        "tag": "HO-9402"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "LIFT_STUDY_APPROVAL",
+        "control_label": "preparation and approval of a lift study",
+        "failure_mode": "absent",
+        "hazard_energy": "gravity",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "LOAD_SUPPORT_FOR_MAINTENANCE",
+        "control_label": "mechanical support of a load during maintenance access",
+        "failure_mode": "bypassed",
+        "hazard_energy": "gravity",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "NM-2011-0001",
+    "hazard_energy": "gravity",
+    "hazard_media": [
+      "suspended load",
+      "stored potential of an elevated component",
+      "unsupported ground",
+      "person at height"
+    ],
+    "hazard_release": "fall, collapse, crush",
+    "kind": "near_miss",
+    "occurred_on": "2011-01-10",
+    "severity_actual": 1,
+    "severity_potential": 2,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during commissioning of replacement equipment",
+    "title": "hazard report during commissioning of replacement equipment on HO-9402",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "6d363cea5a395e9d5f93ca744f137fe2a558511b108a6bcb30e2aea9ec5e5ef9",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2011-0001",
+  "prompt_kind": "icam",
+  "prompt_sha256": "eb45c7324fd132cade23aa3dc856e126a2c3ff0318c0d75d103629043ab87887",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage. The potential outcome was rated 2 against the site's consequence scale, above the 1 actually realised.",
+    "defences": [
+      {
+        "control_class": "LIFT_STUDY_APPROVAL",
+        "finding": "Control LIFT_STUDY_APPROVAL: the preparation and approval of a lift study was not in place, and the root cause analysis classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "LOAD_SUPPORT_FOR_MAINTENANCE",
+        "finding": "Control LOAD_SUPPORT_FOR_MAINTENANCE: the mechanical support of a load during maintenance access had been bypassed, and the root cause analysis classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the preparation and approval of a lift study on HO-9402 and record the field verification before this task is next authorised.",
+      "Restore the mechanical support of a load during maintenance access on HO-9402 and record the field verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in planning and executing a lift, specifically directing a lift and controlling the drop zone. HO-9402 (workshop hoists and press) is in service for heavy vehicle component removal and pressing. The task proceeded during commissioning of replacement equipment while the preparation and approval of a lift study was not in place. The gravity energy involved is held as suspended load, and the recorded presentation was fall, collapse, crush.",
+    "summary": "On 10 January 2011 a hazard report was recorded on HO-9402 at Yandarra Downs Open Cut and Heavy Workshop during commissioning of replacement equipment; gravity energy held as suspended load was not released."
+  },
+  "response_sha256": "0d12b2fe17f7a3ab3607b2c4ad3344e73965db8aa7b20627a1b4a150ab546eb9",
+  "source": null
+}

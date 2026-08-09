@@ -1,0 +1,92 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "clearing misfires and handling residue",
+    "activity_root": "EXPLOSIVES-AND-BLASTING",
+    "activity_series": "charging and firing",
+    "assets": [
+      {
+        "asset_class": "DOSE-CLASS-A",
+        "label": "reagent dosing pumps",
+        "service": "reagent make-up and dosing",
+        "tag": "P-8302"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "BLAST_GUARDING_AND_CLEARANCE",
+        "control_label": "guarding, clearance and misfire handling for a blast",
+        "failure_mode": "ineffective",
+        "hazard_energy": "chemical",
+        "icam_tier": "individual_or_team_action"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "EXPLOSIVES_RECONCILIATION",
+        "control_label": "receipt, magazining and reconciliation of explosives",
+        "failure_mode": "ineffective",
+        "hazard_energy": "chemical",
+        "icam_tier": "organisational_factor"
+      }
+    ],
+    "event_ref": "CAPA-2026-004",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "capa",
+    "occurred_on": "2026-04-18",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Tolgarra Processing and Power Station",
+    "summary_facts": [],
+    "task_phase": "during a statutory inspection",
+    "title": "preventive action - alarm philosophy conformance on P-8302",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "e2644d68523579ec6a9a4641a160593b46e9ccfebcf41f41010fdbd269f6ad0f",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:CAPA-2026-004",
+  "prompt_kind": "icam",
+  "prompt_sha256": "8e0d092367c923fda034ec7ab2d4a5880c262277c05d643737665af374a7e8f7",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "BLAST_GUARDING_AND_CLEARANCE",
+        "finding": "Control BLAST_GUARDING_AND_CLEARANCE: the guarding, clearance and misfire handling for a blast was in place but did not perform, and the learning team review classified this as an individual or team action."
+      },
+      {
+        "control_class": "EXPLOSIVES_RECONCILIATION",
+        "finding": "Control EXPLOSIVES_RECONCILIATION: the receipt, magazining and reconciliation of explosives was in place but did not perform, and the learning team review classified this as an organisational factor."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next assurance activity that the guarding, clearance and misfire handling for a blast on P-8302 performs as designed."
+    ],
+    "sequence": "Work was under way in charging and firing, specifically clearing misfires and handling residue. P-8302 (reagent dosing pumps) is in service for reagent make-up and dosing. The task proceeded during a statutory inspection while the guarding, clearance and misfire handling for a blast was in place but did not perform. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 18 April 2026 a corrective action on P-8302 at Tolgarra Processing and Power Station was reviewed against the material unwanted event control it was raised to restore."
+  },
+  "response_sha256": "0ead11bfbac7e30ad3d76a04445abfc0715d0080b17b6c0f14b8a79a6c37eff1",
+  "source": null
+}

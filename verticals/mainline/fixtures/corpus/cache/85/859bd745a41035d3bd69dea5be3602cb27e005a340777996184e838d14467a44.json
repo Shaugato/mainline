@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "MOBILE-EQUIPMENT-INTERACTION",
+    "barrier_role": "preventive",
+    "control_class": "PROXIMITY_DETECTION_AND_SEGREGATION",
+    "control_delta": "restate",
+    "control_label": "segregation of light vehicles and pedestrians from heavy equipment",
+    "doc_code": "PRO-MIN-003",
+    "doc_family": "PRO",
+    "doc_title": "Haul Road and Light Vehicle Interaction",
+    "effective_on": "2007-11-17",
+    "printed_label": "7.2.2(b)",
+    "setpoint": null,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "859bd745a41035d3bd69dea5be3602cb27e005a340777996184e838d14467a44",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:YND/PRO-MIN-003/003#YND/PRO-MIN-003/7.2.2(b)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "cdc7029e5790da70e241d25f6d1ff57d2623a417b91602fcacd3db3455a7b923",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The segregation of light vehicles and pedestrians from heavy equipment shall be provided and maintained wherever this procedure applies, and its condition shall be treated as a key safeguard. This clause applies to activities archived under MOBILE-EQUIPMENT-INTERACTION at Yandarra Downs Open Cut and Heavy Workshop.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "ea10a55fe408c5e5d71330aa08f9c30887b71c674e927ab5a21813c69210e198",
+  "source": null
+}

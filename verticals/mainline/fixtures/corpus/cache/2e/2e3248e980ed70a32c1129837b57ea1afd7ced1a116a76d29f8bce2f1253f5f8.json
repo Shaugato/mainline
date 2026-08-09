@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "LIFTING-AND-SUSPENDED-LOADS",
+    "barrier_role": "preventive",
+    "control_class": "LOAD_SUPPORT_FOR_MAINTENANCE",
+    "control_delta": "restate",
+    "control_label": "mechanical support of a load during maintenance access",
+    "doc_code": "STD-LFT-003",
+    "doc_family": "STD",
+    "doc_title": "Lifting and Cranage",
+    "effective_on": "2019-01-20",
+    "printed_label": "6.1.2",
+    "setpoint": null,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "2e3248e980ed70a32c1129837b57ea1afd7ced1a116a76d29f8bce2f1253f5f8",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:YND/STD-LFT-003/007#YND/STD-LFT-003/6.2",
+  "prompt_kind": "clause",
+  "prompt_sha256": "eebed10cd8d3d0fe4a7ece8bb0c0f69fd3e4864018ba959564f4b68b73a6c1b5",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The mechanical support of a load during maintenance access shall be provided and maintained wherever this standard applies, and its condition shall be treated as a critical control. This clause applies to activities archived under LIFTING-AND-SUSPENDED-LOADS at Yandarra Downs Open Cut and Heavy Workshop.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "33a2205bb937a15b2cc52575cb2f129ff5a86410289f5a4a1441c52ace051b68",
+  "source": null
+}

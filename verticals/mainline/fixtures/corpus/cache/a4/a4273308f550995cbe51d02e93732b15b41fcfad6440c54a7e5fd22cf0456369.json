@@ -1,0 +1,79 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "clearing misfires and handling residue",
+    "activity_root": "EXPLOSIVES-AND-BLASTING",
+    "activity_series": "charging and firing",
+    "assets": [
+      {
+        "asset_class": "PRD-CLASS-A",
+        "label": "steam relief devices",
+        "service": "boiler and deaerator overpressure protection",
+        "tag": "PSV-8202"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "BLAST_GUARDING_AND_CLEARANCE",
+        "control_label": "guarding, clearance and misfire handling for a blast",
+        "failure_mode": "bypassed",
+        "hazard_energy": "thermal",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "NM-2008-0012",
+    "hazard_energy": "thermal",
+    "hazard_media": [
+      "hot surface",
+      "steam",
+      "molten material",
+      "hot work",
+      "exothermic reaction"
+    ],
+    "hazard_release": "burn, ignition, scald",
+    "kind": "near_miss",
+    "occurred_on": "2008-10-27",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Tolgarra Processing and Power Station",
+    "summary_facts": [],
+    "task_phase": "during a statutory inspection",
+    "title": "near hit during a statutory inspection on PSV-8202",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "investigation": "accident investigation",
+      "near_miss": "near hit",
+      "verification": "spot check"
+    }
+  },
+  "key": "a4273308f550995cbe51d02e93732b15b41fcfad6440c54a7e5fd22cf0456369",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2008-0012",
+  "prompt_kind": "icam",
+  "prompt_sha256": "59fa809aea0ab55c1feeaf58a73f21fef51cae852590b016b9e4e0a5ad687f72",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "BLAST_GUARDING_AND_CLEARANCE",
+        "finding": "Control BLAST_GUARDING_AND_CLEARANCE: the guarding, clearance and misfire handling for a blast had been bypassed, and the accident investigation classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next spot check that the guarding, clearance and misfire handling for a blast on PSV-8202 performs as designed."
+    ],
+    "sequence": "Work was under way in charging and firing, specifically clearing misfires and handling residue. PSV-8202 (steam relief devices) is in service for boiler and deaerator overpressure protection. The task proceeded during a statutory inspection while the guarding, clearance and misfire handling for a blast had been bypassed. The thermal energy involved is held as hot surface, and the recorded presentation was burn, ignition, scald.",
+    "summary": "On 27 October 2008 a near hit was recorded on PSV-8202 at Tolgarra Processing and Power Station during a statutory inspection; thermal energy held as hot surface was not released."
+  },
+  "response_sha256": "c6abebb0c02d3200b08af24c47988536cbd0faa63cf3474ac027feecc12868ef",
+  "source": null
+}

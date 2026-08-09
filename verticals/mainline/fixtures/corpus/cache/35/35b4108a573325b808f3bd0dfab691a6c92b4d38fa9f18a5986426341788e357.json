@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "LIFTING-AND-SUSPENDED-LOADS",
+    "barrier_role": "preventive",
+    "control_class": "LIFT_STUDY_APPROVAL",
+    "control_delta": "restate",
+    "control_label": "preparation and approval of a lift study",
+    "doc_code": "STD-LFT-003",
+    "doc_family": "STD",
+    "doc_title": "Lifting and Cranage",
+    "effective_on": "2019-01-20",
+    "printed_label": "5.1.2",
+    "setpoint": null,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "35b4108a573325b808f3bd0dfab691a6c92b4d38fa9f18a5986426341788e357",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:YND/STD-LFT-003/007#YND/STD-LFT-003/2.3.1(a)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "3555fa1bdb4829e44be78b3fbf7e032c7d6c74f60d8afd0ca1e0d5b8becdb0ef",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The preparation and approval of a lift study shall be provided and maintained wherever this standard applies, and its condition shall be treated as a critical control. This clause applies to activities archived under LIFTING-AND-SUSPENDED-LOADS at Yandarra Downs Open Cut and Heavy Workshop.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "cbd3f48db5f89cd7370f01f6af6250e58aa68a416bf5aad1294fe889166ac680",
+  "source": null
+}

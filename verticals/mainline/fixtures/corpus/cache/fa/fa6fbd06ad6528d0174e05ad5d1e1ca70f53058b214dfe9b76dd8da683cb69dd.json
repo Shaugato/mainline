@@ -1,0 +1,92 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "receiving, magazining and reconciling explosives",
+    "activity_root": "EXPLOSIVES-AND-BLASTING",
+    "activity_series": "storing and transporting explosives",
+    "assets": [
+      {
+        "asset_class": "TANK-CLASS-H",
+        "label": "hydrocarbon day tanks and surge vessel",
+        "service": "diesel and light hydrocarbon day storage, discharge surge suppression",
+        "tag": "V-4110"
+      },
+      {
+        "asset_class": "PRD-CLASS-A",
+        "label": "pressure relief devices",
+        "service": "overpressure protection on the transfer and storage system",
+        "tag": "PSV-4110"
+      },
+      {
+        "asset_class": "PRD-CLASS-A",
+        "label": "pressure relief devices",
+        "service": "overpressure protection on the transfer and storage system",
+        "tag": "PSV-4111"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "BLAST_GUARDING_AND_CLEARANCE",
+        "control_label": "guarding, clearance and misfire handling for a blast",
+        "failure_mode": "absent",
+        "hazard_energy": "chemical",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "RN-2024-001",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "regulator_notice",
+    "occurred_on": "2024-02-06",
+    "severity_actual": 1,
+    "severity_potential": 1,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during start-up after maintenance",
+    "title": "prohibition notice - work stopped during start-up after maintenance on V-4110",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "fa6fbd06ad6528d0174e05ad5d1e1ca70f53058b214dfe9b76dd8da683cb69dd",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:RN-2024-001",
+  "prompt_kind": "icam",
+  "prompt_sha256": "8dcbff00a046ede61597238a7e71542e66173087e3255e46bf315961f99790b6",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage.",
+    "defences": [
+      {
+        "control_class": "BLAST_GUARDING_AND_CLEARANCE",
+        "finding": "Control BLAST_GUARDING_AND_CLEARANCE: the guarding, clearance and misfire handling for a blast was not in place, and the learning team review classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next assurance activity that the guarding, clearance and misfire handling for a blast on V-4110, PSV-4110 and PSV-4111 performs as designed."
+    ],
+    "sequence": "Work was under way in storing and transporting explosives, specifically receiving, magazining and reconciling explosives. V-4110 (hydrocarbon day tanks and surge vessel) is in service for diesel and light hydrocarbon day storage, discharge surge suppression. The task proceeded during start-up after maintenance while the guarding, clearance and misfire handling for a blast was not in place. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 6 February 2024 a regulatory notice was issued concerning V-4110, PSV-4110 and PSV-4111 at Marrindal Concentrator and Hydrocarbon Transfer Facility following start-up after maintenance."
+  },
+  "response_sha256": "5b1607f22f33e3a56552c962031bb08fce747703a95d7ccd85cbe3b1888f9d6c",
+  "source": null
+}

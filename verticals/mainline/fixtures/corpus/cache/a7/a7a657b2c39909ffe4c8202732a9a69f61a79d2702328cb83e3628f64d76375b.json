@@ -1,0 +1,104 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "selecting and inspecting lifting gear",
+    "activity_root": "LIFTING-AND-SUSPENDED-LOADS",
+    "activity_series": "planning and executing a lift",
+    "assets": [
+      {
+        "asset_class": "LIFT-CLASS-W",
+        "label": "workshop hoists and press",
+        "service": "heavy vehicle component removal and pressing",
+        "tag": "HO-9401"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 1,
+      "label": "medical treatment injury"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "DROP_ZONE_EXCLUSION",
+        "control_label": "exclusion of people from beneath elevated work",
+        "failure_mode": "ineffective",
+        "hazard_energy": "gravity",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "LIFT_STUDY_APPROVAL",
+        "control_label": "preparation and approval of a lift study",
+        "failure_mode": "bypassed",
+        "hazard_energy": "gravity",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "LOAD_SUPPORT_FOR_MAINTENANCE",
+        "control_label": "mechanical support of a load during maintenance access",
+        "failure_mode": "bypassed",
+        "hazard_energy": "gravity",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "RN-2009-002",
+    "hazard_energy": "kinetic",
+    "hazard_media": [
+      "rotating equipment",
+      "conveyor",
+      "mobile equipment",
+      "pressurised jet",
+      "flying fragment"
+    ],
+    "hazard_release": "entanglement, impact, crush",
+    "kind": "regulator_notice",
+    "occurred_on": "2009-09-27",
+    "severity_actual": 2,
+    "severity_potential": 2,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during transfer operations",
+    "title": "regulator directive concerning danger tagging at HO-9401",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "investigation": "accident investigation",
+      "near_miss": "near hit",
+      "verification": "spot check"
+    }
+  },
+  "key": "a7a657b2c39909ffe4c8202732a9a69f61a79d2702328cb83e3628f64d76375b",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:RN-2009-002",
+  "prompt_kind": "icam",
+  "prompt_sha256": "f6c68d411f1a5a4894128b34878ed45ff43335b14b7cbc8638adfa176a58866d",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was medical treatment injury, with 1 person injured.",
+    "defences": [
+      {
+        "control_class": "DROP_ZONE_EXCLUSION",
+        "finding": "Control DROP_ZONE_EXCLUSION: the exclusion of people from beneath elevated work was in place but did not perform, and the accident investigation classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "LIFT_STUDY_APPROVAL",
+        "finding": "Control LIFT_STUDY_APPROVAL: the preparation and approval of a lift study had been bypassed, and the accident investigation classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "LOAD_SUPPORT_FOR_MAINTENANCE",
+        "finding": "Control LOAD_SUPPORT_FOR_MAINTENANCE: the mechanical support of a load during maintenance access had been bypassed, and the accident investigation classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the preparation and approval of a lift study on HO-9401 and record the spot check before this task is next authorised.",
+      "Restore the mechanical support of a load during maintenance access on HO-9401 and record the spot check before this task is next authorised."
+    ],
+    "sequence": "Work was under way in planning and executing a lift, specifically selecting and inspecting lifting gear. HO-9401 (workshop hoists and press) is in service for heavy vehicle component removal and pressing. The task proceeded during transfer operations while the exclusion of people from beneath elevated work was in place but did not perform. The kinetic energy involved is held as rotating equipment, and the recorded presentation was entanglement, impact, crush.",
+    "summary": "On 27 September 2009 a regulatory notice was issued concerning HO-9401 at Yandarra Downs Open Cut and Heavy Workshop following transfer operations."
+  },
+  "response_sha256": "8329ef11e26140a195289681cfe14a0771dd722e2c53d1f5d53decdeddbe38d4",
+  "source": null
+}

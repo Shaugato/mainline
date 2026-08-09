@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 8,
+    "doc_code": "PRO-MEC-021",
+    "doc_family": "PRO",
+    "doc_title": "Mechanical Isolation and Lockout",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2016-04-12",
+    "required_citations": [
+      {
+        "control_label": "controlled removal of isolation and return to service",
+        "event_ref": "NM-2016-0010",
+        "event_title": "potential incident during routine operation on P-3222",
+        "hazard_energy": "pressure",
+        "kind": "moc_reference",
+        "quote_ref": "quote:MRD/PRO-MEC-021/007#moc_reference/NM-2016-0010",
+        "severity_gate": 2
+      }
+    ],
+    "rev_no": 7,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "ICAM investigation",
+      "management_of_change": "management of change",
+      "near_miss": "potential incident"
+    }
+  },
+  "key": "58384971d33c1d7f72dea18b73f956b9af759ffa52d7ff79a63063317df2d8a1",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/PRO-MEC-021/007",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "cb5d52c21c79583cd4ef3241b608b76f449967d23fa1bd868c897968a2827cdf",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The management of change record for this revision cites NM-2016-0010 as the reason the controlled removal of isolation and return to service was amended.",
+        "quote_ref": "quote:MRD/PRO-MEC-021/007#moc_reference/NM-2016-0010"
+      }
+    ],
+    "reason": "Scheduled review at revision 7; 8 clauses restated."
+  },
+  "response_sha256": "a3101c2091b86e9f6e91bc0c0cda6e03571f69809090dc75e0b35daf400886f3",
+  "source": null
+}

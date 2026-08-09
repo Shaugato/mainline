@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "FIRE-AND-EMERGENCY-RESPONSE",
+    "barrier_role": "recovery",
+    "control_class": "STANDBY_ATTENDANCE_AND_RESCUE",
+    "control_delta": "introduce",
+    "control_label": "standby attendance and non-entry rescue capability",
+    "doc_code": "STD-EMR-008",
+    "doc_family": "STD",
+    "doc_title": "Emergency Preparedness and Response",
+    "effective_on": "2006-09-12",
+    "printed_label": "6.3.3(d)",
+    "setpoint": null,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "7839d272c16b0ad914c3f49f05aefba311c8551745acb9e20c909e4eb10633f7",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:CVY/STD-EMR-008/001#CVY/STD-EMR-008/6.3.3(d)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "d69ce4d25ccf996ff186f5ae0aebca98e2adfad5ff7bf21faa05c26248b0f741",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The standby attendance and non-entry rescue capability shall be provided and maintained for work covered by this standard. This clause applies to activities archived under FIRE-AND-EMERGENCY-RESPONSE at Cape Verity Export Terminal.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "64dceef91bf4a84df148c009a639a110f4aa4daceaa54fd40db68775b20ca706",
+  "source": null
+}

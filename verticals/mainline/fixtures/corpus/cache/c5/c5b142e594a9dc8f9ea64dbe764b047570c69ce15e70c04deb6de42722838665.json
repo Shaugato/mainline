@@ -1,0 +1,79 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "authorising a group isolation",
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "activity_series": "planning and permitting an isolation",
+    "assets": [
+      {
+        "asset_class": "SLP-CLASS-B",
+        "label": "slurry transfer pumps",
+        "service": "cyclone feed and tailings transfer",
+        "tag": "P-3223"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "PARK_UP_AND_RESTRAINT",
+        "control_label": "parking, chocking and restraint of equipment",
+        "failure_mode": "bypassed",
+        "hazard_energy": "kinetic",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "NM-2013-0005",
+    "hazard_energy": "electrical",
+    "hazard_media": [
+      "HV switchgear",
+      "LV distribution",
+      "capacitive storage",
+      "induced voltage",
+      "portable equipment"
+    ],
+    "hazard_release": "shock, arc flash, unplanned energisation",
+    "kind": "near_miss",
+    "occurred_on": "2013-04-18",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during routine operation",
+    "title": "stored energy found after isolation of P-3223",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "c5b142e594a9dc8f9ea64dbe764b047570c69ce15e70c04deb6de42722838665",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2013-0005",
+  "prompt_kind": "icam",
+  "prompt_sha256": "0eedbe6cc3880562234db2c00537e68dc73b0ee98ca047bbb699d11fbe376dd3",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "PARK_UP_AND_RESTRAINT",
+        "finding": "Control PARK_UP_AND_RESTRAINT: the parking, chocking and restraint of equipment had been bypassed, and the root cause analysis classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the parking, chocking and restraint of equipment on P-3223 and record the field verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in planning and permitting an isolation, specifically authorising a group isolation. P-3223 (slurry transfer pumps) is in service for cyclone feed and tailings transfer. The task proceeded during routine operation while the parking, chocking and restraint of equipment had been bypassed. The electrical energy involved is held as HV switchgear, and the recorded presentation was shock, arc flash, unplanned energisation.",
+    "summary": "On 18 April 2013 a hazard report was recorded on P-3223 at Marrindal Concentrator and Hydrocarbon Transfer Facility during routine operation; electrical energy held as HV switchgear was not released."
+  },
+  "response_sha256": "991aad012880b78511fb8d16232283e1109b7763bae81af89117cf6d150624ac",
+  "source": null
+}

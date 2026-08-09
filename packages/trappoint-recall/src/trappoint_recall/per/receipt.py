@@ -48,7 +48,6 @@ from typing import Any, Final
 from trappoint_recall.per.errors import (
     BoundaryInconsistent,
     ExhaustionOverclaim,
-    InvalidLeaf,
     InvalidProof,
 )
 from trappoint_recall.per.leaf import (
@@ -60,7 +59,7 @@ from trappoint_recall.per.leaf import (
     leaf_hash,
     leaves_from_candidates,
 )
-from trappoint_recall.per.merkle import audit_path, merkle_root
+from trappoint_recall.per.merkle import SHA256_BYTES, audit_path, merkle_root
 
 __all__ = [
     "CERTIFICATE_VERDICTS",
@@ -81,9 +80,7 @@ PER_VERSION: Final = 1
 #: **CI-grepped, verbatim.** ``spec/wire/candidate-commitment.md``, this module, the README
 #: and the exhibit renderer must all carry this string byte-for-byte. A proof that overclaims
 #: is worse than no proof.
-PER_BOUND_SENTENCE: Final = (
-    "PER proves exhaustion of the retrieval that ran, not of the corpus."
-)
+PER_BOUND_SENTENCE: Final = "PER proves exhaustion of the retrieval that ran, not of the corpus."
 
 #: ``mainline_meas.recall_certificate.verdict``'s closed vocabulary (migration 0087).
 CERTIFICATE_VERDICTS: Final[tuple[str, ...]] = ("complete", "partial", "UNDETERMINED")
@@ -136,9 +133,9 @@ class BoundaryLeaf:
                 decoded = bytes.fromhex(node)
             except ValueError as exc:
                 raise InvalidProof(f"boundary path entry {node!r} is not hex") from exc
-            if len(decoded) != 32:
+            if len(decoded) != SHA256_BYTES:
                 raise InvalidProof(
-                    f"boundary path entry {node!r} is {len(decoded)} bytes, not 32"
+                    f"boundary path entry {node!r} is {len(decoded)} bytes, not {SHA256_BYTES}"
                 )
             path.append(decoded)
         leaf_document = document.get("leaf")
@@ -158,9 +155,7 @@ class BoundaryProof:
         """Wire form. Absent halves are ``null``, never omitted: absence is information."""
         return {
             "leaf_at_s": None if self.at_s is None else self.at_s.to_json(),
-            "leaf_at_s_plus_1": (
-                None if self.at_s_plus_1 is None else self.at_s_plus_1.to_json()
-            ),
+            "leaf_at_s_plus_1": (None if self.at_s_plus_1 is None else self.at_s_plus_1.to_json()),
         }
 
     @classmethod
@@ -199,8 +194,8 @@ class SilenceReceipt:
                 f"boundary_sane: s={self.s}, n={self.n}; the database CHECK of the same name "
                 "would refuse this row"
             )
-        if len(self.candidate_root) != 32 or len(self.corpus_root) != 32:
-            raise BoundaryInconsistent("roots must be 32 bytes of SHA-256 output")
+        if len(self.candidate_root) != SHA256_BYTES or len(self.corpus_root) != SHA256_BYTES:
+            raise BoundaryInconsistent(f"roots must be {SHA256_BYTES} bytes of SHA-256 output")
         if self.certificate_verdict not in CERTIFICATE_VERDICTS:
             raise BoundaryInconsistent(
                 f"certificate verdict {self.certificate_verdict!r} is outside "
@@ -213,7 +208,7 @@ class SilenceReceipt:
         return self.theta_q / MICRO
 
     def to_json(self) -> dict[str, Any]:
-        """The wire form the verifier and the CLI read."""
+        """Return the wire form the verifier and the CLI read."""
         return {
             "per_version": self.per_version,
             "run_id": self.run_id,
@@ -335,8 +330,7 @@ def build_receipt(
             "the coverage certificate for this run is UNDETERMINED, so the retrieval's own "
             "reach is unknown and PER may not claim exhaustion of it. Emit the receipt with "
             "not_exhaustive=True — which is recorded on the receipt's face — or certify "
-            "coverage first. "
-            + PER_BOUND_SENTENCE
+            "coverage first. " + PER_BOUND_SENTENCE
         )
 
     leaves = leaves_from_candidates(candidates)

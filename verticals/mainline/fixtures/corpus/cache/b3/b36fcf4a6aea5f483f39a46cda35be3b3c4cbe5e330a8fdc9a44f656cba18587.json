@@ -1,0 +1,86 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "planning and rehearsing non-entry rescue",
+    "activity_root": "CONFINED-SPACE-ENTRY",
+    "activity_series": "rescuing from a confined space",
+    "assets": [
+      {
+        "asset_class": "TANK-CLASS-P",
+        "label": "product storage tanks",
+        "service": "export product storage",
+        "tag": "TK-7103"
+      },
+      {
+        "asset_class": "PRD-CLASS-A",
+        "label": "tank relief and vent devices",
+        "service": "tank overpressure and vacuum protection",
+        "tag": "PSV-7103"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "CONTINUOUS_ATMOSPHERIC_MONITORING",
+        "control_label": "continuous atmospheric monitoring during occupancy",
+        "failure_mode": "not_verified",
+        "hazard_energy": "chemical",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "OEM-2011-001",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "oem_alert",
+    "occurred_on": "2011-01-31",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Cape Verity Export Terminal",
+    "summary_facts": [],
+    "task_phase": "during commissioning of replacement equipment",
+    "title": "OEM service bulletin affecting TANK-CLASS-P",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "b36fcf4a6aea5f483f39a46cda35be3b3c4cbe5e330a8fdc9a44f656cba18587",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:OEM-2011-001",
+  "prompt_kind": "icam",
+  "prompt_sha256": "e84eaddfb76a08eef712cbac0ce0fa5c3d20b3a7aaf544a1a063c92eed135bf9",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "CONTINUOUS_ATMOSPHERIC_MONITORING",
+        "finding": "Control CONTINUOUS_ATMOSPHERIC_MONITORING: the continuous atmospheric monitoring during occupancy was never verified as effective, and the root cause analysis classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the continuous atmospheric monitoring during occupancy on TK-7103 and PSV-7103 and record the field verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in rescuing from a confined space, specifically planning and rehearsing non-entry rescue. TK-7103 (product storage tanks) is in service for export product storage. The task proceeded during commissioning of replacement equipment while the continuous atmospheric monitoring during occupancy was never verified as effective. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 31 January 2011 the original equipment manufacturer issued an advisory affecting TK-7103 and PSV-7103 at Cape Verity Export Terminal."
+  },
+  "response_sha256": "b0fc2a7800e3ba36ac30cc6d1bb8569142be29d7b1ad9b88d546f666c635d07b",
+  "source": null
+}

@@ -1,0 +1,92 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "making up, decanting and dosing reagents",
+    "activity_root": "HAZARDOUS-SUBSTANCE-EXPOSURE",
+    "activity_series": "handling and dosing reagents",
+    "assets": [
+      {
+        "asset_class": "HTP-CLASS-A",
+        "label": "export transfer pumps",
+        "service": "tank-to-jetty product transfer, same seal class as the Marrindal family",
+        "tag": "P-7111"
+      },
+      {
+        "asset_class": "INST-CLASS-A",
+        "label": "instrument loop",
+        "service": "governs P-7111",
+        "tag": "PT-7111"
+      },
+      {
+        "asset_class": "TANK-CLASS-P",
+        "label": "product storage tanks",
+        "service": "export product storage",
+        "tag": "TK-7102"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "BUND_AND_DRAINAGE_CONTAINMENT",
+        "control_label": "secondary containment by bund and drainage",
+        "failure_mode": "degraded",
+        "hazard_energy": "chemical",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "NM-2026-0013",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "near_miss",
+    "occurred_on": "2026-04-18",
+    "severity_actual": 0,
+    "severity_potential": 2,
+    "site": "Cape Verity Export Terminal",
+    "summary_facts": [],
+    "task_phase": "during start-up after maintenance",
+    "title": "unrelieved potential energy found after isolation of P-7111",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "384ef312ea604f9a10a65e7ebe9328fa7e5cc2f2bd2e29ab937e157fa8149d53",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2026-0013",
+  "prompt_kind": "icam",
+  "prompt_sha256": "7531d9a0fbd8e3d3cbda6123227a967063f8ea9f54edaa3da7e4ba1483fea86c",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 2 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "BUND_AND_DRAINAGE_CONTAINMENT",
+        "finding": "Control BUND_AND_DRAINAGE_CONTAINMENT: the secondary containment by bund and drainage had degraded below its design intent, and the learning team review classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the secondary containment by bund and drainage on P-7111, PT-7111 and TK-7102 and record the assurance activity before this task is next authorised."
+    ],
+    "sequence": "Work was under way in handling and dosing reagents, specifically making up, decanting and dosing reagents. P-7111 (export transfer pumps) is in service for tank-to-jetty product transfer, same seal class as the Marrindal family. The task proceeded during start-up after maintenance while the secondary containment by bund and drainage had degraded below its design intent. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 18 April 2026 a high potential incident was recorded on P-7111, PT-7111 and TK-7102 at Cape Verity Export Terminal during start-up after maintenance; chemical energy held as hydrocarbon was not released."
+  },
+  "response_sha256": "76b83a40f241a54f2b71894a05505cf264eca39a182900268c4c10956d8641b2",
+  "source": null
+}

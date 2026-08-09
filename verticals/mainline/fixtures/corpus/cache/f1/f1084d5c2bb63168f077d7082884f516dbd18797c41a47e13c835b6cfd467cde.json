@@ -1,0 +1,64 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 7,
+    "doc_code": "PRO-MEC-055",
+    "doc_family": "PRO",
+    "doc_title": "Workshop Component Removal and Load Support",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2007-06-08",
+    "required_citations": [
+      {
+        "control_label": "inspection and periodic proof testing of lifting gear",
+        "event_ref": "INC-2007-010",
+        "event_title": "danger tagging failure on PR-9410",
+        "hazard_energy": "kinetic",
+        "kind": "capa_action",
+        "quote_ref": "quote:YND/PRO-MEC-055/002#capa_action/INC-2007-010",
+        "severity_gate": 3
+      },
+      {
+        "control_label": "mechanical support of a load during maintenance access",
+        "event_ref": "INC-2007-008",
+        "event_title": "injury during transfer operations on HO-9403",
+        "hazard_energy": "kinetic",
+        "kind": "investigation_recommendation",
+        "quote_ref": "quote:YND/PRO-MEC-055/002#investigation_recommendation/INC-2007-008",
+        "severity_gate": 2
+      }
+    ],
+    "rev_no": 2,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "accident investigation",
+      "management_of_change": "engineering change note",
+      "near_miss": "near hit"
+    }
+  },
+  "key": "f1084d5c2bb63168f077d7082884f516dbd18797c41a47e13c835b6cfd467cde",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:YND/PRO-MEC-055/002",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "6ca2784f23e62c17c2139400f688bd9e91aa611cf5c9a8a6ed76ef8b7fa7dbdc",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The corrective action recorded against INC-2007-010 required the inspection and periodic proof testing of lifting gear to be restated in this procedure.",
+        "quote_ref": "quote:YND/PRO-MEC-055/002#capa_action/INC-2007-010"
+      },
+      {
+        "line": "The accident investigation into INC-2007-008 recommended that the mechanical support of a load during maintenance access be strengthened in this procedure.",
+        "quote_ref": "quote:YND/PRO-MEC-055/002#investigation_recommendation/INC-2007-008"
+      }
+    ],
+    "reason": "Scheduled review at revision 2; 7 clauses restated."
+  },
+  "response_sha256": "0070b9f91178ee9d0910852345bf7d711e8842a827bf3b0e7a7a1ce2635d0f3f",
+  "source": null
+}

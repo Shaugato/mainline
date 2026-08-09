@@ -1,0 +1,43 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 1,
+    "doc_codes": [
+      "ALERT-2009-003",
+      "PRO-MEC-055",
+      "STD-LFT-003"
+    ],
+    "intent": "restate",
+    "moc_ref": "MOC-2022-0068",
+    "opened_on": "2022-02-17",
+    "precursor_events": [
+      {
+        "event_ref": "INC-2007-010",
+        "severity_gate": null
+      }
+    ],
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "terminal_state": "abandoned",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "management_of_change": "change assurance",
+      "verification": "assurance activity"
+    },
+    "weakening_steps": 0
+  },
+  "key": "04af41f8c7500e1b9cc25bde05dd9fef10804c780731dac5885bc6739f0792ab",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2022-0068",
+  "prompt_kind": "moc",
+  "prompt_sha256": "0d4d7c687234ac658bcaaecc2f307650f9601e45ea66664ed4896fdd95d8a86a",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2022-0068 was raised at Yandarra Downs Open Cut and Heavy Workshop on 17 February 2022 following 1 recorded event in the archive, including INC-2007-010. The change assurance record covers 1 clause across 3 controlled documents. The intent is to restate an existing duty without altering what it requires. The record reached the state abandoned in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the material unwanted event control set is preserved.",
+    "scope_note": "The documents in scope are ALERT-2009-003, PRO-MEC-055 and STD-LFT-003."
+  },
+  "response_sha256": "ba4d60c6b5ad4550e768f3b22ad4ef460350c581bb986fe9c58c1dee2cc5c9e8",
+  "source": null
+}

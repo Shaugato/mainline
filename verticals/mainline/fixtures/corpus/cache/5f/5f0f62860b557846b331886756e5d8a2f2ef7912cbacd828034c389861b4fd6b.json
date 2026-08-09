@@ -1,0 +1,64 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 5,
+    "doc_code": "STD-PTW-001",
+    "doc_family": "STD",
+    "doc_title": "Permit to Work",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2014-11-07",
+    "required_citations": [
+      {
+        "control_label": "identification of every energy source for the task",
+        "event_ref": "INC-2013-018",
+        "event_title": "electrical release during start-up after maintenance on TX-3002",
+        "hazard_energy": "electrical",
+        "kind": "capa_action",
+        "quote_ref": "quote:MRD/STD-PTW-001/004#capa_action/INC-2013-018",
+        "severity_gate": 2
+      },
+      {
+        "control_label": "mechanical support of a load during maintenance access",
+        "event_ref": "INC-2014-012",
+        "event_title": "fire on CV-3101 during an intrusive maintenance task",
+        "hazard_energy": "kinetic",
+        "kind": "capa_action",
+        "quote_ref": "quote:MRD/STD-PTW-001/004#capa_action/INC-2014-012",
+        "severity_gate": 1
+      }
+    ],
+    "rev_no": 4,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "root cause analysis",
+      "management_of_change": "change request",
+      "near_miss": "hazard report"
+    }
+  },
+  "key": "5f0f62860b557846b331886756e5d8a2f2ef7912cbacd828034c389861b4fd6b",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/STD-PTW-001/004",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "6a2747d1d847563578f60c39045a24f29aeb3744119e799932c152207e7f2e0d",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The corrective action recorded against INC-2013-018 required the identification of every energy source for the task to be restated in this standard.",
+        "quote_ref": "quote:MRD/STD-PTW-001/004#capa_action/INC-2013-018"
+      },
+      {
+        "line": "The corrective action recorded against INC-2014-012 required the mechanical support of a load during maintenance access to be restated in this standard.",
+        "quote_ref": "quote:MRD/STD-PTW-001/004#capa_action/INC-2014-012"
+      }
+    ],
+    "reason": "Scheduled review at revision 4; 5 clauses restated."
+  },
+  "response_sha256": "09f0f6fc1e743c7b1d4848f799543030f64fd898ce31339668efe4ca453d5a9e",
+  "source": null
+}

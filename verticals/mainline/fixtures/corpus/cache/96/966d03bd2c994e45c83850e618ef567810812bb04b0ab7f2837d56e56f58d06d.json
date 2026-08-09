@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "LIFTING-AND-SUSPENDED-LOADS",
+    "barrier_role": "preventive",
+    "control_class": "LIFTING_GEAR_INSPECTION",
+    "control_delta": "weaken",
+    "control_label": "inspection and periodic proof testing of lifting gear",
+    "doc_code": "PRO-MEC-055",
+    "doc_family": "PRO",
+    "doc_title": "Workshop Component Removal and Load Support",
+    "effective_on": "2021-08-14",
+    "printed_label": "2.1.10",
+    "setpoint": null,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "966d03bd2c994e45c83850e618ef567810812bb04b0ab7f2837d56e56f58d06d",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:YND/PRO-MEC-055/011#YND/PRO-MEC-055/6.1",
+  "prompt_kind": "clause",
+  "prompt_sha256": "a1c5c44d233406b06b6b2585bacc989945179bd7b4a70ef81848f0d9710b28ad",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The inspection and periodic proof testing of lifting gear should be provided; the critical control verification may be recorded at the next scheduled review rather than before the task proceeds. This clause applies to activities archived under LIFTING-AND-SUSPENDED-LOADS at Yandarra Downs Open Cut and Heavy Workshop.",
+    "obligation_verb": "should"
+  },
+  "response_sha256": "ded4151fa9f333498cc07579b79d2ea0dd4e90f74562d4e7e0a372b33a95f6a6",
+  "source": null
+}

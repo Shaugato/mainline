@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ELECTRICAL-SAFETY",
+    "barrier_role": "preventive",
+    "control_class": "POSITIVE_ISOLATION_APPLICATION",
+    "control_delta": "introduce",
+    "control_label": "application of positive isolation devices and personal locks",
+    "doc_code": "PRO-ELE-026",
+    "doc_family": "PRO",
+    "doc_title": "High Voltage Switching and Access",
+    "effective_on": "2007-08-28",
+    "printed_label": "5.2",
+    "setpoint": null,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "6be005983a259c72c6c74c1d6f5902b93b92e36adce5f4719aae069296c5f173",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:TLG/PRO-ELE-026/001#TLG/PRO-ELE-026/5.2",
+  "prompt_kind": "clause",
+  "prompt_sha256": "55ed92e0974092e8ac86a55f2953b8d13eedc9808f0ae2ec5ab23d8512edf0af",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The application of positive isolation devices and personal locks shall be provided and maintained for work covered by this procedure. This clause applies to activities archived under ELECTRICAL-SAFETY at Tolgarra Processing and Power Station.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "9f8451d1e106b01ddfe8053f501a289ad9c58de3c786d1b4fd384c8adbf51a0d",
+  "source": null
+}

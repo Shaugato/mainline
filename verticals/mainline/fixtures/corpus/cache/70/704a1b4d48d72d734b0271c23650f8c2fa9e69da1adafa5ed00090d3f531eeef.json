@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 3,
+    "doc_code": "PRO-HSE-005",
+    "doc_family": "PRO",
+    "doc_title": "Hot Work Permit Administration",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2026-01-06",
+    "required_citations": [
+      {
+        "control_label": "seal-face high-temperature alarm and trip",
+        "event_ref": "INC-2025-010",
+        "event_title": "uncontrolled movement of TK-4211 during a statutory inspection",
+        "hazard_energy": "chemical",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:MRD/PRO-HSE-005/014#revision_history_line/INC-2025-010",
+        "severity_gate": 4
+      }
+    ],
+    "rev_no": 14,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "learning team review",
+      "management_of_change": "change assurance",
+      "near_miss": "high potential incident"
+    }
+  },
+  "key": "704a1b4d48d72d734b0271c23650f8c2fa9e69da1adafa5ed00090d3f531eeef",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/PRO-HSE-005/014",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "74472400dfcb4d094c62a34e147864b2c472a31ed505f93ec91fe9f5b7419c4a",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "Revision 14 was raised in response to INC-2025-010, and the seal-face high-temperature alarm and trip was amended as a result.",
+        "quote_ref": "quote:MRD/PRO-HSE-005/014#revision_history_line/INC-2025-010"
+      }
+    ],
+    "reason": "Scheduled review at revision 14; 3 clauses restated."
+  },
+  "response_sha256": "c7bb0592cc7ffa6273cb27e9bbf97b2b772095afe63285c6875851f06d2104d1",
+  "source": null
+}

@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 5,
+    "doc_code": "PRO-OPS-032",
+    "doc_family": "PRO",
+    "doc_title": "Hydrocarbon Transfer Operations",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2023-04-01",
+    "required_citations": [],
+    "rev_no": 10,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "learning team review",
+      "management_of_change": "change assurance",
+      "near_miss": "high potential incident"
+    }
+  },
+  "key": "d3fdca6748c8262a35f7a7263c800cc344707ddda585a87d0b02e7e61d9b6f19",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/PRO-OPS-032/010",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "6e4d35a1fdd826545c1a906e378ce26739b4b1ee6f3771e3c32a2f9f3433f0b8",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [],
+    "reason": "Scheduled review at revision 10; 5 clauses restated."
+  },
+  "response_sha256": "afcccd991de7293d569b8bf4e144992030571ec8aa694dc9713b806f5c62a918",
+  "source": null
+}

@@ -1,0 +1,85 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "working live under a documented justification",
+    "activity_root": "ELECTRICAL-SAFETY",
+    "activity_series": "controlling access to energised apparatus",
+    "assets": [
+      {
+        "asset_class": "ELEC-CLASS-A",
+        "label": "station switchgear",
+        "service": "station HV distribution",
+        "tag": "SG-8000"
+      },
+      {
+        "asset_class": "ELEC-CLASS-A",
+        "label": "station switchgear",
+        "service": "station HV distribution",
+        "tag": "TX-8001"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "POSITIVE_ISOLATION_APPLICATION",
+        "control_label": "application of positive isolation devices and personal locks",
+        "failure_mode": "absent",
+        "hazard_energy": "electrical",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "CAPA-2009-004",
+    "hazard_energy": "electrical",
+    "hazard_media": [
+      "HV switchgear",
+      "LV distribution",
+      "capacitive storage",
+      "induced voltage",
+      "portable equipment"
+    ],
+    "hazard_release": "shock, arc flash, unplanned energisation",
+    "kind": "capa",
+    "occurred_on": "2009-12-02",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Tolgarra Processing and Power Station",
+    "summary_facts": [],
+    "task_phase": "during cleaning and preparation",
+    "title": "corrective action - key safeguard at SG-8000",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "investigation": "accident investigation",
+      "near_miss": "near hit",
+      "verification": "spot check"
+    }
+  },
+  "key": "d1f36a64d05ebafaad1760d334bc95ce985056881e39a28c159830072444beae",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:CAPA-2009-004",
+  "prompt_kind": "icam",
+  "prompt_sha256": "ffed890734299e7bdce9a2ec163686ca3c735b349f91eb3ffc558b2ac8482451",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "POSITIVE_ISOLATION_APPLICATION",
+        "finding": "Control POSITIVE_ISOLATION_APPLICATION: the application of positive isolation devices and personal locks was not in place, and the accident investigation classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the application of positive isolation devices and personal locks on SG-8000 and TX-8001 and record the spot check before this task is next authorised."
+    ],
+    "sequence": "Work was under way in controlling access to energised apparatus, specifically working live under a documented justification. SG-8000 (station switchgear) is in service for station HV distribution. The task proceeded during cleaning and preparation while the application of positive isolation devices and personal locks was not in place. The electrical energy involved is held as HV switchgear, and the recorded presentation was shock, arc flash, unplanned energisation.",
+    "summary": "On 2 December 2009 a corrective action on SG-8000 and TX-8001 at Tolgarra Processing and Power Station was reviewed against the key safeguard it was raised to restore."
+  },
+  "response_sha256": "627bb8ee89249e9feb16dad1d12f504242e11d4d50603045173e73a20904b4b9",
+  "source": null
+}

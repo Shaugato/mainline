@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONFINED-SPACE-ENTRY",
+    "barrier_role": "preventive",
+    "control_class": "CONFINED_SPACE_ENTRY_PERMIT",
+    "control_delta": "introduce",
+    "control_label": "classification of a space and issue of an entry permit",
+    "doc_code": "STD-CSE-002",
+    "doc_family": "STD",
+    "doc_title": "Confined Spaces",
+    "effective_on": "2006-05-30",
+    "printed_label": "6.4",
+    "setpoint": null,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "5f67a06604ad9e3af93060aba39a2b88e50151aec11426a6bec94f6ce5e6f5f9",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:CVY/STD-CSE-002/001#CVY/STD-CSE-002/6.4",
+  "prompt_kind": "clause",
+  "prompt_sha256": "87c1bcc1be5831554c105e603ca896bbaaf12104974afced7c4aa70d45873be2",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The classification of a space and issue of an entry permit shall be provided and maintained for work covered by this standard. This clause applies to activities archived under CONFINED-SPACE-ENTRY at Cape Verity Export Terminal.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "904a83e7ba8678196c18b21f633458755e311b9e89cdb63e64d71a1a3c667db3",
+  "source": null
+}

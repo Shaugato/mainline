@@ -1,0 +1,54 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MAINLINE · 0181b_policy_permit_site_scope.sql
+-- CREATE POLICY site_scope ON mainline.permit — the one documented-safe scope shape
+--
+-- MI: MI02
+-- I: I02
+-- COUNSEL-GATED: no
+-- RATIONALE: §4.1 law 10: RLS policy expressions cannot contain subqueries, so the scope
+--            cannot be 'the sites this user is assigned to' resolved through a membership
+--            table. It is a denormalised role-name token compared to CURRENT_USER, and
+--            `permit.site_role` is that token — a NAME column projected by `fn_site_role`
+--            from `mainline.site.site_role`, which is UNIQUE. Because it is projected it
+--            cannot be chosen by the inserter, which is the difference between a scope and
+--            a suggestion.
+--
+-- migration:  0181b_policy_permit_site_scope
+-- domain:     datamodel / dm-views-rls
+-- band:       0180-0198z · datamodel/dm-views-rls · AUTHORED, allocated by
+--             verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1)
+-- statements: 1
+-- matrix:     verticals/mainline/db/RLS-MATRIX.yaml — this file is a RENDERING of one entry
+--             there; tests/integration/schema/test_mi_rls.py asserts the two agree
+-- source:     ARCHITECTURE.md §11.3 (RLS, SEC-1) · §4.1 law 10 · correction S22 · §9.5 · docs/leads/datamodel.md DM-3
+-- requires:   0050 mainline.permit · 0181 ENABLE · 0181a FORCE · 0020a mainline.site · 0109 fn_site_role
+-- sqlstate:   42501 for a site_reader whose CURRENT_USER matches no permit's site_role.
+-- forward-only; no .down.sql exists at or below the protected floor.
+--
+-- ────────────────────────────────────────────────────────────────────────────
+-- WHY NOT A SESSION VARIABLE
+-- ────────────────────────────────────────────────────────────────────────────
+-- A session variable is client-settable. Scoping on one would degrade RLS to an
+-- application-cooperative control against exactly the adversary it is meant to constrain —
+-- a T0/T1 tamperer with a psql prompt sets the variable and reads the fleet. CURRENT_USER
+-- changes only via SET ROLE, which succeeds only for roles the session has been granted,
+-- and the grant graph is alterable only by the provisioning service account. The authority
+-- is the grant graph, and that is the whole argument.
+--
+-- ────────────────────────────────────────────────────────────────────────────
+-- HOW THE TOKEN IS ACTUALLY ISSUED
+-- ────────────────────────────────────────────────────────────────────────────
+-- GRANTS.yaml: `site_reader` is the PRIVILEGE CARRIER and the per-site role is the SCOPE
+-- TOKEN. The provisioning service account creates one role per site, named by
+-- `mainline.site.site_role`, and grants `site_reader` to it. A person queries AS their site
+-- role and INHERITS the table privilege; they never SET ROLE site_reader, because that
+-- would make CURRENT_USER equal to `site_reader` and this policy would correctly match
+-- nothing.
+--
+
+CREATE POLICY site_scope ON mainline.permit
+  AS PERMISSIVE FOR SELECT TO site_reader
+  USING (site_role = CURRENT_USER);
+

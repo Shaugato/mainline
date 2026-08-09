@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "HAZARDOUS-SUBSTANCE-EXPOSURE",
+    "barrier_role": "preventive",
+    "control_class": "REAGENT_HANDLING_CONTROL",
+    "control_delta": "introduce",
+    "control_label": "controlled make-up, decanting and dosing of reagents",
+    "doc_code": "PRO-CHM-009",
+    "doc_family": "PRO",
+    "doc_title": "Reagent Make-Up and Dosing",
+    "effective_on": "2007-02-12",
+    "printed_label": "7.4.3(b)",
+    "setpoint": {
+      "from": 600.0,
+      "key": "reagent_dosing_pressure_alarm",
+      "label": "reagent dosing line high-pressure alarm",
+      "strengthen_direction": "lower",
+      "to": 600.0,
+      "unit": "kPa"
+    },
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "0ff2615b5ca46b1c212df5f583afd4a57e7a732f8ad483a8fe5733e03f073e76",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:TLG/PRO-CHM-009/001#TLG/PRO-CHM-009/7.4.3(b)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "7d77b14467f019c3f1ea6950bade929e9fa607dc808f886ceb55e79d9d724583",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The controlled make-up, decanting and dosing of reagents shall be provided and maintained for work covered by this procedure. The reagent dosing line high-pressure alarm shall be set at 600 kPa. This clause applies to activities archived under HAZARDOUS-SUBSTANCE-EXPOSURE at Tolgarra Processing and Power Station.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "c8bee8484c62ab341a25d8c48f532e5a2bb5da7c54b3cb763e2e09b210e589c9",
+  "source": null
+}

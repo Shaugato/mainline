@@ -1,0 +1,283 @@
+{
+  "vectors_version": 1,
+  "kind": "rfc6962",
+  "source": "spec/wire/checkpoint.md 7.2 (frozen v1.0). Every leaf hash, link hash and the root below are asserted equal to the published values by the generator; a divergence fails generation rather than producing a vector that disagrees with the spec.",
+  "empty_tree_root": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "node_hash_cases": [
+    {
+      "id": "node-of-leaf0-leaf1",
+      "left": "70c5e3eb5ac6f166d38308eda90eb814a0fab95f7c5a7864578677c2d985f565",
+      "right": "9dab2ac9240f71f0b83ad7bee9e3529ae44c6ca980efa513091a2dead5fea71a",
+      "hash": "3d33e0fb80b2d6775cd4743f70ee0910d8abcf99b856df2122c2e219744ab345"
+    },
+    {
+      "id": "node-domain-separation",
+      "note": "SHA-256(0x01 || l || r) is NOT SHA-256(l || r). The prefix byte is what stops a leaf whose canon_bytes happen to equal an interior concatenation from being presented as that interior node (RFC 6962 second-preimage defence).",
+      "left": "0000000000000000000000000000000000000000000000000000000000000000",
+      "right": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "hash": "bc6b943b820c449acf880d293c216a24a8066b153f87f2361fae2beda3a72641"
+    }
+  ],
+  "leaves": [
+    {
+      "seq": 0,
+      "canon_bytes_utf8": "{\"applied_at\":\"2026-08-07T01:58:00.000Z\",\"entry_kind\":\"schema\",\"migration\":\"0073_ledger_leaf\",\"site_code\":\"BLK-07\"}",
+      "canon_bytes_b64": "eyJhcHBsaWVkX2F0IjoiMjAyNi0wOC0wN1QwMTo1ODowMC4wMDBaIiwiZW50cnlfa2luZCI6InNjaGVtYSIsIm1pZ3JhdGlvbiI6IjAwNzNfbGVkZ2VyX2xlYWYiLCJzaXRlX2NvZGUiOiJCTEstMDcifQ==",
+      "canon_bytes_length": 115,
+      "leaf_hash_hex": "70c5e3eb5ac6f166d38308eda90eb814a0fab95f7c5a7864578677c2d985f565",
+      "link_hash_hex": "55b8d43b5df9834c483e55d69c45665aa04b573bb72c690fbc7dc9782eda4abb",
+      "prev_link_hash_hex": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "seq": 1,
+      "canon_bytes_utf8": "{\"advisory\":12,\"blocking\":2,\"candidates\":41,\"entry_kind\":\"recall\",\"permit_id\":\"018f3a2e-6c40-7b21-9c55-2a5c9e0f1b77\",\"silenced\":27,\"site_code\":\"BLK-07\"}",
+      "canon_bytes_b64": "eyJhZHZpc29yeSI6MTIsImJsb2NraW5nIjoyLCJjYW5kaWRhdGVzIjo0MSwiZW50cnlfa2luZCI6InJlY2FsbCIsInBlcm1pdF9pZCI6IjAxOGYzYTJlLTZjNDAtN2IyMS05YzU1LTJhNWM5ZTBmMWI3NyIsInNpbGVuY2VkIjoyNywic2l0ZV9jb2RlIjoiQkxLLTA3In0=",
+      "canon_bytes_length": 152,
+      "leaf_hash_hex": "9dab2ac9240f71f0b83ad7bee9e3529ae44c6ca980efa513091a2dead5fea71a",
+      "link_hash_hex": "cbb447ff927810641bbb21d4753b11c006b18603cd1467b40620013b03f28df8",
+      "prev_link_hash_hex": "55b8d43b5df9834c483e55d69c45665aa04b573bb72c690fbc7dc9782eda4abb"
+    },
+    {
+      "seq": 2,
+      "canon_bytes_utf8": "{\"check_id\":\"018f3a2f-1104-7c88-b3aa-77c1de40e2b1\",\"clause_uuid\":\"018f3a30-2200-7d10-9f31-0c9a4e77bb02\",\"entry_kind\":\"check_open\",\"severity\":5,\"site_code\":\"BLK-07\",\"virulence\":\"blood_fatal\"}",
+      "canon_bytes_b64": "eyJjaGVja19pZCI6IjAxOGYzYTJmLTExMDQtN2M4OC1iM2FhLTc3YzFkZTQwZTJiMSIsImNsYXVzZV91dWlkIjoiMDE4ZjNhMzAtMjIwMC03ZDEwLTlmMzEtMGM5YTRlNzdiYjAyIiwiZW50cnlfa2luZCI6ImNoZWNrX29wZW4iLCJzZXZlcml0eSI6NSwic2l0ZV9jb2RlIjoiQkxLLTA3IiwidmlydWxlbmNlIjoiYmxvb2RfZmF0YWwifQ==",
+      "canon_bytes_length": 190,
+      "leaf_hash_hex": "b4d70447185d01f04fb4974602e9fb592065462156344d5dca6e0521893f1a74",
+      "link_hash_hex": "b6934b321ccac22e4bd9cabd955bd501fa4e19965743c802a1f7243dfeeb6281",
+      "prev_link_hash_hex": "cbb447ff927810641bbb21d4753b11c006b18603cd1467b40620013b03f28df8"
+    },
+    {
+      "seq": 3,
+      "canon_bytes_utf8": "{\"check_id\":\"018f3a2f-1104-7c88-b3aa-77c1de40e2b1\",\"disposition_kind\":\"controlled\",\"entry_kind\":\"disposition\",\"issued_at\":\"2026-08-07T02:11:42.006Z\",\"signer_rank\":4,\"signer_sub\":\"auth0|4f2c\",\"site_code\":\"BLK-07\"}",
+      "canon_bytes_b64": "eyJjaGVja19pZCI6IjAxOGYzYTJmLTExMDQtN2M4OC1iM2FhLTc3YzFkZTQwZTJiMSIsImRpc3Bvc2l0aW9uX2tpbmQiOiJjb250cm9sbGVkIiwiZW50cnlfa2luZCI6ImRpc3Bvc2l0aW9uIiwiaXNzdWVkX2F0IjoiMjAyNi0wOC0wN1QwMjoxMTo0Mi4wMDZaIiwic2lnbmVyX3JhbmsiOjQsInNpZ25lcl9zdWIiOiJhdXRoMHw0ZjJjIiwic2l0ZV9jb2RlIjoiQkxLLTA3In0=",
+      "canon_bytes_length": 212,
+      "leaf_hash_hex": "7210abaaa02da99e69515827e6b73629f0ebb503fa248214980de321d9d7a103",
+      "link_hash_hex": "519a899406c29465c1734251bcbbcddc2e253482389a89a0fcd31d427265908f",
+      "prev_link_hash_hex": "b6934b321ccac22e4bd9cabd955bd501fa4e19965743c802a1f7243dfeeb6281"
+    },
+    {
+      "seq": 4,
+      "canon_bytes_utf8": "{\"entry_kind\":\"merge\",\"merged_at\":\"2026-08-07T02:13:55.417Z\",\"open_blocking\":0,\"permit_id\":\"018f3a2e-6c40-7b21-9c55-2a5c9e0f1b77\",\"site_code\":\"BLK-07\"}",
+      "canon_bytes_b64": "eyJlbnRyeV9raW5kIjoibWVyZ2UiLCJtZXJnZWRfYXQiOiIyMDI2LTA4LTA3VDAyOjEzOjU1LjQxN1oiLCJvcGVuX2Jsb2NraW5nIjowLCJwZXJtaXRfaWQiOiIwMThmM2EyZS02YzQwLTdiMjEtOWM1NS0yYTVjOWUwZjFiNzciLCJzaXRlX2NvZGUiOiJCTEstMDcifQ==",
+      "canon_bytes_length": 151,
+      "leaf_hash_hex": "1976041b3afddddb75272afed810b6e45ed0f5be5092a87844f685673afc0e6d",
+      "link_hash_hex": "f1661ad080f19c06b85c9bfc415922d0ee01e1769aa05c288138c7325a7c14c0",
+      "prev_link_hash_hex": "519a899406c29465c1734251bcbbcddc2e253482389a89a0fcd31d427265908f"
+    }
+  ],
+  "roots": [
+    {
+      "tree_size": 0,
+      "root_hex": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "tree_size": 1,
+      "root_hex": "70c5e3eb5ac6f166d38308eda90eb814a0fab95f7c5a7864578677c2d985f565"
+    },
+    {
+      "tree_size": 2,
+      "root_hex": "3d33e0fb80b2d6775cd4743f70ee0910d8abcf99b856df2122c2e219744ab345"
+    },
+    {
+      "tree_size": 3,
+      "root_hex": "becb101128f79b8e5bd0e9a621f31dfd861eb5276efdeaaf25f467f383c153ea"
+    },
+    {
+      "tree_size": 4,
+      "root_hex": "a363e13a9756be8a1134a41a2bb1904552975dda2b74500cd3a7ccfcb977eda2"
+    },
+    {
+      "tree_size": 5,
+      "root_hex": "00c5dddf89d15dfbf9fb2349e0adadbcc4a5131b6612adfc85ad0df2005d359e"
+    }
+  ],
+  "inclusion_proofs": [
+    {
+      "id": "incl-0-of-5",
+      "seq": 0,
+      "tree_size": 5,
+      "leaf_hash_hex": "70c5e3eb5ac6f166d38308eda90eb814a0fab95f7c5a7864578677c2d985f565",
+      "root_hex": "00c5dddf89d15dfbf9fb2349e0adadbcc4a5131b6612adfc85ad0df2005d359e",
+      "path_hex": [
+        "9dab2ac9240f71f0b83ad7bee9e3529ae44c6ca980efa513091a2dead5fea71a",
+        "9a5fd5e4d6b74dd8d4fc98ef2f20c07466b7c3b4c81739ca3e4565e2c5c150ae",
+        "1976041b3afddddb75272afed810b6e45ed0f5be5092a87844f685673afc0e6d"
+      ],
+      "expect": "pass"
+    },
+    {
+      "id": "incl-1-of-5",
+      "seq": 1,
+      "tree_size": 5,
+      "leaf_hash_hex": "9dab2ac9240f71f0b83ad7bee9e3529ae44c6ca980efa513091a2dead5fea71a",
+      "root_hex": "00c5dddf89d15dfbf9fb2349e0adadbcc4a5131b6612adfc85ad0df2005d359e",
+      "path_hex": [
+        "70c5e3eb5ac6f166d38308eda90eb814a0fab95f7c5a7864578677c2d985f565",
+        "9a5fd5e4d6b74dd8d4fc98ef2f20c07466b7c3b4c81739ca3e4565e2c5c150ae",
+        "1976041b3afddddb75272afed810b6e45ed0f5be5092a87844f685673afc0e6d"
+      ],
+      "expect": "pass"
+    },
+    {
+      "id": "incl-2-of-5",
+      "seq": 2,
+      "tree_size": 5,
+      "leaf_hash_hex": "b4d70447185d01f04fb4974602e9fb592065462156344d5dca6e0521893f1a74",
+      "root_hex": "00c5dddf89d15dfbf9fb2349e0adadbcc4a5131b6612adfc85ad0df2005d359e",
+      "path_hex": [
+        "7210abaaa02da99e69515827e6b73629f0ebb503fa248214980de321d9d7a103",
+        "3d33e0fb80b2d6775cd4743f70ee0910d8abcf99b856df2122c2e219744ab345",
+        "1976041b3afddddb75272afed810b6e45ed0f5be5092a87844f685673afc0e6d"
+      ],
+      "expect": "pass"
+    },
+    {
+      "id": "incl-3-of-5",
+      "seq": 3,
+      "tree_size": 5,
+      "leaf_hash_hex": "7210abaaa02da99e69515827e6b73629f0ebb503fa248214980de321d9d7a103",
+      "root_hex": "00c5dddf89d15dfbf9fb2349e0adadbcc4a5131b6612adfc85ad0df2005d359e",
+      "path_hex": [
+        "b4d70447185d01f04fb4974602e9fb592065462156344d5dca6e0521893f1a74",
+        "3d33e0fb80b2d6775cd4743f70ee0910d8abcf99b856df2122c2e219744ab345",
+        "1976041b3afddddb75272afed810b6e45ed0f5be5092a87844f685673afc0e6d"
+      ],
+      "expect": "pass"
+    },
+    {
+      "id": "incl-4-of-5",
+      "seq": 4,
+      "tree_size": 5,
+      "leaf_hash_hex": "1976041b3afddddb75272afed810b6e45ed0f5be5092a87844f685673afc0e6d",
+      "root_hex": "00c5dddf89d15dfbf9fb2349e0adadbcc4a5131b6612adfc85ad0df2005d359e",
+      "path_hex": [
+        "a363e13a9756be8a1134a41a2bb1904552975dda2b74500cd3a7ccfcb977eda2"
+      ],
+      "expect": "pass"
+    }
+  ],
+  "consistency_proofs": [
+    {
+      "id": "cons-1-to-5",
+      "from_size": 1,
+      "to_size": 5,
+      "from_root_hex": "70c5e3eb5ac6f166d38308eda90eb814a0fab95f7c5a7864578677c2d985f565",
+      "to_root_hex": "00c5dddf89d15dfbf9fb2349e0adadbcc4a5131b6612adfc85ad0df2005d359e",
+      "path_hex": [
+        "9dab2ac9240f71f0b83ad7bee9e3529ae44c6ca980efa513091a2dead5fea71a",
+        "9a5fd5e4d6b74dd8d4fc98ef2f20c07466b7c3b4c81739ca3e4565e2c5c150ae",
+        "1976041b3afddddb75272afed810b6e45ed0f5be5092a87844f685673afc0e6d"
+      ],
+      "expect": "pass"
+    },
+    {
+      "id": "cons-2-to-5",
+      "from_size": 2,
+      "to_size": 5,
+      "from_root_hex": "3d33e0fb80b2d6775cd4743f70ee0910d8abcf99b856df2122c2e219744ab345",
+      "to_root_hex": "00c5dddf89d15dfbf9fb2349e0adadbcc4a5131b6612adfc85ad0df2005d359e",
+      "path_hex": [
+        "9a5fd5e4d6b74dd8d4fc98ef2f20c07466b7c3b4c81739ca3e4565e2c5c150ae",
+        "1976041b3afddddb75272afed810b6e45ed0f5be5092a87844f685673afc0e6d"
+      ],
+      "expect": "pass"
+    },
+    {
+      "id": "cons-3-to-5",
+      "from_size": 3,
+      "to_size": 5,
+      "from_root_hex": "becb101128f79b8e5bd0e9a621f31dfd861eb5276efdeaaf25f467f383c153ea",
+      "to_root_hex": "00c5dddf89d15dfbf9fb2349e0adadbcc4a5131b6612adfc85ad0df2005d359e",
+      "path_hex": [
+        "b4d70447185d01f04fb4974602e9fb592065462156344d5dca6e0521893f1a74",
+        "7210abaaa02da99e69515827e6b73629f0ebb503fa248214980de321d9d7a103",
+        "3d33e0fb80b2d6775cd4743f70ee0910d8abcf99b856df2122c2e219744ab345",
+        "1976041b3afddddb75272afed810b6e45ed0f5be5092a87844f685673afc0e6d"
+      ],
+      "expect": "pass"
+    },
+    {
+      "id": "cons-4-to-5",
+      "from_size": 4,
+      "to_size": 5,
+      "from_root_hex": "a363e13a9756be8a1134a41a2bb1904552975dda2b74500cd3a7ccfcb977eda2",
+      "to_root_hex": "00c5dddf89d15dfbf9fb2349e0adadbcc4a5131b6612adfc85ad0df2005d359e",
+      "path_hex": [
+        "1976041b3afddddb75272afed810b6e45ed0f5be5092a87844f685673afc0e6d"
+      ],
+      "expect": "pass"
+    }
+  ],
+  "negative": [
+    {
+      "id": "incl-3-path-first-element-flipped",
+      "note": "One byte of one sibling. This is the shape of a substituted record: the leaf is real, the tree is real, and the path no longer joins them.",
+      "kind": "inclusion",
+      "seq": 3,
+      "tree_size": 5,
+      "leaf_hash_hex": "7210abaaa02da99e69515827e6b73629f0ebb503fa248214980de321d9d7a103",
+      "root_hex": "00c5dddf89d15dfbf9fb2349e0adadbcc4a5131b6612adfc85ad0df2005d359e",
+      "path_hex": [
+        "b5d70447185d01f04fb4974602e9fb592065462156344d5dca6e0521893f1a74",
+        "3d33e0fb80b2d6775cd4743f70ee0910d8abcf99b856df2122c2e219744ab345",
+        "1976041b3afddddb75272afed810b6e45ed0f5be5092a87844f685673afc0e6d"
+      ],
+      "expect": "fail"
+    },
+    {
+      "id": "incl-3-presented-as-seq-2",
+      "note": "The right leaf, the right path, the wrong index — the path no longer reaches the root.",
+      "kind": "inclusion",
+      "seq": 2,
+      "tree_size": 5,
+      "leaf_hash_hex": "7210abaaa02da99e69515827e6b73629f0ebb503fa248214980de321d9d7a103",
+      "root_hex": "00c5dddf89d15dfbf9fb2349e0adadbcc4a5131b6612adfc85ad0df2005d359e",
+      "path_hex": [
+        "b4d70447185d01f04fb4974602e9fb592065462156344d5dca6e0521893f1a74",
+        "3d33e0fb80b2d6775cd4743f70ee0910d8abcf99b856df2122c2e219744ab345",
+        "1976041b3afddddb75272afed810b6e45ed0f5be5092a87844f685673afc0e6d"
+      ],
+      "expect": "fail"
+    },
+    {
+      "id": "incl-path-wrong-length",
+      "note": "A path shorter than the tree depth cannot be completed; a verifier must refuse rather than stop early.",
+      "kind": "inclusion",
+      "seq": 0,
+      "tree_size": 5,
+      "leaf_hash_hex": "70c5e3eb5ac6f166d38308eda90eb814a0fab95f7c5a7864578677c2d985f565",
+      "root_hex": "00c5dddf89d15dfbf9fb2349e0adadbcc4a5131b6612adfc85ad0df2005d359e",
+      "path_hex": [
+        "9dab2ac9240f71f0b83ad7bee9e3529ae44c6ca980efa513091a2dead5fea71a"
+      ],
+      "expect": "fail"
+    },
+    {
+      "id": "cons-4-to-5-truncated",
+      "note": "The deletion-and-renumber attack recomputes the link chain perfectly; it does not survive this.",
+      "kind": "consistency",
+      "from_size": 4,
+      "to_size": 5,
+      "from_root_hex": "a363e13a9756be8a1134a41a2bb1904552975dda2b74500cd3a7ccfcb977eda2",
+      "to_root_hex": "00c5dddf89d15dfbf9fb2349e0adadbcc4a5131b6612adfc85ad0df2005d359e",
+      "path_hex": [],
+      "expect": "fail"
+    },
+    {
+      "id": "cons-3-to-5-wrong-old-root",
+      "note": "A consistency proof against a root that was never a prefix of this tree.",
+      "kind": "consistency",
+      "from_size": 3,
+      "to_size": 5,
+      "from_root_hex": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "to_root_hex": "00c5dddf89d15dfbf9fb2349e0adadbcc4a5131b6612adfc85ad0df2005d359e",
+      "path_hex": [
+        "b4d70447185d01f04fb4974602e9fb592065462156344d5dca6e0521893f1a74",
+        "7210abaaa02da99e69515827e6b73629f0ebb503fa248214980de321d9d7a103",
+        "3d33e0fb80b2d6775cd4743f70ee0910d8abcf99b856df2122c2e219744ab345",
+        "1976041b3afddddb75272afed810b6e45ed0f5be5092a87844f685673afc0e6d"
+      ],
+      "expect": "fail"
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 1,
+    "doc_codes": [
+      "MOC-2021-0155",
+      "PRO-MIN-003",
+      "STD-MEQ-007"
+    ],
+    "intent": "strengthen",
+    "moc_ref": "MOC-2018-0165",
+    "opened_on": "2018-06-14",
+    "precursor_events": [
+      {
+        "event_ref": "NM-2005-0006",
+        "severity_gate": null
+      }
+    ],
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "terminal_state": "dispositioned",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "management_of_change": "management of change",
+      "verification": "critical control verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "94d0a648419e88b9eb003aef4ce8ba5b38dd35813251df491941fc091057090c",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2018-0165",
+  "prompt_kind": "moc",
+  "prompt_sha256": "eace086a5288946266e210aa99d075629a1d9aba9dac8be4a2b63e79f9aae2e1",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2018-0165 was raised at Yandarra Downs Open Cut and Heavy Workshop on 14 June 2018 following 1 recorded event in the archive, including NM-2005-0006. The management of change record covers 1 clause across 3 controlled documents. The intent is to strengthen the critical control named in the documents in scope. The record reached the state dispositioned in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical control set is preserved.",
+    "scope_note": "The documents in scope are MOC-2021-0155, PRO-MIN-003 and STD-MEQ-007."
+  },
+  "response_sha256": "2e97f6842178f2d4b3bc3ff592afc0bb90142c6eb0c7cffffe0b4c8693730ef6",
+  "source": null
+}

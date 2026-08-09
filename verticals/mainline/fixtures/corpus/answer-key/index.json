@@ -1,0 +1,223 @@
+{
+  "basis_histogram": {
+    "asserted_document": 238,
+    "asserted_human": 16,
+    "derived_documentary": 106,
+    "inferred_semantic": 81
+  },
+  "blame_ratio": 0.1698,
+  "channel_a_visible": 238,
+  "corpus_now": "2026-08-04T09:14:00+10:00",
+  "counts": {
+    "blame_edge": 441,
+    "blame_edge_registry": 441,
+    "clause": 893,
+    "clause_registry": 893,
+    "clause_revision": 2597,
+    "gs0": 761,
+    "injector_decoy": 60,
+    "injector_document_split": 56,
+    "injector_drift_pair": 48,
+    "injector_fleet_sibling": 27,
+    "injector_orphan": 12,
+    "injector_retypeset": 624,
+    "injector_vocabulary_drift": 64,
+    "injector_weakening_chain": 12,
+    "pending": 4372,
+    "proposed_revision": 1
+  },
+  "cross_site_edges": 11,
+  "files": {
+    "blame_edge.jsonl": {
+      "bytes": 489565,
+      "description": "the authored causal facts; commit_id, p_link, quote digest and signature are pending",
+      "rows": 441,
+      "sha256": "dd0ec1aae9f3bde5fa0ce51096835f3e72823f1cee2c846d6ee4a4c151a9337d",
+      "table": "mainline.blame_edge"
+    },
+    "blame_edge_registry.jsonl": {
+      "bytes": 373538,
+      "description": "corpus scaffolding: channel labels, the documentary-trace draw, and the generative reason",
+      "rows": 441,
+      "sha256": "63438ebcd264de3a50f57957484851097380986d681ea1926c02782eb6bb8011",
+      "table": null
+    },
+    "clause.jsonl": {
+      "bytes": 186519,
+      "description": "every obligation; birth_commit is null and registered pending",
+      "rows": 893,
+      "sha256": "3a8e20cf814e22e06a8c73b8f0fac789dd71554034461b74b43e04159185c241",
+      "table": "mainline.clause"
+    },
+    "clause_registry.jsonl": {
+      "bytes": 461232,
+      "description": "corpus scaffolding: the natural key, control class, setpoint and birth of each clause",
+      "rows": 893,
+      "sha256": "44a8c8be009e219482c174662a60961349074a6faa9ccfa97f274c4f8400a011",
+      "table": null
+    },
+    "clause_revision.jsonl": {
+      "bytes": 1673465,
+      "description": "one row per revision that touched a clause; the structural half of clause_version",
+      "rows": 2597,
+      "sha256": "ee6acda9b198b3bb49bf7cc418c46a14c9cfc268f9fd127d3a34e651d98538c8",
+      "table": null
+    },
+    "gs0.jsonl": {
+      "bytes": 735858,
+      "description": "gold set GS0: one judged (event, clause) pair per row",
+      "rows": 761,
+      "sha256": "7a012de4216778717550bd11da7bd07be2cba3184777baf1b91d8ab0275ed0c3",
+      "table": null
+    },
+    "gs0.schema.json": {
+      "bytes": 6573,
+      "description": "the JSON Schema every gs0.jsonl row validates against",
+      "rows": 1,
+      "sha256": "2873f14c3e5fd8a12be8e6249c0a2f72e40051df00ab30703a7dced3920ef94e",
+      "table": null
+    },
+    "injector_author_churn.json": {
+      "bytes": 446,
+      "description": "injector 5: churn measured from stage 1's people, never re-derived",
+      "rows": 1,
+      "sha256": "3d9af2b725489f7fcddde55e7be2a1283814ac38efe6672d7ea79064cf460464",
+      "table": null
+    },
+    "injector_decoy.jsonl": {
+      "bytes": 31985,
+      "description": "injector 6: same asset and vocabulary, different energy and different failed control",
+      "rows": 60,
+      "sha256": "2678f4a11d31685fe10501937aff0340d209c29792d5af1e4785c7b3a74c65b3",
+      "table": null
+    },
+    "injector_document_split.jsonl": {
+      "bytes": 25803,
+      "description": "injector 2: which clauses left which document, under which change record",
+      "rows": 56,
+      "sha256": "40f956efc6b771ccff3b832bac2f0e6d27e8951e5b21b85e0992197f388f7e2c",
+      "table": null
+    },
+    "injector_drift_pair.jsonl": {
+      "bytes": 12688,
+      "description": "injector 8: the dated pairs corpus-embed-lift measures lexical against semantic recall on",
+      "rows": 48,
+      "sha256": "c367e64b6b806b742acca0b7d714ed29773ddfc56e52e720dbc61a3ee171fbf9",
+      "table": null
+    },
+    "injector_fleet_sibling.jsonl": {
+      "bytes": 11098,
+      "description": "injector 7: one canonical event, three sites, three bonds, one check",
+      "rows": 27,
+      "sha256": "43314550a3b9a5b25c825e67b2aad14f567c2729818eb3fb51fb5936ef128f38",
+      "table": null
+    },
+    "injector_orphan.jsonl": {
+      "bytes": 4378,
+      "description": "injector 3: clauses with no recorded origin, and the event that actually wrote them",
+      "rows": 12,
+      "sha256": "56a360cb4891c2971261cc6bb60fe7f58036e709aba2294d8454935c41859643",
+      "table": null
+    },
+    "injector_retypeset.jsonl": {
+      "bytes": 218869,
+      "description": "injector 1: the 2016 reflow, label and ordinal on both sides, identity unchanged",
+      "rows": 624,
+      "sha256": "b6ee9b89ef7a3a3ee3ec2a36c59624678fc0859eacc53e59fd52705e24a5948b",
+      "table": null
+    },
+    "injector_vocabulary_drift.jsonl": {
+      "bytes": 12063,
+      "description": "injector 8: the dated term-substitution schedule the renderer consumes",
+      "rows": 64,
+      "sha256": "162a4f7e1cfff038e865a75f27913a37fbcdcbe1f15c36c68d4faa532d21a40d",
+      "table": null
+    },
+    "injector_weakening_chain.jsonl": {
+      "bytes": 5268,
+      "description": "injector 4: three MOCs, one clause, one direction, six years",
+      "rows": 12,
+      "sha256": "ac3037c7e9eb17d8cc6e96603fe647b4c4234f2958c7a35c57c47443261d1737",
+      "table": null
+    },
+    "pending.jsonl": {
+      "bytes": 1160174,
+      "description": "columns this stage deliberately left null, and the worker who closes each one",
+      "rows": 4372,
+      "sha256": "83456d5c82bf78eeb60c4b88c7564d789fabcb3097beece634a20dbec6f89a64",
+      "table": null
+    },
+    "pending_reasons.json": {
+      "bytes": 2392,
+      "description": "the prose behind pending.jsonl's reason_code, written once",
+      "rows": 1,
+      "sha256": "24967e15a0f66af8ab540d0361de00f2a4ea678f8bbaffeb801e2337b30492c7",
+      "table": null
+    },
+    "proposed_revision.jsonl": {
+      "bytes": 443,
+      "description": "clause changes that live on a branch and never merged; the film's refusal",
+      "rows": 1,
+      "sha256": "1f157ee02305c381d636a12ac71b82030f8c641e352c692629c2656273503df7",
+      "table": null
+    },
+    "spine.json": {
+      "bytes": 3386,
+      "description": "the spine's ids, labels and dates; no prose, because the prose lives in one place",
+      "rows": 1,
+      "sha256": "ded6c6f22bfa5e6ec96fe9f67ab40851e1a4fe025cf4f9a7451fecb136d9274c",
+      "table": null
+    }
+  },
+  "gazetteer_sha256": "6e62437c0064a9b47cf424e2c6da40d087b422d8f57089443bea550dd6aa71aa",
+  "generator_version": "blame-1.0.0",
+  "gold_label_histogram": {
+    "decoy": 60,
+    "negative_control": 260,
+    "true": 441
+  },
+  "injector_counts": {
+    "decoys": 60,
+    "fleet_sibling_groups": 9,
+    "negative_controls": 260,
+    "orphans": 12,
+    "retypeset_documents": 24,
+    "split_documents": 8,
+    "vocabulary_drift_pairs": 48,
+    "weakening_chains": 4
+  },
+  "p_doc_trace_mean": 0.5579,
+  "projected_columns_denied": [
+    "ancestor_count",
+    "ancestor_events",
+    "blood_peaks",
+    "blood_root",
+    "blood_size",
+    "closure_gen",
+    "countersigned_count",
+    "gate_epoch",
+    "head_seq",
+    "max_ancestral_severity",
+    "max_severity",
+    "open_blocking",
+    "open_conflicts",
+    "open_residue",
+    "open_token_count",
+    "open_warrants",
+    "sev_max",
+    "site_role",
+    "tags_resolved",
+    "tags_unmodelled",
+    "under_declared",
+    "unmet_floor_count",
+    "unmodelled_asset_count",
+    "virulence"
+  ],
+  "seed": "0xMAINLINE",
+  "skeleton_generator_version": "skeleton-1.0.0",
+  "stage": "blame",
+  "state_histogram": {
+    "active": 254,
+    "provisional": 187
+  }
+}

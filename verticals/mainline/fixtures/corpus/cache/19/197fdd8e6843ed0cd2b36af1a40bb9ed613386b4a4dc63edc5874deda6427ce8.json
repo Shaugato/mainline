@@ -1,0 +1,79 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "replacing seals and seal support fluid",
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "activity_series": "maintaining sealing systems on rotating equipment",
+    "assets": [
+      {
+        "asset_class": "ELEC-CLASS-A",
+        "label": "mine switchgear",
+        "service": "pit and workshop distribution",
+        "tag": "SG-9000"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "SEAL_SUPPORT_SYSTEM_INTEGRITY",
+        "control_label": "integrity of the mechanical seal support system",
+        "failure_mode": "ineffective",
+        "hazard_energy": "thermal",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "NM-2007-0003",
+    "hazard_energy": "thermal",
+    "hazard_media": [
+      "hot surface",
+      "steam",
+      "molten material",
+      "hot work",
+      "exothermic reaction"
+    ],
+    "hazard_release": "burn, ignition, scald",
+    "kind": "near_miss",
+    "occurred_on": "2007-03-07",
+    "severity_actual": 0,
+    "severity_potential": 2,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during a planned shutdown",
+    "title": "unplanned release of thermal energy at SG-9000",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "investigation": "accident investigation",
+      "near_miss": "near hit",
+      "verification": "spot check"
+    }
+  },
+  "key": "197fdd8e6843ed0cd2b36af1a40bb9ed613386b4a4dc63edc5874deda6427ce8",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2007-0003",
+  "prompt_kind": "icam",
+  "prompt_sha256": "442cbaf996c377bb80ec6012115a674eec4c4141b6d8798fbf4fb48edf604a67",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 2 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "SEAL_SUPPORT_SYSTEM_INTEGRITY",
+        "finding": "Control SEAL_SUPPORT_SYSTEM_INTEGRITY: the integrity of the mechanical seal support system was in place but did not perform, and the accident investigation classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next spot check that the integrity of the mechanical seal support system on SG-9000 performs as designed."
+    ],
+    "sequence": "Work was under way in maintaining sealing systems on rotating equipment, specifically replacing seals and seal support fluid. SG-9000 (mine switchgear) is in service for pit and workshop distribution. The task proceeded during a planned shutdown while the integrity of the mechanical seal support system was in place but did not perform. The thermal energy involved is held as hot surface, and the recorded presentation was burn, ignition, scald.",
+    "summary": "On 7 March 2007 a near hit was recorded on SG-9000 at Yandarra Downs Open Cut and Heavy Workshop during a planned shutdown; thermal energy held as hot surface was not released."
+  },
+  "response_sha256": "f8162d6c79d374202881fbe8c9afb9fe0f281b4f10dae56acaf7562ca20f9f4a",
+  "source": null
+}

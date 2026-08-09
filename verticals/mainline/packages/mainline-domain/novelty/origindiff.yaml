@@ -1,0 +1,286 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
+#
+# Novelty fragment per docs/leads/algorithms.md §6.  Validated by
+# tests/unit/domain/novelty/test_novelty_manifest.py (worker W10) and consumed by
+# MECHANISMS.md generation.  Anything not yet proven belongs under `unverified:`
+# and NEVER inside `claim:`.
+
+slug: origindiff
+name: ORIGINDIFF
+mechanism: M2
+claim: >-
+  The control_delta of record for a clause edit is the JOIN of two independent comparisons —
+  delta(parent → new) and delta(blame_origin → new) — along the chain
+  introduce ≺ restate ≺ strengthen ≺ weaken ≺ remove.  The blame origin is the earliest-generation
+  version of that clause at which an ACTIVE blame edge attached carrying severity equal to the
+  clause's current clause_blame_current.max_severity, resolved by mainline.v_blame_origin
+  (migration 0152): one view, one DISTINCT ON, an explicit generation-distance bound, no
+  recursion, driven off blame_edge — whose rows for one clause number in the single digits —
+  rather than off the version list, which numbers in the hundreds.
+  The consequence is the salami defence, and it is not a rule: a chain of edits each of which
+  the nine-rule lattice calls `restate` against its immediate parent can nonetheless be a
+  `weaken` against the version the incident wrote, because the lattice is not transitive
+  everywhere and the corridors where it is not are precisely the cells it is deliberately silent
+  in.  tests/unit/domain/diachronic/test_red_first_salami.py builds a twenty-commit chain that
+  doubles a pressure cap while every single commit is a restatement to the parent diff, and
+  asserts `weaken` with exactly one R2_SETPOINT witness at step twenty.  A twenty-first lattice
+  rule closing that particular corridor would leave the twenty-second open; a different baseline
+  closes all of them at once.
+  Because the record is a JOIN and `force` is monotone along the chain, consulting the ancestry
+  can only ever RAISE the force of a verdict.  There exists no input under which the origin
+  comparison lowers the parent verdict, and that is proven over generated CAT triples rather than
+  argued — which is what makes the second baseline safe to add to a gate.
+  Two fail-closed refusals hold the mechanism's own edges.  A subject version with no
+  clause_blame_current row raises BlameClosureAbsent rather than reporting "no blood": if a
+  missing projection resolved to inert, DELETING THE PROJECTION would be the cheapest attack in
+  the product, cheaper than rewording the clause and invisible in the clause's own history.  And
+  a resolved origin whose Control Assertion Tuple could not be read raises OriginUnresolvedError
+  rather than falling back to the parent diff, because a quieter verdict produced by an
+  extraction failure is exactly what a salami-sliced weakening is buying.
+
+enforcement:
+  refuses:
+    - "BlameClosureAbsent (mainline_domain) — an unprojected blame closure refuses rather than resolving to 'inert' (P2)"
+    - "OriginUnresolvedError (mainline_domain) — a resolved origin with no readable CAT refuses rather than falling back to the parent diff"
+    - "OriginUnresolvedError (mainline_domain) — an origin tuple supplied for a clause whose origin is inert: a baseline the resolution never named"
+    - "control_delta='weaken' on an edit every parent diff called 'restate' — which materialises a blocking check and is refused at merge by gate_closed_when_issued / cr_gate_closed_when_merged (23514, MI02/MI30). THOSE CONSTRAINTS ARE THE KERNEL LEAD'S AND ARE NOT CLAIMED HERE; what is claimed is that they fire at all on this class of edit."
+  refusal_depth: 1
+# Depth 1, and the honesty is worth more than a bigger number.
+#
+# ORIGINDIFF's own refusals are in Python, not in SQL, and that is a real
+# limitation rather than a design flourish.  `BlameClosureAbsent` and
+# `OriginUnresolvedError` protect the PROJECTOR from producing a quiet verdict;
+# they do not protect the database from a writer who never imported this package
+# and simply declares `control_delta='restate'` by hand.  Nothing on
+# mainline.clause_version compares a submitted delta against the delta this module
+# would have computed, and no trigger could: §4.1 law 1 forbids a CHECK from seeing
+# another row, and the origin version is another row — several, in fact, plus a
+# blame closure and a signed registry.
+#
+# What closes that hole, if it is closed, is not here either.  It is the matcher
+# and the CONSERVATION OF BLAME MASS ledger (workers W8/W9) accounting for every
+# blood-written obligation across the commit INDEPENDENTLY of what the delta claimed.
+# Evading ORIGINDIFF by lying about the label produces an orphaned blood-written
+# obligation, which is a louder gate than the weakening it was hiding.  That is the
+# asymmetry the domain rests on and it belongs to cbm-ledger.yaml.
+#
+# The one thing this fragment does claim structurally is mainline.v_blame_origin's
+# join shape: INNER to clause_blame_current and LEFT to blame_edge, which is what
+# makes an ABSENT projection distinguishable from a CLEAN one at the SQL level
+# rather than by a convention the reader is trusted to follow.  Swap either join
+# and BlameClosureAbsent becomes unraisable.
+
+position: unclaimed
+# Every ingredient is published and this fragment says so plainly:
+#
+#   * choosing a baseline OTHER than the immediate parent — `git merge-base` and
+#     every three-way merge of the last forty years.  The idea that "the version to
+#     compare against" is a computed property of the history rather than the
+#     previous revision is entirely theirs;
+#   * attributing a line, a clause or a paragraph to the commit that wrote it —
+#     `git blame`, `git log -L`, and the whole provenance literature;
+#   * point-in-time retrieval of a versioned normative text, and diffing two
+#     points in time — consolidated legislation platforms and Akoma Ntoso's
+#     @wId/@eId model, which this schema's clause_uuid/printed_label split copies
+#     openly and credits in ARCHITECTURE.md §5.3;
+#   * the PHENOMENON of incremental drift being accepted one defensible step at a
+#     time — Diane Vaughan named it "normalization of deviance" after Challenger and
+#     it is the standard vocabulary for what this mechanism catches.
+#
+# The claim is the composition, and it has one part the survey did not find:
+#
+#   THE BASELINE IS SELECTED BY BLAME, AND THE COMPARISON AGAINST IT IS A
+#   PRECONDITION OF A STATE TRANSITION.
+#
+# `git merge-base` picks a baseline by TOPOLOGY — the common ancestor — because the
+# question is "what text should I merge".  ORIGINDIFF picks it by BLOOD — the
+# earliest version at which an active severity-max blame edge attached — because the
+# question is "against what did this control's obligation come into existence".
+# Those select different commits, and on a nine-year procedure they usually select
+# very different commits.  Nothing in the surveyed version-control, document-control
+# or legal-informatics literature selects a diff baseline from an INCIDENT REGISTER,
+# and nothing conditions a state transition on the result.
+#
+# Two smaller choices are also unclaimed as far as this survey found:
+#
+#   (a) THE MECHANISM IS INERT ON CLAUSES WITH NO BLOOD, BY CONSTRUCTION.  A clause
+#       whose closure says max_severity = 0 gets no louder than the ordinary parent
+#       diff makes it, and a property test asserts that over generated inputs.  A
+#       diachronic gate that made every edit louder would breach the nuisance
+#       ceiling (risk R-A7) within a week, and "it only fires where blood is" is the
+#       thing that keeps it deployable.
+#   (b) A CANDIDATE ORIGIN THAT FAILS FIRST-PARENT VERIFICATION IS KEPT AND FLAGGED,
+#       NOT DROPPED.  A merge commit has two parents; if the origin could be dropped
+#       for failing chain verification, then merging a bloodless branch would produce
+#       a QUIETER delta, which is precisely what that merge would have been for.
+#       Keeping it can only raise the force of the record, so the worst case is an
+#       adjudication with `first_parent_verified = false` on the row explaining why.
+
+prior_art:
+  - url: "https://git-scm.com/docs/git-merge-base"
+    what_it_covers: >-
+      The closest published idea, and the one this mechanism is a variation on: that the version
+      you compare against is a COMPUTED property of the history rather than the previous
+      revision.  `git merge-base` finds the best common ancestor of two commits, `--octopus` and
+      `--independent` handle the harder topologies, and the whole of three-way merging is built
+      on the result.  MAINLINE's own recall design borrows the neighbouring idea — the ORT-style
+      virtual merge base as a reckoning point — and credits it there (mechanism M3).  Nothing
+      about "diff against a computed ancestor rather than the parent" is claimed here.
+    what_it_does_not: >-
+      The ancestor is selected by TOPOLOGY, and it has to be: the question git is answering is
+      "what text should I merge", for which the common ancestor is the correct and only sensible
+      answer.  There is no notion of selecting a baseline by a property of the CONTENT's history
+      — least of all by which ancestor an incident register attaches a fatality to — and the
+      result informs a textual merge rather than conditioning a state transition.  A merge base
+      also cannot be older than the fork point; a blame origin routinely is, because the blood
+      predates every branch in the repository.
+  - url: "https://git-scm.com/docs/git-blame"
+    what_it_covers: >-
+      Line-level provenance: which commit last touched each line, followed through renames and
+      moves with `-C`/`-M`, and `git log -L` for the history of a range.  The idea that a unit of
+      text carries a pointer back to the change that wrote it is theirs, is thirty years old, and
+      is the direct ancestor of this product's "every clause carries a blame pointer".
+    what_it_does_not: >-
+      Blame is DESCRIPTIVE and terminal: it reports who wrote a line and stops.  It does not
+      compare the current line against the blamed one, has no notion of a change being a
+      weakening rather than merely a change, and nothing anywhere refuses an operation because of
+      what blame reported.  It also attributes to the LAST commit that touched a line, which is
+      the opposite of what this mechanism needs — the last edit is exactly the one a salami slicer
+      controls, and the earliest blood-bearing one is exactly the one they cannot.
+  - url: "https://en.wikipedia.org/wiki/Normalization_of_deviance"
+    what_it_covers: >-
+      Diane Vaughan's account of the Challenger launch decision names the phenomenon this
+      mechanism exists to catch: a standard is relaxed by a small, individually defensible
+      increment, the relaxed standard becomes the new normal, and the next increment is judged
+      against it rather than against the original.  The vocabulary, the case studies and the
+      safety-science framing are all published and none of it is claimed here.  It is the reason
+      the twenty-step fixture in the red test is realistic rather than adversarial fiction.
+    what_it_does_not: >-
+      It is a description of an organisational failure mode, offered to practitioners as something
+      to watch for.  It proposes no mechanism, computes nothing, and has no artefact a system
+      could condition on.  The contribution here is not noticing that incremental drift happens —
+      Vaughan did that in 1996 — it is making the ORIGINAL standard the thing an edit is measured
+      against, mechanically, in a way an author cannot opt out of by making the increments small.
+  - url: "http://www.akomantoso.org/"
+    what_it_covers: >-
+      Akoma Ntoso / OASIS LegalDocML gives versioned normative text a stable identity model —
+      @wId for the immutable work-level identity of a provision and @eId for its presentation
+      label in one expression — which is exactly the split this schema copies in
+      clause.clause_uuid versus clause_version.printed_label, and credits in ARCHITECTURE.md §5.3.
+      Consolidated-legislation platforms built on it let a reader retrieve a provision as at a
+      date and compare two points in time.
+    what_it_does_not: >-
+      Point-in-time comparison there is a READER'S query: a person chooses two dates and is shown
+      a diff.  The choice of "as at when" is the reader's, never derived, and never derived from
+      an incident.  No conclusion is drawn from the diff — nothing labels one direction of change
+      as a weakening — and no state transition anywhere is conditioned on the result.  The model
+      also has no analogue of blame ancestry at all: a provision's amendment history is recorded,
+      the harm that motivated an amendment is not.
+  - url: "https://en.wikipedia.org/wiki/Management_of_change"
+    what_it_covers: >-
+      The incumbent, and worth naming because it is what a site does today: a procedure edit goes
+      to a review board, a competent person judges whether it weakens a control, and the judgement
+      is recorded.  Every question this mechanism answers is already answered under MOC, by
+      people.
+    what_it_does_not: >-
+      MOC is synchronic in the strongest sense: the reviewer is shown the current text and the
+      proposed text.  Not the twenty intervening revisions, and not the incident that wrote the
+      clause in 1998 — that incident is in a different system, usually a different vendor's, and
+      typically nobody in the room has read it.  The salami attack is not a failure of MOC
+      diligence; it is a consequence of MOC's baseline being the current revision, and no amount
+      of diligence at one review board recovers a baseline that was never presented.
+
+implemented_by:
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/diachronic/__init__.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/diachronic/origin.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/diachronic/ancestral_diff.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/diachronic/version.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/diachronic/errors.py"
+  - "verticals/mainline/db/migrations/0152_v_blame_origin.sql"
+
+tests:
+  # PL-2: the pair that was red before one line of this package existed.  The first
+  # is the RED half and is kept permanently — it asserts that the whole twenty-step
+  # chain is invisible to the parent diff, which is what a synchronic system sees.
+  - "tests/unit/domain/diachronic/test_red_first_salami.py::test_every_single_step_is_a_restatement_to_the_parent_diff"
+  - "tests/unit/domain/diachronic/test_red_first_salami.py::test_the_delta_of_record_at_step_twenty_is_a_weakening"
+  - "tests/unit/domain/diachronic/test_red_first_salami.py::test_the_salami_flag_is_false_at_every_step_before_the_composition_crosses"
+  - "tests/unit/domain/diachronic/test_red_first_salami.py::test_an_odd_step_is_quiet_and_that_is_the_honest_limit"
+  - "tests/unit/domain/diachronic/test_red_first_salami.py::test_without_blood_ancestry_the_mechanism_adds_nothing"
+  - "tests/unit/domain/diachronic/test_red_first_salami.py::test_the_defence_holds_at_every_even_chain_length"
+  # Monotonicity: 1000+ generated CAT triples per property, no exceptions permitted.
+  - "tests/unit/domain/diachronic/test_ancestral_diff.py::test_the_delta_of_record_is_never_quieter_than_the_parent_diff"
+  - "tests/unit/domain/diachronic/test_ancestral_diff.py::test_the_delta_of_record_is_never_quieter_than_the_origin_diff_either"
+  - "tests/unit/domain/diachronic/test_ancestral_diff.py::test_the_delta_of_record_is_exactly_the_join_and_never_a_new_label"
+  - "tests/unit/domain/diachronic/test_ancestral_diff.py::test_an_inert_origin_leaves_the_parent_verdict_exactly_as_it_was"
+  # The two fail-closed refusals, and the witness rows that reach delta_witness.
+  - "tests/unit/domain/diachronic/test_ancestral_diff.py::test_a_resolved_origin_with_no_tuple_refuses_rather_than_falling_back"
+  - "tests/unit/domain/diachronic/test_ancestral_diff.py::test_an_origin_tuple_with_no_resolved_origin_is_also_a_refusal"
+  - "tests/unit/domain/diachronic/test_ancestral_diff.py::test_both_witness_sets_are_carried_and_only_the_winning_one_is_minimal"
+  # Origin resolution: the three states, the tie-break, the first-parent ruling.
+  - "tests/unit/domain/diachronic/test_origin_resolution.py"
+  # Against a real CockroachDB v26.2, on a DAG containing a merge and a re-parenting attempt.
+  - "tests/integration/algorithms/diachronic/test_v_blame_origin.py::test_the_origin_is_the_earliest_blood_bearing_version_not_the_declared_parent"
+  - "tests/integration/algorithms/diachronic/test_v_blame_origin.py::test_an_unprojected_closure_produces_no_row_at_all_and_that_is_a_refusal"
+  - "tests/integration/algorithms/diachronic/test_v_blame_origin.py::test_a_same_generation_fork_resolves_the_same_way_twice"
+  - "tests/integration/algorithms/diachronic/test_v_blame_origin.py::test_an_origin_off_the_first_parent_chain_is_returned_and_flagged_not_dropped"
+  - "tests/integration/algorithms/diachronic/test_v_blame_origin.py::test_the_origin_query_does_not_full_scan_clause_version"
+  # The static checks that still run when no cluster is reachable.
+  - "tests/integration/algorithms/diachronic/test_v_blame_origin_shape.py"
+
+unverified:
+  - >-
+    THE MECHANISM IS SILENT AT AN ODD STEP OF ITS OWN FIXTURE, AND THE TEST SAYS SO.  The salami
+    chain alternates the comparator between `<=` and `=`; at an odd step the origin's comparator
+    family and the descendant's differ, rule R2 declines for exactly the reason it declines on
+    every step of the parent diff, and the delta of record is `restate`.  ORIGINDIFF catches the
+    drift on the NEXT commit.  It does not catch it on that one, and
+    test_an_odd_step_is_quiet_and_that_is_the_honest_limit asserts the silence rather than
+    leaving it to be discovered.  A merge proposed at an odd generation is a real, unmeasured
+    gap.
+  - >-
+    ORIGINDIFF REFUSES NOTHING IN SQL.  Its refusals are Python exceptions raised inside the
+    projector.  A writer who never imported this package and simply declares
+    control_delta='restate' on mainline.clause_version is not stopped by anything in this
+    fragment, and no trigger could stop them: §4.1 law 1 forbids a CHECK from seeing another row
+    and the origin version is several other rows plus a blame closure plus a signed registry.
+    What closes that hole, if it is closed, is the CONSERVATION OF BLAME MASS ledger (W9)
+    accounting for the obligation independently — and that is cbm-ledger.yaml's claim, not this
+    one.
+  - >-
+    THE FIRST-PARENT CHAIN IS VERIFIED BY A SEPARATE STATEMENT, SO A SUFFICIENTLY LONG HISTORY
+    COSTS A SECOND ROUND TRIP.  The walk is linear in generations and depth-bounded at 4096, but
+    it is not free and it is not in the view.  No latency measurement of the pair has been taken
+    against a realistic corpus; the p99 claim in ARCHITECTURE.md §12 is about the GATE, and this
+    module runs off the gate path, so nothing here has been shown to fit inside it either way.
+  - >-
+    REACHING THE DEPTH BOUND IS FAIL-OPEN.  If a clause's blame origin were more than 4096
+    generations back, mainline.v_blame_origin would return no origin row, the mechanism would
+    report itself inert, and the delta of record would collapse to the parent diff — QUIETER, not
+    louder.  `origin_depth` is projected and BlameOrigin carries `depth_bound_reached` precisely
+    so the condition is visible, but nothing refuses on it and no corpus has been checked for a
+    clause that approaches it.
+  - >-
+    `mainline.v_blame_origin` HAS NOT BEEN APPLIED AGAINST THE REAL BLAME TABLES.
+    datamodel/dm-blame's blame_edge, clause_blame_closure and clause_blame_current were not on
+    disk when this was written — only migrations 0032-0036 of that band exist — so the integration
+    suite applies a STAND-IN transcribed from ARCHITECTURE.md §5.4 and prints a banner naming
+    every object it stood in for, on every run.  The view was executed against CockroachDB CCL
+    v26.2.5 in Docker on 2026-08-09 and every assertion in this fragment's test list passed, but
+    it passed against a transcription, not against the reviewed migration.  This entry is deleted
+    when that band lands and the banner reads "no stand-in".
+  - >-
+    THE PARENT-VERSION POINTER IS TRUSTED FOR THE PARENT COMPARISON.  ORIGINDIFF resolves the
+    ORIGIN from blame and verifies it against the first-parent chain, but the PARENT half of the
+    join is whatever clause_version.parent_version says.  That pointer is FK-enforced to a real
+    version of the same clause, which is what 0029's fk_parent_version buys, and it is not
+    otherwise checked against the commit DAG.  A matcher that re-parented a clause within one
+    branch would move the parent baseline without moving the origin one; the record would still
+    be the join, so the effect is bounded by the origin comparison, but it is not zero and it is
+    not measured.
+  - >-
+    NONE OF THIS DISTINGUISHES A CONSIDERED DISPOSITION FROM A RUBBER STAMP (risk R-A8).
+    ORIGINDIFF makes the question "is this edit a weakening of what the incident wrote" precise
+    and unavoidable.  It says nothing whatsoever about the quality of the answer a person then
+    gives, and it must never be sold as retiring that risk.

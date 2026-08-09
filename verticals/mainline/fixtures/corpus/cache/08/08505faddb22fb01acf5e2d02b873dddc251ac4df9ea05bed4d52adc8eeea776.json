@@ -1,0 +1,110 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "inspecting Ex equipment and enclosures",
+    "activity_root": "CONTROL-OF-IGNITION-SOURCES",
+    "activity_series": "maintaining hazardous-area electrical equipment",
+    "assets": [
+      {
+        "asset_class": "HTP-CLASS-A",
+        "label": "hydrocarbon transfer pumps",
+        "service": "hydrocarbon transfer, single mechanical seal with pressurised barrier-fluid support",
+        "tag": "P-4105"
+      },
+      {
+        "asset_class": "INST-CLASS-A",
+        "label": "instrument loop",
+        "service": "governs P-4105",
+        "tag": "TT-4105"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "HAZARDOUS_AREA_EQUIPMENT_INTEGRITY",
+        "control_label": "integrity of explosion-protected equipment in zoned areas",
+        "failure_mode": "not_verified",
+        "hazard_energy": "chemical",
+        "icam_tier": "individual_or_team_action"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "HOT_WORK_AUTHORISATION",
+        "control_label": "authorisation of hot work adjacent to live plant",
+        "failure_mode": "absent",
+        "hazard_energy": "thermal",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "SEAL_FACE_TEMPERATURE_ALARM",
+        "control_label": "seal-face high-temperature alarm and trip",
+        "failure_mode": "degraded",
+        "hazard_energy": "chemical",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "NM-2010-0003",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "near_miss",
+    "occurred_on": "2010-02-13",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during a breakdown response",
+    "title": "stored energy found after isolation of P-4105",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "08505faddb22fb01acf5e2d02b873dddc251ac4df9ea05bed4d52adc8eeea776",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2010-0003",
+  "prompt_kind": "icam",
+  "prompt_sha256": "217d55a619a7a618e0fdd3871096715dd424ea1d2597c230ebdd98fd7c1a940e",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "HAZARDOUS_AREA_EQUIPMENT_INTEGRITY",
+        "finding": "Control HAZARDOUS_AREA_EQUIPMENT_INTEGRITY: the integrity of explosion-protected equipment in zoned areas was never verified as effective, and the root cause analysis classified this as an individual or team action."
+      },
+      {
+        "control_class": "HOT_WORK_AUTHORISATION",
+        "finding": "Control HOT_WORK_AUTHORISATION: the authorisation of hot work adjacent to live plant was not in place, and the root cause analysis classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "SEAL_FACE_TEMPERATURE_ALARM",
+        "finding": "Control SEAL_FACE_TEMPERATURE_ALARM: the seal-face high-temperature alarm and trip had degraded below its design intent, and the root cause analysis classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Restore the authorisation of hot work adjacent to live plant on P-4105 and TT-4105 and record the field verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in maintaining hazardous-area electrical equipment, specifically inspecting Ex equipment and enclosures. P-4105 (hydrocarbon transfer pumps) is in service for hydrocarbon transfer, single mechanical seal with pressurised barrier-fluid support. The task proceeded during a breakdown response while the integrity of explosion-protected equipment in zoned areas was never verified as effective. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 13 February 2010 a hazard report was recorded on P-4105 and TT-4105 at Marrindal Concentrator and Hydrocarbon Transfer Facility during a breakdown response; chemical energy held as hydrocarbon was not released."
+  },
+  "response_sha256": "7bafe4e9fb3b86bb4ededa8dd6b29a53d12b46af8a0fc3d74d33bd9d244770c2",
+  "source": null
+}

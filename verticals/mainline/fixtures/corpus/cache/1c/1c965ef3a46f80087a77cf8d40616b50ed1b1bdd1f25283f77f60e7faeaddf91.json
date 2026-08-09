@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "MOBILE-EQUIPMENT-INTERACTION",
+    "barrier_role": "preventive",
+    "control_class": "PROXIMITY_DETECTION_AND_SEGREGATION",
+    "control_delta": "introduce",
+    "control_label": "segregation of light vehicles and pedestrians from heavy equipment",
+    "doc_code": "PRO-MIN-003",
+    "doc_family": "PRO",
+    "doc_title": "Haul Road and Light Vehicle Interaction",
+    "effective_on": "2016-01-05",
+    "printed_label": "2.4",
+    "setpoint": {
+      "from": 30.0,
+      "key": "light_vehicle_exclusion_radius",
+      "label": "light vehicle exclusion radius from operating haul trucks",
+      "strengthen_direction": "higher",
+      "to": 30.0,
+      "unit": "m"
+    },
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "1c965ef3a46f80087a77cf8d40616b50ed1b1bdd1f25283f77f60e7faeaddf91",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:YND/PRO-MIN-003/008#YND/PRO-MIN-003/2.4",
+  "prompt_kind": "clause",
+  "prompt_sha256": "e968d8b2d0873874c8130d9c78086c66317a9dc5a087025f8001291e21e2f07a",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The segregation of light vehicles and pedestrians from heavy equipment shall be provided and maintained for work covered by this procedure. The light vehicle exclusion radius from operating haul trucks shall be set at 30 m. This clause applies to activities archived under MOBILE-EQUIPMENT-INTERACTION at Yandarra Downs Open Cut and Heavy Workshop.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "59a9b3ceb1890307b9d507e28e38b5821daadf2dfe4b26924147549da352354d",
+  "source": null
+}

@@ -1,0 +1,78 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "proof testing and periodic inspection of hoists",
+    "activity_root": "LIFTING-AND-SUSPENDED-LOADS",
+    "activity_series": "maintaining lifting appliances",
+    "assets": [
+      {
+        "asset_class": "LIFT-CLASS-W",
+        "label": "workshop hoists and press",
+        "service": "heavy vehicle component removal and pressing",
+        "tag": "HO-9401"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 1,
+      "label": "medical treatment injury"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "LIFT_STUDY_APPROVAL",
+        "control_label": "preparation and approval of a lift study",
+        "failure_mode": "ineffective",
+        "hazard_energy": "kinetic",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "NM-2015-0020",
+    "hazard_energy": "gravity",
+    "hazard_media": [
+      "suspended load",
+      "stored potential of an elevated component",
+      "unsupported ground",
+      "person at height"
+    ],
+    "hazard_release": "fall, collapse, crush",
+    "kind": "near_miss",
+    "occurred_on": "2015-12-05",
+    "severity_actual": 2,
+    "severity_potential": 3,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during transfer operations",
+    "title": "stored energy found after isolation of HO-9401",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "e6e649f1f5646d8af46ddbf202a272afa82d043ec5ba1cfedd8d993abfe15b7f",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2015-0020",
+  "prompt_kind": "icam",
+  "prompt_sha256": "9ab7ade9203426d4ed1f249dc6ad16e16d14a7923c9171444ef0077f8825d0f3",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was medical treatment injury, with 1 person injured. The potential outcome was rated 3 against the site's consequence scale, above the 2 actually realised.",
+    "defences": [
+      {
+        "control_class": "LIFT_STUDY_APPROVAL",
+        "finding": "Control LIFT_STUDY_APPROVAL: the preparation and approval of a lift study was in place but did not perform, and the root cause analysis classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next field verification that the preparation and approval of a lift study on HO-9401 performs as designed."
+    ],
+    "sequence": "Work was under way in maintaining lifting appliances, specifically proof testing and periodic inspection of hoists. HO-9401 (workshop hoists and press) is in service for heavy vehicle component removal and pressing. The task proceeded during transfer operations while the preparation and approval of a lift study was in place but did not perform. The gravity energy involved is held as suspended load, and the recorded presentation was fall, collapse, crush.",
+    "summary": "On 5 December 2015 a hazard report was recorded on HO-9401 at Yandarra Downs Open Cut and Heavy Workshop during transfer operations; gravity energy held as suspended load was not released."
+  },
+  "response_sha256": "164b74eee4e98f78b29ed371b1f76e41eb60340a34c5904edcb514fa01ae396e",
+  "source": null
+}

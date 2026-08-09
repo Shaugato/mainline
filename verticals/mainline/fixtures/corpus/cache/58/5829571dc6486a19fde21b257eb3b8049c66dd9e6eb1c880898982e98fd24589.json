@@ -1,0 +1,91 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "charging, tying in and guarding a blast",
+    "activity_root": "EXPLOSIVES-AND-BLASTING",
+    "activity_series": "charging and firing",
+    "assets": [
+      {
+        "asset_class": "MOB-CLASS-E",
+        "label": "earthmoving fleet",
+        "service": "loading and dozing",
+        "tag": "DZ-9201"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "BLAST_GUARDING_AND_CLEARANCE",
+        "control_label": "guarding, clearance and misfire handling for a blast",
+        "failure_mode": "bypassed",
+        "hazard_energy": "kinetic",
+        "icam_tier": "individual_or_team_action"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "EXPLOSIVES_RECONCILIATION",
+        "control_label": "receipt, magazining and reconciliation of explosives",
+        "failure_mode": "absent",
+        "hazard_energy": "kinetic",
+        "icam_tier": "organisational_factor"
+      }
+    ],
+    "event_ref": "INC-2018-001",
+    "hazard_energy": "kinetic",
+    "hazard_media": [
+      "rotating equipment",
+      "conveyor",
+      "mobile equipment",
+      "pressurised jet",
+      "flying fragment"
+    ],
+    "hazard_release": "entanglement, impact, crush",
+    "kind": "incident",
+    "occurred_on": "2018-01-09",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during routine operation",
+    "title": "kinetic release during routine operation on DZ-9201",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "5829571dc6486a19fde21b257eb3b8049c66dd9e6eb1c880898982e98fd24589",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2018-001",
+  "prompt_kind": "icam",
+  "prompt_sha256": "745bfbc9c6206a6ce7717e99f0f13287481d8b341507f42ec159951885afa826",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "BLAST_GUARDING_AND_CLEARANCE",
+        "finding": "Control BLAST_GUARDING_AND_CLEARANCE: the guarding, clearance and misfire handling for a blast had been bypassed, and the ICAM investigation classified this as an individual or team action."
+      },
+      {
+        "control_class": "EXPLOSIVES_RECONCILIATION",
+        "finding": "Control EXPLOSIVES_RECONCILIATION: the receipt, magazining and reconciliation of explosives was not in place, and the ICAM investigation classified this as an organisational factor."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next critical control verification that the guarding, clearance and misfire handling for a blast on DZ-9201 performs as designed."
+    ],
+    "sequence": "Work was under way in charging and firing, specifically charging, tying in and guarding a blast. DZ-9201 (earthmoving fleet) is in service for loading and dozing. The task proceeded during routine operation while the guarding, clearance and misfire handling for a blast had been bypassed. The kinetic energy involved is held as rotating equipment, and the recorded presentation was entanglement, impact, crush.",
+    "summary": "On 9 January 2018 an incident occurred on DZ-9201 at Yandarra Downs Open Cut and Heavy Workshop during routine operation, releasing kinetic energy held as rotating equipment."
+  },
+  "response_sha256": "c21fcc11fc5434a13153df1662ac6f8422647369d74445f89ae85efd076b6adc",
+  "source": null
+}

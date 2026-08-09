@@ -1,0 +1,104 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "inspecting and maintaining portable equipment",
+    "activity_root": "ELECTRICAL-SAFETY",
+    "activity_series": "maintaining protective systems",
+    "assets": [
+      {
+        "asset_class": "ELEC-CLASS-A",
+        "label": "switchgear and transformers",
+        "service": "plant HV/LV distribution",
+        "tag": "TX-3002"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "HAZARDOUS_AREA_EQUIPMENT_INTEGRITY",
+        "control_label": "integrity of explosion-protected equipment in zoned areas",
+        "failure_mode": "degraded",
+        "hazard_energy": "electrical",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "POSITIVE_ISOLATION_APPLICATION",
+        "control_label": "application of positive isolation devices and personal locks",
+        "failure_mode": "ineffective",
+        "hazard_energy": "electrical",
+        "icam_tier": "individual_or_team_action"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "ZERO_ENERGY_VERIFICATION",
+        "control_label": "proving zero energy before intrusive work",
+        "failure_mode": "bypassed",
+        "hazard_energy": "electrical",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "NM-2016-0014",
+    "hazard_energy": "thermal",
+    "hazard_media": [
+      "hot surface",
+      "steam",
+      "molten material",
+      "hot work",
+      "exothermic reaction"
+    ],
+    "hazard_release": "burn, ignition, scald",
+    "kind": "near_miss",
+    "occurred_on": "2016-09-23",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during start-up after maintenance",
+    "title": "trapped hazardous energy found after isolation of TX-3002",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "403e0530d2638c8ab4f05235f1774e357b62a8ffb5f0609dc599a882ff468bb9",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2016-0014",
+  "prompt_kind": "icam",
+  "prompt_sha256": "311f2129e4c1b5c49e885a16dc32c42c4e0ce080dd1fb8456fccf88474924a25",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "HAZARDOUS_AREA_EQUIPMENT_INTEGRITY",
+        "finding": "Control HAZARDOUS_AREA_EQUIPMENT_INTEGRITY: the integrity of explosion-protected equipment in zoned areas had degraded below its design intent, and the ICAM investigation classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "POSITIVE_ISOLATION_APPLICATION",
+        "finding": "Control POSITIVE_ISOLATION_APPLICATION: the application of positive isolation devices and personal locks was in place but did not perform, and the ICAM investigation classified this as an individual or team action."
+      },
+      {
+        "control_class": "ZERO_ENERGY_VERIFICATION",
+        "finding": "Control ZERO_ENERGY_VERIFICATION: the proving zero energy before intrusive work had been bypassed, and the ICAM investigation classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the integrity of explosion-protected equipment in zoned areas on TX-3002 and record the critical control verification before this task is next authorised.",
+      "Restore the proving zero energy before intrusive work on TX-3002 and record the critical control verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in maintaining protective systems, specifically inspecting and maintaining portable equipment. TX-3002 (switchgear and transformers) is in service for plant HV/LV distribution. The task proceeded during start-up after maintenance while the integrity of explosion-protected equipment in zoned areas had degraded below its design intent. The thermal energy involved is held as hot surface, and the recorded presentation was burn, ignition, scald.",
+    "summary": "On 23 September 2016 a potential incident was recorded on TX-3002 at Marrindal Concentrator and Hydrocarbon Transfer Facility during start-up after maintenance; thermal energy held as hot surface was not released."
+  },
+  "response_sha256": "60df4ea501f966017be9e1c4d6869958fb6a7ec179b1e1e679d1a09783bf33ba",
+  "source": null
+}

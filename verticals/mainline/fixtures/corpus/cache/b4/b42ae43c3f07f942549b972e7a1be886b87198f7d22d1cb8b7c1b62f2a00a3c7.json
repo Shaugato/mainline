@@ -1,0 +1,53 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 4,
+    "doc_codes": [
+      "ALERT-2016-007",
+      "MOC-2014-0087",
+      "PRO-MEC-041",
+      "PRO-OPS-017",
+      "PTW-STD-003"
+    ],
+    "intent": "restate",
+    "moc_ref": "MOC-2013-0175",
+    "opened_on": "2013-12-25",
+    "precursor_events": [
+      {
+        "event_ref": "INC-2014-013",
+        "severity_gate": null
+      },
+      {
+        "event_ref": "INC-2018-004",
+        "severity_gate": null
+      },
+      {
+        "event_ref": "NM-2005-0008",
+        "severity_gate": null
+      }
+    ],
+    "site": "Cape Verity Export Terminal",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "management_of_change": "change request",
+      "verification": "field verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "b42ae43c3f07f942549b972e7a1be886b87198f7d22d1cb8b7c1b62f2a00a3c7",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2013-0175",
+  "prompt_kind": "moc",
+  "prompt_sha256": "6ffe5e8cc913ed010e7b6502e3d86afeef46e041f1fa1f6b14e0b0c18c23e851",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2013-0175 was raised at Cape Verity Export Terminal on 25 December 2013 following 3 recorded events in the archive, including INC-2014-013, INC-2018-004 and NM-2005-0008. The change request record covers 4 clauses across 5 controlled documents. The intent is to restate an existing duty without altering what it requires. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical safeguard set is preserved.",
+    "scope_note": "The documents in scope are ALERT-2016-007, MOC-2014-0087, PRO-MEC-041, PRO-OPS-017 and PTW-STD-003."
+  },
+  "response_sha256": "089c99d063f8a73ee7959dc74097ff5a0998a81fdefd87061ecc7e30081e1303",
+  "source": null
+}

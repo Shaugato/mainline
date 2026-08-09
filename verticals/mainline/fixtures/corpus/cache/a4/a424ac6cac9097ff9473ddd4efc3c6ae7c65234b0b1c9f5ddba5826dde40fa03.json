@@ -1,0 +1,115 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "removing isolation and returning to operations",
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "activity_series": "restoring plant to service",
+    "assets": [
+      {
+        "asset_class": "MILL-CLASS-A",
+        "label": "grinding mills",
+        "service": "two-line ball milling",
+        "tag": "ML-3202"
+      },
+      {
+        "asset_class": "MOTOR-CLASS-A",
+        "label": "drive motor",
+        "service": "drives ML-3202",
+        "tag": "M-3202"
+      },
+      {
+        "asset_class": "INST-CLASS-A",
+        "label": "instrument loop",
+        "service": "governs ML-3202",
+        "tag": "VT-3202"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "ENERGY_SOURCE_IDENTIFICATION",
+        "control_label": "identification of every energy source for the task",
+        "failure_mode": "not_verified",
+        "hazard_energy": "kinetic",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "ISOLATION_HANDBACK_CONTROL",
+        "control_label": "controlled removal of isolation and return to service",
+        "failure_mode": "ineffective",
+        "hazard_energy": "electrical",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "POSITIVE_ISOLATION_APPLICATION",
+        "control_label": "application of positive isolation devices and personal locks",
+        "failure_mode": "ineffective",
+        "hazard_energy": "kinetic",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "NM-2020-0009",
+    "hazard_energy": "electrical",
+    "hazard_media": [
+      "HV switchgear",
+      "LV distribution",
+      "capacitive storage",
+      "induced voltage",
+      "portable equipment"
+    ],
+    "hazard_release": "shock, arc flash, unplanned energisation",
+    "kind": "near_miss",
+    "occurred_on": "2020-06-02",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during an intrusive maintenance task",
+    "title": "trapped hazardous energy found after isolation of ML-3202",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "a424ac6cac9097ff9473ddd4efc3c6ae7c65234b0b1c9f5ddba5826dde40fa03",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2020-0009",
+  "prompt_kind": "icam",
+  "prompt_sha256": "ea693e8f89a669feb1c4e372273d3e0e5a1005adc2615e0bc96490fc30a0f616",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "ENERGY_SOURCE_IDENTIFICATION",
+        "finding": "Control ENERGY_SOURCE_IDENTIFICATION: the identification of every energy source for the task was never verified as effective, and the ICAM investigation classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "ISOLATION_HANDBACK_CONTROL",
+        "finding": "Control ISOLATION_HANDBACK_CONTROL: the controlled removal of isolation and return to service was in place but did not perform, and the ICAM investigation classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "POSITIVE_ISOLATION_APPLICATION",
+        "finding": "Control POSITIVE_ISOLATION_APPLICATION: the application of positive isolation devices and personal locks was in place but did not perform, and the ICAM investigation classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Restore the identification of every energy source for the task on ML-3202, M-3202 and VT-3202 and record the critical control verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in restoring plant to service, specifically removing isolation and returning to operations. ML-3202 (grinding mills) is in service for two-line ball milling. The task proceeded during an intrusive maintenance task while the identification of every energy source for the task was never verified as effective. The electrical energy involved is held as HV switchgear, and the recorded presentation was shock, arc flash, unplanned energisation.",
+    "summary": "On 2 June 2020 a potential incident was recorded on ML-3202, M-3202 and VT-3202 at Marrindal Concentrator and Hydrocarbon Transfer Facility during an intrusive maintenance task; electrical energy held as HV switchgear was not released."
+  },
+  "response_sha256": "66343f6221dbeb9ee18258a1c0f9dec9fa0082ad43b8547435e189236f727dbe",
+  "source": null
+}

@@ -1,0 +1,118 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "isolating and depressuring a leaking system",
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "activity_series": "responding to a loss of containment",
+    "assets": [
+      {
+        "asset_class": "TANK-CLASS-P",
+        "label": "product storage tanks",
+        "service": "export product storage",
+        "tag": "TK-7104"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 1,
+      "label": "medical treatment injury"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "BUND_AND_DRAINAGE_CONTAINMENT",
+        "control_label": "secondary containment by bund and drainage",
+        "failure_mode": "degraded",
+        "hazard_energy": "chemical",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "EMERGENCY_ISOLATION_ON_RELEASE",
+        "control_label": "emergency isolation and depressuring on loss of containment",
+        "failure_mode": "not_verified",
+        "hazard_energy": "pressure",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "HYDROCARBON_TRANSFER_CONTROL",
+        "control_label": "controlled transfer of hydrocarbon between vessels",
+        "failure_mode": "bypassed",
+        "hazard_energy": "chemical",
+        "icam_tier": "individual_or_team_action"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "SEAL_FACE_TEMPERATURE_ALARM",
+        "control_label": "seal-face high-temperature alarm and trip",
+        "failure_mode": "ineffective",
+        "hazard_energy": "chemical",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "INC-2023-003",
+    "hazard_energy": "pressure",
+    "hazard_media": [
+      "hydraulic accumulator",
+      "barrier fluid",
+      "process gas",
+      "steam header",
+      "compressed air",
+      "trapped liquid"
+    ],
+    "hazard_release": "jet release, stored-energy discharge, rupture",
+    "kind": "incident",
+    "occurred_on": "2023-01-11",
+    "severity_actual": 2,
+    "severity_potential": 2,
+    "site": "Cape Verity Export Terminal",
+    "summary_facts": [],
+    "task_phase": "during shift handover",
+    "title": "positive isolation verification failure on TK-7104",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "6ab147a942821309c61d3af2a55ee2541deb5864b2e14b084eb82516c8e0b1a1",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2023-003",
+  "prompt_kind": "icam",
+  "prompt_sha256": "08f6a34b40295d65fb4bfb2e6fa84b7a1fefc6862987a08318f200d424426734",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was medical treatment injury, with 1 person injured.",
+    "defences": [
+      {
+        "control_class": "BUND_AND_DRAINAGE_CONTAINMENT",
+        "finding": "Control BUND_AND_DRAINAGE_CONTAINMENT: the secondary containment by bund and drainage had degraded below its design intent, and the learning team review classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "EMERGENCY_ISOLATION_ON_RELEASE",
+        "finding": "Control EMERGENCY_ISOLATION_ON_RELEASE: the emergency isolation and depressuring on loss of containment was never verified as effective, and the learning team review classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "HYDROCARBON_TRANSFER_CONTROL",
+        "finding": "Control HYDROCARBON_TRANSFER_CONTROL: the controlled transfer of hydrocarbon between vessels had been bypassed, and the learning team review classified this as an individual or team action."
+      },
+      {
+        "control_class": "SEAL_FACE_TEMPERATURE_ALARM",
+        "finding": "Control SEAL_FACE_TEMPERATURE_ALARM: the seal-face high-temperature alarm and trip was in place but did not perform, and the learning team review classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the secondary containment by bund and drainage on TK-7104 and record the assurance activity before this task is next authorised.",
+      "Restore the emergency isolation and depressuring on loss of containment on TK-7104 and record the assurance activity before this task is next authorised.",
+      "Restore the seal-face high-temperature alarm and trip on TK-7104 and record the assurance activity before this task is next authorised."
+    ],
+    "sequence": "Work was under way in responding to a loss of containment, specifically isolating and depressuring a leaking system. TK-7104 (product storage tanks) is in service for export product storage. The task proceeded during shift handover while the secondary containment by bund and drainage had degraded below its design intent. The pressure energy involved is held as hydraulic accumulator, and the recorded presentation was jet release, stored-energy discharge, rupture.",
+    "summary": "On 11 January 2023 an incident occurred on TK-7104 at Cape Verity Export Terminal during shift handover, releasing pressure energy held as hydraulic accumulator."
+  },
+  "response_sha256": "379836e834d1469ac216864c7b92895622766f9e3947f8d1a4f1c825b973dab0",
+  "source": null
+}

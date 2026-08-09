@@ -1,0 +1,91 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "applying positive communication before approach",
+    "activity_root": "MOBILE-EQUIPMENT-INTERACTION",
+    "activity_series": "controlling traffic on operating areas",
+    "assets": [
+      {
+        "asset_class": "MOB-CLASS-H",
+        "label": "haul trucks",
+        "service": "waste and ore haulage",
+        "tag": "HT-9001"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "PARK_UP_AND_RESTRAINT",
+        "control_label": "parking, chocking and restraint of equipment",
+        "failure_mode": "bypassed",
+        "hazard_energy": "gravity",
+        "icam_tier": "organisational_factor"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "PROXIMITY_DETECTION_AND_SEGREGATION",
+        "control_label": "segregation of light vehicles and pedestrians from heavy equipment",
+        "failure_mode": "absent",
+        "hazard_energy": "kinetic",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "CAPA-2024-001",
+    "hazard_energy": "kinetic",
+    "hazard_media": [
+      "rotating equipment",
+      "conveyor",
+      "mobile equipment",
+      "pressurised jet",
+      "flying fragment"
+    ],
+    "hazard_release": "entanglement, impact, crush",
+    "kind": "capa",
+    "occurred_on": "2024-01-02",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during an intrusive maintenance task",
+    "title": "corrective action following learning team review at HT-9001",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "8176dcd521e604f31d171cb5973cfe9c88ef54b0cd9c4cf502a062ac9d185019",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:CAPA-2024-001",
+  "prompt_kind": "icam",
+  "prompt_sha256": "1c2698248a6b758bd2ae96bc231a207bcc61bc9bb351a2d2922c5908ad3af2d9",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "PARK_UP_AND_RESTRAINT",
+        "finding": "Control PARK_UP_AND_RESTRAINT: the parking, chocking and restraint of equipment had been bypassed, and the learning team review classified this as an organisational factor."
+      },
+      {
+        "control_class": "PROXIMITY_DETECTION_AND_SEGREGATION",
+        "finding": "Control PROXIMITY_DETECTION_AND_SEGREGATION: the segregation of light vehicles and pedestrians from heavy equipment was not in place, and the learning team review classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next assurance activity that the parking, chocking and restraint of equipment on HT-9001 performs as designed."
+    ],
+    "sequence": "Work was under way in controlling traffic on operating areas, specifically applying positive communication before approach. HT-9001 (haul trucks) is in service for waste and ore haulage. The task proceeded during an intrusive maintenance task while the parking, chocking and restraint of equipment had been bypassed. The kinetic energy involved is held as rotating equipment, and the recorded presentation was entanglement, impact, crush.",
+    "summary": "On 2 January 2024 a corrective action on HT-9001 at Yandarra Downs Open Cut and Heavy Workshop was reviewed against the material unwanted event control it was raised to restore."
+  },
+  "response_sha256": "30f8c28e948d5eb522496adfae32436d04f89ee39c63ae628e6d89bdf381a863",
+  "source": null
+}

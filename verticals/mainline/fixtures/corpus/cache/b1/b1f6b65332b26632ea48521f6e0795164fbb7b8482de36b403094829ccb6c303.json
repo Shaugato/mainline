@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "barrier_role": "preventive",
+    "control_class": "SEAL_SUPPORT_SYSTEM_INTEGRITY",
+    "control_delta": "introduce",
+    "control_label": "integrity of the mechanical seal support system",
+    "doc_code": "MOC-2014-0087",
+    "doc_family": "MOC",
+    "doc_title": "Replacement of Jetty Emergency Shutdown Valve Actuators",
+    "effective_on": "2014-04-09",
+    "printed_label": "2.3",
+    "setpoint": null,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "energy_isolation": "lock out tag out",
+      "verification": "field verification"
+    }
+  },
+  "key": "b1f6b65332b26632ea48521f6e0795164fbb7b8482de36b403094829ccb6c303",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:CVY/MOC-2014-0087/001#CVY/MOC-2014-0087/2.3",
+  "prompt_kind": "clause",
+  "prompt_sha256": "09ad6d109af0bfc0f4912c5144815963ff69153d60eed215af9ce2c44d479391",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The integrity of the mechanical seal support system shall be provided and maintained for work covered by this change record. This clause applies to activities archived under CONTAINMENT-OF-HYDROCARBONS at Cape Verity Export Terminal.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "3612c2d24f99e3129b05d26ccb4bd213b1d98736d81ca19c4033d981774b46c0",
+  "source": null
+}

@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTROL-OF-IGNITION-SOURCES",
+    "barrier_role": "preventive",
+    "control_class": "HAZARDOUS_AREA_EQUIPMENT_INTEGRITY",
+    "control_delta": "introduce",
+    "control_label": "integrity of explosion-protected equipment in zoned areas",
+    "doc_code": "STD-HTW-004",
+    "doc_family": "STD",
+    "doc_title": "Hot Work",
+    "effective_on": "2020-02-14",
+    "printed_label": "4.1.4",
+    "setpoint": null,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "efdb7674c37ffe64cdf6925004fdb9983b2d6ece5b093c45377205945a8685b7",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/STD-HTW-004/006#MRD/STD-HTW-004/7.5.3(a)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "26ae11878ca07a6908f1a2b75a502e33f1e3ad223e5acd493b2e86fdd0975cf6",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The integrity of explosion-protected equipment in zoned areas shall be provided and maintained for work covered by this standard. This clause applies to activities archived under CONTROL-OF-IGNITION-SOURCES at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "711b7cbbdc68adfed342e22df4476e943813a3a90ed6dc6770ae06e82914a1b0",
+  "source": null
+}

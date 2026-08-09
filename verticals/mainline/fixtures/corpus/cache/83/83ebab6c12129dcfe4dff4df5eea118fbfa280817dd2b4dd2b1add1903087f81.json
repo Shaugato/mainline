@@ -1,0 +1,98 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "replacing seals and seal support fluid",
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "activity_series": "maintaining sealing systems on rotating equipment",
+    "assets": [
+      {
+        "asset_class": "SLP-CLASS-B",
+        "label": "slurry transfer pumps",
+        "service": "cyclone feed and tailings transfer",
+        "tag": "P-3222"
+      },
+      {
+        "asset_class": "MOTOR-CLASS-A",
+        "label": "drive motor",
+        "service": "drives P-3222",
+        "tag": "M-3222"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "HYDROCARBON_TRANSFER_CONTROL",
+        "control_label": "controlled transfer of hydrocarbon between vessels",
+        "failure_mode": "bypassed",
+        "hazard_energy": "pressure",
+        "icam_tier": "individual_or_team_action"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "SEAL_SUPPORT_SYSTEM_INTEGRITY",
+        "control_label": "integrity of the mechanical seal support system",
+        "failure_mode": "not_verified",
+        "hazard_energy": "pressure",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "NM-2021-0018",
+    "hazard_energy": "pressure",
+    "hazard_media": [
+      "hydraulic accumulator",
+      "barrier fluid",
+      "process gas",
+      "steam header",
+      "compressed air",
+      "trapped liquid"
+    ],
+    "hazard_release": "jet release, stored-energy discharge, rupture",
+    "kind": "near_miss",
+    "occurred_on": "2021-12-05",
+    "severity_actual": 0,
+    "severity_potential": 3,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during start-up after maintenance",
+    "title": "trapped hazardous energy found after isolation of P-3222",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "83ebab6c12129dcfe4dff4df5eea118fbfa280817dd2b4dd2b1add1903087f81",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2021-0018",
+  "prompt_kind": "icam",
+  "prompt_sha256": "af987255173a58b0ffdfb61b807a5a355986093754ce128c031988b5117ad46d",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 3 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "HYDROCARBON_TRANSFER_CONTROL",
+        "finding": "Control HYDROCARBON_TRANSFER_CONTROL: the controlled transfer of hydrocarbon between vessels had been bypassed, and the ICAM investigation classified this as an individual or team action."
+      },
+      {
+        "control_class": "SEAL_SUPPORT_SYSTEM_INTEGRITY",
+        "finding": "Control SEAL_SUPPORT_SYSTEM_INTEGRITY: the integrity of the mechanical seal support system was never verified as effective, and the ICAM investigation classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next critical control verification that the controlled transfer of hydrocarbon between vessels on P-3222 and M-3222 performs as designed."
+    ],
+    "sequence": "Work was under way in maintaining sealing systems on rotating equipment, specifically replacing seals and seal support fluid. P-3222 (slurry transfer pumps) is in service for cyclone feed and tailings transfer. The task proceeded during start-up after maintenance while the controlled transfer of hydrocarbon between vessels had been bypassed. The pressure energy involved is held as hydraulic accumulator, and the recorded presentation was jet release, stored-energy discharge, rupture.",
+    "summary": "On 5 December 2021 a potential incident was recorded on P-3222 and M-3222 at Marrindal Concentrator and Hydrocarbon Transfer Facility during start-up after maintenance; pressure energy held as hydraulic accumulator was not released."
+  },
+  "response_sha256": "8a2d3e1337f56eb7813d4d60baf17286b6e3c1ba9bae7f2994af332203b719ac",
+  "source": null
+}

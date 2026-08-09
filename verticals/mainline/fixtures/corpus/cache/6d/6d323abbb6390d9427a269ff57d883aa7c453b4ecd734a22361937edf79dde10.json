@@ -1,0 +1,41 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 4,
+    "doc_codes": [
+      "PRO-ELE-008"
+    ],
+    "intent": "introduce",
+    "moc_ref": "MOC-2020-0095",
+    "opened_on": "2020-07-16",
+    "precursor_events": [
+      {
+        "event_ref": "INC-2004-003",
+        "severity_gate": null
+      }
+    ],
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "terminal_state": "abandoned",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "management_of_change": "management of change",
+      "verification": "critical control verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "6d323abbb6390d9427a269ff57d883aa7c453b4ecd734a22361937edf79dde10",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2020-0095",
+  "prompt_kind": "moc",
+  "prompt_sha256": "bdfe639d11744158c39a21005676bced206b533be3533206f26029d0c68b7ffd",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2020-0095 was raised at Marrindal Concentrator and Hydrocarbon Transfer Facility on 16 July 2020 following 1 recorded event in the archive, including INC-2004-003. The management of change record covers 4 clauses across 1 controlled document. The intent is to introduce a duty the documents in scope did not previously carry. The record reached the state abandoned in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical control set is preserved.",
+    "scope_note": "The documents in scope are PRO-ELE-008."
+  },
+  "response_sha256": "f847eb6d32e02b095089b87b4b930efe3fcb7a656280785281b28241e0cd8f98",
+  "source": null
+}

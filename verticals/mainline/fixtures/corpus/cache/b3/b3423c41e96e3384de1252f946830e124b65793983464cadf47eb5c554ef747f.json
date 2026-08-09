@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONFINED-SPACE-ENTRY",
+    "barrier_role": "recovery",
+    "control_class": "STANDBY_ATTENDANCE_AND_RESCUE",
+    "control_delta": "restate",
+    "control_label": "standby attendance and non-entry rescue capability",
+    "doc_code": "PRO-HSE-012",
+    "doc_family": "PRO",
+    "doc_title": "Confined Space Entry",
+    "effective_on": "2016-11-21",
+    "printed_label": "4.2.8",
+    "setpoint": null,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "b3423c41e96e3384de1252f946830e124b65793983464cadf47eb5c554ef747f",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:CVY/PRO-HSE-012/006#CVY/PRO-HSE-012/7.3",
+  "prompt_kind": "clause",
+  "prompt_sha256": "604cce94332984fff5c3f9d55e05fe7054ba862e62e94d029229b7e32a366899",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The standby attendance and non-entry rescue capability shall be provided and maintained wherever this procedure applies, and its condition shall be treated as a critical control. This clause applies to activities archived under CONFINED-SPACE-ENTRY at Cape Verity Export Terminal.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "a693786af9ff0c60a0423fe8f6801be7256fbcc940b76cde2ad3a1beefda51d4",
+  "source": null
+}

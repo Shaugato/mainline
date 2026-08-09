@@ -1,0 +1,39 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MAINLINE · 0185a_disposition_rls_force.sql
+-- ALTER TABLE mainline.disposition FORCE ROW LEVEL SECURITY
+--
+-- MI: MI08
+-- I: I15
+-- COUNSEL-GATED: yes
+-- RATIONALE: The whole value of `peer_blind` is that it binds a person who legitimately
+--            holds SELECT. An owner exemption would mean the partition holds against
+--            signers and against nothing else — including against every view, since a view
+--            evaluates its base-table access as its owner. FORCE is what makes the
+--            partition total, and 0185e is the one named exception.
+--
+-- migration:  0185a_disposition_rls_force
+-- domain:     datamodel / dm-views-rls
+-- band:       0180-0198z · datamodel/dm-views-rls · AUTHORED, allocated by
+--             verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1)
+-- statements: 1
+-- matrix:     verticals/mainline/db/RLS-MATRIX.yaml — this file is a RENDERING of one entry
+--             there; tests/integration/schema/test_mi_rls.py asserts the two agree
+-- source:     ARCHITECTURE.md §11.3 (RLS, SEC-1) · §4.1 law 10 · correction S22 · v26.2 row-level-security reference
+-- requires:   0066 mainline.disposition · 0185 ENABLE
+-- sqlstate:   none — FORCE removes an exemption; it refuses nothing.
+-- forward-only; no .down.sql exists at or below the protected floor.
+--
+-- ────────────────────────────────────────────────────────────────────────────
+-- S22 APPLIES, AND THE WRITER IS A SINGLE ROLE
+-- ────────────────────────────────────────────────────────────────────────────
+-- `svc_disposition` INSERTs here and UPDATEs `retracted_by`; `agent_gate` is denied both,
+-- explicitly, in GRANTS.yaml — the kernel writes obligations and does not sign them off,
+-- and separation runs in both directions. So the write policies are 0185f and 0185g, one
+-- role each, and the absence of `agent_gate` from them is a control rather than an
+-- oversight.
+--
+
+ALTER TABLE mainline.disposition FORCE ROW LEVEL SECURITY;
+

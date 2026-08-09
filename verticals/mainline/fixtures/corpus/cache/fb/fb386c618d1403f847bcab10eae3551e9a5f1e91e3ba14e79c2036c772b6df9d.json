@@ -1,0 +1,48 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 2,
+    "doc_codes": [
+      "ALERT-2016-007",
+      "MOC-2026-0413",
+      "PRO-MEC-014",
+      "PRO-OPS-032"
+    ],
+    "intent": "strengthen",
+    "moc_ref": "MOC-2009-0180",
+    "opened_on": "2009-11-07",
+    "precursor_events": [
+      {
+        "event_ref": "INC-2012-004",
+        "severity_gate": null
+      },
+      {
+        "event_ref": "INC-2025-010",
+        "severity_gate": null
+      }
+    ],
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "management_of_change": "engineering change note",
+      "verification": "spot check"
+    },
+    "weakening_steps": 0
+  },
+  "key": "fb386c618d1403f847bcab10eae3551e9a5f1e91e3ba14e79c2036c772b6df9d",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2009-0180",
+  "prompt_kind": "moc",
+  "prompt_sha256": "d498860a704192450374465d253c4c5d8433cd985aada9ccc6df3f0eda28ac93",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2009-0180 was raised at Marrindal Concentrator and Hydrocarbon Transfer Facility on 7 November 2009 following 2 recorded events in the archive, including INC-2012-004 and INC-2025-010. The engineering change note record covers 2 clauses across 4 controlled documents. The intent is to strengthen the key safeguard named in the documents in scope. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the key safeguard set is preserved.",
+    "scope_note": "The documents in scope are ALERT-2016-007, MOC-2026-0413, PRO-MEC-014 and PRO-OPS-032."
+  },
+  "response_sha256": "d98b9c1bee2d73fe5d21570922ea51a837cf14cb3850739d4d1fc76747c20c77",
+  "source": null
+}

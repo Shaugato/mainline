@@ -1,0 +1,104 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "bunding, drainage and spill containment",
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "activity_series": "managing hydrocarbon transfer and storage",
+    "assets": [
+      {
+        "asset_class": "HTP-CLASS-A",
+        "label": "export transfer pumps",
+        "service": "tank-to-jetty product transfer, same seal class as the Marrindal family",
+        "tag": "P-7111"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "BUND_AND_DRAINAGE_CONTAINMENT",
+        "control_label": "secondary containment by bund and drainage",
+        "failure_mode": "ineffective",
+        "hazard_energy": "chemical",
+        "icam_tier": "individual_or_team_action"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "HYDROCARBON_TRANSFER_CONTROL",
+        "control_label": "controlled transfer of hydrocarbon between vessels",
+        "failure_mode": "bypassed",
+        "hazard_energy": "pressure",
+        "icam_tier": "individual_or_team_action"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "SEAL_SUPPORT_SYSTEM_INTEGRITY",
+        "control_label": "integrity of the mechanical seal support system",
+        "failure_mode": "not_verified",
+        "hazard_energy": "chemical",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "AF-2018-008",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "audit_finding",
+    "occurred_on": "2018-10-04",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Cape Verity Export Terminal",
+    "summary_facts": [],
+    "task_phase": "during routine operation",
+    "title": "audit finding - management of change not applied to P-7111",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "1b557a72714bf2fc568395600318bf86c1a345bc4beb55a5ed307fa89dbae140",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:AF-2018-008",
+  "prompt_kind": "icam",
+  "prompt_sha256": "090d58a777e3a90fa4dcbe9a8aa42e442105065ef9009b1a9e22c05ed5647a12",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "BUND_AND_DRAINAGE_CONTAINMENT",
+        "finding": "Control BUND_AND_DRAINAGE_CONTAINMENT: the secondary containment by bund and drainage was in place but did not perform, and the ICAM investigation classified this as an individual or team action."
+      },
+      {
+        "control_class": "HYDROCARBON_TRANSFER_CONTROL",
+        "finding": "Control HYDROCARBON_TRANSFER_CONTROL: the controlled transfer of hydrocarbon between vessels had been bypassed, and the ICAM investigation classified this as an individual or team action."
+      },
+      {
+        "control_class": "SEAL_SUPPORT_SYSTEM_INTEGRITY",
+        "finding": "Control SEAL_SUPPORT_SYSTEM_INTEGRITY: the integrity of the mechanical seal support system was never verified as effective, and the ICAM investigation classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next critical control verification that the secondary containment by bund and drainage on P-7111 performs as designed."
+    ],
+    "sequence": "Work was under way in managing hydrocarbon transfer and storage, specifically bunding, drainage and spill containment. P-7111 (export transfer pumps) is in service for tank-to-jetty product transfer, same seal class as the Marrindal family. The task proceeded during routine operation while the secondary containment by bund and drainage was in place but did not perform. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 4 October 2018 a planned critical control verification of P-7111 at Cape Verity Export Terminal found the secondary containment by bund and drainage not effective."
+  },
+  "response_sha256": "f8a4e5cfc9ee3d159aaaed86582f7ae66d763be6819d64056869bfbb6cf6a75e",
+  "source": null
+}

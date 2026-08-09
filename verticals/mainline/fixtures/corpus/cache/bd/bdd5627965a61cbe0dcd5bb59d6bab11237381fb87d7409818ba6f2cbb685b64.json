@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "barrier_role": "preventive",
+    "control_class": "SEAL_SUPPORT_SYSTEM_INTEGRITY",
+    "control_delta": "restate",
+    "control_label": "integrity of the mechanical seal support system",
+    "doc_code": "PRO-MEC-041",
+    "doc_family": "PRO",
+    "doc_title": "Export Transfer Pump Maintenance",
+    "effective_on": "2013-08-13",
+    "printed_label": "4.1",
+    "setpoint": {
+      "from": 14.0,
+      "key": "vibration_trip",
+      "label": "vibration trip level",
+      "strengthen_direction": "lower",
+      "to": 14.0,
+      "unit": "mm/s"
+    },
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "energy_isolation": "lock out tag out",
+      "verification": "field verification"
+    }
+  },
+  "key": "bdd5627965a61cbe0dcd5bb59d6bab11237381fb87d7409818ba6f2cbb685b64",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:CVY/PRO-MEC-041/004#CVY/PRO-MEC-041/4.1",
+  "prompt_kind": "clause",
+  "prompt_sha256": "6a56509e9de715a2635a6214867b0830b3ecb0de12585de7a0fe26c739c9b186",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The integrity of the mechanical seal support system shall be provided and maintained wherever this procedure applies, and its condition shall be treated as a critical safeguard. The vibration trip level shall be set at 14 mm/s. This clause applies to activities archived under CONTAINMENT-OF-HYDROCARBONS at Cape Verity Export Terminal.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "bb955634c3702f0f0bb0887400336f3360febad0748ee945f83ac40999bd8e83",
+  "source": null
+}

@@ -1,0 +1,98 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "managing corrosion and thinning findings",
+    "activity_root": "PRESSURE-SYSTEM-INTEGRITY",
+    "activity_series": "inspecting pressure equipment",
+    "assets": [
+      {
+        "asset_class": "LIFT-CLASS-W",
+        "label": "workshop hoists and press",
+        "service": "heavy vehicle component removal and pressing",
+        "tag": "HO-9403"
+      },
+      {
+        "asset_class": "MOTOR-CLASS-A",
+        "label": "drive motor",
+        "service": "drives HO-9403",
+        "tag": "M-9403"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 1,
+      "label": "medical treatment injury"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "PRESSURE_EQUIPMENT_INSPECTION",
+        "control_label": "in-service inspection of pressure equipment",
+        "failure_mode": "absent",
+        "hazard_energy": "pressure",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "STORED_ENERGY_DISSIPATION",
+        "control_label": "dissipation or restraint of trapped and residual energy",
+        "failure_mode": "not_verified",
+        "hazard_energy": "pressure",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "INC-2024-008",
+    "hazard_energy": "pressure",
+    "hazard_media": [
+      "hydraulic accumulator",
+      "barrier fluid",
+      "process gas",
+      "steam header",
+      "compressed air",
+      "trapped liquid"
+    ],
+    "hazard_release": "jet release, stored-energy discharge, rupture",
+    "kind": "incident",
+    "occurred_on": "2024-06-22",
+    "severity_actual": 2,
+    "severity_potential": 2,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during transfer operations",
+    "title": "pressure release during transfer operations on HO-9403",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "0ba062415102333da688f734d5b6c7765b8f6f28c191c257cfb7c7a2333bcd5f",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2024-008",
+  "prompt_kind": "icam",
+  "prompt_sha256": "3f6c24edd4639f3c2e87556575729d91f34d4a5512b30403df0aa22d7f4018b4",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was medical treatment injury, with 1 person injured.",
+    "defences": [
+      {
+        "control_class": "PRESSURE_EQUIPMENT_INSPECTION",
+        "finding": "Control PRESSURE_EQUIPMENT_INSPECTION: the in-service inspection of pressure equipment was not in place, and the learning team review classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "STORED_ENERGY_DISSIPATION",
+        "finding": "Control STORED_ENERGY_DISSIPATION: the dissipation or restraint of trapped and residual energy was never verified as effective, and the learning team review classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next assurance activity that the in-service inspection of pressure equipment on HO-9403 and M-9403 performs as designed."
+    ],
+    "sequence": "Work was under way in inspecting pressure equipment, specifically managing corrosion and thinning findings. HO-9403 (workshop hoists and press) is in service for heavy vehicle component removal and pressing. The task proceeded during transfer operations while the in-service inspection of pressure equipment was not in place. The pressure energy involved is held as hydraulic accumulator, and the recorded presentation was jet release, stored-energy discharge, rupture.",
+    "summary": "On 22 June 2024 an incident occurred on HO-9403 and M-9403 at Yandarra Downs Open Cut and Heavy Workshop during transfer operations, releasing pressure energy held as hydraulic accumulator."
+  },
+  "response_sha256": "1a6a678cf41b366b00d7746d29de5909c9f0d13fc39b33c33cc0b39f8bbac9f6",
+  "source": null
+}

@@ -1,0 +1,104 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "alarming, mustering and accounting for people",
+    "activity_root": "FIRE-AND-EMERGENCY-RESPONSE",
+    "activity_series": "mustering and rescuing",
+    "assets": [
+      {
+        "asset_class": "HTP-CLASS-A",
+        "label": "hydrocarbon transfer pumps",
+        "service": "hydrocarbon transfer, single mechanical seal with pressurised barrier-fluid support",
+        "tag": "P-4104"
+      },
+      {
+        "asset_class": "ACC-CLASS-A",
+        "label": "hydraulic energy accumulator",
+        "service": "stores hydraulic energy released at P-4104",
+        "tag": "ACC-4104"
+      },
+      {
+        "asset_class": "HX-CLASS-S",
+        "label": "seal support coolers",
+        "service": "barrier-fluid cooling for the hydrocarbon transfer pump family",
+        "tag": "HX-4120"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 1,
+      "label": "medical treatment injury"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "EMERGENCY_ISOLATION_ON_RELEASE",
+        "control_label": "emergency isolation and depressuring on loss of containment",
+        "failure_mode": "not_verified",
+        "hazard_energy": "chemical",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "MUSTER_AND_ACCOUNTING",
+        "control_label": "alarm, muster and accounting for people",
+        "failure_mode": "ineffective",
+        "hazard_energy": "chemical",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "INC-2025-011",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "incident",
+    "occurred_on": "2025-07-04",
+    "severity_actual": 2,
+    "severity_potential": 2,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during a breakdown response",
+    "title": "loss of containment at P-4104 during a breakdown response",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "35f2014ff6f316e00bcba60632bb9c38047a329c34e36314ed0b1327838d276a",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2025-011",
+  "prompt_kind": "icam",
+  "prompt_sha256": "960e48bc3ee56caf83e5aded8bad798bacc93c8f6a05f2c90375771ece896d44",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was medical treatment injury, with 1 person injured.",
+    "defences": [
+      {
+        "control_class": "EMERGENCY_ISOLATION_ON_RELEASE",
+        "finding": "Control EMERGENCY_ISOLATION_ON_RELEASE: the emergency isolation and depressuring on loss of containment was never verified as effective, and the learning team review classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "MUSTER_AND_ACCOUNTING",
+        "finding": "Control MUSTER_AND_ACCOUNTING: the alarm, muster and accounting for people was in place but did not perform, and the learning team review classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the alarm, muster and accounting for people on P-4104, ACC-4104 and HX-4120 and record the assurance activity before this task is next authorised."
+    ],
+    "sequence": "Work was under way in mustering and rescuing, specifically alarming, mustering and accounting for people. P-4104 (hydrocarbon transfer pumps) is in service for hydrocarbon transfer, single mechanical seal with pressurised barrier-fluid support. The task proceeded during a breakdown response while the emergency isolation and depressuring on loss of containment was never verified as effective. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 4 July 2025 an incident occurred on P-4104, ACC-4104 and HX-4120 at Marrindal Concentrator and Hydrocarbon Transfer Facility during a breakdown response, releasing chemical energy held as hydrocarbon."
+  },
+  "response_sha256": "0dbf83f3616b5745a4582bd1efe8af9094ece7d8f1a2f1e2e61fe9e97d205756",
+  "source": null
+}

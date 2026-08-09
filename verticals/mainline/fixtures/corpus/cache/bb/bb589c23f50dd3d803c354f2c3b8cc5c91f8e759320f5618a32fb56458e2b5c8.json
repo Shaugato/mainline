@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "barrier_role": "preventive",
+    "control_class": "SEAL_SUPPORT_SYSTEM_INTEGRITY",
+    "control_delta": "introduce",
+    "control_label": "integrity of the mechanical seal support system",
+    "doc_code": "MOC-2026-0413",
+    "doc_family": "MOC",
+    "doc_title": "Restore OEM Seal-Face Alarm Setpoint on the Hydrocarbon Transfer Pump Family",
+    "effective_on": "2026-07-28",
+    "printed_label": "4.1.1",
+    "setpoint": {
+      "from": 14.0,
+      "key": "vibration_trip",
+      "label": "vibration trip level",
+      "strengthen_direction": "lower",
+      "to": 14.0,
+      "unit": "mm/s"
+    },
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "energy_isolation": "positive isolation verification",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "bb589c23f50dd3d803c354f2c3b8cc5c91f8e759320f5618a32fb56458e2b5c8",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/MOC-2026-0413/001#MRD/MOC-2026-0413/2.1.1(d)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "36aaf6af5089997d8c346f5fd0f1116f032b0ae99ec85e14acb94b414090b711",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The integrity of the mechanical seal support system shall be provided and maintained for work covered by this change record. The vibration trip level shall be set at 14 mm/s. This clause applies to activities archived under CONTAINMENT-OF-HYDROCARBONS at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "e9ca22549e547edc05c2bf941e78cad788b6b9cd47616b9fd5b20812d5631c9b",
+  "source": null
+}

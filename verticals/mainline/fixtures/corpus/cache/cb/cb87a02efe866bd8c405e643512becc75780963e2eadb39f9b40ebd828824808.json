@@ -1,0 +1,129 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "selecting isolation points and devices",
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "activity_series": "planning and permitting an isolation",
+    "assets": [
+      {
+        "asset_class": "MOB-CLASS-E",
+        "label": "earthmoving fleet",
+        "service": "loading and dozing",
+        "tag": "EX-9101"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "ISOLATION_HANDBACK_CONTROL",
+        "control_label": "controlled removal of isolation and return to service",
+        "failure_mode": "absent",
+        "hazard_energy": "kinetic",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "LOAD_SUPPORT_FOR_MAINTENANCE",
+        "control_label": "mechanical support of a load during maintenance access",
+        "failure_mode": "bypassed",
+        "hazard_energy": "gravity",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "PARK_UP_AND_RESTRAINT",
+        "control_label": "parking, chocking and restraint of equipment",
+        "failure_mode": "ineffective",
+        "hazard_energy": "kinetic",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "POSITIVE_ISOLATION_APPLICATION",
+        "control_label": "application of positive isolation devices and personal locks",
+        "failure_mode": "absent",
+        "hazard_energy": "kinetic",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "ZERO_ENERGY_VERIFICATION",
+        "control_label": "proving zero energy before intrusive work",
+        "failure_mode": "not_verified",
+        "hazard_energy": "kinetic",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "INC-2011-004",
+    "hazard_energy": "kinetic",
+    "hazard_media": [
+      "rotating equipment",
+      "conveyor",
+      "mobile equipment",
+      "pressurised jet",
+      "flying fragment"
+    ],
+    "hazard_release": "entanglement, impact, crush",
+    "kind": "incident",
+    "occurred_on": "2011-03-31",
+    "severity_actual": 1,
+    "severity_potential": 1,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during routine operation",
+    "title": "kinetic release during routine operation on EX-9101",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "cb87a02efe866bd8c405e643512becc75780963e2eadb39f9b40ebd828824808",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2011-004",
+  "prompt_kind": "icam",
+  "prompt_sha256": "49f838ae919cf834b60d2dbdb674fdc3f3f00d4e53a87f7811c71609ef45f115",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage.",
+    "defences": [
+      {
+        "control_class": "ISOLATION_HANDBACK_CONTROL",
+        "finding": "Control ISOLATION_HANDBACK_CONTROL: the controlled removal of isolation and return to service was not in place, and the root cause analysis classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "LOAD_SUPPORT_FOR_MAINTENANCE",
+        "finding": "Control LOAD_SUPPORT_FOR_MAINTENANCE: the mechanical support of a load during maintenance access had been bypassed, and the root cause analysis classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "PARK_UP_AND_RESTRAINT",
+        "finding": "Control PARK_UP_AND_RESTRAINT: the parking, chocking and restraint of equipment was in place but did not perform, and the root cause analysis classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "POSITIVE_ISOLATION_APPLICATION",
+        "finding": "Control POSITIVE_ISOLATION_APPLICATION: the application of positive isolation devices and personal locks was not in place, and the root cause analysis classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "ZERO_ENERGY_VERIFICATION",
+        "finding": "Control ZERO_ENERGY_VERIFICATION: the proving zero energy before intrusive work was never verified as effective, and the root cause analysis classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the mechanical support of a load during maintenance access on EX-9101 and record the field verification before this task is next authorised.",
+      "Restore the application of positive isolation devices and personal locks on EX-9101 and record the field verification before this task is next authorised.",
+      "Restore the proving zero energy before intrusive work on EX-9101 and record the field verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in planning and permitting an isolation, specifically selecting isolation points and devices. EX-9101 (earthmoving fleet) is in service for loading and dozing. The task proceeded during routine operation while the controlled removal of isolation and return to service was not in place. The kinetic energy involved is held as rotating equipment, and the recorded presentation was entanglement, impact, crush.",
+    "summary": "On 31 March 2011 an incident occurred on EX-9101 at Yandarra Downs Open Cut and Heavy Workshop during routine operation, releasing kinetic energy held as rotating equipment."
+  },
+  "response_sha256": "4cb764c249e7be3875d572a8f60808850f70f12cd7e4f00aaa138001f3eaeff3",
+  "source": null
+}

@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "barrier_role": "preventive",
+    "control_class": "ENERGY_SOURCE_IDENTIFICATION",
+    "control_delta": "restate",
+    "control_label": "identification of every energy source for the task",
+    "doc_code": "PTW-STD-002",
+    "doc_family": "PTW",
+    "doc_title": "Permit to Work Form Set",
+    "effective_on": "2016-11-21",
+    "printed_label": "1.1.1",
+    "setpoint": null,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "1217a81a9906f4c8e00e5f53cac4541c8e4c1f27f1b57e2a46cae3c512f54e57",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/PTW-STD-002/003#MRD/PTW-STD-002/2.2",
+  "prompt_kind": "clause",
+  "prompt_sha256": "bbb065d84e4aae1353c87ec1e9e48714aabe3e3f827390729843d67a9f493352",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The identification of every energy source for the task shall be provided and maintained wherever this permit-to-work form set applies, and its condition shall be treated as a critical control. This clause applies to activities archived under ISOLATION-OF-STORED-ENERGY at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "09c4fe7c8cfc9555a312c3f8e16ec5f1b64852cdabee7b1a787f9fc6ddced552",
+  "source": null
+}

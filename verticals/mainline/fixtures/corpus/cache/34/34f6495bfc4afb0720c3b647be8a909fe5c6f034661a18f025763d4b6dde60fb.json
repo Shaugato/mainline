@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "MOBILE-EQUIPMENT-INTERACTION",
+    "barrier_role": "preventive",
+    "control_class": "PROXIMITY_DETECTION_AND_SEGREGATION",
+    "control_delta": "restate",
+    "control_label": "segregation of light vehicles and pedestrians from heavy equipment",
+    "doc_code": "STD-MEQ-007",
+    "doc_family": "STD",
+    "doc_title": "Mobile Equipment Interaction",
+    "effective_on": "2016-11-21",
+    "printed_label": "3.1.1",
+    "setpoint": null,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "34f6495bfc4afb0720c3b647be8a909fe5c6f034661a18f025763d4b6dde60fb",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:YND/STD-MEQ-007/005#YND/STD-MEQ-007/1.4",
+  "prompt_kind": "clause",
+  "prompt_sha256": "92124339c7f5f0c422d30596452f8cb7c2eda3cc93fe175ad6d554b5782eba5a",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The segregation of light vehicles and pedestrians from heavy equipment shall be provided and maintained wherever this standard applies, and its condition shall be treated as a critical control. This clause applies to activities archived under MOBILE-EQUIPMENT-INTERACTION at Yandarra Downs Open Cut and Heavy Workshop.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "2e46d5a8f4b79c0912b3342a460c4f74652f8fcce27fd499eb22d7471e488683",
+  "source": null
+}

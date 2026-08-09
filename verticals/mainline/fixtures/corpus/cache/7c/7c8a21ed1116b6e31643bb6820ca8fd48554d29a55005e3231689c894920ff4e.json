@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 5,
+    "doc_code": "STD-LFT-003",
+    "doc_family": "STD",
+    "doc_title": "Lifting and Cranage",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2022-05-05",
+    "required_citations": [
+      {
+        "control_label": "guarding, clearance and misfire handling for a blast",
+        "event_ref": "AF-2022-002",
+        "event_title": "audit finding - assurance activity of material unwanted event control at SG-9000",
+        "hazard_energy": "thermal",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:YND/STD-LFT-003/008#revision_history_line/AF-2022-002",
+        "severity_gate": 2
+      }
+    ],
+    "rev_no": 8,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "learning team review",
+      "management_of_change": "change assurance",
+      "near_miss": "high potential incident"
+    }
+  },
+  "key": "7c8a21ed1116b6e31643bb6820ca8fd48554d29a55005e3231689c894920ff4e",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:YND/STD-LFT-003/008",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "bd27a832f3660a8a2a8bb35b529d565b89b2681a46a3f3b98c6365774fd6cdeb",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "Revision 8 was raised in response to AF-2022-002, and the guarding, clearance and misfire handling for a blast was amended as a result.",
+        "quote_ref": "quote:YND/STD-LFT-003/008#revision_history_line/AF-2022-002"
+      }
+    ],
+    "reason": "Scheduled review at revision 8; 5 clauses restated."
+  },
+  "response_sha256": "9a84fc332242aca2e9909a4c9339c04f5bfa26b0a39bded7be8face1a91f4609",
+  "source": null
+}

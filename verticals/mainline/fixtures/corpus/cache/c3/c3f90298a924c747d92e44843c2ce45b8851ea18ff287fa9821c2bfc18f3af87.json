@@ -1,0 +1,79 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "inspecting highwalls and batters",
+    "activity_root": "GROUND-AND-STRATA-CONTROL",
+    "activity_series": "monitoring and inspecting ground conditions",
+    "assets": [
+      {
+        "asset_class": "MOB-CLASS-E",
+        "label": "earthmoving fleet",
+        "service": "loading and dozing",
+        "tag": "EX-9101"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "EXCAVATION_SUPPORT",
+        "control_label": "benching, battering or shoring of an excavation",
+        "failure_mode": "absent",
+        "hazard_energy": "gravity",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "CAPA-2017-001",
+    "hazard_energy": "kinetic",
+    "hazard_media": [
+      "rotating equipment",
+      "conveyor",
+      "mobile equipment",
+      "pressurised jet",
+      "flying fragment"
+    ],
+    "hazard_release": "entanglement, impact, crush",
+    "kind": "capa",
+    "occurred_on": "2017-01-03",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during shift handover",
+    "title": "preventive action - alarm rationalisation on EX-9101",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "c3f90298a924c747d92e44843c2ce45b8851ea18ff287fa9821c2bfc18f3af87",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:CAPA-2017-001",
+  "prompt_kind": "icam",
+  "prompt_sha256": "831640805f584654e90e27001bfd7fd35296d9774583212c5ed29835d5f13d2f",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "EXCAVATION_SUPPORT",
+        "finding": "Control EXCAVATION_SUPPORT: the benching, battering or shoring of an excavation was not in place, and the ICAM investigation classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the benching, battering or shoring of an excavation on EX-9101 and record the critical control verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in monitoring and inspecting ground conditions, specifically inspecting highwalls and batters. EX-9101 (earthmoving fleet) is in service for loading and dozing. The task proceeded during shift handover while the benching, battering or shoring of an excavation was not in place. The kinetic energy involved is held as rotating equipment, and the recorded presentation was entanglement, impact, crush.",
+    "summary": "On 3 January 2017 a corrective action on EX-9101 at Yandarra Downs Open Cut and Heavy Workshop was reviewed against the critical control it was raised to restore."
+  },
+  "response_sha256": "9c16819b1fdc037e40b83116a913c284ea17c03cd3d5e9678d94f63af734534e",
+  "source": null
+}

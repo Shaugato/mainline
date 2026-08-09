@@ -1,0 +1,86 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "isolating and depressuring a leaking system",
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "activity_series": "responding to a loss of containment",
+    "assets": [
+      {
+        "asset_class": "LARM-CLASS-A",
+        "label": "marine loading arms",
+        "service": "ship loading",
+        "tag": "LA-7202"
+      },
+      {
+        "asset_class": "ESD-CLASS-A",
+        "label": "emergency shutdown valves",
+        "service": "jetty and manifold emergency isolation",
+        "tag": "ZV-7211"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "BUND_AND_DRAINAGE_CONTAINMENT",
+        "control_label": "secondary containment by bund and drainage",
+        "failure_mode": "ineffective",
+        "hazard_energy": "chemical",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "AF-2025-003",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "audit_finding",
+    "occurred_on": "2025-04-13",
+    "severity_actual": 1,
+    "severity_potential": 3,
+    "site": "Cape Verity Export Terminal",
+    "summary_facts": [],
+    "task_phase": "during start-up after maintenance",
+    "title": "audit finding - assurance activity of material unwanted event control at LA-7202",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "57eed485f0a9dd8d327e28e737efb709d49b2c45a9fbb1a4a46378eec9b56f75",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:AF-2025-003",
+  "prompt_kind": "icam",
+  "prompt_sha256": "052bd47dcfa50679a149de80ed6212f8721b82522653d77392969a31c2f08a16",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage. The potential outcome was rated 3 against the site's consequence scale, above the 1 actually realised.",
+    "defences": [
+      {
+        "control_class": "BUND_AND_DRAINAGE_CONTAINMENT",
+        "finding": "Control BUND_AND_DRAINAGE_CONTAINMENT: the secondary containment by bund and drainage was in place but did not perform, and the learning team review classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next assurance activity that the secondary containment by bund and drainage on LA-7202 and ZV-7211 performs as designed."
+    ],
+    "sequence": "Work was under way in responding to a loss of containment, specifically isolating and depressuring a leaking system. LA-7202 (marine loading arms) is in service for ship loading. The task proceeded during start-up after maintenance while the secondary containment by bund and drainage was in place but did not perform. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 13 April 2025 a planned assurance activity of LA-7202 and ZV-7211 at Cape Verity Export Terminal found the secondary containment by bund and drainage not effective."
+  },
+  "response_sha256": "449515d2dae1912c7f21edc80a59b0f966a6f23090c91e582b0bd1f3c073c903",
+  "source": null
+}

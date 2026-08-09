@@ -1,0 +1,79 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "preparing and approving a lift study",
+    "activity_root": "LIFTING-AND-SUSPENDED-LOADS",
+    "activity_series": "planning and executing a lift",
+    "assets": [
+      {
+        "asset_class": "LIFT-CLASS-W",
+        "label": "workshop hoists and press",
+        "service": "heavy vehicle component removal and pressing",
+        "tag": "HO-9403"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "LIFTING_GEAR_INSPECTION",
+        "control_label": "inspection and periodic proof testing of lifting gear",
+        "failure_mode": "not_verified",
+        "hazard_energy": "gravity",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "NM-2024-0007",
+    "hazard_energy": "kinetic",
+    "hazard_media": [
+      "rotating equipment",
+      "conveyor",
+      "mobile equipment",
+      "pressurised jet",
+      "flying fragment"
+    ],
+    "hazard_release": "entanglement, impact, crush",
+    "kind": "near_miss",
+    "occurred_on": "2024-02-28",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during shift handover",
+    "title": "unplanned release of kinetic energy at HO-9403",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "b0ee1c6c61702f440fe86b0dd53f72dd028a53ccbab91233ab56b2e2bea39a48",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2024-0007",
+  "prompt_kind": "icam",
+  "prompt_sha256": "61c9113c12ae84ce8f7347bc8d3afec127e55996b381db4b9be488375669a42f",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "LIFTING_GEAR_INSPECTION",
+        "finding": "Control LIFTING_GEAR_INSPECTION: the inspection and periodic proof testing of lifting gear was never verified as effective, and the learning team review classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the inspection and periodic proof testing of lifting gear on HO-9403 and record the assurance activity before this task is next authorised."
+    ],
+    "sequence": "Work was under way in planning and executing a lift, specifically preparing and approving a lift study. HO-9403 (workshop hoists and press) is in service for heavy vehicle component removal and pressing. The task proceeded during shift handover while the inspection and periodic proof testing of lifting gear was never verified as effective. The kinetic energy involved is held as rotating equipment, and the recorded presentation was entanglement, impact, crush.",
+    "summary": "On 28 February 2024 a high potential incident was recorded on HO-9403 at Yandarra Downs Open Cut and Heavy Workshop during shift handover; kinetic energy held as rotating equipment was not released."
+  },
+  "response_sha256": "8f39cb8c875bce9d114ab150c6b4960635cd621691b145780f2eb351ccac096f",
+  "source": null
+}

@@ -1,0 +1,80 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "identifying every energy source for a task",
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "activity_series": "planning and permitting an isolation",
+    "assets": [
+      {
+        "asset_class": "SLP-CLASS-B",
+        "label": "dewatering pumps",
+        "service": "pit dewatering",
+        "tag": "P-9504"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "POSITIVE_ISOLATION_APPLICATION",
+        "control_label": "application of positive isolation devices and personal locks",
+        "failure_mode": "bypassed",
+        "hazard_energy": "pressure",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "NM-2024-0022",
+    "hazard_energy": "pressure",
+    "hazard_media": [
+      "hydraulic accumulator",
+      "barrier fluid",
+      "process gas",
+      "steam header",
+      "compressed air",
+      "trapped liquid"
+    ],
+    "hazard_release": "jet release, stored-energy discharge, rupture",
+    "kind": "near_miss",
+    "occurred_on": "2024-12-19",
+    "severity_actual": 0,
+    "severity_potential": 4,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during a planned shutdown",
+    "title": "high potential incident - pressure exposure at P-9504",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "990d601412b4028a61b5fe2f613c31023bb23690f86fb9eda4757c4ebabc8863",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2024-0022",
+  "prompt_kind": "icam",
+  "prompt_sha256": "4449a9e2596a59086d839649fce88f3e2983408e34e4bcb744f8546410a21d95",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 4 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "POSITIVE_ISOLATION_APPLICATION",
+        "finding": "Control POSITIVE_ISOLATION_APPLICATION: the application of positive isolation devices and personal locks had been bypassed, and the learning team review classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next assurance activity that the application of positive isolation devices and personal locks on P-9504 performs as designed."
+    ],
+    "sequence": "Work was under way in planning and permitting an isolation, specifically identifying every energy source for a task. P-9504 (dewatering pumps) is in service for pit dewatering. The task proceeded during a planned shutdown while the application of positive isolation devices and personal locks had been bypassed. The pressure energy involved is held as hydraulic accumulator, and the recorded presentation was jet release, stored-energy discharge, rupture.",
+    "summary": "On 19 December 2024 a high potential incident was recorded on P-9504 at Yandarra Downs Open Cut and Heavy Workshop during a planned shutdown; pressure energy held as hydraulic accumulator was not released."
+  },
+  "response_sha256": "fafe9f2a4b0a9054d3ae73b959284d3646bff6c232129ca5ccfbc13dad69872d",
+  "source": null
+}

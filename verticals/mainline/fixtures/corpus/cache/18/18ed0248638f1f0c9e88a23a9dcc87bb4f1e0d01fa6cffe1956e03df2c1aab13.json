@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "barrier_role": "recovery",
+    "control_class": "BUND_AND_DRAINAGE_CONTAINMENT",
+    "control_delta": "introduce",
+    "control_label": "secondary containment by bund and drainage",
+    "doc_code": "PRO-MEC-014",
+    "doc_family": "PRO",
+    "doc_title": "Hydrocarbon Transfer Pump Maintenance",
+    "effective_on": "2004-05-11",
+    "printed_label": "1.1",
+    "setpoint": null,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "18ed0248638f1f0c9e88a23a9dcc87bb4f1e0d01fa6cffe1956e03df2c1aab13",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/PRO-MEC-014/001#MRD/PRO-MEC-014/1.1",
+  "prompt_kind": "clause",
+  "prompt_sha256": "265772b71f7df294728a2a4cc31de97b0541762420ea4b48d8c5fe2abc4aa381",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The secondary containment by bund and drainage shall be provided and maintained for work covered by this procedure. This clause applies to activities archived under CONTAINMENT-OF-HYDROCARBONS at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "ebe600d1dc5c04628e9d45bb4aa1c86c5cd1fa2b723b9a6801c6ce9e2cece463",
+  "source": null
+}

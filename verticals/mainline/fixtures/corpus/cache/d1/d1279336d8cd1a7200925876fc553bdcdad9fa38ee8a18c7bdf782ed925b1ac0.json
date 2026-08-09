@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "barrier_role": "preventive",
+    "control_class": "ENERGY_SOURCE_IDENTIFICATION",
+    "control_delta": "restate",
+    "control_label": "identification of every energy source for the task",
+    "doc_code": "STD-ISO-006",
+    "doc_family": "STD",
+    "doc_title": "Isolation of Stored Energy",
+    "effective_on": "2011-09-04",
+    "printed_label": "5.5",
+    "setpoint": null,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "energy_isolation": "lock out tag out",
+      "verification": "field verification"
+    }
+  },
+  "key": "d1279336d8cd1a7200925876fc553bdcdad9fa38ee8a18c7bdf782ed925b1ac0",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/STD-ISO-006/002#MRD/STD-ISO-006/5.5",
+  "prompt_kind": "clause",
+  "prompt_sha256": "a563890873d9eafbc56387392cef4d1cb6c6f43d9587dc5e4d373a9744792e99",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The identification of every energy source for the task shall be provided and maintained wherever this standard applies, and its condition shall be treated as a critical safeguard. This clause applies to activities archived under ISOLATION-OF-STORED-ENERGY at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "1320f99ad896bd477a9cfd78266ea24f8d4c21f39c8e0ae26560dadd248dfe2a",
+  "source": null
+}

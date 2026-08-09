@@ -1,0 +1,111 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "parking, chocking and restraining equipment",
+    "activity_root": "MOBILE-EQUIPMENT-INTERACTION",
+    "activity_series": "controlling traffic on operating areas",
+    "assets": [
+      {
+        "asset_class": "MOB-CLASS-H",
+        "label": "haul trucks",
+        "service": "waste and ore haulage",
+        "tag": "HT-9001"
+      },
+      {
+        "asset_class": "MOB-CLASS-H",
+        "label": "haul trucks",
+        "service": "waste and ore haulage",
+        "tag": "HT-9006"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "PARK_UP_AND_RESTRAINT",
+        "control_label": "parking, chocking and restraint of equipment",
+        "failure_mode": "ineffective",
+        "hazard_energy": "kinetic",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "POSITIVE_COMMUNICATION_BEFORE_APPROACH",
+        "control_label": "positive communication before approaching mobile equipment",
+        "failure_mode": "absent",
+        "hazard_energy": "kinetic",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "PROXIMITY_DETECTION_AND_SEGREGATION",
+        "control_label": "segregation of light vehicles and pedestrians from heavy equipment",
+        "failure_mode": "ineffective",
+        "hazard_energy": "kinetic",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "INC-2013-006",
+    "hazard_energy": "kinetic",
+    "hazard_media": [
+      "rotating equipment",
+      "conveyor",
+      "mobile equipment",
+      "pressurised jet",
+      "flying fragment"
+    ],
+    "hazard_release": "entanglement, impact, crush",
+    "kind": "incident",
+    "occurred_on": "2013-05-11",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during cleaning and preparation",
+    "title": "fire on HT-9001 during cleaning and preparation",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "dddc85271f894a78d7a933a2b801e98522dd4adfba91efca6fd378c7bfaf1be7",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2013-006",
+  "prompt_kind": "icam",
+  "prompt_sha256": "8d4b582ee3be5bb30a79aad55daf4689e0474263bceed18b2dafa375c9b689b7",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "PARK_UP_AND_RESTRAINT",
+        "finding": "Control PARK_UP_AND_RESTRAINT: the parking, chocking and restraint of equipment was in place but did not perform, and the root cause analysis classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "POSITIVE_COMMUNICATION_BEFORE_APPROACH",
+        "finding": "Control POSITIVE_COMMUNICATION_BEFORE_APPROACH: the positive communication before approaching mobile equipment was not in place, and the root cause analysis classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "PROXIMITY_DETECTION_AND_SEGREGATION",
+        "finding": "Control PROXIMITY_DETECTION_AND_SEGREGATION: the segregation of light vehicles and pedestrians from heavy equipment was in place but did not perform, and the root cause analysis classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the parking, chocking and restraint of equipment on HT-9001 and HT-9006 and record the field verification before this task is next authorised.",
+      "Restore the positive communication before approaching mobile equipment on HT-9001 and HT-9006 and record the field verification before this task is next authorised.",
+      "Restore the segregation of light vehicles and pedestrians from heavy equipment on HT-9001 and HT-9006 and record the field verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in controlling traffic on operating areas, specifically parking, chocking and restraining equipment. HT-9001 (haul trucks) is in service for waste and ore haulage. The task proceeded during cleaning and preparation while the parking, chocking and restraint of equipment was in place but did not perform. The kinetic energy involved is held as rotating equipment, and the recorded presentation was entanglement, impact, crush.",
+    "summary": "On 11 May 2013 an incident occurred on HT-9001 and HT-9006 at Yandarra Downs Open Cut and Heavy Workshop during cleaning and preparation, releasing kinetic energy held as rotating equipment."
+  },
+  "response_sha256": "52df26b96114548bb26c9ac7695546357f09b06970134ab9725fcabae9084048",
+  "source": null
+}

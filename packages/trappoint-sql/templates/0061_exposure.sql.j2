@@ -1,0 +1,175 @@
+{# SPDX-FileCopyrightText: 2026 MAINLINE contributors #}
+{# SPDX-License-Identifier: Apache-2.0 #}
+{#
+  Migrations 0061 / 0062 / 0063 — THE EXPOSURE RECEIPT AND ITS LINES
+  (ARCHITECTURE.md §5.5 "Exposure receipts", §16 MI12; TRAPPOINT invariant I09;
+  finding S7 for the server clock, finding S28 for the sweeper).
+
+  One sentence: *"it never showed me"* and *"I signed without looking"* are both
+  violations of a foreign key.
+
+  The disposition composite-FKs `(receipt_id, check_id)` onto `exposure_line`, so a
+  signature can only exist against an obligation the substrate actually rendered, in a
+  receipt issued to the signing actor, at a recorded instant, over a recorded corpus
+  state. Not against the obligation alone — against the PAIR. Removing that composite
+  key does not weaken a warning; it makes an entire class of defence unfalsifiable.
+
+  THREE TABLES BECAUSE THE RECEIPT IS APPEND-ONLY (finding S28). A receipt records what
+  the system did. Marking one expired by UPDATE-ing it would edit that record, so expiry
+  is a NEW row in `receipt_expiry` written by a sweeper, and the receipt itself is never
+  touched again after the transaction that issued it. Enforcement of expiry at write
+  time belongs to `fn_disposition_project`, not to a CHECK: `now()` is not immutable, so
+  a time comparison can never be a CHECK constraint, and pretending otherwise would give
+  a constraint that is either rejected by the database or silently evaluated once.
+
+  NO ROW-LEVEL TTL ON ANY OF THE THREE. CockroachDB's row-level TTL would delete
+  receipts on a schedule. A receipt that has been garbage-collected is a signature with
+  no proof of what preceded it, which is precisely the exhibit this table exists to be.
+  Retention is governed by the vertical's retention class and by S3 Object Lock, never
+  by a background deleter over the evidence.
+#}
+-- @file 0061_exposure_receipt.sql
+{{ header(file='0061_exposure_receipt.sql',
+          title='CREATE TABLE ' ~ binding.schema ~ '.exposure_receipt — what was actually shown, when, over what corpus',
+          rationale='A signature is only worth what the signer was shown. This row records the server instant, the corpus root and the silence receipt in force at the read, so the record proves what the system knew at signing time — which is the answer to the plaintiff line "your own system surfaces it today". It is append-only: expiry is a new row in 0063, never an edit here.',
+          mi=['MI12'], i=['I09']) }}
+--
+-- SUBJECT-POLYMORPHIC, over the {{ subjects | length }} gated subject(s) this binding declares:
+{% for s in subjects %}
+--   {{ s.kind }} -> {{ binding.schema }}.{{ s.table }} ({{ s.id_column }})
+{% endfor %}
+--
+-- RULING D2, EXTENDED TO THIS TABLE, AND THE EXTENSION IS ARGUED RATHER THAN ASSUMED.
+-- §5.5 gives this table `permit_id UUID NOT NULL`, which predates finding S16 exactly
+-- as `disposition.permit_id NOT NULL` did. The consequence is mechanical: a disposition
+-- must composite-FK onto an exposure line, an exposure line must belong to a receipt,
+-- and a receipt that can only name a permit means a change request which trips
+-- `weaken_over_blood` can never be dispositioned. MI30 — "a change_request merges only
+-- with zero open blocking checks" — would then be satisfiable only by never opening one,
+-- which turns the protected repository into a brick wall rather than a gate. D2's own
+-- justification therefore reaches this table, and the same three constraints apply.
+--
+-- issued_at IS THE SERVER CLOCK (finding S7). Deliberation is derived as
+-- now() - issued_at inside fn_disposition_project, so a client-supplied issue time is a
+-- client-supplied deliberation measurement. There is no path by which a caller sets it.
+--
+-- issued_hlc IS ADVISORY ORDERING ONLY. It is a provisional hybrid-logical timestamp,
+-- useful for ordering two receipts issued in the same transaction and worth nothing in
+-- evidence. Nothing in the gate reads it, and no claim in this repository rests on it.
+--
+-- corpus_root AND silence_receipt_id ARE WHY THIS ROW DEFEATS THE HINDSIGHT ARGUMENT.
+-- The first pins the custody-ledger checkpoint root at the read; the second pins the
+-- arithmetic of what the recall declined to surface, with its reasons. Together they
+-- make "what did the system know at 02:14" a question with a recorded answer instead of
+-- a re-run of today's index against today's corpus.
+--
+-- silence_receipt_id CARRIES NO FOREIGN KEY. The silence ledger lives in the vertical's
+-- measurement schema and is not substrate; a substrate table that referenced it could
+-- not render for a binding that measures silence differently, and the object test in
+-- MR-1 puts it outside. The binding is asserted by the gate transaction that writes both
+-- rows, and the digest in receipt_digest covers the identifier.
+--
+-- ttl_bounded IS A BOUND, NOT A PRESENCE TEST (finding S12, invariant MI28). expires_at
+-- being NOT NULL would admit a receipt that expired before it was issued. Comparing the
+-- two columns is legal in a CHECK because both are columns; comparing either to now() is
+-- not, which is why write-time expiry lives in the projection trigger.
+
+CREATE TABLE {{ binding.schema }}.exposure_receipt (
+  receipt_id         UUID NOT NULL DEFAULT gen_random_uuid(),
+  subject_kind       STRING NOT NULL,
+{% for s in subjects %}
+  {{ '%-18s' | format(s.id_column) }} UUID NULL REFERENCES {{ binding.schema }}.{{ s.table }} ({{ s.id_column }}),
+{% endfor %}
+  actor_sub          STRING NOT NULL,
+  issued_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
+  issued_hlc         DECIMAL NOT NULL,
+  expires_at         TIMESTAMPTZ NOT NULL,
+  corpus_root        BYTES NOT NULL,
+  silence_receipt_id UUID NOT NULL,
+  policy_version     STRING NOT NULL,
+  total_tokens       INT8 NOT NULL,
+  receipt_digest     BYTES NOT NULL,
+  CONSTRAINT ttl_bounded CHECK (expires_at > issued_at),
+  CONSTRAINT receipt_subject_kind_known
+    CHECK (subject_kind IN ({% for s in subjects %}'{{ s.kind }}'{{ ', ' if not loop.last }}{% endfor %})),
+  CONSTRAINT exactly_one_subject
+{% if subjects | length == 2 %}
+    CHECK (({{ subjects[0].id_column }} IS NULL) <> ({{ subjects[1].id_column }} IS NULL)),
+{% else %}
+    CHECK ({% for s in subjects %}({{ s.id_column }} IS NOT NULL)::INT8{{ ' + ' if not loop.last }}{% endfor %} = 1),
+{% endif %}
+  CONSTRAINT subject_matches
+    CHECK ({% for s in subjects %}(subject_kind = '{{ s.kind }}' AND {{ s.id_column }} IS NOT NULL){{ '\n        OR ' if not loop.last }}{% endfor %}),
+  CONSTRAINT receipt_actor_sub_stated CHECK (actor_sub <> ''),
+  CONSTRAINT receipt_policy_version_stated CHECK (policy_version <> ''),
+  CONSTRAINT receipt_corpus_root_is_sha256 CHECK (length(corpus_root) = 32),
+  CONSTRAINT receipt_digest_is_sha256 CHECK (length(receipt_digest) = 32),
+  CONSTRAINT receipt_tokens_nonneg CHECK (total_tokens >= 0),
+  CONSTRAINT pk_exposure_receipt PRIMARY KEY (receipt_id)
+);
+-- @file 0062_exposure_line.sql
+{{ header(file='0062_exposure_line.sql',
+          title='CREATE TABLE ' ~ binding.schema ~ '.exposure_line — one line per obligation actually rendered',
+          rationale='The composite key (receipt_id, check_id) is the foreign-key target the disposition points at, so a signature against an obligation that was never rendered to that actor in that receipt is 23503 on fk_exposure rather than an application-level warning. payload_digest is the digest of the exact text shown, so the claim is about the bytes rendered and not about a row identifier that could later be re-rendered differently.',
+          mi=['MI12'], i=['I09']) }}
+--
+-- THE PRIMARY KEY IS THE MECHANISM. `(receipt_id, check_id)` is a UNIQUE target, and
+-- `disposition.fk_exposure` references exactly those two columns in exactly that order.
+-- Reordering them, or adding a column to this key, silently breaks that foreign key at
+-- migration time — which is why the order is stated here rather than left to chance.
+--
+-- payload_digest IS THE DIGEST OF WHAT WAS RENDERED, NOT OF THE ROW. Two receipts may
+-- render the same obligation with different amounts of surrounding evidence; the digests
+-- differ, and the difference is the record. A digest over the check_id would be a
+-- tautology that proves nothing about the exposure.
+--
+-- tokens FEEDS THE READING FLOOR AND NOTHING ELSE. t_min(R) = tau_0 + (sum of tokens
+-- dispositioned against R) / rho. Breaching the floor does not raise: it records, it
+-- projects a counter onto the subject, and it PRICES the consequence — the subject
+-- cannot complete without a countersignature from a second, differently-credentialed
+-- signer. Fast stays legal; it just names a second person. That is finding S19, and this
+-- column is its only input.
+--
+-- NO FOREIGN KEY TO A "line ordinal". Lines are identified by the obligation they
+-- render, not by their position on a screen: an ordinal would make the same exposure
+-- into two different receipts depending on scroll order.
+
+CREATE TABLE {{ binding.schema }}.exposure_line (
+  receipt_id     UUID NOT NULL REFERENCES {{ binding.schema }}.exposure_receipt (receipt_id),
+  check_id       UUID NOT NULL REFERENCES {{ binding.schema }}.blocking_check (check_id),
+  payload_digest BYTES NOT NULL,
+  tokens         INT8 NOT NULL,
+  CONSTRAINT line_payload_digest_is_sha256 CHECK (length(payload_digest) = 32),
+  CONSTRAINT line_tokens_positive CHECK (tokens > 0),
+  CONSTRAINT pk_exposure_line PRIMARY KEY (receipt_id, check_id)
+);
+-- @file 0063_receipt_expiry.sql
+{{ header(file='0063_receipt_expiry.sql',
+          title='CREATE TABLE ' ~ binding.schema ~ '.receipt_expiry — the sweeper MARKS by writing a new row',
+          rationale='Finding S28. exposure_receipt records what the system did, so marking one expired by UPDATE would edit that record and the audit trail would show a receipt that had always been expired. A separate row names the sweeper and the instant, leaves the receipt untouched, and makes "who expired this and when" answerable from the table rather than from a log.',
+          mi=['MI12'], i=['I09']) }}
+--
+-- ONE ROW PER RECEIPT, EVER. `receipt_id` is both the primary key and the foreign key,
+-- so a second sweep of the same receipt is 23505 rather than a second, contradictory
+-- expiry record. Idempotence is a property of the schema here, not of the sweeper's
+-- code — which matters because the sweeper is a scheduled job and scheduled jobs run
+-- twice.
+--
+-- THIS TABLE DOES NOT ENFORCE EXPIRY; IT RECORDS IT. The refusal lives in
+-- fn_disposition_project, which compares now() against exposure_receipt.expires_at at
+-- write time and raises P0001 (case CF-21). A row here is evidence that the sweep ran,
+-- and its absence never admits a signature the trigger would have refused. Two
+-- mechanisms, failing differently: the sweeper can be down for an hour without the gate
+-- accepting a stale receipt.
+--
+-- swept_by IS AN IDENTITY, NOT A BOOLEAN. "Expired automatically" and "expired by a
+-- named operator running the sweeper by hand" are different facts about the same
+-- receipt, and only one of them is interesting in a deposition.
+
+CREATE TABLE {{ binding.schema }}.receipt_expiry (
+  receipt_id UUID NOT NULL REFERENCES {{ binding.schema }}.exposure_receipt (receipt_id),
+  swept_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+  swept_by   STRING NOT NULL,
+  CONSTRAINT expiry_swept_by_stated CHECK (swept_by <> ''),
+  CONSTRAINT pk_receipt_expiry PRIMARY KEY (receipt_id)
+);

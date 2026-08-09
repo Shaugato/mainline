@@ -1,0 +1,45 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 2,
+    "doc_codes": [
+      "ALERT-2016-007",
+      "MOC-2014-0087",
+      "PRO-MEC-041",
+      "PRO-OPS-017",
+      "PTW-STD-003"
+    ],
+    "intent": "restate",
+    "moc_ref": "MOC-2014-0029",
+    "opened_on": "2014-02-06",
+    "precursor_events": [
+      {
+        "event_ref": "INC-2006-005",
+        "severity_gate": null
+      }
+    ],
+    "site": "Cape Verity Export Terminal",
+    "terminal_state": "closed",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "management_of_change": "change request",
+      "verification": "field verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "0054ebfc18bd4ec7b9d42339ca761d71549f19310d526a589761699f22755209",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2014-0029",
+  "prompt_kind": "moc",
+  "prompt_sha256": "58855f2d8e0e47e57a0ecf9926fe25954db08109a571d71cf5d2ed84e43b80bb",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2014-0029 was raised at Cape Verity Export Terminal on 6 February 2014 following 1 recorded event in the archive, including INC-2006-005. The change request record covers 2 clauses across 5 controlled documents. The intent is to restate an existing duty without altering what it requires. The record reached the state closed in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical safeguard set is preserved.",
+    "scope_note": "The documents in scope are ALERT-2016-007, MOC-2014-0087, PRO-MEC-041, PRO-OPS-017 and PTW-STD-003."
+  },
+  "response_sha256": "35e754fb6b256bd92824cde4403e7ab80148808123db7358f900c69794c12f5f",
+  "source": null
+}

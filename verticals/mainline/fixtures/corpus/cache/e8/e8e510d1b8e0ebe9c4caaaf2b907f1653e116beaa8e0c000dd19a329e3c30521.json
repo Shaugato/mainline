@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 3,
+    "doc_codes": [
+      "ALERT-2016-007",
+      "MOC-2026-0413",
+      "PRO-MEC-014",
+      "PRO-OPS-032"
+    ],
+    "intent": "introduce",
+    "moc_ref": "MOC-2016-0077",
+    "opened_on": "2016-06-30",
+    "precursor_events": [
+      {
+        "event_ref": "AF-2004-001",
+        "severity_gate": null
+      }
+    ],
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "terminal_state": "dispositioned",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "management_of_change": "management of change",
+      "verification": "critical control verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "e8e510d1b8e0ebe9c4caaaf2b907f1653e116beaa8e0c000dd19a329e3c30521",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2016-0077",
+  "prompt_kind": "moc",
+  "prompt_sha256": "f59febbcfa0fe018bbf3229a87baba7d15a392f62c6d633fc638d769ff3cc6e7",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2016-0077 was raised at Marrindal Concentrator and Hydrocarbon Transfer Facility on 30 June 2016 following 1 recorded event in the archive, including AF-2004-001. The management of change record covers 3 clauses across 4 controlled documents. The intent is to introduce a duty the documents in scope did not previously carry. The record reached the state dispositioned in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical control set is preserved.",
+    "scope_note": "The documents in scope are ALERT-2016-007, MOC-2026-0413, PRO-MEC-014 and PRO-OPS-032."
+  },
+  "response_sha256": "fb906df5f7e5ec7862b810ebcb9cc49b8dd3b818a52a3688e80022d0741acbe4",
+  "source": null
+}

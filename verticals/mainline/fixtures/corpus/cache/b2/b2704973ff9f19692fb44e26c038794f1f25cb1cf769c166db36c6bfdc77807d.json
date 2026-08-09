@@ -1,0 +1,97 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "handing back a partially completed isolation",
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "activity_series": "restoring plant to service",
+    "assets": [
+      {
+        "asset_class": "CONV-CLASS-A",
+        "label": "plant conveyors",
+        "service": "coarse ore and reclaim conveying",
+        "tag": "CV-3102"
+      },
+      {
+        "asset_class": "MOTOR-CLASS-A",
+        "label": "drive motor",
+        "service": "drives CV-3102",
+        "tag": "M-3102"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 1,
+      "label": "medical treatment injury"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "ENERGY_SOURCE_IDENTIFICATION",
+        "control_label": "identification of every energy source for the task",
+        "failure_mode": "ineffective",
+        "hazard_energy": "kinetic",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "LOAD_SUPPORT_FOR_MAINTENANCE",
+        "control_label": "mechanical support of a load during maintenance access",
+        "failure_mode": "bypassed",
+        "hazard_energy": "gravity",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "INC-2005-004",
+    "hazard_energy": "kinetic",
+    "hazard_media": [
+      "rotating equipment",
+      "conveyor",
+      "mobile equipment",
+      "pressurised jet",
+      "flying fragment"
+    ],
+    "hazard_release": "entanglement, impact, crush",
+    "kind": "incident",
+    "occurred_on": "2005-02-05",
+    "severity_actual": 2,
+    "severity_potential": 3,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during start-up after maintenance",
+    "title": "uncontrolled movement of CV-3102 during start-up after maintenance",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "investigation": "accident investigation",
+      "near_miss": "near hit",
+      "verification": "spot check"
+    }
+  },
+  "key": "b2704973ff9f19692fb44e26c038794f1f25cb1cf769c166db36c6bfdc77807d",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2005-004",
+  "prompt_kind": "icam",
+  "prompt_sha256": "605115c5d2b01520b94d9eecee13d10163c4e2a12dd57b610ab7b9327aaecfca",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was medical treatment injury, with 1 person injured. The potential outcome was rated 3 against the site's consequence scale, above the 2 actually realised.",
+    "defences": [
+      {
+        "control_class": "ENERGY_SOURCE_IDENTIFICATION",
+        "finding": "Control ENERGY_SOURCE_IDENTIFICATION: the identification of every energy source for the task was in place but did not perform, and the accident investigation classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "LOAD_SUPPORT_FOR_MAINTENANCE",
+        "finding": "Control LOAD_SUPPORT_FOR_MAINTENANCE: the mechanical support of a load during maintenance access had been bypassed, and the accident investigation classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next spot check that the identification of every energy source for the task on CV-3102 and M-3102 performs as designed."
+    ],
+    "sequence": "Work was under way in restoring plant to service, specifically handing back a partially completed isolation. CV-3102 (plant conveyors) is in service for coarse ore and reclaim conveying. The task proceeded during start-up after maintenance while the identification of every energy source for the task was in place but did not perform. The kinetic energy involved is held as rotating equipment, and the recorded presentation was entanglement, impact, crush.",
+    "summary": "On 5 February 2005 an incident occurred on CV-3102 and M-3102 at Marrindal Concentrator and Hydrocarbon Transfer Facility during start-up after maintenance, releasing kinetic energy held as rotating equipment."
+  },
+  "response_sha256": "d88c6230ec2d2159ae22dc68e45be48aabd13c0182aa1f8044eae017a55a0560",
+  "source": null
+}

@@ -1,0 +1,115 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "working live under a documented justification",
+    "activity_root": "ELECTRICAL-SAFETY",
+    "activity_series": "controlling access to energised apparatus",
+    "assets": [
+      {
+        "asset_class": "ELEC-CLASS-A",
+        "label": "station switchgear",
+        "service": "station HV distribution",
+        "tag": "TX-8001"
+      },
+      {
+        "asset_class": "GEN-CLASS-A",
+        "label": "gas turbine generators",
+        "service": "on-site generation",
+        "tag": "G-8102"
+      },
+      {
+        "asset_class": "GEN-CLASS-A",
+        "label": "gas turbine generators",
+        "service": "on-site generation",
+        "tag": "G-8103"
+      }
+    ],
+    "consequence": {
+      "days_lost": 4,
+      "injuries": 1,
+      "label": "lost time injury"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "ARC_FLASH_PPE_AND_BOUNDARY",
+        "control_label": "arc flash boundary and protective equipment",
+        "failure_mode": "ineffective",
+        "hazard_energy": "thermal",
+        "icam_tier": "individual_or_team_action"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "EARTH_LEAKAGE_PROTECTION",
+        "control_label": "earth leakage and protection setting integrity",
+        "failure_mode": "ineffective",
+        "hazard_energy": "electrical",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "SWITCHING_AUTHORISATION",
+        "control_label": "authorisation of switching and access to apparatus",
+        "failure_mode": "bypassed",
+        "hazard_energy": "electrical",
+        "icam_tier": "organisational_factor"
+      }
+    ],
+    "event_ref": "RN-2017-002",
+    "hazard_energy": "electrical",
+    "hazard_media": [
+      "HV switchgear",
+      "LV distribution",
+      "capacitive storage",
+      "induced voltage",
+      "portable equipment"
+    ],
+    "hazard_release": "shock, arc flash, unplanned energisation",
+    "kind": "regulator_notice",
+    "occurred_on": "2017-05-19",
+    "severity_actual": 3,
+    "severity_potential": 3,
+    "site": "Tolgarra Processing and Power Station",
+    "summary_facts": [],
+    "task_phase": "during cleaning and preparation",
+    "title": "improvement notice - critical control at TX-8001",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "a96ebf7f876a0db89d63c052d44831bc0b7ec2003889ddbb0fd65d132f0444f4",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:RN-2017-002",
+  "prompt_kind": "icam",
+  "prompt_sha256": "1a9b280b0e47a01b278a266e077e95de3a6f952e7c6eba7c1c229dc564e9e845",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was lost time injury, with 1 person injured and 4 days lost.",
+    "defences": [
+      {
+        "control_class": "ARC_FLASH_PPE_AND_BOUNDARY",
+        "finding": "Control ARC_FLASH_PPE_AND_BOUNDARY: the arc flash boundary and protective equipment was in place but did not perform, and the ICAM investigation classified this as an individual or team action."
+      },
+      {
+        "control_class": "EARTH_LEAKAGE_PROTECTION",
+        "finding": "Control EARTH_LEAKAGE_PROTECTION: the earth leakage and protection setting integrity was in place but did not perform, and the ICAM investigation classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "SWITCHING_AUTHORISATION",
+        "finding": "Control SWITCHING_AUTHORISATION: the authorisation of switching and access to apparatus had been bypassed, and the ICAM investigation classified this as an organisational factor."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next critical control verification that the arc flash boundary and protective equipment on TX-8001, G-8102 and G-8103 performs as designed."
+    ],
+    "sequence": "Work was under way in controlling access to energised apparatus, specifically working live under a documented justification. TX-8001 (station switchgear) is in service for station HV distribution. The task proceeded during cleaning and preparation while the arc flash boundary and protective equipment was in place but did not perform. The electrical energy involved is held as HV switchgear, and the recorded presentation was shock, arc flash, unplanned energisation.",
+    "summary": "On 19 May 2017 a regulatory notice was issued concerning TX-8001, G-8102 and G-8103 at Tolgarra Processing and Power Station following cleaning and preparation."
+  },
+  "response_sha256": "fba0395a48fbd06c308356a63c90b5fc043513ff5bca866f81151bb9a045371d",
+  "source": null
+}

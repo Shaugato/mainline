@@ -1,0 +1,145 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+#
+# disclosures.yaml — the statements the honesty card makes that are NOT measurements.
+#
+# THE DIVISION OF LABOUR, AND WHY IT IS DRAWN HERE. `gen_card.py` takes every
+# NUMBER from `corpus.lock.json` or from the G1 attestation, and never from a
+# human. But the card's fourth column and its limits section are not numbers: they
+# are *disclosures* — sentences about what this programme has chosen not to build
+# and what it declines to claim. Those cannot be measured by probing a cluster, and
+# pretending otherwise would put them in a file whose generator has no idea they
+# exist. So they live here, hand-authored, versioned, and reviewable in a diff.
+#
+# PRECEDENCE. Where the attestation carries the same fact, THE ATTESTATION WINS and
+# this file is not consulted; `gen_card.py` records which source supplied each value
+# in the card's own provenance table. That ordering is deliberate: a measurement
+# always outranks a statement about a measurement.
+#
+# The `residency` and `time_travel` entries exist because the G1 attestation shipped
+# at `packages/trappoint-sql/g1-attestation.json` does not yet carry an `inference`
+# block or `cluster.gc_ttlseconds`, and both facts are load-bearing for the card.
+# Their authority is ADR 0002, which is dated, accepted and measured. When the
+# attestation grows those fields the card will read them instead and these entries
+# become dead weight — which is the correct direction for them to rot in.
+
+version: 1
+authority:
+  - "docs/adr/0002-g1-platform-ground-truth.md (F5 residency, GT-07 gc.ttlseconds)"
+  - "BUILD_PLAN.md §5.1 (⟦H⟧ depth: what is deferred past the checkpoint)"
+  - "ARCHITECTURE.md §3.3 (the mechanism set), §11.7 (must-not-claim), §15 (deliberately not built)"
+  - "research/06-build/demo-engineering.md §6 (real / synthetic / staged / not built yet)"
+
+# ── Residency. ADR 0002 action item 3, assigned to this worker, verbatim ───────
+residency:
+  database_region: aws-ap-southeast-1
+  database_region_label: Singapore
+  inference_region: ap-southeast-2
+  inference_region_label: Sydney
+  end_to_end_australian: false
+  statement: >-
+    Inference in Australia, database in Singapore. Sydney (ap-southeast-2) is
+    Advanced-tier only and is absent from the Basic and Standard region lists, so
+    end-to-end Australian data residency is false for this deployment and is not
+    claimed anywhere.
+  source: "docs/adr/0002-g1-platform-ground-truth.md §Region and residency"
+
+# ── The time-travel window, which decides one sentence of the STAGED column ────
+time_travel:
+  gc_ttlseconds: 4500
+  statement: >-
+    Commit dates are corpus data, not MVCC time travel. AS OF SYSTEM TIME cannot
+    reach beyond the garbage-collection window, so it cannot reach 2013, and the
+    long-horizon record is the application-level commit DAG.
+  source: "docs/adr/0002-g1-platform-ground-truth.md GT-07 (measured 4500, not the 14400 assumed)"
+
+# ── The fourth column. M14 SHEPARD is mandatory; gen_card.py refuses without it ─
+not_built_yet:
+  - id: M14
+    name: M14 SHEPARD
+    milestone: K7
+    status: spec-only
+    statement: >-
+      The mechanical citator for engineering controls — treatment flags as a write
+      precondition. It has no tables in the shipped schema, which is exactly why it
+      is named here and never filmed.
+  - id: M13
+    name: M13 THE RATIO ENVELOPE
+    milestone: K7
+    status: deferred
+    statement: >-
+      Precedential constraint as SMT refinement subsumption, with a counter-model
+      witness on refusal. Specified, not enforced.
+  - id: M10
+    name: M10 THE STANDING ASSAY
+    milestone: K5
+    status: schema-inert
+    statement: >-
+      Schema present and gate INERT at W = 1.0, with channel 3 off. Nothing on
+      camera depends on it and no authority number is shown.
+  - id: M20
+    name: Adverse witnesses
+    milestone: K9
+    status: deferred
+    statement: >-
+      Without a live adverse witness the ledger is tamper-evident. Split-view
+      resistance is not claimed.
+  - id: M16
+    name: RFC 3161 timestamping and the drand beacon
+    milestone: K7
+    status: deferred
+    statement: >-
+      KMS-signed checkpoints into S3 Object Lock ship instead. A second independent
+      time witness is future work.
+  - id: M6
+    name: WebAuthn on the field browser
+    milestone: K5
+    status: fallback-possible
+    statement: >-
+      If origin and RP-ID binding do not hold through the edge on the day, signing
+      degrades to OIDC plus a signed envelope, and this card is regenerated to say so.
+
+# ── The limits. `rubber-stamp` is mandatory; gen_card.py refuses without it ────
+limits:
+  - id: rubber-stamp
+    statement: >-
+      Nothing here separates a considered disposition from a rubber stamp.
+    what_we_do_instead: >-
+      We prove one was signed, by whom, against exactly which rows the same
+      serializable transaction returned, and when. We measure deliberation and
+      never threshold it. And we log every precursor we declined to surface, with
+      its arithmetic.
+  - id: synthetic-gold-set
+    statement: >-
+      The synthetic gold set bounds the linker from above. It does not measure
+      real-world precision.
+    what_we_do_instead: >-
+      Decoys and negative controls are authored adversarially against the same
+      asset, window and vocabulary, and the real-corpus evaluation is named as the
+      thing that settles it.
+  - id: no-identity-proofing
+    statement: >-
+      We do not identity-proof anyone.
+    what_we_do_instead: >-
+      A signature is bound to an enrolled credential. Who enrolled it is the
+      customer's assertion, recorded as such.
+  - id: rls-scope
+    statement: >-
+      Row-level security is a tenancy and least-privilege control, evaluated by the
+      same server a cluster admin owns.
+    what_we_do_instead: >-
+      A cluster admin who weakens the gate is caught by the custodian patrol as an
+      attested ledger leaf. That is tamper-evidence, not prevention, and the video
+      shows exactly that.
+  - id: ann-replay
+    statement: >-
+      An approximate-nearest-neighbour result cannot be replayed byte for byte.
+    what_we_do_instead: >-
+      We claim replayability and arithmetic reproducibility, and bind every
+      certified null to the index generation that produced it.
+  - id: retrieval-not-corpus
+    statement: >-
+      Exhaustion is claimed of the retrieval that ran, never of the corpus.
+    what_we_do_instead: >-
+      The silence root commits to the candidate universe the reckoning point
+      defined, and discloses the threshold and the boundary pair.

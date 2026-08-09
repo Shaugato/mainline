@@ -1,0 +1,104 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "monitoring dust, fume and gas exposure",
+    "activity_root": "HAZARDOUS-SUBSTANCE-EXPOSURE",
+    "activity_series": "controlling airborne contaminants",
+    "assets": [
+      {
+        "asset_class": "HTP-CLASS-A",
+        "label": "export transfer pumps",
+        "service": "tank-to-jetty product transfer, same seal class as the Marrindal family",
+        "tag": "P-7110"
+      },
+      {
+        "asset_class": "MOTOR-CLASS-A",
+        "label": "drive motor",
+        "service": "drives P-7110",
+        "tag": "M-7110"
+      },
+      {
+        "asset_class": "TANK-CLASS-P",
+        "label": "product storage tanks",
+        "service": "export product storage",
+        "tag": "TK-7101"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "BUND_AND_DRAINAGE_CONTAINMENT",
+        "control_label": "secondary containment by bund and drainage",
+        "failure_mode": "degraded",
+        "hazard_energy": "chemical",
+        "icam_tier": "individual_or_team_action"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "RESPIRATORY_PROTECTION_PROGRAM",
+        "control_label": "selection, fit testing and maintenance of respirators",
+        "failure_mode": "degraded",
+        "hazard_energy": "chemical",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "NM-2021-0012",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "near_miss",
+    "occurred_on": "2021-10-10",
+    "severity_actual": 0,
+    "severity_potential": 3,
+    "site": "Cape Verity Export Terminal",
+    "summary_facts": [],
+    "task_phase": "during a statutory inspection",
+    "title": "trapped hazardous energy found after isolation of P-7110",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "8ac90cd92265daed7f3873ded8ccf2baa73b5116c031a310752283be0c066933",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2021-0012",
+  "prompt_kind": "icam",
+  "prompt_sha256": "fdeb8a190db56b106173e23f37eaf0be979073a879bec9658bab88ebbafcf9fa",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 3 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "BUND_AND_DRAINAGE_CONTAINMENT",
+        "finding": "Control BUND_AND_DRAINAGE_CONTAINMENT: the secondary containment by bund and drainage had degraded below its design intent, and the ICAM investigation classified this as an individual or team action."
+      },
+      {
+        "control_class": "RESPIRATORY_PROTECTION_PROGRAM",
+        "finding": "Control RESPIRATORY_PROTECTION_PROGRAM: the selection, fit testing and maintenance of respirators had degraded below its design intent, and the ICAM investigation classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the selection, fit testing and maintenance of respirators on P-7110, M-7110 and TK-7101 and record the critical control verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in controlling airborne contaminants, specifically monitoring dust, fume and gas exposure. P-7110 (export transfer pumps) is in service for tank-to-jetty product transfer, same seal class as the Marrindal family. The task proceeded during a statutory inspection while the secondary containment by bund and drainage had degraded below its design intent. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 10 October 2021 a potential incident was recorded on P-7110, M-7110 and TK-7101 at Cape Verity Export Terminal during a statutory inspection; chemical energy held as hydrocarbon was not released."
+  },
+  "response_sha256": "2a1b34ea38bca1aed3682718f30704a69c4fd108aa748813420712e9321f6432",
+  "source": null
+}

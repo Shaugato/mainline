@@ -1,0 +1,410 @@
+/*
+ * SPDX-FileCopyrightText: 2026 MAINLINE contributors
+ * SPDX-License-Identifier: FSL-1.1-ALv2
+ *
+ * The fleet surface — held to the EVIDENCE register (docs/leads/ui.md §1.1).
+ *
+ * The directory law in src/design/registers.ts classifies src/features/propagation as
+ * INSTRUMENT, which PERMITS motion. This surface declines the permission: a declination
+ * is a record, not a mechanism, and nothing on this screen is a transition that is
+ * itself the fact. So there is no transition, no transform, no gradient and no shadow
+ * here, and the directory imports no animation library at all — asserted by
+ * tests/unit/propagation/register.test.ts rather than left to taste.
+ *
+ * ── EQUAL PROMINENCE, AS CSS ─────────────────────────────────────────────────────
+ *
+ * Every site row uses ONE class, `.site`, whatever its state. There is no `.siteMuted`,
+ * no reduced opacity, no smaller type and no collapsed variant for a declination. A
+ * fleet view that whispers its refusals is a fleet view that reports adoption; the
+ * whole product claim here is that a site saying NO is as legible as a site saying YES.
+ * `data-state` colours nothing — it exists so a spec can address a row.
+ *
+ * ── NO MAP, NO GLOBE ─────────────────────────────────────────────────────────────
+ *
+ * There is deliberately no geography in this stylesheet. Sites are a list ordered by
+ * severity and overdue-ness. A decorative projection would be the exact
+ * spectacle-over-substance failure the charter forbids, and it would also encode a
+ * ranking (distance from the viewer) that means nothing about safety.
+ */
+
+/* Available to assistive technology, absent from the page and from a screenshot. */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.surface {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-5);
+  padding: var(--tp-space-4) 0;
+  color: var(--tp-ink);
+  font-family: var(--tp-sans);
+  font-size: var(--tp-step-0);
+  line-height: var(--tp-leading-body);
+}
+
+.title {
+  margin: 0 0 var(--tp-space-2);
+  font-size: var(--tp-step-3);
+  font-weight: var(--tp-weight-strong);
+  line-height: var(--tp-leading-tight);
+}
+
+.standfirst {
+  margin: 0;
+  max-width: 78ch;
+  color: var(--tp-ink-dim);
+}
+
+.sectionTitle {
+  margin: 0 0 var(--tp-space-3);
+  font-size: var(--tp-step-2);
+  font-weight: var(--tp-weight-medium);
+  line-height: var(--tp-leading-tight);
+}
+
+.prose {
+  margin: 0;
+  max-width: 78ch;
+  color: var(--tp-ink-dim);
+}
+
+.note {
+  margin: var(--tp-space-2) 0 0;
+  max-width: 78ch;
+  color: var(--tp-ink-dim);
+  font-size: var(--tp-step--1);
+}
+
+.kicker {
+  display: block;
+  margin-bottom: var(--tp-space-2);
+  color: var(--tp-ink-faint);
+  font-size: var(--tp-step--1);
+  font-weight: var(--tp-weight-medium);
+  letter-spacing: var(--tp-tracking-caps);
+  text-transform: uppercase;
+}
+
+/* ── Identity blocks ─────────────────────────────────────────────────────── */
+
+.facts {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: var(--tp-space-2) var(--tp-space-4);
+  margin: 0;
+}
+
+.facts dt {
+  color: var(--tp-ink-faint);
+  font-size: var(--tp-step--1);
+  letter-spacing: var(--tp-tracking-caps);
+  text-transform: uppercase;
+}
+
+.facts dd {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* ── The law panel ───────────────────────────────────────────────────────── */
+
+.law {
+  padding: var(--tp-space-4);
+  border: var(--tp-hairline) solid var(--tp-rule-strong);
+  border-radius: var(--tp-radius);
+  background: var(--tp-bg-raised);
+}
+
+.lawTerms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tp-space-2);
+  margin: var(--tp-space-3) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.term {
+  padding: var(--tp-space-1) var(--tp-space-2);
+  border: var(--tp-hairline) solid var(--tp-rule);
+  border-radius: var(--tp-radius);
+  background: var(--tp-bg-inset);
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step--1);
+}
+
+.term[data-admitted='false'] {
+  color: var(--tp-ink-faint);
+  text-decoration: line-through;
+}
+
+/* ── The census ──────────────────────────────────────────────────────────── */
+
+.census {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tp-space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.censusCell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-1);
+  align-items: flex-start;
+}
+
+/* ── The fleet list ──────────────────────────────────────────────────────── */
+
+.sites {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/*
+ * ONE class for every state. See the header: equal prominence is not a guideline here,
+ * it is the absence of a second class to apply.
+ */
+.site {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--tp-space-3);
+  padding: var(--tp-space-4);
+  border: var(--tp-hairline) solid var(--tp-rule-strong);
+  border-radius: var(--tp-radius);
+  background: var(--tp-bg-raised);
+}
+
+.siteHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--tp-space-3);
+}
+
+.siteLabel {
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step-1);
+  font-weight: var(--tp-weight-strong);
+}
+
+.siteState {
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step-1);
+  font-weight: var(--tp-weight-strong);
+}
+
+.siteBody {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+  gap: var(--tp-space-4);
+}
+
+.block {
+  min-width: 0;
+}
+
+.blockTitle {
+  margin: 0 0 var(--tp-space-2);
+  color: var(--tp-ink-faint);
+  font-size: var(--tp-step--1);
+  font-weight: var(--tp-weight-medium);
+  letter-spacing: var(--tp-tracking-caps);
+  text-transform: uppercase;
+}
+
+/* ── The SLA clock: a fact, never a nag ──────────────────────────────────── */
+
+.clock {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--tp-space-2);
+  font-size: var(--tp-step--1);
+}
+
+.clockValue {
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step-0);
+}
+
+/*
+ * `past_due` gets emphasis WEIGHT and the refusal accent at emphasis size — never a
+ * fill, never a pulse, never a badge that shouts. `pairs.ts` requires the accent to be
+ * used as a foreground only at emphasis weight, which is what this is.
+ */
+.clockValue[data-standing='past_due'] {
+  color: var(--tp-refuse);
+  font-weight: var(--tp-weight-strong);
+}
+
+.clockReference {
+  color: var(--tp-ink-faint);
+}
+
+/* ── Declination ─────────────────────────────────────────────────────────── */
+
+.declination {
+  padding: var(--tp-space-3);
+  border-left: 3px solid var(--tp-rule-strong);
+  background: var(--tp-bg-inset);
+}
+
+.declinationKind {
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step-1);
+  font-weight: var(--tp-weight-strong);
+}
+
+.absent {
+  color: var(--tp-warn);
+  font-family: var(--tp-mono);
+  font-weight: var(--tp-weight-strong);
+}
+
+/* ── Conflicts ───────────────────────────────────────────────────────────── */
+
+.conflicts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.conflict {
+  padding: var(--tp-space-4);
+  border: var(--tp-hairline) solid var(--tp-rule-strong);
+  border-radius: var(--tp-radius);
+  background: var(--tp-bg-raised);
+}
+
+.threeWay {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: var(--tp-space-2) var(--tp-space-4);
+  margin: var(--tp-space-3) 0 0;
+}
+
+.threeWay dt {
+  color: var(--tp-ink-faint);
+  font-size: var(--tp-step--1);
+  letter-spacing: var(--tp-tracking-caps);
+  text-transform: uppercase;
+}
+
+.threeWay dd {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.inheritance {
+  padding: var(--tp-space-4);
+  border: var(--tp-hairline) solid var(--tp-rule-strong);
+  border-radius: var(--tp-radius);
+  background: var(--tp-bg-raised);
+}
+
+.siteChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tp-space-2);
+  margin: var(--tp-space-2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* ── Provenance slot ─────────────────────────────────────────────────────── */
+
+.slot {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--tp-space-1);
+}
+
+.slotPointer {
+  color: var(--tp-ink-faint);
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step--1);
+}
+
+.chipUndeclared,
+.chipDerived {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--tp-space-1);
+  padding: 0 var(--tp-space-1);
+  border: var(--tp-hairline) solid var(--tp-rule);
+  border-radius: var(--tp-radius);
+  color: var(--tp-ink-dim);
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step--1);
+}
+
+.chipUndeclared {
+  color: var(--tp-warn);
+}
+
+/* ── States with nothing to show ─────────────────────────────────────────── */
+
+.panel {
+  padding: var(--tp-space-4);
+  border: var(--tp-hairline) solid var(--tp-rule-strong);
+  border-radius: var(--tp-radius);
+  background: var(--tp-bg-sunken);
+}
+
+.failure {
+  padding: var(--tp-space-4);
+  border: var(--tp-hairline) solid var(--tp-refuse);
+  border-radius: var(--tp-radius);
+  background: var(--tp-bg-raised);
+}
+
+.failureTitle {
+  margin: 0 0 var(--tp-space-2);
+  color: var(--tp-refuse);
+  font-size: var(--tp-step-1);
+  font-weight: var(--tp-weight-strong);
+}
+
+.verbatim {
+  margin: 0;
+  padding: var(--tp-space-3);
+  border: var(--tp-hairline) solid var(--tp-rule);
+  border-radius: var(--tp-radius);
+  background: var(--tp-bg-inset);
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step--1);
+  line-height: var(--tp-leading-tight);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+@media print {
+  .site,
+  .conflict,
+  .law,
+  .inheritance {
+    break-inside: avoid;
+  }
+}

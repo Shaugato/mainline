@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "barrier_role": "preventive",
+    "control_class": "LOAD_SUPPORT_FOR_MAINTENANCE",
+    "control_delta": "introduce",
+    "control_label": "mechanical support of a load during maintenance access",
+    "doc_code": "PRO-MEC-021",
+    "doc_family": "PRO",
+    "doc_title": "Mechanical Isolation and Lockout",
+    "effective_on": "2004-02-23",
+    "printed_label": "3.3",
+    "setpoint": null,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "0983b8a4e40101f885752db45aac98b325b0c7fa95d6215e3e12325d52f892e1",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/PRO-MEC-021/001#MRD/PRO-MEC-021/3.3",
+  "prompt_kind": "clause",
+  "prompt_sha256": "17b6aad3f8c36a4dcc0b65d23a11805ae375de705f32072c5b7ac6f10f7160ff",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The mechanical support of a load during maintenance access shall be provided and maintained for work covered by this procedure. This clause applies to activities archived under ISOLATION-OF-STORED-ENERGY at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "d43ffffd4d21f62168442e2246a982017861919584f2aa5172f3118f6f7711f4",
+  "source": null
+}

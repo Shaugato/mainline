@@ -1,0 +1,102 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "installing and certifying anchor points",
+    "activity_root": "WORKING-AT-HEIGHT",
+    "activity_series": "providing fall protection",
+    "assets": [
+      {
+        "asset_class": "MOB-CLASS-H",
+        "label": "haul trucks",
+        "service": "waste and ore haulage",
+        "tag": "HT-9006"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "ANCHOR_POINT_CERTIFICATION",
+        "control_label": "certification and identification of anchor points",
+        "failure_mode": "absent",
+        "hazard_energy": "gravity",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "DROP_ZONE_EXCLUSION",
+        "control_label": "exclusion of people from beneath elevated work",
+        "failure_mode": "ineffective",
+        "hazard_energy": "gravity",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "FALL_ARREST_PROVISION",
+        "control_label": "selection, inspection and use of fall arrest equipment",
+        "failure_mode": "absent",
+        "hazard_energy": "gravity",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "NM-2025-0004",
+    "hazard_energy": "gravity",
+    "hazard_media": [
+      "suspended load",
+      "stored potential of an elevated component",
+      "unsupported ground",
+      "person at height"
+    ],
+    "hazard_release": "fall, collapse, crush",
+    "kind": "near_miss",
+    "occurred_on": "2025-03-04",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during an intrusive maintenance task",
+    "title": "unrelieved potential energy found after isolation of HT-9006",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "6b79b5520c8b52be3fed4dc2158ad7f8bfb1963b216c1b9f5ebd3bbef54f3449",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2025-0004",
+  "prompt_kind": "icam",
+  "prompt_sha256": "3b9bf7d59b6eb4c61ed64ace75dd9d8e2dc34c0e9110af32fd5c8df62ab75425",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "ANCHOR_POINT_CERTIFICATION",
+        "finding": "Control ANCHOR_POINT_CERTIFICATION: the certification and identification of anchor points was not in place, and the learning team review classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "DROP_ZONE_EXCLUSION",
+        "finding": "Control DROP_ZONE_EXCLUSION: the exclusion of people from beneath elevated work was in place but did not perform, and the learning team review classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "FALL_ARREST_PROVISION",
+        "finding": "Control FALL_ARREST_PROVISION: the selection, inspection and use of fall arrest equipment was not in place, and the learning team review classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Restore the exclusion of people from beneath elevated work on HT-9006 and record the assurance activity before this task is next authorised."
+    ],
+    "sequence": "Work was under way in providing fall protection, specifically installing and certifying anchor points. HT-9006 (haul trucks) is in service for waste and ore haulage. The task proceeded during an intrusive maintenance task while the certification and identification of anchor points was not in place. The gravity energy involved is held as suspended load, and the recorded presentation was fall, collapse, crush.",
+    "summary": "On 4 March 2025 a high potential incident was recorded on HT-9006 at Yandarra Downs Open Cut and Heavy Workshop during an intrusive maintenance task; gravity energy held as suspended load was not released."
+  },
+  "response_sha256": "785ff1ee00f65244a7b606d2df0127bc1f35f6cce0e19266aa68aebae42ece74",
+  "source": null
+}

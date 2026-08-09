@@ -1,0 +1,98 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "deploying an emergency response team",
+    "activity_root": "FIRE-AND-EMERGENCY-RESPONSE",
+    "activity_series": "mustering and rescuing",
+    "assets": [
+      {
+        "asset_class": "TANK-CLASS-H",
+        "label": "hydrocarbon day tanks and surge vessel",
+        "service": "diesel and light hydrocarbon day storage, discharge surge suppression",
+        "tag": "V-4110"
+      },
+      {
+        "asset_class": "PRD-CLASS-A",
+        "label": "pressure relief devices",
+        "service": "overpressure protection on the transfer and storage system",
+        "tag": "PSV-4110"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "FIXED_FIRE_SYSTEM_AVAILABILITY",
+        "control_label": "availability and testing of fixed fire protection",
+        "failure_mode": "absent",
+        "hazard_energy": "chemical",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "MUSTER_AND_ACCOUNTING",
+        "control_label": "alarm, muster and accounting for people",
+        "failure_mode": "ineffective",
+        "hazard_energy": "chemical",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "NM-2005-0009",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "near_miss",
+    "occurred_on": "2005-06-14",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during cleaning and preparation",
+    "title": "near hit during cleaning and preparation on V-4110",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "investigation": "accident investigation",
+      "near_miss": "near hit",
+      "verification": "spot check"
+    }
+  },
+  "key": "6ec6d1fe33a0fc94ee096a25b920875804016cfefaf38ef696b67157c2d168f6",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2005-0009",
+  "prompt_kind": "icam",
+  "prompt_sha256": "d13f3252846498420ea81b70f107ea4f423bdce2baa7be34a298307de14c2aeb",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "FIXED_FIRE_SYSTEM_AVAILABILITY",
+        "finding": "Control FIXED_FIRE_SYSTEM_AVAILABILITY: the availability and testing of fixed fire protection was not in place, and the accident investigation classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "MUSTER_AND_ACCOUNTING",
+        "finding": "Control MUSTER_AND_ACCOUNTING: the alarm, muster and accounting for people was in place but did not perform, and the accident investigation classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Restore the availability and testing of fixed fire protection on V-4110 and PSV-4110 and record the spot check before this task is next authorised."
+    ],
+    "sequence": "Work was under way in mustering and rescuing, specifically deploying an emergency response team. V-4110 (hydrocarbon day tanks and surge vessel) is in service for diesel and light hydrocarbon day storage, discharge surge suppression. The task proceeded during cleaning and preparation while the availability and testing of fixed fire protection was not in place. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 14 June 2005 a near hit was recorded on V-4110 and PSV-4110 at Marrindal Concentrator and Hydrocarbon Transfer Facility during cleaning and preparation; chemical energy held as hydrocarbon was not released."
+  },
+  "response_sha256": "5fafab861a3ee53048a32947d3dbd689dba9d82f47abc501652099ede3ed1d24",
+  "source": null
+}

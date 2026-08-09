@@ -1,0 +1,109 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "switching, racking and access authorisation",
+    "activity_root": "ELECTRICAL-SAFETY",
+    "activity_series": "controlling access to energised apparatus",
+    "assets": [
+      {
+        "asset_class": "ELEC-CLASS-A",
+        "label": "switchgear and transformers",
+        "service": "plant HV/LV distribution",
+        "tag": "SG-3100"
+      },
+      {
+        "asset_class": "ELEC-CLASS-A",
+        "label": "switchgear and transformers",
+        "service": "plant HV/LV distribution",
+        "tag": "TX-3001"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "EARTH_LEAKAGE_PROTECTION",
+        "control_label": "earth leakage and protection setting integrity",
+        "failure_mode": "not_verified",
+        "hazard_energy": "electrical",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "POSITIVE_ISOLATION_APPLICATION",
+        "control_label": "application of positive isolation devices and personal locks",
+        "failure_mode": "ineffective",
+        "hazard_energy": "electrical",
+        "icam_tier": "individual_or_team_action"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "SWITCHING_AUTHORISATION",
+        "control_label": "authorisation of switching and access to apparatus",
+        "failure_mode": "bypassed",
+        "hazard_energy": "thermal",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "NM-2014-0016",
+    "hazard_energy": "thermal",
+    "hazard_media": [
+      "hot surface",
+      "steam",
+      "molten material",
+      "hot work",
+      "exothermic reaction"
+    ],
+    "hazard_release": "burn, ignition, scald",
+    "kind": "near_miss",
+    "occurred_on": "2014-10-09",
+    "severity_actual": 0,
+    "severity_potential": 2,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during start-up after maintenance",
+    "title": "hazard report - thermal exposure at SG-3100",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "3e89a6aa5d116e6b3a1f760141e6cda70e90a78af25b76c2828745d8e3be7ccf",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2014-0016",
+  "prompt_kind": "icam",
+  "prompt_sha256": "82394ba2023e73915deebf18813afc61b9a4784810585c9fd3df6162e8cba9ad",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 2 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "EARTH_LEAKAGE_PROTECTION",
+        "finding": "Control EARTH_LEAKAGE_PROTECTION: the earth leakage and protection setting integrity was never verified as effective, and the root cause analysis classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "POSITIVE_ISOLATION_APPLICATION",
+        "finding": "Control POSITIVE_ISOLATION_APPLICATION: the application of positive isolation devices and personal locks was in place but did not perform, and the root cause analysis classified this as an individual or team action."
+      },
+      {
+        "control_class": "SWITCHING_AUTHORISATION",
+        "finding": "Control SWITCHING_AUTHORISATION: the authorisation of switching and access to apparatus had been bypassed, and the root cause analysis classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Restore the earth leakage and protection setting integrity on SG-3100 and TX-3001 and record the field verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in controlling access to energised apparatus, specifically switching, racking and access authorisation. SG-3100 (switchgear and transformers) is in service for plant HV/LV distribution. The task proceeded during start-up after maintenance while the earth leakage and protection setting integrity was never verified as effective. The thermal energy involved is held as hot surface, and the recorded presentation was burn, ignition, scald.",
+    "summary": "On 9 October 2014 a hazard report was recorded on SG-3100 and TX-3001 at Marrindal Concentrator and Hydrocarbon Transfer Facility during start-up after maintenance; thermal energy held as hot surface was not released."
+  },
+  "response_sha256": "c2b6ee47a4ed84e3cc19ad06f680128f26e9e678cfcf29fde0ddc9131d92d4d8",
+  "source": null
+}

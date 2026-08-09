@@ -1,0 +1,103 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 17,
+    "doc_code": "STD-MEQ-007",
+    "doc_family": "STD",
+    "doc_title": "Mobile Equipment Interaction",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2005-08-05",
+    "required_citations": [
+      {
+        "control_label": "parking, chocking and restraint of equipment",
+        "event_ref": "CAPA-2005-001",
+        "event_title": "corrective action - key safeguard at HT-9004",
+        "hazard_energy": "kinetic",
+        "kind": "investigation_recommendation",
+        "quote_ref": "quote:YND/STD-MEQ-007/001#investigation_recommendation/CAPA-2005-001",
+        "severity_gate": 1
+      },
+      {
+        "control_label": "segregation of light vehicles and pedestrians from heavy equipment",
+        "event_ref": "NM-2005-0006",
+        "event_title": "near hit during an intrusive maintenance task on HT-9005",
+        "hazard_energy": "gravity",
+        "kind": "investigation_recommendation",
+        "quote_ref": "quote:YND/STD-MEQ-007/001#investigation_recommendation/NM-2005-0006",
+        "severity_gate": 2
+      },
+      {
+        "control_label": "segregation of light vehicles and pedestrians from heavy equipment",
+        "event_ref": "NM-2005-0006",
+        "event_title": "near hit during an intrusive maintenance task on HT-9005",
+        "hazard_energy": "gravity",
+        "kind": "moc_reference",
+        "quote_ref": "quote:YND/STD-MEQ-007/001#moc_reference/NM-2005-0006",
+        "severity_gate": 2
+      },
+      {
+        "control_label": "parking, chocking and restraint of equipment",
+        "event_ref": "CAPA-2005-001",
+        "event_title": "corrective action - key safeguard at HT-9004",
+        "hazard_energy": "kinetic",
+        "kind": "regulator_requirement",
+        "quote_ref": "quote:YND/STD-MEQ-007/001#regulator_requirement/CAPA-2005-001",
+        "severity_gate": 1
+      },
+      {
+        "control_label": "segregation of light vehicles and pedestrians from heavy equipment",
+        "event_ref": "NM-2005-0006",
+        "event_title": "near hit during an intrusive maintenance task on HT-9005",
+        "hazard_energy": "gravity",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:YND/STD-MEQ-007/001#revision_history_line/NM-2005-0006",
+        "severity_gate": 2
+      }
+    ],
+    "rev_no": 1,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "accident investigation",
+      "management_of_change": "engineering change note",
+      "near_miss": "near hit"
+    }
+  },
+  "key": "ee0323931ec8da6bf68ae8f42ecda41e8f66612901b25681e48c5d9346af9a1c",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:YND/STD-MEQ-007/001",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "fb28a58e7668efcdbb2c6ecbb4447dce09b8e679b9370973322dab6b92fbb9f4",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The accident investigation into CAPA-2005-001 recommended that the parking, chocking and restraint of equipment be strengthened in this standard.",
+        "quote_ref": "quote:YND/STD-MEQ-007/001#investigation_recommendation/CAPA-2005-001"
+      },
+      {
+        "line": "The accident investigation into NM-2005-0006 recommended that the segregation of light vehicles and pedestrians from heavy equipment be strengthened in this standard.",
+        "quote_ref": "quote:YND/STD-MEQ-007/001#investigation_recommendation/NM-2005-0006"
+      },
+      {
+        "line": "The engineering change note record for this revision cites NM-2005-0006 as the reason the segregation of light vehicles and pedestrians from heavy equipment was amended.",
+        "quote_ref": "quote:YND/STD-MEQ-007/001#moc_reference/NM-2005-0006"
+      },
+      {
+        "line": "A regulatory requirement arising from CAPA-2005-001 obliges this standard to carry the parking, chocking and restraint of equipment.",
+        "quote_ref": "quote:YND/STD-MEQ-007/001#regulator_requirement/CAPA-2005-001"
+      },
+      {
+        "line": "Revision 1 was raised in response to NM-2005-0006, and the segregation of light vehicles and pedestrians from heavy equipment was amended as a result.",
+        "quote_ref": "quote:YND/STD-MEQ-007/001#revision_history_line/NM-2005-0006"
+      }
+    ],
+    "reason": "Scheduled review at revision 1; 17 clauses restated."
+  },
+  "response_sha256": "b7878579c06adb84899f18a44a34ae6c667ee73903b2612d280a35e63d64134d",
+  "source": null
+}

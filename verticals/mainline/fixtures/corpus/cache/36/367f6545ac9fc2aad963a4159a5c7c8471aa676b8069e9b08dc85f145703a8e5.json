@@ -1,0 +1,97 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "transferring hydrocarbon between vessels",
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "activity_series": "managing hydrocarbon transfer and storage",
+    "assets": [
+      {
+        "asset_class": "HX-CLASS-S",
+        "label": "seal support coolers",
+        "service": "barrier-fluid cooling for the hydrocarbon transfer pump family",
+        "tag": "HX-4120"
+      },
+      {
+        "asset_class": "INST-CLASS-A",
+        "label": "instrument loop",
+        "service": "governs HX-4120",
+        "tag": "TT-4120"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "EMERGENCY_ISOLATION_ON_RELEASE",
+        "control_label": "emergency isolation and depressuring on loss of containment",
+        "failure_mode": "absent",
+        "hazard_energy": "pressure",
+        "icam_tier": "organisational_factor"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "SEAL_SUPPORT_SYSTEM_INTEGRITY",
+        "control_label": "integrity of the mechanical seal support system",
+        "failure_mode": "ineffective",
+        "hazard_energy": "pressure",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "NM-2026-0018",
+    "hazard_energy": "thermal",
+    "hazard_media": [
+      "hot surface",
+      "steam",
+      "molten material",
+      "hot work",
+      "exothermic reaction"
+    ],
+    "hazard_release": "burn, ignition, scald",
+    "kind": "near_miss",
+    "occurred_on": "2026-05-15",
+    "severity_actual": 1,
+    "severity_potential": 3,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during cleaning and preparation",
+    "title": "unrelieved potential energy found after isolation of HX-4120",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "367f6545ac9fc2aad963a4159a5c7c8471aa676b8069e9b08dc85f145703a8e5",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2026-0018",
+  "prompt_kind": "icam",
+  "prompt_sha256": "b178b229359707a37d188a0c06c8485868ef87a322fbc0639a5ba57372714e57",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage. The potential outcome was rated 3 against the site's consequence scale, above the 1 actually realised.",
+    "defences": [
+      {
+        "control_class": "EMERGENCY_ISOLATION_ON_RELEASE",
+        "finding": "Control EMERGENCY_ISOLATION_ON_RELEASE: the emergency isolation and depressuring on loss of containment was not in place, and the learning team review classified this as an organisational factor."
+      },
+      {
+        "control_class": "SEAL_SUPPORT_SYSTEM_INTEGRITY",
+        "finding": "Control SEAL_SUPPORT_SYSTEM_INTEGRITY: the integrity of the mechanical seal support system was in place but did not perform, and the learning team review classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next assurance activity that the emergency isolation and depressuring on loss of containment on HX-4120 and TT-4120 performs as designed."
+    ],
+    "sequence": "Work was under way in managing hydrocarbon transfer and storage, specifically transferring hydrocarbon between vessels. HX-4120 (seal support coolers) is in service for barrier-fluid cooling for the hydrocarbon transfer pump family. The task proceeded during cleaning and preparation while the emergency isolation and depressuring on loss of containment was not in place. The thermal energy involved is held as hot surface, and the recorded presentation was burn, ignition, scald.",
+    "summary": "On 15 May 2026 a high potential incident was recorded on HX-4120 and TT-4120 at Marrindal Concentrator and Hydrocarbon Transfer Facility during cleaning and preparation; thermal energy held as hot surface was not released."
+  },
+  "response_sha256": "4e52394c334d93646e86971d577c4d78a564821496deb8b5eb30bdba871215b9",
+  "source": null
+}

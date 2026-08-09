@@ -1,0 +1,252 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+#
+# THE TWO MUTATION CATALOGUES — declarative. The operators are in
+# `mainline_mutation.operators`; this file is what they are measured AGAINST.
+#
+# WHY THE DECLARATION IS DATA AND THE OPERATOR IS CODE
+# -----------------------------------------------------
+# `catalogue_sha256` is stamped on every published number and on every
+# `mainline_meas.mutation_result` row. If the catalogue lived only in Python, a
+# class could be dropped, a magnitude re-tuned or an `expected` sentence
+# softened, and the digest that is supposed to make a number traceable would
+# move for a hundred unrelated reasons at once. Splitting the declaration out
+# means the digest moves when the CLAIM moves.
+#
+# `mainline_mutation.catalogue.load_catalogue()` refuses a declaration with no
+# operator and an operator with no declaration (CatalogueError). A class that is
+# declared and unimplemented would be counted as zero-of-zero and would drag the
+# published rate down for a wiring bug; an operator with no declaration would
+# contribute trials that no reader can audit.
+#
+# TWO RULES THAT ARE NOT NEGOTIABLE
+# ---------------------------------
+#   1. NO THRESHOLD IN THIS FILE IS EVER TUNED TO RAISE A KILL RATE. The
+#      magnitudes below (1 %, 5 %, 25 %; 5, 10, 20 steps) are the ones the brief
+#      names. If a rule breaches the nuisance ceiling, `docs/leads/algorithms.md`
+#      §8 R-A7 says the RULE is rejected — not that this file is edited.
+#   2. THE MEASUREMENT NEVER GATES. Nothing that reads this file may block a
+#      merge, fail a build on a low number, or appear as a launch claim. It is a
+#      standing published metric and its whole value is that it is allowed to be
+#      bad.
+
+[meta]
+version = 1
+confidence = "0.95"
+
+# ═════════════════════════════════════════════════════════════════════════════
+# KILL — control mutations. The pipeline MUST react: a `weaken`/`remove` verdict
+# or a residue row. Neither is a MISSED WEAKENING (risk R-A1).
+# ═════════════════════════════════════════════════════════════════════════════
+
+[[class]]
+class_id = "deontic_downgrade"
+kind = "KILL"
+title = "Deontic downgrade"
+rationale = "The obligation is left in place and its force is lowered: MUST becomes SHOULD. It is the cheapest weakening in any procedure library because the clause still reads as a control."
+expected = "R1_DEONTIC emits one witness and the verdict is `weaken`."
+
+[[class]]
+class_id = "setpoint_nudge_1pct"
+kind = "KILL"
+title = "Setpoint nudge, 1 % against safe_direction"
+rationale = "A limit moved by one percent in the dangerous direction is inside the noise of any human review and outside the tolerance of the equipment it protects."
+expected = "R2_SETPOINT resolves the DIRECTRIX direction and emits `weaken`."
+magnitude = "1%"
+applies_when_ratified = true
+
+[[class]]
+class_id = "setpoint_nudge_5pct"
+kind = "KILL"
+title = "Setpoint nudge, 5 % against safe_direction"
+rationale = "Five percent is the magnitude a drafter can defend as a rounding or a unit-conversion tidy-up."
+expected = "R2_SETPOINT resolves the DIRECTRIX direction and emits `weaken`."
+magnitude = "5%"
+applies_when_ratified = true
+
+[[class]]
+class_id = "setpoint_nudge_25pct"
+kind = "KILL"
+title = "Setpoint nudge, 25 % against safe_direction"
+rationale = "The control case. A quarter is not deniable, and a harness that cannot catch it is measuring nothing."
+expected = "R2_SETPOINT resolves the DIRECTRIX direction and emits `weaken`."
+magnitude = "25%"
+applies_when_ratified = true
+
+[[class]]
+class_id = "comparator_loosening"
+kind = "KILL"
+title = "Comparator loosening"
+rationale = "The number is untouched and the relation is loosened: a stated ceiling becomes an approximation. Every numeric review passes it."
+expected = "R3_COMPARATOR emits `weaken` on the relation class alone; R2 stays silent because the family moved."
+
+[[class]]
+class_id = "hedge_insertion"
+kind = "KILL"
+title = "Hedge insertion"
+rationale = "'So far as is reasonably practicable' leaves the obligation formally intact and practically optional. It is the single most common real-world weakening of an Australian WHS control."
+expected = "R4_EXCEPTION emits `weaken` naming the committed hedge phrase."
+
+[[class]]
+class_id = "exception_insertion"
+kind = "KILL"
+title = "Exception insertion"
+rationale = "An exception narrows when the obligation applies without changing a word of what it requires."
+expected = "R4_EXCEPTION emits `weaken` naming the exception that entered."
+
+[[class]]
+class_id = "quantifier_narrowing"
+kind = "KILL"
+title = "Coverage quantifier narrowing"
+rationale = "Deleting the word 'all' costs one keystroke and removes the control from most of the population it covered."
+expected = "R5_QUANTIFIER emits `weaken` on the coverage rank falling."
+
+[[class]]
+class_id = "verification_step_deletion"
+kind = "KILL"
+title = "Verification step deletion"
+rationale = "The independent check, the second signature or the hold point is what stands between the hazard and the work. It is the first thing deleted when a procedure is 'streamlined'."
+expected = "R6_VERIFICATION emits `weaken` naming the deleted check."
+
+[[class]]
+class_id = "frequency_lengthening"
+kind = "KILL"
+title = "Test frequency lengthening"
+rationale = "A longer interval between gas tests is a control exercised less often, and no registry entry is needed to know which direction that is."
+expected = "R7_FREQUENCY emits `weaken` on the interval lengthening."
+
+[[class]]
+class_id = "uncompensated_anchor_drop"
+kind = "KILL"
+title = "Uncompensated anchor drop"
+rationale = "The equipment tag, isolation point or citation that made the control specific disappears and nothing of its class arrives in its place. ANCHORLOCK treats that as a weakening in its own right, not merely as a matching problem."
+expected = "R8_ANCHOR emits `weaken`, or the identity machinery raises `anchor_drop` / `citation_unresolved` residue."
+
+[[class]]
+class_id = "clause_split_and_dilute"
+kind = "KILL"
+title = "Clause split and dilute"
+rationale = "One clause becomes two: the half a reader sees first keeps the subject, and the half that carried the obligation loses its force. Splitting is a legitimate editorial act, which is what makes it a good hiding place."
+expected = "The surviving half is either not recognisable as the ancestor (residue) or is recognisably weaker (R1/R6)."
+
+[[class]]
+class_id = "salami_5"
+kind = "KILL"
+title = "Salami, 5 steps"
+rationale = "Five individually-defensible edits whose composition is a weakening. Against the parent every step is neutral; against the blame origin the composition is not. This is the ORIGINDIFF claim (decision D7) under measurement."
+expected = "The delta computed against the ORIGIN revision is `weaken`, even where every adjacent pair is not."
+magnitude = "5"
+
+[[class]]
+class_id = "salami_10"
+kind = "KILL"
+title = "Salami, 10 steps"
+rationale = "The same attack at ten steps: each nudge is a tenth of the total and further inside the noise."
+expected = "The delta computed against the ORIGIN revision is `weaken`, even where every adjacent pair is not."
+magnitude = "10"
+
+[[class]]
+class_id = "salami_20"
+kind = "KILL"
+title = "Salami, 20 steps"
+rationale = "Twenty steps is the case `docs/leads/algorithms.md` §3 names for worker W6: twenty individually-`restate` edits whose composition is a deontic downgrade."
+expected = "The delta computed against the ORIGIN revision is `weaken`, even where every adjacent pair is not."
+magnitude = "20"
+
+[[class]]
+class_id = "adversarial_paraphrase"
+kind = "KILL"
+title = "Adversarial paraphrase"
+rationale = "A rewrite that preserves the surface impression of the control and removes its force — the mutation a competent adversary with a language model would write. Sourced from COMMITTED CASSETTES; this package makes no live model call (PL-3, decision D12)."
+expected = "The rewrite is caught by whichever rule its content moved, or it raises residue by ceasing to be recognisable."
+
+# ═════════════════════════════════════════════════════════════════════════════
+# SURVIVE — identity-preserving reformats. The pipeline MUST NOT react: the
+# clause is still the same clause and no `weaken` is raised. A reaction here is
+# a MANUFACTURED FALSE POSITIVE and enough of them breach the nuisance ceiling
+# that R-A7 says gets a rule rejected, not tuned.
+# ═════════════════════════════════════════════════════════════════════════════
+
+[[class]]
+class_id = "retypeset"
+kind = "SURVIVE"
+title = "Retypeset"
+rationale = "The document is re-set in a different template: ligatures, curly quotes, non-breaking spaces, en dashes. Nothing about the control changed."
+expected = "`canon_sha256` is unchanged and the verdict is not a weakening."
+
+[[class]]
+class_id = "renumber"
+kind = "SURVIVE"
+title = "Renumber"
+rationale = "The clause moves from 7.3.2 to 12.4(b) because a section was inserted above it. CANONHOLD excises the numbering prefix into its own field precisely so this is not an identity change."
+expected = "`canon_sha256` is unchanged and the verdict is not a weakening."
+
+[[class]]
+class_id = "reflow_rewrap"
+kind = "SURVIVE"
+title = "Reflow and rewrap"
+rationale = "A narrower column re-wraps every line and hyphenates across the break. The bytes change on every line and the clause does not."
+expected = "`canon_sha256` is unchanged and the verdict is not a weakening."
+
+[[class]]
+class_id = "document_split"
+kind = "SURVIVE"
+title = "Document split"
+rationale = "One procedure becomes two; the clause keeps its text and acquires a new document number, page count and footer."
+expected = "`canon_sha256` is unchanged and the verdict is not a weakening."
+
+[[class]]
+class_id = "document_merge"
+kind = "SURVIVE"
+title = "Document merge"
+rationale = "The mirror of a split: two procedures become one and the furniture around the clause is the merged document's."
+expected = "`canon_sha256` is unchanged and the verdict is not a weakening."
+
+[[class]]
+class_id = "ocr_noise"
+kind = "SURVIVE"
+title = "OCR confusable noise"
+rationale = "A scanned reissue reads 4OO for 400 and l2 for 12. CANONHOLD repairs confusables INSIDE numeric token classes only, which is the whole reason the repair is safe to apply at all."
+expected = "`canon_sha256` is unchanged and the verdict is not a weakening."
+
+[[class]]
+class_id = "table_to_prose"
+kind = "SURVIVE"
+title = "Table row reformatted as prose"
+rationale = "A limits table is rewritten as sentences. The control is identical and the extractor can suddenly read it, which must not be mistaken for the control having changed."
+expected = "The clause is still recognised as the ancestor and no weakening is raised; a newly-readable clause is not a weakened one."
+
+[[class]]
+class_id = "heading_level_change"
+kind = "SURVIVE"
+title = "Heading level change"
+rationale = "The clause is promoted from a fourth-level sub-clause to a third-level one. Its printed label changes and its content does not."
+expected = "`canon_sha256` is unchanged and the verdict is not a weakening."
+
+[[class]]
+class_id = "whitespace_punctuation_churn"
+kind = "SURVIVE"
+title = "Whitespace and punctuation churn"
+rationale = "Double spaces after full stops, non-breaking spaces before units, trailing whitespace: the churn a document acquires from being edited by four people in three editors."
+expected = "`canon_sha256` is unchanged and the verdict is not a weakening."
+
+[[class]]
+class_id = "template_migration"
+kind = "SURVIVE"
+title = "Template migration"
+rationale = "The site moves to a new document management system and every page acquires a new header, a new footer and an uncontrolled-copy stamp."
+expected = "`canon_sha256` is unchanged and the verdict is not a weakening."
+
+[[class]]
+class_id = "appendix_relocation"
+kind = "SURVIVE"
+title = "Appendix relocation"
+rationale = "The clause moves from the body of the procedure into Appendix C, taking a new numbering scheme and a new running header with it."
+expected = "`canon_sha256` is unchanged and the verdict is not a weakening."
+
+[[class]]
+class_id = "cross_reference_renumbering"
+kind = "SURVIVE"
+title = "Cross-reference renumbering"
+rationale = "The clause cites another clause by number and that other clause moved. The citation text changes, the control does not, and this is the ONE survive class that genuinely changes `canon_text` — so it is the one that tests the matcher rather than the canonicaliser."
+expected = "The clause is still recognised as the ancestor above a stage accept band and no weakening is raised."

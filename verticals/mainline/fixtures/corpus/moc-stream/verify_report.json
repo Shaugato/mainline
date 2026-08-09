@@ -1,0 +1,79 @@
+{
+  "checks": [
+    {
+      "check_id": "MS-01",
+      "detail": "every relation of 496 rows is in ['edits', 'introduces', 'retires']",
+      "status": "PASS"
+    },
+    {
+      "check_id": "MS-02",
+      "detail": "every (cr_id, clause_uuid, relation) is unique",
+      "status": "PASS"
+    },
+    {
+      "check_id": "MS-03",
+      "detail": "every declared row references a change request and a clause the corpus wrote",
+      "status": "PASS"
+    },
+    {
+      "check_id": "MS-04",
+      "detail": "every emitted row carries exactly ['clause_uuid', 'commit_id', 'cr_id', 'relation']",
+      "status": "PASS"
+    },
+    {
+      "check_id": "MS-05",
+      "detail": "commit_id is null on every row and registered pending; nothing invented thirty-two bytes",
+      "status": "PASS"
+    },
+    {
+      "check_id": "MS-06",
+      "detail": "128/340 change requests declare no scope (37.65%, ceiling 45%); 496 declared clause rows in total",
+      "status": "PASS"
+    },
+    {
+      "check_id": "MS-07",
+      "detail": "every planned edge is one of the 9 seeded change_request edges",
+      "status": "PASS"
+    },
+    {
+      "check_id": "MS-08",
+      "detail": "1088 acts form one contiguous, strictly increasing chain per change request, ending in the register's terminal state",
+      "status": "PASS"
+    },
+    {
+      "check_id": "MS-09",
+      "detail": "every act falls at or before 2026-08-04T09:14:00+10:00",
+      "status": "PASS"
+    },
+    {
+      "check_id": "MS-10",
+      "detail": "every merge act names mainline.merge_change_request and records that merged_commit does not exist yet",
+      "status": "PASS"
+    },
+    {
+      "check_id": "MS-11",
+      "detail": "0/748 reviewing acts were performed by the originator (0.00%, ceiling 2%)",
+      "status": "PASS"
+    },
+    {
+      "check_id": "MS-12",
+      "detail": "MOC-2026-0413 declares exactly one unrealised clause and its plan stops at dispositioned, so the merge is the database's to refuse",
+      "status": "PASS"
+    },
+    {
+      "check_id": "MS-13",
+      "detail": "no authored binding sits on a ['incident', 'introduce', 'retypeset'] revision or on an injector-produced edit, across 496 declarations",
+      "status": "PASS"
+    },
+    {
+      "check_id": "MS-14",
+      "detail": "every change request still short of a merge declares what it wants to change, so the gate always has something to read",
+      "status": "PASS"
+    }
+  ],
+  "summary": {
+    "FAIL": 0,
+    "PASS": 14,
+    "SKIP": 0
+  }
+}

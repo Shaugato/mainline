@@ -1,0 +1,78 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "benching, battering and shoring an excavation",
+    "activity_root": "GROUND-AND-STRATA-CONTROL",
+    "activity_series": "designing and controlling excavations",
+    "assets": [
+      {
+        "asset_class": "MOB-CLASS-E",
+        "label": "earthmoving fleet",
+        "service": "loading and dozing",
+        "tag": "DZ-9201"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "EXCAVATION_SUPPORT",
+        "control_label": "benching, battering or shoring of an excavation",
+        "failure_mode": "absent",
+        "hazard_energy": "gravity",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "NM-2016-0001",
+    "hazard_energy": "gravity",
+    "hazard_media": [
+      "suspended load",
+      "stored potential of an elevated component",
+      "unsupported ground",
+      "person at height"
+    ],
+    "hazard_release": "fall, collapse, crush",
+    "kind": "near_miss",
+    "occurred_on": "2016-01-07",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during transfer operations",
+    "title": "trapped hazardous energy found after isolation of DZ-9201",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "3fc210121c565349e413181de83be4ad9b3682039765d63bbd06894abc1e18cb",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2016-0001",
+  "prompt_kind": "icam",
+  "prompt_sha256": "8b5836a91c41d602a7466dc8decd16dfc66adfec2c4abe468b7119ab4aa3fde2",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "EXCAVATION_SUPPORT",
+        "finding": "Control EXCAVATION_SUPPORT: the benching, battering or shoring of an excavation was not in place, and the ICAM investigation classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the benching, battering or shoring of an excavation on DZ-9201 and record the critical control verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in designing and controlling excavations, specifically benching, battering and shoring an excavation. DZ-9201 (earthmoving fleet) is in service for loading and dozing. The task proceeded during transfer operations while the benching, battering or shoring of an excavation was not in place. The gravity energy involved is held as suspended load, and the recorded presentation was fall, collapse, crush.",
+    "summary": "On 7 January 2016 a potential incident was recorded on DZ-9201 at Yandarra Downs Open Cut and Heavy Workshop during transfer operations; gravity energy held as suspended load was not released."
+  },
+  "response_sha256": "bf6a091031ad26a3362abcc19670cb232c569b9ceab048ee379aa25e59ea3113",
+  "source": null
+}

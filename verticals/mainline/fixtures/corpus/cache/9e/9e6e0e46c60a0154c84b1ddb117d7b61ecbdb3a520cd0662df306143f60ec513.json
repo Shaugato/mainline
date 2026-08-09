@@ -1,0 +1,104 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "testing earth leakage and protection settings",
+    "activity_root": "ELECTRICAL-SAFETY",
+    "activity_series": "maintaining protective systems",
+    "assets": [
+      {
+        "asset_class": "ELEC-CLASS-A",
+        "label": "terminal switchgear",
+        "service": "terminal distribution",
+        "tag": "TX-7001"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "ARC_FLASH_PPE_AND_BOUNDARY",
+        "control_label": "arc flash boundary and protective equipment",
+        "failure_mode": "degraded",
+        "hazard_energy": "thermal",
+        "icam_tier": "organisational_factor"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "POSITIVE_ISOLATION_APPLICATION",
+        "control_label": "application of positive isolation devices and personal locks",
+        "failure_mode": "bypassed",
+        "hazard_energy": "electrical",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "ZERO_ENERGY_VERIFICATION",
+        "control_label": "proving zero energy before intrusive work",
+        "failure_mode": "bypassed",
+        "hazard_energy": "electrical",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "NM-2010-0007",
+    "hazard_energy": "thermal",
+    "hazard_media": [
+      "hot surface",
+      "steam",
+      "molten material",
+      "hot work",
+      "exothermic reaction"
+    ],
+    "hazard_release": "burn, ignition, scald",
+    "kind": "near_miss",
+    "occurred_on": "2010-04-13",
+    "severity_actual": 0,
+    "severity_potential": 2,
+    "site": "Cape Verity Export Terminal",
+    "summary_facts": [],
+    "task_phase": "during transfer operations",
+    "title": "hazard report - thermal exposure at TX-7001",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "9e6e0e46c60a0154c84b1ddb117d7b61ecbdb3a520cd0662df306143f60ec513",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2010-0007",
+  "prompt_kind": "icam",
+  "prompt_sha256": "04ed7bbc2119538bf645de3e9d6e1384c4b50e2b217fb80547b87c6e797ea5b3",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 2 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "ARC_FLASH_PPE_AND_BOUNDARY",
+        "finding": "Control ARC_FLASH_PPE_AND_BOUNDARY: the arc flash boundary and protective equipment had degraded below its design intent, and the root cause analysis classified this as an organisational factor."
+      },
+      {
+        "control_class": "POSITIVE_ISOLATION_APPLICATION",
+        "finding": "Control POSITIVE_ISOLATION_APPLICATION: the application of positive isolation devices and personal locks had been bypassed, and the root cause analysis classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "ZERO_ENERGY_VERIFICATION",
+        "finding": "Control ZERO_ENERGY_VERIFICATION: the proving zero energy before intrusive work had been bypassed, and the root cause analysis classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the application of positive isolation devices and personal locks on TX-7001 and record the field verification before this task is next authorised.",
+      "Restore the proving zero energy before intrusive work on TX-7001 and record the field verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in maintaining protective systems, specifically testing earth leakage and protection settings. TX-7001 (terminal switchgear) is in service for terminal distribution. The task proceeded during transfer operations while the arc flash boundary and protective equipment had degraded below its design intent. The thermal energy involved is held as hot surface, and the recorded presentation was burn, ignition, scald.",
+    "summary": "On 13 April 2010 a hazard report was recorded on TX-7001 at Cape Verity Export Terminal during transfer operations; thermal energy held as hot surface was not released."
+  },
+  "response_sha256": "fce21a4139a7e38459c227c4cbfb2bcce1b60d52bf426135899f06dc6ebf9bac",
+  "source": null
+}

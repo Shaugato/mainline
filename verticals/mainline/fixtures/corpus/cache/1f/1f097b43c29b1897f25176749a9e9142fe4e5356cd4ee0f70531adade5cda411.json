@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 9,
+    "doc_code": "STD-HTW-004",
+    "doc_family": "STD",
+    "doc_title": "Hot Work",
+    "driver": "incident",
+    "driving_change_ref": null,
+    "driving_event_ref": "INC-2013-044",
+    "effective_on": "2013-09-10",
+    "required_citations": [
+      {
+        "control_label": "provision and briefing of a competent fire watch",
+        "event_ref": "INC-2013-044",
+        "event_title": "gland seal fire during hot work adjacent to a live hydrocarbon line",
+        "hazard_energy": "thermal",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:MRD/STD-HTW-004/003#revision_history_line/INC-2013-044",
+        "severity_gate": 4
+      }
+    ],
+    "rev_no": 3,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "root cause analysis",
+      "management_of_change": "change request",
+      "near_miss": "hazard report"
+    }
+  },
+  "key": "1f097b43c29b1897f25176749a9e9142fe4e5356cd4ee0f70531adade5cda411",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/STD-HTW-004/003",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "1642b725066e8ee185a0bc3244970410989e4aeafbdb1c81cce742f97d8df9e5",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "Revision 3 was raised in response to INC-2013-044, and the provision and briefing of a competent fire watch was amended as a result.",
+        "quote_ref": "quote:MRD/STD-HTW-004/003#revision_history_line/INC-2013-044"
+      }
+    ],
+    "reason": "Revised after INC-2013-044; 9 clauses amended."
+  },
+  "response_sha256": "505a305eabcbe4f2ea2d0ba4f906a33822b4100860308e1f93da89d7ed484494",
+  "source": null
+}

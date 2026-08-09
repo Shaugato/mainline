@@ -1,0 +1,17 @@
+{
+  "agrees_with_anchors": true,
+  "clause_key": "MRD/PRO-MEC-014/7.3",
+  "clause_uuid": "2ad35fa5-d174-5eb1-8550-05adfa90e08d",
+  "declared_label_2011": "7.3",
+  "declared_label_2016": "5.2.1",
+  "doc_code": "PRO-MEC-014",
+  "effective_on": "2016-11-21",
+  "identity_is_label_free": true,
+  "measured_label_2011": "7.3",
+  "measured_label_2016": "5.2.1",
+  "ordinal_2011": 25,
+  "ordinal_2016": 29,
+  "site_code": "MRD",
+  "statement": "PRO-MEC-014 clause 7.3 became clause 5.2.1 on 2016-11-21, and moved from position 25 to position 29 of its document. Its identity, 2ad35fa5-d174-5eb1-8550-05adfa90e08d, is the mint of the natural key it was born at in 2011, and it is not the mint of the address it prints under today. Identity is anchored where the obligation came from, not where it currently sits on the page. That is what beat 1 shows, and it is the reason the 2013 incident is still attached to it in 2026.",
+  "would_be_identity_if_label_derived": "25b02b30-a69a-5022-b54a-91494379efbd"
+}

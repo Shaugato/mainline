@@ -1,0 +1,91 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "benching, battering and shoring an excavation",
+    "activity_root": "GROUND-AND-STRATA-CONTROL",
+    "activity_series": "designing and controlling excavations",
+    "assets": [
+      {
+        "asset_class": "MOB-CLASS-E",
+        "label": "earthmoving fleet",
+        "service": "loading and dozing",
+        "tag": "DZ-9201"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "GROUND_CONDITION_INSPECTION",
+        "control_label": "inspection and monitoring of highwalls and batters",
+        "failure_mode": "absent",
+        "hazard_energy": "gravity",
+        "icam_tier": "organisational_factor"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "SLOPE_MONITORING_RESPONSE",
+        "control_label": "response to slope monitoring alarms",
+        "failure_mode": "degraded",
+        "hazard_energy": "gravity",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "RN-2012-003",
+    "hazard_energy": "kinetic",
+    "hazard_media": [
+      "rotating equipment",
+      "conveyor",
+      "mobile equipment",
+      "pressurised jet",
+      "flying fragment"
+    ],
+    "hazard_release": "entanglement, impact, crush",
+    "kind": "regulator_notice",
+    "occurred_on": "2012-12-14",
+    "severity_actual": 1,
+    "severity_potential": 1,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during routine operation",
+    "title": "prohibition notice - work stopped during routine operation on DZ-9201",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "b1cd98c910a7d03fcd068b31bf96df38ab4258630e3f2a9fa18b5d88b87d6176",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:RN-2012-003",
+  "prompt_kind": "icam",
+  "prompt_sha256": "b442542407e8c9a3960f2b5ac830a23d8d5dd8ad7d5095b11deb6b132b619569",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage.",
+    "defences": [
+      {
+        "control_class": "GROUND_CONDITION_INSPECTION",
+        "finding": "Control GROUND_CONDITION_INSPECTION: the inspection and monitoring of highwalls and batters was not in place, and the root cause analysis classified this as an organisational factor."
+      },
+      {
+        "control_class": "SLOPE_MONITORING_RESPONSE",
+        "finding": "Control SLOPE_MONITORING_RESPONSE: the response to slope monitoring alarms had degraded below its design intent, and the root cause analysis classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next field verification that the inspection and monitoring of highwalls and batters on DZ-9201 performs as designed."
+    ],
+    "sequence": "Work was under way in designing and controlling excavations, specifically benching, battering and shoring an excavation. DZ-9201 (earthmoving fleet) is in service for loading and dozing. The task proceeded during routine operation while the inspection and monitoring of highwalls and batters was not in place. The kinetic energy involved is held as rotating equipment, and the recorded presentation was entanglement, impact, crush.",
+    "summary": "On 14 December 2012 a regulatory notice was issued concerning DZ-9201 at Yandarra Downs Open Cut and Heavy Workshop following routine operation."
+  },
+  "response_sha256": "6460d3e811a9b39b5fd72a9fdeef1d73d882c40106937bceae28b2f214adf2b2",
+  "source": null
+}

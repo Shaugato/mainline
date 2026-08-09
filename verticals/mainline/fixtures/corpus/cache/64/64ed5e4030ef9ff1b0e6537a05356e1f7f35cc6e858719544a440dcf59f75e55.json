@@ -1,0 +1,116 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "setting and proving mechanical seal support systems",
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "activity_series": "maintaining sealing systems on rotating equipment",
+    "assets": [
+      {
+        "asset_class": "HTP-CLASS-A",
+        "label": "export transfer pumps",
+        "service": "tank-to-jetty product transfer, same seal class as the Marrindal family",
+        "tag": "P-7110"
+      },
+      {
+        "asset_class": "MOTOR-CLASS-A",
+        "label": "drive motor",
+        "service": "drives P-7110",
+        "tag": "M-7110"
+      },
+      {
+        "asset_class": "TANK-CLASS-P",
+        "label": "product storage tanks",
+        "service": "export product storage",
+        "tag": "TK-7101"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "EMERGENCY_ISOLATION_ON_RELEASE",
+        "control_label": "emergency isolation and depressuring on loss of containment",
+        "failure_mode": "not_verified",
+        "hazard_energy": "chemical",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "HYDROCARBON_TRANSFER_CONTROL",
+        "control_label": "controlled transfer of hydrocarbon between vessels",
+        "failure_mode": "bypassed",
+        "hazard_energy": "chemical",
+        "icam_tier": "organisational_factor"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "SEAL_SUPPORT_SYSTEM_INTEGRITY",
+        "control_label": "integrity of the mechanical seal support system",
+        "failure_mode": "not_verified",
+        "hazard_energy": "chemical",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "RN-2019-007",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "regulator_notice",
+    "occurred_on": "2019-10-21",
+    "severity_actual": 1,
+    "severity_potential": 2,
+    "site": "Cape Verity Export Terminal",
+    "summary_facts": [],
+    "task_phase": "during a breakdown response",
+    "title": "improvement notice - critical control at P-7110",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "64ed5e4030ef9ff1b0e6537a05356e1f7f35cc6e858719544a440dcf59f75e55",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:RN-2019-007",
+  "prompt_kind": "icam",
+  "prompt_sha256": "e45b28b6936529c23f2785bd5759eeec2889bf5bdc856a299d2d48144a7ad225",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage. The potential outcome was rated 2 against the site's consequence scale, above the 1 actually realised.",
+    "defences": [
+      {
+        "control_class": "EMERGENCY_ISOLATION_ON_RELEASE",
+        "finding": "Control EMERGENCY_ISOLATION_ON_RELEASE: the emergency isolation and depressuring on loss of containment was never verified as effective, and the ICAM investigation classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "HYDROCARBON_TRANSFER_CONTROL",
+        "finding": "Control HYDROCARBON_TRANSFER_CONTROL: the controlled transfer of hydrocarbon between vessels had been bypassed, and the ICAM investigation classified this as an organisational factor."
+      },
+      {
+        "control_class": "SEAL_SUPPORT_SYSTEM_INTEGRITY",
+        "finding": "Control SEAL_SUPPORT_SYSTEM_INTEGRITY: the integrity of the mechanical seal support system was never verified as effective, and the ICAM investigation classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next critical control verification that the emergency isolation and depressuring on loss of containment on P-7110, M-7110 and TK-7101 performs as designed."
+    ],
+    "sequence": "Work was under way in maintaining sealing systems on rotating equipment, specifically setting and proving mechanical seal support systems. P-7110 (export transfer pumps) is in service for tank-to-jetty product transfer, same seal class as the Marrindal family. The task proceeded during a breakdown response while the emergency isolation and depressuring on loss of containment was never verified as effective. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 21 October 2019 a regulatory notice was issued concerning P-7110, M-7110 and TK-7101 at Cape Verity Export Terminal following a breakdown response."
+  },
+  "response_sha256": "b6ab0f1ee0872e1e8f6be7253eaf1ece5106c5b8ef1a467913cac25a15359cbe",
+  "source": null
+}

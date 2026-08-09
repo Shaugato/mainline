@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "barrier_role": "recovery",
+    "control_class": "BUND_AND_DRAINAGE_CONTAINMENT",
+    "control_delta": "introduce",
+    "control_label": "secondary containment by bund and drainage",
+    "doc_code": "PRO-OPS-017",
+    "doc_family": "PRO",
+    "doc_title": "Ship Loading and Vapour Recovery",
+    "effective_on": "2024-05-16",
+    "printed_label": "5.4",
+    "setpoint": null,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "energy_isolation": "positive isolation verification",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "b1fa5fca6a7d09d71711982bb680cfc2090573c40a1497aa32a3671fa9edb662",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:CVY/PRO-OPS-017/011#CVY/PRO-OPS-017/5.4",
+  "prompt_kind": "clause",
+  "prompt_sha256": "b8f9069e54d24f7c90ddc103ed602b0da36df9088985878e78e8fb9af7b0b2c4",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The secondary containment by bund and drainage shall be provided and maintained for work covered by this procedure. This clause applies to activities archived under CONTAINMENT-OF-HYDROCARBONS at Cape Verity Export Terminal.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "720d0d5b61f7f29a83cbcb26c4fb00703eef7ad827d5744e656c025d90efb95c",
+  "source": null
+}

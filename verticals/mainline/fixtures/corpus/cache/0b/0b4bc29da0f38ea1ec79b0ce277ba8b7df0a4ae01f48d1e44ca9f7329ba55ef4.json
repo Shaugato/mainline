@@ -1,0 +1,79 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "working in dust, darkness and weather restrictions",
+    "activity_root": "MOBILE-EQUIPMENT-INTERACTION",
+    "activity_series": "operating in reduced visibility",
+    "assets": [
+      {
+        "asset_class": "MOB-CLASS-L",
+        "label": "light vehicles",
+        "service": "personnel movement on operating areas",
+        "tag": "LV-9303"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "PARK_UP_AND_RESTRAINT",
+        "control_label": "parking, chocking and restraint of equipment",
+        "failure_mode": "bypassed",
+        "hazard_energy": "kinetic",
+        "icam_tier": "organisational_factor"
+      }
+    ],
+    "event_ref": "CAPA-2006-001",
+    "hazard_energy": "kinetic",
+    "hazard_media": [
+      "rotating equipment",
+      "conveyor",
+      "mobile equipment",
+      "pressurised jet",
+      "flying fragment"
+    ],
+    "hazard_release": "entanglement, impact, crush",
+    "kind": "capa",
+    "occurred_on": "2006-01-26",
+    "severity_actual": 1,
+    "severity_potential": 2,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during an intrusive maintenance task",
+    "title": "preventive action - alarm setting on LV-9303",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "investigation": "accident investigation",
+      "near_miss": "near hit",
+      "verification": "spot check"
+    }
+  },
+  "key": "0b4bc29da0f38ea1ec79b0ce277ba8b7df0a4ae01f48d1e44ca9f7329ba55ef4",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:CAPA-2006-001",
+  "prompt_kind": "icam",
+  "prompt_sha256": "b2e49ff389c59e14a850bbad45b42fca99b0674296381b25574183ebd1e2e339",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage. The potential outcome was rated 2 against the site's consequence scale, above the 1 actually realised.",
+    "defences": [
+      {
+        "control_class": "PARK_UP_AND_RESTRAINT",
+        "finding": "Control PARK_UP_AND_RESTRAINT: the parking, chocking and restraint of equipment had been bypassed, and the accident investigation classified this as an organisational factor."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next spot check that the parking, chocking and restraint of equipment on LV-9303 performs as designed."
+    ],
+    "sequence": "Work was under way in operating in reduced visibility, specifically working in dust, darkness and weather restrictions. LV-9303 (light vehicles) is in service for personnel movement on operating areas. The task proceeded during an intrusive maintenance task while the parking, chocking and restraint of equipment had been bypassed. The kinetic energy involved is held as rotating equipment, and the recorded presentation was entanglement, impact, crush.",
+    "summary": "On 26 January 2006 a corrective action on LV-9303 at Yandarra Downs Open Cut and Heavy Workshop was reviewed against the key safeguard it was raised to restore."
+  },
+  "response_sha256": "6ed59641baf60e7923ea1bab28bdc63ea268abf953c4c78a8b917ddd6f886261",
+  "source": null
+}

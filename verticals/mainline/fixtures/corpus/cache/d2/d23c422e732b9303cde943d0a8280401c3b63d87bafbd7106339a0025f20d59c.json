@@ -1,0 +1,80 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "monitoring seal-face condition and temperature",
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "activity_series": "maintaining sealing systems on rotating equipment",
+    "assets": [
+      {
+        "asset_class": "TANK-CLASS-P",
+        "label": "product storage tanks",
+        "service": "export product storage",
+        "tag": "TK-7104"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "EMERGENCY_ISOLATION_ON_RELEASE",
+        "control_label": "emergency isolation and depressuring on loss of containment",
+        "failure_mode": "ineffective",
+        "hazard_energy": "chemical",
+        "icam_tier": "organisational_factor"
+      }
+    ],
+    "event_ref": "CAPA-2024-006",
+    "hazard_energy": "pressure",
+    "hazard_media": [
+      "hydraulic accumulator",
+      "barrier fluid",
+      "process gas",
+      "steam header",
+      "compressed air",
+      "trapped liquid"
+    ],
+    "hazard_release": "jet release, stored-energy discharge, rupture",
+    "kind": "capa",
+    "occurred_on": "2024-07-29",
+    "severity_actual": 0,
+    "severity_potential": 2,
+    "site": "Cape Verity Export Terminal",
+    "summary_facts": [],
+    "task_phase": "during a statutory inspection",
+    "title": "preventive action - alarm philosophy conformance on TK-7104",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "d23c422e732b9303cde943d0a8280401c3b63d87bafbd7106339a0025f20d59c",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:CAPA-2024-006",
+  "prompt_kind": "icam",
+  "prompt_sha256": "f3140f63c56d5dba8a597160296239a278c461abe72b3958f6d9866f2dfa34d1",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 2 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "EMERGENCY_ISOLATION_ON_RELEASE",
+        "finding": "Control EMERGENCY_ISOLATION_ON_RELEASE: the emergency isolation and depressuring on loss of containment was in place but did not perform, and the learning team review classified this as an organisational factor."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next assurance activity that the emergency isolation and depressuring on loss of containment on TK-7104 performs as designed."
+    ],
+    "sequence": "Work was under way in maintaining sealing systems on rotating equipment, specifically monitoring seal-face condition and temperature. TK-7104 (product storage tanks) is in service for export product storage. The task proceeded during a statutory inspection while the emergency isolation and depressuring on loss of containment was in place but did not perform. The pressure energy involved is held as hydraulic accumulator, and the recorded presentation was jet release, stored-energy discharge, rupture.",
+    "summary": "On 29 July 2024 a corrective action on TK-7104 at Cape Verity Export Terminal was reviewed against the material unwanted event control it was raised to restore."
+  },
+  "response_sha256": "d7cfc3b2a476e8c0723a422dd8c314bfa81e69c411dd369fc273c005afbca904",
+  "source": null
+}

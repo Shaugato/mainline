@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "barrier_role": "preventive",
+    "control_class": "POSITIVE_ISOLATION_APPLICATION",
+    "control_delta": "restate",
+    "control_label": "application of positive isolation devices and personal locks",
+    "doc_code": "PTW-STD-004",
+    "doc_family": "PTW",
+    "doc_title": "Permit to Work Form Set",
+    "effective_on": "2016-11-21",
+    "printed_label": "5.1.1",
+    "setpoint": null,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "bc16c388d1833de97ef4df49b2cbe24c71085c74b87e55f1da8a4798c3390a82",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:YND/PTW-STD-004/004#YND/PTW-STD-004/1.1",
+  "prompt_kind": "clause",
+  "prompt_sha256": "1da406a47f4e0551e4e50ed8a6f573604d6fdcf48087d23fd0fa7dba24d76f19",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The application of positive isolation devices and personal locks shall be provided and maintained wherever this permit-to-work form set applies, and its condition shall be treated as a critical control. This clause applies to activities archived under ISOLATION-OF-STORED-ENERGY at Yandarra Downs Open Cut and Heavy Workshop.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "4a59d2f64fbedf9174af8f4c7f0127fc5091f4648964354902af4fb0ca927f53",
+  "source": null
+}

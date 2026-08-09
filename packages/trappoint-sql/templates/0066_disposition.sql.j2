@@ -1,0 +1,350 @@
+{# SPDX-FileCopyrightText: 2026 MAINLINE contributors #}
+{# SPDX-License-Identifier: Apache-2.0 #}
+{#
+  Migrations 0066 / 0066a / 0067 — THE DISPOSITION, AND THE EXHIBIT
+  (ARCHITECTURE.md §5.5 "The disposition"; §16 MI08, MI11, MI12, MI27, MI28, MI29;
+  TRAPPOINT invariants I09, I10, I11; rulings D2 and D3; ADR 0001 for the counsel gate.)
+
+  Everything else in this repository exists so that this table can carry two composite
+  foreign keys.
+
+    fk_clearance  (virulence, kind) -> clearance_legal (virulence, kind)
+    fk_exposure   (receipt_id, check_id) -> exposure_line (receipt_id, check_id)
+
+  The first is the sentence the company is built on: THERE IS NO DISPOSITION CONSTRUCTOR
+  THAT DISMISSES A CONTROL WRITTEN BY A FATALITY. `(blood_fatal, mechanism_absent)` is a
+  cell that does not exist in the lattice, `virulence` is PROJECTED onto this row from the
+  blame closure rather than supplied, and the consequence is 23503 naming `fk_clearance`
+  — for every writer, including a DBA with a psql session, including the Managed MCP
+  insert path, including a restored backup being fixed up by hand. Not a warning. Not a
+  flagged event. A refusal with a constraint name, which is the exhibit. That is case
+  CF-07 and it is the only test of the claim the company is built on.
+
+  The second says a signature may exist only against something the substrate actually
+  rendered to that actor: *"it never showed me"* and *"I signed without looking"* are
+  both violations of one foreign key (case CF-18).
+
+  WHAT IS PROJECTED HERE AND WHAT IS NOT — read this before adding a column.
+  Nine columns are declared projections in the binding and carry the `@projects` pragma:
+  the six clearance requirements and the three identity columns. `virulence`,
+  `closure_gen`, `site_id`, `severity_snapshot`, `prior_override_count`,
+  `verbatim_anchor_count`, `required_anchors`, `competency_snapshot`,
+  `competency_source_id`, `deliberation_seconds`, `reading_floor_met`, `max_ttl_hours`,
+  the countersigner's rank and org, and — under ruling D2 — `subject_kind` and the
+  subject id columns are ALSO written by `fn_disposition_project` and are ALSO never
+  inputs. They do not carry the pragma, and the reason is structural rather than an
+  oversight: rule `A-6` of the Authority Source Contract REFUSES an authority relation
+  that is a gated relation of the binding, and every one of those values derives from
+  `blocking_check`, `override_ledger` or `disposition_citation`, which are gated
+  relations. Declaring them would make `trappoint render` refuse this file. Their
+  enforcement is the projection trigger plus the constraints below, and the honest
+  statement of that is this paragraph rather than a pragma the contract cannot accept.
+
+  RULING D3 — A MISSING CLEARANCE ROW DOES NOT RAISE. `fn_disposition_project` sets the
+  six requirement columns to their STRICTEST values and returns the row; `fk_clearance`
+  then fires 23503 with its name attached. A synthetic 23503 raised from PL/pgSQL carries
+  no constraint name, and the constraint name is the exhibit. The strictest values are
+  themselves refusing, so if the foreign key were ever dropped the row would still be
+  refused by `rank_floor`, `needs_second_signer`, `needs_foreign_org`, `needs_predicate`,
+  `needs_reassert` and `needs_compensating`. Refusal depth of seven, from one
+  declaration — which is what the unwelding matrix in W9 measures rather than asserts.
+
+  COUNSEL-GATED (ADR 0001, G0). The pre-committed default was executed: the build
+  proceeds, and the conservative reading is applied as CONFIGURATION rather than as DDL.
+  "No `mechanism_absent` over fatal ancestry" is already the shape of the lattice —
+  `(blood_fatal, mechanism_absent)` is an absent seed row in 0018b, not a CHECK here —
+  so when G0 is answered the change is a policy value with a signature on it, not a
+  migration. Nothing in this file needs to move for that.
+#}
+{# @projects disposition.req_compensating, disposition.req_second_signer, disposition.req_foreign_org, disposition.req_predicate, disposition.req_reassert, disposition.min_signer_rank #}
+{# @projects disposition.signer_rank, disposition.signer_org, disposition.competency_sha256 #}
+{% set waiver_authorisation = 'ISOLATION_AUTHORITY' %}
+{% set verbatim_only_kinds = ['mechanism_absent', 'mitigated'] %}
+-- @file 0066_disposition.sql
+{{ header(file='0066_disposition.sql',
+          title='CREATE TABLE ' ~ binding.schema ~ '.disposition — the product, and the exhibit',
+          rationale='Two composite foreign keys carry the whole claim: (virulence, kind) into the versioned clearance lattice, so a verdict that does not exist at that ancestral severity is 23503 naming fk_clearance for every writer including a DBA; and (receipt_id, check_id) into the exposure line, so a signature can only exist against an obligation the substrate actually rendered to that actor. Virulence is projected from the blame closure rather than supplied, which is what stops the first key being routed around by claiming a lower severity.',
+          mi=['MI11', 'MI12', 'MI27', 'MI28', 'MI29'], i=['I09', 'I10'], counsel_gated=True) }}
+--
+{% for a in authority_sources %}
+{% if a.projects[0].startswith('disposition.') %}
+-- @projects {{ a.projects | join(', ') }}
+-- @authority {{ a.relation }} ({{ a.key_columns | join(', ') }}) <= NEW ({{ a.key | join(', ') }})
+-- @on_missing raise
+--
+{% endif %}
+{% endfor %}
+-- SUBJECT-POLYMORPHIC UNDER RULING D2, over the {{ subjects | length }} gated subject(s) declared:
+{% for s in subjects %}
+--   {{ s.kind }} -> {{ binding.schema }}.{{ s.table }} ({{ s.id_column }})
+{% endfor %}
+--
+-- §5.5 gives this table `permit_id UUID NOT NULL`, and that line predates finding S16.
+-- Read literally it means a change request which trips `weaken_over_blood` can never be
+-- dispositioned, so MI30 — "a change_request merges only with zero open blocking
+-- checks" — would be satisfiable only by never opening one. The repository would be a
+-- brick wall rather than a protected branch, which is the opposite of the claim. D2
+-- makes the table polymorphic exactly as `blocking_check` is, and all three columns are
+-- written by `fn_disposition_project` from the blocking check the disposition names —
+-- never from the writer, who is not entitled to say which subject they are clearing.
+--
+-- ── THE SIGNATURE BLOCK ──────────────────────────────────────────────────────────────
+-- signer_rank, signer_org and competency_sha256 are projections of `person` (MI27), so a
+-- client that signs with signer_rank = 6 on a person whose live rank is 2 has the row
+-- rewritten BEFORE `rank_floor` is evaluated and then gets 23514. That ordering is the
+-- whole of case CF-19: asserting only the 23514 would pass against an implementation
+-- that trusted the client and happened to have a low floor.
+--
+-- competency_snapshot is FROZEN AT SIGNATURE, never a join. A live join to an HR system
+-- returns TODAY's competency at trial, which is useless and looks like backfilling. The
+-- frozen snapshot supports a provable claim: at 02:14 on 14 March the system checked,
+-- the record said this, and here is the hash of the source record. It fails closed —
+-- a missing `person` row refuses the disposition with P0001 (case CF-20).
+--
+-- ── THE NEUTRAL MEASUREMENTS (I15 / A-RULE) ──────────────────────────────────────────
+-- deliberation_seconds, evidence_opened, reading_floor_met and severity_snapshot are
+-- RECORDED AND NEVER THRESHOLDED HERE. No CHECK on this table reads them. That is not
+-- squeamishness: a threshold on deliberation time in the schema would be a surveillance
+-- instrument with no signature on it, and ADR 0001 defaults per-approver dwell timing to
+-- OFF. deliberation_seconds is derived from the SERVER-issued exposure receipt — a
+-- record of what the system did, not a measurement of a worker.
+--
+-- evidence_opened = false before a fatality is a devastating row, and it ships anyway. A
+-- system that deliberately declines to record whether the human read the warning is a
+-- worse exhibit, because that design choice is itself discoverable, dated and authored.
+--
+-- reading_floor_met has POSITIVE polarity and it does work (finding S19): breaching the
+-- floor does not raise, it projects `unmet_floor_count` onto the subject and PRICES the
+-- consequence — the subject cannot complete without a countersignature from a second,
+-- differently-credentialed signer. Fast stays legal; it just names a second person.
+--
+-- ── max_ttl_hours IS NULLABLE, AND THAT IS DELIBERATE ────────────────────────────────
+-- It is a projection of `clearance_legal.max_ttl_hours`, which is itself nullable: NULL
+-- means the verdict does not expire, and twelve of the twenty-one seeded cells are NULL.
+-- Making this column NOT NULL would make `ttl_enforced`'s first branch dead syntax and
+-- would require inventing a sentinel for "no expiry" that every reader would then have
+-- to remember. It is the one projected requirement column that is not NOT NULL, and it
+-- is not in the binding's `strictest` map for the same reason.
+--
+-- ── retracted_by IS THE SINGLE PERMITTED UPDATE IN THE OPERATIONAL ZONE ──────────────
+-- A BEFORE UPDATE trigger (`fn_disposition_retract_only`, migration band 0100+) raises
+-- unless the ONLY changed column is `retracted_by` and its prior value was NULL. A
+-- retraction increments the subject's open counter AND bumps `gate_epoch`, so a
+-- retraction after the subject merged is refused by the epoch pin with 23503 naming
+-- `epoch_pin_permit` (case CF-40) — refusal by referential integrity, not by policy.
+-- `retraction_not_reflexive` closes the one hole the self-reference leaves open: the
+-- foreign key would happily accept a disposition that retracts itself.
+
+CREATE TABLE {{ binding.schema }}.disposition (
+  disposition_id       UUID NOT NULL DEFAULT gen_random_uuid(),
+  check_id             UUID NOT NULL REFERENCES {{ binding.schema }}.blocking_check (check_id),
+  receipt_id           UUID NOT NULL,
+  -- ▼ PROJECTED by fn_disposition_project from the blocking check named above (D2).
+  subject_kind         STRING NOT NULL,
+{% for s in subjects %}
+  {{ '%-20s' | format(s.id_column) }} UUID NULL REFERENCES {{ binding.schema }}.{{ s.table }} ({{ s.id_column }}),
+{% endfor %}
+  site_id              UUID NOT NULL,
+  -- ▲
+  kind                 {{ binding.schema }}.disposition_kind NOT NULL,
+  -- ▼ PROJECTED from the blame closure via the blocking check (finding S1, MI25).
+  virulence            {{ binding.schema }}.virulence_class NOT NULL,
+  closure_gen          INT8 NOT NULL,
+  -- ▲
+  defeater_code        STRING NOT NULL,
+  defeater_vocab_sha256 BYTES NOT NULL,
+  rationale            STRING NOT NULL,
+  evidence_sha256      BYTES NOT NULL,
+  signer_sub           STRING NOT NULL,
+  -- ▼ PROJECTED from {{ binding.schema }}.person (MI27). See the @authority banner above.
+  signer_rank          INT2 NOT NULL,
+  signer_org           STRING NOT NULL,
+  -- ▲
+  signer_credential_id BYTES NOT NULL
+                         REFERENCES {{ binding.schema }}.signing_credential (credential_id),
+  countersigner_sub    STRING NULL,
+  countersigner_rank   INT2 NULL,
+  countersigner_org    STRING NULL,
+  countersigner_credential_id BYTES NULL
+                         REFERENCES {{ binding.schema }}.signing_credential (credential_id),
+  signature_alg        STRING NOT NULL,
+  authenticator_data   BYTES NOT NULL,
+  client_data_json     BYTES NOT NULL,
+  user_verified        BOOL NOT NULL,
+  signed_at            TIMESTAMPTZ NOT NULL DEFAULT now(),
+  competency_snapshot  JSONB NOT NULL,
+  competency_source_id UUID NOT NULL,
+  competency_sha256    BYTES NOT NULL,
+  -- ▼ PROJECTED from {{ binding.schema }}.clearance_legal (MI11, ruling D3: a missing row
+  --   projects the STRICTEST values so that fk_clearance fires with its name attached).
+  req_compensating     BOOL NOT NULL,
+  req_second_signer    BOOL NOT NULL,
+  req_foreign_org      BOOL NOT NULL,
+  req_predicate        BOOL NOT NULL,
+  req_reassert         BOOL NOT NULL,
+  min_signer_rank      INT2 NOT NULL,
+  max_ttl_hours        INT4 NULL,
+  -- ▲
+  compensating_clause_uuid UUID NULL REFERENCES {{ binding.schema }}.clause (clause_uuid),
+  predicate_id         UUID NULL,
+  reassert_by          TIMESTAMPTZ NULL,
+  expires_at           TIMESTAMPTZ NULL,
+  verbatim_anchor_count INT4 NOT NULL DEFAULT 0,
+  required_anchors     INT4 NOT NULL DEFAULT 0,
+  particularity        FLOAT8 NULL,
+  preimage_key         BYTES NULL,
+  stale_replay         BOOL NOT NULL DEFAULT false,
+  deliberation_seconds INT8 NOT NULL,
+  evidence_opened      BOOL NOT NULL,
+  reading_floor_met    BOOL NOT NULL DEFAULT true,
+  prior_override_count INT8 NOT NULL,
+  severity_snapshot    INT2 NOT NULL,
+  retracted_by         UUID NULL REFERENCES {{ binding.schema }}.disposition (disposition_id),
+
+  -- THE EXPOSURE BINDING (MI12, case CF-18). Onto the PAIR, never onto the obligation
+  -- alone: a signature against a receipt that never carried this obligation is 23503.
+  CONSTRAINT fk_exposure FOREIGN KEY (receipt_id, check_id)
+    REFERENCES {{ binding.schema }}.exposure_line (receipt_id, check_id),
+
+  -- THE CLEARANCE LATTICE (MI11, case CF-07). (blood_fatal, mechanism_absent) is not a
+  -- stricter row in 0018b; it is NO row, so this key is 23503 and names itself.
+  CONSTRAINT fk_clearance FOREIGN KEY (virulence, kind)
+    REFERENCES {{ binding.schema }}.clearance_legal (virulence, kind),
+
+  CONSTRAINT substantive CHECK (length(rationale) >= 120),
+  CONSTRAINT rank_floor CHECK (signer_rank >= min_signer_rank),
+  CONSTRAINT uv_required CHECK (user_verified = true),
+  CONSTRAINT distinct_credential CHECK (countersigner_credential_id IS NULL
+    OR countersigner_credential_id <> signer_credential_id),
+  CONSTRAINT needs_compensating
+    CHECK (req_compensating = false OR compensating_clause_uuid IS NOT NULL),
+  CONSTRAINT needs_second_signer CHECK (req_second_signer = false
+    OR (countersigner_credential_id IS NOT NULL AND countersigner_sub <> signer_sub)),
+  CONSTRAINT needs_foreign_org CHECK (req_foreign_org = false
+    OR (countersigner_org IS NOT NULL AND countersigner_org <> signer_org)),
+  CONSTRAINT needs_predicate CHECK (req_predicate = false OR predicate_id IS NOT NULL),
+  CONSTRAINT needs_reassert CHECK (req_reassert = false OR reassert_by IS NOT NULL),
+  -- Finding S12 / MI28: the window is BOUNDED, not merely present. `expires_at IS NOT
+  -- NULL` alone would admit a verdict that expires in the year 3000.
+  CONSTRAINT ttl_enforced CHECK (max_ttl_hours IS NULL
+    OR (expires_at IS NOT NULL
+        AND expires_at <= signed_at + (max_ttl_hours * INTERVAL '1 hour'))),
+  -- Finding S8 / MI29: overrides escalate against the PERSON, across subjects, with NO
+  -- ceiling. prior_override_count is projected from override_ledger, so it cannot be
+  -- supplied; and there is deliberately no upper bound on the required rank, because a
+  -- ceiling is the rung at which the ladder stops meaning anything.
+  CONSTRAINT override_escalates CHECK (kind <> 'emergency_override'
+    OR (expires_at IS NOT NULL AND countersigner_credential_id IS NOT NULL
+        AND signer_rank >= 3 + prior_override_count)),
+  -- Authority to waive derives from a FROZEN credential and fails closed.
+  CONSTRAINT waiver_authority CHECK (virulence NOT IN ('blood_major', 'blood_fatal')
+    OR competency_snapshot->'authorisations' ? '{{ waiver_authorisation }}'),
+  -- Gist may accuse; only verbatim may acquit.
+  CONSTRAINT verbatim_floor
+    CHECK (kind NOT IN ({% for k in verbatim_only_kinds %}'{{ k }}'{{ ', ' if not loop.last }}{% endfor %})
+           OR verbatim_anchor_count >= required_anchors),
+
+  CONSTRAINT disposition_subject_kind_known
+    CHECK (subject_kind IN ({% for s in subjects %}'{{ s.kind }}'{{ ', ' if not loop.last }}{% endfor %})),
+  CONSTRAINT exactly_one_subject
+{% if subjects | length == 2 %}
+    CHECK (({{ subjects[0].id_column }} IS NULL) <> ({{ subjects[1].id_column }} IS NULL)),
+{% else %}
+    CHECK ({% for s in subjects %}({{ s.id_column }} IS NOT NULL)::INT8{{ ' + ' if not loop.last }}{% endfor %} = 1),
+{% endif %}
+  CONSTRAINT subject_matches
+    CHECK ({% for s in subjects %}(subject_kind = '{{ s.kind }}' AND {{ s.id_column }} IS NOT NULL){{ '\n        OR ' if not loop.last }}{% endfor %}),
+  CONSTRAINT retraction_not_reflexive
+    CHECK (retracted_by IS NULL OR retracted_by <> disposition_id),
+  CONSTRAINT disposition_signer_sub_stated CHECK (signer_sub <> ''),
+  CONSTRAINT disposition_defeater_code_stated CHECK (defeater_code <> ''),
+  CONSTRAINT disposition_signature_alg_stated CHECK (signature_alg <> ''),
+  CONSTRAINT disposition_authenticator_present CHECK (length(authenticator_data) > 0),
+  CONSTRAINT disposition_client_data_present CHECK (length(client_data_json) > 0),
+  CONSTRAINT disposition_evidence_is_sha256 CHECK (length(evidence_sha256) = 32),
+  CONSTRAINT disposition_vocab_is_sha256 CHECK (length(defeater_vocab_sha256) = 32),
+  CONSTRAINT disposition_competency_is_sha256 CHECK (length(competency_sha256) = 32),
+  CONSTRAINT disposition_rank_range CHECK (signer_rank BETWEEN 1 AND 9),
+  CONSTRAINT disposition_min_rank_range CHECK (min_signer_rank BETWEEN 1 AND 9),
+  CONSTRAINT disposition_severity_range CHECK (severity_snapshot BETWEEN 0 AND 5),
+  CONSTRAINT disposition_deliberation_nonneg CHECK (deliberation_seconds >= 0),
+  CONSTRAINT disposition_prior_override_nonneg CHECK (prior_override_count >= 0),
+  CONSTRAINT disposition_anchor_counts_nonneg
+    CHECK (verbatim_anchor_count >= 0 AND required_anchors >= 0),
+  CONSTRAINT pk_disposition PRIMARY KEY (disposition_id)
+);
+-- @file 0066a_one_live_disposition.sql
+{{ header(file='0066a_one_live_disposition.sql',
+          title='CREATE UNIQUE INDEX one_live_disposition — at most one live clearance per obligation',
+          rationale='MI08 as a partial unique index rather than a trigger. Two live dispositions against one obligation is how a retracted clearance and its replacement become indistinguishable, and how a second signer quietly overwrites the first one refusal. The predicate is retracted_by IS NULL, so the history stays in the table forever and only the live row is constrained.',
+          mi=['MI08'], i=['I09'], counsel_gated=True) }}
+--
+-- PARTIAL, AND THE PREDICATE IS THE POINT. A plain `UNIQUE (check_id)` would forbid the
+-- retraction-and-replacement sequence entirely, which is the ordinary lifecycle: a
+-- mechanism_absent verdict is revoked when its predicate falsifies, the check re-opens,
+-- and a new disposition is signed. `WHERE retracted_by IS NULL` lets the retracted row
+-- stay in the table forever — it is evidence — while constraining the one row that
+-- currently clears the obligation.
+--
+-- 23505 NAMING `one_live_disposition` IS THE PUBLISHED CONTRACT (case CF-12). The index
+-- name is the exhibit, so it is written here rather than left to CockroachDB's
+-- auto-naming, and it must not be renamed without a MAJOR specification bump.
+--
+-- GT: partial UNIQUE indexes are measured PASS on {{ cluster.version }} (ADR 0002 F3), which is
+-- what makes this one implementable as an index rather than as a counting trigger. A
+-- trigger would be a second mechanism to disable; an index is a physical impossibility.
+
+CREATE UNIQUE INDEX one_live_disposition
+  ON {{ binding.schema }}.disposition (check_id)
+  WHERE retracted_by IS NULL;
+-- @file 0067_disposition_citation.sql
+{{ header(file='0067_disposition_citation.sql',
+          title='CREATE TABLE ' ~ binding.schema ~ '.disposition_citation — gist may accuse, only verbatim may acquit',
+          rationale='The evidentiary asymmetry, expressed as a table. A citation that claims to be verbatim must carry an immutable object key and a span digest, so a quotation can be re-fetched and re-hashed by someone who does not trust us; a gist citation carries neither and is therefore never counted towards the verbatim floor that a mechanism_absent or mitigated verdict has to clear.',
+          mi=['MI11'], i=['I11'], counsel_gated=True) }}
+--
+-- verbatim_needs_anchor IS THE ASYMMETRY (case CF-37). A verbatim citation asserts "the
+-- source says exactly this", and that assertion is only checkable if the bytes can be
+-- fetched again and re-hashed: `object_key` names the S3 Object Lock object, and
+-- `span_sha256` digests the exact span. A gist citation asserts "the source is about
+-- this", which is a claim about meaning that no digest can settle — so it may accuse and
+-- may never acquit. `disposition.verbatim_floor` counts only the verbatim rows.
+--
+-- byte_range IS `INT8[]` WITH A PAIR CHECK, NOT `INT8[2]`. MEASURED, NOT ASSUMED: on
+-- CockroachDB {{ cluster.version }}, `CREATE TABLE t (br INT8[2])` is accepted and `SHOW CREATE
+-- TABLE` reports the column as plain `INT8[]` — the dimension bound is parsed and
+-- dropped, so writing it would be a constraint that reads as enforced and is not.
+-- `array_length(byte_range, 1) = 2` is the same claim, actually enforced, and it is how
+-- migrations 0033 and 0035 already state it for `severity_span` and `evidence_span`.
+--
+-- THE CITATION IS MANDATORY, NOT OPTIONAL (ADR 0001, conservative reading). Nothing in
+-- THIS table can require a row to exist — an empty table satisfies every constraint on
+-- it — so the requirement is enforced where it can be: `verbatim_floor` on the
+-- disposition compares a projected count against a projected floor, and the projection
+-- reads this table. A CHECK here would be a comment with a semicolon after it.
+--
+-- clause_uuid AND commit_id ARE NULLABLE AND CARRY NO COMPOSITE FOREIGN KEY. A citation
+-- may point at an S3 object that is not a clause in this repository at all — a
+-- regulator's bulletin, a coroner's finding, a supplier's manual. Requiring a clause
+-- version would make the most probative citations unrepresentable.
+
+CREATE TABLE {{ binding.schema }}.disposition_citation (
+  disposition_id UUID NOT NULL REFERENCES {{ binding.schema }}.disposition (disposition_id),
+  citation_ord   INT2 NOT NULL,
+  kind           STRING NOT NULL,
+  object_key     STRING NULL,
+  byte_range     INT8[] NULL,
+  span_sha256    BYTES NULL,
+  clause_uuid    UUID NULL,
+  commit_id      BYTES NULL,
+  CONSTRAINT citation_kind_known CHECK (kind IN ('verbatim', 'gist')),
+  CONSTRAINT verbatim_needs_anchor
+    CHECK (kind <> 'verbatim' OR (object_key IS NOT NULL AND span_sha256 IS NOT NULL)),
+  CONSTRAINT citation_ord_positive CHECK (citation_ord >= 1),
+  CONSTRAINT citation_byte_range_is_a_pair
+    CHECK (byte_range IS NULL OR array_length(byte_range, 1) = 2),
+  CONSTRAINT citation_span_is_sha256 CHECK (span_sha256 IS NULL OR length(span_sha256) = 32),
+  CONSTRAINT citation_commit_id_is_sha256 CHECK (commit_id IS NULL OR length(commit_id) = 32),
+  CONSTRAINT citation_object_key_stated CHECK (object_key IS NULL OR object_key <> ''),
+  CONSTRAINT pk_disposition_citation PRIMARY KEY (disposition_id, citation_ord)
+);

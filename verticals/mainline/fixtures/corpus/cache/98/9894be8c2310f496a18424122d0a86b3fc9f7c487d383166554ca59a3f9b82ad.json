@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 25,
+    "doc_code": "PRO-ELE-026",
+    "doc_family": "PRO",
+    "doc_title": "High Voltage Switching and Access",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2007-08-28",
+    "required_citations": [
+      {
+        "control_label": "authorisation of switching and access to apparatus",
+        "event_ref": "CAPA-2006-004",
+        "event_title": "corrective action - key safeguard at G-8102",
+        "hazard_energy": "thermal",
+        "kind": "moc_reference",
+        "quote_ref": "quote:TLG/PRO-ELE-026/001#moc_reference/CAPA-2006-004",
+        "severity_gate": 2
+      }
+    ],
+    "rev_no": 1,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "accident investigation",
+      "management_of_change": "engineering change note",
+      "near_miss": "near hit"
+    }
+  },
+  "key": "9894be8c2310f496a18424122d0a86b3fc9f7c487d383166554ca59a3f9b82ad",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:TLG/PRO-ELE-026/001",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "3ac0293708a3d7477a1d19ba58ee82c30a47d8b6daa47446f0aa9f1f67970f2d",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The engineering change note record for this revision cites CAPA-2006-004 as the reason the authorisation of switching and access to apparatus was amended.",
+        "quote_ref": "quote:TLG/PRO-ELE-026/001#moc_reference/CAPA-2006-004"
+      }
+    ],
+    "reason": "Scheduled review at revision 1; 25 clauses restated."
+  },
+  "response_sha256": "45d05c4c6d7b838549e12a297ab83e13d9b34afbab720e459df9cb17af789f45",
+  "source": null
+}

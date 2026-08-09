@@ -1,0 +1,116 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "maintaining portable and mobile extinguishing equipment",
+    "activity_root": "FIRE-AND-EMERGENCY-RESPONSE",
+    "activity_series": "maintaining fire protection systems",
+    "assets": [
+      {
+        "asset_class": "HTP-CLASS-A",
+        "label": "export transfer pumps",
+        "service": "tank-to-jetty product transfer, same seal class as the Marrindal family",
+        "tag": "P-7110"
+      },
+      {
+        "asset_class": "INST-CLASS-A",
+        "label": "instrument loop",
+        "service": "governs P-7110",
+        "tag": "PT-7110"
+      },
+      {
+        "asset_class": "TANK-CLASS-P",
+        "label": "product storage tanks",
+        "service": "export product storage",
+        "tag": "TK-7101"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "FIRE_WATCH_PROVISION",
+        "control_label": "provision and briefing of a competent fire watch",
+        "failure_mode": "absent",
+        "hazard_energy": "chemical",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "MUSTER_AND_ACCOUNTING",
+        "control_label": "alarm, muster and accounting for people",
+        "failure_mode": "not_verified",
+        "hazard_energy": "thermal",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "STANDBY_ATTENDANCE_AND_RESCUE",
+        "control_label": "standby attendance and non-entry rescue capability",
+        "failure_mode": "ineffective",
+        "hazard_energy": "chemical",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "NM-2013-0015",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "near_miss",
+    "occurred_on": "2013-08-15",
+    "severity_actual": 0,
+    "severity_potential": 2,
+    "site": "Cape Verity Export Terminal",
+    "summary_facts": [],
+    "task_phase": "during a planned shutdown",
+    "title": "stored energy found after isolation of P-7110",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "93e98b6ec04633bb70134621c8ac19e00969417edb939c5d8015434dcc2a77ed",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2013-0015",
+  "prompt_kind": "icam",
+  "prompt_sha256": "34002cf9542ae8949dd786a53d3fa255012d50d208729bbc5be4c1984de0e98c",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 2 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "FIRE_WATCH_PROVISION",
+        "finding": "Control FIRE_WATCH_PROVISION: the provision and briefing of a competent fire watch was not in place, and the root cause analysis classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "MUSTER_AND_ACCOUNTING",
+        "finding": "Control MUSTER_AND_ACCOUNTING: the alarm, muster and accounting for people was never verified as effective, and the root cause analysis classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "STANDBY_ATTENDANCE_AND_RESCUE",
+        "finding": "Control STANDBY_ATTENDANCE_AND_RESCUE: the standby attendance and non-entry rescue capability was in place but did not perform, and the root cause analysis classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the standby attendance and non-entry rescue capability on P-7110, PT-7110 and TK-7101 and record the field verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in maintaining fire protection systems, specifically maintaining portable and mobile extinguishing equipment. P-7110 (export transfer pumps) is in service for tank-to-jetty product transfer, same seal class as the Marrindal family. The task proceeded during a planned shutdown while the provision and briefing of a competent fire watch was not in place. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 15 August 2013 a hazard report was recorded on P-7110, PT-7110 and TK-7101 at Cape Verity Export Terminal during a planned shutdown; chemical energy held as hydrocarbon was not released."
+  },
+  "response_sha256": "7bb64acb685d9964cb476c1a6d5d628388333e1c3c723d95d3d11cb0d2f85d34",
+  "source": null
+}

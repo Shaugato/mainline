@@ -1,0 +1,91 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "inspecting and maintaining portable equipment",
+    "activity_root": "ELECTRICAL-SAFETY",
+    "activity_series": "maintaining protective systems",
+    "assets": [
+      {
+        "asset_class": "ELEC-CLASS-A",
+        "label": "switchgear and transformers",
+        "service": "plant HV/LV distribution",
+        "tag": "TX-3002"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "EARTH_LEAKAGE_PROTECTION",
+        "control_label": "earth leakage and protection setting integrity",
+        "failure_mode": "ineffective",
+        "hazard_energy": "electrical",
+        "icam_tier": "individual_or_team_action"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "POSITIVE_ISOLATION_APPLICATION",
+        "control_label": "application of positive isolation devices and personal locks",
+        "failure_mode": "ineffective",
+        "hazard_energy": "electrical",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "INC-2024-009",
+    "hazard_energy": "thermal",
+    "hazard_media": [
+      "hot surface",
+      "steam",
+      "molten material",
+      "hot work",
+      "exothermic reaction"
+    ],
+    "hazard_release": "burn, ignition, scald",
+    "kind": "incident",
+    "occurred_on": "2024-10-05",
+    "severity_actual": 1,
+    "severity_potential": 2,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during shift handover",
+    "title": "loss of containment at TX-3002 during shift handover",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "221e8d63d908be6b6592095ec2a3092cecb21755031346d04fe1b4864db2b8bb",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2024-009",
+  "prompt_kind": "icam",
+  "prompt_sha256": "75db7d3e5c59751e45b654f267572c93593a19a272c2d6bcf4d71b91078c2c92",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage. The potential outcome was rated 2 against the site's consequence scale, above the 1 actually realised.",
+    "defences": [
+      {
+        "control_class": "EARTH_LEAKAGE_PROTECTION",
+        "finding": "Control EARTH_LEAKAGE_PROTECTION: the earth leakage and protection setting integrity was in place but did not perform, and the learning team review classified this as an individual or team action."
+      },
+      {
+        "control_class": "POSITIVE_ISOLATION_APPLICATION",
+        "finding": "Control POSITIVE_ISOLATION_APPLICATION: the application of positive isolation devices and personal locks was in place but did not perform, and the learning team review classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next assurance activity that the earth leakage and protection setting integrity on TX-3002 performs as designed."
+    ],
+    "sequence": "Work was under way in maintaining protective systems, specifically inspecting and maintaining portable equipment. TX-3002 (switchgear and transformers) is in service for plant HV/LV distribution. The task proceeded during shift handover while the earth leakage and protection setting integrity was in place but did not perform. The thermal energy involved is held as hot surface, and the recorded presentation was burn, ignition, scald.",
+    "summary": "On 5 October 2024 an incident occurred on TX-3002 at Marrindal Concentrator and Hydrocarbon Transfer Facility during shift handover, releasing thermal energy held as hot surface."
+  },
+  "response_sha256": "8882efeb87f7f3004fabaef98b31f26de2e84e4f3633a62f749d66f7295fd301",
+  "source": null
+}

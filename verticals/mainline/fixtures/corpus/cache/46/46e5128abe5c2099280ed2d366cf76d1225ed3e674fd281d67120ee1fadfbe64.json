@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "barrier_role": "preventive",
+    "control_class": "HYDROCARBON_TRANSFER_CONTROL",
+    "control_delta": "strengthen",
+    "control_label": "controlled transfer of hydrocarbon between vessels",
+    "doc_code": "PRO-OPS-017",
+    "doc_family": "PRO",
+    "doc_title": "Ship Loading and Vapour Recovery",
+    "effective_on": "2020-08-27",
+    "printed_label": "3.3.2(a)",
+    "setpoint": null,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "46e5128abe5c2099280ed2d366cf76d1225ed3e674fd281d67120ee1fadfbe64",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:CVY/PRO-OPS-017/009#CVY/PRO-OPS-017/3.3.2(a)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "aa2b3d8947a348fbb9e79ef65d0a2590cf8b0123ea221bc02079bf7fc1bf697d",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The controlled transfer of hydrocarbon between vessels must be provided, and its effectiveness must be recorded as a critical control verification before the task proceeds. This clause applies to activities archived under CONTAINMENT-OF-HYDROCARBONS at Cape Verity Export Terminal.",
+    "obligation_verb": "must"
+  },
+  "response_sha256": "f7ecf9173defff76938972379ce11efe539007a9e31390993b851ddc601a1d26",
+  "source": null
+}

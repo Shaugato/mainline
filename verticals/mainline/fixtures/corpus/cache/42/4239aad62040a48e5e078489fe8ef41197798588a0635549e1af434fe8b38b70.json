@@ -1,0 +1,130 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "isolating and depressuring a leaking system",
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "activity_series": "responding to a loss of containment",
+    "assets": [
+      {
+        "asset_class": "TANK-CLASS-H",
+        "label": "hydrocarbon day tanks and surge vessel",
+        "service": "diesel and light hydrocarbon day storage, discharge surge suppression",
+        "tag": "V-4110"
+      },
+      {
+        "asset_class": "INST-CLASS-A",
+        "label": "instrument loop",
+        "service": "governs V-4110",
+        "tag": "LT-4110"
+      },
+      {
+        "asset_class": "PRD-CLASS-A",
+        "label": "pressure relief devices",
+        "service": "overpressure protection on the transfer and storage system",
+        "tag": "PSV-4111"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 1,
+      "label": "medical treatment injury"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "BUND_AND_DRAINAGE_CONTAINMENT",
+        "control_label": "secondary containment by bund and drainage",
+        "failure_mode": "not_verified",
+        "hazard_energy": "chemical",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "EMERGENCY_ISOLATION_ON_RELEASE",
+        "control_label": "emergency isolation and depressuring on loss of containment",
+        "failure_mode": "ineffective",
+        "hazard_energy": "chemical",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "HYDROCARBON_TRANSFER_CONTROL",
+        "control_label": "controlled transfer of hydrocarbon between vessels",
+        "failure_mode": "ineffective",
+        "hazard_energy": "chemical",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "SEAL_SUPPORT_SYSTEM_INTEGRITY",
+        "control_label": "integrity of the mechanical seal support system",
+        "failure_mode": "ineffective",
+        "hazard_energy": "pressure",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "INC-2013-009",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "incident",
+    "occurred_on": "2013-06-10",
+    "severity_actual": 2,
+    "severity_potential": 5,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during routine operation",
+    "title": "fire on V-4110 during routine operation",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "4239aad62040a48e5e078489fe8ef41197798588a0635549e1af434fe8b38b70",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2013-009",
+  "prompt_kind": "icam",
+  "prompt_sha256": "6c3c3a723673002edd79ccf5219ca80790af18074a3561c52f46d663d91a2ca3",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was medical treatment injury, with 1 person injured. The potential outcome was rated 5 against the site's consequence scale, above the 2 actually realised.",
+    "defences": [
+      {
+        "control_class": "BUND_AND_DRAINAGE_CONTAINMENT",
+        "finding": "Control BUND_AND_DRAINAGE_CONTAINMENT: the secondary containment by bund and drainage was never verified as effective, and the root cause analysis classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "EMERGENCY_ISOLATION_ON_RELEASE",
+        "finding": "Control EMERGENCY_ISOLATION_ON_RELEASE: the emergency isolation and depressuring on loss of containment was in place but did not perform, and the root cause analysis classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "HYDROCARBON_TRANSFER_CONTROL",
+        "finding": "Control HYDROCARBON_TRANSFER_CONTROL: the controlled transfer of hydrocarbon between vessels was in place but did not perform, and the root cause analysis classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "SEAL_SUPPORT_SYSTEM_INTEGRITY",
+        "finding": "Control SEAL_SUPPORT_SYSTEM_INTEGRITY: the integrity of the mechanical seal support system was in place but did not perform, and the root cause analysis classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Restore the secondary containment by bund and drainage on V-4110, LT-4110 and PSV-4111 and record the field verification before this task is next authorised.",
+      "Restore the emergency isolation and depressuring on loss of containment on V-4110, LT-4110 and PSV-4111 and record the field verification before this task is next authorised.",
+      "Restore the controlled transfer of hydrocarbon between vessels on V-4110, LT-4110 and PSV-4111 and record the field verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in responding to a loss of containment, specifically isolating and depressuring a leaking system. V-4110 (hydrocarbon day tanks and surge vessel) is in service for diesel and light hydrocarbon day storage, discharge surge suppression. The task proceeded during routine operation while the secondary containment by bund and drainage was never verified as effective. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 10 June 2013 an incident occurred on V-4110, LT-4110 and PSV-4111 at Marrindal Concentrator and Hydrocarbon Transfer Facility during routine operation, releasing chemical energy held as hydrocarbon."
+  },
+  "response_sha256": "8ffec04811eca20314af71a5ffedb2501d261b30d87fa0520aa88815a5fdbcc2",
+  "source": null
+}

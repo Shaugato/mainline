@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 5,
+    "doc_code": "PRO-EXP-002",
+    "doc_family": "PRO",
+    "doc_title": "Explosives Receipt and Magazine Control",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2010-12-22",
+    "required_citations": [
+      {
+        "control_label": "guarding, clearance and misfire handling for a blast",
+        "event_ref": "NM-2009-0012",
+        "event_title": "near hit - kinetic exposure at MAG-9601",
+        "hazard_energy": "kinetic",
+        "kind": "capa_action",
+        "quote_ref": "quote:YND/PRO-EXP-002/003#capa_action/NM-2009-0012",
+        "severity_gate": 3
+      }
+    ],
+    "rev_no": 3,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "root cause analysis",
+      "management_of_change": "change request",
+      "near_miss": "hazard report"
+    }
+  },
+  "key": "da2b0959e9dd8fbb66174d69116432e079979510fe58eb0d5618ccb15e6e7673",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:YND/PRO-EXP-002/003",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "db84edf1577cd83e7f5aea6cc1ee3364687527fcaca9f26f5f082aceb2bae10a",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The corrective action recorded against NM-2009-0012 required the guarding, clearance and misfire handling for a blast to be restated in this procedure.",
+        "quote_ref": "quote:YND/PRO-EXP-002/003#capa_action/NM-2009-0012"
+      }
+    ],
+    "reason": "Scheduled review at revision 3; 5 clauses restated."
+  },
+  "response_sha256": "bd022c35af7d479beac13006bcb178ab9bb0f8c0dd93ed35630e128828bb29a1",
+  "source": null
+}

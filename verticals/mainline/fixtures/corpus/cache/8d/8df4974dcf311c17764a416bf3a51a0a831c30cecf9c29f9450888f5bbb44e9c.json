@@ -1,0 +1,115 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "performing in-service and hydrostatic inspection",
+    "activity_root": "PRESSURE-SYSTEM-INTEGRITY",
+    "activity_series": "inspecting pressure equipment",
+    "assets": [
+      {
+        "asset_class": "PRD-CLASS-A",
+        "label": "steam relief devices",
+        "service": "boiler and deaerator overpressure protection",
+        "tag": "PSV-8201"
+      }
+    ],
+    "consequence": {
+      "days_lost": 90,
+      "injuries": 2,
+      "label": "serious injury requiring hospitalisation"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "PRESSURE_EQUIPMENT_INSPECTION",
+        "control_label": "in-service inspection of pressure equipment",
+        "failure_mode": "not_verified",
+        "hazard_energy": "pressure",
+        "icam_tier": "individual_or_team_action"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "PRESSURE_RELIEF_DEVICE_INTEGRITY",
+        "control_label": "setting, testing and sealing of pressure relief devices",
+        "failure_mode": "degraded",
+        "hazard_energy": "pressure",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "STEAM_SYSTEM_WARM_THROUGH",
+        "control_label": "controlled draining, venting and warm-through of steam systems",
+        "failure_mode": "ineffective",
+        "hazard_energy": "pressure",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "STORED_ENERGY_DISSIPATION",
+        "control_label": "dissipation or restraint of trapped and residual energy",
+        "failure_mode": "absent",
+        "hazard_energy": "pressure",
+        "icam_tier": "organisational_factor"
+      }
+    ],
+    "event_ref": "INC-2026-002",
+    "hazard_energy": "thermal",
+    "hazard_media": [
+      "hot surface",
+      "steam",
+      "molten material",
+      "hot work",
+      "exothermic reaction"
+    ],
+    "hazard_release": "burn, ignition, scald",
+    "kind": "incident",
+    "occurred_on": "2026-01-01",
+    "severity_actual": 4,
+    "severity_potential": 4,
+    "site": "Tolgarra Processing and Power Station",
+    "summary_facts": [],
+    "task_phase": "during shift handover",
+    "title": "injury during shift handover on PSV-8201",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "8df4974dcf311c17764a416bf3a51a0a831c30cecf9c29f9450888f5bbb44e9c",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2026-002",
+  "prompt_kind": "icam",
+  "prompt_sha256": "02fd9f564e3b7dac321e9114138470db48fd7caafd26ca8e2f81927829ecb7cb",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was serious injury requiring hospitalisation, with 2 persons injured and 90 days lost.",
+    "defences": [
+      {
+        "control_class": "PRESSURE_EQUIPMENT_INSPECTION",
+        "finding": "Control PRESSURE_EQUIPMENT_INSPECTION: the in-service inspection of pressure equipment was never verified as effective, and the learning team review classified this as an individual or team action."
+      },
+      {
+        "control_class": "PRESSURE_RELIEF_DEVICE_INTEGRITY",
+        "finding": "Control PRESSURE_RELIEF_DEVICE_INTEGRITY: the setting, testing and sealing of pressure relief devices had degraded below its design intent, and the learning team review classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "STEAM_SYSTEM_WARM_THROUGH",
+        "finding": "Control STEAM_SYSTEM_WARM_THROUGH: the controlled draining, venting and warm-through of steam systems was in place but did not perform, and the learning team review classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "STORED_ENERGY_DISSIPATION",
+        "finding": "Control STORED_ENERGY_DISSIPATION: the dissipation or restraint of trapped and residual energy was not in place, and the learning team review classified this as an organisational factor."
+      }
+    ],
+    "recommendations": [
+      "Restore the setting, testing and sealing of pressure relief devices on PSV-8201 and record the assurance activity before this task is next authorised."
+    ],
+    "sequence": "Work was under way in inspecting pressure equipment, specifically performing in-service and hydrostatic inspection. PSV-8201 (steam relief devices) is in service for boiler and deaerator overpressure protection. The task proceeded during shift handover while the in-service inspection of pressure equipment was never verified as effective. The thermal energy involved is held as hot surface, and the recorded presentation was burn, ignition, scald.",
+    "summary": "On 1 January 2026 an incident occurred on PSV-8201 at Tolgarra Processing and Power Station during shift handover, releasing thermal energy held as hot surface."
+  },
+  "response_sha256": "634ec566b061b85eb626f17fe30dfbec1dd5bd78b82e628c219508289aab5023",
+  "source": null
+}

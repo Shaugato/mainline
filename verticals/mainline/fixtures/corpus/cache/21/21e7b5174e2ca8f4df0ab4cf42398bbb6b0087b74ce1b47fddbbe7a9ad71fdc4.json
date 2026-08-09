@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "MOLTEN-AND-HOT-MATERIAL",
+    "barrier_role": "preventive",
+    "control_class": "STEAM_SYSTEM_WARM_THROUGH",
+    "control_delta": "introduce",
+    "control_label": "controlled draining, venting and warm-through of steam systems",
+    "doc_code": "PRO-OPS-044",
+    "doc_family": "PRO",
+    "doc_title": "Boiler Start-Up and Warm Through",
+    "effective_on": "2007-04-03",
+    "printed_label": "8.4",
+    "setpoint": null,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "21e7b5174e2ca8f4df0ab4cf42398bbb6b0087b74ce1b47fddbbe7a9ad71fdc4",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:TLG/PRO-OPS-044/001#TLG/PRO-OPS-044/8.4",
+  "prompt_kind": "clause",
+  "prompt_sha256": "186ed0e74329a155e627fb1505a5928491a692552e16ae4938071e3dc1531473",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The controlled draining, venting and warm-through of steam systems shall be provided and maintained for work covered by this procedure. This clause applies to activities archived under MOLTEN-AND-HOT-MATERIAL at Tolgarra Processing and Power Station.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "445b59e6d71b8ccf1d6ff08d16d33bdd0e9e75ba84860538f6eb281f2eab6bd4",
+  "source": null
+}

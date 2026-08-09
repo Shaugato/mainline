@@ -1,0 +1,76 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: Apache-2.0
+
+[project]
+name = "trappoint-verify"
+version = "0.1.0"
+description = "Offline verifier for TRAPPOINT evidence bundles: RFC 6962 proofs, link chain, canonicaliser identity and receipt coverage, with one dependency and no network."
+readme = "README.md"
+requires-python = ">=3.13"
+license = "Apache-2.0"
+authors = [{ name = "MAINLINE contributors" }]
+keywords = ["rfc6962", "transparency-log", "tamper-evidence", "merkle", "c2sp", "verifier"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Legal Industry",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Security :: Cryptography",
+]
+
+# THE DEPENDENCY FLOOR. One entry, and it is a product claim rather than a preference.
+#
+# A stranger — plausibly an opposing expert, plausibly hostile — must be able to run this
+# verifier with nothing of ours installed and nothing of ours reachable. Every dependency
+# added here is a thing they have to trust, a thing they have to be able to build, and a
+# thing whose supply chain becomes part of our evidence story.
+#
+# There is no JCS canonicaliser and no MAINLINE package in this list. `canon_v1` is
+# VENDORED byte-for-byte into `src/trappoint_verify/vendor/`, guarded by
+# `scripts/custody/check_vendored_canon.py`, and RFC 6962 is reimplemented on `hashlib`
+# rather than lifted from `trappoint-ledger`.
+#
+# `tests/test_dependency_floor.py` walks the AST of every shipped module and asserts the
+# top-level import set is a subset of the standard library plus `cryptography`, so
+# deleting this comment does not delete the constraint.
+#
+# The >= 46.0.7 lower bound is the custody lead's ruling (CVE-2026-39892). It is recorded
+# here as a bound we were told to hold, not as a vulnerability this worker verified.
+# Observed green in this repository against cryptography 48.0.0 on CPython 3.14.3; no
+# 50.x run has been performed here and none is claimed.
+dependencies = [
+  "cryptography>=46.0.7",
+]
+
+[project.optional-dependencies]
+# `spec/wire/checkpoint.md` §4.2 documents `trappoint-verify[beacon]` as the way to make
+# check 6b verify drand quicknet's BLS12-381 G1 signature. The extra is declared so the
+# documented command resolves; it deliberately installs NOTHING today, because no pairing
+# library has been evaluated against this floor by this worker. Check 6b therefore keeps
+# reporting SKIP(optional-extra), which is the honest verdict either way — the check keys
+# on whether a BLS implementation imports, never on whether an extra was requested.
+beacon = []
+
+[project.scripts]
+trappoint-verify = "trappoint_verify.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/Shaugato/mainline"
+
+[dependency-groups]
+dev = ["pytest>=8.2"]
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/trappoint_verify"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "tests", "README.md"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

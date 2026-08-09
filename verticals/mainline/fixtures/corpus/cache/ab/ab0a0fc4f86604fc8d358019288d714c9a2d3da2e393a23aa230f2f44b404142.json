@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "LIFTING-AND-SUSPENDED-LOADS",
+    "barrier_role": "preventive",
+    "control_class": "LOAD_SUPPORT_FOR_MAINTENANCE",
+    "control_delta": "introduce",
+    "control_label": "mechanical support of a load during maintenance access",
+    "doc_code": "ALERT-2009-003",
+    "doc_family": "ALERT",
+    "doc_title": "Fatality - Uncontrolled Descent of a Suspended Component in the Heavy Workshop",
+    "effective_on": "2009-11-09",
+    "printed_label": "1.4",
+    "setpoint": null,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "ab0a0fc4f86604fc8d358019288d714c9a2d3da2e393a23aa230f2f44b404142",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:YND/ALERT-2009-003/001#YND/ALERT-2009-003/1.4",
+  "prompt_kind": "clause",
+  "prompt_sha256": "b9eb581b0159a798f389ab43242158473002d9cf2a4542fc3760f3ac811d3c7b",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The mechanical support of a load during maintenance access shall be provided and maintained for work covered by this safety alert. This clause applies to activities archived under LIFTING-AND-SUSPENDED-LOADS at Yandarra Downs Open Cut and Heavy Workshop.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "215e19dceb8b615fa1fa961915e3f00effecee012cc7dee3775a9773a46321e7",
+  "source": null
+}

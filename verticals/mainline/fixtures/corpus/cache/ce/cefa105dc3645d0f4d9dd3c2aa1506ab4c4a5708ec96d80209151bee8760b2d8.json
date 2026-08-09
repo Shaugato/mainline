@@ -1,0 +1,92 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "setting, testing and sealing pressure relief devices",
+    "activity_root": "PRESSURE-SYSTEM-INTEGRITY",
+    "activity_series": "verifying pressure relief and protection",
+    "assets": [
+      {
+        "asset_class": "PRD-CLASS-A",
+        "label": "tank relief and vent devices",
+        "service": "tank overpressure and vacuum protection",
+        "tag": "PSV-7104"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "PRESSURE_RELIEF_DEVICE_INTEGRITY",
+        "control_label": "setting, testing and sealing of pressure relief devices",
+        "failure_mode": "not_verified",
+        "hazard_energy": "chemical",
+        "icam_tier": "individual_or_team_action"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "STORED_ENERGY_DISSIPATION",
+        "control_label": "dissipation or restraint of trapped and residual energy",
+        "failure_mode": "absent",
+        "hazard_energy": "pressure",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "NM-2015-0007",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "near_miss",
+    "occurred_on": "2015-02-23",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Cape Verity Export Terminal",
+    "summary_facts": [],
+    "task_phase": "during shift handover",
+    "title": "unplanned release of chemical energy at PSV-7104",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "cefa105dc3645d0f4d9dd3c2aa1506ab4c4a5708ec96d80209151bee8760b2d8",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2015-0007",
+  "prompt_kind": "icam",
+  "prompt_sha256": "727458d5782fb888fce8c1290b411ce8e358dbbae753dc13b7c1bc6d6c9445ab",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "PRESSURE_RELIEF_DEVICE_INTEGRITY",
+        "finding": "Control PRESSURE_RELIEF_DEVICE_INTEGRITY: the setting, testing and sealing of pressure relief devices was never verified as effective, and the root cause analysis classified this as an individual or team action."
+      },
+      {
+        "control_class": "STORED_ENERGY_DISSIPATION",
+        "finding": "Control STORED_ENERGY_DISSIPATION: the dissipation or restraint of trapped and residual energy was not in place, and the root cause analysis classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next field verification that the setting, testing and sealing of pressure relief devices on PSV-7104 performs as designed."
+    ],
+    "sequence": "Work was under way in verifying pressure relief and protection, specifically setting, testing and sealing pressure relief devices. PSV-7104 (tank relief and vent devices) is in service for tank overpressure and vacuum protection. The task proceeded during shift handover while the setting, testing and sealing of pressure relief devices was never verified as effective. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 23 February 2015 a hazard report was recorded on PSV-7104 at Cape Verity Export Terminal during shift handover; chemical energy held as hydrocarbon was not released."
+  },
+  "response_sha256": "0e8311dcfe19bdc563867a24609d25eb8ef6377c1b7090c11e89e307ea4e2f2e",
+  "source": null
+}

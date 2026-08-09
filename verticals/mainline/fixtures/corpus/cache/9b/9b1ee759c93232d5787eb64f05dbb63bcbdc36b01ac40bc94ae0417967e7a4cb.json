@@ -1,0 +1,103 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "inspecting and maintaining portable equipment",
+    "activity_root": "ELECTRICAL-SAFETY",
+    "activity_series": "maintaining protective systems",
+    "assets": [
+      {
+        "asset_class": "GEN-CLASS-A",
+        "label": "gas turbine generators",
+        "service": "on-site generation",
+        "tag": "G-8101"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "ARC_FLASH_PPE_AND_BOUNDARY",
+        "control_label": "arc flash boundary and protective equipment",
+        "failure_mode": "ineffective",
+        "hazard_energy": "electrical",
+        "icam_tier": "organisational_factor"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "HAZARDOUS_AREA_EQUIPMENT_INTEGRITY",
+        "control_label": "integrity of explosion-protected equipment in zoned areas",
+        "failure_mode": "ineffective",
+        "hazard_energy": "electrical",
+        "icam_tier": "individual_or_team_action"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "SWITCHING_AUTHORISATION",
+        "control_label": "authorisation of switching and access to apparatus",
+        "failure_mode": "absent",
+        "hazard_energy": "thermal",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "NM-2022-0001",
+    "hazard_energy": "thermal",
+    "hazard_media": [
+      "hot surface",
+      "steam",
+      "molten material",
+      "hot work",
+      "exothermic reaction"
+    ],
+    "hazard_release": "burn, ignition, scald",
+    "kind": "near_miss",
+    "occurred_on": "2022-01-16",
+    "severity_actual": 0,
+    "severity_potential": 2,
+    "site": "Tolgarra Processing and Power Station",
+    "summary_facts": [],
+    "task_phase": "during transfer operations",
+    "title": "high potential incident during transfer operations on G-8101",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "9b1ee759c93232d5787eb64f05dbb63bcbdc36b01ac40bc94ae0417967e7a4cb",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2022-0001",
+  "prompt_kind": "icam",
+  "prompt_sha256": "34a10481724b74976e78e64621cba9a610a9d4d181fde02238dd1a617d942fef",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 2 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "ARC_FLASH_PPE_AND_BOUNDARY",
+        "finding": "Control ARC_FLASH_PPE_AND_BOUNDARY: the arc flash boundary and protective equipment was in place but did not perform, and the learning team review classified this as an organisational factor."
+      },
+      {
+        "control_class": "HAZARDOUS_AREA_EQUIPMENT_INTEGRITY",
+        "finding": "Control HAZARDOUS_AREA_EQUIPMENT_INTEGRITY: the integrity of explosion-protected equipment in zoned areas was in place but did not perform, and the learning team review classified this as an individual or team action."
+      },
+      {
+        "control_class": "SWITCHING_AUTHORISATION",
+        "finding": "Control SWITCHING_AUTHORISATION: the authorisation of switching and access to apparatus was not in place, and the learning team review classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the authorisation of switching and access to apparatus on G-8101 and record the assurance activity before this task is next authorised."
+    ],
+    "sequence": "Work was under way in maintaining protective systems, specifically inspecting and maintaining portable equipment. G-8101 (gas turbine generators) is in service for on-site generation. The task proceeded during transfer operations while the arc flash boundary and protective equipment was in place but did not perform. The thermal energy involved is held as hot surface, and the recorded presentation was burn, ignition, scald.",
+    "summary": "On 16 January 2022 a high potential incident was recorded on G-8101 at Tolgarra Processing and Power Station during transfer operations; thermal energy held as hot surface was not released."
+  },
+  "response_sha256": "76a9878a79aa2aaa9afe66c13c05329a4d310ff41603c58eb7d93b29c40e1f53",
+  "source": null
+}

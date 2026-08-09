@@ -19,8 +19,31 @@ uv run --package trappoint-migrate trappoint migrate bootstrap        # the `tra
 uv run --package trappoint-migrate trappoint migrate up  --tree trappoint-ref --migrations packages/trappoint-sql/refvertical/sql
 uv run --package trappoint-migrate trappoint migrate status --tree trappoint-ref
 uv run --package trappoint-migrate trappoint migrate attest           # non-zero if the live schema drifted
-uv run --package trappoint-migrate trappoint migrate lint             # the sequence ban, and the citation rule
+uv run --package trappoint-migrate trappoint migrate lint             # sequences, citations, the header block
 ```
+
+The whole surface, and which half of it needs a database:
+
+| Command | Cluster? | What it is for |
+|---|---|---|
+| `lint` | no | the sequence ban, the filename convention, the allocation, the header block |
+| `lock [--write]` | no | `migrations.lock.json` — a **generated** manifest, never authored (MR-6) |
+| `fingerprint` | no | the **inputs** digest: DM-12's dev/demo/prod parity gate |
+| `verify --offline` | no | every hermetic check above, in one exit code |
+| `image` | no | the one CockroachDB version constant, read out of `compose.yaml` |
+| `bootstrap` | yes | the `trappoint` bookkeeping schema, idempotently (DM-13) |
+| `up` / `apply` | yes | forward-only apply, one statement at a time, attested per file |
+| `status` | yes | applied · pending · dirty · the attestation chain, walked |
+| `attest` | yes | recompute the live fingerprint and compare it with the chain head |
+| `fingerprint --live` | yes | the **schema** digest, including trigger and routine source |
+| `grants plan\|apply\|denials` | apply only | `GRANTS.yaml` re-asserted; DM-7 |
+| `force --incident <id>` | yes | resolve a dirty version, on the record |
+| `verify` | yes | the offline checks **plus** bookkeeping cleanliness and drift |
+
+`apply` is an alias of `up`. `docs/leads/datamodel.md` §1.3 publishes the verb as
+`apply`; the kernel shipped `up`, and every workflow in the repository and every
+cluster's bookkeeping already names it — so both spellings exist and neither is a second
+implementation.
 
 ---
 
@@ -143,13 +166,23 @@ to store.
 trappoint migrate lint --root verticals/mainline/db/migrations --root packages/trappoint-sql/templates
 ```
 
-Two rules:
-
 1. **The sequence ban** (`CREATE SEQUENCE`, `nextval(`, `SERIAL`, `BIGSERIAL`,
    `unique_rowid()`), over every migration file and every template.
 2. **The citation rule** — every migration file cites at least one `MI\d\d` or `I\d\d`
    in its **header comment**, per ARCHITECTURE.md §18. In the header, where a reviewer
    reads it; not three hundred lines down inside a constraint name.
+3. **The filename convention** (rule A), the **allocation** (rule B) and the **`.up.sql`
+   ban** (rule C) — MR-5 and MR-6. Rule B is the one that matters most, because it
+   compares a *file* against a *declaration* rather than comparing two declarations with
+   each other, which is the thing the 2026-08-08 collision check could not do.
+4. **The mandatory header block** — `MI:`, `I:`, `COUNSEL-GATED:`, `RATIONALE:`, read
+   from the **leading comment block** and resolved against that tree's
+   `invariants/mi_catalogue.yaml`. An `MI` id the catalogue has not *adopted* is refused:
+   §16 is amended by an ADR, not by a header comment, and the catalogue's `proposed:`
+   block is deliberately not a registry. Pass `--no-headers` to skip it, and
+   `--strict-invariants` to additionally refuse an `-- I:` citation outside `I01`–`I16`
+   — off by default, because two files in this repository cite `I17` and turning another
+   lane red is that lane owner's decision, not a side effect of landing a linter.
 
 The lint runs over code with SQL comments removed, using a small lexer that understands
 `'…'`, `"…"`, `$$…$$` and `$tag$…$tag$`. That is not fussiness: a naive `grep` fires on
@@ -162,6 +195,49 @@ lexed text so that semicolons inside a routine body are not mistaken for termina
 
 An empty tree passes with zero findings, and the file count is always printed, so a run
 that checked nothing is never mistaken for a run that checked everything.
+
+---
+
+---
+
+## The seam to custody: `attest.LedgerSink`
+
+A schema change is a custody event, and the custody domain wants every one of them —
+every applied migration, every drift alarm, every `force` under an incident — hashed into
+the MAINLINE ledger. But this package must not import the custody package: it is
+Apache-2.0 substrate that a second vertical forks, the ledger is FSL-1.1 vertical code,
+and `.importlinter`'s layering contract refuses that direction.
+
+So the direction is inverted. `LedgerSink` is a `typing.Protocol` with one method:
+
+```python
+from trappoint_migrate.attest import LedgerSink, set_default_sink
+
+
+class CustodySink:
+    def emit(
+        self, kind: str, subject_id: str, payload: dict[str, object]
+    ) -> None: ...  # write a ledger entry
+
+
+set_default_sink(CustodySink())  # installed once, process-wide. No edit to this package.
+```
+
+Three clauses, each load-bearing:
+
+* `emit` is called **after** the attestation row commits, never before — the chain is the
+  record of last resort, and a sink that ran first could publish a schema change that then
+  failed to commit;
+* `emit` **must not raise**, and if it does the migration still succeeds: a sink whose bug
+  turned an applied migration into a *reported* failure would leave a schema that did
+  change and a caller who believes it did not, which is strictly the worst outcome
+  available. The exception lands in `attest.SINK_FAILURES`, which `status` prints, so the
+  swallow is bounded and "custody was not told" is itself on the record;
+* `payload` is JSON-shaped — bytes are hex-encoded by the caller, because a ledger entry
+  has to survive a round trip.
+
+The default is `NullLedgerSink`, which *remembers* rather than discards, so a test can
+assert what the runner emitted before a real sink is swapped in.
 
 ---
 

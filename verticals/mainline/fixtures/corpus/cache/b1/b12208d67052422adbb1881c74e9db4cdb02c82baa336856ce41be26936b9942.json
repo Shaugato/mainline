@@ -1,0 +1,103 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "inspecting and maintaining portable equipment",
+    "activity_root": "ELECTRICAL-SAFETY",
+    "activity_series": "maintaining protective systems",
+    "assets": [
+      {
+        "asset_class": "ELEC-CLASS-A",
+        "label": "switchgear and transformers",
+        "service": "plant HV/LV distribution",
+        "tag": "SG-3100"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "ARC_FLASH_PPE_AND_BOUNDARY",
+        "control_label": "arc flash boundary and protective equipment",
+        "failure_mode": "absent",
+        "hazard_energy": "electrical",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "EARTH_LEAKAGE_PROTECTION",
+        "control_label": "earth leakage and protection setting integrity",
+        "failure_mode": "degraded",
+        "hazard_energy": "electrical",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "HAZARDOUS_AREA_EQUIPMENT_INTEGRITY",
+        "control_label": "integrity of explosion-protected equipment in zoned areas",
+        "failure_mode": "degraded",
+        "hazard_energy": "electrical",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "NM-2015-0009",
+    "hazard_energy": "thermal",
+    "hazard_media": [
+      "hot surface",
+      "steam",
+      "molten material",
+      "hot work",
+      "exothermic reaction"
+    ],
+    "hazard_release": "burn, ignition, scald",
+    "kind": "near_miss",
+    "occurred_on": "2015-04-11",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during a statutory inspection",
+    "title": "hazard report during a statutory inspection on SG-3100",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "b12208d67052422adbb1881c74e9db4cdb02c82baa336856ce41be26936b9942",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2015-0009",
+  "prompt_kind": "icam",
+  "prompt_sha256": "686b1bb9a67bda5a6eb3c5c0908d03085359b58cc7854f308280fd8cee38bf57",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "ARC_FLASH_PPE_AND_BOUNDARY",
+        "finding": "Control ARC_FLASH_PPE_AND_BOUNDARY: the arc flash boundary and protective equipment was not in place, and the root cause analysis classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "EARTH_LEAKAGE_PROTECTION",
+        "finding": "Control EARTH_LEAKAGE_PROTECTION: the earth leakage and protection setting integrity had degraded below its design intent, and the root cause analysis classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "HAZARDOUS_AREA_EQUIPMENT_INTEGRITY",
+        "finding": "Control HAZARDOUS_AREA_EQUIPMENT_INTEGRITY: the integrity of explosion-protected equipment in zoned areas had degraded below its design intent, and the root cause analysis classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Restore the arc flash boundary and protective equipment on SG-3100 and record the field verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in maintaining protective systems, specifically inspecting and maintaining portable equipment. SG-3100 (switchgear and transformers) is in service for plant HV/LV distribution. The task proceeded during a statutory inspection while the arc flash boundary and protective equipment was not in place. The thermal energy involved is held as hot surface, and the recorded presentation was burn, ignition, scald.",
+    "summary": "On 11 April 2015 a hazard report was recorded on SG-3100 at Marrindal Concentrator and Hydrocarbon Transfer Facility during a statutory inspection; thermal energy held as hot surface was not released."
+  },
+  "response_sha256": "0235cbd26badfbf9eb778a6a27776e105f029f59b01475f57b1a79618b7cf45b",
+  "source": null
+}

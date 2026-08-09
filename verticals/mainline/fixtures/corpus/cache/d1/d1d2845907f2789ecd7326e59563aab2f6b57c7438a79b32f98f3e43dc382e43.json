@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 5,
+    "doc_code": "ALERT-2016-007",
+    "doc_family": "ALERT",
+    "doc_title": "OEM Advisory - Mechanical Seal Support System Barrier Fluid Degradation",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2016-03-22",
+    "required_citations": [
+      {
+        "control_label": "secondary containment by bund and drainage",
+        "event_ref": "RN-2015-002",
+        "event_title": "prohibition notice - work stopped during start-up after maintenance on ZV-7210",
+        "hazard_energy": "pressure",
+        "kind": "capa_action",
+        "quote_ref": "quote:CVY/ALERT-2016-007/001#capa_action/RN-2015-002",
+        "severity_gate": 4
+      }
+    ],
+    "rev_no": 1,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "ICAM investigation",
+      "management_of_change": "management of change",
+      "near_miss": "potential incident"
+    }
+  },
+  "key": "d1d2845907f2789ecd7326e59563aab2f6b57c7438a79b32f98f3e43dc382e43",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:CVY/ALERT-2016-007/001",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "e59b1d4993b9054a360aa09f1f65939389504559dd3126d999160fbdda90d849",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The corrective action recorded against RN-2015-002 required the secondary containment by bund and drainage to be restated in this safety alert.",
+        "quote_ref": "quote:CVY/ALERT-2016-007/001#capa_action/RN-2015-002"
+      }
+    ],
+    "reason": "Scheduled review at revision 1; 5 clauses restated."
+  },
+  "response_sha256": "81b33dc2527c5fb28364df14ddb93cac38c252b17c3a6cffe5b7de57a36c464f",
+  "source": null
+}

@@ -1,0 +1,106 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "isolating and depressuring a leaking system",
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "activity_series": "responding to a loss of containment",
+    "assets": [
+      {
+        "asset_class": "TANK-CLASS-H",
+        "label": "hydrocarbon day tanks and surge vessel",
+        "service": "diesel and light hydrocarbon day storage, discharge surge suppression",
+        "tag": "TK-4210"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "HYDROCARBON_TRANSFER_CONTROL",
+        "control_label": "controlled transfer of hydrocarbon between vessels",
+        "failure_mode": "absent",
+        "hazard_energy": "pressure",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "SEAL_FACE_TEMPERATURE_ALARM",
+        "control_label": "seal-face high-temperature alarm and trip",
+        "failure_mode": "ineffective",
+        "hazard_energy": "chemical",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "SEAL_SUPPORT_SYSTEM_INTEGRITY",
+        "control_label": "integrity of the mechanical seal support system",
+        "failure_mode": "degraded",
+        "hazard_energy": "chemical",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "NM-2008-0002",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "near_miss",
+    "occurred_on": "2008-02-23",
+    "severity_actual": 1,
+    "severity_potential": 2,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during a planned shutdown",
+    "title": "unplanned release of chemical energy at TK-4210",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "investigation": "accident investigation",
+      "near_miss": "near hit",
+      "verification": "spot check"
+    }
+  },
+  "key": "b76f3be9db9f1037973aef41b95f7ce4af071882d07eb9fc18fe3a938c0df87f",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2008-0002",
+  "prompt_kind": "icam",
+  "prompt_sha256": "1daab86a6be7c8941ccc4eaba290ac76e286b63461a582d9419e9e70ee10212c",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage. The potential outcome was rated 2 against the site's consequence scale, above the 1 actually realised.",
+    "defences": [
+      {
+        "control_class": "HYDROCARBON_TRANSFER_CONTROL",
+        "finding": "Control HYDROCARBON_TRANSFER_CONTROL: the controlled transfer of hydrocarbon between vessels was not in place, and the accident investigation classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "SEAL_FACE_TEMPERATURE_ALARM",
+        "finding": "Control SEAL_FACE_TEMPERATURE_ALARM: the seal-face high-temperature alarm and trip was in place but did not perform, and the accident investigation classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "SEAL_SUPPORT_SYSTEM_INTEGRITY",
+        "finding": "Control SEAL_SUPPORT_SYSTEM_INTEGRITY: the integrity of the mechanical seal support system had degraded below its design intent, and the accident investigation classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the controlled transfer of hydrocarbon between vessels on TK-4210 and record the spot check before this task is next authorised.",
+      "Restore the seal-face high-temperature alarm and trip on TK-4210 and record the spot check before this task is next authorised.",
+      "Restore the integrity of the mechanical seal support system on TK-4210 and record the spot check before this task is next authorised."
+    ],
+    "sequence": "Work was under way in responding to a loss of containment, specifically isolating and depressuring a leaking system. TK-4210 (hydrocarbon day tanks and surge vessel) is in service for diesel and light hydrocarbon day storage, discharge surge suppression. The task proceeded during a planned shutdown while the controlled transfer of hydrocarbon between vessels was not in place. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 23 February 2008 a near hit was recorded on TK-4210 at Marrindal Concentrator and Hydrocarbon Transfer Facility during a planned shutdown; chemical energy held as hydrocarbon was not released."
+  },
+  "response_sha256": "de6e549a35c93ea0ffb5b1829d9fd9ffd81a6c17b90730cfa745525a2879a7e4",
+  "source": null
+}

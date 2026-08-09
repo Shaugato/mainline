@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 1,
+    "doc_codes": [
+      "STD-PRV-005"
+    ],
+    "intent": "strengthen",
+    "moc_ref": "MOC-2021-0222",
+    "opened_on": "2021-12-26",
+    "precursor_events": [],
+    "site": "Tolgarra Processing and Power Station",
+    "terminal_state": "abandoned",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "management_of_change": "management of change",
+      "verification": "critical control verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "6b089e23f8fb5366b7bdb1d2fff42484d5ced89d9b2e8ab1a1be10a3ac51a0ed",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2021-0222",
+  "prompt_kind": "moc",
+  "prompt_sha256": "b8db737c59750fd259118c8afaf6a258b4bacce58d5e5b37b86ff750185b5fdb",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2021-0222 was raised at Tolgarra Processing and Power Station on 26 December 2021 as a scheduled change under management of change; no event precedes it in the record. The management of change record covers 1 clause across 1 controlled document. The intent is to strengthen the critical control named in the documents in scope. The record reached the state abandoned in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical control set is preserved.",
+    "scope_note": "The documents in scope are STD-PRV-005."
+  },
+  "response_sha256": "a163411a2ce97946b3fa1f2d152f17394cbbc62f4b4b57b4a529ebb462cf807e",
+  "source": null
+}

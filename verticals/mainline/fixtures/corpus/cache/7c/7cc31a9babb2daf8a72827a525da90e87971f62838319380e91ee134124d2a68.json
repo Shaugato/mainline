@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 1,
+    "doc_codes": [
+      "STD-PRV-005"
+    ],
+    "intent": "replace",
+    "moc_ref": "MOC-2014-0069",
+    "opened_on": "2014-02-14",
+    "precursor_events": [],
+    "site": "Tolgarra Processing and Power Station",
+    "terminal_state": "abandoned",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "management_of_change": "change request",
+      "verification": "field verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "7cc31a9babb2daf8a72827a525da90e87971f62838319380e91ee134124d2a68",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2014-0069",
+  "prompt_kind": "moc",
+  "prompt_sha256": "67c7e6b510ff1cd35731ce09a2dc9e1419e816a927cfa12c76f227b9361c06ae",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2014-0069 was raised at Tolgarra Processing and Power Station on 14 February 2014 as a scheduled change under change request; no event precedes it in the record. The change request record covers 1 clause across 1 controlled document. The intent is to replace an existing requirement with one written to the current house style. The record reached the state abandoned in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical safeguard set is preserved.",
+    "scope_note": "The documents in scope are STD-PRV-005."
+  },
+  "response_sha256": "8c6c0512c8144854db2a12c17d5baa03f3906b837614cc416d7cd28c43eccadb",
+  "source": null
+}

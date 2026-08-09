@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ELECTRICAL-SAFETY",
+    "barrier_role": "preventive",
+    "control_class": "ZERO_ENERGY_VERIFICATION",
+    "control_delta": "restate",
+    "control_label": "proving zero energy before intrusive work",
+    "doc_code": "PRO-ELE-008",
+    "doc_family": "PRO",
+    "doc_title": "Electrical Isolation and Access to Switchgear",
+    "effective_on": "2010-07-04",
+    "printed_label": "1.1",
+    "setpoint": {
+      "from": 24.0,
+      "key": "isolation_verification_interval",
+      "label": "re-verification interval for a long-duration isolation",
+      "strengthen_direction": "lower",
+      "to": 24.0,
+      "unit": "hours"
+    },
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "energy_isolation": "lock out tag out",
+      "verification": "field verification"
+    }
+  },
+  "key": "c06db6ac2aaa478a359d69f1306b2d4c3f5d4ecc35375ad479847645d3e4d1d4",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/PRO-ELE-008/003#MRD/PRO-ELE-008/1.1",
+  "prompt_kind": "clause",
+  "prompt_sha256": "eb7a282fe62c92084c4b1503b60e2f742ac33f8e33e2f08f16936388fe48c6af",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The proving zero energy before intrusive work shall be provided and maintained wherever this procedure applies, and its condition shall be treated as a critical safeguard. The re-verification interval for a long-duration isolation shall be set at 24 hours. This clause applies to activities archived under ELECTRICAL-SAFETY at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "b6931c81ef52e4d152b3ae30ab2fd684c77feffaaaf1947f41b72f9b2a7f1b98",
+  "source": null
+}

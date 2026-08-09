@@ -1,0 +1,104 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "working in dust, darkness and weather restrictions",
+    "activity_root": "MOBILE-EQUIPMENT-INTERACTION",
+    "activity_series": "operating in reduced visibility",
+    "assets": [
+      {
+        "asset_class": "MOB-CLASS-H",
+        "label": "haul trucks",
+        "service": "waste and ore haulage",
+        "tag": "HT-9002"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "PARK_UP_AND_RESTRAINT",
+        "control_label": "parking, chocking and restraint of equipment",
+        "failure_mode": "absent",
+        "hazard_energy": "kinetic",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "POSITIVE_COMMUNICATION_BEFORE_APPROACH",
+        "control_label": "positive communication before approaching mobile equipment",
+        "failure_mode": "bypassed",
+        "hazard_energy": "kinetic",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "PROXIMITY_DETECTION_AND_SEGREGATION",
+        "control_label": "segregation of light vehicles and pedestrians from heavy equipment",
+        "failure_mode": "degraded",
+        "hazard_energy": "kinetic",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "NM-2022-0010",
+    "hazard_energy": "gravity",
+    "hazard_media": [
+      "suspended load",
+      "stored potential of an elevated component",
+      "unsupported ground",
+      "person at height"
+    ],
+    "hazard_release": "fall, collapse, crush",
+    "kind": "near_miss",
+    "occurred_on": "2022-06-10",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during commissioning of replacement equipment",
+    "title": "unrelieved potential energy found after isolation of HT-9002",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "bad02952aaee3c03ef6308bf78aa17625f7aea5625ddc198fa0db6bfde877617",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2022-0010",
+  "prompt_kind": "icam",
+  "prompt_sha256": "e82c0ebca0734fe59ce3acf80d8684f284a01990bc503f64a6201424d7cbab3d",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "PARK_UP_AND_RESTRAINT",
+        "finding": "Control PARK_UP_AND_RESTRAINT: the parking, chocking and restraint of equipment was not in place, and the learning team review classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "POSITIVE_COMMUNICATION_BEFORE_APPROACH",
+        "finding": "Control POSITIVE_COMMUNICATION_BEFORE_APPROACH: the positive communication before approaching mobile equipment had been bypassed, and the learning team review classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "PROXIMITY_DETECTION_AND_SEGREGATION",
+        "finding": "Control PROXIMITY_DETECTION_AND_SEGREGATION: the segregation of light vehicles and pedestrians from heavy equipment had degraded below its design intent, and the learning team review classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the parking, chocking and restraint of equipment on HT-9002 and record the assurance activity before this task is next authorised.",
+      "Restore the positive communication before approaching mobile equipment on HT-9002 and record the assurance activity before this task is next authorised.",
+      "Restore the segregation of light vehicles and pedestrians from heavy equipment on HT-9002 and record the assurance activity before this task is next authorised."
+    ],
+    "sequence": "Work was under way in operating in reduced visibility, specifically working in dust, darkness and weather restrictions. HT-9002 (haul trucks) is in service for waste and ore haulage. The task proceeded during commissioning of replacement equipment while the parking, chocking and restraint of equipment was not in place. The gravity energy involved is held as suspended load, and the recorded presentation was fall, collapse, crush.",
+    "summary": "On 10 June 2022 a high potential incident was recorded on HT-9002 at Yandarra Downs Open Cut and Heavy Workshop during commissioning of replacement equipment; gravity energy held as suspended load was not released."
+  },
+  "response_sha256": "7c5d39bc94b54787ddb704be08c0cda6d3614261c682a076f23abf29b1276419",
+  "source": null
+}

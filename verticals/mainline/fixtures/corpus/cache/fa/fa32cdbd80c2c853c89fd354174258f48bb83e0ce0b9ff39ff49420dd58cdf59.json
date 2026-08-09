@@ -1,0 +1,97 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "inspecting and maintaining portable equipment",
+    "activity_root": "ELECTRICAL-SAFETY",
+    "activity_series": "maintaining protective systems",
+    "assets": [
+      {
+        "asset_class": "ELEC-CLASS-A",
+        "label": "switchgear and transformers",
+        "service": "plant HV/LV distribution",
+        "tag": "SG-3100"
+      },
+      {
+        "asset_class": "ELEC-CLASS-A",
+        "label": "switchgear and transformers",
+        "service": "plant HV/LV distribution",
+        "tag": "TX-3001"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "ARC_FLASH_PPE_AND_BOUNDARY",
+        "control_label": "arc flash boundary and protective equipment",
+        "failure_mode": "degraded",
+        "hazard_energy": "thermal",
+        "icam_tier": "individual_or_team_action"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "SWITCHING_AUTHORISATION",
+        "control_label": "authorisation of switching and access to apparatus",
+        "failure_mode": "absent",
+        "hazard_energy": "electrical",
+        "icam_tier": "organisational_factor"
+      }
+    ],
+    "event_ref": "NM-2021-0006",
+    "hazard_energy": "electrical",
+    "hazard_media": [
+      "HV switchgear",
+      "LV distribution",
+      "capacitive storage",
+      "induced voltage",
+      "portable equipment"
+    ],
+    "hazard_release": "shock, arc flash, unplanned energisation",
+    "kind": "near_miss",
+    "occurred_on": "2021-05-11",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during routine operation",
+    "title": "potential incident - electrical exposure at SG-3100",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "fa32cdbd80c2c853c89fd354174258f48bb83e0ce0b9ff39ff49420dd58cdf59",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2021-0006",
+  "prompt_kind": "icam",
+  "prompt_sha256": "1b606f4dda8ee9eeced05bf579bbd1ac0a8e527fba0bb883f4a47f3cfdd60428",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "ARC_FLASH_PPE_AND_BOUNDARY",
+        "finding": "Control ARC_FLASH_PPE_AND_BOUNDARY: the arc flash boundary and protective equipment had degraded below its design intent, and the ICAM investigation classified this as an individual or team action."
+      },
+      {
+        "control_class": "SWITCHING_AUTHORISATION",
+        "finding": "Control SWITCHING_AUTHORISATION: the authorisation of switching and access to apparatus was not in place, and the ICAM investigation classified this as an organisational factor."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next critical control verification that the arc flash boundary and protective equipment on SG-3100 and TX-3001 performs as designed."
+    ],
+    "sequence": "Work was under way in maintaining protective systems, specifically inspecting and maintaining portable equipment. SG-3100 (switchgear and transformers) is in service for plant HV/LV distribution. The task proceeded during routine operation while the arc flash boundary and protective equipment had degraded below its design intent. The electrical energy involved is held as HV switchgear, and the recorded presentation was shock, arc flash, unplanned energisation.",
+    "summary": "On 11 May 2021 a potential incident was recorded on SG-3100 and TX-3001 at Marrindal Concentrator and Hydrocarbon Transfer Facility during routine operation; electrical energy held as HV switchgear was not released."
+  },
+  "response_sha256": "d188a7d8ec1f5700e4707ae7ed610f2275b7e330d993bdd260241c768f21a2bc",
+  "source": null
+}

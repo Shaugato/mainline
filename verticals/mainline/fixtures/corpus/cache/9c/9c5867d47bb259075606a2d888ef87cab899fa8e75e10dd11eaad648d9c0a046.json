@@ -1,0 +1,40 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 1,
+    "doc_codes": [
+      "ALERT-2016-007",
+      "MOC-2014-0087",
+      "PRO-MEC-041",
+      "PRO-OPS-017",
+      "PTW-STD-003"
+    ],
+    "intent": "restate",
+    "moc_ref": "MOC-2022-0177",
+    "opened_on": "2022-09-12",
+    "precursor_events": [],
+    "site": "Cape Verity Export Terminal",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "management_of_change": "change assurance",
+      "verification": "assurance activity"
+    },
+    "weakening_steps": 0
+  },
+  "key": "9c5867d47bb259075606a2d888ef87cab899fa8e75e10dd11eaad648d9c0a046",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2022-0177",
+  "prompt_kind": "moc",
+  "prompt_sha256": "1bcfc34338849401f13322a73e4ee7da29b2c5a9e0110bdde62f94b942edc242",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2022-0177 was raised at Cape Verity Export Terminal on 12 September 2022 as a scheduled change under change assurance; no event precedes it in the record. The change assurance record covers 1 clause across 5 controlled documents. The intent is to restate an existing duty without altering what it requires. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the material unwanted event control set is preserved.",
+    "scope_note": "The documents in scope are ALERT-2016-007, MOC-2014-0087, PRO-MEC-041, PRO-OPS-017 and PTW-STD-003."
+  },
+  "response_sha256": "2747b01a9220587a319df4a5b06d749305b1a12234be90b376a75f8066d23ca6",
+  "source": null
+}

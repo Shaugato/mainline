@@ -1,0 +1,97 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "dissipating trapped and residual energy",
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "activity_series": "applying and verifying an isolation",
+    "assets": [
+      {
+        "asset_class": "ELEC-CLASS-A",
+        "label": "switchgear and transformers",
+        "service": "plant HV/LV distribution",
+        "tag": "SG-3100"
+      },
+      {
+        "asset_class": "ELEC-CLASS-A",
+        "label": "switchgear and transformers",
+        "service": "plant HV/LV distribution",
+        "tag": "TX-3001"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "ENERGY_SOURCE_IDENTIFICATION",
+        "control_label": "identification of every energy source for the task",
+        "failure_mode": "ineffective",
+        "hazard_energy": "thermal",
+        "icam_tier": "organisational_factor"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "ZERO_ENERGY_VERIFICATION",
+        "control_label": "proving zero energy before intrusive work",
+        "failure_mode": "absent",
+        "hazard_energy": "electrical",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "NM-2026-0011",
+    "hazard_energy": "electrical",
+    "hazard_media": [
+      "HV switchgear",
+      "LV distribution",
+      "capacitive storage",
+      "induced voltage",
+      "portable equipment"
+    ],
+    "hazard_release": "shock, arc flash, unplanned energisation",
+    "kind": "near_miss",
+    "occurred_on": "2026-04-11",
+    "severity_actual": 0,
+    "severity_potential": 2,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during a planned shutdown",
+    "title": "high potential incident - electrical exposure at SG-3100",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "c6d9f2662305838d57896e14ea04e9cc79b391a955287bd37f0ec9a2d1ad3311",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2026-0011",
+  "prompt_kind": "icam",
+  "prompt_sha256": "984eca1cb180a43472270b99546ff59947558d4ed769b5f678b93fa8cbb44300",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 2 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "ENERGY_SOURCE_IDENTIFICATION",
+        "finding": "Control ENERGY_SOURCE_IDENTIFICATION: the identification of every energy source for the task was in place but did not perform, and the learning team review classified this as an organisational factor."
+      },
+      {
+        "control_class": "ZERO_ENERGY_VERIFICATION",
+        "finding": "Control ZERO_ENERGY_VERIFICATION: the proving zero energy before intrusive work was not in place, and the learning team review classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next assurance activity that the identification of every energy source for the task on SG-3100 and TX-3001 performs as designed."
+    ],
+    "sequence": "Work was under way in applying and verifying an isolation, specifically dissipating trapped and residual energy. SG-3100 (switchgear and transformers) is in service for plant HV/LV distribution. The task proceeded during a planned shutdown while the identification of every energy source for the task was in place but did not perform. The electrical energy involved is held as HV switchgear, and the recorded presentation was shock, arc flash, unplanned energisation.",
+    "summary": "On 11 April 2026 a high potential incident was recorded on SG-3100 and TX-3001 at Marrindal Concentrator and Hydrocarbon Transfer Facility during a planned shutdown; electrical energy held as HV switchgear was not released."
+  },
+  "response_sha256": "e43d67f8be1f491e3ad75b245bb9c88ad47b93111f450862d660a5ccd8dd7b89",
+  "source": null
+}

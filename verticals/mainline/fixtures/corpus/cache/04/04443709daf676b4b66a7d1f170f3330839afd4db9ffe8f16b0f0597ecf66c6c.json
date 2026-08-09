@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "barrier_role": "preventive",
+    "control_class": "POSITIVE_ISOLATION_APPLICATION",
+    "control_delta": "strengthen",
+    "control_label": "application of positive isolation devices and personal locks",
+    "doc_code": "STD-ISO-006",
+    "doc_family": "STD",
+    "doc_title": "Isolation of Stored Energy",
+    "effective_on": "2023-11-17",
+    "printed_label": "8.1.1",
+    "setpoint": null,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "energy_isolation": "positive isolation verification",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "04443709daf676b4b66a7d1f170f3330839afd4db9ffe8f16b0f0597ecf66c6c",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/STD-ISO-006/007#MRD/STD-ISO-006/1.4",
+  "prompt_kind": "clause",
+  "prompt_sha256": "fc66f73d8d11b6c0cf8680f0a8bdbb3249d37d8ee7065a2531304b648620a89a",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The application of positive isolation devices and personal locks must be provided, and its effectiveness must be recorded as a assurance activity before the task proceeds. This clause applies to activities archived under ISOLATION-OF-STORED-ENERGY at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "must"
+  },
+  "response_sha256": "8cab2c89b54643bc8befd4f02c7c0d98f4d31804ec59634224fcb5e807494a54",
+  "source": null
+}

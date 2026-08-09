@@ -1,0 +1,116 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "proving overpressure protection is in service",
+    "activity_root": "PRESSURE-SYSTEM-INTEGRITY",
+    "activity_series": "verifying pressure relief and protection",
+    "assets": [
+      {
+        "asset_class": "ESD-CLASS-A",
+        "label": "emergency shutdown valves",
+        "service": "jetty and manifold emergency isolation",
+        "tag": "ZV-7212"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "PRESSURE_EQUIPMENT_INSPECTION",
+        "control_label": "in-service inspection of pressure equipment",
+        "failure_mode": "absent",
+        "hazard_energy": "pressure",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "PRESSURE_RELIEF_DEVICE_INTEGRITY",
+        "control_label": "setting, testing and sealing of pressure relief devices",
+        "failure_mode": "not_verified",
+        "hazard_energy": "chemical",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "STEAM_SYSTEM_WARM_THROUGH",
+        "control_label": "controlled draining, venting and warm-through of steam systems",
+        "failure_mode": "absent",
+        "hazard_energy": "pressure",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "STORED_ENERGY_DISSIPATION",
+        "control_label": "dissipation or restraint of trapped and residual energy",
+        "failure_mode": "not_verified",
+        "hazard_energy": "pressure",
+        "icam_tier": "organisational_factor"
+      }
+    ],
+    "event_ref": "INC-2025-005",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "incident",
+    "occurred_on": "2025-02-21",
+    "severity_actual": 1,
+    "severity_potential": 2,
+    "site": "Cape Verity Export Terminal",
+    "summary_facts": [],
+    "task_phase": "during cleaning and preparation",
+    "title": "positive isolation verification failure on ZV-7212",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "644aa8784c09b09930da95e91404f12145acb74676f44fb20b0e13fe39723f35",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2025-005",
+  "prompt_kind": "icam",
+  "prompt_sha256": "ea0d012ed4335a0470fa26268c96e484a6a251b5cacadbbc11320c7aa4fab01f",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage. The potential outcome was rated 2 against the site's consequence scale, above the 1 actually realised.",
+    "defences": [
+      {
+        "control_class": "PRESSURE_EQUIPMENT_INSPECTION",
+        "finding": "Control PRESSURE_EQUIPMENT_INSPECTION: the in-service inspection of pressure equipment was not in place, and the learning team review classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "PRESSURE_RELIEF_DEVICE_INTEGRITY",
+        "finding": "Control PRESSURE_RELIEF_DEVICE_INTEGRITY: the setting, testing and sealing of pressure relief devices was never verified as effective, and the learning team review classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "STEAM_SYSTEM_WARM_THROUGH",
+        "finding": "Control STEAM_SYSTEM_WARM_THROUGH: the controlled draining, venting and warm-through of steam systems was not in place, and the learning team review classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "STORED_ENERGY_DISSIPATION",
+        "finding": "Control STORED_ENERGY_DISSIPATION: the dissipation or restraint of trapped and residual energy was never verified as effective, and the learning team review classified this as an organisational factor."
+      }
+    ],
+    "recommendations": [
+      "Restore the setting, testing and sealing of pressure relief devices on ZV-7212 and record the assurance activity before this task is next authorised."
+    ],
+    "sequence": "Work was under way in verifying pressure relief and protection, specifically proving overpressure protection is in service. ZV-7212 (emergency shutdown valves) is in service for jetty and manifold emergency isolation. The task proceeded during cleaning and preparation while the in-service inspection of pressure equipment was not in place. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 21 February 2025 an incident occurred on ZV-7212 at Cape Verity Export Terminal during cleaning and preparation, releasing chemical energy held as hydrocarbon."
+  },
+  "response_sha256": "5ad5d8c67c10f46f21ce752456f3a933e3d9fc7a75766f0901fe77f438e023dd",
+  "source": null
+}

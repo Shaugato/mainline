@@ -1,0 +1,116 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "replacing seals and seal support fluid",
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "activity_series": "maintaining sealing systems on rotating equipment",
+    "assets": [
+      {
+        "asset_class": "HTP-CLASS-A",
+        "label": "hydrocarbon transfer pumps",
+        "service": "hydrocarbon transfer, single mechanical seal with pressurised barrier-fluid support",
+        "tag": "P-4102"
+      },
+      {
+        "asset_class": "ACC-CLASS-A",
+        "label": "hydraulic energy accumulator",
+        "service": "stores hydraulic energy released at P-4102",
+        "tag": "ACC-4102"
+      },
+      {
+        "asset_class": "HX-CLASS-S",
+        "label": "seal support coolers",
+        "service": "barrier-fluid cooling for the hydrocarbon transfer pump family",
+        "tag": "HX-4120"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "BUND_AND_DRAINAGE_CONTAINMENT",
+        "control_label": "secondary containment by bund and drainage",
+        "failure_mode": "not_verified",
+        "hazard_energy": "chemical",
+        "icam_tier": "individual_or_team_action"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "EMERGENCY_ISOLATION_ON_RELEASE",
+        "control_label": "emergency isolation and depressuring on loss of containment",
+        "failure_mode": "ineffective",
+        "hazard_energy": "pressure",
+        "icam_tier": "individual_or_team_action"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "HYDROCARBON_TRANSFER_CONTROL",
+        "control_label": "controlled transfer of hydrocarbon between vessels",
+        "failure_mode": "ineffective",
+        "hazard_energy": "pressure",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "AF-2018-003",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "audit_finding",
+    "occurred_on": "2018-01-26",
+    "severity_actual": 1,
+    "severity_potential": 3,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during a breakdown response",
+    "title": "audit finding - permit to work records incomplete for P-4102",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "70c0fa127532856c97c863ac36dff472da1a660115676acdb5b8fc2afbb5d446",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:AF-2018-003",
+  "prompt_kind": "icam",
+  "prompt_sha256": "75149bfa0d9ece326157dada6a881fc1fc7eed36760ffea79ffcfbe0ee04e0c9",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage. The potential outcome was rated 3 against the site's consequence scale, above the 1 actually realised.",
+    "defences": [
+      {
+        "control_class": "BUND_AND_DRAINAGE_CONTAINMENT",
+        "finding": "Control BUND_AND_DRAINAGE_CONTAINMENT: the secondary containment by bund and drainage was never verified as effective, and the ICAM investigation classified this as an individual or team action."
+      },
+      {
+        "control_class": "EMERGENCY_ISOLATION_ON_RELEASE",
+        "finding": "Control EMERGENCY_ISOLATION_ON_RELEASE: the emergency isolation and depressuring on loss of containment was in place but did not perform, and the ICAM investigation classified this as an individual or team action."
+      },
+      {
+        "control_class": "HYDROCARBON_TRANSFER_CONTROL",
+        "finding": "Control HYDROCARBON_TRANSFER_CONTROL: the controlled transfer of hydrocarbon between vessels was in place but did not perform, and the ICAM investigation classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the controlled transfer of hydrocarbon between vessels on P-4102, ACC-4102 and HX-4120 and record the critical control verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in maintaining sealing systems on rotating equipment, specifically replacing seals and seal support fluid. P-4102 (hydrocarbon transfer pumps) is in service for hydrocarbon transfer, single mechanical seal with pressurised barrier-fluid support. The task proceeded during a breakdown response while the secondary containment by bund and drainage was never verified as effective. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 26 January 2018 a planned critical control verification of P-4102, ACC-4102 and HX-4120 at Marrindal Concentrator and Hydrocarbon Transfer Facility found the secondary containment by bund and drainage not effective."
+  },
+  "response_sha256": "46e7b08f6442bdd5d042d4fe052fe31be719a38438fb8b9a0b20fc9b7965c96d",
+  "source": null
+}

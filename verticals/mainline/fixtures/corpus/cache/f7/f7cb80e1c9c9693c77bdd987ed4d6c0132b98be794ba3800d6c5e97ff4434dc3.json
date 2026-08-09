@@ -1,0 +1,91 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "bunding, drainage and spill containment",
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "activity_series": "managing hydrocarbon transfer and storage",
+    "assets": [
+      {
+        "asset_class": "HTP-CLASS-A",
+        "label": "hydrocarbon transfer pumps",
+        "service": "hydrocarbon transfer, single mechanical seal with pressurised barrier-fluid support",
+        "tag": "P-4103"
+      },
+      {
+        "asset_class": "MOTOR-CLASS-A",
+        "label": "drive motor",
+        "service": "drives P-4103",
+        "tag": "M-4103"
+      },
+      {
+        "asset_class": "TANK-CLASS-H",
+        "label": "hydrocarbon day tanks and surge vessel",
+        "service": "diesel and light hydrocarbon day storage, discharge surge suppression",
+        "tag": "V-4110"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "EMERGENCY_ISOLATION_ON_RELEASE",
+        "control_label": "emergency isolation and depressuring on loss of containment",
+        "failure_mode": "not_verified",
+        "hazard_energy": "pressure",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "CAPA-2023-001",
+    "hazard_energy": "thermal",
+    "hazard_media": [
+      "hot surface",
+      "steam",
+      "molten material",
+      "hot work",
+      "exothermic reaction"
+    ],
+    "hazard_release": "burn, ignition, scald",
+    "kind": "capa",
+    "occurred_on": "2023-02-11",
+    "severity_actual": 1,
+    "severity_potential": 2,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during a planned shutdown",
+    "title": "corrective action following learning team review at P-4103",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "f7cb80e1c9c9693c77bdd987ed4d6c0132b98be794ba3800d6c5e97ff4434dc3",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:CAPA-2023-001",
+  "prompt_kind": "icam",
+  "prompt_sha256": "750c3b9281a8cfaa0fed821f907bc895d6d0d369e6c2c7914b38adbebe571ac2",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage. The potential outcome was rated 2 against the site's consequence scale, above the 1 actually realised.",
+    "defences": [
+      {
+        "control_class": "EMERGENCY_ISOLATION_ON_RELEASE",
+        "finding": "Control EMERGENCY_ISOLATION_ON_RELEASE: the emergency isolation and depressuring on loss of containment was never verified as effective, and the learning team review classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the emergency isolation and depressuring on loss of containment on P-4103, M-4103 and V-4110 and record the assurance activity before this task is next authorised."
+    ],
+    "sequence": "Work was under way in managing hydrocarbon transfer and storage, specifically bunding, drainage and spill containment. P-4103 (hydrocarbon transfer pumps) is in service for hydrocarbon transfer, single mechanical seal with pressurised barrier-fluid support. The task proceeded during a planned shutdown while the emergency isolation and depressuring on loss of containment was never verified as effective. The thermal energy involved is held as hot surface, and the recorded presentation was burn, ignition, scald.",
+    "summary": "On 11 February 2023 a corrective action on P-4103, M-4103 and V-4110 at Marrindal Concentrator and Hydrocarbon Transfer Facility was reviewed against the material unwanted event control it was raised to restore."
+  },
+  "response_sha256": "887428aee46f13fac1e17ea28df85b1f052a7453c5466c346868da7d4d3f961f",
+  "source": null
+}

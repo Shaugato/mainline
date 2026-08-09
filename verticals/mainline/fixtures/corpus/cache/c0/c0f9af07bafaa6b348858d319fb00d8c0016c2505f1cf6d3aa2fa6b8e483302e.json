@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "LIFTING-AND-SUSPENDED-LOADS",
+    "barrier_role": "preventive",
+    "control_class": "DROP_ZONE_EXCLUSION",
+    "control_delta": "introduce",
+    "control_label": "exclusion of people from beneath elevated work",
+    "doc_code": "ALERT-2009-003",
+    "doc_family": "ALERT",
+    "doc_title": "Fatality - Uncontrolled Descent of a Suspended Component in the Heavy Workshop",
+    "effective_on": "2009-11-09",
+    "printed_label": "1.2",
+    "setpoint": null,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "c0f9af07bafaa6b348858d319fb00d8c0016c2505f1cf6d3aa2fa6b8e483302e",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:YND/ALERT-2009-003/001#YND/ALERT-2009-003/1.2",
+  "prompt_kind": "clause",
+  "prompt_sha256": "edb96f96809b96321f50c8f6e9f0b624d1ac1679539d461c2e72d1b819ba8ad6",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The exclusion of people from beneath elevated work shall be provided and maintained for work covered by this safety alert. This clause applies to activities archived under LIFTING-AND-SUSPENDED-LOADS at Yandarra Downs Open Cut and Heavy Workshop.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "da39022a1a798b1433ebd406ffa1b0312d9b1c0346f565be8a6b7827dc0a0697",
+  "source": null
+}

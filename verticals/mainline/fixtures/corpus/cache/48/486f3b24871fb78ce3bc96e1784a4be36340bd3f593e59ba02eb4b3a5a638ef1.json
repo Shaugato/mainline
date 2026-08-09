@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTROL-OF-IGNITION-SOURCES",
+    "barrier_role": "preventive",
+    "control_class": "HAZARDOUS_AREA_EQUIPMENT_INTEGRITY",
+    "control_delta": "remove",
+    "control_label": "integrity of explosion-protected equipment in zoned areas",
+    "doc_code": "STD-HTW-004",
+    "doc_family": "STD",
+    "doc_title": "Hot Work",
+    "effective_on": "2016-12-15",
+    "printed_label": "4.1.1",
+    "setpoint": null,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "486f3b24871fb78ce3bc96e1784a4be36340bd3f593e59ba02eb4b3a5a638ef1",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/STD-HTW-004/005#MRD/STD-HTW-004/4.1",
+  "prompt_kind": "clause",
+  "prompt_sha256": "45ded2914a3a5d66080c41345eff472dd8fac9fc1c2ceb3c553a96777120cdc6",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "This requirement is withdrawn. The integrity of explosion-protected equipment in zoned areas is no longer imposed by this standard; the duty is discharged under the document that supersedes this clause.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "cf45d781ff140100b1a10292643b4a14d9698a47b300f84d20a5c260943ad715",
+  "source": null
+}

@@ -1,0 +1,129 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "selecting isolation points and devices",
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "activity_series": "planning and permitting an isolation",
+    "assets": [
+      {
+        "asset_class": "SLP-CLASS-B",
+        "label": "slurry transfer pumps",
+        "service": "cyclone feed and tailings transfer",
+        "tag": "P-3220"
+      }
+    ],
+    "consequence": {
+      "days_lost": 4,
+      "injuries": 1,
+      "label": "lost time injury"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "ISOLATION_HANDBACK_CONTROL",
+        "control_label": "controlled removal of isolation and return to service",
+        "failure_mode": "bypassed",
+        "hazard_energy": "kinetic",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "LOAD_SUPPORT_FOR_MAINTENANCE",
+        "control_label": "mechanical support of a load during maintenance access",
+        "failure_mode": "ineffective",
+        "hazard_energy": "pressure",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "PARK_UP_AND_RESTRAINT",
+        "control_label": "parking, chocking and restraint of equipment",
+        "failure_mode": "ineffective",
+        "hazard_energy": "kinetic",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "POSITIVE_ISOLATION_APPLICATION",
+        "control_label": "application of positive isolation devices and personal locks",
+        "failure_mode": "absent",
+        "hazard_energy": "kinetic",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "STORED_ENERGY_DISSIPATION",
+        "control_label": "dissipation or restraint of trapped and residual energy",
+        "failure_mode": "ineffective",
+        "hazard_energy": "kinetic",
+        "icam_tier": "organisational_factor"
+      }
+    ],
+    "event_ref": "INC-2020-015",
+    "hazard_energy": "kinetic",
+    "hazard_media": [
+      "rotating equipment",
+      "conveyor",
+      "mobile equipment",
+      "pressurised jet",
+      "flying fragment"
+    ],
+    "hazard_release": "entanglement, impact, crush",
+    "kind": "incident",
+    "occurred_on": "2020-11-21",
+    "severity_actual": 3,
+    "severity_potential": 3,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during routine operation",
+    "title": "loss of containment at P-3220 during routine operation",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "8b101fa05bda106b31bf00acbe29712e9dc78813a467247698c822be966c5a28",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2020-015",
+  "prompt_kind": "icam",
+  "prompt_sha256": "a2dbe88fc505fb88a5f308092f79897daf455cf713bcb29a33101fcf778f48fb",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was lost time injury, with 1 person injured and 4 days lost.",
+    "defences": [
+      {
+        "control_class": "ISOLATION_HANDBACK_CONTROL",
+        "finding": "Control ISOLATION_HANDBACK_CONTROL: the controlled removal of isolation and return to service had been bypassed, and the ICAM investigation classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "LOAD_SUPPORT_FOR_MAINTENANCE",
+        "finding": "Control LOAD_SUPPORT_FOR_MAINTENANCE: the mechanical support of a load during maintenance access was in place but did not perform, and the ICAM investigation classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "PARK_UP_AND_RESTRAINT",
+        "finding": "Control PARK_UP_AND_RESTRAINT: the parking, chocking and restraint of equipment was in place but did not perform, and the ICAM investigation classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "POSITIVE_ISOLATION_APPLICATION",
+        "finding": "Control POSITIVE_ISOLATION_APPLICATION: the application of positive isolation devices and personal locks was not in place, and the ICAM investigation classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "STORED_ENERGY_DISSIPATION",
+        "finding": "Control STORED_ENERGY_DISSIPATION: the dissipation or restraint of trapped and residual energy was in place but did not perform, and the ICAM investigation classified this as an organisational factor."
+      }
+    ],
+    "recommendations": [
+      "Restore the controlled removal of isolation and return to service on P-3220 and record the critical control verification before this task is next authorised.",
+      "Restore the mechanical support of a load during maintenance access on P-3220 and record the critical control verification before this task is next authorised.",
+      "Restore the parking, chocking and restraint of equipment on P-3220 and record the critical control verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in planning and permitting an isolation, specifically selecting isolation points and devices. P-3220 (slurry transfer pumps) is in service for cyclone feed and tailings transfer. The task proceeded during routine operation while the controlled removal of isolation and return to service had been bypassed. The kinetic energy involved is held as rotating equipment, and the recorded presentation was entanglement, impact, crush.",
+    "summary": "On 21 November 2020 an incident occurred on P-3220 at Marrindal Concentrator and Hydrocarbon Transfer Facility during routine operation, releasing kinetic energy held as rotating equipment."
+  },
+  "response_sha256": "e4d91dc6b700b70bdb825558f1a275e340848139c549b5b0e8195d80bafc51fc",
+  "source": null
+}

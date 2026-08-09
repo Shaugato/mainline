@@ -1,0 +1,20 @@
+// SPDX-FileCopyrightText: 2026 MAINLINE contributors
+// SPDX-License-Identifier: FSL-1.1-ALv2
+//
+// DELIBERATELY WRONG, and wrong only because of WHERE it is.
+//
+// Classified by the test as `src/features/ancestry/render3d/PlantedWalk.tsx`, i.e. inside
+// the MEMORY register. There, identifying a person is a violation (D15 / I15 / the
+// Attribution Rule) — a screenshot outlives a schema. The <canvas> on the other hand is
+// LEGITIMATE here and must not be reported: MEMORY is the one register permitted to draw
+// with a GPU, and a checker that refused it everywhere would refuse the product's only
+// dimensional surface and be "fixed" by deleting the rule.
+
+export function PlantedWalk(): unknown {
+  return (
+    <group data-register="memory">
+      <canvas id="the-one-legitimate-canvas" />
+      <label data-person="p-17">shift supervisor</label>
+    </group>
+  );
+}

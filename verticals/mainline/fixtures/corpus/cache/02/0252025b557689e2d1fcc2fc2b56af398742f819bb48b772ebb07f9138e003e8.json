@@ -1,0 +1,84 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "proof testing and periodic inspection of hoists",
+    "activity_root": "LIFTING-AND-SUSPENDED-LOADS",
+    "activity_series": "maintaining lifting appliances",
+    "assets": [
+      {
+        "asset_class": "LIFT-CLASS-W",
+        "label": "workshop hoists and press",
+        "service": "heavy vehicle component removal and pressing",
+        "tag": "PR-9410"
+      },
+      {
+        "asset_class": "MOTOR-CLASS-A",
+        "label": "drive motor",
+        "service": "drives PR-9410",
+        "tag": "M-9410"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "LOAD_SUPPORT_FOR_MAINTENANCE",
+        "control_label": "mechanical support of a load during maintenance access",
+        "failure_mode": "bypassed",
+        "hazard_energy": "gravity",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "CAPA-2019-003",
+    "hazard_energy": "gravity",
+    "hazard_media": [
+      "suspended load",
+      "stored potential of an elevated component",
+      "unsupported ground",
+      "person at height"
+    ],
+    "hazard_release": "fall, collapse, crush",
+    "kind": "capa",
+    "occurred_on": "2019-02-28",
+    "severity_actual": 0,
+    "severity_potential": 2,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during cleaning and preparation",
+    "title": "preventive action - alarm rationalisation on PR-9410",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "0252025b557689e2d1fcc2fc2b56af398742f819bb48b772ebb07f9138e003e8",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:CAPA-2019-003",
+  "prompt_kind": "icam",
+  "prompt_sha256": "146b478111580adaba65a46ef5ac64ad0c5ef8af934f612336eec936057bbb46",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 2 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "LOAD_SUPPORT_FOR_MAINTENANCE",
+        "finding": "Control LOAD_SUPPORT_FOR_MAINTENANCE: the mechanical support of a load during maintenance access had been bypassed, and the ICAM investigation classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the mechanical support of a load during maintenance access on PR-9410 and M-9410 and record the critical control verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in maintaining lifting appliances, specifically proof testing and periodic inspection of hoists. PR-9410 (workshop hoists and press) is in service for heavy vehicle component removal and pressing. The task proceeded during cleaning and preparation while the mechanical support of a load during maintenance access had been bypassed. The gravity energy involved is held as suspended load, and the recorded presentation was fall, collapse, crush.",
+    "summary": "On 28 February 2019 a corrective action on PR-9410 and M-9410 at Yandarra Downs Open Cut and Heavy Workshop was reviewed against the critical control it was raised to restore."
+  },
+  "response_sha256": "bcbeadd544d60bba402c43cdccf8ea1bcc8bce7d038553ed35ef4d716d83ef67",
+  "source": null
+}

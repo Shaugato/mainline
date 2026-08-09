@@ -1,0 +1,91 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "testing for dead and applying earths",
+    "activity_root": "ELECTRICAL-SAFETY",
+    "activity_series": "controlling access to energised apparatus",
+    "assets": [
+      {
+        "asset_class": "ELEC-CLASS-A",
+        "label": "switchgear and transformers",
+        "service": "plant HV/LV distribution",
+        "tag": "TX-3002"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "POSITIVE_ISOLATION_APPLICATION",
+        "control_label": "application of positive isolation devices and personal locks",
+        "failure_mode": "bypassed",
+        "hazard_energy": "electrical",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "SWITCHING_AUTHORISATION",
+        "control_label": "authorisation of switching and access to apparatus",
+        "failure_mode": "absent",
+        "hazard_energy": "electrical",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "AF-2008-001",
+    "hazard_energy": "electrical",
+    "hazard_media": [
+      "HV switchgear",
+      "LV distribution",
+      "capacitive storage",
+      "induced voltage",
+      "portable equipment"
+    ],
+    "hazard_release": "shock, arc flash, unplanned energisation",
+    "kind": "audit_finding",
+    "occurred_on": "2008-02-01",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during an intrusive maintenance task",
+    "title": "audit finding - engineering change note not applied to TX-3002",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "investigation": "accident investigation",
+      "near_miss": "near hit",
+      "verification": "spot check"
+    }
+  },
+  "key": "3821aae1317e111f678231e266013ab38dbb02f333782f3c7c487aae2db4072a",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:AF-2008-001",
+  "prompt_kind": "icam",
+  "prompt_sha256": "5e1278383c220451deacdbecf6f97cb1bd57814ebb3e328821297bcfd74ab0a9",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "POSITIVE_ISOLATION_APPLICATION",
+        "finding": "Control POSITIVE_ISOLATION_APPLICATION: the application of positive isolation devices and personal locks had been bypassed, and the accident investigation classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "SWITCHING_AUTHORISATION",
+        "finding": "Control SWITCHING_AUTHORISATION: the authorisation of switching and access to apparatus was not in place, and the accident investigation classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Restore the application of positive isolation devices and personal locks on TX-3002 and record the spot check before this task is next authorised."
+    ],
+    "sequence": "Work was under way in controlling access to energised apparatus, specifically testing for dead and applying earths. TX-3002 (switchgear and transformers) is in service for plant HV/LV distribution. The task proceeded during an intrusive maintenance task while the application of positive isolation devices and personal locks had been bypassed. The electrical energy involved is held as HV switchgear, and the recorded presentation was shock, arc flash, unplanned energisation.",
+    "summary": "On 1 February 2008 a planned spot check of TX-3002 at Marrindal Concentrator and Hydrocarbon Transfer Facility found the application of positive isolation devices and personal locks not effective."
+  },
+  "response_sha256": "78d36c601deeae4480ec529a3da8deb11fb215783852274a086480303dcba2ec",
+  "source": null
+}

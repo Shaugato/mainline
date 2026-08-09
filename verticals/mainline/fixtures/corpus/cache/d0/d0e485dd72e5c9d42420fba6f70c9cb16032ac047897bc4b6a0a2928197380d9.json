@@ -1,0 +1,91 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "inspecting Ex equipment and enclosures",
+    "activity_root": "CONTROL-OF-IGNITION-SOURCES",
+    "activity_series": "maintaining hazardous-area electrical equipment",
+    "assets": [
+      {
+        "asset_class": "HTP-CLASS-A",
+        "label": "hydrocarbon transfer pumps",
+        "service": "hydrocarbon transfer, single mechanical seal with pressurised barrier-fluid support",
+        "tag": "P-4103"
+      },
+      {
+        "asset_class": "MOTOR-CLASS-A",
+        "label": "drive motor",
+        "service": "drives P-4103",
+        "tag": "M-4103"
+      },
+      {
+        "asset_class": "INST-CLASS-A",
+        "label": "instrument loop",
+        "service": "governs P-4103",
+        "tag": "PT-4103"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "SEAL_FACE_TEMPERATURE_ALARM",
+        "control_label": "seal-face high-temperature alarm and trip",
+        "failure_mode": "ineffective",
+        "hazard_energy": "thermal",
+        "icam_tier": "organisational_factor"
+      }
+    ],
+    "event_ref": "AF-2025-005",
+    "hazard_energy": "thermal",
+    "hazard_media": [
+      "hot surface",
+      "steam",
+      "molten material",
+      "hot work",
+      "exothermic reaction"
+    ],
+    "hazard_release": "burn, ignition, scald",
+    "kind": "audit_finding",
+    "occurred_on": "2025-08-09",
+    "severity_actual": 0,
+    "severity_potential": 2,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during a breakdown response",
+    "title": "audit finding - change assurance not applied to P-4103",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "d0e485dd72e5c9d42420fba6f70c9cb16032ac047897bc4b6a0a2928197380d9",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:AF-2025-005",
+  "prompt_kind": "icam",
+  "prompt_sha256": "591e6ee3945fc5dada2a55f5295c34991887327ddd80b6958a12de889bd7449f",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 2 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "SEAL_FACE_TEMPERATURE_ALARM",
+        "finding": "Control SEAL_FACE_TEMPERATURE_ALARM: the seal-face high-temperature alarm and trip was in place but did not perform, and the learning team review classified this as an organisational factor."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next assurance activity that the seal-face high-temperature alarm and trip on P-4103, M-4103 and PT-4103 performs as designed."
+    ],
+    "sequence": "Work was under way in maintaining hazardous-area electrical equipment, specifically inspecting Ex equipment and enclosures. P-4103 (hydrocarbon transfer pumps) is in service for hydrocarbon transfer, single mechanical seal with pressurised barrier-fluid support. The task proceeded during a breakdown response while the seal-face high-temperature alarm and trip was in place but did not perform. The thermal energy involved is held as hot surface, and the recorded presentation was burn, ignition, scald.",
+    "summary": "On 9 August 2025 a planned assurance activity of P-4103, M-4103 and PT-4103 at Marrindal Concentrator and Hydrocarbon Transfer Facility found the seal-face high-temperature alarm and trip not effective."
+  },
+  "response_sha256": "ed6ca81ae98b7d8ea58bb614e4b6ed4bcf76894a39c66a735bc39b7494d992a6",
+  "source": null
+}

@@ -1,0 +1,92 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "setting, testing and sealing pressure relief devices",
+    "activity_root": "PRESSURE-SYSTEM-INTEGRITY",
+    "activity_series": "verifying pressure relief and protection",
+    "assets": [
+      {
+        "asset_class": "CYC-CLASS-A",
+        "label": "cyclone clusters",
+        "service": "classification duty on the grinding circuit",
+        "tag": "CY-3211"
+      }
+    ],
+    "consequence": {
+      "days_lost": 4,
+      "injuries": 1,
+      "label": "lost time injury"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "PRESSURE_RELIEF_DEVICE_INTEGRITY",
+        "control_label": "setting, testing and sealing of pressure relief devices",
+        "failure_mode": "not_verified",
+        "hazard_energy": "pressure",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "STEAM_SYSTEM_WARM_THROUGH",
+        "control_label": "controlled draining, venting and warm-through of steam systems",
+        "failure_mode": "ineffective",
+        "hazard_energy": "pressure",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "INC-2024-006",
+    "hazard_energy": "pressure",
+    "hazard_media": [
+      "hydraulic accumulator",
+      "barrier fluid",
+      "process gas",
+      "steam header",
+      "compressed air",
+      "trapped liquid"
+    ],
+    "hazard_release": "jet release, stored-energy discharge, rupture",
+    "kind": "incident",
+    "occurred_on": "2024-05-11",
+    "severity_actual": 3,
+    "severity_potential": 3,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during an intrusive maintenance task",
+    "title": "injury during an intrusive maintenance task on CY-3211",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "6b2abcbec15b44f5e4e1c90aa2309d41fbe3e9262d3b9749872f601564f9df06",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2024-006",
+  "prompt_kind": "icam",
+  "prompt_sha256": "9b5994d77baf960c9c77ce89f75ac40efa1b71130e03cb98a37b0902b109b96a",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was lost time injury, with 1 person injured and 4 days lost.",
+    "defences": [
+      {
+        "control_class": "PRESSURE_RELIEF_DEVICE_INTEGRITY",
+        "finding": "Control PRESSURE_RELIEF_DEVICE_INTEGRITY: the setting, testing and sealing of pressure relief devices was never verified as effective, and the learning team review classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "STEAM_SYSTEM_WARM_THROUGH",
+        "finding": "Control STEAM_SYSTEM_WARM_THROUGH: the controlled draining, venting and warm-through of steam systems was in place but did not perform, and the learning team review classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Restore the setting, testing and sealing of pressure relief devices on CY-3211 and record the assurance activity before this task is next authorised."
+    ],
+    "sequence": "Work was under way in verifying pressure relief and protection, specifically setting, testing and sealing pressure relief devices. CY-3211 (cyclone clusters) is in service for classification duty on the grinding circuit. The task proceeded during an intrusive maintenance task while the setting, testing and sealing of pressure relief devices was never verified as effective. The pressure energy involved is held as hydraulic accumulator, and the recorded presentation was jet release, stored-energy discharge, rupture.",
+    "summary": "On 11 May 2024 an incident occurred on CY-3211 at Marrindal Concentrator and Hydrocarbon Transfer Facility during an intrusive maintenance task, releasing pressure energy held as hydraulic accumulator."
+  },
+  "response_sha256": "c7287e92cb01903ffadc805067eaa2105fb3a0296c86721ccf52fd64142b8686",
+  "source": null
+}

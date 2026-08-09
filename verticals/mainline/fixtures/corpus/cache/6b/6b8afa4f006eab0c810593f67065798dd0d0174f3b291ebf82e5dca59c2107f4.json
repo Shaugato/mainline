@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "barrier_role": "preventive",
+    "control_class": "ZERO_ENERGY_VERIFICATION",
+    "control_delta": "restate",
+    "control_label": "proving zero energy before intrusive work",
+    "doc_code": "STD-ISO-006",
+    "doc_family": "STD",
+    "doc_title": "Isolation of Stored Energy",
+    "effective_on": "2023-11-17",
+    "printed_label": "12.1.6",
+    "setpoint": {
+      "from": 12.0,
+      "key": "isolation_verification_interval",
+      "label": "re-verification interval for a long-duration isolation",
+      "strengthen_direction": "lower",
+      "to": 12.0,
+      "unit": "hours"
+    },
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "energy_isolation": "positive isolation verification",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "6b8afa4f006eab0c810593f67065798dd0d0174f3b291ebf82e5dca59c2107f4",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/STD-ISO-006/007#MRD/STD-ISO-006/2.1",
+  "prompt_kind": "clause",
+  "prompt_sha256": "e12ae2bca7d9a3c189f4b8ec31fb5e88ed2d1197a13aad1f4909e0cff6f3bc74",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The proving zero energy before intrusive work shall be provided and maintained wherever this standard applies, and its condition shall be treated as a material unwanted event control. The re-verification interval for a long-duration isolation shall be set at 12 hours. This clause applies to activities archived under ISOLATION-OF-STORED-ENERGY at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "cb605b9f602ad6b2318e6be014dce2257e1397beb4a100c38f6083d2e59c3538",
+  "source": null
+}

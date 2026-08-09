@@ -1,0 +1,91 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "charging, tying in and guarding a blast",
+    "activity_root": "EXPLOSIVES-AND-BLASTING",
+    "activity_series": "charging and firing",
+    "assets": [
+      {
+        "asset_class": "MAG-CLASS-A",
+        "label": "explosives magazines",
+        "service": "explosives and detonator storage",
+        "tag": "MAG-9602"
+      }
+    ],
+    "consequence": {
+      "days_lost": 4,
+      "injuries": 1,
+      "label": "lost time injury"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "BLAST_GUARDING_AND_CLEARANCE",
+        "control_label": "guarding, clearance and misfire handling for a blast",
+        "failure_mode": "bypassed",
+        "hazard_energy": "kinetic",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "EXPLOSIVES_RECONCILIATION",
+        "control_label": "receipt, magazining and reconciliation of explosives",
+        "failure_mode": "absent",
+        "hazard_energy": "chemical",
+        "icam_tier": "organisational_factor"
+      }
+    ],
+    "event_ref": "INC-2005-006",
+    "hazard_energy": "thermal",
+    "hazard_media": [
+      "hot surface",
+      "steam",
+      "molten material",
+      "hot work",
+      "exothermic reaction"
+    ],
+    "hazard_release": "burn, ignition, scald",
+    "kind": "incident",
+    "occurred_on": "2005-03-24",
+    "severity_actual": 3,
+    "severity_potential": 3,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during cleaning and preparation",
+    "title": "thermal release during cleaning and preparation on MAG-9602",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "investigation": "accident investigation",
+      "near_miss": "near hit",
+      "verification": "spot check"
+    }
+  },
+  "key": "b29add59ec4f264937a3995ff5789b050411503a6f36f2fa0649ac81c0f257b3",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2005-006",
+  "prompt_kind": "icam",
+  "prompt_sha256": "bc3256e365bd1fdf38d42e686285250150b9a586b7755b7eefbe2d755f9481a1",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was lost time injury, with 1 person injured and 4 days lost.",
+    "defences": [
+      {
+        "control_class": "BLAST_GUARDING_AND_CLEARANCE",
+        "finding": "Control BLAST_GUARDING_AND_CLEARANCE: the guarding, clearance and misfire handling for a blast had been bypassed, and the accident investigation classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "EXPLOSIVES_RECONCILIATION",
+        "finding": "Control EXPLOSIVES_RECONCILIATION: the receipt, magazining and reconciliation of explosives was not in place, and the accident investigation classified this as an organisational factor."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next spot check that the guarding, clearance and misfire handling for a blast on MAG-9602 performs as designed."
+    ],
+    "sequence": "Work was under way in charging and firing, specifically charging, tying in and guarding a blast. MAG-9602 (explosives magazines) is in service for explosives and detonator storage. The task proceeded during cleaning and preparation while the guarding, clearance and misfire handling for a blast had been bypassed. The thermal energy involved is held as hot surface, and the recorded presentation was burn, ignition, scald.",
+    "summary": "On 24 March 2005 an incident occurred on MAG-9602 at Yandarra Downs Open Cut and Heavy Workshop during cleaning and preparation, releasing thermal energy held as hot surface."
+  },
+  "response_sha256": "730a68a55295624e723ebd244b78394169977fea0ed0786924fc0dd890d4cf9b",
+  "source": null
+}

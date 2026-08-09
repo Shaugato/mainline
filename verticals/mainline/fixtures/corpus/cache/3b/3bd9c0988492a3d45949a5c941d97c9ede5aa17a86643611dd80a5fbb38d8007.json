@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONFINED-SPACE-ENTRY",
+    "barrier_role": "recovery",
+    "control_class": "STANDBY_ATTENDANCE_AND_RESCUE",
+    "control_delta": "restate",
+    "control_label": "standby attendance and non-entry rescue capability",
+    "doc_code": "STD-CSE-002",
+    "doc_family": "STD",
+    "doc_title": "Confined Spaces",
+    "effective_on": "2023-10-08",
+    "printed_label": "4.2.9",
+    "setpoint": null,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "energy_isolation": "positive isolation verification",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "3bd9c0988492a3d45949a5c941d97c9ede5aa17a86643611dd80a5fbb38d8007",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:CVY/STD-CSE-002/006#CVY/STD-CSE-002/5.5",
+  "prompt_kind": "clause",
+  "prompt_sha256": "9caa1afecb978727faae2518a9a7a57bdb0ba249d84eaa60f87bb5aa2318d184",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The standby attendance and non-entry rescue capability shall be provided and maintained wherever this standard applies, and its condition shall be treated as a material unwanted event control. This clause applies to activities archived under CONFINED-SPACE-ENTRY at Cape Verity Export Terminal.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "0db8e3c65c9b7015571d995b05e10f239dab2b486915a9a600f863df0a5ec51b",
+  "source": null
+}

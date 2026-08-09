@@ -1,0 +1,91 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "assessing and permitting hot work adjacent to live plant",
+    "activity_root": "CONTROL-OF-IGNITION-SOURCES",
+    "activity_series": "authorising hot work",
+    "assets": [
+      {
+        "asset_class": "ELEC-CLASS-A",
+        "label": "switchgear and transformers",
+        "service": "plant HV/LV distribution",
+        "tag": "TX-3002"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "HAZARDOUS_AREA_EQUIPMENT_INTEGRITY",
+        "control_label": "integrity of explosion-protected equipment in zoned areas",
+        "failure_mode": "not_verified",
+        "hazard_energy": "electrical",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "SEAL_FACE_TEMPERATURE_ALARM",
+        "control_label": "seal-face high-temperature alarm and trip",
+        "failure_mode": "not_verified",
+        "hazard_energy": "thermal",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "INC-2018-019",
+    "hazard_energy": "electrical",
+    "hazard_media": [
+      "HV switchgear",
+      "LV distribution",
+      "capacitive storage",
+      "induced voltage",
+      "portable equipment"
+    ],
+    "hazard_release": "shock, arc flash, unplanned energisation",
+    "kind": "incident",
+    "occurred_on": "2018-10-13",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during transfer operations",
+    "title": "electrical release during transfer operations on TX-3002",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "46f6702cbd2a5ddc804723413ed77fc4328999217f53537528ba54b0df62f4aa",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2018-019",
+  "prompt_kind": "icam",
+  "prompt_sha256": "f7284b47a736554df5e66438e3b40b6d07da49d025f4a275e04c222797dec9cf",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "HAZARDOUS_AREA_EQUIPMENT_INTEGRITY",
+        "finding": "Control HAZARDOUS_AREA_EQUIPMENT_INTEGRITY: the integrity of explosion-protected equipment in zoned areas was never verified as effective, and the ICAM investigation classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "SEAL_FACE_TEMPERATURE_ALARM",
+        "finding": "Control SEAL_FACE_TEMPERATURE_ALARM: the seal-face high-temperature alarm and trip was never verified as effective, and the ICAM investigation classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next critical control verification that the integrity of explosion-protected equipment in zoned areas on TX-3002 performs as designed."
+    ],
+    "sequence": "Work was under way in authorising hot work, specifically assessing and permitting hot work adjacent to live plant. TX-3002 (switchgear and transformers) is in service for plant HV/LV distribution. The task proceeded during transfer operations while the integrity of explosion-protected equipment in zoned areas was never verified as effective. The electrical energy involved is held as HV switchgear, and the recorded presentation was shock, arc flash, unplanned energisation.",
+    "summary": "On 13 October 2018 an incident occurred on TX-3002 at Marrindal Concentrator and Hydrocarbon Transfer Facility during transfer operations, releasing electrical energy held as HV switchgear."
+  },
+  "response_sha256": "6456cca0c28794be6caf8d92bd7213ade5100bad1fce00769207b38ea9a0ffea",
+  "source": null
+}

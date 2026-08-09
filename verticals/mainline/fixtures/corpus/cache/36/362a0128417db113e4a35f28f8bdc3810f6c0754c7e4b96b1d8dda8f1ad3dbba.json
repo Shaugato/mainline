@@ -1,0 +1,109 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "proving overpressure protection is in service",
+    "activity_root": "PRESSURE-SYSTEM-INTEGRITY",
+    "activity_series": "verifying pressure relief and protection",
+    "assets": [
+      {
+        "asset_class": "HTP-CLASS-A",
+        "label": "hydrocarbon transfer pumps",
+        "service": "hydrocarbon transfer, single mechanical seal with pressurised barrier-fluid support",
+        "tag": "P-4105"
+      },
+      {
+        "asset_class": "INST-CLASS-A",
+        "label": "instrument loop",
+        "service": "governs P-4105",
+        "tag": "TT-4105"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "PRESSURE_EQUIPMENT_INSPECTION",
+        "control_label": "in-service inspection of pressure equipment",
+        "failure_mode": "not_verified",
+        "hazard_energy": "pressure",
+        "icam_tier": "organisational_factor"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "STEAM_SYSTEM_WARM_THROUGH",
+        "control_label": "controlled draining, venting and warm-through of steam systems",
+        "failure_mode": "not_verified",
+        "hazard_energy": "thermal",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "STORED_ENERGY_DISSIPATION",
+        "control_label": "dissipation or restraint of trapped and residual energy",
+        "failure_mode": "not_verified",
+        "hazard_energy": "pressure",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "NM-2013-0020",
+    "hazard_energy": "thermal",
+    "hazard_media": [
+      "hot surface",
+      "steam",
+      "molten material",
+      "hot work",
+      "exothermic reaction"
+    ],
+    "hazard_release": "burn, ignition, scald",
+    "kind": "near_miss",
+    "occurred_on": "2013-11-24",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during a statutory inspection",
+    "title": "hazard report during a statutory inspection on P-4105",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "362a0128417db113e4a35f28f8bdc3810f6c0754c7e4b96b1d8dda8f1ad3dbba",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2013-0020",
+  "prompt_kind": "icam",
+  "prompt_sha256": "9443e5d6549cf2839fbfa6b959b9581d12878cb7ab19736414fc19f2a74fc0f2",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "PRESSURE_EQUIPMENT_INSPECTION",
+        "finding": "Control PRESSURE_EQUIPMENT_INSPECTION: the in-service inspection of pressure equipment was never verified as effective, and the root cause analysis classified this as an organisational factor."
+      },
+      {
+        "control_class": "STEAM_SYSTEM_WARM_THROUGH",
+        "finding": "Control STEAM_SYSTEM_WARM_THROUGH: the controlled draining, venting and warm-through of steam systems was never verified as effective, and the root cause analysis classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "STORED_ENERGY_DISSIPATION",
+        "finding": "Control STORED_ENERGY_DISSIPATION: the dissipation or restraint of trapped and residual energy was never verified as effective, and the root cause analysis classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next field verification that the in-service inspection of pressure equipment on P-4105 and TT-4105 performs as designed."
+    ],
+    "sequence": "Work was under way in verifying pressure relief and protection, specifically proving overpressure protection is in service. P-4105 (hydrocarbon transfer pumps) is in service for hydrocarbon transfer, single mechanical seal with pressurised barrier-fluid support. The task proceeded during a statutory inspection while the in-service inspection of pressure equipment was never verified as effective. The thermal energy involved is held as hot surface, and the recorded presentation was burn, ignition, scald.",
+    "summary": "On 24 November 2013 a hazard report was recorded on P-4105 and TT-4105 at Marrindal Concentrator and Hydrocarbon Transfer Facility during a statutory inspection; thermal energy held as hot surface was not released."
+  },
+  "response_sha256": "8ae364f3dbf25c6a25e4e42f594770daa5300c47d403d3e641a0f8d01f41feea",
+  "source": null
+}

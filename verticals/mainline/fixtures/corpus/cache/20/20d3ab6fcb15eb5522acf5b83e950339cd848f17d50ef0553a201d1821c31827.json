@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "LIFTING-AND-SUSPENDED-LOADS",
+    "barrier_role": "preventive",
+    "control_class": "LIFTING_GEAR_INSPECTION",
+    "control_delta": "strengthen",
+    "control_label": "inspection and periodic proof testing of lifting gear",
+    "doc_code": "STD-LFT-003",
+    "doc_family": "STD",
+    "doc_title": "Lifting and Cranage",
+    "effective_on": "2009-01-24",
+    "printed_label": "3.1",
+    "setpoint": {
+      "from": 6.0,
+      "key": "lifting_gear_inspection_interval",
+      "label": "periodic inspection interval for lifting gear",
+      "strengthen_direction": "lower",
+      "to": 3.0,
+      "unit": "months"
+    },
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "20d3ab6fcb15eb5522acf5b83e950339cd848f17d50ef0553a201d1821c31827",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:YND/STD-LFT-003/003#YND/STD-LFT-003/3.1",
+  "prompt_kind": "clause",
+  "prompt_sha256": "b6e77c96af3beb088a933846bbe611b8ace459f95984f722247c45981e8a8d0b",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The inspection and periodic proof testing of lifting gear must be provided, and its effectiveness must be recorded as a spot check before the task proceeds. The periodic inspection interval for lifting gear must be set at 3 months. This clause applies to activities archived under LIFTING-AND-SUSPENDED-LOADS at Yandarra Downs Open Cut and Heavy Workshop.",
+    "obligation_verb": "must"
+  },
+  "response_sha256": "18cdbe3e78f78279684b64c4554ff40caabb8d5077ec9c8cfb92902859883f8a",
+  "source": null
+}

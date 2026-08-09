@@ -1,0 +1,102 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "managing freeboard, beach and decant",
+    "activity_root": "TAILINGS-AND-WATER-IMPOUNDMENT",
+    "activity_series": "operating an impoundment",
+    "assets": [
+      {
+        "asset_class": "THK-CLASS-A",
+        "label": "tailings thickener",
+        "service": "tailings thickening and decant",
+        "tag": "TH-3240"
+      },
+      {
+        "asset_class": "INST-CLASS-A",
+        "label": "instrument loop",
+        "service": "governs TH-3240",
+        "tag": "LT-3240"
+      },
+      {
+        "asset_class": "MOTOR-CLASS-A",
+        "label": "drive motor",
+        "service": "drives TH-3240",
+        "tag": "M-3240"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "EMBANKMENT_SURVEILLANCE",
+        "control_label": "surveillance of embankments and instrumentation",
+        "failure_mode": "degraded",
+        "hazard_energy": "gravity",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "IMPOUNDMENT_FREEBOARD_CONTROL",
+        "control_label": "control of freeboard, beach width and decant",
+        "failure_mode": "degraded",
+        "hazard_energy": "gravity",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "AF-2011-002",
+    "hazard_energy": "gravity",
+    "hazard_media": [
+      "suspended load",
+      "stored potential of an elevated component",
+      "unsupported ground",
+      "person at height"
+    ],
+    "hazard_release": "fall, collapse, crush",
+    "kind": "audit_finding",
+    "occurred_on": "2011-03-21",
+    "severity_actual": 0,
+    "severity_potential": 2,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during a statutory inspection",
+    "title": "audit finding - change request not applied to TH-3240",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "e55ea5d406f74362bfd4ef6df6452eec2b2e158184f4159d51f5ab6b4cef2b48",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:AF-2011-002",
+  "prompt_kind": "icam",
+  "prompt_sha256": "7fce752f866ea8a52f5bd61c571df44fe8c212d18bceb8c546b5c6fe4bb344af",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 2 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "EMBANKMENT_SURVEILLANCE",
+        "finding": "Control EMBANKMENT_SURVEILLANCE: the surveillance of embankments and instrumentation had degraded below its design intent, and the root cause analysis classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "IMPOUNDMENT_FREEBOARD_CONTROL",
+        "finding": "Control IMPOUNDMENT_FREEBOARD_CONTROL: the control of freeboard, beach width and decant had degraded below its design intent, and the root cause analysis classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Restore the surveillance of embankments and instrumentation on TH-3240, LT-3240 and M-3240 and record the field verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in operating an impoundment, specifically managing freeboard, beach and decant. TH-3240 (tailings thickener) is in service for tailings thickening and decant. The task proceeded during a statutory inspection while the surveillance of embankments and instrumentation had degraded below its design intent. The gravity energy involved is held as suspended load, and the recorded presentation was fall, collapse, crush.",
+    "summary": "On 21 March 2011 a planned field verification of TH-3240, LT-3240 and M-3240 at Marrindal Concentrator and Hydrocarbon Transfer Facility found the surveillance of embankments and instrumentation not effective."
+  },
+  "response_sha256": "0f8dd36446abe056e66aa2f913036bde6eae6db19f00b5382fac935ec7cd5867",
+  "source": null
+}

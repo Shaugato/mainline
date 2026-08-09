@@ -1,0 +1,102 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "applying locks, tags and personal danger tags",
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "activity_series": "applying and verifying an isolation",
+    "assets": [
+      {
+        "asset_class": "MILL-CLASS-A",
+        "label": "grinding mills",
+        "service": "two-line ball milling",
+        "tag": "ML-3202"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "ENERGY_SOURCE_IDENTIFICATION",
+        "control_label": "identification of every energy source for the task",
+        "failure_mode": "absent",
+        "hazard_energy": "kinetic",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "LOAD_SUPPORT_FOR_MAINTENANCE",
+        "control_label": "mechanical support of a load during maintenance access",
+        "failure_mode": "absent",
+        "hazard_energy": "gravity",
+        "icam_tier": "organisational_factor"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "PARK_UP_AND_RESTRAINT",
+        "control_label": "parking, chocking and restraint of equipment",
+        "failure_mode": "absent",
+        "hazard_energy": "gravity",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "NM-2022-0018",
+    "hazard_energy": "gravity",
+    "hazard_media": [
+      "suspended load",
+      "stored potential of an elevated component",
+      "unsupported ground",
+      "person at height"
+    ],
+    "hazard_release": "fall, collapse, crush",
+    "kind": "near_miss",
+    "occurred_on": "2022-12-12",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during shift handover",
+    "title": "unrelieved potential energy found after isolation of ML-3202",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "e2e5445d8a4779db4e22ac69313268a1f8d9f20d307bf0f56a6d9a14f6668011",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2022-0018",
+  "prompt_kind": "icam",
+  "prompt_sha256": "717a6aaef01a8bae63311d33b21d990030a1a299e6344c880e9c670636b5d97f",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "ENERGY_SOURCE_IDENTIFICATION",
+        "finding": "Control ENERGY_SOURCE_IDENTIFICATION: the identification of every energy source for the task was not in place, and the learning team review classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "LOAD_SUPPORT_FOR_MAINTENANCE",
+        "finding": "Control LOAD_SUPPORT_FOR_MAINTENANCE: the mechanical support of a load during maintenance access was not in place, and the learning team review classified this as an organisational factor."
+      },
+      {
+        "control_class": "PARK_UP_AND_RESTRAINT",
+        "finding": "Control PARK_UP_AND_RESTRAINT: the parking, chocking and restraint of equipment was not in place, and the learning team review classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next assurance activity that the identification of every energy source for the task on ML-3202 performs as designed."
+    ],
+    "sequence": "Work was under way in applying and verifying an isolation, specifically applying locks, tags and personal danger tags. ML-3202 (grinding mills) is in service for two-line ball milling. The task proceeded during shift handover while the identification of every energy source for the task was not in place. The gravity energy involved is held as suspended load, and the recorded presentation was fall, collapse, crush.",
+    "summary": "On 12 December 2022 a high potential incident was recorded on ML-3202 at Marrindal Concentrator and Hydrocarbon Transfer Facility during shift handover; gravity energy held as suspended load was not released."
+  },
+  "response_sha256": "da793f1fc41a2e82f98f19193157f63c8b0cbc234763db186d7d6d397d25d25a",
+  "source": null
+}

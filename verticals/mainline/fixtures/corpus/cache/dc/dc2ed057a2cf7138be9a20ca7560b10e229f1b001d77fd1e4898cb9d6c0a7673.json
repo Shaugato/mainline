@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ELECTRICAL-SAFETY",
+    "barrier_role": "preventive",
+    "control_class": "ZERO_ENERGY_VERIFICATION",
+    "control_delta": "restate",
+    "control_label": "proving zero energy before intrusive work",
+    "doc_code": "PRO-ELE-026",
+    "doc_family": "PRO",
+    "doc_title": "High Voltage Switching and Access",
+    "effective_on": "2016-11-21",
+    "printed_label": "6.1.2",
+    "setpoint": null,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "dc2ed057a2cf7138be9a20ca7560b10e229f1b001d77fd1e4898cb9d6c0a7673",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:TLG/PRO-ELE-026/005#TLG/PRO-ELE-026/9.4.2(b)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "2d82dd7f7501135958d5b19a494fea25d87c94e292e7ce443a4172e1748fedbf",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The proving zero energy before intrusive work shall be provided and maintained wherever this procedure applies, and its condition shall be treated as a critical control. This clause applies to activities archived under ELECTRICAL-SAFETY at Tolgarra Processing and Power Station.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "670991aa28f03fcd2fab0cd2bdf1ed2ef4ea643786590fbb905243ee89893cfc",
+  "source": null
+}

@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "barrier_role": "preventive",
+    "control_class": "ENERGY_SOURCE_IDENTIFICATION",
+    "control_delta": "introduce",
+    "control_label": "identification of every energy source for the task",
+    "doc_code": "PTW-STD-004",
+    "doc_family": "PTW",
+    "doc_title": "Permit to Work Form Set",
+    "effective_on": "2004-11-11",
+    "printed_label": "2.1",
+    "setpoint": null,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "27f5efc7a0f7e96efdd34653f827e87e5b096e2c251b494ad676b19a87e3f274",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:YND/PTW-STD-004/001#YND/PTW-STD-004/2.1",
+  "prompt_kind": "clause",
+  "prompt_sha256": "4c5f84d8825ec8a9f5be2b89af3341ec40ddbd0935a4178611ae1d0a59dd7315",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The identification of every energy source for the task shall be provided and maintained for work covered by this permit-to-work form set. This clause applies to activities archived under ISOLATION-OF-STORED-ENERGY at Yandarra Downs Open Cut and Heavy Workshop.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "eee1d4261c9c1367456d71bbdaa089cd29e9b58bd4d1df09ce16e33ce49cd3cb",
+  "source": null
+}

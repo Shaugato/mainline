@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 7,
+    "doc_code": "STD-ELE-009",
+    "doc_family": "STD",
+    "doc_title": "Electrical Safety",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2025-11-18",
+    "required_citations": [],
+    "rev_no": 8,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "learning team review",
+      "management_of_change": "change assurance",
+      "near_miss": "high potential incident"
+    }
+  },
+  "key": "b927a47399a7adb7a11dcc853f7aed6b4061f7f782c2340a7b7cdeef0a9fbe05",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:TLG/STD-ELE-009/008",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "cc8031657042759ddb64d621fd656550fb17b5fca06096da4cdb0cf0c5e3a607",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [],
+    "reason": "Scheduled review at revision 8; 7 clauses restated."
+  },
+  "response_sha256": "31320d4fdbab045dcef0e1fa7c0e7b5bc7fc5bf6d042ffb30d31b7ea168d2c3d",
+  "source": null
+}

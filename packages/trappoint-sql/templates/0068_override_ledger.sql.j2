@@ -1,0 +1,98 @@
+{# SPDX-FileCopyrightText: 2026 MAINLINE contributors #}
+{# SPDX-License-Identifier: Apache-2.0 #}
+{#
+  Migration 0068 — THE OVERRIDE LADDER
+  (ARCHITECTURE.md §5.5 `override_ledger`; §16 MI29; finding S8; rulings D2 and D7.)
+
+  MI29 in one sentence: EMERGENCY OVERRIDES ESCALATE AGAINST THE PERSON, ACROSS SUBJECTS,
+  WITH NO CEILING.
+
+  The failure this table exists to prevent is the most ordinary one in the whole design.
+  A per-permit override budget resets every time a new permit is raised, so the fortieth
+  override by the same supervisor is as cheap as the first, and the emergency
+  constructor becomes the normal one. Scoping the ladder to the SIGNER and to the SITE —
+  not to the subject — is what makes each successive override cost more than the last.
+  `disposition.override_escalates` reads `signer_rank >= 3 + prior_override_count`, and
+  `prior_override_count` is PROJECTED from this table, so the count cannot be supplied by
+  the person it is counting.
+
+  NO CEILING, DELIBERATELY. The rank required rises without bound, so past some number of
+  overrides nobody at the site can sign one and the decision leaves the site. A ceiling
+  would be the rung at which the ladder stops meaning anything, and it would be the rung
+  every heavy user lives on. `person_rank_range` caps a person at rank 9, so the arithmetic
+  is self-limiting in exactly the intended way: the seventh override in the window is
+  unsignable by anyone, rather than free.
+
+  THE WINDOW IS THE INDEX, NOT A COLUMN. `(site_id, signer_sub, at DESC)` makes "how many
+  overrides has this person signed at this site since T" a seek plus a short scan. Storing
+  a materialised counter on `person` would put a hot row under every override and would
+  make the count editable; deriving it from an append-only ledger makes the count a
+  consequence of the rows rather than a claim about them.
+#}
+-- @file 0068_override_ledger.sql
+{{ header(file='0068_override_ledger.sql',
+          title='CREATE TABLE ' ~ binding.schema ~ '.override_ledger — the escalation ladder, scoped to the person',
+          rationale='A per-subject override budget resets whenever a new subject is raised, so the fortieth override is as cheap as the first and the emergency constructor becomes the normal one. Scoping the ladder to the signer and the site is what makes each successive override cost a higher rank; prior_override_count is projected from this table onto the disposition, so the count cannot be supplied by the person being counted, and there is no ceiling because a ceiling is the rung every heavy user would live on.',
+          mi=['MI29'], i=['I10'], counsel_gated=True) }}
+--
+-- SUBJECT-POLYMORPHIC UNDER RULING D2, over the {{ subjects | length }} gated subject(s) declared:
+{% for s in subjects %}
+--   {{ s.kind }} -> {{ binding.schema }}.{{ s.table }} ({{ s.id_column }})
+{% endfor %}
+--
+-- §5.5 gives this table `permit_id UUID NOT NULL`, for the same pre-S16 reason
+-- `disposition` did. If a change request can carry an obligation — and MI30 says it must
+-- — then it can carry an emergency override, and a ledger that cannot record one would
+-- make the CR path the cheap way around the ladder. That is a worse failure than the
+-- brick wall, because it is invisible: every constraint stays green while the escalation
+-- silently stops counting half the overrides.
+--
+-- APPEND-ONLY, AND THE APPEND IS NOT THE WRITER'S CHOICE. Rows here are written by the
+-- disposition family's AFTER trigger, never by an application. `fk_override_disposition`
+-- is what makes that structural rather than conventional: an override row must name a
+-- disposition that already exists, so the append cannot happen in a BEFORE trigger and
+-- cannot name a signature that was never made. §5.5 leaves the column unreferenced; the
+-- foreign key is added here because an override ledger whose disposition_id points at
+-- nothing is a ladder made of numbers rather than of signatures.
+--
+-- `at` IS THE SERVER CLOCK AND THE LADDER'S ONLY ORDERING. A client-supplied timestamp
+-- would let an override be back-dated out of the window that counts it, which is the
+-- one edit that would defeat this table without touching a single constraint.
+--
+-- THE INDEX IS NAMED FOR ITS TABLE, not `by_signer` as §5.5 writes it. Migration 0023
+-- already ruled on this for the same reason: index names are exhibits, and an exhibit
+-- called `by_signer` in a schema with several by-signer indexes names nothing. It is
+-- declared INLINE because a single-statement file is the rule (ruling D7) and the index
+-- is not a separately diagnosable object here — an override ledger without its window
+-- index is not a degraded ledger, it is an unusable one.
+--
+-- NO ROW-LEVEL TTL. The ladder is monotone across the person's whole history at the
+-- site; a background deleter would silently reset it, and "the count went down because a
+-- job ran" is not a sentence that can be said in a deposition.
+
+CREATE TABLE {{ binding.schema }}.override_ledger (
+  override_id    UUID NOT NULL DEFAULT gen_random_uuid(),
+  site_id        UUID NOT NULL,
+  signer_sub     STRING NOT NULL,
+  subject_kind   STRING NOT NULL,
+{% for s in subjects %}
+  {{ '%-14s' | format(s.id_column) }} UUID NULL REFERENCES {{ binding.schema }}.{{ s.table }} ({{ s.id_column }}),
+{% endfor %}
+  disposition_id UUID NOT NULL,
+  at             TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT fk_override_disposition FOREIGN KEY (disposition_id)
+    REFERENCES {{ binding.schema }}.disposition (disposition_id),
+  CONSTRAINT override_subject_kind_known
+    CHECK (subject_kind IN ({% for s in subjects %}'{{ s.kind }}'{{ ', ' if not loop.last }}{% endfor %})),
+  CONSTRAINT exactly_one_subject
+{% if subjects | length == 2 %}
+    CHECK (({{ subjects[0].id_column }} IS NULL) <> ({{ subjects[1].id_column }} IS NULL)),
+{% else %}
+    CHECK ({% for s in subjects %}({{ s.id_column }} IS NOT NULL)::INT8{{ ' + ' if not loop.last }}{% endfor %} = 1),
+{% endif %}
+  CONSTRAINT subject_matches
+    CHECK ({% for s in subjects %}(subject_kind = '{{ s.kind }}' AND {{ s.id_column }} IS NOT NULL){{ '\n        OR ' if not loop.last }}{% endfor %}),
+  CONSTRAINT override_signer_sub_stated CHECK (signer_sub <> ''),
+  CONSTRAINT pk_override_ledger PRIMARY KEY (override_id),
+  INDEX override_ledger_by_signer (site_id, signer_sub, at DESC)
+);

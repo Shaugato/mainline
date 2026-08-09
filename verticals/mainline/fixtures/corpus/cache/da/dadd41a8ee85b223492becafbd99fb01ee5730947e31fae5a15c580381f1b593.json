@@ -1,0 +1,84 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "applying locks, tags and personal danger tags",
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "activity_series": "applying and verifying an isolation",
+    "assets": [
+      {
+        "asset_class": "LIFT-CLASS-W",
+        "label": "workshop hoists and press",
+        "service": "heavy vehicle component removal and pressing",
+        "tag": "PR-9410"
+      },
+      {
+        "asset_class": "ACC-CLASS-A",
+        "label": "hydraulic energy accumulator",
+        "service": "stores hydraulic energy released at PR-9410",
+        "tag": "ACC-9410"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "POSITIVE_ISOLATION_APPLICATION",
+        "control_label": "application of positive isolation devices and personal locks",
+        "failure_mode": "ineffective",
+        "hazard_energy": "pressure",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "AF-2024-001",
+    "hazard_energy": "gravity",
+    "hazard_media": [
+      "suspended load",
+      "stored potential of an elevated component",
+      "unsupported ground",
+      "person at height"
+    ],
+    "hazard_release": "fall, collapse, crush",
+    "kind": "audit_finding",
+    "occurred_on": "2024-02-02",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during routine operation",
+    "title": "audit finding - permit and isolation certificate records incomplete for PR-9410",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "dadd41a8ee85b223492becafbd99fb01ee5730947e31fae5a15c580381f1b593",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:AF-2024-001",
+  "prompt_kind": "icam",
+  "prompt_sha256": "10301bc164b5914b7c6e441e68d3a1d0dced46bf0f30be5c8c4888523f766965",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "POSITIVE_ISOLATION_APPLICATION",
+        "finding": "Control POSITIVE_ISOLATION_APPLICATION: the application of positive isolation devices and personal locks was in place but did not perform, and the learning team review classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next assurance activity that the application of positive isolation devices and personal locks on PR-9410 and ACC-9410 performs as designed."
+    ],
+    "sequence": "Work was under way in applying and verifying an isolation, specifically applying locks, tags and personal danger tags. PR-9410 (workshop hoists and press) is in service for heavy vehicle component removal and pressing. The task proceeded during routine operation while the application of positive isolation devices and personal locks was in place but did not perform. The gravity energy involved is held as suspended load, and the recorded presentation was fall, collapse, crush.",
+    "summary": "On 2 February 2024 a planned assurance activity of PR-9410 and ACC-9410 at Yandarra Downs Open Cut and Heavy Workshop found the application of positive isolation devices and personal locks not effective."
+  },
+  "response_sha256": "1e8ad79e4ffd233c097ca00aa25e2709c24d2664885ad79b0960a5fc97457f80",
+  "source": null
+}

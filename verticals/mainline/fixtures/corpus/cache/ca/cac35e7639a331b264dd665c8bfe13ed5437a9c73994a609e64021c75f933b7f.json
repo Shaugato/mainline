@@ -1,0 +1,116 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "testing earth leakage and protection settings",
+    "activity_root": "ELECTRICAL-SAFETY",
+    "activity_series": "maintaining protective systems",
+    "assets": [
+      {
+        "asset_class": "ELEC-CLASS-A",
+        "label": "mine switchgear",
+        "service": "pit and workshop distribution",
+        "tag": "TX-9001"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "HAZARDOUS_AREA_EQUIPMENT_INTEGRITY",
+        "control_label": "integrity of explosion-protected equipment in zoned areas",
+        "failure_mode": "ineffective",
+        "hazard_energy": "electrical",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "POSITIVE_ISOLATION_APPLICATION",
+        "control_label": "application of positive isolation devices and personal locks",
+        "failure_mode": "absent",
+        "hazard_energy": "electrical",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "SWITCHING_AUTHORISATION",
+        "control_label": "authorisation of switching and access to apparatus",
+        "failure_mode": "absent",
+        "hazard_energy": "electrical",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "ZERO_ENERGY_VERIFICATION",
+        "control_label": "proving zero energy before intrusive work",
+        "failure_mode": "bypassed",
+        "hazard_energy": "electrical",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "INC-2008-003",
+    "hazard_energy": "thermal",
+    "hazard_media": [
+      "hot surface",
+      "steam",
+      "molten material",
+      "hot work",
+      "exothermic reaction"
+    ],
+    "hazard_release": "burn, ignition, scald",
+    "kind": "incident",
+    "occurred_on": "2008-03-02",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during shift handover",
+    "title": "uncontrolled movement of TX-9001 during shift handover",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "investigation": "accident investigation",
+      "near_miss": "near hit",
+      "verification": "spot check"
+    }
+  },
+  "key": "cac35e7639a331b264dd665c8bfe13ed5437a9c73994a609e64021c75f933b7f",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2008-003",
+  "prompt_kind": "icam",
+  "prompt_sha256": "5215e1f3533088f583f58fb4573e996e0fc53aea01ca0af925b4af593885130e",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "HAZARDOUS_AREA_EQUIPMENT_INTEGRITY",
+        "finding": "Control HAZARDOUS_AREA_EQUIPMENT_INTEGRITY: the integrity of explosion-protected equipment in zoned areas was in place but did not perform, and the accident investigation classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "POSITIVE_ISOLATION_APPLICATION",
+        "finding": "Control POSITIVE_ISOLATION_APPLICATION: the application of positive isolation devices and personal locks was not in place, and the accident investigation classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "SWITCHING_AUTHORISATION",
+        "finding": "Control SWITCHING_AUTHORISATION: the authorisation of switching and access to apparatus was not in place, and the accident investigation classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "ZERO_ENERGY_VERIFICATION",
+        "finding": "Control ZERO_ENERGY_VERIFICATION: the proving zero energy before intrusive work had been bypassed, and the accident investigation classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the authorisation of switching and access to apparatus on TX-9001 and record the spot check before this task is next authorised.",
+      "Restore the proving zero energy before intrusive work on TX-9001 and record the spot check before this task is next authorised."
+    ],
+    "sequence": "Work was under way in maintaining protective systems, specifically testing earth leakage and protection settings. TX-9001 (mine switchgear) is in service for pit and workshop distribution. The task proceeded during shift handover while the integrity of explosion-protected equipment in zoned areas was in place but did not perform. The thermal energy involved is held as hot surface, and the recorded presentation was burn, ignition, scald.",
+    "summary": "On 2 March 2008 an incident occurred on TX-9001 at Yandarra Downs Open Cut and Heavy Workshop during shift handover, releasing thermal energy held as hot surface."
+  },
+  "response_sha256": "2d19fa1892049687ea20568f72b3d7c4e572ff20244d19f4762ce0f75fb0b6cb",
+  "source": null
+}

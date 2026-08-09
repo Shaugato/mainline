@@ -1,0 +1,377 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
+#
+# Novelty fragment per docs/leads/algorithms.md §6.  Validated by
+# tests/unit/domain/novelty/test_novelty_manifest.py (worker W10) and consumed
+# by MECHANISMS.md generation.  Anything not yet proven belongs under
+# `unverified:` and NEVER inside `claim:`.
+
+slug: abstention-ratchet
+name: ABSTENTION RATCHET
+mechanism: M1
+claim: >-
+  Two paths decide whether a clause edit weakens a safety control: a deterministic lattice
+  (Path A) and a language model (Path B).  They are combined by a resolution whose CODOMAIN IS
+  MONOTONE UPWARD IN FORCE — for every one of the 5 x 5 x 2 x 2 = 100 inputs, the resolved
+  control_delta is at least as forceful as the lattice's, so the model can make a merge be
+  refused and can never make one be allowed.  The guarantee is structural rather than reviewed:
+  the resolution is 100 literal rows of data, and the loader RAISES AT IMPORT on any row whose
+  resolved force is below its Path-A input, so a table that could clear a gate is a module that
+  does not load.  Abstention is the floor and it is wide: the model's own "I cannot tell", a
+  schema violation, a Guardrail intervention, a stop_reason of refusal, a truncated response, an
+  unmodelled stop reason, a throttle, a timeout, a supporting quote that is not verbatim in the
+  descendant text, an `entails` that admits a numeric disagreement while quoting no number, and
+  Path B never having run at all — every one of them resolves to `weaken`.
+  Path B contributes exactly two bits and one number to the decision: a label, an abstained flag,
+  and a confidence compared against a theta that is read from `identity_policy` and has NO DEFAULT
+  anywhere in the package.  Its rationale, its cited spans, its model id and its prompt version are
+  evidence attached to the record and are never terms in it; `delta_basis='lattice+model'` is
+  written only where the model's label RAISED the force, so the stored record never inflates the
+  model's role in a refusal the lattice found on its own.
+  The separation is a DISTRIBUTION boundary, not a convention: `mainline-delta-oracle` is a
+  different Python package, and an AST walk over every module of `mainline-domain` on disk — plus
+  its declared dependency list — refuses boto3, botocore, anthropic, strands, agentkit, any dotted
+  name containing `bedrock`, and imports written inside a function body.  Every neutral and every
+  abstention builds a `mainline_meas.silence_ledger` row carrying both labels, the confidence,
+  theta, the resolution table's version and content hash, the model id, the prompt version and the
+  Path-A witness set, so the answer to "your system looked at this edit and said nothing" is
+  arithmetic rather than an adverse inference.
+
+enforcement:
+  refuses:
+    - "ROWS loader (application, ValueError at module import) — a resolution cell whose force is lower than its Path-A input"
+    - "HumanVerdictNotResolvable (application) — a signed human verdict handed back to the machine resolution"
+    - "AlreadyResolved (application) — a resolved verdict fed to the ratchet a second time; resolution is not composable"
+    - "WitnesslessWeakening (application) — a lattice weaken/remove with an empty witness set, decision D8 one layer before the trigger"
+    - "MalformedOracleVerdict (application) — a confidence that is NaN, infinite or outside [0, 1]: refused, never coerced to zero"
+    - "ThetaOutOfRange (application) — a theta outside [0, 1]"
+    - "PolicyIncomplete (application) — theta absent, non-numeric or unhashed in identity_policy; there is no default to fall back to"
+    - "PathALeakage (application) — an outbound block carrying a rule id or the safe_direction registry"
+    - "PromptVersionMismatch / CassetteMiss / CassettePrefixDrift / CassetteModelDrift / CassetteRootUnknown (application) — a Path-B call that cannot be replayed under the prompt and model generation it was recorded against; a configuration refusal, never converted into an abstention"
+    - "SilenceRecord.__post_init__ (application) — a source or reason outside the mainline_meas.silence_ledger CHECK vocabulary, a severity outside 0..5, or a naive datetime"
+    - "silence_record() (application) — a 'silence' row for a resolution that ended in weaken or remove"
+  refusal_depth: 0
+# ZERO, and the zero is the honest number rather than a modest one.
+#
+# This worker writes no DDL.  It has no table, no CHECK, no trigger and no
+# SQLSTATE of its own, and every entry above is labelled `(application)` so that
+# nobody reads one as database enforcement: they stop a RUN, not a MERGE.
+#
+# What this fragment produces is a `ControlDelta` with a `delta_basis`.  The
+# refusals that follow from it are already claimed, at their true depth, by their
+# own manifests: `z_delta_witness_required` / `fn_delta_witness_guard` (P0001) is
+# DELTALATTICE's, and the merge refusal over severity >= 4 ancestry
+# (`gate_closed_when_issued` / `cr_gate_closed_when_merged`, 23514, MI30) is the
+# kernel lead's.  Counting either of them here would be counting one refusal
+# twice, which is exactly the inflation the `refusal_depth` field exists to make
+# visible.
+#
+# One entry deserves its own sentence because it is the load-bearing one and it
+# is unusual: THE TABLE REFUSES ITSELF AT IMPORT.  `_freeze()` walks all 100 rows
+# and raises `ValueError` on any row with `force(resolved) < force(path_a)`, on a
+# duplicate key, and on a table that is not total over the product of the enum.
+# The property "no cell lowers the verdict" is therefore not something a reviewer
+# has to check and not something a test happens to cover — it is a precondition
+# of the module being importable at all, and every consumer of the package
+# inherits it whether or not they ran the suite.
+
+position: re-parameterisation
+# Labelled as a re-parameterisation because that is what the core of it is, and
+# the discipline in this repository is to say so in the file rather than to let a
+# reader discover it.
+#
+# The mechanism is SELECTIVE PREDICTION — classification with a reject option,
+# Chow's 1970 error/reject trade-off, formalised by El-Yaniv & Wiener and applied
+# to deep networks and to QA under domain shift by the papers below.  A model that
+# answers when confident and abstains when not is thirty years old.  LEARNING TO
+# DEFER adds the second agent.  And the structural half — two channels whose
+# outputs are combined so that either one can trip and neither alone can clear —
+# is a 1oo2 safety-instrumented function with de-energise-to-trip semantics, which
+# is IEC 61508/61511 process-safety engineering and predates all of it.  This
+# design is those two ideas composed and pointed at a language model, and it would
+# be dishonest to call the composition new.
+#
+# THE UNCLAIMED PART IS THE TEETH, and it is narrow enough to state exactly:
+#
+#   (a) THE ASYMMETRY IS ENFORCED ON THE ARTEFACT, NOT ON THE OPERATING POINT.
+#       Selective prediction tunes a coverage/risk trade-off: choose a threshold,
+#       accept a rejection rate.  The guarantee is about the expected behaviour of
+#       a calibrated scorer.  Here the guarantee is about the FUNCTION: there
+#       exists no input — no label, no confidence, no theta, no rationale, no
+#       model id — under which the resolved force is below the deterministic
+#       path's, and the object that could violate it refuses to load.  A threshold
+#       is a number one can quietly change; a codomain is not.
+#
+#   (b) THE ABSTENTION HAS A CONSEQUENCE IN A DATABASE.  In every published
+#       selective-prediction system, abstaining means "route to a human" or "emit
+#       no answer", and the surrounding workflow may or may not act on it.  Here
+#       an abstention resolves to `weaken`, a `weaken` over blood-written ancestry
+#       materialises a blocking check, and the merge is refused by a CHECK
+#       constraint.  The reject option is wired to a state transition the storage
+#       layer will not perform.  Neither of those refusals is this fragment's own
+#       — see the enforcement note — but the WIRE is, and no surveyed system has
+#       one.
+#
+#   (c) THE ARITHMETIC OF EVERY SILENCE IS STORED.  Selective prediction reports a
+#       coverage number in aggregate.  This writes one row per abstention and one
+#       per neutral, carrying both labels, both thresholds, the resolution table's
+#       content hash and the model generation, because the question that will
+#       actually be asked is not "what is your coverage" but "why did your system
+#       say nothing about THIS edit, on THIS date".
+#
+#   (d) THE MODEL IS STARVED OF THE VOCABULARY IT WOULD NEED TO FORGE THE OTHER
+#       PATH.  Path B is never shown a rule id or the safe_direction registry, and
+#       the guard that enforces it runs on the shipped build rather than in a test
+#       — so a clause whose own text names `R4_EXCEPTION` fails the call loudly
+#       instead of being silently scrubbed, because a silent scrub is an edit to
+#       evidence.  The point of two paths is that neither can produce the other's
+#       output; "the model was politely asked not to" is not that.
+
+prior_art:
+  - url: "http://jmlr.org/papers/v11/el-yaniv10a.html"
+    what_it_covers: >-
+      El-Yaniv & Wiener, *On the Foundations of Noise-free Selective Classification* (JMLR 11,
+      2010, 1605–1641), is the reference formalisation of classification with a reject option and
+      of the risk–coverage trade-off that follows from it: a classifier paired with a selection
+      function that decides when to answer, and the analysis of what accuracy that buys at what
+      coverage.  Everything this fragment does with a confidence band and a threshold is an
+      instance of that framework, and the framework is theirs.  Chow's 1970 error/reject
+      trade-off, which this paper builds on, is older still.
+    what_it_does_not: >-
+      Selective classification is about ONE predictor deciding whether to answer.  It says nothing
+      about combining a rejecting predictor with a second, independent, deterministic decision
+      procedure, and in particular nothing about a combination rule whose codomain is constrained
+      so that the rejecting predictor cannot lower the other one's output.  The rejection is also
+      an OUTPUT — a coverage number in an evaluation — not a precondition on a state transition
+      performed by a storage layer, and the theory has no notion of an adversarial predictor: the
+      classifier is assumed to be trying to be right, not trying to clear a gate.
+  - url: "https://aclanthology.org/2020.acl-main.503/"
+    what_it_covers: >-
+      Kamath, Jia & Liang, *Selective Question Answering under Domain Shift* (ACL 2020), is the
+      closest published treatment of "a language system that must decide when not to answer",
+      including a trained calibrator that estimates whether the model's answer should be trusted
+      on out-of-distribution input.  The idea that a language model's confidence is unreliable
+      off-distribution and must be gated by something outside the model is theirs, and this design
+      does not improve on it.
+    what_it_does_not: >-
+      The calibrator decides whether to SHOW an answer.  Nothing downstream is refused when it
+      abstains: abstention lowers coverage, and coverage is a number in a table.  There is no
+      second deterministic path whose verdict the model may raise and may not lower, no record of
+      the arithmetic behind each individual abstention, and no consequence for a specific
+      abstention on a specific input beyond that input receiving no answer.  It is also a
+      calibration result: the guarantee is statistical over a distribution, where the guarantee
+      claimed here is pointwise over the input space and is enforced by a loader.
+  - url: "https://arxiv.org/abs/1711.06664"
+    what_it_covers: >-
+      Madras, Pitassi & Zemel, *Predict Responsibly: Improving Fairness and Accuracy by Learning
+      to Defer* (NeurIPS 2018), generalises rejection learning to a two-stage system in which an
+      automated model may pass a decision to an external decision-maker, and studies the
+      properties of the COMBINED system rather than of the model alone.  That framing — the model
+      is one component of a decision pipeline and its deferral behaviour must be evaluated against
+      what the other component does — is exactly the framing here, and it is theirs.
+    what_it_does_not: >-
+      Learning to defer optimises the joint system for accuracy and fairness; the deferral policy
+      is LEARNED, which means it is a model output and can in principle defer less as training
+      changes.  Here the deferral policy is a committed table of literal rows with a content hash,
+      the direction of the deferral is fixed by a loader-enforced invariant rather than by an
+      objective, and the downstream "decision-maker" is not a person choosing freely but a
+      database constraint that refuses a merge until a signed disposition exists.  Nor does the
+      work model an adversarial automated component: the model is assumed cooperative, and the
+      threat model here is the opposite one.
+  - url: "https://en.wikipedia.org/wiki/IEC_61508"
+    what_it_covers: >-
+      IEC 61508 and its process-sector daughter IEC 61511 are the functional-safety standards
+      behind every safety-instrumented function on a plant, and they already contain the
+      structural idea this design uses: redundant channels in a voting architecture (1oo2 — either
+      channel can trip), de-energise-to-trip wiring so that loss of signal IS the trip, and a
+      designed asymmetry in which the safe direction is the default and the permissive direction
+      requires positive evidence.  Fail-closed-on-silence is not a software insight; it is how a
+      trip amplifier has been wired for fifty years, and a safety engineer reading this fragment
+      should recognise it immediately.
+    what_it_does_not: >-
+      A safety-instrumented function votes over SENSOR channels measuring a physical quantity, and
+      its diagnostic coverage figures assume random hardware failure with known rates.  Neither
+      assumption holds for a language model: there is no failure rate, the failure modes are not
+      random, and one "channel" can be systematically wrong in a correlated, input-dependent and
+      potentially adversarial way.  The standards also have nothing to say about the subject
+      matter here — the trip is on a DOCUMENT EDIT rather than on a process variable, and the
+      thing being de-energised is a merge.  Applying the architecture to a model's opinion about
+      prose is the transplant; the architecture is not claimed.
+  - url: "https://arxiv.org/abs/2306.05685"
+    what_it_covers: >-
+      Zheng et al., *Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena* (2023), is the
+      standard reference for using a strong model as an evaluator of text, and — more relevantly —
+      for the catalogue of ways that goes wrong: position bias, verbosity bias, self-enhancement
+      bias and limited reasoning.  Path B is an LLM judge, the design takes that literature's
+      warnings as given, and the abstention ratchet exists precisely because those biases cannot
+      be engineered away.
+    what_it_does_not: >-
+      An LLM judge produces a score that is then USED — to rank models, to filter data, to gate a
+      release.  The judge's output is dispositive by construction, which is what makes its biases
+      dangerous.  Here the judge's output is admissible in exactly one direction and its biases
+      are therefore bounded in effect: a biased judge produces nuisance blocks, never clearances.
+      Nothing in that literature constrains a judge's codomain, and nothing in it records the
+      judge's silence as an auditable row.
+  - url: "https://owasp.org/www-project-top-10-for-large-language-model-applications/"
+    what_it_covers: >-
+      The OWASP Top 10 for LLM Applications names prompt injection (LLM01) and insecure output
+      handling as first-class risks and prescribes the standard mitigations: separate untrusted
+      content from instructions, constrain output with a schema, validate before use, apply least
+      privilege.  Every one of those is applied on this path — the untrusted block is quarantined
+      inside a per-request random sentinel in a user turn, the response is schema-constrained with
+      `additionalProperties: false`, and no tool is offered — and all of it is agentkit's work
+      rather than this worker's.
+    what_it_does_not: >-
+      The guidance is about preventing an injected instruction from being FOLLOWED.  It has no
+      construct for what happens when prevention fails, which it eventually will.  This fragment's
+      contribution starts there: an injected instruction that survives every layer arrives in a
+      field that is stored and never read on the decision path, and the arithmetic that decides
+      the merge is a table lookup on two bits and a number.  The catalogue of attacks in
+      `tests/unit/domain/oracle_adversary/_adversary.py` is written as the threat model rather
+      than as mutations of a valid input, and the property it asserts — that the best an attacker
+      in full control of Path B can achieve is a refusal — is not a property OWASP's guidance
+      offers a way to state.
+
+implemented_by:
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/resolution/__init__.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/resolution/table.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/resolution/resolve.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/resolution/silence.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/resolution/policy.py"
+  - "verticals/mainline/packages/mainline-delta-oracle/pyproject.toml"
+  - "verticals/mainline/packages/mainline-delta-oracle/src/mainline_delta_oracle/oracle.py"
+  - "verticals/mainline/packages/mainline-delta-oracle/src/mainline_delta_oracle/prompt.py"
+  - "verticals/mainline/packages/mainline-delta-oracle/src/mainline_delta_oracle/mapping.py"
+  - "verticals/mainline/packages/mainline-delta-oracle/src/mainline_delta_oracle/errors.py"
+  - "verticals/mainline/packages/mainline-delta-oracle/src/mainline_delta_oracle/transport.py"
+  - "verticals/mainline/packages/mainline-delta-oracle/src/mainline_delta_oracle/cassettes.py"
+  - "verticals/mainline/packages/mainline-delta-oracle/src/mainline_delta_oracle/request.py"
+  - "verticals/mainline/packages/mainline-delta-oracle/src/mainline_delta_oracle/catdiff.py"
+
+tests:
+  # PL-2: the property that was red until the table existed, and the exhaustive
+  # cross product the worker's exit criterion names.
+  - "tests/unit/domain/resolution/test_ratchet_property.py::test_no_cell_lowers_the_path_a_force"
+  - "tests/unit/domain/resolution/test_ratchet_property.py::test_monotone_upward_over_continuous_confidence_and_theta"
+  - "tests/unit/domain/resolution/test_ratchet_property.py::test_the_model_can_never_produce_a_zero_force_resolution_from_a_weakening"
+  - "tests/unit/domain/resolution/test_ratchet_property.py::test_an_absent_oracle_never_lowers_and_never_clears"
+  # The table as an artefact: total, self-refusing, and hashed.
+  - "tests/unit/domain/resolution/test_table_totality.py::test_the_table_is_total"
+  - "tests/unit/domain/resolution/test_table_totality.py::test_the_loader_refuses_a_row_that_lowers_the_verdict"
+  - "tests/unit/domain/resolution/test_table_totality.py::test_the_loader_refuses_an_incomplete_table"
+  - "tests/unit/domain/resolution/test_table_totality.py::test_lattice_plus_model_appears_only_where_the_model_raised"
+  - "tests/unit/domain/resolution/test_table_totality.py::test_no_cell_claims_a_human_basis"
+  # The six rules and the four refused inputs.
+  - "tests/unit/domain/resolution/test_resolve_rules.py"
+  # theta has no default, anywhere, and carries the hash of the bytes it came from.
+  - "tests/unit/domain/resolution/test_policy_theta.py::test_no_signature_in_this_package_carries_a_default_theta"
+  - "tests/unit/domain/resolution/test_policy_theta.py::test_the_missing_committed_policy_fails_loudly_rather_than_defaulting"
+  - "tests/unit/domain/resolution/test_policy_theta.py::test_theta_is_read_with_the_hash_of_the_bytes_it_came_from"
+  # P5: every neutral and every abstention writes its arithmetic.
+  - "tests/unit/domain/resolution/test_silence_records.py::test_every_abstention_code_maps_to_a_legal_reason"
+  - "tests/unit/domain/resolution/test_silence_records.py::test_a_weakening_is_not_silence_and_is_refused"
+  - "tests/unit/domain/resolution/test_silence_records.py::test_an_absent_path_b_is_unreachable_not_abstained"
+  - "tests/unit/domain/resolution/test_silence_records.py::test_the_row_carries_the_whole_arithmetic"
+  # The distribution boundary, and the detector's own red half.
+  - "tests/unit/domain/boundaries/test_no_model_in_domain.py::test_no_domain_module_imports_a_model_client"
+  - "tests/unit/domain/boundaries/test_no_model_in_domain.py::test_the_detector_rejects_what_it_claims_to_reject"
+  - "tests/unit/domain/boundaries/test_no_model_in_domain.py::test_the_domain_distribution_declares_no_model_dependency"
+  - "tests/unit/domain/boundaries/test_no_model_in_domain.py::test_path_b_really_does_reach_the_model_surface"
+  # Path B modelled as an adversary rather than as a component that is sometimes
+  # wrong, plus the falsifiability of that property against broken resolvers.
+  - "tests/unit/domain/oracle_adversary/test_ratchet_under_hostile_oracle.py::test_no_attack_in_the_catalogue_lowers_the_verdict"
+  - "tests/unit/domain/oracle_adversary/test_ratchet_under_hostile_oracle.py::test_a_lattice_weakening_is_never_cleared"
+  - "tests/unit/domain/oracle_adversary/test_ratchet_under_hostile_oracle.py::test_injected_prose_never_reaches_the_verdict"
+  - "tests/unit/domain/oracle_adversary/test_ratchet_under_hostile_oracle.py::test_no_attack_forges_a_witness"
+  - "tests/unit/domain/oracle_adversary/test_falsifiable.py::test_the_property_catches_a_resolver_that_trusts_a_confident_model"
+  - "tests/unit/domain/oracle_adversary/test_falsifiable.py::test_the_property_catches_a_resolver_that_refuses_everything"
+  - "tests/unit/domain/oracle_adversary/test_falsifiable.py::test_the_property_catches_a_resolver_that_coerces_a_malformed_confidence"
+  - "tests/unit/domain/oracle_adversary/test_masquerade_refused.py::test_a_signed_human_verdict_is_not_re_decidable"
+  - "tests/unit/domain/oracle_adversary/test_masquerade_refused.py::test_out_of_contract_confidence_is_refused_not_coerced"
+  - "tests/unit/domain/oracle_adversary/test_masquerade_refused.py::test_the_model_appears_in_the_basis_only_when_it_raised_the_verdict"
+  # A hostile wire driven through the real call path, not through a constructed verdict.
+  - "tests/unit/domain/oracle_adversary/test_transport_hostility.py::test_no_hostile_body_clears_a_lattice_weakening"
+  - "tests/unit/domain/oracle_adversary/test_transport_hostility.py::test_a_transport_failure_is_an_abstention"
+  - "tests/unit/domain/oracle_adversary/test_transport_hostility.py::test_an_unrecognised_failure_propagates"
+  # The recordings: current, complete, and every one of them replayed.
+  - "tests/unit/domain/resolution/test_oracle_cassettes.py::test_the_committed_store_is_what_the_generator_produces"
+  - "tests/unit/domain/resolution/test_oracle_cassettes.py::test_every_scenario_replays_to_its_declared_outcome"
+  - "tests/unit/domain/resolution/test_oracle_cassettes.py::test_no_recorded_scenario_clears_a_lattice_weakening"
+  - "tests/unit/domain/resolution/test_oracle_cassettes.py::test_the_named_failure_modes_are_all_covered_by_a_committed_recording"
+  - "tests/unit/domain/resolution/test_oracle_cassettes.py::test_replaying_the_whole_store_opens_no_socket"
+  - "tests/unit/domain/oracle_adversary/test_cassette_integrity.py::test_rewriting_a_recording_changes_the_opinion_and_not_the_gate"
+  - "tests/unit/domain/oracle_adversary/test_cassette_integrity.py::test_a_deleted_recording_is_fatal_and_never_an_abstention"
+  # The outbound half of the boundary: what Path B is allowed to be told.
+  - "tests/unit/domain/resolution/test_oracle_prompt_boundary.py::test_the_guard_rejects_every_rule_id"
+  - "tests/unit/domain/resolution/test_oracle_prompt_boundary.py::test_the_guard_rejects_the_registry_in_every_spelling"
+  - "tests/unit/domain/resolution/test_oracle_prompt_boundary.py::test_every_block_that_actually_ships_passes_the_guard"
+  - "tests/unit/domain/resolution/test_oracle_prompt_boundary.py::test_a_clause_carrying_a_rule_id_fails_loudly"
+  - "tests/unit/domain/resolution/test_oracle_prompt_boundary.py::test_the_contract_has_no_field_shaped_like_a_path_a_verdict"
+
+unverified:
+  - >-
+    NOTHING IN THIS FRAGMENT IS ENFORCED BY THE DATABASE, AND THE REFUSAL DEPTH IS THEREFORE ZERO.
+    Every refusal listed above is a Python exception.  The ratchet's guarantee is that the delta
+    of record is never lowered by the model; turning that delta into a refused merge is
+    DELTALATTICE's trigger and the kernel lead's merge-gate CHECK constraints, and this worker
+    verifies neither.  A deployment that computed the verdict correctly and then ignored it would
+    satisfy every test in this manifest.
+  - >-
+    THE CONFIDENCE SCALE IS AN ORDINAL ENCODING, NOT A CALIBRATED POSTERIOR.  The adjudication
+    profile emits a named band — low / medium / high — which `mapping.BAND_CONFIDENCE` maps to
+    0.25 / 0.55 / 0.85 so that it can be compared against theta.  NOTHING HAS MEASURED HOW OFTEN A
+    `high` IS RIGHT.  theta must therefore be read as "which bands count" and never as a
+    probability threshold, and any published statement of the form "the model was 85% confident"
+    would be false.  The band map is versioned (`band.v1`) so a retune is a visible commit, which
+    makes the number traceable, not calibrated.
+  - >-
+    NO RESPONSE IN THIS REPOSITORY HAS BEEN NEAR BEDROCK.  All eleven committed scenarios carry
+    `provenance: "synthetic"`; the live lane is code that has never executed against AWS, because
+    credentials were not valid on the build machine as of 2026-08 (PL-3).  Real refusal rates on a
+    cyanide or H2S corpus, real Guardrail behaviour, real throttle behaviour, real latency and
+    real agreement between Path A and Path B are all UNMEASURED.  The cassette suite proves the
+    code paths; it proves nothing about a model.
+  - >-
+    THE RATCHET CONSTRAINS THE CODOMAIN, NOT THE CONTENT.  A model that fabricates a plausible
+    rationale still fabricates it, and that rationale is still stored as evidence attached to a
+    record.  Two deterministic checks reduce the surface — the supporting quote must be verbatim
+    in the descendant text, and an `entails` that admits a numeric disagreement must quote a
+    number — and neither is a check on whether the reasoning is sound.  Content authenticity is
+    out of scope; provenance is in scope; this fragment is about neither.
+  - >-
+    THE MODEL CAN MAKE THE GATE LOUDER WITHOUT BOUND AND THE NUISANCE RATE IS UNMEASURED.  A Path
+    B that abstained on everything would block every merge, and nothing in this design prevents
+    it: the asymmetry that makes the ratchet safe is exactly the asymmetry that makes it
+    weaponisable in the annoying direction.  That is a monitoring and operating-point question
+    (risk R-A7's nuisance ceiling, under which a rule is REJECTED rather than tuned) and it is not
+    answered here.
+  - >-
+    PROMPT-INJECTION RESISTANCE IS NOT CLAIMED.  The layered defences — untrusted text inside a
+    per-request random sentinel in a user turn, a strict schema, no tools — are agentkit's and are
+    asserted there.  What is asserted here is strictly weaker and strictly checkable: injected
+    prose that survives every layer never becomes a term in the decision.  An attacker who
+    controls Path B entirely can still cause nuisance blocks, and the catalogue says so.
+  - >-
+    THE SILENCE ROW IS BUILT AND VALIDATED IN PYTHON AND IS NOT ROUND-TRIPPED AGAINST A CLUSTER
+    HERE.  `SilenceRecord` re-states the `mainline_meas.silence_ledger` CHECK vocabularies from
+    ARCHITECTURE.md §5.7 and refuses a row the database would refuse, but the INSERT itself is the
+    caller's and no integration test in this worker's scope has performed one.  A drift between
+    the re-stated vocabulary and the shipped DDL would be caught only by the datamodel lead's
+    suite.
+  - >-
+    THE AST BOUNDARY TEST COVERS ONE DISTRIBUTION.  It walks `mainline-domain` and asserts that no
+    module of it can reach a model, which is the code-path half of §8.2's four enforcements for
+    the package that holds the lattice.  It says nothing about any other distribution in the
+    repository, and the IAM, network-route and prompt-path halves of that boundary are owned
+    elsewhere and are not verified by this worker.
+  - >-
+    THE RESOLUTION IS TOTAL OVER THE ENUM, NOT OVER THE WORLD.  The 100 cells cover every
+    combination of the five `mainline.control_delta` members with the two flags.  A sixth enum
+    member added to the SQL type without a corresponding row would make `_freeze()` raise at
+    import — which is the correct failure — but nothing in this package watches the SQL type, so
+    the discovery happens the first time someone imports the module after the migration.
+  - >-
+    NONE OF THIS DISTINGUISHES A CONSIDERED DISPOSITION FROM A RUBBER STAMP (risk R-A8).  The
+    ratchet guarantees that a model cannot clear a gate.  A person can, by signing a disposition,
+    and whether that signature reflects thought is outside everything this design can see.  It
+    must never be sold as retiring that risk.

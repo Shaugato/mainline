@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 0,
+    "doc_codes": [
+      "PRO-HSE-012",
+      "STD-CSE-002"
+    ],
+    "intent": "strengthen",
+    "moc_ref": "MOC-2013-0148",
+    "opened_on": "2013-06-02",
+    "precursor_events": [],
+    "site": "Cape Verity Export Terminal",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "management_of_change": "change request",
+      "verification": "field verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "9686dea24209b012924c61228aa327586410a5fb42a285511894c91e1aaafc1b",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2013-0148",
+  "prompt_kind": "moc",
+  "prompt_sha256": "da5b8dba186578bab48b90eace837ac71879eecbfdaa0b49da49cc435112bb9d",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2013-0148 was raised at Cape Verity Export Terminal on 2 June 2013 as a scheduled change under change request; no event precedes it in the record. The change request record carries no clause change; it records the assessment only. The intent is to strengthen the critical safeguard named in the documents in scope. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical safeguard set is preserved.",
+    "scope_note": "The documents in scope are PRO-HSE-012 and STD-CSE-002."
+  },
+  "response_sha256": "83ac88035903a79668a7330eb69b1d770f70e9903e4697bde747cc87fddb821d",
+  "source": null
+}

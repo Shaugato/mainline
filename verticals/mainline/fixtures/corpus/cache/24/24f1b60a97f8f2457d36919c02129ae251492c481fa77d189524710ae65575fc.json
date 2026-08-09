@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONFINED-SPACE-ENTRY",
+    "barrier_role": "preventive",
+    "control_class": "CONTINUOUS_ATMOSPHERIC_MONITORING",
+    "control_delta": "introduce",
+    "control_label": "continuous atmospheric monitoring during occupancy",
+    "doc_code": "STD-CSE-002",
+    "doc_family": "STD",
+    "doc_title": "Confined Spaces",
+    "effective_on": "2006-05-30",
+    "printed_label": "4.3",
+    "setpoint": null,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "24f1b60a97f8f2457d36919c02129ae251492c481fa77d189524710ae65575fc",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:CVY/STD-CSE-002/001#CVY/STD-CSE-002/4.3",
+  "prompt_kind": "clause",
+  "prompt_sha256": "4ebf92d4cae5c2aa95b8e5b86d4330408193a13f6985136164d7ea7fe8480fdb",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The continuous atmospheric monitoring during occupancy shall be provided and maintained for work covered by this standard. This clause applies to activities archived under CONFINED-SPACE-ENTRY at Cape Verity Export Terminal.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "531a81ee4296134cf627b78683e85588ee4b0cacaa33498f797f60cb30e25a0b",
+  "source": null
+}

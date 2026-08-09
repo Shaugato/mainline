@@ -1,0 +1,127 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "testing earth leakage and protection settings",
+    "activity_root": "ELECTRICAL-SAFETY",
+    "activity_series": "maintaining protective systems",
+    "assets": [
+      {
+        "asset_class": "ELEC-CLASS-A",
+        "label": "switchgear and transformers",
+        "service": "plant HV/LV distribution",
+        "tag": "TX-3001"
+      }
+    ],
+    "consequence": {
+      "days_lost": 4,
+      "injuries": 1,
+      "label": "lost time injury"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "ARC_FLASH_PPE_AND_BOUNDARY",
+        "control_label": "arc flash boundary and protective equipment",
+        "failure_mode": "degraded",
+        "hazard_energy": "thermal",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "HAZARDOUS_AREA_EQUIPMENT_INTEGRITY",
+        "control_label": "integrity of explosion-protected equipment in zoned areas",
+        "failure_mode": "degraded",
+        "hazard_energy": "electrical",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "POSITIVE_ISOLATION_APPLICATION",
+        "control_label": "application of positive isolation devices and personal locks",
+        "failure_mode": "ineffective",
+        "hazard_energy": "electrical",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "SWITCHING_AUTHORISATION",
+        "control_label": "authorisation of switching and access to apparatus",
+        "failure_mode": "ineffective",
+        "hazard_energy": "thermal",
+        "icam_tier": "organisational_factor"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "ZERO_ENERGY_VERIFICATION",
+        "control_label": "proving zero energy before intrusive work",
+        "failure_mode": "bypassed",
+        "hazard_energy": "electrical",
+        "icam_tier": "organisational_factor"
+      }
+    ],
+    "event_ref": "INC-2015-012",
+    "hazard_energy": "electrical",
+    "hazard_media": [
+      "HV switchgear",
+      "LV distribution",
+      "capacitive storage",
+      "induced voltage",
+      "portable equipment"
+    ],
+    "hazard_release": "shock, arc flash, unplanned energisation",
+    "kind": "incident",
+    "occurred_on": "2015-11-16",
+    "severity_actual": 3,
+    "severity_potential": 3,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during start-up after maintenance",
+    "title": "electrical release during start-up after maintenance on TX-3001",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "961e93e4b5274e3d644ed960a994d87c0eaeb83a67379e0d420134862a91da67",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2015-012",
+  "prompt_kind": "icam",
+  "prompt_sha256": "9a3267af84dd85a6ca5a6f22e3f5c9b11920d7076e3c06c78c0d199659cc5184",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was lost time injury, with 1 person injured and 4 days lost.",
+    "defences": [
+      {
+        "control_class": "ARC_FLASH_PPE_AND_BOUNDARY",
+        "finding": "Control ARC_FLASH_PPE_AND_BOUNDARY: the arc flash boundary and protective equipment had degraded below its design intent, and the root cause analysis classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "HAZARDOUS_AREA_EQUIPMENT_INTEGRITY",
+        "finding": "Control HAZARDOUS_AREA_EQUIPMENT_INTEGRITY: the integrity of explosion-protected equipment in zoned areas had degraded below its design intent, and the root cause analysis classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "POSITIVE_ISOLATION_APPLICATION",
+        "finding": "Control POSITIVE_ISOLATION_APPLICATION: the application of positive isolation devices and personal locks was in place but did not perform, and the root cause analysis classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "SWITCHING_AUTHORISATION",
+        "finding": "Control SWITCHING_AUTHORISATION: the authorisation of switching and access to apparatus was in place but did not perform, and the root cause analysis classified this as an organisational factor."
+      },
+      {
+        "control_class": "ZERO_ENERGY_VERIFICATION",
+        "finding": "Control ZERO_ENERGY_VERIFICATION: the proving zero energy before intrusive work had been bypassed, and the root cause analysis classified this as an organisational factor."
+      }
+    ],
+    "recommendations": [
+      "Restore the arc flash boundary and protective equipment on TX-3001 and record the field verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in maintaining protective systems, specifically testing earth leakage and protection settings. TX-3001 (switchgear and transformers) is in service for plant HV/LV distribution. The task proceeded during start-up after maintenance while the arc flash boundary and protective equipment had degraded below its design intent. The electrical energy involved is held as HV switchgear, and the recorded presentation was shock, arc flash, unplanned energisation.",
+    "summary": "On 16 November 2015 an incident occurred on TX-3001 at Marrindal Concentrator and Hydrocarbon Transfer Facility during start-up after maintenance, releasing electrical energy held as HV switchgear."
+  },
+  "response_sha256": "e8a91ab359e9cc08415ec1321e85fc4ef9190a8314fea86b418719f527c9efc9",
+  "source": null
+}

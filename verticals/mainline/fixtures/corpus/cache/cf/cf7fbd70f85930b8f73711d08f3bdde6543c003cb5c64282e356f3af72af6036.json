@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "barrier_role": "recovery",
+    "control_class": "SEAL_FACE_TEMPERATURE_ALARM",
+    "control_delta": "introduce",
+    "control_label": "seal-face high-temperature alarm and trip",
+    "doc_code": "PRO-MEC-041",
+    "doc_family": "PRO",
+    "doc_title": "Export Transfer Pump Maintenance",
+    "effective_on": "2006-07-25",
+    "printed_label": "1.2.3(c)",
+    "setpoint": {
+      "from": 165.0,
+      "key": "seal_face_temperature_alarm",
+      "label": "seal-face high-temperature alarm",
+      "strengthen_direction": "lower",
+      "to": 165.0,
+      "unit": "°C"
+    },
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "cf7fbd70f85930b8f73711d08f3bdde6543c003cb5c64282e356f3af72af6036",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:CVY/PRO-MEC-041/001#CVY/PRO-MEC-041/1.2.3(c)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "2d1c03792a59be681f75b60453a8ca1cf07b977c399bcb8090b5c89964d9d62b",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The seal-face high-temperature alarm and trip shall be provided and maintained for work covered by this procedure. The seal-face high-temperature alarm shall be set at 165 °C. This clause applies to activities archived under CONTAINMENT-OF-HYDROCARBONS at Cape Verity Export Terminal.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "79acd1e7dee88c032a82870cb661e7da4b83a5ca85cff2d288e70f5f31fd9684",
+  "source": null
+}

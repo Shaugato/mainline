@@ -1,0 +1,90 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "working in dust, darkness and weather restrictions",
+    "activity_root": "MOBILE-EQUIPMENT-INTERACTION",
+    "activity_series": "operating in reduced visibility",
+    "assets": [
+      {
+        "asset_class": "LIFT-CLASS-W",
+        "label": "workshop hoists and press",
+        "service": "heavy vehicle component removal and pressing",
+        "tag": "HO-9402"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 1,
+      "label": "medical treatment injury"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "PARK_UP_AND_RESTRAINT",
+        "control_label": "parking, chocking and restraint of equipment",
+        "failure_mode": "ineffective",
+        "hazard_energy": "gravity",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "POSITIVE_COMMUNICATION_BEFORE_APPROACH",
+        "control_label": "positive communication before approaching mobile equipment",
+        "failure_mode": "absent",
+        "hazard_energy": "kinetic",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "AF-2009-001",
+    "hazard_energy": "gravity",
+    "hazard_media": [
+      "suspended load",
+      "stored potential of an elevated component",
+      "unsupported ground",
+      "person at height"
+    ],
+    "hazard_release": "fall, collapse, crush",
+    "kind": "audit_finding",
+    "occurred_on": "2009-02-18",
+    "severity_actual": 2,
+    "severity_potential": 3,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during start-up after maintenance",
+    "title": "audit finding - work clearance records incomplete for HO-9402",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "investigation": "accident investigation",
+      "near_miss": "near hit",
+      "verification": "spot check"
+    }
+  },
+  "key": "17aaa7bf3d1b03629e36c43153f7e3b94e54e3221c374a62a6c71e94abb25734",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:AF-2009-001",
+  "prompt_kind": "icam",
+  "prompt_sha256": "972cd964b29dd151c18c142943538dcc1a8de41eaa8df5526df17325b61bc7dc",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was medical treatment injury, with 1 person injured. The potential outcome was rated 3 against the site's consequence scale, above the 2 actually realised.",
+    "defences": [
+      {
+        "control_class": "PARK_UP_AND_RESTRAINT",
+        "finding": "Control PARK_UP_AND_RESTRAINT: the parking, chocking and restraint of equipment was in place but did not perform, and the accident investigation classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "POSITIVE_COMMUNICATION_BEFORE_APPROACH",
+        "finding": "Control POSITIVE_COMMUNICATION_BEFORE_APPROACH: the positive communication before approaching mobile equipment was not in place, and the accident investigation classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Restore the parking, chocking and restraint of equipment on HO-9402 and record the spot check before this task is next authorised."
+    ],
+    "sequence": "Work was under way in operating in reduced visibility, specifically working in dust, darkness and weather restrictions. HO-9402 (workshop hoists and press) is in service for heavy vehicle component removal and pressing. The task proceeded during start-up after maintenance while the parking, chocking and restraint of equipment was in place but did not perform. The gravity energy involved is held as suspended load, and the recorded presentation was fall, collapse, crush.",
+    "summary": "On 18 February 2009 a planned spot check of HO-9402 at Yandarra Downs Open Cut and Heavy Workshop found the parking, chocking and restraint of equipment not effective."
+  },
+  "response_sha256": "e181e490d6f5756bc62cbd508170f76264ce7c15d0450730e55bc0e208d119e9",
+  "source": null
+}

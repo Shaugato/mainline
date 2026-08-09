@@ -1,0 +1,104 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "managing corrosion and thinning findings",
+    "activity_root": "PRESSURE-SYSTEM-INTEGRITY",
+    "activity_series": "inspecting pressure equipment",
+    "assets": [
+      {
+        "asset_class": "PRD-CLASS-A",
+        "label": "pressure relief devices",
+        "service": "overpressure protection on the transfer and storage system",
+        "tag": "PSV-4110"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "PRESSURE_EQUIPMENT_INSPECTION",
+        "control_label": "in-service inspection of pressure equipment",
+        "failure_mode": "degraded",
+        "hazard_energy": "pressure",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "PRESSURE_RELIEF_DEVICE_INTEGRITY",
+        "control_label": "setting, testing and sealing of pressure relief devices",
+        "failure_mode": "ineffective",
+        "hazard_energy": "pressure",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "STORED_ENERGY_DISSIPATION",
+        "control_label": "dissipation or restraint of trapped and residual energy",
+        "failure_mode": "ineffective",
+        "hazard_energy": "pressure",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "NM-2010-0009",
+    "hazard_energy": "pressure",
+    "hazard_media": [
+      "hydraulic accumulator",
+      "barrier fluid",
+      "process gas",
+      "steam header",
+      "compressed air",
+      "trapped liquid"
+    ],
+    "hazard_release": "jet release, stored-energy discharge, rupture",
+    "kind": "near_miss",
+    "occurred_on": "2010-05-14",
+    "severity_actual": 0,
+    "severity_potential": 3,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during a planned shutdown",
+    "title": "unplanned release of pressure energy at PSV-4110",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "51f70d6c8d84394d9a982c07138c6012d4edacb5a29d1502cb8f3305b4aaa363",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2010-0009",
+  "prompt_kind": "icam",
+  "prompt_sha256": "d441676bb36d547e42a25b276afe241c6e632544a6f7d3eaa91ae5b5f8e07a54",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 3 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "PRESSURE_EQUIPMENT_INSPECTION",
+        "finding": "Control PRESSURE_EQUIPMENT_INSPECTION: the in-service inspection of pressure equipment had degraded below its design intent, and the root cause analysis classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "PRESSURE_RELIEF_DEVICE_INTEGRITY",
+        "finding": "Control PRESSURE_RELIEF_DEVICE_INTEGRITY: the setting, testing and sealing of pressure relief devices was in place but did not perform, and the root cause analysis classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "STORED_ENERGY_DISSIPATION",
+        "finding": "Control STORED_ENERGY_DISSIPATION: the dissipation or restraint of trapped and residual energy was in place but did not perform, and the root cause analysis classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the dissipation or restraint of trapped and residual energy on PSV-4110 and record the field verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in inspecting pressure equipment, specifically managing corrosion and thinning findings. PSV-4110 (pressure relief devices) is in service for overpressure protection on the transfer and storage system. The task proceeded during a planned shutdown while the in-service inspection of pressure equipment had degraded below its design intent. The pressure energy involved is held as hydraulic accumulator, and the recorded presentation was jet release, stored-energy discharge, rupture.",
+    "summary": "On 14 May 2010 a hazard report was recorded on PSV-4110 at Marrindal Concentrator and Hydrocarbon Transfer Facility during a planned shutdown; pressure energy held as hydraulic accumulator was not released."
+  },
+  "response_sha256": "9a1e2edf46776090948b139807e1fc095804d7ecb6024c8a69740c24ae4c31ea",
+  "source": null
+}

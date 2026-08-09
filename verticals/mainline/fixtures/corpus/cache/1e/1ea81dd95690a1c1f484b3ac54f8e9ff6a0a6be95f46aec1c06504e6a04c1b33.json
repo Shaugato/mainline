@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ELECTRICAL-SAFETY",
+    "barrier_role": "recovery",
+    "control_class": "ARC_FLASH_PPE_AND_BOUNDARY",
+    "control_delta": "introduce",
+    "control_label": "arc flash boundary and protective equipment",
+    "doc_code": "PRO-ELE-008",
+    "doc_family": "PRO",
+    "doc_title": "Electrical Isolation and Access to Switchgear",
+    "effective_on": "2004-08-30",
+    "printed_label": "3.6",
+    "setpoint": null,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "1ea81dd95690a1c1f484b3ac54f8e9ff6a0a6be95f46aec1c06504e6a04c1b33",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/PRO-ELE-008/001#MRD/PRO-ELE-008/3.6",
+  "prompt_kind": "clause",
+  "prompt_sha256": "91ad06fa50cda0d0e3bc3066a7a8defa81c87d28ce1c0e6d83e56163e7b223d6",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The arc flash boundary and protective equipment shall be provided and maintained for work covered by this procedure. This clause applies to activities archived under ELECTRICAL-SAFETY at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "ddcfe39b31af07991ca6670c589dd558925050a6acbdd22d04f0a35c1eb76383",
+  "source": null
+}

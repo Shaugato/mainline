@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "barrier_role": "preventive",
+    "control_class": "PARK_UP_AND_RESTRAINT",
+    "control_delta": "introduce",
+    "control_label": "parking, chocking and restraint of equipment",
+    "doc_code": "STD-PTW-001",
+    "doc_family": "STD",
+    "doc_title": "Permit to Work",
+    "effective_on": "2008-03-04",
+    "printed_label": "2.2",
+    "setpoint": null,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "e6e78c1c2905f2fc42b5daf77c781a9f45b06df1c95b02f570cc69b4dea7e8b6",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/STD-PTW-001/002#MRD/STD-PTW-001/2.2",
+  "prompt_kind": "clause",
+  "prompt_sha256": "07462653a7ac219db5b393c380a5573a720a846e04a3bf0f6292625e3fbddff8",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The parking, chocking and restraint of equipment shall be provided and maintained for work covered by this standard. This clause applies to activities archived under ISOLATION-OF-STORED-ENERGY at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "1b06909b97b3291777e81b479e20e49bf3f3d74621e812f9529cbb1e0ac1d0c2",
+  "source": null
+}

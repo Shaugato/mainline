@@ -1,0 +1,86 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "proving dead and testing for zero energy",
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "activity_series": "applying and verifying an isolation",
+    "assets": [
+      {
+        "asset_class": "SLP-CLASS-B",
+        "label": "slurry transfer pumps",
+        "service": "cyclone feed and tailings transfer",
+        "tag": "P-3221"
+      },
+      {
+        "asset_class": "MOTOR-CLASS-A",
+        "label": "drive motor",
+        "service": "drives P-3221",
+        "tag": "M-3221"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "ZERO_ENERGY_VERIFICATION",
+        "control_label": "proving zero energy before intrusive work",
+        "failure_mode": "absent",
+        "hazard_energy": "pressure",
+        "icam_tier": "organisational_factor"
+      }
+    ],
+    "event_ref": "NM-2005-0011",
+    "hazard_energy": "pressure",
+    "hazard_media": [
+      "hydraulic accumulator",
+      "barrier fluid",
+      "process gas",
+      "steam header",
+      "compressed air",
+      "trapped liquid"
+    ],
+    "hazard_release": "jet release, stored-energy discharge, rupture",
+    "kind": "near_miss",
+    "occurred_on": "2005-09-01",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during routine operation",
+    "title": "near hit during routine operation on P-3221",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "investigation": "accident investigation",
+      "near_miss": "near hit",
+      "verification": "spot check"
+    }
+  },
+  "key": "fb3cf8a9f5d32e89125236bcb77e952db1fef85a228f66efa3128daca4167917",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2005-0011",
+  "prompt_kind": "icam",
+  "prompt_sha256": "aa0e4f8df465608ec79dc4164c312daf0ba2f36e9cda8d4b1cb838d086e12e43",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "ZERO_ENERGY_VERIFICATION",
+        "finding": "Control ZERO_ENERGY_VERIFICATION: the proving zero energy before intrusive work was not in place, and the accident investigation classified this as an organisational factor."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next spot check that the proving zero energy before intrusive work on P-3221 and M-3221 performs as designed."
+    ],
+    "sequence": "Work was under way in applying and verifying an isolation, specifically proving dead and testing for zero energy. P-3221 (slurry transfer pumps) is in service for cyclone feed and tailings transfer. The task proceeded during routine operation while the proving zero energy before intrusive work was not in place. The pressure energy involved is held as hydraulic accumulator, and the recorded presentation was jet release, stored-energy discharge, rupture.",
+    "summary": "On 1 September 2005 a near hit was recorded on P-3221 and M-3221 at Marrindal Concentrator and Hydrocarbon Transfer Facility during routine operation; pressure energy held as hydraulic accumulator was not released."
+  },
+  "response_sha256": "e4ceb7e098eb5e470510e90cf1f62c8dc76f83dcf0994ae0776c6fc8597e17f1",
+  "source": null
+}

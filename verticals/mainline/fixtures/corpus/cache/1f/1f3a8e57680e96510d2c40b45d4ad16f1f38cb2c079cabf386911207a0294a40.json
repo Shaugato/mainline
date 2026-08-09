@@ -1,0 +1,48 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 2,
+    "doc_codes": [
+      "ALERT-2016-007",
+      "MOC-2026-0413",
+      "PRO-MEC-014",
+      "PRO-OPS-032"
+    ],
+    "intent": "strengthen",
+    "moc_ref": "MOC-2020-0111",
+    "opened_on": "2020-07-20",
+    "precursor_events": [
+      {
+        "event_ref": "INC-2013-044",
+        "severity_gate": null
+      },
+      {
+        "event_ref": "RN-2011-002",
+        "severity_gate": null
+      }
+    ],
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "terminal_state": "abandoned",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "management_of_change": "management of change",
+      "verification": "critical control verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "1f3a8e57680e96510d2c40b45d4ad16f1f38cb2c079cabf386911207a0294a40",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2020-0111",
+  "prompt_kind": "moc",
+  "prompt_sha256": "c72540284796ae10f8892308efb9ab2825fe938f0a43af12d67b45d4589be7db",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2020-0111 was raised at Marrindal Concentrator and Hydrocarbon Transfer Facility on 20 July 2020 following 2 recorded events in the archive, including INC-2013-044 and RN-2011-002. The management of change record covers 2 clauses across 4 controlled documents. The intent is to strengthen the critical control named in the documents in scope. The record reached the state abandoned in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical control set is preserved.",
+    "scope_note": "The documents in scope are ALERT-2016-007, MOC-2026-0413, PRO-MEC-014 and PRO-OPS-032."
+  },
+  "response_sha256": "5ba79e6dbdbf8163a22b93af6bf1a35e0d83e63f59ae9084a71bf15520c4579f",
+  "source": null
+}

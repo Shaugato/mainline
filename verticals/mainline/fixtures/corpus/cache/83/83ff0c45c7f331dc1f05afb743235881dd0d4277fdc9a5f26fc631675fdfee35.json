@@ -1,0 +1,80 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "isolating and depressuring a leaking system",
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "activity_series": "responding to a loss of containment",
+    "assets": [
+      {
+        "asset_class": "TANK-CLASS-P",
+        "label": "product storage tanks",
+        "service": "export product storage",
+        "tag": "TK-7104"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "HYDROCARBON_TRANSFER_CONTROL",
+        "control_label": "controlled transfer of hydrocarbon between vessels",
+        "failure_mode": "absent",
+        "hazard_energy": "pressure",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "NM-2017-0025",
+    "hazard_energy": "pressure",
+    "hazard_media": [
+      "hydraulic accumulator",
+      "barrier fluid",
+      "process gas",
+      "steam header",
+      "compressed air",
+      "trapped liquid"
+    ],
+    "hazard_release": "jet release, stored-energy discharge, rupture",
+    "kind": "near_miss",
+    "occurred_on": "2017-12-12",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Cape Verity Export Terminal",
+    "summary_facts": [],
+    "task_phase": "during commissioning of replacement equipment",
+    "title": "unplanned release of pressure energy at TK-7104",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "83ff0c45c7f331dc1f05afb743235881dd0d4277fdc9a5f26fc631675fdfee35",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2017-0025",
+  "prompt_kind": "icam",
+  "prompt_sha256": "890b9cbb00d87bd210509e38e657e85f72915daaf676e6606db898ffbd73d99c",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "HYDROCARBON_TRANSFER_CONTROL",
+        "finding": "Control HYDROCARBON_TRANSFER_CONTROL: the controlled transfer of hydrocarbon between vessels was not in place, and the ICAM investigation classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next critical control verification that the controlled transfer of hydrocarbon between vessels on TK-7104 performs as designed."
+    ],
+    "sequence": "Work was under way in responding to a loss of containment, specifically isolating and depressuring a leaking system. TK-7104 (product storage tanks) is in service for export product storage. The task proceeded during commissioning of replacement equipment while the controlled transfer of hydrocarbon between vessels was not in place. The pressure energy involved is held as hydraulic accumulator, and the recorded presentation was jet release, stored-energy discharge, rupture.",
+    "summary": "On 12 December 2017 a potential incident was recorded on TK-7104 at Cape Verity Export Terminal during commissioning of replacement equipment; pressure energy held as hydraulic accumulator was not released."
+  },
+  "response_sha256": "c927538b58e71e871b2a80976529c5583a25ee736b771c0e8a56169aaa054a6e",
+  "source": null
+}

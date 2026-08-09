@@ -1,0 +1,90 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "performing dam-safety review and surveillance",
+    "activity_root": "TAILINGS-AND-WATER-IMPOUNDMENT",
+    "activity_series": "governing the impoundment",
+    "assets": [
+      {
+        "asset_class": "THK-CLASS-A",
+        "label": "tailings thickener",
+        "service": "tailings thickening and decant",
+        "tag": "TH-3240"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 1,
+      "label": "medical treatment injury"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "EMBANKMENT_SURVEILLANCE",
+        "control_label": "surveillance of embankments and instrumentation",
+        "failure_mode": "degraded",
+        "hazard_energy": "gravity",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "IMPOUNDMENT_FREEBOARD_CONTROL",
+        "control_label": "control of freeboard, beach width and decant",
+        "failure_mode": "degraded",
+        "hazard_energy": "gravity",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "INC-2020-011",
+    "hazard_energy": "gravity",
+    "hazard_media": [
+      "suspended load",
+      "stored potential of an elevated component",
+      "unsupported ground",
+      "person at height"
+    ],
+    "hazard_release": "fall, collapse, crush",
+    "kind": "incident",
+    "occurred_on": "2020-09-16",
+    "severity_actual": 2,
+    "severity_potential": 2,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during a planned shutdown",
+    "title": "injury during a planned shutdown on TH-3240",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "5e3da1031ec80b27a390ce1dd04ac50aee0edcd396f211953b8aed0a4b97853e",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2020-011",
+  "prompt_kind": "icam",
+  "prompt_sha256": "1c0fc563a8e54f2ce7c35628bd1e9d6a759c1d6e95edb209370d27592c69b6c3",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was medical treatment injury, with 1 person injured.",
+    "defences": [
+      {
+        "control_class": "EMBANKMENT_SURVEILLANCE",
+        "finding": "Control EMBANKMENT_SURVEILLANCE: the surveillance of embankments and instrumentation had degraded below its design intent, and the ICAM investigation classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "IMPOUNDMENT_FREEBOARD_CONTROL",
+        "finding": "Control IMPOUNDMENT_FREEBOARD_CONTROL: the control of freeboard, beach width and decant had degraded below its design intent, and the ICAM investigation classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next critical control verification that the surveillance of embankments and instrumentation on TH-3240 performs as designed."
+    ],
+    "sequence": "Work was under way in governing the impoundment, specifically performing dam-safety review and surveillance. TH-3240 (tailings thickener) is in service for tailings thickening and decant. The task proceeded during a planned shutdown while the surveillance of embankments and instrumentation had degraded below its design intent. The gravity energy involved is held as suspended load, and the recorded presentation was fall, collapse, crush.",
+    "summary": "On 16 September 2020 an incident occurred on TH-3240 at Marrindal Concentrator and Hydrocarbon Transfer Facility during a planned shutdown, releasing gravity energy held as suspended load."
+  },
+  "response_sha256": "053a44032409f3d1568f1f9963e78ea542f22a0067488c894c1bfdb74534d2c9",
+  "source": null
+}

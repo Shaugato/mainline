@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 0,
+    "doc_codes": [
+      "PRO-ELE-026",
+      "STD-ELE-009"
+    ],
+    "intent": "introduce",
+    "moc_ref": "MOC-2005-0091",
+    "opened_on": "2005-10-03",
+    "precursor_events": [],
+    "site": "Tolgarra Processing and Power Station",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "management_of_change": "engineering change note",
+      "verification": "spot check"
+    },
+    "weakening_steps": 0
+  },
+  "key": "0a2cf3e25f916bc172f7f6b7fa6380dc13c7c236cb6dae12e427cb8bf7103037",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2005-0091",
+  "prompt_kind": "moc",
+  "prompt_sha256": "9f283ce3a497d9a4945ea1d4a1c1b1fb23e4488514b7120c92e9d96beb8f5cf3",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2005-0091 was raised at Tolgarra Processing and Power Station on 3 October 2005 as a scheduled change under engineering change note; no event precedes it in the record. The engineering change note record carries no clause change; it records the assessment only. The intent is to introduce a duty the documents in scope did not previously carry. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the key safeguard set is preserved.",
+    "scope_note": "The documents in scope are PRO-ELE-026 and STD-ELE-009."
+  },
+  "response_sha256": "5f1bbf8fc30bfc79fdbc6346898d77d7bac5ac8bd646eef46613fc63252b2385",
+  "source": null
+}

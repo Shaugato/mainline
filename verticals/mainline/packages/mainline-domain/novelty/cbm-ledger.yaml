@@ -1,0 +1,347 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
+#
+# Novelty fragment per docs/leads/algorithms.md §6.  Validated by
+# tests/unit/domain/novelty/test_novelty_manifest.py (worker W10) and consumed
+# by MECHANISMS.md generation.  Anything not yet proven belongs under
+# `unverified:` and NEVER inside `claim:`.
+
+slug: cbm-ledger
+name: CONSERVATION OF BLAME MASS LEDGER
+mechanism: M1
+claim: >-
+  Every ancestor clause that carries a blame edge to a severity >= 4 event is, in commit c,
+  exactly one of five things — matched, carried through a recorded split, carried through a
+  recorded merge, open residue, or dispositioned residue — and that sentence is stored as
+  arithmetic the database refuses to be wrong about:
+
+      inherited = carried + split_carried + merge_carried + residue_open + residue_disposed
+
+  `mainline.cbm_account` (migration 0049c) carries the right-hand side as six INT8 columns, the
+  identity as a `BOOL … STORED` generated column, and the refusal as `CONSTRAINT cbm_balances
+  CHECK (balanced)`.  A matcher that quietly under-emits residue therefore does not produce a
+  clean gate: it produces an account that cannot be stored, `23514`, at the moment of
+  accounting.  Deleting one counted `identity_residue` row and re-accounting is the whole
+  demonstration.
+
+  The second half is what makes the first half mean anything.  `fn_cbm_account_guard`
+  (0140a, attached by 0145a) RE-DERIVES all six counters from `clause_blame_current`,
+  `identity_assignment` and `identity_residue` and OVERWRITES whatever the inserter supplied,
+  so an account that balances on its own arithmetic and misstates `inherited` is silently
+  corrected and then refused on the corrected numbers.  That is finding S1 applied to the
+  accounting rather than to severity: a projector that can choose its own numerator is not a
+  projection, it is a claim wearing a projection's clothes, and the claim is the thing under
+  suspicion.  `site_id` is re-derived from `commit_obj` for the same reason — a writer who could
+  choose the site could file a commit's accounting where its auditors do not look.
+
+  Two further refusals put the arithmetic in the write path of a state transition rather than in
+  a report about one.  `z_cbm_gate` / `z_cbm_gate_cr` (0140c/0140d, attached by 0145c/0145d)
+  raise P0001 when a commit the subject cites has NO account at all, and again when the newest
+  account's `residue_open` disagrees with the live count of distinct ancestors carrying an open
+  residue row — because an accounting that was true last week and is false now is worth less
+  than none: it looks like evidence.
+
+  And one hole in the architecture is closed on the way past.  `identity_residue.
+  max_ancestral_severity` is annotated `PROJECTED from clause_blame_closure (P2)` in
+  ARCHITECTURE.md §5.3 and §5.11 lists no trigger that projects it; 0049's own header records
+  that the column was client-supplied.  `fn_residue_project` (0140b, attached by 0145b) makes it
+  a projection: it re-derives the severity from `clause_blame_current` for the ancestor's
+  version in the FIRST-PARENT commit and raises P0001 when no closure row exists.  The column
+  decides which clearance verdicts are legal over the row, so a writer who could lower it could
+  convert an undischargeable obligation into a dischargeable one.
+
+enforcement:
+  refuses:
+    - "cbm_balances (23514) — an account whose five terms do not sum to `inherited`; measured on
+       v26.2.5 the MESSAGE names the expression `(balanced)` and the diagnostics field carries
+       the constraint name `cbm_balances`"
+    - "cbm_balances (23514), after re-derivation — an account that balances on its own numbers
+       and misstates them; the trigger corrects it first and the CHECK refuses the correction"
+    - "fn_cbm_account_guard (P0001) — the commit it accounts for does not exist"
+    - "fn_cbm_account_guard (P0001) — blame closure not materialised for the first-parent commit"
+    - "fn_cbm_account_guard (P0001) — cbm account generations must be dense and monotone (MI26)"
+    - "z_cbm_gate / z_cbm_gate_cr (P0001) — merge refused, blame accounting absent for a cited commit"
+    - "z_cbm_gate / z_cbm_gate_cr (P0001) — merge refused, blame accounting is stale for a cited commit"
+    - "fn_residue_project (P0001) — residue refused, no blame closure for the ancestor clause in
+       the first-parent commit"
+    - "fn_residue_project (P0001) — residue refused, the commit has no first parent"
+    - "z_cbm_account_append_only / fn_refuse_mutation (P0001) — an UPDATE or DELETE on a
+       stored account, which is the hole an INSERT-only guard leaves open: `cbm_balances`
+       alone would accept `inherited = 2, carried = 1, split_carried = 1` written over a
+       stored `inherited = 3`"
+    - "counts_nonneg / gen_nonneg / commit_id_is_sha256 / projector_ver_stated / wrote_as_stated (23514)"
+  refusal_depth: 2
+# Depth 2 AT THE ACCOUNT, depth 1 at the merge, and the difference is worth the extra sentence.
+#
+# At the account the two layers catch two different lies and both are demonstrated, one at a
+# time, by test_the_two_layers_catch_two_different_lies:
+#
+#   STRUCTURAL  `cbm_balances` is a plain-column CHECK over a STORED generated column on
+#               `mainline.cbm_account`.  It survives `ALTER TABLE mainline.cbm_account DISABLE
+#               TRIGGER z_cbm_account_guard`, and with the trigger gone a writer still cannot
+#               store `inherited = 3` beside terms summing to 2.
+#   DERIVED     the trigger is what sees an account that is arithmetically perfect and false.
+#               Disabling it converts a refusal into a discoverable lie — a strictly weaker but
+#               non-empty guarantee, because `mainline_audit.v_cbm_ledger` reports the live
+#               comparison and an auditor can run it.
+#
+# At the merge it is depth 1 and this fragment does not inflate it.  The structural second layer
+# this domain wanted is `permit.unbalanced_cbm_count` with `CONSTRAINT cbm_balanced_when_issued
+# CHECK (state <> 'merged' OR unbalanced_cbm_count = 0)`.  `mainline.permit` and
+# `mainline.change_request` are RENDERED SUBSTRATE (allocation band 0050-0053, mode `rendered`),
+# so that column is an edit to `packages/trappoint-sql/templates/0050_permit.sql.j2` and
+# `0051_change_request.sql.j2`, agreed with `kernel/subject-and-pin` and re-rendered into BOTH
+# bindings — never an `ALTER` typed into the vertical, which MR-1 consequence 2 describes as red
+# in the worst way (CI green, deploy dead).  It was not made by this worker and is recorded
+# under `unverified:`.  `ALTER TABLE mainline.permit DISABLE TRIGGER z_cbm_gate` succeeds today.
+
+position: unclaimed
+# Every ingredient is published and this fragment says so plainly:
+#
+#   * a conservation identity enforced by a database constraint — double-entry bookkeeping, and
+#     ledger databases that refuse an unbalanced transfer;
+#   * generated columns and CHECK constraints — SQL:2003 and every major engine;
+#   * requirements traceability with a completeness report — DO-178C, ISO 26262, and thirty
+#     years of traceability-matrix tooling;
+#   * mass-balance reconciliation over a process — undergraduate chemical engineering, and the
+#     metering-reconciliation software every plant already runs;
+#   * bipartite matching between two versions of a document — the matcher this ledger audits,
+#     which is worker W8's and is itself labelled prior art there.
+#
+# The claim is one specific composition that the survey did not find anywhere:
+#
+#   THE CONSERVED QUANTITY IS A LEGAL OBLIGATION, THE ACCOUNT IS RE-DERIVED FROM THE SOURCES
+#   RATHER THAN ACCEPTED FROM THE PROJECTOR, AND A FAILURE TO BALANCE IS A WRITE REFUSAL RATHER
+#   THAN A REPORT.
+#
+# Each of the three clauses is doing work:
+#
+#   (a) THE QUANTITY.  Ledger databases conserve money and reconciliation software conserves
+#       mass.  Both are quantities the system already has a number for.  What is conserved here
+#       is "an obligation written by an incident that killed or nearly killed somebody", which
+#       is a quantity nobody had made countable — the counting is what W7/W8's matcher exists to
+#       make possible, and the ledger is what makes the matcher's failures loud.
+#   (b) THE RE-DERIVATION.  A traceability matrix is computed by the tool that reports it, so a
+#       tool that mis-computes coverage reports full coverage.  Here the tool's answer is
+#       discarded and the storage layer recomputes from three relations the tool does not own.
+#   (c) THE REFUSAL.  A completeness report is an output.  It can be filed, waived, or produced
+#       after the change has shipped.  This one is a precondition of a state transition,
+#       enforced against every writer including one that has never heard of this package.
+#
+# The inversion that follows from all three is the thing worth arguing for, and it is not a
+# claim about accuracy: a successful evasion of the matcher produces an ORPHANED BLOOD-WRITTEN
+# OBLIGATION, which is a louder gate than the weakening it was hiding.  Matcher recall failures
+# convert into gate false POSITIVES, which a human adjudicates in minutes, instead of gate false
+# NEGATIVES, which are fatal and silent.
+
+prior_art:
+  - url: "https://en.wikipedia.org/wiki/Double-entry_bookkeeping"
+    what_it_covers: >-
+      The idea that a set of records is trustworthy because it must balance, and that an entry
+      which does not balance is refused rather than corrected later, is five hundred years old
+      and is not claimed here in any form.  The arithmetic in this fragment is the accounting
+      equation with different nouns, and the discipline of a trial balance — recompute the totals
+      from the entries and compare — is exactly what `fn_cbm_account_guard` performs.
+    what_it_does_not: >-
+      Double-entry conserves a quantity the system already has: money, denominated, supplied by
+      the transaction.  Nothing in it says where the entries come from, and it has no answer for
+      an entry that was never made.  A cash book balances perfectly if a sale is simply never
+      recorded — which is the failure this ledger exists to catch, because the entries here are
+      not supplied by the writer at all: they are RE-DERIVED from the ancestry, so an obligation
+      the projector never wrote about is still counted on the left-hand side.
+  - url: "https://tigerbeetle.com/"
+    what_it_covers: >-
+      TigerBeetle is the clearest modern statement of "the database refuses an unbalanced
+      transfer": a purpose-built financial datastore whose whole design is that double-entry
+      invariants are enforced by the storage engine rather than by the application above it.
+      The architectural argument — put the invariant where no application can route around it —
+      is theirs and this fragment agrees with it rather than claiming it.
+    what_it_does_not: >-
+      Its invariants are over amounts supplied in the transfer itself, between accounts the
+      caller names, and both sides of every entry arrive in the same request.  There is no
+      derivation from a third relation, no notion of an entry that OUGHT to exist because of
+      something in the past, and no ancestry: the question "how many obligations did this state
+      inherit" is not expressible, because the ledger has no history other than its own entries.
+  - url: "https://en.wikipedia.org/wiki/Requirements_traceability"
+    what_it_covers: >-
+      Traceability matrices under DO-178C, ISO 26262 and their tooling already answer "does every
+      requirement still have something downstream of it", already report orphans and gaps, and
+      already treat an unlinked safety requirement as a finding.  Conceptually this is the
+      closest safety-engineering neighbour, and the reporting half of it is not claimed here.
+    what_it_does_not: >-
+      The matrix is computed BY the tool that reports it, so a tool whose linking is wrong
+      reports full coverage in perfect confidence, and the report is an artefact a process
+      consumes — reviewable, waivable, and producible after the change has shipped.  Nothing in
+      the practice makes an incomplete matrix refuse a state transition, and nothing recomputes
+      the coverage from sources the tool does not own.  Traceability also links requirement to
+      test; it does not carry a link from a clause to the INCIDENT that wrote it, which is what
+      makes `severity >= 4` a meaningful universe to quantify over.
+  - url: "https://en.wikipedia.org/wiki/Mass_balance"
+    what_it_covers: >-
+      "What went in must come out or be accounted for" is the reconciliation every process plant
+      already runs over its own metering, and the vocabulary of this mechanism — inherited,
+      carried, residue — is borrowed from it deliberately so that a plant engineer recognises the
+      shape of the claim on sight.  The idea of a balance whose failure indicates measurement
+      error or loss is entirely standard.
+    what_it_does_not: >-
+      A mass balance is a measurement with a tolerance, reconciled after the fact, and a residual
+      is a number an engineer interprets.  There is no tolerance here and there is no
+      after-the-fact: the balance is exact, integer, and evaluated before the row exists.  Nor
+      does a mass balance gate anything — a plant does not stop because yesterday's reconciliation
+      was 0.4% out.
+  - url: "https://en.wikipedia.org/wiki/Management_of_change"
+    what_it_covers: >-
+      Management of Change is the incumbent and deserves naming, because it is what a site does
+      today: a procedure edit is routed to a review board, a competent person checks that nothing
+      important was lost, and the judgement is recorded.  Every question this ledger asks is
+      already asked under MOC, by people who know the plant, and often answered better.
+    what_it_does_not: >-
+      The check is a human artefact in a workflow system and the workflow completes without it:
+      an MOC record can be approved with an empty rationale and no system state prevents it.  It
+      is also synchronic — the reviewer compares the current text with the proposed text, not
+      with the twenty-year-old incident that wrote the clause — so "this edit dropped a control a
+      fatality put there" is not a question the record is shaped to answer.  The contribution is
+      not judging better than a review board; it is making the arithmetic of what was lost a
+      thing the storage layer will not accept as absent.
+
+implemented_by:
+  - "verticals/mainline/db/migrations/0049c_cbm_account.sql"
+  - "verticals/mainline/db/migrations/0140a_fn_cbm_account_guard.sql"
+  - "verticals/mainline/db/migrations/0140b_fn_residue_project.sql"
+  - "verticals/mainline/db/migrations/0140c_fn_cbm_gate_permit.sql"
+  - "verticals/mainline/db/migrations/0140d_fn_cbm_gate_cr.sql"
+  - "verticals/mainline/db/migrations/0145a_trg_cbm_account_guard.sql"
+  - "verticals/mainline/db/migrations/0145b_trg_residue_project.sql"
+  - "verticals/mainline/db/migrations/0145c_trg_cbm_gate_permit.sql"
+  - "verticals/mainline/db/migrations/0145d_trg_cbm_gate_cr.sql"
+  - "verticals/mainline/db/migrations/0145e_trg_cbm_account_append_only.sql"
+  - "verticals/mainline/db/migrations/0151_v_cbm_ledger.sql"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/cbm/__init__.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/cbm/account.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/cbm/project.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/cbm/errors.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/cbm/version.py"
+
+tests:
+  # PL-2: pure, and red before one line of cbm/ existed.
+  - "tests/unit/domain/cbm/test_cbm_red_first.py::test_an_unaccounted_blood_bearing_ancestor_breaks_the_identity"
+  - "tests/unit/domain/cbm/test_cbm_red_first.py::test_the_precedence_is_fail_closed_at_every_step"
+  - "tests/unit/domain/cbm/test_cbm_red_first.py::test_a_missing_closure_row_refuses_rather_than_defaulting_to_zero"
+  # The buckets partition the ancestor set, over the whole 160-state space.
+  - "tests/unit/domain/cbm/test_cbm_partition.py::test_the_identity_holds_for_every_subset_of_the_state_space"
+  - "tests/unit/domain/cbm/test_cbm_partition.py::test_the_bucket_is_the_first_precedence_member_whose_predicate_holds"
+  - "tests/unit/domain/cbm/test_cbm_partition.py::test_a_sub_blood_ancestor_never_contributes_to_any_term"
+  # The Python and the SQL read the same relations and apply one threshold.
+  - "tests/unit/domain/cbm/test_cbm_sql_shape.py::test_the_guard_applies_the_same_blood_threshold_the_python_does"
+  - "tests/unit/domain/cbm/test_cbm_sql_shape.py::test_neither_derivation_reads_the_closure_table_directly"
+  - "tests/unit/domain/cbm/test_cbm_sql_shape.py::test_the_group_by_that_makes_the_law_a_law_is_in_both"
+  # The exit criteria, against a real CockroachDB v26.2.5.
+  - "tests/integration/algorithms/cbm/test_balance_refusal.py::test_deleting_one_counted_residue_row_makes_the_next_account_23514"
+  - "tests/integration/algorithms/cbm/test_balance_refusal.py::test_an_inflated_carried_is_silently_overwritten_and_then_refused"
+  - "tests/integration/algorithms/cbm/test_balance_refusal.py::test_the_two_layers_catch_two_different_lies"
+  - "tests/integration/algorithms/cbm/test_balance_refusal.py::test_an_update_to_a_stored_account_is_refused_outright"
+  - "tests/integration/algorithms/cbm/test_balance_refusal.py::test_the_same_re_account_is_accepted_when_0145a_is_withheld"
+  - "tests/integration/algorithms/cbm/test_gate_absent_account.py::test_a_merge_citing_a_commit_with_no_account_is_p0001"
+  - "tests/integration/algorithms/cbm/test_gate_absent_account.py::test_the_same_merge_succeeds_when_0145c_is_withheld"
+  - "tests/integration/algorithms/cbm/test_gate_absent_account.py::test_a_residue_row_written_after_the_account_makes_the_merge_stale"
+  - "tests/integration/algorithms/cbm/test_gate_absent_account.py::test_a_change_request_is_gated_on_the_same_arithmetic"
+  - "tests/integration/algorithms/cbm/test_residue_project.py::test_a_residue_whose_ancestor_has_no_closure_row_is_p0001"
+  - "tests/integration/algorithms/cbm/test_residue_project.py::test_the_client_supplied_severity_is_overwritten_from_the_closure"
+  - "tests/integration/algorithms/cbm/test_residue_project.py::test_the_projection_reads_the_newest_closure_generation"
+  # The differential: client and trigger, 200 commits.
+  - "tests/integration/algorithms/cbm/test_differential_200.py::test_the_client_and_the_trigger_agree_on_200_fixture_commits"
+  - "tests/integration/algorithms/cbm/test_differential_200.py::test_re_accounting_the_same_commit_is_idempotent_and_generation_dense"
+  # The audit surface.
+  - "tests/integration/algorithms/cbm/test_ledger_view.py::test_the_ledger_is_capped_at_25_rows_and_says_it_was_truncated"
+  - "tests/integration/algorithms/cbm/test_ledger_view.py::test_the_response_fits_the_10_kib_cap"
+  - "tests/integration/algorithms/cbm/test_ledger_view.py::test_a_stale_account_is_flagged_and_sorted_first"
+  # The static checks that still run when no cluster is reachable.
+  - "tests/integration/algorithms/cbm/test_cbm_migration_shape.py::test_new_is_parenthesised_to_read_and_bare_to_write"
+  - "tests/integration/algorithms/cbm/test_cbm_migration_shape.py::test_the_refusal_message_in_the_sql_is_the_one_the_tests_pin"
+  - "tests/integration/algorithms/cbm/test_cbm_pending_dependency.py::test_the_stand_in_covers_exactly_the_objects_no_migration_creates"
+
+unverified:
+  - >-
+    THE STRUCTURAL REFUSAL AT THE MERGE IS NOT BUILT.  `permit.unbalanced_cbm_count` and
+    `change_request.unbalanced_cbm_count`, with `CONSTRAINT cbm_balanced_when_issued CHECK
+    (state <> 'merged' OR unbalanced_cbm_count = 0)`, are the plain-column second layer this
+    domain's plan specifies.  Both tables are RENDERED SUBSTRATE, so the column is a change to
+    `packages/trappoint-sql/templates/0050_permit.sql.j2` and `0051_change_request.sql.j2`
+    agreed with `kernel/subject-and-pin` and re-rendered into both bindings.  This worker owns
+    neither template and did not make the change.  Until it lands, the merge refusal is a
+    TRIGGER and `ALTER TABLE mainline.permit DISABLE TRIGGER z_cbm_gate` succeeds; what the
+    custodian patrol makes impossible is removing the RECORD that it was disabled, and that
+    claim belongs to the custody domain and is not verified here.
+  - >-
+    CBM CANNOT SEE BLAME LANDING ON THE WRONG CLAUSE (risk R-A2).  The ledger proves every
+    inherited obligation was accounted for; it says nothing about whether `carried` matched an
+    ancestor to the CORRECT descendant.  A matcher that confidently matches obligation A to the
+    clause that used to be obligation B produces a perfectly balanced account.  The pre-committed
+    escalation ladder for that failure is in docs/leads/algorithms.md §8 — raise the auto-accept
+    band, disable the semantic stage, run on hash and anchors only — and `identity_policy` is
+    versioned on every assignment row so the ladder is auditable.  Nothing in this fragment
+    reduces that risk and nothing here should be read as claiming to.
+  - >-
+    `inherited` IS DEFINED OVER THE FIRST-PARENT COMMIT'S VERSIONS OF THE TOUCHED DOCUMENTS, AND
+    THAT DEFINITION HAS A KNOWN EDGE.  A(c) is built from `clause_version` rows AT the first
+    parent whose `doc_id` the commit touched.  If the first-parent commit did not itself version
+    every clause of that document — a repository whose commits are patches rather than document
+    snapshots — the ancestor set under-counts, and an under-counted `inherited` is a gate that
+    opens.  The definition is stated normatively in 0140a's header and implemented identically
+    in Python, so the two agree; whether it is the RIGHT definition for a patch-shaped corpus is
+    an open question against the demo corpus and is not settled by any test here.
+  - >-
+    THE PROJECTION REQUIRES A CLOSURE ROW AT THE FIRST PARENT AND WILL SURFACE AS A BACKLOG.
+    `fn_residue_project` refuses an `identity_residue` insert whose ancestor has no
+    `clause_blame_current` row at the first-parent commit, and `fn_cbm_account_guard` refuses an
+    account when ANY first-parent clause version in a touched document lacks one.  Both are
+    fail-closed on purpose and both impose a real ordering obligation on the closure projector
+    fleet.  How often that fires under production load is unmeasured, and the nuisance ceiling in
+    docs/leads/algorithms.md §6.7 is the rule that decides what happens if it fires too often —
+    under which a rule is REJECTED, not tuned.
+  - >-
+    THE STALENESS REFUSAL COMPARES ONE COUNTER, NOT THE WHOLE ACCOUNT.  `z_cbm_gate` checks the
+    newest account's `residue_open` against the live count of distinct ancestors with an open
+    residue row.  A world that moved in some OTHER way — an assignment row added after the
+    account, a closure generation that raised a severity and enlarged A(c) — is not detected by
+    this comparison, and the merge proceeds on an account that is stale in a way the gate does
+    not measure.  Re-deriving the entire account inside the merge trigger would close it and was
+    not done: it is an unbounded amount of work on the latency-critical path of every merge, and
+    a gate that times out is a gate somebody disables.
+  - >-
+    THREE DEPENDENCIES WERE STOOD IN FOR AT AUTHORING TIME.  `mainline.clause_blame_closure`,
+    `mainline.clause_blame_current` (datamodel/dm-blame) and `mainline.identity_assignment`
+    (worker W8) had no migration in the tree, so the cluster suite applies
+    `tests/integration/algorithms/cbm/_pending_dependency.sql`, whose DDL is transcribed from
+    ARCHITECTURE.md §5.4 and from W8's brief and cites both line by line.  Every cluster-backed
+    result in this fragment is therefore true of those transcribed shapes and is only as true of
+    the deployment as the transcriptions are.  The stand-in is outside the migration apply path,
+    every fixture prints which objects it covered, and `test_cbm_pending_dependency.py` refuses the
+    combination of a real migration and a shadowing stand-in.
+  - >-
+    MEASURED PLATFORM DETAIL, RECORDED BECAUSE AN EXHIBIT DEPENDS ON IT.  On CockroachDB CCL
+    v26.2.5 a `23514` MESSAGE names the CHECK EXPRESSION — `failed to satisfy CHECK constraint
+    (balanced)` — and the constraint NAME arrives only in the error's diagnostics field.  Any
+    console or exhibit that promises an operator the name `cbm_balances` must take it from the
+    diagnostics.  Separately: reading a trigger pseudo-record needs `(NEW).col` and WRITING one
+    needs `NEW.col :=`; the wrong read form applies at CREATE FUNCTION and fails at CREATE
+    TRIGGER, one migration downstream of the defect.
+  - >-
+    THE AUDIT VIEW FITS THE MCP CAP ONLY IN THE COLUMNS-PLUS-ROWS ENCODING.  25 full rows of
+    `mainline_audit.v_cbm_ledger` measure about 5 KiB as `{"columns": [...], "rows": [[...]]}`
+    and about 12.6 KiB as one JSON object per row, because the nineteen column names are then
+    repeated 25 times.  A renderer that serialises per-row objects will breach the 10 KiB cap and
+    be truncated by the transport — which is exactly the silent partial answer `ledger_truncated`
+    exists to prevent.  Both sizes are asserted so neither can drift unnoticed, but no shim has
+    been built or measured against this view.
+  - >-
+    RLS IS NOT APPLIED TO ANY OBJECT IN THIS FAMILY BY THIS WORKER.  `mainline.cbm_account` gets
+    no `CREATE POLICY` here and `mainline_audit.v_cbm_ledger` inherits whatever the underlying
+    tables enforce; the policy band `0180`-`0198` belongs to `datamodel/dm-views-rls`.  The
+    view's global `LIMIT 25` and its `n_accounted_commits` total are therefore global for a
+    superuser and site-scoped only once those policies exist, which the test suite models by
+    building a fresh database rather than by asserting isolation it does not have.
+  - >-
+    NONE OF THIS DISTINGUISHES A CONSIDERED DISPOSITION FROM A RUBBER STAMP (risk R-A8).  CBM
+    makes an obligation impossible to LOSE.  It cannot make a match true, it cannot make a
+    disposition thoughtful, and it must never be sold as retiring either risk.

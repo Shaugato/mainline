@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "MOBILE-EQUIPMENT-INTERACTION",
+    "barrier_role": "preventive",
+    "control_class": "POSITIVE_COMMUNICATION_BEFORE_APPROACH",
+    "control_delta": "strengthen",
+    "control_label": "positive communication before approaching mobile equipment",
+    "doc_code": "STD-MEQ-007",
+    "doc_family": "STD",
+    "doc_title": "Mobile Equipment Interaction",
+    "effective_on": "2016-04-02",
+    "printed_label": "1.2",
+    "setpoint": null,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "40b85711a8f83f0d1a8d247c6440aa61805e5e46a2f7c6e8a06bab445b07e1d8",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:YND/STD-MEQ-007/004#YND/STD-MEQ-007/1.2",
+  "prompt_kind": "clause",
+  "prompt_sha256": "7254679000c2d8ed5450cd1ad22c728a81404c29ef589ee5860781cee741ab32",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The positive communication before approaching mobile equipment must be provided, and its effectiveness must be recorded as a critical control verification before the task proceeds. This clause applies to activities archived under MOBILE-EQUIPMENT-INTERACTION at Yandarra Downs Open Cut and Heavy Workshop.",
+    "obligation_verb": "must"
+  },
+  "response_sha256": "cb6f41144c3aae35e4720a56948e96c5c038eba48772c61ba3a2d69ba1433f90",
+  "source": null
+}

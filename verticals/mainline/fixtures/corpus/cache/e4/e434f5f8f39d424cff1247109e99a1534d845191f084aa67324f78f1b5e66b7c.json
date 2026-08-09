@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "barrier_role": "preventive",
+    "control_class": "PARK_UP_AND_RESTRAINT",
+    "control_delta": "restate",
+    "control_label": "parking, chocking and restraint of equipment",
+    "doc_code": "PTW-STD-004",
+    "doc_family": "PTW",
+    "doc_title": "Permit to Work Form Set",
+    "effective_on": "2016-11-21",
+    "printed_label": "4.1.1",
+    "setpoint": null,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "e434f5f8f39d424cff1247109e99a1534d845191f084aa67324f78f1b5e66b7c",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:YND/PTW-STD-004/004#YND/PTW-STD-004/3.2.2(b)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "7437555f04258bc55f5d73b35064a5c811c1aa718ee5b0feae068162b3278b4e",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The parking, chocking and restraint of equipment shall be provided and maintained wherever this permit-to-work form set applies, and its condition shall be treated as a critical control. This clause applies to activities archived under ISOLATION-OF-STORED-ENERGY at Yandarra Downs Open Cut and Heavy Workshop.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "480e84a7a088ac1db4a762128fe5a653944675c423925339e950926613d15215",
+  "source": null
+}

@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 3,
+    "doc_code": "PTW-STD-003",
+    "doc_family": "PTW",
+    "doc_title": "Permit to Work Form Set",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2025-04-15",
+    "required_citations": [
+      {
+        "control_label": "controlled transfer of hydrocarbon between vessels",
+        "event_ref": "INC-2024-020",
+        "event_title": "loss of containment at TK-7103 during transfer operations",
+        "hazard_energy": "pressure",
+        "kind": "regulator_requirement",
+        "quote_ref": "quote:CVY/PTW-STD-003/006#regulator_requirement/INC-2024-020",
+        "severity_gate": 2
+      }
+    ],
+    "rev_no": 6,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "learning team review",
+      "management_of_change": "change assurance",
+      "near_miss": "high potential incident"
+    }
+  },
+  "key": "b151165535ab13d831a35d0e5fa7e6d6d56d478d14c98bb5c115608570403ac6",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:CVY/PTW-STD-003/006",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "d8c38cbc584462ca59355667453913476be4ac48ab134b3d9aae51d1d10a5073",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "A regulatory requirement arising from INC-2024-020 obliges this permit-to-work form set to carry the controlled transfer of hydrocarbon between vessels.",
+        "quote_ref": "quote:CVY/PTW-STD-003/006#regulator_requirement/INC-2024-020"
+      }
+    ],
+    "reason": "Scheduled review at revision 6; 3 clauses restated."
+  },
+  "response_sha256": "6f0d318d67412ac88d6bbec7348b09b4a35f42fd452356ea1e2f8c4a5ff63d23",
+  "source": null
+}

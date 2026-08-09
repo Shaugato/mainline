@@ -1,0 +1,117 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "replacing seals and seal support fluid",
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "activity_series": "maintaining sealing systems on rotating equipment",
+    "assets": [
+      {
+        "asset_class": "HTP-CLASS-A",
+        "label": "hydrocarbon transfer pumps",
+        "service": "hydrocarbon transfer, single mechanical seal with pressurised barrier-fluid support",
+        "tag": "P-4103"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "EMERGENCY_ISOLATION_ON_RELEASE",
+        "control_label": "emergency isolation and depressuring on loss of containment",
+        "failure_mode": "not_verified",
+        "hazard_energy": "chemical",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "HYDROCARBON_TRANSFER_CONTROL",
+        "control_label": "controlled transfer of hydrocarbon between vessels",
+        "failure_mode": "bypassed",
+        "hazard_energy": "pressure",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "SEAL_FACE_TEMPERATURE_ALARM",
+        "control_label": "seal-face high-temperature alarm and trip",
+        "failure_mode": "bypassed",
+        "hazard_energy": "chemical",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "SEAL_SUPPORT_SYSTEM_INTEGRITY",
+        "control_label": "integrity of the mechanical seal support system",
+        "failure_mode": "not_verified",
+        "hazard_energy": "thermal",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "INC-2020-020",
+    "hazard_energy": "thermal",
+    "hazard_media": [
+      "hot surface",
+      "steam",
+      "molten material",
+      "hot work",
+      "exothermic reaction"
+    ],
+    "hazard_release": "burn, ignition, scald",
+    "kind": "incident",
+    "occurred_on": "2020-12-11",
+    "severity_actual": 0,
+    "severity_potential": 4,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during a planned shutdown",
+    "title": "uncontrolled movement of P-4103 during a planned shutdown",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "ae73c70e235f7531024b2fe11baa370ad1b3010ad00713e551b4ac1c0962fb56",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2020-020",
+  "prompt_kind": "icam",
+  "prompt_sha256": "183f6aed685bc1212cf34940b9e90773741da261d485f24ce23d70d188c4fc65",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 4 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "EMERGENCY_ISOLATION_ON_RELEASE",
+        "finding": "Control EMERGENCY_ISOLATION_ON_RELEASE: the emergency isolation and depressuring on loss of containment was never verified as effective, and the ICAM investigation classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "HYDROCARBON_TRANSFER_CONTROL",
+        "finding": "Control HYDROCARBON_TRANSFER_CONTROL: the controlled transfer of hydrocarbon between vessels had been bypassed, and the ICAM investigation classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "SEAL_FACE_TEMPERATURE_ALARM",
+        "finding": "Control SEAL_FACE_TEMPERATURE_ALARM: the seal-face high-temperature alarm and trip had been bypassed, and the ICAM investigation classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "SEAL_SUPPORT_SYSTEM_INTEGRITY",
+        "finding": "Control SEAL_SUPPORT_SYSTEM_INTEGRITY: the integrity of the mechanical seal support system was never verified as effective, and the ICAM investigation classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the emergency isolation and depressuring on loss of containment on P-4103 and record the critical control verification before this task is next authorised.",
+      "Restore the controlled transfer of hydrocarbon between vessels on P-4103 and record the critical control verification before this task is next authorised.",
+      "Restore the integrity of the mechanical seal support system on P-4103 and record the critical control verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in maintaining sealing systems on rotating equipment, specifically replacing seals and seal support fluid. P-4103 (hydrocarbon transfer pumps) is in service for hydrocarbon transfer, single mechanical seal with pressurised barrier-fluid support. The task proceeded during a planned shutdown while the emergency isolation and depressuring on loss of containment was never verified as effective. The thermal energy involved is held as hot surface, and the recorded presentation was burn, ignition, scald.",
+    "summary": "On 11 December 2020 an incident occurred on P-4103 at Marrindal Concentrator and Hydrocarbon Transfer Facility during a planned shutdown, releasing thermal energy held as hot surface."
+  },
+  "response_sha256": "94bfdaa227449537abab5ea0497fa6c4d3711b2e56fd631bee9d62afd3aa4e11",
+  "source": null
+}

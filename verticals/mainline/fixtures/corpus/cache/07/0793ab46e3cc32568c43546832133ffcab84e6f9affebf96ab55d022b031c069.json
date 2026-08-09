@@ -1,0 +1,103 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "loading, restraining and placarding a load",
+    "activity_root": "LAND-TRANSPORT",
+    "activity_series": "transporting materials by road",
+    "assets": [
+      {
+        "asset_class": "SLP-CLASS-B",
+        "label": "slurry transfer pumps",
+        "service": "cyclone feed and tailings transfer",
+        "tag": "P-3223"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "FATIGUE_AND_FITNESS_CONTROL",
+        "control_label": "assessment of fatigue and fitness for driving",
+        "failure_mode": "absent",
+        "hazard_energy": "kinetic",
+        "icam_tier": "individual_or_team_action"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "LOAD_RESTRAINT_AND_PLACARDING",
+        "control_label": "restraint and placarding of transported loads",
+        "failure_mode": "degraded",
+        "hazard_energy": "kinetic",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "PROXIMITY_DETECTION_AND_SEGREGATION",
+        "control_label": "segregation of light vehicles and pedestrians from heavy equipment",
+        "failure_mode": "degraded",
+        "hazard_energy": "kinetic",
+        "icam_tier": "organisational_factor"
+      }
+    ],
+    "event_ref": "NM-2026-0007",
+    "hazard_energy": "kinetic",
+    "hazard_media": [
+      "rotating equipment",
+      "conveyor",
+      "mobile equipment",
+      "pressurised jet",
+      "flying fragment"
+    ],
+    "hazard_release": "entanglement, impact, crush",
+    "kind": "near_miss",
+    "occurred_on": "2026-02-28",
+    "severity_actual": 1,
+    "severity_potential": 2,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during commissioning of replacement equipment",
+    "title": "unrelieved potential energy found after isolation of P-3223",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "0793ab46e3cc32568c43546832133ffcab84e6f9affebf96ab55d022b031c069",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2026-0007",
+  "prompt_kind": "icam",
+  "prompt_sha256": "7ab2315cbf4b03cf971e708ccc5d34bed7298fea11106625f6e8962a43229a52",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage. The potential outcome was rated 2 against the site's consequence scale, above the 1 actually realised.",
+    "defences": [
+      {
+        "control_class": "FATIGUE_AND_FITNESS_CONTROL",
+        "finding": "Control FATIGUE_AND_FITNESS_CONTROL: the assessment of fatigue and fitness for driving was not in place, and the learning team review classified this as an individual or team action."
+      },
+      {
+        "control_class": "LOAD_RESTRAINT_AND_PLACARDING",
+        "finding": "Control LOAD_RESTRAINT_AND_PLACARDING: the restraint and placarding of transported loads had degraded below its design intent, and the learning team review classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "PROXIMITY_DETECTION_AND_SEGREGATION",
+        "finding": "Control PROXIMITY_DETECTION_AND_SEGREGATION: the segregation of light vehicles and pedestrians from heavy equipment had degraded below its design intent, and the learning team review classified this as an organisational factor."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next assurance activity that the assessment of fatigue and fitness for driving on P-3223 performs as designed."
+    ],
+    "sequence": "Work was under way in transporting materials by road, specifically loading, restraining and placarding a load. P-3223 (slurry transfer pumps) is in service for cyclone feed and tailings transfer. The task proceeded during commissioning of replacement equipment while the assessment of fatigue and fitness for driving was not in place. The kinetic energy involved is held as rotating equipment, and the recorded presentation was entanglement, impact, crush.",
+    "summary": "On 28 February 2026 a high potential incident was recorded on P-3223 at Marrindal Concentrator and Hydrocarbon Transfer Facility during commissioning of replacement equipment; kinetic energy held as rotating equipment was not released."
+  },
+  "response_sha256": "fe23a6866767980647377ca70329401dd44e6b06ff9ea68d2cdb1481ab22b0dc",
+  "source": null
+}

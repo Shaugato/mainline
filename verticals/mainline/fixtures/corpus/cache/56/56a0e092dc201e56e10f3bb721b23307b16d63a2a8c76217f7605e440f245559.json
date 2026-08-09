@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ELECTRICAL-SAFETY",
+    "barrier_role": "recovery",
+    "control_class": "EARTH_LEAKAGE_PROTECTION",
+    "control_delta": "introduce",
+    "control_label": "earth leakage and protection setting integrity",
+    "doc_code": "PRO-ELE-026",
+    "doc_family": "PRO",
+    "doc_title": "High Voltage Switching and Access",
+    "effective_on": "2007-08-28",
+    "printed_label": "7.1.2(d)",
+    "setpoint": null,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "56a0e092dc201e56e10f3bb721b23307b16d63a2a8c76217f7605e440f245559",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:TLG/PRO-ELE-026/001#TLG/PRO-ELE-026/7.1.2(d)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "4ec5697a15c098f884a6f0957936c33a8dc7c71dbdeff78a98e6823cac3e121e",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The earth leakage and protection setting integrity shall be provided and maintained for work covered by this procedure. This clause applies to activities archived under ELECTRICAL-SAFETY at Tolgarra Processing and Power Station.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "1976ca20735f27c6a31ee71324ae5f39df622c8d72b61c3f38a7173b83428b53",
+  "source": null
+}

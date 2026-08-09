@@ -1,0 +1,52 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 3,
+    "doc_codes": [
+      "ALERT-2016-007",
+      "MOC-2026-0413",
+      "PRO-MEC-014",
+      "PRO-OPS-032"
+    ],
+    "intent": "strengthen",
+    "moc_ref": "MOC-2010-0164",
+    "opened_on": "2010-11-21",
+    "precursor_events": [
+      {
+        "event_ref": "INC-2004-008",
+        "severity_gate": null
+      },
+      {
+        "event_ref": "INC-2011-007",
+        "severity_gate": null
+      },
+      {
+        "event_ref": "INC-2025-010",
+        "severity_gate": null
+      }
+    ],
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "management_of_change": "change request",
+      "verification": "field verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "39ebc795f96271635a2f6c456ec9c22ab53279b2c203a99f847727d6b37e69c8",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2010-0164",
+  "prompt_kind": "moc",
+  "prompt_sha256": "bc63a3ac6351e7bfbb9017f77bc46221198762f05f2923d325cf25dbdf396ae0",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2010-0164 was raised at Marrindal Concentrator and Hydrocarbon Transfer Facility on 21 November 2010 following 3 recorded events in the archive, including INC-2004-008, INC-2011-007 and INC-2025-010. The change request record covers 3 clauses across 4 controlled documents. The intent is to strengthen the critical safeguard named in the documents in scope. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical safeguard set is preserved.",
+    "scope_note": "The documents in scope are ALERT-2016-007, MOC-2026-0413, PRO-MEC-014 and PRO-OPS-032."
+  },
+  "response_sha256": "9a86e4eead99b08b8553647bd191cad60bbd4d6b56ea0a6d097c57e93de2c631",
+  "source": null
+}

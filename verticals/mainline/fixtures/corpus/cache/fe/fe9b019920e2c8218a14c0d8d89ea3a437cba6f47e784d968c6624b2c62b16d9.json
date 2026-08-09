@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "MOLTEN-AND-HOT-MATERIAL",
+    "barrier_role": "preventive",
+    "control_class": "HOT_SURFACE_GUARDING",
+    "control_delta": "restate",
+    "control_label": "insulation, guarding and signing of hot surfaces",
+    "doc_code": "PRO-OPS-044",
+    "doc_family": "PRO",
+    "doc_title": "Boiler Start-Up and Warm Through",
+    "effective_on": "2021-05-13",
+    "printed_label": "1.1.8",
+    "setpoint": null,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "fe9b019920e2c8218a14c0d8d89ea3a437cba6f47e784d968c6624b2c62b16d9",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:TLG/PRO-OPS-044/008#TLG/PRO-OPS-044/5.5",
+  "prompt_kind": "clause",
+  "prompt_sha256": "685a8eeb52844d8978d78fe8cb38c10d0521dab3b26bc7a5f345448b9496f2fa",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The insulation, guarding and signing of hot surfaces shall be provided and maintained wherever this procedure applies, and its condition shall be treated as a critical control. This clause applies to activities archived under MOLTEN-AND-HOT-MATERIAL at Tolgarra Processing and Power Station.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "9053b3a13fb4b1c65b04d9b4291c252bb544eef4aa88fedb3c2d92b4b09fd3aa",
+  "source": null
+}

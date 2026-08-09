@@ -1,0 +1,92 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "managing corrosion and thinning findings",
+    "activity_root": "PRESSURE-SYSTEM-INTEGRITY",
+    "activity_series": "inspecting pressure equipment",
+    "assets": [
+      {
+        "asset_class": "PRD-CLASS-A",
+        "label": "pressure relief devices",
+        "service": "overpressure protection on the transfer and storage system",
+        "tag": "PSV-4110"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "STEAM_SYSTEM_WARM_THROUGH",
+        "control_label": "controlled draining, venting and warm-through of steam systems",
+        "failure_mode": "ineffective",
+        "hazard_energy": "pressure",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "STORED_ENERGY_DISSIPATION",
+        "control_label": "dissipation or restraint of trapped and residual energy",
+        "failure_mode": "not_verified",
+        "hazard_energy": "pressure",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "NM-2022-0003",
+    "hazard_energy": "pressure",
+    "hazard_media": [
+      "hydraulic accumulator",
+      "barrier fluid",
+      "process gas",
+      "steam header",
+      "compressed air",
+      "trapped liquid"
+    ],
+    "hazard_release": "jet release, stored-energy discharge, rupture",
+    "kind": "near_miss",
+    "occurred_on": "2022-02-16",
+    "severity_actual": 0,
+    "severity_potential": 2,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during cleaning and preparation",
+    "title": "unrelieved potential energy found after isolation of PSV-4110",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "09c084ceefdb03d42d27e428cc45e45480a2b6c4fe7fe3f0e81e45623b6d6f19",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2022-0003",
+  "prompt_kind": "icam",
+  "prompt_sha256": "2f4712fd4ac9021c6e51787ef6efbbfd9f35a652905657f861d9c1d77f9ae6db",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 2 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "STEAM_SYSTEM_WARM_THROUGH",
+        "finding": "Control STEAM_SYSTEM_WARM_THROUGH: the controlled draining, venting and warm-through of steam systems was in place but did not perform, and the learning team review classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "STORED_ENERGY_DISSIPATION",
+        "finding": "Control STORED_ENERGY_DISSIPATION: the dissipation or restraint of trapped and residual energy was never verified as effective, and the learning team review classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Restore the controlled draining, venting and warm-through of steam systems on PSV-4110 and record the assurance activity before this task is next authorised."
+    ],
+    "sequence": "Work was under way in inspecting pressure equipment, specifically managing corrosion and thinning findings. PSV-4110 (pressure relief devices) is in service for overpressure protection on the transfer and storage system. The task proceeded during cleaning and preparation while the controlled draining, venting and warm-through of steam systems was in place but did not perform. The pressure energy involved is held as hydraulic accumulator, and the recorded presentation was jet release, stored-energy discharge, rupture.",
+    "summary": "On 16 February 2022 a high potential incident was recorded on PSV-4110 at Marrindal Concentrator and Hydrocarbon Transfer Facility during cleaning and preparation; pressure energy held as hydraulic accumulator was not released."
+  },
+  "response_sha256": "2034478d4ad0bc196644e363ff129803d8f4b393dda4d1e838ee1544fd58ed2e",
+  "source": null
+}

@@ -1,0 +1,98 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "working live under a documented justification",
+    "activity_root": "ELECTRICAL-SAFETY",
+    "activity_series": "controlling access to energised apparatus",
+    "assets": [
+      {
+        "asset_class": "ELEC-CLASS-A",
+        "label": "switchgear and transformers",
+        "service": "plant HV/LV distribution",
+        "tag": "SG-4100"
+      },
+      {
+        "asset_class": "ELEC-CLASS-A",
+        "label": "switchgear and transformers",
+        "service": "plant HV/LV distribution",
+        "tag": "TX-3002"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "HAZARDOUS_AREA_EQUIPMENT_INTEGRITY",
+        "control_label": "integrity of explosion-protected equipment in zoned areas",
+        "failure_mode": "degraded",
+        "hazard_energy": "electrical",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "POSITIVE_ISOLATION_APPLICATION",
+        "control_label": "application of positive isolation devices and personal locks",
+        "failure_mode": "ineffective",
+        "hazard_energy": "electrical",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "INC-2018-013",
+    "hazard_energy": "electrical",
+    "hazard_media": [
+      "HV switchgear",
+      "LV distribution",
+      "capacitive storage",
+      "induced voltage",
+      "portable equipment"
+    ],
+    "hazard_release": "shock, arc flash, unplanned energisation",
+    "kind": "incident",
+    "occurred_on": "2018-06-29",
+    "severity_actual": 1,
+    "severity_potential": 1,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during transfer operations",
+    "title": "energy isolation failure on SG-4100",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "c0e263ac2487a3d3e36ecdb0f3f8b99729da2757342f4f92c7ca9e7f1f801e20",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2018-013",
+  "prompt_kind": "icam",
+  "prompt_sha256": "935cae6f6231e494eeb219d0d2d398bb52ee38c2b1aca5e2a9b6e308c322cb9c",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage.",
+    "defences": [
+      {
+        "control_class": "HAZARDOUS_AREA_EQUIPMENT_INTEGRITY",
+        "finding": "Control HAZARDOUS_AREA_EQUIPMENT_INTEGRITY: the integrity of explosion-protected equipment in zoned areas had degraded below its design intent, and the ICAM investigation classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "POSITIVE_ISOLATION_APPLICATION",
+        "finding": "Control POSITIVE_ISOLATION_APPLICATION: the application of positive isolation devices and personal locks was in place but did not perform, and the ICAM investigation classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the integrity of explosion-protected equipment in zoned areas on SG-4100 and TX-3002 and record the critical control verification before this task is next authorised.",
+      "Restore the application of positive isolation devices and personal locks on SG-4100 and TX-3002 and record the critical control verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in controlling access to energised apparatus, specifically working live under a documented justification. SG-4100 (switchgear and transformers) is in service for plant HV/LV distribution. The task proceeded during transfer operations while the integrity of explosion-protected equipment in zoned areas had degraded below its design intent. The electrical energy involved is held as HV switchgear, and the recorded presentation was shock, arc flash, unplanned energisation.",
+    "summary": "On 29 June 2018 an incident occurred on SG-4100 and TX-3002 at Marrindal Concentrator and Hydrocarbon Transfer Facility during transfer operations, releasing electrical energy held as HV switchgear."
+  },
+  "response_sha256": "640a3e43b118a875ed7c69574f65e32ad530119bf98f5bdf20e5d7d0d9541a42",
+  "source": null
+}

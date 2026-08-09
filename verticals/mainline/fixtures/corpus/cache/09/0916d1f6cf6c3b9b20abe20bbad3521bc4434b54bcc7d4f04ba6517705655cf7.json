@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "LIFTING-AND-SUSPENDED-LOADS",
+    "barrier_role": "preventive",
+    "control_class": "DROP_ZONE_EXCLUSION",
+    "control_delta": "strengthen",
+    "control_label": "exclusion of people from beneath elevated work",
+    "doc_code": "PRO-MEC-055",
+    "doc_family": "PRO",
+    "doc_title": "Workshop Component Removal and Load Support",
+    "effective_on": "2013-09-15",
+    "printed_label": "8.1",
+    "setpoint": null,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "energy_isolation": "lock out tag out",
+      "verification": "field verification"
+    }
+  },
+  "key": "0916d1f6cf6c3b9b20abe20bbad3521bc4434b54bcc7d4f04ba6517705655cf7",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:YND/PRO-MEC-055/006#YND/PRO-MEC-055/8.1",
+  "prompt_kind": "clause",
+  "prompt_sha256": "c96c61dbb6f3e9d6e508f80dadcba02296e7ebeeb998814327919a6a3d954f62",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The exclusion of people from beneath elevated work must be provided, and its effectiveness must be recorded as a field verification before the task proceeds. This clause applies to activities archived under LIFTING-AND-SUSPENDED-LOADS at Yandarra Downs Open Cut and Heavy Workshop.",
+    "obligation_verb": "must"
+  },
+  "response_sha256": "f294ba9ded2a27d9b0ad97a76f0b239f81b63bc89be5547320972646ee691fda",
+  "source": null
+}

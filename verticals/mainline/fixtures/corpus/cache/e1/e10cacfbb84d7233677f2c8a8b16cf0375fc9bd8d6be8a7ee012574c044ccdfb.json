@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "barrier_role": "preventive",
+    "control_class": "ZERO_ENERGY_VERIFICATION",
+    "control_delta": "introduce",
+    "control_label": "proving zero energy before intrusive work",
+    "doc_code": "PRO-MEC-021",
+    "doc_family": "PRO",
+    "doc_title": "Mechanical Isolation and Lockout",
+    "effective_on": "2004-02-23",
+    "printed_label": "2.1.1(b)",
+    "setpoint": {
+      "from": 72.0,
+      "key": "isolation_verification_interval",
+      "label": "re-verification interval for a long-duration isolation",
+      "strengthen_direction": "lower",
+      "to": 72.0,
+      "unit": "hours"
+    },
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "e10cacfbb84d7233677f2c8a8b16cf0375fc9bd8d6be8a7ee012574c044ccdfb",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/PRO-MEC-021/001#MRD/PRO-MEC-021/2.1.1(b)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "ef9dccd3322b9a1500aeb04359c3e5837f51920c3d1d205e3416dfc47489457a",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The proving zero energy before intrusive work shall be provided and maintained for work covered by this procedure. The re-verification interval for a long-duration isolation shall be set at 72 hours. This clause applies to activities archived under ISOLATION-OF-STORED-ENERGY at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "1adb6ec3c53c4312d5a8b874c96847c057e5b37fc81ed0d83daadd161ff155a0",
+  "source": null
+}

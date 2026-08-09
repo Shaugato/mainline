@@ -1,0 +1,92 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "charging, tying in and guarding a blast",
+    "activity_root": "EXPLOSIVES-AND-BLASTING",
+    "activity_series": "charging and firing",
+    "assets": [
+      {
+        "asset_class": "MAG-CLASS-A",
+        "label": "explosives magazines",
+        "service": "explosives and detonator storage",
+        "tag": "MAG-9601"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "BLAST_GUARDING_AND_CLEARANCE",
+        "control_label": "guarding, clearance and misfire handling for a blast",
+        "failure_mode": "ineffective",
+        "hazard_energy": "kinetic",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "EXPLOSIVES_RECONCILIATION",
+        "control_label": "receipt, magazining and reconciliation of explosives",
+        "failure_mode": "absent",
+        "hazard_energy": "kinetic",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "NM-2016-0015",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "near_miss",
+    "occurred_on": "2016-10-22",
+    "severity_actual": 1,
+    "severity_potential": 2,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during shift handover",
+    "title": "potential incident - chemical exposure at MAG-9601",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "b5c414ec4b9586b12e89f010d7fcbf6412f940b98a628414e02dad7929698680",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2016-0015",
+  "prompt_kind": "icam",
+  "prompt_sha256": "1a22f9173d1852a51e0edd29418b4aa65eae50454e3ec92d590a58c1686a7adc",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage. The potential outcome was rated 2 against the site's consequence scale, above the 1 actually realised.",
+    "defences": [
+      {
+        "control_class": "BLAST_GUARDING_AND_CLEARANCE",
+        "finding": "Control BLAST_GUARDING_AND_CLEARANCE: the guarding, clearance and misfire handling for a blast was in place but did not perform, and the ICAM investigation classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "EXPLOSIVES_RECONCILIATION",
+        "finding": "Control EXPLOSIVES_RECONCILIATION: the receipt, magazining and reconciliation of explosives was not in place, and the ICAM investigation classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Restore the guarding, clearance and misfire handling for a blast on MAG-9601 and record the critical control verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in charging and firing, specifically charging, tying in and guarding a blast. MAG-9601 (explosives magazines) is in service for explosives and detonator storage. The task proceeded during shift handover while the guarding, clearance and misfire handling for a blast was in place but did not perform. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 22 October 2016 a potential incident was recorded on MAG-9601 at Yandarra Downs Open Cut and Heavy Workshop during shift handover; chemical energy held as hydrocarbon was not released."
+  },
+  "response_sha256": "ac04cfb089300abd61ca898a78b31873a5ba007c748ca59d8558f5079e7daced",
+  "source": null
+}

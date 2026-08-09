@@ -1,0 +1,90 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "working near an unsupported edge",
+    "activity_root": "GROUND-AND-STRATA-CONTROL",
+    "activity_series": "designing and controlling excavations",
+    "assets": [
+      {
+        "asset_class": "MOB-CLASS-E",
+        "label": "earthmoving fleet",
+        "service": "loading and dozing",
+        "tag": "EX-9101"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "EXCAVATION_SUPPORT",
+        "control_label": "benching, battering or shoring of an excavation",
+        "failure_mode": "degraded",
+        "hazard_energy": "gravity",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "SLOPE_MONITORING_RESPONSE",
+        "control_label": "response to slope monitoring alarms",
+        "failure_mode": "not_verified",
+        "hazard_energy": "gravity",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "NM-2017-0011",
+    "hazard_energy": "gravity",
+    "hazard_media": [
+      "suspended load",
+      "stored potential of an elevated component",
+      "unsupported ground",
+      "person at height"
+    ],
+    "hazard_release": "fall, collapse, crush",
+    "kind": "near_miss",
+    "occurred_on": "2017-06-07",
+    "severity_actual": 1,
+    "severity_potential": 2,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during transfer operations",
+    "title": "potential incident during transfer operations on EX-9101",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "a9b49a30a3ff1262bf5efb3128d21bb339618c48c33e2a3975f74be9c1bfd574",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2017-0011",
+  "prompt_kind": "icam",
+  "prompt_sha256": "e8db9ff8f59cb66283911ed4fd4a1aa995aed9055d6eafaafef4371469fc4db7",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage. The potential outcome was rated 2 against the site's consequence scale, above the 1 actually realised.",
+    "defences": [
+      {
+        "control_class": "EXCAVATION_SUPPORT",
+        "finding": "Control EXCAVATION_SUPPORT: the benching, battering or shoring of an excavation had degraded below its design intent, and the ICAM investigation classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "SLOPE_MONITORING_RESPONSE",
+        "finding": "Control SLOPE_MONITORING_RESPONSE: the response to slope monitoring alarms was never verified as effective, and the ICAM investigation classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the response to slope monitoring alarms on EX-9101 and record the critical control verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in designing and controlling excavations, specifically working near an unsupported edge. EX-9101 (earthmoving fleet) is in service for loading and dozing. The task proceeded during transfer operations while the benching, battering or shoring of an excavation had degraded below its design intent. The gravity energy involved is held as suspended load, and the recorded presentation was fall, collapse, crush.",
+    "summary": "On 7 June 2017 a potential incident was recorded on EX-9101 at Yandarra Downs Open Cut and Heavy Workshop during transfer operations; gravity energy held as suspended load was not released."
+  },
+  "response_sha256": "937beb3d43e4198823c83dbe18903ceef4560bdc77c98748ff70ac00bdc1c181",
+  "source": null
+}

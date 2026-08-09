@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ELECTRICAL-SAFETY",
+    "barrier_role": "recovery",
+    "control_class": "EARTH_LEAKAGE_PROTECTION",
+    "control_delta": "restate",
+    "control_label": "earth leakage and protection setting integrity",
+    "doc_code": "STD-ELE-009",
+    "doc_family": "STD",
+    "doc_title": "Electrical Safety",
+    "effective_on": "2016-11-21",
+    "printed_label": "2.2.5",
+    "setpoint": {
+      "from": 300.0,
+      "key": "earth_leakage_trip",
+      "label": "earth leakage protection trip current",
+      "strengthen_direction": "lower",
+      "to": 300.0,
+      "unit": "mA"
+    },
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "376014f1c6e3ce32d64138f8a79c2034b8bf9547d922dcc2d10adb1552573ec8",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:TLG/STD-ELE-009/004#TLG/STD-ELE-009/6.4",
+  "prompt_kind": "clause",
+  "prompt_sha256": "68f81c847459a6ccdf3dbb4ef2901828e462242c1732be0fbc2a1321d7cc9f71",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The earth leakage and protection setting integrity shall be provided and maintained wherever this standard applies, and its condition shall be treated as a critical control. The earth leakage protection trip current shall be set at 300 mA. This clause applies to activities archived under ELECTRICAL-SAFETY at Tolgarra Processing and Power Station.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "33898fdf43d51b7e04e009f4b9c231877ffdf74fa2dac79e44971b8d64cc1dab",
+  "source": null
+}

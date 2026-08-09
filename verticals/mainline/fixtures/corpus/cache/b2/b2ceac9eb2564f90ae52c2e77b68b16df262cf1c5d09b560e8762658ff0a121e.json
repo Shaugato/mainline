@@ -1,0 +1,80 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "making up, decanting and dosing reagents",
+    "activity_root": "HAZARDOUS-SUBSTANCE-EXPOSURE",
+    "activity_series": "handling and dosing reagents",
+    "assets": [
+      {
+        "asset_class": "TANK-CLASS-R",
+        "label": "reagent storage tanks",
+        "service": "bulk reagent storage",
+        "tag": "TK-8311"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 1,
+      "label": "medical treatment injury"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "LOAD_RESTRAINT_AND_PLACARDING",
+        "control_label": "restraint and placarding of transported loads",
+        "failure_mode": "absent",
+        "hazard_energy": "chemical",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "RN-2026-001",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "regulator_notice",
+    "occurred_on": "2026-01-24",
+    "severity_actual": 2,
+    "severity_potential": 2,
+    "site": "Tolgarra Processing and Power Station",
+    "summary_facts": [],
+    "task_phase": "during a statutory inspection",
+    "title": "regulator directive concerning positive isolation verification at TK-8311",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "b2ceac9eb2564f90ae52c2e77b68b16df262cf1c5d09b560e8762658ff0a121e",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:RN-2026-001",
+  "prompt_kind": "icam",
+  "prompt_sha256": "e4ff25a61f9b778a5e04e8d8b1dcd75c5534987e4d03c55bb707a39d8f92f477",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was medical treatment injury, with 1 person injured.",
+    "defences": [
+      {
+        "control_class": "LOAD_RESTRAINT_AND_PLACARDING",
+        "finding": "Control LOAD_RESTRAINT_AND_PLACARDING: the restraint and placarding of transported loads was not in place, and the learning team review classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next assurance activity that the restraint and placarding of transported loads on TK-8311 performs as designed."
+    ],
+    "sequence": "Work was under way in handling and dosing reagents, specifically making up, decanting and dosing reagents. TK-8311 (reagent storage tanks) is in service for bulk reagent storage. The task proceeded during a statutory inspection while the restraint and placarding of transported loads was not in place. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 24 January 2026 a regulatory notice was issued concerning TK-8311 at Tolgarra Processing and Power Station following a statutory inspection."
+  },
+  "response_sha256": "ded1eb016272dc52e40ce100489320a29623cf40b6dd4ce8fb212fff955a93fc",
+  "source": null
+}

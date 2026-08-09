@@ -1,0 +1,90 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
+
+[project]
+name = "mainline-custody-patrol"
+version = "0.1.0"
+description = "Custody of the custodian — the eight periodic attestations about the platform the ledger sits on, hashed into the ledger the platform cannot rewrite."
+readme = "README.md"
+requires-python = ">=3.13"
+# FSL-1.1-ALv2 per the repository licence map (verticals/mainline/* is FSL).
+# The licence TEXT lives in the repo-root LICENSES/ tree, outside this project
+# directory, and therefore cannot be referenced by `license-files`: under PEP 639
+# a glob that matches nothing is a build error.
+license = "LicenseRef-FSL-1.1-ALv2"
+authors = [{ name = "MAINLINE contributors" }]
+keywords = ["mainline", "custody", "attestation", "ccloud", "object-lock", "cockroachdb"]
+classifiers = [
+  "Programming Language :: Python :: 3.13",
+  "Typing :: Typed",
+  "Private :: Do Not Upload",
+]
+
+# TWO DEPENDENCIES, AND BOTH ARE THERE TO PREVENT A SECOND IMPLEMENTATION.
+#
+# `trappoint-jcs` because every byte this package hashes is RFC 8785 canonical, and
+# the bytes an opposing expert re-derives must come from the ONE canonicaliser whose
+# source digest is pinned in `spec/custody/canon-registry.yaml`. A local
+# `json.dumps(sort_keys=True)` here would produce hashes nobody can reproduce, which
+# is the single property an evidentiary hash must have.
+#
+# `trappoint-migrate` for exactly one symbol: `sqltext.collapse_whitespace`. The
+# schema fingerprint this package computes from the LIVE cluster must be
+# byte-identical to the one the migration runner computes at APPLY time — otherwise
+# the drift alarm compares two different questions and answers neither. Sharing the
+# normalisation primitive is how that stays true;
+# `tests/test_fingerprint_stability.py::test_matches_the_migration_runner_byte_for_byte`
+# drives BOTH implementations over one row set and asserts equality, with no cluster.
+#
+# DELIBERATELY ABSENT — `boto3`. KMS, S3 Object Lock and IAM are reached through
+# `collect.CloudControlPlane` and `collect.ObjectStore`, both Protocols, both with
+# fixture-backed fakes that assert the exact call shape
+# (`object_lock_mode="COMPLIANCE"`). AWS credentials are not valid on any machine in
+# this build (VERIFY.md), so a hard boto3 dependency would make an unrunnable path
+# look like a missing one.
+#
+# DELIBERATELY ABSENT — a database driver. `fingerprint.SqlSource` is a Protocol;
+# `PsycopgSqlSource` imports psycopg inside its own methods. `psycopg` arrives
+# transitively through `trappoint-migrate` and is therefore available to the adapter
+# in this workspace, but nothing in this package's import path touches it — so
+# `import mainline_custody_patrol` succeeds on a machine with no driver, which is
+# what `tests/integration/custody/test_k2_exit.py` checks for K2.6.
+#
+# DELIBERATELY ABSENT — `mainline-steward`. That package holds its own `ccloud` leg
+# and its own `CustodianPatrol`, and the duplication is the point: two observers with
+# different credentials writing through different paths (ARCHITECTURE.md §8.6 I4).
+# One stream is one thing to compromise. Importing theirs would collapse the two
+# observers into one.
+dependencies = [
+  "trappoint-jcs",
+  "trappoint-migrate",
+]
+
+[project.urls]
+Homepage = "https://github.com/Shaugato/mainline"
+
+[tool.uv.sources]
+trappoint-jcs = { workspace = true }
+trappoint-migrate = { workspace = true }
+
+[dependency-groups]
+dev = [
+  "pytest>=8.3",
+  "mypy>=1.11",
+]
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mainline_custody_patrol"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "tests", "README.md"]
+
+[tool.mypy]
+python_version = "3.13"
+warn_unreachable = true
+mypy_path = "src"
+packages = ["mainline_custody_patrol"]

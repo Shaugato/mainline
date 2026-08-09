@@ -1,0 +1,79 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "testing for dead and applying earths",
+    "activity_root": "ELECTRICAL-SAFETY",
+    "activity_series": "controlling access to energised apparatus",
+    "assets": [
+      {
+        "asset_class": "ELEC-CLASS-A",
+        "label": "mine switchgear",
+        "service": "pit and workshop distribution",
+        "tag": "TX-9001"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "ARC_FLASH_PPE_AND_BOUNDARY",
+        "control_label": "arc flash boundary and protective equipment",
+        "failure_mode": "ineffective",
+        "hazard_energy": "electrical",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "NM-2019-0008",
+    "hazard_energy": "thermal",
+    "hazard_media": [
+      "hot surface",
+      "steam",
+      "molten material",
+      "hot work",
+      "exothermic reaction"
+    ],
+    "hazard_release": "burn, ignition, scald",
+    "kind": "near_miss",
+    "occurred_on": "2019-07-19",
+    "severity_actual": 0,
+    "severity_potential": 2,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during an intrusive maintenance task",
+    "title": "potential incident during an intrusive maintenance task on TX-9001",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "159dcf0d493181d85042b84e0a9b9f7fa5626c549f4e755ec73c9988fbfc3bcc",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2019-0008",
+  "prompt_kind": "icam",
+  "prompt_sha256": "48e979ad72d4f65922897a10fbfb77d80f02f630e98fe178240cbec5af15db07",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 2 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "ARC_FLASH_PPE_AND_BOUNDARY",
+        "finding": "Control ARC_FLASH_PPE_AND_BOUNDARY: the arc flash boundary and protective equipment was in place but did not perform, and the ICAM investigation classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next critical control verification that the arc flash boundary and protective equipment on TX-9001 performs as designed."
+    ],
+    "sequence": "Work was under way in controlling access to energised apparatus, specifically testing for dead and applying earths. TX-9001 (mine switchgear) is in service for pit and workshop distribution. The task proceeded during an intrusive maintenance task while the arc flash boundary and protective equipment was in place but did not perform. The thermal energy involved is held as hot surface, and the recorded presentation was burn, ignition, scald.",
+    "summary": "On 19 July 2019 a potential incident was recorded on TX-9001 at Yandarra Downs Open Cut and Heavy Workshop during an intrusive maintenance task; thermal energy held as hot surface was not released."
+  },
+  "response_sha256": "ef880e53e8cfb406bcfd4161d11d205e775fe509df6a16b33a1d03dd7fcc21c3",
+  "source": null
+}

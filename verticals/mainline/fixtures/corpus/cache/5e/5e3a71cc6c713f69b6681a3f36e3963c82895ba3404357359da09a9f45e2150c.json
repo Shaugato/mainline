@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTROL-OF-IGNITION-SOURCES",
+    "barrier_role": "recovery",
+    "control_class": "FIRE_WATCH_PROVISION",
+    "control_delta": "restate",
+    "control_label": "provision and briefing of a competent fire watch",
+    "doc_code": "PRO-HSE-005",
+    "doc_family": "PRO",
+    "doc_title": "Hot Work Permit Administration",
+    "effective_on": "2014-05-16",
+    "printed_label": "5.3",
+    "setpoint": null,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "energy_isolation": "lock out tag out",
+      "verification": "field verification"
+    }
+  },
+  "key": "5e3a71cc6c713f69b6681a3f36e3963c82895ba3404357359da09a9f45e2150c",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/PRO-HSE-005/007#MRD/PRO-HSE-005/5.3",
+  "prompt_kind": "clause",
+  "prompt_sha256": "5276e85978b6a651476ce3ae6fcfc7539e3ce16a0e71baec158f3bd53646599c",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The provision and briefing of a competent fire watch shall be provided and maintained wherever this procedure applies, and its condition shall be treated as a critical safeguard. This clause applies to activities archived under CONTROL-OF-IGNITION-SOURCES at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "2d0e0599e10d2af231a7383f18a73ccea9a48ba79fafd2fbd9fa3b371b517098",
+  "source": null
+}

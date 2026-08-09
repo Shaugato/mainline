@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 23,
+    "doc_code": "STD-PTW-001",
+    "doc_family": "STD",
+    "doc_title": "Permit to Work",
+    "driver": "retypeset",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2016-11-21",
+    "required_citations": [],
+    "rev_no": 5,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "ICAM investigation",
+      "management_of_change": "management of change",
+      "near_miss": "potential incident"
+    }
+  },
+  "key": "8b20a79bbbdab2dce6d9db09c9414084013cad57eae4fe1c78e98254e5014ad2",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/STD-PTW-001/005",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "5f50ccba9907d331d0948bb21d87ea9456aaf94e939d3c3b2f20d7a8bf393650",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [],
+    "reason": "Full retypeset to the 2016 house style; numbering reissued, requirements unchanged."
+  },
+  "response_sha256": "95395301f1554d91995d574a99df2def92bb178e3a0adfae98faf6e85833a816",
+  "source": null
+}

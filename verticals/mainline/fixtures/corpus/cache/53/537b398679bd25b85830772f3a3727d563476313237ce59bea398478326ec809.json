@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "LIFTING-AND-SUSPENDED-LOADS",
+    "barrier_role": "preventive",
+    "control_class": "DROP_ZONE_EXCLUSION",
+    "control_delta": "restate",
+    "control_label": "exclusion of people from beneath elevated work",
+    "doc_code": "STD-LFT-003",
+    "doc_family": "STD",
+    "doc_title": "Lifting and Cranage",
+    "effective_on": "2006-12-30",
+    "printed_label": "2.4",
+    "setpoint": null,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "537b398679bd25b85830772f3a3727d563476313237ce59bea398478326ec809",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:YND/STD-LFT-003/002#YND/STD-LFT-003/2.4",
+  "prompt_kind": "clause",
+  "prompt_sha256": "a668b083b000afd5ad0c1bc04f48f8f10456102d9d6de58603256d3ebd3e2d77",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The exclusion of people from beneath elevated work shall be provided and maintained wherever this standard applies, and its condition shall be treated as a key safeguard. This clause applies to activities archived under LIFTING-AND-SUSPENDED-LOADS at Yandarra Downs Open Cut and Heavy Workshop.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "7b2501ec8cb5ba15eef77323b854b0e8f44664c92447e3b61d8024a4db7bf9e2",
+  "source": null
+}

@@ -1,0 +1,64 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 7,
+    "doc_code": "PRO-OPS-044",
+    "doc_family": "PRO",
+    "doc_title": "Boiler Start-Up and Warm Through",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2024-06-17",
+    "required_citations": [
+      {
+        "control_label": "insulation, guarding and signing of hot surfaces",
+        "event_ref": "INC-2023-015",
+        "event_title": "positive isolation verification failure on B-8202",
+        "hazard_energy": "thermal",
+        "kind": "capa_action",
+        "quote_ref": "quote:TLG/PRO-OPS-044/009#capa_action/INC-2023-015",
+        "severity_gate": 2
+      },
+      {
+        "control_label": "insulation, guarding and signing of hot surfaces",
+        "event_ref": "INC-2023-015",
+        "event_title": "positive isolation verification failure on B-8202",
+        "hazard_energy": "thermal",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:TLG/PRO-OPS-044/009#revision_history_line/INC-2023-015",
+        "severity_gate": 2
+      }
+    ],
+    "rev_no": 9,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "learning team review",
+      "management_of_change": "change assurance",
+      "near_miss": "high potential incident"
+    }
+  },
+  "key": "a5be78d5906da44a0cfba3f59b3f8611d2241574b198998c4058189a3fc3d9dc",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:TLG/PRO-OPS-044/009",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "ed150d8dea5d6188d8d28372876b0b675c2e6b005c63d7fa15da392c1e671c04",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The corrective action recorded against INC-2023-015 required the insulation, guarding and signing of hot surfaces to be restated in this procedure.",
+        "quote_ref": "quote:TLG/PRO-OPS-044/009#capa_action/INC-2023-015"
+      },
+      {
+        "line": "Revision 9 was raised in response to INC-2023-015, and the insulation, guarding and signing of hot surfaces was amended as a result.",
+        "quote_ref": "quote:TLG/PRO-OPS-044/009#revision_history_line/INC-2023-015"
+      }
+    ],
+    "reason": "Scheduled review at revision 9; 7 clauses restated."
+  },
+  "response_sha256": "c16e2f3ae01ab7ddb8055b7bd7432d39d60b2f7ee8702ec31dafc53ee907c3be",
+  "source": null
+}

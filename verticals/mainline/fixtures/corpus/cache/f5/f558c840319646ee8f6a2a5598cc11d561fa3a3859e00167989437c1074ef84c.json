@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "LIFTING-AND-SUSPENDED-LOADS",
+    "barrier_role": "preventive",
+    "control_class": "LIFTING_GEAR_INSPECTION",
+    "control_delta": "introduce",
+    "control_label": "inspection and periodic proof testing of lifting gear",
+    "doc_code": "STD-LFT-003",
+    "doc_family": "STD",
+    "doc_title": "Lifting and Cranage",
+    "effective_on": "2004-11-11",
+    "printed_label": "1.1",
+    "setpoint": null,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "f558c840319646ee8f6a2a5598cc11d561fa3a3859e00167989437c1074ef84c",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:YND/STD-LFT-003/001#YND/STD-LFT-003/1.1",
+  "prompt_kind": "clause",
+  "prompt_sha256": "cc342bbf3c2ccf9afd226aad058d55a0a2f86b8c1caacc075f737ee512dccf6a",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The inspection and periodic proof testing of lifting gear shall be provided and maintained for work covered by this standard. This clause applies to activities archived under LIFTING-AND-SUSPENDED-LOADS at Yandarra Downs Open Cut and Heavy Workshop.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "c8be2aee394b5d82a29d36158de2b20c009e38da94dbafec677845abfeffbb3e",
+  "source": null
+}

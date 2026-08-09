@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "barrier_role": "recovery",
+    "control_class": "EMERGENCY_ISOLATION_ON_RELEASE",
+    "control_delta": "restate",
+    "control_label": "emergency isolation and depressuring on loss of containment",
+    "doc_code": "STD-ISO-006",
+    "doc_family": "STD",
+    "doc_title": "Isolation of Stored Energy",
+    "effective_on": "2023-11-17",
+    "printed_label": "2.2.1",
+    "setpoint": null,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "energy_isolation": "positive isolation verification",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "87f53d3282f33c9c9711da70037accfbb756e07b7f1ecad8cffe3b2ec34c1743",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/STD-ISO-006/007#MRD/PRO-MEC-014/2.2",
+  "prompt_kind": "clause",
+  "prompt_sha256": "a6ab2eaa64c9b45a48b1269b8c31718e99c68aa0c157920336ce900a851865c4",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The emergency isolation and depressuring on loss of containment shall be provided and maintained wherever this standard applies, and its condition shall be treated as a material unwanted event control. This clause applies to activities archived under CONTAINMENT-OF-HYDROCARBONS at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "c398ba41b869e715dfbf3afdde9f43cb503474f2e7f879d0f0e79836f1031dea",
+  "source": null
+}

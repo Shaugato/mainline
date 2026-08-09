@@ -1,0 +1,78 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "managing light-vehicle and haul-truck interaction",
+    "activity_root": "MOBILE-EQUIPMENT-INTERACTION",
+    "activity_series": "controlling traffic on operating areas",
+    "assets": [
+      {
+        "asset_class": "MOB-CLASS-H",
+        "label": "haul trucks",
+        "service": "waste and ore haulage",
+        "tag": "HT-9005"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "POSITIVE_COMMUNICATION_BEFORE_APPROACH",
+        "control_label": "positive communication before approaching mobile equipment",
+        "failure_mode": "ineffective",
+        "hazard_energy": "kinetic",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "NM-2016-0007",
+    "hazard_energy": "gravity",
+    "hazard_media": [
+      "suspended load",
+      "stored potential of an elevated component",
+      "unsupported ground",
+      "person at height"
+    ],
+    "hazard_release": "fall, collapse, crush",
+    "kind": "near_miss",
+    "occurred_on": "2016-03-26",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during a breakdown response",
+    "title": "potential incident - gravity exposure at HT-9005",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "c613a9c94919f59faf8d41fd245425d079087b2d31592a0124cc77f6aedc7cfc",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2016-0007",
+  "prompt_kind": "icam",
+  "prompt_sha256": "71e1e8ca050b05a75f42641006fb01d15bc41d0d9e19a8e10c87311389553b78",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "POSITIVE_COMMUNICATION_BEFORE_APPROACH",
+        "finding": "Control POSITIVE_COMMUNICATION_BEFORE_APPROACH: the positive communication before approaching mobile equipment was in place but did not perform, and the ICAM investigation classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next critical control verification that the positive communication before approaching mobile equipment on HT-9005 performs as designed."
+    ],
+    "sequence": "Work was under way in controlling traffic on operating areas, specifically managing light-vehicle and haul-truck interaction. HT-9005 (haul trucks) is in service for waste and ore haulage. The task proceeded during a breakdown response while the positive communication before approaching mobile equipment was in place but did not perform. The gravity energy involved is held as suspended load, and the recorded presentation was fall, collapse, crush.",
+    "summary": "On 26 March 2016 a potential incident was recorded on HT-9005 at Yandarra Downs Open Cut and Heavy Workshop during a breakdown response; gravity energy held as suspended load was not released."
+  },
+  "response_sha256": "1f6d3c73bdd84eb764802761a7b36a0ce49d94cb2ad2c81b47c75e6f041c89c4",
+  "source": null
+}

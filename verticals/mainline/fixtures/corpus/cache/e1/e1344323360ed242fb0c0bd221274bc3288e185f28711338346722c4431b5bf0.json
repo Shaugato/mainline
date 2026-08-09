@@ -1,0 +1,91 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "selecting and inspecting lifting gear",
+    "activity_root": "LIFTING-AND-SUSPENDED-LOADS",
+    "activity_series": "planning and executing a lift",
+    "assets": [
+      {
+        "asset_class": "SLP-CLASS-B",
+        "label": "dewatering pumps",
+        "service": "pit dewatering",
+        "tag": "P-9501"
+      }
+    ],
+    "consequence": {
+      "days_lost": 4,
+      "injuries": 1,
+      "label": "lost time injury"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "DROP_ZONE_EXCLUSION",
+        "control_label": "exclusion of people from beneath elevated work",
+        "failure_mode": "bypassed",
+        "hazard_energy": "kinetic",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "LIFT_STUDY_APPROVAL",
+        "control_label": "preparation and approval of a lift study",
+        "failure_mode": "bypassed",
+        "hazard_energy": "kinetic",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "INC-2026-012",
+    "hazard_energy": "kinetic",
+    "hazard_media": [
+      "rotating equipment",
+      "conveyor",
+      "mobile equipment",
+      "pressurised jet",
+      "flying fragment"
+    ],
+    "hazard_release": "entanglement, impact, crush",
+    "kind": "incident",
+    "occurred_on": "2026-04-14",
+    "severity_actual": 3,
+    "severity_potential": 3,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during routine operation",
+    "title": "kinetic release during routine operation on P-9501",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "e1344323360ed242fb0c0bd221274bc3288e185f28711338346722c4431b5bf0",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2026-012",
+  "prompt_kind": "icam",
+  "prompt_sha256": "f21ba2a049e1fdf3a75a9dcaf20bac0c977cb3ab161193e99d53e47789fc5997",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was lost time injury, with 1 person injured and 4 days lost.",
+    "defences": [
+      {
+        "control_class": "DROP_ZONE_EXCLUSION",
+        "finding": "Control DROP_ZONE_EXCLUSION: the exclusion of people from beneath elevated work had been bypassed, and the learning team review classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "LIFT_STUDY_APPROVAL",
+        "finding": "Control LIFT_STUDY_APPROVAL: the preparation and approval of a lift study had been bypassed, and the learning team review classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next assurance activity that the exclusion of people from beneath elevated work on P-9501 performs as designed."
+    ],
+    "sequence": "Work was under way in planning and executing a lift, specifically selecting and inspecting lifting gear. P-9501 (dewatering pumps) is in service for pit dewatering. The task proceeded during routine operation while the exclusion of people from beneath elevated work had been bypassed. The kinetic energy involved is held as rotating equipment, and the recorded presentation was entanglement, impact, crush.",
+    "summary": "On 14 April 2026 an incident occurred on P-9501 at Yandarra Downs Open Cut and Heavy Workshop during routine operation, releasing kinetic energy held as rotating equipment."
+  },
+  "response_sha256": "fbc32a64de2ed75220c2314cdb0bca8210a54833d89d6dc86cf557768883f28e",
+  "source": null
+}

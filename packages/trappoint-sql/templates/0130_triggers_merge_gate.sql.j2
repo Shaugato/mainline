@@ -1,0 +1,75 @@
+{# SPDX-FileCopyrightText: 2026 MAINLINE contributors #}
+{# SPDX-License-Identifier: Apache-2.0 #}
+{#
+  Migrations 0130 / 0131 — WELDING THE MERGE GATE TO THE SUBJECT TABLES.
+
+  Authority: ARCHITECTURE.md §5.11 function 7 (the CREATE TRIGGER beneath it), §16
+  (MI02, MI30); docs/leads/kernel.md MR-8 (0130/0131 — 0135/0136 are recall's and
+  0136 is occupied on disk by trg_recall_policy_anchored).
+
+  ────────────────────────────────────────────────────────────────────────────────
+  THE `WHEN` CLAUSE IS THE ACYCLICITY ARGUMENT, NOT AN OPTIMISATION
+  ────────────────────────────────────────────────────────────────────────────────
+  ARCHITECTURE.md §5.11 states the trigger graph is acyclic and depth 1 because "the
+  only trigger on those has a WHEN clause restricted to the merge transition, so it
+  never re-enters". The obligation triggers (`fn_check_materialised`,
+  `fn_disposition_close`, `fn_disposition_retract_only`) all UPDATE the subject row.
+  Without the `WHEN` restriction, every one of those updates would re-enter the merge
+  gate — three anti-join re-derivations on the hot path of every materialised
+  obligation, and, far worse, a gate evaluated in a state nobody designed it for.
+
+  The restriction is therefore load-bearing and it is written where a reader of
+  `SHOW CREATE TABLE` sees it, rather than as an early `RETURN NEW` a future edit can
+  quietly delete from the function body.
+
+  ────────────────────────────────────────────────────────────────────────────────
+  PLATFORM GROUND TRUTH MEASURED FOR THIS FILE (CockroachDB CCL v26.2.5, local node)
+  ────────────────────────────────────────────────────────────────────────────────
+  The `WHEN` clause IS supported, and it requires the PARENTHESISED row reference:
+
+      WHEN ((NEW).state = 'merged' AND (OLD).state <> 'merged')     -- accepted
+      WHEN (NEW.state = 'merged' AND OLD.state <> 'merged')         -- 42P01 REFUSED
+
+  The unparenthesised form fails at CREATE TRIGGER time with `42P01: no data source
+  matches prefix: new in this context` (cockroachdb#114687), which is the same
+  limitation the read positions inside a trigger BODY carry. ARCHITECTURE.md §5.11 is
+  written in the unparenthesised form throughout and does not run as printed. It was
+  measured, not assumed: `WHEN (true)` is accepted, so the clause itself is
+  implemented and only the row reference needed the parentheses.
+
+  Enum comparison inside the clause was measured too — `(NEW).state = 'merged'`
+  against a `{{ binding.schema }}.subject_state` column is accepted and fires correctly.
+#}
+{% for s in subjects %}
+{% set stem = s.id_column[:-3] %}
+-- @file 0{{ 130 + loop.index0 }}_trg_{{ stem }}_merge_gate.sql
+{{ header(file='0' ~ (130 + loop.index0) ~ '_trg_' ~ stem ~ '_merge_gate.sql',
+          title='CREATE TRIGGER ' ~ stem ~ '_merge_gate ON ' ~ binding.schema ~ '.' ~ s.table ~ ' — the weld',
+          rationale='A gate function nothing calls is a comment. This is the weld, and its WHEN clause is the acyclicity argument: every obligation trigger updates this same row, so a merge gate without the restriction would re-enter on every materialised obligation and would be evaluated in states it was never designed for. Written in the trigger definition rather than as an early return in the body, because a reader of SHOW CREATE TABLE can see this one and a future edit cannot quietly delete it.',
+          mi=['MI02'] if loop.first else ['MI30'],
+          i=['I02'],
+          counsel_gated=false) }}
+--
+-- SUBJECT: {{ s.kind }}. Fires only on the transition INTO '{{ s.completing_state }}', and only
+-- from a state that is not already '{{ s.completing_state }}' — so a re-merge of an already
+-- merged subject does not re-run the gate. That second conjunct is not redundant with
+-- the first: `UPDATE … SET {{ s.state_column }} = '{{ s.completing_state }}'` against a row already in
+-- that state is a legal statement, and MI09 (at most one merge per subject) is
+-- enforced by merge_record's primary key rather than by this clause.
+--
+-- BEFORE, not AFTER. The function returns NEW and the table's own CHECK constraints
+-- are then evaluated on the returned row — measured in that order on v26.2.5, which
+-- is what makes conformance case CF-01 produce `23514` on
+{% if loop.first %}
+-- `gate_closed_when_issued` rather than a P0001 from the trigger. An AFTER trigger
+{% else %}
+-- `cr_gate_closed_when_merged` rather than a P0001 from the trigger. An AFTER trigger
+{% endif %}
+-- would fire only once the CHECKs had already passed, which would make the
+-- re-derivation unable to refuse anything at all.
+
+CREATE TRIGGER {{ stem }}_merge_gate BEFORE UPDATE ON {{ binding.schema }}.{{ s.table }}
+  FOR EACH ROW WHEN ((NEW).{{ s.state_column }} = '{{ s.completing_state }}'
+                     AND (OLD).{{ s.state_column }} <> '{{ s.completing_state }}')
+  EXECUTE FUNCTION {{ binding.schema }}.fn_{{ stem }}_merge_gate();
+{% endfor %}

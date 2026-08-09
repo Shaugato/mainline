@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "LIFTING-AND-SUSPENDED-LOADS",
+    "barrier_role": "preventive",
+    "control_class": "LOAD_SUPPORT_FOR_MAINTENANCE",
+    "control_delta": "restate",
+    "control_label": "mechanical support of a load during maintenance access",
+    "doc_code": "PRO-MEC-055",
+    "doc_family": "PRO",
+    "doc_title": "Workshop Component Removal and Load Support",
+    "effective_on": "2007-06-08",
+    "printed_label": "2.1",
+    "setpoint": null,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "0a1093b01193eb607cfbd48e2c93eecb390779f7d964ed6b7d6eb0ba69a3db55",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:YND/PRO-MEC-055/002#YND/PRO-MEC-055/2.1",
+  "prompt_kind": "clause",
+  "prompt_sha256": "db6dc5555b08116f34fa8d9da2abdb9e93af0b78f92e8f1e4bc5646068265a38",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The mechanical support of a load during maintenance access shall be provided and maintained wherever this procedure applies, and its condition shall be treated as a key safeguard. This clause applies to activities archived under LIFTING-AND-SUSPENDED-LOADS at Yandarra Downs Open Cut and Heavy Workshop.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "29e2d90b16c2620bcfe67da4ef5bbb4792731e92a7d8c9e998a4c45d90119e89",
+  "source": null
+}

@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "barrier_role": "preventive",
+    "control_class": "HYDROCARBON_TRANSFER_CONTROL",
+    "control_delta": "restate",
+    "control_label": "controlled transfer of hydrocarbon between vessels",
+    "doc_code": "PTW-STD-003",
+    "doc_family": "PTW",
+    "doc_title": "Permit to Work Form Set",
+    "effective_on": "2016-11-21",
+    "printed_label": "1.1.1",
+    "setpoint": null,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "37acb99a09d1b2a13e85d7dfb61b1f78c7ec558c23747fccafa1cd5f1a331df0",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:CVY/PTW-STD-003/003#CVY/PTW-STD-003/1.3",
+  "prompt_kind": "clause",
+  "prompt_sha256": "44b91f137bc6abe796d97a50b793779a07e86176383660bdf505292d25f1b07d",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The controlled transfer of hydrocarbon between vessels shall be provided and maintained wherever this permit-to-work form set applies, and its condition shall be treated as a critical control. This clause applies to activities archived under CONTAINMENT-OF-HYDROCARBONS at Cape Verity Export Terminal.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "4a00bfc512985104f379cf6b4c736c39488be6619eaa22533418ffbe1d727b64",
+  "source": null
+}

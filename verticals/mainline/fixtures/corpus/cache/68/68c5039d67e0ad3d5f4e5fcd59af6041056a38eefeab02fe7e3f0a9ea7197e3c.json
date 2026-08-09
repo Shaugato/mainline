@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 21,
+    "doc_code": "STD-CSE-002",
+    "doc_family": "STD",
+    "doc_title": "Confined Spaces",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2006-05-30",
+    "required_citations": [],
+    "rev_no": 1,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "accident investigation",
+      "management_of_change": "engineering change note",
+      "near_miss": "near hit"
+    }
+  },
+  "key": "68c5039d67e0ad3d5f4e5fcd59af6041056a38eefeab02fe7e3f0a9ea7197e3c",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:CVY/STD-CSE-002/001",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "a2c67c50b13aceba9f3b5100473aa9830de7a490b06aa952b5d3d61628254edb",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [],
+    "reason": "Scheduled review at revision 1; 21 clauses restated."
+  },
+  "response_sha256": "6d4e9c2e48220ccef354d928b47a2dcc100c960468d541048e061b970fa07e2c",
+  "source": null
+}

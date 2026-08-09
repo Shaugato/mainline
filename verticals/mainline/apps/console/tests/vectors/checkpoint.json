@@ -1,0 +1,207 @@
+{
+  "vectors_version": 1,
+  "kind": "checkpoint",
+  "source": "spec/wire/checkpoint.md v1.0, sections 2-7. Signature type 0x02 (ECDSA P-256, SHA-256, DER).",
+  "keys": {
+    "trusted": {
+      "id": "A",
+      "origin": "mainline.example/site/BLK-07",
+      "key_id_hex": "e74111d1",
+      "spki_der_hex": "3059301306072a8648ce3d020106082a8648ce3d03010703420004ceef4dec94c56b8ad10026544399625e82bdbe3c26890b9cec391844eb4700d5cac6d80c97726e1a56b21dcfe08182355fbbc34f27005b8ecd8826eab95cff77",
+      "spki_der_b64": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEzu9N7JTFa4rRACZUQ5liXoK9vjwmiQuc7DkYROtHANXKxtgMl3JuGlayHc/ggYI1X7vDTycAW47NiCbquVz/dw==",
+      "vkey": "mainline.example/site/BLK-07+e74111d1+AjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABM7vTeyUxWuK0QAmVEOZYl6Cvb48JokLnOw5GETrRwDVysbYDJdybhpWsh3P4IGCNV+7w08nAFuOzYgm6rlc/3c=",
+      "note": "The spec 7.1 example key. Published deliberately; it is not and never was a MAINLINE log key."
+    },
+    "adversary": {
+      "id": "B",
+      "origin": "mainline.example/site/BLK-07",
+      "key_id_hex": "d82e8f7f",
+      "spki_der_hex": "3059301306072a8648ce3d020106082a8648ce3d03010703420004e5357de97bd3717d4025e02d8b1c915b1e6510f44279bd2eab5d4b650dc17d4e9126c38010133677b512f0f8959b4b6e3d2dff27ff4d9b7f9a06a3854ee05744",
+      "spki_der_b64": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE5TV96XvTcX1AJeAtixyRWx5lEPRCeb0uq11LZQ3BfU6RJsOAEBM2d7US8PiVm0tuPS3/J/9Nm3+aBqOFTuBXRA==",
+      "vkey": "mainline.example/site/BLK-07+d82e8f7f+AjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABOU1fel703F9QCXgLYsckVseZRD0Qnm9LqtdS2UNwX1OkSbDgBATNne1EvD4lZtLbj0t/yf/TZt/mgajhU7gV0Q=",
+      "note": "A second P-256 key, generated once for the re-signing negative cases. Not trusted by any case below."
+    }
+  },
+  "cases": [
+    {
+      "id": "spec-7.5-complete-note",
+      "note": "The frozen worked example. This is the conformance anchor for spec/wire/checkpoint.md section 10.1.",
+      "trust": [
+        "A"
+      ],
+      "note_text": "mainline.example/site/BLK-07\n5\nAMXd34nRXfv5+yNJ4K2tvMSlExtmEq38ha0N8gBdNZ4=\ncanon: 1 260ed37ddc610f1fb94ddce98998fe4ae5ce883698ad5c7033839cd258dcd659\ndrand: 52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971 31088494 7d045d05caf218eff9f7bafe0acb452b94a8c369d138ce23c4807b4b62ce46c7\nnist: 2.0 2.29255654 d7a6237ed272c6c48bfa16552709fa2c564448e263906af4ba6a740aacef3cd40431e945cdfcfc855f321c14056ac89a94b47b50472cc92aab890ceafa42baad\n",
+      "full_note": "mainline.example/site/BLK-07\n5\nAMXd34nRXfv5+yNJ4K2tvMSlExtmEq38ha0N8gBdNZ4=\ncanon: 1 260ed37ddc610f1fb94ddce98998fe4ae5ce883698ad5c7033839cd258dcd659\ndrand: 52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971 31088494 7d045d05caf218eff9f7bafe0acb452b94a8c369d138ce23c4807b4b62ce46c7\nnist: 2.0 2.29255654 d7a6237ed272c6c48bfa16552709fa2c564448e263906af4ba6a740aacef3cd40431e945cdfcfc855f321c14056ac89a94b47b50472cc92aab890ceafa42baad\n\n— mainline.example/site/BLK-07 50ER0TBFAiEA4Eq/KIL+x2nHFWouxjZub5a27EaCfpR9t0fuHS7OKZoCIEBneSLOUaAMsvLSvZ156aNpTCn9iyEdowXF7ZmFD967\n",
+      "expect": "verified",
+      "expect_parsed": {
+        "origin": "mainline.example/site/BLK-07",
+        "tree_size": 5,
+        "root_hex": "00c5dddf89d15dfbf9fb2349e0adadbcc4a5131b6612adfc85ad0df2005d359e",
+        "extensions": {
+          "canon": "1 260ed37ddc610f1fb94ddce98998fe4ae5ce883698ad5c7033839cd258dcd659",
+          "drand": "52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971 31088494 7d045d05caf218eff9f7bafe0acb452b94a8c369d138ce23c4807b4b62ce46c7",
+          "nist": "2.0 2.29255654 d7a6237ed272c6c48bfa16552709fa2c564448e263906af4ba6a740aacef3cd40431e945cdfcfc855f321c14056ac89a94b47b50472cc92aab890ceafa42baad"
+        }
+      },
+      "signed_text_sha256": "1f335bff3e6d18be003327ce5b564ff2a85402d4297ab0c1d9068a424a53ddec"
+    },
+    {
+      "id": "resigned-body-different-key-spoofed-id",
+      "note": "THE ATTACK. The note text is byte-identical to the trusted one and the signature line carries the TRUSTED key id, but the signature was produced by key B. A verifier that dispatches on the key id and then forgets to verify passes this.",
+      "trust": [
+        "A"
+      ],
+      "note_text": "mainline.example/site/BLK-07\n5\nAMXd34nRXfv5+yNJ4K2tvMSlExtmEq38ha0N8gBdNZ4=\ncanon: 1 260ed37ddc610f1fb94ddce98998fe4ae5ce883698ad5c7033839cd258dcd659\ndrand: 52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971 31088494 7d045d05caf218eff9f7bafe0acb452b94a8c369d138ce23c4807b4b62ce46c7\nnist: 2.0 2.29255654 d7a6237ed272c6c48bfa16552709fa2c564448e263906af4ba6a740aacef3cd40431e945cdfcfc855f321c14056ac89a94b47b50472cc92aab890ceafa42baad\n",
+      "full_note": "mainline.example/site/BLK-07\n5\nAMXd34nRXfv5+yNJ4K2tvMSlExtmEq38ha0N8gBdNZ4=\ncanon: 1 260ed37ddc610f1fb94ddce98998fe4ae5ce883698ad5c7033839cd258dcd659\ndrand: 52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971 31088494 7d045d05caf218eff9f7bafe0acb452b94a8c369d138ce23c4807b4b62ce46c7\nnist: 2.0 2.29255654 d7a6237ed272c6c48bfa16552709fa2c564448e263906af4ba6a740aacef3cd40431e945cdfcfc855f321c14056ac89a94b47b50472cc92aab890ceafa42baad\n\n— mainline.example/site/BLK-07 50ER0TBGAiEA+a82sOEHuloEy08jpXsOGHpk8TBSJAu34gH3JiBQSDoCIQDUyU7WpnFpt/Fc7kvyp4FmBTv3vPbyGO7dVyxt79knfA==\n",
+      "expect": "failed",
+      "expect_reason_contains": "signature"
+    },
+    {
+      "id": "resigned-body-different-key-own-id",
+      "note": "The same forgery, presented honestly: the line carries key B's own id. A verifier MUST ignore a line whose key it does not know, and MUST then reject the note because no signature from a known key verified. \"Ignored\" is not \"passed\".",
+      "trust": [
+        "A"
+      ],
+      "note_text": "mainline.example/site/BLK-07\n5\nAMXd34nRXfv5+yNJ4K2tvMSlExtmEq38ha0N8gBdNZ4=\ncanon: 1 260ed37ddc610f1fb94ddce98998fe4ae5ce883698ad5c7033839cd258dcd659\ndrand: 52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971 31088494 7d045d05caf218eff9f7bafe0acb452b94a8c369d138ce23c4807b4b62ce46c7\nnist: 2.0 2.29255654 d7a6237ed272c6c48bfa16552709fa2c564448e263906af4ba6a740aacef3cd40431e945cdfcfc855f321c14056ac89a94b47b50472cc92aab890ceafa42baad\n",
+      "full_note": "mainline.example/site/BLK-07\n5\nAMXd34nRXfv5+yNJ4K2tvMSlExtmEq38ha0N8gBdNZ4=\ncanon: 1 260ed37ddc610f1fb94ddce98998fe4ae5ce883698ad5c7033839cd258dcd659\ndrand: 52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971 31088494 7d045d05caf218eff9f7bafe0acb452b94a8c369d138ce23c4807b4b62ce46c7\nnist: 2.0 2.29255654 d7a6237ed272c6c48bfa16552709fa2c564448e263906af4ba6a740aacef3cd40431e945cdfcfc855f321c14056ac89a94b47b50472cc92aab890ceafa42baad\n\n— mainline.example/site/BLK-07 2C6PfzBGAiEA+a82sOEHuloEy08jpXsOGHpk8TBSJAu34gH3JiBQSDoCIQDUyU7WpnFpt/Fc7kvyp4FmBTv3vPbyGO7dVyxt79knfA==\n",
+      "expect": "failed",
+      "expect_reason_contains": "no signature"
+    },
+    {
+      "id": "single-byte-mutation-of-the-root-line",
+      "note": "spec section 10.2: any single-byte mutation of the note text must be rejected.",
+      "trust": [
+        "A"
+      ],
+      "note_text": "mainline.example/site/BLK-07\n5\nAMXe34nRXfv5+yNJ4K2tvMSlExtmEq38ha0N8gBdNZ4=\ncanon: 1 260ed37ddc610f1fb94ddce98998fe4ae5ce883698ad5c7033839cd258dcd659\ndrand: 52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971 31088494 7d045d05caf218eff9f7bafe0acb452b94a8c369d138ce23c4807b4b62ce46c7\nnist: 2.0 2.29255654 d7a6237ed272c6c48bfa16552709fa2c564448e263906af4ba6a740aacef3cd40431e945cdfcfc855f321c14056ac89a94b47b50472cc92aab890ceafa42baad\n",
+      "full_note": "mainline.example/site/BLK-07\n5\nAMXe34nRXfv5+yNJ4K2tvMSlExtmEq38ha0N8gBdNZ4=\ncanon: 1 260ed37ddc610f1fb94ddce98998fe4ae5ce883698ad5c7033839cd258dcd659\ndrand: 52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971 31088494 7d045d05caf218eff9f7bafe0acb452b94a8c369d138ce23c4807b4b62ce46c7\nnist: 2.0 2.29255654 d7a6237ed272c6c48bfa16552709fa2c564448e263906af4ba6a740aacef3cd40431e945cdfcfc855f321c14056ac89a94b47b50472cc92aab890ceafa42baad\n\n— mainline.example/site/BLK-07 50ER0TBFAiEA4Eq/KIL+x2nHFWouxjZub5a27EaCfpR9t0fuHS7OKZoCIEBneSLOUaAMsvLSvZ156aNpTCn9iyEdowXF7ZmFD967\n",
+      "expect": "failed",
+      "expect_reason_contains": "signature"
+    },
+    {
+      "id": "unknown-extra-signature-line-is-ignored",
+      "note": "spec section 10.3: an additional line from an unknown key is ignored, the known one still verifies, and the unknown line is preserved byte for byte. This is what lets a witness cosign without any change to the format.",
+      "trust": [
+        "A"
+      ],
+      "note_text": "mainline.example/site/BLK-07\n5\nAMXd34nRXfv5+yNJ4K2tvMSlExtmEq38ha0N8gBdNZ4=\ncanon: 1 260ed37ddc610f1fb94ddce98998fe4ae5ce883698ad5c7033839cd258dcd659\ndrand: 52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971 31088494 7d045d05caf218eff9f7bafe0acb452b94a8c369d138ce23c4807b4b62ce46c7\nnist: 2.0 2.29255654 d7a6237ed272c6c48bfa16552709fa2c564448e263906af4ba6a740aacef3cd40431e945cdfcfc855f321c14056ac89a94b47b50472cc92aab890ceafa42baad\n",
+      "full_note": "mainline.example/site/BLK-07\n5\nAMXd34nRXfv5+yNJ4K2tvMSlExtmEq38ha0N8gBdNZ4=\ncanon: 1 260ed37ddc610f1fb94ddce98998fe4ae5ce883698ad5c7033839cd258dcd659\ndrand: 52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971 31088494 7d045d05caf218eff9f7bafe0acb452b94a8c369d138ce23c4807b4b62ce46c7\nnist: 2.0 2.29255654 d7a6237ed272c6c48bfa16552709fa2c564448e263906af4ba6a740aacef3cd40431e945cdfcfc855f321c14056ac89a94b47b50472cc92aab890ceafa42baad\n\n— mainline.example/site/BLK-07 50ER0TBFAiEA4Eq/KIL+x2nHFWouxjZub5a27EaCfpR9t0fuHS7OKZoCIEBneSLOUaAMsvLSvZ156aNpTCn9iyEdowXF7ZmFD967\n— witness.insurer.example 2C6PfzBGAiEA+a82sOEHuloEy08jpXsOGHpk8TBSJAu34gH3JiBQSDoCIQDUyU7WpnFpt/Fc7kvyp4FmBTv3vPbyGO7dVyxt79knfA==\n",
+      "expect": "verified",
+      "expect_ignored_signature_names": [
+        "witness.insurer.example"
+      ]
+    },
+    {
+      "id": "second-valid-signature-from-the-same-key",
+      "note": "ECDSA is randomised: a second signature over the same text by the same key has different bytes and also verifies. A vector set that only ever saw one signature would not notice a verifier that compared bytes instead of verifying.",
+      "trust": [
+        "A"
+      ],
+      "note_text": "mainline.example/site/BLK-07\n5\nAMXd34nRXfv5+yNJ4K2tvMSlExtmEq38ha0N8gBdNZ4=\ncanon: 1 260ed37ddc610f1fb94ddce98998fe4ae5ce883698ad5c7033839cd258dcd659\ndrand: 52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971 31088494 7d045d05caf218eff9f7bafe0acb452b94a8c369d138ce23c4807b4b62ce46c7\nnist: 2.0 2.29255654 d7a6237ed272c6c48bfa16552709fa2c564448e263906af4ba6a740aacef3cd40431e945cdfcfc855f321c14056ac89a94b47b50472cc92aab890ceafa42baad\n",
+      "full_note": "mainline.example/site/BLK-07\n5\nAMXd34nRXfv5+yNJ4K2tvMSlExtmEq38ha0N8gBdNZ4=\ncanon: 1 260ed37ddc610f1fb94ddce98998fe4ae5ce883698ad5c7033839cd258dcd659\ndrand: 52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971 31088494 7d045d05caf218eff9f7bafe0acb452b94a8c369d138ce23c4807b4b62ce46c7\nnist: 2.0 2.29255654 d7a6237ed272c6c48bfa16552709fa2c564448e263906af4ba6a740aacef3cd40431e945cdfcfc855f321c14056ac89a94b47b50472cc92aab890ceafa42baad\n\n— mainline.example/site/BLK-07 50ER0TBGAiEAiofc5d0g3X1CBZpIyrOMZBVVoKonBdf1qXmphjKhiscCIQCEzcYjD6iHYr94IWfJJKour+63OYnDZFLkmZU9C8tHlA==\n",
+      "expect": "verified"
+    },
+    {
+      "id": "empty-tree",
+      "note": "spec section 7.6: a size-0 checkpoint MUST be accepted. The alternative is a log that cannot prove it was empty when it was empty.",
+      "trust": [
+        "A"
+      ],
+      "note_text": "mainline.example/site/BLK-07\n0\n47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=\n",
+      "full_note": "mainline.example/site/BLK-07\n0\n47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=\n\n— mainline.example/site/BLK-07 50ER0TBEAiAtE3XKSsJ6f56S90a60NmZlOsnH90XH1Zie3+Pm+EpHQIgCM8sA3kz2Pch/XtuIRGPa83NDcslX6NqHa2dzG+pz7w=\n",
+      "expect": "verified",
+      "expect_parsed": {
+        "origin": "mainline.example/site/BLK-07",
+        "tree_size": 0,
+        "root_hex": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "extensions": {}
+      }
+    },
+    {
+      "id": "hyphen-instead-of-em-dash",
+      "note": "U+002D, not U+2014. The single most common implementation error in the format: the note then parses as one long text with no signatures at all.",
+      "trust": [
+        "A"
+      ],
+      "note_text": "mainline.example/site/BLK-07\n5\nAMXd34nRXfv5+yNJ4K2tvMSlExtmEq38ha0N8gBdNZ4=\ncanon: 1 260ed37ddc610f1fb94ddce98998fe4ae5ce883698ad5c7033839cd258dcd659\ndrand: 52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971 31088494 7d045d05caf218eff9f7bafe0acb452b94a8c369d138ce23c4807b4b62ce46c7\nnist: 2.0 2.29255654 d7a6237ed272c6c48bfa16552709fa2c564448e263906af4ba6a740aacef3cd40431e945cdfcfc855f321c14056ac89a94b47b50472cc92aab890ceafa42baad\n",
+      "full_note": "mainline.example/site/BLK-07\n5\nAMXd34nRXfv5+yNJ4K2tvMSlExtmEq38ha0N8gBdNZ4=\ncanon: 1 260ed37ddc610f1fb94ddce98998fe4ae5ce883698ad5c7033839cd258dcd659\ndrand: 52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971 31088494 7d045d05caf218eff9f7bafe0acb452b94a8c369d138ce23c4807b4b62ce46c7\nnist: 2.0 2.29255654 d7a6237ed272c6c48bfa16552709fa2c564448e263906af4ba6a740aacef3cd40431e945cdfcfc855f321c14056ac89a94b47b50472cc92aab890ceafa42baad\n\n- mainline.example/site/BLK-07 50ER0TBFAiEA4Eq/KIL+x2nHFWouxjZub5a27EaCfpR9t0fuHS7OKZoCIEBneSLOUaAMsvLSvZ156aNpTCn9iyEdowXF7ZmFD967\n",
+      "expect": "malformed",
+      "expect_reason_contains": "U+2014"
+    },
+    {
+      "id": "en-dash-instead-of-em-dash",
+      "note": "U+2013 is not U+2014 either.",
+      "trust": [
+        "A"
+      ],
+      "note_text": "mainline.example/site/BLK-07\n5\nAMXd34nRXfv5+yNJ4K2tvMSlExtmEq38ha0N8gBdNZ4=\ncanon: 1 260ed37ddc610f1fb94ddce98998fe4ae5ce883698ad5c7033839cd258dcd659\ndrand: 52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971 31088494 7d045d05caf218eff9f7bafe0acb452b94a8c369d138ce23c4807b4b62ce46c7\nnist: 2.0 2.29255654 d7a6237ed272c6c48bfa16552709fa2c564448e263906af4ba6a740aacef3cd40431e945cdfcfc855f321c14056ac89a94b47b50472cc92aab890ceafa42baad\n",
+      "full_note": "mainline.example/site/BLK-07\n5\nAMXd34nRXfv5+yNJ4K2tvMSlExtmEq38ha0N8gBdNZ4=\ncanon: 1 260ed37ddc610f1fb94ddce98998fe4ae5ce883698ad5c7033839cd258dcd659\ndrand: 52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971 31088494 7d045d05caf218eff9f7bafe0acb452b94a8c369d138ce23c4807b4b62ce46c7\nnist: 2.0 2.29255654 d7a6237ed272c6c48bfa16552709fa2c564448e263906af4ba6a740aacef3cd40431e945cdfcfc855f321c14056ac89a94b47b50472cc92aab890ceafa42baad\n\n– mainline.example/site/BLK-07 50ER0TBFAiEA4Eq/KIL+x2nHFWouxjZub5a27EaCfpR9t0fuHS7OKZoCIEBneSLOUaAMsvLSvZ156aNpTCn9iyEdowXF7ZmFD967\n",
+      "expect": "malformed",
+      "expect_reason_contains": "U+2014"
+    },
+    {
+      "id": "tree-size-with-leading-zero",
+      "note": "spec section 3: ASCII decimal, no leading zeroes. \"05\" and \"5\" would be two different signed texts for one tree.",
+      "trust": [
+        "A"
+      ],
+      "full_note": "mainline.example/site/BLK-07\n05\nAMXd34nRXfv5+yNJ4K2tvMSlExtmEq38ha0N8gBdNZ4=\n\n— mainline.example/site/BLK-07 50ER0TBFAiEA4Eq/KIL+x2nHFWouxjZub5a27EaCfpR9t0fuHS7OKZoCIEBneSLOUaAMsvLSvZ156aNpTCn9iyEdowXF7ZmFD967\n",
+      "expect": "malformed",
+      "expect_reason_contains": "leading zero"
+    },
+    {
+      "id": "root-not-32-bytes",
+      "note": "spec section 3: the root line MUST decode to exactly 32 bytes.",
+      "trust": [
+        "A"
+      ],
+      "full_note": "mainline.example/site/BLK-07\n5\nAAAA\n\n— mainline.example/site/BLK-07 50ER0TBFAiEA4Eq/KIL+x2nHFWouxjZub5a27EaCfpR9t0fuHS7OKZoCIEBneSLOUaAMsvLSvZ156aNpTCn9iyEdowXF7ZmFD967\n",
+      "expect": "malformed",
+      "expect_reason_contains": "32 bytes"
+    },
+    {
+      "id": "no-blank-line",
+      "note": "A note with no empty line has no signature section, and unverified note text is not data.",
+      "trust": [
+        "A"
+      ],
+      "full_note": "mainline.example/site/BLK-07\n5\nAMXd34nRXfv5+yNJ4K2tvMSlExtmEq38ha0N8gBdNZ4=\ncanon: 1 260ed37ddc610f1fb94ddce98998fe4ae5ce883698ad5c7033839cd258dcd659\ndrand: 52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971 31088494 7d045d05caf218eff9f7bafe0acb452b94a8c369d138ce23c4807b4b62ce46c7\nnist: 2.0 2.29255654 d7a6237ed272c6c48bfa16552709fa2c564448e263906af4ba6a740aacef3cd40431e945cdfcfc855f321c14056ac89a94b47b50472cc92aab890ceafa42baad\n",
+      "expect": "malformed",
+      "expect_reason_contains": "empty line"
+    },
+    {
+      "id": "control-character-in-note-text",
+      "note": "spec section 6.2: no ASCII control character other than U+000A anywhere outside the signature lines.",
+      "trust": [
+        "A"
+      ],
+      "full_note": "mainline.example/site/BLK-07\n5\nAMXd34nRXfv5+yNJ4K2tvMSlExtmEq38ha0N8gBdNZ4=\ncanon:\t1 260ed37ddc610f1fb94ddce98998fe4ae5ce883698ad5c7033839cd258dcd659\n\n— mainline.example/site/BLK-07 50ER0TBFAiEA4Eq/KIL+x2nHFWouxjZub5a27EaCfpR9t0fuHS7OKZoCIEBneSLOUaAMsvLSvZ156aNpTCn9iyEdowXF7ZmFD967\n",
+      "expect": "malformed",
+      "expect_reason_contains": "control character"
+    }
+  ],
+  "vkey_parsing": [
+    {
+      "id": "vkey-with-plus-in-base64",
+      "note": "spec section 5.2: parse on the FIRST TWO plus signs only. The base64 alphabet contains \"+\", so splitting on every plus yields four fields for most keys and three for the rest — a bug that passes in testing and fails on the next key.",
+      "vkey": "mainline.example/site/BLK-07+e74111d1+AjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABM7vTeyUxWuK0QAmVEOZYl6Cvb48JokLnOw5GETrRwDVysbYDJdybhpWsh3P4IGCNV+7w08nAFuOzYgm6rlc/3c=",
+      "expect": {
+        "name": "mainline.example/site/BLK-07",
+        "key_id_hex": "e74111d1",
+        "algorithm": 2,
+        "spki_der_hex": "3059301306072a8648ce3d020106082a8648ce3d03010703420004ceef4dec94c56b8ad10026544399625e82bdbe3c26890b9cec391844eb4700d5cac6d80c97726e1a56b21dcfe08182355fbbc34f27005b8ecd8826eab95cff77"
+      }
+    },
+    {
+      "id": "vkey-key-id-must-be-recomputed",
+      "note": "A vkey whose stated key id is not SHA-256(DER SPKI)[:4] must be refused, not trusted. The field is a convenience; the derivation is the fact.",
+      "vkey": "mainline.example/site/BLK-07+deadbeef+AjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABM7vTeyUxWuK0QAmVEOZYl6Cvb48JokLnOw5GETrRwDVysbYDJdybhpWsh3P4IGCNV+7w08nAFuOzYgm6rlc/3c=",
+      "expect_error": "key id"
+    },
+    {
+      "id": "vkey-unsupported-algorithm-byte",
+      "note": "Type 0x01 is Ed25519, whose key-id derivation is different. Refuse rather than guess.",
+      "vkey": "mainline.example/site/BLK-07+e74111d1+ATBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABM7vTeyUxWuK0QAmVEOZYl6Cvb48JokLnOw5GETrRwDVysbYDJdybhpWsh3P4IGCNV+7w08nAFuOzYgm6rlc/3c=",
+      "expect_error": "algorithm"
+    }
+  ]
+}

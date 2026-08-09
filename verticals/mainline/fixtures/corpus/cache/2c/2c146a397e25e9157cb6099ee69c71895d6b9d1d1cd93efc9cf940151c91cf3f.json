@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "barrier_role": "preventive",
+    "control_class": "ISOLATION_HANDBACK_CONTROL",
+    "control_delta": "introduce",
+    "control_label": "controlled removal of isolation and return to service",
+    "doc_code": "STD-PTW-001",
+    "doc_family": "STD",
+    "doc_title": "Permit to Work",
+    "effective_on": "2004-03-08",
+    "printed_label": "2.1.3(b)",
+    "setpoint": null,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "2c146a397e25e9157cb6099ee69c71895d6b9d1d1cd93efc9cf940151c91cf3f",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/STD-PTW-001/001#MRD/STD-PTW-001/2.1.3(b)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "1f10550877f1202709f5db2956cd817024c38dc414df07d1d1871a775bad7073",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The controlled removal of isolation and return to service shall be provided and maintained for work covered by this standard. This clause applies to activities archived under ISOLATION-OF-STORED-ENERGY at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "e26baafec3d4c98bafc1355f62c0de05954feab146087b4024669b055a5266b2",
+  "source": null
+}

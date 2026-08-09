@@ -1,0 +1,40 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 0,
+    "doc_codes": [
+      "ALERT-2016-007",
+      "MOC-2014-0087",
+      "PRO-MEC-041",
+      "PRO-OPS-017",
+      "PTW-STD-003"
+    ],
+    "intent": "introduce",
+    "moc_ref": "MOC-2004-0064",
+    "opened_on": "2004-05-31",
+    "precursor_events": [],
+    "site": "Cape Verity Export Terminal",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "management_of_change": "engineering change note",
+      "verification": "spot check"
+    },
+    "weakening_steps": 0
+  },
+  "key": "273d3ab1544f33dd6fe0b7152d93a49f6ff8d7d959f067eac3d8692cd54ecbf2",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2004-0064",
+  "prompt_kind": "moc",
+  "prompt_sha256": "64dc24418c70544c8177e895789c688dae051366651076c3dbdcbf7b53d9509e",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2004-0064 was raised at Cape Verity Export Terminal on 31 May 2004 as a scheduled change under engineering change note; no event precedes it in the record. The engineering change note record carries no clause change; it records the assessment only. The intent is to introduce a duty the documents in scope did not previously carry. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the key safeguard set is preserved.",
+    "scope_note": "The documents in scope are ALERT-2016-007, MOC-2014-0087, PRO-MEC-041, PRO-OPS-017 and PTW-STD-003."
+  },
+  "response_sha256": "a9bd8a255b3dcf2c36bd998e8e0570af2343acef749acaf62fa221debbb9a381",
+  "source": null
+}

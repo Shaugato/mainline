@@ -1,0 +1,31 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MAINLINE · 0127_trg_closure_guard.sql
+-- CREATE TRIGGER closure_guard — dense generations, monotone severity, ledgered writes
+--
+-- MI: MI26, MI15, MI01
+-- I: I05
+-- COUNSEL-GATED: no
+-- RATIONALE: BEFORE INSERT, because a closure generation that is out of sequence must never
+--            exist and because the custody intake row must be written in the same
+--            transaction as the closure it records. Finding S2 in one weld: after this, a
+--            mass rewrite of the blame closure is impossible to perform invisibly, which is
+--            a strictly stronger claim than making it impossible to perform.
+--
+-- @rendered-by  trappoint render
+-- @template     packages/trappoint-sql/templates/0120_triggers_projection.sql.j2
+-- @binding      verticals/mainline/vertical.toml
+-- DO NOT EDIT. `trappoint render --check` is a zero-diff assertion in CI, so a
+-- hand edit here is a red build, not a silent divergence.
+--
+-- band: 0120-0129z · kernel/projection-triggers · RENDERED · statements: 1
+-- requires: 0108 mainline.fn_closure_guard · mainline.clause_blame_closure
+--           · mainline.site · mainline.ledger_intake
+--           · mainline.event_severity_revision
+-- sqlstate: P0001 on a non-dense generation, a silent downgrade, or an unprovisioned site.
+--           Conformance case CF-08 asserts both halves.
+-- forward-only; no .down.sql and no .up.sql (MR-5).
+
+CREATE TRIGGER closure_guard BEFORE INSERT ON mainline.clause_blame_closure
+  FOR EACH ROW EXECUTE FUNCTION mainline.fn_closure_guard();

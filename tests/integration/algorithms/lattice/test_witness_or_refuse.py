@@ -128,9 +128,7 @@ class Fixture:
             delta_basis=delta_basis,
             delta_model=delta_model,
             parent_version=self.birth.commit_id if parent is None else parent,
-            canon_text=(
-                "The isolation should be verified by a second person before work begins."
-            ),
+            canon_text=("The isolation should be verified by a second person before work begins."),
         )
 
     def witness(
@@ -503,10 +501,7 @@ def test_a_rule_id_outside_the_nine_is_refused(guarded: Fixture) -> None:
             to_repr="SHOULD",
             note="a rule that does not exist",
         )
-    installed = tuple(
-        literal
-        for literal in re.findall(r"'(R\d_[A-Z]+)'", str(caught.value))
-    )
+    installed = tuple(literal for literal in re.findall(r"'(R\d_[A-Z]+)'", str(caught.value)))
     assert installed == RULE_IDS, (
         f"the CHECK on the cluster admits {installed}, which is not "
         f"mainline_domain.contracts.RULE_IDS {RULE_IDS}"
@@ -607,9 +602,7 @@ def test_the_guard_can_be_disabled_and_the_disabling_is_the_record(
     leaves a gate off is a test that silences its neighbours.
     """
     with guarded_schema.connect() as conn:
-        conn.execute(
-            "ALTER TABLE mainline.clause_version DISABLE TRIGGER z_delta_witness_required"
-        )
+        conn.execute("ALTER TABLE mainline.clause_version DISABLE TRIGGER z_delta_witness_required")
         try:
             with guarded.schema.connect(autocommit=False) as tx:
                 with tx.cursor() as cur:

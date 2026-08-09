@@ -1,0 +1,86 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "setting and proving mechanical seal support systems",
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "activity_series": "maintaining sealing systems on rotating equipment",
+    "assets": [
+      {
+        "asset_class": "TANK-CLASS-H",
+        "label": "hydrocarbon day tanks and surge vessel",
+        "service": "diesel and light hydrocarbon day storage, discharge surge suppression",
+        "tag": "V-4110"
+      },
+      {
+        "asset_class": "PRD-CLASS-A",
+        "label": "pressure relief devices",
+        "service": "overpressure protection on the transfer and storage system",
+        "tag": "PSV-4111"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "EMERGENCY_ISOLATION_ON_RELEASE",
+        "control_label": "emergency isolation and depressuring on loss of containment",
+        "failure_mode": "not_verified",
+        "hazard_energy": "pressure",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "OEM-2025-001",
+    "hazard_energy": "pressure",
+    "hazard_media": [
+      "hydraulic accumulator",
+      "barrier fluid",
+      "process gas",
+      "steam header",
+      "compressed air",
+      "trapped liquid"
+    ],
+    "hazard_release": "jet release, stored-energy discharge, rupture",
+    "kind": "oem_alert",
+    "occurred_on": "2025-05-31",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during a planned shutdown",
+    "title": "OEM advisory - TANK-CLASS-H pressurised dual seal support",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "0c713822fc032fa16d612706508b054eda8744719093f507c27de16e6931b1e3",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:OEM-2025-001",
+  "prompt_kind": "icam",
+  "prompt_sha256": "e93a437a0370e21829fd445356db71639ecfdea964fc2dbe17ef998375967624",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "EMERGENCY_ISOLATION_ON_RELEASE",
+        "finding": "Control EMERGENCY_ISOLATION_ON_RELEASE: the emergency isolation and depressuring on loss of containment was never verified as effective, and the learning team review classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next assurance activity that the emergency isolation and depressuring on loss of containment on V-4110 and PSV-4111 performs as designed."
+    ],
+    "sequence": "Work was under way in maintaining sealing systems on rotating equipment, specifically setting and proving mechanical seal support systems. V-4110 (hydrocarbon day tanks and surge vessel) is in service for diesel and light hydrocarbon day storage, discharge surge suppression. The task proceeded during a planned shutdown while the emergency isolation and depressuring on loss of containment was never verified as effective. The pressure energy involved is held as hydraulic accumulator, and the recorded presentation was jet release, stored-energy discharge, rupture.",
+    "summary": "On 31 May 2025 the original equipment manufacturer issued an advisory affecting V-4110 and PSV-4111 at Marrindal Concentrator and Hydrocarbon Transfer Facility."
+  },
+  "response_sha256": "e4397cfb09b1f12d34e584b35d5a8fcfdfaea190263d8f7b077bf766faf2a027",
+  "source": null
+}

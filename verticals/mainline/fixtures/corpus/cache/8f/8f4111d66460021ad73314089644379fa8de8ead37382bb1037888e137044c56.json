@@ -1,0 +1,85 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "assessing and permitting hot work adjacent to live plant",
+    "activity_root": "CONTROL-OF-IGNITION-SOURCES",
+    "activity_series": "authorising hot work",
+    "assets": [
+      {
+        "asset_class": "COMP-CLASS-V",
+        "label": "vapour recovery compressor",
+        "service": "loading vapour recovery",
+        "tag": "K-7301"
+      },
+      {
+        "asset_class": "INST-CLASS-A",
+        "label": "instrument loop",
+        "service": "governs K-7301",
+        "tag": "TT-7301"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "SEAL_FACE_TEMPERATURE_ALARM",
+        "control_label": "seal-face high-temperature alarm and trip",
+        "failure_mode": "degraded",
+        "hazard_energy": "chemical",
+        "icam_tier": "organisational_factor"
+      }
+    ],
+    "event_ref": "AF-2025-009",
+    "hazard_energy": "thermal",
+    "hazard_media": [
+      "hot surface",
+      "steam",
+      "molten material",
+      "hot work",
+      "exothermic reaction"
+    ],
+    "hazard_release": "burn, ignition, scald",
+    "kind": "audit_finding",
+    "occurred_on": "2025-10-13",
+    "severity_actual": 0,
+    "severity_potential": 2,
+    "site": "Cape Verity Export Terminal",
+    "summary_facts": [],
+    "task_phase": "during transfer operations",
+    "title": "audit finding - assurance activity of material unwanted event control at K-7301",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "8f4111d66460021ad73314089644379fa8de8ead37382bb1037888e137044c56",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:AF-2025-009",
+  "prompt_kind": "icam",
+  "prompt_sha256": "46195b33ae0b4b2bf7e4b3b0b364216240ef84c8523b5eb468c98892fcb68bed",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 2 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "SEAL_FACE_TEMPERATURE_ALARM",
+        "finding": "Control SEAL_FACE_TEMPERATURE_ALARM: the seal-face high-temperature alarm and trip had degraded below its design intent, and the learning team review classified this as an organisational factor."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next assurance activity that the seal-face high-temperature alarm and trip on K-7301 and TT-7301 performs as designed."
+    ],
+    "sequence": "Work was under way in authorising hot work, specifically assessing and permitting hot work adjacent to live plant. K-7301 (vapour recovery compressor) is in service for loading vapour recovery. The task proceeded during transfer operations while the seal-face high-temperature alarm and trip had degraded below its design intent. The thermal energy involved is held as hot surface, and the recorded presentation was burn, ignition, scald.",
+    "summary": "On 13 October 2025 a planned assurance activity of K-7301 and TT-7301 at Cape Verity Export Terminal found the seal-face high-temperature alarm and trip not effective."
+  },
+  "response_sha256": "d026a28056f69afea5dc6bef79a5c8718197688cf802afff0bc03b798f62eba4",
+  "source": null
+}

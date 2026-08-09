@@ -1,0 +1,92 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "handing back a partially completed isolation",
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "activity_series": "restoring plant to service",
+    "assets": [
+      {
+        "asset_class": "SLP-CLASS-B",
+        "label": "dewatering pumps",
+        "service": "pit dewatering",
+        "tag": "P-9502"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 1,
+      "label": "medical treatment injury"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "ENERGY_SOURCE_IDENTIFICATION",
+        "control_label": "identification of every energy source for the task",
+        "failure_mode": "not_verified",
+        "hazard_energy": "pressure",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "LOAD_SUPPORT_FOR_MAINTENANCE",
+        "control_label": "mechanical support of a load during maintenance access",
+        "failure_mode": "ineffective",
+        "hazard_energy": "pressure",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "NM-2019-0015",
+    "hazard_energy": "kinetic",
+    "hazard_media": [
+      "rotating equipment",
+      "conveyor",
+      "mobile equipment",
+      "pressurised jet",
+      "flying fragment"
+    ],
+    "hazard_release": "entanglement, impact, crush",
+    "kind": "near_miss",
+    "occurred_on": "2019-12-09",
+    "severity_actual": 2,
+    "severity_potential": 3,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during a statutory inspection",
+    "title": "potential incident - kinetic exposure at P-9502",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "998088cb2feaeba0c4e50526569021a073fc1e7c96132c8902d5aff33575bd06",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2019-0015",
+  "prompt_kind": "icam",
+  "prompt_sha256": "351e8f5214e3963427b0a70fd982fa203ea9f3ab0aadf363807dcd3c42db9c28",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was medical treatment injury, with 1 person injured. The potential outcome was rated 3 against the site's consequence scale, above the 2 actually realised.",
+    "defences": [
+      {
+        "control_class": "ENERGY_SOURCE_IDENTIFICATION",
+        "finding": "Control ENERGY_SOURCE_IDENTIFICATION: the identification of every energy source for the task was never verified as effective, and the ICAM investigation classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "LOAD_SUPPORT_FOR_MAINTENANCE",
+        "finding": "Control LOAD_SUPPORT_FOR_MAINTENANCE: the mechanical support of a load during maintenance access was in place but did not perform, and the ICAM investigation classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the identification of every energy source for the task on P-9502 and record the critical control verification before this task is next authorised.",
+      "Restore the mechanical support of a load during maintenance access on P-9502 and record the critical control verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in restoring plant to service, specifically handing back a partially completed isolation. P-9502 (dewatering pumps) is in service for pit dewatering. The task proceeded during a statutory inspection while the identification of every energy source for the task was never verified as effective. The kinetic energy involved is held as rotating equipment, and the recorded presentation was entanglement, impact, crush.",
+    "summary": "On 9 December 2019 a potential incident was recorded on P-9502 at Yandarra Downs Open Cut and Heavy Workshop during a statutory inspection; kinetic energy held as rotating equipment was not released."
+  },
+  "response_sha256": "912498f10dde988d1a5374210f88a37e7f2167803403919e2c775aefd725c1e8",
+  "source": null
+}

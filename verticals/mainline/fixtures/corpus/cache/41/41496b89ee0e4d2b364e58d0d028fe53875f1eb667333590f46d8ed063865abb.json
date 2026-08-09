@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ELECTRICAL-SAFETY",
+    "barrier_role": "recovery",
+    "control_class": "ARC_FLASH_PPE_AND_BOUNDARY",
+    "control_delta": "introduce",
+    "control_label": "arc flash boundary and protective equipment",
+    "doc_code": "PRO-ELE-026",
+    "doc_family": "PRO",
+    "doc_title": "High Voltage Switching and Access",
+    "effective_on": "2022-03-28",
+    "printed_label": "1.2.6",
+    "setpoint": null,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "energy_isolation": "positive isolation verification",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "41496b89ee0e4d2b364e58d0d028fe53875f1eb667333590f46d8ed063865abb",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:TLG/PRO-ELE-026/007#TLG/PRO-ELE-026/10.1.1(a)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "d74222d4e91414ebee52f99ae35513e0ecbfea0e8f37a46a6e225d736f2f7d5c",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The arc flash boundary and protective equipment shall be provided and maintained for work covered by this procedure. This clause applies to activities archived under ELECTRICAL-SAFETY at Tolgarra Processing and Power Station.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "accf81387283dac2537a158ba8faadae6b24a6c708c3fcf68260b0d25475178a",
+  "source": null
+}

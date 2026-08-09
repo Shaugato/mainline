@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "LIFTING-AND-SUSPENDED-LOADS",
+    "barrier_role": "preventive",
+    "control_class": "LIFT_STUDY_APPROVAL",
+    "control_delta": "restate",
+    "control_label": "preparation and approval of a lift study",
+    "doc_code": "PRO-MEC-055",
+    "doc_family": "PRO",
+    "doc_title": "Workshop Component Removal and Load Support",
+    "effective_on": "2016-11-21",
+    "printed_label": "3.1.2",
+    "setpoint": null,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "e329f27b7c1f5845afe05070fabb3fac0bd066bcdbd3975c2ac94ba617807464",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:YND/PRO-MEC-055/008#YND/PRO-MEC-055/1.4",
+  "prompt_kind": "clause",
+  "prompt_sha256": "a506573bae08df29d773b95a99eb51015704dff2fc423d90078ac63ed0f2bb98",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The preparation and approval of a lift study shall be provided and maintained wherever this procedure applies, and its condition shall be treated as a critical control. This clause applies to activities archived under LIFTING-AND-SUSPENDED-LOADS at Yandarra Downs Open Cut and Heavy Workshop.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "2d0cfa9843d118f7fa10c0adddb0ff4bd6ab6a7591e1e1f78e657bff46f089a5",
+  "source": null
+}

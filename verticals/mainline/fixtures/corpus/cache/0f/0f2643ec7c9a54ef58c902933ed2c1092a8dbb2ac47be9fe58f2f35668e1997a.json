@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 5,
+    "doc_code": "PRO-ELE-008",
+    "doc_family": "PRO",
+    "doc_title": "Electrical Isolation and Access to Switchgear",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2007-01-16",
+    "required_citations": [],
+    "rev_no": 2,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "accident investigation",
+      "management_of_change": "engineering change note",
+      "near_miss": "near hit"
+    }
+  },
+  "key": "0f2643ec7c9a54ef58c902933ed2c1092a8dbb2ac47be9fe58f2f35668e1997a",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/PRO-ELE-008/002",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "1dd14904fb3c8db5bab339e723588ed7e33085187710469804b0ddaaf6712b45",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [],
+    "reason": "Scheduled review at revision 2; 5 clauses restated."
+  },
+  "response_sha256": "eec9c416efff1a1a7945591b24c94f1c2ba07059fc470b8ca7c73450a2b72dfc",
+  "source": null
+}

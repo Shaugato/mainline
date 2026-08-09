@@ -1,0 +1,266 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# THE RATCHET LANE — PL-2 made mechanical (docs/leads/datamodel.md DM-8).
+#
+# `db.yml` is the RED lane: one conformance case that is expected to fail until the
+# kernel DDL lands. This lane is the *ratchet* that keeps every other test honest, and it
+# is deliberately a separate workflow: db.yml's failure has to mean "the conformance case
+# is red" and nothing else, so a promotion owed three directories away must not be able
+# to change its colour.
+#
+# TWO LAWS, ONE SUITE.
+#
+#   mi-green   every `enforced` invariant's owning tests must PASS.
+#              A skip is not a pass. An invariant certified by a test that did not run is
+#              precisely the assertion-free green PL-2 exists to forbid, so `green`
+#              refuses to certify on a skip — which is why this job starts a cluster
+#              rather than letting the suite skip its way to success.
+#
+#   mi-red     every `pending` invariant must have at least one owning test that
+#              currently FAILS. A pending invariant whose tests all pass fails the build:
+#
+#                  MI25 is pending but its tests pass — promote it in mi_catalogue.yaml
+#
+#              Promotion is therefore a pull request that shows up in blame forever, and
+#              `demote-check` makes the ratchet one-way.
+#
+# EXIT CODES ARE LOAD-BEARING. `scripts/mi_ratchet.py` exits 2 for *cannot determine* —
+# a missing source, an uncollectable suite — and 1 for *the law was broken*. A job that
+# conflated them would publish colours it never measured, which is the failure this whole
+# lane exists to prevent. Neither is `continue-on-error`.
+#
+# No AWS account. No CockroachDB Cloud organisation. No credential of ours (PL-1). The
+# cluster is a container this job creates and destroys.
+
+name: db-schema
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "verticals/*/db/**"
+      - "packages/trappoint-migrate/**"
+      - "tests/integration/schema/**"
+      - "scripts/mi_ratchet.py"
+      - "compose.yaml"
+      - "uv.lock"
+      - ".github/workflows/db-schema.yml"
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: db-schema-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  LOCAL_DSN: "postgresql://root@127.0.0.1:26257/defaultdb?sslmode=disable"
+  FORCE_COLOR: "1"
+
+jobs:
+  # ── Hermetic. No cluster, no docker, nothing that can be flaky. ─────────────────────
+  catalogue:
+    name: the catalogue is committed, current and well-formed
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install the migration runner
+        run: uv sync --frozen --package trappoint-migrate
+
+      - name: Runner semantics with no cluster (tier 0)
+        # The lint, the lock, the protected floor and the fingerprint's stability. If
+        # these are wrong, every statement the rest of this lane makes is about a tool
+        # that does not work.
+        run: uv run --frozen --package trappoint-migrate python -m pytest packages/trappoint-migrate/tests -q
+
+      - name: The sequence ban, the citation rule and the mandatory header block
+        run: uv run --frozen --package trappoint-migrate trappoint migrate lint
+
+      - name: migrations.lock.json is a manifest, and it is current
+        # MR-6 lock 1: the lock is DERIVED. A stale one is regenerated, never patched,
+        # and the failure names the command.
+        run: uv run --frozen --package trappoint-migrate trappoint migrate lock
+
+      - name: Every hermetic check this runner can make
+        run: uv run --frozen --package trappoint-migrate trappoint migrate verify --offline
+
+      - name: The catalogue must be committed and current
+        # Exit 1 on drift, 2 on a missing source. `owning_migrations` is a projection of
+        # the `-- MI:` headers, and a projection over a missing source refuses rather
+        # than reporting that nothing enforces anything (P2, applied to the build system).
+        run: uv run --frozen python scripts/mi_ratchet.py check
+
+      - name: Both laws bite
+        # The ratchet asserting itself against synthetic outcome maps, so "the law held"
+        # is never a statement about a suite nobody measured.
+        run: uv run --frozen python scripts/mi_ratchet.py selftest
+
+  # ── The two laws. Both need a cluster, for opposite reasons. ────────────────────────
+  ratchet:
+    name: mi-red and mi-green
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read the ONE version constant out of compose.yaml
+        id: image
+        # The version constant lives in compose.yaml and nowhere else. `services:` in
+        # GitHub Actions cannot pass a command to a container and `start-single-node` IS
+        # a command, so the node is started with `docker run` — the version still comes
+        # from the same line `trappoint migrate image` parses.
+        run: |
+          set -euo pipefail
+          image="$(python3 - <<'PY'
+          import pathlib, re
+          lines = pathlib.Path("compose.yaml").read_text(encoding="utf-8").splitlines()
+          for i, line in enumerate(lines):
+              if "trappoint:crdb-image-pin" in line:
+                  for candidate in lines[i + 1 : i + 4]:
+                      m = re.match(r"^\s*image:\s*(\S+)\s*$", candidate)
+                      if m:
+                          print(m.group(1))
+                          raise SystemExit(0)
+          raise SystemExit("compose.yaml carries no marked image pin")
+          PY
+          )"
+          echo "image=${image}" >> "$GITHUB_OUTPUT"
+          echo "CockroachDB image: ${image}"
+
+      - name: Pull the image and record its digest
+        id: digest
+        # Digest pinning without a fabricated hash, exactly as db.yml does it. The digest
+        # is resolved and printed on every run; when the repository variable
+        # CRDB_IMAGE_DIGEST is set it is ASSERTED. An invented digest committed today
+        # would be a lie in the repository; an assertion that activates the moment
+        # somebody records the real one is the honest version of the same control.
+        run: |
+          set -euo pipefail
+          docker pull "${{ steps.image.outputs.image }}"
+          digest="$(docker image inspect --format '{{index .RepoDigests 0}}' "${{ steps.image.outputs.image }}")"
+          echo "digest=${digest}" >> "$GITHUB_OUTPUT"
+          echo "resolved: ${digest}"
+          expected="${{ vars.CRDB_IMAGE_DIGEST }}"
+          if [ -n "${expected}" ] && [ "${expected}" != "${digest}" ]; then
+            echo "::error::image digest ${digest} does not match the pinned ${expected}"
+            exit 1
+          fi
+          if [ -z "${expected}" ]; then
+            echo "::notice::CRDB_IMAGE_DIGEST is unset; the digest is recorded but not asserted"
+          fi
+
+      - name: Start a single-node CockroachDB
+        # MEASURED 2026-08-10 against cockroachdb/cockroach:v26.2.5 — `--listen-addr` is
+        # DELIBERATELY ABSENT and must stay absent:
+        #
+        #   $ docker run … start-single-node --insecure --listen-addr=0.0.0.0:26257 …
+        #   error: hostname of listen_addr must be "127.0.0.1" or "localhost"
+        #
+        # The node refuses to start. `--advertise-addr=localhost:26257` does not rescue
+        # it; the check is on listen_addr itself. And `--listen-addr=localhost:26257`
+        # starts, but binds inside the container's loopback where a published port cannot
+        # reach it. The default binds where `-p` can forward, which is what this job needs
+        # and what the pgwire probe below actually proves. `--http-addr` is unaffected.
+        run: |
+          set -euo pipefail
+          docker run -d --name trappoint-schema-crdb \
+            -p 127.0.0.1:26257:26257 -p 127.0.0.1:8080:8080 \
+            "${{ steps.image.outputs.image }}" \
+            start-single-node --insecure \
+              --http-addr=0.0.0.0:8080 \
+              --store=type=mem,size=2GiB
+          for attempt in $(seq 1 60); do
+            if docker exec trappoint-schema-crdb ./cockroach sql --insecure --execute "SELECT 1" >/dev/null 2>&1; then
+              echo "cluster answering SQL after ${attempt} attempt(s)"
+              docker exec trappoint-schema-crdb ./cockroach sql --insecure --execute "SELECT version()"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::error::the cluster never answered SQL"
+          docker logs trappoint-schema-crdb | tail -50
+          exit 1
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install the workspace
+        run: uv sync --frozen
+
+      - name: Bootstrap the `trappoint` schema
+        run: uv run --frozen trappoint migrate bootstrap --dsn "$LOCAL_DSN"
+
+      - name: mi-red — every pending invariant must have a failing owning test
+        # NOT continue-on-error. This job going red means a promotion is owed, and the
+        # message names the invariant and the file to edit.
+        #
+        # `--on-collect-error-red` treats an uncollectable suite as red rather than as
+        # "cannot determine". That is the right reading HERE and only here: a suite that
+        # will not collect certainly has no passing tests, so the pending law is
+        # satisfied — vacuously, and the collection error is printed either way.
+        env:
+          TRAPPOINT_DSN: ${{ env.LOCAL_DSN }}
+        run: uv run --frozen python scripts/mi_ratchet.py red --on-collect-error-red
+
+      - name: mi-green — every enforced invariant's owning tests must pass
+        # The cluster above is why this job is not hermetic. `green` refuses to certify
+        # an invariant on a SKIP, and without a reachable database every cluster-side
+        # test skips — which would turn "the mechanism works" into "the mechanism was
+        # never exercised" while the board stayed green.
+        env:
+          TRAPPOINT_DSN: ${{ env.LOCAL_DSN }}
+        run: uv run --frozen python scripts/mi_ratchet.py green
+
+      - name: The ratchet is one-way
+        # enforced → pending needs an ADR-NNNN in the commit body. A mechanism that stops
+        # being enforced is a decision about what this system no longer promises, and
+        # decisions here are written down.
+        if: github.event_name == 'pull_request'
+        run: |
+          set -euo pipefail
+          BASE="${{ github.event.pull_request.base.sha }}"
+          CAT=verticals/mainline/db/invariants/mi_catalogue.yaml
+          git fetch --no-tags --depth=1 origin "$BASE"
+          git show "$BASE:$CAT" > /tmp/base-catalogue.yaml
+          uv run --frozen python scripts/mi_ratchet.py demote-check \
+            --base /tmp/base-catalogue.yaml \
+            --message "$(git log -1 --format=%B)"
+
+      - name: Record the ratchet's position in the job summary
+        if: always()
+        run: |
+          {
+            echo "## db-schema — the MI ratchet"
+            echo ""
+            echo "| item | value |"
+            echo "|---|---|"
+            echo "| image | \`${{ steps.image.outputs.image }}\` |"
+            echo "| digest | \`${{ steps.digest.outputs.digest }}\` |"
+            echo ""
+            echo '```'
+            uv run --frozen python scripts/mi_ratchet.py report 2>&1 | tail -8 || true
+            echo '```'
+            echo ""
+            echo "**PL-2.** \`pending\` does not mean unwritten — it means no owning test has"
+            echo "been observed to pass, and \`mi-red\` REQUIRES at least one owning test of"
+            echo "every pending invariant to be failing right now. A suite for a product whose"
+            echo "deliverable is a refusal, that has never been red, asserts nothing."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Cluster logs on failure
+        if: failure()
+        run: docker logs trappoint-schema-crdb | tail -100
+
+      - name: Tear down
+        if: always()
+        run: docker rm -f trappoint-schema-crdb || true

@@ -1,0 +1,109 @@
+{
+  "vectors_version": 1,
+  "kind": "jcs",
+  "produced_by": "packages/trappoint-jcs/src/trappoint_jcs/canon_v1.py canonicalise() — the REFERENCE. The `canonical` field below is that function's output, captured, not the browser's.",
+  "number_premise": "The reference was driven with json.loads(..., parse_int=float), so every number below is an IEEE-754 double on BOTH sides. That is not a convenience: JavaScript has one number type, and comparing an exact-integer Python run against a double-only browser run would compare two implementations under different premises. The consequence, stated because it is a real limit: the browser canonicaliser cannot implement the CU-5 evidentiary profile (refuse binary floats), because it cannot see the difference between 1 and 1.0. CU-5 is enforced on the writing side, in Python, where the distinction exists.",
+  "cases": [
+    {
+      "id": "literals",
+      "note": "null, booleans and the empty containers.",
+      "input_text": "{\"z\":null,\"y\":true,\"x\":false,\"w\":{},\"v\":[]}",
+      "canonical": "{\"v\":[],\"w\":{},\"x\":false,\"y\":true,\"z\":null}",
+      "canonical_bytes": 43,
+      "sha256": "accecafb2e6e12972bc1df2663a21dd3da2136bb4cd43a8ef2c9329d9124652d"
+    },
+    {
+      "id": "nested-key-ordering-utf16",
+      "note": "RFC 8785 3.2.3 sorts member names by UTF-16 CODE UNIT, not by code point. U+1F602 encodes as the surrogate pair D83D DE02, so it sorts BELOW U+FB33 even though its code point is far above. A canonicaliser that sorts Python str or compares code points fails exactly here.",
+      "input_text": "{\"דּ\":1,\"😂\":2,\"€\":3,\"a\":{\"דּ\":\"x\",\"😂\":\"y\",\"A\":\"z\",\"$\":\"w\"},\"A\":5,\"$\":6}",
+      "canonical": "{\"$\":6,\"A\":5,\"a\":{\"$\":\"w\",\"A\":\"z\",\"😂\":\"y\",\"דּ\":\"x\"},\"€\":3,\"😂\":2,\"דּ\":1}",
+      "canonical_bytes": 81,
+      "sha256": "07c3bb5e23185dc94c32f140c763a4736c76d9513ff7414baaf98412fa0d78ec"
+    },
+    {
+      "id": "negative-zero",
+      "note": "RFC 8785 3.2.2.3: -0 serialises as \"0\". Sign is lost, deliberately.",
+      "input_text": "{\"a\":-0,\"b\":0}",
+      "canonical": "{\"a\":0,\"b\":0}",
+      "canonical_bytes": 13,
+      "sha256": "c82eac97ef55b2f05b20616da2e88f9459043ceb8aee7715dba4c730c3abd278"
+    },
+    {
+      "id": "safe-integers",
+      "note": "±(2**53 - 1) is the interoperability boundary. Inside it, ES6 and exact-integer output agree.",
+      "input_text": "{\"max\":9007199254740991,\"min\":-9007199254740991,\"zero\":0,\"one\":1}",
+      "canonical": "{\"max\":9007199254740991,\"min\":-9007199254740991,\"one\":1,\"zero\":0}",
+      "canonical_bytes": 65,
+      "sha256": "8b5165d5ff25eaa6380e3cf13158253757bf739182b244845552c80a96fbf237"
+    },
+    {
+      "id": "es6-number-thresholds",
+      "note": "The classic JCS bug: ECMAScript switches to exponential below 1e-6 and at or above 1e21; Python repr switches at 1e-4 and 1e16. Every value here is on the wrong side of a Python threshold and the right side of an ECMAScript one.",
+      "input_text": "{\"a\":1e-7,\"b\":0.000001,\"c\":0.00001,\"d\":1.5,\"e\":100,\"f\":100000000000000000000,\"g\":1e+21,\"h\":1.2345678901234568e+22}",
+      "canonical": "{\"a\":1e-7,\"b\":0.000001,\"c\":0.00001,\"d\":1.5,\"e\":100,\"f\":100000000000000000000,\"g\":1e+21,\"h\":1.2345678901234568e+22}",
+      "canonical_bytes": 114,
+      "sha256": "7a285bb5a29ba88082d7e3502d509a19b15507677e29334e5d881549a63c61ed"
+    },
+    {
+      "id": "string-escapes",
+      "note": "Seven short escapes; every other C0 control as lowercase \\u00xx. Solidus is NOT escaped. U+007F (DEL) is literal. Astral characters are literal.",
+      "input_text": "{\"short\":\"\\b\\t\\n\\f\\r\\\"\\\\\",\"controls\":\"\\u0000\\u0001\\u000b\\u001f\",\"solidus\":\"a/b\",\"del\":\"\",\"astral\":\"😂\",\"combining\":\"é\"}",
+      "canonical": "{\"astral\":\"😂\",\"combining\":\"é\",\"controls\":\"\\u0000\\u0001\\u000b\\u001f\",\"del\":\"\",\"short\":\"\\b\\t\\n\\f\\r\\\"\\\\\",\"solidus\":\"a/b\"}",
+      "canonical_bytes": 124,
+      "sha256": "056be702b19ef63f777f07802b1ade18cdc53c205b262f8a72391ceaa2f477c5"
+    },
+    {
+      "id": "arrays-preserve-order",
+      "note": "Array element order is DATA and is never sorted. Only member names are sorted.",
+      "input_text": "{\"a\":[3,1,2,{\"b\":1,\"a\":2},[null,true]]}",
+      "canonical": "{\"a\":[3,1,2,{\"a\":2,\"b\":1},[null,true]]}",
+      "canonical_bytes": 39,
+      "sha256": "1ec74b2559fe23500e76d9c830400c5ece980a73e584501b543d328e9200480e"
+    },
+    {
+      "id": "ledger-payload-seq3",
+      "note": "The seq-3 leaf payload from spec/wire/checkpoint.md 7.2, presented with its members in a deliberately wrong order. Canonicalising it must reproduce the published canon_bytes byte for byte.",
+      "input_text": "{\"site_code\":\"BLK-07\",\"signer_sub\":\"auth0|4f2c\",\"signer_rank\":4,\"issued_at\":\"2026-08-07T02:11:42.006Z\",\"entry_kind\":\"disposition\",\"disposition_kind\":\"controlled\",\"check_id\":\"018f3a2f-1104-7c88-b3aa-77c1de40e2b1\"}",
+      "canonical": "{\"check_id\":\"018f3a2f-1104-7c88-b3aa-77c1de40e2b1\",\"disposition_kind\":\"controlled\",\"entry_kind\":\"disposition\",\"issued_at\":\"2026-08-07T02:11:42.006Z\",\"signer_rank\":4,\"signer_sub\":\"auth0|4f2c\",\"site_code\":\"BLK-07\"}",
+      "canonical_bytes": 212,
+      "sha256": "d507ca2a166b1e7fc5284df0f886487d4109424861aea3c46971b3faa5752246"
+    }
+  ],
+  "refusals": [
+    {
+      "id": "nan",
+      "note": "JSON has no NaN literal. A canonicaliser that emits one has invented a format.",
+      "value_kind": "nan",
+      "error": "NonFiniteNumber",
+      "enforced_by": "both"
+    },
+    {
+      "id": "infinity",
+      "value_kind": "infinity",
+      "note": "As above, for the infinities.",
+      "error": "NonFiniteNumber",
+      "enforced_by": "both"
+    },
+    {
+      "id": "lone-surrogate",
+      "note": "A JavaScript string may hold an unpaired surrogate; UTF-8 and JSON may not. Python raises InvalidString for the same input.",
+      "value_kind": "lone_surrogate",
+      "error": "InvalidString",
+      "enforced_by": "both"
+    },
+    {
+      "id": "unsafe-integer",
+      "note": "2**53 is outside the interoperable range for an EXACT-INTEGER implementation: Python would emit 9007199254740993 for that literal and ECMAScript would emit 9007199254740992, so no two verifiers would agree on the bytes. The Python canonicaliser refuses it. THE BROWSER CANONICALISER DOES NOT AND CANNOT: by the time the value reaches JavaScript it is already a double and the offending digits are already gone. This entry is a writing-side rule, recorded here so the asymmetry is a documented fact rather than a silent divergence.",
+      "value_kind": "unsafe_integer",
+      "error": "NonInteroperableNumber",
+      "enforced_by": "python-only"
+    },
+    {
+      "id": "duplicate-member",
+      "note": "RFC 8785 3.1 requires input free of duplicate member names. Last-wins would mean the canonicaliser chose, on the writer's behalf, which of two records was signed.",
+      "input_text": "{\"a\":1,\"a\":2}",
+      "error": "DuplicateKey",
+      "enforced_by": "both"
+    }
+  ]
+}

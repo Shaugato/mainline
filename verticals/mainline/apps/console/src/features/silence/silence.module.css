@@ -1,0 +1,411 @@
+/*
+ * SPDX-FileCopyrightText: 2026 MAINLINE contributors
+ * SPDX-License-Identifier: FSL-1.1-ALv2
+ *
+ * The silence ledger — EVIDENCE register (docs/leads/ui.md §1.1).
+ *
+ * No transition, no transform, no gradient, no shadow, no depth. Every value on this
+ * screen is a column the database wrote or arithmetic this browser performed over one,
+ * and a screenshot of this page is the whole page.
+ *
+ * ── COLOUR IS USED THREE TIMES AND EACH ONE IS A STATE ───────────────────────────
+ *
+ *   --tp-refuse   an identity that did not balance, or a degraded arm. Emphasis weight
+ *                 at emphasis size only, per pairs.ts's rule for accent foregrounds.
+ *   --tp-warn     a value the console is WITHHOLDING because its companion is missing —
+ *                 a score with no threshold, a raw cosine with no calibrated probability.
+ *                 A withheld slot must look like a withheld slot.
+ *   the ramp      everything else.
+ *
+ * There is no green anywhere in this file. The console's only green belongs to the
+ * VerificationSeal, and nothing on this surface has been cryptographically verified: the
+ * boundary proof is DISPLAYED here and RECOMPUTED in src/verify. A green tick over an
+ * unverified Merkle path would be the single most misleading pixel in the product.
+ *
+ * ── NO CHARTS ────────────────────────────────────────────────────────────────────
+ *
+ * The arithmetic is a table, not a plot. A stacked bar of channel contributions would
+ * make the fusion look measured and the differences look meaningful at a glance; the
+ * numbers are what a reader has to be able to check, and the numbers fit.
+ */
+
+/* Available to assistive technology, absent from the page and from a screenshot. */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.surface {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-5);
+  padding: var(--tp-space-4) 0;
+  color: var(--tp-ink);
+  font-family: var(--tp-sans);
+  font-size: var(--tp-step-0);
+  line-height: var(--tp-leading-body);
+}
+
+.title {
+  margin: 0 0 var(--tp-space-2);
+  font-size: var(--tp-step-3);
+  font-weight: var(--tp-weight-strong);
+  line-height: var(--tp-leading-tight);
+}
+
+.standfirst {
+  margin: 0;
+  max-width: 78ch;
+  color: var(--tp-ink-dim);
+}
+
+.sectionTitle {
+  margin: 0 0 var(--tp-space-3);
+  font-size: var(--tp-step-2);
+  font-weight: var(--tp-weight-medium);
+  line-height: var(--tp-leading-tight);
+}
+
+.prose {
+  margin: 0;
+  max-width: 78ch;
+  color: var(--tp-ink-dim);
+}
+
+.note {
+  margin: var(--tp-space-2) 0 0;
+  max-width: 78ch;
+  color: var(--tp-ink-dim);
+  font-size: var(--tp-step--1);
+}
+
+.kicker {
+  display: block;
+  margin-bottom: var(--tp-space-2);
+  color: var(--tp-ink-faint);
+  font-size: var(--tp-step--1);
+  font-weight: var(--tp-weight-medium);
+  letter-spacing: var(--tp-tracking-caps);
+  text-transform: uppercase;
+}
+
+.panel {
+  padding: var(--tp-space-4);
+  border: var(--tp-hairline) solid var(--tp-rule-strong);
+  border-radius: var(--tp-radius);
+  background: var(--tp-bg-raised);
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: var(--tp-space-2) var(--tp-space-4);
+  margin: 0;
+}
+
+.facts dt {
+  color: var(--tp-ink-faint);
+  font-size: var(--tp-step--1);
+  letter-spacing: var(--tp-tracking-caps);
+  text-transform: uppercase;
+}
+
+.facts dd {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* ── The conservation identity ───────────────────────────────────────────── */
+
+/*
+ * The identity is set as an EQUATION, in the mono face, on one line where the viewport
+ * allows: the reader is meant to add the four terms up. A row of separated stat cards
+ * would present the same numbers and hide the relationship between them, which is the
+ * only thing on this panel worth showing.
+ */
+.equation {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--tp-space-2);
+  margin: var(--tp-space-3) 0 0;
+  padding: var(--tp-space-4);
+  border-left: 3px solid var(--tp-rule-strong);
+  background: var(--tp-bg-inset);
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step-1);
+  line-height: var(--tp-leading-tight);
+}
+
+.equationTerm {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.equationValue {
+  font-weight: var(--tp-weight-strong);
+}
+
+.equationColumn {
+  color: var(--tp-ink-faint);
+  font-size: var(--tp-step--1);
+}
+
+.equationOperator {
+  color: var(--tp-ink-dim);
+}
+
+.equation[data-balances='false'] {
+  border-left-color: var(--tp-refuse);
+}
+
+.imbalance {
+  margin: var(--tp-space-3) 0 0;
+  color: var(--tp-refuse);
+  font-weight: var(--tp-weight-strong);
+}
+
+/* ── Arms ────────────────────────────────────────────────────────────────── */
+
+.arms {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--tp-step--1);
+}
+
+.arms th,
+.arms td {
+  padding: var(--tp-space-2);
+  border-bottom: var(--tp-hairline) solid var(--tp-rule);
+  text-align: left;
+  vertical-align: top;
+}
+
+.arms th {
+  color: var(--tp-ink-faint);
+  font-weight: var(--tp-weight-medium);
+  letter-spacing: var(--tp-tracking-caps);
+  text-transform: uppercase;
+}
+
+.arms td {
+  font-family: var(--tp-mono);
+}
+
+.degraded {
+  padding: var(--tp-space-4);
+  border: var(--tp-hairline) solid var(--tp-refuse);
+  border-radius: var(--tp-radius);
+  background: var(--tp-bg-raised);
+}
+
+.degradedTitle {
+  margin: 0 0 var(--tp-space-2);
+  color: var(--tp-refuse);
+  font-size: var(--tp-step-2);
+  font-weight: var(--tp-weight-strong);
+}
+
+/* ── The ledger ──────────────────────────────────────────────────────────── */
+
+.entries {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.entry {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-3);
+  padding: var(--tp-space-4);
+  border: var(--tp-hairline) solid var(--tp-rule-strong);
+  border-radius: var(--tp-radius);
+  background: var(--tp-bg-raised);
+}
+
+.entryHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--tp-space-3);
+}
+
+.entryVocab {
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step-1);
+  font-weight: var(--tp-weight-strong);
+}
+
+.scoreLine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--tp-space-2);
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step-1);
+}
+
+.withheld {
+  color: var(--tp-warn);
+  font-family: var(--tp-mono);
+  font-weight: var(--tp-weight-strong);
+}
+
+.census {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tp-space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.censusCell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-1);
+  align-items: flex-start;
+}
+
+/* ── The arithmetic table ────────────────────────────────────────────────── */
+
+.arithmetic {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--tp-step--1);
+}
+
+.arithmetic th,
+.arithmetic td {
+  padding: var(--tp-space-1) var(--tp-space-2);
+  border-bottom: var(--tp-hairline) solid var(--tp-rule);
+  text-align: left;
+  vertical-align: top;
+}
+
+.arithmetic th {
+  color: var(--tp-ink-faint);
+  font-weight: var(--tp-weight-medium);
+  letter-spacing: var(--tp-tracking-caps);
+  text-transform: uppercase;
+}
+
+.arithmetic td {
+  font-family: var(--tp-mono);
+  overflow-wrap: anywhere;
+}
+
+.arithmetic tr[data-kind='raw_similarity'] td:first-child {
+  color: var(--tp-ink-dim);
+}
+
+.kindTag {
+  color: var(--tp-ink-faint);
+  font-size: var(--tp-step--1);
+}
+
+/* ── PER ─────────────────────────────────────────────────────────────────── */
+
+.boundary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: var(--tp-space-4);
+  margin: var(--tp-space-3) 0 0;
+}
+
+.boundaryCell {
+  padding: var(--tp-space-3);
+  border: var(--tp-hairline) solid var(--tp-rule);
+  border-radius: var(--tp-radius);
+  background: var(--tp-bg-inset);
+}
+
+.limit {
+  margin: var(--tp-space-4) 0 0;
+  padding: var(--tp-space-4);
+  border-left: 3px solid var(--tp-refuse);
+  background: var(--tp-bg-inset);
+  font-size: var(--tp-step-1);
+  font-weight: var(--tp-weight-strong);
+  line-height: var(--tp-leading-tight);
+}
+
+.verbatim {
+  margin: var(--tp-space-3) 0 0;
+  padding: var(--tp-space-3);
+  border: var(--tp-hairline) solid var(--tp-rule);
+  border-radius: var(--tp-radius);
+  background: var(--tp-bg-inset);
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step--1);
+  line-height: var(--tp-leading-tight);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.failure {
+  padding: var(--tp-space-4);
+  border: var(--tp-hairline) solid var(--tp-refuse);
+  border-radius: var(--tp-radius);
+  background: var(--tp-bg-raised);
+}
+
+.failureTitle {
+  margin: 0 0 var(--tp-space-2);
+  color: var(--tp-refuse);
+  font-size: var(--tp-step-1);
+  font-weight: var(--tp-weight-strong);
+}
+
+/* ── Provenance slot ─────────────────────────────────────────────────────── */
+
+.slot {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--tp-space-1);
+}
+
+.slotPointer {
+  color: var(--tp-ink-faint);
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step--1);
+}
+
+.chipUndeclared,
+.chipDerived {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--tp-space-1);
+  padding: 0 var(--tp-space-1);
+  border: var(--tp-hairline) solid var(--tp-rule);
+  border-radius: var(--tp-radius);
+  color: var(--tp-ink-dim);
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step--1);
+}
+
+.chipUndeclared {
+  color: var(--tp-warn);
+}
+
+@media print {
+  .entry,
+  .panel,
+  .equation {
+    break-inside: avoid;
+  }
+}

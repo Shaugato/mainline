@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "LIFTING-AND-SUSPENDED-LOADS",
+    "barrier_role": "preventive",
+    "control_class": "DROP_ZONE_EXCLUSION",
+    "control_delta": "restate",
+    "control_label": "exclusion of people from beneath elevated work",
+    "doc_code": "PRO-MEC-055",
+    "doc_family": "PRO",
+    "doc_title": "Workshop Component Removal and Load Support",
+    "effective_on": "2018-10-05",
+    "printed_label": "1.1.5",
+    "setpoint": null,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "7db4eeaafed41cedac45e84fd6640c2c2ad0a07573a6eb01c82466b74fa317a2",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:YND/PRO-MEC-055/010#YND/PRO-MEC-055/2.4",
+  "prompt_kind": "clause",
+  "prompt_sha256": "6454a563a367c7b8ce4fd9fc8d35261c3fe613730f48132258059e8ef78c6784",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The exclusion of people from beneath elevated work shall be provided and maintained wherever this procedure applies, and its condition shall be treated as a critical control. This clause applies to activities archived under LIFTING-AND-SUSPENDED-LOADS at Yandarra Downs Open Cut and Heavy Workshop.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "34ff666c751082507924a1c4dfd2c7565ce577a09340b9de4a5b9f81985ec836",
+  "source": null
+}

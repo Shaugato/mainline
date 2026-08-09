@@ -1,0 +1,109 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "testing for dead and applying earths",
+    "activity_root": "ELECTRICAL-SAFETY",
+    "activity_series": "controlling access to energised apparatus",
+    "assets": [
+      {
+        "asset_class": "ELEC-CLASS-A",
+        "label": "switchgear and transformers",
+        "service": "plant HV/LV distribution",
+        "tag": "SG-3100"
+      },
+      {
+        "asset_class": "ELEC-CLASS-A",
+        "label": "switchgear and transformers",
+        "service": "plant HV/LV distribution",
+        "tag": "TX-3001"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "EARTH_LEAKAGE_PROTECTION",
+        "control_label": "earth leakage and protection setting integrity",
+        "failure_mode": "degraded",
+        "hazard_energy": "electrical",
+        "icam_tier": "individual_or_team_action"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "HAZARDOUS_AREA_EQUIPMENT_INTEGRITY",
+        "control_label": "integrity of explosion-protected equipment in zoned areas",
+        "failure_mode": "ineffective",
+        "hazard_energy": "electrical",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "ZERO_ENERGY_VERIFICATION",
+        "control_label": "proving zero energy before intrusive work",
+        "failure_mode": "ineffective",
+        "hazard_energy": "electrical",
+        "icam_tier": "organisational_factor"
+      }
+    ],
+    "event_ref": "AF-2010-004",
+    "hazard_energy": "thermal",
+    "hazard_media": [
+      "hot surface",
+      "steam",
+      "molten material",
+      "hot work",
+      "exothermic reaction"
+    ],
+    "hazard_release": "burn, ignition, scald",
+    "kind": "audit_finding",
+    "occurred_on": "2010-04-26",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during cleaning and preparation",
+    "title": "audit finding - field verification of critical safeguard at SG-3100",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "586266f07270125058414e0fa9ad01772eadd4a1400e9a6039513be6fa71821d",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:AF-2010-004",
+  "prompt_kind": "icam",
+  "prompt_sha256": "0aae5c60a29da063e6b8480a3649983e67e3dff03aef820e1a4dd72f7085dfbd",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "EARTH_LEAKAGE_PROTECTION",
+        "finding": "Control EARTH_LEAKAGE_PROTECTION: the earth leakage and protection setting integrity had degraded below its design intent, and the root cause analysis classified this as an individual or team action."
+      },
+      {
+        "control_class": "HAZARDOUS_AREA_EQUIPMENT_INTEGRITY",
+        "finding": "Control HAZARDOUS_AREA_EQUIPMENT_INTEGRITY: the integrity of explosion-protected equipment in zoned areas was in place but did not perform, and the root cause analysis classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "ZERO_ENERGY_VERIFICATION",
+        "finding": "Control ZERO_ENERGY_VERIFICATION: the proving zero energy before intrusive work was in place but did not perform, and the root cause analysis classified this as an organisational factor."
+      }
+    ],
+    "recommendations": [
+      "Restore the integrity of explosion-protected equipment in zoned areas on SG-3100 and TX-3001 and record the field verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in controlling access to energised apparatus, specifically testing for dead and applying earths. SG-3100 (switchgear and transformers) is in service for plant HV/LV distribution. The task proceeded during cleaning and preparation while the earth leakage and protection setting integrity had degraded below its design intent. The thermal energy involved is held as hot surface, and the recorded presentation was burn, ignition, scald.",
+    "summary": "On 26 April 2010 a planned field verification of SG-3100 and TX-3001 at Marrindal Concentrator and Hydrocarbon Transfer Facility found the earth leakage and protection setting integrity not effective."
+  },
+  "response_sha256": "1232e05249e4b08972b22a4bd5960f0aa4816405f7aa30c5cc8e58944ba00464",
+  "source": null
+}

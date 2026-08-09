@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 2,
+    "doc_code": "PTW-STD-004",
+    "doc_family": "PTW",
+    "doc_title": "Permit to Work Form Set",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2012-10-08",
+    "required_citations": [
+      {
+        "control_label": "parking, chocking and restraint of equipment",
+        "event_ref": "NM-2012-0002",
+        "event_title": "stored energy found after isolation of P-9504",
+        "hazard_energy": "kinetic",
+        "kind": "moc_reference",
+        "quote_ref": "quote:YND/PTW-STD-004/003#moc_reference/NM-2012-0002",
+        "severity_gate": 4
+      }
+    ],
+    "rev_no": 3,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "root cause analysis",
+      "management_of_change": "change request",
+      "near_miss": "hazard report"
+    }
+  },
+  "key": "4245244a3bbeeffa6f3ccc7eb3bb4b851a94fc719fceb5d27ee21ec696a0a0a4",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:YND/PTW-STD-004/003",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "2de1bfd52885914dfb80d87a4a304f80fc3c75b81c2a80b0d02b7917a4baac1b",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The change request record for this revision cites NM-2012-0002 as the reason the parking, chocking and restraint of equipment was amended.",
+        "quote_ref": "quote:YND/PTW-STD-004/003#moc_reference/NM-2012-0002"
+      }
+    ],
+    "reason": "Scheduled review at revision 3; 2 clauses restated."
+  },
+  "response_sha256": "ec254f87ec4e4258dd0a11f9278e643c746bbf2dbd254bb7ee72e8fa47733f11",
+  "source": null
+}

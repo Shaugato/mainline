@@ -1,0 +1,77 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 6,
+    "doc_code": "PRO-OPS-032",
+    "doc_family": "PRO",
+    "doc_title": "Hydrocarbon Transfer Operations",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2011-11-26",
+    "required_citations": [
+      {
+        "control_label": "integrity of the mechanical seal support system",
+        "event_ref": "INC-2011-007",
+        "event_title": "injury during commissioning of replacement equipment on P-4105",
+        "hazard_energy": "pressure",
+        "kind": "capa_action",
+        "quote_ref": "quote:MRD/PRO-OPS-032/004#capa_action/INC-2011-007",
+        "severity_gate": 2
+      },
+      {
+        "control_label": "secondary containment by bund and drainage",
+        "event_ref": "OEM-2011-002",
+        "event_title": "OEM service bulletin affecting HTP-CLASS-A",
+        "hazard_energy": "thermal",
+        "kind": "regulator_requirement",
+        "quote_ref": "quote:MRD/PRO-OPS-032/004#regulator_requirement/OEM-2011-002",
+        "severity_gate": 2
+      },
+      {
+        "control_label": "secondary containment by bund and drainage",
+        "event_ref": "RN-2011-002",
+        "event_title": "improvement notice - critical safeguard at P-4105",
+        "hazard_energy": "thermal",
+        "kind": "regulator_requirement",
+        "quote_ref": "quote:MRD/PRO-OPS-032/004#regulator_requirement/RN-2011-002",
+        "severity_gate": 1
+      }
+    ],
+    "rev_no": 4,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "root cause analysis",
+      "management_of_change": "change request",
+      "near_miss": "hazard report"
+    }
+  },
+  "key": "c76ca078d4e49f2589ebc41816a15dbc558313a64e43045c37abae98aa83b4d3",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/PRO-OPS-032/004",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "3fe0e2ca1d5012fc3e81b62f68794cb061cb748caf20b67f52d1f73d4751d661",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The corrective action recorded against INC-2011-007 required the integrity of the mechanical seal support system to be restated in this procedure.",
+        "quote_ref": "quote:MRD/PRO-OPS-032/004#capa_action/INC-2011-007"
+      },
+      {
+        "line": "A regulatory requirement arising from OEM-2011-002 obliges this procedure to carry the secondary containment by bund and drainage.",
+        "quote_ref": "quote:MRD/PRO-OPS-032/004#regulator_requirement/OEM-2011-002"
+      },
+      {
+        "line": "A regulatory requirement arising from RN-2011-002 obliges this procedure to carry the secondary containment by bund and drainage.",
+        "quote_ref": "quote:MRD/PRO-OPS-032/004#regulator_requirement/RN-2011-002"
+      }
+    ],
+    "reason": "Scheduled review at revision 4; 6 clauses restated."
+  },
+  "response_sha256": "911ef0522f57d97c7c1a24b97337fd0174ddf15697cd32e6a868f279e4cf4182",
+  "source": null
+}

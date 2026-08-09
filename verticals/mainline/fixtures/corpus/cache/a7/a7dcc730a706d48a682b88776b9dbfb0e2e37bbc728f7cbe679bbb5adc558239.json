@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "HAZARDOUS-SUBSTANCE-EXPOSURE",
+    "barrier_role": "preventive",
+    "control_class": "REAGENT_HANDLING_CONTROL",
+    "control_delta": "introduce",
+    "control_label": "controlled make-up, decanting and dosing of reagents",
+    "doc_code": "MOC-2023-0302",
+    "doc_family": "MOC",
+    "doc_title": "Change of Reagent Dosing Line Material and Pressure Alarm",
+    "effective_on": "2023-09-14",
+    "printed_label": "3.1.2",
+    "setpoint": null,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "energy_isolation": "positive isolation verification",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "a7dcc730a706d48a682b88776b9dbfb0e2e37bbc728f7cbe679bbb5adc558239",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:TLG/MOC-2023-0302/001#TLG/MOC-2023-0302/1.3.1(d)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "b744f2190087040c4bcb645440798119bd0060583abaf4553dc7f35854881a24",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The controlled make-up, decanting and dosing of reagents shall be provided and maintained for work covered by this change record. This clause applies to activities archived under HAZARDOUS-SUBSTANCE-EXPOSURE at Tolgarra Processing and Power Station.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "86e69840bd0fe2cb1c9c38e2ba939625337e6ece437409bda0c0114a23c1b880",
+  "source": null
+}

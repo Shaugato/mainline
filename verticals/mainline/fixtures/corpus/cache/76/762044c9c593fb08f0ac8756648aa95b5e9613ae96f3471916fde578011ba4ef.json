@@ -1,0 +1,109 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "identifying every energy source for a task",
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "activity_series": "planning and permitting an isolation",
+    "assets": [
+      {
+        "asset_class": "CONV-CLASS-A",
+        "label": "plant conveyors",
+        "service": "coarse ore and reclaim conveying",
+        "tag": "CV-3100"
+      },
+      {
+        "asset_class": "MOTOR-CLASS-A",
+        "label": "drive motor",
+        "service": "drives CV-3100",
+        "tag": "M-3100"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "LOAD_SUPPORT_FOR_MAINTENANCE",
+        "control_label": "mechanical support of a load during maintenance access",
+        "failure_mode": "absent",
+        "hazard_energy": "gravity",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "PARK_UP_AND_RESTRAINT",
+        "control_label": "parking, chocking and restraint of equipment",
+        "failure_mode": "bypassed",
+        "hazard_energy": "kinetic",
+        "icam_tier": "organisational_factor"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "STORED_ENERGY_DISSIPATION",
+        "control_label": "dissipation or restraint of trapped and residual energy",
+        "failure_mode": "ineffective",
+        "hazard_energy": "gravity",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "AF-2009-004",
+    "hazard_energy": "kinetic",
+    "hazard_media": [
+      "rotating equipment",
+      "conveyor",
+      "mobile equipment",
+      "pressurised jet",
+      "flying fragment"
+    ],
+    "hazard_release": "entanglement, impact, crush",
+    "kind": "audit_finding",
+    "occurred_on": "2009-07-30",
+    "severity_actual": 0,
+    "severity_potential": 2,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during commissioning of replacement equipment",
+    "title": "audit finding - work clearance records incomplete for CV-3100",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "investigation": "accident investigation",
+      "near_miss": "near hit",
+      "verification": "spot check"
+    }
+  },
+  "key": "762044c9c593fb08f0ac8756648aa95b5e9613ae96f3471916fde578011ba4ef",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:AF-2009-004",
+  "prompt_kind": "icam",
+  "prompt_sha256": "d2eeb15cb09dacd08d4de5853edd6d6181fc5012c5a24fae99c8e13cfdc288f9",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 2 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "LOAD_SUPPORT_FOR_MAINTENANCE",
+        "finding": "Control LOAD_SUPPORT_FOR_MAINTENANCE: the mechanical support of a load during maintenance access was not in place, and the accident investigation classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "PARK_UP_AND_RESTRAINT",
+        "finding": "Control PARK_UP_AND_RESTRAINT: the parking, chocking and restraint of equipment had been bypassed, and the accident investigation classified this as an organisational factor."
+      },
+      {
+        "control_class": "STORED_ENERGY_DISSIPATION",
+        "finding": "Control STORED_ENERGY_DISSIPATION: the dissipation or restraint of trapped and residual energy was in place but did not perform, and the accident investigation classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next spot check that the mechanical support of a load during maintenance access on CV-3100 and M-3100 performs as designed."
+    ],
+    "sequence": "Work was under way in planning and permitting an isolation, specifically identifying every energy source for a task. CV-3100 (plant conveyors) is in service for coarse ore and reclaim conveying. The task proceeded during commissioning of replacement equipment while the mechanical support of a load during maintenance access was not in place. The kinetic energy involved is held as rotating equipment, and the recorded presentation was entanglement, impact, crush.",
+    "summary": "On 30 July 2009 a planned spot check of CV-3100 and M-3100 at Marrindal Concentrator and Hydrocarbon Transfer Facility found the mechanical support of a load during maintenance access not effective."
+  },
+  "response_sha256": "4a535a43d4c1d02a7502bc6386304a9df92bf6ca1aa50b4401a35f30ff81b345",
+  "source": null
+}

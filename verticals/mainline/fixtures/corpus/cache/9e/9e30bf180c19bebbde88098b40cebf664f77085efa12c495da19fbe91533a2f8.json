@@ -1,0 +1,86 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "bunding, drainage and spill containment",
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "activity_series": "managing hydrocarbon transfer and storage",
+    "assets": [
+      {
+        "asset_class": "TANK-CLASS-P",
+        "label": "product storage tanks",
+        "service": "export product storage",
+        "tag": "TK-7103"
+      },
+      {
+        "asset_class": "PRD-CLASS-A",
+        "label": "tank relief and vent devices",
+        "service": "tank overpressure and vacuum protection",
+        "tag": "PSV-7103"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "SEAL_SUPPORT_SYSTEM_INTEGRITY",
+        "control_label": "integrity of the mechanical seal support system",
+        "failure_mode": "not_verified",
+        "hazard_energy": "pressure",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "NM-2007-0001",
+    "hazard_energy": "pressure",
+    "hazard_media": [
+      "hydraulic accumulator",
+      "barrier fluid",
+      "process gas",
+      "steam header",
+      "compressed air",
+      "trapped liquid"
+    ],
+    "hazard_release": "jet release, stored-energy discharge, rupture",
+    "kind": "near_miss",
+    "occurred_on": "2007-01-04",
+    "severity_actual": 1,
+    "severity_potential": 2,
+    "site": "Cape Verity Export Terminal",
+    "summary_facts": [],
+    "task_phase": "during transfer operations",
+    "title": "residual pressure found after isolation of TK-7103",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "investigation": "accident investigation",
+      "near_miss": "near hit",
+      "verification": "spot check"
+    }
+  },
+  "key": "9e30bf180c19bebbde88098b40cebf664f77085efa12c495da19fbe91533a2f8",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2007-0001",
+  "prompt_kind": "icam",
+  "prompt_sha256": "17de9b94dc4006cc2b1cb8ff32d9ace471a6376d6a47bbaf330a5a0e3d6f4bdc",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage. The potential outcome was rated 2 against the site's consequence scale, above the 1 actually realised.",
+    "defences": [
+      {
+        "control_class": "SEAL_SUPPORT_SYSTEM_INTEGRITY",
+        "finding": "Control SEAL_SUPPORT_SYSTEM_INTEGRITY: the integrity of the mechanical seal support system was never verified as effective, and the accident investigation classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the integrity of the mechanical seal support system on TK-7103 and PSV-7103 and record the spot check before this task is next authorised."
+    ],
+    "sequence": "Work was under way in managing hydrocarbon transfer and storage, specifically bunding, drainage and spill containment. TK-7103 (product storage tanks) is in service for export product storage. The task proceeded during transfer operations while the integrity of the mechanical seal support system was never verified as effective. The pressure energy involved is held as hydraulic accumulator, and the recorded presentation was jet release, stored-energy discharge, rupture.",
+    "summary": "On 4 January 2007 a near hit was recorded on TK-7103 and PSV-7103 at Cape Verity Export Terminal during transfer operations; pressure energy held as hydraulic accumulator was not released."
+  },
+  "response_sha256": "bc214081ff65513d4e7f28b74763ccd6f488630b9fc1f506235162b6ba85f85a",
+  "source": null
+}

@@ -1,0 +1,104 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "testing and inspecting fixed fire systems",
+    "activity_root": "FIRE-AND-EMERGENCY-RESPONSE",
+    "activity_series": "maintaining fire protection systems",
+    "assets": [
+      {
+        "asset_class": "ELEC-CLASS-A",
+        "label": "terminal switchgear",
+        "service": "terminal distribution",
+        "tag": "TX-7001"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "EMERGENCY_ISOLATION_ON_RELEASE",
+        "control_label": "emergency isolation and depressuring on loss of containment",
+        "failure_mode": "not_verified",
+        "hazard_energy": "thermal",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "FIXED_FIRE_SYSTEM_AVAILABILITY",
+        "control_label": "availability and testing of fixed fire protection",
+        "failure_mode": "not_verified",
+        "hazard_energy": "thermal",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "MUSTER_AND_ACCOUNTING",
+        "control_label": "alarm, muster and accounting for people",
+        "failure_mode": "ineffective",
+        "hazard_energy": "thermal",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "INC-2009-002",
+    "hazard_energy": "thermal",
+    "hazard_media": [
+      "hot surface",
+      "steam",
+      "molten material",
+      "hot work",
+      "exothermic reaction"
+    ],
+    "hazard_release": "burn, ignition, scald",
+    "kind": "incident",
+    "occurred_on": "2009-01-22",
+    "severity_actual": 1,
+    "severity_potential": 3,
+    "site": "Cape Verity Export Terminal",
+    "summary_facts": [],
+    "task_phase": "during commissioning of replacement equipment",
+    "title": "injury during commissioning of replacement equipment on TX-7001",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "investigation": "accident investigation",
+      "near_miss": "near hit",
+      "verification": "spot check"
+    }
+  },
+  "key": "e32d46dcd98ce8281a487c34b248e267d150921352b51e573e7d38a853a15cb5",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2009-002",
+  "prompt_kind": "icam",
+  "prompt_sha256": "0dc2661410476b9047644bd6148b8225822f1dceacfb4259a72fa6559e87ed80",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage. The potential outcome was rated 3 against the site's consequence scale, above the 1 actually realised.",
+    "defences": [
+      {
+        "control_class": "EMERGENCY_ISOLATION_ON_RELEASE",
+        "finding": "Control EMERGENCY_ISOLATION_ON_RELEASE: the emergency isolation and depressuring on loss of containment was never verified as effective, and the accident investigation classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "FIXED_FIRE_SYSTEM_AVAILABILITY",
+        "finding": "Control FIXED_FIRE_SYSTEM_AVAILABILITY: the availability and testing of fixed fire protection was never verified as effective, and the accident investigation classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "MUSTER_AND_ACCOUNTING",
+        "finding": "Control MUSTER_AND_ACCOUNTING: the alarm, muster and accounting for people was in place but did not perform, and the accident investigation classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Restore the emergency isolation and depressuring on loss of containment on TX-7001 and record the spot check before this task is next authorised.",
+      "Restore the availability and testing of fixed fire protection on TX-7001 and record the spot check before this task is next authorised."
+    ],
+    "sequence": "Work was under way in maintaining fire protection systems, specifically testing and inspecting fixed fire systems. TX-7001 (terminal switchgear) is in service for terminal distribution. The task proceeded during commissioning of replacement equipment while the emergency isolation and depressuring on loss of containment was never verified as effective. The thermal energy involved is held as hot surface, and the recorded presentation was burn, ignition, scald.",
+    "summary": "On 22 January 2009 an incident occurred on TX-7001 at Cape Verity Export Terminal during commissioning of replacement equipment, releasing thermal energy held as hot surface."
+  },
+  "response_sha256": "c35334cad84de9b9f5a3b634a4eae7c8b53e11d1bd0a04b5d69c7beea0313e73",
+  "source": null
+}

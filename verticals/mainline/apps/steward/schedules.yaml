@@ -1,0 +1,134 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
+#
+# THE CALENDAR, AS DATA.
+#
+# ARCHITECTURE.md §8.5: EventBridge Scheduler is the entire calendar, and CockroachDB has
+# no general-purpose SQL scheduler — `CREATE SCHEDULE` exists only for backups and
+# changefeeds — so no part of this system may assume in-database cron. This file is the
+# declaration both halves read: the infra lead's OpenTofu creates one Scheduler rule per
+# entry, and the container resolves the delivered `(schedule_id, occurrence_ts)` back to
+# the same row. THIS FILE DOES NOT CREATE THE EVENTBRIDGE RESOURCES; `infra/` does.
+#
+# IDEMPOTENCY. Scheduler delivery is at-least-once. The idempotency key is
+# `(schedule_id, occurrence_ts)`, where `occurrence_ts` is EventBridge's
+# `<aws.scheduler.scheduled-time>` — the same value on every retry of one occurrence,
+# which is what makes it a key at all. It is carried inside the attestation's
+# `subject_ref` so a duplicate is collapsible by any reader, and
+# `mainline_steward.guard.OccurrenceGuard` refuses a second local run. Exactly-once is
+# NOT claimed: the writing identity holds INSERT and no SELECT, so this container cannot
+# read back to deduplicate. See `runbooks/steward-operations.md`.
+#
+# TIMEZONE. `Australia/Brisbane` is AEST year-round with no daylight saving. A scheduler
+# timezone with DST makes "01:00" ambiguous twice a year, and an evidentiary schedule
+# whose occurrence key is ambiguous for one hour a year is a defect nobody will find until
+# it matters. §8.5 says "fixity patrol 01:00 AEST"; this is that sentence, unambiguously.
+#
+# THE THREE POPULATED DOMAINS. §9.4 / ADR-0002 F2: the upstream CockroachDB Agent Skills
+# repository has ten domain directories and four of them are empty. The Steward consumes
+# observability, security and operations — the three with skills in them. The four empty
+# ones are what `skills-published` files INTO; consuming an empty directory would be a
+# claim with nothing behind it.
+#
+# WHY EVERY SKILL IS POINTED AT A VIEW. The stock skills' native diagnostics read
+# `crdb_internal`, which the Managed MCP surface cannot reach AT ALL. They are pointed at
+# the pre-materialised `mainline_audit` ops views instead. The limitation is the product's
+# ops API, and `runbooks/ops-views-are-the-api.md` says so in as many words.
+
+version: 1
+timezone: Australia/Brisbane
+
+schedules:
+  - schedule_id: observability-nightly
+    title: Observability — nightly
+    kind: mcp_ops
+    # 01:00 AEST daily. EventBridge Scheduler cron takes six fields:
+    # minutes hours day-of-month month day-of-week year.
+    expression: "cron(0 1 * * ? *)"
+    prompt: observability-nightly.md
+    max_turns: 12
+    skills:
+      - triaging-live-sql-activity
+      - profiling-statement-fingerprints
+      - monitoring-background-jobs
+    views:
+      - v_gate_latency_daily
+      - v_txn_restart_daily
+      - v_changefeed_health
+      - v_ledger_health
+    why: >
+      Latency and restart rate are the gate's own vital signs; changefeed health is the
+      one whose failure mode looks exactly like nothing happening (§8.5: never set
+      Flush.Messages without Flush.Frequency, or batches sit indefinitely). Ledger health
+      is here nightly rather than weekly because open witness debt ages.
+
+  - schedule_id: security-weekly
+    title: Security and governance — weekly
+    kind: mcp_ops
+    # 02:00 AEST on Mondays.
+    expression: "cron(0 2 ? * MON *)"
+    prompt: security-weekly.md
+    max_turns: 12
+    skills:
+      - hardening-user-privileges
+      - configuring-audit-logging
+      - auditing-cloud-cluster-security
+    views:
+      - v_agent_actions
+      - v_weakenings_without_disposition
+      - v_disposition_coverage
+    why: >
+      Which agent role used which tool with what outcome, and the two views that say
+      whether the record is keeping up with itself. A weakening of a blood-written control
+      with no live disposition is the flagship question; a Steward may READ it and has no
+      authority whatever over it.
+
+  - schedule_id: operations-weekly
+    title: Operations and lifecycle — weekly
+    kind: mcp_ops
+    # 03:00 AEST on Mondays.
+    expression: "cron(0 3 ? * MON *)"
+    prompt: operations-weekly.md
+    max_turns: 12
+    skills:
+      - reviewing-cluster-health
+      - managing-cluster-settings
+      - managing-cluster-capacity
+    views:
+      - v_unused_indexes
+      - v_open_gate_summary
+      - v_gate_latency_daily
+    why: >
+      Index hygiene and what is blocking merges right now. Any index recommendation
+      touching a vector-indexed table is advisory only — CREATE VECTOR INDEX on a
+      non-empty table blocks writes and is fenced by the §14 circuit breaker, so an ops
+      report is not a place from which that decision gets made.
+
+  - schedule_id: custodian-patrol
+    title: Custody of the custodian — every fifteen minutes
+    kind: custodian_patrol
+    expression: "rate(15 minutes)"
+    prompt: custodian-patrol.md
+    max_turns: 6
+    ccloud_lookback_minutes: 20
+    skills: []
+    views:
+      - v_ledger_health
+      - v_fixity_coverage
+    why: >
+      §8.6 I4. `ccloud audit list --starting-from`, `cluster backup list` and
+      `cluster info`, each page RFC 8785 canonicalised and hashed, so that any
+      DROP TRIGGER or ALTER TABLE ... DISABLE TRIGGER by a cluster admin appears in an
+      attested stream the admin does not control.
+
+      THE AUTHORITATIVE `custodian_attestation` LEDGER ROW IS NOT WRITTEN HERE. That is
+      the custody domain's Lambda, which holds a pgwire identity this container
+      deliberately does not. What the Steward adds is a SECOND observer of the same three
+      pages, with a different identity and a different write path — because one stream is
+      one thing to compromise. The lookback (20 minutes against a 15-minute cadence)
+      overlaps on purpose: a gap between two windows is unobserved time, and an overlap is
+      merely a duplicate.
+
+      The lookback window is computed from the OCCURRENCE, never from `now()`, so a
+      retried occurrence reads the same window as its first attempt and the two
+      attestations differ only where the source did.

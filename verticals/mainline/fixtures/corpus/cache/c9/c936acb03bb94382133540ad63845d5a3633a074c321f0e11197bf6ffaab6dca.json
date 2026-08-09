@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTROL-OF-IGNITION-SOURCES",
+    "barrier_role": "recovery",
+    "control_class": "FIRE_WATCH_PROVISION",
+    "control_delta": "weaken",
+    "control_label": "provision and briefing of a competent fire watch",
+    "doc_code": "STD-HTW-004",
+    "doc_family": "STD",
+    "doc_title": "Hot Work",
+    "effective_on": "2013-09-10",
+    "printed_label": "4.2",
+    "setpoint": null,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "energy_isolation": "lock out tag out",
+      "verification": "field verification"
+    }
+  },
+  "key": "c936acb03bb94382133540ad63845d5a3633a074c321f0e11197bf6ffaab6dca",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/STD-HTW-004/003#MRD/STD-HTW-004/4.2",
+  "prompt_kind": "clause",
+  "prompt_sha256": "df23ab615d966b3c5d4c0b589e7d4ec024969acbec1d80950ea3eeb6a4e0e735",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The provision and briefing of a competent fire watch should be provided; the field verification may be recorded at the next scheduled review rather than before the task proceeds. This clause applies to activities archived under CONTROL-OF-IGNITION-SOURCES at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "should"
+  },
+  "response_sha256": "14d37cbb7b532f44e8c6f30601d23816abddba5c5c7d883cf31d1867b5f91f16",
+  "source": null
+}

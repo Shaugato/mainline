@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 6,
+    "doc_code": "ALERT-2009-003",
+    "doc_family": "ALERT",
+    "doc_title": "Fatality - Uncontrolled Descent of a Suspended Component in the Heavy Workshop",
+    "driver": "incident",
+    "driving_change_ref": null,
+    "driving_event_ref": "INC-2009-011",
+    "effective_on": "2009-11-09",
+    "required_citations": [
+      {
+        "control_label": "exclusion of people from beneath elevated work",
+        "event_ref": "INC-2009-011",
+        "event_title": "suspended component released during workshop maintenance",
+        "hazard_energy": "gravity",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:YND/ALERT-2009-003/001#revision_history_line/INC-2009-011",
+        "severity_gate": 5
+      }
+    ],
+    "rev_no": 1,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "accident investigation",
+      "management_of_change": "engineering change note",
+      "near_miss": "near hit"
+    }
+  },
+  "key": "1733adb9a01f77def59d1506abb5fdf804ee7397be21cfb678fa90a9e92a7482",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:YND/ALERT-2009-003/001",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "a82137148be672b2c4b6e354cf3e133c12b5f580ccf5b8ff736dba3a3cc23645",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "Revision 1 was raised in response to INC-2009-011, and the exclusion of people from beneath elevated work was amended as a result.",
+        "quote_ref": "quote:YND/ALERT-2009-003/001#revision_history_line/INC-2009-011"
+      }
+    ],
+    "reason": "Revised after INC-2009-011; 6 clauses amended."
+  },
+  "response_sha256": "ce7299f1230ebf6c1a87b70e986dcc663b79109ec2f798301bb33ca43f326797",
+  "source": null
+}

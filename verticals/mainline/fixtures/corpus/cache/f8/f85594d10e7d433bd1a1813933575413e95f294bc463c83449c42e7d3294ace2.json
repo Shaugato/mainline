@@ -1,0 +1,49 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 3,
+    "doc_codes": [
+      "ALERT-2016-007",
+      "MOC-2014-0087",
+      "PRO-MEC-041",
+      "PRO-OPS-017",
+      "PTW-STD-003"
+    ],
+    "intent": "replace",
+    "moc_ref": "MOC-2024-0166",
+    "opened_on": "2024-09-17",
+    "precursor_events": [
+      {
+        "event_ref": "INC-2024-020",
+        "severity_gate": null
+      },
+      {
+        "event_ref": "NM-2017-0020",
+        "severity_gate": null
+      }
+    ],
+    "site": "Cape Verity Export Terminal",
+    "terminal_state": "closed",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "management_of_change": "change assurance",
+      "verification": "assurance activity"
+    },
+    "weakening_steps": 0
+  },
+  "key": "f85594d10e7d433bd1a1813933575413e95f294bc463c83449c42e7d3294ace2",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2024-0166",
+  "prompt_kind": "moc",
+  "prompt_sha256": "9e069fa81a12331e33507b87ec391894b328485106c1be5aae2a52032f7c0981",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2024-0166 was raised at Cape Verity Export Terminal on 17 September 2024 following 2 recorded events in the archive, including INC-2024-020 and NM-2017-0020. The change assurance record covers 3 clauses across 5 controlled documents. The intent is to replace an existing requirement with one written to the current house style. The record reached the state closed in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the material unwanted event control set is preserved.",
+    "scope_note": "The documents in scope are ALERT-2016-007, MOC-2014-0087, PRO-MEC-041, PRO-OPS-017 and PTW-STD-003."
+  },
+  "response_sha256": "43f348934da7038139df4e0ea09f54fd5f0042904e115c7bb553c5bd6b8af611",
+  "source": null
+}

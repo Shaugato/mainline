@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "barrier_role": "recovery",
+    "control_class": "BUND_AND_DRAINAGE_CONTAINMENT",
+    "control_delta": "introduce",
+    "control_label": "secondary containment by bund and drainage",
+    "doc_code": "PTW-STD-003",
+    "doc_family": "PTW",
+    "doc_title": "Permit to Work Form Set",
+    "effective_on": "2006-05-30",
+    "printed_label": "4.3",
+    "setpoint": null,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "b159072d33e1e2b957ff35c456433ec46749d0d5d8e78ad45e2e637234d99262",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:CVY/PTW-STD-003/001#CVY/PTW-STD-003/4.3",
+  "prompt_kind": "clause",
+  "prompt_sha256": "710ab743c616e629607b11bf12a45db966a501ac4943c947c48128ded340cf1e",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The secondary containment by bund and drainage shall be provided and maintained for work covered by this permit-to-work form set. This clause applies to activities archived under CONTAINMENT-OF-HYDROCARBONS at Cape Verity Export Terminal.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "22d8a4863b66f0bbd88f804c21b931d74581aa448a0da33c8086a0ffed049eaf",
+  "source": null
+}

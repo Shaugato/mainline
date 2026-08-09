@@ -1,0 +1,45 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 1,
+    "doc_codes": [
+      "PRO-EXP-002"
+    ],
+    "intent": "weaken",
+    "moc_ref": "MOC-2009-0109",
+    "opened_on": "2009-07-27",
+    "precursor_events": [
+      {
+        "event_ref": "NM-2005-0006",
+        "severity_gate": null
+      },
+      {
+        "event_ref": "NM-2021-0013",
+        "severity_gate": null
+      }
+    ],
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "terminal_state": "abandoned",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "management_of_change": "engineering change note",
+      "verification": "spot check"
+    },
+    "weakening_steps": 1
+  },
+  "key": "bbf15cf37c8e6cbfffbea5ac2e947bf7104af8e69f7515a41fdd3f78730e3119",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2009-0109",
+  "prompt_kind": "moc",
+  "prompt_sha256": "260587be5859162a15ec60d8df8146a738c25e7f7d281fe94102d746b1b58a63",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2009-0109 was raised at Yandarra Downs Open Cut and Heavy Workshop on 27 July 2009 following 2 recorded events in the archive, including NM-2005-0006 and NM-2021-0013. The engineering change note record covers 1 clause across 1 controlled document. The intent is to relax a key safeguard requirement, and the basis for the relaxation is recorded with the change. The record reached the state abandoned in the change stream.",
+    "risk_note": "This change relaxes a control: 1 step of relaxation is recorded against it, and the residual risk position rests on that relaxation having been accepted deliberately.",
+    "scope_note": "The documents in scope are PRO-EXP-002."
+  },
+  "response_sha256": "630ce0a0457f880b78284f4b9c23e28c447ef3abab4b3b57a940933c5213fe60",
+  "source": null
+}

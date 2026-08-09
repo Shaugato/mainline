@@ -1,0 +1,110 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "identifying every energy source for a task",
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "activity_series": "planning and permitting an isolation",
+    "assets": [
+      {
+        "asset_class": "SLP-CLASS-B",
+        "label": "dewatering pumps",
+        "service": "pit dewatering",
+        "tag": "P-9503"
+      },
+      {
+        "asset_class": "INST-CLASS-A",
+        "label": "instrument loop",
+        "service": "governs P-9503",
+        "tag": "PT-9503"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "ENERGY_SOURCE_IDENTIFICATION",
+        "control_label": "identification of every energy source for the task",
+        "failure_mode": "absent",
+        "hazard_energy": "electrical",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "LOAD_SUPPORT_FOR_MAINTENANCE",
+        "control_label": "mechanical support of a load during maintenance access",
+        "failure_mode": "ineffective",
+        "hazard_energy": "pressure",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "POSITIVE_ISOLATION_APPLICATION",
+        "control_label": "application of positive isolation devices and personal locks",
+        "failure_mode": "ineffective",
+        "hazard_energy": "electrical",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "AF-2018-004",
+    "hazard_energy": "kinetic",
+    "hazard_media": [
+      "rotating equipment",
+      "conveyor",
+      "mobile equipment",
+      "pressurised jet",
+      "flying fragment"
+    ],
+    "hazard_release": "entanglement, impact, crush",
+    "kind": "audit_finding",
+    "occurred_on": "2018-02-02",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during commissioning of replacement equipment",
+    "title": "audit finding - critical control verification of critical control at P-9503",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "cb1b24b3a5f0204817462ba869d34a918d7110cdecfcfd3228f6f84585e689fd",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:AF-2018-004",
+  "prompt_kind": "icam",
+  "prompt_sha256": "b229ba13dc57ee869334a75237d6a8a1f8779cc687dbfd953d2f2cac562f94ea",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "ENERGY_SOURCE_IDENTIFICATION",
+        "finding": "Control ENERGY_SOURCE_IDENTIFICATION: the identification of every energy source for the task was not in place, and the ICAM investigation classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "LOAD_SUPPORT_FOR_MAINTENANCE",
+        "finding": "Control LOAD_SUPPORT_FOR_MAINTENANCE: the mechanical support of a load during maintenance access was in place but did not perform, and the ICAM investigation classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "POSITIVE_ISOLATION_APPLICATION",
+        "finding": "Control POSITIVE_ISOLATION_APPLICATION: the application of positive isolation devices and personal locks was in place but did not perform, and the ICAM investigation classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Restore the identification of every energy source for the task on P-9503 and PT-9503 and record the critical control verification before this task is next authorised.",
+      "Restore the mechanical support of a load during maintenance access on P-9503 and PT-9503 and record the critical control verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in planning and permitting an isolation, specifically identifying every energy source for a task. P-9503 (dewatering pumps) is in service for pit dewatering. The task proceeded during commissioning of replacement equipment while the identification of every energy source for the task was not in place. The kinetic energy involved is held as rotating equipment, and the recorded presentation was entanglement, impact, crush.",
+    "summary": "On 2 February 2018 a planned critical control verification of P-9503 and PT-9503 at Yandarra Downs Open Cut and Heavy Workshop found the identification of every energy source for the task not effective."
+  },
+  "response_sha256": "ebbbb7d00405022b62d2f86674d565f13d4171f32d4512a4dc08f6403b4ae461",
+  "source": null
+}

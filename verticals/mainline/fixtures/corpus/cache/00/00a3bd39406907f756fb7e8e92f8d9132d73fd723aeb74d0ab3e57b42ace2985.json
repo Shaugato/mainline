@@ -1,0 +1,91 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "insulating, guarding and signing hot surfaces",
+    "activity_root": "MOLTEN-AND-HOT-MATERIAL",
+    "activity_series": "protecting people from hot surfaces",
+    "assets": [
+      {
+        "asset_class": "BOIL-CLASS-A",
+        "label": "package boilers and deaerator",
+        "service": "process steam generation and feedwater deaeration",
+        "tag": "D-8210"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "HOT_SURFACE_GUARDING",
+        "control_label": "insulation, guarding and signing of hot surfaces",
+        "failure_mode": "degraded",
+        "hazard_energy": "thermal",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "STEAM_SYSTEM_WARM_THROUGH",
+        "control_label": "controlled draining, venting and warm-through of steam systems",
+        "failure_mode": "ineffective",
+        "hazard_energy": "thermal",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "INC-2016-003",
+    "hazard_energy": "thermal",
+    "hazard_media": [
+      "hot surface",
+      "steam",
+      "molten material",
+      "hot work",
+      "exothermic reaction"
+    ],
+    "hazard_release": "burn, ignition, scald",
+    "kind": "incident",
+    "occurred_on": "2016-01-27",
+    "severity_actual": 1,
+    "severity_potential": 1,
+    "site": "Tolgarra Processing and Power Station",
+    "summary_facts": [],
+    "task_phase": "during an intrusive maintenance task",
+    "title": "fire on D-8210 during an intrusive maintenance task",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "00a3bd39406907f756fb7e8e92f8d9132d73fd723aeb74d0ab3e57b42ace2985",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2016-003",
+  "prompt_kind": "icam",
+  "prompt_sha256": "499f0723ae1eb745abd81a710445764b72a70bb2107ef1e153bd16bb3a114c08",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage.",
+    "defences": [
+      {
+        "control_class": "HOT_SURFACE_GUARDING",
+        "finding": "Control HOT_SURFACE_GUARDING: the insulation, guarding and signing of hot surfaces had degraded below its design intent, and the ICAM investigation classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "STEAM_SYSTEM_WARM_THROUGH",
+        "finding": "Control STEAM_SYSTEM_WARM_THROUGH: the controlled draining, venting and warm-through of steam systems was in place but did not perform, and the ICAM investigation classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Restore the insulation, guarding and signing of hot surfaces on D-8210 and record the critical control verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in protecting people from hot surfaces, specifically insulating, guarding and signing hot surfaces. D-8210 (package boilers and deaerator) is in service for process steam generation and feedwater deaeration. The task proceeded during an intrusive maintenance task while the insulation, guarding and signing of hot surfaces had degraded below its design intent. The thermal energy involved is held as hot surface, and the recorded presentation was burn, ignition, scald.",
+    "summary": "On 27 January 2016 an incident occurred on D-8210 at Tolgarra Processing and Power Station during an intrusive maintenance task, releasing thermal energy held as hot surface."
+  },
+  "response_sha256": "a4c325952380c4a442f8b0697a860d1f832b41bf1a57d0f4291ffd0c432e3821",
+  "source": null
+}

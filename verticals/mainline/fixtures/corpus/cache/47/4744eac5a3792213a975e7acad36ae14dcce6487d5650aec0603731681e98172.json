@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ELECTRICAL-SAFETY",
+    "barrier_role": "preventive",
+    "control_class": "POSITIVE_ISOLATION_APPLICATION",
+    "control_delta": "restate",
+    "control_label": "application of positive isolation devices and personal locks",
+    "doc_code": "PRO-ELE-008",
+    "doc_family": "PRO",
+    "doc_title": "Electrical Isolation and Access to Switchgear",
+    "effective_on": "2019-02-28",
+    "printed_label": "4.1.2",
+    "setpoint": null,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "4744eac5a3792213a975e7acad36ae14dcce6487d5650aec0603731681e98172",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/PRO-ELE-008/007#MRD/PRO-ELE-008/6.3",
+  "prompt_kind": "clause",
+  "prompt_sha256": "6fe1f22da4e8d0945f25e8ca1cccd4dec5a7f1004e86680b633197c9f6b2e0db",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The application of positive isolation devices and personal locks shall be provided and maintained wherever this procedure applies, and its condition shall be treated as a critical control. This clause applies to activities archived under ELECTRICAL-SAFETY at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "5f685cecc509f974e80311903ce675b6da00bb43648056bf8291298b1a545664",
+  "source": null
+}

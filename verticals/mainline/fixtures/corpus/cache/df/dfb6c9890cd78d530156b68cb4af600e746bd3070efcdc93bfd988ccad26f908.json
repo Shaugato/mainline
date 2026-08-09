@@ -1,0 +1,91 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "proving dead and testing for zero energy",
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "activity_series": "applying and verifying an isolation",
+    "assets": [
+      {
+        "asset_class": "SLP-CLASS-B",
+        "label": "dewatering pumps",
+        "service": "pit dewatering",
+        "tag": "P-9504"
+      },
+      {
+        "asset_class": "MOTOR-CLASS-A",
+        "label": "drive motor",
+        "service": "drives P-9504",
+        "tag": "M-9504"
+      },
+      {
+        "asset_class": "INST-CLASS-A",
+        "label": "instrument loop",
+        "service": "governs P-9504",
+        "tag": "PT-9504"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "PARK_UP_AND_RESTRAINT",
+        "control_label": "parking, chocking and restraint of equipment",
+        "failure_mode": "absent",
+        "hazard_energy": "kinetic",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "AF-2006-002",
+    "hazard_energy": "electrical",
+    "hazard_media": [
+      "HV switchgear",
+      "LV distribution",
+      "capacitive storage",
+      "induced voltage",
+      "portable equipment"
+    ],
+    "hazard_release": "shock, arc flash, unplanned energisation",
+    "kind": "audit_finding",
+    "occurred_on": "2006-09-28",
+    "severity_actual": 0,
+    "severity_potential": 5,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during a planned shutdown",
+    "title": "audit finding - engineering change note not applied to P-9504",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "investigation": "accident investigation",
+      "near_miss": "near hit",
+      "verification": "spot check"
+    }
+  },
+  "key": "dfb6c9890cd78d530156b68cb4af600e746bd3070efcdc93bfd988ccad26f908",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:AF-2006-002",
+  "prompt_kind": "icam",
+  "prompt_sha256": "5a3a88ba801742dc62c6b982711d279aa3ba57ad7d5d92ca0edbd5911a08fcff",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 5 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "PARK_UP_AND_RESTRAINT",
+        "finding": "Control PARK_UP_AND_RESTRAINT: the parking, chocking and restraint of equipment was not in place, and the accident investigation classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next spot check that the parking, chocking and restraint of equipment on P-9504, M-9504 and PT-9504 performs as designed."
+    ],
+    "sequence": "Work was under way in applying and verifying an isolation, specifically proving dead and testing for zero energy. P-9504 (dewatering pumps) is in service for pit dewatering. The task proceeded during a planned shutdown while the parking, chocking and restraint of equipment was not in place. The electrical energy involved is held as HV switchgear, and the recorded presentation was shock, arc flash, unplanned energisation.",
+    "summary": "On 28 September 2006 a planned spot check of P-9504, M-9504 and PT-9504 at Yandarra Downs Open Cut and Heavy Workshop found the parking, chocking and restraint of equipment not effective."
+  },
+  "response_sha256": "c35a566b3d4e700e4aead7cda5736fc7eeb2b2853c42d845f68797156993f629",
+  "source": null
+}

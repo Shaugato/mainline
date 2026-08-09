@@ -1,0 +1,80 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "setting, testing and sealing pressure relief devices",
+    "activity_root": "PRESSURE-SYSTEM-INTEGRITY",
+    "activity_series": "verifying pressure relief and protection",
+    "assets": [
+      {
+        "asset_class": "PRD-CLASS-A",
+        "label": "pressure relief devices",
+        "service": "overpressure protection on the transfer and storage system",
+        "tag": "PSV-4111"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "PRESSURE_RELIEF_DEVICE_INTEGRITY",
+        "control_label": "setting, testing and sealing of pressure relief devices",
+        "failure_mode": "not_verified",
+        "hazard_energy": "pressure",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "NM-2022-0015",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "near_miss",
+    "occurred_on": "2022-11-03",
+    "severity_actual": 0,
+    "severity_potential": 2,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during a planned shutdown",
+    "title": "high potential incident during a planned shutdown on PSV-4111",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "c91ddce09fd66407f076d4a99c10c2bcfe12bc06de3cabf26c0d3ae6b5ce40a7",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2022-0015",
+  "prompt_kind": "icam",
+  "prompt_sha256": "feff6c216bbde9a836056172e4d2819394790666b9fe21aedcf3d8c2f335df4c",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 2 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "PRESSURE_RELIEF_DEVICE_INTEGRITY",
+        "finding": "Control PRESSURE_RELIEF_DEVICE_INTEGRITY: the setting, testing and sealing of pressure relief devices was never verified as effective, and the learning team review classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next assurance activity that the setting, testing and sealing of pressure relief devices on PSV-4111 performs as designed."
+    ],
+    "sequence": "Work was under way in verifying pressure relief and protection, specifically setting, testing and sealing pressure relief devices. PSV-4111 (pressure relief devices) is in service for overpressure protection on the transfer and storage system. The task proceeded during a planned shutdown while the setting, testing and sealing of pressure relief devices was never verified as effective. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 3 November 2022 a high potential incident was recorded on PSV-4111 at Marrindal Concentrator and Hydrocarbon Transfer Facility during a planned shutdown; chemical energy held as hydrocarbon was not released."
+  },
+  "response_sha256": "294b8a9d59c03b5c99d16bd18039acafc2a73f6862875c214457633ea80ed9ae",
+  "source": null
+}

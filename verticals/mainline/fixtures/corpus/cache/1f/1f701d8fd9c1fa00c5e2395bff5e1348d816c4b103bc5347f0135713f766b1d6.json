@@ -1,0 +1,92 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "responding to a reagent splash or release",
+    "activity_root": "HAZARDOUS-SUBSTANCE-EXPOSURE",
+    "activity_series": "handling and dosing reagents",
+    "assets": [
+      {
+        "asset_class": "DOSE-CLASS-A",
+        "label": "reagent dosing pumps",
+        "service": "reagent make-up and dosing",
+        "tag": "P-8302"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "BUND_AND_DRAINAGE_CONTAINMENT",
+        "control_label": "secondary containment by bund and drainage",
+        "failure_mode": "not_verified",
+        "hazard_energy": "chemical",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "RESPIRATORY_PROTECTION_PROGRAM",
+        "control_label": "selection, fit testing and maintenance of respirators",
+        "failure_mode": "not_verified",
+        "hazard_energy": "chemical",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "AF-2023-001",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "audit_finding",
+    "occurred_on": "2023-04-02",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Tolgarra Processing and Power Station",
+    "summary_facts": [],
+    "task_phase": "during transfer operations",
+    "title": "audit finding - change assurance not applied to P-8302",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "1f701d8fd9c1fa00c5e2395bff5e1348d816c4b103bc5347f0135713f766b1d6",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:AF-2023-001",
+  "prompt_kind": "icam",
+  "prompt_sha256": "ab70c1afc42059b40e1e21b60f9940b095e1218ca8503809248b52f36359b460",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "BUND_AND_DRAINAGE_CONTAINMENT",
+        "finding": "Control BUND_AND_DRAINAGE_CONTAINMENT: the secondary containment by bund and drainage was never verified as effective, and the learning team review classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "RESPIRATORY_PROTECTION_PROGRAM",
+        "finding": "Control RESPIRATORY_PROTECTION_PROGRAM: the selection, fit testing and maintenance of respirators was never verified as effective, and the learning team review classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Restore the secondary containment by bund and drainage on P-8302 and record the assurance activity before this task is next authorised."
+    ],
+    "sequence": "Work was under way in handling and dosing reagents, specifically responding to a reagent splash or release. P-8302 (reagent dosing pumps) is in service for reagent make-up and dosing. The task proceeded during transfer operations while the secondary containment by bund and drainage was never verified as effective. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 2 April 2023 a planned assurance activity of P-8302 at Tolgarra Processing and Power Station found the secondary containment by bund and drainage not effective."
+  },
+  "response_sha256": "3bf19e75a6664bcc14e28c76e44105a551825cde05b1a6472c34874f65804272",
+  "source": null
+}

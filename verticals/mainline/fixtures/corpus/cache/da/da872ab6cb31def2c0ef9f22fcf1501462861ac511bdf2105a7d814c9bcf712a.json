@@ -1,0 +1,86 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "isolating and depressuring a leaking system",
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "activity_series": "responding to a loss of containment",
+    "assets": [
+      {
+        "asset_class": "TANK-CLASS-P",
+        "label": "product storage tanks",
+        "service": "export product storage",
+        "tag": "TK-7104"
+      },
+      {
+        "asset_class": "PRD-CLASS-A",
+        "label": "tank relief and vent devices",
+        "service": "tank overpressure and vacuum protection",
+        "tag": "PSV-7104"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "SEAL_FACE_TEMPERATURE_ALARM",
+        "control_label": "seal-face high-temperature alarm and trip",
+        "failure_mode": "bypassed",
+        "hazard_energy": "chemical",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "CAPA-2014-002",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "capa",
+    "occurred_on": "2014-12-17",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Cape Verity Export Terminal",
+    "summary_facts": [],
+    "task_phase": "during an intrusive maintenance task",
+    "title": "preventive action - alarm setpoint on TK-7104",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "da872ab6cb31def2c0ef9f22fcf1501462861ac511bdf2105a7d814c9bcf712a",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:CAPA-2014-002",
+  "prompt_kind": "icam",
+  "prompt_sha256": "4ea7a91b061c4c593d153e53160be55cd362f07fb407a3c8ef7d730fedb4356d",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "SEAL_FACE_TEMPERATURE_ALARM",
+        "finding": "Control SEAL_FACE_TEMPERATURE_ALARM: the seal-face high-temperature alarm and trip had been bypassed, and the root cause analysis classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next field verification that the seal-face high-temperature alarm and trip on TK-7104 and PSV-7104 performs as designed."
+    ],
+    "sequence": "Work was under way in responding to a loss of containment, specifically isolating and depressuring a leaking system. TK-7104 (product storage tanks) is in service for export product storage. The task proceeded during an intrusive maintenance task while the seal-face high-temperature alarm and trip had been bypassed. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 17 December 2014 a corrective action on TK-7104 and PSV-7104 at Cape Verity Export Terminal was reviewed against the critical safeguard it was raised to restore."
+  },
+  "response_sha256": "3c4ba94b1abeca5b3e709c550538d553e2b3eb7d00f5797c6b721395c2dda38a",
+  "source": null
+}

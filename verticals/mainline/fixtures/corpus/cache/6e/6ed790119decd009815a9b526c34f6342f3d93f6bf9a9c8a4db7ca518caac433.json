@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "barrier_role": "preventive",
+    "control_class": "PARK_UP_AND_RESTRAINT",
+    "control_delta": "strengthen",
+    "control_label": "parking, chocking and restraint of equipment",
+    "doc_code": "PRO-MEC-021",
+    "doc_family": "PRO",
+    "doc_title": "Mechanical Isolation and Lockout",
+    "effective_on": "2026-06-27",
+    "printed_label": "4.1.4",
+    "setpoint": null,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "energy_isolation": "positive isolation verification",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "6ed790119decd009815a9b526c34f6342f3d93f6bf9a9c8a4db7ca518caac433",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/PRO-MEC-021/013#MRD/PRO-MEC-021/5.2",
+  "prompt_kind": "clause",
+  "prompt_sha256": "eef15293544f29de5106d752837441376a36775108b46937ddbeec6d1515fc93",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The parking, chocking and restraint of equipment must be provided, and its effectiveness must be recorded as a assurance activity before the task proceeds. This clause applies to activities archived under ISOLATION-OF-STORED-ENERGY at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "must"
+  },
+  "response_sha256": "96261ba9a1e59e29e1980e0fa956556865a2b4830a4d3368f89e62e207bb411e",
+  "source": null
+}

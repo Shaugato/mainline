@@ -1,0 +1,45 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 3,
+    "doc_codes": [
+      "MOC-2019-0221",
+      "PRO-MEC-021",
+      "PTW-STD-002",
+      "STD-ISO-006",
+      "STD-PTW-001"
+    ],
+    "intent": "strengthen",
+    "moc_ref": "MOC-2017-0072",
+    "opened_on": "2017-04-25",
+    "precursor_events": [
+      {
+        "event_ref": "INC-2009-006",
+        "severity_gate": null
+      }
+    ],
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "terminal_state": "abandoned",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "management_of_change": "management of change",
+      "verification": "critical control verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "267b8e3ad69f094b8307c5627a6ca1f487ab33a3401faf008e47a6f0724cd683",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2017-0072",
+  "prompt_kind": "moc",
+  "prompt_sha256": "b7775d0917c6106dafb60ea30813b859acf2dc614a113c3fa95e552b71c75cbd",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2017-0072 was raised at Marrindal Concentrator and Hydrocarbon Transfer Facility on 25 April 2017 following 1 recorded event in the archive, including INC-2009-006. The management of change record covers 3 clauses across 5 controlled documents. The intent is to strengthen the critical control named in the documents in scope. The record reached the state abandoned in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical control set is preserved.",
+    "scope_note": "The documents in scope are MOC-2019-0221, PRO-MEC-021, PTW-STD-002, STD-ISO-006 and STD-PTW-001."
+  },
+  "response_sha256": "cc43064911d6dbe0bcd31c55da16b637017821ca42921f5cd26649fe98fb7f95",
+  "source": null
+}

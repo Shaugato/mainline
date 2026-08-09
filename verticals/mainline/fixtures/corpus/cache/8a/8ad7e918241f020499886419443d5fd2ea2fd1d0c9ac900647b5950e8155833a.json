@@ -1,0 +1,41 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 1,
+    "doc_codes": [
+      "PRO-ELE-008"
+    ],
+    "intent": "restate",
+    "moc_ref": "MOC-2010-0062",
+    "opened_on": "2010-05-18",
+    "precursor_events": [
+      {
+        "event_ref": "INC-2023-004",
+        "severity_gate": null
+      }
+    ],
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "management_of_change": "change request",
+      "verification": "field verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "8ad7e918241f020499886419443d5fd2ea2fd1d0c9ac900647b5950e8155833a",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2010-0062",
+  "prompt_kind": "moc",
+  "prompt_sha256": "adea8f12fa625b93b4eb88f993d6f44741f7a2cc68953e0d23b24db5aafe78c0",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2010-0062 was raised at Marrindal Concentrator and Hydrocarbon Transfer Facility on 18 May 2010 following 1 recorded event in the archive, including INC-2023-004. The change request record covers 1 clause across 1 controlled document. The intent is to restate an existing duty without altering what it requires. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical safeguard set is preserved.",
+    "scope_note": "The documents in scope are PRO-ELE-008."
+  },
+  "response_sha256": "e82fb263175870cd8bf755d067ec1bc98dab937d29dfb58b878ec66faed376ff",
+  "source": null
+}

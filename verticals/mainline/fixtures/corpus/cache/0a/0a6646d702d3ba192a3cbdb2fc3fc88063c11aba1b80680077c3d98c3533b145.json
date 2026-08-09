@@ -1,0 +1,104 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "managing corrosion and thinning findings",
+    "activity_root": "PRESSURE-SYSTEM-INTEGRITY",
+    "activity_series": "inspecting pressure equipment",
+    "assets": [
+      {
+        "asset_class": "PRD-CLASS-A",
+        "label": "tank relief and vent devices",
+        "service": "tank overpressure and vacuum protection",
+        "tag": "PSV-7102"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "PRESSURE_EQUIPMENT_INSPECTION",
+        "control_label": "in-service inspection of pressure equipment",
+        "failure_mode": "absent",
+        "hazard_energy": "pressure",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "PRESSURE_RELIEF_DEVICE_INTEGRITY",
+        "control_label": "setting, testing and sealing of pressure relief devices",
+        "failure_mode": "not_verified",
+        "hazard_energy": "pressure",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "STORED_ENERGY_DISSIPATION",
+        "control_label": "dissipation or restraint of trapped and residual energy",
+        "failure_mode": "not_verified",
+        "hazard_energy": "pressure",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "NM-2025-0010",
+    "hazard_energy": "pressure",
+    "hazard_media": [
+      "hydraulic accumulator",
+      "barrier fluid",
+      "process gas",
+      "steam header",
+      "compressed air",
+      "trapped liquid"
+    ],
+    "hazard_release": "jet release, stored-energy discharge, rupture",
+    "kind": "near_miss",
+    "occurred_on": "2025-05-31",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Cape Verity Export Terminal",
+    "summary_facts": [],
+    "task_phase": "during transfer operations",
+    "title": "unrelieved potential energy found after isolation of PSV-7102",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "0a6646d702d3ba192a3cbdb2fc3fc88063c11aba1b80680077c3d98c3533b145",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2025-0010",
+  "prompt_kind": "icam",
+  "prompt_sha256": "b3a341a7afe8887e760619253ab31837d1bbf5f23234bd884ad8498212080052",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "PRESSURE_EQUIPMENT_INSPECTION",
+        "finding": "Control PRESSURE_EQUIPMENT_INSPECTION: the in-service inspection of pressure equipment was not in place, and the learning team review classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "PRESSURE_RELIEF_DEVICE_INTEGRITY",
+        "finding": "Control PRESSURE_RELIEF_DEVICE_INTEGRITY: the setting, testing and sealing of pressure relief devices was never verified as effective, and the learning team review classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "STORED_ENERGY_DISSIPATION",
+        "finding": "Control STORED_ENERGY_DISSIPATION: the dissipation or restraint of trapped and residual energy was never verified as effective, and the learning team review classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Restore the setting, testing and sealing of pressure relief devices on PSV-7102 and record the assurance activity before this task is next authorised."
+    ],
+    "sequence": "Work was under way in inspecting pressure equipment, specifically managing corrosion and thinning findings. PSV-7102 (tank relief and vent devices) is in service for tank overpressure and vacuum protection. The task proceeded during transfer operations while the in-service inspection of pressure equipment was not in place. The pressure energy involved is held as hydraulic accumulator, and the recorded presentation was jet release, stored-energy discharge, rupture.",
+    "summary": "On 31 May 2025 a high potential incident was recorded on PSV-7102 at Cape Verity Export Terminal during transfer operations; pressure energy held as hydraulic accumulator was not released."
+  },
+  "response_sha256": "7b161328ce6118c47442538f70d1a06355bb667a5172957669ec4ae2513c0af2",
+  "source": null
+}

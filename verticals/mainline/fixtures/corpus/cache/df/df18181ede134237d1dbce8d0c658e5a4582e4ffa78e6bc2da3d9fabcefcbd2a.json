@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 0,
+    "doc_codes": [
+      "PRO-HSE-005",
+      "STD-HTW-004"
+    ],
+    "intent": "introduce",
+    "moc_ref": "MOC-2023-0034",
+    "opened_on": "2023-02-12",
+    "precursor_events": [],
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "management_of_change": "change assurance",
+      "verification": "assurance activity"
+    },
+    "weakening_steps": 0
+  },
+  "key": "df18181ede134237d1dbce8d0c658e5a4582e4ffa78e6bc2da3d9fabcefcbd2a",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2023-0034",
+  "prompt_kind": "moc",
+  "prompt_sha256": "ed8edac2dc7491f0d84aa212d7c1c4e88bcac17a2afaa09e9bb74872eb8f1eff",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2023-0034 was raised at Marrindal Concentrator and Hydrocarbon Transfer Facility on 12 February 2023 as a scheduled change under change assurance; no event precedes it in the record. The change assurance record carries no clause change; it records the assessment only. The intent is to introduce a duty the documents in scope did not previously carry. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the material unwanted event control set is preserved.",
+    "scope_note": "The documents in scope are PRO-HSE-005 and STD-HTW-004."
+  },
+  "response_sha256": "ba4667bf01d396c3c6d771c88f5669e69d82854ebc6ac4eec1122b6c8a4bc331",
+  "source": null
+}

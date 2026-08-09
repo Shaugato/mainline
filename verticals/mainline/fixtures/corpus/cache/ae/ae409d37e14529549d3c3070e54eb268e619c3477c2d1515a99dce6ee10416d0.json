@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ELECTRICAL-SAFETY",
+    "barrier_role": "preventive",
+    "control_class": "ZERO_ENERGY_VERIFICATION",
+    "control_delta": "restate",
+    "control_label": "proving zero energy before intrusive work",
+    "doc_code": "PRO-ELE-026",
+    "doc_family": "PRO",
+    "doc_title": "High Voltage Switching and Access",
+    "effective_on": "2018-07-26",
+    "printed_label": "6.1.4",
+    "setpoint": {
+      "from": 8.0,
+      "key": "isolation_verification_interval",
+      "label": "re-verification interval for a long-duration isolation",
+      "strengthen_direction": "lower",
+      "to": 8.0,
+      "unit": "hours"
+    },
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "ae409d37e14529549d3c3070e54eb268e619c3477c2d1515a99dce6ee10416d0",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:TLG/PRO-ELE-026/006#TLG/PRO-ELE-026/11.1",
+  "prompt_kind": "clause",
+  "prompt_sha256": "be84e742fc9c5b153a563893ea9d8ee796c50c1bad60833306082e5feae30f6b",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The proving zero energy before intrusive work shall be provided and maintained wherever this procedure applies, and its condition shall be treated as a critical control. The re-verification interval for a long-duration isolation shall be set at 8 hours. This clause applies to activities archived under ELECTRICAL-SAFETY at Tolgarra Processing and Power Station.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "59002d08ceca50ac40fa367ca2e5d0f414161c228048162438591211b3ea8a9c",
+  "source": null
+}

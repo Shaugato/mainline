@@ -1,0 +1,91 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "working in dust, darkness and weather restrictions",
+    "activity_root": "MOBILE-EQUIPMENT-INTERACTION",
+    "activity_series": "operating in reduced visibility",
+    "assets": [
+      {
+        "asset_class": "MOB-CLASS-H",
+        "label": "haul trucks",
+        "service": "waste and ore haulage",
+        "tag": "HT-9002"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "PARK_UP_AND_RESTRAINT",
+        "control_label": "parking, chocking and restraint of equipment",
+        "failure_mode": "absent",
+        "hazard_energy": "gravity",
+        "icam_tier": "organisational_factor"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "POSITIVE_COMMUNICATION_BEFORE_APPROACH",
+        "control_label": "positive communication before approaching mobile equipment",
+        "failure_mode": "bypassed",
+        "hazard_energy": "kinetic",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "CAPA-2013-001",
+    "hazard_energy": "kinetic",
+    "hazard_media": [
+      "rotating equipment",
+      "conveyor",
+      "mobile equipment",
+      "pressurised jet",
+      "flying fragment"
+    ],
+    "hazard_release": "entanglement, impact, crush",
+    "kind": "capa",
+    "occurred_on": "2013-02-08",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during routine operation",
+    "title": "corrective action following root cause analysis at HT-9002",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "4c01dc4a8c1d80afae344246c9a3a91871b6e50cae73ca646b6f1e93153e71a3",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:CAPA-2013-001",
+  "prompt_kind": "icam",
+  "prompt_sha256": "cf2fc9239650baef7a9982860eb007a29b4a70801da6985d35bc11ab5d63908b",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "PARK_UP_AND_RESTRAINT",
+        "finding": "Control PARK_UP_AND_RESTRAINT: the parking, chocking and restraint of equipment was not in place, and the root cause analysis classified this as an organisational factor."
+      },
+      {
+        "control_class": "POSITIVE_COMMUNICATION_BEFORE_APPROACH",
+        "finding": "Control POSITIVE_COMMUNICATION_BEFORE_APPROACH: the positive communication before approaching mobile equipment had been bypassed, and the root cause analysis classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next field verification that the parking, chocking and restraint of equipment on HT-9002 performs as designed."
+    ],
+    "sequence": "Work was under way in operating in reduced visibility, specifically working in dust, darkness and weather restrictions. HT-9002 (haul trucks) is in service for waste and ore haulage. The task proceeded during routine operation while the parking, chocking and restraint of equipment was not in place. The kinetic energy involved is held as rotating equipment, and the recorded presentation was entanglement, impact, crush.",
+    "summary": "On 8 February 2013 a corrective action on HT-9002 at Yandarra Downs Open Cut and Heavy Workshop was reviewed against the critical safeguard it was raised to restore."
+  },
+  "response_sha256": "a06db97a3ca61af4c2e370cc3fcf81ecc93a7bb91a77e741a1dfda983f989603",
+  "source": null
+}

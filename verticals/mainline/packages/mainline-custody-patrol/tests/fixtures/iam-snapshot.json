@@ -1,0 +1,27 @@
+{
+  "account_id": "000000000000",
+  "collected_by": "iam:ListRoles+ListUsers+ListPolicies",
+  "principals": [
+    {
+      "arn": "arn:aws:iam::000000000000:role/mainline-sequencer",
+      "type": "role",
+      "attached_policies": ["mainline-kms-sign-only"],
+      "can_delete_objects": false,
+      "can_put_object_retention": false
+    },
+    {
+      "arn": "arn:aws:iam::000000000000:role/mainline-custody-patrol",
+      "type": "role",
+      "attached_policies": ["mainline-evidence-put-only"],
+      "can_delete_objects": false,
+      "can_put_object_retention": false
+    },
+    {
+      "arn": "arn:aws:iam::000000000000:role/mainline-break-glass-two-person",
+      "type": "role",
+      "attached_policies": ["mainline-break-glass"],
+      "can_delete_objects": false,
+      "can_put_object_retention": false
+    }
+  ]
+}

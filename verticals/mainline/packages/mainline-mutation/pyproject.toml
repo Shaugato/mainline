@@ -1,0 +1,85 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
+
+[project]
+name = "mainline-mutation"
+version = "0.1.0"
+description = "MUTATION RATCHET: KILL/SURVIVE catalogues and the Wilson-bounded residual-risk metric this domain publishes instead of a launch claim."
+readme = "README.md"
+requires-python = ">=3.13"
+# FSL-1.1-ALv2 per the repository licence map (verticals/mainline/* is FSL).
+# The licence TEXT lives in the repo-root LICENSES/ tree, outside this project
+# directory, and therefore cannot be referenced by `license-files`.
+license = "LicenseRef-FSL-1.1-ALv2"
+authors = [{ name = "MAINLINE contributors" }]
+keywords = ["mutation-testing", "wilson-interval", "safety", "residual-risk"]
+classifiers = [
+  "Programming Language :: Python :: 3.13",
+  "Typing :: Typed",
+  "Private :: Do Not Upload",
+]
+
+# ONE dependency, and the absences are the point.
+#
+# `mainline-domain` is the thing under measurement. The harness drives the real
+# canonicaliser, the real anchor extractor, the real CAT extractor, the real
+# nine-rule lattice and the real cascade stages; a harness that re-implemented
+# any of them would be measuring itself.
+#
+# DELIBERATELY ABSENT, and each absence is load-bearing:
+#
+#   statsmodels / scipy.stats  The brief forbids adding statsmodels and the
+#                              Wilson interval is six lines of arithmetic
+#                              (`wilson.py`). A published residual-risk number
+#                              whose confidence bound comes from a dependency
+#                              nobody in the room can re-derive by hand is a
+#                              number that cannot be defended under
+#                              cross-examination.
+#   boto3 / anthropic          PL-3 and decision D12. The adversarial paraphrase
+#                              mutants come from COMMITTED cassettes; no live
+#                              model call exists anywhere in this package and
+#                              `tests/e2e/mutation/test_no_model_reach.py`
+#                              walks the AST to keep it that way.
+#   pytest / hypothesis        at runtime. The harness is a library and a CLI;
+#                              it is not a test framework, because the number it
+#                              publishes must be producible by `just` and by a
+#                              nightly workflow that has no test session.
+dependencies = [
+  "mainline-domain",
+]
+
+[project.optional-dependencies]
+# The recorder leg: writing a run into `mainline_meas.mutation_run` /
+# `mutation_result` needs a driver. The harness computes and reports with no
+# database at all, which is why this is an extra and not a dependency — the
+# published JSON artefact is producible on a machine with no cluster.
+db = ["psycopg[binary]>=3.2"]
+
+[project.scripts]
+mainline-mutation = "mainline_mutation.cli:main"
+
+[dependency-groups]
+dev = [
+  "pytest>=8.3",
+  "mypy>=1.11",
+]
+
+[tool.uv.sources]
+mainline-domain = { workspace = true }
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mainline_mutation"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "novelty", "README.md"]
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+warn_unreachable = true
+mypy_path = "src"
+packages = ["mainline_mutation"]

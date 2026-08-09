@@ -1,0 +1,115 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "testing for dead and applying earths",
+    "activity_root": "ELECTRICAL-SAFETY",
+    "activity_series": "controlling access to energised apparatus",
+    "assets": [
+      {
+        "asset_class": "ELEC-CLASS-A",
+        "label": "switchgear and transformers",
+        "service": "plant HV/LV distribution",
+        "tag": "TX-3002"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "ARC_FLASH_PPE_AND_BOUNDARY",
+        "control_label": "arc flash boundary and protective equipment",
+        "failure_mode": "ineffective",
+        "hazard_energy": "thermal",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "HAZARDOUS_AREA_EQUIPMENT_INTEGRITY",
+        "control_label": "integrity of explosion-protected equipment in zoned areas",
+        "failure_mode": "degraded",
+        "hazard_energy": "electrical",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "SWITCHING_AUTHORISATION",
+        "control_label": "authorisation of switching and access to apparatus",
+        "failure_mode": "bypassed",
+        "hazard_energy": "electrical",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "ZERO_ENERGY_VERIFICATION",
+        "control_label": "proving zero energy before intrusive work",
+        "failure_mode": "ineffective",
+        "hazard_energy": "electrical",
+        "icam_tier": "organisational_factor"
+      }
+    ],
+    "event_ref": "INC-2026-004",
+    "hazard_energy": "electrical",
+    "hazard_media": [
+      "HV switchgear",
+      "LV distribution",
+      "capacitive storage",
+      "induced voltage",
+      "portable equipment"
+    ],
+    "hazard_release": "shock, arc flash, unplanned energisation",
+    "kind": "incident",
+    "occurred_on": "2026-01-04",
+    "severity_actual": 1,
+    "severity_potential": 1,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during cleaning and preparation",
+    "title": "positive isolation verification failure on TX-3002",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "fb2fae27dcd77708ef80263318be355209ea096a4778a205a791dfa5d23f4299",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2026-004",
+  "prompt_kind": "icam",
+  "prompt_sha256": "0ac1ebec4bfa3776d617df01ada8f381b603a4e4a725a9096cef2ce0a7536192",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage.",
+    "defences": [
+      {
+        "control_class": "ARC_FLASH_PPE_AND_BOUNDARY",
+        "finding": "Control ARC_FLASH_PPE_AND_BOUNDARY: the arc flash boundary and protective equipment was in place but did not perform, and the learning team review classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "HAZARDOUS_AREA_EQUIPMENT_INTEGRITY",
+        "finding": "Control HAZARDOUS_AREA_EQUIPMENT_INTEGRITY: the integrity of explosion-protected equipment in zoned areas had degraded below its design intent, and the learning team review classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "SWITCHING_AUTHORISATION",
+        "finding": "Control SWITCHING_AUTHORISATION: the authorisation of switching and access to apparatus had been bypassed, and the learning team review classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "ZERO_ENERGY_VERIFICATION",
+        "finding": "Control ZERO_ENERGY_VERIFICATION: the proving zero energy before intrusive work was in place but did not perform, and the learning team review classified this as an organisational factor."
+      }
+    ],
+    "recommendations": [
+      "Restore the arc flash boundary and protective equipment on TX-3002 and record the assurance activity before this task is next authorised."
+    ],
+    "sequence": "Work was under way in controlling access to energised apparatus, specifically testing for dead and applying earths. TX-3002 (switchgear and transformers) is in service for plant HV/LV distribution. The task proceeded during cleaning and preparation while the arc flash boundary and protective equipment was in place but did not perform. The electrical energy involved is held as HV switchgear, and the recorded presentation was shock, arc flash, unplanned energisation.",
+    "summary": "On 4 January 2026 an incident occurred on TX-3002 at Marrindal Concentrator and Hydrocarbon Transfer Facility during cleaning and preparation, releasing electrical energy held as HV switchgear."
+  },
+  "response_sha256": "10e838c30c28284fa195fb049c2daf3fa1ff47d352a18630e6368d5cef983b47",
+  "source": null
+}

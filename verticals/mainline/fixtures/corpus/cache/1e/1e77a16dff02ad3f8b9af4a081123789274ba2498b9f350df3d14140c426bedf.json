@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 5,
+    "doc_code": "PRO-CHM-009",
+    "doc_family": "PRO",
+    "doc_title": "Reagent Make-Up and Dosing",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2023-06-03",
+    "required_citations": [
+      {
+        "control_label": "selection, fit testing and maintenance of respirators",
+        "event_ref": "AF-2023-001",
+        "event_title": "audit finding - change assurance not applied to P-8302",
+        "hazard_energy": "chemical",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:TLG/PRO-CHM-009/011#revision_history_line/AF-2023-001",
+        "severity_gate": 1
+      }
+    ],
+    "rev_no": 11,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "learning team review",
+      "management_of_change": "change assurance",
+      "near_miss": "high potential incident"
+    }
+  },
+  "key": "1e77a16dff02ad3f8b9af4a081123789274ba2498b9f350df3d14140c426bedf",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:TLG/PRO-CHM-009/011",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "c1602db8de7379c4f6dd5c353c5a4bee04b4851d2ddd59cbaa9e57641048e9e7",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "Revision 11 was raised in response to AF-2023-001, and the selection, fit testing and maintenance of respirators was amended as a result.",
+        "quote_ref": "quote:TLG/PRO-CHM-009/011#revision_history_line/AF-2023-001"
+      }
+    ],
+    "reason": "Scheduled review at revision 11; 5 clauses restated."
+  },
+  "response_sha256": "18f0aad1d4ce236e01565e06e5f5e909e95603adbb61039dc7569925af6cb250",
+  "source": null
+}

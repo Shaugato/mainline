@@ -1,0 +1,91 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "testing earth leakage and protection settings",
+    "activity_root": "ELECTRICAL-SAFETY",
+    "activity_series": "maintaining protective systems",
+    "assets": [
+      {
+        "asset_class": "ELEC-CLASS-A",
+        "label": "switchgear and transformers",
+        "service": "plant HV/LV distribution",
+        "tag": "TX-3001"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "HAZARDOUS_AREA_EQUIPMENT_INTEGRITY",
+        "control_label": "integrity of explosion-protected equipment in zoned areas",
+        "failure_mode": "ineffective",
+        "hazard_energy": "electrical",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "ZERO_ENERGY_VERIFICATION",
+        "control_label": "proving zero energy before intrusive work",
+        "failure_mode": "bypassed",
+        "hazard_energy": "electrical",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "CAPA-2025-002",
+    "hazard_energy": "electrical",
+    "hazard_media": [
+      "HV switchgear",
+      "LV distribution",
+      "capacitive storage",
+      "induced voltage",
+      "portable equipment"
+    ],
+    "hazard_release": "shock, arc flash, unplanned energisation",
+    "kind": "capa",
+    "occurred_on": "2025-05-23",
+    "severity_actual": 0,
+    "severity_potential": 3,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during shift handover",
+    "title": "preventive action - alarm philosophy conformance on TX-3001",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "3b322788cbf96ea0bbd5c3e80944e7c8272e85997139be348c2538c10e48906a",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:CAPA-2025-002",
+  "prompt_kind": "icam",
+  "prompt_sha256": "4453289da7210147d32d9dba11fab0698c0ad297027f796c23ab0fcced449718",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 3 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "HAZARDOUS_AREA_EQUIPMENT_INTEGRITY",
+        "finding": "Control HAZARDOUS_AREA_EQUIPMENT_INTEGRITY: the integrity of explosion-protected equipment in zoned areas was in place but did not perform, and the learning team review classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "ZERO_ENERGY_VERIFICATION",
+        "finding": "Control ZERO_ENERGY_VERIFICATION: the proving zero energy before intrusive work had been bypassed, and the learning team review classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Restore the integrity of explosion-protected equipment in zoned areas on TX-3001 and record the assurance activity before this task is next authorised."
+    ],
+    "sequence": "Work was under way in maintaining protective systems, specifically testing earth leakage and protection settings. TX-3001 (switchgear and transformers) is in service for plant HV/LV distribution. The task proceeded during shift handover while the integrity of explosion-protected equipment in zoned areas was in place but did not perform. The electrical energy involved is held as HV switchgear, and the recorded presentation was shock, arc flash, unplanned energisation.",
+    "summary": "On 23 May 2025 a corrective action on TX-3001 at Marrindal Concentrator and Hydrocarbon Transfer Facility was reviewed against the material unwanted event control it was raised to restore."
+  },
+  "response_sha256": "7755916d9d2462685c0e67cc01fbfc0155a3c8ffa3cfd7e8495e90f8cf34319c",
+  "source": null
+}

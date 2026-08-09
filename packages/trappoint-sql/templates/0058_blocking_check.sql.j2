@@ -1,0 +1,192 @@
+{# SPDX-FileCopyrightText: 2026 MAINLINE contributors #}
+{# SPDX-License-Identifier: Apache-2.0 #}
+{#
+  Migration 0058 / 0058a / 0058b — THE MATERIALISED OBLIGATION
+  (ARCHITECTURE.md §5.5 "Blocking checks", §16 MI25; findings S1 and S5; ruling MR-8 for
+  the numbering, ruling D5 for the capability switch).
+
+  This is the row the gate counts. Everything downstream — the counter on the subject,
+  the epoch bump, the disposition, the merge refusal — is a consequence of a row landing
+  here, so two properties of this table have to be true before any of that means
+  anything.
+
+  1. SEVERITY AND VIRULENCE ARE NOT INPUTS (finding S1, invariant MI25). The agent that
+     proposes an obligation does not get to say how bad it is. `severity`, `virulence`
+     and `closure_gen` are overwritten by `fn_check_project` from the binding's declared
+     authority relation before the row lands, and that trigger RAISEs when the authority
+     row is missing. A check whose severity were an input would be a check the writer
+     could talk down to `routine`, and the whole clearance lattice below it would be
+     decoration. The three columns carry an `@projects` pragma, which is what makes
+     `trappoint render` refuse to emit this file at all unless the binding declares where
+     their values come from and what happens when that source is absent.
+
+  2. THE DEDUPE IDENTITY IS COMPUTED BY THE SERVER, NOT SUPPLIED (finding S5, case
+     CF-11). NULLs are distinct in a unique index. Six of the eight origins leave
+     `precursor_event_id` NULL and two leave a subject column NULL, so a composite
+     `UNIQUE (permit_id, cr_id, clause_uuid, commit_id, precursor_event_id, origin)`
+     would silently fail to dedupe them and `ON CONFLICT DO NOTHING` would insert the
+     same obligation forty times. One STORED digest over coalesce sentinels collapses
+     that to a single column in which no value is ever NULL.
+
+  WHY THE UNIQUE CONSTRAINT IS NOT NAMED. Everywhere else in this tree a constraint is
+  named, because the constraint name is the exhibit. Here the published contract is the
+  auto-generated one: `spec/conformance/manifest.toml` CF-11 expects
+  `blocking_check_dedupe_key_key`, and `spec/conformance/README.md` lists it among the
+  four conventional names the suite asserts verbatim. Naming it would be a nicer file
+  and a red suite.
+
+  NO ROW-LEVEL TTL, HERE OR ANYWHERE IN THIS FAMILY. An obligation that expires by
+  itself is an obligation that can disappear between the recall and the merge. Expiry in
+  this schema is always a trigger plus a sweeper that writes a NEW row (see 0063
+  receipt_expiry); nothing in the gate's evidence chain is ever deleted by a background
+  job.
+#}
+{# @projects blocking_check.severity, blocking_check.virulence, blocking_check.closure_gen #}
+{# @capability stored_digest #}
+{% set origins = [
+     'blame_ancestry',
+     'weaken_over_blood',
+     'identity_residue',
+     'drift_finding',
+     'fleet_conflict',
+     'discordance_warrant',
+     'severity_downgrade',
+     'recall_probabilistic',
+   ] %}
+{% set letters = 'abcdefghijklmnopqrstuvwxyz' %}
+-- @file 0058_blocking_check.sql
+{{ header(file='0058_blocking_check.sql',
+          title='CREATE TABLE ' ~ binding.schema ~ '.blocking_check — the obligation the gate counts',
+          rationale='The row every refusal in this product is ultimately a consequence of. Its severity and virulence are projections of the blame closure rather than inputs, so the agent that proposes an obligation cannot talk it down; and its identity is a server-computed digest over coalesce sentinels rather than a composite unique index, because NULLs are distinct in a unique index and six of the eight origins leave a nullable identity column empty.',
+          mi=['MI25', 'MI02', 'MI30'], i=['I02']) }}
+--
+{% for a in authority_sources %}
+{% if a.projects[0].startswith('blocking_check.') %}
+-- @projects {{ a.projects | join(', ') }}
+-- @authority {{ a.relation }} ({{ a.key_columns | join(', ') }}) <= NEW ({{ a.key | join(', ') }})
+-- @on_missing raise
+{% endif %}
+{% endfor %}
+--
+-- SUBJECT-POLYMORPHIC, over the {{ subjects | length }} gated subject(s) this binding declares:
+{% for s in subjects %}
+--   {{ s.kind }} -> {{ binding.schema }}.{{ s.table }} ({{ s.id_column }})
+{% endfor %}
+--
+-- Three constraints hold the polymorphism together and each catches a different lie:
+--
+--   exactly_one_subject   an obligation belongs to ONE subject. A row naming both a
+--                         permit and a change request would be counted twice and
+--                         cleared once (case CF-41).
+--   subject_matches       the discriminator agrees with the column that is populated.
+--                         Without it, subject_kind='permit' with only cr_id set makes
+--                         every by-kind aggregate quietly wrong while every foreign key
+--                         is satisfied.
+--   bc_subject_kind_known the discriminator is drawn from the declared set, so a typo
+--                         is 23514 at write time rather than a row no counter trigger
+--                         ever visits.
+--
+-- WHY THE SUBJECT COLUMNS ARE NULLABLE AND NOT A SINGLE `subject_id`. A single column
+-- would need either no foreign key at all — losing the guarantee that an obligation
+-- names a subject that exists — or a polymorphic one, which does not exist in SQL.
+-- CockroachDB enforces a foreign key only when every column of it is non-NULL (MATCH
+-- SIMPLE), so a nullable column per kind gives exactly one enforced reference per row
+-- and no enforcement on the other. That is ruling D1's mechanism, applied here.
+--
+-- fk_check_version IS WHAT MAKES A DISPOSITION UNINHERITABLE ACROSS A REVISION. The
+-- check names (clause_uuid, commit_id), so a new version of a clause is a DIFFERENT
+-- foreign-key target: it materialises a NEW obligation with a new check_id, and the
+-- disposition signed against the old one cannot reach it. Carrying a clearance forward
+-- across an edit is not forbidden by policy here; it is unrepresentable.
+--
+-- site_id CARRIES NO FOREIGN KEY, DELIBERATELY. A site table is vertical content — the
+-- object test in MR-1 puts it outside the substrate — and a substrate table that
+-- referenced it could not render for a binding that organises its estate differently.
+-- The column is NOT NULL because every obligation belongs to somewhere; which relation
+-- names that somewhere is the vertical's business.
+--
+-- materialised_at IS THE SERVER CLOCK and is never supplied by the writer. Deliberation
+-- time and the open-obligation window are both derived from it, and a client-supplied
+-- timestamp is a client-supplied deliberation measurement.
+
+CREATE TABLE {{ binding.schema }}.blocking_check (
+  check_id           UUID NOT NULL DEFAULT gen_random_uuid(),
+  subject_kind       STRING NOT NULL,
+{% for s in subjects %}
+  {{ '%-18s' | format(s.id_column) }} UUID NULL REFERENCES {{ binding.schema }}.{{ s.table }} ({{ s.id_column }}),
+{% endfor %}
+  site_id            UUID NOT NULL,
+  clause_uuid        UUID NOT NULL,
+  commit_id          BYTES NOT NULL,
+  precursor_event_id UUID NULL REFERENCES {{ binding.schema }}.event (event_id),
+  origin             STRING NOT NULL,
+  -- ▼ PROJECTIONS. Overwritten by fn_check_project from {{ binding.schema }}.clause_blame_current.
+  --   NEVER inputs (finding S1, invariant MI25). See the @authority banner above.
+  severity           INT2 NOT NULL,
+  virulence          {{ binding.schema }}.virulence_class NOT NULL,
+  closure_gen        INT8 NOT NULL,
+  -- ▲
+  control_delta      {{ binding.schema }}.control_delta NULL,
+  recall_run_id      UUID NULL,
+  evidence_summary   STRING NOT NULL,
+  materialised_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+{% if capabilities.stored_digest == 'stored' %}
+  -- GT-13 PASS ({{ cluster.version }}): digest() is legal inside a STORED generated column, so
+  -- the SERVER computes the obligation's identity and the inserter cannot choose it.
+  dedupe_key         BYTES AS (digest(
+{% for s in subjects %}
+                         coalesce({{ s.id_column }}::STRING, '-') || '|' ||
+{% endfor %}
+                         clause_uuid::STRING || '|' ||
+                         encode(commit_id, 'hex') || '|' ||
+                         coalesce(precursor_event_id::STRING, '-') || '|' ||
+                         origin, 'sha256')) STORED,
+{% else %}
+  -- GT-13 FALLBACK-SELECTED: the inserter supplies the digest and a verifying trigger
+  -- recomputes it. The sentence "the server computes the identity, the inserter cannot
+  -- lie" weakens to "the trigger recomputes what the inserter supplied and refuses a
+  -- mismatch"; the dedupe invariant survives, the provenance claim does not.
+  dedupe_key         BYTES NOT NULL,
+  CONSTRAINT bc_dedupe_key_is_sha256 CHECK (length(dedupe_key) = 32),
+{% endif %}
+  CONSTRAINT bc_subject_kind_known
+    CHECK (subject_kind IN ({% for s in subjects %}'{{ s.kind }}'{{ ', ' if not loop.last }}{% endfor %})),
+  CONSTRAINT bc_origin_known
+    CHECK (origin IN ({% for o in origins %}'{{ o }}'{{ ', ' if not loop.last }}{% endfor %})),
+  CONSTRAINT bc_severity_range CHECK (severity BETWEEN 0 AND 5),
+  CONSTRAINT bc_evidence_summary_stated CHECK (evidence_summary <> ''),
+  CONSTRAINT bc_commit_id_is_sha256 CHECK (length(commit_id) = 32),
+  CONSTRAINT exactly_one_subject
+{% if subjects | length == 2 %}
+    CHECK (({{ subjects[0].id_column }} IS NULL) <> ({{ subjects[1].id_column }} IS NULL)),
+{% else %}
+    CHECK ({% for s in subjects %}({{ s.id_column }} IS NOT NULL)::INT8{{ ' + ' if not loop.last }}{% endfor %} = 1),
+{% endif %}
+  CONSTRAINT subject_matches
+    CHECK ({% for s in subjects %}(subject_kind = '{{ s.kind }}' AND {{ s.id_column }} IS NOT NULL){{ '\n        OR ' if not loop.last }}{% endfor %}),
+  CONSTRAINT fk_check_version FOREIGN KEY (clause_uuid, commit_id)
+    REFERENCES {{ binding.schema }}.clause_version (clause_uuid, commit_id),
+  UNIQUE (dedupe_key),
+  CONSTRAINT pk_blocking_check PRIMARY KEY (check_id)
+);
+{% for s in subjects %}
+{% set index_name = 'bc_open' if loop.first else 'bc_open_' ~ (s.kind.split('_') | map('first') | join) %}
+-- @file 0058{{ letters[loop.index0] }}_{{ index_name }}_index.sql
+{{ header(file='0058' ~ letters[loop.index0] ~ '_' ~ index_name ~ '_index.sql',
+          title='CREATE INDEX ' ~ index_name ~ ' — the open-obligation scan for ' ~ s.kind,
+          rationale='One index per gated subject, and each one is the exact scan the counter trigger and the merge gate perform: given this subject, what is open and since when. A single index over a coalesced subject column would serve neither kind well and would make the plan depend on which kind happened to be more numerous, which is not a property a safety gate should have.',
+          mi=['MI02', 'MI30'], i=['I02']) }}
+--
+-- (({{ s.id_column }}, materialised_at)) and not ((materialised_at, {{ s.id_column }})): every
+-- question this index answers fixes the subject first. Leading with the timestamp would
+-- make every lookup a scan of one time range across every subject in the estate.
+--
+-- NOT PARTIAL. An obligation is not "closed" by a column on this table — it is closed by
+-- the existence of a live disposition in another one — so there is no predicate here that
+-- could be pushed into the index without the index encoding a policy this table does not
+-- own. The counter on the subject row is what the gate reads; this index is what the
+-- counter trigger and the refusal diagnoser use to name WHICH obligations are open.
+
+CREATE INDEX {{ index_name }}
+  ON {{ binding.schema }}.blocking_check ({{ s.id_column }}, materialised_at);
+{% endfor %}

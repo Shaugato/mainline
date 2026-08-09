@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 27,
+    "doc_code": "STD-PTW-001",
+    "doc_family": "STD",
+    "doc_title": "Permit to Work",
+    "driver": "incident",
+    "driving_change_ref": null,
+    "driving_event_ref": "INC-2022-007",
+    "effective_on": "2022-10-04",
+    "required_citations": [
+      {
+        "control_label": "identification of every energy source for the task",
+        "event_ref": "INC-2022-007",
+        "event_title": "uncontrolled movement of ML-3201 during transfer operations",
+        "hazard_energy": "gravity",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:MRD/STD-PTW-001/007#revision_history_line/INC-2022-007",
+        "severity_gate": 4
+      }
+    ],
+    "rev_no": 7,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "learning team review",
+      "management_of_change": "change assurance",
+      "near_miss": "high potential incident"
+    }
+  },
+  "key": "6aa15b052b3fd795c5684f0e04262f7085f1fc2f80452c9164c12af14cbd4c13",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/STD-PTW-001/007",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "f87f08f251a2c66845797a1a0981e80b8a9ee2859f2535e7299662609c8a8186",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "Revision 7 was raised in response to INC-2022-007, and the identification of every energy source for the task was amended as a result.",
+        "quote_ref": "quote:MRD/STD-PTW-001/007#revision_history_line/INC-2022-007"
+      }
+    ],
+    "reason": "Revised after INC-2022-007; 27 clauses amended."
+  },
+  "response_sha256": "ba1e45812f5a04916e26227af6d90be9d110cb29d50c86d001670f4261497ef2",
+  "source": null
+}

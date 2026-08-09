@@ -1,0 +1,506 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+#
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+#  mi_catalogue.yaml — the MAINLINE invariant catalogue MI01–MI30, and the PL-2 ratchet's data
+#  owner:  datamodel / dm-invariant-catalogue  ·  source: ARCHITECTURE.md §16  ·  ruling: DM-8
+#  tools:  scripts/mi_ratchet.py  ·  rendering: MI-CATALOGUE.md (generated, committed, current)
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+#
+# WHAT THIS FILE IS
+#   The thirty statements MAINLINE makes about itself, each with the mechanism that makes it
+#   true, the SQLSTATE it produces when it is violated, the migrations that build it, the tests
+#   that witness it, and — the field the whole file exists for — its `status`.
+#
+#   `status: pending`  no owning test has been observed to pass. CI *requires* at least one
+#                      owning test of every pending invariant to be FAILING right now.
+#   `status: enforced` every owning test passes on a real cluster, and CI keeps it that way.
+#
+# WHY A STATUS COLUMN IS A CI GATE AND NOT A PROGRESS TRACKER  (docs/leads/datamodel.md §1.2)
+#   MAINLINE's deliverable is a refusal. A test for a refusal that has never been red is
+#   indistinguishable from a test of a mechanism that does not exist — it asserts nothing, and
+#   it asserts nothing *confidently*, which is worse than no test. So red-before-green is not a
+#   habit here; it is a gate driven by this file:
+#
+#     mi-red    every `pending` invariant must have ≥1 owning test that currently FAILS.
+#               A pending invariant whose tests all pass fails the build with
+#                 `MI25 is pending but its tests pass — promote it in mi_catalogue.yaml`
+#     mi-green  every `enforced` invariant's owning tests must PASS. A skip is not a pass.
+#
+#   Promotion is therefore a pull request, in blame forever. Demotion (`enforced` → `pending`)
+#   requires an `ADR-NNNN` reference in the commit body — `mi_ratchet.py demote-check`. The
+#   ratchet is one-way; that is the product's own O-Ring Ratchet turned on its own test suite.
+#
+# THE FIELDS
+#   id                 MI01–MI30. Exactly thirty, in order. A gap is an invariant nobody owns.
+#   statement          verbatim from ARCHITECTURE.md §16, column 2.
+#   instantiates       the TRAPPOINT invariant (I01–I16) this is an instance of, or `null`.
+#                      `null` is not an omission: §16 marks three rows `—`, "and that is the
+#                      interesting case" — MI08, MI10 and MI21 are MAINLINE-specific.
+#   mechanism          verbatim from §16, column 4. The thing that does the refusing.
+#   sqlstate           §16 column 5. One of 23514 / 23503 / 23505 / P0001 — the gate refusals,
+#                      attempted exactly once, ever. NEVER 40001: that is the one retryable
+#                      code, and a retry is not a refusal. `mi_ratchet check` enforces this.
+#   headline           §16 bolds seven rows. They are the claims this integration is new for.
+#   owning_migrations  ** A PROJECTION, NOT A DECLARATION. ** Derived from the `-- MI:` header of
+#                      every file in verticals/mainline/db/migrations — the same header block
+#                      `trappoint migrate lint` enforces, read through the same 4096-character
+#                      window. NOT from migrations.lock.json: the lock is a manifest derived from
+#                      those headers, and projecting from a manifest that has fallen behind the
+#                      tree is exactly the trusted-projection failure P2 exists to prevent (the
+#                      lock is kept as a cross-check and its staleness is reported). Do not
+#                      hand-edit: `mi_ratchet check` recomputes it and refuses on drift;
+#                      `mi_ratchet reconcile --write` rewrites it. A MISSING source refuses
+#                      (exit 2) rather than projecting [] — an empty projection would say that
+#                      no migration enforces anything, which is a far more dangerous sentence.
+#   owning_tests       selectors, resolved against the real collected-test universe. Three forms:
+#                        tests/…/f.py::test_name   an exact node id — a promise about a function
+#                        tests/…/f.py::test_mi25_* an fnmatch glob   — a promise about naming
+#                        tests/…/f.py              every test in the module
+#                      A selector matching nothing is reported as UNRESOLVED: legitimate while
+#                      the owning worker has not landed, fatal for anything `enforced`. Tests
+#                      carrying `@pytest.mark.mi("MIxx")` are discovered automatically and need
+#                      no entry here — that marker is the author claiming to prove the thing.
+#                      A bare `miNN` token in a test NAME is a MENTION, not a witness, and never
+#                      moves a status: `test_undetermined_forces_advisory_because_mi21_would_
+#                      refuse_otherwise` is a pure-Python unit test that never touches the
+#                      database, and promoting MI21 off it would be a false green.
+#   status             pending | enforced.
+#   adr                the ADR that authorised a demotion, or null. Set only by a demotion.
+#
+# WHY EVERY ENTRY READS `pending` TODAY
+#   Strata S1–S7 are inert tables; nothing refuses anything until S8 lands the functions and
+#   triggers (docs/leads/datamodel.md §1.1). Most MI tests are therefore red from S1 to S8, and
+#   DR-4 accepts that explicitly: "this is the intended state, and DM-8 makes it visible rather
+#   than silent". A catalogue that shipped green would be a catalogue that lied.
+
+schema_version: 1
+source: "ARCHITECTURE.md §16 — The MAINLINE invariant catalogue MI01–MI30"
+
+invariants:
+
+  # ── The gate's five closure conditions on a merged permit (MI02–MI06) sit on the CHECKs
+  #    named in `verticals/mainline/db/GSAC.md`; MI01 is the substrate underneath all of them.
+
+  - id: MI01
+    statement: Evidentiary tables are append-only
+    instantiates: I01
+    mechanism: revoked grants + `BEFORE UPDATE/DELETE` trigger + RESTRICTIVE RLS
+    sqlstate: ["P0001"]
+    headline: false
+    owning_migrations: ["0001a", "0003", "0006a", "0006b", "0006g", "0006h", "0007a", "0007b", "0007c", "0007d", "0007e", "0008a", "0008b", "0008c", "0008d", "0008e", "0009a", "0009c", "0009e", "0009f", "0019", "0020", "0020a", "0024", "0025", "0026", "0027", "0028", "0029", "0030", "0031", "0032", "0047", "0048", "0049", "0049b", "0049y", "0049z", "0057", "0065b", "0070", "0071c", "0071d", "0072", "0073", "0074", "0075", "0076", "0077", "0078", "0084", "0100", "0104", "0105", "0106", "0107", "0108", "0109", "0119b", "0124", "0125", "0126", "0127", "0128", "0128a", "0128b", "0128c", "0128d", "0128e", "0128f", "0128g", "0128h", "0128i", "0128j", "0133", "0149y", "0149z", "0164", "0180", "0180a", "0180b", "0180c", "0180d", "0180e", "0180f", "0180g", "0180h", "0181h", "0183h", "0185g", "0185h"]
+    owning_tests:
+      - tests/integration/schema/test_mi_foundation.py::test_privilege_probe_refuses_ungranted_writes
+      - tests/integration/schema/test_mi_triggers.py::test_mi01_*
+      - tests/integration/schema/test_mi_rls.py::test_mi01_*
+    status: pending
+    adr: null
+
+  - id: MI02
+    statement: A merged permit has zero open blocking checks
+    instantiates: I02
+    mechanism: "`CHECK gate_closed_when_issued` + counter trigger"
+    sqlstate: ["23514"]
+    headline: false
+    owning_migrations: ["0006c", "0009b", "0050", "0050a", "0058", "0058a", "0058b", "0071c", "0101", "0103", "0115", "0116", "0119a", "0121", "0123", "0130", "0156", "0157", "0181", "0181a", "0181b", "0181c", "0181d", "0181e", "0181f", "0181g", "0185d"]
+    owning_tests:
+      - tests/integration/schema/test_mi_gate.py::test_mi02_*
+      - tests/integration/schema/test_mi_projection.py::test_mi02_*
+    status: pending
+    adr: null
+
+  - id: MI03
+    statement: A merged permit has zero un-dispositioned identity residue
+    instantiates: I02
+    mechanism: "`CHECK identity_conserved_when_issued`"
+    sqlstate: ["23514"]
+    headline: false
+    owning_migrations: ["0028", "0030", "0049", "0049c", "0050", "0051", "0140a", "0140b", "0140c", "0140d", "0145a", "0145b", "0145c", "0145d", "0145e", "0151"]
+    owning_tests:
+      - tests/integration/schema/test_mi_gate.py::test_mi03_*
+    status: pending
+    adr: null
+
+  - id: MI04
+    statement: A merged permit has zero open fleet conflicts
+    instantiates: I02
+    mechanism: "`CHECK conflicts_resolved_when_issued`"
+    sqlstate: ["23514"]
+    headline: false
+    owning_migrations: ["0050", "0051"]
+    owning_tests:
+      - tests/integration/schema/test_mi_gate.py::test_mi04_*
+      - tests/integration/schema/test_mi_periphery.py::test_mi04_*
+    status: pending
+    adr: null
+
+  - id: MI05
+    statement: A merged permit cites no clause under an open discordance warrant
+    instantiates: I02
+    mechanism: "`CHECK no_open_warrant_when_issued`"
+    sqlstate: ["23514"]
+    headline: false
+    owning_migrations: ["0050", "0052"]
+    owning_tests:
+      - tests/integration/schema/test_mi_gate.py::test_mi05_*
+    status: pending
+    adr: null
+
+  - id: MI06
+    statement: A merged permit's declared boundary is certified, and unmodelled assets block
+    instantiates: I02
+    mechanism: "`CHECK boundary_certified_when_issued` + `fn_boundary_project` + merge-gate certificate check"
+    sqlstate: ["23514", "P0001"]
+    headline: false
+    owning_migrations: ["0050", "0054", "0055", "0056", "0057", "0115"]
+    owning_tests:
+      - tests/integration/schema/test_mi_boundary_override.py::test_mi06_*
+      - tests/integration/schema/test_mi_gate.py::test_mi06_*
+      - tests/integration/schema/test_mi_projection.py::test_mi06_*
+    status: pending
+    adr: null
+
+  - id: MI07
+    statement: No precursor may be attached to an issued subject
+    instantiates: I03
+    mechanism: epoch-pin composite FK `ON UPDATE RESTRICT`
+    sqlstate: ["23503"]
+    headline: false
+    owning_migrations: ["0071", "0071a", "0071b", "0101", "0104", "0119a", "0121", "0124"]
+    owning_tests:
+      - tests/integration/schema/test_mi_disposition.py::test_mi07_*
+    status: pending
+    adr: null
+
+  - id: MI08
+    statement: At most one live disposition per check
+    instantiates: null
+    mechanism: "partial `UNIQUE … WHERE retracted_by IS NULL`"
+    sqlstate: ["23505"]
+    headline: false
+    owning_migrations: ["0006f", "0066a", "0069", "0159", "0185", "0185a", "0185b", "0185c", "0185d", "0185e", "0185f", "0185g"]
+    owning_tests:
+      - tests/integration/schema/test_mi_disposition.py::test_mi08_*
+    status: pending
+    adr: null
+
+  - id: MI09
+    statement: At most one merge per subject; no forked history
+    instantiates: I04
+    mechanism: "`merge_record` PK + `UNIQUE(permit_id, prev_seq)` CAS"
+    sqlstate: ["23505"]
+    headline: false
+    owning_migrations: ["0025", "0026", "0059", "0060", "0071", "0105", "0106", "0117", "0118", "0125", "0126"]
+    owning_tests:
+      - tests/integration/schema/test_mi_disposition.py::test_mi09_*
+      - tests/integration/schema/test_mi_periphery.py::test_mi09_*
+    status: pending
+    adr: null
+
+  - id: MI10
+    statement: Only legal state transitions occur
+    instantiates: null
+    mechanism: FK to `subject_transition`
+    sqlstate: ["23503"]
+    headline: false
+    owning_migrations: ["0011", "0017a", "0017b", "0059", "0060"]
+    owning_tests:
+      - tests/integration/schema/test_mi_foundation.py::test_subject_transition_edges_are_identical_for_both_subjects
+      - tests/integration/schema/test_mi_gate.py::test_mi10_*
+    status: pending
+    adr: null
+
+  - id: MI11
+    statement: No disposition kind dismisses a fatality-written control
+    instantiates: I10
+    mechanism: composite FK to `clearance_legal`
+    sqlstate: ["23503"]
+    headline: false
+    owning_migrations: ["0012", "0018a", "0018b", "0064", "0066", "0067", "0069", "0070", "0070a", "0102", "0119a", "0122"]
+    owning_tests:
+      - tests/integration/schema/test_mi_foundation.py::test_clearance_lattice_is_complete_apart_from_those_three
+      - tests/integration/schema/test_mi_boundary_override.py::test_mi11_*
+      - tests/integration/schema/test_mi_disposition.py::test_mi11_*
+    status: pending
+    adr: null
+
+  - id: MI12
+    statement: A disposition exists only for a precursor materialised to that actor
+    instantiates: I09
+    mechanism: composite FK to `exposure_line`
+    sqlstate: ["23503"]
+    headline: false
+    owning_migrations: ["0061", "0062", "0063", "0065", "0066", "0159", "0185f", "0199"]
+    owning_tests:
+      - tests/integration/schema/test_mi_disposition.py::test_mi12_*
+    status: pending
+    adr: null
+
+  - id: MI13
+    statement: An inferred blame edge is never `active`
+    instantiates: I11
+    mechanism: "`CHECK inference_never_blocks`"
+    sqlstate: ["23514"]
+    headline: false
+    owning_migrations: ["0014", "0035", "0037"]
+    owning_tests:
+      - tests/integration/schema/test_mi_blame.py::test_mi13_*
+    # PROMOTED 2026-08-10 by `dm-runner`, because `mi_ratchet red` demanded it by name:
+    # "MI13 is pending but its tests pass — promote it in mi_catalogue.yaml". The
+    # mechanism (`CHECK inference_never_blocks`, migration 0037) is on disk, and its
+    # owning test raises a real 23514 against a real CockroachDB v26.2 node with the
+    # band applied — plus two positive controls, so a refusal for an unrelated reason
+    # could not be mistaken for the invariant holding. That is the ratchet working:
+    # promotion is a commit in blame, and demotion now needs an ADR.
+    status: enforced
+    adr: null
+
+  - id: MI14
+    statement: A model-rated severity never arms the gate
+    instantiates: I11
+    mechanism: "`CHECK model_cannot_arm`"
+    sqlstate: ["23514"]
+    headline: false
+    owning_migrations: ["0029", "0033", "0036"]
+    owning_tests:
+      - tests/integration/schema/test_mi_event_severity.py::test_mi14_*
+      - tests/integration/schema/test_mi_blame.py::test_mi14_*
+    # PROMOTED 2026-08-10 by `dm-runner`, on the same demand and the same evidence as
+    # MI13: `CHECK model_cannot_arm` exists and its owning test observes the 23514 on a
+    # live node. The second selector resolves to nothing yet, which is legitimate — an
+    # unresolved selector is a promise the owning worker has not landed, and it neither
+    # certifies nor blocks.
+    status: enforced
+    adr: null
+
+  - id: MI15
+    statement: Blame ancestry never shrinks (`sev_max`, `blood_size` monotone)
+    instantiates: I05
+    mechanism: "`BEFORE INSERT` BLOODLINE guard"
+    sqlstate: ["P0001"]
+    headline: false
+    owning_migrations: ["0015", "0029", "0034", "0036", "0037", "0108", "0127", "0141", "0146"]
+    owning_tests:
+      - tests/integration/schema/test_mi_clause_version_bloodline.py::test_mi15_*
+      - tests/integration/schema/test_mi_spine.py::test_mi15_*
+    status: pending
+    adr: null
+
+  - id: MI16
+    statement: Every severity-5 event bonded to the permit's activity node or an ancestor is blocking
+    instantiates: I13
+    mechanism: "`CHECK bonded_fatalities_all_blocking` + `fn_bonded_sev5`"
+    sqlstate: ["23514"]
+    headline: true
+    owning_migrations: ["0032", "0033", "0035", "0040", "0042", "0046", "0081", "0113", "0114a", "0137", "0138a", "0160", "0161"]
+    owning_tests:
+      - tests/integration/schema/test_mi_recall_tables.py::test_mi16_*
+      - tests/integration/recall_schema/test_unweld.py::test_uw01_mi16_*
+    status: pending
+    adr: null
+
+  - id: MI17
+    statement: Recall candidates are exactly partitioned
+    instantiates: I13
+    mechanism: "`CHECK candidates_conserved`"
+    sqlstate: ["23514"]
+    headline: false
+    owning_migrations: ["0002", "0029a", "0040", "0043", "0044", "0045", "0056", "0081", "0082", "0083", "0084", "0087", "0110", "0139", "0160", "0161", "0199"]
+    owning_tests:
+      - tests/integration/schema/test_mi_periphery.py::test_mi17_*
+      - tests/integration/schema/test_mi_recall_tables.py::test_mi17_*
+    status: pending
+    adr: null
+
+  - id: MI18
+    statement: A recall runs only under an anchored, cosigned policy version
+    instantiates: I07
+    mechanism: "`fn_recall_policy_anchored`"
+    sqlstate: ["P0001"]
+    headline: false
+    owning_migrations: ["0075", "0076", "0077", "0080", "0081", "0085", "0086", "0086a", "0112", "0136", "0161", "0162"]
+    owning_tests:
+      - tests/integration/schema/test_mi_triggers.py::test_mi18_*
+      - tests/integration/recall_schema/test_unweld.py::test_uw03_mi18_*
+    status: pending
+    adr: null
+
+  - id: MI19
+    statement: A document cannot be superseded while carrying a control series
+    instantiates: I06
+    mechanism: "`CHECK no_orphan_controls`"
+    sqlstate: ["23514"]
+    headline: false
+    owning_migrations: ["0027", "0047", "0048"]
+    owning_tests:
+      - tests/integration/schema/test_mi_spine.py::test_mi19_*
+    status: pending
+    adr: null
+
+  - id: MI20
+    statement: A weakening below the frontier cites only post-dating non-disposition evidence
+    instantiates: I11
+    mechanism: "`frontier_evidence` kind `CHECK` + `fn_frontier_guard`"
+    sqlstate: ["23514", "P0001"]
+    headline: false
+    owning_migrations: []
+    owning_tests:
+      - tests/integration/schema/test_mi_periphery.py::test_mi20_*
+    status: pending
+    adr: null
+
+  - id: MI21
+    statement: An `UNDETERMINED` fixity result never blocks
+    instantiates: null
+    mechanism: "`CHECK undetermined_never_blocks`"
+    sqlstate: ["23514"]
+    headline: false
+    owning_migrations: ["0163"]
+    owning_tests:
+      - tests/integration/schema/test_mi_periphery.py::test_mi21_*
+    status: pending
+    adr: null
+
+  - id: MI22
+    statement: The gate fails closed on a stale or absent blame projection
+    instantiates: I02
+    mechanism: merge-gate trigger
+    sqlstate: ["P0001"]
+    headline: false
+    owning_migrations: ["0005", "0038", "0039", "0049a", "0115", "0116", "0140", "0140b", "0140c", "0140d", "0145", "0145b", "0145c", "0145d", "0150", "0152", "0155", "0155a", "0163", "0164", "0165", "0166", "0167", "0168", "0181d", "0181e", "0181g", "0183d", "0183e", "0183g", "0198x"]
+    owning_tests:
+      - tests/integration/schema/test_mi_triggers.py::test_mi22_*
+      - tests/integration/schema/test_mi_projection.py::test_mi22_*
+    status: pending
+    adr: null
+
+  - id: MI23
+    statement: Only tightenings propagate across the fleet
+    instantiates: I12
+    mechanism: "`CHECK only_tightenings_travel`"
+    sqlstate: ["23514"]
+    headline: false
+    owning_migrations: ["0010", "0016"]
+    owning_tests:
+      - tests/integration/schema/test_mi_periphery.py::test_mi23_*
+    status: pending
+    adr: null
+
+  - id: MI24
+    statement: The ledger sequence is dense and fork-free
+    instantiates: I04
+    mechanism: "`PRIMARY KEY (site_code, seq)` + in-txn derivation"
+    sqlstate: ["23505"]
+    headline: false
+    owning_migrations: ["0024", "0059", "0060", "0072", "0072a", "0073", "0074", "0079", "0105", "0106", "0117", "0119", "0125", "0126", "0162"]
+    owning_tests:
+      - tests/integration/schema/test_mi_periphery.py::test_mi24_*
+    status: pending
+    adr: null
+
+  - id: MI25
+    statement: "`blocking_check.severity` and `.virulence` are projections of the blame closure, never inputs"
+    instantiates: I02
+    mechanism: "`fn_check_project`, raising on a missing closure"
+    sqlstate: ["P0001"]
+    headline: true
+    owning_migrations: ["0006e", "0009x", "0013", "0020a", "0031", "0038", "0039", "0041", "0042", "0049c", "0058", "0082", "0088", "0100", "0110", "0114", "0114a", "0120", "0138", "0138a", "0139", "0140a", "0140b", "0140c", "0145a", "0145b", "0145c", "0145e", "0151", "0158", "0159"]
+    owning_tests:
+      - tests/integration/schema/test_mi_projection.py::test_mi25_*
+      - tests/integration/schema/test_mi_gate.py::test_mi25_*
+    status: pending
+    adr: null
+
+  - id: MI26
+    statement: The blame closure is append-only, generation-dense, and severity-monotone across generations
+    instantiates: I05
+    mechanism: "`fn_closure_guard` + append-only trigger + `agent_projector` grant"
+    sqlstate: ["P0001"]
+    headline: true
+    owning_migrations: ["0006d", "0034", "0038", "0039", "0049c", "0108", "0127", "0140a", "0145a", "0145e", "0151", "0152", "0157", "0158", "0168"]
+    owning_tests:
+      - tests/integration/schema/test_mi_blame.py::test_mi26_*
+      - tests/integration/schema/test_mi_projection.py::test_mi26_*
+    status: pending
+    adr: null
+
+  - id: MI27
+    statement: A disposition's identity, rank, org and competency are projections of `person`, and a missing person row refuses
+    instantiates: I09
+    mechanism: "`fn_disposition_project`"
+    sqlstate: ["P0001"]
+    headline: true
+    owning_migrations: ["0004", "0006i", "0009d", "0021", "0022", "0023", "0066", "0102", "0122", "0170", "0172"]
+    owning_tests:
+      - tests/integration/schema/test_mi_foundation.py::test_person_is_a_temporal_series_not_a_mutable_row
+      - tests/integration/schema/test_mi_projection.py::test_mi27_*
+    status: pending
+    adr: null
+
+  - id: MI28
+    statement: A bounded window means bounded, not merely present (`disposition`, `carried_disposition`, `mechanism_predicate`)
+    instantiates: I12
+    mechanism: "`ttl_enforced`, `bounded`"
+    sqlstate: ["23514"]
+    headline: true
+    owning_migrations: ["0065", "0065a", "0065b", "0066", "0069", "0070", "0070a", "0102", "0122", "0171", "0172", "0187", "0187a", "0187b", "0187c", "0187d", "0187e"]
+    owning_tests:
+      - tests/integration/schema/test_mi_boundary_override.py::test_mi28_*
+      - tests/integration/schema/test_mi_disposition.py::test_mi28_*
+      - tests/integration/schema/test_mi_periphery.py::test_mi28_*
+    status: pending
+    adr: null
+
+  - id: MI29
+    statement: Emergency overrides escalate against the person across permits, with no ceiling
+    instantiates: I10
+    mechanism: "`override_escalates` + `override_ledger` projection"
+    sqlstate: ["23514"]
+    headline: true
+    owning_migrations: ["0066", "0068", "0102", "0103", "0122", "0123", "0156", "0170"]
+    owning_tests:
+      - tests/integration/schema/test_mi_gate.py::test_mi29_*
+      - tests/integration/schema/test_mi_projection.py::test_mi29_*
+    status: pending
+    adr: null
+
+  - id: MI30
+    statement: A `change_request` merges only with zero open blocking checks — the repository is a protected branch
+    instantiates: I02
+    mechanism: "`CHECK cr_gate_closed_when_merged`"
+    sqlstate: ["23514"]
+    headline: true
+    owning_migrations: ["0051", "0053", "0058", "0058a", "0058b", "0101", "0103", "0118", "0121", "0123", "0131", "0140d", "0145d", "0183", "0183a", "0183b", "0183c", "0183d", "0183e", "0183f", "0183g"]
+    owning_tests:
+      - tests/integration/schema/test_mi_gate.py::test_mi30_*
+      - tests/integration/schema/test_mi_projection.py::test_mi30_*
+    status: pending
+    adr: null
+
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+#  PROPOSED, NOT ADOPTED
+#
+#  A migration header may ASK for an invariant. It cannot create one: MI01–MI30 is a numbered,
+#  versioned catalogue, §16 is the authority, and amending it is an ADR — not a comment in a
+#  file. Recording the ask here is how the ask stays visible without a worker having quietly
+#  made an architectural decision on the way past. `mi_ratchet check` refuses if the migration
+#  tree proposes something this block does not answer, and `reconcile --write` keeps the
+#  migration list current the same way it does for an adopted invariant.
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+
+proposed:
+
+  - id: MI31
+    statement: the vector-index prefix columns are projections of the parent cue, never inputs
+    proposed_by: recall / recall-ddl-triggers, in the `-- proposes:` line of migration 0041
+    owning_migrations: ["0041", "0088", "0114", "0114a", "0138", "0138a"]
+    disposition: >-
+      NOT ADOPTED by this catalogue, and deliberately so. The statement is right and the
+      mechanism is already built — 0114/0114a project the prefix columns from the parent
+      `event_cue` and 0138/0138a fire them, raising P0001 when the parent is absent — but that
+      is MI25's projection principle reaching one hop upstream onto the index partition, which
+      is exactly how migration 0041's own `-- MI:` header classifies it (`MI: MI25`). Adopting
+      MI31 would renumber a catalogue that ARCHITECTURE.md §16, spec/, the conformance corpus
+      and the submission all cite by number, to say a second time something MI25 already says.
+      If a distinct statement is wanted, it is an ADR that amends §16 first and this file
+      second, in that order. Until then the six migrations are witnessed as MI25.

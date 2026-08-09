@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ELECTRICAL-SAFETY",
+    "barrier_role": "recovery",
+    "control_class": "EARTH_LEAKAGE_PROTECTION",
+    "control_delta": "restate",
+    "control_label": "earth leakage and protection setting integrity",
+    "doc_code": "PRO-ELE-008",
+    "doc_family": "PRO",
+    "doc_title": "Electrical Isolation and Access to Switchgear",
+    "effective_on": "2019-02-28",
+    "printed_label": "2.2.2",
+    "setpoint": null,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "4d22690a8f6b113380d52408ccf584dccaa94461a32f1bd40fc688bc5d2abbc4",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/PRO-ELE-008/007#MRD/PRO-ELE-008/3.5",
+  "prompt_kind": "clause",
+  "prompt_sha256": "eaf73f08ffe8b43ec453a6ea8b94e783cf40632c0b46c759ef9aaea904867f8b",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The earth leakage and protection setting integrity shall be provided and maintained wherever this procedure applies, and its condition shall be treated as a critical control. This clause applies to activities archived under ELECTRICAL-SAFETY at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "06e7cc8c564e339e7e63bec81fd90496a2e37dd1093f9d586cd310987d2aabf7",
+  "source": null
+}

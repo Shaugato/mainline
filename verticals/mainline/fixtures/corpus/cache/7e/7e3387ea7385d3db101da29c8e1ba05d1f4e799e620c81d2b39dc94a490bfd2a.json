@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ELECTRICAL-SAFETY",
+    "barrier_role": "preventive",
+    "control_class": "POSITIVE_ISOLATION_APPLICATION",
+    "control_delta": "introduce",
+    "control_label": "application of positive isolation devices and personal locks",
+    "doc_code": "PRO-ELE-008",
+    "doc_family": "PRO",
+    "doc_title": "Electrical Isolation and Access to Switchgear",
+    "effective_on": "2004-08-30",
+    "printed_label": "2.6",
+    "setpoint": null,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "7e3387ea7385d3db101da29c8e1ba05d1f4e799e620c81d2b39dc94a490bfd2a",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/PRO-ELE-008/001#MRD/PRO-ELE-008/2.6",
+  "prompt_kind": "clause",
+  "prompt_sha256": "1ac9a41257a9a8c326e52e2d72019d12f56f67a1574da48436051d07855306cf",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The application of positive isolation devices and personal locks shall be provided and maintained for work covered by this procedure. This clause applies to activities archived under ELECTRICAL-SAFETY at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "57e9801a3ec6b73bf4d5fba6a7b763d830be3e3b69d6fbf4efcad679ca35439a",
+  "source": null
+}

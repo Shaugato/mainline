@@ -1,0 +1,40 @@
+{
+  "PolicyName": "default",
+  "Policy": {
+    "Version": "2012-10-17",
+    "Id": "mainline-custody-log-signing-key",
+    "Statement": [
+      {
+        "Sid": "AllowSequencerSignOnly",
+        "Effect": "Allow",
+        "Principal": {
+          "AWS": "arn:aws:iam::000000000000:role/mainline-sequencer"
+        },
+        "Action": [
+          "kms:Sign",
+          "kms:GetPublicKey",
+          "kms:DescribeKey"
+        ],
+        "Resource": "*",
+        "Condition": {
+          "StringEquals": {
+            "kms:SigningAlgorithm": "ECDSA_SHA_256"
+          }
+        }
+      },
+      {
+        "Sid": "DenyKeyDestructionOutsideBreakGlass",
+        "Effect": "Deny",
+        "NotPrincipal": {
+          "AWS": "arn:aws:iam::000000000000:role/mainline-break-glass-two-person"
+        },
+        "Action": [
+          "kms:ScheduleKeyDeletion",
+          "kms:DisableKey",
+          "kms:PutKeyPolicy"
+        ],
+        "Resource": "*"
+      }
+    ]
+  }
+}

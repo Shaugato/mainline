@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "barrier_role": "recovery",
+    "control_class": "SEAL_FACE_TEMPERATURE_ALARM",
+    "control_delta": "introduce",
+    "control_label": "seal-face high-temperature alarm and trip",
+    "doc_code": "ALERT-2016-007",
+    "doc_family": "ALERT",
+    "doc_title": "OEM Advisory - Mechanical Seal Support System Barrier Fluid Degradation",
+    "effective_on": "2016-03-22",
+    "printed_label": "1.2",
+    "setpoint": null,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "41d662f89c75b72ce92c1fbfd9df9874b754f4d32d68de2f256b3478f29b0a1f",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/ALERT-2016-007/001#MRD/ALERT-2016-007/1.2",
+  "prompt_kind": "clause",
+  "prompt_sha256": "d0ac32bdb6c9e544257f8e2e639688300f5abdb85f850bafac7127414ea4f251",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The seal-face high-temperature alarm and trip shall be provided and maintained for work covered by this safety alert. This clause applies to activities archived under CONTAINMENT-OF-HYDROCARBONS at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "479fc932de6b02c87c8e6b3bf5568fa1d6405a6d5bf0ccb9104d4908d8a2bd5e",
+  "source": null
+}

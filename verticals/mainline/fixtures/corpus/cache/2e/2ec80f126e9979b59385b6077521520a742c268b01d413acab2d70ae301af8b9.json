@@ -1,0 +1,91 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "insulating, guarding and signing hot surfaces",
+    "activity_root": "MOLTEN-AND-HOT-MATERIAL",
+    "activity_series": "protecting people from hot surfaces",
+    "assets": [
+      {
+        "asset_class": "BOIL-CLASS-A",
+        "label": "package boilers and deaerator",
+        "service": "process steam generation and feedwater deaeration",
+        "tag": "B-8201"
+      }
+    ],
+    "consequence": {
+      "days_lost": 4,
+      "injuries": 1,
+      "label": "lost time injury"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "HOT_SURFACE_GUARDING",
+        "control_label": "insulation, guarding and signing of hot surfaces",
+        "failure_mode": "ineffective",
+        "hazard_energy": "thermal",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "STEAM_SYSTEM_WARM_THROUGH",
+        "control_label": "controlled draining, venting and warm-through of steam systems",
+        "failure_mode": "absent",
+        "hazard_energy": "thermal",
+        "icam_tier": "organisational_factor"
+      }
+    ],
+    "event_ref": "NM-2011-0008",
+    "hazard_energy": "thermal",
+    "hazard_media": [
+      "hot surface",
+      "steam",
+      "molten material",
+      "hot work",
+      "exothermic reaction"
+    ],
+    "hazard_release": "burn, ignition, scald",
+    "kind": "near_miss",
+    "occurred_on": "2011-05-14",
+    "severity_actual": 3,
+    "severity_potential": 4,
+    "site": "Tolgarra Processing and Power Station",
+    "summary_facts": [],
+    "task_phase": "during a planned shutdown",
+    "title": "hazard report - thermal exposure at B-8201",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "2ec80f126e9979b59385b6077521520a742c268b01d413acab2d70ae301af8b9",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2011-0008",
+  "prompt_kind": "icam",
+  "prompt_sha256": "bd8838edac452968cd64cc190d2e44c3a128b273bd1cb94fad660b30bc1d1067",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was lost time injury, with 1 person injured and 4 days lost. The potential outcome was rated 4 against the site's consequence scale, above the 3 actually realised.",
+    "defences": [
+      {
+        "control_class": "HOT_SURFACE_GUARDING",
+        "finding": "Control HOT_SURFACE_GUARDING: the insulation, guarding and signing of hot surfaces was in place but did not perform, and the root cause analysis classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "STEAM_SYSTEM_WARM_THROUGH",
+        "finding": "Control STEAM_SYSTEM_WARM_THROUGH: the controlled draining, venting and warm-through of steam systems was not in place, and the root cause analysis classified this as an organisational factor."
+      }
+    ],
+    "recommendations": [
+      "Restore the insulation, guarding and signing of hot surfaces on B-8201 and record the field verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in protecting people from hot surfaces, specifically insulating, guarding and signing hot surfaces. B-8201 (package boilers and deaerator) is in service for process steam generation and feedwater deaeration. The task proceeded during a planned shutdown while the insulation, guarding and signing of hot surfaces was in place but did not perform. The thermal energy involved is held as hot surface, and the recorded presentation was burn, ignition, scald.",
+    "summary": "On 14 May 2011 a hazard report was recorded on B-8201 at Tolgarra Processing and Power Station during a planned shutdown; thermal energy held as hot surface was not released."
+  },
+  "response_sha256": "db044aa9437217bc5f58343c1ea35704408def614283e1e9b5aa52a28f920cf2",
+  "source": null
+}

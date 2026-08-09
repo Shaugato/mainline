@@ -1,0 +1,90 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "establishing and enforcing exclusion zones below",
+    "activity_root": "WORKING-AT-HEIGHT",
+    "activity_series": "preventing dropped objects",
+    "assets": [
+      {
+        "asset_class": "MOB-CLASS-H",
+        "label": "haul trucks",
+        "service": "waste and ore haulage",
+        "tag": "HT-9005"
+      }
+    ],
+    "consequence": {
+      "days_lost": 90,
+      "injuries": 2,
+      "label": "serious injury requiring hospitalisation"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "ANCHOR_POINT_CERTIFICATION",
+        "control_label": "certification and identification of anchor points",
+        "failure_mode": "not_verified",
+        "hazard_energy": "gravity",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "FALL_ARREST_PROVISION",
+        "control_label": "selection, inspection and use of fall arrest equipment",
+        "failure_mode": "absent",
+        "hazard_energy": "gravity",
+        "icam_tier": "organisational_factor"
+      }
+    ],
+    "event_ref": "INC-2012-013",
+    "hazard_energy": "gravity",
+    "hazard_media": [
+      "suspended load",
+      "stored potential of an elevated component",
+      "unsupported ground",
+      "person at height"
+    ],
+    "hazard_release": "fall, collapse, crush",
+    "kind": "incident",
+    "occurred_on": "2012-10-06",
+    "severity_actual": 4,
+    "severity_potential": 4,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during shift handover",
+    "title": "gravity release during shift handover on HT-9005",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "85c15b9de6b57294281aadfcd4800ba8594a74eb5d2f460ef52b2f062bb148b1",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2012-013",
+  "prompt_kind": "icam",
+  "prompt_sha256": "73f165da1ab28cce6b39894776e75b1fdb7ee02f1972581a887d2005a7166566",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was serious injury requiring hospitalisation, with 2 persons injured and 90 days lost.",
+    "defences": [
+      {
+        "control_class": "ANCHOR_POINT_CERTIFICATION",
+        "finding": "Control ANCHOR_POINT_CERTIFICATION: the certification and identification of anchor points was never verified as effective, and the root cause analysis classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "FALL_ARREST_PROVISION",
+        "finding": "Control FALL_ARREST_PROVISION: the selection, inspection and use of fall arrest equipment was not in place, and the root cause analysis classified this as an organisational factor."
+      }
+    ],
+    "recommendations": [
+      "Restore the certification and identification of anchor points on HT-9005 and record the field verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in preventing dropped objects, specifically establishing and enforcing exclusion zones below. HT-9005 (haul trucks) is in service for waste and ore haulage. The task proceeded during shift handover while the certification and identification of anchor points was never verified as effective. The gravity energy involved is held as suspended load, and the recorded presentation was fall, collapse, crush.",
+    "summary": "On 6 October 2012 an incident occurred on HT-9005 at Yandarra Downs Open Cut and Heavy Workshop during shift handover, releasing gravity energy held as suspended load."
+  },
+  "response_sha256": "a7a6cc657caf9298cd17b5029bd69660ac0b665dce553dc33fea68efc9e4311d",
+  "source": null
+}

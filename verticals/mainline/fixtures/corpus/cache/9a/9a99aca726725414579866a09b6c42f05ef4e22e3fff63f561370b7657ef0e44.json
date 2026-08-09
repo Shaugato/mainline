@@ -1,0 +1,45 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 4,
+    "doc_codes": [
+      "PRO-ELE-008"
+    ],
+    "intent": "restate",
+    "moc_ref": "MOC-2025-0217",
+    "opened_on": "2025-11-06",
+    "precursor_events": [
+      {
+        "event_ref": "INC-2023-004",
+        "severity_gate": null
+      },
+      {
+        "event_ref": "OEM-2026-002",
+        "severity_gate": null
+      }
+    ],
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "management_of_change": "change assurance",
+      "verification": "assurance activity"
+    },
+    "weakening_steps": 0
+  },
+  "key": "9a99aca726725414579866a09b6c42f05ef4e22e3fff63f561370b7657ef0e44",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2025-0217",
+  "prompt_kind": "moc",
+  "prompt_sha256": "d2093033bc79668877608280079e050ad1bcad44eb7f314c32e9a727579ba717",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2025-0217 was raised at Marrindal Concentrator and Hydrocarbon Transfer Facility on 6 November 2025 following 2 recorded events in the archive, including INC-2023-004 and OEM-2026-002. The change assurance record covers 4 clauses across 1 controlled document. The intent is to restate an existing duty without altering what it requires. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the material unwanted event control set is preserved.",
+    "scope_note": "The documents in scope are PRO-ELE-008."
+  },
+  "response_sha256": "7c0908353e5ba317cc2843481f318bb13103805cb0a03ffeffa7c7b2877ff2e2",
+  "source": null
+}

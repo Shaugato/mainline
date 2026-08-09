@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "barrier_role": "recovery",
+    "control_class": "SEAL_FACE_TEMPERATURE_ALARM",
+    "control_delta": "restate",
+    "control_label": "seal-face high-temperature alarm and trip",
+    "doc_code": "PTW-STD-003",
+    "doc_family": "PTW",
+    "doc_title": "Permit to Work Form Set",
+    "effective_on": "2021-01-29",
+    "printed_label": "5.2.2",
+    "setpoint": null,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "0e8574fd8f4aab2e24618f1feb204f8e64eb06db0a0904abaa7c4e0360dbc9fa",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:CVY/PTW-STD-003/005#CVY/PTW-STD-003/3.5.2(b)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "7c41ce113928407711ab2599cdfe753e0b0cb024f519f5b179407bb9eeee9273",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The seal-face high-temperature alarm and trip shall be provided and maintained wherever this permit-to-work form set applies, and its condition shall be treated as a critical control. This clause applies to activities archived under CONTAINMENT-OF-HYDROCARBONS at Cape Verity Export Terminal.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "41b3a4c41b276de3e1d5fdd82aec2c422bb53e5a3f01e1a6121bf55ac1528dda",
+  "source": null
+}

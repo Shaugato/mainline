@@ -1,0 +1,76 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
+
+[project]
+name = "mainline-quarantine"
+version = "0.1.0"
+description = "The six-layer prompt-injection posture of ARCHITECTURE.md 8.4, as executable controls."
+readme = "README.md"
+requires-python = ">=3.13"
+# FSL-1.1-ALv2 per the repository licence map (verticals/mainline/* is FSL).
+# The licence TEXT lives in the repo-root LICENSES/ tree, outside this project
+# directory, and therefore cannot be referenced by `license-files`.
+license = "LicenseRef-FSL-1.1-ALv2"
+authors = [{ name = "MAINLINE contributors" }]
+keywords = ["prompt-injection", "bedrock-guardrails", "anchors", "quarantine"]
+classifiers = [
+  "Programming Language :: Python :: 3.13",
+  "Typing :: Typed",
+  "Private :: Do Not Upload",
+]
+
+# THE EMPTY LIST IS THE POINT, and it is the same argument decision A1 makes
+# about `tools`.
+#
+# This distribution is the one that reads hostile text first. If it imported
+# anything that could reach a model, a database or the network, then the
+# component that touches the attacker's bytes would hold a capability, and
+# layer 1 of the posture would be a comment rather than a call shape.
+#
+# So: standard library only. `tests/security/injection/test_layers.py` walks
+# every import in `src/mainline_quarantine` and fails if a non-stdlib module
+# name appears outside a guarded optional block. That test is what makes this
+# empty list a claim rather than a coincidence.
+dependencies = []
+
+[project.optional-dependencies]
+# Layer 4 consumes the algorithms domain's ANCHORLOCK extractor when it is
+# installed, through the `AnchorExtractor` Protocol in `anchoring.py`. It is an
+# EXTRA and never a hard dependency: `mainline-domain` is FSL vertical code that
+# a fork may not have, and the fallback (a committed gazetteer plus the same
+# regex precedence) is real code rather than a stub. Importing it is done inside
+# a function, so the stdlib-only property above survives.
+domain = ["mainline-domain"]
+
+# The live Bedrock Guardrails leg (`ApplyGuardrail`). OFF by default and never
+# exercised in CI: AWS credentials are not valid on the build machine (PL-3), so
+# nothing on a dated path may require one. `LocalPromptAttackScreen` is what runs
+# offline, and it does NOT claim to be Guardrails — see README, "What the local
+# screen is not".
+bedrock = ["boto3>=1.35"]
+
+[tool.uv.sources]
+mainline-domain = { workspace = true }
+
+[dependency-groups]
+dev = [
+  "pytest>=8.3",
+  "mypy>=1.11",
+]
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mainline_quarantine"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "config", "README.md"]
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+warn_unreachable = true
+mypy_path = "src"
+packages = ["mainline_quarantine"]

@@ -1,0 +1,91 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "preventing water ingress to hot material",
+    "activity_root": "MOLTEN-AND-HOT-MATERIAL",
+    "activity_series": "operating hot and steam systems",
+    "assets": [
+      {
+        "asset_class": "ELEC-CLASS-A",
+        "label": "switchgear and transformers",
+        "service": "plant HV/LV distribution",
+        "tag": "SG-3100"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "HOT_SURFACE_GUARDING",
+        "control_label": "insulation, guarding and signing of hot surfaces",
+        "failure_mode": "ineffective",
+        "hazard_energy": "thermal",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "STEAM_SYSTEM_WARM_THROUGH",
+        "control_label": "controlled draining, venting and warm-through of steam systems",
+        "failure_mode": "absent",
+        "hazard_energy": "thermal",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "CAPA-2013-005",
+    "hazard_energy": "thermal",
+    "hazard_media": [
+      "hot surface",
+      "steam",
+      "molten material",
+      "hot work",
+      "exothermic reaction"
+    ],
+    "hazard_release": "burn, ignition, scald",
+    "kind": "capa",
+    "occurred_on": "2013-10-02",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during shift handover",
+    "title": "corrective action following root cause analysis at SG-3100",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "434e90cc7fe795d14eae70f6b9594350a40c1f6bb3b7f26931cb5a6e9faef279",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:CAPA-2013-005",
+  "prompt_kind": "icam",
+  "prompt_sha256": "680d6eac89238aba3bb05822a47a450f92c1a4c8ce5492050d0a6b1fefde5fa9",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "HOT_SURFACE_GUARDING",
+        "finding": "Control HOT_SURFACE_GUARDING: the insulation, guarding and signing of hot surfaces was in place but did not perform, and the root cause analysis classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "STEAM_SYSTEM_WARM_THROUGH",
+        "finding": "Control STEAM_SYSTEM_WARM_THROUGH: the controlled draining, venting and warm-through of steam systems was not in place, and the root cause analysis classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the controlled draining, venting and warm-through of steam systems on SG-3100 and record the field verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in operating hot and steam systems, specifically preventing water ingress to hot material. SG-3100 (switchgear and transformers) is in service for plant HV/LV distribution. The task proceeded during shift handover while the insulation, guarding and signing of hot surfaces was in place but did not perform. The thermal energy involved is held as hot surface, and the recorded presentation was burn, ignition, scald.",
+    "summary": "On 2 October 2013 a corrective action on SG-3100 at Marrindal Concentrator and Hydrocarbon Transfer Facility was reviewed against the critical safeguard it was raised to restore."
+  },
+  "response_sha256": "e412f3f6942546ad1dbd1d668f7c256539fdab219e71ade69e7d658b2720b770",
+  "source": null
+}

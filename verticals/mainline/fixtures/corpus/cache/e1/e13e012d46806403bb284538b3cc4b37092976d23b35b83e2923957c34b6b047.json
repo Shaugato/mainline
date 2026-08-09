@@ -1,0 +1,105 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "transferring hydrocarbon between vessels",
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "activity_series": "managing hydrocarbon transfer and storage",
+    "assets": [
+      {
+        "asset_class": "ESD-CLASS-A",
+        "label": "emergency shutdown valves",
+        "service": "jetty and manifold emergency isolation",
+        "tag": "ZV-7212"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "BUND_AND_DRAINAGE_CONTAINMENT",
+        "control_label": "secondary containment by bund and drainage",
+        "failure_mode": "degraded",
+        "hazard_energy": "chemical",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "HYDROCARBON_TRANSFER_CONTROL",
+        "control_label": "controlled transfer of hydrocarbon between vessels",
+        "failure_mode": "bypassed",
+        "hazard_energy": "pressure",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "SEAL_FACE_TEMPERATURE_ALARM",
+        "control_label": "seal-face high-temperature alarm and trip",
+        "failure_mode": "bypassed",
+        "hazard_energy": "chemical",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "INC-2017-005",
+    "hazard_energy": "pressure",
+    "hazard_media": [
+      "hydraulic accumulator",
+      "barrier fluid",
+      "process gas",
+      "steam header",
+      "compressed air",
+      "trapped liquid"
+    ],
+    "hazard_release": "jet release, stored-energy discharge, rupture",
+    "kind": "incident",
+    "occurred_on": "2017-07-09",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Cape Verity Export Terminal",
+    "summary_facts": [],
+    "task_phase": "during shift handover",
+    "title": "loss of containment at ZV-7212 during shift handover",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "e13e012d46806403bb284538b3cc4b37092976d23b35b83e2923957c34b6b047",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2017-005",
+  "prompt_kind": "icam",
+  "prompt_sha256": "58a00493b7fc6641586297cfb5c5fdbeacd75f9c427aad2b4319f65ae4bb9ab3",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "BUND_AND_DRAINAGE_CONTAINMENT",
+        "finding": "Control BUND_AND_DRAINAGE_CONTAINMENT: the secondary containment by bund and drainage had degraded below its design intent, and the ICAM investigation classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "HYDROCARBON_TRANSFER_CONTROL",
+        "finding": "Control HYDROCARBON_TRANSFER_CONTROL: the controlled transfer of hydrocarbon between vessels had been bypassed, and the ICAM investigation classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "SEAL_FACE_TEMPERATURE_ALARM",
+        "finding": "Control SEAL_FACE_TEMPERATURE_ALARM: the seal-face high-temperature alarm and trip had been bypassed, and the ICAM investigation classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Restore the secondary containment by bund and drainage on ZV-7212 and record the critical control verification before this task is next authorised.",
+      "Restore the controlled transfer of hydrocarbon between vessels on ZV-7212 and record the critical control verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in managing hydrocarbon transfer and storage, specifically transferring hydrocarbon between vessels. ZV-7212 (emergency shutdown valves) is in service for jetty and manifold emergency isolation. The task proceeded during shift handover while the secondary containment by bund and drainage had degraded below its design intent. The pressure energy involved is held as hydraulic accumulator, and the recorded presentation was jet release, stored-energy discharge, rupture.",
+    "summary": "On 9 July 2017 an incident occurred on ZV-7212 at Cape Verity Export Terminal during shift handover, releasing pressure energy held as hydraulic accumulator."
+  },
+  "response_sha256": "0ef9bad33f3271df65e67511e332b3ef62c659a8196f451bf05591b89083b9cf",
+  "source": null
+}

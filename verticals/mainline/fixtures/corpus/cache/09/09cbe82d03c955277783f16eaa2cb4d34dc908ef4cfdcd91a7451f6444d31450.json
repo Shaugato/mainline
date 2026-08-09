@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 22,
+    "doc_code": "STD-HTW-004",
+    "doc_family": "STD",
+    "doc_title": "Hot Work",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2005-01-19",
+    "required_citations": [
+      {
+        "control_label": "seal-face high-temperature alarm and trip",
+        "event_ref": "INC-2004-008",
+        "event_title": "injury during transfer operations on TK-4210",
+        "hazard_energy": "pressure",
+        "kind": "investigation_recommendation",
+        "quote_ref": "quote:MRD/STD-HTW-004/001#investigation_recommendation/INC-2004-008",
+        "severity_gate": 2
+      }
+    ],
+    "rev_no": 1,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "accident investigation",
+      "management_of_change": "engineering change note",
+      "near_miss": "near hit"
+    }
+  },
+  "key": "09cbe82d03c955277783f16eaa2cb4d34dc908ef4cfdcd91a7451f6444d31450",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/STD-HTW-004/001",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "b3ba2e439ce31527eeddca66e917e28136faf04aafd494d18623dfe9f06aa109",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The accident investigation into INC-2004-008 recommended that the seal-face high-temperature alarm and trip be strengthened in this standard.",
+        "quote_ref": "quote:MRD/STD-HTW-004/001#investigation_recommendation/INC-2004-008"
+      }
+    ],
+    "reason": "Scheduled review at revision 1; 22 clauses restated."
+  },
+  "response_sha256": "feb2d9b67e0a2c96c834df6eeaa2e08dc106608eae8615dcb726de75347aee68",
+  "source": null
+}

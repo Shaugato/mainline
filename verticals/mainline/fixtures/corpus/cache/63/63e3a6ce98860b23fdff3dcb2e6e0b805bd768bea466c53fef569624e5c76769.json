@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "barrier_role": "preventive",
+    "control_class": "HYDROCARBON_TRANSFER_CONTROL",
+    "control_delta": "introduce",
+    "control_label": "controlled transfer of hydrocarbon between vessels",
+    "doc_code": "PTW-STD-003",
+    "doc_family": "PTW",
+    "doc_title": "Permit to Work Form Set",
+    "effective_on": "2006-05-30",
+    "printed_label": "4.2",
+    "setpoint": {
+      "from": 90.0,
+      "key": "tank_level_high_high",
+      "label": "tank high-high level trip",
+      "strengthen_direction": "lower",
+      "to": 90.0,
+      "unit": "%"
+    },
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "63e3a6ce98860b23fdff3dcb2e6e0b805bd768bea466c53fef569624e5c76769",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:CVY/PTW-STD-003/001#CVY/PTW-STD-003/4.2",
+  "prompt_kind": "clause",
+  "prompt_sha256": "804863fec30883bc216560f4a19168935d2d1484ec00c6679395b6bf1eb49e9b",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The controlled transfer of hydrocarbon between vessels shall be provided and maintained for work covered by this permit-to-work form set. The tank high-high level trip shall be set at 90 %. This clause applies to activities archived under CONTAINMENT-OF-HYDROCARBONS at Cape Verity Export Terminal.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "fae049985bfa0b9aa6e745cea40ae4ee7cbe734cc3fa19d69828c72497c0ea9d",
+  "source": null
+}

@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "barrier_role": "preventive",
+    "control_class": "ISOLATION_HANDBACK_CONTROL",
+    "control_delta": "restate",
+    "control_label": "controlled removal of isolation and return to service",
+    "doc_code": "STD-PTW-001",
+    "doc_family": "STD",
+    "doc_title": "Permit to Work",
+    "effective_on": "2022-10-04",
+    "printed_label": "4.1.2",
+    "setpoint": null,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "energy_isolation": "positive isolation verification",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "fdbbcbc7d4d41696d87c768dbc2fb624a9d91d4af2cf0097fb2be4cafb560563",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/STD-PTW-001/007#MRD/STD-PTW-001/2.1.3(b)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "e081a078a19bb34f8aec630e33e6b24db60769af25a1415fdd4bf292e642013c",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The controlled removal of isolation and return to service shall be provided and maintained wherever this standard applies, and its condition shall be treated as a material unwanted event control. This clause applies to activities archived under ISOLATION-OF-STORED-ENERGY at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "1f8eebb9ec58f494b170fb870e74f4b9c2e9b20547d45bfa6f6c4b6ee3e3e589",
+  "source": null
+}

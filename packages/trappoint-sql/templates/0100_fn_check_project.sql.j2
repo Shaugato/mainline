@@ -1,0 +1,141 @@
+{# SPDX-FileCopyrightText: 2026 MAINLINE contributors #}
+{# SPDX-License-Identifier: Apache-2.0 #}
+{# @projects blocking_check.severity, blocking_check.virulence, blocking_check.closure_gen #}
+{#
+  Migration 0100 — THE FIRST BEHAVIOURAL CLAIM IN THE REPOSITORY.
+
+  ARCHITECTURE.md §5.11 item 1 · §2.2 finding S1 · §16 MI25 · spec/binding/authority-source.md §4.
+
+  Everything up to this file is shape: schemas, roles, types, tables, constraints. This is the
+  first file that makes the database DO something a writer did not ask for, and what it does is
+  the whole company:
+
+      an agent inserts a blocking check claiming severity = 1 and virulence = 'routine'
+      on a clause whose blame closure holds max_severity = 5, and the row that lands
+      reads (5, 'blood_fatal').
+
+  Finding S1 in one sentence: `disposition.virulence` used to be copied from
+  `blocking_check.virulence`, and `blocking_check.virulence` was an INPUT. An LLM-driven role
+  that could write a check could therefore choose the virulence class, and the clearance lattice
+  — the mechanism that makes `mechanism_absent` on a fatality-written control a 23503 — would be
+  enforcing a claim the writer made about itself. The flagship claim was launderable one hop
+  upstream. The fix is not a grant and not a review step: `severity`, `virulence` and
+  `closure_gen` become PROJECTIONS, overwritten from the closure REGARDLESS of what the inserter
+  supplied, and a missing closure row REFUSES.
+
+  THREE PROPERTIES OF THIS FILE ARE CONTRACTUAL (spec/binding/authority-source.md §4):
+
+    1. The assignment is UNCONDITIONAL. There is no `IF NEW.severity IS NULL` guard, so a
+       correct guess confers no privilege and a wrong one is silently corrected rather than
+       argued with. A guard would make the column an input again for every writer who bothers
+       to leave it null.
+    2. The `IF … IS NULL THEN RAISE` block is NOT OPTIONAL. It is emitted from `on_missing`, and
+       `on_missing` has exactly one legal value, so the refusal cannot be configured away.
+    3. The three `-- @projects` / `-- @authority` / `-- @on_missing` header lines are
+       machine-readable, so `trappoint render --check` and `trappoint migrate lint` can verify
+       that the committed SQL still corresponds to the declaration that produced it.
+
+  WHY THE RELATION AND THE KEY COME FROM THE BINDING AND THE COLUMN NAMES DO NOT.
+  `severity`, `virulence` and `closure_gen` are SUBSTRATE column names — they are named in
+  spec/TRAPPOINT-SPEC.md and a vertical may not rename them, exactly as a vertical may not
+  rename `person`. The authority RELATION is the vertical's: MAINLINE derives from
+  `mainline.clause_blame_current`, the reference vertical from
+  `trappoint_ref.clause_blame_current`, and the two sides of the lookup are NAMED DIFFERENTLY
+  (`commit_id` on the projected row against `as_of_commit` on the closure), which is why
+  `key_columns` exists and why this template reads both.
+
+  THE NULL PROBE IS ON THE FIRST PROJECTED COLUMN, and that is a constraint on the binding, not
+  an accident: the first entry of `columns` must be NOT NULL in the authority relation, or a
+  present-but-null authority row would read as an absent one. In both shipped bindings that
+  column is `max_severity`, declared `INT2 NOT NULL`.
+
+  PLATFORM (measured on CockroachDB CCL v26.2.5, local single node, 2026-08-09):
+  a column of `NEW`/`OLD` must be read as `(NEW).col` — the unparenthesised PostgreSQL spelling
+  used throughout ARCHITECTURE.md §5.11 CREATES SUCCESSFULLY and then fails at EXECUTION with
+  `42P01: no data source matches prefix: new in this context`. A SQLSTATE outside the refusal
+  taxonomy, raised the first time the gate is actually exercised, is the worst possible failure
+  mode for this file, so every read here is parenthesised. Assignment targets are NOT
+  parenthesised (`NEW.severity := …`), which is also measured.
+#}
+{% set coltype = {
+     'severity':    'INT2',
+     'virulence':   binding.schema ~ '.virulence_class',
+     'closure_gen': 'INT8',
+   } %}
+{% set ns = namespace(entry=none) %}
+{% for a in authority_sources %}
+{%   if 'blocking_check.severity' in a.projects %}{% set ns.entry = a %}{% endif %}
+{% endfor %}
+{% if ns.entry is none %}{{ binding_declares_no_authority_source_for_blocking_check_severity }}{% endif %}
+{% set e = ns.entry %}
+{% set names = [] %}{% for p in e.projects %}{% set _ = names.append(p.split('.')[1]) %}{% endfor %}
+{% set reads = [] %}{% for c in e.columns %}{% set _ = reads.append('c.' ~ c) %}{% endfor %}
+{% set intos = [] %}{% for n in names %}{% set _ = intos.append('v_' ~ n) %}{% endfor %}
+{% set preds = [] %}{% for kc in e.key_columns %}{% set _ = preds.append('c.' ~ kc ~ ' = (NEW).' ~ e.key[loop.index0]) %}{% endfor %}
+-- @file 0100_fn_check_project.sql
+{{ header(file='0100_fn_check_project.sql',
+          title='CREATE FUNCTION ' ~ binding.schema ~ '.fn_check_project — severity and virulence are projections, never inputs',
+          rationale='Finding S1: the flagship claim was launderable one hop upstream, because an LLM-driven role that could write a blocking check could choose its virulence class and the clearance lattice would then enforce a claim the writer made about itself. This function overwrites severity, virulence and closure_gen from the blame closure regardless of what the inserter supplied, and refuses with P0001 when no closure row exists. Absence of evidence refuses; it never defaults.',
+          mi=['MI25', 'MI01'], i=['I02']) }}
+--
+-- migration:  0100_fn_check_project
+-- band:       0100-0109z · kernel/projection-triggers · RENDERED
+--             Allocated by verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1).
+-- statements: 1
+-- invariants: MI25 — blocking_check.severity and .virulence are projections of the blame
+--             closure, never inputs; raising on a missing closure is the whole of it.
+-- source:     ARCHITECTURE.md §5.11 item 1 · §2.2 S1 · §16 MI25 ·
+--             spec/binding/authority-source.md §4 (this emission is normative there)
+-- requires:   {{ e.relation }} (the binding's declared authority relation) ·
+--             {{ binding.schema }}.blocking_check (migration 0058, RENDERED, kernel
+--             `obligation-and-clearance`) · {{ binding.schema }}.virulence_class (0013)
+-- provides:   {{ binding.schema }}.fn_check_project() — welded to blocking_check by 0120
+-- sqlstate:   P0001 when the closure lookup misses. NEVER a synthetic 23514/23503/23505:
+--             spec/errors.md §3.3 bans a synthetic constraint-backed code, because it produces
+--             an exhibit nobody can name.
+-- forward-only; no .down.sql exists at or below the protected floor, and under MR-5 no
+--             .up.sql either.
+--
+-- THE CONTRACT LINES BELOW ARE MACHINE-READABLE. `trappoint render --check` and the migration
+-- linter read them to confirm the committed SQL still corresponds to the declaration that
+-- produced it, so they are not decoration and they are not free-text.
+--
+-- @projects {{ e.projects | join(', ') }}
+-- @authority {{ e.relation }} ({{ e.key_columns | join(', ') }}) <= NEW ({{ e.key | join(', ') }})
+-- @on_missing raise
+--
+-- WHAT A REVIEWER SHOULD CHECK, IN ORDER:
+--   (a) there is no `IF … IS NULL` guard around the assignments — the overwrite is total;
+--   (b) the RAISE is P0001 and its message begins '{{ binding.name }}: ';
+--   (c) nothing in the body reads a column of the row being inserted except the lookup key.
+--       The projected columns are WRITE-ONLY here. If a future edit ever reads
+--       `(NEW).severity`, P-2 is broken and the render contract cannot see it.
+--
+-- ACYCLICITY. BEFORE INSERT on blocking_check, writing only to NEW. It reads one relation it
+-- can never write. Trigger depth contributed: 0.
+
+CREATE FUNCTION {{ binding.schema }}.fn_check_project() RETURNS TRIGGER LANGUAGE PLpgSQL AS $$
+DECLARE
+{% for n in names %}
+  v_{{ n }} {{ coltype[n] }};
+{% endfor %}
+BEGIN
+  -- The authority read. One row, addressed by the declared key, from a relation the role that
+  -- writes blocking_check may not write (rule A-6, asserted structurally at render time and by
+  -- privilege probe at migration time).
+  SELECT {{ reads | join(', ') }}
+    INTO {{ intos | join(', ') }}
+    FROM {{ e.relation }} c
+   WHERE {{ preds | join(' AND ') }};
+
+  IF v_{{ names[0] }} IS NULL THEN
+    RAISE EXCEPTION USING ERRCODE='P0001',
+      MESSAGE='{{ binding.name }}: no blame closure for this clause version — cannot arm a check';
+  END IF;
+
+  -- UNCONDITIONAL. A supplied value is overwritten whether or not it agrees.
+{% for n in names %}
+  NEW.{{ n }} := v_{{ n }};
+{% endfor %}
+  RETURN NEW;
+END $$;

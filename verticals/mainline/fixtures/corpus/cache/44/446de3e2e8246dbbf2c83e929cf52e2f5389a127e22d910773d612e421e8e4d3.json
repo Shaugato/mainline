@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "FIRE-AND-EMERGENCY-RESPONSE",
+    "barrier_role": "recovery",
+    "control_class": "FIRE_WATCH_PROVISION",
+    "control_delta": "introduce",
+    "control_label": "provision and briefing of a competent fire watch",
+    "doc_code": "STD-EMR-008",
+    "doc_family": "STD",
+    "doc_title": "Emergency Preparedness and Response",
+    "effective_on": "2006-09-12",
+    "printed_label": "4.4",
+    "setpoint": {
+      "from": 60.0,
+      "key": "fire_watch_duration_after_hot_work",
+      "label": "fire watch duration after completion of hot work",
+      "strengthen_direction": "higher",
+      "to": 60.0,
+      "unit": "min"
+    },
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "446de3e2e8246dbbf2c83e929cf52e2f5389a127e22d910773d612e421e8e4d3",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:CVY/STD-EMR-008/001#CVY/STD-EMR-008/4.4",
+  "prompt_kind": "clause",
+  "prompt_sha256": "0d8cb0f84d66d894ada8a9236ce756e7eb16a04698143a9d58c770e8077126f5",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The provision and briefing of a competent fire watch shall be provided and maintained for work covered by this standard. The fire watch duration after completion of hot work shall be set at 60 min. This clause applies to activities archived under FIRE-AND-EMERGENCY-RESPONSE at Cape Verity Export Terminal.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "bb885f2f17a7db2a8d4a45f79140a07bfee9cef5d980504102aa238ee9885c2b",
+  "source": null
+}

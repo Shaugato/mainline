@@ -41,6 +41,7 @@ from mainline_recall_agent.run.errors import ConservationViolated
 
 __all__ = [
     "BLOCKING_CAP_PROBABILISTIC",
+    "MAX_SEVERITY",
     "OUTCOMES",
     "CandidateRow",
     "ConservationReport",
@@ -53,9 +54,11 @@ OUTCOMES: Final[tuple[str, ...]] = ("blocking", "advisory", "silenced", "deduped
 #: Recall lead D2. Scoped to ``origin = 'recall_probabilistic'``; A and B are uncapped.
 BLOCKING_CAP_PROBABILISTIC: Final = 3
 
-_DETERMINISTIC_ORIGINS: Final[frozenset[str]] = frozenset(
-    {"deterministic_ancestry", "bonded"}
-)
+#: ``mainline.event.severity_gate`` runs 0..5. Five is a fatality, and a fatality never
+#: decays: MI16 is the reason this bound is named rather than typed twice.
+MAX_SEVERITY: Final = 5
+
+_DETERMINISTIC_ORIGINS: Final[frozenset[str]] = frozenset({"deterministic_ancestry", "bonded"})
 
 
 @dataclass(frozen=True, slots=True)
@@ -143,9 +146,9 @@ def enforce_conservation(
                 f"{row.event_id}: outcome {row.outcome!r} is outside {OUTCOMES}; the "
                 "database CHECK would refuse it and the partition would not close"
             )
-        if not 0 <= row.severity <= 5:
+        if not 0 <= row.severity <= MAX_SEVERITY:
             raise ConservationViolated(
-                f"{row.event_id}: severity {row.severity} is outside 0..5"
+                f"{row.event_id}: severity {row.severity} is outside 0..{MAX_SEVERITY}"
             )
         if not 0.0 <= row.p_relevant <= 1.0:
             raise ConservationViolated(

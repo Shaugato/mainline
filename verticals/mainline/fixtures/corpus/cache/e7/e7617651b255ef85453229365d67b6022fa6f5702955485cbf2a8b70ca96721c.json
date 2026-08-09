@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ELECTRICAL-SAFETY",
+    "barrier_role": "preventive",
+    "control_class": "ZERO_ENERGY_VERIFICATION",
+    "control_delta": "restate",
+    "control_label": "proving zero energy before intrusive work",
+    "doc_code": "STD-ELE-009",
+    "doc_family": "STD",
+    "doc_title": "Electrical Safety",
+    "effective_on": "2011-07-14",
+    "printed_label": "5.1.1(a)",
+    "setpoint": null,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "energy_isolation": "lock out tag out",
+      "verification": "field verification"
+    }
+  },
+  "key": "e7617651b255ef85453229365d67b6022fa6f5702955485cbf2a8b70ca96721c",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:TLG/STD-ELE-009/002#TLG/STD-ELE-009/5.1.1(a)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "3a294672798f54703b9e6e66c1acfb03c9447e850c79a225f27a58f2caf3452f",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The proving zero energy before intrusive work shall be provided and maintained wherever this standard applies, and its condition shall be treated as a critical safeguard. This clause applies to activities archived under ELECTRICAL-SAFETY at Tolgarra Processing and Power Station.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "2fbba2161c51511ef969fcf04d3271d241fcbcb22c01c878ff417fcebca93219",
+  "source": null
+}

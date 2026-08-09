@@ -1,0 +1,92 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "clearing misfires and handling residue",
+    "activity_root": "EXPLOSIVES-AND-BLASTING",
+    "activity_series": "charging and firing",
+    "assets": [
+      {
+        "asset_class": "MAG-CLASS-A",
+        "label": "explosives magazines",
+        "service": "explosives and detonator storage",
+        "tag": "MAG-9601"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "BLAST_GUARDING_AND_CLEARANCE",
+        "control_label": "guarding, clearance and misfire handling for a blast",
+        "failure_mode": "absent",
+        "hazard_energy": "kinetic",
+        "icam_tier": "organisational_factor"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "EXPLOSIVES_RECONCILIATION",
+        "control_label": "receipt, magazining and reconciliation of explosives",
+        "failure_mode": "absent",
+        "hazard_energy": "chemical",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "INC-2020-009",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "incident",
+    "occurred_on": "2020-05-22",
+    "severity_actual": 0,
+    "severity_potential": 2,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during transfer operations",
+    "title": "loss of containment at MAG-9601 during transfer operations",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "97604b9051ae17d6e927c074a12e4ef9c45b3637aa6ec48dd45bc89f93049b7d",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2020-009",
+  "prompt_kind": "icam",
+  "prompt_sha256": "4cf0d5e9c5d5eb9a458892750d5c10895f607d8569e873b1380c736ae46a211f",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 2 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "BLAST_GUARDING_AND_CLEARANCE",
+        "finding": "Control BLAST_GUARDING_AND_CLEARANCE: the guarding, clearance and misfire handling for a blast was not in place, and the ICAM investigation classified this as an organisational factor."
+      },
+      {
+        "control_class": "EXPLOSIVES_RECONCILIATION",
+        "finding": "Control EXPLOSIVES_RECONCILIATION: the receipt, magazining and reconciliation of explosives was not in place, and the ICAM investigation classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the receipt, magazining and reconciliation of explosives on MAG-9601 and record the critical control verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in charging and firing, specifically clearing misfires and handling residue. MAG-9601 (explosives magazines) is in service for explosives and detonator storage. The task proceeded during transfer operations while the guarding, clearance and misfire handling for a blast was not in place. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 22 May 2020 an incident occurred on MAG-9601 at Yandarra Downs Open Cut and Heavy Workshop during transfer operations, releasing chemical energy held as hydrocarbon."
+  },
+  "response_sha256": "720356f4f163ecf07946b11d7d32a18ccd4ccdfbda7af891b802c6d2005109bb",
+  "source": null
+}

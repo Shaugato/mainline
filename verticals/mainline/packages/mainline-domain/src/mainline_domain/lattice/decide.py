@@ -185,7 +185,7 @@ def decide(
     reference_anchors: AnchorSet | None = None,
     descendant_anchors: AnchorSet | None = None,
 ) -> DeltaVerdict:
-    """The pure entry point: two CATs in, one :class:`DeltaVerdict` out.
+    """Decide the delta: two CATs in, one :class:`DeltaVerdict` out.  The pure entry point.
 
     ``verdict.witnesses`` is the **minimal** set and ``verdict.minimal`` is
     therefore always ``True``.  Callers that need the residual findings — the

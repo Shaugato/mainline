@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 8,
+    "doc_code": "MOC-2021-0155",
+    "doc_family": "MOC",
+    "doc_title": "Revised Light Vehicle Exclusion Radius on Active Benches",
+    "driver": "incident",
+    "driving_change_ref": null,
+    "driving_event_ref": "INC-2020-014",
+    "effective_on": "2021-05-27",
+    "required_citations": [
+      {
+        "control_label": "parking, chocking and restraint of equipment",
+        "event_ref": "INC-2020-014",
+        "event_title": "loss of containment at HT-9006 during start-up after maintenance",
+        "hazard_energy": "kinetic",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:YND/MOC-2021-0155/001#revision_history_line/INC-2020-014",
+        "severity_gate": 4
+      }
+    ],
+    "rev_no": 1,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "ICAM investigation",
+      "management_of_change": "management of change",
+      "near_miss": "potential incident"
+    }
+  },
+  "key": "241a046f883989a82e79b6a0eaf09e5f6b3a201cc1f0fa510e9e729de69b11d0",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:YND/MOC-2021-0155/001",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "534dd010b3d886f9136ed85947d543bf3f6f75343893ac061c2b4e232f380471",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "Revision 1 was raised in response to INC-2020-014, and the parking, chocking and restraint of equipment was amended as a result.",
+        "quote_ref": "quote:YND/MOC-2021-0155/001#revision_history_line/INC-2020-014"
+      }
+    ],
+    "reason": "Revised after INC-2020-014; 8 clauses amended."
+  },
+  "response_sha256": "b60bef342b5af43a5a310dcbbced5f89d96ff79c387c0a96da932e2377cf417b",
+  "source": null
+}

@@ -1,0 +1,86 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "bunding, drainage and spill containment",
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "activity_series": "managing hydrocarbon transfer and storage",
+    "assets": [
+      {
+        "asset_class": "TANK-CLASS-P",
+        "label": "product storage tanks",
+        "service": "export product storage",
+        "tag": "TK-7103"
+      },
+      {
+        "asset_class": "INST-CLASS-A",
+        "label": "instrument loop",
+        "service": "governs TK-7103",
+        "tag": "LT-7103"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "SEAL_FACE_TEMPERATURE_ALARM",
+        "control_label": "seal-face high-temperature alarm and trip",
+        "failure_mode": "degraded",
+        "hazard_energy": "chemical",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "AF-2014-002",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "audit_finding",
+    "occurred_on": "2014-06-05",
+    "severity_actual": 0,
+    "severity_potential": 2,
+    "site": "Cape Verity Export Terminal",
+    "summary_facts": [],
+    "task_phase": "during routine operation",
+    "title": "audit finding - change request not applied to TK-7103",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "4fbf4774d1e9d15504ef07899576a0bd26f1166b33bfc91858e8cb58247b5b88",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:AF-2014-002",
+  "prompt_kind": "icam",
+  "prompt_sha256": "8d25bd3c4b7046a0ae5f93000740659b4797c0d3d1a1e4e51fa473f2d4f14e2a",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 2 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "SEAL_FACE_TEMPERATURE_ALARM",
+        "finding": "Control SEAL_FACE_TEMPERATURE_ALARM: the seal-face high-temperature alarm and trip had degraded below its design intent, and the root cause analysis classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next field verification that the seal-face high-temperature alarm and trip on TK-7103 and LT-7103 performs as designed."
+    ],
+    "sequence": "Work was under way in managing hydrocarbon transfer and storage, specifically bunding, drainage and spill containment. TK-7103 (product storage tanks) is in service for export product storage. The task proceeded during routine operation while the seal-face high-temperature alarm and trip had degraded below its design intent. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 5 June 2014 a planned field verification of TK-7103 and LT-7103 at Cape Verity Export Terminal found the seal-face high-temperature alarm and trip not effective."
+  },
+  "response_sha256": "47786fc38a8908de6e6ae5ffb68120144d17bca3842f2c44f2a996d75dcbba96",
+  "source": null
+}

@@ -1,0 +1,92 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "setting, testing and sealing pressure relief devices",
+    "activity_root": "PRESSURE-SYSTEM-INTEGRITY",
+    "activity_series": "verifying pressure relief and protection",
+    "assets": [
+      {
+        "asset_class": "PRD-CLASS-A",
+        "label": "tank relief and vent devices",
+        "service": "tank overpressure and vacuum protection",
+        "tag": "PSV-7101"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "PRESSURE_EQUIPMENT_INSPECTION",
+        "control_label": "in-service inspection of pressure equipment",
+        "failure_mode": "not_verified",
+        "hazard_energy": "pressure",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "PRESSURE_RELIEF_DEVICE_INTEGRITY",
+        "control_label": "setting, testing and sealing of pressure relief devices",
+        "failure_mode": "ineffective",
+        "hazard_energy": "pressure",
+        "icam_tier": "organisational_factor"
+      }
+    ],
+    "event_ref": "NM-2013-0012",
+    "hazard_energy": "pressure",
+    "hazard_media": [
+      "hydraulic accumulator",
+      "barrier fluid",
+      "process gas",
+      "steam header",
+      "compressed air",
+      "trapped liquid"
+    ],
+    "hazard_release": "jet release, stored-energy discharge, rupture",
+    "kind": "near_miss",
+    "occurred_on": "2013-07-16",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Cape Verity Export Terminal",
+    "summary_facts": [],
+    "task_phase": "during cleaning and preparation",
+    "title": "hazard report - pressure exposure at PSV-7101",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "015c9d827154fd0dab4a3748d4751751ae9cafb52d50e6ee48d3e35d03ba34f9",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2013-0012",
+  "prompt_kind": "icam",
+  "prompt_sha256": "1fa2ad0eb9ea709785e27e132c7449e8147c170e5a49e20627fca5b378eab1db",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "PRESSURE_EQUIPMENT_INSPECTION",
+        "finding": "Control PRESSURE_EQUIPMENT_INSPECTION: the in-service inspection of pressure equipment was never verified as effective, and the root cause analysis classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "PRESSURE_RELIEF_DEVICE_INTEGRITY",
+        "finding": "Control PRESSURE_RELIEF_DEVICE_INTEGRITY: the setting, testing and sealing of pressure relief devices was in place but did not perform, and the root cause analysis classified this as an organisational factor."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next field verification that the in-service inspection of pressure equipment on PSV-7101 performs as designed."
+    ],
+    "sequence": "Work was under way in verifying pressure relief and protection, specifically setting, testing and sealing pressure relief devices. PSV-7101 (tank relief and vent devices) is in service for tank overpressure and vacuum protection. The task proceeded during cleaning and preparation while the in-service inspection of pressure equipment was never verified as effective. The pressure energy involved is held as hydraulic accumulator, and the recorded presentation was jet release, stored-energy discharge, rupture.",
+    "summary": "On 16 July 2013 a hazard report was recorded on PSV-7101 at Cape Verity Export Terminal during cleaning and preparation; pressure energy held as hydraulic accumulator was not released."
+  },
+  "response_sha256": "c046e9bb2c58b7d6e7726167cb4244daf85858963ba5fc807465994d30cb1e90",
+  "source": null
+}

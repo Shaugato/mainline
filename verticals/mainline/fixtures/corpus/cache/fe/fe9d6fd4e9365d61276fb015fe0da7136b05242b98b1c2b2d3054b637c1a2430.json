@@ -1,0 +1,90 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "authorising a group isolation",
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "activity_series": "planning and permitting an isolation",
+    "assets": [
+      {
+        "asset_class": "CONV-CLASS-A",
+        "label": "plant conveyors",
+        "service": "coarse ore and reclaim conveying",
+        "tag": "CV-3103"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "ENERGY_SOURCE_IDENTIFICATION",
+        "control_label": "identification of every energy source for the task",
+        "failure_mode": "ineffective",
+        "hazard_energy": "kinetic",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "LOAD_SUPPORT_FOR_MAINTENANCE",
+        "control_label": "mechanical support of a load during maintenance access",
+        "failure_mode": "absent",
+        "hazard_energy": "gravity",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "CAPA-2006-002",
+    "hazard_energy": "gravity",
+    "hazard_media": [
+      "suspended load",
+      "stored potential of an elevated component",
+      "unsupported ground",
+      "person at height"
+    ],
+    "hazard_release": "fall, collapse, crush",
+    "kind": "capa",
+    "occurred_on": "2006-04-11",
+    "severity_actual": 1,
+    "severity_potential": 2,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during start-up after maintenance",
+    "title": "corrective action following accident investigation at CV-3103",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "investigation": "accident investigation",
+      "near_miss": "near hit",
+      "verification": "spot check"
+    }
+  },
+  "key": "fe9d6fd4e9365d61276fb015fe0da7136b05242b98b1c2b2d3054b637c1a2430",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:CAPA-2006-002",
+  "prompt_kind": "icam",
+  "prompt_sha256": "27da4a9596eba69412288e7e91fc84aac7bf23452a5be79e9106a6fcc54a4531",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage. The potential outcome was rated 2 against the site's consequence scale, above the 1 actually realised.",
+    "defences": [
+      {
+        "control_class": "ENERGY_SOURCE_IDENTIFICATION",
+        "finding": "Control ENERGY_SOURCE_IDENTIFICATION: the identification of every energy source for the task was in place but did not perform, and the accident investigation classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "LOAD_SUPPORT_FOR_MAINTENANCE",
+        "finding": "Control LOAD_SUPPORT_FOR_MAINTENANCE: the mechanical support of a load during maintenance access was not in place, and the accident investigation classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next spot check that the identification of every energy source for the task on CV-3103 performs as designed."
+    ],
+    "sequence": "Work was under way in planning and permitting an isolation, specifically authorising a group isolation. CV-3103 (plant conveyors) is in service for coarse ore and reclaim conveying. The task proceeded during start-up after maintenance while the identification of every energy source for the task was in place but did not perform. The gravity energy involved is held as suspended load, and the recorded presentation was fall, collapse, crush.",
+    "summary": "On 11 April 2006 a corrective action on CV-3103 at Marrindal Concentrator and Hydrocarbon Transfer Facility was reviewed against the key safeguard it was raised to restore."
+  },
+  "response_sha256": "82b4a33a01c2abba871f1e2a257f25d97648504090acab0ddae50dc35c8bdb0f",
+  "source": null
+}

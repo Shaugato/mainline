@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "barrier_role": "recovery",
+    "control_class": "SEAL_FACE_TEMPERATURE_ALARM",
+    "control_delta": "introduce",
+    "control_label": "seal-face high-temperature alarm and trip",
+    "doc_code": "PRO-OPS-017",
+    "doc_family": "PRO",
+    "doc_title": "Ship Loading and Vapour Recovery",
+    "effective_on": "2005-11-02",
+    "printed_label": "3.1.3(b)",
+    "setpoint": null,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "64d30abe291ed5271b526ac6d5c646b37e3eb7a5162651d73db8d6d1a10a9a93",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:CVY/PRO-OPS-017/001#CVY/PRO-OPS-017/3.1.3(b)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "906c05e24cce9537d4929bc66262049164eb08d5f1f80429519cc041e5d2a1e2",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The seal-face high-temperature alarm and trip shall be provided and maintained for work covered by this procedure. This clause applies to activities archived under CONTAINMENT-OF-HYDROCARBONS at Cape Verity Export Terminal.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "519a2f4b0bc7ccd80ab207287d07f88a0a1d3dfefbd6f36e37ae7eb85c96adbc",
+  "source": null
+}

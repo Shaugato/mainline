@@ -1,0 +1,93 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "bunding, drainage and spill containment",
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "activity_series": "managing hydrocarbon transfer and storage",
+    "assets": [
+      {
+        "asset_class": "TANK-CLASS-H",
+        "label": "hydrocarbon day tanks and surge vessel",
+        "service": "diesel and light hydrocarbon day storage, discharge surge suppression",
+        "tag": "TK-4210"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "BUND_AND_DRAINAGE_CONTAINMENT",
+        "control_label": "secondary containment by bund and drainage",
+        "failure_mode": "ineffective",
+        "hazard_energy": "chemical",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "SEAL_FACE_TEMPERATURE_ALARM",
+        "control_label": "seal-face high-temperature alarm and trip",
+        "failure_mode": "not_verified",
+        "hazard_energy": "chemical",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "NM-2020-0004",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "near_miss",
+    "occurred_on": "2020-01-28",
+    "severity_actual": 1,
+    "severity_potential": 2,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during a statutory inspection",
+    "title": "potential incident - chemical exposure at TK-4210",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "c7cd4f851a2984588e27680c63818140820ace3497065795a9b198aa10c286bc",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2020-0004",
+  "prompt_kind": "icam",
+  "prompt_sha256": "f1b864e510eeda0f45ce51037eb1ce4ece72b6b4a31057faaef33df39aba8086",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage. The potential outcome was rated 2 against the site's consequence scale, above the 1 actually realised.",
+    "defences": [
+      {
+        "control_class": "BUND_AND_DRAINAGE_CONTAINMENT",
+        "finding": "Control BUND_AND_DRAINAGE_CONTAINMENT: the secondary containment by bund and drainage was in place but did not perform, and the ICAM investigation classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "SEAL_FACE_TEMPERATURE_ALARM",
+        "finding": "Control SEAL_FACE_TEMPERATURE_ALARM: the seal-face high-temperature alarm and trip was never verified as effective, and the ICAM investigation classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the secondary containment by bund and drainage on TK-4210 and record the critical control verification before this task is next authorised.",
+      "Restore the seal-face high-temperature alarm and trip on TK-4210 and record the critical control verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in managing hydrocarbon transfer and storage, specifically bunding, drainage and spill containment. TK-4210 (hydrocarbon day tanks and surge vessel) is in service for diesel and light hydrocarbon day storage, discharge surge suppression. The task proceeded during a statutory inspection while the secondary containment by bund and drainage was in place but did not perform. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 28 January 2020 a potential incident was recorded on TK-4210 at Marrindal Concentrator and Hydrocarbon Transfer Facility during a statutory inspection; chemical energy held as hydrocarbon was not released."
+  },
+  "response_sha256": "db939f0a0ef51e6b068c20cafc1e62a452e518685008bb3505a88d751f3b85f1",
+  "source": null
+}

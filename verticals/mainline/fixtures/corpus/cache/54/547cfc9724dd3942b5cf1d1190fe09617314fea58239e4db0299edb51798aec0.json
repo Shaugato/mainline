@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "FIRE-AND-EMERGENCY-RESPONSE",
+    "barrier_role": "recovery",
+    "control_class": "EMERGENCY_ISOLATION_ON_RELEASE",
+    "control_delta": "strengthen",
+    "control_label": "emergency isolation and depressuring on loss of containment",
+    "doc_code": "STD-EMR-008",
+    "doc_family": "STD",
+    "doc_title": "Emergency Preparedness and Response",
+    "effective_on": "2011-03-14",
+    "printed_label": "3.2.3(d)",
+    "setpoint": null,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "energy_isolation": "lock out tag out",
+      "verification": "field verification"
+    }
+  },
+  "key": "547cfc9724dd3942b5cf1d1190fe09617314fea58239e4db0299edb51798aec0",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:CVY/STD-EMR-008/002#CVY/STD-EMR-008/3.2.3(d)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "1c7f6dd28bb92b533607effa148485402e3d75494621612cf7a3b035b412474d",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The emergency isolation and depressuring on loss of containment must be provided, and its effectiveness must be recorded as a field verification before the task proceeds. This clause applies to activities archived under FIRE-AND-EMERGENCY-RESPONSE at Cape Verity Export Terminal.",
+    "obligation_verb": "must"
+  },
+  "response_sha256": "b85b84e1d2b2de6e5e44f98ec484fad0629068eef50807627de866b806f97ad5",
+  "source": null
+}

@@ -1,0 +1,135 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "inspecting and maintaining portable equipment",
+    "activity_root": "ELECTRICAL-SAFETY",
+    "activity_series": "maintaining protective systems",
+    "assets": [
+      {
+        "asset_class": "ELEC-CLASS-A",
+        "label": "station switchgear",
+        "service": "station HV distribution",
+        "tag": "SG-8000"
+      },
+      {
+        "asset_class": "ELEC-CLASS-A",
+        "label": "station switchgear",
+        "service": "station HV distribution",
+        "tag": "TX-8001"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "ARC_FLASH_PPE_AND_BOUNDARY",
+        "control_label": "arc flash boundary and protective equipment",
+        "failure_mode": "ineffective",
+        "hazard_energy": "electrical",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "EARTH_LEAKAGE_PROTECTION",
+        "control_label": "earth leakage and protection setting integrity",
+        "failure_mode": "degraded",
+        "hazard_energy": "electrical",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "HAZARDOUS_AREA_EQUIPMENT_INTEGRITY",
+        "control_label": "integrity of explosion-protected equipment in zoned areas",
+        "failure_mode": "not_verified",
+        "hazard_energy": "electrical",
+        "icam_tier": "organisational_factor"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "POSITIVE_ISOLATION_APPLICATION",
+        "control_label": "application of positive isolation devices and personal locks",
+        "failure_mode": "absent",
+        "hazard_energy": "electrical",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "SWITCHING_AUTHORISATION",
+        "control_label": "authorisation of switching and access to apparatus",
+        "failure_mode": "bypassed",
+        "hazard_energy": "thermal",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "INC-2025-013",
+    "hazard_energy": "electrical",
+    "hazard_media": [
+      "HV switchgear",
+      "LV distribution",
+      "capacitive storage",
+      "induced voltage",
+      "portable equipment"
+    ],
+    "hazard_release": "shock, arc flash, unplanned energisation",
+    "kind": "incident",
+    "occurred_on": "2025-07-23",
+    "severity_actual": 1,
+    "severity_potential": 1,
+    "site": "Tolgarra Processing and Power Station",
+    "summary_facts": [],
+    "task_phase": "during a statutory inspection",
+    "title": "positive isolation verification failure on SG-8000",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "05d4165ec47e332552201babe404718271fd0b9a6581d72cd1c57d6d3f36c29e",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2025-013",
+  "prompt_kind": "icam",
+  "prompt_sha256": "be73d9852a86ad347aaf698d1417eb20dcf2ab8e55ae77898f899ae4c270ce48",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage.",
+    "defences": [
+      {
+        "control_class": "ARC_FLASH_PPE_AND_BOUNDARY",
+        "finding": "Control ARC_FLASH_PPE_AND_BOUNDARY: the arc flash boundary and protective equipment was in place but did not perform, and the learning team review classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "EARTH_LEAKAGE_PROTECTION",
+        "finding": "Control EARTH_LEAKAGE_PROTECTION: the earth leakage and protection setting integrity had degraded below its design intent, and the learning team review classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "HAZARDOUS_AREA_EQUIPMENT_INTEGRITY",
+        "finding": "Control HAZARDOUS_AREA_EQUIPMENT_INTEGRITY: the integrity of explosion-protected equipment in zoned areas was never verified as effective, and the learning team review classified this as an organisational factor."
+      },
+      {
+        "control_class": "POSITIVE_ISOLATION_APPLICATION",
+        "finding": "Control POSITIVE_ISOLATION_APPLICATION: the application of positive isolation devices and personal locks was not in place, and the learning team review classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "SWITCHING_AUTHORISATION",
+        "finding": "Control SWITCHING_AUTHORISATION: the authorisation of switching and access to apparatus had been bypassed, and the learning team review classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Restore the arc flash boundary and protective equipment on SG-8000 and TX-8001 and record the assurance activity before this task is next authorised.",
+      "Restore the earth leakage and protection setting integrity on SG-8000 and TX-8001 and record the assurance activity before this task is next authorised.",
+      "Restore the application of positive isolation devices and personal locks on SG-8000 and TX-8001 and record the assurance activity before this task is next authorised."
+    ],
+    "sequence": "Work was under way in maintaining protective systems, specifically inspecting and maintaining portable equipment. SG-8000 (station switchgear) is in service for station HV distribution. The task proceeded during a statutory inspection while the arc flash boundary and protective equipment was in place but did not perform. The electrical energy involved is held as HV switchgear, and the recorded presentation was shock, arc flash, unplanned energisation.",
+    "summary": "On 23 July 2025 an incident occurred on SG-8000 and TX-8001 at Tolgarra Processing and Power Station during a statutory inspection, releasing electrical energy held as HV switchgear."
+  },
+  "response_sha256": "450e0dddde0e0cae8c9735aef3bbd48ec201d8ebfc086993326c2b4efb547a2a",
+  "source": null
+}

@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "barrier_role": "recovery",
+    "control_class": "BUND_AND_DRAINAGE_CONTAINMENT",
+    "control_delta": "introduce",
+    "control_label": "secondary containment by bund and drainage",
+    "doc_code": "MOC-2026-0413",
+    "doc_family": "MOC",
+    "doc_title": "Restore OEM Seal-Face Alarm Setpoint on the Hydrocarbon Transfer Pump Family",
+    "effective_on": "2026-07-28",
+    "printed_label": "2.2.2",
+    "setpoint": null,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "energy_isolation": "positive isolation verification",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "54608764118598e61ce74253624496a2372daed32525d0a5778ad5b8b79c84ae",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/MOC-2026-0413/001#MRD/MOC-2026-0413/2.3",
+  "prompt_kind": "clause",
+  "prompt_sha256": "755d38b4203bfae5419c74486861d2f7e25cddba0c971cd63439a184689dea2e",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The secondary containment by bund and drainage shall be provided and maintained for work covered by this change record. This clause applies to activities archived under CONTAINMENT-OF-HYDROCARBONS at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "3235f9f512d7b979940160a6b40ece3f7a0937d4d1d551ec51bff7f9d230ab95",
+  "source": null
+}

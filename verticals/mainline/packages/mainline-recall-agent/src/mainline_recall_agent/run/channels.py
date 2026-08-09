@@ -230,8 +230,7 @@ class AncestryHit:
             f"[{classes}] intersect the clause's CAT control class; failure mode(s) "
             f"[{modes}]. No threshold, calibration or rerank was consulted."
             + (
-                " The closure is TRUNCATED at the ancestor cap, so this ancestry is a lower "
-                "bound."
+                " The closure is TRUNCATED at the ancestor cap, so this ancestry is a lower bound."
                 if self.closure_truncated
                 else ""
             )
@@ -358,12 +357,8 @@ def channel_a(
     containment: dict[UUID, set[tuple[str, str]]] = {}
     for hit in candidates:
         if hit.event_id not in containment:
-            probe = session.query(
-                ANCESTRY_CONTAINMENT_SQL, (str(site_id), str(hit.event_id))
-            )
-            containment[hit.event_id] = {
-                (str(entry[0]), str(entry[1])) for entry in probe
-            }
+            probe = session.query(ANCESTRY_CONTAINMENT_SQL, (str(site_id), str(hit.event_id)))
+            containment[hit.event_id] = {(str(entry[0]), str(entry[1])) for entry in probe}
         key = (str(hit.clause_uuid), hit.commit_id)
         target = confirmed if key in containment[hit.event_id] else unconfirmed
         target.append(

@@ -1,0 +1,40 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 3,
+    "doc_codes": [
+      "MOC-2019-0221",
+      "PRO-MEC-021",
+      "PTW-STD-002",
+      "STD-ISO-006",
+      "STD-PTW-001"
+    ],
+    "intent": "introduce",
+    "moc_ref": "MOC-2007-0008",
+    "opened_on": "2007-01-25",
+    "precursor_events": [],
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "terminal_state": "abandoned",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "management_of_change": "engineering change note",
+      "verification": "spot check"
+    },
+    "weakening_steps": 0
+  },
+  "key": "5a7bf493be9502a4a01588229747cfdd0df102f97af0ef71137463154c384d58",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2007-0008",
+  "prompt_kind": "moc",
+  "prompt_sha256": "419abbf7d128e6bb4954cd5bf9e8a70d993503936e4d5f2421eceefe33f0926b",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2007-0008 was raised at Marrindal Concentrator and Hydrocarbon Transfer Facility on 25 January 2007 as a scheduled change under engineering change note; no event precedes it in the record. The engineering change note record covers 3 clauses across 5 controlled documents. The intent is to introduce a duty the documents in scope did not previously carry. The record reached the state abandoned in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the key safeguard set is preserved.",
+    "scope_note": "The documents in scope are MOC-2019-0221, PRO-MEC-021, PTW-STD-002, STD-ISO-006 and STD-PTW-001."
+  },
+  "response_sha256": "5227bab7730e850f7d6edf93ef9bc9f8550622418010c0de2f507ebca78602ab",
+  "source": null
+}

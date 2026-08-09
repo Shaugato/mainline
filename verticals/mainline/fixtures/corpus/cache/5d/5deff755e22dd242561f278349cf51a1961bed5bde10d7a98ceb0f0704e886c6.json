@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "barrier_role": "preventive",
+    "control_class": "ZERO_ENERGY_VERIFICATION",
+    "control_delta": "strengthen",
+    "control_label": "proving zero energy before intrusive work",
+    "doc_code": "PTW-STD-004",
+    "doc_family": "PTW",
+    "doc_title": "Permit to Work Form Set",
+    "effective_on": "2026-03-16",
+    "printed_label": "7.1.1",
+    "setpoint": {
+      "from": 72.0,
+      "key": "isolation_verification_interval",
+      "label": "re-verification interval for a long-duration isolation",
+      "strengthen_direction": "lower",
+      "to": 24.0,
+      "unit": "hours"
+    },
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "energy_isolation": "positive isolation verification",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "5deff755e22dd242561f278349cf51a1961bed5bde10d7a98ceb0f0704e886c6",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:YND/PTW-STD-004/006#YND/PTW-STD-004/2.3",
+  "prompt_kind": "clause",
+  "prompt_sha256": "7661b95d9428cd6a78bf4843eac34b276858bc3ecab80967bb5a9a159cac8f15",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The proving zero energy before intrusive work must be provided, and its effectiveness must be recorded as a assurance activity before the task proceeds. The re-verification interval for a long-duration isolation must be set at 24 hours. This clause applies to activities archived under ISOLATION-OF-STORED-ENERGY at Yandarra Downs Open Cut and Heavy Workshop.",
+    "obligation_verb": "must"
+  },
+  "response_sha256": "a6e0558917ce0caa816d53a3d89832e8cdb85ea8c3b13d754c978c9e0483d0bb",
+  "source": null
+}

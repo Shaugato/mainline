@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "PRESSURE-SYSTEM-INTEGRITY",
+    "barrier_role": "recovery",
+    "control_class": "PRESSURE_RELIEF_DEVICE_INTEGRITY",
+    "control_delta": "restate",
+    "control_label": "setting, testing and sealing of pressure relief devices",
+    "doc_code": "STD-PRV-005",
+    "doc_family": "STD",
+    "doc_title": "Pressure Relief and Overpressure Protection",
+    "effective_on": "2022-11-20",
+    "printed_label": "4.2.13",
+    "setpoint": {
+      "from": 1200.0,
+      "key": "relief_valve_set_pressure",
+      "label": "relief valve set pressure",
+      "strengthen_direction": "lower",
+      "to": 1200.0,
+      "unit": "kPa"
+    },
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "energy_isolation": "positive isolation verification",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "18b61fc40b34f1aa05c83042e8c37d914a9e9a0ec3dfbea0ca944dfbdfbe180f",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:TLG/STD-PRV-005/006#TLG/STD-PRV-005/1.6.2(d)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "d7241e5ed8fcf68157126a4fa7cb899adddce64c6e4407319a30573f9a1117ea",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The setting, testing and sealing of pressure relief devices shall be provided and maintained wherever this standard applies, and its condition shall be treated as a material unwanted event control. The relief valve set pressure shall be set at 1200 kPa. This clause applies to activities archived under PRESSURE-SYSTEM-INTEGRITY at Tolgarra Processing and Power Station.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "82c109867c633b00b0ed5bbf5cbb726749b802d92bb742a46ec9c73415ddc97d",
+  "source": null
+}

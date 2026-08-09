@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 0,
+    "doc_codes": [
+      "PRO-HSE-012",
+      "STD-CSE-002"
+    ],
+    "intent": "replace",
+    "moc_ref": "MOC-2006-0009",
+    "opened_on": "2006-05-11",
+    "precursor_events": [],
+    "site": "Cape Verity Export Terminal",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "management_of_change": "engineering change note",
+      "verification": "spot check"
+    },
+    "weakening_steps": 0
+  },
+  "key": "3a0096fbe2c4c86f51dc9e519de7a522c22231f108266d23b4a0ecdc64be2841",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2006-0009",
+  "prompt_kind": "moc",
+  "prompt_sha256": "0b2eb7527409bae6b42d990020fa2ba3a27e6b382e4077afa25e278792b0683c",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2006-0009 was raised at Cape Verity Export Terminal on 11 May 2006 as a scheduled change under engineering change note; no event precedes it in the record. The engineering change note record carries no clause change; it records the assessment only. The intent is to replace an existing requirement with one written to the current house style. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the key safeguard set is preserved.",
+    "scope_note": "The documents in scope are PRO-HSE-012 and STD-CSE-002."
+  },
+  "response_sha256": "1ab5e310e93c86a7f5ebe29a1bed333a43bc04659b5abfefff1bfc72b6a318e2",
+  "source": null
+}

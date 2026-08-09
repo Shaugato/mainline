@@ -1,0 +1,42 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 2,
+    "doc_codes": [
+      "PRO-HSE-005",
+      "STD-HTW-004"
+    ],
+    "intent": "replace",
+    "moc_ref": "MOC-2013-0111",
+    "opened_on": "2013-03-22",
+    "precursor_events": [
+      {
+        "event_ref": "AF-2004-001",
+        "severity_gate": null
+      }
+    ],
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "terminal_state": "dispositioned",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "management_of_change": "change request",
+      "verification": "field verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "044e85f4fca9b587d75a31b5aaf943b0868d1825a487c610d66e60137b1b27ee",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2013-0111",
+  "prompt_kind": "moc",
+  "prompt_sha256": "79d5bd3c5bc522aaa5bdb4fd0f2e04f77f57530a7d1b2a0e75d96ee9f270bd74",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2013-0111 was raised at Marrindal Concentrator and Hydrocarbon Transfer Facility on 22 March 2013 following 1 recorded event in the archive, including AF-2004-001. The change request record covers 2 clauses across 2 controlled documents. The intent is to replace an existing requirement with one written to the current house style. The record reached the state dispositioned in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical safeguard set is preserved.",
+    "scope_note": "The documents in scope are PRO-HSE-005 and STD-HTW-004."
+  },
+  "response_sha256": "d267b9b0f74c6316e345e219d21fc92f3d8b4f052b725e3f831a10d4ef02e14f",
+  "source": null
+}

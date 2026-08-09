@@ -1,0 +1,92 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "applying positive communication before approach",
+    "activity_root": "MOBILE-EQUIPMENT-INTERACTION",
+    "activity_series": "controlling traffic on operating areas",
+    "assets": [
+      {
+        "asset_class": "MOB-CLASS-H",
+        "label": "haul trucks",
+        "service": "waste and ore haulage",
+        "tag": "HT-9003"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "POSITIVE_COMMUNICATION_BEFORE_APPROACH",
+        "control_label": "positive communication before approaching mobile equipment",
+        "failure_mode": "absent",
+        "hazard_energy": "kinetic",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "PROXIMITY_DETECTION_AND_SEGREGATION",
+        "control_label": "segregation of light vehicles and pedestrians from heavy equipment",
+        "failure_mode": "degraded",
+        "hazard_energy": "kinetic",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "NM-2015-0016",
+    "hazard_energy": "kinetic",
+    "hazard_media": [
+      "rotating equipment",
+      "conveyor",
+      "mobile equipment",
+      "pressurised jet",
+      "flying fragment"
+    ],
+    "hazard_release": "entanglement, impact, crush",
+    "kind": "near_miss",
+    "occurred_on": "2015-09-29",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during commissioning of replacement equipment",
+    "title": "hazard report during commissioning of replacement equipment on HT-9003",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "d12518659cd4db0eac87df197275fd960af360a815fcee7fa082faa72e8cc358",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2015-0016",
+  "prompt_kind": "icam",
+  "prompt_sha256": "6c766a434223d53e31ba776b08c1676acd93adfbe4a02bbecc89707aa6492f1a",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "POSITIVE_COMMUNICATION_BEFORE_APPROACH",
+        "finding": "Control POSITIVE_COMMUNICATION_BEFORE_APPROACH: the positive communication before approaching mobile equipment was not in place, and the root cause analysis classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "PROXIMITY_DETECTION_AND_SEGREGATION",
+        "finding": "Control PROXIMITY_DETECTION_AND_SEGREGATION: the segregation of light vehicles and pedestrians from heavy equipment had degraded below its design intent, and the root cause analysis classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the positive communication before approaching mobile equipment on HT-9003 and record the field verification before this task is next authorised.",
+      "Restore the segregation of light vehicles and pedestrians from heavy equipment on HT-9003 and record the field verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in controlling traffic on operating areas, specifically applying positive communication before approach. HT-9003 (haul trucks) is in service for waste and ore haulage. The task proceeded during commissioning of replacement equipment while the positive communication before approaching mobile equipment was not in place. The kinetic energy involved is held as rotating equipment, and the recorded presentation was entanglement, impact, crush.",
+    "summary": "On 29 September 2015 a hazard report was recorded on HT-9003 at Yandarra Downs Open Cut and Heavy Workshop during commissioning of replacement equipment; kinetic energy held as rotating equipment was not released."
+  },
+  "response_sha256": "7d6ca3f0820d187a7424e91b64d8f6626a329c85e33befca0f63e89e0d898ca0",
+  "source": null
+}

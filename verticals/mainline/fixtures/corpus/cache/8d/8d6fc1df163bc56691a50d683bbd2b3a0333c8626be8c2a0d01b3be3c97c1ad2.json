@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 0,
+    "doc_codes": [
+      "PRO-OPS-044"
+    ],
+    "intent": "strengthen",
+    "moc_ref": "MOC-2017-0124",
+    "opened_on": "2017-07-03",
+    "precursor_events": [],
+    "site": "Tolgarra Processing and Power Station",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "management_of_change": "management of change",
+      "verification": "critical control verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "8d6fc1df163bc56691a50d683bbd2b3a0333c8626be8c2a0d01b3be3c97c1ad2",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2017-0124",
+  "prompt_kind": "moc",
+  "prompt_sha256": "fcfafb1ff3ea33080a135d474e892a4b641f1bcb800049c42da9797d7fef734b",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2017-0124 was raised at Tolgarra Processing and Power Station on 3 July 2017 as a scheduled change under management of change; no event precedes it in the record. The management of change record carries no clause change; it records the assessment only. The intent is to strengthen the critical control named in the documents in scope. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical control set is preserved.",
+    "scope_note": "The documents in scope are PRO-OPS-044."
+  },
+  "response_sha256": "4d7f9715d3492d4f793fc313fdd140174216df071827920af34c5ba904e5bb0c",
+  "source": null
+}

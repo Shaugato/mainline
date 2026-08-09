@@ -1,0 +1,90 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 24,
+    "doc_code": "PRO-CHM-009",
+    "doc_family": "PRO",
+    "doc_title": "Reagent Make-Up and Dosing",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2007-02-12",
+    "required_citations": [
+      {
+        "control_label": "controlled make-up, decanting and dosing of reagents",
+        "event_ref": "NM-2006-0016",
+        "event_title": "near hit - chemical exposure at P-8303",
+        "hazard_energy": "chemical",
+        "kind": "capa_action",
+        "quote_ref": "quote:TLG/PRO-CHM-009/001#capa_action/NM-2006-0016",
+        "severity_gate": 2
+      },
+      {
+        "control_label": "selection, fit testing and maintenance of respirators",
+        "event_ref": "AF-2006-005",
+        "event_title": "audit finding - work clearance records incomplete for P-8303",
+        "hazard_energy": "chemical",
+        "kind": "investigation_recommendation",
+        "quote_ref": "quote:TLG/PRO-CHM-009/001#investigation_recommendation/AF-2006-005",
+        "severity_gate": 1
+      },
+      {
+        "control_label": "restraint and placarding of transported loads",
+        "event_ref": "NM-2006-0012",
+        "event_title": "near hit - chemical exposure at TK-8311",
+        "hazard_energy": "chemical",
+        "kind": "investigation_recommendation",
+        "quote_ref": "quote:TLG/PRO-CHM-009/001#investigation_recommendation/NM-2006-0012",
+        "severity_gate": 1
+      },
+      {
+        "control_label": "controlled make-up, decanting and dosing of reagents",
+        "event_ref": "NM-2006-0016",
+        "event_title": "near hit - chemical exposure at P-8303",
+        "hazard_energy": "chemical",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:TLG/PRO-CHM-009/001#revision_history_line/NM-2006-0016",
+        "severity_gate": 2
+      }
+    ],
+    "rev_no": 1,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "accident investigation",
+      "management_of_change": "engineering change note",
+      "near_miss": "near hit"
+    }
+  },
+  "key": "96cc9ea668b2f557c7690806f710e17d187e18806b22e90bac365e4e5a1d09a6",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:TLG/PRO-CHM-009/001",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "0ed46add19392065c1b50933f5693524dbc64c8db6dcf7a0e7e6f81c6a39c234",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The corrective action recorded against NM-2006-0016 required the controlled make-up, decanting and dosing of reagents to be restated in this procedure.",
+        "quote_ref": "quote:TLG/PRO-CHM-009/001#capa_action/NM-2006-0016"
+      },
+      {
+        "line": "The accident investigation into AF-2006-005 recommended that the selection, fit testing and maintenance of respirators be strengthened in this procedure.",
+        "quote_ref": "quote:TLG/PRO-CHM-009/001#investigation_recommendation/AF-2006-005"
+      },
+      {
+        "line": "The accident investigation into NM-2006-0012 recommended that the restraint and placarding of transported loads be strengthened in this procedure.",
+        "quote_ref": "quote:TLG/PRO-CHM-009/001#investigation_recommendation/NM-2006-0012"
+      },
+      {
+        "line": "Revision 1 was raised in response to NM-2006-0016, and the controlled make-up, decanting and dosing of reagents was amended as a result.",
+        "quote_ref": "quote:TLG/PRO-CHM-009/001#revision_history_line/NM-2006-0016"
+      }
+    ],
+    "reason": "Scheduled review at revision 1; 24 clauses restated."
+  },
+  "response_sha256": "9303642801449a6190e7b9d5fa0a3d0c9ef47dc586ac3a183a6fdc78f1a68bee",
+  "source": null
+}

@@ -1,0 +1,45 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 1,
+    "doc_codes": [
+      "PTW-STD-004"
+    ],
+    "intent": "weaken",
+    "moc_ref": "MOC-2016-0043",
+    "opened_on": "2016-04-15",
+    "precursor_events": [
+      {
+        "event_ref": "NM-2005-0006",
+        "severity_gate": null
+      },
+      {
+        "event_ref": "NM-2021-0013",
+        "severity_gate": null
+      }
+    ],
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "management_of_change": "management of change",
+      "verification": "critical control verification"
+    },
+    "weakening_steps": 1
+  },
+  "key": "bc8a76bea76545824a15fe424ac48a51836fdddb897fcef02ea628321a3d3a9c",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2016-0043",
+  "prompt_kind": "moc",
+  "prompt_sha256": "5d47d22598671e96e463013b21468934e8a02e7d6d526e6e15b5567eaa79a5cd",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2016-0043 was raised at Yandarra Downs Open Cut and Heavy Workshop on 15 April 2016 following 2 recorded events in the archive, including NM-2005-0006 and NM-2021-0013. The management of change record covers 1 clause across 1 controlled document. The intent is to relax a critical control requirement, and the basis for the relaxation is recorded with the change. The record reached the state merged in the change stream.",
+    "risk_note": "This change relaxes a control: 1 step of relaxation is recorded against it, and the residual risk position rests on that relaxation having been accepted deliberately.",
+    "scope_note": "The documents in scope are PTW-STD-004."
+  },
+  "response_sha256": "c3fc36f792cc7994ba7c2cd2b80bc76222b7b5a24d4bbc90deb1de4409967154",
+  "source": null
+}

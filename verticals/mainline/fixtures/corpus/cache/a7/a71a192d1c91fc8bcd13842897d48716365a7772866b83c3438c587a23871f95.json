@@ -1,0 +1,80 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "transferring hydrocarbon between vessels",
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "activity_series": "managing hydrocarbon transfer and storage",
+    "assets": [
+      {
+        "asset_class": "ESD-CLASS-A",
+        "label": "emergency shutdown valves",
+        "service": "jetty and manifold emergency isolation",
+        "tag": "ZV-7211"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "HYDROCARBON_TRANSFER_CONTROL",
+        "control_label": "controlled transfer of hydrocarbon between vessels",
+        "failure_mode": "absent",
+        "hazard_energy": "pressure",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "NM-2019-0004",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "near_miss",
+    "occurred_on": "2019-01-29",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Cape Verity Export Terminal",
+    "summary_facts": [],
+    "task_phase": "during a breakdown response",
+    "title": "unplanned release of chemical energy at ZV-7211",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "a71a192d1c91fc8bcd13842897d48716365a7772866b83c3438c587a23871f95",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2019-0004",
+  "prompt_kind": "icam",
+  "prompt_sha256": "b7d4303c79a87774c6b67f69f6085923c9de15c08ab9dc279cf573af40e4e8e9",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "HYDROCARBON_TRANSFER_CONTROL",
+        "finding": "Control HYDROCARBON_TRANSFER_CONTROL: the controlled transfer of hydrocarbon between vessels was not in place, and the ICAM investigation classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next critical control verification that the controlled transfer of hydrocarbon between vessels on ZV-7211 performs as designed."
+    ],
+    "sequence": "Work was under way in managing hydrocarbon transfer and storage, specifically transferring hydrocarbon between vessels. ZV-7211 (emergency shutdown valves) is in service for jetty and manifold emergency isolation. The task proceeded during a breakdown response while the controlled transfer of hydrocarbon between vessels was not in place. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 29 January 2019 a potential incident was recorded on ZV-7211 at Cape Verity Export Terminal during a breakdown response; chemical energy held as hydrocarbon was not released."
+  },
+  "response_sha256": "875e7608951d24323914faf7a92ad7995d389efd32f65d9e164de1c719e8bcd2",
+  "source": null
+}

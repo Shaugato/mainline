@@ -1,0 +1,92 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "testing earth leakage and protection settings",
+    "activity_root": "ELECTRICAL-SAFETY",
+    "activity_series": "maintaining protective systems",
+    "assets": [
+      {
+        "asset_class": "ELEC-CLASS-A",
+        "label": "switchgear and transformers",
+        "service": "plant HV/LV distribution",
+        "tag": "TX-3002"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "SWITCHING_AUTHORISATION",
+        "control_label": "authorisation of switching and access to apparatus",
+        "failure_mode": "bypassed",
+        "hazard_energy": "electrical",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "ZERO_ENERGY_VERIFICATION",
+        "control_label": "proving zero energy before intrusive work",
+        "failure_mode": "bypassed",
+        "hazard_energy": "electrical",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "AF-2012-004",
+    "hazard_energy": "electrical",
+    "hazard_media": [
+      "HV switchgear",
+      "LV distribution",
+      "capacitive storage",
+      "induced voltage",
+      "portable equipment"
+    ],
+    "hazard_release": "shock, arc flash, unplanned energisation",
+    "kind": "audit_finding",
+    "occurred_on": "2012-03-30",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during routine operation",
+    "title": "audit finding - change request not applied to TX-3002",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "a865145addc548d22d08962f27080390f4c338e6cf51214f7a4dd0dc658debed",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:AF-2012-004",
+  "prompt_kind": "icam",
+  "prompt_sha256": "1359789a550c5038b9970e7d6216b2db62bf4dfa27e92ea7619f2d27023bea53",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "SWITCHING_AUTHORISATION",
+        "finding": "Control SWITCHING_AUTHORISATION: the authorisation of switching and access to apparatus had been bypassed, and the root cause analysis classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "ZERO_ENERGY_VERIFICATION",
+        "finding": "Control ZERO_ENERGY_VERIFICATION: the proving zero energy before intrusive work had been bypassed, and the root cause analysis classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the authorisation of switching and access to apparatus on TX-3002 and record the field verification before this task is next authorised.",
+      "Restore the proving zero energy before intrusive work on TX-3002 and record the field verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in maintaining protective systems, specifically testing earth leakage and protection settings. TX-3002 (switchgear and transformers) is in service for plant HV/LV distribution. The task proceeded during routine operation while the authorisation of switching and access to apparatus had been bypassed. The electrical energy involved is held as HV switchgear, and the recorded presentation was shock, arc flash, unplanned energisation.",
+    "summary": "On 30 March 2012 a planned field verification of TX-3002 at Marrindal Concentrator and Hydrocarbon Transfer Facility found the authorisation of switching and access to apparatus not effective."
+  },
+  "response_sha256": "75e0ffc71b8435c4df5f3c42609131da6ec4270db0515f9331b17cd2e576d4ac",
+  "source": null
+}

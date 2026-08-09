@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 2,
+    "doc_codes": [
+      "PRO-OPS-044"
+    ],
+    "intent": "strengthen",
+    "moc_ref": "MOC-2022-0212",
+    "opened_on": "2022-10-31",
+    "precursor_events": [],
+    "site": "Tolgarra Processing and Power Station",
+    "terminal_state": "abandoned",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "management_of_change": "change assurance",
+      "verification": "assurance activity"
+    },
+    "weakening_steps": 0
+  },
+  "key": "1b0cbe0d7f810b54fc24fe9eba59d3c2884e94fa74c1f3b337759a865fa5d43e",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2022-0212",
+  "prompt_kind": "moc",
+  "prompt_sha256": "d5a94789b85474f9b6984e48375f2c36198aac829539ac3fada50ccc99b75d78",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2022-0212 was raised at Tolgarra Processing and Power Station on 31 October 2022 as a scheduled change under change assurance; no event precedes it in the record. The change assurance record covers 2 clauses across 1 controlled document. The intent is to strengthen the material unwanted event control named in the documents in scope. The record reached the state abandoned in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the material unwanted event control set is preserved.",
+    "scope_note": "The documents in scope are PRO-OPS-044."
+  },
+  "response_sha256": "126bf6497da223eb31171813555330aa51cc390c3b4a8da2edbb4c8925fc6564",
+  "source": null
+}

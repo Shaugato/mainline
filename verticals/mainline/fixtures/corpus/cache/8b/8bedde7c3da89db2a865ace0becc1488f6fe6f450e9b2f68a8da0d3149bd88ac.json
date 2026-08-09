@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "LIFTING-AND-SUSPENDED-LOADS",
+    "barrier_role": "preventive",
+    "control_class": "DROP_ZONE_EXCLUSION",
+    "control_delta": "strengthen",
+    "control_label": "exclusion of people from beneath elevated work",
+    "doc_code": "STD-LFT-003",
+    "doc_family": "STD",
+    "doc_title": "Lifting and Cranage",
+    "effective_on": "2025-03-18",
+    "printed_label": "2.1.6",
+    "setpoint": null,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "energy_isolation": "positive isolation verification",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "8bedde7c3da89db2a865ace0becc1488f6fe6f450e9b2f68a8da0d3149bd88ac",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:YND/STD-LFT-003/009#YND/STD-LFT-003/6.4",
+  "prompt_kind": "clause",
+  "prompt_sha256": "085633dfd7a1d2d139b275792955691b7a4114de580e96728f21fe78cdac218e",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The exclusion of people from beneath elevated work must be provided, and its effectiveness must be recorded as a assurance activity before the task proceeds. This clause applies to activities archived under LIFTING-AND-SUSPENDED-LOADS at Yandarra Downs Open Cut and Heavy Workshop.",
+    "obligation_verb": "must"
+  },
+  "response_sha256": "866ca2c7eedaefea720aec8a77d6193fc5e01140de505a88026960448ee5fcc1",
+  "source": null
+}

@@ -15,7 +15,6 @@ import inspect
 from pathlib import Path
 
 import pytest
-from mainline_domain.resolution import policy as policy_module
 from mainline_domain.resolution import (
     PolicyIncomplete,
     PolicyTheta,
@@ -23,6 +22,7 @@ from mainline_domain.resolution import (
     resolve,
     theta_from_policy,
 )
+from mainline_domain.resolution import policy as policy_module
 
 _GOOD = """
 [policy]
@@ -91,10 +91,12 @@ def test_the_missing_committed_policy_fails_loudly_rather_than_defaulting() -> N
     try:
         loaded = load_policy_theta()
     except FileNotFoundError as exc:
-        assert "identity-policy-v1.toml" in str(exc)
+        absence = str(exc)
+    else:
+        assert 0.0 <= loaded.theta <= 1.0
+        assert loaded.policy_sha256
         return
-    assert 0.0 <= loaded.theta <= 1.0
-    assert loaded.policy_sha256
+    assert "identity-policy-v1.toml" in absence
 
 
 def test_no_signature_in_this_package_carries_a_default_theta() -> None:
@@ -115,7 +117,7 @@ def test_resolve_requires_theta_as_a_keyword() -> None:
         resolve(None, None)  # type: ignore[call-arg]
 
 
-def test_theta_from_policy_accepts_an_integer_zero(tmp_path: Path) -> None:
+def test_theta_from_policy_accepts_an_integer_zero() -> None:
     """``0`` is a legal theta — accept every band — and must not read as absent."""
     loaded = theta_from_policy(
         {"resolution": {"oracle_confidence_theta": 0}},

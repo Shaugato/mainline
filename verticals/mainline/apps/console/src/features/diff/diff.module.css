@@ -1,0 +1,348 @@
+/*
+ * SPDX-FileCopyrightText: 2026 MAINLINE contributors
+ * SPDX-License-Identifier: FSL-1.1-ALv2
+ *
+ * The clause diff, EVIDENCE register (docs/leads/ui.md §1.1).
+ *
+ * The whole stylesheet obeys four rules, and none of them is a preference:
+ *
+ *   1. Only tokens from `src/design/tokens.css`. No hex, no `rgb()`, no named colour.
+ *      `tests/unit/diff/style.test.ts` reads this file and fails on any of them.
+ *   2. Nothing moves. No `transition`, no `animation`, no `transform`. A screenshot of
+ *      this panel and the panel itself are the same artefact.
+ *   3. No depth. No `box-shadow`, no gradient, no `filter`. The one visual hierarchy is
+ *      a hairline and a background step.
+ *   4. Colour never carries a fact alone. Every removed run is struck through AND
+ *      prefixed with the word "removed" for assistive technology; every added run is
+ *      underlined AND prefixed with "added". The panel photocopies.
+ */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-5);
+  color: var(--tp-ink);
+  font-family: var(--tp-sans);
+  font-size: var(--tp-step-0);
+  line-height: var(--tp-leading-body);
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--tp-space-3);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--tp-step-2);
+  font-weight: var(--tp-weight-strong);
+  line-height: var(--tp-leading-tight);
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--tp-ink-dim);
+  font-size: var(--tp-step--1);
+}
+
+.commits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tp-space-4);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-2);
+}
+
+.sectionHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--tp-space-2);
+  border-block-end: var(--tp-hairline) solid var(--tp-rule-strong);
+  padding-block-end: var(--tp-space-1);
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: var(--tp-step-1);
+  font-weight: var(--tp-weight-medium);
+  letter-spacing: var(--tp-tracking-caps);
+  text-transform: uppercase;
+}
+
+.note {
+  margin: 0;
+  color: var(--tp-ink-dim);
+  font-size: var(--tp-step--1);
+}
+
+.thesis {
+  margin: 0;
+  border-inline-start: var(--tp-hairline) solid var(--tp-rule-strong);
+  padding-inline-start: var(--tp-space-3);
+  color: var(--tp-ink-dim);
+  font-size: var(--tp-step--1);
+}
+
+/* ── The verdict ───────────────────────────────────────────────────────── */
+
+.verdict {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--tp-space-3);
+  background: var(--tp-bg-raised);
+  border: var(--tp-hairline) solid var(--tp-rule-strong);
+  border-radius: var(--tp-radius);
+  padding: var(--tp-space-3) var(--tp-space-4);
+}
+
+.verdictValue {
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step-1);
+  font-weight: var(--tp-weight-strong);
+}
+
+.verdictValue[data-delta='weaken'],
+.verdictValue[data-delta='remove'] {
+  color: var(--tp-refuse);
+  font-weight: var(--tp-weight-strong);
+}
+
+.verdictLabel {
+  color: var(--tp-ink-faint);
+  font-size: var(--tp-step--1);
+  letter-spacing: var(--tp-tracking-caps);
+  text-transform: uppercase;
+}
+
+/* ── Findings ──────────────────────────────────────────────────────────── */
+
+.findings {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.finding {
+  border: var(--tp-hairline) solid var(--tp-rule-strong);
+  border-radius: var(--tp-radius);
+  padding: var(--tp-space-3);
+}
+
+.finding[data-level='discrepancy'] {
+  background: var(--tp-bg-raised);
+  border-color: var(--tp-refuse);
+}
+
+.findingTitle {
+  margin: 0 0 var(--tp-space-1);
+  font-size: var(--tp-step-0);
+  font-weight: var(--tp-weight-strong);
+}
+
+.finding[data-level='discrepancy'] .findingTitle {
+  color: var(--tp-refuse);
+  font-weight: var(--tp-weight-strong);
+}
+
+.findingLevel {
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step--1);
+  letter-spacing: var(--tp-tracking-caps);
+  text-transform: uppercase;
+}
+
+.findingDetail {
+  margin: 0;
+  color: var(--tp-refuse-ink);
+}
+
+.findingAuthority {
+  display: block;
+  margin-block-start: var(--tp-space-2);
+  color: var(--tp-ink-faint);
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step--1);
+}
+
+/* ── The text ──────────────────────────────────────────────────────────── */
+
+.text {
+  background: var(--tp-bg-inset);
+  border: var(--tp-hairline) solid var(--tp-rule);
+  border-radius: var(--tp-radius);
+  padding: var(--tp-space-4);
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step-0);
+  line-height: var(--tp-leading-tight);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.removed {
+  color: var(--tp-refuse);
+  font-weight: var(--tp-weight-strong);
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+}
+
+.added {
+  color: var(--tp-ink);
+  font-weight: var(--tp-weight-strong);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  background: var(--tp-bg-raised);
+}
+
+.equal {
+  color: var(--tp-ink-dim);
+}
+
+/* ── Tables ────────────────────────────────────────────────────────────── */
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--tp-step--1);
+  text-align: start;
+}
+
+.caption {
+  padding-block-end: var(--tp-space-2);
+  color: var(--tp-ink-dim);
+  font-size: var(--tp-step--1);
+  text-align: start;
+}
+
+.table th {
+  border-block-end: var(--tp-hairline) solid var(--tp-rule-strong);
+  padding: var(--tp-space-1) var(--tp-space-2);
+  color: var(--tp-ink-faint);
+  font-weight: var(--tp-weight-medium);
+  letter-spacing: var(--tp-tracking-caps);
+  text-align: start;
+  text-transform: uppercase;
+  vertical-align: bottom;
+}
+
+.table td {
+  border-block-end: var(--tp-hairline) solid var(--tp-rule);
+  padding: var(--tp-space-2);
+  vertical-align: top;
+}
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+.mono {
+  font-family: var(--tp-mono);
+  overflow-wrap: anywhere;
+}
+
+.changedCell {
+  color: var(--tp-ink);
+  font-weight: var(--tp-weight-medium);
+}
+
+.unchangedCell {
+  color: var(--tp-ink-faint);
+}
+
+.state {
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step--1);
+}
+
+.state[data-state='no_observed_change'],
+.state[data-state='unresolvable_field'] {
+  color: var(--tp-warn);
+  font-weight: var(--tp-weight-strong);
+}
+
+/* ── Absences ──────────────────────────────────────────────────────────── */
+
+.absence {
+  background: var(--tp-bg-raised);
+  border: var(--tp-hairline) solid var(--tp-warn);
+  border-radius: var(--tp-radius);
+  padding: var(--tp-space-3) var(--tp-space-4);
+}
+
+.absenceHead {
+  margin: 0 0 var(--tp-space-2);
+  color: var(--tp-warn);
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step-1);
+  font-weight: var(--tp-weight-strong);
+  letter-spacing: var(--tp-tracking-caps);
+}
+
+.absenceBody {
+  margin: 0;
+  color: var(--tp-ink-dim);
+}
+
+.settled {
+  margin: 0;
+  color: var(--tp-ink-dim);
+  font-size: var(--tp-step--1);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tp-space-2);
+  align-items: center;
+}
+
+/*
+ * The visually-hidden idiom, local to this feature.
+ *
+ * `src/design/primitives/a11y.module.css` has the same rule, but a CSS Module is not a
+ * published interface — importing another worker's scoped stylesheet would couple this
+ * feature to a class name nobody promised to keep. Nine lines is cheaper than that
+ * coupling, and the rule is the well-known one, not an invention.
+ */
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  clip-path: inset(50%);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* ── Print: the exhibit form ───────────────────────────────────────────── */
+
+@media print {
+  .tableWrap {
+    overflow-x: visible;
+  }
+
+  .text {
+    background: none;
+  }
+}

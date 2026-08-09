@@ -1,0 +1,64 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 5,
+    "doc_code": "STD-MEQ-007",
+    "doc_family": "STD",
+    "doc_title": "Mobile Equipment Interaction",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2022-10-12",
+    "required_citations": [
+      {
+        "control_label": "segregation of light vehicles and pedestrians from heavy equipment",
+        "event_ref": "NM-2021-0013",
+        "event_title": "potential incident during a breakdown response on HT-9003",
+        "hazard_energy": "gravity",
+        "kind": "investigation_recommendation",
+        "quote_ref": "quote:YND/STD-MEQ-007/007#investigation_recommendation/NM-2021-0013",
+        "severity_gate": 2
+      },
+      {
+        "control_label": "segregation of light vehicles and pedestrians from heavy equipment",
+        "event_ref": "NM-2021-0013",
+        "event_title": "potential incident during a breakdown response on HT-9003",
+        "hazard_energy": "gravity",
+        "kind": "moc_reference",
+        "quote_ref": "quote:YND/STD-MEQ-007/007#moc_reference/NM-2021-0013",
+        "severity_gate": 2
+      }
+    ],
+    "rev_no": 7,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "learning team review",
+      "management_of_change": "change assurance",
+      "near_miss": "high potential incident"
+    }
+  },
+  "key": "5f282b9ebf07517755b9ed5f3d7252f9a26b2a1be520b43f88021aed07fe9a52",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:YND/STD-MEQ-007/007",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "68709356f7a3afcd5f2487a15be3983cc39e2c2ebb129a2598eade15dc99c65e",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The learning team review into NM-2021-0013 recommended that the segregation of light vehicles and pedestrians from heavy equipment be strengthened in this standard.",
+        "quote_ref": "quote:YND/STD-MEQ-007/007#investigation_recommendation/NM-2021-0013"
+      },
+      {
+        "line": "The change assurance record for this revision cites NM-2021-0013 as the reason the segregation of light vehicles and pedestrians from heavy equipment was amended.",
+        "quote_ref": "quote:YND/STD-MEQ-007/007#moc_reference/NM-2021-0013"
+      }
+    ],
+    "reason": "Scheduled review at revision 7; 5 clauses restated."
+  },
+  "response_sha256": "61ec56b0a45d8d7aa922705dde5c54320ee20fe4b6649ac08d68845d14e3ad61",
+  "source": null
+}

@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 0,
+    "doc_codes": [
+      "PRO-HSE-005",
+      "STD-HTW-004"
+    ],
+    "intent": "introduce",
+    "moc_ref": "MOC-2008-0108",
+    "opened_on": "2008-07-11",
+    "precursor_events": [],
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "management_of_change": "engineering change note",
+      "verification": "spot check"
+    },
+    "weakening_steps": 0
+  },
+  "key": "3e6ac7ddcd993606fa40f0febba4ba014f5dee8f11d8acd84165a8aa6910fd27",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2008-0108",
+  "prompt_kind": "moc",
+  "prompt_sha256": "e55eafcbde16620d835ef983b2ffc04eb9b359a80788f5b86aac19a93070bc38",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2008-0108 was raised at Marrindal Concentrator and Hydrocarbon Transfer Facility on 11 July 2008 as a scheduled change under engineering change note; no event precedes it in the record. The engineering change note record carries no clause change; it records the assessment only. The intent is to introduce a duty the documents in scope did not previously carry. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the key safeguard set is preserved.",
+    "scope_note": "The documents in scope are PRO-HSE-005 and STD-HTW-004."
+  },
+  "response_sha256": "b5751d97e8280552b2e0fe363b4b04705a6a70d26d80b15101cbf18dd667ae66",
+  "source": null
+}

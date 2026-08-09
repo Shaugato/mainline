@@ -1,0 +1,112 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "dissipating trapped and residual energy",
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "activity_series": "applying and verifying an isolation",
+    "assets": [
+      {
+        "asset_class": "TANK-CLASS-P",
+        "label": "product storage tanks",
+        "service": "export product storage",
+        "tag": "TK-7104"
+      },
+      {
+        "asset_class": "INST-CLASS-A",
+        "label": "instrument loop",
+        "service": "governs TK-7104",
+        "tag": "LT-7104"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "ENERGY_SOURCE_IDENTIFICATION",
+        "control_label": "identification of every energy source for the task",
+        "failure_mode": "not_verified",
+        "hazard_energy": "pressure",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "ISOLATION_HANDBACK_CONTROL",
+        "control_label": "controlled removal of isolation and return to service",
+        "failure_mode": "absent",
+        "hazard_energy": "pressure",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "POSITIVE_ISOLATION_APPLICATION",
+        "control_label": "application of positive isolation devices and personal locks",
+        "failure_mode": "ineffective",
+        "hazard_energy": "pressure",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "INC-2007-004",
+    "hazard_energy": "pressure",
+    "hazard_media": [
+      "hydraulic accumulator",
+      "barrier fluid",
+      "process gas",
+      "steam header",
+      "compressed air",
+      "trapped liquid"
+    ],
+    "hazard_release": "jet release, stored-energy discharge, rupture",
+    "kind": "incident",
+    "occurred_on": "2007-03-11",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Cape Verity Export Terminal",
+    "summary_facts": [],
+    "task_phase": "during an intrusive maintenance task",
+    "title": "loss of containment at TK-7104 during an intrusive maintenance task",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "investigation": "accident investigation",
+      "near_miss": "near hit",
+      "verification": "spot check"
+    }
+  },
+  "key": "56c567281549a8706aed1cd928cdf35aa903a5591a4b6fc6c0327a43a1defe09",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2007-004",
+  "prompt_kind": "icam",
+  "prompt_sha256": "47e104cd76c849db609143964433b1ae50c005a7a8839696b786fc82bc046665",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "ENERGY_SOURCE_IDENTIFICATION",
+        "finding": "Control ENERGY_SOURCE_IDENTIFICATION: the identification of every energy source for the task was never verified as effective, and the accident investigation classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "ISOLATION_HANDBACK_CONTROL",
+        "finding": "Control ISOLATION_HANDBACK_CONTROL: the controlled removal of isolation and return to service was not in place, and the accident investigation classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "POSITIVE_ISOLATION_APPLICATION",
+        "finding": "Control POSITIVE_ISOLATION_APPLICATION: the application of positive isolation devices and personal locks was in place but did not perform, and the accident investigation classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the identification of every energy source for the task on TK-7104 and LT-7104 and record the spot check before this task is next authorised.",
+      "Restore the controlled removal of isolation and return to service on TK-7104 and LT-7104 and record the spot check before this task is next authorised.",
+      "Restore the application of positive isolation devices and personal locks on TK-7104 and LT-7104 and record the spot check before this task is next authorised."
+    ],
+    "sequence": "Work was under way in applying and verifying an isolation, specifically dissipating trapped and residual energy. TK-7104 (product storage tanks) is in service for export product storage. The task proceeded during an intrusive maintenance task while the identification of every energy source for the task was never verified as effective. The pressure energy involved is held as hydraulic accumulator, and the recorded presentation was jet release, stored-energy discharge, rupture.",
+    "summary": "On 11 March 2007 an incident occurred on TK-7104 and LT-7104 at Cape Verity Export Terminal during an intrusive maintenance task, releasing pressure energy held as hydraulic accumulator."
+  },
+  "response_sha256": "431ea8aab78ba2ab8440ea17fe29dd54dfd6c1f784dd8f2bd81f5caca10e012a",
+  "source": null
+}

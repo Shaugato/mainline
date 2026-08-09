@@ -1,0 +1,79 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "atmospheric testing and continuous monitoring",
+    "activity_root": "CONFINED-SPACE-ENTRY",
+    "activity_series": "authorising and controlling entry",
+    "assets": [
+      {
+        "asset_class": "MOB-CLASS-E",
+        "label": "earthmoving fleet",
+        "service": "loading and dozing",
+        "tag": "EX-9101"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "STANDBY_ATTENDANCE_AND_RESCUE",
+        "control_label": "standby attendance and non-entry rescue capability",
+        "failure_mode": "ineffective",
+        "hazard_energy": "gravity",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "NM-2024-0023",
+    "hazard_energy": "kinetic",
+    "hazard_media": [
+      "rotating equipment",
+      "conveyor",
+      "mobile equipment",
+      "pressurised jet",
+      "flying fragment"
+    ],
+    "hazard_release": "entanglement, impact, crush",
+    "kind": "near_miss",
+    "occurred_on": "2024-12-21",
+    "severity_actual": 1,
+    "severity_potential": 3,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during start-up after maintenance",
+    "title": "high potential incident during start-up after maintenance on EX-9101",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "2d3f384ea151d0731fc9a912af306ff277340117e88bb0413685ce7520d17235",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2024-0023",
+  "prompt_kind": "icam",
+  "prompt_sha256": "5d70c23d5e6a71c2ead5e36f8757169fea6edc6806545564821d86699342add5",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage. The potential outcome was rated 3 against the site's consequence scale, above the 1 actually realised.",
+    "defences": [
+      {
+        "control_class": "STANDBY_ATTENDANCE_AND_RESCUE",
+        "finding": "Control STANDBY_ATTENDANCE_AND_RESCUE: the standby attendance and non-entry rescue capability was in place but did not perform, and the learning team review classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the standby attendance and non-entry rescue capability on EX-9101 and record the assurance activity before this task is next authorised."
+    ],
+    "sequence": "Work was under way in authorising and controlling entry, specifically atmospheric testing and continuous monitoring. EX-9101 (earthmoving fleet) is in service for loading and dozing. The task proceeded during start-up after maintenance while the standby attendance and non-entry rescue capability was in place but did not perform. The kinetic energy involved is held as rotating equipment, and the recorded presentation was entanglement, impact, crush.",
+    "summary": "On 21 December 2024 a high potential incident was recorded on EX-9101 at Yandarra Downs Open Cut and Heavy Workshop during start-up after maintenance; kinetic energy held as rotating equipment was not released."
+  },
+  "response_sha256": "2929aeb369da71f6d91f6051e6b458f5d9e547d40f22fb50c97d8ab331fa4fe5",
+  "source": null
+}

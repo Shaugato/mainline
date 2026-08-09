@@ -1,0 +1,92 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "providing and briefing a fire watch",
+    "activity_root": "CONTROL-OF-IGNITION-SOURCES",
+    "activity_series": "authorising hot work",
+    "assets": [
+      {
+        "asset_class": "COMP-CLASS-V",
+        "label": "vapour recovery compressor",
+        "service": "loading vapour recovery",
+        "tag": "K-7301"
+      },
+      {
+        "asset_class": "INST-CLASS-A",
+        "label": "instrument loop",
+        "service": "governs K-7301",
+        "tag": "PT-7301"
+      },
+      {
+        "asset_class": "ESD-CLASS-A",
+        "label": "emergency shutdown valves",
+        "service": "jetty and manifold emergency isolation",
+        "tag": "ZV-7212"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "GAS_TEST_BEFORE_AND_DURING_HOT_WORK",
+        "control_label": "atmospheric gas testing before and during hot work",
+        "failure_mode": "absent",
+        "hazard_energy": "thermal",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "NM-2004-0011",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "near_miss",
+    "occurred_on": "2004-12-16",
+    "severity_actual": 1,
+    "severity_potential": 2,
+    "site": "Cape Verity Export Terminal",
+    "summary_facts": [],
+    "task_phase": "during a statutory inspection",
+    "title": "residual pressure found after isolation of K-7301",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "investigation": "accident investigation",
+      "near_miss": "near hit",
+      "verification": "spot check"
+    }
+  },
+  "key": "08601f1ef13179c642b846081e39f278577dc12cd1c4f9bc77b98ef8e100f54e",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2004-0011",
+  "prompt_kind": "icam",
+  "prompt_sha256": "3b9e79abc9030e6db11707491b84b0add42d7ea70c7396591acff7067b54f026",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage. The potential outcome was rated 2 against the site's consequence scale, above the 1 actually realised.",
+    "defences": [
+      {
+        "control_class": "GAS_TEST_BEFORE_AND_DURING_HOT_WORK",
+        "finding": "Control GAS_TEST_BEFORE_AND_DURING_HOT_WORK: the atmospheric gas testing before and during hot work was not in place, and the accident investigation classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next spot check that the atmospheric gas testing before and during hot work on K-7301, PT-7301 and ZV-7212 performs as designed."
+    ],
+    "sequence": "Work was under way in authorising hot work, specifically providing and briefing a fire watch. K-7301 (vapour recovery compressor) is in service for loading vapour recovery. The task proceeded during a statutory inspection while the atmospheric gas testing before and during hot work was not in place. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 16 December 2004 a near hit was recorded on K-7301, PT-7301 and ZV-7212 at Cape Verity Export Terminal during a statutory inspection; chemical energy held as hydrocarbon was not released."
+  },
+  "response_sha256": "a96c58f6d118e5d584b808afaa39cb57a2d59a61c8877918368ce21f40d68172",
+  "source": null
+}

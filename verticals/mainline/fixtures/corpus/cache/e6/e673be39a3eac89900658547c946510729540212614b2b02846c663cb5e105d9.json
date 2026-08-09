@@ -1,0 +1,91 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "charging, tying in and guarding a blast",
+    "activity_root": "EXPLOSIVES-AND-BLASTING",
+    "activity_series": "charging and firing",
+    "assets": [
+      {
+        "asset_class": "MAG-CLASS-A",
+        "label": "explosives magazines",
+        "service": "explosives and detonator storage",
+        "tag": "MAG-9602"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "BLAST_GUARDING_AND_CLEARANCE",
+        "control_label": "guarding, clearance and misfire handling for a blast",
+        "failure_mode": "absent",
+        "hazard_energy": "kinetic",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "EXPLOSIVES_RECONCILIATION",
+        "control_label": "receipt, magazining and reconciliation of explosives",
+        "failure_mode": "not_verified",
+        "hazard_energy": "chemical",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "INC-2009-005",
+    "hazard_energy": "thermal",
+    "hazard_media": [
+      "hot surface",
+      "steam",
+      "molten material",
+      "hot work",
+      "exothermic reaction"
+    ],
+    "hazard_release": "burn, ignition, scald",
+    "kind": "incident",
+    "occurred_on": "2009-05-10",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during transfer operations",
+    "title": "loss of containment at MAG-9602 during transfer operations",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "investigation": "accident investigation",
+      "near_miss": "near hit",
+      "verification": "spot check"
+    }
+  },
+  "key": "e673be39a3eac89900658547c946510729540212614b2b02846c663cb5e105d9",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2009-005",
+  "prompt_kind": "icam",
+  "prompt_sha256": "5e6e1372457c1e416b673e6507378f75e64965d325609bb7954c315636376386",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "BLAST_GUARDING_AND_CLEARANCE",
+        "finding": "Control BLAST_GUARDING_AND_CLEARANCE: the guarding, clearance and misfire handling for a blast was not in place, and the accident investigation classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "EXPLOSIVES_RECONCILIATION",
+        "finding": "Control EXPLOSIVES_RECONCILIATION: the receipt, magazining and reconciliation of explosives was never verified as effective, and the accident investigation classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Restore the guarding, clearance and misfire handling for a blast on MAG-9602 and record the spot check before this task is next authorised."
+    ],
+    "sequence": "Work was under way in charging and firing, specifically charging, tying in and guarding a blast. MAG-9602 (explosives magazines) is in service for explosives and detonator storage. The task proceeded during transfer operations while the guarding, clearance and misfire handling for a blast was not in place. The thermal energy involved is held as hot surface, and the recorded presentation was burn, ignition, scald.",
+    "summary": "On 10 May 2009 an incident occurred on MAG-9602 at Yandarra Downs Open Cut and Heavy Workshop during transfer operations, releasing thermal energy held as hot surface."
+  },
+  "response_sha256": "3b3a7543f4adf327acb56e191dd4a584fb79f37679a3dcb42b1908a31a4af982",
+  "source": null
+}

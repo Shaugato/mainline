@@ -1,0 +1,80 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "performing in-service and hydrostatic inspection",
+    "activity_root": "PRESSURE-SYSTEM-INTEGRITY",
+    "activity_series": "inspecting pressure equipment",
+    "assets": [
+      {
+        "asset_class": "PRD-CLASS-A",
+        "label": "pressure relief devices",
+        "service": "overpressure protection on the transfer and storage system",
+        "tag": "PSV-4111"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "PRESSURE_EQUIPMENT_INSPECTION",
+        "control_label": "in-service inspection of pressure equipment",
+        "failure_mode": "absent",
+        "hazard_energy": "pressure",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "NM-2017-0012",
+    "hazard_energy": "pressure",
+    "hazard_media": [
+      "hydraulic accumulator",
+      "barrier fluid",
+      "process gas",
+      "steam header",
+      "compressed air",
+      "trapped liquid"
+    ],
+    "hazard_release": "jet release, stored-energy discharge, rupture",
+    "kind": "near_miss",
+    "occurred_on": "2017-06-08",
+    "severity_actual": 0,
+    "severity_potential": 2,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during an intrusive maintenance task",
+    "title": "potential incident - pressure exposure at PSV-4111",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "de4339fe09c884bf3ac91134254c2fd2d0d84d5104ad14d179174f219c0e7241",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2017-0012",
+  "prompt_kind": "icam",
+  "prompt_sha256": "819272bc070d3a6e54d252c079680cc4bded19ab8113f2ccc85518f09e740ede",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 2 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "PRESSURE_EQUIPMENT_INSPECTION",
+        "finding": "Control PRESSURE_EQUIPMENT_INSPECTION: the in-service inspection of pressure equipment was not in place, and the ICAM investigation classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next critical control verification that the in-service inspection of pressure equipment on PSV-4111 performs as designed."
+    ],
+    "sequence": "Work was under way in inspecting pressure equipment, specifically performing in-service and hydrostatic inspection. PSV-4111 (pressure relief devices) is in service for overpressure protection on the transfer and storage system. The task proceeded during an intrusive maintenance task while the in-service inspection of pressure equipment was not in place. The pressure energy involved is held as hydraulic accumulator, and the recorded presentation was jet release, stored-energy discharge, rupture.",
+    "summary": "On 8 June 2017 a potential incident was recorded on PSV-4111 at Marrindal Concentrator and Hydrocarbon Transfer Facility during an intrusive maintenance task; pressure energy held as hydraulic accumulator was not released."
+  },
+  "response_sha256": "52607e47bc23d29cc6a414e0cece3431fb5e3fe7a301ba667bd9488b1e0fbc4a",
+  "source": null
+}

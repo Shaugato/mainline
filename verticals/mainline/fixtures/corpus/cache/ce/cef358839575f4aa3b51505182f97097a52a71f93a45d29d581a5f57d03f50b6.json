@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 0,
+    "doc_codes": [
+      "ALERT-2016-007"
+    ],
+    "intent": "strengthen",
+    "moc_ref": "MOC-2025-0080",
+    "opened_on": "2025-06-04",
+    "precursor_events": [],
+    "site": "Tolgarra Processing and Power Station",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "management_of_change": "change assurance",
+      "verification": "assurance activity"
+    },
+    "weakening_steps": 0
+  },
+  "key": "cef358839575f4aa3b51505182f97097a52a71f93a45d29d581a5f57d03f50b6",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2025-0080",
+  "prompt_kind": "moc",
+  "prompt_sha256": "b513071937700890713080f859abbdc61e34d875c68502ec918e8a958d2941a0",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2025-0080 was raised at Tolgarra Processing and Power Station on 4 June 2025 as a scheduled change under change assurance; no event precedes it in the record. The change assurance record carries no clause change; it records the assessment only. The intent is to strengthen the material unwanted event control named in the documents in scope. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the material unwanted event control set is preserved.",
+    "scope_note": "The documents in scope are ALERT-2016-007."
+  },
+  "response_sha256": "66e96f7bcdde94e1517995d2b02f6ee0875630fa2bcd5a87cd0ecc3986a58368",
+  "source": null
+}

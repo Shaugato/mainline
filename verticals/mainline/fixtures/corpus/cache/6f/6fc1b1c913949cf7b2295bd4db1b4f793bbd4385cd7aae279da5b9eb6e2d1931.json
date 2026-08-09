@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 5,
+    "doc_code": "PRO-ELE-008",
+    "doc_family": "PRO",
+    "doc_title": "Electrical Isolation and Access to Switchgear",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2013-11-27",
+    "required_citations": [
+      {
+        "control_label": "authorisation of switching and access to apparatus",
+        "event_ref": "INC-2013-014",
+        "event_title": "lock out tag out failure on TX-3001",
+        "hazard_energy": "electrical",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:MRD/PRO-ELE-008/004#revision_history_line/INC-2013-014",
+        "severity_gate": 2
+      }
+    ],
+    "rev_no": 4,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "root cause analysis",
+      "management_of_change": "change request",
+      "near_miss": "hazard report"
+    }
+  },
+  "key": "6fc1b1c913949cf7b2295bd4db1b4f793bbd4385cd7aae279da5b9eb6e2d1931",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/PRO-ELE-008/004",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "b63e795474eb2635d78d067f6291da322b1b7ccf571c5b845dab95cdf41f0d14",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "Revision 4 was raised in response to INC-2013-014, and the authorisation of switching and access to apparatus was amended as a result.",
+        "quote_ref": "quote:MRD/PRO-ELE-008/004#revision_history_line/INC-2013-014"
+      }
+    ],
+    "reason": "Scheduled review at revision 4; 5 clauses restated."
+  },
+  "response_sha256": "456f79fb0e266b95d953973e362736dc2078d0bb9e3cad71d571b0a7d3535a01",
+  "source": null
+}

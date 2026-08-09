@@ -1,0 +1,77 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 4,
+    "doc_code": "PRO-MEC-021",
+    "doc_family": "PRO",
+    "doc_title": "Mechanical Isolation and Lockout",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2008-05-19",
+    "required_citations": [
+      {
+        "control_label": "identification of every energy source for the task",
+        "event_ref": "INC-2008-004",
+        "event_title": "loss of containment at P-3221 during shift handover",
+        "hazard_energy": "pressure",
+        "kind": "moc_reference",
+        "quote_ref": "quote:MRD/PRO-MEC-021/003#moc_reference/INC-2008-004",
+        "severity_gate": 2
+      },
+      {
+        "control_label": "identification of every energy source for the task",
+        "event_ref": "INC-2008-004",
+        "event_title": "loss of containment at P-3221 during shift handover",
+        "hazard_energy": "pressure",
+        "kind": "regulator_requirement",
+        "quote_ref": "quote:MRD/PRO-MEC-021/003#regulator_requirement/INC-2008-004",
+        "severity_gate": 2
+      },
+      {
+        "control_label": "mechanical support of a load during maintenance access",
+        "event_ref": "NM-2008-0007",
+        "event_title": "unplanned release of gravity energy at CV-3102",
+        "hazard_energy": "gravity",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:MRD/PRO-MEC-021/003#revision_history_line/NM-2008-0007",
+        "severity_gate": 2
+      }
+    ],
+    "rev_no": 3,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "accident investigation",
+      "management_of_change": "engineering change note",
+      "near_miss": "near hit"
+    }
+  },
+  "key": "55d3c963da781340705f90fbcc3b358195d27d271900233cf1f2525a8db63a39",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/PRO-MEC-021/003",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "0c078c5a157908c1639e1382cdd57271d8d1f92f63e1839924ed7b98ef3bd304",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The engineering change note record for this revision cites INC-2008-004 as the reason the identification of every energy source for the task was amended.",
+        "quote_ref": "quote:MRD/PRO-MEC-021/003#moc_reference/INC-2008-004"
+      },
+      {
+        "line": "A regulatory requirement arising from INC-2008-004 obliges this procedure to carry the identification of every energy source for the task.",
+        "quote_ref": "quote:MRD/PRO-MEC-021/003#regulator_requirement/INC-2008-004"
+      },
+      {
+        "line": "Revision 3 was raised in response to NM-2008-0007, and the mechanical support of a load during maintenance access was amended as a result.",
+        "quote_ref": "quote:MRD/PRO-MEC-021/003#revision_history_line/NM-2008-0007"
+      }
+    ],
+    "reason": "Scheduled review at revision 3; 4 clauses restated."
+  },
+  "response_sha256": "31d4e9cd766b6cb4b40fc5192eeb35a5641898a428e6bc07189956523227ee03",
+  "source": null
+}

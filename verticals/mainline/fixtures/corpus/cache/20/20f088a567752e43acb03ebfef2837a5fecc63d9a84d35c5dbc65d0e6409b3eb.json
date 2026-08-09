@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "barrier_role": "preventive",
+    "control_class": "SEAL_SUPPORT_SYSTEM_INTEGRITY",
+    "control_delta": "introduce",
+    "control_label": "integrity of the mechanical seal support system",
+    "doc_code": "PRO-MEC-041",
+    "doc_family": "PRO",
+    "doc_title": "Export Transfer Pump Maintenance",
+    "effective_on": "2006-07-25",
+    "printed_label": "6.4",
+    "setpoint": {
+      "from": 80.0,
+      "key": "bearing_temperature_alarm",
+      "label": "bearing high-temperature alarm",
+      "strengthen_direction": "lower",
+      "to": 80.0,
+      "unit": "°C"
+    },
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "20f088a567752e43acb03ebfef2837a5fecc63d9a84d35c5dbc65d0e6409b3eb",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:CVY/PRO-MEC-041/001#CVY/PRO-MEC-041/6.4",
+  "prompt_kind": "clause",
+  "prompt_sha256": "18d41258350d47d2dcf4e307de1378131dfe248b20ed441d148c7f6c8e8cae04",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The integrity of the mechanical seal support system shall be provided and maintained for work covered by this procedure. The bearing high-temperature alarm shall be set at 80 °C. This clause applies to activities archived under CONTAINMENT-OF-HYDROCARBONS at Cape Verity Export Terminal.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "ad413de3af30121612471146c310727bdb8f528f3903a57167c51c0a14ff2013",
+  "source": null
+}

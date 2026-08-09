@@ -1,0 +1,79 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "clearing misfires and handling residue",
+    "activity_root": "EXPLOSIVES-AND-BLASTING",
+    "activity_series": "charging and firing",
+    "assets": [
+      {
+        "asset_class": "ELEC-CLASS-A",
+        "label": "station switchgear",
+        "service": "station HV distribution",
+        "tag": "SG-8000"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "BLAST_GUARDING_AND_CLEARANCE",
+        "control_label": "guarding, clearance and misfire handling for a blast",
+        "failure_mode": "bypassed",
+        "hazard_energy": "thermal",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "INC-2019-001",
+    "hazard_energy": "thermal",
+    "hazard_media": [
+      "hot surface",
+      "steam",
+      "molten material",
+      "hot work",
+      "exothermic reaction"
+    ],
+    "hazard_release": "burn, ignition, scald",
+    "kind": "incident",
+    "occurred_on": "2019-01-09",
+    "severity_actual": 1,
+    "severity_potential": 3,
+    "site": "Tolgarra Processing and Power Station",
+    "summary_facts": [],
+    "task_phase": "during commissioning of replacement equipment",
+    "title": "uncontrolled movement of SG-8000 during commissioning of replacement equipment",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "c0b006ed1f23bcd875043f647fc4469d0a4223414e8a7f133c1f771d3e8660cd",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2019-001",
+  "prompt_kind": "icam",
+  "prompt_sha256": "135b5ad45523e7f4bddff6d5bf529a5e2843fd582aecf0db8da696acd6e5c5e0",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage. The potential outcome was rated 3 against the site's consequence scale, above the 1 actually realised.",
+    "defences": [
+      {
+        "control_class": "BLAST_GUARDING_AND_CLEARANCE",
+        "finding": "Control BLAST_GUARDING_AND_CLEARANCE: the guarding, clearance and misfire handling for a blast had been bypassed, and the ICAM investigation classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the guarding, clearance and misfire handling for a blast on SG-8000 and record the critical control verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in charging and firing, specifically clearing misfires and handling residue. SG-8000 (station switchgear) is in service for station HV distribution. The task proceeded during commissioning of replacement equipment while the guarding, clearance and misfire handling for a blast had been bypassed. The thermal energy involved is held as hot surface, and the recorded presentation was burn, ignition, scald.",
+    "summary": "On 9 January 2019 an incident occurred on SG-8000 at Tolgarra Processing and Power Station during commissioning of replacement equipment, releasing thermal energy held as hot surface."
+  },
+  "response_sha256": "68a96039586b4beff0ac5f656abc4ef80fa6d50d9312d0d7df3afb57afa49f9e",
+  "source": null
+}

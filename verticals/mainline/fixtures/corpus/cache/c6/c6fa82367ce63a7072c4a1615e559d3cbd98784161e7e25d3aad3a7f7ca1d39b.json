@@ -1,0 +1,96 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "performing dam-safety review and surveillance",
+    "activity_root": "TAILINGS-AND-WATER-IMPOUNDMENT",
+    "activity_series": "governing the impoundment",
+    "assets": [
+      {
+        "asset_class": "LARM-CLASS-A",
+        "label": "marine loading arms",
+        "service": "ship loading",
+        "tag": "LA-7202"
+      },
+      {
+        "asset_class": "ESD-CLASS-A",
+        "label": "emergency shutdown valves",
+        "service": "jetty and manifold emergency isolation",
+        "tag": "ZV-7211"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 1,
+      "label": "medical treatment injury"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "EMBANKMENT_SURVEILLANCE",
+        "control_label": "surveillance of embankments and instrumentation",
+        "failure_mode": "not_verified",
+        "hazard_energy": "gravity",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "IMPOUNDMENT_FREEBOARD_CONTROL",
+        "control_label": "control of freeboard, beach width and decant",
+        "failure_mode": "degraded",
+        "hazard_energy": "chemical",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "INC-2005-005",
+    "hazard_energy": "gravity",
+    "hazard_media": [
+      "suspended load",
+      "stored potential of an elevated component",
+      "unsupported ground",
+      "person at height"
+    ],
+    "hazard_release": "fall, collapse, crush",
+    "kind": "incident",
+    "occurred_on": "2005-03-17",
+    "severity_actual": 2,
+    "severity_potential": 2,
+    "site": "Cape Verity Export Terminal",
+    "summary_facts": [],
+    "task_phase": "during shift handover",
+    "title": "loss of containment at LA-7202 during shift handover",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "investigation": "accident investigation",
+      "near_miss": "near hit",
+      "verification": "spot check"
+    }
+  },
+  "key": "c6fa82367ce63a7072c4a1615e559d3cbd98784161e7e25d3aad3a7f7ca1d39b",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2005-005",
+  "prompt_kind": "icam",
+  "prompt_sha256": "ad4eece34bbbd643f6aeac98720a8a96c853a989203e89b7d1a1395cdcc1d22e",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was medical treatment injury, with 1 person injured.",
+    "defences": [
+      {
+        "control_class": "EMBANKMENT_SURVEILLANCE",
+        "finding": "Control EMBANKMENT_SURVEILLANCE: the surveillance of embankments and instrumentation was never verified as effective, and the accident investigation classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "IMPOUNDMENT_FREEBOARD_CONTROL",
+        "finding": "Control IMPOUNDMENT_FREEBOARD_CONTROL: the control of freeboard, beach width and decant had degraded below its design intent, and the accident investigation classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next spot check that the surveillance of embankments and instrumentation on LA-7202 and ZV-7211 performs as designed."
+    ],
+    "sequence": "Work was under way in governing the impoundment, specifically performing dam-safety review and surveillance. LA-7202 (marine loading arms) is in service for ship loading. The task proceeded during shift handover while the surveillance of embankments and instrumentation was never verified as effective. The gravity energy involved is held as suspended load, and the recorded presentation was fall, collapse, crush.",
+    "summary": "On 17 March 2005 an incident occurred on LA-7202 and ZV-7211 at Cape Verity Export Terminal during shift handover, releasing gravity energy held as suspended load."
+  },
+  "response_sha256": "6a32684dfc87dc78588b12d538c9106ab99c1a2ef9e68e236441b228f6e93079",
+  "source": null
+}

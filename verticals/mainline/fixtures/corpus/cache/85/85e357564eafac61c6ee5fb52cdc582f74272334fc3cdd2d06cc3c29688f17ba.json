@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ELECTRICAL-SAFETY",
+    "barrier_role": "preventive",
+    "control_class": "SWITCHING_AUTHORISATION",
+    "control_delta": "restate",
+    "control_label": "authorisation of switching and access to apparatus",
+    "doc_code": "STD-PTW-001",
+    "doc_family": "PRO",
+    "doc_title": "Electrical Isolation and Access to Switchgear",
+    "effective_on": "2019-02-28",
+    "printed_label": "9.1.1",
+    "setpoint": null,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "85e357564eafac61c6ee5fb52cdc582f74272334fc3cdd2d06cc3c29688f17ba",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/PRO-ELE-008/007#MRD/PRO-ELE-008/4.2",
+  "prompt_kind": "clause",
+  "prompt_sha256": "ba863a3d96f24ee10a2b205b4e27758632f14feace2b0e8d892b36a9a6426e56",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The authorisation of switching and access to apparatus shall be provided and maintained wherever this procedure applies, and its condition shall be treated as a critical control. This clause applies to activities archived under ELECTRICAL-SAFETY at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "ec384d3bb9e5832b5b2f4c641dcf7276ebe52613fe5c77276f949c870e6044ba",
+  "source": null
+}

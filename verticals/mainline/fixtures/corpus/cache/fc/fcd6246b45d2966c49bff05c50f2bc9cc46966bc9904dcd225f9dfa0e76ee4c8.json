@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONFINED-SPACE-ENTRY",
+    "barrier_role": "preventive",
+    "control_class": "CONFINED_SPACE_ENTRY_PERMIT",
+    "control_delta": "restate",
+    "control_label": "classification of a space and issue of an entry permit",
+    "doc_code": "PRO-HSE-012",
+    "doc_family": "PRO",
+    "doc_title": "Confined Space Entry",
+    "effective_on": "2013-04-09",
+    "printed_label": "2.1",
+    "setpoint": null,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "energy_isolation": "lock out tag out",
+      "verification": "field verification"
+    }
+  },
+  "key": "fcd6246b45d2966c49bff05c50f2bc9cc46966bc9904dcd225f9dfa0e76ee4c8",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:CVY/PRO-HSE-012/004#CVY/PRO-HSE-012/2.1",
+  "prompt_kind": "clause",
+  "prompt_sha256": "0825e07133cedadc35555271a38060f7e1cbf3e4a28a8a661e35658b6f4de8fa",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The classification of a space and issue of an entry permit shall be provided and maintained wherever this procedure applies, and its condition shall be treated as a critical safeguard. This clause applies to activities archived under CONFINED-SPACE-ENTRY at Cape Verity Export Terminal.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "177c26d716e5f08332afad0402570d7bbb1101d608fcd95a671c6cb7403db9ca",
+  "source": null
+}

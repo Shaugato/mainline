@@ -1,0 +1,106 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "removing isolation and returning to operations",
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "activity_series": "restoring plant to service",
+    "assets": [
+      {
+        "asset_class": "PRD-CLASS-A",
+        "label": "tank relief and vent devices",
+        "service": "tank overpressure and vacuum protection",
+        "tag": "PSV-7103"
+      }
+    ],
+    "consequence": {
+      "days_lost": 4,
+      "injuries": 1,
+      "label": "lost time injury"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "ENERGY_SOURCE_IDENTIFICATION",
+        "control_label": "identification of every energy source for the task",
+        "failure_mode": "not_verified",
+        "hazard_energy": "pressure",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "LOAD_SUPPORT_FOR_MAINTENANCE",
+        "control_label": "mechanical support of a load during maintenance access",
+        "failure_mode": "ineffective",
+        "hazard_energy": "pressure",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "STORED_ENERGY_DISSIPATION",
+        "control_label": "dissipation or restraint of trapped and residual energy",
+        "failure_mode": "not_verified",
+        "hazard_energy": "pressure",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "RN-2019-003",
+    "hazard_energy": "pressure",
+    "hazard_media": [
+      "hydraulic accumulator",
+      "barrier fluid",
+      "process gas",
+      "steam header",
+      "compressed air",
+      "trapped liquid"
+    ],
+    "hazard_release": "jet release, stored-energy discharge, rupture",
+    "kind": "regulator_notice",
+    "occurred_on": "2019-05-27",
+    "severity_actual": 3,
+    "severity_potential": 3,
+    "site": "Cape Verity Export Terminal",
+    "summary_facts": [],
+    "task_phase": "during cleaning and preparation",
+    "title": "prohibition notice - work stopped during cleaning and preparation on PSV-7103",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "c99d281cb86ec83b07fa107903cf94cc31ab50a27387584cd652d2bc39c201c6",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:RN-2019-003",
+  "prompt_kind": "icam",
+  "prompt_sha256": "2f214529b80c23327e42de779c5f3f5750f93005f161be829e3d18838e5caa1a",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was lost time injury, with 1 person injured and 4 days lost.",
+    "defences": [
+      {
+        "control_class": "ENERGY_SOURCE_IDENTIFICATION",
+        "finding": "Control ENERGY_SOURCE_IDENTIFICATION: the identification of every energy source for the task was never verified as effective, and the ICAM investigation classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "LOAD_SUPPORT_FOR_MAINTENANCE",
+        "finding": "Control LOAD_SUPPORT_FOR_MAINTENANCE: the mechanical support of a load during maintenance access was in place but did not perform, and the ICAM investigation classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "STORED_ENERGY_DISSIPATION",
+        "finding": "Control STORED_ENERGY_DISSIPATION: the dissipation or restraint of trapped and residual energy was never verified as effective, and the ICAM investigation classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the identification of every energy source for the task on PSV-7103 and record the critical control verification before this task is next authorised.",
+      "Restore the mechanical support of a load during maintenance access on PSV-7103 and record the critical control verification before this task is next authorised.",
+      "Restore the dissipation or restraint of trapped and residual energy on PSV-7103 and record the critical control verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in restoring plant to service, specifically removing isolation and returning to operations. PSV-7103 (tank relief and vent devices) is in service for tank overpressure and vacuum protection. The task proceeded during cleaning and preparation while the identification of every energy source for the task was never verified as effective. The pressure energy involved is held as hydraulic accumulator, and the recorded presentation was jet release, stored-energy discharge, rupture.",
+    "summary": "On 27 May 2019 a regulatory notice was issued concerning PSV-7103 at Cape Verity Export Terminal following cleaning and preparation."
+  },
+  "response_sha256": "5ed4bf739861735dd49a404e7ff97df07cc6a0ec3677656edb3bfc6ca221afed",
+  "source": null
+}

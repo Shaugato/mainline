@@ -1,0 +1,308 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+#
+# REFUSAL-STRINGS.yaml — the single source of every constraint name, SQLSTATE and
+# RAISE message that appears on camera.
+#
+# WHY THIS FILE EXISTS. A product whose deliverable is a refusal cannot let the
+# refusal's own name drift between the kernel, the tape, the voice-over and the
+# honesty card. Four files quoting the same string four times is four chances to
+# ship a video that names a constraint the database does not have. So the string
+# is written down ONCE, here, transcribed from the migration that defines it, and
+# every consumer reads it from here:
+#
+#   * demo/tapes/*.tape          — `lint_tapes.py` fails on drift from this file
+#   * demo/script/SHOT-LIST.yaml — `on_screen` quotes `exhibit` / `message`
+#   * demo/script/VO.md          — the voice-over names `exhibit`, never a number
+#   * demo/honesty/gen_card.py   — the REAL column quotes `sqlstate` + `exhibit`
+#   * demo/preflight/warden.py   — refuses to record if the kernel disagrees
+#
+# CROSS-CHECK CONTRACT. `spec/errors.md` EXISTS in this repository, so the check
+# is FAIL, not warn (per the brief: warn if absent, fail once present):
+#
+#   * every `sqlstate` below MUST appear in spec/errors.md §2 as a modelled code;
+#   * every P0001 `message` MUST match the §3.2 shape `<PREFIX>: <one sentence,
+#     lower case, no trailing full stop>` and MUST be present verbatim in the
+#     migration named by `defined_in`;
+#   * no entry may claim a SQLSTATE that procedural code is forbidden to raise
+#     (§3.3: substrate code MUST NOT RAISE 23514 / 23503 / 23505 / 40001).
+#
+# ── A MEASURED PLATFORM FACT THAT CHANGES WHAT CAN BE FILMED ──────────────────
+#
+# On CockroachDB CCL v26.2.5 a `23514` error MESSAGE names the CHECK EXPRESSION,
+# not the constraint — `failed to satisfy CHECK constraint (note != '':::STRING)`
+# where PostgreSQL would say `note_stated`. Measured; see
+# tests/integration/algorithms/lattice/README.md ("Two measured platform details").
+#
+# Consequences, both of which this file encodes rather than hides:
+#
+#   1. `diag.constraint_name` on the pg wire IS populated for the three
+#      constraint-backed codes, so OUR client can render the name
+#      (`trappoint_core.errors.diagnose`, tier one, not weakened). The RAW SQL
+#      shell cannot. Any shot that must show a constraint NAME therefore runs
+#      either our client or `trappoint.explain_refusal(...)`; a raw-shell shot
+#      shows the SQLSTATE and the expression, which is honest and is in fact the
+#      stronger image — the gate's own predicate, printed by the server.
+#   2. `server_expression_rendering` below is NOT VERIFIED and MUST NOT be used
+#      as a match target. CockroachDB type-annotates expressions (`:::STRING`,
+#      `:::INT8`) and the exact rendering of an enum comparison has not been
+#      measured on this cluster. Tapes match on `terminal_match`, which is
+#      SQLSTATE-and-name only.
+#
+# ── VHS CONSTRAINT (ruling D13) ───────────────────────────────────────────────
+# vhs#592: a forward slash cannot be escaped inside a `Wait` regex. Every
+# `terminal_match` below is therefore slash-free and ASCII-only, so a tape can
+# use it directly. `lint_tapes.py` asserts that property of this file too.
+
+version: 1
+authority:
+  - "spec/errors.md §1, §2, §3 (the SQLSTATE contract)"
+  - "ARCHITECTURE.md §5.5 (the gate), §5.11 (where enforcement lives)"
+  - "BUILD_PLAN.md §5.2 (beat → milestone tagging; the beat-4 SQLSTATE ruling)"
+  - "docs/leads/corpus-demo.md D1"
+  - "docs/adr/0030-demo-beat4-m8-defeater-lease.md"
+hand_authored: true          # transcribed from migrations; every row carries defined_in
+migrations_root: verticals/mainline/db/migrations
+spec_errors: spec/errors.md
+spec_errors_present: true    # therefore the cross-check FAILS on drift, not warns
+
+# The four expectation classes, quoted from spec/errors.md §1 so a consumer of
+# this file never has to guess which codes are retryable and which are decisions.
+classes:
+  RETRY:  { codes: ["40001"], meaning: "serialization failure; the transaction is undecided" }
+  REFUSE: { codes: ["23514", "23503", "23505", "P0001"], meaning: "the gate decided: no" }
+  DENY:   { codes: ["42501"], meaning: "the writer never reached the gate" }
+  ADMIT:  { codes: ["00000"], meaning: "the history must complete" }
+
+refusals:
+
+  # ── BEAT 2 · THE REFUSAL AND THE BYPASS ─────────────────────────────────────
+
+  - id: R1-GATE-CLOSED
+    beat: 2
+    shot_ids: [s09-beat2-constraint, s10-beat2-bypass-admin-update]
+    on_camera: true
+    never_cut: true
+    sqlstate: "23514"
+    class: REFUSE
+    exhibit_kind: constraint
+    exhibit: gate_closed_when_issued
+    subject: mainline.permit
+    check_expression_source: "state <> 'merged' OR open_blocking = 0"
+    defined_in: "verticals/mainline/db/migrations/0050_permit.sql:114"
+    spec_ref: "spec/errors.md §2.2"
+    client_render: "GateRefused(constraint='gate_closed_when_issued', sqlstate='23514')"
+    server_expression_rendering:
+      verified: false
+      approximate: "ERROR: failed to satisfy CHECK constraint (state != 'merged' OR open_blocking = 0)"
+      why_unverified: >-
+        CockroachDB type-annotates rendered expressions and `state` is the enum
+        mainline.subject_state; the exact annotation has not been measured on this
+        cluster. Never match a tape on this string.
+    terminal_match: "SQLSTATE: 23514"
+    name_recovery: >-
+      Our client reads diag.constraint_name (tier one, not weakened). A raw shell
+      does not get the name; the shot recovers it with
+      trappoint.explain_refusal('permit', <permit_id>, 'gate_closed_when_issued').
+    vo_may_say: "refused by gate_closed_when_issued"
+
+  - id: R2-APPEND-ONLY
+    beat: 2
+    shot_ids: [s11-beat2-bypass-append-only]
+    on_camera: true
+    never_cut: true
+    sqlstate: "P0001"
+    class: REFUSE
+    exhibit_kind: raising_object
+    exhibit: mainline.fn_refuse_mutation
+    subject: mainline.blocking_check
+    message: "MAINLINE: this table is append-only; write a new row"
+    defined_in: "verticals/mainline/db/migrations/0107_fn_refuse_mutation.sql:42"
+    welded_by: "verticals/mainline/db/migrations/0128b_trg_refuse_mutation_blocking_check.sql:28"
+    spec_ref: "spec/errors.md §2.5 item 5, §3.2"
+    terminal_match: "MAINLINE: this table is append-only"
+    attempted_statement: "DELETE FROM mainline.blocking_check WHERE permit_id = :permit_id;"
+    vo_may_say: "the obligation cannot be deleted"
+
+  - id: R3-DROP-CONSTRAINT-SUCCEEDS
+    beat: 2
+    shot_ids: [s12-beat2-bypass-drop-constraint]
+    on_camera: true
+    never_cut: true
+    sqlstate: "00000"
+    class: ADMIT
+    exhibit_kind: none
+    exhibit: null
+    subject: mainline.permit
+    attempted_statement: "ALTER TABLE mainline.permit DROP CONSTRAINT gate_closed_when_issued;"
+    outcome: "ALTER TABLE"
+    terminal_match: "ALTER TABLE"
+    is_a_refusal: false
+    why_on_camera: >-
+      This statement SUCCEEDS and that is the point. A cluster admin can drop the
+      gate. What they cannot do is drop it unobserved: the custodian patrol reads
+      the migration fingerprint and pg_get_triggerdef snapshot, finds the gate
+      weakened, and writes an attested leaf into the custody ledger. The claim is
+      tamper-EVIDENCE, never tamper-proofing, and the video says exactly that.
+    follow_on: R3b-PATROL-LEAF
+    must_not_claim: >-
+      Never say or write that the database prevents a cluster admin from dropping
+      a constraint. It does not. Say that the drop becomes an attested leaf.
+
+  - id: R3b-PATROL-LEAF
+    beat: 2
+    shot_ids: [s12-beat2-bypass-drop-constraint]
+    on_camera: true
+    sqlstate: null
+    class: null
+    exhibit_kind: ledger_leaf
+    exhibit: mainline.ledger_leaf
+    subject: mainline.custodian_attestation
+    defined_in: "verticals/mainline/db/migrations/0073_ledger_leaf.sql"
+    terminal_match: "gate_definition_changed"
+    latency_budget_s: 15
+    fallback: >-
+      If the K6 custodian patrol is not wired on capture day, DROP the third
+      statement and the beat reverts to two refusals (BUILD_PLAN §5.2 beat 2
+      "If not complete"). The beat itself is never cut.
+
+  # ── BEAT 3 · THE DISPOSITION LADDER ─────────────────────────────────────────
+
+  - id: R4-CLEARANCE-LATTICE
+    beat: 3
+    shot_ids: [s13-beat3-lattice-refusal]
+    on_camera: true
+    never_cut: true
+    sqlstate: "23503"
+    class: REFUSE
+    exhibit_kind: constraint
+    exhibit: fk_clearance
+    subject: mainline.disposition
+    referenced: "mainline.clearance_legal (virulence, kind)"
+    attempted_tuple: { virulence: blood_major, kind: accept_residual }
+    absent_because: >-
+      (blood_major, accept_residual) is one of the three deliberately absent cells.
+      It is not a stricter row; it is NO row. See the header of
+      0018b_clearance_legal_seed.sql, which names all three and why.
+    defined_in: "verticals/mainline/db/migrations/0066_disposition.sql:165"
+    seed: "verticals/mainline/db/migrations/0018b_clearance_legal_seed.sql:25-38"
+    spec_ref: "spec/errors.md §2.3 (the clearance lattice shape)"
+    terminal_match: "SQLSTATE: 23503"
+    client_render: "GateRefused(constraint='fk_clearance', sqlstate='23503')"
+    vo_may_say: "there is no such verdict"
+
+  - id: R5-LATTICE-REQUIREMENTS
+    beat: 3
+    shot_ids: [s14-beat3-disposition-signed]
+    on_camera: true
+    sqlstate: "23514"
+    class: REFUSE
+    exhibit_kind: constraint
+    exhibit: needs_second_signer
+    also_visible: [needs_compensating, needs_predicate, substantive, rank_floor]
+    subject: mainline.disposition
+    defined_in: "verticals/mainline/db/migrations/0066_disposition.sql:168-179"
+    projected_from: "mainline.clearance_legal (blood_major, mitigated) -> req_second_signer = true, req_compensating = true, min_signer_rank = 3"
+    terminal_match: "SQLSTATE: 23514"
+    why_on_camera: >-
+      The countersigner field APPEARS because the projected requirement flag says
+      so. The constraint is doing visible work; the UI is rendering a database
+      fact, not a form rule.
+    vo_may_say: "severity four forces a second signature"
+
+  # ── BEAT 4 · THE DIACHRONIC FLIP (M8 DEFEATER LEASE) ────────────────────────
+
+  - id: R6-PRECURSOR-AFTER-ISSUE
+    beat: 4
+    shot_ids: [s17-beat4-lease-revoked]
+    on_camera: true
+    never_cut: true
+    sqlstate: "P0001"
+    class: REFUSE
+    exhibit_kind: raising_object
+    exhibit: mainline.fn_check_materialised
+    subject: mainline.blocking_check
+    message: "MAINLINE: precursor arrived after issue — use the post-issue recall path"
+    message_ascii_prefix: "MAINLINE: precursor arrived after issue"
+    defined_in: "verticals/mainline/db/migrations/0101_fn_check_materialised.sql:60"
+    welded_by: "verticals/mainline/db/migrations/0121_trg_check_materialised.sql"
+    spec_ref: "spec/errors.md §2.5 item 2, §3.2"
+    terminal_match: "MAINLINE: precursor arrived after issue"
+    mechanism: "M8 DEFEATER LEASE"
+    requires_milestone: K5
+    vo_may_say: "He signed it away only while this stayed true."
+
+  - id: R7-EPOCH-PIN
+    beat: 4
+    shot_ids: []
+    on_camera: false            # ← the ruling. See docs/adr/0030.
+    sqlstate: "23503"
+    class: REFUSE
+    exhibit_kind: constraint
+    exhibit: epoch_pin_permit
+    subject: mainline.merge_record
+    referenced: "mainline.permit (permit_id, gate_epoch) ON UPDATE RESTRICT"
+    defined_in: "verticals/mainline/db/migrations/0071a_epoch_pin_permit.sql"
+    why_not_filmed: >-
+      The RAISE in fn_check_materialised fires BEFORE the epoch-bumping UPDATE, so
+      on the beat-4 path 23503 cannot occur. Filming a SQLSTATE that cannot occur
+      is exactly the overclaim this project punishes in others (finding S4).
+      The pin's structural necessity is demonstrated by the unwelding matrix in
+      packages/trappoint-conformance/unweld, which is a repository artefact and a
+      line of voice-over, not a shot.
+    demonstrated_by: "packages/trappoint-conformance/unweld/"
+
+  # ── STRUCTURAL SIBLINGS · named so nobody films them by accident ────────────
+
+  - id: R8-MERGE-GATE-DRIFT
+    beat: null
+    shot_ids: []
+    on_camera: false
+    sqlstate: "P0001"
+    class: REFUSE
+    exhibit_kind: raising_object
+    exhibit: mainline.fn_permit_merge_gate
+    message_shape: "MAINLINE: merge refused by mainline.fn_permit_merge_gate — <what and why>"
+    defined_in: "verticals/mainline/db/migrations/0115_fn_permit_merge_gate.sql"
+    why_not_filmed: >-
+      This raises only on DRIFT — when the re-derived obligation count disagrees
+      with the projected counter. On a healthy corpus it never fires, so it cannot
+      be scheduled into a shot. The refusal the demo shows is the counter's own
+      CHECK, and "refused by gate_closed_when_issued" is the sentence that matters
+      (spec/errors.md §3.3, Corollary).
+
+  - id: R9-DENY-NOT-REFUSE
+    beat: null
+    shot_ids: []
+    on_camera: false
+    sqlstate: "42501"
+    class: DENY
+    exhibit_kind: grant_token
+    exhibit: "grant:<verb>:<object>:<role>"
+    spec_ref: "spec/errors.md §1.1, §5"
+    why_not_filmed: >-
+      42501 means the writer never reached the gate. Showing it beside 23514 would
+      invite a viewer to read "permission denied" as "the gate refused", which is
+      the one confusion this taxonomy exists to prevent. The bypass beat runs as
+      CLUSTER ADMIN precisely so that 42501 is off the table and the refusal is
+      unambiguously the gate's.
+
+# ── What is asserted about the vector index, kept here so one file holds every
+# on-camera string the database produces ───────────────────────────────────────
+explain_fragment:
+  beat: 5
+  shot_ids: [s20-beat5-explain]
+  index: mainline.event_cue_embedding@cue_scoped_idx
+  prefix_columns: [site_id, scope_id, facet]
+  defined_in: "verticals/mainline/db/migrations/0041_event_cue_embedding.sql:55"
+  required_substrings: ["vector search", "prefix spans"]
+  hint_is_mandatory: true
+  why_hinted: >-
+    ADR 0002 GT-06 / GT-06b: at demo corpus scale the optimizer does NOT choose
+    the vector index unhinted — the plan is top-k, render, filter, scan. It is
+    traversed when named. Every ANN arm pins the index, and this EXPLAIN assertion
+    asserts traversal of the NAMED index. An unhinted assertion fails at this
+    scale, which would be a red shoot for a correct database.
+  must_not_claim: >-
+    Never claim bit-identical replay of an ANN result. The claims are replayability
+    and arithmetic reproducibility (ARCHITECTURE.md §8.2, §11.7).

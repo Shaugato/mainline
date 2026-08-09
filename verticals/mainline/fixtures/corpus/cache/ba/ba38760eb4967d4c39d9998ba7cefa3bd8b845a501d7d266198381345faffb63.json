@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 22,
+    "doc_code": "STD-MEQ-007",
+    "doc_family": "STD",
+    "doc_title": "Mobile Equipment Interaction",
+    "driver": "retypeset",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2016-11-21",
+    "required_citations": [],
+    "rev_no": 5,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "ICAM investigation",
+      "management_of_change": "management of change",
+      "near_miss": "potential incident"
+    }
+  },
+  "key": "ba38760eb4967d4c39d9998ba7cefa3bd8b845a501d7d266198381345faffb63",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:YND/STD-MEQ-007/005",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "c4c3769d232fe9b553f0f73125815a6cd7d2b61a27db5e3fcc4887775656316a",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [],
+    "reason": "Full retypeset to the 2016 house style; numbering reissued, requirements unchanged."
+  },
+  "response_sha256": "95395301f1554d91995d574a99df2def92bb178e3a0adfae98faf6e85833a816",
+  "source": null
+}

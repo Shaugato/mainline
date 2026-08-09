@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "HAZARDOUS-SUBSTANCE-EXPOSURE",
+    "barrier_role": "preventive",
+    "control_class": "LOAD_RESTRAINT_AND_PLACARDING",
+    "control_delta": "introduce",
+    "control_label": "restraint and placarding of transported loads",
+    "doc_code": "PRO-CHM-009",
+    "doc_family": "PRO",
+    "doc_title": "Reagent Make-Up and Dosing",
+    "effective_on": "2007-02-12",
+    "printed_label": "4.2",
+    "setpoint": null,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "e911d2e00a1e74a64d49b7979b9f223d3074befeedfda90f3852852a129c8af2",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:TLG/PRO-CHM-009/001#TLG/PRO-CHM-009/4.2",
+  "prompt_kind": "clause",
+  "prompt_sha256": "d0d6400d2ec559c0e3c0185da34db56575271219cd3d72491a0cd948abfe8ce6",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The restraint and placarding of transported loads shall be provided and maintained for work covered by this procedure. This clause applies to activities archived under HAZARDOUS-SUBSTANCE-EXPOSURE at Tolgarra Processing and Power Station.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "5463ad4c59249969e0d09a6d36a244a4b69602ad5cada7956c79beebe16305c1",
+  "source": null
+}

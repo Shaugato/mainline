@@ -1,0 +1,122 @@
+{# SPDX-FileCopyrightText: 2026 MAINLINE contributors #}
+{# SPDX-License-Identifier: Apache-2.0 #}
+{#
+  Migration 0104 — THE ONE PERMITTED `UPDATE` IN THE OPERATIONAL ZONE.
+
+  ARCHITECTURE.md §5.11 item 10 · §5.5 ("`retracted_by` is the single permitted UPDATE") ·
+  §16 MI01, MI07 · docs/leads/kernel.md ruling D2.
+
+  Everything evidentiary in this schema is append-only. `disposition` has exactly one exception,
+  and the exception is narrow enough to state in one line: `retracted_by` may go from NULL to a
+  value, once, and nothing else about the row may change.
+
+  RETRACTION RE-OPENS THE GATE AND BUMPS THE EPOCH, and the second half is the interesting one.
+  Re-opening is obvious — an obligation whose disposition was withdrawn is open again. Bumping
+  the epoch means A RETRACTION AFTER ISSUE IS REFUSED BY THE EPOCH PIN, structurally, by the
+  composite foreign key from the completion record with ON UPDATE RESTRICT. You cannot quietly
+  withdraw the signature that let a permit merge; you must suspend the issued subject and fork a
+  child whose gate is cleared afresh. That is git discipline — never rewrite a merged commit,
+  open a revert branch — expressed as referential integrity.
+
+  WHY THE COMPARISON IS EXHAUSTIVE AND NOT A LIST OF SIX COLUMNS.
+  §5.11 compares six named columns: rationale, kind, signer_sub, check_id, virulence and
+  signer_credential_id. Everything else on the row — the frozen competency snapshot, the
+  projected requirement flags, `deliberation_seconds`, `prior_override_count`,
+  `severity_snapshot`, the signature block, `expires_at` — was left mutable by omission. A guard
+  that names six of forty columns is a guard whose completeness depends on nobody adding a
+  forty-first, and this table gains columns every time the design learns something.
+
+      (to_jsonb(NEW) - 'retracted_by') IS DISTINCT FROM (to_jsonb(OLD) - 'retracted_by')
+
+  is the whole row minus the one permitted column, compared as data. It subsumes §5.11's six,
+  it cannot fall behind a schema change, and it was MEASURED working on CockroachDB CCL v26.2.5
+  (local single node, 2026-08-09) — `to_jsonb` over a trigger's row variable and JSONB key
+  deletion by `-` are both accepted, and the UPDATE that changes only `retracted_by` passes while
+  one that also changes another column raises.
+
+  `IS DISTINCT FROM` rather than `<>`, because `<>` against a NULL yields NULL, and an `IF NULL`
+  branch does not execute — so a change involving a nullable column would pass a `<>` guard
+  silently. That is the same class of defect as comparing six columns instead of all of them,
+  and it is the reason this file states the operator choice rather than assuming it.
+
+  WHAT THIS FUNCTION IS NOT. It is not the append-only guard. `fn_refuse_mutation` (0107) refuses
+  UPDATE and DELETE outright on the evidentiary tables; this one exists only because `disposition`
+  is the single table where one UPDATE is legal. DELETE on `disposition` is not permitted by this
+  function — it is a BEFORE UPDATE trigger and says nothing about DELETE, which is governed by
+  the grant matrix and by `one_live_disposition` having nothing to point at afterwards. Naming
+  DELETE here would imply this file defends it. It does not.
+
+  PLATFORM: `(NEW).col` / `(OLD).col` for every COLUMN read; the whole-row references `NEW` and
+  `OLD` passed to `to_jsonb()` are NOT parenthesised, and both spellings were measured.
+#}
+{% set ns = namespace(ok=true) %}
+{% for s in subjects %}
+{%   set inner = namespace(found=false) %}
+{%   for c in s.counters %}
+{%     if c.column == 'open_blocking' %}{% set inner.found = true %}{% endif %}
+{%   endfor %}
+{%   if not inner.found %}{% set ns.ok = false %}{% endif %}
+{% endfor %}
+{% if not ns.ok %}{{ a_gated_subject_declares_no_open_blocking_counter }}{% endif %}
+-- @file 0104_fn_disposition_retract_only.sql
+{{ header(file='0104_fn_disposition_retract_only.sql',
+          title='CREATE FUNCTION ' ~ binding.schema ~ '.fn_disposition_retract_only — one column, one direction, once',
+          rationale='The single permitted UPDATE in the operational zone. The comparison is the whole row minus retracted_by rather than a list of six named columns, because a guard that names six of forty is a guard whose completeness depends on nobody adding a forty-first, and this table gains columns whenever the design learns something. Retraction re-opens the obligation and bumps the epoch, so a retraction after issue is refused by the epoch pin rather than by a policy nobody can point at.',
+          mi=['MI01', 'MI07'], i=['I01', 'I03']) }}
+--
+-- migration:  0104_fn_disposition_retract_only
+-- band:       0100-0109z · kernel/projection-triggers · RENDERED
+-- statements: 1
+-- invariants: MI01 (evidentiary tables are append-only — this is the one stated exception, and
+--             stating it narrowly is what keeps it an exception) · MI07 (no precursor may be
+--             attached to an issued subject: the epoch bump routes a post-issue retraction into
+--             the pin's ON UPDATE RESTRICT)
+-- source:     ARCHITECTURE.md §5.11 item 10 · §5.5 · docs/leads/kernel.md D2
+-- requires:   {{ binding.schema }}.disposition (0066) ·
+{% for s in subjects %}
+--             {{ binding.schema }}.{{ s.table }} (open_blocking, {{ s.epoch_column }})
+{% endfor %}
+-- provides:   {{ binding.schema }}.fn_disposition_retract_only() — welded to disposition by 0124
+-- sqlstate:   P0001 on a re-retraction, on an un-retraction, and on any other column changing.
+--             23503 on the epoch pin when the subject has already merged — which is the point.
+-- forward-only; no .down.sql and no .up.sql (MR-5).
+--
+-- ACYCLICITY. BEFORE UPDATE on disposition; writes the gated subject tables, whose only trigger
+-- is the merge gate restricted by its WHEN clause to the merge transition. Trigger depth
+-- contributed: 1.
+
+CREATE FUNCTION {{ binding.schema }}.fn_disposition_retract_only() RETURNS TRIGGER LANGUAGE PLpgSQL AS $$
+BEGIN
+  -- One direction, once. A row already retracted cannot be retracted again, and a retraction
+  -- cannot be undone by writing NULL back.
+  IF (OLD).retracted_by IS NOT NULL OR (NEW).retracted_by IS NULL THEN
+    RAISE EXCEPTION USING ERRCODE='P0001',
+      MESSAGE='{{ binding.name }}: dispositions are append-only except for a single retraction';
+  END IF;
+
+  -- The whole row minus the one permitted column, compared as data. Exhaustive by construction.
+  IF (to_jsonb(NEW) - 'retracted_by') IS DISTINCT FROM (to_jsonb(OLD) - 'retracted_by') THEN
+    RAISE EXCEPTION USING ERRCODE='P0001',
+      MESSAGE='{{ binding.name }}: only retracted_by may change on a disposition';
+  END IF;
+
+  -- The gate RE-OPENS, and the epoch moves with it. Read from OLD: the subject columns are
+  -- projections written at insert and the guard above has just proved NEW agrees with OLD, so
+  -- OLD is the side that cannot have been influenced by this statement.
+{% for s in subjects %}
+{%   if loop.first %}
+  IF (OLD).{{ s.id_column }} IS NOT NULL THEN
+{%   else %}
+  ELSIF (OLD).{{ s.id_column }} IS NOT NULL THEN
+{%   endif %}
+    UPDATE {{ binding.schema }}.{{ s.table }}
+       SET open_blocking = open_blocking + 1,
+           {{ s.epoch_column }} = {{ s.epoch_column }} + 1
+     WHERE {{ s.id_column }} = (OLD).{{ s.id_column }};
+{% endfor %}
+  ELSE
+    RAISE EXCEPTION USING ERRCODE='P0001',
+      MESSAGE='{{ binding.name }}: a disposition names no gated subject — nothing to re-open';
+  END IF;
+  RETURN NEW;
+END $$;

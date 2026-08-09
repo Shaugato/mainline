@@ -1,0 +1,96 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "managing freeboard, beach and decant",
+    "activity_root": "TAILINGS-AND-WATER-IMPOUNDMENT",
+    "activity_series": "operating an impoundment",
+    "assets": [
+      {
+        "asset_class": "THK-CLASS-A",
+        "label": "tailings thickener",
+        "service": "tailings thickening and decant",
+        "tag": "TH-3240"
+      },
+      {
+        "asset_class": "MOTOR-CLASS-A",
+        "label": "drive motor",
+        "service": "drives TH-3240",
+        "tag": "M-3240"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "EMBANKMENT_SURVEILLANCE",
+        "control_label": "surveillance of embankments and instrumentation",
+        "failure_mode": "absent",
+        "hazard_energy": "gravity",
+        "icam_tier": "individual_or_team_action"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "IMPOUNDMENT_FREEBOARD_CONTROL",
+        "control_label": "control of freeboard, beach width and decant",
+        "failure_mode": "degraded",
+        "hazard_energy": "chemical",
+        "icam_tier": "organisational_factor"
+      }
+    ],
+    "event_ref": "RN-2025-001",
+    "hazard_energy": "gravity",
+    "hazard_media": [
+      "suspended load",
+      "stored potential of an elevated component",
+      "unsupported ground",
+      "person at height"
+    ],
+    "hazard_release": "fall, collapse, crush",
+    "kind": "regulator_notice",
+    "occurred_on": "2025-04-30",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during commissioning of replacement equipment",
+    "title": "improvement notice - material unwanted event control at TH-3240",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "0329263f4ac72b2e5202bbd0cf0cb7fe7310e6b9002906b6369fe42535d36d7c",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:RN-2025-001",
+  "prompt_kind": "icam",
+  "prompt_sha256": "76cb558fee234e2ad1e756fd4c13686b351c4349783b97d1639fbadac49aaf6f",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "EMBANKMENT_SURVEILLANCE",
+        "finding": "Control EMBANKMENT_SURVEILLANCE: the surveillance of embankments and instrumentation was not in place, and the learning team review classified this as an individual or team action."
+      },
+      {
+        "control_class": "IMPOUNDMENT_FREEBOARD_CONTROL",
+        "finding": "Control IMPOUNDMENT_FREEBOARD_CONTROL: the control of freeboard, beach width and decant had degraded below its design intent, and the learning team review classified this as an organisational factor."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next assurance activity that the surveillance of embankments and instrumentation on TH-3240 and M-3240 performs as designed."
+    ],
+    "sequence": "Work was under way in operating an impoundment, specifically managing freeboard, beach and decant. TH-3240 (tailings thickener) is in service for tailings thickening and decant. The task proceeded during commissioning of replacement equipment while the surveillance of embankments and instrumentation was not in place. The gravity energy involved is held as suspended load, and the recorded presentation was fall, collapse, crush.",
+    "summary": "On 30 April 2025 a regulatory notice was issued concerning TH-3240 and M-3240 at Marrindal Concentrator and Hydrocarbon Transfer Facility following commissioning of replacement equipment."
+  },
+  "response_sha256": "232bf90cc5144ec94380b7e85bb55843f6f878b0af6195f7101ac5b9de74ed52",
+  "source": null
+}

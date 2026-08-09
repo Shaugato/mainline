@@ -1,0 +1,85 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "insulating, guarding and signing hot surfaces",
+    "activity_root": "MOLTEN-AND-HOT-MATERIAL",
+    "activity_series": "protecting people from hot surfaces",
+    "assets": [
+      {
+        "asset_class": "ELEC-CLASS-A",
+        "label": "terminal switchgear",
+        "service": "terminal distribution",
+        "tag": "SG-7000"
+      },
+      {
+        "asset_class": "ELEC-CLASS-A",
+        "label": "terminal switchgear",
+        "service": "terminal distribution",
+        "tag": "TX-7001"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "HOT_SURFACE_GUARDING",
+        "control_label": "insulation, guarding and signing of hot surfaces",
+        "failure_mode": "degraded",
+        "hazard_energy": "thermal",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "NM-2024-0020",
+    "hazard_energy": "thermal",
+    "hazard_media": [
+      "hot surface",
+      "steam",
+      "molten material",
+      "hot work",
+      "exothermic reaction"
+    ],
+    "hazard_release": "burn, ignition, scald",
+    "kind": "near_miss",
+    "occurred_on": "2024-12-03",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Cape Verity Export Terminal",
+    "summary_facts": [],
+    "task_phase": "during start-up after maintenance",
+    "title": "high potential incident during start-up after maintenance on SG-7000",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "af53bc085488e1f81d9ab97aa0cf33eea97c2db1682cd022c536276dad7e0000",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2024-0020",
+  "prompt_kind": "icam",
+  "prompt_sha256": "4f834654779bad244c361ea7c340fba4909ecd889769fb29025b2893dd31fa37",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "HOT_SURFACE_GUARDING",
+        "finding": "Control HOT_SURFACE_GUARDING: the insulation, guarding and signing of hot surfaces had degraded below its design intent, and the learning team review classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next assurance activity that the insulation, guarding and signing of hot surfaces on SG-7000 and TX-7001 performs as designed."
+    ],
+    "sequence": "Work was under way in protecting people from hot surfaces, specifically insulating, guarding and signing hot surfaces. SG-7000 (terminal switchgear) is in service for terminal distribution. The task proceeded during start-up after maintenance while the insulation, guarding and signing of hot surfaces had degraded below its design intent. The thermal energy involved is held as hot surface, and the recorded presentation was burn, ignition, scald.",
+    "summary": "On 3 December 2024 a high potential incident was recorded on SG-7000 and TX-7001 at Cape Verity Export Terminal during start-up after maintenance; thermal energy held as hot surface was not released."
+  },
+  "response_sha256": "0c334e1f53d22f5f505ed7dc9f61d30f9402790815072d91ead92917169b038c",
+  "source": null
+}

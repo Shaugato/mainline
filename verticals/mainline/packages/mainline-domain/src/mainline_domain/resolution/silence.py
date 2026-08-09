@@ -144,6 +144,10 @@ REASON_FOR_ABSTENTION_CODE: Final[Mapping[str, str]] = {
 
 _RATIONALE_SEPARATOR: Final[str] = ": "
 
+#: The coded severity scale (ARCHITECTURE.md §8.4).  Named so that the bound in
+#: the comparison and the bound in the refusal message are one fact.
+_MAX_CODED_SEVERITY: Final[int] = 5
+
 
 def stamp_rationale(code: str, detail: str) -> str:
     """Render an ``OracleVerdict.rationale`` that carries a machine-readable code.
@@ -203,7 +207,7 @@ class SilenceRecord:
                 f"silence reason {self.reason!r} is outside the CHECK vocabulary "
                 f"{sorted(SILENCE_REASONS)} (ARCHITECTURE.md §5.7)"
             )
-        if not 0 <= self.severity <= 5:
+        if not 0 <= self.severity <= _MAX_CODED_SEVERITY:
             raise ValueError(
                 f"severity {self.severity} is outside 0..5; it is a projection of "
                 f"clause_blame_closure (P2) and this package never derives it"

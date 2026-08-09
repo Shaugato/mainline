@@ -1,0 +1,103 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "insulating, guarding and signing hot surfaces",
+    "activity_root": "MOLTEN-AND-HOT-MATERIAL",
+    "activity_series": "protecting people from hot surfaces",
+    "assets": [
+      {
+        "asset_class": "BOIL-CLASS-A",
+        "label": "package boilers and deaerator",
+        "service": "process steam generation and feedwater deaeration",
+        "tag": "B-8202"
+      },
+      {
+        "asset_class": "BOIL-CLASS-A",
+        "label": "package boilers and deaerator",
+        "service": "process steam generation and feedwater deaeration",
+        "tag": "D-8210"
+      },
+      {
+        "asset_class": "PRD-CLASS-A",
+        "label": "steam relief devices",
+        "service": "boiler and deaerator overpressure protection",
+        "tag": "PSV-8202"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 1,
+      "label": "medical treatment injury"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "HOT_SURFACE_GUARDING",
+        "control_label": "insulation, guarding and signing of hot surfaces",
+        "failure_mode": "absent",
+        "hazard_energy": "thermal",
+        "icam_tier": "organisational_factor"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "STEAM_SYSTEM_WARM_THROUGH",
+        "control_label": "controlled draining, venting and warm-through of steam systems",
+        "failure_mode": "absent",
+        "hazard_energy": "thermal",
+        "icam_tier": "organisational_factor"
+      }
+    ],
+    "event_ref": "INC-2009-013",
+    "hazard_energy": "thermal",
+    "hazard_media": [
+      "hot surface",
+      "steam",
+      "molten material",
+      "hot work",
+      "exothermic reaction"
+    ],
+    "hazard_release": "burn, ignition, scald",
+    "kind": "incident",
+    "occurred_on": "2009-12-03",
+    "severity_actual": 2,
+    "severity_potential": 2,
+    "site": "Tolgarra Processing and Power Station",
+    "summary_facts": [],
+    "task_phase": "during routine operation",
+    "title": "thermal release during routine operation on B-8202",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "investigation": "accident investigation",
+      "near_miss": "near hit",
+      "verification": "spot check"
+    }
+  },
+  "key": "880e8a3d2e3f44e501a55de868d13f64d6824e1f2d000de62586b8107686d459",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2009-013",
+  "prompt_kind": "icam",
+  "prompt_sha256": "1c23c4fa3c7b83c3cf24a317a1756b68f5ea6eb9ec3cd40824cffd796c05803a",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was medical treatment injury, with 1 person injured.",
+    "defences": [
+      {
+        "control_class": "HOT_SURFACE_GUARDING",
+        "finding": "Control HOT_SURFACE_GUARDING: the insulation, guarding and signing of hot surfaces was not in place, and the accident investigation classified this as an organisational factor."
+      },
+      {
+        "control_class": "STEAM_SYSTEM_WARM_THROUGH",
+        "finding": "Control STEAM_SYSTEM_WARM_THROUGH: the controlled draining, venting and warm-through of steam systems was not in place, and the accident investigation classified this as an organisational factor."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next spot check that the insulation, guarding and signing of hot surfaces on B-8202, D-8210 and PSV-8202 performs as designed."
+    ],
+    "sequence": "Work was under way in protecting people from hot surfaces, specifically insulating, guarding and signing hot surfaces. B-8202 (package boilers and deaerator) is in service for process steam generation and feedwater deaeration. The task proceeded during routine operation while the insulation, guarding and signing of hot surfaces was not in place. The thermal energy involved is held as hot surface, and the recorded presentation was burn, ignition, scald.",
+    "summary": "On 3 December 2009 an incident occurred on B-8202, D-8210 and PSV-8202 at Tolgarra Processing and Power Station during routine operation, releasing thermal energy held as hot surface."
+  },
+  "response_sha256": "8cc992bd048c538afd1e743066883feeb182a36f697d1ae73c2acf9b5b0ddbff",
+  "source": null
+}

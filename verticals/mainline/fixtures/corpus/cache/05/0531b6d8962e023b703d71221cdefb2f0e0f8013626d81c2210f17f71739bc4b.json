@@ -1,0 +1,92 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "monitoring dust, fume and gas exposure",
+    "activity_root": "HAZARDOUS-SUBSTANCE-EXPOSURE",
+    "activity_series": "controlling airborne contaminants",
+    "assets": [
+      {
+        "asset_class": "HTP-CLASS-A",
+        "label": "hydrocarbon transfer pumps",
+        "service": "hydrocarbon transfer, single mechanical seal with pressurised barrier-fluid support",
+        "tag": "P-4101"
+      },
+      {
+        "asset_class": "MOTOR-CLASS-A",
+        "label": "drive motor",
+        "service": "drives P-4101",
+        "tag": "M-4101"
+      },
+      {
+        "asset_class": "HTP-CLASS-A",
+        "label": "hydrocarbon transfer pumps",
+        "service": "hydrocarbon transfer, single mechanical seal with pressurised barrier-fluid support",
+        "tag": "P-4105"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "LOAD_RESTRAINT_AND_PLACARDING",
+        "control_label": "restraint and placarding of transported loads",
+        "failure_mode": "ineffective",
+        "hazard_energy": "chemical",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "NM-2020-0010",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "near_miss",
+    "occurred_on": "2020-06-08",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during shift handover",
+    "title": "potential incident - chemical exposure at P-4101",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "0531b6d8962e023b703d71221cdefb2f0e0f8013626d81c2210f17f71739bc4b",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2020-0010",
+  "prompt_kind": "icam",
+  "prompt_sha256": "747d9eb86feda5d77c3bf35db9bd80ac42221eb07d4f1380792c37f43079faf9",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "LOAD_RESTRAINT_AND_PLACARDING",
+        "finding": "Control LOAD_RESTRAINT_AND_PLACARDING: the restraint and placarding of transported loads was in place but did not perform, and the ICAM investigation classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the restraint and placarding of transported loads on P-4101, M-4101 and P-4105 and record the critical control verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in controlling airborne contaminants, specifically monitoring dust, fume and gas exposure. P-4101 (hydrocarbon transfer pumps) is in service for hydrocarbon transfer, single mechanical seal with pressurised barrier-fluid support. The task proceeded during shift handover while the restraint and placarding of transported loads was in place but did not perform. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 8 June 2020 a potential incident was recorded on P-4101, M-4101 and P-4105 at Marrindal Concentrator and Hydrocarbon Transfer Facility during shift handover; chemical energy held as hydrocarbon was not released."
+  },
+  "response_sha256": "440174e734bea851bbeac880afc336dc61def0711e209ce40f6e7c937ea059da",
+  "source": null
+}

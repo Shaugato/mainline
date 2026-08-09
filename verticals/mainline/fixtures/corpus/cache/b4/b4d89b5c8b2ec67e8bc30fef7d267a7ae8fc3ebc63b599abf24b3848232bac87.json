@@ -1,0 +1,85 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "authorising a group isolation",
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "activity_series": "planning and permitting an isolation",
+    "assets": [
+      {
+        "asset_class": "MILL-CLASS-A",
+        "label": "grinding mills",
+        "service": "two-line ball milling",
+        "tag": "ML-3202"
+      },
+      {
+        "asset_class": "MOTOR-CLASS-A",
+        "label": "drive motor",
+        "service": "drives ML-3202",
+        "tag": "M-3202"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "ZERO_ENERGY_VERIFICATION",
+        "control_label": "proving zero energy before intrusive work",
+        "failure_mode": "bypassed",
+        "hazard_energy": "electrical",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "NM-2019-0014",
+    "hazard_energy": "electrical",
+    "hazard_media": [
+      "HV switchgear",
+      "LV distribution",
+      "capacitive storage",
+      "induced voltage",
+      "portable equipment"
+    ],
+    "hazard_release": "shock, arc flash, unplanned energisation",
+    "kind": "near_miss",
+    "occurred_on": "2019-11-26",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during commissioning of replacement equipment",
+    "title": "unplanned release of electrical energy at ML-3202",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "b4d89b5c8b2ec67e8bc30fef7d267a7ae8fc3ebc63b599abf24b3848232bac87",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2019-0014",
+  "prompt_kind": "icam",
+  "prompt_sha256": "95a6645a1f2ca2575c65c0522e1c903c774bcca35a11e30fe18825157ec19def",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "ZERO_ENERGY_VERIFICATION",
+        "finding": "Control ZERO_ENERGY_VERIFICATION: the proving zero energy before intrusive work had been bypassed, and the ICAM investigation classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next critical control verification that the proving zero energy before intrusive work on ML-3202 and M-3202 performs as designed."
+    ],
+    "sequence": "Work was under way in planning and permitting an isolation, specifically authorising a group isolation. ML-3202 (grinding mills) is in service for two-line ball milling. The task proceeded during commissioning of replacement equipment while the proving zero energy before intrusive work had been bypassed. The electrical energy involved is held as HV switchgear, and the recorded presentation was shock, arc flash, unplanned energisation.",
+    "summary": "On 26 November 2019 a potential incident was recorded on ML-3202 and M-3202 at Marrindal Concentrator and Hydrocarbon Transfer Facility during commissioning of replacement equipment; electrical energy held as HV switchgear was not released."
+  },
+  "response_sha256": "6245e5aa685f761be27194f3b7a54a1a5a209606e12ffc2fa4a7523a93c25f73",
+  "source": null
+}

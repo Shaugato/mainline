@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTROL-OF-IGNITION-SOURCES",
+    "barrier_role": "preventive",
+    "control_class": "GAS_TEST_BEFORE_AND_DURING_HOT_WORK",
+    "control_delta": "restate",
+    "control_label": "atmospheric gas testing before and during hot work",
+    "doc_code": "PRO-HSE-005",
+    "doc_family": "PRO",
+    "doc_title": "Hot Work Permit Administration",
+    "effective_on": "2016-11-21",
+    "printed_label": "2.1.4",
+    "setpoint": null,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "46aae2bb0ee49d0d760b342fd650188f1c19a5148e593de6ee6b7e89b20ffcb9",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/PRO-HSE-005/009#MRD/PRO-HSE-005/4.1",
+  "prompt_kind": "clause",
+  "prompt_sha256": "025324c9354dff300952aeaeff330001d3619e32aa5427393410855182f974d1",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The atmospheric gas testing before and during hot work shall be provided and maintained wherever this procedure applies, and its condition shall be treated as a critical control. This clause applies to activities archived under CONTROL-OF-IGNITION-SOURCES at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "92462101cd889a6bf1c14c5bba917deed3e1ebf604f3b2592e87f2a854d615d9",
+  "source": null
+}

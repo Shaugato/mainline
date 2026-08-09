@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTROL-OF-IGNITION-SOURCES",
+    "barrier_role": "preventive",
+    "control_class": "HAZARDOUS_AREA_EQUIPMENT_INTEGRITY",
+    "control_delta": "restate",
+    "control_label": "integrity of explosion-protected equipment in zoned areas",
+    "doc_code": "PRO-HSE-005",
+    "doc_family": "PRO",
+    "doc_title": "Hot Work Permit Administration",
+    "effective_on": "2026-01-06",
+    "printed_label": "3.1.2",
+    "setpoint": null,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "energy_isolation": "positive isolation verification",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "df4933677bfbfee7852c7758d31581705ae25c9435805273575d7f6786544ba9",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/PRO-HSE-005/014#MRD/PRO-HSE-005/1.3",
+  "prompt_kind": "clause",
+  "prompt_sha256": "3868318cd89035097ed6fe389d10bffbd23a4b6473c3e0b6ab8dd745b3783018",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The integrity of explosion-protected equipment in zoned areas shall be provided and maintained wherever this procedure applies, and its condition shall be treated as a material unwanted event control. This clause applies to activities archived under CONTROL-OF-IGNITION-SOURCES at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "c14428df6dad73f796f5f9eedd47b61b88bc2c40a6826358469666a90568c13b",
+  "source": null
+}

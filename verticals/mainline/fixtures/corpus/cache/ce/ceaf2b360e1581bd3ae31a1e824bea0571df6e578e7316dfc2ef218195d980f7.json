@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 3,
+    "doc_code": "PRO-MEC-021",
+    "doc_family": "PRO",
+    "doc_title": "Mechanical Isolation and Lockout",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2014-07-04",
+    "required_citations": [
+      {
+        "control_label": "identification of every energy source for the task",
+        "event_ref": "INC-2013-018",
+        "event_title": "electrical release during start-up after maintenance on TX-3002",
+        "hazard_energy": "electrical",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:MRD/PRO-MEC-021/006#revision_history_line/INC-2013-018",
+        "severity_gate": 2
+      }
+    ],
+    "rev_no": 6,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "root cause analysis",
+      "management_of_change": "change request",
+      "near_miss": "hazard report"
+    }
+  },
+  "key": "ceaf2b360e1581bd3ae31a1e824bea0571df6e578e7316dfc2ef218195d980f7",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/PRO-MEC-021/006",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "222355b821d012ef86ff74a04fe357fc194ab78375ddc02296a74d1822cf8a38",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "Revision 6 was raised in response to INC-2013-018, and the identification of every energy source for the task was amended as a result.",
+        "quote_ref": "quote:MRD/PRO-MEC-021/006#revision_history_line/INC-2013-018"
+      }
+    ],
+    "reason": "Scheduled review at revision 6; 3 clauses restated."
+  },
+  "response_sha256": "1514c01d4ed556df20b83ebc04e328e9b917b0ac49d1578d87c75bd89f843716",
+  "source": null
+}

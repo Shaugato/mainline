@@ -1,0 +1,92 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "inspecting Ex equipment and enclosures",
+    "activity_root": "CONTROL-OF-IGNITION-SOURCES",
+    "activity_series": "maintaining hazardous-area electrical equipment",
+    "assets": [
+      {
+        "asset_class": "COMP-CLASS-V",
+        "label": "vapour recovery compressor",
+        "service": "loading vapour recovery",
+        "tag": "K-7301"
+      },
+      {
+        "asset_class": "INST-CLASS-A",
+        "label": "instrument loop",
+        "service": "governs K-7301",
+        "tag": "PT-7301"
+      },
+      {
+        "asset_class": "ESD-CLASS-A",
+        "label": "emergency shutdown valves",
+        "service": "jetty and manifold emergency isolation",
+        "tag": "ZV-7212"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "HAZARDOUS_AREA_EQUIPMENT_INTEGRITY",
+        "control_label": "integrity of explosion-protected equipment in zoned areas",
+        "failure_mode": "degraded",
+        "hazard_energy": "chemical",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "NM-2014-0001",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "near_miss",
+    "occurred_on": "2014-01-04",
+    "severity_actual": 0,
+    "severity_potential": 2,
+    "site": "Cape Verity Export Terminal",
+    "summary_facts": [],
+    "task_phase": "during a statutory inspection",
+    "title": "unplanned release of chemical energy at K-7301",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "9296344231fabd26e9edca55aa341c90911faa4266fac62be16f6ab2d239f0b8",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2014-0001",
+  "prompt_kind": "icam",
+  "prompt_sha256": "4c5bac5d4a3e83f819da45ab48e0b649c683e2237c68674428524f1e4408de42",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 2 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "HAZARDOUS_AREA_EQUIPMENT_INTEGRITY",
+        "finding": "Control HAZARDOUS_AREA_EQUIPMENT_INTEGRITY: the integrity of explosion-protected equipment in zoned areas had degraded below its design intent, and the root cause analysis classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next field verification that the integrity of explosion-protected equipment in zoned areas on K-7301, PT-7301 and ZV-7212 performs as designed."
+    ],
+    "sequence": "Work was under way in maintaining hazardous-area electrical equipment, specifically inspecting Ex equipment and enclosures. K-7301 (vapour recovery compressor) is in service for loading vapour recovery. The task proceeded during a statutory inspection while the integrity of explosion-protected equipment in zoned areas had degraded below its design intent. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 4 January 2014 a hazard report was recorded on K-7301, PT-7301 and ZV-7212 at Cape Verity Export Terminal during a statutory inspection; chemical energy held as hydrocarbon was not released."
+  },
+  "response_sha256": "b9be34a1a12498c45b71e0034041e70606c37c84acd5c003f8c1ecc141f6b006",
+  "source": null
+}

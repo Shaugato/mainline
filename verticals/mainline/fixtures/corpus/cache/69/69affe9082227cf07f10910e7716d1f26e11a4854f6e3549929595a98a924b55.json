@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 3,
+    "doc_code": "PRO-MIN-003",
+    "doc_family": "PRO",
+    "doc_title": "Haul Road and Light Vehicle Interaction",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2023-03-24",
+    "required_citations": [],
+    "rev_no": 13,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "learning team review",
+      "management_of_change": "change assurance",
+      "near_miss": "high potential incident"
+    }
+  },
+  "key": "69affe9082227cf07f10910e7716d1f26e11a4854f6e3549929595a98a924b55",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:YND/PRO-MIN-003/013",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "c344a2222c2487664b76d09fea02ec7fcd1c98c993bca04ef1f999b53922e59b",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [],
+    "reason": "Scheduled review at revision 13; 3 clauses restated."
+  },
+  "response_sha256": "6cfa4cfb8db319497f4692d1398f3668f1b2152879f62a0e1b4f8c61232b06f5",
+  "source": null
+}

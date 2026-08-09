@@ -1,0 +1,43 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 3,
+    "doc_codes": [
+      "MOC-2021-0155",
+      "PRO-MIN-003",
+      "STD-MEQ-007"
+    ],
+    "intent": "strengthen",
+    "moc_ref": "MOC-2015-0185",
+    "opened_on": "2015-12-18",
+    "precursor_events": [
+      {
+        "event_ref": "AF-2009-001",
+        "severity_gate": null
+      }
+    ],
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "terminal_state": "abandoned",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "management_of_change": "change request",
+      "verification": "field verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "278f440914a2ac2e4d9a1c9d89cdfa3d607f8dff1a8394f32fba856173fa70fa",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2015-0185",
+  "prompt_kind": "moc",
+  "prompt_sha256": "7bd770e027e648457924a4583a1d645897cd2fad949e76ab5115e5827bf67464",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2015-0185 was raised at Yandarra Downs Open Cut and Heavy Workshop on 18 December 2015 following 1 recorded event in the archive, including AF-2009-001. The change request record covers 3 clauses across 3 controlled documents. The intent is to strengthen the critical safeguard named in the documents in scope. The record reached the state abandoned in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical safeguard set is preserved.",
+    "scope_note": "The documents in scope are MOC-2021-0155, PRO-MIN-003 and STD-MEQ-007."
+  },
+  "response_sha256": "31a2d367dfdf51df18f38992e414e6d3c632f186a81b0686a5e32513f263b895",
+  "source": null
+}

@@ -1,0 +1,49 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 4,
+    "doc_codes": [
+      "MOC-2019-0221",
+      "PRO-MEC-021",
+      "PTW-STD-002",
+      "STD-ISO-006",
+      "STD-PTW-001"
+    ],
+    "intent": "strengthen",
+    "moc_ref": "MOC-2015-0042",
+    "opened_on": "2015-03-25",
+    "precursor_events": [
+      {
+        "event_ref": "INC-2009-009",
+        "severity_gate": null
+      },
+      {
+        "event_ref": "NM-2016-0010",
+        "severity_gate": null
+      }
+    ],
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "management_of_change": "change request",
+      "verification": "field verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "4c03d8e2c7598d87e008cf0848f4bf920e402a6415c9db8e11264e96748595a4",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2015-0042",
+  "prompt_kind": "moc",
+  "prompt_sha256": "7952c4c8193fd1dfef178a07f317f48c19e01ebc08957426cc9b9d5eb8b55c8e",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2015-0042 was raised at Marrindal Concentrator and Hydrocarbon Transfer Facility on 25 March 2015 following 2 recorded events in the archive, including INC-2009-009 and NM-2016-0010. The change request record covers 4 clauses across 5 controlled documents. The intent is to strengthen the critical safeguard named in the documents in scope. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical safeguard set is preserved.",
+    "scope_note": "The documents in scope are MOC-2019-0221, PRO-MEC-021, PTW-STD-002, STD-ISO-006 and STD-PTW-001."
+  },
+  "response_sha256": "42cac1e3272c5211330daf59342e0e2f9212a746d641a8d3e10fbab8733e9301",
+  "source": null
+}

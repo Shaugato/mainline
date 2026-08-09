@@ -1,0 +1,109 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "supporting a load for maintenance access",
+    "activity_root": "LIFTING-AND-SUSPENDED-LOADS",
+    "activity_series": "maintaining lifting appliances",
+    "assets": [
+      {
+        "asset_class": "LIFT-CLASS-W",
+        "label": "workshop hoists and press",
+        "service": "heavy vehicle component removal and pressing",
+        "tag": "HO-9402"
+      },
+      {
+        "asset_class": "MOTOR-CLASS-A",
+        "label": "drive motor",
+        "service": "drives HO-9402",
+        "tag": "M-9402"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "DROP_ZONE_EXCLUSION",
+        "control_label": "exclusion of people from beneath elevated work",
+        "failure_mode": "bypassed",
+        "hazard_energy": "gravity",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "LIFTING_GEAR_INSPECTION",
+        "control_label": "inspection and periodic proof testing of lifting gear",
+        "failure_mode": "not_verified",
+        "hazard_energy": "gravity",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "LOAD_SUPPORT_FOR_MAINTENANCE",
+        "control_label": "mechanical support of a load during maintenance access",
+        "failure_mode": "absent",
+        "hazard_energy": "gravity",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "AF-2009-003",
+    "hazard_energy": "kinetic",
+    "hazard_media": [
+      "rotating equipment",
+      "conveyor",
+      "mobile equipment",
+      "pressurised jet",
+      "flying fragment"
+    ],
+    "hazard_release": "entanglement, impact, crush",
+    "kind": "audit_finding",
+    "occurred_on": "2009-06-20",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during a breakdown response",
+    "title": "audit finding - work clearance records incomplete for HO-9402",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "investigation": "accident investigation",
+      "near_miss": "near hit",
+      "verification": "spot check"
+    }
+  },
+  "key": "2a90dfbb50f9cbdcc898819ac97b8d980bf20e744dcf0d92f6328d5a97143b6b",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:AF-2009-003",
+  "prompt_kind": "icam",
+  "prompt_sha256": "3f16f0deb2559c1c67424035780010f562f77a69fa8603f193330ecb7738bcd7",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "DROP_ZONE_EXCLUSION",
+        "finding": "Control DROP_ZONE_EXCLUSION: the exclusion of people from beneath elevated work had been bypassed, and the accident investigation classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "LIFTING_GEAR_INSPECTION",
+        "finding": "Control LIFTING_GEAR_INSPECTION: the inspection and periodic proof testing of lifting gear was never verified as effective, and the accident investigation classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "LOAD_SUPPORT_FOR_MAINTENANCE",
+        "finding": "Control LOAD_SUPPORT_FOR_MAINTENANCE: the mechanical support of a load during maintenance access was not in place, and the accident investigation classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Restore the exclusion of people from beneath elevated work on HO-9402 and M-9402 and record the spot check before this task is next authorised."
+    ],
+    "sequence": "Work was under way in maintaining lifting appliances, specifically supporting a load for maintenance access. HO-9402 (workshop hoists and press) is in service for heavy vehicle component removal and pressing. The task proceeded during a breakdown response while the exclusion of people from beneath elevated work had been bypassed. The kinetic energy involved is held as rotating equipment, and the recorded presentation was entanglement, impact, crush.",
+    "summary": "On 20 June 2009 a planned spot check of HO-9402 and M-9402 at Yandarra Downs Open Cut and Heavy Workshop found the exclusion of people from beneath elevated work not effective."
+  },
+  "response_sha256": "f8d872ceb0da03e60f90530bc505407d54bc099ec5c87c5db1953d5bf24e5c62",
+  "source": null
+}

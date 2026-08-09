@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "barrier_role": "preventive",
+    "control_class": "STORED_ENERGY_DISSIPATION",
+    "control_delta": "restate",
+    "control_label": "dissipation or restraint of trapped and residual energy",
+    "doc_code": "STD-PTW-001",
+    "doc_family": "STD",
+    "doc_title": "Permit to Work",
+    "effective_on": "2016-11-21",
+    "printed_label": "8.1.1",
+    "setpoint": null,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "256a5f2646c4dbbfa18e6f3f8f85e6cdd2bd1ca5b3d6f225a16853e29d90c21f",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/STD-PTW-001/005#MRD/STD-PTW-001/2.3",
+  "prompt_kind": "clause",
+  "prompt_sha256": "115d0e09e973744c3878ab7ab8951227fd2f221025fbf9983e0659a14268f61a",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The dissipation or restraint of trapped and residual energy shall be provided and maintained wherever this standard applies, and its condition shall be treated as a critical control. This clause applies to activities archived under ISOLATION-OF-STORED-ENERGY at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "99987278a767afa784ce425fc3803829e812046994baab3060f6fd90d7af1a7e",
+  "source": null
+}

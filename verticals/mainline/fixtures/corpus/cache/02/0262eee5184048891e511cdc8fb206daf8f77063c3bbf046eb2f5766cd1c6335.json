@@ -1,0 +1,78 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "directing a lift and controlling the drop zone",
+    "activity_root": "LIFTING-AND-SUSPENDED-LOADS",
+    "activity_series": "planning and executing a lift",
+    "assets": [
+      {
+        "asset_class": "LIFT-CLASS-W",
+        "label": "workshop hoists and press",
+        "service": "heavy vehicle component removal and pressing",
+        "tag": "HO-9402"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "DROP_ZONE_EXCLUSION",
+        "control_label": "exclusion of people from beneath elevated work",
+        "failure_mode": "ineffective",
+        "hazard_energy": "gravity",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "AF-2019-005",
+    "hazard_energy": "gravity",
+    "hazard_media": [
+      "suspended load",
+      "stored potential of an elevated component",
+      "unsupported ground",
+      "person at height"
+    ],
+    "hazard_release": "fall, collapse, crush",
+    "kind": "audit_finding",
+    "occurred_on": "2019-03-15",
+    "severity_actual": 1,
+    "severity_potential": 2,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during cleaning and preparation",
+    "title": "audit finding - management of change not applied to HO-9402",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "0262eee5184048891e511cdc8fb206daf8f77063c3bbf046eb2f5766cd1c6335",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:AF-2019-005",
+  "prompt_kind": "icam",
+  "prompt_sha256": "10236d3e78fd7691826b8bf21ae5191a1bd9d8452b472d1933410c4bb62c4668",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage. The potential outcome was rated 2 against the site's consequence scale, above the 1 actually realised.",
+    "defences": [
+      {
+        "control_class": "DROP_ZONE_EXCLUSION",
+        "finding": "Control DROP_ZONE_EXCLUSION: the exclusion of people from beneath elevated work was in place but did not perform, and the ICAM investigation classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the exclusion of people from beneath elevated work on HO-9402 and record the critical control verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in planning and executing a lift, specifically directing a lift and controlling the drop zone. HO-9402 (workshop hoists and press) is in service for heavy vehicle component removal and pressing. The task proceeded during cleaning and preparation while the exclusion of people from beneath elevated work was in place but did not perform. The gravity energy involved is held as suspended load, and the recorded presentation was fall, collapse, crush.",
+    "summary": "On 15 March 2019 a planned critical control verification of HO-9402 at Yandarra Downs Open Cut and Heavy Workshop found the exclusion of people from beneath elevated work not effective."
+  },
+  "response_sha256": "da49db67248963f7916a2d6351529be416647f8a314b9d53c92b50e7fd908de3",
+  "source": null
+}

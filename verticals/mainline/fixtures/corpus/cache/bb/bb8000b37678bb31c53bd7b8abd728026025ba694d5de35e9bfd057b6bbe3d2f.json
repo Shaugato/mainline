@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "barrier_role": "preventive",
+    "control_class": "SEAL_SUPPORT_SYSTEM_INTEGRITY",
+    "control_delta": "strengthen",
+    "control_label": "integrity of the mechanical seal support system",
+    "doc_code": "PRO-MEC-014",
+    "doc_family": "PRO",
+    "doc_title": "Hydrocarbon Transfer Pump Maintenance",
+    "effective_on": "2009-03-09",
+    "printed_label": "7.4",
+    "setpoint": {
+      "from": 80.0,
+      "key": "bearing_temperature_alarm",
+      "label": "bearing high-temperature alarm",
+      "strengthen_direction": "lower",
+      "to": 75.0,
+      "unit": "°C"
+    },
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "bb8000b37678bb31c53bd7b8abd728026025ba694d5de35e9bfd057b6bbe3d2f",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/PRO-MEC-014/003#MRD/PRO-MEC-014/7.4",
+  "prompt_kind": "clause",
+  "prompt_sha256": "df2038dbd3755b7e2378d7c89003f4f51f2524ce41056097bb2cefed2697a74b",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The integrity of the mechanical seal support system must be provided, and its effectiveness must be recorded as a spot check before the task proceeds. The bearing high-temperature alarm must be set at 75 °C. This clause applies to activities archived under CONTAINMENT-OF-HYDROCARBONS at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "must"
+  },
+  "response_sha256": "90c80e2968db7904f6e277036f85b13d841b7e0fd38f6dc36f01f4259fb27b46",
+  "source": null
+}

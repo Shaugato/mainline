@@ -1,0 +1,96 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "managing freeboard, beach and decant",
+    "activity_root": "TAILINGS-AND-WATER-IMPOUNDMENT",
+    "activity_series": "operating an impoundment",
+    "assets": [
+      {
+        "asset_class": "MILL-CLASS-A",
+        "label": "grinding mills",
+        "service": "two-line ball milling",
+        "tag": "ML-3202"
+      },
+      {
+        "asset_class": "INST-CLASS-A",
+        "label": "instrument loop",
+        "service": "governs ML-3202",
+        "tag": "VT-3202"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "EMBANKMENT_SURVEILLANCE",
+        "control_label": "surveillance of embankments and instrumentation",
+        "failure_mode": "absent",
+        "hazard_energy": "gravity",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "IMPOUNDMENT_FREEBOARD_CONTROL",
+        "control_label": "control of freeboard, beach width and decant",
+        "failure_mode": "degraded",
+        "hazard_energy": "gravity",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "AF-2013-001",
+    "hazard_energy": "gravity",
+    "hazard_media": [
+      "suspended load",
+      "stored potential of an elevated component",
+      "unsupported ground",
+      "person at height"
+    ],
+    "hazard_release": "fall, collapse, crush",
+    "kind": "audit_finding",
+    "occurred_on": "2013-01-19",
+    "severity_actual": 1,
+    "severity_potential": 2,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during cleaning and preparation",
+    "title": "audit finding - work permit records incomplete for ML-3202",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "99adfd9d6d5efde2ab503dee8fe28eedfabaad3945d349a9e4bb5ad3d2ac6895",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:AF-2013-001",
+  "prompt_kind": "icam",
+  "prompt_sha256": "4faf12988f2903af6d9aed152d3c309f2ae7c417aeec0445bec837459662ba74",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage. The potential outcome was rated 2 against the site's consequence scale, above the 1 actually realised.",
+    "defences": [
+      {
+        "control_class": "EMBANKMENT_SURVEILLANCE",
+        "finding": "Control EMBANKMENT_SURVEILLANCE: the surveillance of embankments and instrumentation was not in place, and the root cause analysis classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "IMPOUNDMENT_FREEBOARD_CONTROL",
+        "finding": "Control IMPOUNDMENT_FREEBOARD_CONTROL: the control of freeboard, beach width and decant had degraded below its design intent, and the root cause analysis classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the control of freeboard, beach width and decant on ML-3202 and VT-3202 and record the field verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in operating an impoundment, specifically managing freeboard, beach and decant. ML-3202 (grinding mills) is in service for two-line ball milling. The task proceeded during cleaning and preparation while the surveillance of embankments and instrumentation was not in place. The gravity energy involved is held as suspended load, and the recorded presentation was fall, collapse, crush.",
+    "summary": "On 19 January 2013 a planned field verification of ML-3202 and VT-3202 at Marrindal Concentrator and Hydrocarbon Transfer Facility found the surveillance of embankments and instrumentation not effective."
+  },
+  "response_sha256": "5368c8429ce3554738a346048fc6d1ea0d1a53516c67bcc6c5e8c803bd790dcb",
+  "source": null
+}

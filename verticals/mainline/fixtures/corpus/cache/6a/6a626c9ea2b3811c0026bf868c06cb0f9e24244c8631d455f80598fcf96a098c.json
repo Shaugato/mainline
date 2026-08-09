@@ -1,0 +1,40 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 1,
+    "doc_codes": [
+      "ALERT-2016-007",
+      "MOC-2014-0087",
+      "PRO-MEC-041",
+      "PRO-OPS-017",
+      "PTW-STD-003"
+    ],
+    "intent": "introduce",
+    "moc_ref": "MOC-2013-0170",
+    "opened_on": "2013-10-15",
+    "precursor_events": [],
+    "site": "Cape Verity Export Terminal",
+    "terminal_state": "closed",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "management_of_change": "change request",
+      "verification": "field verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "6a626c9ea2b3811c0026bf868c06cb0f9e24244c8631d455f80598fcf96a098c",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2013-0170",
+  "prompt_kind": "moc",
+  "prompt_sha256": "d928ddfb5a8bbc35d761fd17509fccaca0d97f361b0bb1bdc2b0d3c2d6d9660c",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2013-0170 was raised at Cape Verity Export Terminal on 15 October 2013 as a scheduled change under change request; no event precedes it in the record. The change request record covers 1 clause across 5 controlled documents. The intent is to introduce a duty the documents in scope did not previously carry. The record reached the state closed in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical safeguard set is preserved.",
+    "scope_note": "The documents in scope are ALERT-2016-007, MOC-2014-0087, PRO-MEC-041, PRO-OPS-017 and PTW-STD-003."
+  },
+  "response_sha256": "8046c1a6111a3df51c3833f65bcdc426a2dbf798008a0f5f66afdb93b054889a",
+  "source": null
+}

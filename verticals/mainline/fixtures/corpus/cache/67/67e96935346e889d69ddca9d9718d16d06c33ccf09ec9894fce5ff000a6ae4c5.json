@@ -1,0 +1,92 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "proving overpressure protection is in service",
+    "activity_root": "PRESSURE-SYSTEM-INTEGRITY",
+    "activity_series": "verifying pressure relief and protection",
+    "assets": [
+      {
+        "asset_class": "PRD-CLASS-A",
+        "label": "pressure relief devices",
+        "service": "overpressure protection on the transfer and storage system",
+        "tag": "PSV-4210"
+      }
+    ],
+    "consequence": {
+      "days_lost": 90,
+      "injuries": 2,
+      "label": "serious injury requiring hospitalisation"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "PRESSURE_EQUIPMENT_INSPECTION",
+        "control_label": "in-service inspection of pressure equipment",
+        "failure_mode": "degraded",
+        "hazard_energy": "pressure",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "STEAM_SYSTEM_WARM_THROUGH",
+        "control_label": "controlled draining, venting and warm-through of steam systems",
+        "failure_mode": "ineffective",
+        "hazard_energy": "pressure",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "INC-2026-006",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "incident",
+    "occurred_on": "2026-02-28",
+    "severity_actual": 4,
+    "severity_potential": 4,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during start-up after maintenance",
+    "title": "loss of containment at PSV-4210 during start-up after maintenance",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "67e96935346e889d69ddca9d9718d16d06c33ccf09ec9894fce5ff000a6ae4c5",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2026-006",
+  "prompt_kind": "icam",
+  "prompt_sha256": "4e4a4d00d031751f3e9a4e30dd8289eb9d8c8cd1a8c93709fc7296c21c7a554f",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was serious injury requiring hospitalisation, with 2 persons injured and 90 days lost.",
+    "defences": [
+      {
+        "control_class": "PRESSURE_EQUIPMENT_INSPECTION",
+        "finding": "Control PRESSURE_EQUIPMENT_INSPECTION: the in-service inspection of pressure equipment had degraded below its design intent, and the learning team review classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "STEAM_SYSTEM_WARM_THROUGH",
+        "finding": "Control STEAM_SYSTEM_WARM_THROUGH: the controlled draining, venting and warm-through of steam systems was in place but did not perform, and the learning team review classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the controlled draining, venting and warm-through of steam systems on PSV-4210 and record the assurance activity before this task is next authorised."
+    ],
+    "sequence": "Work was under way in verifying pressure relief and protection, specifically proving overpressure protection is in service. PSV-4210 (pressure relief devices) is in service for overpressure protection on the transfer and storage system. The task proceeded during start-up after maintenance while the in-service inspection of pressure equipment had degraded below its design intent. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 28 February 2026 an incident occurred on PSV-4210 at Marrindal Concentrator and Hydrocarbon Transfer Facility during start-up after maintenance, releasing chemical energy held as hydrocarbon."
+  },
+  "response_sha256": "7a859af0b3c2ce0610b6e2af925c593fb3df01581e36ea5d87aeb18bc9bb5185",
+  "source": null
+}

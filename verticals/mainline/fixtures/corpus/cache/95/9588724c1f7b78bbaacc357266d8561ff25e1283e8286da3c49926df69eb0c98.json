@@ -1,0 +1,64 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 5,
+    "doc_code": "PRO-CHM-009",
+    "doc_family": "PRO",
+    "doc_title": "Reagent Make-Up and Dosing",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2025-02-03",
+    "required_citations": [
+      {
+        "control_label": "controlled make-up, decanting and dosing of reagents",
+        "event_ref": "INC-2024-017",
+        "event_title": "injury during a breakdown response on TK-8311",
+        "hazard_energy": "chemical",
+        "kind": "capa_action",
+        "quote_ref": "quote:TLG/PRO-CHM-009/012#capa_action/INC-2024-017",
+        "severity_gate": 1
+      },
+      {
+        "control_label": "controlled make-up, decanting and dosing of reagents",
+        "event_ref": "INC-2024-017",
+        "event_title": "injury during a breakdown response on TK-8311",
+        "hazard_energy": "chemical",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:TLG/PRO-CHM-009/012#revision_history_line/INC-2024-017",
+        "severity_gate": 1
+      }
+    ],
+    "rev_no": 12,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "learning team review",
+      "management_of_change": "change assurance",
+      "near_miss": "high potential incident"
+    }
+  },
+  "key": "9588724c1f7b78bbaacc357266d8561ff25e1283e8286da3c49926df69eb0c98",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:TLG/PRO-CHM-009/012",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "98adb61344f3a53e724421b44b4005005da338273afb1525b447532a207f5207",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The corrective action recorded against INC-2024-017 required the controlled make-up, decanting and dosing of reagents to be restated in this procedure.",
+        "quote_ref": "quote:TLG/PRO-CHM-009/012#capa_action/INC-2024-017"
+      },
+      {
+        "line": "Revision 12 was raised in response to INC-2024-017, and the controlled make-up, decanting and dosing of reagents was amended as a result.",
+        "quote_ref": "quote:TLG/PRO-CHM-009/012#revision_history_line/INC-2024-017"
+      }
+    ],
+    "reason": "Scheduled review at revision 12; 5 clauses restated."
+  },
+  "response_sha256": "f9c1616301b140b2095ba14146048b3180215887e4443baa43a5cab8bc7e80d3",
+  "source": null
+}

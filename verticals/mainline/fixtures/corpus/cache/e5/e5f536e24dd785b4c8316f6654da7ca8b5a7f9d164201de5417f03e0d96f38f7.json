@@ -1,0 +1,91 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "testing for dead and applying earths",
+    "activity_root": "ELECTRICAL-SAFETY",
+    "activity_series": "controlling access to energised apparatus",
+    "assets": [
+      {
+        "asset_class": "ELEC-CLASS-A",
+        "label": "station switchgear",
+        "service": "station HV distribution",
+        "tag": "SG-8000"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 1,
+      "label": "medical treatment injury"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "EARTH_LEAKAGE_PROTECTION",
+        "control_label": "earth leakage and protection setting integrity",
+        "failure_mode": "ineffective",
+        "hazard_energy": "electrical",
+        "icam_tier": "organisational_factor"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "HAZARDOUS_AREA_EQUIPMENT_INTEGRITY",
+        "control_label": "integrity of explosion-protected equipment in zoned areas",
+        "failure_mode": "degraded",
+        "hazard_energy": "electrical",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "INC-2022-013",
+    "hazard_energy": "thermal",
+    "hazard_media": [
+      "hot surface",
+      "steam",
+      "molten material",
+      "hot work",
+      "exothermic reaction"
+    ],
+    "hazard_release": "burn, ignition, scald",
+    "kind": "incident",
+    "occurred_on": "2022-11-21",
+    "severity_actual": 2,
+    "severity_potential": 2,
+    "site": "Tolgarra Processing and Power Station",
+    "summary_facts": [],
+    "task_phase": "during start-up after maintenance",
+    "title": "injury during start-up after maintenance on SG-8000",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "e5f536e24dd785b4c8316f6654da7ca8b5a7f9d164201de5417f03e0d96f38f7",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2022-013",
+  "prompt_kind": "icam",
+  "prompt_sha256": "a0174b3e5a4fdd2bb8b76eebf43e3e16e3abb490d4b6f1855f6026bbb451e0ad",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was medical treatment injury, with 1 person injured.",
+    "defences": [
+      {
+        "control_class": "EARTH_LEAKAGE_PROTECTION",
+        "finding": "Control EARTH_LEAKAGE_PROTECTION: the earth leakage and protection setting integrity was in place but did not perform, and the learning team review classified this as an organisational factor."
+      },
+      {
+        "control_class": "HAZARDOUS_AREA_EQUIPMENT_INTEGRITY",
+        "finding": "Control HAZARDOUS_AREA_EQUIPMENT_INTEGRITY: the integrity of explosion-protected equipment in zoned areas had degraded below its design intent, and the learning team review classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the integrity of explosion-protected equipment in zoned areas on SG-8000 and record the assurance activity before this task is next authorised."
+    ],
+    "sequence": "Work was under way in controlling access to energised apparatus, specifically testing for dead and applying earths. SG-8000 (station switchgear) is in service for station HV distribution. The task proceeded during start-up after maintenance while the earth leakage and protection setting integrity was in place but did not perform. The thermal energy involved is held as hot surface, and the recorded presentation was burn, ignition, scald.",
+    "summary": "On 21 November 2022 an incident occurred on SG-8000 at Tolgarra Processing and Power Station during start-up after maintenance, releasing thermal energy held as hot surface."
+  },
+  "response_sha256": "ccd93fdf8c393f37a975ce6ea450f37aa5733aa2eba8abc737e726966121bc77",
+  "source": null
+}

@@ -1,0 +1,33 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: Apache-2.0
+--
+-- TRAPPOINT_REF · 0058a_bc_open_index.sql
+-- CREATE INDEX bc_open — the open-obligation scan for permit
+--
+-- MI: MI02, MI30
+-- I: I02
+-- COUNSEL-GATED: no
+-- RATIONALE: One index per gated subject, and each one is the exact scan the counter
+--            trigger and the merge gate perform: given this subject, what is open and since
+--            when. A single index over a coalesced subject column would serve neither kind
+--            well and would make the plan depend on which kind happened to be more
+--            numerous, which is not a property a safety gate should have.
+--
+-- @rendered-by  trappoint render
+-- @template     packages/trappoint-sql/templates/0058_blocking_check.sql.j2
+-- @binding      packages/trappoint-sql/refvertical/vertical.toml
+-- DO NOT EDIT. `trappoint render --check` is a zero-diff assertion in CI, so a
+-- hand edit here is a red build, not a silent divergence.
+--
+-- ((permit_id, materialised_at)) and not ((materialised_at, permit_id)): every
+-- question this index answers fixes the subject first. Leading with the timestamp would
+-- make every lookup a scan of one time range across every subject in the estate.
+--
+-- NOT PARTIAL. An obligation is not "closed" by a column on this table — it is closed by
+-- the existence of a live disposition in another one — so there is no predicate here that
+-- could be pushed into the index without the index encoding a policy this table does not
+-- own. The counter on the subject row is what the gate reads; this index is what the
+-- counter trigger and the refusal diagnoser use to name WHICH obligations are open.
+
+CREATE INDEX bc_open
+  ON trappoint_ref.blocking_check (permit_id, materialised_at);

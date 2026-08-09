@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTROL-OF-IGNITION-SOURCES",
+    "barrier_role": "preventive",
+    "control_class": "HOT_WORK_AUTHORISATION",
+    "control_delta": "restate",
+    "control_label": "authorisation of hot work adjacent to live plant",
+    "doc_code": "PRO-HSE-005",
+    "doc_family": "PRO",
+    "doc_title": "Hot Work Permit Administration",
+    "effective_on": "2016-11-21",
+    "printed_label": "4.1.2",
+    "setpoint": null,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "dffb7a27d5f91e5d58ccb78bd1ced994d5cb81a05a46143f521dc8066350711e",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/PRO-HSE-005/009#MRD/PRO-HSE-005/4.5.3(d)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "9e72ac4d3521b8579169bf672e83c9161ac627eb72d221f7cf0f3aec28ae274c",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The authorisation of hot work adjacent to live plant shall be provided and maintained wherever this procedure applies, and its condition shall be treated as a critical control. This clause applies to activities archived under CONTROL-OF-IGNITION-SOURCES at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "333382e789d02711355de5e3c6216b507f3988b1cf5302ece79c2ee0ac16bb36",
+  "source": null
+}

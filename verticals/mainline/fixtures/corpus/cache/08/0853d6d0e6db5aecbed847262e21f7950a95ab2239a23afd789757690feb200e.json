@@ -1,0 +1,49 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 3,
+    "doc_codes": [
+      "ALERT-2016-007",
+      "MOC-2014-0087",
+      "PRO-MEC-041",
+      "PRO-OPS-017",
+      "PTW-STD-003"
+    ],
+    "intent": "strengthen",
+    "moc_ref": "MOC-2012-0063",
+    "opened_on": "2012-05-24",
+    "precursor_events": [
+      {
+        "event_ref": "INC-2018-004",
+        "severity_gate": null
+      },
+      {
+        "event_ref": "NM-2005-0008",
+        "severity_gate": null
+      }
+    ],
+    "site": "Cape Verity Export Terminal",
+    "terminal_state": "closed",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "management_of_change": "change request",
+      "verification": "field verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "0853d6d0e6db5aecbed847262e21f7950a95ab2239a23afd789757690feb200e",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2012-0063",
+  "prompt_kind": "moc",
+  "prompt_sha256": "63d839c3718f7250183e608ddf95cbe2c37dd97d31acdd35081038f2c683f75e",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2012-0063 was raised at Cape Verity Export Terminal on 24 May 2012 following 2 recorded events in the archive, including INC-2018-004 and NM-2005-0008. The change request record covers 3 clauses across 5 controlled documents. The intent is to strengthen the critical safeguard named in the documents in scope. The record reached the state closed in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical safeguard set is preserved.",
+    "scope_note": "The documents in scope are ALERT-2016-007, MOC-2014-0087, PRO-MEC-041, PRO-OPS-017 and PTW-STD-003."
+  },
+  "response_sha256": "dc280ea4a2a406d17dcf7a19e65eba33117884e705cb0590a409ef45dcb6d0d6",
+  "source": null
+}

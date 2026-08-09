@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONFINED-SPACE-ENTRY",
+    "barrier_role": "preventive",
+    "control_class": "GAS_TEST_BEFORE_AND_DURING_HOT_WORK",
+    "control_delta": "restate",
+    "control_label": "atmospheric gas testing before and during hot work",
+    "doc_code": "PRO-HSE-012",
+    "doc_family": "PRO",
+    "doc_title": "Confined Space Entry",
+    "effective_on": "2015-04-10",
+    "printed_label": "5.1",
+    "setpoint": null,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "energy_isolation": "lock out tag out",
+      "verification": "field verification"
+    }
+  },
+  "key": "9aaeaf0114c07f749e0bf6208f668fa3212f12a15e062d53ce8699237a23a816",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:CVY/PRO-HSE-012/005#CVY/PRO-HSE-012/5.1",
+  "prompt_kind": "clause",
+  "prompt_sha256": "ce00796c07ac497f783c5ef314026b08838632567e3df7dcb19301cecae3a03a",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The atmospheric gas testing before and during hot work shall be provided and maintained wherever this procedure applies, and its condition shall be treated as a critical safeguard. This clause applies to activities archived under CONFINED-SPACE-ENTRY at Cape Verity Export Terminal.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "f6a714299ca2a101409587c7ecafe026901fadeca86ed76fd1784f40192c7907",
+  "source": null
+}

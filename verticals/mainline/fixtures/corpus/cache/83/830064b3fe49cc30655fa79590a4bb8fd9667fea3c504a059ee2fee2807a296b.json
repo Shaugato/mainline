@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "EXPLOSIVES-AND-BLASTING",
+    "barrier_role": "preventive",
+    "control_class": "BLAST_GUARDING_AND_CLEARANCE",
+    "control_delta": "introduce",
+    "control_label": "guarding, clearance and misfire handling for a blast",
+    "doc_code": "PRO-EXP-002",
+    "doc_family": "PRO",
+    "doc_title": "Explosives Receipt and Magazine Control",
+    "effective_on": "2008-08-02",
+    "printed_label": "8.4",
+    "setpoint": null,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "830064b3fe49cc30655fa79590a4bb8fd9667fea3c504a059ee2fee2807a296b",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:YND/PRO-EXP-002/002#YND/PRO-EXP-002/8.4",
+  "prompt_kind": "clause",
+  "prompt_sha256": "daf1efa30e79fc25f8ecf844f9c163ce61e69d8c4e9e94da3b32ffe5cdee85d2",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The guarding, clearance and misfire handling for a blast shall be provided and maintained for work covered by this procedure. This clause applies to activities archived under EXPLOSIVES-AND-BLASTING at Yandarra Downs Open Cut and Heavy Workshop.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "00536ecd6c3520f1426e4c9c70897abc8d31412e11bd3407d327b15c3309219d",
+  "source": null
+}

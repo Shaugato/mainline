@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 25,
+    "doc_code": "STD-ISO-006",
+    "doc_family": "STD",
+    "doc_title": "Isolation of Stored Energy",
+    "driver": "retypeset",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2016-11-21",
+    "required_citations": [
+      {
+        "control_label": "application of positive isolation devices and personal locks",
+        "event_ref": "INC-2015-012",
+        "event_title": "electrical release during start-up after maintenance on TX-3001",
+        "hazard_energy": "electrical",
+        "kind": "regulator_requirement",
+        "quote_ref": "quote:MRD/STD-ISO-006/004#regulator_requirement/INC-2015-012",
+        "severity_gate": 3
+      }
+    ],
+    "rev_no": 4,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "ICAM investigation",
+      "management_of_change": "management of change",
+      "near_miss": "potential incident"
+    }
+  },
+  "key": "1667be18d2c5cf033c711290f9f7f62c9e7e0323fe389f4210dac78b8ffbadd5",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/STD-ISO-006/004",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "4652020ebaceb78f815d28bbde1923e14d39e2733ba9ffc695684165008db70b",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "A regulatory requirement arising from INC-2015-012 obliges this standard to carry the application of positive isolation devices and personal locks.",
+        "quote_ref": "quote:MRD/STD-ISO-006/004#regulator_requirement/INC-2015-012"
+      }
+    ],
+    "reason": "Full retypeset to the 2016 house style; numbering reissued, requirements unchanged."
+  },
+  "response_sha256": "4217d7fcb51fa1074f3641f4ae6b36c0510f246de413fc2b795a821688a94b34",
+  "source": null
+}

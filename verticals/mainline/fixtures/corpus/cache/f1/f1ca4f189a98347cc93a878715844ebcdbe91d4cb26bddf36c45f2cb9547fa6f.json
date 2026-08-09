@@ -1,0 +1,80 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "setting and proving mechanical seal support systems",
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "activity_series": "maintaining sealing systems on rotating equipment",
+    "assets": [
+      {
+        "asset_class": "ESD-CLASS-A",
+        "label": "emergency shutdown valves",
+        "service": "jetty and manifold emergency isolation",
+        "tag": "ZV-7211"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "BUND_AND_DRAINAGE_CONTAINMENT",
+        "control_label": "secondary containment by bund and drainage",
+        "failure_mode": "degraded",
+        "hazard_energy": "chemical",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "CAPA-2008-001",
+    "hazard_energy": "pressure",
+    "hazard_media": [
+      "hydraulic accumulator",
+      "barrier fluid",
+      "process gas",
+      "steam header",
+      "compressed air",
+      "trapped liquid"
+    ],
+    "hazard_release": "jet release, stored-energy discharge, rupture",
+    "kind": "capa",
+    "occurred_on": "2008-03-09",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Cape Verity Export Terminal",
+    "summary_facts": [],
+    "task_phase": "during shift handover",
+    "title": "corrective action following accident investigation at ZV-7211",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "investigation": "accident investigation",
+      "near_miss": "near hit",
+      "verification": "spot check"
+    }
+  },
+  "key": "f1ca4f189a98347cc93a878715844ebcdbe91d4cb26bddf36c45f2cb9547fa6f",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:CAPA-2008-001",
+  "prompt_kind": "icam",
+  "prompt_sha256": "f1c9103217ba9ca8fe79d681c4b03790254ddfc7ebf18c7e3bbf13655e8f5ce4",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "BUND_AND_DRAINAGE_CONTAINMENT",
+        "finding": "Control BUND_AND_DRAINAGE_CONTAINMENT: the secondary containment by bund and drainage had degraded below its design intent, and the accident investigation classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next spot check that the secondary containment by bund and drainage on ZV-7211 performs as designed."
+    ],
+    "sequence": "Work was under way in maintaining sealing systems on rotating equipment, specifically setting and proving mechanical seal support systems. ZV-7211 (emergency shutdown valves) is in service for jetty and manifold emergency isolation. The task proceeded during shift handover while the secondary containment by bund and drainage had degraded below its design intent. The pressure energy involved is held as hydraulic accumulator, and the recorded presentation was jet release, stored-energy discharge, rupture.",
+    "summary": "On 9 March 2008 a corrective action on ZV-7211 at Cape Verity Export Terminal was reviewed against the key safeguard it was raised to restore."
+  },
+  "response_sha256": "cb12d10bdc82cddef94636ecf58e7af9b8a98c3d170ca75b5cc4435c29c55fc5",
+  "source": null
+}

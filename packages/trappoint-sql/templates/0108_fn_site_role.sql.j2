@@ -1,0 +1,89 @@
+{# SPDX-FileCopyrightText: 2026 MAINLINE contributors #}
+{# SPDX-License-Identifier: Apache-2.0 #}
+{#
+  Migration 0109 — THE RLS SCOPE TOKEN HAS A SOURCE.
+
+  ARCHITECTURE.md §5.11 ("other triggers, same shape": `fn_site_role` — fill the RLS scope token)
+  · §4.1 law 10 · §11.3 · §16 MI01 · verticals/mainline/db/migrations/0020a_site.sql.
+
+  Row-level security policy expressions CANNOT CONTAIN SUBQUERIES on this platform. Tenancy scope
+  is therefore a denormalised role-name token compared directly against the session role:
+
+      USING (site_role = CURRENT_USER)
+
+  Which means: IF THE WRITER SUPPLIES THE TOKEN, THE WRITER CHOOSES WHICH TENANT CAN SEE THE ROW.
+  Row-level security degrades into an application-cooperative control, which is worthless against
+  exactly the adversary it exists to constrain. Behind every such token there must be a row
+  somebody provisioned, and reading it from that row — refusing when it is absent — is the whole
+  of this function.
+
+  TYPE `NAME`, NOT `STRING`, AND THAT IS NOT PEDANTRY. `CURRENT_USER` has type `NAME`. A
+  comparison across an implicit cast is a comparison a future release is entitled to change the
+  semantics of, and the failure mode of a tenancy predicate that silently stops matching is ZERO
+  ROWS, FOREVER, WITH NO ERROR — indistinguishable from a tenancy control that works, right up
+  until someone notices a site has never seen its own data.
+
+  WHY THIS FILE SHIPS A FUNCTION AND NO TRIGGER.
+  The tables carrying `site_role` are the gated subjects, and the kernel's acyclicity ruling is
+  that THE ONLY TRIGGER ON A GATED SUBJECT TABLE IS THE MERGE GATE, whose WHEN clause restricts it
+  to the merge transition. A BEFORE INSERT trigger on a subject table would not in fact create a
+  cycle — the obligation triggers reach those tables by UPDATE, never by INSERT, so an insert-only
+  trigger adds no depth — but the ruling is stated without that exception and this worker does not
+  own the subject DDL, so this file does not weld it and does not pretend to.
+
+  THE CONSEQUENCE IS NAMED RATHER THAN LEFT TO BE DISCOVERED: until something welds this function
+  (or an equivalent) to every relation carrying `site_role`, that column is INSERTER-SUPPLIED, and
+  the row-level security scope is forgeable by any role holding INSERT. That is a live gap, it is
+  recorded in the rendered SQL where a reviewer reads it, and it belongs to whoever owns the
+  subject tables and the acyclicity ruling — not to a comment in a template.
+
+  GENERIC BY CONSTRUCTION. The body names `site_id` and `site_role` and nothing else, so it welds
+  unchanged to any relation carrying that pair. That is the reason it is a function in the
+  substrate band rather than an inline fragment in one table's migration.
+
+  PLATFORM (measured on CockroachDB CCL v26.2.5, 2026-08-09): `(NEW).col` for every read; a `NAME`
+  local variable is accepted in `DECLARE` and assigns cleanly to a `NAME` column.
+#}
+-- @file 0109_fn_site_role.sql
+{{ header(file='0109_fn_site_role.sql',
+          title='CREATE FUNCTION ' ~ binding.schema ~ '.fn_site_role — the tenancy token is projected, never supplied',
+          rationale='Row-level security policy expressions cannot contain subqueries on this platform, so tenancy scope is a denormalised role-name token compared against CURRENT_USER. If the writer supplies that token the writer chooses which tenant can see the row, and row-level security becomes an application-cooperative control — worthless against exactly the adversary it constrains. This projects the token from the site row and refuses when there is none. It ships without a weld because the only trigger on a gated subject table is the merge gate, and that ruling is not this worker to relax.',
+          mi=['MI01'], i=['I01']) }}
+--
+-- migration:  0109_fn_site_role
+-- band:       0100-0109z · kernel/projection-triggers · RENDERED
+-- statements: 1
+-- invariants: MI01 in its access-control aspect: an evidentiary row whose scope token was chosen
+--             by its writer is a row whose visibility the writer controls.
+-- source:     ARCHITECTURE.md §5.11 (listed trigger family) · §4.1 law 10 · §11.3 ·
+--             verticals/mainline/db/migrations/0020a_site.sql (the authoritative source for
+--             every projected site_role, site_code and tenant_id in the schema)
+-- requires:   {{ binding.schema }}.site (site_id, site_role)
+-- provides:   {{ binding.schema }}.fn_site_role() — DELIBERATELY UNWELDED IN THIS BAND. See the
+--             header comment: the relations carrying site_role are the gated subjects, and the
+--             kernel's acyclicity ruling reserves their trigger slot for the merge gate.
+-- sqlstate:   P0001 when the site row is absent. Never a default, never a session variable,
+--             never the value the inserter supplied.
+-- forward-only; no .down.sql and no .up.sql (MR-5).
+--
+-- ACYCLICITY. Unwelded. If a later migration welds it BEFORE INSERT on a relation, it reads one
+-- row of `site` and writes only NEW, contributing depth 0.
+
+CREATE FUNCTION {{ binding.schema }}.fn_site_role() RETURNS TRIGGER LANGUAGE PLpgSQL AS $$
+DECLARE
+  v_site_role NAME;
+BEGIN
+  SELECT st.site_role INTO v_site_role
+    FROM {{ binding.schema }}.site st
+   WHERE st.site_id = (NEW).site_id;
+
+  IF v_site_role IS NULL THEN
+    RAISE EXCEPTION USING ERRCODE='P0001',
+      MESSAGE='{{ binding.name }}: no site row for this record — the tenancy scope token has no source';
+  END IF;
+
+  -- UNCONDITIONAL, exactly as every other projection here: a supplied token is overwritten
+  -- whether or not it agrees, so a correct guess confers no privilege.
+  NEW.site_role := v_site_role;
+  RETURN NEW;
+END $$;

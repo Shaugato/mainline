@@ -1,0 +1,108 @@
+{
+  "blame_edges": [
+    {
+      "basis": "asserted_document",
+      "channel_a_visible": true,
+      "event_ref": "INC-2013-044",
+      "quote_ref": "quote:MRD/PRO-MEC-014/007#revision_history_line/INC-2013-044",
+      "state": "active"
+    }
+  ],
+  "clause_key": "MRD/PRO-MEC-014/7.3",
+  "clause_uuid": "2ad35fa5-d174-5eb1-8550-05adfa90e08d",
+  "clause_uuid_derivation": "uuid5(CORPUS_NS, \"clause:MRD/PRO-MEC-014/7.3\")",
+  "dates": {
+    "author_separated": "2021-07-16",
+    "clause_introduced": "2011-03-14",
+    "incident": "2013-06-12",
+    "permit_merge_attempt": "2026-08-04",
+    "permit_opened": "2026-08-03",
+    "retypeset": "2016-11-21",
+    "split": "2019-02-19",
+    "strengthen_commit": "2013-08-04",
+    "weaken_moc_opened": "2026-07-28"
+  },
+  "label_2011": "7.3",
+  "label_2016": "5.2.1",
+  "label_2019": "9.2.1",
+  "proposed_2026": [
+    {
+      "clause_key": "MRD/PRO-MEC-014/7.3",
+      "clause_uuid": "2ad35fa5-d174-5eb1-8550-05adfa90e08d",
+      "control_delta": "weaken",
+      "cr_external_ref": "MOC-2026-0413",
+      "delta_basis": "lattice",
+      "doc_code": "STD-ISO-006",
+      "proposed_on": "2026-07-28",
+      "rationale_kind": "spurious_trips_at_summer_ambient",
+      "ref_name": "cr/MOC-2026-0413",
+      "setpoint_from": 135.0,
+      "setpoint_key": "seal_face_temperature_alarm",
+      "setpoint_to": 150.0,
+      "site_id": "3f4a659b-442c-555d-8527-a049f74587af"
+    }
+  ],
+  "revisions": [
+    {
+      "control_delta": "introduce",
+      "doc_code": "PRO-MEC-014",
+      "effective_on": "2011-03-14",
+      "printed_label": "7.3",
+      "revision_key": "MRD/PRO-MEC-014/005",
+      "setpoint_from": 150.0,
+      "setpoint_to": 150.0,
+      "template_generation": 1
+    },
+    {
+      "control_delta": "restate",
+      "doc_code": "PRO-MEC-014",
+      "effective_on": "2012-10-11",
+      "printed_label": "7.3",
+      "revision_key": "MRD/PRO-MEC-014/006",
+      "setpoint_from": 150.0,
+      "setpoint_to": 150.0,
+      "template_generation": 1
+    },
+    {
+      "control_delta": "strengthen",
+      "doc_code": "PRO-MEC-014",
+      "effective_on": "2013-08-04",
+      "printed_label": "7.3",
+      "revision_key": "MRD/PRO-MEC-014/007",
+      "setpoint_from": 150.0,
+      "setpoint_to": 135.0,
+      "template_generation": 1
+    },
+    {
+      "control_delta": "restate",
+      "doc_code": "PRO-MEC-014",
+      "effective_on": "2014-01-05",
+      "printed_label": "7.3",
+      "revision_key": "MRD/PRO-MEC-014/008",
+      "setpoint_from": 135.0,
+      "setpoint_to": 135.0,
+      "template_generation": 1
+    },
+    {
+      "control_delta": "restate",
+      "doc_code": "PRO-MEC-014",
+      "effective_on": "2016-11-21",
+      "printed_label": "5.2.1",
+      "revision_key": "MRD/PRO-MEC-014/010",
+      "setpoint_from": 135.0,
+      "setpoint_to": 135.0,
+      "template_generation": 2
+    },
+    {
+      "control_delta": "restate",
+      "doc_code": "STD-ISO-006",
+      "effective_on": "2019-02-19",
+      "printed_label": "9.2.1",
+      "revision_key": "MRD/PRO-MEC-014/011",
+      "setpoint_from": 135.0,
+      "setpoint_to": 135.0,
+      "template_generation": 2
+    }
+  ],
+  "statement": "One obligation, twenty-two years, three documents and two numbering schemes. The uuid above is constant across every row of `revisions`; every printed label in that list is different from at least one other. That is the claim beat 1 shows."
+}

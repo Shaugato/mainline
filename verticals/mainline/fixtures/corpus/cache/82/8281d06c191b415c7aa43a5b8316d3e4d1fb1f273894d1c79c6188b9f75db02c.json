@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "HAZARDOUS-SUBSTANCE-EXPOSURE",
+    "barrier_role": "recovery",
+    "control_class": "RESPIRATORY_PROTECTION_PROGRAM",
+    "control_delta": "restate",
+    "control_label": "selection, fit testing and maintenance of respirators",
+    "doc_code": "PRO-CHM-009",
+    "doc_family": "PRO",
+    "doc_title": "Reagent Make-Up and Dosing",
+    "effective_on": "2016-11-21",
+    "printed_label": "5.2.7",
+    "setpoint": null,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "8281d06c191b415c7aa43a5b8316d3e4d1fb1f273894d1c79c6188b9f75db02c",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:TLG/PRO-CHM-009/006#TLG/PRO-CHM-009/6.5",
+  "prompt_kind": "clause",
+  "prompt_sha256": "d5ebbe67dbdefbd9ebf61443efb737bf73b6764715e4cff9e22d4bcbc1619278",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The selection, fit testing and maintenance of respirators shall be provided and maintained wherever this procedure applies, and its condition shall be treated as a critical control. This clause applies to activities archived under HAZARDOUS-SUBSTANCE-EXPOSURE at Tolgarra Processing and Power Station.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "d235fab0294b370b801f083d46bade6e8cb3654801e84f4817e4b1b7b540875d",
+  "source": null
+}

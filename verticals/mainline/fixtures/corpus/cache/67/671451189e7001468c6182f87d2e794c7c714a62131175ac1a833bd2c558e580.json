@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 0,
+    "doc_codes": [
+      "STD-EMR-008"
+    ],
+    "intent": "introduce",
+    "moc_ref": "MOC-2009-0138",
+    "opened_on": "2009-10-04",
+    "precursor_events": [],
+    "site": "Cape Verity Export Terminal",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "management_of_change": "engineering change note",
+      "verification": "spot check"
+    },
+    "weakening_steps": 0
+  },
+  "key": "671451189e7001468c6182f87d2e794c7c714a62131175ac1a833bd2c558e580",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2009-0138",
+  "prompt_kind": "moc",
+  "prompt_sha256": "bf9ddb40744ed52fc5eddc6d92d2d2ed9ac958d5e714c351d0560ac59b104a24",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2009-0138 was raised at Cape Verity Export Terminal on 4 October 2009 as a scheduled change under engineering change note; no event precedes it in the record. The engineering change note record carries no clause change; it records the assessment only. The intent is to introduce a duty the documents in scope did not previously carry. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the key safeguard set is preserved.",
+    "scope_note": "The documents in scope are STD-EMR-008."
+  },
+  "response_sha256": "ecfea3120067f0fccd67b79bd7746c1397459257b3aa1d6bf2e48548e884a8e9",
+  "source": null
+}

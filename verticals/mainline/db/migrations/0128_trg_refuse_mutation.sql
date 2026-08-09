@@ -1,0 +1,46 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MAINLINE · 0128_trg_refuse_mutation.sql
+-- CREATE TRIGGER append_only ON mainline.permit_event
+--
+-- MI: MI01
+-- I: I01
+-- COUNSEL-GATED: no
+-- RATIONALE: Weld 1 of 11 in the append-only family: the permit state machine: a rewritten
+--            transition is a rewritten history. UPDATE and DELETE are one trigger because a
+--            record rewritten and a record deleted are the same event from the archive
+--            point of view. Revoked privileges are cluster state that a restore does not
+--            carry and that an incident is exactly the moment somebody widens; this weld
+--            travels with the schema.
+--
+-- @rendered-by  trappoint render
+-- @template     packages/trappoint-sql/templates/0120_triggers_projection.sql.j2
+-- @binding      verticals/mainline/vertical.toml
+-- DO NOT EDIT. `trappoint render --check` is a zero-diff assertion in CI, so a
+-- hand edit here is a red build, not a silent divergence.
+--
+-- band: 0120-0129z · kernel/projection-triggers · RENDERED · statements: 1
+-- requires: 0107 mainline.fn_refuse_mutation · mainline.permit_event
+-- sqlstate: P0001, on every UPDATE and every DELETE, for every role, forever.
+-- forward-only; no .down.sql and no .up.sql (MR-5).
+--
+-- THIS IS THE FIRST OF 11 FILES IN ONE LOGICAL OBJECT. `CREATE TRIGGER`
+-- names one table and one file holds one statement, so the family takes the MR-5 lettered
+-- multi-statement slot: 0128, then 0128a through 0128j. Every one of
+-- them stays inside band 0120-0129z, which the allocation grants to this worker exclusively.
+-- The relations welded, in order:
+--   0128  mainline.permit_event
+--   0128a  mainline.cr_event
+--   0128b  mainline.blocking_check
+--   0128c  mainline.merge_record
+--   0128d  mainline.exposure_receipt
+--   0128e  mainline.exposure_line
+--   0128f  mainline.override_ledger
+--   0128g  mainline.person
+--   0128h  mainline.signing_credential
+--   0128i  mainline.clause_version
+--   0128j  mainline.clause_blame_closure
+
+CREATE TRIGGER append_only BEFORE UPDATE OR DELETE ON mainline.permit_event
+  FOR EACH ROW EXECUTE FUNCTION mainline.fn_refuse_mutation();

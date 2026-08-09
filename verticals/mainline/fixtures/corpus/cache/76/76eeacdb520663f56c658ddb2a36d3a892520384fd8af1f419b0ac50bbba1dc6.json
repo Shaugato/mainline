@@ -1,0 +1,117 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "providing and briefing a fire watch",
+    "activity_root": "CONTROL-OF-IGNITION-SOURCES",
+    "activity_series": "authorising hot work",
+    "assets": [
+      {
+        "asset_class": "COMP-CLASS-V",
+        "label": "vapour recovery compressor",
+        "service": "loading vapour recovery",
+        "tag": "K-7301"
+      },
+      {
+        "asset_class": "INST-CLASS-A",
+        "label": "instrument loop",
+        "service": "governs K-7301",
+        "tag": "PT-7301"
+      },
+      {
+        "asset_class": "ESD-CLASS-A",
+        "label": "emergency shutdown valves",
+        "service": "jetty and manifold emergency isolation",
+        "tag": "ZV-7212"
+      }
+    ],
+    "consequence": {
+      "days_lost": 4,
+      "injuries": 1,
+      "label": "lost time injury"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "FIRE_WATCH_PROVISION",
+        "control_label": "provision and briefing of a competent fire watch",
+        "failure_mode": "ineffective",
+        "hazard_energy": "thermal",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "HAZARDOUS_AREA_EQUIPMENT_INTEGRITY",
+        "control_label": "integrity of explosion-protected equipment in zoned areas",
+        "failure_mode": "ineffective",
+        "hazard_energy": "chemical",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "SEAL_FACE_TEMPERATURE_ALARM",
+        "control_label": "seal-face high-temperature alarm and trip",
+        "failure_mode": "not_verified",
+        "hazard_energy": "thermal",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "INC-2014-014",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "incident",
+    "occurred_on": "2014-10-31",
+    "severity_actual": 3,
+    "severity_potential": 3,
+    "site": "Cape Verity Export Terminal",
+    "summary_facts": [],
+    "task_phase": "during a planned shutdown",
+    "title": "chemical release during a planned shutdown on K-7301",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "76eeacdb520663f56c658ddb2a36d3a892520384fd8af1f419b0ac50bbba1dc6",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2014-014",
+  "prompt_kind": "icam",
+  "prompt_sha256": "ed0790e1a773b1ed9e0dc66d5c602aa6e5e1ca93b6a36cc8876693a0cd344ab3",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was lost time injury, with 1 person injured and 4 days lost.",
+    "defences": [
+      {
+        "control_class": "FIRE_WATCH_PROVISION",
+        "finding": "Control FIRE_WATCH_PROVISION: the provision and briefing of a competent fire watch was in place but did not perform, and the root cause analysis classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "HAZARDOUS_AREA_EQUIPMENT_INTEGRITY",
+        "finding": "Control HAZARDOUS_AREA_EQUIPMENT_INTEGRITY: the integrity of explosion-protected equipment in zoned areas was in place but did not perform, and the root cause analysis classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "SEAL_FACE_TEMPERATURE_ALARM",
+        "finding": "Control SEAL_FACE_TEMPERATURE_ALARM: the seal-face high-temperature alarm and trip was never verified as effective, and the root cause analysis classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the provision and briefing of a competent fire watch on K-7301, PT-7301 and ZV-7212 and record the field verification before this task is next authorised.",
+      "Restore the seal-face high-temperature alarm and trip on K-7301, PT-7301 and ZV-7212 and record the field verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in authorising hot work, specifically providing and briefing a fire watch. K-7301 (vapour recovery compressor) is in service for loading vapour recovery. The task proceeded during a planned shutdown while the provision and briefing of a competent fire watch was in place but did not perform. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 31 October 2014 an incident occurred on K-7301, PT-7301 and ZV-7212 at Cape Verity Export Terminal during a planned shutdown, releasing chemical energy held as hydrocarbon."
+  },
+  "response_sha256": "6c97bb4409686b4bdae9f2bb3e910294cacdd9f86c97a5e6844837617d82c9f1",
+  "source": null
+}

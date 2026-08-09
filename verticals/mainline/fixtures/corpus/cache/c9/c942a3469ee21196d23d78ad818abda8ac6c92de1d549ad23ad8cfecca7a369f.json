@@ -1,0 +1,64 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 9,
+    "doc_code": "PRO-OPS-044",
+    "doc_family": "PRO",
+    "doc_title": "Boiler Start-Up and Warm Through",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2026-01-04",
+    "required_citations": [
+      {
+        "control_label": "insulation, guarding and signing of hot surfaces",
+        "event_ref": "CAPA-2024-010",
+        "event_title": "preventive action - alarm philosophy conformance on B-8201",
+        "hazard_energy": "thermal",
+        "kind": "moc_reference",
+        "quote_ref": "quote:TLG/PRO-OPS-044/010#moc_reference/CAPA-2024-010",
+        "severity_gate": 2
+      },
+      {
+        "control_label": "controlled draining, venting and warm-through of steam systems",
+        "event_ref": "INC-2026-002",
+        "event_title": "injury during shift handover on PSV-8201",
+        "hazard_energy": "thermal",
+        "kind": "regulator_requirement",
+        "quote_ref": "quote:TLG/PRO-OPS-044/010#regulator_requirement/INC-2026-002",
+        "severity_gate": 4
+      }
+    ],
+    "rev_no": 10,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "learning team review",
+      "management_of_change": "change assurance",
+      "near_miss": "high potential incident"
+    }
+  },
+  "key": "c942a3469ee21196d23d78ad818abda8ac6c92de1d549ad23ad8cfecca7a369f",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:TLG/PRO-OPS-044/010",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "4c14b1c56fd1b86bad7ee6f32813f885b67cc35f505272b10bed7c27a877cd4a",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The change assurance record for this revision cites CAPA-2024-010 as the reason the insulation, guarding and signing of hot surfaces was amended.",
+        "quote_ref": "quote:TLG/PRO-OPS-044/010#moc_reference/CAPA-2024-010"
+      },
+      {
+        "line": "A regulatory requirement arising from INC-2026-002 obliges this procedure to carry the controlled draining, venting and warm-through of steam systems.",
+        "quote_ref": "quote:TLG/PRO-OPS-044/010#regulator_requirement/INC-2026-002"
+      }
+    ],
+    "reason": "Scheduled review at revision 10; 9 clauses restated."
+  },
+  "response_sha256": "7b3c6a687160bc99bba148d746a057f01e585c2e4c2441215a6718d67ff7efe1",
+  "source": null
+}

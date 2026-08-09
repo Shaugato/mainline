@@ -1,0 +1,91 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "receiving, magazining and reconciling explosives",
+    "activity_root": "EXPLOSIVES-AND-BLASTING",
+    "activity_series": "storing and transporting explosives",
+    "assets": [
+      {
+        "asset_class": "MOB-CLASS-H",
+        "label": "haul trucks",
+        "service": "waste and ore haulage",
+        "tag": "HT-9002"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "BLAST_GUARDING_AND_CLEARANCE",
+        "control_label": "guarding, clearance and misfire handling for a blast",
+        "failure_mode": "ineffective",
+        "hazard_energy": "kinetic",
+        "icam_tier": "individual_or_team_action"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "EXPLOSIVES_RECONCILIATION",
+        "control_label": "receipt, magazining and reconciliation of explosives",
+        "failure_mode": "absent",
+        "hazard_energy": "kinetic",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "AF-2026-006",
+    "hazard_energy": "kinetic",
+    "hazard_media": [
+      "rotating equipment",
+      "conveyor",
+      "mobile equipment",
+      "pressurised jet",
+      "flying fragment"
+    ],
+    "hazard_release": "entanglement, impact, crush",
+    "kind": "audit_finding",
+    "occurred_on": "2026-06-04",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during a statutory inspection",
+    "title": "audit finding - assurance activity of material unwanted event control at HT-9002",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "afc3fd9375007e3f0969a55e6a5d6188757dd0d0676af9358eb740f5b89af74b",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:AF-2026-006",
+  "prompt_kind": "icam",
+  "prompt_sha256": "44a86c13abe919a7bbe9679c2b1792c2abc28eaedcb9d3bf91edeb491a9b7e89",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "BLAST_GUARDING_AND_CLEARANCE",
+        "finding": "Control BLAST_GUARDING_AND_CLEARANCE: the guarding, clearance and misfire handling for a blast was in place but did not perform, and the learning team review classified this as an individual or team action."
+      },
+      {
+        "control_class": "EXPLOSIVES_RECONCILIATION",
+        "finding": "Control EXPLOSIVES_RECONCILIATION: the receipt, magazining and reconciliation of explosives was not in place, and the learning team review classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the receipt, magazining and reconciliation of explosives on HT-9002 and record the assurance activity before this task is next authorised."
+    ],
+    "sequence": "Work was under way in storing and transporting explosives, specifically receiving, magazining and reconciling explosives. HT-9002 (haul trucks) is in service for waste and ore haulage. The task proceeded during a statutory inspection while the guarding, clearance and misfire handling for a blast was in place but did not perform. The kinetic energy involved is held as rotating equipment, and the recorded presentation was entanglement, impact, crush.",
+    "summary": "On 4 June 2026 a planned assurance activity of HT-9002 at Yandarra Downs Open Cut and Heavy Workshop found the guarding, clearance and misfire handling for a blast not effective."
+  },
+  "response_sha256": "e950f26b534ae3c2930ed57a8ce6bccb8cc8317639c287ef0bb198032be6da35",
+  "source": null
+}

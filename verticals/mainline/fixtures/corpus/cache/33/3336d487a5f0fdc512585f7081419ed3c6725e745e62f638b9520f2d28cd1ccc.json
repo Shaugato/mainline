@@ -1,0 +1,91 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "receiving, magazining and reconciling explosives",
+    "activity_root": "EXPLOSIVES-AND-BLASTING",
+    "activity_series": "storing and transporting explosives",
+    "assets": [
+      {
+        "asset_class": "MAG-CLASS-A",
+        "label": "explosives magazines",
+        "service": "explosives and detonator storage",
+        "tag": "MAG-9602"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "BLAST_GUARDING_AND_CLEARANCE",
+        "control_label": "guarding, clearance and misfire handling for a blast",
+        "failure_mode": "absent",
+        "hazard_energy": "kinetic",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "EXPLOSIVES_RECONCILIATION",
+        "control_label": "receipt, magazining and reconciliation of explosives",
+        "failure_mode": "not_verified",
+        "hazard_energy": "chemical",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "INC-2005-002",
+    "hazard_energy": "thermal",
+    "hazard_media": [
+      "hot surface",
+      "steam",
+      "molten material",
+      "hot work",
+      "exothermic reaction"
+    ],
+    "hazard_release": "burn, ignition, scald",
+    "kind": "incident",
+    "occurred_on": "2005-01-26",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during a statutory inspection",
+    "title": "fire on MAG-9602 during a statutory inspection",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "investigation": "accident investigation",
+      "near_miss": "near hit",
+      "verification": "spot check"
+    }
+  },
+  "key": "3336d487a5f0fdc512585f7081419ed3c6725e745e62f638b9520f2d28cd1ccc",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2005-002",
+  "prompt_kind": "icam",
+  "prompt_sha256": "30847fd1a8058c8f8f124d0a7b13b9cd05eeb8d3ac3a8455f508a8b0d5d36cd5",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "BLAST_GUARDING_AND_CLEARANCE",
+        "finding": "Control BLAST_GUARDING_AND_CLEARANCE: the guarding, clearance and misfire handling for a blast was not in place, and the accident investigation classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "EXPLOSIVES_RECONCILIATION",
+        "finding": "Control EXPLOSIVES_RECONCILIATION: the receipt, magazining and reconciliation of explosives was never verified as effective, and the accident investigation classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Restore the guarding, clearance and misfire handling for a blast on MAG-9602 and record the spot check before this task is next authorised."
+    ],
+    "sequence": "Work was under way in storing and transporting explosives, specifically receiving, magazining and reconciling explosives. MAG-9602 (explosives magazines) is in service for explosives and detonator storage. The task proceeded during a statutory inspection while the guarding, clearance and misfire handling for a blast was not in place. The thermal energy involved is held as hot surface, and the recorded presentation was burn, ignition, scald.",
+    "summary": "On 26 January 2005 an incident occurred on MAG-9602 at Yandarra Downs Open Cut and Heavy Workshop during a statutory inspection, releasing thermal energy held as hot surface."
+  },
+  "response_sha256": "fbb6b8c5bd8d3b2693559a523ef109c1adf0ed02e6a34f6984e449fc630b6815",
+  "source": null
+}

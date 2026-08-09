@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "LIFTING-AND-SUSPENDED-LOADS",
+    "barrier_role": "preventive",
+    "control_class": "LOAD_SUPPORT_FOR_MAINTENANCE",
+    "control_delta": "strengthen",
+    "control_label": "mechanical support of a load during maintenance access",
+    "doc_code": "STD-LFT-003",
+    "doc_family": "STD",
+    "doc_title": "Lifting and Cranage",
+    "effective_on": "2011-05-07",
+    "printed_label": "6.3",
+    "setpoint": null,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "energy_isolation": "lock out tag out",
+      "verification": "field verification"
+    }
+  },
+  "key": "8d7b8bc06f3d753ac8f40a17b10ba162f09f9d8e57b5eef821726ac4e918cf22",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:YND/STD-LFT-003/004#YND/STD-LFT-003/6.3",
+  "prompt_kind": "clause",
+  "prompt_sha256": "eec65a9349f483dc58823544decccb40cdfacc0953f9e22057d1fe939d8cc37b",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The mechanical support of a load during maintenance access must be provided, and its effectiveness must be recorded as a field verification before the task proceeds. This clause applies to activities archived under LIFTING-AND-SUSPENDED-LOADS at Yandarra Downs Open Cut and Heavy Workshop.",
+    "obligation_verb": "must"
+  },
+  "response_sha256": "404b61da37f3ee6b45169fcce1fb069244940971fb66d399d5dd027f52c2b498",
+  "source": null
+}

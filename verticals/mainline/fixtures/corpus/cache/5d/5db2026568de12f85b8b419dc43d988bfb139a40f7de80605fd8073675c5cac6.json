@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 3,
+    "doc_code": "PRO-ELE-008",
+    "doc_family": "PRO",
+    "doc_title": "Electrical Isolation and Access to Switchgear",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2023-10-16",
+    "required_citations": [
+      {
+        "control_label": "proving zero energy before intrusive work",
+        "event_ref": "INC-2023-004",
+        "event_title": "injury during shift handover on TX-3002",
+        "hazard_energy": "electrical",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:MRD/PRO-ELE-008/009#revision_history_line/INC-2023-004",
+        "severity_gate": 4
+      }
+    ],
+    "rev_no": 9,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "learning team review",
+      "management_of_change": "change assurance",
+      "near_miss": "high potential incident"
+    }
+  },
+  "key": "5db2026568de12f85b8b419dc43d988bfb139a40f7de80605fd8073675c5cac6",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/PRO-ELE-008/009",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "cb035628f7fe980bafd9fc8364e4d9f1d306e1a45742b548e8aa1d5142d87ae7",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "Revision 9 was raised in response to INC-2023-004, and the proving zero energy before intrusive work was amended as a result.",
+        "quote_ref": "quote:MRD/PRO-ELE-008/009#revision_history_line/INC-2023-004"
+      }
+    ],
+    "reason": "Scheduled review at revision 9; 3 clauses restated."
+  },
+  "response_sha256": "c08dad63d6047dd6c19b08cc50da6548e6dd0cfb0dd586ab809c2db82c1fecb6",
+  "source": null
+}

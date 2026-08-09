@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "HAZARDOUS-SUBSTANCE-EXPOSURE",
+    "barrier_role": "preventive",
+    "control_class": "EXPOSURE_MONITORING",
+    "control_delta": "introduce",
+    "control_label": "monitoring of airborne contaminant exposure",
+    "doc_code": "MOC-2023-0302",
+    "doc_family": "MOC",
+    "doc_title": "Change of Reagent Dosing Line Material and Pressure Alarm",
+    "effective_on": "2023-09-14",
+    "printed_label": "2.1.1",
+    "setpoint": null,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "energy_isolation": "positive isolation verification",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "e659835f9e56d978eefcffe8d4f8843055c5f608d685a6353be712571490e5b3",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:TLG/MOC-2023-0302/001#TLG/MOC-2023-0302/1.1",
+  "prompt_kind": "clause",
+  "prompt_sha256": "2972485e2e76a9541216773bc208f23b2c3b9b14715eeece7242fb4c42210e14",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The monitoring of airborne contaminant exposure shall be provided and maintained for work covered by this change record. This clause applies to activities archived under HAZARDOUS-SUBSTANCE-EXPOSURE at Tolgarra Processing and Power Station.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "b3258e30807b81e99323f57d8b3d17b251af19bcbc75508bde1be0640ada850f",
+  "source": null
+}

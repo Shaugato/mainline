@@ -1,0 +1,40 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 0,
+    "doc_codes": [
+      "MOC-2019-0221",
+      "PRO-MEC-021",
+      "PTW-STD-002",
+      "STD-ISO-006",
+      "STD-PTW-001"
+    ],
+    "intent": "introduce",
+    "moc_ref": "MOC-2006-0060",
+    "opened_on": "2006-07-28",
+    "precursor_events": [],
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "management_of_change": "engineering change note",
+      "verification": "spot check"
+    },
+    "weakening_steps": 0
+  },
+  "key": "232e9f6e6b85fcc9af61261d41c7dcc3d500fc73394509dc28c879d946a35769",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2006-0060",
+  "prompt_kind": "moc",
+  "prompt_sha256": "0c7d456a3e92449f20718c55228dcafea34bf5317c1afd17d29ca87d8c3182a2",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2006-0060 was raised at Marrindal Concentrator and Hydrocarbon Transfer Facility on 28 July 2006 as a scheduled change under engineering change note; no event precedes it in the record. The engineering change note record carries no clause change; it records the assessment only. The intent is to introduce a duty the documents in scope did not previously carry. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the key safeguard set is preserved.",
+    "scope_note": "The documents in scope are MOC-2019-0221, PRO-MEC-021, PTW-STD-002, STD-ISO-006 and STD-PTW-001."
+  },
+  "response_sha256": "66cc01cb26f55092814fe25ca204a95652b2b10c1ae3315b0cad5debd8c1780f",
+  "source": null
+}

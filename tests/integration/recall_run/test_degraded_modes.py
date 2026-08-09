@@ -40,6 +40,7 @@ from _run_fakes import (
     GuardrailBlockedReranker,
     RefusingReranker,
 )
+
 from trappoint_recall.run.contract import CandidateSet
 
 #: Each injection is a keyword the harness builder understands, so the three cases differ in
@@ -142,9 +143,7 @@ def test_the_bonded_fatalities_survive_every_injection(degraded) -> None:
     """MI16 is structural. A fatality never decays, least of all because Bedrock was busy."""
     name, _harness, outcome = degraded
     bonded = [
-        candidate
-        for candidate in outcome.candidate_set.candidates
-        if candidate.bonded_severity_5
+        candidate for candidate in outcome.candidate_set.candidates if candidate.bonded_severity_5
     ]
     assert len(bonded) == 2, name
     assert all(candidate.outcome == "blocking" for candidate in bonded)

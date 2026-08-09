@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTROL-OF-IGNITION-SOURCES",
+    "barrier_role": "preventive",
+    "control_class": "GAS_TEST_BEFORE_AND_DURING_HOT_WORK",
+    "control_delta": "introduce",
+    "control_label": "atmospheric gas testing before and during hot work",
+    "doc_code": "STD-HTW-004",
+    "doc_family": "STD",
+    "doc_title": "Hot Work",
+    "effective_on": "2009-02-19",
+    "printed_label": "9.2",
+    "setpoint": null,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "7959983d2e563bf960bbf2716cdadec36c385b7cd70ac098e888fe6f456412df",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/STD-HTW-004/002#MRD/STD-HTW-004/9.2",
+  "prompt_kind": "clause",
+  "prompt_sha256": "ff7848595be6c9d0e35e65b2a09355dbe28a3f6fe3a838726b9e14a65a45841c",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The atmospheric gas testing before and during hot work shall be provided and maintained for work covered by this standard. This clause applies to activities archived under CONTROL-OF-IGNITION-SOURCES at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "a1b05bb04493a08835c1b0991a4650721600a0ac28498ed4f262998591d40c68",
+  "source": null
+}

@@ -1,0 +1,91 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "handing back a partially completed isolation",
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "activity_series": "restoring plant to service",
+    "assets": [
+      {
+        "asset_class": "MILL-CLASS-A",
+        "label": "grinding mills",
+        "service": "two-line ball milling",
+        "tag": "ML-3201"
+      },
+      {
+        "asset_class": "MOTOR-CLASS-A",
+        "label": "drive motor",
+        "service": "drives ML-3201",
+        "tag": "M-3201"
+      },
+      {
+        "asset_class": "INST-CLASS-A",
+        "label": "instrument loop",
+        "service": "governs ML-3201",
+        "tag": "VT-3201"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "ISOLATION_HANDBACK_CONTROL",
+        "control_label": "controlled removal of isolation and return to service",
+        "failure_mode": "absent",
+        "hazard_energy": "electrical",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "CAPA-2013-006",
+    "hazard_energy": "electrical",
+    "hazard_media": [
+      "HV switchgear",
+      "LV distribution",
+      "capacitive storage",
+      "induced voltage",
+      "portable equipment"
+    ],
+    "hazard_release": "shock, arc flash, unplanned energisation",
+    "kind": "capa",
+    "occurred_on": "2013-11-25",
+    "severity_actual": 1,
+    "severity_potential": 3,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during a breakdown response",
+    "title": "preventive action - alarm setpoint on ML-3201",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "4af62209060523941b38d3afcf5d5ece208b43c9a2ca75a0461fecba65b4508c",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:CAPA-2013-006",
+  "prompt_kind": "icam",
+  "prompt_sha256": "d03c776084470129c63dcb7d7b712071c6f8d4132d53d2268999d5593b74e0d7",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage. The potential outcome was rated 3 against the site's consequence scale, above the 1 actually realised.",
+    "defences": [
+      {
+        "control_class": "ISOLATION_HANDBACK_CONTROL",
+        "finding": "Control ISOLATION_HANDBACK_CONTROL: the controlled removal of isolation and return to service was not in place, and the root cause analysis classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the controlled removal of isolation and return to service on ML-3201, M-3201 and VT-3201 and record the field verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in restoring plant to service, specifically handing back a partially completed isolation. ML-3201 (grinding mills) is in service for two-line ball milling. The task proceeded during a breakdown response while the controlled removal of isolation and return to service was not in place. The electrical energy involved is held as HV switchgear, and the recorded presentation was shock, arc flash, unplanned energisation.",
+    "summary": "On 25 November 2013 a corrective action on ML-3201, M-3201 and VT-3201 at Marrindal Concentrator and Hydrocarbon Transfer Facility was reviewed against the critical safeguard it was raised to restore."
+  },
+  "response_sha256": "e0b4dab22b84d5c02e66cecd9c35a14a3027897d48e3697d979f01129a862d5e",
+  "source": null
+}

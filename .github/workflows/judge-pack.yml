@@ -1,0 +1,146 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# THE JUDGE LANE — the Tier-3 questions a stranger pastes into their own MCP client,
+# checked against the database they are questions about.
+#
+# WHY THIS IS A LANE AND NOT A TEST. `demo/VERIFY.md` tells a judge what to paste. It
+# cannot tell anyone whether what it says to paste is still legal, still names columns
+# that exist, or still FAILS where it must. Three things rot underneath a paste-ready
+# prompt and every one of them is discovered in front of the judge unless CI sees it
+# first:
+#
+#   1. a column is renamed in a migration and the prompt selects one the view does not
+#      project — the judge gets an error where the page promised an answer;
+#   2. the statement drifts past a Managed-MCP limit. At the limit the server TRUNCATES
+#      rather than raising, so a partial answer about how much is currently blocked
+#      arrives looking exactly like a complete one;
+#   3. a negative stops being negative. The four statements at the bottom of the pack
+#      MUST fail, and a negative suite that has quietly gone green is the worst artefact
+#      in a repository because it reads as the strongest one in it.
+#
+# THE RED HALF IS THE POINT (PL-2). The first job plants one realistic violation per
+# family — a renamed column, a negative made legal, a dropped index hint, a prefix
+# widened to `IN (...)` — and requires the validator to fire on every one. A validator
+# that has only ever been green asserts nothing about the pack it validates.
+#
+# NO CREDENTIAL. No cloud account, no cluster, no MCP key, no network beyond the
+# checkout. Every assertion here runs on a stranger's laptop with `python` and PyYAML.
+# The one check that WOULD need a key — running the pack over the live endpoint — is
+# deliberately absent, because with no key it would exit 3 (NOT RUN) and a workflow that
+# tolerates NOT RUN as success is the failure this whole pack exists to refuse.
+
+name: judge-pack
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "verticals/mainline/demo/judge/**"
+      - "verticals/mainline/demo/VERIFY.md"
+      - "verticals/mainline/demo/REFUSAL-STRINGS.yaml"
+      - "verticals/mainline/db/migrations/**"
+      - "scripts/demo/claim_hygiene.py"
+      - "tests/unit/demo/judge/**"
+      - ".github/workflows/judge-pack.yml"
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: judge-pack-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.13"
+  FORCE_COLOR: "1"
+
+jobs:
+  # ── 1 · the validator must be able to go RED before its green means anything ────────
+  red:
+    name: the validator fires on every planted violation
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install the one dependency
+        run: python -m pip install --disable-pip-version-check "PyYAML>=6"
+
+      - name: RED — one planted violation per family, all of them caught
+        run: python verticals/mainline/demo/judge/cli.py self-test
+
+  # ── 2 · the pack is legal, and it still agrees with the repository ─────────────────
+  green:
+    name: envelope, negatives, and agreement with the migrations
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    needs: red
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install the one dependency
+        run: python -m pip install --disable-pip-version-check "PyYAML>=6"
+
+      - name: The questions, printed into the log
+        # So a reviewer reading a red build can see WHICH question broke without opening
+        # the YAML.
+        run: python verticals/mainline/demo/judge/cli.py list
+
+      - name: The limits, the bound EXPLAIN lengths, and the cross-check
+        run: python verticals/mainline/demo/judge/cli.py envelope
+
+      - name: GREEN — every prompt is legal, every negative is refused, nothing has drifted
+        # `--strict` promotes a warn to a failure. A warn from this validator means an
+        # AUTHORITY WAS ABSENT and a check did not run; in this repository every one of
+        # them is present, so a warn is a loss of coverage rather than a cosmetic note.
+        run: python verticals/mainline/demo/judge/cli.py validate --strict --verbose
+
+      - name: GREEN — the page a judge reads matches the pack a validator checks
+        run: python verticals/mainline/demo/judge/cli.py render --check
+
+  # ── 3 · running the pack with nothing to talk to must NOT look like success ────────
+  not-run-is-not-a-pass:
+    name: a run with no cluster exits 3, never 0
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install the one dependency
+        run: python -m pip install --disable-pip-version-check "PyYAML>=6"
+
+      - name: Both channels report NOT RUN and exit 3
+        # This is the assertion that keeps the runner honest. A green POSITIVE run against
+        # no cluster asserts nothing; a green NEGATIVE run against no cluster asserts the
+        # opposite of what it claims, because "crdb_internal was unreachable" is trivially
+        # true when nothing at all was reachable.
+        env:
+          TRAPPOINT_DSN: ""
+          MAINLINE_DSN: ""
+          COCKROACH_URL: ""
+          MAINLINE_MCP_API_KEY: ""
+          MAINLINE_MCP_CLUSTER_ID: ""
+        run: |
+          set +e
+          for channel in sql mcp; do
+            python verticals/mainline/demo/judge/cli.py run --via "$channel"
+            status=$?
+            if [ "$status" -ne 3 ]; then
+              echo "::error::run --via $channel exited $status with nothing to talk to."
+              echo "Only 3 (NOT RUN) is correct here. 0 would be a pass nobody earned."
+              exit 1
+            fi
+            echo "run --via $channel exited 3, as required"
+          done

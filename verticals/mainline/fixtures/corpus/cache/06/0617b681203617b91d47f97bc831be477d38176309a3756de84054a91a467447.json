@@ -1,0 +1,116 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "preparing and approving a lift study",
+    "activity_root": "LIFTING-AND-SUSPENDED-LOADS",
+    "activity_series": "planning and executing a lift",
+    "assets": [
+      {
+        "asset_class": "LIFT-CLASS-W",
+        "label": "workshop hoists and press",
+        "service": "heavy vehicle component removal and pressing",
+        "tag": "HO-9401"
+      }
+    ],
+    "consequence": {
+      "days_lost": 4,
+      "injuries": 1,
+      "label": "lost time injury"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "DROP_ZONE_EXCLUSION",
+        "control_label": "exclusion of people from beneath elevated work",
+        "failure_mode": "absent",
+        "hazard_energy": "kinetic",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "LIFTING_GEAR_INSPECTION",
+        "control_label": "inspection and periodic proof testing of lifting gear",
+        "failure_mode": "absent",
+        "hazard_energy": "gravity",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "LIFT_STUDY_APPROVAL",
+        "control_label": "preparation and approval of a lift study",
+        "failure_mode": "absent",
+        "hazard_energy": "kinetic",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "LOAD_SUPPORT_FOR_MAINTENANCE",
+        "control_label": "mechanical support of a load during maintenance access",
+        "failure_mode": "absent",
+        "hazard_energy": "gravity",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "INC-2013-004",
+    "hazard_energy": "gravity",
+    "hazard_media": [
+      "suspended load",
+      "stored potential of an elevated component",
+      "unsupported ground",
+      "person at height"
+    ],
+    "hazard_release": "fall, collapse, crush",
+    "kind": "incident",
+    "occurred_on": "2013-05-02",
+    "severity_actual": 3,
+    "severity_potential": 3,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during shift handover",
+    "title": "lock out tag out failure on HO-9401",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "0617b681203617b91d47f97bc831be477d38176309a3756de84054a91a467447",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2013-004",
+  "prompt_kind": "icam",
+  "prompt_sha256": "ba4dae0e9e4a0afc532d54d9a26685bf517db89b6a3fcfaf8dbc31f09671e3db",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was lost time injury, with 1 person injured and 4 days lost.",
+    "defences": [
+      {
+        "control_class": "DROP_ZONE_EXCLUSION",
+        "finding": "Control DROP_ZONE_EXCLUSION: the exclusion of people from beneath elevated work was not in place, and the root cause analysis classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "LIFTING_GEAR_INSPECTION",
+        "finding": "Control LIFTING_GEAR_INSPECTION: the inspection and periodic proof testing of lifting gear was not in place, and the root cause analysis classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "LIFT_STUDY_APPROVAL",
+        "finding": "Control LIFT_STUDY_APPROVAL: the preparation and approval of a lift study was not in place, and the root cause analysis classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "LOAD_SUPPORT_FOR_MAINTENANCE",
+        "finding": "Control LOAD_SUPPORT_FOR_MAINTENANCE: the mechanical support of a load during maintenance access was not in place, and the root cause analysis classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Restore the exclusion of people from beneath elevated work on HO-9401 and record the field verification before this task is next authorised.",
+      "Restore the inspection and periodic proof testing of lifting gear on HO-9401 and record the field verification before this task is next authorised.",
+      "Restore the preparation and approval of a lift study on HO-9401 and record the field verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in planning and executing a lift, specifically preparing and approving a lift study. HO-9401 (workshop hoists and press) is in service for heavy vehicle component removal and pressing. The task proceeded during shift handover while the exclusion of people from beneath elevated work was not in place. The gravity energy involved is held as suspended load, and the recorded presentation was fall, collapse, crush.",
+    "summary": "On 2 May 2013 an incident occurred on HO-9401 at Yandarra Downs Open Cut and Heavy Workshop during shift handover, releasing gravity energy held as suspended load."
+  },
+  "response_sha256": "e71235bff9780398fdeb5aeffa47d6563f5af78f192bcd49227e128e40968be0",
+  "source": null
+}

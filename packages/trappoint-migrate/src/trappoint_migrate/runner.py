@@ -27,6 +27,7 @@ message, and the run stops. Resolution is a human with an incident id.
 from __future__ import annotations
 
 import getpass
+import re
 import socket
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
@@ -48,13 +49,17 @@ from .errors import (
 )
 
 __all__ = [
+    "DOWN_SUFFIX",
+    "PROTECTED_FLOOR",
     "AppliedRow",
     "MigrationPlan",
     "UpResult",
     "actor",
     "apply",
+    "assert_above_protected_floor",
     "force",
     "plan",
+    "protected_floor_violations",
     "read_applied",
 ]
 
@@ -63,6 +68,86 @@ __all__ = [
 # fingerprint that omitted them would let the merge procedure be replaced without
 # changing the attestation — which is precisely the self-attesting-gate claim.
 DEFAULT_SCHEMA_PREFIXES: tuple[str, ...] = ("mainline%", "trappoint%")
+
+#: DM-14's **protected floor**: the last number at or below which a down migration is
+#: illegal. ``(149, "z")`` is the end of the trigger bands in
+#: ``migrations.allocation.toml`` — kernel triggers ``0130-0135z``, recall's
+#: ``0136-0139z``, the vertical's ``0145-0149z`` — so the floor is "everything through
+#: the last trigger file", exactly as the ruling words it.
+#:
+#: Why a floor and not a blanket ban: `docs/leads/datamodel.md` DM-14 permits a view or a
+#: policy above the floor to carry one, because dropping a view destroys no evidence.
+#: Below it, ``DROP`` reaches append-only ledger tables and the triggers that make them
+#: append-only, and **down-migrating an append-only ledger is not a rollback, it is
+#: destruction of evidence**. ``discover()`` is stricter still and refuses a ``.down.sql``
+#: anywhere, which is MR-5's ruling; this constant is what lets the *floor* be stated,
+#: tested and cited independently of that.
+PROTECTED_FLOOR: tuple[int, str] = (149, "z")
+
+#: The suffix that names a rollback. There are none, and there never will be.
+DOWN_SUFFIX = ".down.sql"
+
+_FILE_KEY = re.compile(r"^(?P<num>\d{4})(?P<letter>[a-z]?)_")
+
+
+def _floor_key(name: str) -> tuple[int, str] | None:
+    match = _FILE_KEY.match(name)
+    if match is None:
+        return None
+    return int(match.group("num")), match.group("letter")
+
+
+def protected_floor_violations(root: Path) -> list[str]:
+    """Return one sentence per ``.down.sql`` at or below the protected floor.
+
+    A pure filesystem walk: no connection, no bookkeeping, nothing that could partially
+    succeed. That is the whole design requirement — DM-14 says the refusal must happen
+    **before** the command reaches the cluster, not after, because a down migration that
+    is discovered halfway through has already dropped something.
+
+    A ``.down.sql`` whose name carries no ``NNNN[a-z]_`` prefix is reported too, and
+    reported as *below* the floor. An unnumbered rollback has no position in the
+    sequence, so there is no number at which it is safe, and defaulting the unknown case
+    to "allowed" is how a guard acquires a hole.
+    """
+    if not root.exists() or not root.is_dir():
+        return []
+    violations: list[str] = []
+    for path in sorted(root.rglob(f"*{DOWN_SUFFIX}")):
+        if not path.is_file():
+            continue
+        key = _floor_key(path.name)
+        if key is None:
+            violations.append(
+                f"{path}: a down migration with no NNNN[a-z]_ number has no position in "
+                "the sequence, so there is no number at which it is safe. The protected "
+                f"floor is {PROTECTED_FLOOR[0]:04d}{PROTECTED_FLOOR[1]} (DM-14)."
+            )
+        elif key <= PROTECTED_FLOOR:
+            violations.append(
+                f"{path}: {key[0]:04d}{key[1]} is at or below the protected floor "
+                f"{PROTECTED_FLOOR[0]:04d}{PROTECTED_FLOOR[1]}. Down-migrating an "
+                "append-only ledger is not a rollback, it is destruction of evidence "
+                "(DM-14) — and below the floor a DROP reaches the ledger tables and the "
+                "triggers that make them append-only."
+            )
+    return violations
+
+
+def assert_above_protected_floor(root: Path) -> None:
+    """Refuse before opening a connection when *root* holds a forbidden down migration.
+
+    Raises:
+        MigrationTreeInvalid: naming every offending file at once. Every file, not the
+            first: an operator who has to re-run the command per violation learns the
+            same fact several times.
+    """
+    violations = protected_floor_violations(root)
+    if violations:
+        raise MigrationTreeInvalid(
+            "down migrations are illegal at or below the protected floor, and this "
+            "refusal happens before any connection is opened:\n  " + "\n  ".join(violations)
+        )
 
 
 def actor() -> str:

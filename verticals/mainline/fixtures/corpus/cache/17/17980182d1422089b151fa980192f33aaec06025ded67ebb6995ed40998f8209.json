@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 3,
+    "doc_codes": [
+      "MOC-2023-0302",
+      "PRO-CHM-009",
+      "STD-CHM-011"
+    ],
+    "intent": "replace",
+    "moc_ref": "MOC-2011-0147",
+    "opened_on": "2011-10-30",
+    "precursor_events": [
+      {
+        "event_ref": "NM-2006-0012",
+        "severity_gate": null
+      },
+      {
+        "event_ref": "NM-2006-0016",
+        "severity_gate": null
+      },
+      {
+        "event_ref": "RN-2026-004",
+        "severity_gate": null
+      }
+    ],
+    "site": "Tolgarra Processing and Power Station",
+    "terminal_state": "closed",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "management_of_change": "change request",
+      "verification": "field verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "17980182d1422089b151fa980192f33aaec06025ded67ebb6995ed40998f8209",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2011-0147",
+  "prompt_kind": "moc",
+  "prompt_sha256": "d0783bed1d11e3bc270496fbd6efdd3773bacde52e764db8ca9dd03ec20f0e9f",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2011-0147 was raised at Tolgarra Processing and Power Station on 30 October 2011 following 3 recorded events in the archive, including NM-2006-0012, NM-2006-0016 and RN-2026-004. The change request record covers 3 clauses across 3 controlled documents. The intent is to replace an existing requirement with one written to the current house style. The record reached the state closed in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical safeguard set is preserved.",
+    "scope_note": "The documents in scope are MOC-2023-0302, PRO-CHM-009 and STD-CHM-011."
+  },
+  "response_sha256": "5e4f0b0901a760651c12080aad451f3e1341a96c10bfd4dae02ce7047999c1a1",
+  "source": null
+}

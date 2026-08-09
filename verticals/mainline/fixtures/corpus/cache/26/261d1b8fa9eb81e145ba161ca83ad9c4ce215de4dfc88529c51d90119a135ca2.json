@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ELECTRICAL-SAFETY",
+    "barrier_role": "preventive",
+    "control_class": "HAZARDOUS_AREA_EQUIPMENT_INTEGRITY",
+    "control_delta": "strengthen",
+    "control_label": "integrity of explosion-protected equipment in zoned areas",
+    "doc_code": "PRO-ELE-026",
+    "doc_family": "PRO",
+    "doc_title": "High Voltage Switching and Access",
+    "effective_on": "2012-07-14",
+    "printed_label": "7.2.3(c)",
+    "setpoint": null,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "energy_isolation": "lock out tag out",
+      "verification": "field verification"
+    }
+  },
+  "key": "261d1b8fa9eb81e145ba161ca83ad9c4ce215de4dfc88529c51d90119a135ca2",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:TLG/PRO-ELE-026/003#TLG/PRO-ELE-026/7.2.3(c)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "74905860a052fb1b357bfbd3ba47c89f6fb0e5a18fbc18a2dfd802cd20a173c6",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The integrity of explosion-protected equipment in zoned areas must be provided, and its effectiveness must be recorded as a field verification before the task proceeds. This clause applies to activities archived under ELECTRICAL-SAFETY at Tolgarra Processing and Power Station.",
+    "obligation_verb": "must"
+  },
+  "response_sha256": "3e552aa2d445465231ac506784ef42ec786e97e03203714ca9cff3f3d4fd322d",
+  "source": null
+}

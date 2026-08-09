@@ -1,0 +1,91 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "working in dust, darkness and weather restrictions",
+    "activity_root": "MOBILE-EQUIPMENT-INTERACTION",
+    "activity_series": "operating in reduced visibility",
+    "assets": [
+      {
+        "asset_class": "MOB-CLASS-H",
+        "label": "haul trucks",
+        "service": "waste and ore haulage",
+        "tag": "HT-9003"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "PARK_UP_AND_RESTRAINT",
+        "control_label": "parking, chocking and restraint of equipment",
+        "failure_mode": "bypassed",
+        "hazard_energy": "gravity",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "PROXIMITY_DETECTION_AND_SEGREGATION",
+        "control_label": "segregation of light vehicles and pedestrians from heavy equipment",
+        "failure_mode": "absent",
+        "hazard_energy": "kinetic",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "INC-2018-005",
+    "hazard_energy": "gravity",
+    "hazard_media": [
+      "suspended load",
+      "stored potential of an elevated component",
+      "unsupported ground",
+      "person at height"
+    ],
+    "hazard_release": "fall, collapse, crush",
+    "kind": "incident",
+    "occurred_on": "2018-02-03",
+    "severity_actual": 1,
+    "severity_potential": 2,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during commissioning of replacement equipment",
+    "title": "fire on HT-9003 during commissioning of replacement equipment",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "369b7edb8b45076b9203986ab7f6cb8320907a792c21a02917ad02d5303a1801",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2018-005",
+  "prompt_kind": "icam",
+  "prompt_sha256": "2be243d0dd18fe789a29ff1f81ece88d2bd02a6cbff5b90347fedf7c5d1022e7",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage. The potential outcome was rated 2 against the site's consequence scale, above the 1 actually realised.",
+    "defences": [
+      {
+        "control_class": "PARK_UP_AND_RESTRAINT",
+        "finding": "Control PARK_UP_AND_RESTRAINT: the parking, chocking and restraint of equipment had been bypassed, and the ICAM investigation classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "PROXIMITY_DETECTION_AND_SEGREGATION",
+        "finding": "Control PROXIMITY_DETECTION_AND_SEGREGATION: the segregation of light vehicles and pedestrians from heavy equipment was not in place, and the ICAM investigation classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the parking, chocking and restraint of equipment on HT-9003 and record the critical control verification before this task is next authorised.",
+      "Restore the segregation of light vehicles and pedestrians from heavy equipment on HT-9003 and record the critical control verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in operating in reduced visibility, specifically working in dust, darkness and weather restrictions. HT-9003 (haul trucks) is in service for waste and ore haulage. The task proceeded during commissioning of replacement equipment while the parking, chocking and restraint of equipment had been bypassed. The gravity energy involved is held as suspended load, and the recorded presentation was fall, collapse, crush.",
+    "summary": "On 3 February 2018 an incident occurred on HT-9003 at Yandarra Downs Open Cut and Heavy Workshop during commissioning of replacement equipment, releasing gravity energy held as suspended load."
+  },
+  "response_sha256": "bced2c894559f2edbc6e2e5dc773672e70b1febd55bb5c9d258c30f8fb12a205",
+  "source": null
+}

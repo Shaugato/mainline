@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "barrier_role": "preventive",
+    "control_class": "ISOLATION_HANDBACK_CONTROL",
+    "control_delta": "introduce",
+    "control_label": "controlled removal of isolation and return to service",
+    "doc_code": "PTW-STD-002",
+    "doc_family": "PTW",
+    "doc_title": "Permit to Work Form Set",
+    "effective_on": "2020-10-26",
+    "printed_label": "2.1.7",
+    "setpoint": null,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "8697708374b7181509f5e5c7d256d4ba63d2a2164983a6cea33b66c451019313",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/PTW-STD-002/005#MRD/PTW-STD-002/2.4",
+  "prompt_kind": "clause",
+  "prompt_sha256": "bb02b05a697c10217164813761b1d39eae9aa2ed744c15b48cc8021f9e208509",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The controlled removal of isolation and return to service shall be provided and maintained for work covered by this permit-to-work form set. This clause applies to activities archived under ISOLATION-OF-STORED-ENERGY at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "2f828a970b480923cf10fa38e0348db3cf2d039d552061956922489981c200dc",
+  "source": null
+}

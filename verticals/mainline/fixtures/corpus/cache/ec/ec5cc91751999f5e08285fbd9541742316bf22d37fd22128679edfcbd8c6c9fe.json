@@ -1,0 +1,38 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 0,
+    "doc_codes": [
+      "MOC-2021-0155",
+      "PRO-MIN-003",
+      "STD-MEQ-007"
+    ],
+    "intent": "strengthen",
+    "moc_ref": "MOC-2023-0133",
+    "opened_on": "2023-07-12",
+    "precursor_events": [],
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "management_of_change": "change assurance",
+      "verification": "assurance activity"
+    },
+    "weakening_steps": 0
+  },
+  "key": "ec5cc91751999f5e08285fbd9541742316bf22d37fd22128679edfcbd8c6c9fe",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2023-0133",
+  "prompt_kind": "moc",
+  "prompt_sha256": "d3e628b8f5bce3e0bf774d01a0b9586bfd55e3ed2882af5c4121132a9438b0c5",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2023-0133 was raised at Yandarra Downs Open Cut and Heavy Workshop on 12 July 2023 as a scheduled change under change assurance; no event precedes it in the record. The change assurance record carries no clause change; it records the assessment only. The intent is to strengthen the material unwanted event control named in the documents in scope. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the material unwanted event control set is preserved.",
+    "scope_note": "The documents in scope are MOC-2021-0155, PRO-MIN-003 and STD-MEQ-007."
+  },
+  "response_sha256": "c50d874aa339483a536082d74885c53e9dbfb07f28c88375c6276f0e0eee745c",
+  "source": null
+}

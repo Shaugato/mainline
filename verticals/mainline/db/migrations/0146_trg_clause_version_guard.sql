@@ -1,0 +1,95 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MI: MI15
+-- I: I05
+-- COUNSEL-GATED: no
+-- RATIONALE: A function that nothing calls refuses nothing. This one statement is where MI15 stops being a column comment on 0029 and becomes a write precondition: it attaches `mainline.fn_clause_version_guard` to `mainline.clause_version` for every INSERT and every UPDATE, at the only timing from which the guard can both read a parent written by its own statement and leave `fk_parent_version`'s 23503 intact. It is separate from 0141 because CockroachDB DDL is not transactional across statements, so a single file carrying both would leave an operator unable to tell which half applied behind a `dirty` marker.
+--
+-- migration:  0146_trg_clause_version_guard
+-- domain:     datamodel
+-- band:       0145-0149 · datamodel/dm-functions-triggers + algorithms · AUTHORED, allocated by
+--             verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1), "vertical
+--             triggers". 0145 is algorithms' trg_delta_witness_guard; this takes 0146, holding
+--             the +5 pairing with its function at 0141 that 0140/0145 established.
+-- statements: 1  (the CREATE TRIGGER, and nothing else)
+-- invariants: I05  — ancestry monotone. The MECHANISM table of
+--                    spec/invariants/I05-ancestry-monotone.md names the attached function as the
+--                    version-level guard; this statement is what puts it in the write path.
+--             MI15 — blame ancestry never shrinks.
+-- conformance: CF-56 · P0001 · `mainline.fn_clause_version_guard` · profile mainline · depth 1.
+-- source:     ARCHITECTURE.md §5.3 · §16 MI15 · §4.1 law 1 · §5.11 (trigger style)
+--             · spec/invariants/I05-ancestry-monotone.md · spec/conformance/manifest.toml CF-56
+-- requires:   0141 mainline.fn_clause_version_guard (must exist before it can be referenced)
+--             · 0029 mainline.clause_version (the target table, and fk_parent_version, whose
+--               evaluation ORDER relative to this trigger is load-bearing — see below)
+-- sqlstate:   P0001, six messages, all raised by the function this statement attaches.
+-- forward-only; no .down.sql exists at or below the protected floor (DM-14).
+--
+-- ═════════════════════════════════════════════════════════════════════════════════════════════
+-- THE TIMING IS THE DECISION IN THIS FILE
+-- ═════════════════════════════════════════════════════════════════════════════════════════════
+-- 0029's header, both MI15 docstrings in tests/integration/schema/test_mi_spine.py, and
+-- docs/leads/datamodel.md all say `BEFORE INSERT`. This is `AFTER INSERT OR UPDATE`, and the
+-- change is deliberate, measured, and recorded in full in 0141's EVIDENCE table. In one screen:
+--
+--   * A row-level BEFORE trigger cannot see a row written by its own statement. So for
+--         INSERT INTO mainline.clause_version VALUES (parent…), (child that shrinks…);
+--     BEFORE either waves the shrink through (a one-statement bypass of the invariant) or refuses
+--     every multi-row load of a version chain, including the legitimate ones a corpus loader
+--     performs. Both alternatives were executed against v26.2.5. AFTER sees the parent and
+--     refuses exactly the shrinking child, admitting the growing one.
+--
+--   * BEFORE triggers run ahead of referential integrity, so a dangling or cross-clause
+--     `parent_version` would be refused by the guard's fail-closed branch as P0001 instead of by
+--     `fk_parent_version` as 23503. That turns
+--     test_mi_spine.py::test_a_version_may_not_take_its_parent_from_another_clause — green today,
+--     asserting 23503 and the constraint name — red, and swaps a referential-integrity exhibit
+--     for a trigger message. With AFTER the FK is evaluated first and 23503 survives intact,
+--     measured.
+--
+-- What AFTER gives up: the row is physically written before the refusal lands. That matters for
+-- MI22's guard (0145), which must ensure the state never forms while other triggers are still
+-- running; it does not matter here, because this function projects nothing onto the row for
+-- another trigger to read, and the statement's abort is total — under SERIALIZABLE no other
+-- reader ever observes the refused version.
+--
+-- ── WHY `INSERT OR UPDATE` AND NOT `INSERT` ALONE ────────────────────────────────────────────
+-- `mainline.clause_version` is append-only BY INTENT and nothing in the tree enforces that yet:
+-- the generic `fn_refuse_mutation` (kernel, band 0100-0109) is not written, and when it is, this
+-- table is not on its declared list. Until something does, `UPDATE mainline.clause_version SET
+-- sev_max = 0` is a SHORTER path to a laundered ancestry than writing a child version at all.
+-- Guarding INSERT alone would be guarding the front door of an open building. The UPDATE arm
+-- compares OLD with NEW on a single row, so it needs no parent, no snapshot and no ordering
+-- assumption; it admits every increase, which is what a projector learning of a new blame edge
+-- must be allowed to write. If kernel later lands an append-only guard on this table, this arm
+-- becomes redundant rather than wrong, and redundant refusals are the design (refusal depth).
+--
+-- ── FOR EACH ROW ─────────────────────────────────────────────────────────────────────────────
+-- The question is about one (clause_uuid, commit_id) pair and its parent. A statement-level
+-- trigger has no NEW and no OLD and could not ask it.
+--
+-- ── DELETE IS NOT COVERED, DELIBERATELY ──────────────────────────────────────────────────────
+-- Deleting a version row does not shrink an ancestry, it removes a record; that is the
+-- append-only question and it belongs to whatever lands `fn_refuse_mutation` on this table,
+-- alongside the grant that stops the role from having DELETE at all. Naming it here would imply
+-- this file defends it. It does not.
+--
+-- ── COEXISTENCE, VERIFIED ────────────────────────────────────────────────────────────────────
+-- After this statement `information_schema.triggers` reports three rows on
+-- `mainline.clause_version`: `clause_version_guard` AFTER INSERT, `clause_version_guard` AFTER
+-- UPDATE, and algorithms' `z_delta_witness_required` BEFORE INSERT. Executed on v26.2.5. No claim
+-- is made about the firing ORDER of two row-level triggers on one table — CockroachDB v26.2 does
+-- not document it, and PL-3 forbids resting a dated path on an unproven capability. Neither guard
+-- needs the order: 0140 reads only inserter-supplied columns, and this one reads those plus one
+-- row of its own table addressed by primary key.
+--
+-- ── THE NAME ─────────────────────────────────────────────────────────────────────────────────
+-- The trigger object is `clause_version_guard`, which is the name 0140's header reserved for this
+-- guard ("the schema lead owns `clause_version_guard` on this same table") and which the file
+-- slug matches. The FUNCTION name `mainline.fn_clause_version_guard` is not ours to choose: it is
+-- the exhibit string in spec/conformance/manifest.toml CF-56 and in I05's OBSERVABLE table, and a
+-- conformance case whose exhibit does not exist is a case that cannot pass.
+
+CREATE TRIGGER clause_version_guard AFTER INSERT OR UPDATE ON mainline.clause_version
+  FOR EACH ROW EXECUTE FUNCTION mainline.fn_clause_version_guard();

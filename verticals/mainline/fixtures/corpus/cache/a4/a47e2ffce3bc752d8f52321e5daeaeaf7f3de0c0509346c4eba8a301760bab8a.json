@@ -1,0 +1,80 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "selecting isolation points and devices",
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "activity_series": "planning and permitting an isolation",
+    "assets": [
+      {
+        "asset_class": "SLP-CLASS-B",
+        "label": "slurry transfer pumps",
+        "service": "cyclone feed and tailings transfer",
+        "tag": "P-3222"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "ZERO_ENERGY_VERIFICATION",
+        "control_label": "proving zero energy before intrusive work",
+        "failure_mode": "not_verified",
+        "hazard_energy": "electrical",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "CAPA-2010-004",
+    "hazard_energy": "pressure",
+    "hazard_media": [
+      "hydraulic accumulator",
+      "barrier fluid",
+      "process gas",
+      "steam header",
+      "compressed air",
+      "trapped liquid"
+    ],
+    "hazard_release": "jet release, stored-energy discharge, rupture",
+    "kind": "capa",
+    "occurred_on": "2010-05-04",
+    "severity_actual": 1,
+    "severity_potential": 2,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during routine operation",
+    "title": "preventive action - alarm setpoint on P-3222",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "a47e2ffce3bc752d8f52321e5daeaeaf7f3de0c0509346c4eba8a301760bab8a",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:CAPA-2010-004",
+  "prompt_kind": "icam",
+  "prompt_sha256": "4ce0a3dc5e96c16c377a6f6e9b75b1fba7a9e2edcbfa2813caed9071ff8b9833",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage. The potential outcome was rated 2 against the site's consequence scale, above the 1 actually realised.",
+    "defences": [
+      {
+        "control_class": "ZERO_ENERGY_VERIFICATION",
+        "finding": "Control ZERO_ENERGY_VERIFICATION: the proving zero energy before intrusive work was never verified as effective, and the root cause analysis classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next field verification that the proving zero energy before intrusive work on P-3222 performs as designed."
+    ],
+    "sequence": "Work was under way in planning and permitting an isolation, specifically selecting isolation points and devices. P-3222 (slurry transfer pumps) is in service for cyclone feed and tailings transfer. The task proceeded during routine operation while the proving zero energy before intrusive work was never verified as effective. The pressure energy involved is held as hydraulic accumulator, and the recorded presentation was jet release, stored-energy discharge, rupture.",
+    "summary": "On 4 May 2010 a corrective action on P-3222 at Marrindal Concentrator and Hydrocarbon Transfer Facility was reviewed against the critical safeguard it was raised to restore."
+  },
+  "response_sha256": "f7f4de1da347aac9c4bec95253cddbc2ed1005303ce896b9859c2b62fcfafc77",
+  "source": null
+}

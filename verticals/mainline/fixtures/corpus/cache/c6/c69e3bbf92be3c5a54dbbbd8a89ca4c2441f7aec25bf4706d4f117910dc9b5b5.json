@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONFINED-SPACE-ENTRY",
+    "barrier_role": "preventive",
+    "control_class": "CONTINUOUS_ATMOSPHERIC_MONITORING",
+    "control_delta": "restate",
+    "control_label": "continuous atmospheric monitoring during occupancy",
+    "doc_code": "PRO-HSE-012",
+    "doc_family": "PRO",
+    "doc_title": "Confined Space Entry",
+    "effective_on": "2016-11-21",
+    "printed_label": "2.1.2",
+    "setpoint": null,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "c69e3bbf92be3c5a54dbbbd8a89ca4c2441f7aec25bf4706d4f117910dc9b5b5",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:CVY/PRO-HSE-012/006#CVY/PRO-HSE-012/1.5",
+  "prompt_kind": "clause",
+  "prompt_sha256": "29ad91dfa13ab3cc683d2628f491342baf2fc613eb75c503708d3c766134b172",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The continuous atmospheric monitoring during occupancy shall be provided and maintained wherever this procedure applies, and its condition shall be treated as a critical control. This clause applies to activities archived under CONFINED-SPACE-ENTRY at Cape Verity Export Terminal.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "230314488f4f63397dd0514b6f509710f5fa1337ab2e3318b949b0ff64c1dc34",
+  "source": null
+}

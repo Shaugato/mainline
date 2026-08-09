@@ -1,0 +1,94 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MAINLINE · 0180_disposition_peer_visible.sql
+-- ALTER TABLE mainline.disposition ADD COLUMN peer_visible — the DM-16 orphan the
+-- `peer_blind` policy reads
+--
+-- MI: MI01
+-- I: I15
+-- COUNSEL-GATED: yes
+-- RATIONALE: §11.3 writes `CREATE POLICY peer_blind … USING (signer_sub = CURRENT_USER OR
+--            peer_visible = true)` and §5.5's `disposition` DDL never defines `peer_visible`.
+--            DM-16 rules that a missing object the RLS references is added MINIMALLY rather
+--            than left dangling, because a policy over a non-existent column is a migration
+--            that fails on a fresh cluster and nowhere else. This is that minimal addition,
+--            and it is idempotent so that it disappears the moment the column reaches its
+--            permanent home.
+--
+-- migration:  0180_disposition_peer_visible
+-- domain:     datamodel / dm-views-rls
+-- band:       0180-0198z · datamodel/dm-views-rls · AUTHORED, allocated by
+--             verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1). The band's
+--             declared contents are the CREATE POLICY statements; this file is the column
+--             ONE of those policies reads, placed at the head of the band so that it
+--             precedes 0185c.
+-- statements: 1
+-- invariants: MI01 — evidentiary tables are append-only. `peer_visible` is the one column on
+--                    `disposition` other than `retracted_by` that the system flips after
+--                    insert, so it is named here rather than smuggled in: the append-only
+--                    trigger `fn_disposition_retract_only` (0104/0124) must permit it, and
+--                    that permission is a kernel change this file cannot make. See below.
+--             I15  — the allegation firewall. The column exists to WITHHOLD information from
+--                    a peer until that peer has committed their own judgement.
+-- source:     ARCHITECTURE.md §11.3 (peer_blind, and the sentence defining peer_visible as a
+--             trigger-maintained denormalisation) · §3.3 M10 · docs/leads/datamodel.md DM-16
+-- requires:   0066 mainline.disposition
+-- sqlstate:   none — this statement adds a column and refuses nothing.
+-- forward-only; no .down.sql exists at or below the protected floor.
+--
+-- COUNSEL-GATED: yes (G0) · DEFAULT: conservative · ADR: docs/adr/0001-g0-counsel.md
+-- The conservative default is `false`: nothing is peer-visible until something makes it so.
+-- A default of `true` would make the policy inert on every existing row while looking
+-- identical in `SHOW CREATE`, which is the worst way for an information partition to fail.
+--
+-- ═════════════════════════════════════════════════════════════════════════════
+-- WHY THIS COLUMN IS ADDED HERE AND WHY THAT IS A TEMPORARY ARRANGEMENT
+-- ═════════════════════════════════════════════════════════════════════════════
+-- `mainline.disposition` is SUBSTRATE under MR-1's object test — a second
+-- TRAPPOINT vertical needs it to pass `trappoint-conform` — so it is RENDERED
+-- from `packages/trappoint-sql/templates/0066_disposition.sql.j2` into both
+-- bindings, and `trappoint render --check` is a zero-diff assertion. THIS FILE
+-- DOES NOT EDIT THAT FILE. Editing a rendered migration is a red build, and
+-- hand-authoring a twin of one is worse: `--check` stays green while the runner
+-- refuses the tree.
+--
+-- The column's permanent home is that template. Until the kernel worker who owns
+-- it lands the change, `0185c_policy_disposition_peer_blind.sql` names a column
+-- that does not exist, and `trappoint-migrate apply` stops there on a fresh
+-- cluster. `ADD COLUMN IF NOT EXISTS` is the shape that is correct in BOTH
+-- worlds: it creates the column today, and it is a no-op the day the template
+-- carries it. No third state exists, and no state requires this file to be
+-- deleted in a coordinated commit with somebody else's.
+--
+-- This is recorded in the worker's cross-domain notes, not buried here.
+--
+-- ═════════════════════════════════════════════════════════════════════════════
+-- WHAT THIS COLUMN IS, AND THE TRIGGER THAT IS NOT IN THIS FILE
+-- ═════════════════════════════════════════════════════════════════════════════
+-- §11.3: "`peer_visible` is a trigger-maintained denormalisation flipped once
+-- the actor's own disposition on that check exists." It is therefore a P2
+-- projection — written by a trigger from an authoritative source, never by an
+-- inserter — and P2's second half is that the trigger RAISEs when the source is
+-- missing.
+--
+-- THAT TRIGGER IS NOT IN THIS FILE AND NOT IN THIS BAND. It belongs beside
+-- `fn_disposition_project` in the kernel's 0100-0109 function band, because it
+-- reads `disposition` to decide about `disposition` and the append-only guard
+-- (0104/0124) has to know that this one column may move. Writing a trigger here,
+-- above the protected floor, would put an enforcement mechanism in the policy
+-- band where nobody looks for one, and would fight the kernel's own guard.
+--
+-- So the column ships with its conservative default and WITHOUT its maintainer,
+-- and the consequence is stated rather than hidden: until that trigger exists,
+-- `peer_visible` is `false` on every row, `peer_blind` resolves to
+-- `signer_sub = CURRENT_USER`, and a signer sees ONLY their own dispositions.
+-- That is the fail-closed direction — the partition is tighter than designed,
+-- never looser — and it is the direction an information partition must fail in.
+--
+-- The DEFAULT is `false` and the column is `NOT NULL`, so the projection can
+-- never be absent; MI25's lesson is that a nullable projected column is a
+-- projection with a third state nobody wrote a rule for.
+
+ALTER TABLE mainline.disposition
+  ADD COLUMN IF NOT EXISTS peer_visible BOOL NOT NULL DEFAULT false;

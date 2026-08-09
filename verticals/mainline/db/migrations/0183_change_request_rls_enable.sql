@@ -1,0 +1,40 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MAINLINE · 0183_change_request_rls_enable.sql
+-- ALTER TABLE mainline.change_request ENABLE ROW LEVEL SECURITY
+--
+-- MI: MI30
+-- I: I02
+-- COUNSEL-GATED: no
+-- RATIONALE: S16 made the change request a gated subject with the same kernel idiom, the
+--            same counters and the same epoch pin, because the headline mechanism did not
+--            fire in the headline scenario while document commits were ungated. A scope
+--            control that covered the permit and not the change request would leave the
+--            protected branch itself unscoped, which is the same omission one level up.
+--
+-- migration:  0183_change_request_rls_enable
+-- domain:     datamodel / dm-views-rls
+-- band:       0180-0198z · datamodel/dm-views-rls · AUTHORED, allocated by
+--             verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1)
+-- statements: 1
+-- matrix:     verticals/mainline/db/RLS-MATRIX.yaml — this file is a RENDERING of one entry
+--             there; tests/integration/schema/test_mi_rls.py asserts the two agree
+-- source:     ARCHITECTURE.md §11.3 (RLS, SEC-1) · §4.1 law 10 · correction S22 · correction S16 · §16 MI30
+-- requires:   0051 mainline.change_request
+-- sqlstate:   none — enabling RLS refuses nothing by itself.
+-- forward-only; no .down.sql exists at or below the protected floor.
+--
+-- ────────────────────────────────────────────────────────────────────────────
+-- THE MIRROR IS EXACT, AND ONE POLICY DIFFERS
+-- ────────────────────────────────────────────────────────────────────────────
+-- 0183b-0183h mirror 0181b-0181h file for file, because the two subjects carry the same
+-- GSAC columns, the same counters and the same trigger writers. The one difference is the
+-- DELETE policy: `change_request` has no `under_hold` column, so the permit's conditional
+-- form is not expressible and 0183h is unconditional. A policy that named a column this
+-- table does not have would be refused at DDL time anyway — the mirror stops where the
+-- schema stops.
+--
+
+ALTER TABLE mainline.change_request ENABLE ROW LEVEL SECURITY;
+

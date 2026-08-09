@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 6,
+    "doc_code": "PRO-MEC-014",
+    "doc_family": "PRO",
+    "doc_title": "Hydrocarbon Transfer Pump Maintenance",
+    "driver": "incident",
+    "driving_change_ref": null,
+    "driving_event_ref": "INC-2025-010",
+    "effective_on": "2025-09-07",
+    "required_citations": [
+      {
+        "control_label": "emergency isolation and depressuring on loss of containment",
+        "event_ref": "INC-2025-010",
+        "event_title": "uncontrolled movement of TK-4211 during a statutory inspection",
+        "hazard_energy": "chemical",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:MRD/PRO-MEC-014/015#revision_history_line/INC-2025-010",
+        "severity_gate": 4
+      }
+    ],
+    "rev_no": 15,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "learning team review",
+      "management_of_change": "change assurance",
+      "near_miss": "high potential incident"
+    }
+  },
+  "key": "4149e19a7af2bce427727ca67216031153d0e7163a0197f4a434a2e2d052716c",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/PRO-MEC-014/015",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "dfda113894d24454002e3ab24cf13ebee6272f903185fa9c2ca06c53a8c3c4df",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "Revision 15 was raised in response to INC-2025-010, and the emergency isolation and depressuring on loss of containment was amended as a result.",
+        "quote_ref": "quote:MRD/PRO-MEC-014/015#revision_history_line/INC-2025-010"
+      }
+    ],
+    "reason": "Revised after INC-2025-010; 6 clauses amended."
+  },
+  "response_sha256": "ccd4c82a6f6cf9478fcf473bba51106e3c9ef6f31e0d355a84de66c24baf72ea",
+  "source": null
+}

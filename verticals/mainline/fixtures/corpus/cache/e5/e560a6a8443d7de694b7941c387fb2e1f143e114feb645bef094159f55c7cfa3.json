@@ -1,0 +1,49 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 1,
+    "doc_codes": [
+      "ALERT-2016-007",
+      "MOC-2014-0087",
+      "PRO-MEC-041",
+      "PRO-OPS-017",
+      "PTW-STD-003"
+    ],
+    "intent": "restate",
+    "moc_ref": "MOC-2022-0191",
+    "opened_on": "2022-09-15",
+    "precursor_events": [
+      {
+        "event_ref": "NM-2005-0019",
+        "severity_gate": null
+      },
+      {
+        "event_ref": "OEM-2011-002",
+        "severity_gate": null
+      }
+    ],
+    "site": "Cape Verity Export Terminal",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "management_of_change": "change assurance",
+      "verification": "assurance activity"
+    },
+    "weakening_steps": 0
+  },
+  "key": "e560a6a8443d7de694b7941c387fb2e1f143e114feb645bef094159f55c7cfa3",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2022-0191",
+  "prompt_kind": "moc",
+  "prompt_sha256": "9f44e2dcba17ad6124e28ce636de04bd9e72266c2e387663ca3b63da88d9a8c9",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2022-0191 was raised at Cape Verity Export Terminal on 15 September 2022 following 2 recorded events in the archive, including NM-2005-0019 and OEM-2011-002. The change assurance record covers 1 clause across 5 controlled documents. The intent is to restate an existing duty without altering what it requires. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the material unwanted event control set is preserved.",
+    "scope_note": "The documents in scope are ALERT-2016-007, MOC-2014-0087, PRO-MEC-041, PRO-OPS-017 and PTW-STD-003."
+  },
+  "response_sha256": "36c6c6ff39bf2eea1121a5f7124210a24ada80e38eba2a30af0cbbae58a6970c",
+  "source": null
+}

@@ -1,0 +1,98 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "managing freeboard, beach and decant",
+    "activity_root": "TAILINGS-AND-WATER-IMPOUNDMENT",
+    "activity_series": "operating an impoundment",
+    "assets": [
+      {
+        "asset_class": "THK-CLASS-A",
+        "label": "tailings thickener",
+        "service": "tailings thickening and decant",
+        "tag": "TH-3240"
+      },
+      {
+        "asset_class": "MOTOR-CLASS-A",
+        "label": "drive motor",
+        "service": "drives TH-3240",
+        "tag": "M-3240"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "EMBANKMENT_SURVEILLANCE",
+        "control_label": "surveillance of embankments and instrumentation",
+        "failure_mode": "absent",
+        "hazard_energy": "gravity",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "IMPOUNDMENT_FREEBOARD_CONTROL",
+        "control_label": "control of freeboard, beach width and decant",
+        "failure_mode": "degraded",
+        "hazard_energy": "chemical",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "INC-2004-005",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "incident",
+    "occurred_on": "2004-08-11",
+    "severity_actual": 1,
+    "severity_potential": 1,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during a planned shutdown",
+    "title": "uncontrolled movement of TH-3240 during a planned shutdown",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "investigation": "accident investigation",
+      "near_miss": "near hit",
+      "verification": "spot check"
+    }
+  },
+  "key": "fa9fdc20fdcdc69038ba3d30317a30b1f6ba157d2377ee86083f3e61e40ddf44",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2004-005",
+  "prompt_kind": "icam",
+  "prompt_sha256": "144271f86dd928bd16d7a7ad418a696a4e1b75fb20813c6f0a4adb0bc7392996",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage.",
+    "defences": [
+      {
+        "control_class": "EMBANKMENT_SURVEILLANCE",
+        "finding": "Control EMBANKMENT_SURVEILLANCE: the surveillance of embankments and instrumentation was not in place, and the accident investigation classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "IMPOUNDMENT_FREEBOARD_CONTROL",
+        "finding": "Control IMPOUNDMENT_FREEBOARD_CONTROL: the control of freeboard, beach width and decant had degraded below its design intent, and the accident investigation classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the control of freeboard, beach width and decant on TH-3240 and M-3240 and record the spot check before this task is next authorised."
+    ],
+    "sequence": "Work was under way in operating an impoundment, specifically managing freeboard, beach and decant. TH-3240 (tailings thickener) is in service for tailings thickening and decant. The task proceeded during a planned shutdown while the surveillance of embankments and instrumentation was not in place. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 11 August 2004 an incident occurred on TH-3240 and M-3240 at Marrindal Concentrator and Hydrocarbon Transfer Facility during a planned shutdown, releasing chemical energy held as hydrocarbon."
+  },
+  "response_sha256": "b8b8c862813481ef6e533fe1e5868b7a97bbee84470af84c30d03b08544571e5",
+  "source": null
+}

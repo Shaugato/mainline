@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 MAINLINE contributors
 # SPDX-License-Identifier: Apache-2.0
-"""``index_fingerprint`` — the only structural tripwire this platform gives us.
+r"""``index_fingerprint`` — the only structural tripwire this platform gives us.
 
 The problem, stated exactly
 ---------------------------
@@ -51,6 +51,7 @@ __all__ = [
     "PrefixTree",
     "fingerprint_preimage",
     "index_fingerprint",
+    "trees_from_counts",
 ]
 
 #: Domain separation. Present so this digest can never be confused with the plan-skeleton
@@ -93,11 +94,11 @@ class PrefixTree:
         return self.row_count is not None
 
     def key(self) -> str:
-        """A stable ordering key: table, then the bound prefix in column order."""
+        """Return a stable ordering key: table, then the bound prefix in column order."""
         return self.table + _UNIT + _UNIT.join(f"{column}={value}" for column, value in self.prefix)
 
     def record(self) -> str:
-        """The line this tree contributes to the preimage."""
+        """Render the line this tree contributes to the preimage."""
         if self.row_count is None:
             raise UncountableCorpus(
                 f"{self.key()} has no row count; a fingerprint over an unknown is a "
@@ -134,12 +135,12 @@ class IndexFingerprintInput:
         return all(tree.counted for tree in self.prefix_trees)
 
     def uncounted(self) -> tuple[str, ...]:
-        """The keys of the trees whose row counts are unknown."""
+        """Return the keys of the trees whose row counts are unknown."""
         return tuple(tree.key() for tree in self.prefix_trees if not tree.counted)
 
 
 def fingerprint_preimage(document: IndexFingerprintInput) -> bytes:
-    """The exact bytes hashed. Exposed so a stranger can inspect them, not just the digest.
+    """Return the exact bytes hashed, so a stranger can inspect them and not just the digest.
 
     Raises:
         UncountableCorpus: if any searched tree has no row count.
@@ -177,7 +178,7 @@ def trees_from_counts(
     table: str,
     prefixes: Sequence[tuple[tuple[tuple[str, str], ...], int | None]],
 ) -> tuple[PrefixTree, ...]:
-    """Convenience: build a tree tuple for one table from ``(prefix, count)`` pairs."""
+    """Build a tree tuple for one table from ``(prefix, count)`` pairs."""
     return tuple(
         PrefixTree(table=table, prefix=prefix, row_count=count) for prefix, count in prefixes
     )

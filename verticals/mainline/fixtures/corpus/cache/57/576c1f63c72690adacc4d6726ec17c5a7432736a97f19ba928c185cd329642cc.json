@@ -1,0 +1,64 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 5,
+    "doc_code": "PRO-MIN-003",
+    "doc_family": "PRO",
+    "doc_title": "Haul Road and Light Vehicle Interaction",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2016-01-05",
+    "required_citations": [
+      {
+        "control_label": "segregation of light vehicles and pedestrians from heavy equipment",
+        "event_ref": "INC-2015-001",
+        "event_title": "uncontrolled movement of HT-9001 during transfer operations",
+        "hazard_energy": "gravity",
+        "kind": "capa_action",
+        "quote_ref": "quote:YND/PRO-MIN-003/008#capa_action/INC-2015-001",
+        "severity_gate": 3
+      },
+      {
+        "control_label": "positive communication before approaching mobile equipment",
+        "event_ref": "INC-2015-001",
+        "event_title": "uncontrolled movement of HT-9001 during transfer operations",
+        "hazard_energy": "gravity",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:YND/PRO-MIN-003/008#revision_history_line/INC-2015-001",
+        "severity_gate": 3
+      }
+    ],
+    "rev_no": 8,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "ICAM investigation",
+      "management_of_change": "management of change",
+      "near_miss": "potential incident"
+    }
+  },
+  "key": "576c1f63c72690adacc4d6726ec17c5a7432736a97f19ba928c185cd329642cc",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:YND/PRO-MIN-003/008",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "c3cc1895d022e55e55a5e56fce988a9595e3bc0930f65e9afd0191ed97c1566d",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The corrective action recorded against INC-2015-001 required the segregation of light vehicles and pedestrians from heavy equipment to be restated in this procedure.",
+        "quote_ref": "quote:YND/PRO-MIN-003/008#capa_action/INC-2015-001"
+      },
+      {
+        "line": "Revision 8 was raised in response to INC-2015-001, and the positive communication before approaching mobile equipment was amended as a result.",
+        "quote_ref": "quote:YND/PRO-MIN-003/008#revision_history_line/INC-2015-001"
+      }
+    ],
+    "reason": "Scheduled review at revision 8; 5 clauses restated."
+  },
+  "response_sha256": "cf8ae338ebe0971e228f1be06044a7e0eef8d8dd7445dd3b82c031fbd2e391b5",
+  "source": null
+}

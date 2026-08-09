@@ -34,6 +34,7 @@ __all__ = [
     "EMPTY_ROOT",
     "LEAF_PREFIX",
     "NODE_PREFIX",
+    "SHA256_BYTES",
     "audit_path",
     "merkle_root",
     "node_hash",
@@ -46,24 +47,31 @@ LEAF_PREFIX: Final = b"\x00"
 #: RFC 6962 §2.1 interior-node tag.
 NODE_PREFIX: Final = b"\x01"
 
+#: The width of every hash in this tree. A node, a leaf or a root of any other length did not
+#: come out of SHA-256, whatever the bundle claims about it.
+SHA256_BYTES: Final = 32
+
+#: The smallest tree that has a split point at all. ``MTH`` bottoms out at one leaf.
+_SMALLEST_SPLITTABLE_TREE: Final = 2
+
 #: ``MTH({}) = SHA-256()``. RFC 6962 §2.1, the hash of the empty string.
 EMPTY_ROOT: Final[bytes] = hashlib.sha256(b"").digest()
 
 
 def node_hash(left: bytes, right: bytes) -> bytes:
-    """``sha256(0x01 || left || right)``."""
+    """Return ``sha256(0x01 || left || right)``."""
     return hashlib.sha256(NODE_PREFIX + left + right).digest()
 
 
 def _largest_power_of_two_below(n: int) -> int:
-    """The ``k`` of RFC 6962 §2.1: the largest power of two strictly less than ``n``."""
-    if n < 2:
+    """Return the ``k`` of RFC 6962 §2.1: the largest power of two strictly less than ``n``."""
+    if n < _SMALLEST_SPLITTABLE_TREE:
         raise InvalidProof(f"a split point is undefined for n={n}")
     return 1 << (n - 1).bit_length() - 1
 
 
 def merkle_root(leaf_hashes: Sequence[bytes]) -> bytes:
-    """The RFC 6962 Merkle Tree Hash over ``leaf_hashes``.
+    """Return the RFC 6962 Merkle Tree Hash over ``leaf_hashes``.
 
     Args:
         leaf_hashes: already-tagged leaf hashes, in commitment order.
@@ -81,7 +89,7 @@ def merkle_root(leaf_hashes: Sequence[bytes]) -> bytes:
 
 
 def audit_path(index: int, leaf_hashes: Sequence[bytes]) -> tuple[bytes, ...]:
-    """The RFC 6962 §2.1.1 audit path for ``index`` within ``leaf_hashes``.
+    """Return the RFC 6962 §2.1.1 audit path for ``index`` within ``leaf_hashes``.
 
     Args:
         index: 0-based position of the leaf being proved.
@@ -131,7 +139,11 @@ def verify_audit_path(
         raise InvalidProof(f"tree_size must be at least 1, got {tree_size}")
     if not 0 <= index < tree_size:
         raise InvalidProof(f"leaf index {index} is outside a tree of {tree_size} leaves")
-    if len(leaf) != 32 or len(root) != 32 or any(len(node) != 32 for node in path):
+    if (
+        len(leaf) != SHA256_BYTES
+        or len(root) != SHA256_BYTES
+        or any(len(node) != SHA256_BYTES for node in path)
+    ):
         return False
 
     node = leaf

@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 3,
+    "doc_code": "PRO-MEC-021",
+    "doc_family": "PRO",
+    "doc_title": "Mechanical Isolation and Lockout",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2010-01-15",
+    "required_citations": [
+      {
+        "control_label": "proving zero energy before intrusive work",
+        "event_ref": "INC-2009-009",
+        "event_title": "fire on SG-4100 during a breakdown response",
+        "hazard_energy": "thermal",
+        "kind": "capa_action",
+        "quote_ref": "quote:MRD/PRO-MEC-021/004#capa_action/INC-2009-009",
+        "severity_gate": 3
+      }
+    ],
+    "rev_no": 4,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "root cause analysis",
+      "management_of_change": "change request",
+      "near_miss": "hazard report"
+    }
+  },
+  "key": "603f8f2aabd771e42aec413607b9e56a03b119caec98243d5bab160435297763",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/PRO-MEC-021/004",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "3dfb8941824f84f60e5ca849bcc6874ae808d124473f45e0530f83f8e363c146",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The corrective action recorded against INC-2009-009 required the proving zero energy before intrusive work to be restated in this procedure.",
+        "quote_ref": "quote:MRD/PRO-MEC-021/004#capa_action/INC-2009-009"
+      }
+    ],
+    "reason": "Scheduled review at revision 4; 3 clauses restated."
+  },
+  "response_sha256": "edc4094db9b377d0c2bf23d293983dfc322efe8d1eecc57695bfe8282d6f66bd",
+  "source": null
+}

@@ -1,0 +1,85 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "insulating, guarding and signing hot surfaces",
+    "activity_root": "MOLTEN-AND-HOT-MATERIAL",
+    "activity_series": "protecting people from hot surfaces",
+    "assets": [
+      {
+        "asset_class": "BOIL-CLASS-A",
+        "label": "package boilers and deaerator",
+        "service": "process steam generation and feedwater deaeration",
+        "tag": "D-8210"
+      },
+      {
+        "asset_class": "INST-CLASS-A",
+        "label": "instrument loop",
+        "service": "governs D-8210",
+        "tag": "TT-8210"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "STEAM_SYSTEM_WARM_THROUGH",
+        "control_label": "controlled draining, venting and warm-through of steam systems",
+        "failure_mode": "absent",
+        "hazard_energy": "thermal",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "OEM-2015-001",
+    "hazard_energy": "thermal",
+    "hazard_media": [
+      "hot surface",
+      "steam",
+      "molten material",
+      "hot work",
+      "exothermic reaction"
+    ],
+    "hazard_release": "burn, ignition, scald",
+    "kind": "oem_alert",
+    "occurred_on": "2015-01-21",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Tolgarra Processing and Power Station",
+    "summary_facts": [],
+    "task_phase": "during routine operation",
+    "title": "vendor notification - premature wear on BOIL-CLASS-A",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "8fb7bd1da86711270cf9f138a13b8a1b5edcb1c2e1d586af0fea85328d49a27c",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:OEM-2015-001",
+  "prompt_kind": "icam",
+  "prompt_sha256": "d66fd5101214c5c7444fbb6656ae2c13c66a919138144ece8faab8af244dfd72",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "STEAM_SYSTEM_WARM_THROUGH",
+        "finding": "Control STEAM_SYSTEM_WARM_THROUGH: the controlled draining, venting and warm-through of steam systems was not in place, and the root cause analysis classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the controlled draining, venting and warm-through of steam systems on D-8210 and TT-8210 and record the field verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in protecting people from hot surfaces, specifically insulating, guarding and signing hot surfaces. D-8210 (package boilers and deaerator) is in service for process steam generation and feedwater deaeration. The task proceeded during routine operation while the controlled draining, venting and warm-through of steam systems was not in place. The thermal energy involved is held as hot surface, and the recorded presentation was burn, ignition, scald.",
+    "summary": "On 21 January 2015 the original equipment manufacturer issued an advisory affecting D-8210 and TT-8210 at Tolgarra Processing and Power Station."
+  },
+  "response_sha256": "0216d57f94bf17f7e6b1a1160b0bff12846aecf33324d6f941b18ee4e978443e",
+  "source": null
+}

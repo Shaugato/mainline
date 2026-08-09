@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "MOBILE-EQUIPMENT-INTERACTION",
+    "barrier_role": "preventive",
+    "control_class": "PARK_UP_AND_RESTRAINT",
+    "control_delta": "introduce",
+    "control_label": "parking, chocking and restraint of equipment",
+    "doc_code": "PRO-MIN-003",
+    "doc_family": "PRO",
+    "doc_title": "Haul Road and Light Vehicle Interaction",
+    "effective_on": "2012-09-10",
+    "printed_label": "3.4",
+    "setpoint": null,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "energy_isolation": "lock out tag out",
+      "verification": "field verification"
+    }
+  },
+  "key": "d0f452d6dd1e483cfcbb5441f0f3d4df8d91a85c4cdb7969a8c51ca680ffbe8f",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:YND/PRO-MIN-003/006#YND/PRO-MIN-003/3.4",
+  "prompt_kind": "clause",
+  "prompt_sha256": "1b683d5fc9f281a72c7ecec18cf80cea930dbd1d15314c80c4838ffc85ee1ce6",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The parking, chocking and restraint of equipment shall be provided and maintained for work covered by this procedure. This clause applies to activities archived under MOBILE-EQUIPMENT-INTERACTION at Yandarra Downs Open Cut and Heavy Workshop.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "bb81583fdf3c9b02d2e64f6165c4a4e925b069b17b837d6a9a8aa41ff19d5ea7",
+  "source": null
+}

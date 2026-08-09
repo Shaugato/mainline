@@ -1,0 +1,103 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "authorising a group isolation",
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "activity_series": "planning and permitting an isolation",
+    "assets": [
+      {
+        "asset_class": "SLP-CLASS-B",
+        "label": "dewatering pumps",
+        "service": "pit dewatering",
+        "tag": "P-9502"
+      },
+      {
+        "asset_class": "MOTOR-CLASS-A",
+        "label": "drive motor",
+        "service": "drives P-9502",
+        "tag": "M-9502"
+      },
+      {
+        "asset_class": "INST-CLASS-A",
+        "label": "instrument loop",
+        "service": "governs P-9502",
+        "tag": "PT-9502"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 1,
+      "label": "medical treatment injury"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "ENERGY_SOURCE_IDENTIFICATION",
+        "control_label": "identification of every energy source for the task",
+        "failure_mode": "absent",
+        "hazard_energy": "kinetic",
+        "icam_tier": "organisational_factor"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "ISOLATION_HANDBACK_CONTROL",
+        "control_label": "controlled removal of isolation and return to service",
+        "failure_mode": "absent",
+        "hazard_energy": "electrical",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "INC-2008-008",
+    "hazard_energy": "electrical",
+    "hazard_media": [
+      "HV switchgear",
+      "LV distribution",
+      "capacitive storage",
+      "induced voltage",
+      "portable equipment"
+    ],
+    "hazard_release": "shock, arc flash, unplanned energisation",
+    "kind": "incident",
+    "occurred_on": "2008-10-06",
+    "severity_actual": 2,
+    "severity_potential": 4,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during an intrusive maintenance task",
+    "title": "danger tagging failure on P-9502",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "investigation": "accident investigation",
+      "near_miss": "near hit",
+      "verification": "spot check"
+    }
+  },
+  "key": "801b6fbf997744e6202bc714981d7cc37bc35822dc55e3b452ba8d8d8200bbfe",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2008-008",
+  "prompt_kind": "icam",
+  "prompt_sha256": "cf89630d440a5fb9038010a3a837f59b8551d10f5659d0d3f23f592130f1f0f4",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was medical treatment injury, with 1 person injured. The potential outcome was rated 4 against the site's consequence scale, above the 2 actually realised.",
+    "defences": [
+      {
+        "control_class": "ENERGY_SOURCE_IDENTIFICATION",
+        "finding": "Control ENERGY_SOURCE_IDENTIFICATION: the identification of every energy source for the task was not in place, and the accident investigation classified this as an organisational factor."
+      },
+      {
+        "control_class": "ISOLATION_HANDBACK_CONTROL",
+        "finding": "Control ISOLATION_HANDBACK_CONTROL: the controlled removal of isolation and return to service was not in place, and the accident investigation classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next spot check that the identification of every energy source for the task on P-9502, M-9502 and PT-9502 performs as designed."
+    ],
+    "sequence": "Work was under way in planning and permitting an isolation, specifically authorising a group isolation. P-9502 (dewatering pumps) is in service for pit dewatering. The task proceeded during an intrusive maintenance task while the identification of every energy source for the task was not in place. The electrical energy involved is held as HV switchgear, and the recorded presentation was shock, arc flash, unplanned energisation.",
+    "summary": "On 6 October 2008 an incident occurred on P-9502, M-9502 and PT-9502 at Yandarra Downs Open Cut and Heavy Workshop during an intrusive maintenance task, releasing electrical energy held as HV switchgear."
+  },
+  "response_sha256": "0361f67322326f343af77cb2947b4c59f2c6547a0299c3e4e04f6f6d17d1e377",
+  "source": null
+}

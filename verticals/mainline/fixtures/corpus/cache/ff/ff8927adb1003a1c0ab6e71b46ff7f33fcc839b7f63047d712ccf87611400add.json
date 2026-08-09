@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 7,
+    "doc_code": "STD-ISO-006",
+    "doc_family": "STD",
+    "doc_title": "Isolation of Stored Energy",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2023-11-17",
+    "required_citations": [
+      {
+        "control_label": "mechanical support of a load during maintenance access",
+        "event_ref": "INC-2023-006",
+        "event_title": "pressure release during routine operation on P-3222",
+        "hazard_energy": "pressure",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:MRD/STD-ISO-006/007#revision_history_line/INC-2023-006",
+        "severity_gate": 3
+      }
+    ],
+    "rev_no": 7,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "learning team review",
+      "management_of_change": "change assurance",
+      "near_miss": "high potential incident"
+    }
+  },
+  "key": "ff8927adb1003a1c0ab6e71b46ff7f33fcc839b7f63047d712ccf87611400add",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/STD-ISO-006/007",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "a53cac8a4561f93a7f4929d9333fee11419d65623edcfb4fe5ac45a570822b27",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "Revision 7 was raised in response to INC-2023-006, and the mechanical support of a load during maintenance access was amended as a result.",
+        "quote_ref": "quote:MRD/STD-ISO-006/007#revision_history_line/INC-2023-006"
+      }
+    ],
+    "reason": "Scheduled review at revision 7; 7 clauses restated."
+  },
+  "response_sha256": "dc881ee966c719c6c9048677626fad93a28c133ad7bfeab8a0b9b6c75751e6d5",
+  "source": null
+}

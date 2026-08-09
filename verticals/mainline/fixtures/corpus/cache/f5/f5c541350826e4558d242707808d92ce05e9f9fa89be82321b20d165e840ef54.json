@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "EXPLOSIVES-AND-BLASTING",
+    "barrier_role": "preventive",
+    "control_class": "EXPLOSIVES_RECONCILIATION",
+    "control_delta": "introduce",
+    "control_label": "receipt, magazining and reconciliation of explosives",
+    "doc_code": "PRO-EXP-002",
+    "doc_family": "PRO",
+    "doc_title": "Explosives Receipt and Magazine Control",
+    "effective_on": "2014-08-16",
+    "printed_label": "4.5",
+    "setpoint": {
+      "from": 12.0,
+      "key": "explosives_magazine_reconciliation_interval",
+      "label": "explosives reconciliation interval",
+      "strengthen_direction": "lower",
+      "to": 12.0,
+      "unit": "hours"
+    },
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "energy_isolation": "lock out tag out",
+      "verification": "field verification"
+    }
+  },
+  "key": "f5c541350826e4558d242707808d92ce05e9f9fa89be82321b20d165e840ef54",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:YND/PRO-EXP-002/004#YND/PRO-EXP-002/4.5",
+  "prompt_kind": "clause",
+  "prompt_sha256": "5f11ca2dcc733ceb450c2684d9e25f1d34a2c25a5431f7c4e39db719009cb2b6",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The receipt, magazining and reconciliation of explosives shall be provided and maintained for work covered by this procedure. The explosives reconciliation interval shall be set at 12 hours. This clause applies to activities archived under EXPLOSIVES-AND-BLASTING at Yandarra Downs Open Cut and Heavy Workshop.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "ebea3090f1c8d9fb79a8c9963ef58d27d39df45a5d6540938b2179019ee79d6c",
+  "source": null
+}

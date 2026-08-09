@@ -1,0 +1,45 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 1,
+    "doc_codes": [
+      "MOC-2019-0221",
+      "PRO-MEC-021",
+      "PTW-STD-002",
+      "STD-ISO-006",
+      "STD-PTW-001"
+    ],
+    "intent": "restate",
+    "moc_ref": "MOC-2015-0018",
+    "opened_on": "2015-01-29",
+    "precursor_events": [
+      {
+        "event_ref": "INC-2018-015",
+        "severity_gate": null
+      }
+    ],
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "terminal_state": "abandoned",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "management_of_change": "change request",
+      "verification": "field verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "4292320e37d5859f231f55d4893b4a7ab3e15d0947ad75737953f06da4242994",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2015-0018",
+  "prompt_kind": "moc",
+  "prompt_sha256": "31b30b242a02b747b88e695b1955c1b8baca6f3ecfb4bc2bf914de5f13f62ba7",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2015-0018 was raised at Marrindal Concentrator and Hydrocarbon Transfer Facility on 29 January 2015 following 1 recorded event in the archive, including INC-2018-015. The change request record covers 1 clause across 5 controlled documents. The intent is to restate an existing duty without altering what it requires. The record reached the state abandoned in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical safeguard set is preserved.",
+    "scope_note": "The documents in scope are MOC-2019-0221, PRO-MEC-021, PTW-STD-002, STD-ISO-006 and STD-PTW-001."
+  },
+  "response_sha256": "6b3a8ccb5038df915c642ae6ee46864417f5e93f3794dbbfbd5ba4f178e51c48",
+  "source": null
+}

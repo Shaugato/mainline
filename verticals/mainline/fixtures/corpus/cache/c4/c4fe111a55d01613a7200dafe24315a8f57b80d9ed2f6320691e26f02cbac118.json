@@ -1,0 +1,53 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 2,
+    "doc_codes": [
+      "ALERT-2016-007",
+      "MOC-2014-0087",
+      "PRO-MEC-041",
+      "PRO-OPS-017",
+      "PTW-STD-003"
+    ],
+    "intent": "replace",
+    "moc_ref": "MOC-2021-0006",
+    "opened_on": "2021-01-01",
+    "precursor_events": [
+      {
+        "event_ref": "AF-2018-002",
+        "severity_gate": null
+      },
+      {
+        "event_ref": "AF-2024-003",
+        "severity_gate": null
+      },
+      {
+        "event_ref": "INC-2005-003",
+        "severity_gate": null
+      }
+    ],
+    "site": "Cape Verity Export Terminal",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "management_of_change": "management of change",
+      "verification": "critical control verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "c4fe111a55d01613a7200dafe24315a8f57b80d9ed2f6320691e26f02cbac118",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2021-0006",
+  "prompt_kind": "moc",
+  "prompt_sha256": "514b6aa267ecfb2679774d2525aa456c45e7bcd3fcf6fb21cb47a7f314adbaf2",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2021-0006 was raised at Cape Verity Export Terminal on 1 January 2021 following 3 recorded events in the archive, including AF-2018-002, AF-2024-003 and INC-2005-003. The management of change record covers 2 clauses across 5 controlled documents. The intent is to replace an existing requirement with one written to the current house style. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical control set is preserved.",
+    "scope_note": "The documents in scope are ALERT-2016-007, MOC-2014-0087, PRO-MEC-041, PRO-OPS-017 and PTW-STD-003."
+  },
+  "response_sha256": "e820de19d82cd7306e62840631b95db37873381a38f484dcba9f04ceae2ed9fa",
+  "source": null
+}

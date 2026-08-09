@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 5,
+    "doc_code": "ALERT-2016-007",
+    "doc_family": "ALERT",
+    "doc_title": "OEM Advisory - Mechanical Seal Support System Barrier Fluid Degradation",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2016-03-22",
+    "required_citations": [],
+    "rev_no": 1,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "ICAM investigation",
+      "management_of_change": "management of change",
+      "near_miss": "potential incident"
+    }
+  },
+  "key": "5b192bcb1a5b9f5abb8d1f9cad30fe5208e28a7e18dc4145747812873fd33634",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:TLG/ALERT-2016-007/001",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "1c6d45a184ae5ae4720c094031116373503c13832271252fb3fea5956a629750",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [],
+    "reason": "Scheduled review at revision 1; 5 clauses restated."
+  },
+  "response_sha256": "1496109d672fe70df88cff89cb95d51f19c464ae0427330610a00c0756a1d96a",
+  "source": null
+}

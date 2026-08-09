@@ -1,0 +1,92 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "setting, testing and sealing pressure relief devices",
+    "activity_root": "PRESSURE-SYSTEM-INTEGRITY",
+    "activity_series": "verifying pressure relief and protection",
+    "assets": [
+      {
+        "asset_class": "DOSE-CLASS-A",
+        "label": "reagent dosing pumps",
+        "service": "reagent make-up and dosing",
+        "tag": "P-8301"
+      },
+      {
+        "asset_class": "MOTOR-CLASS-A",
+        "label": "drive motor",
+        "service": "drives P-8301",
+        "tag": "M-8301"
+      },
+      {
+        "asset_class": "TANK-CLASS-R",
+        "label": "reagent storage tanks",
+        "service": "bulk reagent storage",
+        "tag": "TK-8310"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "STEAM_SYSTEM_WARM_THROUGH",
+        "control_label": "controlled draining, venting and warm-through of steam systems",
+        "failure_mode": "absent",
+        "hazard_energy": "pressure",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "NM-2005-0015",
+    "hazard_energy": "pressure",
+    "hazard_media": [
+      "hydraulic accumulator",
+      "barrier fluid",
+      "process gas",
+      "steam header",
+      "compressed air",
+      "trapped liquid"
+    ],
+    "hazard_release": "jet release, stored-energy discharge, rupture",
+    "kind": "near_miss",
+    "occurred_on": "2005-10-04",
+    "severity_actual": 0,
+    "severity_potential": 2,
+    "site": "Tolgarra Processing and Power Station",
+    "summary_facts": [],
+    "task_phase": "during start-up after maintenance",
+    "title": "near hit during start-up after maintenance on P-8301",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "investigation": "accident investigation",
+      "near_miss": "near hit",
+      "verification": "spot check"
+    }
+  },
+  "key": "80023911aa592735e77e86ac770b7f70ec3c296e8d1263759f903d9cc740ba8a",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2005-0015",
+  "prompt_kind": "icam",
+  "prompt_sha256": "5c1b0001b260ceca5400fb4ff03013b805c96c530c3818cc9d717e7bfe6bc6f4",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 2 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "STEAM_SYSTEM_WARM_THROUGH",
+        "finding": "Control STEAM_SYSTEM_WARM_THROUGH: the controlled draining, venting and warm-through of steam systems was not in place, and the accident investigation classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the controlled draining, venting and warm-through of steam systems on P-8301, M-8301 and TK-8310 and record the spot check before this task is next authorised."
+    ],
+    "sequence": "Work was under way in verifying pressure relief and protection, specifically setting, testing and sealing pressure relief devices. P-8301 (reagent dosing pumps) is in service for reagent make-up and dosing. The task proceeded during start-up after maintenance while the controlled draining, venting and warm-through of steam systems was not in place. The pressure energy involved is held as hydraulic accumulator, and the recorded presentation was jet release, stored-energy discharge, rupture.",
+    "summary": "On 4 October 2005 a near hit was recorded on P-8301, M-8301 and TK-8310 at Tolgarra Processing and Power Station during start-up after maintenance; pressure energy held as hydraulic accumulator was not released."
+  },
+  "response_sha256": "ebcbfc8c6d1c2af6c31317bf6e6cf5a374e1c17073abbdffe24b1ae93517d478",
+  "source": null
+}

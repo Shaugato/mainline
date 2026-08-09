@@ -1,0 +1,121 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "supporting a load for maintenance access",
+    "activity_root": "LIFTING-AND-SUSPENDED-LOADS",
+    "activity_series": "maintaining lifting appliances",
+    "assets": [
+      {
+        "asset_class": "LIFT-CLASS-W",
+        "label": "workshop hoists and press",
+        "service": "heavy vehicle component removal and pressing",
+        "tag": "HO-9401"
+      },
+      {
+        "asset_class": "MOTOR-CLASS-A",
+        "label": "drive motor",
+        "service": "drives HO-9401",
+        "tag": "M-9401"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "DROP_ZONE_EXCLUSION",
+        "control_label": "exclusion of people from beneath elevated work",
+        "failure_mode": "absent",
+        "hazard_energy": "kinetic",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "LIFTING_GEAR_INSPECTION",
+        "control_label": "inspection and periodic proof testing of lifting gear",
+        "failure_mode": "not_verified",
+        "hazard_energy": "gravity",
+        "icam_tier": "organisational_factor"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "LIFT_STUDY_APPROVAL",
+        "control_label": "preparation and approval of a lift study",
+        "failure_mode": "absent",
+        "hazard_energy": "gravity",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "LOAD_SUPPORT_FOR_MAINTENANCE",
+        "control_label": "mechanical support of a load during maintenance access",
+        "failure_mode": "bypassed",
+        "hazard_energy": "gravity",
+        "icam_tier": "organisational_factor"
+      }
+    ],
+    "event_ref": "INC-2018-011",
+    "hazard_energy": "kinetic",
+    "hazard_media": [
+      "rotating equipment",
+      "conveyor",
+      "mobile equipment",
+      "pressurised jet",
+      "flying fragment"
+    ],
+    "hazard_release": "entanglement, impact, crush",
+    "kind": "incident",
+    "occurred_on": "2018-04-04",
+    "severity_actual": 1,
+    "severity_potential": 1,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during a planned shutdown",
+    "title": "loss of containment at HO-9401 during a planned shutdown",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "918ce8991ebd5d2de27e98397aeb87b47891f4dc967ce658bb237996bab3efb8",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2018-011",
+  "prompt_kind": "icam",
+  "prompt_sha256": "55120c117ed1503ce7efd0308f643f0f93e44b9ccf6661b7676b7bc1b803bc74",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage.",
+    "defences": [
+      {
+        "control_class": "DROP_ZONE_EXCLUSION",
+        "finding": "Control DROP_ZONE_EXCLUSION: the exclusion of people from beneath elevated work was not in place, and the ICAM investigation classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "LIFTING_GEAR_INSPECTION",
+        "finding": "Control LIFTING_GEAR_INSPECTION: the inspection and periodic proof testing of lifting gear was never verified as effective, and the ICAM investigation classified this as an organisational factor."
+      },
+      {
+        "control_class": "LIFT_STUDY_APPROVAL",
+        "finding": "Control LIFT_STUDY_APPROVAL: the preparation and approval of a lift study was not in place, and the ICAM investigation classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "LOAD_SUPPORT_FOR_MAINTENANCE",
+        "finding": "Control LOAD_SUPPORT_FOR_MAINTENANCE: the mechanical support of a load during maintenance access had been bypassed, and the ICAM investigation classified this as an organisational factor."
+      }
+    ],
+    "recommendations": [
+      "Restore the exclusion of people from beneath elevated work on HO-9401 and M-9401 and record the critical control verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in maintaining lifting appliances, specifically supporting a load for maintenance access. HO-9401 (workshop hoists and press) is in service for heavy vehicle component removal and pressing. The task proceeded during a planned shutdown while the exclusion of people from beneath elevated work was not in place. The kinetic energy involved is held as rotating equipment, and the recorded presentation was entanglement, impact, crush.",
+    "summary": "On 4 April 2018 an incident occurred on HO-9401 and M-9401 at Yandarra Downs Open Cut and Heavy Workshop during a planned shutdown, releasing kinetic energy held as rotating equipment."
+  },
+  "response_sha256": "da56dfb1eb88900b851be0448128c6748f0970ec9134d126c5d861da6913e3f2",
+  "source": null
+}

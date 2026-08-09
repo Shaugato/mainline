@@ -243,7 +243,7 @@ def resolve(
     *,
     theta: float,
 ) -> DeltaVerdict:
-    """The delta of record for one clause version.
+    """Return the delta of record for one clause version.
 
     A thin projection of :func:`explain`.  Callers that write a silence record —
     which is every caller, because every ``neutral`` and every abstention is a

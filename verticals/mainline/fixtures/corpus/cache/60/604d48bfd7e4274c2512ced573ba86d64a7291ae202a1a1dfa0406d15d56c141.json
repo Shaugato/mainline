@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 4,
+    "doc_code": "PRO-MEC-041",
+    "doc_family": "PRO",
+    "doc_title": "Export Transfer Pump Maintenance",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2009-01-04",
+    "required_citations": [],
+    "rev_no": 2,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "accident investigation",
+      "management_of_change": "engineering change note",
+      "near_miss": "near hit"
+    }
+  },
+  "key": "604d48bfd7e4274c2512ced573ba86d64a7291ae202a1a1dfa0406d15d56c141",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:CVY/PRO-MEC-041/002",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "8c935af9996a421eaa8c9b0fe45094df590096316359494a42f26411219f7566",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [],
+    "reason": "Scheduled review at revision 2; 4 clauses restated."
+  },
+  "response_sha256": "943e3c592a8ba44c03d2e065805064ec1e7e1ac0f5c34cf74ad22b2b2572160c",
+  "source": null
+}

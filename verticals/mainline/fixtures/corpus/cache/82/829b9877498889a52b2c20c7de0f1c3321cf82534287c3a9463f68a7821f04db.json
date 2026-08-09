@@ -1,0 +1,64 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 5,
+    "doc_code": "MOC-2019-0221",
+    "doc_family": "MOC",
+    "doc_title": "Split of PRO-MEC-014 and Migration of Isolation Clauses to STD-ISO-006",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2019-02-19",
+    "required_citations": [
+      {
+        "control_label": "proving zero energy before intrusive work",
+        "event_ref": "INC-2018-022",
+        "event_title": "energy isolation failure on P-3223",
+        "hazard_energy": "kinetic",
+        "kind": "investigation_recommendation",
+        "quote_ref": "quote:MRD/MOC-2019-0221/001#investigation_recommendation/INC-2018-022",
+        "severity_gate": 3
+      },
+      {
+        "control_label": "mechanical support of a load during maintenance access",
+        "event_ref": "INC-2018-015",
+        "event_title": "gravity release during commissioning of replacement equipment on CV-3101",
+        "hazard_energy": "gravity",
+        "kind": "moc_reference",
+        "quote_ref": "quote:MRD/MOC-2019-0221/001#moc_reference/INC-2018-015",
+        "severity_gate": 2
+      }
+    ],
+    "rev_no": 1,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "ICAM investigation",
+      "management_of_change": "management of change",
+      "near_miss": "potential incident"
+    }
+  },
+  "key": "829b9877498889a52b2c20c7de0f1c3321cf82534287c3a9463f68a7821f04db",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/MOC-2019-0221/001",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "275765bfbe39f1c363296ec64a4c11ad672a6fa937b1f4e4421a7b002aaf231b",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The ICAM investigation into INC-2018-022 recommended that the proving zero energy before intrusive work be strengthened in this change record.",
+        "quote_ref": "quote:MRD/MOC-2019-0221/001#investigation_recommendation/INC-2018-022"
+      },
+      {
+        "line": "The management of change record for this revision cites INC-2018-015 as the reason the mechanical support of a load during maintenance access was amended.",
+        "quote_ref": "quote:MRD/MOC-2019-0221/001#moc_reference/INC-2018-015"
+      }
+    ],
+    "reason": "Scheduled review at revision 1; 5 clauses restated."
+  },
+  "response_sha256": "e56d178e78329bcc99248fd59fa4eca8a861dfb7473419ff3eba829e0a9e0723",
+  "source": null
+}

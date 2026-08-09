@@ -1,0 +1,40 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 2,
+    "doc_codes": [
+      "ALERT-2016-007",
+      "MOC-2014-0087",
+      "PRO-MEC-041",
+      "PRO-OPS-017",
+      "PTW-STD-003"
+    ],
+    "intent": "restate",
+    "moc_ref": "MOC-2013-0017",
+    "opened_on": "2013-01-04",
+    "precursor_events": [],
+    "site": "Cape Verity Export Terminal",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "management_of_change": "change request",
+      "verification": "field verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "01839c59e206744519147b9abb00349a982ec06a63e327e12904463ad3215e53",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2013-0017",
+  "prompt_kind": "moc",
+  "prompt_sha256": "559c239a6926d5eb1dafb8061df67feea05862d9333ff440f0e6adcb46969aa0",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2013-0017 was raised at Cape Verity Export Terminal on 4 January 2013 as a scheduled change under change request; no event precedes it in the record. The change request record covers 2 clauses across 5 controlled documents. The intent is to restate an existing duty without altering what it requires. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical safeguard set is preserved.",
+    "scope_note": "The documents in scope are ALERT-2016-007, MOC-2014-0087, PRO-MEC-041, PRO-OPS-017 and PTW-STD-003."
+  },
+  "response_sha256": "06cee5978c3e50ae01cca969ac65272a7bfb3b2492c48bb96bd6debd7b848520",
+  "source": null
+}

@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "EXPLOSIVES-AND-BLASTING",
+    "barrier_role": "preventive",
+    "control_class": "EXPLOSIVES_RECONCILIATION",
+    "control_delta": "strengthen",
+    "control_label": "receipt, magazining and reconciliation of explosives",
+    "doc_code": "PRO-EXP-002",
+    "doc_family": "PRO",
+    "doc_title": "Explosives Receipt and Magazine Control",
+    "effective_on": "2010-12-22",
+    "printed_label": "3.1",
+    "setpoint": null,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "energy_isolation": "lock out tag out",
+      "verification": "field verification"
+    }
+  },
+  "key": "2a5f1df7c19c1314cc1d3fdec5705ded24e10bf2be57d1efcffa18bc5548bbeb",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:YND/PRO-EXP-002/003#YND/PRO-EXP-002/3.1",
+  "prompt_kind": "clause",
+  "prompt_sha256": "6e6e7023dfff8f69317e10477afaac80d23efa8ef9b4749913029f5431979ba2",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The receipt, magazining and reconciliation of explosives must be provided, and its effectiveness must be recorded as a field verification before the task proceeds. This clause applies to activities archived under EXPLOSIVES-AND-BLASTING at Yandarra Downs Open Cut and Heavy Workshop.",
+    "obligation_verb": "must"
+  },
+  "response_sha256": "117e6d2040cbc98ee53614d06ba34838f8112c3ad46c3f65feee9a8b3e4c9de8",
+  "source": null
+}

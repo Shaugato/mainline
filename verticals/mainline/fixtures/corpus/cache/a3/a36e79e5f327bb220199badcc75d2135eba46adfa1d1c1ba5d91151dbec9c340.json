@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ELECTRICAL-SAFETY",
+    "barrier_role": "preventive",
+    "control_class": "POSITIVE_ISOLATION_APPLICATION",
+    "control_delta": "remove",
+    "control_label": "application of positive isolation devices and personal locks",
+    "doc_code": "STD-ELE-009",
+    "doc_family": "STD",
+    "doc_title": "Electrical Safety",
+    "effective_on": "2022-10-27",
+    "printed_label": "4.1.1",
+    "setpoint": null,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "energy_isolation": "positive isolation verification",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "a36e79e5f327bb220199badcc75d2135eba46adfa1d1c1ba5d91151dbec9c340",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:TLG/STD-ELE-009/007#TLG/STD-ELE-009/4.4",
+  "prompt_kind": "clause",
+  "prompt_sha256": "ea5b1f59bf61481de34a395c92bb1fbd251e3202ddf4dc30233d4d75bfce1166",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "This requirement is withdrawn. The application of positive isolation devices and personal locks is no longer imposed by this standard; the duty is discharged under the document that supersedes this clause.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "3167f65d5e0c91ea8906f433f71da38278455a904f35db72abe9a38c45a4182f",
+  "source": null
+}

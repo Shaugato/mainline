@@ -28,10 +28,12 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from typing import Any
+from itertools import pairwise
+from typing import Any, Final
 
 from trappoint_recall.per.errors import PerRefused
 from trappoint_recall.per.leaf import (
+    MICRO,
     RAISED_OUTCOMES,
     CandidateScore,
     Leaf,
@@ -46,7 +48,14 @@ from trappoint_recall.per.receipt import (
     derive_theta_q,
 )
 
+#: How far ``theta`` (the FLOAT8 the database stores for display) may sit from ``theta_q``
+#: (the integer the proof is actually conducted in) before the two are describing different
+#: cuts. Specified in ``spec/wire/candidate-commitment.md`` section 2 as ``1e-9``, and pinned
+#: here rather than written inline so a verifier and the specification cannot drift apart.
+THETA_DISPLAY_TOLERANCE: Final = 1e-9
+
 __all__ = [
+    "THETA_DISPLAY_TOLERANCE",
     "Check",
     "VerificationReport",
     "leaves_from_disclosure",
@@ -231,10 +240,10 @@ def _boundary_checks(receipt: SilenceReceipt) -> list[Check]:
         ),
         Check(
             "theta_consistent",
-            ok=abs(receipt.theta - receipt.theta_q / 1_000_000) < 1e-9,
+            ok=abs(receipt.theta - receipt.theta_q / MICRO) < THETA_DISPLAY_TOLERANCE,
             detail=(
                 f"theta={receipt.theta!r} agrees with theta_q={receipt.theta_q} to within "
-                "1e-9; theta_q is the authoritative integer"
+                f"{THETA_DISPLAY_TOLERANCE}; theta_q is the authoritative integer"
             ),
         ),
     ]
@@ -263,8 +272,7 @@ def _boundary_checks(receipt: SilenceReceipt) -> list[Check]:
             ok=claim_ok,
             detail=(
                 f"coverage verdict {receipt.certificate_verdict!r}, "
-                f"not_exhaustive={receipt.not_exhaustive}. "
-                + PER_BOUND_SENTENCE
+                f"not_exhaustive={receipt.not_exhaustive}. " + PER_BOUND_SENTENCE
             ),
         )
     )
@@ -296,7 +304,7 @@ def _full_checks(receipt: SilenceReceipt, leaves: Sequence[Leaf]) -> list[Check]
 
     sorted_ok = all(
         (-left.score_q, left.event_id) <= (-right.score_q, right.event_id)
-        for left, right in zip(leaves, leaves[1:], strict=False)
+        for left, right in pairwise(leaves)
     )
     checks.append(
         Check(
@@ -328,9 +336,7 @@ def _full_checks(receipt: SilenceReceipt, leaves: Sequence[Leaf]) -> list[Check]
         Check(
             "root_matches",
             ok=recomputed == receipt.candidate_root,
-            detail=(
-                f"recomputed {recomputed.hex()}; committed {receipt.candidate_root.hex()}"
-            ),
+            detail=(f"recomputed {recomputed.hex()}; committed {receipt.candidate_root.hex()}"),
         )
     )
 

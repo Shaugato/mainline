@@ -1,0 +1,98 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "making up, decanting and dosing reagents",
+    "activity_root": "HAZARDOUS-SUBSTANCE-EXPOSURE",
+    "activity_series": "handling and dosing reagents",
+    "assets": [
+      {
+        "asset_class": "TANK-CLASS-R",
+        "label": "reagent storage tanks",
+        "service": "bulk reagent storage",
+        "tag": "TK-8310"
+      },
+      {
+        "asset_class": "INST-CLASS-A",
+        "label": "instrument loop",
+        "service": "governs TK-8310",
+        "tag": "LT-8310"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "BUND_AND_DRAINAGE_CONTAINMENT",
+        "control_label": "secondary containment by bund and drainage",
+        "failure_mode": "degraded",
+        "hazard_energy": "chemical",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "EXPOSURE_MONITORING",
+        "control_label": "monitoring of airborne contaminant exposure",
+        "failure_mode": "not_verified",
+        "hazard_energy": "chemical",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "CAPA-2022-007",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "capa",
+    "occurred_on": "2022-12-19",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Tolgarra Processing and Power Station",
+    "summary_facts": [],
+    "task_phase": "during commissioning of replacement equipment",
+    "title": "preventive action - alarm philosophy conformance on TK-8310",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "feb066a802d8dd0a11cf3026823cc645e99c3b2747c5b089db73c7fd1f2991c8",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:CAPA-2022-007",
+  "prompt_kind": "icam",
+  "prompt_sha256": "ba67a4fac0196ea61bb621a3d5c03d96710f22c2db0fb45469cd2e39e59b5181",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "BUND_AND_DRAINAGE_CONTAINMENT",
+        "finding": "Control BUND_AND_DRAINAGE_CONTAINMENT: the secondary containment by bund and drainage had degraded below its design intent, and the learning team review classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "EXPOSURE_MONITORING",
+        "finding": "Control EXPOSURE_MONITORING: the monitoring of airborne contaminant exposure was never verified as effective, and the learning team review classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Restore the secondary containment by bund and drainage on TK-8310 and LT-8310 and record the assurance activity before this task is next authorised."
+    ],
+    "sequence": "Work was under way in handling and dosing reagents, specifically making up, decanting and dosing reagents. TK-8310 (reagent storage tanks) is in service for bulk reagent storage. The task proceeded during commissioning of replacement equipment while the secondary containment by bund and drainage had degraded below its design intent. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 19 December 2022 a corrective action on TK-8310 and LT-8310 at Tolgarra Processing and Power Station was reviewed against the material unwanted event control it was raised to restore."
+  },
+  "response_sha256": "b6ef0b79f6cd82e12879bef718ee1bb5ce141a2f2839db127abf6f793f9378f7",
+  "source": null
+}

@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "barrier_role": "preventive",
+    "control_class": "SEAL_SUPPORT_SYSTEM_INTEGRITY",
+    "control_delta": "restate",
+    "control_label": "integrity of the mechanical seal support system",
+    "doc_code": "PRO-OPS-032",
+    "doc_family": "PRO",
+    "doc_title": "Hydrocarbon Transfer Operations",
+    "effective_on": "2017-04-03",
+    "printed_label": "4.1.1",
+    "setpoint": null,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "3b2ec7cab804ed972b18d87cfbbe9d83ed5afa81c3afaae60cef85af05d8093c",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/PRO-OPS-032/007#MRD/PRO-OPS-032/1.5.1(a)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "55505f8e43477e4bbcbe58743804c0e08b9bd88aa226f73773c1c3807eff53dc",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The integrity of the mechanical seal support system shall be provided and maintained wherever this procedure applies, and its condition shall be treated as a critical control. This clause applies to activities archived under CONTAINMENT-OF-HYDROCARBONS at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "43c38ea0d94040d89ffb7e51a737fdbd39b9a0dc24e151cdaf2303bdf605630f",
+  "source": null
+}

@@ -1,0 +1,78 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "managing light-vehicle and haul-truck interaction",
+    "activity_root": "MOBILE-EQUIPMENT-INTERACTION",
+    "activity_series": "controlling traffic on operating areas",
+    "assets": [
+      {
+        "asset_class": "MOB-CLASS-H",
+        "label": "haul trucks",
+        "service": "waste and ore haulage",
+        "tag": "HT-9003"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "PROXIMITY_DETECTION_AND_SEGREGATION",
+        "control_label": "segregation of light vehicles and pedestrians from heavy equipment",
+        "failure_mode": "ineffective",
+        "hazard_energy": "kinetic",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "CAPA-2020-001",
+    "hazard_energy": "gravity",
+    "hazard_media": [
+      "suspended load",
+      "stored potential of an elevated component",
+      "unsupported ground",
+      "person at height"
+    ],
+    "hazard_release": "fall, collapse, crush",
+    "kind": "capa",
+    "occurred_on": "2020-01-11",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during cleaning and preparation",
+    "title": "corrective action - critical control at HT-9003",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "38fce9d9f0b50701368ba454af04c2b7e9608e2f883f2ebddbb53977580f2cb6",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:CAPA-2020-001",
+  "prompt_kind": "icam",
+  "prompt_sha256": "c315e127a3c832fde6f56bb6552cee658bab5a4c24825dfb1c0902591ff7e8f8",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "PROXIMITY_DETECTION_AND_SEGREGATION",
+        "finding": "Control PROXIMITY_DETECTION_AND_SEGREGATION: the segregation of light vehicles and pedestrians from heavy equipment was in place but did not perform, and the ICAM investigation classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next critical control verification that the segregation of light vehicles and pedestrians from heavy equipment on HT-9003 performs as designed."
+    ],
+    "sequence": "Work was under way in controlling traffic on operating areas, specifically managing light-vehicle and haul-truck interaction. HT-9003 (haul trucks) is in service for waste and ore haulage. The task proceeded during cleaning and preparation while the segregation of light vehicles and pedestrians from heavy equipment was in place but did not perform. The gravity energy involved is held as suspended load, and the recorded presentation was fall, collapse, crush.",
+    "summary": "On 11 January 2020 a corrective action on HT-9003 at Yandarra Downs Open Cut and Heavy Workshop was reviewed against the critical control it was raised to restore."
+  },
+  "response_sha256": "ef265e6a9b46cfb8f48ed39585858407010fe970afbca096156a96cd9cb68897",
+  "source": null
+}

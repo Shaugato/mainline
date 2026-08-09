@@ -1,0 +1,79 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "controlling portable electrical equipment in zoned areas",
+    "activity_root": "CONTROL-OF-IGNITION-SOURCES",
+    "activity_series": "maintaining hazardous-area electrical equipment",
+    "assets": [
+      {
+        "asset_class": "SLP-CLASS-B",
+        "label": "slurry transfer pumps",
+        "service": "cyclone feed and tailings transfer",
+        "tag": "P-3223"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "HAZARDOUS_AREA_EQUIPMENT_INTEGRITY",
+        "control_label": "integrity of explosion-protected equipment in zoned areas",
+        "failure_mode": "ineffective",
+        "hazard_energy": "electrical",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "CAPA-2017-002",
+    "hazard_energy": "electrical",
+    "hazard_media": [
+      "HV switchgear",
+      "LV distribution",
+      "capacitive storage",
+      "induced voltage",
+      "portable equipment"
+    ],
+    "hazard_release": "shock, arc flash, unplanned energisation",
+    "kind": "capa",
+    "occurred_on": "2017-02-24",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during a breakdown response",
+    "title": "corrective action - critical control at P-3223",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "e2a6a62318f3686207f4842c3bebdb06c1c03b1c37f2fe22835ba3eea043aa49",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:CAPA-2017-002",
+  "prompt_kind": "icam",
+  "prompt_sha256": "69332f3d193fb55882eae3cdc9abb5a507cfed7dd2b518eb7f53b0c176b6bddb",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "HAZARDOUS_AREA_EQUIPMENT_INTEGRITY",
+        "finding": "Control HAZARDOUS_AREA_EQUIPMENT_INTEGRITY: the integrity of explosion-protected equipment in zoned areas was in place but did not perform, and the ICAM investigation classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next critical control verification that the integrity of explosion-protected equipment in zoned areas on P-3223 performs as designed."
+    ],
+    "sequence": "Work was under way in maintaining hazardous-area electrical equipment, specifically controlling portable electrical equipment in zoned areas. P-3223 (slurry transfer pumps) is in service for cyclone feed and tailings transfer. The task proceeded during a breakdown response while the integrity of explosion-protected equipment in zoned areas was in place but did not perform. The electrical energy involved is held as HV switchgear, and the recorded presentation was shock, arc flash, unplanned energisation.",
+    "summary": "On 24 February 2017 a corrective action on P-3223 at Marrindal Concentrator and Hydrocarbon Transfer Facility was reviewed against the critical control it was raised to restore."
+  },
+  "response_sha256": "528ad3c6b2ef8e38041e954b62dc55e095d4d8937577b19781be16ea9bc375af",
+  "source": null
+}

@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 15,
+    "doc_code": "STD-EMR-008",
+    "doc_family": "STD",
+    "doc_title": "Emergency Preparedness and Response",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2006-09-12",
+    "required_citations": [
+      {
+        "control_label": "provision and briefing of a competent fire watch",
+        "event_ref": "CAPA-2005-005",
+        "event_title": "corrective action following accident investigation at K-7301",
+        "hazard_energy": "thermal",
+        "kind": "investigation_recommendation",
+        "quote_ref": "quote:CVY/STD-EMR-008/001#investigation_recommendation/CAPA-2005-005",
+        "severity_gate": 1
+      }
+    ],
+    "rev_no": 1,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "accident investigation",
+      "management_of_change": "engineering change note",
+      "near_miss": "near hit"
+    }
+  },
+  "key": "b3a9ea19a6c7abb5619dff16bb6353150d91fff2f26a80314857c883026dd000",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:CVY/STD-EMR-008/001",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "afd61119789c5883c030d3a67a2c6abddeb0341b075eff8a3ce26f0ee57cd51e",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The accident investigation into CAPA-2005-005 recommended that the provision and briefing of a competent fire watch be strengthened in this standard.",
+        "quote_ref": "quote:CVY/STD-EMR-008/001#investigation_recommendation/CAPA-2005-005"
+      }
+    ],
+    "reason": "Scheduled review at revision 1; 15 clauses restated."
+  },
+  "response_sha256": "ec15497b1191ca9b65fe114f5edf8769cc5e00cb04166fa0003cb701d1b802bd",
+  "source": null
+}

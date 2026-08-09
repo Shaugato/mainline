@@ -1,0 +1,90 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "handing back a partially completed isolation",
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "activity_series": "restoring plant to service",
+    "assets": [
+      {
+        "asset_class": "MOB-CLASS-E",
+        "label": "earthmoving fleet",
+        "service": "loading and dozing",
+        "tag": "EX-9101"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "ISOLATION_HANDBACK_CONTROL",
+        "control_label": "controlled removal of isolation and return to service",
+        "failure_mode": "bypassed",
+        "hazard_energy": "kinetic",
+        "icam_tier": "individual_or_team_action"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "POSITIVE_ISOLATION_APPLICATION",
+        "control_label": "application of positive isolation devices and personal locks",
+        "failure_mode": "ineffective",
+        "hazard_energy": "kinetic",
+        "icam_tier": "organisational_factor"
+      }
+    ],
+    "event_ref": "NM-2021-0009",
+    "hazard_energy": "gravity",
+    "hazard_media": [
+      "suspended load",
+      "stored potential of an elevated component",
+      "unsupported ground",
+      "person at height"
+    ],
+    "hazard_release": "fall, collapse, crush",
+    "kind": "near_miss",
+    "occurred_on": "2021-08-29",
+    "severity_actual": 1,
+    "severity_potential": 2,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during start-up after maintenance",
+    "title": "unplanned release of gravity energy at EX-9101",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "cfa14b4f8f9c26e139dea179ea3217de1ba5712c47de006f5fc455418f6f2bd5",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2021-0009",
+  "prompt_kind": "icam",
+  "prompt_sha256": "9be9fb3cd9c1b29eaaef2bd23edb96d69dad7a82c1b125280ccd41fb1ffa6458",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage. The potential outcome was rated 2 against the site's consequence scale, above the 1 actually realised.",
+    "defences": [
+      {
+        "control_class": "ISOLATION_HANDBACK_CONTROL",
+        "finding": "Control ISOLATION_HANDBACK_CONTROL: the controlled removal of isolation and return to service had been bypassed, and the ICAM investigation classified this as an individual or team action."
+      },
+      {
+        "control_class": "POSITIVE_ISOLATION_APPLICATION",
+        "finding": "Control POSITIVE_ISOLATION_APPLICATION: the application of positive isolation devices and personal locks was in place but did not perform, and the ICAM investigation classified this as an organisational factor."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next critical control verification that the controlled removal of isolation and return to service on EX-9101 performs as designed."
+    ],
+    "sequence": "Work was under way in restoring plant to service, specifically handing back a partially completed isolation. EX-9101 (earthmoving fleet) is in service for loading and dozing. The task proceeded during start-up after maintenance while the controlled removal of isolation and return to service had been bypassed. The gravity energy involved is held as suspended load, and the recorded presentation was fall, collapse, crush.",
+    "summary": "On 29 August 2021 a potential incident was recorded on EX-9101 at Yandarra Downs Open Cut and Heavy Workshop during start-up after maintenance; gravity energy held as suspended load was not released."
+  },
+  "response_sha256": "d57b52aeb30057b7cec24c710a2159820a3cbb8dc7e0f0da374dab84ab672450",
+  "source": null
+}

@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "MOBILE-EQUIPMENT-INTERACTION",
+    "barrier_role": "preventive",
+    "control_class": "PROXIMITY_DETECTION_AND_SEGREGATION",
+    "control_delta": "restate",
+    "control_label": "segregation of light vehicles and pedestrians from heavy equipment",
+    "doc_code": "STD-MEQ-007",
+    "doc_family": "STD",
+    "doc_title": "Mobile Equipment Interaction",
+    "effective_on": "2022-10-12",
+    "printed_label": "3.1.9",
+    "setpoint": {
+      "from": 60.0,
+      "key": "light_vehicle_exclusion_radius",
+      "label": "light vehicle exclusion radius from operating haul trucks",
+      "strengthen_direction": "higher",
+      "to": 60.0,
+      "unit": "m"
+    },
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "energy_isolation": "positive isolation verification",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "0b72c49ac7e1c69c7f42aa6189d204038f9ccf25ba5ede7fe3ca02214676aa52",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:YND/STD-MEQ-007/007#YND/STD-MEQ-007/1.1",
+  "prompt_kind": "clause",
+  "prompt_sha256": "fc4416d986a07a5854d3258d5c774c50741d30cf4b2297e89214104de2b9638f",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The segregation of light vehicles and pedestrians from heavy equipment shall be provided and maintained wherever this standard applies, and its condition shall be treated as a material unwanted event control. The light vehicle exclusion radius from operating haul trucks shall be set at 60 m. This clause applies to activities archived under MOBILE-EQUIPMENT-INTERACTION at Yandarra Downs Open Cut and Heavy Workshop.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "e53d2a4ba6e3a33a05a0d12f306632642ea5d46899f225bf0660afe24cd49f6a",
+  "source": null
+}

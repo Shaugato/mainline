@@ -1,0 +1,104 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "inspecting Ex equipment and enclosures",
+    "activity_root": "CONTROL-OF-IGNITION-SOURCES",
+    "activity_series": "maintaining hazardous-area electrical equipment",
+    "assets": [
+      {
+        "asset_class": "PRD-CLASS-A",
+        "label": "pressure relief devices",
+        "service": "overpressure protection on the transfer and storage system",
+        "tag": "PSV-4210"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "GAS_TEST_BEFORE_AND_DURING_HOT_WORK",
+        "control_label": "atmospheric gas testing before and during hot work",
+        "failure_mode": "not_verified",
+        "hazard_energy": "chemical",
+        "icam_tier": "organisational_factor"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "HAZARDOUS_AREA_EQUIPMENT_INTEGRITY",
+        "control_label": "integrity of explosion-protected equipment in zoned areas",
+        "failure_mode": "degraded",
+        "hazard_energy": "chemical",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "HOT_WORK_AUTHORISATION",
+        "control_label": "authorisation of hot work adjacent to live plant",
+        "failure_mode": "ineffective",
+        "hazard_energy": "chemical",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "NM-2026-0024",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "near_miss",
+    "occurred_on": "2026-07-03",
+    "severity_actual": 0,
+    "severity_potential": 3,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during a breakdown response",
+    "title": "unrelieved potential energy found after isolation of PSV-4210",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "7bdf55e6b7039ee5124dd7d807b29ac9bac73c55617b1dc09a77d17e327770ed",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2026-0024",
+  "prompt_kind": "icam",
+  "prompt_sha256": "67bb1d1e765aecf87afa90db5f496541b9b20a886e67670efe7514df8a93980e",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 3 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "GAS_TEST_BEFORE_AND_DURING_HOT_WORK",
+        "finding": "Control GAS_TEST_BEFORE_AND_DURING_HOT_WORK: the atmospheric gas testing before and during hot work was never verified as effective, and the learning team review classified this as an organisational factor."
+      },
+      {
+        "control_class": "HAZARDOUS_AREA_EQUIPMENT_INTEGRITY",
+        "finding": "Control HAZARDOUS_AREA_EQUIPMENT_INTEGRITY: the integrity of explosion-protected equipment in zoned areas had degraded below its design intent, and the learning team review classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "HOT_WORK_AUTHORISATION",
+        "finding": "Control HOT_WORK_AUTHORISATION: the authorisation of hot work adjacent to live plant was in place but did not perform, and the learning team review classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next assurance activity that the atmospheric gas testing before and during hot work on PSV-4210 performs as designed."
+    ],
+    "sequence": "Work was under way in maintaining hazardous-area electrical equipment, specifically inspecting Ex equipment and enclosures. PSV-4210 (pressure relief devices) is in service for overpressure protection on the transfer and storage system. The task proceeded during a breakdown response while the atmospheric gas testing before and during hot work was never verified as effective. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 3 July 2026 a high potential incident was recorded on PSV-4210 at Marrindal Concentrator and Hydrocarbon Transfer Facility during a breakdown response; chemical energy held as hydrocarbon was not released."
+  },
+  "response_sha256": "4a638fa6249e237a8e282a99f02940203d28cdc0afbca5ba674e4da5f78628ef",
+  "source": null
+}

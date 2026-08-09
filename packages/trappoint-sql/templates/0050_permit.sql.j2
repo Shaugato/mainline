@@ -1,0 +1,232 @@
+{# SPDX-FileCopyrightText: 2026 MAINLINE contributors #}
+{# SPDX-License-Identifier: Apache-2.0 #}
+{#
+  Migrations 0050 / 0050a — THE PERMIT HEAD.
+  ARCHITECTURE.md §5.5 (verbatim), §4.1 laws 1-3 and 9, §16 MI02-MI06;
+  spec/TRAPPOINT-SPEC.md R-2, R-3; research/05-architecture/merge-gate-invariant.md §3.2.
+
+  This file is the PIN half of the kernel idiom. It creates nothing that computes and
+  nothing that decides; it creates the surface every later mechanism refuses against.
+
+  ── WHY SIX NAMES AND NOT ONE COUNTER ─────────────────────────────────────────────
+  `open_blocking = 0` alone would enforce the invariant. Six independently named CHECKs
+  cost six times the DDL and buy one sentence: "the merge was refused by
+  boundary_certified_when_issued" is a materially better exhibit than "a counter was
+  non-zero". Specification rule R-2 makes the collapse non-conformant even where it is
+  logically equivalent, and each counter carries an independent trigger, which is what
+  makes the refusal-depth matrix mean anything at all. DO NOT CONSOLIDATE THEM.
+
+  ── LAW 1: A CHECK SEES ONLY THE ROW BEING WRITTEN ────────────────────────────────
+  No subquery, no join, no now(), no UDF-of-column. That law is the entire reason the
+  counters exist as scalar columns of this row: the cross-row fact ("an obligation is
+  open somewhere else") is PROJECTED onto the subject by a trigger, and then a plain
+  column CHECK refuses over it — for every writer, forever, including a DBA with a psql
+  session and including a restored backup being fixed up by hand.
+
+  Every counter column here is written by a projection trigger from an authoritative
+  relation the writing role cannot write, NEVER from the inserter (P-2, I02). The
+  triggers live in migrations 0100-0109 / 0120-0129 and belong to another worker; this
+  file creates the columns they own and the CHECKs that read them. A rendered
+  `-- @projects` block below names every one of them so the seam is visible in the
+  committed SQL rather than only in a plan.
+
+  ── LAW 2: DEFERRABLE IS UNIMPLEMENTED, SO THE LAST WRITE MUST TRIP ───────────────
+  Every intermediate state must be legal at a statement boundary. That is why the
+  completing transition writes `state` LAST (spec §5.3 step 7): the CHECKs on this table
+  fire on that final write, with the completion record already in place and the epoch
+  already pinned.
+
+  ── LAW 9: NO GENERATORS ──────────────────────────────────────────────────────────
+  `head_seq` and `gate_epoch` are derived by the caller inside the transaction and
+  defended by compare-and-swap — `UNIQUE (permit_id, prev_seq)` on the event chain, and
+  `UNIQUE (permit_id, gate_epoch)` here as the pin's foreign-key target. A generator that
+  allocates outside the transaction would make a gap ambiguous, and the whole evidentiary
+  value of this schema is that a gap MEANS tampering.
+
+  ── ONE COLUMN FAMILY, DELIBERATELY ───────────────────────────────────────────────
+  Column families are PERMITTED on this table and are NOT used, and the reason is not
+  changefeeds — this table is not a changefeed source (§4.1 law 11 confines that to
+  `<vertical>_ops.outbox`). The reason is anomaly A1. The gate's correctness argument is
+  the MATERIALISED conflict: an obligation write and a merge write touch the same row, so
+  the loser gets 40001 rather than a phantom nobody detects. CockroachDB stores each
+  column family under its own key, and two writes to two families of one row do not
+  collide. Splitting the counters into their own family would therefore un-weld the
+  conflict exactly where anomaly A12 needs it most — at READ COMMITTED, where the
+  isolation level is no longer doing the work. Conformance case CF-43 asserts 40001 with
+  `permit.open_blocking` as the exhibit; that assertion is only true while this table has
+  one family.
+
+  ── WHAT THIS TEMPLATE DELIBERATELY DOES NOT EMIT ─────────────────────────────────
+  ARCHITECTURE.md §5.5 writes `ref_name STRING NOT NULL REFERENCES mainline.ref (ref_name)`.
+  That foreign key is NOT emitted here, and the omission is forced by the seam ruling
+  MR-1: `permit` is SUBSTRATE (MR-2 names it) and `ref` is VERTICAL (MAINLINE migration
+  0026, an authored band). A substrate template that named a vertical relation would not
+  apply against the reference binding, where no such relation exists — the file would
+  fail at migration time with 42P01, which is outside the refusal taxonomy entirely and
+  is the worst possible place to discover a binding error. The column, its NOT NULL and
+  its stated-ness CHECK are all here; a vertical that owns a `ref` relation adds
+  `ALTER TABLE … ADD CONSTRAINT fk_permit_ref …` in its OWN authored band. The binding
+  schema has no key that could express "this vertical owns the repository spine"; adding
+  one is a MINOR change to spec/binding/vertical.schema.json and is the right fix.
+#}
+{% set permit_subjects = subjects | selectattr('kind', 'equalto', 'permit') | list %}
+{% if permit_subjects | length != 1 %}
+{# The binding decides which subject kinds exist; the kernel decides which migration
+   numbers they occupy. 0050 is the permit's number. A binding with no permit subject, or
+   with two, has no rendering here, and the refusal below names itself. #}
+{{ the_binding_must_declare_exactly_one_subject_of_kind_permit }}
+{% endif %}
+{% set s = permit_subjects[0] %}
+{#
+  Three names this template needs that the render context does not yet carry, stated
+  here rather than guessed at a call site:
+
+  * `offset_of` duplicates the binding's `[[subject.counters]].offset_column`. The
+    context exposes a counter's column, constraint and polarity but not its offset
+    column, so an `offset_allowed` counter whose offset is not listed here is a RENDER
+    REFUSAL (a KeyError the engine reports against this template) rather than a silently
+    weaker CHECK. When the context grows the field, `offset_of[c.column]` becomes
+    `c.offset_column` and not one byte of emitted SQL changes.
+  * `merge_evidence_constraint` is fixed by the conformance manifest (case CF-04), which
+    is the authority for every exhibit name.
+  * the two output filenames are §18 / MR-8 anchors and are cited by number elsewhere.
+#}
+{% set offset_of = {'unmet_floor_count': 'countersigned_count'} %}
+{% set merge_evidence_constraint = 'merge_evidence' %}
+{% set counter_columns = [] %}
+{% for c in s.counters %}
+{% set _ = counter_columns.append(c.column) %}
+{% if c.polarity == 'offset_allowed' %}
+{% set _ = counter_columns.append(offset_of[c.column]) %}
+{% endif %}
+{% endfor %}
+-- @file 0050_permit.sql
+{{ header(file='0050_permit.sql',
+          title='CREATE TABLE ' ~ binding.schema ~ '.' ~ s.table ~ ' — the protected branch, and the refusals that guard its merge',
+          rationale='The permit is a protected branch and this row is its head. Every cross-row obligation is projected onto a scalar column here by a trigger, and a plain-column CHECK over that scalar then refuses the completing transition for every writer, forever — which is the only form of the rule that survives a second writer nobody anticipated. Six independently named CHECKs rather than one counter because the constraint name is the courtroom exhibit (R-2), and UNIQUE (permit_id, gate_epoch) because the epoch pin needs a foreign-key target: without it a precursor arriving after the merge could be attached to an issued permit and SERIALIZABLE would call that history perfectly legal.',
+          mi=['MI02', 'MI03', 'MI04', 'MI05', 'MI06'], i=['I02', 'I03']) }}
+--
+-- ── THE PROJECTED CROSS-ROW FACTS ────────────────────────────────────────────────
+-- Each column named below is a MATERIALISED CONFLICT, not a cache. It is written by a
+-- projection trigger from a declared authority relation and never by the inserter; a
+-- value a client supplies for one of these columns does not survive the write (I02).
+-- Absence of the authority row REFUSES — it does not default, infer, or admit-and-flag.
+--
+{% for column in counter_columns %}
+-- @projects   {{ binding.schema }}.{{ s.table }}.{{ column }}
+{% endfor %}
+-- @projects   {{ binding.schema }}.{{ s.table }}.site_role
+-- @on_missing raise
+-- @maintained-by the projection band (functions 0100-0109, triggers 0120-0129)
+--
+-- These are rendered SQL comments and NOT template pragmas, and the difference is
+-- deliberate. The Authority Source Contract (rule A-1) requires an [[authority_source]]
+-- entry — relation, key, positional columns — behind every pragma'd column. A counter has
+-- no such shape: it is an AGGREGATE maintained incrementally from an obligation relation,
+-- which the binding declares under [[obligation_source]], not a keyed lookup of one row.
+-- Writing the pragma anyway would make `trappoint render` refuse this template for the
+-- wrong reason, and would assert in a machine-readable way that a counter is a keyed
+-- projection, which it is not. The comment says what is true; the pragma would not.
+--
+-- ── COLUMN NOTES ─────────────────────────────────────────────────────────────────
+-- site_role   denormalised RLS scope token, trigger-filled. §4.1 law 10: an RLS policy
+--             expression cannot contain a subquery, so the scope must already be a
+--             comparable scalar on the row. NAME rather than STRING because the policy
+--             compares it against CURRENT_USER.
+-- head_seq    the event chain's head. Derived in-transaction and defended by the CAS on
+--             the chain, never by a generator that commits outside the transaction.
+-- gate_epoch  increments iff the gate OPENS. The pin's foreign-key target is
+--             (permit_id, gate_epoch), so once a completion record exists this column is
+--             physically immutable and a new obligation therefore cannot be attached.
+-- under_hold  an operational stop that is NOT a gate condition. It is recorded so the
+--             console can show it; nothing in this file reads it, on purpose. A hold that
+--             silently blocked the merge would be a second, undocumented gate.
+-- horizon_at  the permit's own bound. `>=` rather than `>` because opened_at defaults to
+--             now() and a caller supplying now() for the horizon in the same statement
+--             gets the identical transaction timestamp — a strict comparison would refuse
+--             a correct write for a reason that has nothing to do with safety.
+--
+-- ── NO ON DELETE CASCADE, ANYWHERE ───────────────────────────────────────────────
+-- The parent link is RESTRICT in both directions. A cascade rewrites history, which is
+-- the precise offence this substrate exists to detect. `permit_parent_not_self` is the
+-- other half: the declared remedy for a post-completion fact is a FORK — suspend the
+-- issued permit and open a CHILD whose gate is cleared afresh — and a permit that is its
+-- own parent is a fork that forked nothing.
+
+CREATE TABLE {{ binding.schema }}.{{ s.table }} (
+  {{ '%-22s'|format(s.id_column) }} UUID NOT NULL DEFAULT gen_random_uuid(),
+  {{ '%-22s'|format('site_id') }} UUID NOT NULL,
+  {{ '%-22s'|format('site_role') }} NAME NOT NULL,
+  {{ '%-22s'|format('external_ref') }} STRING NOT NULL,
+  {{ '%-22s'|format('ref_name') }} STRING NOT NULL,
+  {{ '%-22s'|format('parent_' ~ s.id_column) }} UUID NULL,
+  {{ '%-22s'|format(s.state_column) }} {{ binding.schema }}.subject_state NOT NULL DEFAULT 'draft',
+  {{ '%-22s'|format('head_seq') }} INT8 NOT NULL DEFAULT 0,
+  {{ '%-22s'|format(s.epoch_column) }} INT8 NOT NULL DEFAULT 0,
+  {{ '%-22s'|format('merged_commit') }} BYTES NULL,
+  {{ '%-22s'|format('under_hold') }} BOOL NOT NULL DEFAULT false,
+  {{ '%-22s'|format('slice_digest') }} BYTES NULL,
+  {{ '%-22s'|format('opened_at') }} TIMESTAMPTZ NOT NULL DEFAULT now(),
+  {{ '%-22s'|format('horizon_at') }} TIMESTAMPTZ NOT NULL,
+
+  -- ▼▼ PROJECTED CROSS-ROW FACTS. Trigger-written, never supplied. ▼▼
+{% for column in counter_columns %}
+  {{ '%-22s'|format(column) }} INT8 NOT NULL DEFAULT 0,
+{% endfor %}
+  -- ▲▲
+
+  CONSTRAINT ctr_nonneg CHECK (
+{% for column in counter_columns %}
+    {{ column }} >= 0{{ ' AND' if not loop.last }}
+{% endfor %}
+  ),
+
+  -- ▼▼ THE PRODUCT. {{ (s.counters | length) + 1 }} independent refusals; each name is the exhibit. ▼▼
+{% for c in s.counters %}
+{% if c.polarity == 'offset_allowed' %}
+  CONSTRAINT {{ c.constraint }}
+      CHECK ({{ s.state_column }} <> '{{ s.completing_state }}'
+             OR {{ c.column }} = 0
+             OR {{ offset_of[c.column] }} > 0),
+{% else %}
+  CONSTRAINT {{ '%-30s'|format(c.constraint) }} CHECK ({{ s.state_column }} <> '{{ s.completing_state }}' OR {{ c.column }} = 0),
+{% endif %}
+{% endfor %}
+  CONSTRAINT {{ '%-30s'|format(merge_evidence_constraint) }} CHECK ({{ s.state_column }} <> '{{ s.completing_state }}' OR merged_commit IS NOT NULL),
+  -- ▲▲
+
+  CONSTRAINT permit_ledger_nonneg       CHECK (head_seq >= 0 AND {{ s.epoch_column }} >= 0),
+  CONSTRAINT permit_external_ref_stated CHECK (external_ref <> ''),
+  CONSTRAINT permit_ref_name_stated     CHECK (ref_name <> ''),
+  CONSTRAINT permit_site_role_stated    CHECK (site_role <> ''),
+  CONSTRAINT permit_horizon_bounded     CHECK (horizon_at >= opened_at),
+  CONSTRAINT permit_commit_sized        CHECK (merged_commit IS NULL OR length(merged_commit) = 32),
+  CONSTRAINT permit_slice_digest_sized  CHECK (slice_digest IS NULL OR length(slice_digest) = 32),
+  CONSTRAINT permit_parent_not_self
+    CHECK (parent_{{ s.id_column }} IS NULL OR parent_{{ s.id_column }} <> {{ s.id_column }}),
+  CONSTRAINT fk_parent_permit FOREIGN KEY (parent_{{ s.id_column }})
+    REFERENCES {{ binding.schema }}.{{ s.table }} ({{ s.id_column }})
+    ON UPDATE RESTRICT ON DELETE RESTRICT,
+  CONSTRAINT pk_permit PRIMARY KEY ({{ s.id_column }}),
+  -- The epoch pin's foreign-key target. Without this UNIQUE the pin cannot be declared,
+  -- and without the pin a precursor arriving after the merge is a perfectly serializable
+  -- history that quietly reopens an issued permit (anomaly A2).
+  CONSTRAINT permit_epoch_target        UNIQUE ({{ s.id_column }}, {{ s.epoch_column }}),
+  CONSTRAINT permit_external_ref_unique UNIQUE (site_id, external_ref)
+);
+-- @file 0050a_permit_scope_index.sql
+{{ header(file='0050a_permit_scope_index.sql',
+          title='CREATE INDEX permit_scope — the RLS scope token first, then state, then recency',
+          rationale='Leading on site_role rather than site_id is what makes the row-level security predicate an index seek instead of a filter over every permit in the cluster. Law 10 forbids a subquery in a policy expression, so the scope MUST already be a scalar on the row; this index is the half of that decision that makes it affordable. state second and opened_at DESC third serve the one query the console and the audit summary both run — the open gate for a scope, newest first.',
+          mi=['MI02'], i=['I02']) }}
+--
+-- Declared as its own migration rather than inline, because one statement per file is
+-- not negotiable: CockroachDB DDL is not transactional across statements, so an index
+-- build that fails beside a CREATE TABLE leaves a version nobody can diagnose.
+--
+-- NOT partial. A permit in every state is in scope for the audit views, and a partial
+-- index over the open states would silently stop serving the closed-permit history an
+-- investigation reads first.
+
+CREATE INDEX permit_scope
+  ON {{ binding.schema }}.{{ s.table }} (site_role, {{ s.state_column }}, opened_at DESC);

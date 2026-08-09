@@ -198,9 +198,10 @@ def test_r7_negative_the_same_interval_in_different_units_is_not_a_change() -> N
     """``168 hours`` is ``7 days`` exactly; the comparison is on magnitudes, not
     on spellings."""
     weekly, one_hundred_and_sixty_eight_hours = qty("7", "day"), qty("168", "hour")
-    assert r7_frequency(
-        _inp(cat(frequency=weekly), cat(frequency=one_hundred_and_sixty_eight_hours))
-    ) == ()
+    assert (
+        r7_frequency(_inp(cat(frequency=weekly), cat(frequency=one_hundred_and_sixty_eight_hours)))
+        == ()
+    )
 
 
 def test_r7_negative_no_frequency_on_either_side_is_silent() -> None:
@@ -208,7 +209,7 @@ def test_r7_negative_no_frequency_on_either_side_is_silent() -> None:
 
 
 def test_r7_an_event_anchored_frequency_against_a_duration_fails_closed() -> None:
-    """"before each use" is not a duration; the comparison is refused, not guessed."""
+    """ "before each use" is not a duration; the comparison is refused, not guessed."""
     from decimal import Decimal
 
     from mainline_domain.contracts import Quantity

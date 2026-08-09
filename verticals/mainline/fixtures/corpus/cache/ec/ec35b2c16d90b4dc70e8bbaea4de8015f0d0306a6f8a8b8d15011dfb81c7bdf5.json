@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ELECTRICAL-SAFETY",
+    "barrier_role": "preventive",
+    "control_class": "POSITIVE_ISOLATION_APPLICATION",
+    "control_delta": "restate",
+    "control_label": "application of positive isolation devices and personal locks",
+    "doc_code": "STD-ELE-009",
+    "doc_family": "STD",
+    "doc_title": "Electrical Safety",
+    "effective_on": "2016-11-21",
+    "printed_label": "4.1.2",
+    "setpoint": null,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "ec35b2c16d90b4dc70e8bbaea4de8015f0d0306a6f8a8b8d15011dfb81c7bdf5",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:TLG/STD-ELE-009/004#TLG/STD-ELE-009/4.6",
+  "prompt_kind": "clause",
+  "prompt_sha256": "17e2e67212a5ba5882523fc514fe8bc309b15d1e17a88448253043490aee02ca",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The application of positive isolation devices and personal locks shall be provided and maintained wherever this standard applies, and its condition shall be treated as a critical control. This clause applies to activities archived under ELECTRICAL-SAFETY at Tolgarra Processing and Power Station.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "0889b0a5578ae5cb89fb44d34ee7dbe54e5a48fd707326d726deba33e5416c12",
+  "source": null
+}

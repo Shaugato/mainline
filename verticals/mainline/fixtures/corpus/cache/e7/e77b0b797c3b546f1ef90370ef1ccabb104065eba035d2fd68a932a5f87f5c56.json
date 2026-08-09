@@ -1,0 +1,85 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "testing earth leakage and protection settings",
+    "activity_root": "ELECTRICAL-SAFETY",
+    "activity_series": "maintaining protective systems",
+    "assets": [
+      {
+        "asset_class": "GEN-CLASS-A",
+        "label": "gas turbine generators",
+        "service": "on-site generation",
+        "tag": "G-8102"
+      },
+      {
+        "asset_class": "INST-CLASS-A",
+        "label": "instrument loop",
+        "service": "governs G-8102",
+        "tag": "TT-8102"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "ARC_FLASH_PPE_AND_BOUNDARY",
+        "control_label": "arc flash boundary and protective equipment",
+        "failure_mode": "ineffective",
+        "hazard_energy": "electrical",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "CAPA-2017-005",
+    "hazard_energy": "thermal",
+    "hazard_media": [
+      "hot surface",
+      "steam",
+      "molten material",
+      "hot work",
+      "exothermic reaction"
+    ],
+    "hazard_release": "burn, ignition, scald",
+    "kind": "capa",
+    "occurred_on": "2017-05-10",
+    "severity_actual": 1,
+    "severity_potential": 2,
+    "site": "Tolgarra Processing and Power Station",
+    "summary_facts": [],
+    "task_phase": "during cleaning and preparation",
+    "title": "corrective action following ICAM investigation at G-8102",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "e77b0b797c3b546f1ef90370ef1ccabb104065eba035d2fd68a932a5f87f5c56",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:CAPA-2017-005",
+  "prompt_kind": "icam",
+  "prompt_sha256": "7ecad9557369b26005bfaef26cc74b1ed89cd56dd9eb3f503d0d6c229a6e68e1",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage. The potential outcome was rated 2 against the site's consequence scale, above the 1 actually realised.",
+    "defences": [
+      {
+        "control_class": "ARC_FLASH_PPE_AND_BOUNDARY",
+        "finding": "Control ARC_FLASH_PPE_AND_BOUNDARY: the arc flash boundary and protective equipment was in place but did not perform, and the ICAM investigation classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the arc flash boundary and protective equipment on G-8102 and TT-8102 and record the critical control verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in maintaining protective systems, specifically testing earth leakage and protection settings. G-8102 (gas turbine generators) is in service for on-site generation. The task proceeded during cleaning and preparation while the arc flash boundary and protective equipment was in place but did not perform. The thermal energy involved is held as hot surface, and the recorded presentation was burn, ignition, scald.",
+    "summary": "On 10 May 2017 a corrective action on G-8102 and TT-8102 at Tolgarra Processing and Power Station was reviewed against the critical control it was raised to restore."
+  },
+  "response_sha256": "3e3afe87fa025bad1e38b125a64465301b407fd3808f1e862b8caaa95734c340",
+  "source": null
+}

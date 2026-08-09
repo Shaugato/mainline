@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "barrier_role": "preventive",
+    "control_class": "HYDROCARBON_TRANSFER_CONTROL",
+    "control_delta": "introduce",
+    "control_label": "controlled transfer of hydrocarbon between vessels",
+    "doc_code": "MOC-2014-0087",
+    "doc_family": "MOC",
+    "doc_title": "Replacement of Jetty Emergency Shutdown Valve Actuators",
+    "effective_on": "2014-04-09",
+    "printed_label": "2.2",
+    "setpoint": null,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "energy_isolation": "lock out tag out",
+      "verification": "field verification"
+    }
+  },
+  "key": "62f483b2846886a605c75b1a2ffb72a6518925d4db5eec24e620bd0e4890adb2",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:CVY/MOC-2014-0087/001#CVY/MOC-2014-0087/2.2",
+  "prompt_kind": "clause",
+  "prompt_sha256": "576a64aba37f7f65447750caf8b1485f6b789f01ba0c5c6d5b0a828f9c676ebb",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The controlled transfer of hydrocarbon between vessels shall be provided and maintained for work covered by this change record. This clause applies to activities archived under CONTAINMENT-OF-HYDROCARBONS at Cape Verity Export Terminal.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "65f9195cf5cb73a3244ac60ebc0e8363a1f5a2dea8cf4ddec209b23bfedf5803",
+  "source": null
+}

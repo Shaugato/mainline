@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 4,
+    "doc_code": "PRO-HSE-005",
+    "doc_family": "PRO",
+    "doc_title": "Hot Work Permit Administration",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2022-01-23",
+    "required_citations": [],
+    "rev_no": 12,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "learning team review",
+      "management_of_change": "change assurance",
+      "near_miss": "high potential incident"
+    }
+  },
+  "key": "992710def946521c800adbf6ac0c1c9c4b9cf58f5f3674198f16fa91963ac1f8",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/PRO-HSE-005/012",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "d76e94b19e70f07dacad9b6334b0d00e886aa5cd3fca8b725d3a34f1e027d8c1",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [],
+    "reason": "Scheduled review at revision 12; 4 clauses restated."
+  },
+  "response_sha256": "cf592a0fb14ab92e80f3561cb305c4b1fc0eadbe072b45201f6e7fcd4bd11420",
+  "source": null
+}

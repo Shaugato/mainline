@@ -1,0 +1,64 @@
+{"concept":"alarm_management","effective_from":"2004-01-01","effective_to":"2009-12-31","era":"e1","era_index":1,"era_label":"early","replaces":null,"surface":"alarm setting"}
+{"concept":"alarm_management","effective_from":"2010-01-01","effective_to":"2015-12-31","era":"e2","era_index":2,"era_label":"mid","replaces":"alarm setting","surface":"alarm setpoint"}
+{"concept":"alarm_management","effective_from":"2016-01-01","effective_to":"2021-12-31","era":"e3","era_index":3,"era_label":"late","replaces":"alarm setpoint","surface":"alarm rationalisation"}
+{"concept":"alarm_management","effective_from":"2022-01-01","effective_to":"2026-12-31","era":"e4","era_index":4,"era_label":"current","replaces":"alarm rationalisation","surface":"alarm philosophy conformance"}
+{"concept":"contractor","effective_from":"2004-01-01","effective_to":"2009-12-31","era":"e1","era_index":1,"era_label":"early","replaces":null,"surface":"outside labour"}
+{"concept":"contractor","effective_from":"2010-01-01","effective_to":"2015-12-31","era":"e2","era_index":2,"era_label":"mid","replaces":"outside labour","surface":"contract partner"}
+{"concept":"contractor","effective_from":"2016-01-01","effective_to":"2021-12-31","era":"e3","era_index":3,"era_label":"late","replaces":"contract partner","surface":"contract partner"}
+{"concept":"contractor","effective_from":"2022-01-01","effective_to":"2026-12-31","era":"e4","era_index":4,"era_label":"current","replaces":"contract partner","surface":"engaged provider"}
+{"concept":"critical_control","effective_from":"2004-01-01","effective_to":"2009-12-31","era":"e1","era_index":1,"era_label":"early","replaces":null,"surface":"key safeguard"}
+{"concept":"critical_control","effective_from":"2010-01-01","effective_to":"2015-12-31","era":"e2","era_index":2,"era_label":"mid","replaces":"key safeguard","surface":"critical safeguard"}
+{"concept":"critical_control","effective_from":"2016-01-01","effective_to":"2021-12-31","era":"e3","era_index":3,"era_label":"late","replaces":"critical safeguard","surface":"critical control"}
+{"concept":"critical_control","effective_from":"2022-01-01","effective_to":"2026-12-31","era":"e4","era_index":4,"era_label":"current","replaces":"critical control","surface":"material unwanted event control"}
+{"concept":"dropped_object","effective_from":"2004-01-01","effective_to":"2009-12-31","era":"e1","era_index":1,"era_label":"early","replaces":null,"surface":"falling object"}
+{"concept":"dropped_object","effective_from":"2010-01-01","effective_to":"2015-12-31","era":"e2","era_index":2,"era_label":"mid","replaces":"falling object","surface":"dropped object"}
+{"concept":"dropped_object","effective_from":"2016-01-01","effective_to":"2021-12-31","era":"e3","era_index":3,"era_label":"late","replaces":"dropped object","surface":"dropped object prevention"}
+{"concept":"dropped_object","effective_from":"2022-01-01","effective_to":"2026-12-31","era":"e4","era_index":4,"era_label":"current","replaces":"dropped object prevention","surface":"dropped object exposure control"}
+{"concept":"energy_isolation","effective_from":"2004-01-01","effective_to":"2009-12-31","era":"e1","era_index":1,"era_label":"early","replaces":null,"surface":"danger tagging"}
+{"concept":"energy_isolation","effective_from":"2010-01-01","effective_to":"2015-12-31","era":"e2","era_index":2,"era_label":"mid","replaces":"danger tagging","surface":"lock out tag out"}
+{"concept":"energy_isolation","effective_from":"2016-01-01","effective_to":"2021-12-31","era":"e3","era_index":3,"era_label":"late","replaces":"lock out tag out","surface":"energy isolation"}
+{"concept":"energy_isolation","effective_from":"2022-01-01","effective_to":"2026-12-31","era":"e4","era_index":4,"era_label":"current","replaces":"energy isolation","surface":"positive isolation verification"}
+{"concept":"exclusion_zone","effective_from":"2004-01-01","effective_to":"2009-12-31","era":"e1","era_index":1,"era_label":"early","replaces":null,"surface":"barricading"}
+{"concept":"exclusion_zone","effective_from":"2010-01-01","effective_to":"2015-12-31","era":"e2","era_index":2,"era_label":"mid","replaces":"barricading","surface":"exclusion zone"}
+{"concept":"exclusion_zone","effective_from":"2016-01-01","effective_to":"2021-12-31","era":"e3","era_index":3,"era_label":"late","replaces":"exclusion zone","surface":"controlled access zone"}
+{"concept":"exclusion_zone","effective_from":"2022-01-01","effective_to":"2026-12-31","era":"e4","era_index":4,"era_label":"current","replaces":"controlled access zone","surface":"separation control"}
+{"concept":"fatigue","effective_from":"2004-01-01","effective_to":"2009-12-31","era":"e1","era_index":1,"era_label":"early","replaces":null,"surface":"tiredness"}
+{"concept":"fatigue","effective_from":"2010-01-01","effective_to":"2015-12-31","era":"e2","era_index":2,"era_label":"mid","replaces":"tiredness","surface":"fatigue"}
+{"concept":"fatigue","effective_from":"2016-01-01","effective_to":"2021-12-31","era":"e3","era_index":3,"era_label":"late","replaces":"fatigue","surface":"fatigue risk"}
+{"concept":"fatigue","effective_from":"2022-01-01","effective_to":"2026-12-31","era":"e4","era_index":4,"era_label":"current","replaces":"fatigue risk","surface":"fitness for work"}
+{"concept":"gas_testing","effective_from":"2004-01-01","effective_to":"2009-12-31","era":"e1","era_index":1,"era_label":"early","replaces":null,"surface":"sniff test"}
+{"concept":"gas_testing","effective_from":"2010-01-01","effective_to":"2015-12-31","era":"e2","era_index":2,"era_label":"mid","replaces":"sniff test","surface":"atmospheric test"}
+{"concept":"gas_testing","effective_from":"2016-01-01","effective_to":"2021-12-31","era":"e3","era_index":3,"era_label":"late","replaces":"atmospheric test","surface":"gas testing"}
+{"concept":"gas_testing","effective_from":"2022-01-01","effective_to":"2026-12-31","era":"e4","era_index":4,"era_label":"current","replaces":"gas testing","surface":"continuous atmospheric monitoring"}
+{"concept":"investigation","effective_from":"2004-01-01","effective_to":"2009-12-31","era":"e1","era_index":1,"era_label":"early","replaces":null,"surface":"accident investigation"}
+{"concept":"investigation","effective_from":"2010-01-01","effective_to":"2015-12-31","era":"e2","era_index":2,"era_label":"mid","replaces":"accident investigation","surface":"root cause analysis"}
+{"concept":"investigation","effective_from":"2016-01-01","effective_to":"2021-12-31","era":"e3","era_index":3,"era_label":"late","replaces":"root cause analysis","surface":"ICAM investigation"}
+{"concept":"investigation","effective_from":"2022-01-01","effective_to":"2026-12-31","era":"e4","era_index":4,"era_label":"current","replaces":"ICAM investigation","surface":"learning team review"}
+{"concept":"management_of_change","effective_from":"2004-01-01","effective_to":"2009-12-31","era":"e1","era_index":1,"era_label":"early","replaces":null,"surface":"engineering change note"}
+{"concept":"management_of_change","effective_from":"2010-01-01","effective_to":"2015-12-31","era":"e2","era_index":2,"era_label":"mid","replaces":"engineering change note","surface":"change request"}
+{"concept":"management_of_change","effective_from":"2016-01-01","effective_to":"2021-12-31","era":"e3","era_index":3,"era_label":"late","replaces":"change request","surface":"management of change"}
+{"concept":"management_of_change","effective_from":"2022-01-01","effective_to":"2026-12-31","era":"e4","era_index":4,"era_label":"current","replaces":"management of change","surface":"change assurance"}
+{"concept":"near_miss","effective_from":"2004-01-01","effective_to":"2009-12-31","era":"e1","era_index":1,"era_label":"early","replaces":null,"surface":"near hit"}
+{"concept":"near_miss","effective_from":"2010-01-01","effective_to":"2015-12-31","era":"e2","era_index":2,"era_label":"mid","replaces":"near hit","surface":"hazard report"}
+{"concept":"near_miss","effective_from":"2016-01-01","effective_to":"2021-12-31","era":"e3","era_index":3,"era_label":"late","replaces":"hazard report","surface":"potential incident"}
+{"concept":"near_miss","effective_from":"2022-01-01","effective_to":"2026-12-31","era":"e4","era_index":4,"era_label":"current","replaces":"potential incident","surface":"high potential incident"}
+{"concept":"permit","effective_from":"2004-01-01","effective_to":"2009-12-31","era":"e1","era_index":1,"era_label":"early","replaces":null,"surface":"work clearance"}
+{"concept":"permit","effective_from":"2010-01-01","effective_to":"2015-12-31","era":"e2","era_index":2,"era_label":"mid","replaces":"work clearance","surface":"work permit"}
+{"concept":"permit","effective_from":"2016-01-01","effective_to":"2021-12-31","era":"e3","era_index":3,"era_label":"late","replaces":"work permit","surface":"permit to work"}
+{"concept":"permit","effective_from":"2022-01-01","effective_to":"2026-12-31","era":"e4","era_index":4,"era_label":"current","replaces":"permit to work","surface":"permit and isolation certificate"}
+{"concept":"pressure_relief","effective_from":"2004-01-01","effective_to":"2009-12-31","era":"e1","era_index":1,"era_label":"early","replaces":null,"surface":"safety valve"}
+{"concept":"pressure_relief","effective_from":"2010-01-01","effective_to":"2015-12-31","era":"e2","era_index":2,"era_label":"mid","replaces":"safety valve","surface":"relief valve"}
+{"concept":"pressure_relief","effective_from":"2016-01-01","effective_to":"2021-12-31","era":"e3","era_index":3,"era_label":"late","replaces":"relief valve","surface":"pressure relief device"}
+{"concept":"pressure_relief","effective_from":"2022-01-01","effective_to":"2026-12-31","era":"e4","era_index":4,"era_label":"current","replaces":"pressure relief device","surface":"overpressure protection device"}
+{"concept":"seal_support","effective_from":"2004-01-01","effective_to":"2009-12-31","era":"e1","era_index":1,"era_label":"early","replaces":null,"surface":"quench and drain arrangement"}
+{"concept":"seal_support","effective_from":"2010-01-01","effective_to":"2015-12-31","era":"e2","era_index":2,"era_label":"mid","replaces":"quench and drain arrangement","surface":"seal flush plan"}
+{"concept":"seal_support","effective_from":"2016-01-01","effective_to":"2021-12-31","era":"e3","era_index":3,"era_label":"late","replaces":"seal flush plan","surface":"barrier fluid support system"}
+{"concept":"seal_support","effective_from":"2022-01-01","effective_to":"2026-12-31","era":"e4","era_index":4,"era_label":"current","replaces":"barrier fluid support system","surface":"pressurised dual seal support"}
+{"concept":"trapped_energy","effective_from":"2004-01-01","effective_to":"2009-12-31","era":"e1","era_index":1,"era_label":"early","replaces":null,"surface":"residual pressure"}
+{"concept":"trapped_energy","effective_from":"2010-01-01","effective_to":"2015-12-31","era":"e2","era_index":2,"era_label":"mid","replaces":"residual pressure","surface":"stored energy"}
+{"concept":"trapped_energy","effective_from":"2016-01-01","effective_to":"2021-12-31","era":"e3","era_index":3,"era_label":"late","replaces":"stored energy","surface":"trapped hazardous energy"}
+{"concept":"trapped_energy","effective_from":"2022-01-01","effective_to":"2026-12-31","era":"e4","era_index":4,"era_label":"current","replaces":"trapped hazardous energy","surface":"unrelieved potential energy"}
+{"concept":"verification","effective_from":"2004-01-01","effective_to":"2009-12-31","era":"e1","era_index":1,"era_label":"early","replaces":null,"surface":"spot check"}
+{"concept":"verification","effective_from":"2010-01-01","effective_to":"2015-12-31","era":"e2","era_index":2,"era_label":"mid","replaces":"spot check","surface":"field verification"}
+{"concept":"verification","effective_from":"2016-01-01","effective_to":"2021-12-31","era":"e3","era_index":3,"era_label":"late","replaces":"field verification","surface":"critical control verification"}
+{"concept":"verification","effective_from":"2022-01-01","effective_to":"2026-12-31","era":"e4","era_index":4,"era_label":"current","replaces":"critical control verification","surface":"assurance activity"}

@@ -1,0 +1,92 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "atmospheric testing and continuous monitoring",
+    "activity_root": "CONFINED-SPACE-ENTRY",
+    "activity_series": "authorising and controlling entry",
+    "assets": [
+      {
+        "asset_class": "PRD-CLASS-A",
+        "label": "tank relief and vent devices",
+        "service": "tank overpressure and vacuum protection",
+        "tag": "PSV-7104"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "CONTINUOUS_ATMOSPHERIC_MONITORING",
+        "control_label": "continuous atmospheric monitoring during occupancy",
+        "failure_mode": "degraded",
+        "hazard_energy": "chemical",
+        "icam_tier": "individual_or_team_action"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "STANDBY_ATTENDANCE_AND_RESCUE",
+        "control_label": "standby attendance and non-entry rescue capability",
+        "failure_mode": "ineffective",
+        "hazard_energy": "chemical",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "CAPA-2012-005",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "capa",
+    "occurred_on": "2012-09-12",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Cape Verity Export Terminal",
+    "summary_facts": [],
+    "task_phase": "during start-up after maintenance",
+    "title": "preventive action - alarm setpoint on PSV-7104",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "eafbb407621060838bf83e677115178863cdccf5f32bba993f77fc4f2ea40d9a",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:CAPA-2012-005",
+  "prompt_kind": "icam",
+  "prompt_sha256": "51c06f8721eca5c0db021136c4cb2f0500d44d356daec008151d336e5a7657e5",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "CONTINUOUS_ATMOSPHERIC_MONITORING",
+        "finding": "Control CONTINUOUS_ATMOSPHERIC_MONITORING: the continuous atmospheric monitoring during occupancy had degraded below its design intent, and the root cause analysis classified this as an individual or team action."
+      },
+      {
+        "control_class": "STANDBY_ATTENDANCE_AND_RESCUE",
+        "finding": "Control STANDBY_ATTENDANCE_AND_RESCUE: the standby attendance and non-entry rescue capability was in place but did not perform, and the root cause analysis classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the standby attendance and non-entry rescue capability on PSV-7104 and record the field verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in authorising and controlling entry, specifically atmospheric testing and continuous monitoring. PSV-7104 (tank relief and vent devices) is in service for tank overpressure and vacuum protection. The task proceeded during start-up after maintenance while the continuous atmospheric monitoring during occupancy had degraded below its design intent. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 12 September 2012 a corrective action on PSV-7104 at Cape Verity Export Terminal was reviewed against the critical safeguard it was raised to restore."
+  },
+  "response_sha256": "735922b2ceebf8f5bc6a50ffcabdc5ab13995d18acd1285c49c23d13c44816f3",
+  "source": null
+}

@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 5,
+    "doc_code": "STD-ISO-006",
+    "doc_family": "STD",
+    "doc_title": "Isolation of Stored Energy",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2011-09-04",
+    "required_citations": [],
+    "rev_no": 2,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "root cause analysis",
+      "management_of_change": "change request",
+      "near_miss": "hazard report"
+    }
+  },
+  "key": "791aa5f41256c343bfa40acfdf31ccdb989c67f6dc5a33634db05d936fc220ae",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/STD-ISO-006/002",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "c4e0e2c12b0d17fe2c8998e70418dec99ec3a232114b8d8206b7ef5b4ce11e36",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [],
+    "reason": "Scheduled review at revision 2; 5 clauses restated."
+  },
+  "response_sha256": "eec9c416efff1a1a7945591b24c94f1c2ba07059fc470b8ca7c73450a2b72dfc",
+  "source": null
+}

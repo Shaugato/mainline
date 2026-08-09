@@ -1,0 +1,102 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "installing and certifying anchor points",
+    "activity_root": "WORKING-AT-HEIGHT",
+    "activity_series": "providing fall protection",
+    "assets": [
+      {
+        "asset_class": "CONV-CLASS-A",
+        "label": "plant conveyors",
+        "service": "coarse ore and reclaim conveying",
+        "tag": "CV-3102"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "ANCHOR_POINT_CERTIFICATION",
+        "control_label": "certification and identification of anchor points",
+        "failure_mode": "absent",
+        "hazard_energy": "gravity",
+        "icam_tier": "organisational_factor"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "DROP_ZONE_EXCLUSION",
+        "control_label": "exclusion of people from beneath elevated work",
+        "failure_mode": "absent",
+        "hazard_energy": "gravity",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "FALL_ARREST_PROVISION",
+        "control_label": "selection, inspection and use of fall arrest equipment",
+        "failure_mode": "absent",
+        "hazard_energy": "gravity",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "INC-2007-006",
+    "hazard_energy": "gravity",
+    "hazard_media": [
+      "suspended load",
+      "stored potential of an elevated component",
+      "unsupported ground",
+      "person at height"
+    ],
+    "hazard_release": "fall, collapse, crush",
+    "kind": "incident",
+    "occurred_on": "2007-03-25",
+    "severity_actual": 1,
+    "severity_potential": 1,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during commissioning of replacement equipment",
+    "title": "gravity release during commissioning of replacement equipment on CV-3102",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "investigation": "accident investigation",
+      "near_miss": "near hit",
+      "verification": "spot check"
+    }
+  },
+  "key": "4cd6aa853609a78a5b39e572112ad95081309c8ad80c5747131e45888990b250",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2007-006",
+  "prompt_kind": "icam",
+  "prompt_sha256": "06ac92e91067ce6f1527d60f423185b102f5d891428f17b25f65f9af44308b6f",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage.",
+    "defences": [
+      {
+        "control_class": "ANCHOR_POINT_CERTIFICATION",
+        "finding": "Control ANCHOR_POINT_CERTIFICATION: the certification and identification of anchor points was not in place, and the accident investigation classified this as an organisational factor."
+      },
+      {
+        "control_class": "DROP_ZONE_EXCLUSION",
+        "finding": "Control DROP_ZONE_EXCLUSION: the exclusion of people from beneath elevated work was not in place, and the accident investigation classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "FALL_ARREST_PROVISION",
+        "finding": "Control FALL_ARREST_PROVISION: the selection, inspection and use of fall arrest equipment was not in place, and the accident investigation classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Restore the exclusion of people from beneath elevated work on CV-3102 and record the spot check before this task is next authorised."
+    ],
+    "sequence": "Work was under way in providing fall protection, specifically installing and certifying anchor points. CV-3102 (plant conveyors) is in service for coarse ore and reclaim conveying. The task proceeded during commissioning of replacement equipment while the certification and identification of anchor points was not in place. The gravity energy involved is held as suspended load, and the recorded presentation was fall, collapse, crush.",
+    "summary": "On 25 March 2007 an incident occurred on CV-3102 at Marrindal Concentrator and Hydrocarbon Transfer Facility during commissioning of replacement equipment, releasing gravity energy held as suspended load."
+  },
+  "response_sha256": "2d3c5f2e81d937f22c54b74a9f0803ad65592c29dc73286577edbe1ecaf8e07c",
+  "source": null
+}

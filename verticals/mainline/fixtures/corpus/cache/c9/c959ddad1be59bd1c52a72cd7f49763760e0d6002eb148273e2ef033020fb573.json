@@ -1,0 +1,91 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "clearing misfires and handling residue",
+    "activity_root": "EXPLOSIVES-AND-BLASTING",
+    "activity_series": "charging and firing",
+    "assets": [
+      {
+        "asset_class": "LARM-CLASS-A",
+        "label": "marine loading arms",
+        "service": "ship loading",
+        "tag": "LA-7202"
+      }
+    ],
+    "consequence": {
+      "days_lost": 90,
+      "injuries": 2,
+      "label": "serious injury requiring hospitalisation"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "BLAST_GUARDING_AND_CLEARANCE",
+        "control_label": "guarding, clearance and misfire handling for a blast",
+        "failure_mode": "ineffective",
+        "hazard_energy": "kinetic",
+        "icam_tier": "organisational_factor"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "EXPLOSIVES_RECONCILIATION",
+        "control_label": "receipt, magazining and reconciliation of explosives",
+        "failure_mode": "ineffective",
+        "hazard_energy": "chemical",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "NM-2006-0017",
+    "hazard_energy": "kinetic",
+    "hazard_media": [
+      "rotating equipment",
+      "conveyor",
+      "mobile equipment",
+      "pressurised jet",
+      "flying fragment"
+    ],
+    "hazard_release": "entanglement, impact, crush",
+    "kind": "near_miss",
+    "occurred_on": "2006-11-23",
+    "severity_actual": 4,
+    "severity_potential": 5,
+    "site": "Cape Verity Export Terminal",
+    "summary_facts": [],
+    "task_phase": "during a breakdown response",
+    "title": "unplanned release of kinetic energy at LA-7202",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "investigation": "accident investigation",
+      "near_miss": "near hit",
+      "verification": "spot check"
+    }
+  },
+  "key": "c959ddad1be59bd1c52a72cd7f49763760e0d6002eb148273e2ef033020fb573",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2006-0017",
+  "prompt_kind": "icam",
+  "prompt_sha256": "901fe0b8489dbd36e75feb04ddbcfb06e6dccf469a0e6787ae55c05e2e75c224",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was serious injury requiring hospitalisation, with 2 persons injured and 90 days lost. The potential outcome was rated 5 against the site's consequence scale, above the 4 actually realised.",
+    "defences": [
+      {
+        "control_class": "BLAST_GUARDING_AND_CLEARANCE",
+        "finding": "Control BLAST_GUARDING_AND_CLEARANCE: the guarding, clearance and misfire handling for a blast was in place but did not perform, and the accident investigation classified this as an organisational factor."
+      },
+      {
+        "control_class": "EXPLOSIVES_RECONCILIATION",
+        "finding": "Control EXPLOSIVES_RECONCILIATION: the receipt, magazining and reconciliation of explosives was in place but did not perform, and the accident investigation classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next spot check that the guarding, clearance and misfire handling for a blast on LA-7202 performs as designed."
+    ],
+    "sequence": "Work was under way in charging and firing, specifically clearing misfires and handling residue. LA-7202 (marine loading arms) is in service for ship loading. The task proceeded during a breakdown response while the guarding, clearance and misfire handling for a blast was in place but did not perform. The kinetic energy involved is held as rotating equipment, and the recorded presentation was entanglement, impact, crush.",
+    "summary": "On 23 November 2006 a near hit was recorded on LA-7202 at Cape Verity Export Terminal during a breakdown response; kinetic energy held as rotating equipment was not released."
+  },
+  "response_sha256": "0fac3eca8bcbdc5afc68c078ff3778adfb3791adf0204f3c4e1f7b89bf3fc2e8",
+  "source": null
+}

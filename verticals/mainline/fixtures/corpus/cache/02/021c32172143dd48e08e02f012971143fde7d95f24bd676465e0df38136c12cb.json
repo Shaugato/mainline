@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 9,
+    "doc_code": "STD-EMR-008",
+    "doc_family": "STD",
+    "doc_title": "Emergency Preparedness and Response",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2011-03-14",
+    "required_citations": [
+      {
+        "control_label": "emergency isolation and depressuring on loss of containment",
+        "event_ref": "INC-2010-006",
+        "event_title": "uncontrolled movement of P-7113 during an intrusive maintenance task",
+        "hazard_energy": "pressure",
+        "kind": "capa_action",
+        "quote_ref": "quote:CVY/STD-EMR-008/002#capa_action/INC-2010-006",
+        "severity_gate": 2
+      }
+    ],
+    "rev_no": 2,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "root cause analysis",
+      "management_of_change": "change request",
+      "near_miss": "hazard report"
+    }
+  },
+  "key": "021c32172143dd48e08e02f012971143fde7d95f24bd676465e0df38136c12cb",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:CVY/STD-EMR-008/002",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "8f877b3db4a07e8a4b48bd333dbce2bcfbf4ea39e30e040ce69f5169cf655c95",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The corrective action recorded against INC-2010-006 required the emergency isolation and depressuring on loss of containment to be restated in this standard.",
+        "quote_ref": "quote:CVY/STD-EMR-008/002#capa_action/INC-2010-006"
+      }
+    ],
+    "reason": "Scheduled review at revision 2; 9 clauses restated."
+  },
+  "response_sha256": "4e030c11b001257927dd863d1d48d76523877473c0c02e586b360da1795ab957",
+  "source": null
+}

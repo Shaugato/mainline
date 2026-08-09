@@ -1,0 +1,42 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 1,
+    "doc_codes": [
+      "PRO-HSE-005",
+      "STD-HTW-004"
+    ],
+    "intent": "restate",
+    "moc_ref": "MOC-2016-0099",
+    "opened_on": "2016-09-22",
+    "precursor_events": [
+      {
+        "event_ref": "INC-2015-012",
+        "severity_gate": null
+      }
+    ],
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "management_of_change": "management of change",
+      "verification": "critical control verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "9b6626bbed659d929ab57b04bac244f9ccf4ad1da3389c7315ea2f7282e6e8f0",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2016-0099",
+  "prompt_kind": "moc",
+  "prompt_sha256": "b6272813fa5d82c84f44ac287933d483fe75315e67966d306e45e2a36b127ce4",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2016-0099 was raised at Marrindal Concentrator and Hydrocarbon Transfer Facility on 22 September 2016 following 1 recorded event in the archive, including INC-2015-012. The management of change record covers 1 clause across 2 controlled documents. The intent is to restate an existing duty without altering what it requires. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical control set is preserved.",
+    "scope_note": "The documents in scope are PRO-HSE-005 and STD-HTW-004."
+  },
+  "response_sha256": "0baec363236d9b8441fceac6c54bf0578ee9e62feaa43f39b41fcfc386307a64",
+  "source": null
+}

@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "barrier_role": "preventive",
+    "control_class": "ENERGY_SOURCE_IDENTIFICATION",
+    "control_delta": "introduce",
+    "control_label": "identification of every energy source for the task",
+    "doc_code": "PTW-STD-002",
+    "doc_family": "PTW",
+    "doc_title": "Permit to Work Form Set",
+    "effective_on": "2004-03-08",
+    "printed_label": "2.2",
+    "setpoint": null,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "619cd2717c14889e9139f4afe84e3b101b36b2c575266938e428e4791453be2b",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/PTW-STD-002/001#MRD/PTW-STD-002/2.2",
+  "prompt_kind": "clause",
+  "prompt_sha256": "f051aac74355e275d7cfd7a559bb2be45ae25bff2e7e3883aac9c73a16985063",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The identification of every energy source for the task shall be provided and maintained for work covered by this permit-to-work form set. This clause applies to activities archived under ISOLATION-OF-STORED-ENERGY at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "f584173d1b6bf8223d4530e9ed79543bafb9d5f4b69ea54b331fcd6356b985a9",
+  "source": null
+}

@@ -263,7 +263,12 @@ def _weights(policy_arms: Mapping[str, Any]) -> Mapping[str, float]:
     return weights
 
 
-def run_probabilistic(
+def run_probabilistic(  # noqa: PLR0912, PLR0915
+    # PLR0912/PLR0915: this is the fusion pipeline written as one straight line — arms, sweep,
+    # lexical, RRF, MMR, rerank, feature assembly, calibration — and every branch in it is a
+    # degradation the caller must be able to absorb without losing the stage it happened at.
+    # Cutting it into stage functions would move the branch count into an orchestration layer
+    # that had to thread the same eleven locals through it, which is more surface, not less.
     *,
     arm_runner: ArmRunner,
     lexical_runner: LexicalRunner,
@@ -449,14 +454,10 @@ def run_probabilistic(
         event_id = UUID(doc_id)
         channels = tuple(sorted(channels_of.get(doc_id, set())))
         coarse_only = channels == ("C_sweep",)
-        verdict_code, confidence, justification = rerank_by_doc.get(
-            doc_id, (-1.0, 0.0, "")
-        )
+        verdict_code, confidence, justification = rerank_by_doc.get(doc_id, (-1.0, 0.0, ""))
         event_classes = event_control_classes.get(event_id, frozenset())
         union = permit_control_classes | event_classes
-        overlap = (
-            len(permit_control_classes & event_classes) / len(union) if union else 0.0
-        )
+        overlap = len(permit_control_classes & event_classes) / len(union) if union else 0.0
         vector = build_features(
             rrf_score=fused_candidate.rrf_score,
             best_arm_rank=fused_candidate.best_arm_rank,
@@ -481,9 +482,7 @@ def run_probabilistic(
                 features=vector,
                 raw=raw,
                 evidence_summary=justification,
-                also_matched=tuple(
-                    UUID(sibling) for sibling in selection.also_matched_for(doc_id)
-                ),
+                also_matched=tuple(UUID(sibling) for sibling in selection.also_matched_for(doc_id)),
                 coarse_only=coarse_only,
                 facet=facets.get(doc_id, "narrative"),
                 scope_level=levels.get(doc_id, 1),

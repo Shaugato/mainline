@@ -228,16 +228,36 @@ tests:
 
 unverified:
   - >-
-    NOTHING IN THIS FRAGMENT HAS BEEN RUN AGAINST A COCKROACHDB CLUSTER.  No cluster is reachable
-    from the build machine, `cockroach` is not on PATH and AWS credentials are not valid, so every
-    test under tests/integration/algorithms/candidates/ that needs one SKIPS -- with a message
-    naming what was missing.  What is proven today is the offline half: statement TEXT (each
-    statement is a pure function and its shape is asserted), the plan-assertion machinery (proven
-    to refuse in four separate ways against committed plan fixtures), the reference band index,
-    and the cost curve measured as a count.  The claims that a generated arm really plans as a
-    prefix-constrained `vector search`, that the SQL band probe returns what the reference
-    implementation returns, and that the application's trigram similarity equals the cluster's
-    `similarity()`, are UNPROVEN until those tests run green against a real v26.2.
+    SCOPE OF THE LIVE MEASUREMENT.  On 2026-08-09 all 31 tests under
+    tests/integration/algorithms/candidates/ ran green, nothing skipped, against CockroachDB CCL
+    v26.2.5 (cluster version 26.2, feature.vector_index.enabled = true), a single insecure node in
+    Docker on the build machine, and reproduced on a second, independently started v26.2.5 node so
+    that the result is not an artefact of one container.  Three claims previously listed here as
+    unproven are
+    now MEASURED on that version: a generated arm plans as a prefix-constrained `vector search` on
+    clause_embedding@ce_ann; the UNION ALL band probe returns exactly what the reference
+    InMemoryBandIndex returns; and `trigram.similarity` equals the cluster's `similarity()` on
+    every pair tested.  The same run also pinned the DATABASE-SIDE refusals the design rests on --
+    a pinned arm with a ranged or absent prefix predicate is refused with SQLSTATE 42809, the
+    unhinted form is accepted and plans as a full scan, and `word_similarity`,
+    `strict_word_similarity` and the `<->` trigram family are absent.  WHAT THIS DOES NOT COVER:
+    CockroachDB CLOUD, which is a different tier with different table statistics and is
+    unreachable from this machine.  The G1 finding that an UNHINTED arm on Cloud Basic at ~5,200
+    rows did not use the index (docs/leads/algorithms.md F1) is why every arm here pins @ce_ann,
+    and it is not superseded by a local measurement.  It also does not cover corpus scale: the
+    live run used hundreds of rows, not the tens of thousands a real site carries.  A CI run in
+    which this suite SKIPS inherits none of the above, and the skip message says so.
+  - >-
+    A REPRODUCTION TRAP, RECORDED BECAUSE IT COST TIME AND IS NOT THIS PACKAGE'S TO FIX.  The
+    `cockroachdb/cockroach:v26.2.5` image's default entrypoint (`cockroach.sh`) REFUSES
+    `--listen-addr=0.0.0.0` for `start-single-node`, exiting 1 with `error: hostname of listen_addr
+    must be "127.0.0.1" or "localhost"` before the server starts.  Both `compose.yaml` (service
+    `crdb`) and `.github/workflows/db.yml` (step "Start a single-node CockroachDB") pass exactly
+    that flag through the default entrypoint, so neither can bring a cluster up on the pinned
+    image; the live run above used `--entrypoint /cockroach/cockroach` to bypass the wrapper.
+    Those two files belong to other workers and have NOT been edited from here.  Until they are
+    fixed, any statement that "CI runs these tests against a cluster" is unsupported -- the job
+    fails at cluster start, and a suite that never ran is not a suite that passed.
   - >-
     The 16 x 8 band geometry and the 5-character shingle size were transcribed from the design,
     not calibrated.  The S-curve is measured -- observed band recall tracks the analytic

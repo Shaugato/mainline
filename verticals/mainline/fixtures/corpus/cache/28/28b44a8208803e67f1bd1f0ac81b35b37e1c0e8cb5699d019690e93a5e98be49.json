@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "PRESSURE-SYSTEM-INTEGRITY",
+    "barrier_role": "recovery",
+    "control_class": "PRESSURE_RELIEF_DEVICE_INTEGRITY",
+    "control_delta": "restate",
+    "control_label": "setting, testing and sealing of pressure relief devices",
+    "doc_code": "STD-PRV-005",
+    "doc_family": "STD",
+    "doc_title": "Pressure Relief and Overpressure Protection",
+    "effective_on": "2018-09-10",
+    "printed_label": "4.2.4",
+    "setpoint": {
+      "from": 60.0,
+      "key": "relief_device_test_interval",
+      "label": "pressure relief device test interval",
+      "strengthen_direction": "lower",
+      "to": 60.0,
+      "unit": "months"
+    },
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "28b44a8208803e67f1bd1f0ac81b35b37e1c0e8cb5699d019690e93a5e98be49",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:TLG/STD-PRV-005/005#TLG/STD-PRV-005/3.2.3(b)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "ff3a1b741b58fd19d84d6f2765d2c22650a0796152c01be98c2a1c8ef93fbfd6",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The setting, testing and sealing of pressure relief devices shall be provided and maintained wherever this standard applies, and its condition shall be treated as a critical control. The pressure relief device test interval shall be set at 60 months. This clause applies to activities archived under PRESSURE-SYSTEM-INTEGRITY at Tolgarra Processing and Power Station.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "24df580753f12bf8bce99854658e93d5cded328e5a5357bc716d66e2db67b484",
+  "source": null
+}

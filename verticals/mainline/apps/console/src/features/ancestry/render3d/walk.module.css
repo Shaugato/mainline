@@ -1,0 +1,185 @@
+/*
+ * SPDX-FileCopyrightText: 2026 MAINLINE contributors
+ * SPDX-License-Identifier: FSL-1.1-ALv2
+ *
+ * The MEMORY register's only stylesheet.
+ *
+ * It references FOUR colour tokens and no others — the same four `palette.ts` declares,
+ * because the DOM overlay and the scene must not be able to disagree about what colour
+ * a fatality is. `palette.test.ts` parses this file and fails on a fifth.
+ *
+ * There is no transition longer than the INSTRUMENT ceiling (220 ms, ui.md §1.1), no
+ * spring, no overshoot, and every transition here dies under `prefers-reduced-motion` —
+ * which never happens in practice, because a reader with reduced motion set never
+ * reaches this chunk at all: the capability probe hands them the ribbon before the
+ * import is attempted.
+ */
+
+.walk {
+  position: relative;
+  display: block;
+  width: 100%;
+  /* A fixed aspect box. A canvas whose height depends on the viewport makes a
+     screenshot a function of the window, and this canvas is an exhibit. */
+  aspect-ratio: 16 / 9;
+  min-height: 320px;
+  background: var(--tp-bg);
+  border: var(--tp-hairline) solid var(--tp-rule);
+  border-radius: var(--tp-radius);
+  overflow: hidden;
+  /* The scene has no text of its own; the overlay supplies all of it. */
+  font-family: var(--tp-sans);
+}
+
+.canvasHost {
+  position: absolute;
+  inset: 0;
+}
+
+/*
+ * The label layer. `pointer-events: none` so it never intercepts a hover the scene is
+ * entitled to — except on the still label, which is not interactive either, because
+ * nothing about the dead node responds to a pointer.
+ */
+.labels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  contain: strict;
+}
+
+.label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  /* Positioned by transform from the frame loop; `will-change` keeps the compositor
+     from re-rasterising text every frame on a low-end GPU. */
+  will-change: transform;
+  white-space: nowrap;
+  /* Selectable. A label that cannot be selected is an image of a word. */
+  user-select: text;
+}
+
+.labelYear {
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step--1);
+  letter-spacing: var(--tp-tracking-caps);
+  color: var(--tp-ink-faint);
+}
+
+.labelStill {
+  font-family: var(--tp-sans);
+  font-size: var(--tp-step-1);
+  font-weight: var(--tp-weight-strong);
+  color: var(--tp-sev-blood-fatal);
+  max-width: 40ch;
+  white-space: normal;
+}
+
+/* ── The three controls, and nothing else ──────────────────────────────────────── */
+
+.controls {
+  position: absolute;
+  left: var(--tp-space-3);
+  bottom: var(--tp-space-3);
+  display: flex;
+  gap: var(--tp-space-2);
+  align-items: center;
+}
+
+.control {
+  appearance: none;
+  font: inherit;
+  font-size: var(--tp-step--1);
+  letter-spacing: var(--tp-tracking-caps);
+  text-transform: uppercase;
+  color: var(--tp-ink-faint);
+  background: var(--tp-bg);
+  border: var(--tp-hairline) solid var(--tp-rule);
+  border-radius: var(--tp-radius);
+  padding: var(--tp-space-1) var(--tp-space-3);
+  cursor: pointer;
+  /* Linear, 200 ms, under the ceiling. The transition reports a state change that IS
+     the fact — which control is engaged — and nothing else in here moves. */
+  transition:
+    color var(--tp-duration-instrument) var(--tp-ease-linear),
+    border-color var(--tp-duration-instrument) var(--tp-ease-linear);
+}
+
+.control[aria-pressed='true'] {
+  color: var(--tp-bg);
+  background: var(--tp-ink-faint);
+  border-color: var(--tp-ink-faint);
+}
+
+.control:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* ── The legend and the honest states ──────────────────────────────────────────── */
+
+.legend {
+  position: absolute;
+  right: var(--tp-space-3);
+  bottom: var(--tp-space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-1);
+  align-items: flex-end;
+  font-size: var(--tp-step--1);
+  color: var(--tp-ink-faint);
+  text-align: right;
+  pointer-events: none;
+}
+
+.legendMono {
+  font-family: var(--tp-mono);
+}
+
+.notice {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-3);
+  align-items: flex-start;
+  justify-content: center;
+  padding: var(--tp-space-5);
+  background: var(--tp-bg);
+  color: var(--tp-ink-faint);
+  font-size: var(--tp-step-0);
+  line-height: var(--tp-leading-body);
+}
+
+.noticeTitle {
+  font-size: var(--tp-step-2);
+  font-weight: var(--tp-weight-strong);
+  color: var(--tp-ink-faint);
+}
+
+.noticeLink {
+  color: var(--tp-ink-faint);
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step-0);
+}
+
+/*
+ * The screen-reader spine.
+ *
+ * The MEMORY register is optional and the ribbon is the accessible form — but a canvas
+ * that announces nothing at all is a hole in the page rather than an optional extra. So
+ * the container carries a list of exactly what is on screen, in reading order, in the
+ * same two vocabularies the labels use.
+ */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}

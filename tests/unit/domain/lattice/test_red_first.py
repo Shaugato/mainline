@@ -102,7 +102,5 @@ def test_the_raw_dataclass_is_not_the_gate() -> None:
     does not own it.  Constructing the forbidden shape directly SUCCEEDS.  That is
     not a defect to be fixed here — it is the reason D8 is a database trigger.
     """
-    smuggled = DeltaVerdict(
-        delta=ControlDelta.WEAKEN, basis="lattice", witnesses=(), minimal=True
-    )
+    smuggled = DeltaVerdict(delta=ControlDelta.WEAKEN, basis="lattice", witnesses=(), minimal=True)
     assert smuggled.witnesses == ()

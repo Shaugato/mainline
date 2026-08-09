@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "barrier_role": "preventive",
+    "control_class": "SEAL_SUPPORT_SYSTEM_INTEGRITY",
+    "control_delta": "restate",
+    "control_label": "integrity of the mechanical seal support system",
+    "doc_code": "PRO-OPS-032",
+    "doc_family": "PRO",
+    "doc_title": "Hydrocarbon Transfer Operations",
+    "effective_on": "2009-03-25",
+    "printed_label": "5.6.1(c)",
+    "setpoint": {
+      "from": 7.1,
+      "key": "vibration_trip",
+      "label": "vibration trip level",
+      "strengthen_direction": "lower",
+      "to": 7.1,
+      "unit": "mm/s"
+    },
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "e8c13a0b436b48574e91171d1dfb46784a8a2c3645ab9efff1131d36c4e4ef7e",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/PRO-OPS-032/003#MRD/PRO-OPS-032/5.6.1(c)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "8832c27cb6d905b713ee58a87eb1bd28ed13534848088718c62b41902ed8e179",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The integrity of the mechanical seal support system shall be provided and maintained wherever this procedure applies, and its condition shall be treated as a key safeguard. The vibration trip level shall be set at 7.1 mm/s. This clause applies to activities archived under CONTAINMENT-OF-HYDROCARBONS at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "1ceb231557f6a0ad473fbca6b6a93288e03c7ccd11c0f29be75e430973e5a036",
+  "source": null
+}

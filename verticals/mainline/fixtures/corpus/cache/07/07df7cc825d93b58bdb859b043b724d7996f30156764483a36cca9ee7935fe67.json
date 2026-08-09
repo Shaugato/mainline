@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 5,
+    "doc_code": "PRO-MEC-041",
+    "doc_family": "PRO",
+    "doc_title": "Export Transfer Pump Maintenance",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2023-01-08",
+    "required_citations": [
+      {
+        "control_label": "integrity of the mechanical seal support system",
+        "event_ref": "INC-2022-001",
+        "event_title": "uncontrolled movement of ZV-7210 during a statutory inspection",
+        "hazard_energy": "pressure",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:CVY/PRO-MEC-041/009#revision_history_line/INC-2022-001",
+        "severity_gate": 1
+      }
+    ],
+    "rev_no": 9,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "learning team review",
+      "management_of_change": "change assurance",
+      "near_miss": "high potential incident"
+    }
+  },
+  "key": "07df7cc825d93b58bdb859b043b724d7996f30156764483a36cca9ee7935fe67",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:CVY/PRO-MEC-041/009",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "b198f444b9276e470d23bf9afa9ffeaad8a9f99ea672d7454f0d5b7d716ea9bc",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "Revision 9 was raised in response to INC-2022-001, and the integrity of the mechanical seal support system was amended as a result.",
+        "quote_ref": "quote:CVY/PRO-MEC-041/009#revision_history_line/INC-2022-001"
+      }
+    ],
+    "reason": "Scheduled review at revision 9; 5 clauses restated."
+  },
+  "response_sha256": "82221871776de6335e1a4b49890eeca10a42ca331d3ef83f324f22c26a6e438d",
+  "source": null
+}

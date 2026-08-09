@@ -1,0 +1,111 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "monitoring dust, fume and gas exposure",
+    "activity_root": "HAZARDOUS-SUBSTANCE-EXPOSURE",
+    "activity_series": "controlling airborne contaminants",
+    "assets": [
+      {
+        "asset_class": "HTP-CLASS-A",
+        "label": "hydrocarbon transfer pumps",
+        "service": "hydrocarbon transfer, single mechanical seal with pressurised barrier-fluid support",
+        "tag": "P-4103"
+      },
+      {
+        "asset_class": "INST-CLASS-A",
+        "label": "instrument loop",
+        "service": "governs P-4103",
+        "tag": "TT-4103"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "BUND_AND_DRAINAGE_CONTAINMENT",
+        "control_label": "secondary containment by bund and drainage",
+        "failure_mode": "ineffective",
+        "hazard_energy": "chemical",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "LOAD_RESTRAINT_AND_PLACARDING",
+        "control_label": "restraint and placarding of transported loads",
+        "failure_mode": "degraded",
+        "hazard_energy": "chemical",
+        "icam_tier": "individual_or_team_action"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "REAGENT_HANDLING_CONTROL",
+        "control_label": "controlled make-up, decanting and dosing of reagents",
+        "failure_mode": "absent",
+        "hazard_energy": "chemical",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "AF-2015-002",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "audit_finding",
+    "occurred_on": "2015-09-25",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during a planned shutdown",
+    "title": "audit finding - work permit records incomplete for P-4103",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "ce19baa4cd6e521ce6180eb12be7fd66edc002e262024103104076380df6a10d",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:AF-2015-002",
+  "prompt_kind": "icam",
+  "prompt_sha256": "76577bb257e655d0c3e79057e6b96140021c644e9640aceb78d87f930ad9ed18",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "BUND_AND_DRAINAGE_CONTAINMENT",
+        "finding": "Control BUND_AND_DRAINAGE_CONTAINMENT: the secondary containment by bund and drainage was in place but did not perform, and the root cause analysis classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "LOAD_RESTRAINT_AND_PLACARDING",
+        "finding": "Control LOAD_RESTRAINT_AND_PLACARDING: the restraint and placarding of transported loads had degraded below its design intent, and the root cause analysis classified this as an individual or team action."
+      },
+      {
+        "control_class": "REAGENT_HANDLING_CONTROL",
+        "finding": "Control REAGENT_HANDLING_CONTROL: the controlled make-up, decanting and dosing of reagents was not in place, and the root cause analysis classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the secondary containment by bund and drainage on P-4103 and TT-4103 and record the field verification before this task is next authorised.",
+      "Restore the controlled make-up, decanting and dosing of reagents on P-4103 and TT-4103 and record the field verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in controlling airborne contaminants, specifically monitoring dust, fume and gas exposure. P-4103 (hydrocarbon transfer pumps) is in service for hydrocarbon transfer, single mechanical seal with pressurised barrier-fluid support. The task proceeded during a planned shutdown while the secondary containment by bund and drainage was in place but did not perform. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 25 September 2015 a planned field verification of P-4103 and TT-4103 at Marrindal Concentrator and Hydrocarbon Transfer Facility found the secondary containment by bund and drainage not effective."
+  },
+  "response_sha256": "e5d7d8049fcf45bee1d73ba7a2ea5add8ffd4983d137196fcad50fdea12e339f",
+  "source": null
+}

@@ -1,0 +1,240 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+#
+# HISTORICAL FIXTURE REVISIONS — the ancestors every mutation is applied to.
+#
+# WHAT THESE ARE
+# --------------
+# Nine clause revisions in the shape a real procedure library carries them:
+# a numbering prefix, page furniture, a stated control, an equipment tag or a
+# citation, and a verification step.  They are AUTHORED, not extracted from any
+# real site's documents, and nothing here is a transcript of a real incident,
+# permit or standard.  The document families are the breakdown axis of the
+# published metric: a kill rate that is high on permits and low on ventilation
+# standards is two facts, and an aggregate reports neither.
+#
+# WHY THE PARAMETERS MATTER
+# -------------------------
+# `parameter` is the DIRECTRIX key the CAT extractor resolves this clause's
+# setpoint to, RECORDED HERE AS AN EXPECTATION rather than as an input: the
+# harness re-extracts it and `tests/e2e/mutation/test_fixtures.py` refuses a
+# fixture whose recorded parameter is not what the extractor produces.  A
+# fixture that quietly stopped resolving would silently move every setpoint
+# mutant into the "inapplicable" bucket and raise the published kill rate by
+# removing its hardest trials.
+#
+# `directrix_ratified = false` is not a defect in the fixture.  It is a MEASURED
+# coverage gap between two committed tables — `data/lexicon/parameter.toml`
+# resolves the phrase to one key and `data/registry/safe-direction-seed.toml`
+# ratifies a differently-spelled one — and it is exactly the risk R-A4 that
+# decision D6 makes fail closed.  The setpoint-nudge classes decline those
+# fixtures (OperatorInapplicable) rather than counting a kill that DIRECTRIX
+# would have produced by abstaining, because an abstention-driven kill measures
+# the registry's coverage and not the lattice's arithmetic.
+#
+# `furniture_lines` are the page furniture the canonicaliser is expected to
+# strip.  They are stored separately from `raw_text` so that the SURVIVE
+# operators that migrate a template or relocate an appendix have something real
+# to change.
+
+[meta]
+version = 1
+families = [
+  "pressure-systems-standard",
+  "hot-work-permit",
+  "gas-testing-procedure",
+  "isolation-procedure",
+]
+
+# ── pressure systems ─────────────────────────────────────────────────────────
+
+[[fixture]]
+fixture_id = "F01"
+family = "pressure-systems-standard"
+title = "V-204 maximum operating pressure"
+numbering_prefix = "7.3.2"
+furniture_lines = ["Doc No: PSS-0117", "Page 4 of 31"]
+raw_text = "The maximum operating pressure of vessel V-204 must not exceed 400 kPa, and the reading shall be independently verified before all hot work is authorised."
+parameter = "max_operating_pressure"
+directrix_ratified = true
+setpoint_token = "400 kPa"
+setpoint_value = "400"
+setpoint_unit = "kPa"
+
+[[fixture]]
+fixture_id = "F02"
+family = "pressure-systems-standard"
+title = "V-204 relief valve set pressure"
+numbering_prefix = "5.5"
+furniture_lines = ["Doc No: PSS-0117", "Rev. 3 - 14 Mar 2019"]
+raw_text = "The relief valve set pressure on vessel V-204 shall not exceed 1200 kPa and the setting must be confirmed by a functional test."
+parameter = "relief_valve_set_pressure"
+directrix_ratified = true
+setpoint_token = "1200 kPa"
+setpoint_value = "1200"
+setpoint_unit = "kPa"
+
+[[fixture]]
+fixture_id = "F03"
+family = "pressure-systems-standard"
+title = "V-204 pressure limit, as a table row"
+numbering_prefix = ""
+furniture_lines = ["Doc No: PSS-0117", "Page 9 of 31"]
+# A pipe-delimited row: `cat/extract.py` classifies this `opaque`, which is the
+# product state R-A3 names.  It is here so that the SURVIVE catalogue's
+# table-to-prose operator has a real table row to reformat rather than a
+# paragraph pretending to be one.
+raw_text = "| V-204 | Maximum operating pressure | 400 kPa | independently verified |"
+parameter = ""
+directrix_ratified = false
+setpoint_token = "400 kPa"
+setpoint_value = "400"
+setpoint_unit = "kPa"
+
+# ── hot work permit ──────────────────────────────────────────────────────────
+
+[[fixture]]
+fixture_id = "F04"
+family = "hot-work-permit"
+title = "LEL ceiling before hot work"
+numbering_prefix = "9.2"
+furniture_lines = ["Doc No: HWP-0043", "Uncontrolled when printed"]
+raw_text = "The lower explosive limit reading must not exceed 5 % before hot work commences at all welding locations, and a second signature is required."
+parameter = "lel_test_threshold"
+directrix_ratified = true
+setpoint_token = "5 %"
+setpoint_value = "5"
+setpoint_unit = "%"
+
+[[fixture]]
+fixture_id = "F05"
+family = "hot-work-permit"
+title = "Permit validity period"
+numbering_prefix = "8.1"
+furniture_lines = ["Doc No: HWP-0043", "Page 2 of 6"]
+raw_text = "The permit validity period must not exceed 12 hours for all confined space entries, and the permit must be countersigned."
+parameter = "permit_validity_period"
+directrix_ratified = true
+setpoint_token = "12 hours"
+setpoint_value = "12"
+setpoint_unit = "hours"
+
+# ── gas testing ──────────────────────────────────────────────────────────────
+
+[[fixture]]
+fixture_id = "F06"
+family = "gas-testing-procedure"
+title = "Gas test interval in a confined space"
+numbering_prefix = "6.2"
+furniture_lines = ["Doc No: GTP-0009", "Page 1 of 4"]
+raw_text = "The gas test interval in every confined space must not exceed 30 minutes, and the results shall be recorded on the permit."
+parameter = "gas_test_interval"
+directrix_ratified = true
+setpoint_token = "30 minutes"
+setpoint_value = "30"
+setpoint_unit = "minutes"
+
+[[fixture]]
+fixture_id = "F07"
+family = "gas-testing-procedure"
+title = "Minimum oxygen concentration for entry"
+numbering_prefix = "12.4"
+furniture_lines = ["Doc No: GTP-0009", "Page 3 of 4"]
+# MEASURED COVERAGE GAP, KEPT ON PURPOSE. `parameter.toml` resolves this phrase
+# to `oxygen_concentration`; `safe-direction-seed.toml` ratifies
+# `min_oxygen_concentration`. DIRECTRIX therefore ABSTAINS on this clause and
+# decision D6 turns the abstention into `weaken`. That is the fail-closed
+# behaviour working exactly as designed, and it is also why the setpoint-nudge
+# classes skip this fixture: a kill produced by an abstention measures registry
+# coverage, not the lattice.
+raw_text = "The minimum oxygen concentration in the working area must be at least 19.5 % for all entries, verified by an independent check."
+parameter = "oxygen_concentration"
+directrix_ratified = false
+setpoint_token = "19.5 %"
+setpoint_value = "19.5"
+setpoint_unit = "%"
+
+# ── isolation ────────────────────────────────────────────────────────────────
+
+[[fixture]]
+fixture_id = "F08"
+family = "isolation-procedure"
+title = "CV-330 isolation points, locked and signed"
+numbering_prefix = "2.6"
+furniture_lines = ["Doc No: ISO-0221", "Page 7 of 18"]
+raw_text = "All isolation points on conveyor CV-330 must be locked in accordance with AS/NZS 4836 and a second signature obtained before the guard is removed."
+parameter = ""
+directrix_ratified = false
+setpoint_token = ""
+setpoint_value = ""
+setpoint_unit = ""
+
+[[fixture]]
+fixture_id = "F09"
+family = "isolation-procedure"
+title = "CV-330 proved dead before maintenance"
+numbering_prefix = "5.1"
+furniture_lines = ["Doc No: ISO-0221", "Rev. 2 - 02 Feb 2021"]
+raw_text = "Every energy isolation on conveyor CV-330 must be proved dead in accordance with AS/NZS 3000 before all maintenance, and the test shall be independently verified."
+parameter = ""
+directrix_ratified = false
+setpoint_token = ""
+setpoint_value = ""
+setpoint_unit = ""
+
+# ── the three fixtures the SALAMI classes need ───────────────────────────────
+#
+# The salami construction walks the comparator through the two cells rule R3 is
+# DELIBERATELY SILENT on (`<=` <-> `=`), moving the magnitude on the step where
+# the comparator FAMILY changes — because R2 stays silent when the family moves,
+# on the grounds that comparing a bound against a tolerance band is arithmetic on
+# two different assertions. Every adjacent step is therefore `restate` and the
+# composition against the ORIGIN is `weaken`.
+#
+# It only works where the deontic stays put, which means the clause must state
+# its ceiling with a NON-NEGATING comparator surface: `must be no more than X`
+# and not `must not exceed X`. `not exceed` is in `slots.action.negating`, so
+# rewriting it to `be set at` would flip MUST_NOT -> MUST and rule R1 would fire
+# a polarity inversion on step one — the salami would be detected immediately and
+# would measure nothing. These fixtures are authored in the phrasing that makes
+# the attack expressible, which is the point: the harness must be able to build
+# the mutation the design claims to catch.
+
+[[fixture]]
+fixture_id = "F10"
+family = "pressure-systems-standard"
+title = "V-311 operating pressure ceiling, stated without a negation"
+numbering_prefix = "4.7"
+furniture_lines = ["Doc No: PSS-0117", "Page 12 of 31"]
+raw_text = "The maximum operating pressure of vessel V-311 must be no more than 250 kPa for all crews, and the reading shall be independently verified."
+parameter = "max_operating_pressure"
+directrix_ratified = true
+setpoint_token = "250 kPa"
+setpoint_value = "250"
+setpoint_unit = "kPa"
+
+[[fixture]]
+fixture_id = "F11"
+family = "gas-testing-procedure"
+title = "Atmosphere tested at a stated interval"
+numbering_prefix = "6.9"
+furniture_lines = ["Doc No: GTP-0009", "Page 2 of 4"]
+raw_text = "The atmosphere in every confined space must be tested by the authorised gas tester at intervals of 15 minutes, and the results shall be recorded on the permit."
+parameter = ""
+directrix_ratified = false
+setpoint_token = "15 minutes"
+setpoint_value = "15"
+setpoint_unit = "minutes"
+
+[[fixture]]
+fixture_id = "F12"
+family = "hot-work-permit"
+title = "LEL ceiling, stated without a negation"
+numbering_prefix = "9.7"
+furniture_lines = ["Doc No: HWP-0043", "Page 4 of 6"]
+raw_text = "The lower explosive limit reading must be no more than 5 % at all welding locations, and a second signature is required."
+parameter = "lel_test_threshold"
+directrix_ratified = true
+setpoint_token = "5 %"
+setpoint_value = "5"
+setpoint_unit = "%"

@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 5,
+    "doc_code": "PRO-OPS-032",
+    "doc_family": "PRO",
+    "doc_title": "Hydrocarbon Transfer Operations",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2017-04-03",
+    "required_citations": [
+      {
+        "control_label": "integrity of the mechanical seal support system",
+        "event_ref": "OEM-2016-002",
+        "event_title": "OEM advisory on barrier fluid degradation in the seal support system",
+        "hazard_energy": "chemical",
+        "kind": "capa_action",
+        "quote_ref": "quote:MRD/PRO-OPS-032/007#capa_action/OEM-2016-002",
+        "severity_gate": 3
+      }
+    ],
+    "rev_no": 7,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "ICAM investigation",
+      "management_of_change": "management of change",
+      "near_miss": "potential incident"
+    }
+  },
+  "key": "d9fcfa8fc0e3caef41c885bc9e2ad5bafe4038f69829ceb9bd955b66a21ffd56",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/PRO-OPS-032/007",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "f8b1d3ed2e8186d117043b90f8578dbf7815ef0ed58066e5d5737a2375f021c6",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The corrective action recorded against OEM-2016-002 required the integrity of the mechanical seal support system to be restated in this procedure.",
+        "quote_ref": "quote:MRD/PRO-OPS-032/007#capa_action/OEM-2016-002"
+      }
+    ],
+    "reason": "Scheduled review at revision 7; 5 clauses restated."
+  },
+  "response_sha256": "7407744675ea918112d29feadfc485ff4711e207623cf0f551d68d30215a8a5a",
+  "source": null
+}

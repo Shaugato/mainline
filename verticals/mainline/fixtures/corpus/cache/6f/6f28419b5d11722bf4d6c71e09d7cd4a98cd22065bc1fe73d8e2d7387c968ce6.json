@@ -1,0 +1,97 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "proof testing and periodic inspection of hoists",
+    "activity_root": "LIFTING-AND-SUSPENDED-LOADS",
+    "activity_series": "maintaining lifting appliances",
+    "assets": [
+      {
+        "asset_class": "LIFT-CLASS-W",
+        "label": "workshop hoists and press",
+        "service": "heavy vehicle component removal and pressing",
+        "tag": "HO-9402"
+      },
+      {
+        "asset_class": "MOTOR-CLASS-A",
+        "label": "drive motor",
+        "service": "drives HO-9402",
+        "tag": "M-9402"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "LIFTING_GEAR_INSPECTION",
+        "control_label": "inspection and periodic proof testing of lifting gear",
+        "failure_mode": "absent",
+        "hazard_energy": "gravity",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "LOAD_SUPPORT_FOR_MAINTENANCE",
+        "control_label": "mechanical support of a load during maintenance access",
+        "failure_mode": "ineffective",
+        "hazard_energy": "gravity",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "AF-2012-006",
+    "hazard_energy": "kinetic",
+    "hazard_media": [
+      "rotating equipment",
+      "conveyor",
+      "mobile equipment",
+      "pressurised jet",
+      "flying fragment"
+    ],
+    "hazard_release": "entanglement, impact, crush",
+    "kind": "audit_finding",
+    "occurred_on": "2012-12-02",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during an intrusive maintenance task",
+    "title": "audit finding - change request not applied to HO-9402",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "6f28419b5d11722bf4d6c71e09d7cd4a98cd22065bc1fe73d8e2d7387c968ce6",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:AF-2012-006",
+  "prompt_kind": "icam",
+  "prompt_sha256": "168cf94a80f7be923848d68f610868350e29efac6691426a3c2e0f74572ff941",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "LIFTING_GEAR_INSPECTION",
+        "finding": "Control LIFTING_GEAR_INSPECTION: the inspection and periodic proof testing of lifting gear was not in place, and the root cause analysis classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "LOAD_SUPPORT_FOR_MAINTENANCE",
+        "finding": "Control LOAD_SUPPORT_FOR_MAINTENANCE: the mechanical support of a load during maintenance access was in place but did not perform, and the root cause analysis classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the mechanical support of a load during maintenance access on HO-9402 and M-9402 and record the field verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in maintaining lifting appliances, specifically proof testing and periodic inspection of hoists. HO-9402 (workshop hoists and press) is in service for heavy vehicle component removal and pressing. The task proceeded during an intrusive maintenance task while the inspection and periodic proof testing of lifting gear was not in place. The kinetic energy involved is held as rotating equipment, and the recorded presentation was entanglement, impact, crush.",
+    "summary": "On 2 December 2012 a planned field verification of HO-9402 and M-9402 at Yandarra Downs Open Cut and Heavy Workshop found the inspection and periodic proof testing of lifting gear not effective."
+  },
+  "response_sha256": "acc695957451a1c54fdea679bba1b8fc612146e48f2f3bf728089b9771c898e2",
+  "source": null
+}

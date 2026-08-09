@@ -1,0 +1,40 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 0,
+    "doc_codes": [
+      "ALERT-2016-007",
+      "MOC-2014-0087",
+      "PRO-MEC-041",
+      "PRO-OPS-017",
+      "PTW-STD-003"
+    ],
+    "intent": "replace",
+    "moc_ref": "MOC-2004-0056",
+    "opened_on": "2004-05-20",
+    "precursor_events": [],
+    "site": "Cape Verity Export Terminal",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "management_of_change": "engineering change note",
+      "verification": "spot check"
+    },
+    "weakening_steps": 0
+  },
+  "key": "d837f388122baf49c1ebaa737b5b4771c26742b49ca7916e25d201f0d6c5ed60",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2004-0056",
+  "prompt_kind": "moc",
+  "prompt_sha256": "740c3a629771a1836e6efccd0da43fd49ecf4388024736337d39e5a4b725dcf8",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2004-0056 was raised at Cape Verity Export Terminal on 20 May 2004 as a scheduled change under engineering change note; no event precedes it in the record. The engineering change note record carries no clause change; it records the assessment only. The intent is to replace an existing requirement with one written to the current house style. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the key safeguard set is preserved.",
+    "scope_note": "The documents in scope are ALERT-2016-007, MOC-2014-0087, PRO-MEC-041, PRO-OPS-017 and PTW-STD-003."
+  },
+  "response_sha256": "2bd0284cf1da7c4511d6b6e842afbdc96418aba560831abe37374873a94966ed",
+  "source": null
+}

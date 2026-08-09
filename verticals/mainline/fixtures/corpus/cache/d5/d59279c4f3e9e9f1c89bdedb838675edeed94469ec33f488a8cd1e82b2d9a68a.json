@@ -1,0 +1,85 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "working near an unsupported edge",
+    "activity_root": "GROUND-AND-STRATA-CONTROL",
+    "activity_series": "designing and controlling excavations",
+    "assets": [
+      {
+        "asset_class": "SLP-CLASS-B",
+        "label": "dewatering pumps",
+        "service": "pit dewatering",
+        "tag": "P-9504"
+      },
+      {
+        "asset_class": "MOTOR-CLASS-A",
+        "label": "drive motor",
+        "service": "drives P-9504",
+        "tag": "M-9504"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "GROUND_CONDITION_INSPECTION",
+        "control_label": "inspection and monitoring of highwalls and batters",
+        "failure_mode": "degraded",
+        "hazard_energy": "kinetic",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "AF-2022-003",
+    "hazard_energy": "kinetic",
+    "hazard_media": [
+      "rotating equipment",
+      "conveyor",
+      "mobile equipment",
+      "pressurised jet",
+      "flying fragment"
+    ],
+    "hazard_release": "entanglement, impact, crush",
+    "kind": "audit_finding",
+    "occurred_on": "2022-09-28",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during routine operation",
+    "title": "audit finding - change assurance not applied to P-9504",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "d59279c4f3e9e9f1c89bdedb838675edeed94469ec33f488a8cd1e82b2d9a68a",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:AF-2022-003",
+  "prompt_kind": "icam",
+  "prompt_sha256": "6361be616e56e43fe47393159296d825fdd2a1815231fcda5018b9377d3463e6",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "GROUND_CONDITION_INSPECTION",
+        "finding": "Control GROUND_CONDITION_INSPECTION: the inspection and monitoring of highwalls and batters had degraded below its design intent, and the learning team review classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next assurance activity that the inspection and monitoring of highwalls and batters on P-9504 and M-9504 performs as designed."
+    ],
+    "sequence": "Work was under way in designing and controlling excavations, specifically working near an unsupported edge. P-9504 (dewatering pumps) is in service for pit dewatering. The task proceeded during routine operation while the inspection and monitoring of highwalls and batters had degraded below its design intent. The kinetic energy involved is held as rotating equipment, and the recorded presentation was entanglement, impact, crush.",
+    "summary": "On 28 September 2022 a planned assurance activity of P-9504 and M-9504 at Yandarra Downs Open Cut and Heavy Workshop found the inspection and monitoring of highwalls and batters not effective."
+  },
+  "response_sha256": "24cf37e264f4b0b8ccfde14a411df1e14eca51c7a949443858a33e2c7a6f2d08",
+  "source": null
+}

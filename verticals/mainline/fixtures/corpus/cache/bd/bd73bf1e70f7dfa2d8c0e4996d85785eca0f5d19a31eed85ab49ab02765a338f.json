@@ -1,0 +1,90 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 9,
+    "doc_code": "STD-CHM-011",
+    "doc_family": "STD",
+    "doc_title": "Hazardous Substances",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2023-10-04",
+    "required_citations": [
+      {
+        "control_label": "secondary containment by bund and drainage",
+        "event_ref": "NM-2023-0011",
+        "event_title": "high potential incident during a breakdown response on P-8303",
+        "hazard_energy": "chemical",
+        "kind": "capa_action",
+        "quote_ref": "quote:TLG/STD-CHM-011/005#capa_action/NM-2023-0011",
+        "severity_gate": 2
+      },
+      {
+        "control_label": "restraint and placarding of transported loads",
+        "event_ref": "NM-2023-0011",
+        "event_title": "high potential incident during a breakdown response on P-8303",
+        "hazard_energy": "chemical",
+        "kind": "investigation_recommendation",
+        "quote_ref": "quote:TLG/STD-CHM-011/005#investigation_recommendation/NM-2023-0011",
+        "severity_gate": 2
+      },
+      {
+        "control_label": "monitoring of airborne contaminant exposure",
+        "event_ref": "CAPA-2022-007",
+        "event_title": "preventive action - alarm philosophy conformance on TK-8310",
+        "hazard_energy": "chemical",
+        "kind": "moc_reference",
+        "quote_ref": "quote:TLG/STD-CHM-011/005#moc_reference/CAPA-2022-007",
+        "severity_gate": 1
+      },
+      {
+        "control_label": "monitoring of airborne contaminant exposure",
+        "event_ref": "CAPA-2022-007",
+        "event_title": "preventive action - alarm philosophy conformance on TK-8310",
+        "hazard_energy": "chemical",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:TLG/STD-CHM-011/005#revision_history_line/CAPA-2022-007",
+        "severity_gate": 1
+      }
+    ],
+    "rev_no": 5,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "learning team review",
+      "management_of_change": "change assurance",
+      "near_miss": "high potential incident"
+    }
+  },
+  "key": "bd73bf1e70f7dfa2d8c0e4996d85785eca0f5d19a31eed85ab49ab02765a338f",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:TLG/STD-CHM-011/005",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "2e80abf81e792aaf461d08393cea3430620df707608084f5c6697a007330e3cb",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The corrective action recorded against NM-2023-0011 required the secondary containment by bund and drainage to be restated in this standard.",
+        "quote_ref": "quote:TLG/STD-CHM-011/005#capa_action/NM-2023-0011"
+      },
+      {
+        "line": "The learning team review into NM-2023-0011 recommended that the restraint and placarding of transported loads be strengthened in this standard.",
+        "quote_ref": "quote:TLG/STD-CHM-011/005#investigation_recommendation/NM-2023-0011"
+      },
+      {
+        "line": "The change assurance record for this revision cites CAPA-2022-007 as the reason the monitoring of airborne contaminant exposure was amended.",
+        "quote_ref": "quote:TLG/STD-CHM-011/005#moc_reference/CAPA-2022-007"
+      },
+      {
+        "line": "Revision 5 was raised in response to CAPA-2022-007, and the monitoring of airborne contaminant exposure was amended as a result.",
+        "quote_ref": "quote:TLG/STD-CHM-011/005#revision_history_line/CAPA-2022-007"
+      }
+    ],
+    "reason": "Scheduled review at revision 5; 9 clauses restated."
+  },
+  "response_sha256": "e43aeed0d1f484eae7a2ef788ea3e3f605ce551d6ace35b711bbf3a401d74243",
+  "source": null
+}

@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONFINED-SPACE-ENTRY",
+    "barrier_role": "preventive",
+    "control_class": "GAS_TEST_BEFORE_AND_DURING_HOT_WORK",
+    "control_delta": "restate",
+    "control_label": "atmospheric gas testing before and during hot work",
+    "doc_code": "STD-CSE-002",
+    "doc_family": "STD",
+    "doc_title": "Confined Spaces",
+    "effective_on": "2016-11-21",
+    "printed_label": "3.1.3",
+    "setpoint": {
+      "from": 25.0,
+      "key": "flammable_gas_alarm",
+      "label": "flammable gas alarm threshold",
+      "strengthen_direction": "lower",
+      "to": 25.0,
+      "unit": "%LEL"
+    },
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "84d69750f30e82278a9c2c6d6dbbd516cfb872ff2252b6893fbf79548797407a",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:CVY/STD-CSE-002/004#CVY/STD-CSE-002/3.1",
+  "prompt_kind": "clause",
+  "prompt_sha256": "38930d5cefb397fc1ef15806b07ed7411aa6997dacfc06702aeaef82a6bdbc63",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The atmospheric gas testing before and during hot work shall be provided and maintained wherever this standard applies, and its condition shall be treated as a critical control. The flammable gas alarm threshold shall be set at 25 %LEL. This clause applies to activities archived under CONFINED-SPACE-ENTRY at Cape Verity Export Terminal.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "d6ac610526190af54159cd88def2486d7726c8a255311e09ee09ab1d9d60bfac",
+  "source": null
+}

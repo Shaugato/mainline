@@ -1,0 +1,130 @@
+{# SPDX-FileCopyrightText: 2026 MAINLINE contributors #}
+{# SPDX-License-Identifier: Apache-2.0 #}
+{#
+  Migration 0103 — CLOSING THE GATE BY EXACTLY ONE.
+
+  ARCHITECTURE.md §5.11 item 4 · §2.2 findings S8, S19 · §16 MI02, MI29, MI30 ·
+  docs/leads/kernel.md rulings D2, D4.
+
+  The mirror of 0101, and the asymmetry between them is the design:
+
+      a new obligation      open_blocking + 1   AND   gate_epoch + 1
+      a signed disposition  open_blocking - 1   and NOTHING ELSE
+
+  The epoch increments IFF THE GATE OPENS. Closing an obligation does not move the subject to a
+  new (id, epoch) pair, because the pin exists to stop a NEW obligation being attached to a
+  COMPLETED transition — and a disposition is not a new obligation. If closing bumped the epoch
+  too, a subject that merged at epoch e would be un-mergeable the moment anything was signed
+  against it, and the pin would be enforcing the opposite of its purpose.
+
+  RULING D4 — NO `CASE`. §5.11 writes the two counter movements as
+  `CASE WHEN NEW.reading_floor_met THEN 0 ELSE 1 END`. `GT-13` has not answered whether a `CASE`
+  EXPRESSION is legal inside a PL/pgSQL statement on this platform, and PL-3 forbids resting a
+  dated path on an unproven capability. Boolean casts are unconditionally legal, measured working
+  on v26.2.5, and read better:
+
+      unmet_floor_count + (NOT (NEW).reading_floor_met)::INT8
+
+  POLARITY IS LOAD-BEARING (finding S19, ruling D1). `reading_floor_met` is POSITIVE — the column
+  records that the floor WAS met. `NOT` of it is therefore the thing being counted, and a
+  disposition that somehow never reached the projection trigger reads as unmet rather than as
+  compliant. Negative polarity would have made an unprojected row look clean.
+
+  THE FLOOR IS PRICED, NOT REFUSED. A breached reading-rate floor never raises. It moves a counter
+  the subject's `reading_floor_when_issued` CHECK reads, and that CHECK admits a non-zero unmet
+  count when the countersigned count is positive. Fast stays legal; it just names a second,
+  differently-credentialed person. Refusing instead would have made the honest measurement of
+  deliberation adversarial to the crew, which is how a measurement stops being honest.
+
+  RULING D2 — `override_ledger` IS SUBJECT-POLYMORPHIC. §5.5 gives it `permit_id UUID NOT NULL`,
+  which predates finding S16. A change request that trips `weaken_over_blood` and is dispositioned
+  by `emergency_override` would be un-insertable, and MI30 — the repository is a protected branch
+  — would turn into a brick wall. The insert below therefore names the subject columns of every
+  gated subject in this binding.
+
+  WHY THE OVERRIDE ROW IS WRITTEN HERE AND NOT BY THE CALLER. `prior_override_count` is projected
+  in 0102 by counting this table, and `override_escalates` compares the projected signer rank
+  against `3 + prior_override_count`. If the ledger row were the caller's responsibility, the
+  ladder would escalate only against callers who chose to record their own overrides. The count
+  and the row must be written by the same mechanism or neither is evidence.
+
+  PLATFORM (measured on CockroachDB CCL v26.2.5, 2026-08-09): `(NEW).col` for every read; boolean
+  casts to INT8 inside an UPDATE SET expression are accepted.
+#}
+{% set ns = namespace(ok=true) %}
+{% for s in subjects %}
+{%   set inner = namespace(found=false) %}
+{%   for c in s.counters %}
+{%     if c.column == 'open_blocking' %}{% set inner.found = true %}{% endif %}
+{%   endfor %}
+{%   if not inner.found %}{% set ns.ok = false %}{% endif %}
+{% endfor %}
+{% if not ns.ok %}{{ a_gated_subject_declares_no_open_blocking_counter }}{% endif %}
+{% set olcols = [] %}{% for s in subjects %}{% set _ = olcols.append(s.id_column) %}{% endfor %}
+{% set olvals = [] %}{% for s in subjects %}{% set _ = olvals.append('(NEW).' ~ s.id_column) %}{% endfor %}
+-- @file 0103_fn_disposition_close.sql
+{{ header(file='0103_fn_disposition_close.sql',
+          title='CREATE FUNCTION ' ~ binding.schema ~ '.fn_disposition_close — one signed disposition closes exactly one obligation',
+          rationale='The mirror of the materialisation trigger, and deliberately asymmetric: closing decrements the obligation counter and does NOT bump the epoch, because the epoch pin exists to stop a NEW obligation attaching to a completed transition and a disposition is not one. The reading-rate floor is priced rather than refused — it moves a counter whose CHECK admits a countersignature — and an emergency override writes a ledger row here rather than in the caller, because the count and the row must come from the same mechanism or neither is evidence.',
+          mi=['MI02', 'MI29', 'MI30'], i=['I02', 'I10']) }}
+--
+-- migration:  0103_fn_disposition_close
+-- band:       0100-0109z · kernel/projection-triggers · RENDERED
+-- statements: 1
+-- invariants: MI02 / MI30 (the counter half) · MI29 (overrides escalate against the person
+--             across permits, with no ceiling)
+-- source:     ARCHITECTURE.md §5.11 item 4 · §2.2 S8, S19 · docs/leads/kernel.md D2, D4
+-- requires:   {{ binding.schema }}.disposition (0066) · {{ binding.schema }}.override_ledger (0068) ·
+{% for s in subjects %}
+--             {{ binding.schema }}.{{ s.table }} (open_blocking{% for c in s.counters %}{% if c.polarity == 'offset_allowed' %}, {{ c.column }}, countersigned_count{% endif %}{% endfor %})
+{% endfor %}
+-- provides:   {{ binding.schema }}.fn_disposition_close() — welded to disposition by 0123
+-- sqlstate:   P0001 when the disposition names no gated subject. 23514 on the counter
+--             non-negativity CHECK if a disposition were ever closed twice.
+-- forward-only; no .down.sql and no .up.sql (MR-5).
+--
+-- COLUMN CONTRACT THIS FILE ASSUMES OF `override_ledger` (ruling D2): site_id, signer_sub,
+-- subject_kind, {{ olcols | join(', ') }}, disposition_id — with the two subject-id columns
+-- NULLABLE and constrained in pairs, exactly as `blocking_check` and `disposition` are.
+--
+-- ACYCLICITY. AFTER INSERT on disposition; writes the gated subject tables and override_ledger.
+-- override_ledger carries no trigger but the append-only guard (0128 family), which fires on
+-- UPDATE and DELETE only. Trigger depth contributed: 1.
+
+CREATE FUNCTION {{ binding.schema }}.fn_disposition_close() RETURNS TRIGGER LANGUAGE PLpgSQL AS $$
+BEGIN
+{% for s in subjects %}
+{%   set floor = namespace(column=none) %}
+{%   for c in s.counters %}
+{%     if c.polarity == 'offset_allowed' %}{% set floor.column = c.column %}{% endif %}
+{%   endfor %}
+{%   if loop.first %}
+  IF (NEW).{{ s.id_column }} IS NOT NULL THEN
+{%   else %}
+  ELSIF (NEW).{{ s.id_column }} IS NOT NULL THEN
+{%   endif %}
+    UPDATE {{ binding.schema }}.{{ s.table }}
+       SET open_blocking = open_blocking - 1
+{%   if floor.column is not none %}
+           -- Finding S19. Positive polarity, so NOT of it is what is counted.
+         , {{ floor.column }} = {{ floor.column }} + (NOT (NEW).reading_floor_met)::INT8
+         , countersigned_count =
+             countersigned_count + ((NEW).countersigner_credential_id IS NOT NULL)::INT8
+{%   endif %}
+     WHERE {{ s.id_column }} = (NEW).{{ s.id_column }};
+{% endfor %}
+  ELSE
+    RAISE EXCEPTION USING ERRCODE='P0001',
+      MESSAGE='{{ binding.name }}: a disposition names no gated subject — nothing to close';
+  END IF;
+
+  -- Finding S8. The ladder is site- and signer-scoped and monotone ACROSS subjects; there is no
+  -- ceiling and no per-subject reset, because a reset is a bypass with a schedule.
+  IF (NEW).kind = 'emergency_override' THEN
+    INSERT INTO {{ binding.schema }}.override_ledger
+                (site_id, signer_sub, subject_kind, {{ olcols | join(', ') }}, disposition_id)
+         VALUES ((NEW).site_id, (NEW).signer_sub, (NEW).subject_kind,
+                 {{ olvals | join(', ') }}, (NEW).disposition_id);
+  END IF;
+  RETURN NEW;
+END $$;

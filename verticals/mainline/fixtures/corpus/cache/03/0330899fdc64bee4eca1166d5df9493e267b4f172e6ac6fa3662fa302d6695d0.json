@@ -1,0 +1,85 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "planning and rehearsing non-entry rescue",
+    "activity_root": "CONFINED-SPACE-ENTRY",
+    "activity_series": "rescuing from a confined space",
+    "assets": [
+      {
+        "asset_class": "CYC-CLASS-A",
+        "label": "cyclone clusters",
+        "service": "classification duty on the grinding circuit",
+        "tag": "CY-3211"
+      },
+      {
+        "asset_class": "INST-CLASS-A",
+        "label": "instrument loop",
+        "service": "governs CY-3211",
+        "tag": "PT-3211"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "CONFINED_SPACE_ENTRY_PERMIT",
+        "control_label": "classification of a space and issue of an entry permit",
+        "failure_mode": "absent",
+        "hazard_energy": "kinetic",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "AF-2021-006",
+    "hazard_energy": "kinetic",
+    "hazard_media": [
+      "rotating equipment",
+      "conveyor",
+      "mobile equipment",
+      "pressurised jet",
+      "flying fragment"
+    ],
+    "hazard_release": "entanglement, impact, crush",
+    "kind": "audit_finding",
+    "occurred_on": "2021-10-07",
+    "severity_actual": 1,
+    "severity_potential": 2,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during an intrusive maintenance task",
+    "title": "audit finding - permit to work records incomplete for CY-3211",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "0330899fdc64bee4eca1166d5df9493e267b4f172e6ac6fa3662fa302d6695d0",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:AF-2021-006",
+  "prompt_kind": "icam",
+  "prompt_sha256": "dc76210c3056402422a7a364ee78fd595e518a1631b2e0a904f012654e27f387",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage. The potential outcome was rated 2 against the site's consequence scale, above the 1 actually realised.",
+    "defences": [
+      {
+        "control_class": "CONFINED_SPACE_ENTRY_PERMIT",
+        "finding": "Control CONFINED_SPACE_ENTRY_PERMIT: the classification of a space and issue of an entry permit was not in place, and the ICAM investigation classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next critical control verification that the classification of a space and issue of an entry permit on CY-3211 and PT-3211 performs as designed."
+    ],
+    "sequence": "Work was under way in rescuing from a confined space, specifically planning and rehearsing non-entry rescue. CY-3211 (cyclone clusters) is in service for classification duty on the grinding circuit. The task proceeded during an intrusive maintenance task while the classification of a space and issue of an entry permit was not in place. The kinetic energy involved is held as rotating equipment, and the recorded presentation was entanglement, impact, crush.",
+    "summary": "On 7 October 2021 a planned critical control verification of CY-3211 and PT-3211 at Marrindal Concentrator and Hydrocarbon Transfer Facility found the classification of a space and issue of an entry permit not effective."
+  },
+  "response_sha256": "2910e9683f381e39e62d1fc2c36de8fda10f858fbc0f5e40ccf1f4302dc7126b",
+  "source": null
+}

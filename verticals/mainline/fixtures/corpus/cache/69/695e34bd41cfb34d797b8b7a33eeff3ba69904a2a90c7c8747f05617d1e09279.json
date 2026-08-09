@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 6,
+    "doc_code": "STD-MEQ-007",
+    "doc_family": "STD",
+    "doc_title": "Mobile Equipment Interaction",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2019-06-02",
+    "required_citations": [
+      {
+        "control_label": "segregation of light vehicles and pedestrians from heavy equipment",
+        "event_ref": "AF-2018-009",
+        "event_title": "audit finding - critical control verification of critical control at LV-9303",
+        "hazard_energy": "kinetic",
+        "kind": "capa_action",
+        "quote_ref": "quote:YND/STD-MEQ-007/006#capa_action/AF-2018-009",
+        "severity_gate": 1
+      }
+    ],
+    "rev_no": 6,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "ICAM investigation",
+      "management_of_change": "management of change",
+      "near_miss": "potential incident"
+    }
+  },
+  "key": "695e34bd41cfb34d797b8b7a33eeff3ba69904a2a90c7c8747f05617d1e09279",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:YND/STD-MEQ-007/006",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "a06985f5fcdd6233480ba5dd1abc8e1318310913fdc6b125b42ceb73ed08a33e",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The corrective action recorded against AF-2018-009 required the segregation of light vehicles and pedestrians from heavy equipment to be restated in this standard.",
+        "quote_ref": "quote:YND/STD-MEQ-007/006#capa_action/AF-2018-009"
+      }
+    ],
+    "reason": "Scheduled review at revision 6; 6 clauses restated."
+  },
+  "response_sha256": "66009358de3982948651878b0953ec3af970fc5c0436f09db17b102d2f9910ed",
+  "source": null
+}

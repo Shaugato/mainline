@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "FIRE-AND-EMERGENCY-RESPONSE",
+    "barrier_role": "recovery",
+    "control_class": "MUSTER_AND_ACCOUNTING",
+    "control_delta": "introduce",
+    "control_label": "alarm, muster and accounting for people",
+    "doc_code": "STD-EMR-008",
+    "doc_family": "STD",
+    "doc_title": "Emergency Preparedness and Response",
+    "effective_on": "2006-09-12",
+    "printed_label": "3.1",
+    "setpoint": null,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "cf09f5d5f26698c84c8ce1b22cb5c72d76e3e183073511420d5c09aa6299937f",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:CVY/STD-EMR-008/001#CVY/STD-EMR-008/3.1",
+  "prompt_kind": "clause",
+  "prompt_sha256": "22c435d2dd1612f2a8f761a4f3071b47fae460859d3f886ce16b22ecfdfee58b",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The alarm, muster and accounting for people shall be provided and maintained for work covered by this standard. This clause applies to activities archived under FIRE-AND-EMERGENCY-RESPONSE at Cape Verity Export Terminal.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "084990ddd140397172dd52c45ce387efb66520dc6a4b9899ec89d86d72dd87ca",
+  "source": null
+}

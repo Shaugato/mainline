@@ -1,0 +1,12 @@
+/*
+ * SPDX-FileCopyrightText: 2026 MAINLINE contributors
+ * SPDX-License-Identifier: FSL-1.1-ALv2
+ *
+ * A NOTE, not a violation. `.main` is a programmatic focus target (`tabindex="-1"`), so
+ * removing its ring is correct — and CSS alone cannot prove that, which is why this form
+ * is reported and not enforced. The gate must stay green on this file.
+ */
+
+.main:focus {
+  outline: none;
+}

@@ -61,6 +61,10 @@ __all__ = [
     "CONTAINMENT",
     "CORPUS_COMMIT",
     "CORPUS_ROOT",
+    "EVENTS",
+    "EXPECTED_COUNTS",
+    "EXPECTED_OUTCOMES",
+    "EXPECTED_SILENCE_REASONS",
     "E_ANC_SEV4",
     "E_ANC_SEV5",
     "E_BOND_SEV5",
@@ -70,10 +74,6 @@ __all__ = [
     "E_PROB_LO",
     "E_PROB_SWEEP",
     "E_SEV0",
-    "EXPECTED_COUNTS",
-    "EXPECTED_OUTCOMES",
-    "EXPECTED_SILENCE_REASONS",
-    "EVENTS",
     "INDEX_GENERATION",
     "PARENT_SCOPE_ID",
     "PERMIT_CONTROL_CLASSES",
@@ -179,14 +179,32 @@ def clause_control_classes() -> dict[UUID, tuple[str, ...]]:
 #: severity_gate, title, occurred_at, control_classes[], failure_modes[], hazard_energies[].
 ANCESTRY_ROWS: Final[tuple[tuple[Any, ...], ...]] = (
     (
-        E_ANC_SEV5, CLAUSE_ISOLATION, _COMMIT_ISOLATION, 7, 5, False, 5,
-        "Fatality: stored energy released on a bypassed lock", _OCCURRED,
-        ["isolation"], ["lock_bypassed"], ["stored_mechanical"],
+        E_ANC_SEV5,
+        CLAUSE_ISOLATION,
+        _COMMIT_ISOLATION,
+        7,
+        5,
+        False,
+        5,
+        "Fatality: stored energy released on a bypassed lock",
+        _OCCURRED,
+        ["isolation"],
+        ["lock_bypassed"],
+        ["stored_mechanical"],
     ),
     (
-        E_ANC_SEV4, CLAUSE_ISOLATION, _COMMIT_ISOLATION, 7, 5, False, 4,
-        "Isolation defeated during line break", _OCCURRED,
-        ["isolation"], ["register_incomplete"], ["pressure"],
+        E_ANC_SEV4,
+        CLAUSE_ISOLATION,
+        _COMMIT_ISOLATION,
+        7,
+        5,
+        False,
+        4,
+        "Isolation defeated during line break",
+        _OCCURRED,
+        ["isolation"],
+        ["register_incomplete"],
+        ["pressure"],
     ),
 )
 
@@ -202,12 +220,22 @@ CONTAINMENT: Final[dict[UUID, tuple[tuple[UUID, str], ...]]] = {
 #: event_id, severity_gate, title, occurred_at, scope_id, bond_basis, depth.
 BONDED_ROWS: Final[tuple[tuple[Any, ...], ...]] = (
     (
-        E_ANC_SEV5, 5, "Fatality: stored energy released on a bypassed lock",
-        _OCCURRED, ACTIVITY_SCOPE_ID, "same_activity", 0,
+        E_ANC_SEV5,
+        5,
+        "Fatality: stored energy released on a bypassed lock",
+        _OCCURRED,
+        ACTIVITY_SCOPE_ID,
+        "same_activity",
+        0,
     ),
     (
-        E_BOND_SEV5, 5, "Fatality: H2S ingress in a confined space",
-        _OCCURRED, PARENT_SCOPE_ID, "ancestor_activity", 1,
+        E_BOND_SEV5,
+        5,
+        "Fatality: H2S ingress in a confined space",
+        _OCCURRED,
+        PARENT_SCOPE_ID,
+        "ancestor_activity",
+        1,
     ),
 )
 
@@ -292,9 +320,9 @@ EXPECTED_OUTCOMES: Final[dict[UUID, str]] = {
 #: reasons. Five withheld warnings, each with its arithmetic attached — which is the entire
 #: evidentiary point of the ledger.
 EXPECTED_SILENCE_REASONS: Final[tuple[str, ...]] = (
-    "below_tau",         # E_PROB_LO scored 0.30 against tau(2) = 0.75
+    "below_tau",  # E_PROB_LO scored 0.30 against tau(2) = 0.75
     "bounded_negative",  # E_PROB_SWEEP: a coarse-sweep hit never blocks below severity 5
     "bounded_negative",  # E_SEV0: no tau(0) exists, so no comparison was made
-    "dedup_sibling",     # E_DUP collapsed into E_PROB_HI and attached as also_matched
-    "unreachable",       # CLAUSE_NO_CAT asserts no CAT class, so channel A never ran for it
+    "dedup_sibling",  # E_DUP collapsed into E_PROB_HI and attached as also_matched
+    "unreachable",  # CLAUSE_NO_CAT asserts no CAT class, so channel A never ran for it
 )

@@ -1,0 +1,106 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MAINLINE · 0198x_no_rls_on_cdc_sources.sql
+-- COMMENT ON TABLE mainline_ops.outbox — the absence of RLS here is a DECISION, recorded
+-- where a reader looks for the policy and does not find one
+--
+-- MI: MI22
+-- I: I06
+-- COUNSEL-GATED: no
+-- RATIONALE: The RLS band ends with a table that deliberately has no policy on it, and the
+--            danger is that the absence reads as an omission. Somebody reviewing the matrix
+--            in six months sees an un-scoped table in a schema full of scoped ones, adds
+--            `ALTER TABLE mainline_ops.outbox ENABLE ROW LEVEL SECURITY`, passes review, and
+--            breaks the fleet at the next changefeed restart. This comment is a queryable
+--            object that answers the question before it is asked.
+--
+-- migration:  0198x_no_rls_on_cdc_sources
+-- domain:     datamodel / dm-views-rls
+-- band:       0180-0198z · datamodel/dm-views-rls · AUTHORED, allocated by
+--             verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1). The `x` suffix
+--             is MR-5's marker convention — comment/marker-only files take `x` and sort last
+--             within their number, exactly as 0009x_covenant_comment.sql does.
+-- statements: 1
+-- invariants: MI22 — the gate fails closed on a stale or absent projection. A stopped
+--                    changefeed is the projector never running, which is the closure going
+--                    stale, which is MI22 firing on every gate that reads it. Enabling RLS
+--                    here is therefore not a hardening; it is a way to stop the projector.
+--             I06  — a dependency a gate consumes is COMPUTED, never declared. The outbox is
+--                    the transport that carries the computation's trigger.
+-- source:     ARCHITECTURE.md §4.1 law 11 · §5.10 (outbox DDL, "THE ONE CDC-QUERY SOURCE") ·
+--             §5.9 (site_register_signal, "single family, no RLS: the CDC watch source") ·
+--             §8.5 (cf_outbox) · verticals/mainline/db/RLS-MATRIX.yaml `rls_forbidden`
+-- requires:   0099 mainline_ops.outbox
+-- sqlstate:   none — a comment enforces nothing. See below for what does.
+-- forward-only; no .down.sql exists at or below the protected floor.
+--
+-- ─────────────────────────────────────────────────────────────────────────────
+-- A COMMENT ENFORCES NOTHING, AND THE ENFORCEMENT IS NAMED HERE
+-- ─────────────────────────────────────────────────────────────────────────────
+-- This file makes the claim RETRIEVABLE at the same moment as the objects it
+-- constrains — an auditor reads it out of the database rather than out of a
+-- design document, which is what an evidentiary record owes a reader, and it is
+-- the same move 0009x makes for the separation covenant.
+--
+-- The actual controls are two tests, both named in RLS-MATRIX.yaml under
+-- `rls_forbidden`:
+--
+--   test_mi_rls.py::test_outbox_has_no_row_level_security
+--   test_mi_rls.py::test_site_register_signal_has_no_row_level_security
+--
+-- Each asserts the negative directly against the cluster. A negative assertion
+-- beside the positive ones is the same discipline §17 applies to `mainline_qa`
+-- being unreachable, and for the same reason: some of this system's guarantees
+-- are about what is NOT there, and those decay silently unless something checks.
+--
+-- ─────────────────────────────────────────────────────────────────────────────
+-- WHY THE PLATFORM MAKES THIS A CORRECTNESS ISSUE AND NOT A PREFERENCE
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Verified against the v26.2 row-level-security reference:
+--
+--   * "CDC queries are not supported on tables using RLS, and will fail."
+--   * "CDC messages that are emitted from a table will not be filtered using
+--     RLS policies."
+--
+-- Both halves matter and they cut in opposite directions. The first means RLS on
+-- the outbox does not degrade the feed, it STOPS it — and it stops it at the
+-- next feed creation or restart, not at the ALTER, so the change and the outage
+-- are separated by however long the current feed happens to survive. The second
+-- means that if a feed were somehow running, RLS would give no confidentiality
+-- anyway, because CDC bypasses it entirely.
+--
+-- So enabling RLS here buys nothing and costs the event spine. That is why
+-- §4.1 law 11 concludes with "⇒ exactly one changefeed-query source", and why
+-- the outbox is single-family as well: CDC queries also fail on multi-family
+-- tables.
+--
+-- ─────────────────────────────────────────────────────────────────────────────
+-- WHAT MAKES THE ABSENCE DEFENSIBLE RATHER THAN MERELY NECESSARY
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Necessity is not a security argument on its own. The absence of RLS here is
+-- acceptable because there is nothing in the table to scope:
+--
+--   `payload JSONB NOT NULL,  -- POINTERS AND DIGESTS ONLY. Never clause or
+--                                narrative text.`
+--
+-- The outbox carries subject ids, a site id, an activity root, a severity, a
+-- score and a JSONB of pointers. A reader who obtained the whole table would
+-- learn that something happened, at what severity, about which subject — and
+-- would then need privileges on `mainline` to learn anything further, which is
+-- where the grants and the policies in 0181-0187 are. The table is also the only
+-- one in `mainline_ops` carrying row-level TTL (30 days, allowlist entry 1 of 3),
+-- which bounds even that exposure.
+--
+-- `mainline_ops.site_register_signal` is the second forbidden table and carries
+-- the same shape of argument: it is the mechanism-predicate watch source, and a
+-- changefeed on it is what revokes a `mechanism_absent` disposition when the
+-- predicate falsifies, re-opens the check and bumps `gate_epoch`. Enabling RLS
+-- there would not hide rows from an attacker; it would stop the revocation, and
+-- the exhibit would go back to "he signed it away and a man died".
+--
+-- Only one COMMENT statement is permitted per file (one top-level statement,
+-- MR-5), so the outbox carries the marker and this header carries both. The test
+-- covers both.
+
+COMMENT ON TABLE mainline_ops.outbox IS 'NO ROW LEVEL SECURITY, BY DESIGN AND BY PLATFORM LAW. This is the one CDC-query source in the deployment (ARCHITECTURE.md section 4.1 law 11, section 8.5 cf_outbox). CockroachDB v26.2: CDC queries are not supported on tables using row-level security and will FAIL, and CDC messages are not filtered by RLS in any case. Enabling RLS here therefore buys no confidentiality and stops the event spine at the next changefeed restart - which stops the blame-closure projector, which makes every gate read a stale projection (MI22). The absence is defensible as well as necessary: payload carries POINTERS AND DIGESTS ONLY, never clause or narrative text; the table is single-family because CDC queries also fail on multi-family tables; and it carries row-level TTL of 30 days, allowlist entry 1 of exactly 3 in the deployment. The same reasoning applies to mainline_ops.site_register_signal, the mechanism-predicate watch source. Declared in verticals/mainline/db/RLS-MATRIX.yaml under rls_forbidden and asserted by tests/integration/schema/test_mi_rls.py::test_outbox_has_no_row_level_security and ::test_site_register_signal_has_no_row_level_security.';

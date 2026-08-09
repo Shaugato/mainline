@@ -1,0 +1,103 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "assessing and permitting hot work adjacent to live plant",
+    "activity_root": "CONTROL-OF-IGNITION-SOURCES",
+    "activity_series": "authorising hot work",
+    "assets": [
+      {
+        "asset_class": "COMP-CLASS-V",
+        "label": "vapour recovery compressor",
+        "service": "loading vapour recovery",
+        "tag": "K-7301"
+      },
+      {
+        "asset_class": "INST-CLASS-A",
+        "label": "instrument loop",
+        "service": "governs K-7301",
+        "tag": "PT-7301"
+      },
+      {
+        "asset_class": "INST-CLASS-A",
+        "label": "instrument loop",
+        "service": "governs K-7301",
+        "tag": "TT-7301"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "GAS_TEST_BEFORE_AND_DURING_HOT_WORK",
+        "control_label": "atmospheric gas testing before and during hot work",
+        "failure_mode": "not_verified",
+        "hazard_energy": "chemical",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "HAZARDOUS_AREA_EQUIPMENT_INTEGRITY",
+        "control_label": "integrity of explosion-protected equipment in zoned areas",
+        "failure_mode": "ineffective",
+        "hazard_energy": "chemical",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "OEM-2026-001",
+    "hazard_energy": "thermal",
+    "hazard_media": [
+      "hot surface",
+      "steam",
+      "molten material",
+      "hot work",
+      "exothermic reaction"
+    ],
+    "hazard_release": "burn, ignition, scald",
+    "kind": "oem_alert",
+    "occurred_on": "2026-02-06",
+    "severity_actual": 1,
+    "severity_potential": 2,
+    "site": "Cape Verity Export Terminal",
+    "summary_facts": [],
+    "task_phase": "during an intrusive maintenance task",
+    "title": "OEM advisory - COMP-CLASS-V pressurised dual seal support",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "82474059f8ae0b1e0cf1e631a63a0b13b75e29d9f98500dca7e64ba65004f1c9",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:OEM-2026-001",
+  "prompt_kind": "icam",
+  "prompt_sha256": "e9b6480a9f75de73612c3a883c024e9cc22d25af187baf845cf3a727247c37ee",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage. The potential outcome was rated 2 against the site's consequence scale, above the 1 actually realised.",
+    "defences": [
+      {
+        "control_class": "GAS_TEST_BEFORE_AND_DURING_HOT_WORK",
+        "finding": "Control GAS_TEST_BEFORE_AND_DURING_HOT_WORK: the atmospheric gas testing before and during hot work was never verified as effective, and the learning team review classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "HAZARDOUS_AREA_EQUIPMENT_INTEGRITY",
+        "finding": "Control HAZARDOUS_AREA_EQUIPMENT_INTEGRITY: the integrity of explosion-protected equipment in zoned areas was in place but did not perform, and the learning team review classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Restore the atmospheric gas testing before and during hot work on K-7301, PT-7301 and TT-7301 and record the assurance activity before this task is next authorised."
+    ],
+    "sequence": "Work was under way in authorising hot work, specifically assessing and permitting hot work adjacent to live plant. K-7301 (vapour recovery compressor) is in service for loading vapour recovery. The task proceeded during an intrusive maintenance task while the atmospheric gas testing before and during hot work was never verified as effective. The thermal energy involved is held as hot surface, and the recorded presentation was burn, ignition, scald.",
+    "summary": "On 6 February 2026 the original equipment manufacturer issued an advisory affecting K-7301, PT-7301 and TT-7301 at Cape Verity Export Terminal."
+  },
+  "response_sha256": "c7b2ec0b276f228b1fa985eafad852b161ae652cbb30f38d195ce729ceefeff0",
+  "source": null
+}

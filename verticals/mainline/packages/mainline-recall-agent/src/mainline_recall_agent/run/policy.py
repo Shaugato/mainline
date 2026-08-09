@@ -149,9 +149,7 @@ def _as_mapping(raw: object, *, what: str, policy_version: str) -> dict[str, Any
         try:
             parsed = json.loads(raw)
         except ValueError as exc:
-            raise PolicyRefused(
-                f"{policy_version}: {what} is not readable JSON"
-            ) from exc
+            raise PolicyRefused(f"{policy_version}: {what} is not readable JSON") from exc
         if isinstance(parsed, dict):
             return parsed
     raise PolicyRefused(f"{policy_version}: {what} is not a JSON object")
@@ -196,9 +194,7 @@ def load_policy(session: SqlSession, policy_version: str) -> RecallPolicy:
     return policy
 
 
-def load_thymogate(
-    session: SqlSession, policy: RecallPolicy
-) -> ThymogateCertificate | None:
+def load_thymogate(session: SqlSession, policy: RecallPolicy) -> ThymogateCertificate | None:
     """Read and gate on the policy's THYMOGATE certificate, if it names one.
 
     Returns:

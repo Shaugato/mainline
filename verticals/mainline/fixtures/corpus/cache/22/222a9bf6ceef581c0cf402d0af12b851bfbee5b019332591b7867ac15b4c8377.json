@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "barrier_role": "recovery",
+    "control_class": "BUND_AND_DRAINAGE_CONTAINMENT",
+    "control_delta": "restate",
+    "control_label": "secondary containment by bund and drainage",
+    "doc_code": "PRO-OPS-032",
+    "doc_family": "PRO",
+    "doc_title": "Hydrocarbon Transfer Operations",
+    "effective_on": "2011-11-26",
+    "printed_label": "6.2.2(a)",
+    "setpoint": null,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "energy_isolation": "lock out tag out",
+      "verification": "field verification"
+    }
+  },
+  "key": "222a9bf6ceef581c0cf402d0af12b851bfbee5b019332591b7867ac15b4c8377",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/PRO-OPS-032/004#MRD/PRO-OPS-032/6.2.2(a)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "16214b0d0daa331f009fdfcbeba55d6db60be2e2c0b03da3957135f969475653",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The secondary containment by bund and drainage shall be provided and maintained wherever this procedure applies, and its condition shall be treated as a critical safeguard. This clause applies to activities archived under CONTAINMENT-OF-HYDROCARBONS at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "a29aff178bda2f399ccd127e712ba94fad7664ae3052b0df16559b6f40106907",
+  "source": null
+}

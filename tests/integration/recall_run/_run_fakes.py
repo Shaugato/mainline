@@ -83,6 +83,7 @@ from mainline_recall_agent.run.persist import (
 )
 from mainline_recall_agent.run.policy import POLICY_SQL, THYMOGATE_SQL
 from mainline_recall_agent.run.probabilistic import ChannelCOutcome, RetrievedHit
+
 from trappoint_recall.horizon.certificate import ArmCoverage
 from trappoint_recall.horizon.fingerprint import PrefixTree
 
@@ -140,7 +141,9 @@ class _ReadSession:
     def __init__(self, cluster: FakeCluster) -> None:
         self._cluster = cluster
 
-    def query(self, sql: str, params: Sequence[object] = ()) -> Sequence[Sequence[Any]]:
+    def query(  # noqa: PLR0911 - one return per recognised statement; see the docstring
+        self, sql: str, params: Sequence[object] = ()
+    ) -> Sequence[Sequence[Any]]:
         self._cluster.reads.append(Statement(sql=sql, params=tuple(params)))
         cluster = self._cluster
 
@@ -154,9 +157,7 @@ class _ReadSession:
             return list(cluster.ancestry_rows)
         if sql == ANCESTRY_CONTAINMENT_SQL:
             event_id = UUID(str(params[1]))
-            return [
-                (clause, commit) for clause, commit in cluster.containment.get(event_id, ())
-            ]
+            return [(clause, commit) for clause, commit in cluster.containment.get(event_id, ())]
         if sql == BONDED_SEV5_SQL:
             return list(cluster.bonded_rows)
         if sql == EVENT_SEVERITY_SQL:
@@ -551,7 +552,11 @@ class FakeKernelTransport:
     posts: list[tuple[str, bytes, dict[str, str]]] = field(default_factory=list)
 
     def post(
-        self, url: str, body: bytes, headers: Mapping[str, str], timeout: float
+        self,
+        url: str,
+        body: bytes,
+        headers: Mapping[str, str],
+        timeout: float,  # noqa: ARG002 - KernelTransport passes it; a recorder ignores it
     ) -> tuple[int, bytes]:
         self.posts.append((url, body, dict(headers)))
         return self.status, json.dumps(dict(self.body)).encode("utf-8")

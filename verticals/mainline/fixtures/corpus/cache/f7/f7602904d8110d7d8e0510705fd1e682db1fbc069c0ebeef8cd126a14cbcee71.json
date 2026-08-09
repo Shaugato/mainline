@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 0,
+    "doc_codes": [
+      "PTW-STD-004"
+    ],
+    "intent": "strengthen",
+    "moc_ref": "MOC-2022-0129",
+    "opened_on": "2022-06-18",
+    "precursor_events": [],
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "management_of_change": "change assurance",
+      "verification": "assurance activity"
+    },
+    "weakening_steps": 0
+  },
+  "key": "f7602904d8110d7d8e0510705fd1e682db1fbc069c0ebeef8cd126a14cbcee71",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2022-0129",
+  "prompt_kind": "moc",
+  "prompt_sha256": "a2432dd84e8e4ed3346768462f97f248dbd9138126d3aab649914f375fa44a58",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2022-0129 was raised at Yandarra Downs Open Cut and Heavy Workshop on 18 June 2022 as a scheduled change under change assurance; no event precedes it in the record. The change assurance record carries no clause change; it records the assessment only. The intent is to strengthen the material unwanted event control named in the documents in scope. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the material unwanted event control set is preserved.",
+    "scope_note": "The documents in scope are PTW-STD-004."
+  },
+  "response_sha256": "317002734f14628fa9f0f277da2afbc953a3479de8cc0f9b274f2343f5b41f8d",
+  "source": null
+}

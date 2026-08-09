@@ -1,0 +1,43 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 1,
+    "doc_codes": [
+      "ALERT-2009-003",
+      "PRO-MEC-055",
+      "STD-LFT-003"
+    ],
+    "intent": "weaken",
+    "moc_ref": "MOC-2014-0099",
+    "opened_on": "2014-03-13",
+    "precursor_events": [
+      {
+        "event_ref": "AF-2008-003",
+        "severity_gate": null
+      }
+    ],
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "management_of_change": "change request",
+      "verification": "field verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "f3276eacebae1a6aacd2029fd8e47c513e6d753b8cfa487a94c570c5cd3a71ac",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2014-0099",
+  "prompt_kind": "moc",
+  "prompt_sha256": "e3fd17dd74d02cd52ff719e09a89c979f3ff3156b42c5ffa579e4bf8f1ced259",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2014-0099 was raised at Yandarra Downs Open Cut and Heavy Workshop on 13 March 2014 following 1 recorded event in the archive, including AF-2008-003. The change request record covers 1 clause across 3 controlled documents. The intent is to relax a critical safeguard requirement, and the basis for the relaxation is recorded with the change. The record reached the state merged in the change stream.",
+    "risk_note": "This change relaxes a control: 0 steps of relaxation are recorded against it, and the residual risk position rests on that relaxation having been accepted deliberately.",
+    "scope_note": "The documents in scope are ALERT-2009-003, PRO-MEC-055 and STD-LFT-003."
+  },
+  "response_sha256": "c8e0f970b0b2dc79622eed34943db21a12674ffa91fcb911ca93ae37cfa2c1de",
+  "source": null
+}

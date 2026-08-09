@@ -89,7 +89,7 @@ def _start_local_binary(tmp: Path) -> Cluster | None:
         return None
     port = _free_port()
     http_port = _free_port()
-    proc = subprocess.Popen(  # noqa: S603 - fixed argv, no shell
+    proc = subprocess.Popen(
         [
             binary,
             "start-single-node",
@@ -118,7 +118,7 @@ def _docker(args: list[str], *, timeout: float) -> subprocess.CompletedProcess[s
     `TimeoutExpired` would turn a situation that calls for a skip into a suite-wide error.
     """
     try:
-        return subprocess.run(  # noqa: S603, S607
+        return subprocess.run(
             ["docker", *args], capture_output=True, text=True, timeout=timeout, check=False
         )
     except (subprocess.TimeoutExpired, OSError):
@@ -139,10 +139,16 @@ def _start_docker() -> Cluster | None:
     port = _free_port()
     started = _docker(
         [
-            "run", "-d", "--name", CONTAINER_NAME,
-            "-p", f"{port}:26257",
+            "run",
+            "-d",
+            "--name",
+            CONTAINER_NAME,
+            "-p",
+            f"{port}:26257",
             CRDB_IMAGE,
-            "start-single-node", "--insecure", "--store=type=mem,size=2GiB",
+            "start-single-node",
+            "--insecure",
+            "--store=type=mem,size=2GiB",
         ],
         timeout=DOCKER_RUN_TIMEOUT_S,
     )

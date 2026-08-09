@@ -1,0 +1,48 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 1,
+    "doc_codes": [
+      "ALERT-2016-007",
+      "MOC-2026-0413",
+      "PRO-MEC-014",
+      "PRO-OPS-032"
+    ],
+    "intent": "strengthen",
+    "moc_ref": "MOC-2016-0121",
+    "opened_on": "2016-11-21",
+    "precursor_events": [
+      {
+        "event_ref": "INC-2004-008",
+        "severity_gate": null
+      },
+      {
+        "event_ref": "INC-2025-010",
+        "severity_gate": null
+      }
+    ],
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "management_of_change": "management of change",
+      "verification": "critical control verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "1fc198fc91402fec54b883f7acda056f1d431c435888f7b45c6a15b2df2d7c23",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2016-0121",
+  "prompt_kind": "moc",
+  "prompt_sha256": "7afc274a2792fac5014bab32d0329dd33f74e68933bf089cf0311cae89c8f779",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2016-0121 was raised at Marrindal Concentrator and Hydrocarbon Transfer Facility on 21 November 2016 following 2 recorded events in the archive, including INC-2004-008 and INC-2025-010. The management of change record covers 1 clause across 4 controlled documents. The intent is to strengthen the critical control named in the documents in scope. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical control set is preserved.",
+    "scope_note": "The documents in scope are ALERT-2016-007, MOC-2026-0413, PRO-MEC-014 and PRO-OPS-032."
+  },
+  "response_sha256": "19b8efa1a9954cf587e60eb0a1ccbbd6975a831b0070e2825844311983331947",
+  "source": null
+}

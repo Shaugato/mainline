@@ -118,8 +118,7 @@ def render_block(request: OracleRequest) -> str:
     if origin is not None:
         occurred = f", {origin.occurred_on}" if origin.occurred_on else ""
         sections.append(
-            f"{_HEADER_ORIGIN}\ncoded severity {origin.severity}{occurred}\n"
-            f"{origin.event_summary}"
+            f"{_HEADER_ORIGIN}\ncoded severity {origin.severity}{occurred}\n{origin.event_summary}"
         )
     if request.parameter_hint:
         sections.append(f"{_HEADER_PARAMETER}\n{request.parameter_hint}")

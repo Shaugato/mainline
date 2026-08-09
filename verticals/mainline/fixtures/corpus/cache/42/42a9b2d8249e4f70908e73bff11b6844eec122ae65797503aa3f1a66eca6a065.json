@@ -1,0 +1,97 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "identifying every energy source for a task",
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "activity_series": "planning and permitting an isolation",
+    "assets": [
+      {
+        "asset_class": "DOSE-CLASS-A",
+        "label": "reagent dosing pumps",
+        "service": "reagent make-up and dosing",
+        "tag": "P-8302"
+      },
+      {
+        "asset_class": "MOTOR-CLASS-A",
+        "label": "drive motor",
+        "service": "drives P-8302",
+        "tag": "M-8302"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "ENERGY_SOURCE_IDENTIFICATION",
+        "control_label": "identification of every energy source for the task",
+        "failure_mode": "ineffective",
+        "hazard_energy": "electrical",
+        "icam_tier": "individual_or_team_action"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "POSITIVE_ISOLATION_APPLICATION",
+        "control_label": "application of positive isolation devices and personal locks",
+        "failure_mode": "ineffective",
+        "hazard_energy": "pressure",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "NM-2009-0005",
+    "hazard_energy": "electrical",
+    "hazard_media": [
+      "HV switchgear",
+      "LV distribution",
+      "capacitive storage",
+      "induced voltage",
+      "portable equipment"
+    ],
+    "hazard_release": "shock, arc flash, unplanned energisation",
+    "kind": "near_miss",
+    "occurred_on": "2009-06-17",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Tolgarra Processing and Power Station",
+    "summary_facts": [],
+    "task_phase": "during transfer operations",
+    "title": "near hit during transfer operations on P-8302",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "investigation": "accident investigation",
+      "near_miss": "near hit",
+      "verification": "spot check"
+    }
+  },
+  "key": "42a9b2d8249e4f70908e73bff11b6844eec122ae65797503aa3f1a66eca6a065",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2009-0005",
+  "prompt_kind": "icam",
+  "prompt_sha256": "45f3717fda6474bd703af1f050c7049291cced1c8782cb4762898422c34373d6",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "ENERGY_SOURCE_IDENTIFICATION",
+        "finding": "Control ENERGY_SOURCE_IDENTIFICATION: the identification of every energy source for the task was in place but did not perform, and the accident investigation classified this as an individual or team action."
+      },
+      {
+        "control_class": "POSITIVE_ISOLATION_APPLICATION",
+        "finding": "Control POSITIVE_ISOLATION_APPLICATION: the application of positive isolation devices and personal locks was in place but did not perform, and the accident investigation classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the application of positive isolation devices and personal locks on P-8302 and M-8302 and record the spot check before this task is next authorised."
+    ],
+    "sequence": "Work was under way in planning and permitting an isolation, specifically identifying every energy source for a task. P-8302 (reagent dosing pumps) is in service for reagent make-up and dosing. The task proceeded during transfer operations while the identification of every energy source for the task was in place but did not perform. The electrical energy involved is held as HV switchgear, and the recorded presentation was shock, arc flash, unplanned energisation.",
+    "summary": "On 17 June 2009 a near hit was recorded on P-8302 and M-8302 at Tolgarra Processing and Power Station during transfer operations; electrical energy held as HV switchgear was not released."
+  },
+  "response_sha256": "1ad4d4d40089789dfe39f1089f04cc4f98d2b8ffb45fd46ece03875d137aaec8",
+  "source": null
+}

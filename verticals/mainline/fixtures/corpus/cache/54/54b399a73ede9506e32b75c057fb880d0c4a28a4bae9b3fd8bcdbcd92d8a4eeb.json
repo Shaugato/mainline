@@ -1,0 +1,117 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "atmospheric testing and continuous monitoring",
+    "activity_root": "CONFINED-SPACE-ENTRY",
+    "activity_series": "authorising and controlling entry",
+    "assets": [
+      {
+        "asset_class": "PRD-CLASS-A",
+        "label": "pressure relief devices",
+        "service": "overpressure protection on the transfer and storage system",
+        "tag": "PSV-4210"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 1,
+      "label": "medical treatment injury"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "CONFINED_SPACE_ENTRY_PERMIT",
+        "control_label": "classification of a space and issue of an entry permit",
+        "failure_mode": "ineffective",
+        "hazard_energy": "chemical",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "CONTINUOUS_ATMOSPHERIC_MONITORING",
+        "control_label": "continuous atmospheric monitoring during occupancy",
+        "failure_mode": "degraded",
+        "hazard_energy": "chemical",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "GAS_TEST_BEFORE_AND_DURING_HOT_WORK",
+        "control_label": "atmospheric gas testing before and during hot work",
+        "failure_mode": "not_verified",
+        "hazard_energy": "chemical",
+        "icam_tier": "organisational_factor"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "STANDBY_ATTENDANCE_AND_RESCUE",
+        "control_label": "standby attendance and non-entry rescue capability",
+        "failure_mode": "absent",
+        "hazard_energy": "chemical",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "INC-2012-007",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "incident",
+    "occurred_on": "2012-04-02",
+    "severity_actual": 2,
+    "severity_potential": 2,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during commissioning of replacement equipment",
+    "title": "loss of containment at PSV-4210 during commissioning of replacement equipment",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "54b399a73ede9506e32b75c057fb880d0c4a28a4bae9b3fd8bcdbcd92d8a4eeb",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2012-007",
+  "prompt_kind": "icam",
+  "prompt_sha256": "07a0f2a4d4dd07075fad2b78416cce6e11b9dbd87d19b9f46a380122766dbf13",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was medical treatment injury, with 1 person injured.",
+    "defences": [
+      {
+        "control_class": "CONFINED_SPACE_ENTRY_PERMIT",
+        "finding": "Control CONFINED_SPACE_ENTRY_PERMIT: the classification of a space and issue of an entry permit was in place but did not perform, and the root cause analysis classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "CONTINUOUS_ATMOSPHERIC_MONITORING",
+        "finding": "Control CONTINUOUS_ATMOSPHERIC_MONITORING: the continuous atmospheric monitoring during occupancy had degraded below its design intent, and the root cause analysis classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "GAS_TEST_BEFORE_AND_DURING_HOT_WORK",
+        "finding": "Control GAS_TEST_BEFORE_AND_DURING_HOT_WORK: the atmospheric gas testing before and during hot work was never verified as effective, and the root cause analysis classified this as an organisational factor."
+      },
+      {
+        "control_class": "STANDBY_ATTENDANCE_AND_RESCUE",
+        "finding": "Control STANDBY_ATTENDANCE_AND_RESCUE: the standby attendance and non-entry rescue capability was not in place, and the root cause analysis classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Restore the classification of a space and issue of an entry permit on PSV-4210 and record the field verification before this task is next authorised.",
+      "Restore the continuous atmospheric monitoring during occupancy on PSV-4210 and record the field verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in authorising and controlling entry, specifically atmospheric testing and continuous monitoring. PSV-4210 (pressure relief devices) is in service for overpressure protection on the transfer and storage system. The task proceeded during commissioning of replacement equipment while the classification of a space and issue of an entry permit was in place but did not perform. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 2 April 2012 an incident occurred on PSV-4210 at Marrindal Concentrator and Hydrocarbon Transfer Facility during commissioning of replacement equipment, releasing chemical energy held as hydrocarbon."
+  },
+  "response_sha256": "11833989f8c4f08add7d341f438276dc8eddae7318c4e34213a11fc77dc6b319",
+  "source": null
+}

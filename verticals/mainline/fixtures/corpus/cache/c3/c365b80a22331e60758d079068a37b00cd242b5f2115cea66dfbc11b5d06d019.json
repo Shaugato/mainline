@@ -1,0 +1,108 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "selecting and inspecting fall-arrest equipment",
+    "activity_root": "WORKING-AT-HEIGHT",
+    "activity_series": "providing fall protection",
+    "assets": [
+      {
+        "asset_class": "CONV-CLASS-A",
+        "label": "plant conveyors",
+        "service": "coarse ore and reclaim conveying",
+        "tag": "CV-3102"
+      },
+      {
+        "asset_class": "MOTOR-CLASS-A",
+        "label": "drive motor",
+        "service": "drives CV-3102",
+        "tag": "M-3102"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 1,
+      "label": "medical treatment injury"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "ANCHOR_POINT_CERTIFICATION",
+        "control_label": "certification and identification of anchor points",
+        "failure_mode": "absent",
+        "hazard_energy": "gravity",
+        "icam_tier": "organisational_factor"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "DROP_ZONE_EXCLUSION",
+        "control_label": "exclusion of people from beneath elevated work",
+        "failure_mode": "ineffective",
+        "hazard_energy": "gravity",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "FALL_ARREST_PROVISION",
+        "control_label": "selection, inspection and use of fall arrest equipment",
+        "failure_mode": "not_verified",
+        "hazard_energy": "gravity",
+        "icam_tier": "organisational_factor"
+      }
+    ],
+    "event_ref": "INC-2018-020",
+    "hazard_energy": "gravity",
+    "hazard_media": [
+      "suspended load",
+      "stored potential of an elevated component",
+      "unsupported ground",
+      "person at height"
+    ],
+    "hazard_release": "fall, collapse, crush",
+    "kind": "incident",
+    "occurred_on": "2018-11-18",
+    "severity_actual": 2,
+    "severity_potential": 2,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during a statutory inspection",
+    "title": "energy isolation failure on CV-3102",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "c365b80a22331e60758d079068a37b00cd242b5f2115cea66dfbc11b5d06d019",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2018-020",
+  "prompt_kind": "icam",
+  "prompt_sha256": "2142901be36d2f5109a6bde9e20311dcce349aa5c14f257f50960a2c0142d99b",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was medical treatment injury, with 1 person injured.",
+    "defences": [
+      {
+        "control_class": "ANCHOR_POINT_CERTIFICATION",
+        "finding": "Control ANCHOR_POINT_CERTIFICATION: the certification and identification of anchor points was not in place, and the ICAM investigation classified this as an organisational factor."
+      },
+      {
+        "control_class": "DROP_ZONE_EXCLUSION",
+        "finding": "Control DROP_ZONE_EXCLUSION: the exclusion of people from beneath elevated work was in place but did not perform, and the ICAM investigation classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "FALL_ARREST_PROVISION",
+        "finding": "Control FALL_ARREST_PROVISION: the selection, inspection and use of fall arrest equipment was never verified as effective, and the ICAM investigation classified this as an organisational factor."
+      }
+    ],
+    "recommendations": [
+      "Restore the exclusion of people from beneath elevated work on CV-3102 and M-3102 and record the critical control verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in providing fall protection, specifically selecting and inspecting fall-arrest equipment. CV-3102 (plant conveyors) is in service for coarse ore and reclaim conveying. The task proceeded during a statutory inspection while the certification and identification of anchor points was not in place. The gravity energy involved is held as suspended load, and the recorded presentation was fall, collapse, crush.",
+    "summary": "On 18 November 2018 an incident occurred on CV-3102 and M-3102 at Marrindal Concentrator and Hydrocarbon Transfer Facility during a statutory inspection, releasing gravity energy held as suspended load."
+  },
+  "response_sha256": "6beb52eca5d266d290cbceb756928323ffa41d5dc55cee471e73073be4a22a08",
+  "source": null
+}

@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "barrier_role": "preventive",
+    "control_class": "PARK_UP_AND_RESTRAINT",
+    "control_delta": "restate",
+    "control_label": "parking, chocking and restraint of equipment",
+    "doc_code": "PTW-STD-002",
+    "doc_family": "PTW",
+    "doc_title": "Permit to Work Form Set",
+    "effective_on": "2025-08-26",
+    "printed_label": "4.1.1",
+    "setpoint": null,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "energy_isolation": "positive isolation verification",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "c8eb839e622f1ee589922307ae1e8a646c97319c9a9c1ebfe68282edb14d27a8",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/PTW-STD-002/006#MRD/PTW-STD-002/1.4.3(a)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "e9d53ff6e26b3a46af9f9f2df953d27d51e46d680447eb77e4145675652cd71a",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The parking, chocking and restraint of equipment shall be provided and maintained wherever this permit-to-work form set applies, and its condition shall be treated as a material unwanted event control. This clause applies to activities archived under ISOLATION-OF-STORED-ENERGY at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "6814a2f3d2dd8f82b5a11ead8b298aa15d052bda13cef4ecc966a115bc3630a9",
+  "source": null
+}

@@ -1,0 +1,52 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 2,
+    "doc_codes": [
+      "ALERT-2016-007",
+      "MOC-2026-0413",
+      "PRO-MEC-014",
+      "PRO-OPS-032"
+    ],
+    "intent": "weaken",
+    "moc_ref": "MOC-2018-0176",
+    "opened_on": "2018-09-09",
+    "precursor_events": [
+      {
+        "event_ref": "AF-2018-003",
+        "severity_gate": null
+      },
+      {
+        "event_ref": "INC-2018-017",
+        "severity_gate": null
+      },
+      {
+        "event_ref": "NM-2023-0017",
+        "severity_gate": null
+      }
+    ],
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "management_of_change": "management of change",
+      "verification": "critical control verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "518819ebf2160e419d712031241ae48ce75bef86edcdd49dd26a3c78f33e30d6",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2018-0176",
+  "prompt_kind": "moc",
+  "prompt_sha256": "7b070193ea4c3758bfa6a4644c24cb3e599e73553ad0bfb4710e8efeb246a289",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2018-0176 was raised at Marrindal Concentrator and Hydrocarbon Transfer Facility on 9 September 2018 following 3 recorded events in the archive, including AF-2018-003, INC-2018-017 and NM-2023-0017. The management of change record covers 2 clauses across 4 controlled documents. The intent is to relax a critical control requirement, and the basis for the relaxation is recorded with the change. The record reached the state merged in the change stream.",
+    "risk_note": "This change relaxes a control: 0 steps of relaxation are recorded against it, and the residual risk position rests on that relaxation having been accepted deliberately.",
+    "scope_note": "The documents in scope are ALERT-2016-007, MOC-2026-0413, PRO-MEC-014 and PRO-OPS-032."
+  },
+  "response_sha256": "3a454b081bc2213f9ea2d8bb432cfc3b9771fe508ffc12c7e6ef5cf4e06f3c2b",
+  "source": null
+}

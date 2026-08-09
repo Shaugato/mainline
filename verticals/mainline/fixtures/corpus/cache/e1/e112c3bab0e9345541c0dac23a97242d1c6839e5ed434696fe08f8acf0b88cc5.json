@@ -1,0 +1,79 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "gas testing before and during hot work",
+    "activity_root": "CONTROL-OF-IGNITION-SOURCES",
+    "activity_series": "authorising hot work",
+    "assets": [
+      {
+        "asset_class": "SLP-CLASS-B",
+        "label": "slurry transfer pumps",
+        "service": "cyclone feed and tailings transfer",
+        "tag": "P-3222"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "HAZARDOUS_AREA_EQUIPMENT_INTEGRITY",
+        "control_label": "integrity of explosion-protected equipment in zoned areas",
+        "failure_mode": "not_verified",
+        "hazard_energy": "electrical",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "NM-2020-0020",
+    "hazard_energy": "electrical",
+    "hazard_media": [
+      "HV switchgear",
+      "LV distribution",
+      "capacitive storage",
+      "induced voltage",
+      "portable equipment"
+    ],
+    "hazard_release": "shock, arc flash, unplanned energisation",
+    "kind": "near_miss",
+    "occurred_on": "2020-12-21",
+    "severity_actual": 1,
+    "severity_potential": 2,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during an intrusive maintenance task",
+    "title": "potential incident during an intrusive maintenance task on P-3222",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "e112c3bab0e9345541c0dac23a97242d1c6839e5ed434696fe08f8acf0b88cc5",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2020-0020",
+  "prompt_kind": "icam",
+  "prompt_sha256": "fe7d53f6122bbbba842060c0b7b6208148592f8f5a6a357a25a1ae3cad80febf",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage. The potential outcome was rated 2 against the site's consequence scale, above the 1 actually realised.",
+    "defences": [
+      {
+        "control_class": "HAZARDOUS_AREA_EQUIPMENT_INTEGRITY",
+        "finding": "Control HAZARDOUS_AREA_EQUIPMENT_INTEGRITY: the integrity of explosion-protected equipment in zoned areas was never verified as effective, and the ICAM investigation classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the integrity of explosion-protected equipment in zoned areas on P-3222 and record the critical control verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in authorising hot work, specifically gas testing before and during hot work. P-3222 (slurry transfer pumps) is in service for cyclone feed and tailings transfer. The task proceeded during an intrusive maintenance task while the integrity of explosion-protected equipment in zoned areas was never verified as effective. The electrical energy involved is held as HV switchgear, and the recorded presentation was shock, arc flash, unplanned energisation.",
+    "summary": "On 21 December 2020 a potential incident was recorded on P-3222 at Marrindal Concentrator and Hydrocarbon Transfer Facility during an intrusive maintenance task; electrical energy held as HV switchgear was not released."
+  },
+  "response_sha256": "b58b3422a6e777a5e354f5e2687a7d7ec9766b5cc6fd38d1340721b909ae970b",
+  "source": null
+}

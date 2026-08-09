@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 6,
+    "doc_code": "STD-ELE-009",
+    "doc_family": "STD",
+    "doc_title": "Electrical Safety",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2011-07-14",
+    "required_citations": [
+      {
+        "control_label": "earth leakage and protection setting integrity",
+        "event_ref": "NM-2010-0013",
+        "event_title": "hazard report - thermal exposure at G-8101",
+        "hazard_energy": "thermal",
+        "kind": "capa_action",
+        "quote_ref": "quote:TLG/STD-ELE-009/002#capa_action/NM-2010-0013",
+        "severity_gate": 1
+      }
+    ],
+    "rev_no": 2,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "root cause analysis",
+      "management_of_change": "change request",
+      "near_miss": "hazard report"
+    }
+  },
+  "key": "5480128df38eb9bc6149ff2312d169a4ea4e83ddf132761c1dca92727c0bec4e",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:TLG/STD-ELE-009/002",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "ebbb786d2d4c5ede6384689b25ed1a72025d99eb9aa4deb4fdefb01b13347ac9",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The corrective action recorded against NM-2010-0013 required the earth leakage and protection setting integrity to be restated in this standard.",
+        "quote_ref": "quote:TLG/STD-ELE-009/002#capa_action/NM-2010-0013"
+      }
+    ],
+    "reason": "Scheduled review at revision 2; 6 clauses restated."
+  },
+  "response_sha256": "ce80062c24174804126a8e0a017118fc0b5f94433dbe7d71e372f75b86892704",
+  "source": null
+}

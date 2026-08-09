@@ -1,0 +1,104 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "providing and briefing a fire watch",
+    "activity_root": "CONTROL-OF-IGNITION-SOURCES",
+    "activity_series": "authorising hot work",
+    "assets": [
+      {
+        "asset_class": "HTP-CLASS-A",
+        "label": "export transfer pumps",
+        "service": "tank-to-jetty product transfer, same seal class as the Marrindal family",
+        "tag": "P-7110"
+      },
+      {
+        "asset_class": "INST-CLASS-A",
+        "label": "instrument loop",
+        "service": "governs P-7110",
+        "tag": "PT-7110"
+      },
+      {
+        "asset_class": "TANK-CLASS-P",
+        "label": "product storage tanks",
+        "service": "export product storage",
+        "tag": "TK-7101"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "GAS_TEST_BEFORE_AND_DURING_HOT_WORK",
+        "control_label": "atmospheric gas testing before and during hot work",
+        "failure_mode": "bypassed",
+        "hazard_energy": "thermal",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "HOT_WORK_AUTHORISATION",
+        "control_label": "authorisation of hot work adjacent to live plant",
+        "failure_mode": "absent",
+        "hazard_energy": "thermal",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "NM-2019-0002",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "near_miss",
+    "occurred_on": "2019-01-21",
+    "severity_actual": 1,
+    "severity_potential": 2,
+    "site": "Cape Verity Export Terminal",
+    "summary_facts": [],
+    "task_phase": "during start-up after maintenance",
+    "title": "potential incident during start-up after maintenance on P-7110",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "452ea4c45e664568ed16dba6ddb7eb60b9efce04092b3b9330ded9842ade1deb",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2019-0002",
+  "prompt_kind": "icam",
+  "prompt_sha256": "3860fe9571f82aebd86ad0ff15953e98bec8e227cce08838237d3549abc000dd",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage. The potential outcome was rated 2 against the site's consequence scale, above the 1 actually realised.",
+    "defences": [
+      {
+        "control_class": "GAS_TEST_BEFORE_AND_DURING_HOT_WORK",
+        "finding": "Control GAS_TEST_BEFORE_AND_DURING_HOT_WORK: the atmospheric gas testing before and during hot work had been bypassed, and the ICAM investigation classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "HOT_WORK_AUTHORISATION",
+        "finding": "Control HOT_WORK_AUTHORISATION: the authorisation of hot work adjacent to live plant was not in place, and the ICAM investigation classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next critical control verification that the atmospheric gas testing before and during hot work on P-7110, PT-7110 and TK-7101 performs as designed."
+    ],
+    "sequence": "Work was under way in authorising hot work, specifically providing and briefing a fire watch. P-7110 (export transfer pumps) is in service for tank-to-jetty product transfer, same seal class as the Marrindal family. The task proceeded during start-up after maintenance while the atmospheric gas testing before and during hot work had been bypassed. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 21 January 2019 a potential incident was recorded on P-7110, PT-7110 and TK-7101 at Cape Verity Export Terminal during start-up after maintenance; chemical energy held as hydrocarbon was not released."
+  },
+  "response_sha256": "aedcf3d9ef46fff6d4e0dcc564033ebbed65e530ea810ba62ff06f7cb331f32c",
+  "source": null
+}

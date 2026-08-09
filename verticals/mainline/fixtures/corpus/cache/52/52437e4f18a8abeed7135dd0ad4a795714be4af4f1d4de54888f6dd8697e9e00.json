@@ -1,0 +1,79 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "directing a lift and controlling the drop zone",
+    "activity_root": "LIFTING-AND-SUSPENDED-LOADS",
+    "activity_series": "planning and executing a lift",
+    "assets": [
+      {
+        "asset_class": "LIFT-CLASS-W",
+        "label": "workshop hoists and press",
+        "service": "heavy vehicle component removal and pressing",
+        "tag": "HO-9402"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "LOAD_SUPPORT_FOR_MAINTENANCE",
+        "control_label": "mechanical support of a load during maintenance access",
+        "failure_mode": "bypassed",
+        "hazard_energy": "gravity",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "NM-2016-0003",
+    "hazard_energy": "kinetic",
+    "hazard_media": [
+      "rotating equipment",
+      "conveyor",
+      "mobile equipment",
+      "pressurised jet",
+      "flying fragment"
+    ],
+    "hazard_release": "entanglement, impact, crush",
+    "kind": "near_miss",
+    "occurred_on": "2016-02-22",
+    "severity_actual": 1,
+    "severity_potential": 2,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during a planned shutdown",
+    "title": "potential incident during a planned shutdown on HO-9402",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "52437e4f18a8abeed7135dd0ad4a795714be4af4f1d4de54888f6dd8697e9e00",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2016-0003",
+  "prompt_kind": "icam",
+  "prompt_sha256": "4611e601ec76eba75de289b700f71ce5285049ea4a742d77eb1d9d63e4c6e4a2",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage. The potential outcome was rated 2 against the site's consequence scale, above the 1 actually realised.",
+    "defences": [
+      {
+        "control_class": "LOAD_SUPPORT_FOR_MAINTENANCE",
+        "finding": "Control LOAD_SUPPORT_FOR_MAINTENANCE: the mechanical support of a load during maintenance access had been bypassed, and the ICAM investigation classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next critical control verification that the mechanical support of a load during maintenance access on HO-9402 performs as designed."
+    ],
+    "sequence": "Work was under way in planning and executing a lift, specifically directing a lift and controlling the drop zone. HO-9402 (workshop hoists and press) is in service for heavy vehicle component removal and pressing. The task proceeded during a planned shutdown while the mechanical support of a load during maintenance access had been bypassed. The kinetic energy involved is held as rotating equipment, and the recorded presentation was entanglement, impact, crush.",
+    "summary": "On 22 February 2016 a potential incident was recorded on HO-9402 at Yandarra Downs Open Cut and Heavy Workshop during a planned shutdown; kinetic energy held as rotating equipment was not released."
+  },
+  "response_sha256": "78575d1ad741af0f7b78aa3411c6078332b3ab187779154d4672947c17a96b20",
+  "source": null
+}

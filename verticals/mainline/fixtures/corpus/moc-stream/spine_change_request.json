@@ -1,0 +1,24 @@
+{
+  "cr_external_ref": "MOC-2026-0413",
+  "declared_clause_keys": [
+    "MRD/PRO-MEC-014/7.3"
+  ],
+  "declared_clause_uuids": [
+    "2ad35fa5-d174-5eb1-8550-05adfa90e08d"
+  ],
+  "declared_relations": [
+    "edits"
+  ],
+  "first_act_at": "2026-07-29T10:53:42+10:00",
+  "opened_at": "2026-07-28T07:55:00+10:00",
+  "plan_ends_at_state": "dispositioned",
+  "precursor_events": [
+    "INC-2013-044"
+  ],
+  "precursor_severity_max_from_answer_key": 4,
+  "realised": [
+    false
+  ],
+  "statement": "One declared clause, unrealised, and a plan that stops short of the merge. The merge is not missing from the plan because it was forgotten; it is absent because whether it may happen is the database's answer to give, and the beat is that the answer is no.",
+  "transition_count": 2
+}

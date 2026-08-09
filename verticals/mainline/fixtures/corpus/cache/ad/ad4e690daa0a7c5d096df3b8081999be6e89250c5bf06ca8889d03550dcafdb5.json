@@ -1,0 +1,64 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 29,
+    "doc_code": "STD-ELE-009",
+    "doc_family": "STD",
+    "doc_title": "Electrical Safety",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2007-03-15",
+    "required_citations": [
+      {
+        "control_label": "authorisation of switching and access to apparatus",
+        "event_ref": "CAPA-2006-004",
+        "event_title": "corrective action - key safeguard at G-8102",
+        "hazard_energy": "thermal",
+        "kind": "regulator_requirement",
+        "quote_ref": "quote:TLG/STD-ELE-009/001#regulator_requirement/CAPA-2006-004",
+        "severity_gate": 2
+      },
+      {
+        "control_label": "authorisation of switching and access to apparatus",
+        "event_ref": "CAPA-2006-004",
+        "event_title": "corrective action - key safeguard at G-8102",
+        "hazard_energy": "thermal",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:TLG/STD-ELE-009/001#revision_history_line/CAPA-2006-004",
+        "severity_gate": 2
+      }
+    ],
+    "rev_no": 1,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "accident investigation",
+      "management_of_change": "engineering change note",
+      "near_miss": "near hit"
+    }
+  },
+  "key": "ad4e690daa0a7c5d096df3b8081999be6e89250c5bf06ca8889d03550dcafdb5",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:TLG/STD-ELE-009/001",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "fce0a05c9c2724665ac8f96258a27e0685a8ad761103ffe6b0175e266d1a149a",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "A regulatory requirement arising from CAPA-2006-004 obliges this standard to carry the authorisation of switching and access to apparatus.",
+        "quote_ref": "quote:TLG/STD-ELE-009/001#regulator_requirement/CAPA-2006-004"
+      },
+      {
+        "line": "Revision 1 was raised in response to CAPA-2006-004, and the authorisation of switching and access to apparatus was amended as a result.",
+        "quote_ref": "quote:TLG/STD-ELE-009/001#revision_history_line/CAPA-2006-004"
+      }
+    ],
+    "reason": "Scheduled review at revision 1; 29 clauses restated."
+  },
+  "response_sha256": "d6106bee8f8a857b5a2c2bd9fbb2a3055b9c0b37a43745bd6daebeecc8ccb897",
+  "source": null
+}

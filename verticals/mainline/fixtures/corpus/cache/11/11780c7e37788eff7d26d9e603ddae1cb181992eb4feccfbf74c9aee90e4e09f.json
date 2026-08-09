@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "barrier_role": "preventive",
+    "control_class": "ISOLATION_HANDBACK_CONTROL",
+    "control_delta": "strengthen",
+    "control_label": "controlled removal of isolation and return to service",
+    "doc_code": "PRO-MEC-021",
+    "doc_family": "PRO",
+    "doc_title": "Mechanical Isolation and Lockout",
+    "effective_on": "2026-06-27",
+    "printed_label": "2.1.2",
+    "setpoint": null,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "energy_isolation": "positive isolation verification",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "11780c7e37788eff7d26d9e603ddae1cb181992eb4feccfbf74c9aee90e4e09f",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/PRO-MEC-021/013#MRD/PRO-MEC-021/5.4",
+  "prompt_kind": "clause",
+  "prompt_sha256": "bde1aeffb5fae46c4d91dde519f7b4a0f6f804d587498f5cccf6a34bca89bf60",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The controlled removal of isolation and return to service must be provided, and its effectiveness must be recorded as a assurance activity before the task proceeds. This clause applies to activities archived under ISOLATION-OF-STORED-ENERGY at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "must"
+  },
+  "response_sha256": "c14ccdc7c46ab8e554a594f19f225cb30fefcace68ad6014d963d0f5d9740b14",
+  "source": null
+}

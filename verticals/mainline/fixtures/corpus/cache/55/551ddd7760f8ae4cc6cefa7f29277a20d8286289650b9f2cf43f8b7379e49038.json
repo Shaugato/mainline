@@ -1,0 +1,92 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "testing and inspecting fixed fire systems",
+    "activity_root": "FIRE-AND-EMERGENCY-RESPONSE",
+    "activity_series": "maintaining fire protection systems",
+    "assets": [
+      {
+        "asset_class": "HTP-CLASS-A",
+        "label": "hydrocarbon transfer pumps",
+        "service": "hydrocarbon transfer, single mechanical seal with pressurised barrier-fluid support",
+        "tag": "P-4101"
+      },
+      {
+        "asset_class": "MOTOR-CLASS-A",
+        "label": "drive motor",
+        "service": "drives P-4101",
+        "tag": "M-4101"
+      },
+      {
+        "asset_class": "HTP-CLASS-A",
+        "label": "hydrocarbon transfer pumps",
+        "service": "hydrocarbon transfer, single mechanical seal with pressurised barrier-fluid support",
+        "tag": "P-4105"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "FIRE_WATCH_PROVISION",
+        "control_label": "provision and briefing of a competent fire watch",
+        "failure_mode": "absent",
+        "hazard_energy": "chemical",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "NM-2020-0006",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "near_miss",
+    "occurred_on": "2020-03-17",
+    "severity_actual": 1,
+    "severity_potential": 4,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during transfer operations",
+    "title": "potential incident - chemical exposure at P-4101",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "551ddd7760f8ae4cc6cefa7f29277a20d8286289650b9f2cf43f8b7379e49038",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2020-0006",
+  "prompt_kind": "icam",
+  "prompt_sha256": "82483b4189210ca91e421196113722ee4be3b907663b56b1932685c7fdfbc0a9",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage. The potential outcome was rated 4 against the site's consequence scale, above the 1 actually realised.",
+    "defences": [
+      {
+        "control_class": "FIRE_WATCH_PROVISION",
+        "finding": "Control FIRE_WATCH_PROVISION: the provision and briefing of a competent fire watch was not in place, and the ICAM investigation classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next critical control verification that the provision and briefing of a competent fire watch on P-4101, M-4101 and P-4105 performs as designed."
+    ],
+    "sequence": "Work was under way in maintaining fire protection systems, specifically testing and inspecting fixed fire systems. P-4101 (hydrocarbon transfer pumps) is in service for hydrocarbon transfer, single mechanical seal with pressurised barrier-fluid support. The task proceeded during transfer operations while the provision and briefing of a competent fire watch was not in place. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 17 March 2020 a potential incident was recorded on P-4101, M-4101 and P-4105 at Marrindal Concentrator and Hydrocarbon Transfer Facility during transfer operations; chemical energy held as hydrocarbon was not released."
+  },
+  "response_sha256": "44668a8a56a2949ff804c215b6ccc16c015f11c796bb36adbc4feeb515ce9815",
+  "source": null
+}

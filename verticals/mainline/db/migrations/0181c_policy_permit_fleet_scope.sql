@@ -1,0 +1,51 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MAINLINE · 0181c_policy_permit_fleet_scope.sql
+-- CREATE POLICY fleet_scope ON mainline.permit — the cross-site readers, named
+--
+-- MI: MI02
+-- I: I02
+-- COUNSEL-GATED: no
+-- RATIONALE: Three roles legitimately read every site: the fleet HSE function, the human
+--            read-only auditor, and the Managed-MCP identity. Naming them in one policy
+--            rather than leaving them unscoped by omission means the set is enumerable,
+--            diffable and revocable — adding a fourth cross-site reader is a migration,
+--            which is the correct weight for 'this principal may see the whole fleet'.
+--
+-- migration:  0181c_policy_permit_fleet_scope
+-- domain:     datamodel / dm-views-rls
+-- band:       0180-0198z · datamodel/dm-views-rls · AUTHORED, allocated by
+--             verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1)
+-- statements: 1
+-- matrix:     verticals/mainline/db/RLS-MATRIX.yaml — this file is a RENDERING of one entry
+--             there; tests/integration/schema/test_mi_rls.py asserts the two agree
+-- source:     ARCHITECTURE.md §11.3 (RLS, SEC-1) · §4.1 law 10 · correction S22 · §11.2 · §9.1 (the pessimistic MCP identity assumption)
+-- requires:   0050 mainline.permit · 0181 ENABLE · 0181a FORCE
+-- sqlstate:   42501 for any other role holding no other SELECT policy on this table.
+-- forward-only; no .down.sql exists at or below the protected floor.
+--
+-- ────────────────────────────────────────────────────────────────────────────
+-- WHY mainline_auditor IS LISTED HERE EVEN THOUGH IT HOLDS NO GRANT ON `mainline`
+-- ────────────────────────────────────────────────────────────────────────────
+-- GRANTS.yaml denies `mainline_auditor` SELECT on every object in schema `mainline`; it
+-- reads `mainline_audit` views and nothing else. The two controls are independent and the
+-- GRANT is the binding one — a policy cannot widen a privilege that was never granted.
+-- Listing it is honest about §9.1's own pessimistic assumption: which SQL identity
+-- `select_query` runs as is undocumented, so the design assumes admin-equivalent and shapes
+-- the `mainline_audit` views to be SAFE IF READ IN FULL. If that assumption is ever
+-- falsified in our favour, this line is what makes the auditor's read work through the
+-- views' owner rather than by accident.
+--
+-- ────────────────────────────────────────────────────────────────────────────
+-- WHAT USING (true) DOES AND DOES NOT SAY
+-- ────────────────────────────────────────────────────────────────────────────
+-- It says: for these roles, no ROW is filtered. It does not say they may read the table —
+-- that is the grant — and it does not say they may write it, because this policy is FOR
+-- SELECT and a policy scoped to one command has no effect on any other.
+--
+
+CREATE POLICY fleet_scope ON mainline.permit
+  AS PERMISSIVE FOR SELECT TO fleet_hse, auditor_ro, mainline_auditor
+  USING (true);
+

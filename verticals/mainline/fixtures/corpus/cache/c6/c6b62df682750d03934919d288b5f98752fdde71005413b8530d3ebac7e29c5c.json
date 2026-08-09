@@ -1,0 +1,78 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "parking, chocking and restraining equipment",
+    "activity_root": "MOBILE-EQUIPMENT-INTERACTION",
+    "activity_series": "controlling traffic on operating areas",
+    "assets": [
+      {
+        "asset_class": "MOB-CLASS-H",
+        "label": "haul trucks",
+        "service": "waste and ore haulage",
+        "tag": "HT-9003"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "POSITIVE_COMMUNICATION_BEFORE_APPROACH",
+        "control_label": "positive communication before approaching mobile equipment",
+        "failure_mode": "ineffective",
+        "hazard_energy": "kinetic",
+        "icam_tier": "organisational_factor"
+      }
+    ],
+    "event_ref": "AF-2012-007",
+    "hazard_energy": "gravity",
+    "hazard_media": [
+      "suspended load",
+      "stored potential of an elevated component",
+      "unsupported ground",
+      "person at height"
+    ],
+    "hazard_release": "fall, collapse, crush",
+    "kind": "audit_finding",
+    "occurred_on": "2012-12-21",
+    "severity_actual": 1,
+    "severity_potential": 3,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during start-up after maintenance",
+    "title": "audit finding - work permit records incomplete for HT-9003",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "c6b62df682750d03934919d288b5f98752fdde71005413b8530d3ebac7e29c5c",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:AF-2012-007",
+  "prompt_kind": "icam",
+  "prompt_sha256": "026ff1a0128635f16c21335a29dd6c2deb5731a148322afec4cb0f6a9f5e32e8",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage. The potential outcome was rated 3 against the site's consequence scale, above the 1 actually realised.",
+    "defences": [
+      {
+        "control_class": "POSITIVE_COMMUNICATION_BEFORE_APPROACH",
+        "finding": "Control POSITIVE_COMMUNICATION_BEFORE_APPROACH: the positive communication before approaching mobile equipment was in place but did not perform, and the root cause analysis classified this as an organisational factor."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next field verification that the positive communication before approaching mobile equipment on HT-9003 performs as designed."
+    ],
+    "sequence": "Work was under way in controlling traffic on operating areas, specifically parking, chocking and restraining equipment. HT-9003 (haul trucks) is in service for waste and ore haulage. The task proceeded during start-up after maintenance while the positive communication before approaching mobile equipment was in place but did not perform. The gravity energy involved is held as suspended load, and the recorded presentation was fall, collapse, crush.",
+    "summary": "On 21 December 2012 a planned field verification of HT-9003 at Yandarra Downs Open Cut and Heavy Workshop found the positive communication before approaching mobile equipment not effective."
+  },
+  "response_sha256": "0e416f89196a68e30777a95455995692ff8e038d383826d8a82f0a3024cfba68",
+  "source": null
+}

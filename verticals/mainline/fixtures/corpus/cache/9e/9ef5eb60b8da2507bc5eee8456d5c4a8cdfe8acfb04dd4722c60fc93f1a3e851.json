@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTROL-OF-IGNITION-SOURCES",
+    "barrier_role": "recovery",
+    "control_class": "FIRE_WATCH_PROVISION",
+    "control_delta": "strengthen",
+    "control_label": "provision and briefing of a competent fire watch",
+    "doc_code": "STD-HTW-004",
+    "doc_family": "STD",
+    "doc_title": "Hot Work",
+    "effective_on": "2013-09-10",
+    "printed_label": "1.2",
+    "setpoint": {
+      "from": 30.0,
+      "key": "fire_watch_duration_after_hot_work",
+      "label": "fire watch duration after completion of hot work",
+      "strengthen_direction": "higher",
+      "to": 60.0,
+      "unit": "min"
+    },
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "energy_isolation": "lock out tag out",
+      "verification": "field verification"
+    }
+  },
+  "key": "9ef5eb60b8da2507bc5eee8456d5c4a8cdfe8acfb04dd4722c60fc93f1a3e851",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/STD-HTW-004/003#MRD/STD-HTW-004/1.2",
+  "prompt_kind": "clause",
+  "prompt_sha256": "766f5d0cbd5eab50ad70746f03e79ea030eb96004b3eff41fb3786589279a494",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The provision and briefing of a competent fire watch must be provided, and its effectiveness must be recorded as a field verification before the task proceeds. The fire watch duration after completion of hot work must be set at 60 min. This clause applies to activities archived under CONTROL-OF-IGNITION-SOURCES at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "must"
+  },
+  "response_sha256": "74d121551225814c788484106b04f473b379ee84721e08b2453fd20316201d33",
+  "source": null
+}

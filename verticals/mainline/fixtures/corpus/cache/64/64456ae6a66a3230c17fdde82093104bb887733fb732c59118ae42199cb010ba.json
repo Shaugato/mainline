@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONFINED-SPACE-ENTRY",
+    "barrier_role": "preventive",
+    "control_class": "GAS_TEST_BEFORE_AND_DURING_HOT_WORK",
+    "control_delta": "strengthen",
+    "control_label": "atmospheric gas testing before and during hot work",
+    "doc_code": "PRO-HSE-012",
+    "doc_family": "PRO",
+    "doc_title": "Confined Space Entry",
+    "effective_on": "2010-09-04",
+    "printed_label": "3.1.2(d)",
+    "setpoint": null,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "energy_isolation": "lock out tag out",
+      "verification": "field verification"
+    }
+  },
+  "key": "64456ae6a66a3230c17fdde82093104bb887733fb732c59118ae42199cb010ba",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:CVY/PRO-HSE-012/003#CVY/PRO-HSE-012/3.1.2(d)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "69cff031261d3b3aece4b459f3b683d2cd50b90932178d1e7b9516ace23a3939",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The atmospheric gas testing before and during hot work must be provided, and its effectiveness must be recorded as a field verification before the task proceeds. This clause applies to activities archived under CONFINED-SPACE-ENTRY at Cape Verity Export Terminal.",
+    "obligation_verb": "must"
+  },
+  "response_sha256": "f688e4a1856e94eb131eecd5cc0b5e2b5c52f440e65eb50ec40ed78441b94ca4",
+  "source": null
+}

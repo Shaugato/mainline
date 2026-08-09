@@ -1,0 +1,45 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 1,
+    "doc_codes": [
+      "MOC-2019-0221",
+      "PRO-MEC-021",
+      "PTW-STD-002",
+      "STD-ISO-006",
+      "STD-PTW-001"
+    ],
+    "intent": "restate",
+    "moc_ref": "MOC-2017-0159",
+    "opened_on": "2017-09-23",
+    "precursor_events": [
+      {
+        "event_ref": "INC-2018-016",
+        "severity_gate": null
+      }
+    ],
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "management_of_change": "management of change",
+      "verification": "critical control verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "e82bfad3df9e044b6ea6b2e56ef2163b65173033e41bc2f474bf92cbe44e9032",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2017-0159",
+  "prompt_kind": "moc",
+  "prompt_sha256": "fd89e062a0655c4f2d7cbfdaac2c4b2b0fda7250ed8c3ac73b7f0a7cfd1c5210",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2017-0159 was raised at Marrindal Concentrator and Hydrocarbon Transfer Facility on 23 September 2017 following 1 recorded event in the archive, including INC-2018-016. The management of change record covers 1 clause across 5 controlled documents. The intent is to restate an existing duty without altering what it requires. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical control set is preserved.",
+    "scope_note": "The documents in scope are MOC-2019-0221, PRO-MEC-021, PTW-STD-002, STD-ISO-006 and STD-PTW-001."
+  },
+  "response_sha256": "511e1b5b06859929c3a3a925b2fc3568e8bc9516d35d4fadefa665602e673f1a",
+  "source": null
+}

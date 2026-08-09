@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "EXPLOSIVES-AND-BLASTING",
+    "barrier_role": "preventive",
+    "control_class": "EXPLOSIVES_RECONCILIATION",
+    "control_delta": "restate",
+    "control_label": "receipt, magazining and reconciliation of explosives",
+    "doc_code": "STD-LFT-003",
+    "doc_family": "PRO",
+    "doc_title": "Explosives Receipt and Magazine Control",
+    "effective_on": "2019-01-01",
+    "printed_label": "3.1.5",
+    "setpoint": null,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "fee5a8ea5382364aa750de9c5edf9cbf6d0f8cfa19cc374bd4e3c38013a5f69c",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:YND/PRO-EXP-002/006#YND/PRO-EXP-002/7.4",
+  "prompt_kind": "clause",
+  "prompt_sha256": "bd24ba961b26d40e3e13cbfead2dc91a5f6b7e281846881f9761e35387cf2a4d",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The receipt, magazining and reconciliation of explosives shall be provided and maintained wherever this procedure applies, and its condition shall be treated as a critical control. This clause applies to activities archived under EXPLOSIVES-AND-BLASTING at Yandarra Downs Open Cut and Heavy Workshop.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "5db20856409d2d441f10ef7893ce1759384908863c682cd08a7554d89edf828a",
+  "source": null
+}

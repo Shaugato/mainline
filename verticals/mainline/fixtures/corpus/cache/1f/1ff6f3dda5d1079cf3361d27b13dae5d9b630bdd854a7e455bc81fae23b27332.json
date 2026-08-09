@@ -1,0 +1,92 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "supporting a load for maintenance access",
+    "activity_root": "LIFTING-AND-SUSPENDED-LOADS",
+    "activity_series": "maintaining lifting appliances",
+    "assets": [
+      {
+        "asset_class": "LIFT-CLASS-W",
+        "label": "workshop hoists and press",
+        "service": "heavy vehicle component removal and pressing",
+        "tag": "HO-9401"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "LIFTING_GEAR_INSPECTION",
+        "control_label": "inspection and periodic proof testing of lifting gear",
+        "failure_mode": "absent",
+        "hazard_energy": "gravity",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "LIFT_STUDY_APPROVAL",
+        "control_label": "preparation and approval of a lift study",
+        "failure_mode": "ineffective",
+        "hazard_energy": "gravity",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "NM-2011-0005",
+    "hazard_energy": "kinetic",
+    "hazard_media": [
+      "rotating equipment",
+      "conveyor",
+      "mobile equipment",
+      "pressurised jet",
+      "flying fragment"
+    ],
+    "hazard_release": "entanglement, impact, crush",
+    "kind": "near_miss",
+    "occurred_on": "2011-03-08",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during cleaning and preparation",
+    "title": "stored energy found after isolation of HO-9401",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "1ff6f3dda5d1079cf3361d27b13dae5d9b630bdd854a7e455bc81fae23b27332",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2011-0005",
+  "prompt_kind": "icam",
+  "prompt_sha256": "d63445d076bbee7c8471b6c0cd42d2b74b9917ef31a1c0fe3652dc1356f336cf",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "LIFTING_GEAR_INSPECTION",
+        "finding": "Control LIFTING_GEAR_INSPECTION: the inspection and periodic proof testing of lifting gear was not in place, and the root cause analysis classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "LIFT_STUDY_APPROVAL",
+        "finding": "Control LIFT_STUDY_APPROVAL: the preparation and approval of a lift study was in place but did not perform, and the root cause analysis classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the inspection and periodic proof testing of lifting gear on HO-9401 and record the field verification before this task is next authorised.",
+      "Restore the preparation and approval of a lift study on HO-9401 and record the field verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in maintaining lifting appliances, specifically supporting a load for maintenance access. HO-9401 (workshop hoists and press) is in service for heavy vehicle component removal and pressing. The task proceeded during cleaning and preparation while the inspection and periodic proof testing of lifting gear was not in place. The kinetic energy involved is held as rotating equipment, and the recorded presentation was entanglement, impact, crush.",
+    "summary": "On 8 March 2011 a hazard report was recorded on HO-9401 at Yandarra Downs Open Cut and Heavy Workshop during cleaning and preparation; kinetic energy held as rotating equipment was not released."
+  },
+  "response_sha256": "82ef1e637e4d8ffad61d7abbf836ab8f197cffddd64e59d583de65ec23152c05",
+  "source": null
+}

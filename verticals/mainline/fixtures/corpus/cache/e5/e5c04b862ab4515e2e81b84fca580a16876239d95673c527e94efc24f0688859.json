@@ -1,0 +1,110 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "maintaining portable and mobile extinguishing equipment",
+    "activity_root": "FIRE-AND-EMERGENCY-RESPONSE",
+    "activity_series": "maintaining fire protection systems",
+    "assets": [
+      {
+        "asset_class": "TANK-CLASS-P",
+        "label": "product storage tanks",
+        "service": "export product storage",
+        "tag": "TK-7102"
+      },
+      {
+        "asset_class": "INST-CLASS-A",
+        "label": "instrument loop",
+        "service": "governs TK-7102",
+        "tag": "LT-7102"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "EMERGENCY_ISOLATION_ON_RELEASE",
+        "control_label": "emergency isolation and depressuring on loss of containment",
+        "failure_mode": "ineffective",
+        "hazard_energy": "chemical",
+        "icam_tier": "individual_or_team_action"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "FIXED_FIRE_SYSTEM_AVAILABILITY",
+        "control_label": "availability and testing of fixed fire protection",
+        "failure_mode": "degraded",
+        "hazard_energy": "chemical",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "MUSTER_AND_ACCOUNTING",
+        "control_label": "alarm, muster and accounting for people",
+        "failure_mode": "ineffective",
+        "hazard_energy": "chemical",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "INC-2006-009",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "incident",
+    "occurred_on": "2006-12-17",
+    "severity_actual": 1,
+    "severity_potential": 1,
+    "site": "Cape Verity Export Terminal",
+    "summary_facts": [],
+    "task_phase": "during cleaning and preparation",
+    "title": "loss of containment at TK-7102 during cleaning and preparation",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "investigation": "accident investigation",
+      "near_miss": "near hit",
+      "verification": "spot check"
+    }
+  },
+  "key": "e5c04b862ab4515e2e81b84fca580a16876239d95673c527e94efc24f0688859",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2006-009",
+  "prompt_kind": "icam",
+  "prompt_sha256": "26ecf8cbaa1fbdc501cdac151ae4d28f0e409519f3e7a49a6a3334389020675c",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage.",
+    "defences": [
+      {
+        "control_class": "EMERGENCY_ISOLATION_ON_RELEASE",
+        "finding": "Control EMERGENCY_ISOLATION_ON_RELEASE: the emergency isolation and depressuring on loss of containment was in place but did not perform, and the accident investigation classified this as an individual or team action."
+      },
+      {
+        "control_class": "FIXED_FIRE_SYSTEM_AVAILABILITY",
+        "finding": "Control FIXED_FIRE_SYSTEM_AVAILABILITY: the availability and testing of fixed fire protection had degraded below its design intent, and the accident investigation classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "MUSTER_AND_ACCOUNTING",
+        "finding": "Control MUSTER_AND_ACCOUNTING: the alarm, muster and accounting for people was in place but did not perform, and the accident investigation classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Restore the availability and testing of fixed fire protection on TK-7102 and LT-7102 and record the spot check before this task is next authorised."
+    ],
+    "sequence": "Work was under way in maintaining fire protection systems, specifically maintaining portable and mobile extinguishing equipment. TK-7102 (product storage tanks) is in service for export product storage. The task proceeded during cleaning and preparation while the emergency isolation and depressuring on loss of containment was in place but did not perform. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 17 December 2006 an incident occurred on TK-7102 and LT-7102 at Cape Verity Export Terminal during cleaning and preparation, releasing chemical energy held as hydrocarbon."
+  },
+  "response_sha256": "f734529da1acead0493b21c6d9673b28920942ed365bdf42f0957abb88cdad56",
+  "source": null
+}

@@ -1,0 +1,84 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "applying locks, tags and personal danger tags",
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "activity_series": "applying and verifying an isolation",
+    "assets": [
+      {
+        "asset_class": "MILL-CLASS-A",
+        "label": "grinding mills",
+        "service": "two-line ball milling",
+        "tag": "ML-3201"
+      },
+      {
+        "asset_class": "MOTOR-CLASS-A",
+        "label": "drive motor",
+        "service": "drives ML-3201",
+        "tag": "M-3201"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 1,
+      "label": "medical treatment injury"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "ISOLATION_HANDBACK_CONTROL",
+        "control_label": "controlled removal of isolation and return to service",
+        "failure_mode": "bypassed",
+        "hazard_energy": "electrical",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "AF-2017-002",
+    "hazard_energy": "gravity",
+    "hazard_media": [
+      "suspended load",
+      "stored potential of an elevated component",
+      "unsupported ground",
+      "person at height"
+    ],
+    "hazard_release": "fall, collapse, crush",
+    "kind": "audit_finding",
+    "occurred_on": "2017-02-18",
+    "severity_actual": 2,
+    "severity_potential": 3,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during start-up after maintenance",
+    "title": "audit finding - critical control verification of critical control at ML-3201",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "60e77b38bc23fe698d1c493c78fd66bb27d711d06b3a467d6267f77fc2a85136",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:AF-2017-002",
+  "prompt_kind": "icam",
+  "prompt_sha256": "c17d2fb6c7966ae351bbfc80ac63b1e337ee51f9279d50383aedf054f0ef9d61",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was medical treatment injury, with 1 person injured. The potential outcome was rated 3 against the site's consequence scale, above the 2 actually realised.",
+    "defences": [
+      {
+        "control_class": "ISOLATION_HANDBACK_CONTROL",
+        "finding": "Control ISOLATION_HANDBACK_CONTROL: the controlled removal of isolation and return to service had been bypassed, and the ICAM investigation classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the controlled removal of isolation and return to service on ML-3201 and M-3201 and record the critical control verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in applying and verifying an isolation, specifically applying locks, tags and personal danger tags. ML-3201 (grinding mills) is in service for two-line ball milling. The task proceeded during start-up after maintenance while the controlled removal of isolation and return to service had been bypassed. The gravity energy involved is held as suspended load, and the recorded presentation was fall, collapse, crush.",
+    "summary": "On 18 February 2017 a planned critical control verification of ML-3201 and M-3201 at Marrindal Concentrator and Hydrocarbon Transfer Facility found the controlled removal of isolation and return to service not effective."
+  },
+  "response_sha256": "c21b68638cf01ece0ccf7e00c17a2a99fbc22332e249018d35f7713c5276a526",
+  "source": null
+}

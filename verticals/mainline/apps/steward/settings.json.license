@@ -1,0 +1,10 @@
+SPDX-FileCopyrightText: 2026 MAINLINE contributors
+SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
+
+This sidecar exists because JSON has no comment syntax and Claude Code's settings loader
+warns on unrecognised top-level keys — a behaviour that could not be verified against a
+running Claude Code from the build machine, so no commentary key was risked inside the
+file itself. The rationale for every entry in `permissions.allow` and `permissions.deny`
+is in `runbooks/steward-operations.md`, section "The allowlist is the capability
+boundary", and `tests/integration/steward/test_capability_boundary.py` asserts the two
+agree.

@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ELECTRICAL-SAFETY",
+    "barrier_role": "recovery",
+    "control_class": "EARTH_LEAKAGE_PROTECTION",
+    "control_delta": "introduce",
+    "control_label": "earth leakage and protection setting integrity",
+    "doc_code": "STD-ELE-009",
+    "doc_family": "STD",
+    "doc_title": "Electrical Safety",
+    "effective_on": "2011-07-14",
+    "printed_label": "1.1.3(a)",
+    "setpoint": null,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "energy_isolation": "lock out tag out",
+      "verification": "field verification"
+    }
+  },
+  "key": "0e452535f06436c2cad076548add86b02201afdb1e9e49096227bb046239da92",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:TLG/STD-ELE-009/002#TLG/STD-ELE-009/1.1.3(a)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "d163a2d24295ebcf37e4ef2ba8e4002298069b59ec9de9dc0db45e0770e67e96",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The earth leakage and protection setting integrity shall be provided and maintained for work covered by this standard. This clause applies to activities archived under ELECTRICAL-SAFETY at Tolgarra Processing and Power Station.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "c31e0df182cfb8d1edbad50495fdaa04b3cdc507472e886d72b3a313b5718a03",
+  "source": null
+}

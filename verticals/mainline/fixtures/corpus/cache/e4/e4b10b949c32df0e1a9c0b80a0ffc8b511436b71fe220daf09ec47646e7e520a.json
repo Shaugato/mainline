@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 0,
+    "doc_codes": [
+      "STD-EMR-008"
+    ],
+    "intent": "strengthen",
+    "moc_ref": "MOC-2016-0164",
+    "opened_on": "2016-12-25",
+    "precursor_events": [],
+    "site": "Cape Verity Export Terminal",
+    "terminal_state": "closed",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "management_of_change": "management of change",
+      "verification": "critical control verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "e4b10b949c32df0e1a9c0b80a0ffc8b511436b71fe220daf09ec47646e7e520a",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2016-0164",
+  "prompt_kind": "moc",
+  "prompt_sha256": "43450641f1c38cd02abce303f46889535495f59b019a6e0a32a14a8fbe7cf827",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2016-0164 was raised at Cape Verity Export Terminal on 25 December 2016 as a scheduled change under management of change; no event precedes it in the record. The management of change record carries no clause change; it records the assessment only. The intent is to strengthen the critical control named in the documents in scope. The record reached the state closed in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical control set is preserved.",
+    "scope_note": "The documents in scope are STD-EMR-008."
+  },
+  "response_sha256": "2660e207e64b2ff78849f1e8483f135fb6578d26c6eb2c07693d355306419a25",
+  "source": null
+}

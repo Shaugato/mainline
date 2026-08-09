@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 0,
+    "doc_codes": [
+      "PTW-STD-004"
+    ],
+    "intent": "restate",
+    "moc_ref": "MOC-2024-0193",
+    "opened_on": "2024-11-07",
+    "precursor_events": [],
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "management_of_change": "change assurance",
+      "verification": "assurance activity"
+    },
+    "weakening_steps": 0
+  },
+  "key": "d9ee7d21b16f56808a1e4a75eb49870bc0a4da32625b92b6f5f8aed2370a0e65",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2024-0193",
+  "prompt_kind": "moc",
+  "prompt_sha256": "c183f49cf0e488c4bfa38f0690aec216b906795677a90a51c142e405e9a00033",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2024-0193 was raised at Yandarra Downs Open Cut and Heavy Workshop on 7 November 2024 as a scheduled change under change assurance; no event precedes it in the record. The change assurance record carries no clause change; it records the assessment only. The intent is to restate an existing duty without altering what it requires. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the material unwanted event control set is preserved.",
+    "scope_note": "The documents in scope are PTW-STD-004."
+  },
+  "response_sha256": "1a3802ed886d5968b241186d9b2b4528589b60ed51908d8199c1a7a64e61cabd",
+  "source": null
+}

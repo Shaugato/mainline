@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ELECTRICAL-SAFETY",
+    "barrier_role": "preventive",
+    "control_class": "SWITCHING_AUTHORISATION",
+    "control_delta": "introduce",
+    "control_label": "authorisation of switching and access to apparatus",
+    "doc_code": "STD-ELE-009",
+    "doc_family": "STD",
+    "doc_title": "Electrical Safety",
+    "effective_on": "2011-07-14",
+    "printed_label": "4.3",
+    "setpoint": null,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "energy_isolation": "lock out tag out",
+      "verification": "field verification"
+    }
+  },
+  "key": "599e9d3e9d5019e9106d9cfb19699a411a7f384b6edffba3e9bb5e1eee32886e",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:TLG/STD-ELE-009/002#TLG/STD-ELE-009/4.3",
+  "prompt_kind": "clause",
+  "prompt_sha256": "0fbc9d08730f4bd8d78451ee6ed9a724ab4036fb6b59e663f6a7b24c764d9677",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The authorisation of switching and access to apparatus shall be provided and maintained for work covered by this standard. This clause applies to activities archived under ELECTRICAL-SAFETY at Tolgarra Processing and Power Station.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "acd005dc388ddf9f7a96a71015b742e404c75c0ad3361e4a411a6299314ea3f2",
+  "source": null
+}

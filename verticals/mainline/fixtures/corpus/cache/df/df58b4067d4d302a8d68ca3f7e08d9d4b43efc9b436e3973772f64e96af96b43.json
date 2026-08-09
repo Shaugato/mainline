@@ -1,0 +1,40 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 0,
+    "doc_codes": [
+      "MOC-2019-0221",
+      "PRO-MEC-021",
+      "PTW-STD-002",
+      "STD-ISO-006",
+      "STD-PTW-001"
+    ],
+    "intent": "strengthen",
+    "moc_ref": "MOC-2012-0189",
+    "opened_on": "2012-11-11",
+    "precursor_events": [],
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "management_of_change": "change request",
+      "verification": "field verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "df58b4067d4d302a8d68ca3f7e08d9d4b43efc9b436e3973772f64e96af96b43",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2012-0189",
+  "prompt_kind": "moc",
+  "prompt_sha256": "c9dd9b8c344564a89027387b3e2fa7adf0ba6ef6f384e838a2fad3052498b200",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2012-0189 was raised at Marrindal Concentrator and Hydrocarbon Transfer Facility on 11 November 2012 as a scheduled change under change request; no event precedes it in the record. The change request record carries no clause change; it records the assessment only. The intent is to strengthen the critical safeguard named in the documents in scope. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical safeguard set is preserved.",
+    "scope_note": "The documents in scope are MOC-2019-0221, PRO-MEC-021, PTW-STD-002, STD-ISO-006 and STD-PTW-001."
+  },
+  "response_sha256": "c1487352663d1523c5d78a8f3abc5f9cccac85848aac2cd6759ee9056cb75562",
+  "source": null
+}

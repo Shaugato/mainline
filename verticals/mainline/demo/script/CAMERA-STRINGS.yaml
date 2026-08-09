@@ -1,0 +1,114 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+#
+# CAMERA-STRINGS.yaml — the prose strings that appear on camera, written down once.
+#
+# REFUSAL-STRINGS.yaml holds every string the DATABASE produces. This file holds
+# every string the CORPUS produces that a viewer can read on screen or hear in the
+# voice-over. Together they are the closed set of quotable text in the film.
+#
+# THE ONE THAT MATTERS. `commit_message_2013` is asserted byte-equal across four
+# files by tests/unit/corpus (assertion CA "camera-string equality"):
+#
+#   1. verticals/mainline/fixtures/corpus/authored/…   (owner: corpus-spine-authored)
+#   2. verticals/mainline/demo/script/VO.md            (owner: this worker)
+#   3. verticals/mainline/demo/script/SHOT-LIST.yaml   (owner: this worker)
+#   4. the generated verticals/mainline/demo/honesty/card.html (gen_card.py)
+#
+# It contains U+2192 RIGHTWARDS ARROW and U+2014 EM DASH. Both are load-bearing:
+# a hyphen-minus or an ASCII "->" is a different string and the test is byte-equal,
+# not fuzzy. Do not "fix" the punctuation.
+#
+# CROSS-CHECK. `authored_fixture_root` below is owned by corpus-spine-authored.
+# While that directory is absent the check WARNS and says so; the moment it lands
+# the check FAILS on any divergence. Same discipline as the spec/errors.md
+# cross-check in REFUSAL-STRINGS.yaml: absence is never reported as a pass.
+#
+# NO COMMIT SHA APPEARS HERE, and none may. `commit_id` is sha256 over the JCS
+# envelope; it cannot be chosen, so a SHA written into a script is a SHA the film
+# will not be able to show. scripts/demo/claim_hygiene.py fails on any 7-hex
+# literal in this file.
+
+version: 1
+authored_fixture_root: verticals/mainline/fixtures/corpus/authored/
+authored_fixture_present: false      # flip to true when corpus-spine-authored lands
+answer_key: verticals/mainline/fixtures/corpus/answer-key/spine.json
+watermark_source: verticals/mainline/demo/operator/clearance-checks.yaml
+
+# ── The clause, its identity, and its twenty-two years ───────────────────────
+# Every value below is transcribed from fixtures/corpus/answer-key/spine.json.
+# `clause_uuid` is the constant; every printed label differs from at least one
+# other. That contrast is the whole of beat 1.
+spine:
+  clause_uuid: "2ad35fa5-d174-5eb1-8550-05adfa90e08d"
+  clause_key: "MRD/PRO-MEC-014/7.3"
+  setpoint_key: seal_face_temperature_alarm
+  labels:
+    "2011": "7.3"       # PRO-MEC-014, template generation 1
+    "2016": "5.2.1"     # PRO-MEC-014, template generation 2 — the retypeset
+    "2019": "9.2.1"     # STD-ISO-006 — the document split
+  ribbon_caption: "7.3 → 5.2.1 → 9.2.1 · doc move"
+  blame_command: "mainline blame STD-ISO-006 --clause 9.2.1"
+  dates:
+    clause_introduced: "2011-03-14"
+    incident: "2013-06-12"
+    strengthen_commit: "2013-08-04"
+    retypeset: "2016-11-21"
+    split: "2019-02-19"
+    author_separated: "2021-07-16"
+    weaken_moc_opened: "2026-07-28"
+    permit_opened: "2026-08-03"
+    permit_merge_attempt: "2026-08-04"
+
+# ── The string the whole film turns on ───────────────────────────────────────
+commit_message_2013: "Lowered 150 → 135 after seal fire INC-2013-044 — two contractors burned"
+commit_message_2013_codepoints_note: >-
+  "150 " U+2192 " 135" and "INC-2013-044 " U+2014 " two". Byte-equal across four
+  files; see the header.
+commit_author_display: "D. Okonjo"
+commit_date_display: "2013-08-04"
+
+# ── The clause text, as it reads at each end of the argument ─────────────────
+clause_text_2013_onwards: "The seal-face high-temperature alarm shall be set at 135 °C."
+clause_text_2011: "The seal-face high-temperature alarm shall be set at 150 °C."
+proposed_2026_title: "Restore OEM seal-face alarm setpoint to 150 °C to reduce spurious trips at summer ambient"
+
+# ── The rest of the on-screen nouns ──────────────────────────────────────────
+incident_ref: "INC-2013-044"
+incident_summary_line: "gland seal fire · P-4102 · Marrindal · two contractors, partial-thickness burns · severity 4"
+incident_finding_line: "150 °C gave ~90 s of warning; 135 °C would have given ~6 min"
+moc_ref: "MOC-2026-0413"
+moc_delta_badge: "control_delta: weaken"
+moc_diff_line: "135 → 150"
+permit_ref: "WO-88213"
+permit_scope_line: "hot work · P-4104 · Marrindal"
+operator: "Kestrel Resources Pty Ltd"
+site: "Marrindal"
+
+# ── Banners and cards, verbatim ──────────────────────────────────────────────
+banners:
+  merge_blocked: "MERGE BLOCKED · 1 undispositioned precursor · gate_closed_when_issued"
+  permit_suspended: "PERMIT SUSPENDED · child forked"
+  lease_revoked: "DEFEATER LEASE REVOKED · predicate falsified by site register"
+  deliberation: "deliberation 00:47 · measured, never thresholded"
+  watermark: "SYNTHETIC CORPUS · KESTREL RESOURCES IS FICTIONAL"
+
+title_card: "MAINLINE — institutional safety memory as a version-controlled repository"
+
+# ── Strings that must NEVER appear ───────────────────────────────────────────
+# Kept here so the ban travels with the strings it is about.
+forbidden_on_camera:
+  - value: "any 7-hex-character commit SHA"
+    reason: "commit_id is sha256 over the JCS envelope; it cannot be chosen in advance"
+  - value: "any bare invariant number (I01, MI07, …)"
+    reason: "BUILD_PLAN §5.2 — the film cites constraint names, which are unambiguous"
+  - value: "a real person's name, a real incident, a real operator"
+    reason: "the corpus is synthetic and the honesty card says so; a real fatality never appears"
+  - value: "browser chrome, an OS taskbar, a cloud console"
+    reason: "BUILD_PLAN §5.5 disqualifier 4 — the cloud console is trademark-dense"
+  - value: "music of any kind"
+    reason: "no music at all removes the whole licensing question"
+  - value: "end-to-end Australian data residency"
+    reason: >-
+      ADR 0002 F5 — the cluster is aws-ap-southeast-1 (Singapore); only Bedrock
+      inference is in ap-southeast-2 (Sydney). The card states the split.

@@ -1,0 +1,45 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 2,
+    "doc_codes": [
+      "ALERT-2016-007",
+      "MOC-2014-0087",
+      "PRO-MEC-041",
+      "PRO-OPS-017",
+      "PTW-STD-003"
+    ],
+    "intent": "replace",
+    "moc_ref": "MOC-2024-0013",
+    "opened_on": "2024-02-07",
+    "precursor_events": [
+      {
+        "event_ref": "NM-2024-0011",
+        "severity_gate": null
+      }
+    ],
+    "site": "Cape Verity Export Terminal",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "management_of_change": "change assurance",
+      "verification": "assurance activity"
+    },
+    "weakening_steps": 0
+  },
+  "key": "3cd57592a921c1fd80ec0d52937e4bbb6a85ca12cfc74b7f44cb4202e706dda9",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2024-0013",
+  "prompt_kind": "moc",
+  "prompt_sha256": "1355a26180822dce986a3ff4399f229e046a8c34caf940cdfd7c54660fd9401d",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2024-0013 was raised at Cape Verity Export Terminal on 7 February 2024 following 1 recorded event in the archive, including NM-2024-0011. The change assurance record covers 2 clauses across 5 controlled documents. The intent is to replace an existing requirement with one written to the current house style. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the material unwanted event control set is preserved.",
+    "scope_note": "The documents in scope are ALERT-2016-007, MOC-2014-0087, PRO-MEC-041, PRO-OPS-017 and PTW-STD-003."
+  },
+  "response_sha256": "536e8e5f00c95e0f70e16a69d95ae0026da4121bd61b06a0f31fd42daa7e6b33",
+  "source": null
+}

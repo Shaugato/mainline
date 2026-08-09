@@ -1,0 +1,104 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "loading, restraining and placarding a load",
+    "activity_root": "LAND-TRANSPORT",
+    "activity_series": "transporting materials by road",
+    "assets": [
+      {
+        "asset_class": "MOB-CLASS-L",
+        "label": "light vehicles",
+        "service": "personnel movement on operating areas",
+        "tag": "LV-9303"
+      }
+    ],
+    "consequence": {
+      "days_lost": 90,
+      "injuries": 2,
+      "label": "serious injury requiring hospitalisation"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "FATIGUE_AND_FITNESS_CONTROL",
+        "control_label": "assessment of fatigue and fitness for driving",
+        "failure_mode": "not_verified",
+        "hazard_energy": "kinetic",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "LOAD_RESTRAINT_AND_PLACARDING",
+        "control_label": "restraint and placarding of transported loads",
+        "failure_mode": "degraded",
+        "hazard_energy": "kinetic",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "PROXIMITY_DETECTION_AND_SEGREGATION",
+        "control_label": "segregation of light vehicles and pedestrians from heavy equipment",
+        "failure_mode": "ineffective",
+        "hazard_energy": "kinetic",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "INC-2024-018",
+    "hazard_energy": "kinetic",
+    "hazard_media": [
+      "rotating equipment",
+      "conveyor",
+      "mobile equipment",
+      "pressurised jet",
+      "flying fragment"
+    ],
+    "hazard_release": "entanglement, impact, crush",
+    "kind": "incident",
+    "occurred_on": "2024-12-15",
+    "severity_actual": 4,
+    "severity_potential": 4,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during a planned shutdown",
+    "title": "positive isolation verification failure on LV-9303",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "1887f84dabfe4c99819d58c63e9fcb965367db79456599712de00511119391d0",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2024-018",
+  "prompt_kind": "icam",
+  "prompt_sha256": "14b5cb25ef9ecdb6d3bbbea63578176ea600b91fcc0e5056693b41248699c927",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was serious injury requiring hospitalisation, with 2 persons injured and 90 days lost.",
+    "defences": [
+      {
+        "control_class": "FATIGUE_AND_FITNESS_CONTROL",
+        "finding": "Control FATIGUE_AND_FITNESS_CONTROL: the assessment of fatigue and fitness for driving was never verified as effective, and the learning team review classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "LOAD_RESTRAINT_AND_PLACARDING",
+        "finding": "Control LOAD_RESTRAINT_AND_PLACARDING: the restraint and placarding of transported loads had degraded below its design intent, and the learning team review classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "PROXIMITY_DETECTION_AND_SEGREGATION",
+        "finding": "Control PROXIMITY_DETECTION_AND_SEGREGATION: the segregation of light vehicles and pedestrians from heavy equipment was in place but did not perform, and the learning team review classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the assessment of fatigue and fitness for driving on LV-9303 and record the assurance activity before this task is next authorised.",
+      "Restore the segregation of light vehicles and pedestrians from heavy equipment on LV-9303 and record the assurance activity before this task is next authorised."
+    ],
+    "sequence": "Work was under way in transporting materials by road, specifically loading, restraining and placarding a load. LV-9303 (light vehicles) is in service for personnel movement on operating areas. The task proceeded during a planned shutdown while the assessment of fatigue and fitness for driving was never verified as effective. The kinetic energy involved is held as rotating equipment, and the recorded presentation was entanglement, impact, crush.",
+    "summary": "On 15 December 2024 an incident occurred on LV-9303 at Yandarra Downs Open Cut and Heavy Workshop during a planned shutdown, releasing kinetic energy held as rotating equipment."
+  },
+  "response_sha256": "7923aaca6a3b9055083ba62e4503884535fcb67cafa6fa054a9a62f13d9dd7ce",
+  "source": null
+}

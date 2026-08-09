@@ -1,0 +1,90 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "benching, battering and shoring an excavation",
+    "activity_root": "GROUND-AND-STRATA-CONTROL",
+    "activity_series": "designing and controlling excavations",
+    "assets": [
+      {
+        "asset_class": "MOB-CLASS-E",
+        "label": "earthmoving fleet",
+        "service": "loading and dozing",
+        "tag": "EX-9101"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "GROUND_CONDITION_INSPECTION",
+        "control_label": "inspection and monitoring of highwalls and batters",
+        "failure_mode": "absent",
+        "hazard_energy": "gravity",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "SLOPE_MONITORING_RESPONSE",
+        "control_label": "response to slope monitoring alarms",
+        "failure_mode": "degraded",
+        "hazard_energy": "gravity",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "NM-2023-0016",
+    "hazard_energy": "gravity",
+    "hazard_media": [
+      "suspended load",
+      "stored potential of an elevated component",
+      "unsupported ground",
+      "person at height"
+    ],
+    "hazard_release": "fall, collapse, crush",
+    "kind": "near_miss",
+    "occurred_on": "2023-10-28",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during start-up after maintenance",
+    "title": "high potential incident - gravity exposure at EX-9101",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "3571a1f8cee74edc3f89ef67a82fa82d1362008b7efe1a4a8b1a8c36424c1cc2",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2023-0016",
+  "prompt_kind": "icam",
+  "prompt_sha256": "3f153b2e2bc80a7ac1051805a3ccaae91521feaf7ca0a7358b5d98ecfe2ee048",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "GROUND_CONDITION_INSPECTION",
+        "finding": "Control GROUND_CONDITION_INSPECTION: the inspection and monitoring of highwalls and batters was not in place, and the learning team review classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "SLOPE_MONITORING_RESPONSE",
+        "finding": "Control SLOPE_MONITORING_RESPONSE: the response to slope monitoring alarms had degraded below its design intent, and the learning team review classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the response to slope monitoring alarms on EX-9101 and record the assurance activity before this task is next authorised."
+    ],
+    "sequence": "Work was under way in designing and controlling excavations, specifically benching, battering and shoring an excavation. EX-9101 (earthmoving fleet) is in service for loading and dozing. The task proceeded during start-up after maintenance while the inspection and monitoring of highwalls and batters was not in place. The gravity energy involved is held as suspended load, and the recorded presentation was fall, collapse, crush.",
+    "summary": "On 28 October 2023 a high potential incident was recorded on EX-9101 at Yandarra Downs Open Cut and Heavy Workshop during start-up after maintenance; gravity energy held as suspended load was not released."
+  },
+  "response_sha256": "ed6cce23aa0e42774076acc379d7623103b5a9ee4e15f3b5d58307fc186f3016",
+  "source": null
+}

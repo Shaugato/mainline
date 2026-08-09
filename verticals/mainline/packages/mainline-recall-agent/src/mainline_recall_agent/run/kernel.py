@@ -38,9 +38,9 @@ from mainline_recall_agent.run.errors import KernelRefused, LateRecall
 
 __all__ = [
     "MATERIALISE_PATH",
+    "KernelTransport",
     "MaterialiseClient",
     "MaterialiseResult",
-    "KernelTransport",
     "UrllibTransport",
 ]
 
@@ -49,6 +49,12 @@ MATERIALISE_PATH: Final = "/v1/permits/{permit_id}/checks:materialise"
 _MEDIA_TYPE: Final = "application/json"
 _LATE_RECALL_STATUSES: Final[frozenset[int]] = frozenset({409, 412})
 _DEFAULT_TIMEOUT_S: Final = 30.0
+
+#: The 2xx band. Named because "the kernel accepted the candidate set" is a decision this
+#: agent makes on a number, and a bare 200/300 pair in a conditional is where an off-by-one
+#: in that decision hides.
+_HTTP_SUCCESS_FLOOR: Final = 200
+_HTTP_SUCCESS_CEILING: Final = 300
 
 
 class KernelTransport(Protocol):
@@ -70,19 +76,17 @@ class UrllibTransport:
         """POST and return ``(status, body)``. A non-2xx status is a value, not an exception."""
         # Imported here so that a run which never POSTs — the fixture and cassette paths —
         # does not pay for the urllib import graph. Documented PLC0415 exception.
-        import urllib.error  # noqa: PLC0415
-        import urllib.request  # noqa: PLC0415
+        import urllib.error
+        import urllib.request
 
         if not url.startswith("https://") and not url.startswith("http://localhost"):
             raise KernelRefused(
                 f"refusing to POST a candidate set to {url!r}: the kernel endpoint must be "
                 "https, or explicitly localhost for a local demo"
             )
-        request = urllib.request.Request(  # noqa: S310 - scheme checked immediately above
-            url, data=body, headers=dict(headers), method="POST"
-        )
+        request = urllib.request.Request(url, data=body, headers=dict(headers), method="POST")
         try:
-            with urllib.request.urlopen(request, timeout=timeout) as response:  # noqa: S310
+            with urllib.request.urlopen(request, timeout=timeout) as response:
                 return int(response.status), response.read()
         except urllib.error.HTTPError as exc:
             return int(exc.code), exc.read()
@@ -146,7 +150,7 @@ class MaterialiseClient:
                 "it (MI07). Suspend the issued permit and fork a child whose gate is cleared "
                 "afresh; do not retry."
             )
-        if not 200 <= status < 300:
+        if not _HTTP_SUCCESS_FLOOR <= status < _HTTP_SUCCESS_CEILING:
             raise KernelRefused(
                 f"checks:materialise returned HTTP {status} for permit "
                 f"{candidate_set.permit_id}: {body}"

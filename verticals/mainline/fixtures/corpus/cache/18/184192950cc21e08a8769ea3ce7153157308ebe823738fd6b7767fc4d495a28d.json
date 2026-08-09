@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "barrier_role": "preventive",
+    "control_class": "HYDROCARBON_TRANSFER_CONTROL",
+    "control_delta": "weaken",
+    "control_label": "controlled transfer of hydrocarbon between vessels",
+    "doc_code": "PRO-OPS-032",
+    "doc_family": "PRO",
+    "doc_title": "Hydrocarbon Transfer Operations",
+    "effective_on": "2014-11-12",
+    "printed_label": "5.1.3(d)",
+    "setpoint": {
+      "from": 92.0,
+      "key": "tank_level_high_high",
+      "label": "tank high-high level trip",
+      "strengthen_direction": "lower",
+      "to": 95.0,
+      "unit": "%"
+    },
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "energy_isolation": "lock out tag out",
+      "verification": "field verification"
+    }
+  },
+  "key": "184192950cc21e08a8769ea3ce7153157308ebe823738fd6b7767fc4d495a28d",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/PRO-OPS-032/005#MRD/PRO-OPS-032/5.1.3(d)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "b19ca6ae13fc1832d254eadf54c39a166437bc1c51e03cab311f8ec15322297e",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The controlled transfer of hydrocarbon between vessels should be provided; the field verification may be recorded at the next scheduled review rather than before the task proceeds. The tank high-high level trip should be set at 95 %. This clause applies to activities archived under CONTAINMENT-OF-HYDROCARBONS at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "should"
+  },
+  "response_sha256": "70d7263b2d1b1b3a6537619b96ac1732ade2656800e0f37d595d9b8aa5425ad2",
+  "source": null
+}

@@ -1,0 +1,23 @@
+SPDX-FileCopyrightText: 2026 MAINLINE contributors
+SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
+
+ONE SERVER, ONE CLUSTER, NO DEFAULTS.
+
+`crdb` is the only entry, and `entrypoint.sh` passes `--strict-mcp-config` so no other
+MCP configuration on the image or in a home directory can add a second one.
+
+`mcp-cluster-id` is the documented header that pins exactly one cluster; a tool call
+naming a different cluster fails at the server. `Authorization` carries a Cluster
+Operator service-account key scoped to `mcp:read` plus INSERT on
+`mainline_meas.external_attestation` and nothing else (S13) — the SQL grant is the real
+boundary and `settings.json`'s allowlist is written to match it exactly.
+
+NEITHER VARIABLE CARRIES A `:-default`, DELIBERATELY. Claude Code substitutes `${VAR}` in
+`url` and `headers`, and an unset variable with no default is left unexpanded and reported
+as a missing-variable warning — the server then fails to connect. That is the outcome we
+want: a Steward that cannot prove which cluster it is pinned to must not read one. A
+default would turn a missing secret into a silent connection to whatever the default named.
+
+The key is delivered by AWS Secrets Manager into the task environment. It is never baked
+into the image, and `settings.json` denies `Read(**/.env)` so the session cannot read a
+credential file even if one were mounted.

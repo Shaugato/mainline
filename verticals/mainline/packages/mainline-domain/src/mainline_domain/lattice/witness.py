@@ -75,17 +75,17 @@ WITNESSLESS_WEAKEN_MESSAGE: Final[str] = (
 
 
 def verdict_of(findings: Iterable[RuleFinding]) -> ControlDelta:
-    """The verdict a set of findings produces: the join of their deltas."""
+    """Return the verdict a set of findings produces: the join of their deltas."""
     return join(finding.delta for finding in findings)
 
 
 def witnesses_of(findings: Iterable[RuleFinding]) -> tuple[DeltaWitness, ...]:
-    """The witness rows of a finding sequence, in the order given."""
+    """Return the witness rows of a finding sequence, in the order given."""
     return tuple(finding.witness for finding in findings)
 
 
 def is_irredundant(findings: Sequence[RuleFinding], target: ControlDelta) -> bool:
-    """``True`` when no member can be dropped without changing the verdict.
+    """Report whether no member can be dropped without changing the verdict.
 
     The defining property of a minimal unsatisfiable subset, written as a
     predicate so it can be asserted rather than argued.  An empty sequence is
@@ -103,7 +103,7 @@ def minimal_unsatisfiable_subset(
     findings: Sequence[RuleFinding],
     target: ControlDelta | None = None,
 ) -> tuple[RuleFinding, ...]:
-    """The irreducible reason set behind ``target`` (default: the findings' own verdict).
+    """Return the irreducible reason set behind ``target`` (default: the findings' verdict).
 
     Deletion-based, repeated to a fixpoint, then verified.  Candidates are tried
     for removal in **reverse declaration order**, so when several rules force the
@@ -145,7 +145,7 @@ def minimal_unsatisfiable_subset(
 
 
 def minimal_correction_set(findings: Sequence[RuleFinding]) -> tuple[RuleFinding, ...]:
-    """The nearest admissible alternative: the smallest set whose removal admits.
+    """Return the nearest admissible alternative: the smallest set whose removal admits.
 
     "Admits" means ``force(join(rest)) == 0`` — the gate stops reacting.  Returns
     ``()`` when the findings are already admissible.
@@ -181,7 +181,7 @@ def verdict(
     *,
     minimal: bool,
 ) -> DeltaVerdict:
-    """The **only** sanctioned way to build a :class:`DeltaVerdict` in this domain.
+    """Build a :class:`DeltaVerdict` — the **only** sanctioned way to do so in this domain.
 
     Enforces decision D8 at the point the mistake is made: a ``weaken`` or
     ``remove`` on ``delta_basis='lattice'`` with an empty witness tuple raises

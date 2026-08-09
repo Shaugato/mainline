@@ -1,0 +1,64 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 5,
+    "doc_code": "STD-PTW-001",
+    "doc_family": "STD",
+    "doc_title": "Permit to Work",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2018-10-22",
+    "required_citations": [
+      {
+        "control_label": "dissipation or restraint of trapped and residual energy",
+        "event_ref": "INC-2018-016",
+        "event_title": "uncontrolled movement of PSV-4111 during shift handover",
+        "hazard_energy": "pressure",
+        "kind": "capa_action",
+        "quote_ref": "quote:MRD/STD-PTW-001/006#capa_action/INC-2018-016",
+        "severity_gate": 2
+      },
+      {
+        "control_label": "identification of every energy source for the task",
+        "event_ref": "INC-2018-015",
+        "event_title": "gravity release during commissioning of replacement equipment on CV-3101",
+        "hazard_energy": "gravity",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:MRD/STD-PTW-001/006#revision_history_line/INC-2018-015",
+        "severity_gate": 2
+      }
+    ],
+    "rev_no": 6,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "ICAM investigation",
+      "management_of_change": "management of change",
+      "near_miss": "potential incident"
+    }
+  },
+  "key": "8fc8664e4a34c3dbe28551fdb2b950c4d9d51407af0ff88989708fe1bf7d8270",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/STD-PTW-001/006",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "a8679ad0a2d5472201ca6676de1ac6daaf384c839c4be2788db107e2f3e0778d",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The corrective action recorded against INC-2018-016 required the dissipation or restraint of trapped and residual energy to be restated in this standard.",
+        "quote_ref": "quote:MRD/STD-PTW-001/006#capa_action/INC-2018-016"
+      },
+      {
+        "line": "Revision 6 was raised in response to INC-2018-015, and the identification of every energy source for the task was amended as a result.",
+        "quote_ref": "quote:MRD/STD-PTW-001/006#revision_history_line/INC-2018-015"
+      }
+    ],
+    "reason": "Scheduled review at revision 6; 5 clauses restated."
+  },
+  "response_sha256": "3bc6813ccd3c01b530ac2a6afebc72cc931b336a19c6811070112b963ee0c42d",
+  "source": null
+}

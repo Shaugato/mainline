@@ -1,0 +1,99 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "proving dead and testing for zero energy",
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "activity_series": "applying and verifying an isolation",
+    "assets": [
+      {
+        "asset_class": "SLP-CLASS-B",
+        "label": "dewatering pumps",
+        "service": "pit dewatering",
+        "tag": "P-9502"
+      },
+      {
+        "asset_class": "MOTOR-CLASS-A",
+        "label": "drive motor",
+        "service": "drives P-9502",
+        "tag": "M-9502"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "ISOLATION_HANDBACK_CONTROL",
+        "control_label": "controlled removal of isolation and return to service",
+        "failure_mode": "bypassed",
+        "hazard_energy": "pressure",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "STORED_ENERGY_DISSIPATION",
+        "control_label": "dissipation or restraint of trapped and residual energy",
+        "failure_mode": "ineffective",
+        "hazard_energy": "pressure",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "CAPA-2023-005",
+    "hazard_energy": "pressure",
+    "hazard_media": [
+      "hydraulic accumulator",
+      "barrier fluid",
+      "process gas",
+      "steam header",
+      "compressed air",
+      "trapped liquid"
+    ],
+    "hazard_release": "jet release, stored-energy discharge, rupture",
+    "kind": "capa",
+    "occurred_on": "2023-05-14",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during a breakdown response",
+    "title": "corrective action - material unwanted event control at P-9502",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "74302c84ff8a0bcfb8b2156564ec0ab02a9b113dffcc199404292d9226d6af24",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:CAPA-2023-005",
+  "prompt_kind": "icam",
+  "prompt_sha256": "c029c7890cde8cfeb3db3451c00b3bf0a3d85209ce2f61fb75368a0b9bc0720d",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "ISOLATION_HANDBACK_CONTROL",
+        "finding": "Control ISOLATION_HANDBACK_CONTROL: the controlled removal of isolation and return to service had been bypassed, and the learning team review classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "STORED_ENERGY_DISSIPATION",
+        "finding": "Control STORED_ENERGY_DISSIPATION: the dissipation or restraint of trapped and residual energy was in place but did not perform, and the learning team review classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the controlled removal of isolation and return to service on P-9502 and M-9502 and record the assurance activity before this task is next authorised.",
+      "Restore the dissipation or restraint of trapped and residual energy on P-9502 and M-9502 and record the assurance activity before this task is next authorised."
+    ],
+    "sequence": "Work was under way in applying and verifying an isolation, specifically proving dead and testing for zero energy. P-9502 (dewatering pumps) is in service for pit dewatering. The task proceeded during a breakdown response while the controlled removal of isolation and return to service had been bypassed. The pressure energy involved is held as hydraulic accumulator, and the recorded presentation was jet release, stored-energy discharge, rupture.",
+    "summary": "On 14 May 2023 a corrective action on P-9502 and M-9502 at Yandarra Downs Open Cut and Heavy Workshop was reviewed against the material unwanted event control it was raised to restore."
+  },
+  "response_sha256": "d3bcf55536330f33a5a164b7a831743908d1ed5a35496f21839eec313813ca53",
+  "source": null
+}

@@ -1,0 +1,109 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "loading, restraining and placarding a load",
+    "activity_root": "LAND-TRANSPORT",
+    "activity_series": "transporting materials by road",
+    "assets": [
+      {
+        "asset_class": "SLP-CLASS-B",
+        "label": "dewatering pumps",
+        "service": "pit dewatering",
+        "tag": "P-9503"
+      },
+      {
+        "asset_class": "INST-CLASS-A",
+        "label": "instrument loop",
+        "service": "governs P-9503",
+        "tag": "PT-9503"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "FATIGUE_AND_FITNESS_CONTROL",
+        "control_label": "assessment of fatigue and fitness for driving",
+        "failure_mode": "not_verified",
+        "hazard_energy": "kinetic",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "LOAD_RESTRAINT_AND_PLACARDING",
+        "control_label": "restraint and placarding of transported loads",
+        "failure_mode": "degraded",
+        "hazard_energy": "kinetic",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "PROXIMITY_DETECTION_AND_SEGREGATION",
+        "control_label": "segregation of light vehicles and pedestrians from heavy equipment",
+        "failure_mode": "degraded",
+        "hazard_energy": "kinetic",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "NM-2015-0010",
+    "hazard_energy": "kinetic",
+    "hazard_media": [
+      "rotating equipment",
+      "conveyor",
+      "mobile equipment",
+      "pressurised jet",
+      "flying fragment"
+    ],
+    "hazard_release": "entanglement, impact, crush",
+    "kind": "near_miss",
+    "occurred_on": "2015-04-12",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during cleaning and preparation",
+    "title": "stored energy found after isolation of P-9503",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "8023d737446e4662ce95872c9e7fce1141478ba0c9cecaabf1ed68d96d4def75",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2015-0010",
+  "prompt_kind": "icam",
+  "prompt_sha256": "bb30842c669fcc0deabda8f0c76b0ba7c18c509c7294ef3852a8c81f82401036",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "FATIGUE_AND_FITNESS_CONTROL",
+        "finding": "Control FATIGUE_AND_FITNESS_CONTROL: the assessment of fatigue and fitness for driving was never verified as effective, and the root cause analysis classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "LOAD_RESTRAINT_AND_PLACARDING",
+        "finding": "Control LOAD_RESTRAINT_AND_PLACARDING: the restraint and placarding of transported loads had degraded below its design intent, and the root cause analysis classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "PROXIMITY_DETECTION_AND_SEGREGATION",
+        "finding": "Control PROXIMITY_DETECTION_AND_SEGREGATION: the segregation of light vehicles and pedestrians from heavy equipment had degraded below its design intent, and the root cause analysis classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Restore the restraint and placarding of transported loads on P-9503 and PT-9503 and record the field verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in transporting materials by road, specifically loading, restraining and placarding a load. P-9503 (dewatering pumps) is in service for pit dewatering. The task proceeded during cleaning and preparation while the assessment of fatigue and fitness for driving was never verified as effective. The kinetic energy involved is held as rotating equipment, and the recorded presentation was entanglement, impact, crush.",
+    "summary": "On 12 April 2015 a hazard report was recorded on P-9503 and PT-9503 at Yandarra Downs Open Cut and Heavy Workshop during cleaning and preparation; kinetic energy held as rotating equipment was not released."
+  },
+  "response_sha256": "8297c4b2ce44750a0236b6ca5c05f9ef53b624db4d2bea8650b4a5c27235414a",
+  "source": null
+}

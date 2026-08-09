@@ -1,0 +1,64 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 7,
+    "doc_code": "STD-HTW-004",
+    "doc_family": "STD",
+    "doc_title": "Hot Work",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2024-08-17",
+    "required_citations": [
+      {
+        "control_label": "integrity of explosion-protected equipment in zoned areas",
+        "event_ref": "INC-2024-003",
+        "event_title": "loss of containment at ML-3202 during commissioning of replacement equipment",
+        "hazard_energy": "electrical",
+        "kind": "capa_action",
+        "quote_ref": "quote:MRD/STD-HTW-004/008#capa_action/INC-2024-003",
+        "severity_gate": 2
+      },
+      {
+        "control_label": "seal-face high-temperature alarm and trip",
+        "event_ref": "NM-2023-0017",
+        "event_title": "high potential incident - pressure exposure at P-4101",
+        "hazard_energy": "pressure",
+        "kind": "capa_action",
+        "quote_ref": "quote:MRD/STD-HTW-004/008#capa_action/NM-2023-0017",
+        "severity_gate": 2
+      }
+    ],
+    "rev_no": 8,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "learning team review",
+      "management_of_change": "change assurance",
+      "near_miss": "high potential incident"
+    }
+  },
+  "key": "5ac89fc6e8b4bba731b9fe6bfbeb63fc723b71e0d158ff97771c629d52d4a0ef",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/STD-HTW-004/008",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "2f304b948f0dfabbca03e28a737c69b8995e43df059d73594a74b1f1b962533d",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The corrective action recorded against INC-2024-003 required the integrity of explosion-protected equipment in zoned areas to be restated in this standard.",
+        "quote_ref": "quote:MRD/STD-HTW-004/008#capa_action/INC-2024-003"
+      },
+      {
+        "line": "The corrective action recorded against NM-2023-0017 required the seal-face high-temperature alarm and trip to be restated in this standard.",
+        "quote_ref": "quote:MRD/STD-HTW-004/008#capa_action/NM-2023-0017"
+      }
+    ],
+    "reason": "Scheduled review at revision 8; 7 clauses restated."
+  },
+  "response_sha256": "32a53c1ea338d43539c5b94cf36b4cb8c225700d5acdf724c0e3354cf0c12ceb",
+  "source": null
+}

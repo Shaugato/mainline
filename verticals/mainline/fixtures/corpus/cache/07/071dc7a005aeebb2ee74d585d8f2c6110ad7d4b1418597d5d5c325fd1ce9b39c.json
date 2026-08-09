@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 4,
+    "doc_code": "PRO-ELE-008",
+    "doc_family": "PRO",
+    "doc_title": "Electrical Isolation and Access to Switchgear",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2016-01-26",
+    "required_citations": [
+      {
+        "control_label": "authorisation of switching and access to apparatus",
+        "event_ref": "INC-2015-012",
+        "event_title": "electrical release during start-up after maintenance on TX-3001",
+        "hazard_energy": "electrical",
+        "kind": "capa_action",
+        "quote_ref": "quote:MRD/PRO-ELE-008/005#capa_action/INC-2015-012",
+        "severity_gate": 3
+      }
+    ],
+    "rev_no": 5,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "ICAM investigation",
+      "management_of_change": "management of change",
+      "near_miss": "potential incident"
+    }
+  },
+  "key": "071dc7a005aeebb2ee74d585d8f2c6110ad7d4b1418597d5d5c325fd1ce9b39c",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/PRO-ELE-008/005",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "c7f4c94c5c83ec142788a159a11e93136cee05b3a5558afb167ff149b87282d2",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The corrective action recorded against INC-2015-012 required the authorisation of switching and access to apparatus to be restated in this procedure.",
+        "quote_ref": "quote:MRD/PRO-ELE-008/005#capa_action/INC-2015-012"
+      }
+    ],
+    "reason": "Scheduled review at revision 5; 4 clauses restated."
+  },
+  "response_sha256": "5e380096340241c1c2af103de9f1ebd53e6acf1b2d3f71abdc8d7e1bbe3ea0c1",
+  "source": null
+}

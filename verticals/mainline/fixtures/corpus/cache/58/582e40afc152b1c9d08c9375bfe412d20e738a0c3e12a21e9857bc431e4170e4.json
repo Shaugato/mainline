@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 17,
+    "doc_code": "PTW-STD-003",
+    "doc_family": "PTW",
+    "doc_title": "Permit to Work Form Set",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2021-01-29",
+    "required_citations": [],
+    "rev_no": 5,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "ICAM investigation",
+      "management_of_change": "management of change",
+      "near_miss": "potential incident"
+    }
+  },
+  "key": "582e40afc152b1c9d08c9375bfe412d20e738a0c3e12a21e9857bc431e4170e4",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:CVY/PTW-STD-003/005",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "510df030a8a51207af1a9c88488fff50f2bd2e8b79c00a8f4d52c401f3487ca9",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [],
+    "reason": "Scheduled review at revision 5; 17 clauses restated."
+  },
+  "response_sha256": "60c117ec52acebfc38d014492583e433e32f55f410e74c250c35a7f40e79d085",
+  "source": null
+}

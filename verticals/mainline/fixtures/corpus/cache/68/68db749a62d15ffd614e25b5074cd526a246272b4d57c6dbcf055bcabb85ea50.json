@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ELECTRICAL-SAFETY",
+    "barrier_role": "recovery",
+    "control_class": "EARTH_LEAKAGE_PROTECTION",
+    "control_delta": "strengthen",
+    "control_label": "earth leakage and protection setting integrity",
+    "doc_code": "PRO-ELE-026",
+    "doc_family": "PRO",
+    "doc_title": "High Voltage Switching and Access",
+    "effective_on": "2022-03-28",
+    "printed_label": "2.2.7",
+    "setpoint": null,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "energy_isolation": "positive isolation verification",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "68db749a62d15ffd614e25b5074cd526a246272b4d57c6dbcf055bcabb85ea50",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:TLG/PRO-ELE-026/007#TLG/PRO-ELE-026/10.2",
+  "prompt_kind": "clause",
+  "prompt_sha256": "9f6a2a955bd638b06117a9a7fce88ed04abcb912c2664c7e8ccb15fc1c9bbffb",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The earth leakage and protection setting integrity must be provided, and its effectiveness must be recorded as a assurance activity before the task proceeds. This clause applies to activities archived under ELECTRICAL-SAFETY at Tolgarra Processing and Power Station.",
+    "obligation_verb": "must"
+  },
+  "response_sha256": "822c700da19294d2e4089fc665ad16babc6c439d4281590df4b29f080fdc1940",
+  "source": null
+}

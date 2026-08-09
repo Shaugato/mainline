@@ -1,0 +1,36 @@
+{
+  "entries": [
+    {
+      "id": "au-0000000101",
+      "timestamp": "2026-08-09T13:00:04Z",
+      "action": "CLUSTER_SQL_USER_UPDATED",
+      "source": "CONSOLE",
+      "user_email": "ops@example.test",
+      "resource_type": "CLUSTER",
+      "resource_id": "cl-custody-fixture"
+    },
+    {
+      "id": "au-0000000102",
+      "timestamp": "2026-08-09T13:04:41Z",
+      "action": "SERVICE_ACCOUNT_API_KEY_CREATED",
+      "source": "API",
+      "user_email": "ops@example.test",
+      "resource_type": "SERVICE_ACCOUNT",
+      "resource_id": "sa-custody-patrol"
+    },
+    {
+      "id": "au-0000000103",
+      "timestamp": "2026-08-09T13:11:56Z",
+      "action": "CLUSTER_SQL_STATEMENT_EXECUTED",
+      "source": "SQL",
+      "user_email": "dba@example.test",
+      "resource_type": "CLUSTER",
+      "resource_id": "cl-custody-fixture",
+      "detail": "ALTER TABLE mainline.permit DISABLE TRIGGER trg_permit_merge_gate"
+    }
+  ],
+  "pagination": {
+    "next_page": null,
+    "page_size": 100
+  }
+}

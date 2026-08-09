@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 7,
+    "doc_code": "PRO-OPS-032",
+    "doc_family": "PRO",
+    "doc_title": "Hydrocarbon Transfer Operations",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2024-08-19",
+    "required_citations": [
+      {
+        "control_label": "seal-face high-temperature alarm and trip",
+        "event_ref": "NM-2023-0017",
+        "event_title": "high potential incident - pressure exposure at P-4101",
+        "hazard_energy": "pressure",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:MRD/PRO-OPS-032/011#revision_history_line/NM-2023-0017",
+        "severity_gate": 2
+      }
+    ],
+    "rev_no": 11,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "learning team review",
+      "management_of_change": "change assurance",
+      "near_miss": "high potential incident"
+    }
+  },
+  "key": "beab45c1596c6ec097b9d39eddf871ef2d2ef53dfa6ac7a554ae975897f3cbca",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/PRO-OPS-032/011",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "f5234ba8e2da2f57e656055bc45bf4ab1ba2c80982657381e9e5cf197e021367",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "Revision 11 was raised in response to NM-2023-0017, and the seal-face high-temperature alarm and trip was amended as a result.",
+        "quote_ref": "quote:MRD/PRO-OPS-032/011#revision_history_line/NM-2023-0017"
+      }
+    ],
+    "reason": "Scheduled review at revision 11; 7 clauses restated."
+  },
+  "response_sha256": "330354ddf6649684bdc93a179bdc0d3e301519ff2d5c321168be32cb4ecfdc11",
+  "source": null
+}

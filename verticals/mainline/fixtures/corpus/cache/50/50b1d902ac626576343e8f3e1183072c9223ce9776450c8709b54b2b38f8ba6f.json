@@ -1,0 +1,45 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 5,
+    "doc_codes": [
+      "PTW-STD-004"
+    ],
+    "intent": "restate",
+    "moc_ref": "MOC-2013-0152",
+    "opened_on": "2013-08-17",
+    "precursor_events": [
+      {
+        "event_ref": "NM-2012-0002",
+        "severity_gate": null
+      },
+      {
+        "event_ref": "RN-2018-001",
+        "severity_gate": null
+      }
+    ],
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "terminal_state": "abandoned",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "management_of_change": "change request",
+      "verification": "field verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "50b1d902ac626576343e8f3e1183072c9223ce9776450c8709b54b2b38f8ba6f",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2013-0152",
+  "prompt_kind": "moc",
+  "prompt_sha256": "a6f3df038a4448f976f786b9654103f3f30828f97e11b97388b149d9d918b318",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2013-0152 was raised at Yandarra Downs Open Cut and Heavy Workshop on 17 August 2013 following 2 recorded events in the archive, including NM-2012-0002 and RN-2018-001. The change request record covers 5 clauses across 1 controlled document. The intent is to restate an existing duty without altering what it requires. The record reached the state abandoned in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical safeguard set is preserved.",
+    "scope_note": "The documents in scope are PTW-STD-004."
+  },
+  "response_sha256": "16a788ae2903763f9cc30cb0eed4902cbe9dbe63fff1e2e9aa263006e30d17f7",
+  "source": null
+}

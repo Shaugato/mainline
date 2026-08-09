@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "barrier_role": "recovery",
+    "control_class": "BUND_AND_DRAINAGE_CONTAINMENT",
+    "control_delta": "strengthen",
+    "control_label": "secondary containment by bund and drainage",
+    "doc_code": "PRO-MEC-041",
+    "doc_family": "PRO",
+    "doc_title": "Export Transfer Pump Maintenance",
+    "effective_on": "2015-01-27",
+    "printed_label": "4.6.1(d)",
+    "setpoint": null,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "energy_isolation": "lock out tag out",
+      "verification": "field verification"
+    }
+  },
+  "key": "f471d4ad9066150457a89fed6b4f6faf8df6a8da4f260263a12d60047f49bc17",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:CVY/PRO-MEC-041/005#CVY/PRO-MEC-041/4.6.1(d)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "6d360e1e5d8bbf3d9aec2e7712dff9dbf24b9f161e99ccb9346d71bd70caf5c6",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The secondary containment by bund and drainage must be provided, and its effectiveness must be recorded as a field verification before the task proceeds. This clause applies to activities archived under CONTAINMENT-OF-HYDROCARBONS at Cape Verity Export Terminal.",
+    "obligation_verb": "must"
+  },
+  "response_sha256": "557df736d330554af28fb2efe554dc61de2cba519fe41a2e76c95daf833a41ee",
+  "source": null
+}

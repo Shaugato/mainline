@@ -1,0 +1,141 @@
+{
+  "attestation_version": "1",
+  "gate": "G1",
+  "generated_at": "2026-08-07T00:00:00Z",
+  "generated_by": "demo/honesty fixture — transcribed from docs/adr/0002-g1-platform-ground-truth.md",
+  "_fixture": true,
+  "_fixture_note": "NOT a probe run. This file exists so gen_card.py is runnable and testable today, and so the shape the honesty card WANTS is a concrete artefact rather than a request in prose. It differs from packages/trappoint-sql/g1-attestation.json in exactly three ways, each of which the card needs: it carries `inference`, it carries `cluster.gc_ttlseconds`, and it carries `not_built`. Every value below is transcribed from the accepted ADR, so the numbers are true even though the run was not.",
+  "cluster": {
+    "product": "CockroachDB",
+    "edition": "CCL",
+    "version": "v26.2.5",
+    "cluster_version": "26.2",
+    "tier": "basic",
+    "cloud_region": "aws-ap-southeast-1",
+    "local_image": "cockroachdb/cockroach:v26.2.5",
+    "gc_ttlseconds": 4500,
+    "note": "Cloud Basic runs gc.ttlseconds=4500 (75 minutes). AS OF SYSTEM TIME therefore cannot reach further, and the long-horizon record is the application-level commit DAG."
+  },
+  "inference": {
+    "provider": "AWS Bedrock",
+    "region": "ap-southeast-2",
+    "profiles": [
+      "au.anthropic.claude-sonnet-5",
+      "au.anthropic.claude-opus-5"
+    ]
+  },
+  "capabilities": {
+    "vector_index_basic_tier": {
+      "gate": "GT-04",
+      "question": "Does a VECTOR(n) column with a prefix-column vector index create and populate on the free Basic tier?",
+      "status": "PASS",
+      "measured_at": "2026-08-07T00:00:00Z",
+      "measured_on": ["v26.2.5 basic aws-ap-southeast-1"],
+      "statement": "CREATE TABLE ... VECTOR INDEX idx (prefix..., emb vector_cosine_ops)",
+      "result": "created; 5200 rows inserted in batches",
+      "evidence": "docs/adr/0002-g1-platform-ground-truth.md GT-04, GT-05"
+    },
+    "ann_requires_index_hint": {
+      "gate": "GT-06",
+      "question": "Does an UNHINTED prefix-constrained ANN query traverse the vector index at demo corpus scale?",
+      "status": "FAIL",
+      "measured_at": "2026-08-07T00:00:00Z",
+      "measured_on": ["v26.2.5 basic aws-ap-southeast-1"],
+      "statement": "SELECT id FROM tbl WHERE prefix = $1 ORDER BY emb <=> $2 LIMIT $3",
+      "result": "index NOT used at 5200 rows; plan is top-k, render, filter, scan. The same query with @idx_name DOES traverse the index (GT-06b)",
+      "evidence": "docs/adr/0002-g1-platform-ground-truth.md GT-06 / GT-06b",
+      "fallback_if_absent": "Every ANN arm pins the index explicitly; the CI EXPLAIN assertion asserts traversal of the NAMED index."
+    },
+    "time_travel_window": {
+      "gate": "GT-07",
+      "question": "How far back can AS OF SYSTEM TIME reach on this cluster?",
+      "status": "PASS",
+      "measured_at": "2026-08-07T00:00:00Z",
+      "measured_on": ["v26.2.5 basic aws-ap-southeast-1"],
+      "statement": "SHOW ZONE CONFIGURATION; SELECT ... AS OF SYSTEM TIME '-1h'",
+      "result": "gc.ttlseconds = 4500 (75 minutes); a query past the window is REFUSED, not silently wrong",
+      "evidence": "docs/adr/0002-g1-platform-ground-truth.md GT-07, GT-11"
+    },
+    "plpgsql_raise": {
+      "gate": "GT-08",
+      "question": "Does a PL/pgSQL trigger RAISE EXCEPTION surface with the declared ERRCODE?",
+      "status": "PASS",
+      "measured_at": "2026-08-07T00:00:00Z",
+      "measured_on": ["v26.2.5 basic aws-ap-southeast-1"],
+      "statement": "RAISE EXCEPTION USING ERRCODE = 'P0001', MESSAGE = '...'",
+      "result": "raises P0001; diag.constraint_name and diag.context are both empty, so the message carries the raising object",
+      "evidence": "docs/adr/0002-g1-platform-ground-truth.md GT-08; packages/trappoint-core/src/trappoint_core/errors.py"
+    },
+    "sequences_are_creatable": {
+      "gate": "GT-12",
+      "question": "Does CREATE SEQUENCE succeed on this cluster?",
+      "status": "PASS",
+      "measured_at": "2026-08-07T00:00:00Z",
+      "measured_on": ["v26.2.5 basic aws-ap-southeast-1"],
+      "statement": "CREATE SEQUENCE probe_seq",
+      "result": "succeeds — therefore the CI lint banning sequences is load-bearing, not decorative",
+      "evidence": "docs/adr/0002-g1-platform-ground-truth.md GT-12"
+    },
+    "changefeeds": {
+      "gate": "GT-15",
+      "question": "Is kv.rangefeed.enabled true?",
+      "status": "PASS",
+      "measured_at": "2026-08-07T00:00:00Z",
+      "measured_on": ["v26.2.5 basic aws-ap-southeast-1"],
+      "statement": "SHOW CLUSTER SETTING kv.rangefeed.enabled",
+      "result": "true",
+      "evidence": "docs/adr/0002-g1-platform-ground-truth.md GT-15"
+    },
+    "bedrock_rerank": {
+      "gate": "GT-12",
+      "question": "Is Bedrock Rerank available in ap-southeast-2?",
+      "status": "ABSENT",
+      "measured_at": "2026-08-07T00:00:00Z",
+      "measured_on": ["ap-southeast-2"],
+      "statement": "ListFoundationModels / rerank inference profiles",
+      "result": "absent, as the design assumed",
+      "evidence": "docs/adr/0002-g1-platform-ground-truth.md §AWS ground truth",
+      "fallback_if_absent": "No dependency taken. Fusion re-ranks with our own arithmetic."
+    },
+    "mcp_key_publication": {
+      "gate": "GT-17",
+      "question": "Do the Managed-MCP terms permit publishing a service-account key for a judge?",
+      "status": "SKIPPED",
+      "measured_at": "2026-08-07T00:00:00Z",
+      "measured_on": ["cockroachlabs.cloud"],
+      "statement": "terms re-read; no key issued at build time",
+      "result": "not measured — no MCP service-account key exists on this machine",
+      "evidence": "packages/mainline-mcp/src/mainline_mcp/limits.py (limits are documentation-derived, not re-measured)",
+      "fallback_if_absent": "Publish a key only on a separate throwaway mainline-verify cluster; otherwise ship a recorded session plus our own read-only endpoints, and say why in VERIFY.md."
+    }
+  },
+  "unmeasured": {
+    "note": "A capability absent from `capabilities` is UNMEASURED. No renderer, card or voice-over may branch on one, and an unmeasured capability appears in the NOT-BUILT-YET column or does not appear at all.",
+    "known_open": [
+      "aws_credentials_on_build_machine — invalid at build time. Nothing in the demo may REQUIRE a live AWS call; the renderer is offline by default and embeddings are committed fixtures.",
+      "webauthn_origin_binding_through_the_edge — GT-15 not run; the OIDC + signed-envelope fallback is pre-committed.",
+      "explain_query_over_managed_mcp_renders_the_prefix_spans_fragment — asserted over pgwire today; the MCP rendering is not yet measured."
+    ]
+  },
+  "not_built": [
+    {
+      "id": "M14",
+      "name": "M14 SHEPARD",
+      "milestone": "K7",
+      "statement": "The mechanical citator for engineering controls. No tables in the shipped schema, which is why it is named here and never filmed.",
+      "extension_point": "treatment flags as a write precondition on an operational state transition"
+    },
+    {
+      "id": "M13",
+      "name": "M13 THE RATIO ENVELOPE",
+      "milestone": "K7",
+      "statement": "Precedential constraint as SMT refinement subsumption, with a counter-model witness on refusal. Specified, not enforced."
+    },
+    {
+      "id": "M10",
+      "name": "M10 THE STANDING ASSAY",
+      "milestone": "K5",
+      "statement": "Schema present, gate inert at W = 1.0, channel 3 off. Nothing on camera depends on it."
+    }
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "managing freeboard, beach and decant",
+    "activity_root": "TAILINGS-AND-WATER-IMPOUNDMENT",
+    "activity_series": "operating an impoundment",
+    "assets": [
+      {
+        "asset_class": "THK-CLASS-A",
+        "label": "tailings thickener",
+        "service": "tailings thickening and decant",
+        "tag": "TH-3240"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "IMPOUNDMENT_FREEBOARD_CONTROL",
+        "control_label": "control of freeboard, beach width and decant",
+        "failure_mode": "ineffective",
+        "hazard_energy": "gravity",
+        "icam_tier": "organisational_factor"
+      }
+    ],
+    "event_ref": "CAPA-2015-004",
+    "hazard_energy": "gravity",
+    "hazard_media": [
+      "suspended load",
+      "stored potential of an elevated component",
+      "unsupported ground",
+      "person at height"
+    ],
+    "hazard_release": "fall, collapse, crush",
+    "kind": "capa",
+    "occurred_on": "2015-11-04",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during a breakdown response",
+    "title": "corrective action following root cause analysis at TH-3240",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "57b76024ced0ad767b8bbfc68dfe1603568e8d3a6e7d6dd687146a4bbb3a89fe",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:CAPA-2015-004",
+  "prompt_kind": "icam",
+  "prompt_sha256": "24e58ba7c352e4e06f8bc46d0e6b8ac3295c8dd92ecbe6818590a7b6fa733fcc",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "IMPOUNDMENT_FREEBOARD_CONTROL",
+        "finding": "Control IMPOUNDMENT_FREEBOARD_CONTROL: the control of freeboard, beach width and decant was in place but did not perform, and the root cause analysis classified this as an organisational factor."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next field verification that the control of freeboard, beach width and decant on TH-3240 performs as designed."
+    ],
+    "sequence": "Work was under way in operating an impoundment, specifically managing freeboard, beach and decant. TH-3240 (tailings thickener) is in service for tailings thickening and decant. The task proceeded during a breakdown response while the control of freeboard, beach width and decant was in place but did not perform. The gravity energy involved is held as suspended load, and the recorded presentation was fall, collapse, crush.",
+    "summary": "On 4 November 2015 a corrective action on TH-3240 at Marrindal Concentrator and Hydrocarbon Transfer Facility was reviewed against the critical safeguard it was raised to restore."
+  },
+  "response_sha256": "8e0cb0dbdc84ab22193e2b8b2bb39377d8895331ddf49a4b8149f55b62a0d58b",
+  "source": null
+}

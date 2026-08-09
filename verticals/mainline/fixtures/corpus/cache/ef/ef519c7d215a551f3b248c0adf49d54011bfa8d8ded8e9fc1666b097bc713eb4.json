@@ -1,0 +1,48 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 2,
+    "doc_codes": [
+      "ALERT-2016-007",
+      "MOC-2026-0413",
+      "PRO-MEC-014",
+      "PRO-OPS-032"
+    ],
+    "intent": "replace",
+    "moc_ref": "MOC-2008-0065",
+    "opened_on": "2008-02-26",
+    "precursor_events": [
+      {
+        "event_ref": "INC-2012-004",
+        "severity_gate": null
+      },
+      {
+        "event_ref": "INC-2025-010",
+        "severity_gate": null
+      }
+    ],
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "management_of_change": "engineering change note",
+      "verification": "spot check"
+    },
+    "weakening_steps": 0
+  },
+  "key": "ef519c7d215a551f3b248c0adf49d54011bfa8d8ded8e9fc1666b097bc713eb4",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2008-0065",
+  "prompt_kind": "moc",
+  "prompt_sha256": "c70eefafd846cc8432fd84625afdab19e9a6d2f56a636099327e9113a4df44a6",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2008-0065 was raised at Marrindal Concentrator and Hydrocarbon Transfer Facility on 26 February 2008 following 2 recorded events in the archive, including INC-2012-004 and INC-2025-010. The engineering change note record covers 2 clauses across 4 controlled documents. The intent is to replace an existing requirement with one written to the current house style. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the key safeguard set is preserved.",
+    "scope_note": "The documents in scope are ALERT-2016-007, MOC-2026-0413, PRO-MEC-014 and PRO-OPS-032."
+  },
+  "response_sha256": "e4c1f431f5df33a25003ec740621f17bb5c38ec98f16491f2853bcf62575fec1",
+  "source": null
+}

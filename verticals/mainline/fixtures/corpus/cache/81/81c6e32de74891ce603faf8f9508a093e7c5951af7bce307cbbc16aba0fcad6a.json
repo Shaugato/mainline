@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "PRESSURE-SYSTEM-INTEGRITY",
+    "barrier_role": "preventive",
+    "control_class": "STORED_ENERGY_DISSIPATION",
+    "control_delta": "restate",
+    "control_label": "dissipation or restraint of trapped and residual energy",
+    "doc_code": "STD-PRV-005",
+    "doc_family": "STD",
+    "doc_title": "Pressure Relief and Overpressure Protection",
+    "effective_on": "2016-11-21",
+    "printed_label": "8.1.4",
+    "setpoint": null,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "81c6e32de74891ce603faf8f9508a093e7c5951af7bce307cbbc16aba0fcad6a",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:TLG/STD-PRV-005/004#TLG/STD-PRV-005/8.3",
+  "prompt_kind": "clause",
+  "prompt_sha256": "e27c854fb10be9bfec45b9745f3221a74506aa0c6257296b139b401c99cda491",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The dissipation or restraint of trapped and residual energy shall be provided and maintained wherever this standard applies, and its condition shall be treated as a critical control. This clause applies to activities archived under PRESSURE-SYSTEM-INTEGRITY at Tolgarra Processing and Power Station.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "8eb46f8dd1d2fdc4e4d57b3bad04cb8a46148eeec0e21cfd717b5d9d47d5184e",
+  "source": null
+}

@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "barrier_role": "recovery",
+    "control_class": "EMERGENCY_ISOLATION_ON_RELEASE",
+    "control_delta": "introduce",
+    "control_label": "emergency isolation and depressuring on loss of containment",
+    "doc_code": "ALERT-2016-007",
+    "doc_family": "ALERT",
+    "doc_title": "OEM Advisory - Mechanical Seal Support System Barrier Fluid Degradation",
+    "effective_on": "2016-03-22",
+    "printed_label": "1.1.1(a)",
+    "setpoint": null,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "28005df7f0fdc4c5eb303596764d773b30fc0a97741f3ba7a20ecce7e205690b",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/ALERT-2016-007/001#MRD/ALERT-2016-007/1.1.1(a)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "3617da2c2d43ee9c049c143fd9f787c4197d0d5a4fd509f6b7200189c0233678",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The emergency isolation and depressuring on loss of containment shall be provided and maintained for work covered by this safety alert. This clause applies to activities archived under CONTAINMENT-OF-HYDROCARBONS at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "7bb2a2cc6c5d2419019cd2b372d3a4a5f7e436f02c4b083a6c931d85ecd45d90",
+  "source": null
+}

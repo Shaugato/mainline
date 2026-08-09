@@ -1,0 +1,103 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "selecting and inspecting fall-arrest equipment",
+    "activity_root": "WORKING-AT-HEIGHT",
+    "activity_series": "providing fall protection",
+    "assets": [
+      {
+        "asset_class": "LIFT-CLASS-W",
+        "label": "workshop hoists and press",
+        "service": "heavy vehicle component removal and pressing",
+        "tag": "HO-9402"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "ANCHOR_POINT_CERTIFICATION",
+        "control_label": "certification and identification of anchor points",
+        "failure_mode": "degraded",
+        "hazard_energy": "gravity",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "DROP_ZONE_EXCLUSION",
+        "control_label": "exclusion of people from beneath elevated work",
+        "failure_mode": "bypassed",
+        "hazard_energy": "gravity",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "FALL_ARREST_PROVISION",
+        "control_label": "selection, inspection and use of fall arrest equipment",
+        "failure_mode": "absent",
+        "hazard_energy": "gravity",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "INC-2024-016",
+    "hazard_energy": "gravity",
+    "hazard_media": [
+      "suspended load",
+      "stored potential of an elevated component",
+      "unsupported ground",
+      "person at height"
+    ],
+    "hazard_release": "fall, collapse, crush",
+    "kind": "incident",
+    "occurred_on": "2024-11-17",
+    "severity_actual": 0,
+    "severity_potential": 3,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during routine operation",
+    "title": "loss of containment at HO-9402 during routine operation",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "51fc5f8e8da2d165dc123e1c045765c0a2ab14f30e949b844b94627de21d30b7",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2024-016",
+  "prompt_kind": "icam",
+  "prompt_sha256": "7d75b9c9979495ff40a6feccaf8c3c7859a1713b8c1d8c0270bd1501645c8b38",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 3 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "ANCHOR_POINT_CERTIFICATION",
+        "finding": "Control ANCHOR_POINT_CERTIFICATION: the certification and identification of anchor points had degraded below its design intent, and the learning team review classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "DROP_ZONE_EXCLUSION",
+        "finding": "Control DROP_ZONE_EXCLUSION: the exclusion of people from beneath elevated work had been bypassed, and the learning team review classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "FALL_ARREST_PROVISION",
+        "finding": "Control FALL_ARREST_PROVISION: the selection, inspection and use of fall arrest equipment was not in place, and the learning team review classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Restore the certification and identification of anchor points on HO-9402 and record the assurance activity before this task is next authorised.",
+      "Restore the exclusion of people from beneath elevated work on HO-9402 and record the assurance activity before this task is next authorised."
+    ],
+    "sequence": "Work was under way in providing fall protection, specifically selecting and inspecting fall-arrest equipment. HO-9402 (workshop hoists and press) is in service for heavy vehicle component removal and pressing. The task proceeded during routine operation while the certification and identification of anchor points had degraded below its design intent. The gravity energy involved is held as suspended load, and the recorded presentation was fall, collapse, crush.",
+    "summary": "On 17 November 2024 an incident occurred on HO-9402 at Yandarra Downs Open Cut and Heavy Workshop during routine operation, releasing gravity energy held as suspended load."
+  },
+  "response_sha256": "45bd83faf571bbf62086fd166e5ae0b1df68066c79d9712bc4e98c92a819b923",
+  "source": null
+}

@@ -1,0 +1,46 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 5,
+    "doc_codes": [
+      "PRO-ELE-026",
+      "STD-ELE-009"
+    ],
+    "intent": "strengthen",
+    "moc_ref": "MOC-2018-0154",
+    "opened_on": "2018-06-10",
+    "precursor_events": [
+      {
+        "event_ref": "NM-2006-0012",
+        "severity_gate": null
+      },
+      {
+        "event_ref": "NM-2006-0016",
+        "severity_gate": null
+      }
+    ],
+    "site": "Tolgarra Processing and Power Station",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "management_of_change": "management of change",
+      "verification": "critical control verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "7f0d7355aff280b1d81e0135a829c70b5001d23147b582925d1621aa49340daf",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2018-0154",
+  "prompt_kind": "moc",
+  "prompt_sha256": "b873f1a56f6d40f999f6d779796b40f4e47cf5dde79ea70cbee282c3b8e915a1",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2018-0154 was raised at Tolgarra Processing and Power Station on 10 June 2018 following 2 recorded events in the archive, including NM-2006-0012 and NM-2006-0016. The management of change record covers 5 clauses across 2 controlled documents. The intent is to strengthen the critical control named in the documents in scope. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical control set is preserved.",
+    "scope_note": "The documents in scope are PRO-ELE-026 and STD-ELE-009."
+  },
+  "response_sha256": "8244c5c132271631700e256f35b95e3d87732b0c27df82617cacc3822e196033",
+  "source": null
+}

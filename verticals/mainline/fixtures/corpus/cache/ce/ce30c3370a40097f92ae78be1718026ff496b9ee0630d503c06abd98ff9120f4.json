@@ -1,0 +1,38 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 1,
+    "doc_codes": [
+      "MOC-2021-0155",
+      "PRO-MIN-003",
+      "STD-MEQ-007"
+    ],
+    "intent": "restate",
+    "moc_ref": "MOC-2010-0190",
+    "opened_on": "2010-12-05",
+    "precursor_events": [],
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "management_of_change": "change request",
+      "verification": "field verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "ce30c3370a40097f92ae78be1718026ff496b9ee0630d503c06abd98ff9120f4",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2010-0190",
+  "prompt_kind": "moc",
+  "prompt_sha256": "b08ef9dc555bff3fef2c9d002736d9e83b46fa3a47329f05613d62c79f294dcc",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2010-0190 was raised at Yandarra Downs Open Cut and Heavy Workshop on 5 December 2010 as a scheduled change under change request; no event precedes it in the record. The change request record covers 1 clause across 3 controlled documents. The intent is to restate an existing duty without altering what it requires. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical safeguard set is preserved.",
+    "scope_note": "The documents in scope are MOC-2021-0155, PRO-MIN-003 and STD-MEQ-007."
+  },
+  "response_sha256": "03d94b32195baab3f4836a0af6e152b2e9c68b9ec0fe30d5269877ebefe991aa",
+  "source": null
+}

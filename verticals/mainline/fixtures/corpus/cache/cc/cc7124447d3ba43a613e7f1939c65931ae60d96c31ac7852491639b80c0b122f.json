@@ -1,0 +1,52 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 2,
+    "doc_codes": [
+      "ALERT-2016-007",
+      "MOC-2026-0413",
+      "PRO-MEC-014",
+      "PRO-OPS-032"
+    ],
+    "intent": "strengthen",
+    "moc_ref": "MOC-2017-0214",
+    "opened_on": "2017-12-29",
+    "precursor_events": [
+      {
+        "event_ref": "INC-2018-017",
+        "severity_gate": null
+      },
+      {
+        "event_ref": "NM-2023-0017",
+        "severity_gate": null
+      },
+      {
+        "event_ref": "OEM-2011-002",
+        "severity_gate": null
+      }
+    ],
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "management_of_change": "management of change",
+      "verification": "critical control verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "cc7124447d3ba43a613e7f1939c65931ae60d96c31ac7852491639b80c0b122f",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2017-0214",
+  "prompt_kind": "moc",
+  "prompt_sha256": "a53edea58a2cf4ff5f29d19c420f37a1fc91b531961a50cbc7dba8a065815557",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2017-0214 was raised at Marrindal Concentrator and Hydrocarbon Transfer Facility on 29 December 2017 following 3 recorded events in the archive, including INC-2018-017, NM-2023-0017 and OEM-2011-002. The management of change record covers 2 clauses across 4 controlled documents. The intent is to strengthen the critical control named in the documents in scope. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical control set is preserved.",
+    "scope_note": "The documents in scope are ALERT-2016-007, MOC-2026-0413, PRO-MEC-014 and PRO-OPS-032."
+  },
+  "response_sha256": "2492a01ff59eaf4f5dbd1785bc78295e569625b943fa03403524f780408581d5",
+  "source": null
+}

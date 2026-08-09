@@ -5,10 +5,19 @@
 Two claims are under test and they are different claims.
 
 **The substrate claim.** One template set renders two bindings that share no schema, no
-role name, no output directory and no outbox decision. A template engine with an
-audience of one proves nothing about whether the templates read the binding or
-hard-code the vertical, which is why the reference vertical is a first-class deliverable
-and is tested here beside MAINLINE rather than as a fixture underneath it.
+output directory, no outbox decision, and no role name in any slot a binding is allowed
+to name. A template engine with an audience of one proves nothing about whether the
+templates read the binding or hard-code the vertical, which is why the reference
+vertical is a first-class deliverable and is tested here beside MAINLINE rather than as
+a fixture underneath it.
+
+The qualifier on "role name" is measured, not hedged: exactly two of the nine names DO
+coincide (``agent_recaller``, ``quality_assurance``), because
+``vertical.schema.json`` 1.0 closes ``[roles]`` with ``additionalProperties: false`` and
+has no key for the slots that carry them, and §11.2's default for both is a
+cluster-global constant. ``test_the_two_bindings_share_no_schema_role_or_output_directory``
+pins that set, so narrowing it (the spec grows the keys) or widening it (someone drops
+an override) is a red test rather than a quiet change of meaning.
 
 **The foundation claim.** The rendered band 0001-0023 says specific things about the
 world, and the specific things are the product:
@@ -34,6 +43,7 @@ from pathlib import Path
 import pytest
 
 from trappoint_sql.binding import load_binding
+from trappoint_sql.model import Binding
 from trappoint_sql.render import check_units, render_binding, stem_collisions
 
 BINDINGS = ("verticals/mainline/vertical.toml", "packages/trappoint-sql/refvertical/vertical.toml")
@@ -93,29 +103,29 @@ def executable(sql: str) -> str:
 
 
 @pytest.fixture(params=BINDINGS, ids=("mainline", "trappoint-ref"))
-def binding(request: pytest.FixtureRequest, repo_root_path: Path) -> object:
+def binding(request: pytest.FixtureRequest, repo_root_path: Path) -> Binding:
     """Each real binding in turn."""
     return load_binding(repo_root_path / request.param)
 
 
-def committed(binding_obj: object, name: str) -> str:
+def committed(binding_obj: Binding, name: str) -> str:
     """Read one committed migration out of the binding's output directory."""
-    return (binding_obj.output_dir / name).read_text(encoding="utf-8")  # type: ignore[attr-defined]
+    return (binding_obj.output_dir / name).read_text(encoding="utf-8")
 
 
 # ── the zero-diff assertion, which is the worker's completion test ──────────────────
 
 
-def test_render_check_is_a_zero_diff_no_op(binding: object, templates_dir: Path) -> None:
-    result = render_binding(binding, templates_dir)  # type: ignore[arg-type]
+def test_render_check_is_a_zero_diff_no_op(binding: Binding, templates_dir: Path) -> None:
+    result = render_binding(binding, templates_dir)
     findings = check_units(result)
     assert findings == [], "\n".join(f.render() for f in findings)
 
 
-def test_the_output_directory_holds_no_colliding_migration_versions(binding: object) -> None:
+def test_the_output_directory_holds_no_colliding_migration_versions(binding: Binding) -> None:
     # A zero-diff tree the migration runner refuses to discover is a green assertion
     # about a dead deploy (MR-6).
-    collisions = stem_collisions(binding.output_dir)  # type: ignore[attr-defined]
+    collisions = stem_collisions(binding.output_dir)
     assert collisions == [], f"{collisions}"
 
 
@@ -198,14 +208,14 @@ def test_every_authority_relation_of_the_reference_vertical_has_ddl(
 # ── the foundation band, read out of the committed files ────────────────────────────
 
 
-def test_the_clearance_lattice_is_twenty_one_rows(binding: object) -> None:
+def test_the_clearance_lattice_is_twenty_one_rows(binding: Binding) -> None:
     seed = committed(binding, "0018b_clearance_legal_seed.sql")
     rows = [(m["virulence"], m["kind"]) for m in _CLEARANCE_ROW.finditer(seed)]
     assert len(rows) == 21
     assert len(set(rows)) == 21, "a duplicated cell would fail the primary key at apply time"
 
 
-def test_exactly_three_cells_are_absent_and_they_are_the_named_three(binding: object) -> None:
+def test_exactly_three_cells_are_absent_and_they_are_the_named_three(binding: Binding) -> None:
     seed = committed(binding, "0018b_clearance_legal_seed.sql")
     present = {(m["virulence"], m["kind"]) for m in _CLEARANCE_ROW.finditer(seed)}
     product = {(v, k) for v in VIRULENCE for k in DISPOSITION_KIND}
@@ -213,7 +223,7 @@ def test_exactly_three_cells_are_absent_and_they_are_the_named_three(binding: ob
     assert present - product == set(), "a seeded cell outside the 4x6 product"
 
 
-def test_each_absent_cell_is_named_in_the_migration_that_omits_it(binding: object) -> None:
+def test_each_absent_cell_is_named_in_the_migration_that_omits_it(binding: Binding) -> None:
     # Absence is the mechanism, and an unexplained absence is indistinguishable from an
     # oversight. The reader of this file must be told which three and why.
     seed = committed(binding, "0018b_clearance_legal_seed.sql")
@@ -223,7 +233,7 @@ def test_each_absent_cell_is_named_in_the_migration_that_omits_it(binding: objec
 
 
 def test_the_fatality_cells_are_absent_for_the_reason_the_product_is_named_after(
-    binding: object,
+    binding: Binding,
 ) -> None:
     seed = committed(binding, "0018b_clearance_legal_seed.sql")
     fatal = {kind for virulence, kind in _iter_rows(seed) if virulence == "blood_fatal"}
@@ -238,7 +248,7 @@ def _iter_rows(seed: str) -> list[tuple[str, str]]:
     return [(m["virulence"], m["kind"]) for m in _CLEARANCE_ROW.finditer(seed)]
 
 
-def test_the_transition_edge_set_is_identical_for_every_subject_kind(binding: object) -> None:
+def test_the_transition_edge_set_is_identical_for_every_subject_kind(binding: Binding) -> None:
     seed = committed(binding, "0017b_subject_transition_seed.sql")
     by_kind: dict[str, set[tuple[str, str]]] = {}
     for match in _EDGE_ROW.finditer(seed):
@@ -258,7 +268,7 @@ def test_nothing_transitions_into_draft_and_merged_never_re_enters_the_gate() ->
     assert not [edge for edge in EDGES if edge[0] in {"closed", "abandoned"}]
 
 
-def test_the_seven_types_are_each_their_own_migration(binding: object) -> None:
+def test_the_seven_types_are_each_their_own_migration(binding: Binding) -> None:
     expected = (
         "0010_type_control_delta.sql",
         "0011_type_subject_state.sql",
@@ -268,16 +278,16 @@ def test_the_seven_types_are_each_their_own_migration(binding: object) -> None:
         "0015_type_blame_state.sql",
         "0016_type_prop_state.sql",
     )
-    schema = binding.vertical.schema  # type: ignore[attr-defined]
+    schema = binding.vertical.schema
     for name in expected:
         body = executable(committed(binding, name))
         assert body.count("CREATE TYPE") == 1, f"{name} is not exactly one CREATE TYPE"
         assert f"{schema}." in body, "every type must be schema-qualified into the binding's schema"
 
 
-def test_the_five_schema_zones_are_derived_from_the_one_declared_name(binding: object) -> None:
-    schema = binding.vertical.schema  # type: ignore[attr-defined]
-    assert [z.name for z in binding.zones] == [  # type: ignore[attr-defined]
+def test_the_five_schema_zones_are_derived_from_the_one_declared_name(binding: Binding) -> None:
+    schema = binding.vertical.schema
+    assert [z.name for z in binding.zones] == [
         schema,
         f"{schema}_meas",
         f"{schema}_audit",
@@ -289,36 +299,36 @@ def test_the_five_schema_zones_are_derived_from_the_one_declared_name(binding: o
 # ── properties every rendered file in the band must carry ──────────────────────────
 
 
-def test_every_rendered_file_cites_an_invariant(binding: object, templates_dir: Path) -> None:
+def test_every_rendered_file_cites_an_invariant(binding: Binding, templates_dir: Path) -> None:
     # ARCHITECTURE.md §18, enforced by the renderer and re-asserted over the committed
     # bytes: the enforcement and the artefact are different things, and only one of them
     # is what `trappoint migrate up` reads.
-    for unit in render_binding(binding, templates_dir).units:  # type: ignore[arg-type]
+    for unit in render_binding(binding, templates_dir).units:
         text = committed(binding, unit.name)
         header = text.split("\n\n", 1)[0]
         assert _CITATION.search(header), f"{unit.name} cites no MI or I identifier"
 
 
-def test_no_committed_file_in_the_band_reintroduces_a_sequence(binding: object) -> None:
+def test_no_committed_file_in_the_band_reintroduces_a_sequence(binding: Binding) -> None:
     # Ruling D10. The gap-free-by-CAS claim is worthless if one future migration
     # reintroduces a sequence, and the claim is what makes a gap MEAN tampering.
     banned = re.compile(
         r"\bCREATE\s+SEQUENCE\b|\bnextval\s*\(|\b(?:BIG|SMALL)?SERIAL[248]?\b|\bunique_rowid\s*\(",
         re.I,
     )
-    for path in sorted(binding.output_dir.glob("*.sql")):  # type: ignore[attr-defined]
+    for path in sorted(binding.output_dir.glob("*.sql")):
         body = executable(path.read_text(encoding="utf-8"))
         assert not banned.search(body), f"{path.name} reintroduces a banned token"
 
 
-def test_the_recaller_receives_no_write_privilege_anywhere_in_the_band(binding: object) -> None:
+def test_the_recaller_receives_no_write_privilege_anywhere_in_the_band(binding: Binding) -> None:
     # Finding `S1` asserted over the artefact rather than over the guard that produced it.
     # The role that detects a precursor may never write one.
-    recaller = binding.role("recaller")  # type: ignore[attr-defined]
+    recaller = binding.role("recaller")
     write = re.compile(r"\b(?:INSERT|UPDATE|DELETE|TRUNCATE|ALL(?:\s+PRIVILEGES)?)\b", re.I)
     grant = re.compile(r"\bGRANT\b", re.I)
     seen = 0
-    for path in sorted(binding.output_dir.glob("*.sql")):  # type: ignore[attr-defined]
+    for path in sorted(binding.output_dir.glob("*.sql")):
         body = executable(path.read_text(encoding="utf-8"))
         if not grant.search(body) or recaller not in body:
             continue
@@ -331,19 +341,19 @@ def test_the_recaller_receives_no_write_privilege_anywhere_in_the_band(binding: 
     )
 
 
-def test_the_binding_declares_its_conformance_profile(binding: object) -> None:
+def test_the_binding_declares_its_conformance_profile(binding: Binding) -> None:
     # `ANOMALY_COVERAGE.md` and the suite's `--profile` flag both read this. A binding
     # with no profile is a binding no conformance case can select on, which is a vertical
     # nobody can prove anything about.
-    assert binding.conformance_profile in {"mainline", "trappoint-ref"}  # type: ignore[attr-defined]
+    assert binding.conformance_profile in {"mainline", "trappoint-ref"}
 
 
 def test_the_committed_binding_is_valid_toml_with_an_spdx_header(
-    binding: object, repo_root_path: Path
+    binding: Binding, repo_root_path: Path
 ) -> None:
-    text = binding.source.read_text(encoding="utf-8")  # type: ignore[attr-defined]
+    text = binding.source.read_text(encoding="utf-8")
     assert "SPDX-License-Identifier:" in text.split("\n\n", 1)[0]
-    with binding.source.open("rb") as handle:  # type: ignore[attr-defined]
+    with binding.source.open("rb") as handle:
         document = tomllib.load(handle)
     assert document["vertical"]["output_dir"]
     assert (repo_root_path / document["capabilities"]["attestation"]).is_file()

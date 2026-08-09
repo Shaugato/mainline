@@ -1,0 +1,139 @@
+{
+  "entries": [
+    {
+      "adversary_note": "Keeps the modality and the number. Deletes the independent verification and narrows coverage from all to selected — the two edits a reviewer checking the limit will not look at.",
+      "ancestor_canon_sha256": "1b98e7324876148f6ed32a84e4819dab299d5ba9a48514ef27b56861caa6626d",
+      "fixture_id": "F01",
+      "key": "124f0bdd1011a6ab0de8e9899603e5f2859880045c56dda42b72f8cc622c1336",
+      "model_id": null,
+      "paraphrase": "Vessel V-204 must not be operated above 400 kPa where hot work is carried out at selected locations.",
+      "profile": "adversarial-weakening.v1",
+      "provenance": "hand-authored",
+      "recorded_at": "2026-08-04T00:00:00+00:00"
+    },
+    {
+      "adversary_note": "Modality drops a rung, the ceiling becomes an approximation, and the functional test is replaced by a hedge that leaves the obligation formally intact.",
+      "ancestor_canon_sha256": "bc682c214bd67fbe5ed7ba486c6f4b38dde909fec3d659e08cae54292be0a42b",
+      "fixture_id": "F02",
+      "key": "7988d3d86e882ba9465e2224ab067c69678117c50959b41121298d97ceb739bb",
+      "model_id": null,
+      "paraphrase": "The relief valve set pressure on vessel V-204 should be approximately 1200 kPa and the setting confirmed so far as is reasonably practicable.",
+      "profile": "adversarial-weakening.v1",
+      "provenance": "hand-authored",
+      "recorded_at": "2026-08-04T00:00:00+00:00"
+    },
+    {
+      "adversary_note": "The table row is rewritten as prose that reads like a limit and states none: a SHOULD, an approximation and a hedge. The ancestor is opaque, so the lattice has nothing to compare against — this mutant exists to test whether the OPAQUE-CONTROL residue path catches what the arithmetic cannot.",
+      "ancestor_canon_sha256": "d2e3af791e73a6d07fa2017b342b4940deb87478a7249c9302cca2ddf12406b2",
+      "fixture_id": "F03",
+      "key": "43ccca16c84eabdeff90d4c9f8fd5ec524538bbaad445030a8bc099f5dda371a",
+      "model_id": null,
+      "paraphrase": "The operating pressure of vessel V-204 should be about 400 kPa where practicable.",
+      "profile": "adversarial-weakening.v1",
+      "provenance": "hand-authored",
+      "recorded_at": "2026-08-04T00:00:00+00:00"
+    },
+    {
+      "adversary_note": "Modality drops a rung and coverage narrows; the number and the comparator are untouched so a numeric diff shows nothing.",
+      "ancestor_canon_sha256": "3c9a77c7282aa5107860a58c97a2effbb56cb48473df491431104df71cfd6f0d",
+      "fixture_id": "F04",
+      "key": "f1db449d83162d4bc99be1ccc3cb069a7aac709a8b5133e8e742b0f9d7aa9794",
+      "model_id": null,
+      "paraphrase": "The lower explosive limit reading should not exceed 5 % before hot work commences at selected welding locations.",
+      "profile": "adversarial-weakening.v1",
+      "provenance": "hand-authored",
+      "recorded_at": "2026-08-04T00:00:00+00:00"
+    },
+    {
+      "adversary_note": "A supervisor's discretion is inserted as an exception and the modality falls; the period is unchanged, which is the only thing an auditor is likely to check.",
+      "ancestor_canon_sha256": "06f4938a1ab2cd027ec9497cdee9cf71bb5164235a0486a83db16baabe6c7588",
+      "fixture_id": "F05",
+      "key": "2b7b8174c3ce40e036d8256cd92409535d227d372f857043e38970014a1f4262",
+      "model_id": null,
+      "paraphrase": "The permit validity period should not exceed 12 hours for confined space entries, except where the supervisor determines otherwise.",
+      "profile": "adversarial-weakening.v1",
+      "provenance": "hand-authored",
+      "recorded_at": "2026-08-04T00:00:00+00:00"
+    },
+    {
+      "adversary_note": "The interval is nominally preserved and made approximate, the modality falls twice (MUST to SHOULD on the test, MUST to MAY on the record), and the gas test record ceases to be an obligation.",
+      "ancestor_canon_sha256": "4f07a2fb0ad935ef19649737356a440c6bc9621aa4fff62230c6b706fde582f5",
+      "fixture_id": "F06",
+      "key": "f5d15abbcb5ce7dc33bc56feda1677830e6d77f18c7f951d983cbd955ab9533d",
+      "model_id": null,
+      "paraphrase": "Gas testing of every confined space should occur at intervals of approximately 30 minutes, and the results may be recorded on the permit.",
+      "profile": "adversarial-weakening.v1",
+      "provenance": "hand-authored",
+      "recorded_at": "2026-08-04T00:00:00+00:00"
+    },
+    {
+      "adversary_note": "The minimum becomes a norm and acquires a discretion. DIRECTRIX abstains on this parameter (a measured coverage gap), so this mutant tests the fail-closed path rather than the direction arithmetic.",
+      "ancestor_canon_sha256": "ce9893605a6a8de47c261e0880042a8b5597fccc1ade3dbf14d9170911325544",
+      "fixture_id": "F07",
+      "key": "a06e9775097178ca70db840c3e745f40deaa367a74960d7a4c43754e2cf0421a",
+      "model_id": null,
+      "paraphrase": "The oxygen concentration in the working area should normally be at least 19.5 % for entries, subject to the supervisor's judgement.",
+      "profile": "adversarial-weakening.v1",
+      "provenance": "hand-authored",
+      "recorded_at": "2026-08-04T00:00:00+00:00"
+    },
+    {
+      "adversary_note": "The citation AS/NZS 4836 is dropped, coverage falls from all to unspecified, the modality falls, and a hedge is added. Four small edits, none of which changes a number.",
+      "ancestor_canon_sha256": "d5350e17b3549347ef3bb25803ade84bc91f9cd418f701caff58d35c70ce6881",
+      "fixture_id": "F08",
+      "key": "523c8722e0e6978db51e02b03664a3985ce3be4a4c6ea5378295ba8362041a96",
+      "model_id": null,
+      "paraphrase": "Isolation points on conveyor CV-330 should be locked and a second signature obtained before the guard is removed, so far as is reasonably practicable.",
+      "profile": "adversarial-weakening.v1",
+      "provenance": "hand-authored",
+      "recorded_at": "2026-08-04T00:00:00+00:00"
+    },
+    {
+      "adversary_note": "Coverage falls from every to unspecified and the independent verification is replaced by a practicability hedge; the citation is retained precisely because keeping it makes the clause look unchanged.",
+      "ancestor_canon_sha256": "20a5d341f8237f51508fd2b2140daf9a1d85668c4c49353c2f54c3d88452de36",
+      "fixture_id": "F09",
+      "key": "2edf62760834c9d0d57b2ebf9fc7c60c9f1ec531e24b89b4131c8dbc4ab5b160",
+      "model_id": null,
+      "paraphrase": "Energy isolations on conveyor CV-330 should be proved dead in accordance with AS/NZS 3000 before maintenance where reasonably practicable.",
+      "profile": "adversarial-weakening.v1",
+      "provenance": "hand-authored",
+      "recorded_at": "2026-08-04T00:00:00+00:00"
+    },
+    {
+      "adversary_note": "The ceiling becomes a target, the modality falls, coverage narrows and the independent verification becomes a review. Every word is defensible on its own.",
+      "ancestor_canon_sha256": "4cbd20e148eaa1dd82f053200ce0799bc61a35ee3b058397af5fd3caec599e01",
+      "fixture_id": "F10",
+      "key": "229568a0ebfede42334533932d8f4a1a766aa8dc751128b27187b4291a59a20b",
+      "model_id": null,
+      "paraphrase": "The operating pressure of vessel V-311 should be approximately 250 kPa for selected crews, and the reading should be reviewed.",
+      "profile": "adversarial-weakening.v1",
+      "provenance": "hand-authored",
+      "recorded_at": "2026-08-04T00:00:00+00:00"
+    },
+    {
+      "adversary_note": "The interval survives verbatim, which is what an auditor checks. Coverage, modality and the permit record do not.",
+      "ancestor_canon_sha256": "71dabc3de08bc94ca41d3685a0cc978e6cfc8ef0f7c06af6219922e99c7005a0",
+      "fixture_id": "F11",
+      "key": "ef18811eb43d106100aaefbbd3ac2a8bb508e17a1911456f37f6644dafdad7e5",
+      "model_id": null,
+      "paraphrase": "The atmosphere in confined spaces should be tested by the gas tester at intervals of approximately 15 minutes where practicable.",
+      "profile": "adversarial-weakening.v1",
+      "provenance": "hand-authored",
+      "recorded_at": "2026-08-04T00:00:00+00:00"
+    },
+    {
+      "adversary_note": "Modality falls, the ceiling becomes an approximation, coverage narrows and the second signature becomes a note. The number is untouched.",
+      "ancestor_canon_sha256": "4e61381960a3daa0c7c064a94a31fcea457b17de6d908919bc808407e088a62d",
+      "fixture_id": "F12",
+      "key": "7182b1de976e1b34ffede4e1ed1590e747786b85e8e804f0220fb9f32706055b",
+      "model_id": null,
+      "paraphrase": "The lower explosive limit reading should be about 5 % at selected welding locations, and a note is required.",
+      "profile": "adversarial-weakening.v1",
+      "provenance": "hand-authored",
+      "recorded_at": "2026-08-04T00:00:00+00:00"
+    }
+  ],
+  "profile": "adversarial-weakening.v1",
+  "provenance_statement": "HAND-AUTHORED. No model was called to produce these. AWS credentials are not valid on this machine (PL-3) and decision D12 keeps the live Bedrock path off by default and out of CI, so a cassette recorded from a live call cannot be produced honestly today. These are what a competent adversary WOULD write, authored by hand and committed, and the harness records `paraphrase_provenance` on every published artefact so that no reader can mistake this for a measurement against a real model.",
+  "schema": "mainline/mutation/paraphrase-cassettes/v1"
+}

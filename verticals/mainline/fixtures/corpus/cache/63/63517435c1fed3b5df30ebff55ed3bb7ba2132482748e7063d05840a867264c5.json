@@ -1,0 +1,105 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "monitoring dust, fume and gas exposure",
+    "activity_root": "HAZARDOUS-SUBSTANCE-EXPOSURE",
+    "activity_series": "controlling airborne contaminants",
+    "assets": [
+      {
+        "asset_class": "TANK-CLASS-R",
+        "label": "reagent storage tanks",
+        "service": "bulk reagent storage",
+        "tag": "TK-8310"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "BUND_AND_DRAINAGE_CONTAINMENT",
+        "control_label": "secondary containment by bund and drainage",
+        "failure_mode": "not_verified",
+        "hazard_energy": "chemical",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "EXPOSURE_MONITORING",
+        "control_label": "monitoring of airborne contaminant exposure",
+        "failure_mode": "absent",
+        "hazard_energy": "chemical",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "REAGENT_HANDLING_CONTROL",
+        "control_label": "controlled make-up, decanting and dosing of reagents",
+        "failure_mode": "bypassed",
+        "hazard_energy": "chemical",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "INC-2006-008",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "incident",
+    "occurred_on": "2006-11-21",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Tolgarra Processing and Power Station",
+    "summary_facts": [],
+    "task_phase": "during a statutory inspection",
+    "title": "injury during a statutory inspection on TK-8310",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "investigation": "accident investigation",
+      "near_miss": "near hit",
+      "verification": "spot check"
+    }
+  },
+  "key": "63517435c1fed3b5df30ebff55ed3bb7ba2132482748e7063d05840a867264c5",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2006-008",
+  "prompt_kind": "icam",
+  "prompt_sha256": "c5ada25f29acb1c35ad7ab1b864b2bbf7c79e7e5d3f2949dd593859aa663fe25",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "BUND_AND_DRAINAGE_CONTAINMENT",
+        "finding": "Control BUND_AND_DRAINAGE_CONTAINMENT: the secondary containment by bund and drainage was never verified as effective, and the accident investigation classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "EXPOSURE_MONITORING",
+        "finding": "Control EXPOSURE_MONITORING: the monitoring of airborne contaminant exposure was not in place, and the accident investigation classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "REAGENT_HANDLING_CONTROL",
+        "finding": "Control REAGENT_HANDLING_CONTROL: the controlled make-up, decanting and dosing of reagents had been bypassed, and the accident investigation classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the secondary containment by bund and drainage on TK-8310 and record the spot check before this task is next authorised.",
+      "Restore the controlled make-up, decanting and dosing of reagents on TK-8310 and record the spot check before this task is next authorised."
+    ],
+    "sequence": "Work was under way in controlling airborne contaminants, specifically monitoring dust, fume and gas exposure. TK-8310 (reagent storage tanks) is in service for bulk reagent storage. The task proceeded during a statutory inspection while the secondary containment by bund and drainage was never verified as effective. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 21 November 2006 an incident occurred on TK-8310 at Tolgarra Processing and Power Station during a statutory inspection, releasing chemical energy held as hydrocarbon."
+  },
+  "response_sha256": "9a978238c4e5076b374fbc4cd8150b14f734fb753fcd1ea554df276df1b0f568",
+  "source": null
+}

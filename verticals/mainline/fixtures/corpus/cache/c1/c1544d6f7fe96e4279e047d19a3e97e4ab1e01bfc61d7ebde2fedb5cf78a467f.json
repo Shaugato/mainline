@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 2,
+    "doc_code": "PTW-STD-002",
+    "doc_family": "PTW",
+    "doc_title": "Permit to Work Form Set",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2017-01-13",
+    "required_citations": [
+      {
+        "control_label": "proving zero energy before intrusive work",
+        "event_ref": "INC-2016-009",
+        "event_title": "uncontrolled movement of P-3220 during transfer operations",
+        "hazard_energy": "electrical",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:MRD/PTW-STD-002/004#revision_history_line/INC-2016-009",
+        "severity_gate": 3
+      }
+    ],
+    "rev_no": 4,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "ICAM investigation",
+      "management_of_change": "management of change",
+      "near_miss": "potential incident"
+    }
+  },
+  "key": "c1544d6f7fe96e4279e047d19a3e97e4ab1e01bfc61d7ebde2fedb5cf78a467f",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/PTW-STD-002/004",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "56717800ae20d029e278e0ce04956310d13a88b324481d233ad3c3e3ba22a475",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "Revision 4 was raised in response to INC-2016-009, and the proving zero energy before intrusive work was amended as a result.",
+        "quote_ref": "quote:MRD/PTW-STD-002/004#revision_history_line/INC-2016-009"
+      }
+    ],
+    "reason": "Scheduled review at revision 4; 2 clauses restated."
+  },
+  "response_sha256": "6720ad9bb8fadc8e1cf8185781c161f87946246c08a6aea49d76adc81021cf03",
+  "source": null
+}

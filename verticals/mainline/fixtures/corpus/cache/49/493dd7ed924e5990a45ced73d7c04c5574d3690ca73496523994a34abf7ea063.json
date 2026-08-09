@@ -1,0 +1,79 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "inspecting highwalls and batters",
+    "activity_root": "GROUND-AND-STRATA-CONTROL",
+    "activity_series": "monitoring and inspecting ground conditions",
+    "assets": [
+      {
+        "asset_class": "MOB-CLASS-E",
+        "label": "earthmoving fleet",
+        "service": "loading and dozing",
+        "tag": "DZ-9201"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 1,
+      "label": "medical treatment injury"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "GROUND_CONDITION_INSPECTION",
+        "control_label": "inspection and monitoring of highwalls and batters",
+        "failure_mode": "absent",
+        "hazard_energy": "kinetic",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "NM-2012-0020",
+    "hazard_energy": "kinetic",
+    "hazard_media": [
+      "rotating equipment",
+      "conveyor",
+      "mobile equipment",
+      "pressurised jet",
+      "flying fragment"
+    ],
+    "hazard_release": "entanglement, impact, crush",
+    "kind": "near_miss",
+    "occurred_on": "2012-12-13",
+    "severity_actual": 2,
+    "severity_potential": 4,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during commissioning of replacement equipment",
+    "title": "hazard report - kinetic exposure at DZ-9201",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "493dd7ed924e5990a45ced73d7c04c5574d3690ca73496523994a34abf7ea063",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2012-0020",
+  "prompt_kind": "icam",
+  "prompt_sha256": "d130618e6d5f7ab9a83d7e6fe59648b395f6cbe6c303d974667071ae372cab59",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was medical treatment injury, with 1 person injured. The potential outcome was rated 4 against the site's consequence scale, above the 2 actually realised.",
+    "defences": [
+      {
+        "control_class": "GROUND_CONDITION_INSPECTION",
+        "finding": "Control GROUND_CONDITION_INSPECTION: the inspection and monitoring of highwalls and batters was not in place, and the root cause analysis classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the inspection and monitoring of highwalls and batters on DZ-9201 and record the field verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in monitoring and inspecting ground conditions, specifically inspecting highwalls and batters. DZ-9201 (earthmoving fleet) is in service for loading and dozing. The task proceeded during commissioning of replacement equipment while the inspection and monitoring of highwalls and batters was not in place. The kinetic energy involved is held as rotating equipment, and the recorded presentation was entanglement, impact, crush.",
+    "summary": "On 13 December 2012 a hazard report was recorded on DZ-9201 at Yandarra Downs Open Cut and Heavy Workshop during commissioning of replacement equipment; kinetic energy held as rotating equipment was not released."
+  },
+  "response_sha256": "7845d6ad0280050b07a3ea45c477ff833e9f87103d814db2ca0e652b06c6f94b",
+  "source": null
+}

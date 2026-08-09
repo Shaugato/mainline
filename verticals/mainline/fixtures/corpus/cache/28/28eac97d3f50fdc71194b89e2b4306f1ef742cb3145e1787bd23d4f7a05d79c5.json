@@ -1,0 +1,90 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 22,
+    "doc_code": "PRO-OPS-032",
+    "doc_family": "PRO",
+    "doc_title": "Hydrocarbon Transfer Operations",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2005-03-14",
+    "required_citations": [
+      {
+        "control_label": "controlled transfer of hydrocarbon between vessels",
+        "event_ref": "INC-2004-008",
+        "event_title": "injury during transfer operations on TK-4210",
+        "hazard_energy": "pressure",
+        "kind": "capa_action",
+        "quote_ref": "quote:MRD/PRO-OPS-032/001#capa_action/INC-2004-008",
+        "severity_gate": 2
+      },
+      {
+        "control_label": "seal-face high-temperature alarm and trip",
+        "event_ref": "INC-2004-008",
+        "event_title": "injury during transfer operations on TK-4210",
+        "hazard_energy": "pressure",
+        "kind": "moc_reference",
+        "quote_ref": "quote:MRD/PRO-OPS-032/001#moc_reference/INC-2004-008",
+        "severity_gate": 2
+      },
+      {
+        "control_label": "seal-face high-temperature alarm and trip",
+        "event_ref": "INC-2004-008",
+        "event_title": "injury during transfer operations on TK-4210",
+        "hazard_energy": "pressure",
+        "kind": "regulator_requirement",
+        "quote_ref": "quote:MRD/PRO-OPS-032/001#regulator_requirement/INC-2004-008",
+        "severity_gate": 2
+      },
+      {
+        "control_label": "seal-face high-temperature alarm and trip",
+        "event_ref": "INC-2004-008",
+        "event_title": "injury during transfer operations on TK-4210",
+        "hazard_energy": "pressure",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:MRD/PRO-OPS-032/001#revision_history_line/INC-2004-008",
+        "severity_gate": 2
+      }
+    ],
+    "rev_no": 1,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "accident investigation",
+      "management_of_change": "engineering change note",
+      "near_miss": "near hit"
+    }
+  },
+  "key": "28eac97d3f50fdc71194b89e2b4306f1ef742cb3145e1787bd23d4f7a05d79c5",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/PRO-OPS-032/001",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "43e18dae424677272601433e0dcb36b16896bb41694de8cf705b8bf30b23c171",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The corrective action recorded against INC-2004-008 required the controlled transfer of hydrocarbon between vessels to be restated in this procedure.",
+        "quote_ref": "quote:MRD/PRO-OPS-032/001#capa_action/INC-2004-008"
+      },
+      {
+        "line": "The engineering change note record for this revision cites INC-2004-008 as the reason the seal-face high-temperature alarm and trip was amended.",
+        "quote_ref": "quote:MRD/PRO-OPS-032/001#moc_reference/INC-2004-008"
+      },
+      {
+        "line": "A regulatory requirement arising from INC-2004-008 obliges this procedure to carry the seal-face high-temperature alarm and trip.",
+        "quote_ref": "quote:MRD/PRO-OPS-032/001#regulator_requirement/INC-2004-008"
+      },
+      {
+        "line": "Revision 1 was raised in response to INC-2004-008, and the seal-face high-temperature alarm and trip was amended as a result.",
+        "quote_ref": "quote:MRD/PRO-OPS-032/001#revision_history_line/INC-2004-008"
+      }
+    ],
+    "reason": "Scheduled review at revision 1; 22 clauses restated."
+  },
+  "response_sha256": "d820475eec0ad4f5efd83c9a656abac1c414c617bbd30e50aa8e5e6a2200415e",
+  "source": null
+}

@@ -1,0 +1,39 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MAINLINE · 0185_disposition_rls_enable.sql
+-- ALTER TABLE mainline.disposition ENABLE ROW LEVEL SECURITY
+--
+-- MI: MI08
+-- I: I15
+-- COUNSEL-GATED: yes
+-- RATIONALE: This is the table RLS is in this system for. Everywhere else RLS is tenancy
+--            hygiene; here it is an information partition between people who all
+--            legitimately hold SELECT, and the partition is a precondition of M10's peer-
+--            prediction channel rather than a confidentiality control. Enabling it is the
+--            switch; `peer_blind` in 0185c is the mechanism.
+--
+-- migration:  0185_disposition_rls_enable
+-- domain:     datamodel / dm-views-rls
+-- band:       0180-0198z · datamodel/dm-views-rls · AUTHORED, allocated by
+--             verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1)
+-- statements: 1
+-- matrix:     verticals/mainline/db/RLS-MATRIX.yaml — this file is a RENDERING of one entry
+--             there; tests/integration/schema/test_mi_rls.py asserts the two agree
+-- source:     ARCHITECTURE.md §11.3 (RLS, SEC-1) · §4.1 law 10 · correction S22 · §3.3 M10 · §11.5 · correction S14
+-- requires:   0066 mainline.disposition
+-- sqlstate:   none — enabling RLS refuses nothing by itself.
+-- forward-only; no .down.sql exists at or below the protected floor.
+--
+-- ────────────────────────────────────────────────────────────────────────────
+-- COUNSEL-GATED: yes (G0) · DEFAULT: conservative · ADR: docs/adr/0001-g0-counsel.md
+-- ────────────────────────────────────────────────────────────────────────────
+-- `disposition` is one of the counsel-gated five (0066, 0067, 0068, 0069, 0086). The gate
+-- is over the CLEARANCE LATTICE's absent cells and over who may read per-signer detail —
+-- never over whether a disposition is recorded. SEC-0: MAINLINE never chooses not to record
+-- a fact; it chooses only where the fact lives and who may read it. Enabling RLS here is a
+-- reading control and it is compatible with every answer counsel can give.
+--
+
+ALTER TABLE mainline.disposition ENABLE ROW LEVEL SECURITY;
+

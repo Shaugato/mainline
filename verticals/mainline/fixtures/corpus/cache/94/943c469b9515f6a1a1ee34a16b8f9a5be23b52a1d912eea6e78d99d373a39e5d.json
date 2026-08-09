@@ -1,0 +1,90 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 6,
+    "doc_code": "PRO-HSE-005",
+    "doc_family": "PRO",
+    "doc_title": "Hot Work Permit Administration",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2009-08-25",
+    "required_citations": [
+      {
+        "control_label": "provision and briefing of a competent fire watch",
+        "event_ref": "INC-2009-001",
+        "event_title": "loss of containment at P-4101 during cleaning and preparation",
+        "hazard_energy": "chemical",
+        "kind": "capa_action",
+        "quote_ref": "quote:MRD/PRO-HSE-005/004#capa_action/INC-2009-001",
+        "severity_gate": 3
+      },
+      {
+        "control_label": "seal-face high-temperature alarm and trip",
+        "event_ref": "CAPA-2008-003",
+        "event_title": "preventive action - alarm setting on P-4103",
+        "hazard_energy": "pressure",
+        "kind": "investigation_recommendation",
+        "quote_ref": "quote:MRD/PRO-HSE-005/004#investigation_recommendation/CAPA-2008-003",
+        "severity_gate": 3
+      },
+      {
+        "control_label": "seal-face high-temperature alarm and trip",
+        "event_ref": "CAPA-2008-003",
+        "event_title": "preventive action - alarm setting on P-4103",
+        "hazard_energy": "pressure",
+        "kind": "moc_reference",
+        "quote_ref": "quote:MRD/PRO-HSE-005/004#moc_reference/CAPA-2008-003",
+        "severity_gate": 3
+      },
+      {
+        "control_label": "provision and briefing of a competent fire watch",
+        "event_ref": "INC-2009-001",
+        "event_title": "loss of containment at P-4101 during cleaning and preparation",
+        "hazard_energy": "chemical",
+        "kind": "regulator_requirement",
+        "quote_ref": "quote:MRD/PRO-HSE-005/004#regulator_requirement/INC-2009-001",
+        "severity_gate": 3
+      }
+    ],
+    "rev_no": 4,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "accident investigation",
+      "management_of_change": "engineering change note",
+      "near_miss": "near hit"
+    }
+  },
+  "key": "943c469b9515f6a1a1ee34a16b8f9a5be23b52a1d912eea6e78d99d373a39e5d",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/PRO-HSE-005/004",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "d0c97cc676f1c835a7cc5ee24f5061899006c8cbdef4e5ecb183a1e38285ec80",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The corrective action recorded against INC-2009-001 required the provision and briefing of a competent fire watch to be restated in this procedure.",
+        "quote_ref": "quote:MRD/PRO-HSE-005/004#capa_action/INC-2009-001"
+      },
+      {
+        "line": "The accident investigation into CAPA-2008-003 recommended that the seal-face high-temperature alarm and trip be strengthened in this procedure.",
+        "quote_ref": "quote:MRD/PRO-HSE-005/004#investigation_recommendation/CAPA-2008-003"
+      },
+      {
+        "line": "The engineering change note record for this revision cites CAPA-2008-003 as the reason the seal-face high-temperature alarm and trip was amended.",
+        "quote_ref": "quote:MRD/PRO-HSE-005/004#moc_reference/CAPA-2008-003"
+      },
+      {
+        "line": "A regulatory requirement arising from INC-2009-001 obliges this procedure to carry the provision and briefing of a competent fire watch.",
+        "quote_ref": "quote:MRD/PRO-HSE-005/004#regulator_requirement/INC-2009-001"
+      }
+    ],
+    "reason": "Scheduled review at revision 4; 6 clauses restated."
+  },
+  "response_sha256": "45c0a673a000f9f96efea2f1307021cacb9f9a0bbbe48b6d5213f6154810c6b2",
+  "source": null
+}

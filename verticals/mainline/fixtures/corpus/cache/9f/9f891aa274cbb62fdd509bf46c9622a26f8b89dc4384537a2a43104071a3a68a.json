@@ -1,0 +1,64 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 6,
+    "doc_code": "PRO-OPS-017",
+    "doc_family": "PRO",
+    "doc_title": "Ship Loading and Vapour Recovery",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2020-08-27",
+    "required_citations": [
+      {
+        "control_label": "emergency isolation and depressuring on loss of containment",
+        "event_ref": "INC-2020-006",
+        "event_title": "uncontrolled movement of TK-7103 during an intrusive maintenance task",
+        "hazard_energy": "pressure",
+        "kind": "capa_action",
+        "quote_ref": "quote:CVY/PRO-OPS-017/009#capa_action/INC-2020-006",
+        "severity_gate": 2
+      },
+      {
+        "control_label": "integrity of the mechanical seal support system",
+        "event_ref": "INC-2020-008",
+        "event_title": "energy isolation failure on TK-7102",
+        "hazard_energy": "pressure",
+        "kind": "regulator_requirement",
+        "quote_ref": "quote:CVY/PRO-OPS-017/009#regulator_requirement/INC-2020-008",
+        "severity_gate": 2
+      }
+    ],
+    "rev_no": 9,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "ICAM investigation",
+      "management_of_change": "management of change",
+      "near_miss": "potential incident"
+    }
+  },
+  "key": "9f891aa274cbb62fdd509bf46c9622a26f8b89dc4384537a2a43104071a3a68a",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:CVY/PRO-OPS-017/009",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "bf4d57e2b2d2e15215d49f77a05a77befdf5a7b2d250153ef137e66f639e982f",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The corrective action recorded against INC-2020-006 required the emergency isolation and depressuring on loss of containment to be restated in this procedure.",
+        "quote_ref": "quote:CVY/PRO-OPS-017/009#capa_action/INC-2020-006"
+      },
+      {
+        "line": "A regulatory requirement arising from INC-2020-008 obliges this procedure to carry the integrity of the mechanical seal support system.",
+        "quote_ref": "quote:CVY/PRO-OPS-017/009#regulator_requirement/INC-2020-008"
+      }
+    ],
+    "reason": "Scheduled review at revision 9; 6 clauses restated."
+  },
+  "response_sha256": "f23181f8fb212f872bb4ace30260658710040bb97b1d2cd9010154a1a10546f7",
+  "source": null
+}

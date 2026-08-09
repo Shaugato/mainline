@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 1,
+    "doc_codes": [
+      "STD-PRV-005"
+    ],
+    "intent": "restate",
+    "moc_ref": "MOC-2010-0110",
+    "opened_on": "2010-06-11",
+    "precursor_events": [],
+    "site": "Tolgarra Processing and Power Station",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "management_of_change": "change request",
+      "verification": "field verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "08d6f2f8f7925d188911421e23af5bbfa7689a0609f681095314bc6b76f83bfd",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2010-0110",
+  "prompt_kind": "moc",
+  "prompt_sha256": "2fd53ed8bf27899ca37665efdc92c345d8f1e86fb6a653d1bd46cca06c4be388",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2010-0110 was raised at Tolgarra Processing and Power Station on 11 June 2010 as a scheduled change under change request; no event precedes it in the record. The change request record covers 1 clause across 1 controlled document. The intent is to restate an existing duty without altering what it requires. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical safeguard set is preserved.",
+    "scope_note": "The documents in scope are STD-PRV-005."
+  },
+  "response_sha256": "4ac2ac41d25f879e4661638127df137dd87df57ba102b258729783c4c14afd88",
+  "source": null
+}

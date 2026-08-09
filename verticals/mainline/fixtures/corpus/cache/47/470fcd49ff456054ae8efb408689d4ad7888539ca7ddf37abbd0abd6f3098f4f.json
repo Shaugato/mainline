@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ELECTRICAL-SAFETY",
+    "barrier_role": "preventive",
+    "control_class": "HAZARDOUS_AREA_EQUIPMENT_INTEGRITY",
+    "control_delta": "restate",
+    "control_label": "integrity of explosion-protected equipment in zoned areas",
+    "doc_code": "PRO-ELE-026",
+    "doc_family": "PRO",
+    "doc_title": "High Voltage Switching and Access",
+    "effective_on": "2024-06-10",
+    "printed_label": "3.1.7",
+    "setpoint": null,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "energy_isolation": "positive isolation verification",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "470fcd49ff456054ae8efb408689d4ad7888539ca7ddf37abbd0abd6f3098f4f",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:TLG/PRO-ELE-026/008#TLG/PRO-ELE-026/1.5.1(c)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "36ca86e80098cf9797bd276216cde3666917e0c2a3721f52f76c69b6442c536b",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The integrity of explosion-protected equipment in zoned areas shall be provided and maintained wherever this procedure applies, and its condition shall be treated as a material unwanted event control. This clause applies to activities archived under ELECTRICAL-SAFETY at Tolgarra Processing and Power Station.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "b5446ff6f7e418b3aa62348365ed43f39248ed04d9520fa97a38314e3635bff2",
+  "source": null
+}

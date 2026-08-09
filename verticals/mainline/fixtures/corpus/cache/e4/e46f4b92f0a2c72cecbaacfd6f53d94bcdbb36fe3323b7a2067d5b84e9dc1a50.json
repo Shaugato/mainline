@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "barrier_role": "preventive",
+    "control_class": "ZERO_ENERGY_VERIFICATION",
+    "control_delta": "strengthen",
+    "control_label": "proving zero energy before intrusive work",
+    "doc_code": "STD-ISO-006",
+    "doc_family": "STD",
+    "doc_title": "Isolation of Stored Energy",
+    "effective_on": "2020-06-25",
+    "printed_label": "12.1.5",
+    "setpoint": {
+      "from": 12.0,
+      "key": "isolation_verification_interval",
+      "label": "re-verification interval for a long-duration isolation",
+      "strengthen_direction": "lower",
+      "to": 8.0,
+      "unit": "hours"
+    },
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "e46f4b92f0a2c72cecbaacfd6f53d94bcdbb36fe3323b7a2067d5b84e9dc1a50",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/STD-ISO-006/006#MRD/STD-ISO-006/4.1",
+  "prompt_kind": "clause",
+  "prompt_sha256": "27accd5e55e04029b28483123b0352423e8a7abc7b78b75d45ad9ada0b136512",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The proving zero energy before intrusive work must be provided, and its effectiveness must be recorded as a critical control verification before the task proceeds. The re-verification interval for a long-duration isolation must be set at 8 hours. This clause applies to activities archived under ISOLATION-OF-STORED-ENERGY at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "must"
+  },
+  "response_sha256": "6a7bba7edb2b9d4a7abb3e100f6ab91bb9004e5bca4f57592dd5fb6c180dab89",
+  "source": null
+}

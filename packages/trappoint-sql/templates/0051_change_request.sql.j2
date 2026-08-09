@@ -1,0 +1,165 @@
+{# SPDX-FileCopyrightText: 2026 MAINLINE contributors #}
+{# SPDX-License-Identifier: Apache-2.0 #}
+{#
+  Migration 0051 — THE CHANGE REQUEST, AND THE THESIS.
+  ARCHITECTURE.md §5.5 (verbatim), §16 MI30 (finding S16); spec R-2, R-3;
+  kernel plan ruling D2 (why the change request has to be a first-class gated subject).
+
+  Making the change request a gated subject is what turns "the permit is a protected
+  branch" into "THE REPOSITORY is a protected branch and the permit is one of its refs".
+  A document-change branch that could merge while carrying an undispositioned
+  weaken-over-blood finding would leave the whole diachronic claim resting on one subject
+  kind, and the management-of-change audit would go back to being a retrospective report
+  instead of a live enforcement surface.
+
+  ── THIS TABLE IS A MIRROR, AND THE MIRROR IS THE POINT ───────────────────────────
+  Everything structural here is the permit's structure again: projected counters, one
+  named CHECK per counter, merge evidence, UNIQUE (cr_id, gate_epoch) as the epoch pin's
+  foreign-key target. What differs is only what a change request IS — it targets a
+  protected ref rather than isolating an asset, so `target_ref` replaces the permit's
+  boundary machinery, and there is no parent link because a change request does not fork.
+
+  ── R-3, AND WHY EVERY NAME HERE CARRIES A PREFIX ─────────────────────────────────
+  Specification rule R-3 (Exhibit Uniqueness) requires a refusal-bearing name to be
+  unique across the WHOLE schema, not merely within its table, because the exhibit name
+  alone must identify the refusal without a qualifying table. `cr_gate_closed_when_merged`
+  and `cr_ctr_nonneg` are therefore not stylistic; a second `ctr_nonneg` in the schema
+  would make "refused by ctr_nonneg" a sentence that needs a footnote, and a footnote is
+  exactly what an exhibit may not need. The counter constraint names come from the
+  binding, which already spells them with the prefix; the housekeeping names are spelled
+  with it here.
+
+  ── ONE COLUMN FAMILY, DELIBERATELY ───────────────────────────────────────────────
+  Same ruling as the permit and for the same reason: the merge gate's correctness
+  argument is the MATERIALISED conflict, two column families of one row are two KV keys,
+  and two writes to two keys do not collide. Splitting the counters out would un-weld
+  anomaly A1 precisely where anomaly A12 (isolation silently downgraded) needs the
+  welding most.
+
+  ── WHAT THIS TEMPLATE DELIBERATELY DOES NOT EMIT ─────────────────────────────────
+  §5.5 writes `ref_name STRING NOT NULL REFERENCES mainline.ref (ref_name)`. `ref` is a
+  VERTICAL relation (MAINLINE migration 0026, authored band) and `change_request` is
+  SUBSTRATE (MR-1/MR-2), so a substrate template may not name it: the rendered file would
+  fail to apply against the reference binding with 42P01, which is outside the refusal
+  taxonomy. `target_ref` is in the same position and additionally has no foreign key in
+  the architecture at all — the branch a change request targets may legitimately not
+  exist yet. Both columns keep NOT NULL and a stated-ness CHECK; a vertical that owns a
+  `ref` relation adds the foreign key in its own authored band.
+#}
+{% set cr_subjects = subjects | selectattr('kind', 'equalto', 'change_request') | list %}
+{% if cr_subjects | length != 1 %}
+{# 0051 is the change request's migration number. A binding that declares no
+   change_request subject, or two, has no rendering here. #}
+{{ the_binding_must_declare_exactly_one_subject_of_kind_change_request }}
+{% endif %}
+{% set s = cr_subjects[0] %}
+{#
+  `offset_of` mirrors the permit template's map and is EMPTY on purpose: no change-request
+  counter carries `offset_allowed` polarity in either binding, because the reading-rate
+  floor is a property of a crew being exposed to a permit's obligations at the point of
+  work, not of a document branch. If a binding ever declares one, the lookup below refuses
+  the render rather than silently emitting a two-term CHECK where a three-term one was
+  declared.
+#}
+{% set offset_of = {} %}
+{% set merge_evidence_constraint = 'cr_merge_evidence' %}
+{% set counter_columns = [] %}
+{% for c in s.counters %}
+{% set _ = counter_columns.append(c.column) %}
+{% if c.polarity == 'offset_allowed' %}
+{% set _ = counter_columns.append(offset_of[c.column]) %}
+{% endif %}
+{% endfor %}
+-- @file 0051_change_request.sql
+{{ header(file='0051_change_request.sql',
+          title='CREATE TABLE ' ~ binding.schema ~ '.' ~ s.table ~ ' — the document branch is gated too (finding S16)',
+          rationale='The change request is a gated subject in exactly the sense the permit is, and that identity is the thesis: the repository is the protected branch and the permit is one of its refs. Its counters are projections, its four refusals are independently named under R-3, and UNIQUE (cr_id, gate_epoch) gives the epoch pin its foreign-key target, so a precursor arriving after a document merge is refused by referential integrity rather than by a policy someone can edit.',
+          mi=['MI30', 'MI03', 'MI04'], i=['I02', 'I03']) }}
+--
+-- ── THE PROJECTED CROSS-ROW FACTS ────────────────────────────────────────────────
+-- Written by a projection trigger from a declared authority relation, never by the
+-- inserter (I02). A value a client supplies for one of these columns does not survive the
+-- write, and absence of the authority row REFUSES rather than defaulting.
+--
+{% for column in counter_columns %}
+-- @projects   {{ binding.schema }}.{{ s.table }}.{{ column }}
+{% endfor %}
+-- @projects   {{ binding.schema }}.{{ s.table }}.site_role
+-- @on_missing raise
+-- @maintained-by the projection band (functions 0100-0109, triggers 0120-0129)
+--
+-- Rendered SQL comments rather than template pragmas: the Authority Source Contract
+-- (A-1) demands a keyed [[authority_source]] behind each pragma'd column, and a counter
+-- is an aggregate over an [[obligation_source]], not a keyed lookup of one row. The
+-- permit template carries the same note at length.
+--
+-- ── COLUMN NOTES ─────────────────────────────────────────────────────────────────
+-- target_ref   the protected branch this change request wants to merge INTO. Deliberately
+--              unconstrained by a foreign key even in a vertical that owns a ref relation:
+--              a change request may legitimately name a branch that does not exist yet,
+--              and refusing that write would move a workflow decision into the schema.
+-- head_seq     the event chain's head, derived in-transaction and defended by the CAS on
+--              cr_event; never allocated by a generator that commits outside the
+--              transaction, because a gap in this chain must MEAN tampering.
+-- gate_epoch   increments iff the gate OPENS. Pinned by epoch_pin_cr once the change
+--              request merges, after which no obligation can be attached to it at all.
+--
+-- ── NO parent_cr_id, AND THAT IS NOT AN OVERSIGHT ────────────────────────────────
+-- A permit forks: the declared remedy for a post-completion fact is to suspend the issued
+-- permit and open a CHILD whose gate is cleared afresh, so the permit carries a parent
+-- link. A change request does not fork — the remedy for a merged document change is a new
+-- change request against the new head, which is an ordinary row with its own ref lineage
+-- in the commit DAG. Inventing a parent column here would create a second, weaker lineage
+-- beside the one the repository already keeps.
+
+CREATE TABLE {{ binding.schema }}.{{ s.table }} (
+  {{ '%-16s'|format(s.id_column) }} UUID NOT NULL DEFAULT gen_random_uuid(),
+  {{ '%-16s'|format('site_id') }} UUID NOT NULL,
+  {{ '%-16s'|format('site_role') }} NAME NOT NULL,
+  {{ '%-16s'|format('external_ref') }} STRING NOT NULL,
+  {{ '%-16s'|format('ref_name') }} STRING NOT NULL,
+  {{ '%-16s'|format('target_ref') }} STRING NOT NULL,
+  {{ '%-16s'|format(s.state_column) }} {{ binding.schema }}.subject_state NOT NULL DEFAULT 'draft',
+  {{ '%-16s'|format('head_seq') }} INT8 NOT NULL DEFAULT 0,
+  {{ '%-16s'|format(s.epoch_column) }} INT8 NOT NULL DEFAULT 0,
+  {{ '%-16s'|format('merged_commit') }} BYTES NULL,
+  {{ '%-16s'|format('opened_at') }} TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+  -- ▼▼ PROJECTED CROSS-ROW FACTS. Trigger-written, never supplied. ▼▼
+{% for column in counter_columns %}
+  {{ '%-16s'|format(column) }} INT8 NOT NULL DEFAULT 0,
+{% endfor %}
+  -- ▲▲
+
+  CONSTRAINT cr_ctr_nonneg CHECK (
+{% for column in counter_columns %}
+    {{ column }} >= 0{{ ' AND' if not loop.last }}
+{% endfor %}
+  ),
+
+  -- ▼▼ THE PRODUCT, MIRRORED. {{ (s.counters | length) + 1 }} independent refusals; each name is the exhibit. ▼▼
+{% for c in s.counters %}
+{% if c.polarity == 'offset_allowed' %}
+  CONSTRAINT {{ c.constraint }}
+      CHECK ({{ s.state_column }} <> '{{ s.completing_state }}'
+             OR {{ c.column }} = 0
+             OR {{ offset_of[c.column] }} > 0),
+{% else %}
+  CONSTRAINT {{ '%-34s'|format(c.constraint) }} CHECK ({{ s.state_column }} <> '{{ s.completing_state }}' OR {{ c.column }} = 0),
+{% endif %}
+{% endfor %}
+  CONSTRAINT {{ '%-34s'|format(merge_evidence_constraint) }} CHECK ({{ s.state_column }} <> '{{ s.completing_state }}' OR merged_commit IS NOT NULL),
+  -- ▲▲
+
+  CONSTRAINT cr_ledger_nonneg       CHECK (head_seq >= 0 AND {{ s.epoch_column }} >= 0),
+  CONSTRAINT cr_external_ref_stated CHECK (external_ref <> ''),
+  CONSTRAINT cr_ref_name_stated     CHECK (ref_name <> ''),
+  CONSTRAINT cr_target_ref_stated   CHECK (target_ref <> ''),
+  CONSTRAINT cr_site_role_stated    CHECK (site_role <> ''),
+  CONSTRAINT cr_commit_sized        CHECK (merged_commit IS NULL OR length(merged_commit) = 32),
+  CONSTRAINT pk_change_request PRIMARY KEY ({{ s.id_column }}),
+  -- The epoch pin's foreign-key target, mirroring the permit's. epoch_pin_cr is declared
+  -- against this UNIQUE in migration 0071b.
+  CONSTRAINT cr_epoch_target        UNIQUE ({{ s.id_column }}, {{ s.epoch_column }}),
+  CONSTRAINT cr_external_ref_unique UNIQUE (site_id, external_ref)
+);

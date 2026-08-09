@@ -1,0 +1,64 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 7,
+    "doc_code": "PRO-MEC-041",
+    "doc_family": "PRO",
+    "doc_title": "Export Transfer Pump Maintenance",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2013-08-13",
+    "required_citations": [
+      {
+        "control_label": "secondary containment by bund and drainage",
+        "event_ref": "OEM-2011-002",
+        "event_title": "OEM service bulletin affecting HTP-CLASS-A",
+        "hazard_energy": "thermal",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:CVY/PRO-MEC-041/004#revision_history_line/OEM-2011-002",
+        "severity_gate": 2
+      },
+      {
+        "control_label": "secondary containment by bund and drainage",
+        "event_ref": "RN-2011-002",
+        "event_title": "improvement notice - critical safeguard at P-4105",
+        "hazard_energy": "thermal",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:CVY/PRO-MEC-041/004#revision_history_line/RN-2011-002",
+        "severity_gate": 1
+      }
+    ],
+    "rev_no": 4,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "root cause analysis",
+      "management_of_change": "change request",
+      "near_miss": "hazard report"
+    }
+  },
+  "key": "9e1da3a2c82f96332656fdcc648f3978ba4cc44f62f736ef0d96492a3c01b27b",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:CVY/PRO-MEC-041/004",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "17ffb6a4a774314bba6a1f1f3e5e9b43958927428366564a13b5d4b0ce68e149",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "Revision 4 was raised in response to OEM-2011-002, and the secondary containment by bund and drainage was amended as a result.",
+        "quote_ref": "quote:CVY/PRO-MEC-041/004#revision_history_line/OEM-2011-002"
+      },
+      {
+        "line": "Revision 4 was raised in response to RN-2011-002, and the secondary containment by bund and drainage was amended as a result.",
+        "quote_ref": "quote:CVY/PRO-MEC-041/004#revision_history_line/RN-2011-002"
+      }
+    ],
+    "reason": "Scheduled review at revision 4; 7 clauses restated."
+  },
+  "response_sha256": "109d028bb3eee9ccec692005ba6611f79705dc7d32f3fe76c34b6e7b176a2145",
+  "source": null
+}

@@ -1,0 +1,86 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "inspecting embankments and instrumentation",
+    "activity_root": "TAILINGS-AND-WATER-IMPOUNDMENT",
+    "activity_series": "operating an impoundment",
+    "assets": [
+      {
+        "asset_class": "CONV-CLASS-S",
+        "label": "reagent screw conveyor",
+        "service": "dry reagent transfer",
+        "tag": "SC-8320"
+      },
+      {
+        "asset_class": "MOTOR-CLASS-A",
+        "label": "drive motor",
+        "service": "drives SC-8320",
+        "tag": "M-8320"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "IMPOUNDMENT_FREEBOARD_CONTROL",
+        "control_label": "control of freeboard, beach width and decant",
+        "failure_mode": "ineffective",
+        "hazard_energy": "chemical",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "NM-2017-0004",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "near_miss",
+    "occurred_on": "2017-02-05",
+    "severity_actual": 1,
+    "severity_potential": 2,
+    "site": "Tolgarra Processing and Power Station",
+    "summary_facts": [],
+    "task_phase": "during a statutory inspection",
+    "title": "potential incident during a statutory inspection on SC-8320",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "bd6860ee4fff62f2acd98433c8cbb0a481313e0439e0a9dae6700e075e577bdf",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2017-0004",
+  "prompt_kind": "icam",
+  "prompt_sha256": "d3aa047fb8f4cb34a6b3ab8eb73cd595c639f61181c82d6a533c9f3817e32460",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage. The potential outcome was rated 2 against the site's consequence scale, above the 1 actually realised.",
+    "defences": [
+      {
+        "control_class": "IMPOUNDMENT_FREEBOARD_CONTROL",
+        "finding": "Control IMPOUNDMENT_FREEBOARD_CONTROL: the control of freeboard, beach width and decant was in place but did not perform, and the ICAM investigation classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next critical control verification that the control of freeboard, beach width and decant on SC-8320 and M-8320 performs as designed."
+    ],
+    "sequence": "Work was under way in operating an impoundment, specifically inspecting embankments and instrumentation. SC-8320 (reagent screw conveyor) is in service for dry reagent transfer. The task proceeded during a statutory inspection while the control of freeboard, beach width and decant was in place but did not perform. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 5 February 2017 a potential incident was recorded on SC-8320 and M-8320 at Tolgarra Processing and Power Station during a statutory inspection; chemical energy held as hydrocarbon was not released."
+  },
+  "response_sha256": "805122df39b509d97a3dd29fdaf9088e30449395918f71afa295dacb11efa76c",
+  "source": null
+}

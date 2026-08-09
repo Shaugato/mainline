@@ -1,0 +1,45 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 2,
+    "doc_codes": [
+      "MOC-2019-0221",
+      "PRO-MEC-021",
+      "PTW-STD-002",
+      "STD-ISO-006",
+      "STD-PTW-001"
+    ],
+    "intent": "replace",
+    "moc_ref": "MOC-2010-0054",
+    "opened_on": "2010-04-05",
+    "precursor_events": [
+      {
+        "event_ref": "INC-2009-006",
+        "severity_gate": null
+      }
+    ],
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "management_of_change": "change request",
+      "verification": "field verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "6f2af95c8c3adee1ba05f0d466c8f7a3a6fca2d57afff7db29a58cbafe788fc4",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2010-0054",
+  "prompt_kind": "moc",
+  "prompt_sha256": "670f872031b90ad5185c7325d197ac1bea47f55bd2c3d434f9bf0a38c201cdce",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2010-0054 was raised at Marrindal Concentrator and Hydrocarbon Transfer Facility on 5 April 2010 following 1 recorded event in the archive, including INC-2009-006. The change request record covers 2 clauses across 5 controlled documents. The intent is to replace an existing requirement with one written to the current house style. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical safeguard set is preserved.",
+    "scope_note": "The documents in scope are MOC-2019-0221, PRO-MEC-021, PTW-STD-002, STD-ISO-006 and STD-PTW-001."
+  },
+  "response_sha256": "7c094f0ef7ed65994035f1a8b098905781245c222bcaaf9a1b227bc16662266e",
+  "source": null
+}

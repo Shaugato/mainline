@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "LIFTING-AND-SUSPENDED-LOADS",
+    "barrier_role": "preventive",
+    "control_class": "DROP_ZONE_EXCLUSION",
+    "control_delta": "remove",
+    "control_label": "exclusion of people from beneath elevated work",
+    "doc_code": "PRO-MEC-055",
+    "doc_family": "PRO",
+    "doc_title": "Workshop Component Removal and Load Support",
+    "effective_on": "2012-02-04",
+    "printed_label": "6.2",
+    "setpoint": null,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "energy_isolation": "lock out tag out",
+      "verification": "field verification"
+    }
+  },
+  "key": "1216978a44ebd50890012bfcf437eb3291f2a7c66a2527796c12775cbb34abcd",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:YND/PRO-MEC-055/005#YND/PRO-MEC-055/6.2",
+  "prompt_kind": "clause",
+  "prompt_sha256": "7716b3e94a68f2a2950546f5ae3f320b6f017853a77705db8ae5c763306e15fb",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "This requirement is withdrawn. The exclusion of people from beneath elevated work is no longer imposed by this procedure; the duty is discharged under the document that supersedes this clause.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "b835a4fef7d04633a017faba140ef93118a1bd8b4850ea1e5ce8d947a48ca186",
+  "source": null
+}

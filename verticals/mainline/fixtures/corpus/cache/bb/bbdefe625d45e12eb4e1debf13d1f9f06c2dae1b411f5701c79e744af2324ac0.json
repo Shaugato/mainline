@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "barrier_role": "preventive",
+    "control_class": "HYDROCARBON_TRANSFER_CONTROL",
+    "control_delta": "remove",
+    "control_label": "controlled transfer of hydrocarbon between vessels",
+    "doc_code": "PRO-OPS-032",
+    "doc_family": "PRO",
+    "doc_title": "Hydrocarbon Transfer Operations",
+    "effective_on": "2009-03-25",
+    "printed_label": "5.4",
+    "setpoint": {
+      "from": 88.0,
+      "key": "tank_level_high_high",
+      "label": "tank high-high level trip",
+      "strengthen_direction": "lower",
+      "to": 88.0,
+      "unit": "%"
+    },
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "bbdefe625d45e12eb4e1debf13d1f9f06c2dae1b411f5701c79e744af2324ac0",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/PRO-OPS-032/003#MRD/PRO-OPS-032/5.4",
+  "prompt_kind": "clause",
+  "prompt_sha256": "d3b2fcc0e267cd474b03b08af0ad36433e8ea6a3086020c1903a74a27d79dc79",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "This requirement is withdrawn. The controlled transfer of hydrocarbon between vessels is no longer imposed by this procedure; the duty is discharged under the document that supersedes this clause. The tank high-high level trip shall be set at 88 %.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "002a7640b0ff44605083806e6ed5fa02f06c5c5f0a65df5cd5830f3a299b3451",
+  "source": null
+}

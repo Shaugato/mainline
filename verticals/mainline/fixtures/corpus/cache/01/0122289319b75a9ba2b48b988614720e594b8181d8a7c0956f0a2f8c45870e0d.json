@@ -1,0 +1,80 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "assessing and permitting hot work adjacent to live plant",
+    "activity_root": "CONTROL-OF-IGNITION-SOURCES",
+    "activity_series": "authorising hot work",
+    "assets": [
+      {
+        "asset_class": "ESD-CLASS-A",
+        "label": "emergency shutdown valves",
+        "service": "jetty and manifold emergency isolation",
+        "tag": "ZV-7210"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "HAZARDOUS_AREA_EQUIPMENT_INTEGRITY",
+        "control_label": "integrity of explosion-protected equipment in zoned areas",
+        "failure_mode": "degraded",
+        "hazard_energy": "chemical",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "RN-2007-001",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "regulator_notice",
+    "occurred_on": "2007-08-27",
+    "severity_actual": 1,
+    "severity_potential": 1,
+    "site": "Cape Verity Export Terminal",
+    "summary_facts": [],
+    "task_phase": "during commissioning of replacement equipment",
+    "title": "regulator directive concerning danger tagging at ZV-7210",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "investigation": "accident investigation",
+      "near_miss": "near hit",
+      "verification": "spot check"
+    }
+  },
+  "key": "0122289319b75a9ba2b48b988614720e594b8181d8a7c0956f0a2f8c45870e0d",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:RN-2007-001",
+  "prompt_kind": "icam",
+  "prompt_sha256": "2b48478917f525d62e4c8b7b69ac076db5ced74a1321c8b5048b183025b3986b",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage.",
+    "defences": [
+      {
+        "control_class": "HAZARDOUS_AREA_EQUIPMENT_INTEGRITY",
+        "finding": "Control HAZARDOUS_AREA_EQUIPMENT_INTEGRITY: the integrity of explosion-protected equipment in zoned areas had degraded below its design intent, and the accident investigation classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next spot check that the integrity of explosion-protected equipment in zoned areas on ZV-7210 performs as designed."
+    ],
+    "sequence": "Work was under way in authorising hot work, specifically assessing and permitting hot work adjacent to live plant. ZV-7210 (emergency shutdown valves) is in service for jetty and manifold emergency isolation. The task proceeded during commissioning of replacement equipment while the integrity of explosion-protected equipment in zoned areas had degraded below its design intent. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 27 August 2007 a regulatory notice was issued concerning ZV-7210 at Cape Verity Export Terminal following commissioning of replacement equipment."
+  },
+  "response_sha256": "486336db49e353fda209a5c3ec661b9d7805ecc5398d7794ca35ee8b76e21bc4",
+  "source": null
+}

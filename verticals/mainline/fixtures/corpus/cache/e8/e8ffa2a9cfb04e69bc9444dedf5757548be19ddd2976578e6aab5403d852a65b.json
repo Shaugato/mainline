@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTROL-OF-IGNITION-SOURCES",
+    "barrier_role": "recovery",
+    "control_class": "FIRE_WATCH_PROVISION",
+    "control_delta": "restate",
+    "control_label": "provision and briefing of a competent fire watch",
+    "doc_code": "PRO-HSE-005",
+    "doc_family": "PRO",
+    "doc_title": "Hot Work Permit Administration",
+    "effective_on": "2009-08-25",
+    "printed_label": "4.3",
+    "setpoint": {
+      "from": 30.0,
+      "key": "fire_watch_duration_after_hot_work",
+      "label": "fire watch duration after completion of hot work",
+      "strengthen_direction": "higher",
+      "to": 30.0,
+      "unit": "min"
+    },
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "e8ffa2a9cfb04e69bc9444dedf5757548be19ddd2976578e6aab5403d852a65b",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/PRO-HSE-005/004#MRD/PRO-HSE-005/4.3",
+  "prompt_kind": "clause",
+  "prompt_sha256": "4460b397984f7796c80f3947330186e5dec03b22f75eab3507551e027dd1de42",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The provision and briefing of a competent fire watch shall be provided and maintained wherever this procedure applies, and its condition shall be treated as a key safeguard. The fire watch duration after completion of hot work shall be set at 30 min. This clause applies to activities archived under CONTROL-OF-IGNITION-SOURCES at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "0ad31fb29b32ec1b17b24a85962c77cb9480123a44c35e961a2afd44bdf4da15",
+  "source": null
+}

@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "barrier_role": "recovery",
+    "control_class": "EMERGENCY_ISOLATION_ON_RELEASE",
+    "control_delta": "strengthen",
+    "control_label": "emergency isolation and depressuring on loss of containment",
+    "doc_code": "PRO-MEC-041",
+    "doc_family": "PRO",
+    "doc_title": "Export Transfer Pump Maintenance",
+    "effective_on": "2015-01-27",
+    "printed_label": "3.4",
+    "setpoint": null,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "energy_isolation": "lock out tag out",
+      "verification": "field verification"
+    }
+  },
+  "key": "1498705131fb087f1e31f6fd9280e9720df14c6bd947d0f99adccdedbf229e27",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:CVY/PRO-MEC-041/005#CVY/PRO-MEC-041/3.4",
+  "prompt_kind": "clause",
+  "prompt_sha256": "033d4f4d3f1105fcdb7b6fc4cd0e02edcecca50b4f82ee5382a77750d37b4f53",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The emergency isolation and depressuring on loss of containment must be provided, and its effectiveness must be recorded as a field verification before the task proceeds. This clause applies to activities archived under CONTAINMENT-OF-HYDROCARBONS at Cape Verity Export Terminal.",
+    "obligation_verb": "must"
+  },
+  "response_sha256": "19aedbaf12d4ff9801dfa5a4d299d0b88ff6b19d79975793a05bb02871962ee1",
+  "source": null
+}

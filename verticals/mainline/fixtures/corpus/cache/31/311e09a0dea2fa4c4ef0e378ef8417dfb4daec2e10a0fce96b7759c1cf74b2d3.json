@@ -1,0 +1,39 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 0,
+    "doc_codes": [
+      "ALERT-2016-007",
+      "MOC-2026-0413",
+      "PRO-MEC-014",
+      "PRO-OPS-032"
+    ],
+    "intent": "replace",
+    "moc_ref": "MOC-2019-0045",
+    "opened_on": "2019-03-13",
+    "precursor_events": [],
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "management_of_change": "management of change",
+      "verification": "critical control verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "311e09a0dea2fa4c4ef0e378ef8417dfb4daec2e10a0fce96b7759c1cf74b2d3",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2019-0045",
+  "prompt_kind": "moc",
+  "prompt_sha256": "2f82f5bd98b98e81d8e850a3bb6346597d1dea32db76860c6e63f027d30c2d28",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2019-0045 was raised at Marrindal Concentrator and Hydrocarbon Transfer Facility on 13 March 2019 as a scheduled change under management of change; no event precedes it in the record. The management of change record carries no clause change; it records the assessment only. The intent is to replace an existing requirement with one written to the current house style. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical control set is preserved.",
+    "scope_note": "The documents in scope are ALERT-2016-007, MOC-2026-0413, PRO-MEC-014 and PRO-OPS-032."
+  },
+  "response_sha256": "b8c1adcd32caff5cc61ef872934fdfa7da8709177c0f20d0e9e6e70bfb2eb32a",
+  "source": null
+}

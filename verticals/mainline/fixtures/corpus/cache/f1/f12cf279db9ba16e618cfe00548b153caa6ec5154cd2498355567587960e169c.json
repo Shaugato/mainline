@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "MOBILE-EQUIPMENT-INTERACTION",
+    "barrier_role": "preventive",
+    "control_class": "PROXIMITY_DETECTION_AND_SEGREGATION",
+    "control_delta": "weaken",
+    "control_label": "segregation of light vehicles and pedestrians from heavy equipment",
+    "doc_code": "STD-MEQ-007",
+    "doc_family": "STD",
+    "doc_title": "Mobile Equipment Interaction",
+    "effective_on": "2012-02-18",
+    "printed_label": "3.1",
+    "setpoint": {
+      "from": 50.0,
+      "key": "light_vehicle_exclusion_radius",
+      "label": "light vehicle exclusion radius from operating haul trucks",
+      "strengthen_direction": "higher",
+      "to": 30.0,
+      "unit": "m"
+    },
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "energy_isolation": "lock out tag out",
+      "verification": "field verification"
+    }
+  },
+  "key": "f12cf279db9ba16e618cfe00548b153caa6ec5154cd2498355567587960e169c",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:YND/STD-MEQ-007/003#YND/STD-MEQ-007/3.1",
+  "prompt_kind": "clause",
+  "prompt_sha256": "e096629408f6599398e6e5c5ad1248dd5f6b615a2fb5a3b648d6ad7c240cb56e",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The segregation of light vehicles and pedestrians from heavy equipment should be provided; the field verification may be recorded at the next scheduled review rather than before the task proceeds. The light vehicle exclusion radius from operating haul trucks should be set at 30 m. This clause applies to activities archived under MOBILE-EQUIPMENT-INTERACTION at Yandarra Downs Open Cut and Heavy Workshop.",
+    "obligation_verb": "should"
+  },
+  "response_sha256": "e6ff8d3bdce7d0b43605c3212d14d5118f09d260ba77ffa59a027eab252fdf0b",
+  "source": null
+}

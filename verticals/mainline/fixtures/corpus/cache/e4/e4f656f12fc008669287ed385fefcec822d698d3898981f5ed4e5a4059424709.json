@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "MOBILE-EQUIPMENT-INTERACTION",
+    "barrier_role": "preventive",
+    "control_class": "POSITIVE_COMMUNICATION_BEFORE_APPROACH",
+    "control_delta": "restate",
+    "control_label": "positive communication before approaching mobile equipment",
+    "doc_code": "STD-MEQ-007",
+    "doc_family": "STD",
+    "doc_title": "Mobile Equipment Interaction",
+    "effective_on": "2016-11-21",
+    "printed_label": "2.1.8",
+    "setpoint": null,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "e4f656f12fc008669287ed385fefcec822d698d3898981f5ed4e5a4059424709",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:YND/STD-MEQ-007/005#YND/STD-MEQ-007/7.2.2(a)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "5ba5ee0a65c46533fe70f20b65de35cf9350877d396109947b6598c12909969c",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The positive communication before approaching mobile equipment shall be provided and maintained wherever this standard applies, and its condition shall be treated as a critical control. This clause applies to activities archived under MOBILE-EQUIPMENT-INTERACTION at Yandarra Downs Open Cut and Heavy Workshop.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "716cab8d262c347738e3dd4a0c119f171ac70706a47f467d277672e63ce87f5e",
+  "source": null
+}

@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "FIRE-AND-EMERGENCY-RESPONSE",
+    "barrier_role": "recovery",
+    "control_class": "FIXED_FIRE_SYSTEM_AVAILABILITY",
+    "control_delta": "introduce",
+    "control_label": "availability and testing of fixed fire protection",
+    "doc_code": "STD-EMR-008",
+    "doc_family": "STD",
+    "doc_title": "Emergency Preparedness and Response",
+    "effective_on": "2006-09-12",
+    "printed_label": "2.4",
+    "setpoint": null,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "7bbb1accaf64077a2e96029c5923d432d716ec8e0334f725978c9ffba8b51fe5",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:CVY/STD-EMR-008/001#CVY/STD-EMR-008/2.4",
+  "prompt_kind": "clause",
+  "prompt_sha256": "5bc0e70d470b8f4f683f3a425e74b2c84306edb78b444d5e63119d41c3442faf",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The availability and testing of fixed fire protection shall be provided and maintained for work covered by this standard. This clause applies to activities archived under FIRE-AND-EMERGENCY-RESPONSE at Cape Verity Export Terminal.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "193285959fba4a87713cbec775ef18663f14eea825e068a792682b12822fb861",
+  "source": null
+}

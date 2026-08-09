@@ -1,0 +1,79 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: Apache-2.0
+
+[project]
+name = "trappoint-diagnose"
+version = "0.1.0"
+description = "QUICKREFUSE: the minimal unsatisfiable subset and nearest admissible alternative of a gate refusal, computed with the database's own constraint engine as the oracle."
+readme = "README.md"
+requires-python = ">=3.13"
+license = "Apache-2.0"
+authors = [{ name = "MAINLINE contributors" }]
+keywords = ["mus", "quickxplain", "minimal-unsatisfiable-subset", "cockroachdb", "refusal"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Database",
+  "Typing :: Typed",
+]
+
+# ZERO REQUIRED RUNTIME DEPENDENCIES, and that is a contract rather than a preference.
+#
+# This distribution decides what a refusal MEANS. Its output is written to an
+# append-only ledger, rendered in a console and read by an opposing expert, so every
+# dependency on this path is another package that expert has to trust in order to trust
+# the diagnosis. Three specific refusals follow:
+#
+#   * NO `jsonschema`. The wire schema this emitter validates against uses eighteen
+#     keywords; eighteen keywords is `schema.py` and a test suite, not a supply chain.
+#     An UNKNOWN keyword is REFUSED rather than ignored, which is the only safe
+#     direction for a validator whose "yes" licences a payload to be recorded.
+#   * NO driver in `dependencies`. The declarative decomposition, the QuickXplain
+#     algorithm and the payload emitter are all pure; only `oracle.py`, `udf.py` and
+#     `ledger.py` touch a connection, and they take one that the CALLER opened. That is
+#     what lets the minimality property be proved with no database in existence.
+#   * NO `tenacity` / `backoff` / `retrying`, forbidden repo-wide by `.importlinter`
+#     contract 4. A refusal is attempted exactly once, ever; a diagnoser that retried
+#     would write duplicate diagnoses for one attempted history.
+#
+# `tests/test_zero_runtime_dependencies.py` asserts this list stays empty, so deleting
+# the paragraph does not delete the claim.
+dependencies = []
+
+[project.optional-dependencies]
+# The savepoint oracle, the UDF client and the ledger writer need a driver. They are
+# opt-in precisely so that importing `trappoint_diagnose` to check a payload does not
+# drag a binary wheel onto a verifier's machine. Pinned to match `trappoint-migrate`
+# and `trappoint-conformance`, because one workspace resolves one psycopg.
+pg = ["psycopg[binary]>=3.3.4"]
+
+[project.urls]
+Homepage = "https://github.com/Shaugato/mainline"
+
+[project.scripts]
+trappoint-diagnose = "trappoint_diagnose.cli:main"
+
+[dependency-groups]
+dev = ["pytest>=8.2", "mypy>=1.11", "ruff>=0.6", "psycopg[binary]>=3.3.4"]
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/trappoint_diagnose"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "tests", "README.md"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["--strict-markers", "-ra"]
+# Repeated from the workspace root so the suite runs identically whether pytest is
+# pointed at this directory or at the repository. `--strict-markers` means an
+# unregistered marker is an error, which is the behaviour that catches a typo in a skip
+# condition — the failure mode where a case silently never runs.
+markers = [
+  "requires_cluster: needs a live CockroachDB; skips with a reason when TRAPPOINT_DSN is unset",
+]

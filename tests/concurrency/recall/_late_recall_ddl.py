@@ -4,7 +4,7 @@
 
 **This is fixture DDL, not a migration, and it is labelled as such on purpose.** The kernel
 band that owns ``mainline.permit``, ``mainline.blocking_check`` and ``mainline.merge_record``
-(migrations ``0050``–``0071``) is not on disk in this tree yet. The choice was therefore
+(migrations ``0050`` to ``0071``) is not on disk in this tree yet. The choice was therefore
 between asserting nothing about the epoch pin until it lands, or asserting the mechanism
 against a reduction that carries **exactly** the four objects the mechanism is made of, copied
 from ARCHITECTURE 5.5 without alteration:
@@ -29,7 +29,7 @@ from __future__ import annotations
 
 from typing import Final
 
-__all__ = ["SCHEMA_STATEMENTS", "UNWELD_REMOVE_RAISE", "REWELD_RESTORE_RAISE"]
+__all__ = ["REWELD_RESTORE_RAISE", "SCHEMA_STATEMENTS", "UNWELD_REMOVE_RAISE"]
 
 _FN_WITH_RAISE: Final = """
 CREATE OR REPLACE FUNCTION mainline.fn_check_materialised() RETURNS TRIGGER

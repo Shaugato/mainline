@@ -1,0 +1,84 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "performing dam-safety review and surveillance",
+    "activity_root": "TAILINGS-AND-WATER-IMPOUNDMENT",
+    "activity_series": "governing the impoundment",
+    "assets": [
+      {
+        "asset_class": "THK-CLASS-A",
+        "label": "tailings thickener",
+        "service": "tailings thickening and decant",
+        "tag": "TH-3240"
+      },
+      {
+        "asset_class": "MOTOR-CLASS-A",
+        "label": "drive motor",
+        "service": "drives TH-3240",
+        "tag": "M-3240"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "IMPOUNDMENT_FREEBOARD_CONTROL",
+        "control_label": "control of freeboard, beach width and decant",
+        "failure_mode": "not_verified",
+        "hazard_energy": "chemical",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "NM-2016-0019",
+    "hazard_energy": "gravity",
+    "hazard_media": [
+      "suspended load",
+      "stored potential of an elevated component",
+      "unsupported ground",
+      "person at height"
+    ],
+    "hazard_release": "fall, collapse, crush",
+    "kind": "near_miss",
+    "occurred_on": "2016-12-30",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during cleaning and preparation",
+    "title": "trapped hazardous energy found after isolation of TH-3240",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "e37ba3d3166f7ad885721a94ff1561163c00754ae3442cc123cdc5497694ebff",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2016-0019",
+  "prompt_kind": "icam",
+  "prompt_sha256": "ea874a11aaf63ba999263a8e9fc41491081439670f2e85af06e14499ccc0e1ab",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "IMPOUNDMENT_FREEBOARD_CONTROL",
+        "finding": "Control IMPOUNDMENT_FREEBOARD_CONTROL: the control of freeboard, beach width and decant was never verified as effective, and the ICAM investigation classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the control of freeboard, beach width and decant on TH-3240 and M-3240 and record the critical control verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in governing the impoundment, specifically performing dam-safety review and surveillance. TH-3240 (tailings thickener) is in service for tailings thickening and decant. The task proceeded during cleaning and preparation while the control of freeboard, beach width and decant was never verified as effective. The gravity energy involved is held as suspended load, and the recorded presentation was fall, collapse, crush.",
+    "summary": "On 30 December 2016 a potential incident was recorded on TH-3240 and M-3240 at Marrindal Concentrator and Hydrocarbon Transfer Facility during cleaning and preparation; gravity energy held as suspended load was not released."
+  },
+  "response_sha256": "d081f28dcfcf5158653abdaa3fc66804397e4bacefa3a197d59eed49084a3d79",
+  "source": null
+}

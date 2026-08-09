@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "EXPLOSIVES-AND-BLASTING",
+    "barrier_role": "preventive",
+    "control_class": "BLAST_GUARDING_AND_CLEARANCE",
+    "control_delta": "strengthen",
+    "control_label": "guarding, clearance and misfire handling for a blast",
+    "doc_code": "STD-LFT-003",
+    "doc_family": "STD",
+    "doc_title": "Lifting and Cranage",
+    "effective_on": "2022-05-05",
+    "printed_label": "1.1.4",
+    "setpoint": null,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "energy_isolation": "positive isolation verification",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "763f7cec34fab31a8a41d2b36dfc50962989d1b13152658793d332f71cf6c905",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:YND/STD-LFT-003/008#YND/PRO-EXP-002/7.2",
+  "prompt_kind": "clause",
+  "prompt_sha256": "dee2961491b6cc19d6cce4a2183b8e858e1625d56e69d0c6ebc7cc9be5567d83",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The guarding, clearance and misfire handling for a blast must be provided, and its effectiveness must be recorded as a assurance activity before the task proceeds. This clause applies to activities archived under EXPLOSIVES-AND-BLASTING at Yandarra Downs Open Cut and Heavy Workshop.",
+    "obligation_verb": "must"
+  },
+  "response_sha256": "e613a7b5a2b170de5111737076785e09108f007bb28add3cfbca8239b6fc99bd",
+  "source": null
+}

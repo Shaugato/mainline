@@ -1,0 +1,78 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "applying positive communication before approach",
+    "activity_root": "MOBILE-EQUIPMENT-INTERACTION",
+    "activity_series": "controlling traffic on operating areas",
+    "assets": [
+      {
+        "asset_class": "MOB-CLASS-H",
+        "label": "haul trucks",
+        "service": "waste and ore haulage",
+        "tag": "HT-9005"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "PARK_UP_AND_RESTRAINT",
+        "control_label": "parking, chocking and restraint of equipment",
+        "failure_mode": "absent",
+        "hazard_energy": "gravity",
+        "icam_tier": "organisational_factor"
+      }
+    ],
+    "event_ref": "CAPA-2012-003",
+    "hazard_energy": "gravity",
+    "hazard_media": [
+      "suspended load",
+      "stored potential of an elevated component",
+      "unsupported ground",
+      "person at height"
+    ],
+    "hazard_release": "fall, collapse, crush",
+    "kind": "capa",
+    "occurred_on": "2012-05-09",
+    "severity_actual": 1,
+    "severity_potential": 2,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during a planned shutdown",
+    "title": "corrective action following root cause analysis at HT-9005",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "595f373727ee5a19cb6618012d46cb32260305662dd4785625bb31eb51b2fe33",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:CAPA-2012-003",
+  "prompt_kind": "icam",
+  "prompt_sha256": "403f2ff73e5e9edab1d568e98cd3896cca355429d4e73383c1557d63197bb72f",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage. The potential outcome was rated 2 against the site's consequence scale, above the 1 actually realised.",
+    "defences": [
+      {
+        "control_class": "PARK_UP_AND_RESTRAINT",
+        "finding": "Control PARK_UP_AND_RESTRAINT: the parking, chocking and restraint of equipment was not in place, and the root cause analysis classified this as an organisational factor."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next field verification that the parking, chocking and restraint of equipment on HT-9005 performs as designed."
+    ],
+    "sequence": "Work was under way in controlling traffic on operating areas, specifically applying positive communication before approach. HT-9005 (haul trucks) is in service for waste and ore haulage. The task proceeded during a planned shutdown while the parking, chocking and restraint of equipment was not in place. The gravity energy involved is held as suspended load, and the recorded presentation was fall, collapse, crush.",
+    "summary": "On 9 May 2012 a corrective action on HT-9005 at Yandarra Downs Open Cut and Heavy Workshop was reviewed against the critical safeguard it was raised to restore."
+  },
+  "response_sha256": "f2baea3d0b67352b67f198cf3b002be4fb531c4818fb0f7168cd87a55a1b5c8b",
+  "source": null
+}

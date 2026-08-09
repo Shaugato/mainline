@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 3,
+    "doc_code": "PTW-STD-004",
+    "doc_family": "PTW",
+    "doc_title": "Permit to Work Form Set",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2009-05-23",
+    "required_citations": [
+      {
+        "control_label": "dissipation or restraint of trapped and residual energy",
+        "event_ref": "AF-2006-004",
+        "event_title": "audit finding - engineering change note not applied to TX-3001",
+        "hazard_energy": "electrical",
+        "kind": "moc_reference",
+        "quote_ref": "quote:YND/PTW-STD-004/002#moc_reference/AF-2006-004",
+        "severity_gate": 1
+      }
+    ],
+    "rev_no": 2,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "accident investigation",
+      "management_of_change": "engineering change note",
+      "near_miss": "near hit"
+    }
+  },
+  "key": "a2d1ba75a0b348c0d5096ddce2bf0c40291e7dedbf1d24d42ad6e06d9f7a3bea",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:YND/PTW-STD-004/002",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "1af58d71e8dde2d05ffa2e18b5a74892350f086149ad6948e72d3c0efdc88332",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The engineering change note record for this revision cites AF-2006-004 as the reason the dissipation or restraint of trapped and residual energy was amended.",
+        "quote_ref": "quote:YND/PTW-STD-004/002#moc_reference/AF-2006-004"
+      }
+    ],
+    "reason": "Scheduled review at revision 2; 3 clauses restated."
+  },
+  "response_sha256": "08bf95a26fef2456c3c2aa6a0c42d745d62776c11cff7d4311087d4112a8df21",
+  "source": null
+}

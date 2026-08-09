@@ -1,0 +1,116 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "maintaining portable and mobile extinguishing equipment",
+    "activity_root": "FIRE-AND-EMERGENCY-RESPONSE",
+    "activity_series": "maintaining fire protection systems",
+    "assets": [
+      {
+        "asset_class": "HTP-CLASS-A",
+        "label": "hydrocarbon transfer pumps",
+        "service": "hydrocarbon transfer, single mechanical seal with pressurised barrier-fluid support",
+        "tag": "P-4104"
+      },
+      {
+        "asset_class": "HX-CLASS-S",
+        "label": "seal support coolers",
+        "service": "barrier-fluid cooling for the hydrocarbon transfer pump family",
+        "tag": "HX-4120"
+      },
+      {
+        "asset_class": "INST-CLASS-A",
+        "label": "instrument loop",
+        "service": "governs P-4104",
+        "tag": "TT-4104"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "EMERGENCY_ISOLATION_ON_RELEASE",
+        "control_label": "emergency isolation and depressuring on loss of containment",
+        "failure_mode": "not_verified",
+        "hazard_energy": "thermal",
+        "icam_tier": "individual_or_team_action"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "FIRE_WATCH_PROVISION",
+        "control_label": "provision and briefing of a competent fire watch",
+        "failure_mode": "absent",
+        "hazard_energy": "thermal",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "FIXED_FIRE_SYSTEM_AVAILABILITY",
+        "control_label": "availability and testing of fixed fire protection",
+        "failure_mode": "absent",
+        "hazard_energy": "chemical",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "NM-2014-0005",
+    "hazard_energy": "thermal",
+    "hazard_media": [
+      "hot surface",
+      "steam",
+      "molten material",
+      "hot work",
+      "exothermic reaction"
+    ],
+    "hazard_release": "burn, ignition, scald",
+    "kind": "near_miss",
+    "occurred_on": "2014-02-08",
+    "severity_actual": 0,
+    "severity_potential": 2,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during a planned shutdown",
+    "title": "hazard report during a planned shutdown on P-4104",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "3248f879230494422e480150fba85694fedf5e3cf0c538f8b67dc240f1e6fd98",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2014-0005",
+  "prompt_kind": "icam",
+  "prompt_sha256": "9471892218146cb1bd330a159a55daeeb5a02b4503b18b01afc15624b594ed51",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 2 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "EMERGENCY_ISOLATION_ON_RELEASE",
+        "finding": "Control EMERGENCY_ISOLATION_ON_RELEASE: the emergency isolation and depressuring on loss of containment was never verified as effective, and the root cause analysis classified this as an individual or team action."
+      },
+      {
+        "control_class": "FIRE_WATCH_PROVISION",
+        "finding": "Control FIRE_WATCH_PROVISION: the provision and briefing of a competent fire watch was not in place, and the root cause analysis classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "FIXED_FIRE_SYSTEM_AVAILABILITY",
+        "finding": "Control FIXED_FIRE_SYSTEM_AVAILABILITY: the availability and testing of fixed fire protection was not in place, and the root cause analysis classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the provision and briefing of a competent fire watch on P-4104, HX-4120 and TT-4104 and record the field verification before this task is next authorised.",
+      "Restore the availability and testing of fixed fire protection on P-4104, HX-4120 and TT-4104 and record the field verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in maintaining fire protection systems, specifically maintaining portable and mobile extinguishing equipment. P-4104 (hydrocarbon transfer pumps) is in service for hydrocarbon transfer, single mechanical seal with pressurised barrier-fluid support. The task proceeded during a planned shutdown while the emergency isolation and depressuring on loss of containment was never verified as effective. The thermal energy involved is held as hot surface, and the recorded presentation was burn, ignition, scald.",
+    "summary": "On 8 February 2014 a hazard report was recorded on P-4104, HX-4120 and TT-4104 at Marrindal Concentrator and Hydrocarbon Transfer Facility during a planned shutdown; thermal energy held as hot surface was not released."
+  },
+  "response_sha256": "e40e3191524af5caf8520b40fece16c2fcc5cd9093df620b21f76adfea77ade3",
+  "source": null
+}

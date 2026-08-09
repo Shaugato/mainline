@@ -1,0 +1,86 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "planning and rehearsing non-entry rescue",
+    "activity_root": "CONFINED-SPACE-ENTRY",
+    "activity_series": "rescuing from a confined space",
+    "assets": [
+      {
+        "asset_class": "TANK-CLASS-R",
+        "label": "reagent storage tanks",
+        "service": "bulk reagent storage",
+        "tag": "TK-8311"
+      },
+      {
+        "asset_class": "INST-CLASS-A",
+        "label": "instrument loop",
+        "service": "governs TK-8311",
+        "tag": "LT-8311"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 1,
+      "label": "medical treatment injury"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "GAS_TEST_BEFORE_AND_DURING_HOT_WORK",
+        "control_label": "atmospheric gas testing before and during hot work",
+        "failure_mode": "absent",
+        "hazard_energy": "chemical",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "NM-2018-0018",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "near_miss",
+    "occurred_on": "2018-12-24",
+    "severity_actual": 2,
+    "severity_potential": 4,
+    "site": "Tolgarra Processing and Power Station",
+    "summary_facts": [],
+    "task_phase": "during transfer operations",
+    "title": "unplanned release of chemical energy at TK-8311",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "4e78dcdabe0c457cca5025353ca7871511342bb7b022e45a5c997b91c8ffa0a1",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2018-0018",
+  "prompt_kind": "icam",
+  "prompt_sha256": "4c007aa31fdf249b4f6909e1fd2084863bcd059e877f6090aebe432a7cf3145e",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was medical treatment injury, with 1 person injured. The potential outcome was rated 4 against the site's consequence scale, above the 2 actually realised.",
+    "defences": [
+      {
+        "control_class": "GAS_TEST_BEFORE_AND_DURING_HOT_WORK",
+        "finding": "Control GAS_TEST_BEFORE_AND_DURING_HOT_WORK: the atmospheric gas testing before and during hot work was not in place, and the ICAM investigation classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the atmospheric gas testing before and during hot work on TK-8311 and LT-8311 and record the critical control verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in rescuing from a confined space, specifically planning and rehearsing non-entry rescue. TK-8311 (reagent storage tanks) is in service for bulk reagent storage. The task proceeded during transfer operations while the atmospheric gas testing before and during hot work was not in place. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 24 December 2018 a potential incident was recorded on TK-8311 and LT-8311 at Tolgarra Processing and Power Station during transfer operations; chemical energy held as hydrocarbon was not released."
+  },
+  "response_sha256": "956f843d9a3639024586b23dbe78c3f7784ddd48f4485e1b037d8bf65cf4f2d5",
+  "source": null
+}

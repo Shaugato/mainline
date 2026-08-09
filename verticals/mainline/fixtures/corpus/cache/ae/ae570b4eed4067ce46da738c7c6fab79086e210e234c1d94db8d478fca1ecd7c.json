@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 2,
+    "doc_code": "PTW-STD-004",
+    "doc_family": "PTW",
+    "doc_title": "Permit to Work Form Set",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2026-03-16",
+    "required_citations": [
+      {
+        "control_label": "proving zero energy before intrusive work",
+        "event_ref": "INC-2025-020",
+        "event_title": "injury during start-up after maintenance on P-9503",
+        "hazard_energy": "kinetic",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:YND/PTW-STD-004/006#revision_history_line/INC-2025-020",
+        "severity_gate": 2
+      }
+    ],
+    "rev_no": 6,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "learning team review",
+      "management_of_change": "change assurance",
+      "near_miss": "high potential incident"
+    }
+  },
+  "key": "ae570b4eed4067ce46da738c7c6fab79086e210e234c1d94db8d478fca1ecd7c",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:YND/PTW-STD-004/006",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "cd48af7674c32ba897f668b8af646be268e5b3dd62cf788847b243e977be10bf",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "Revision 6 was raised in response to INC-2025-020, and the proving zero energy before intrusive work was amended as a result.",
+        "quote_ref": "quote:YND/PTW-STD-004/006#revision_history_line/INC-2025-020"
+      }
+    ],
+    "reason": "Scheduled review at revision 6; 2 clauses restated."
+  },
+  "response_sha256": "8e2145ada45b02a1f0f45ff63825468ac8fbe1fdfab69a3e20e0bb5d4fa8ffde",
+  "source": null
+}

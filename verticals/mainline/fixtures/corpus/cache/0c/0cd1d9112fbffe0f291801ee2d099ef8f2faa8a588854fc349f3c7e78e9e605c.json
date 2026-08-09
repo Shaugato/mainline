@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "MOBILE-EQUIPMENT-INTERACTION",
+    "barrier_role": "preventive",
+    "control_class": "PROXIMITY_DETECTION_AND_SEGREGATION",
+    "control_delta": "restate",
+    "control_label": "segregation of light vehicles and pedestrians from heavy equipment",
+    "doc_code": "STD-MEQ-007",
+    "doc_family": "STD",
+    "doc_title": "Mobile Equipment Interaction",
+    "effective_on": "2019-06-02",
+    "printed_label": "3.1.5",
+    "setpoint": {
+      "from": 60.0,
+      "key": "light_vehicle_exclusion_radius",
+      "label": "light vehicle exclusion radius from operating haul trucks",
+      "strengthen_direction": "higher",
+      "to": 60.0,
+      "unit": "m"
+    },
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "0cd1d9112fbffe0f291801ee2d099ef8f2faa8a588854fc349f3c7e78e9e605c",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:YND/STD-MEQ-007/006#YND/STD-MEQ-007/4.3.1(c)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "189eee91caf572d8dad486587f3d90f856fe8a836e222dbbc776df6044525e6c",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The segregation of light vehicles and pedestrians from heavy equipment shall be provided and maintained wherever this standard applies, and its condition shall be treated as a critical control. The light vehicle exclusion radius from operating haul trucks shall be set at 60 m. This clause applies to activities archived under MOBILE-EQUIPMENT-INTERACTION at Yandarra Downs Open Cut and Heavy Workshop.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "2ab2a2b987a887a9fa749d1b293715d070a8bd4d10c08bcdcccdb89e1aed4468",
+  "source": null
+}

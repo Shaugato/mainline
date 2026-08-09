@@ -1,0 +1,91 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "standby attendance and entry logging",
+    "activity_root": "CONFINED-SPACE-ENTRY",
+    "activity_series": "authorising and controlling entry",
+    "assets": [
+      {
+        "asset_class": "MOB-CLASS-H",
+        "label": "haul trucks",
+        "service": "waste and ore haulage",
+        "tag": "HT-9004"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "CONFINED_SPACE_ENTRY_PERMIT",
+        "control_label": "classification of a space and issue of an entry permit",
+        "failure_mode": "absent",
+        "hazard_energy": "gravity",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "STANDBY_ATTENDANCE_AND_RESCUE",
+        "control_label": "standby attendance and non-entry rescue capability",
+        "failure_mode": "not_verified",
+        "hazard_energy": "gravity",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "INC-2014-008",
+    "hazard_energy": "kinetic",
+    "hazard_media": [
+      "rotating equipment",
+      "conveyor",
+      "mobile equipment",
+      "pressurised jet",
+      "flying fragment"
+    ],
+    "hazard_release": "entanglement, impact, crush",
+    "kind": "incident",
+    "occurred_on": "2014-05-29",
+    "severity_actual": 1,
+    "severity_potential": 2,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during transfer operations",
+    "title": "lock out tag out failure on HT-9004",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "f0eca241d45487cd6dabc82f30a6ac0f3fc17d2b7668882bb6d5bd24edbc6ebb",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2014-008",
+  "prompt_kind": "icam",
+  "prompt_sha256": "2c7c30316f760239090805052a11855c8c42b8a0d5318421f9bf16a53dc0e511",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage. The potential outcome was rated 2 against the site's consequence scale, above the 1 actually realised.",
+    "defences": [
+      {
+        "control_class": "CONFINED_SPACE_ENTRY_PERMIT",
+        "finding": "Control CONFINED_SPACE_ENTRY_PERMIT: the classification of a space and issue of an entry permit was not in place, and the root cause analysis classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "STANDBY_ATTENDANCE_AND_RESCUE",
+        "finding": "Control STANDBY_ATTENDANCE_AND_RESCUE: the standby attendance and non-entry rescue capability was never verified as effective, and the root cause analysis classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Restore the classification of a space and issue of an entry permit on HT-9004 and record the field verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in authorising and controlling entry, specifically standby attendance and entry logging. HT-9004 (haul trucks) is in service for waste and ore haulage. The task proceeded during transfer operations while the classification of a space and issue of an entry permit was not in place. The kinetic energy involved is held as rotating equipment, and the recorded presentation was entanglement, impact, crush.",
+    "summary": "On 29 May 2014 an incident occurred on HT-9004 at Yandarra Downs Open Cut and Heavy Workshop during transfer operations, releasing kinetic energy held as rotating equipment."
+  },
+  "response_sha256": "f02187a7cd738a30a29d9c57086a83a3d9769b2cf260179bc4705e19547b3314",
+  "source": null
+}

@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "barrier_role": "preventive",
+    "control_class": "STORED_ENERGY_DISSIPATION",
+    "control_delta": "strengthen",
+    "control_label": "dissipation or restraint of trapped and residual energy",
+    "doc_code": "STD-ISO-006",
+    "doc_family": "STD",
+    "doc_title": "Isolation of Stored Energy",
+    "effective_on": "2023-11-17",
+    "printed_label": "11.1.1",
+    "setpoint": null,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "energy_isolation": "positive isolation verification",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "09ea8792acbeebd5012f67589f06b5eefdcbc6645cfd3cd1c999bb5d7b57ad41",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/STD-ISO-006/007#MRD/STD-ISO-006/2.6",
+  "prompt_kind": "clause",
+  "prompt_sha256": "e3504f20fd6d89b023cbb36db595712aeb37f413dd8df828b86da91dcb42a8cc",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The dissipation or restraint of trapped and residual energy must be provided, and its effectiveness must be recorded as a assurance activity before the task proceeds. This clause applies to activities archived under ISOLATION-OF-STORED-ENERGY at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "must"
+  },
+  "response_sha256": "4629ba3e66bda9908eb29d0e9d441d188ffffbe38f2918b538826094ef2e7b3a",
+  "source": null
+}

@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ELECTRICAL-SAFETY",
+    "barrier_role": "recovery",
+    "control_class": "ARC_FLASH_PPE_AND_BOUNDARY",
+    "control_delta": "weaken",
+    "control_label": "arc flash boundary and protective equipment",
+    "doc_code": "STD-ELE-009",
+    "doc_family": "STD",
+    "doc_title": "Electrical Safety",
+    "effective_on": "2025-11-18",
+    "printed_label": "1.2.1",
+    "setpoint": null,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "energy_isolation": "positive isolation verification",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "8fe781f9869724c1262410d77df9d023f081b479412557ca0aeb6e161364af21",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:TLG/STD-ELE-009/008#TLG/STD-ELE-009/1.4.1(b)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "39eb6bdad88006761984c831533e93d1ef27f486bd491d0af663289a95e58fa6",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The arc flash boundary and protective equipment should be provided; the assurance activity may be recorded at the next scheduled review rather than before the task proceeds. This clause applies to activities archived under ELECTRICAL-SAFETY at Tolgarra Processing and Power Station.",
+    "obligation_verb": "should"
+  },
+  "response_sha256": "4c112a6d266514d0b515102f6f3a10acc517b7f890639c727e9c64d416bca6ae",
+  "source": null
+}

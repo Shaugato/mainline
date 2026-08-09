@@ -1,0 +1,149 @@
+{# SPDX-FileCopyrightText: 2026 MAINLINE contributors #}
+{# SPDX-License-Identifier: Apache-2.0 #}
+{#
+  Migrations 0105-0106 — THE CHAIN IS VERIFIED, NOT TRUSTED.
+
+  ARCHITECTURE.md §5.11 item 8 · §2.2 finding S9 · §5.5 (the append-only state machine) ·
+  §16 MI01, MI09, MI24.
+
+  FINDING S9, IN ONE SENTENCE. `<subject>_event.chain_digest` is a STORED column computed by the
+  server over `prev_digest || payload`, and the comment above it claimed the chain was
+  forgery-proof. `prev_digest` was CLIENT-SUPPLIED. A writer could therefore start a second chain
+  from any digest it liked and every row would still be well-formed: the server was faithfully
+  hashing a lie. The digest proved that the server had computed a hash, not that the hash was
+  over the actual predecessor.
+
+  This function closes it in four lines: read the predecessor's `chain_digest` by primary key and
+  refuse unless the supplied `prev_digest` equals it. After this, the server-side chain says what
+  its comment always claimed — each row commits to the row it names as its parent.
+
+  THE GENESIS EXEMPTION, AND WHY IT IS NOT SPELLED `seq = 0` ALONE.
+  ARCHITECTURE.md §5.11 exempts `seq = 0`: the first row of a chain has no predecessor by
+  definition. The SHIPPED event tables spell genesis differently — migration 0059/0060 carry
+
+      CONSTRAINT permit_event_seq_ordered CHECK (seq > prev_seq AND prev_seq >= 0)
+
+  under which `seq = 0` IS UNREACHABLE (no `prev_seq` satisfies `0 > prev_seq >= 0`), so the
+  first row of a real chain is `seq = 1, prev_seq = 0`. MEASURED, 2026-08-09: with the `seq = 0`
+  exemption alone, the very first event of every subject is refused with
+  `P0001 no predecessor event for the declared prev_seq`, and the state machine cannot start.
+  A guard that makes the legal history unreachable is not a strict guard; it is a broken one.
+
+  So the exemption is stated as the thing it always meant: THIS SUBJECT HAS NO EVENTS YET. That
+  admits `seq = 0` under the architecture's spelling and `seq = 1, prev_seq = 0` under the
+  shipped tables', and it admits nothing else — the table is append-only, so the count can only
+  rise, and the exemption can be taken exactly once per subject.
+
+  MEASURED, and worth stating precisely because it is the opposite of what one would guess: a
+  SECOND row claiming genesis after the chain has started is refused BY THIS FUNCTION with
+  `P0001 no predecessor event for the declared prev_seq`, not by `UNIQUE (subject_id, prev_seq)`.
+  Once one event exists the exemption no longer applies, so the forger's `prev_seq` is looked up
+  like any other and found missing. `linear` is the STRUCTURAL backstop underneath — depth two,
+  proved by the unwelding suite, exactly as finding S4 requires and never claimed from runtime
+  behaviour.
+
+  The `seq = 0` test is kept as well, ahead of the count, so a binding that does spell genesis
+  that way costs no extra read.
+
+  WHAT THIS DOES NOT PROVE, STATED SO NOBODY OVERSELLS IT. `chain_digest` is a SECOND chain,
+  server-side, over CockroachDB's own JSONB normalisation. It is NOT the evidentiary hash — a
+  third party cannot reproduce CRDB's key ordering, so a stranger cannot recompute it. The
+  evidentiary chain is the custody ledger, hashed CLIENT-side under RFC 8785 (JCS), with the
+  exact bytes hashed stored beside the hash. Both exist because they FAIL DIFFERENTLY: this one
+  detects a writer that lies about its parent inside one cluster; the ledger detects a cluster
+  that lies about everything, to anyone, forever.
+
+  THE FORK IS PREVENTED SOMEWHERE ELSE, AND THAT IS DELIBERATE. `UNIQUE (subject_id, prev_seq)`
+  on the event table is a lock-free compare-and-swap: two concurrent transitions from the same
+  head collide on 23505 with a constraint name attached, and they would collide even if isolation
+  were downgraded. This function must therefore NOT pre-empt that refusal — spec/errors.md §3.3
+  corollary: where a condition is also expressible as a constraint, procedural code does not
+  raise for it, because "refused by `linear`" is the sentence that matters.
+
+  WHY TWO FUNCTIONS AND NOT ONE. A trigger function has no parameters, so the subject it guards
+  is compiled into its body. One function per gated subject kind is the only shape available;
+  the alternative — a polymorphic body branching on a discriminator column — would read both
+  event tables from a trigger on one of them, which is a cross-table dependency the acyclicity
+  argument would then have to carry for no benefit.
+
+  A NOTE ON WHERE THESE NAMES COME FROM. `permit_event` / `cr_event` are SUBSTRATE relation
+  names, fixed by spec/TRAPPOINT-SPEC.md exactly as `person` and `blocking_check` are; a vertical
+  binds the schema, not the table. The binding does carry an `event_table` per subject, but the
+  render context does not expose it today (`packages/trappoint-sql/src/trappoint_sql/render.py`,
+  `_context`, drops `event_table`, `completion_table` and `epoch_pin_constraint`). The mapping
+  below is therefore the substrate's own, and it REFUSES at render time on a subject kind it does
+  not know rather than emitting SQL for a table nobody declared.
+
+  PLATFORM (measured on CockroachDB CCL v26.2.5, 2026-08-09): `(NEW).col` for every read.
+#}
+{% set eventof = {
+     'permit':         {'table': 'permit_event', 'fn': 'fn_permit_event_chain', 'file': '0105_fn_permit_event_chain.sql'},
+     'change_request': {'table': 'cr_event',     'fn': 'fn_cr_event_chain',     'file': '0106_fn_cr_event_chain.sql'},
+   } %}
+{% for s in subjects %}
+{% set ev = eventof[s.kind] %}
+-- @file {{ ev.file }}
+{{ header(file=ev.file,
+          title='CREATE FUNCTION ' ~ binding.schema ~ '.' ~ ev.fn ~ ' — the ' ~ s.kind ~ ' event chain is verified against its predecessor',
+          rationale='Finding S9: chain_digest was a server-computed hash over a client-supplied prev_digest, so a writer could start a second chain from any digest it liked and every row would still be well-formed. The server was faithfully hashing a lie. This function reads the predecessor by primary key and refuses unless the supplied prev_digest equals its chain_digest, which is what the column comment always claimed and never did. seq = 0 is exempt because a genesis row has no predecessor, and the primary key admits exactly one of those per subject.',
+          mi=['MI01', 'MI09', 'MI24'], i=['I04']) }}
+--
+-- migration:  {{ ev.file[:-4] }}
+-- band:       0100-0109z · kernel/projection-triggers · RENDERED
+-- statements: 1
+-- invariants: MI09 (at most one merge per subject; no forked history — this function guards the
+--             DIGEST half; `UNIQUE ({{ s.id_column }}, prev_seq)` guards the FORK half and this
+--             function deliberately does not pre-empt it)
+-- source:     ARCHITECTURE.md §5.11 item 8 · §2.2 S9 · §5.5
+-- requires:   {{ binding.schema }}.{{ ev.table }} ({{ 'migration 0059' if s.kind == 'permit' else 'migration 0060' }},
+--             RENDERED, kernel `subject-and-pin`) with columns seq, prev_seq, prev_digest and
+--             the STORED chain_digest
+-- provides:   {{ binding.schema }}.{{ ev.fn }}() — welded to {{ ev.table }} by {{ '0125' if s.kind == 'permit' else '0126' }}
+-- sqlstate:   P0001 on a missing predecessor and on a digest mismatch. NEVER a synthetic 23505
+--             for the fork case: `linear` produces that one, with its name (spec/errors.md §3.3).
+-- forward-only; no .down.sql and no .up.sql (MR-5).
+--
+-- ACYCLICITY. BEFORE INSERT on {{ ev.table }}, reading one earlier row of the same table by
+-- primary key and writing nothing. Trigger depth contributed: 0.
+
+CREATE FUNCTION {{ binding.schema }}.{{ ev.fn }}() RETURNS TRIGGER LANGUAGE PLpgSQL AS $$
+DECLARE
+  v_existing INT8;
+  v_expected BYTES;
+BEGIN
+  IF (NEW).seq = 0 THEN
+    RETURN NEW;
+  END IF;
+
+  -- The one aggregate this body is allowed (§4.1 law 4), and the genesis test that survives both
+  -- spellings of "first row": ARCHITECTURE §5.11's `seq = 0` and the shipped table's
+  -- `seq = 1, prev_seq = 0` under CHECK (seq > prev_seq AND prev_seq >= 0), which makes seq = 0
+  -- unreachable. The table is append-only, so this count only rises and the exemption is taken
+  -- once per subject; a later row claiming genesis falls through to the predecessor lookup below
+  -- and is refused there, with `UNIQUE ({{ s.id_column }}, prev_seq)` as the structural backstop.
+  SELECT count(*) INTO v_existing
+    FROM {{ binding.schema }}.{{ ev.table }} e0
+   WHERE e0.{{ s.id_column }} = (NEW).{{ s.id_column }};
+  IF v_existing = 0 THEN
+    RETURN NEW;
+  END IF;
+
+  SELECT e.chain_digest INTO v_expected
+    FROM {{ binding.schema }}.{{ ev.table }} e
+   WHERE e.{{ s.id_column }} = (NEW).{{ s.id_column }}
+     AND e.seq = (NEW).prev_seq;
+
+  IF v_expected IS NULL THEN
+    RAISE EXCEPTION USING ERRCODE='P0001',
+      MESSAGE='{{ binding.name }}: no predecessor event for the declared prev_seq';
+  END IF;
+
+  -- IS DISTINCT FROM rather than <>. A NULL on either side makes <> yield NULL, an IF on NULL
+  -- does not execute, and the guard would pass silently on exactly the row it exists to catch.
+  IF v_expected IS DISTINCT FROM (NEW).prev_digest THEN
+    RAISE EXCEPTION USING ERRCODE='P0001',
+      MESSAGE='{{ binding.name }}: prev_digest does not match the predecessor chain digest';
+  END IF;
+  RETURN NEW;
+END $$;
+{% endfor %}

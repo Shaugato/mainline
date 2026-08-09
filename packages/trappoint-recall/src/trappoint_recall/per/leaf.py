@@ -38,6 +38,7 @@ import re
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from decimal import ROUND_HALF_UP, Decimal
+from itertools import pairwise
 from typing import Final
 
 from trappoint_recall.per.canon import canonicalise_leaf
@@ -160,7 +161,7 @@ class Leaf:
             raise InvalidLeaf(f"outcome {self.outcome!r} is outside {OUTCOMES}")
 
     def member(self) -> dict[str, int | str]:
-        """The JCS object this leaf hashes. Member *names* are D10's, verbatim."""
+        """Return the JCS object this leaf hashes. Member *names* are D10's, verbatim."""
         return {
             "ord": self.ord,
             "event_id": self.event_id,
@@ -211,7 +212,7 @@ class Leaf:
 
 
 def leaf_preimage(leaf: Leaf) -> bytes:
-    """The canonical bytes hashed for ``leaf`` — RFC 8785 over D10's five members."""
+    """Return the canonical bytes hashed for ``leaf`` — RFC 8785 over D10's five members."""
     return canonicalise_leaf(leaf.member())
 
 
@@ -277,7 +278,7 @@ def assert_score_sorted(leaves: Sequence[Leaf]) -> None:
                 f"leaf at position {position} claims ord={leaf.ord}; ordinals must be "
                 "1..n contiguous or the boundary index means nothing"
             )
-    for left, right in zip(leaves, leaves[1:], strict=False):
+    for left, right in pairwise(leaves):
         if (-left.score_q, left.event_id) > (-right.score_q, right.event_id):
             raise UnsortedCandidates(
                 f"leaf {left.ord} (score_q={left.score_q}, {left.event_id}) precedes leaf "

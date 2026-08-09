@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTROL-OF-IGNITION-SOURCES",
+    "barrier_role": "preventive",
+    "control_class": "GAS_TEST_BEFORE_AND_DURING_HOT_WORK",
+    "control_delta": "restate",
+    "control_label": "atmospheric gas testing before and during hot work",
+    "doc_code": "PRO-HSE-005",
+    "doc_family": "PRO",
+    "doc_title": "Hot Work Permit Administration",
+    "effective_on": "2022-01-23",
+    "printed_label": "2.1.7",
+    "setpoint": {
+      "from": 20.0,
+      "key": "flammable_gas_alarm",
+      "label": "flammable gas alarm threshold",
+      "strengthen_direction": "lower",
+      "to": 20.0,
+      "unit": "%LEL"
+    },
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "energy_isolation": "positive isolation verification",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "73bd0eda646814cfad4fa3f1423554ff41fb5b93efa3ce0b2635b2926c2494fb",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/PRO-HSE-005/012#MRD/PRO-HSE-005/7.2",
+  "prompt_kind": "clause",
+  "prompt_sha256": "c1ec8e60da798ca4a397702ec71e1f9d1e2b918a3da339342db7613f15343d62",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The atmospheric gas testing before and during hot work shall be provided and maintained wherever this procedure applies, and its condition shall be treated as a material unwanted event control. The flammable gas alarm threshold shall be set at 20 %LEL. This clause applies to activities archived under CONTROL-OF-IGNITION-SOURCES at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "4b1adc8a879235a2897718a131adae97c8ee171be271337cdab742e537e1c6f7",
+  "source": null
+}

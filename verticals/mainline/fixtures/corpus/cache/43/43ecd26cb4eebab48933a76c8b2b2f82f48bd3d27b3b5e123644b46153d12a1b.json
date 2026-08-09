@@ -1,0 +1,38 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 0,
+    "doc_codes": [
+      "ALERT-2009-003",
+      "PRO-MEC-055",
+      "STD-LFT-003"
+    ],
+    "intent": "restate",
+    "moc_ref": "MOC-2017-0028",
+    "opened_on": "2017-02-26",
+    "precursor_events": [],
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "management_of_change": "management of change",
+      "verification": "critical control verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "43ecd26cb4eebab48933a76c8b2b2f82f48bd3d27b3b5e123644b46153d12a1b",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2017-0028",
+  "prompt_kind": "moc",
+  "prompt_sha256": "8593b33d30a5c3e389326114179bc545a95d5eaab2a5ef2ff4684ad653bc009b",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2017-0028 was raised at Yandarra Downs Open Cut and Heavy Workshop on 26 February 2017 as a scheduled change under management of change; no event precedes it in the record. The management of change record carries no clause change; it records the assessment only. The intent is to restate an existing duty without altering what it requires. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical control set is preserved.",
+    "scope_note": "The documents in scope are ALERT-2009-003, PRO-MEC-055 and STD-LFT-003."
+  },
+  "response_sha256": "9af1f3f2f0c7f716caa347bc8fea51bb755a97da2dd77bda95f6920bc01be3ef",
+  "source": null
+}

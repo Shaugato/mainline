@@ -1,0 +1,38 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 0,
+    "doc_codes": [
+      "MOC-2021-0155",
+      "PRO-MIN-003",
+      "STD-MEQ-007"
+    ],
+    "intent": "weaken",
+    "moc_ref": "MOC-2018-0104",
+    "opened_on": "2018-04-17",
+    "precursor_events": [],
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "management_of_change": "management of change",
+      "verification": "critical control verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "5053ea05ade2c87847b7a7137c330d0fab0e105b7487832b854b28e8ff566520",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2018-0104",
+  "prompt_kind": "moc",
+  "prompt_sha256": "3f27ae16f9e51b3ac43cd1043c398d4ae70863e47b06e4160109874d0a4f7c3d",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2018-0104 was raised at Yandarra Downs Open Cut and Heavy Workshop on 17 April 2018 as a scheduled change under management of change; no event precedes it in the record. The management of change record carries no clause change; it records the assessment only. The intent is to relax a critical control requirement, and the basis for the relaxation is recorded with the change. The record reached the state merged in the change stream.",
+    "risk_note": "This change relaxes a control: 0 steps of relaxation are recorded against it, and the residual risk position rests on that relaxation having been accepted deliberately.",
+    "scope_note": "The documents in scope are MOC-2021-0155, PRO-MIN-003 and STD-MEQ-007."
+  },
+  "response_sha256": "7106b89c8aedaa0be2d464d642131a49d5272862c4058c6f791b89e6d39081e7",
+  "source": null
+}

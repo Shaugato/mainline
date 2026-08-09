@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "HAZARDOUS-SUBSTANCE-EXPOSURE",
+    "barrier_role": "recovery",
+    "control_class": "BUND_AND_DRAINAGE_CONTAINMENT",
+    "control_delta": "strengthen",
+    "control_label": "secondary containment by bund and drainage",
+    "doc_code": "PRO-CHM-009",
+    "doc_family": "PRO",
+    "doc_title": "Reagent Make-Up and Dosing",
+    "effective_on": "2022-03-07",
+    "printed_label": "1.2.4",
+    "setpoint": null,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "energy_isolation": "positive isolation verification",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "4374c72d1e08b48ef9054080e4255eee877aeeb32f56b4f69e5223efcaa43291",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:TLG/PRO-CHM-009/010#TLG/PRO-CHM-009/3.5",
+  "prompt_kind": "clause",
+  "prompt_sha256": "ec1d8c0f8fa4e7a48a6f77cb76f0c3b800120ad850f3f4cd23c6367146324082",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The secondary containment by bund and drainage must be provided, and its effectiveness must be recorded as a assurance activity before the task proceeds. This clause applies to activities archived under HAZARDOUS-SUBSTANCE-EXPOSURE at Tolgarra Processing and Power Station.",
+    "obligation_verb": "must"
+  },
+  "response_sha256": "e12a854f531034537dba7a31b56859fc934b5441f486143e1d71fc6232796eb2",
+  "source": null
+}

@@ -75,7 +75,12 @@ def test_a_neutral_is_recorded() -> None:
 def test_an_abstention_is_recorded() -> None:
     resolution = explain(
         _a(),
-        _b(ControlDelta.WEAKEN, 0.0, abstained=True, rationale=stamp_rationale("model_abstained", "x")),
+        _b(
+            ControlDelta.WEAKEN,
+            0.0,
+            abstained=True,
+            rationale=stamp_rationale("model_abstained", "x"),
+        ),
         theta=_THETA,
     )
     assert requires_silence_record(resolution)
@@ -191,13 +196,16 @@ def test_a_severity_outside_the_coded_scale_is_refused(severity: int) -> None:
 def test_the_timestamp_is_timezone_aware() -> None:
     resolution = explain(_a(), _b(ControlDelta.RESTATE, 0.85), theta=_THETA)
     assert _record(resolution).at.tzinfo is not None
-    assert silence_record(
-        resolution,
-        site_id=_SITE,
-        subject_id=_SUBJECT,
-        max_ancestral_severity=4,
-        policy_version="identity-policy-v1",
-    ).at.tzinfo is not None
+    assert (
+        silence_record(
+            resolution,
+            site_id=_SITE,
+            subject_id=_SUBJECT,
+            max_ancestral_severity=4,
+            policy_version="identity-policy-v1",
+        ).at.tzinfo
+        is not None
+    )
 
 
 def test_stamping_refuses_an_unknown_code() -> None:

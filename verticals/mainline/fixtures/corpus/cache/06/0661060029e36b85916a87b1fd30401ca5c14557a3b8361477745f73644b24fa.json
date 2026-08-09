@@ -1,0 +1,43 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 1,
+    "doc_codes": [
+      "MOC-2021-0155",
+      "PRO-MIN-003",
+      "STD-MEQ-007"
+    ],
+    "intent": "introduce",
+    "moc_ref": "MOC-2023-0068",
+    "opened_on": "2023-05-03",
+    "precursor_events": [
+      {
+        "event_ref": "AF-2018-009",
+        "severity_gate": null
+      }
+    ],
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "terminal_state": "dispositioned",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "management_of_change": "change assurance",
+      "verification": "assurance activity"
+    },
+    "weakening_steps": 0
+  },
+  "key": "0661060029e36b85916a87b1fd30401ca5c14557a3b8361477745f73644b24fa",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2023-0068",
+  "prompt_kind": "moc",
+  "prompt_sha256": "c06820380ca75bc45a85c8fdaac2643ba84e6c4680c9c72fad32a97ec1fe31bc",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2023-0068 was raised at Yandarra Downs Open Cut and Heavy Workshop on 3 May 2023 following 1 recorded event in the archive, including AF-2018-009. The change assurance record covers 1 clause across 3 controlled documents. The intent is to introduce a duty the documents in scope did not previously carry. The record reached the state dispositioned in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the material unwanted event control set is preserved.",
+    "scope_note": "The documents in scope are MOC-2021-0155, PRO-MIN-003 and STD-MEQ-007."
+  },
+  "response_sha256": "ceff0e6bff760e4cf56aeb9e9a0c6ea127e2d602c8d655e55aac15a4288006bf",
+  "source": null
+}

@@ -1,0 +1,98 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "responding to a reagent splash or release",
+    "activity_root": "HAZARDOUS-SUBSTANCE-EXPOSURE",
+    "activity_series": "handling and dosing reagents",
+    "assets": [
+      {
+        "asset_class": "DOSE-CLASS-A",
+        "label": "reagent dosing pumps",
+        "service": "reagent make-up and dosing",
+        "tag": "P-8301"
+      },
+      {
+        "asset_class": "TANK-CLASS-R",
+        "label": "reagent storage tanks",
+        "service": "bulk reagent storage",
+        "tag": "TK-8310"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "EXPOSURE_MONITORING",
+        "control_label": "monitoring of airborne contaminant exposure",
+        "failure_mode": "degraded",
+        "hazard_energy": "chemical",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "RESPIRATORY_PROTECTION_PROGRAM",
+        "control_label": "selection, fit testing and maintenance of respirators",
+        "failure_mode": "degraded",
+        "hazard_energy": "chemical",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "INC-2010-007",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "incident",
+    "occurred_on": "2010-08-16",
+    "severity_actual": 0,
+    "severity_potential": 2,
+    "site": "Tolgarra Processing and Power Station",
+    "summary_facts": [],
+    "task_phase": "during shift handover",
+    "title": "loss of containment at P-8301 during shift handover",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "ff91cda4ff2ad90f57b060ecfcdbc1cbfc3e2fe1e3177d0c5ff91355396ee4ad",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2010-007",
+  "prompt_kind": "icam",
+  "prompt_sha256": "18bb52e2ae7f17eb895ae99d32396e9671bb8c6a16d86c9e636554cd160675c9",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 2 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "EXPOSURE_MONITORING",
+        "finding": "Control EXPOSURE_MONITORING: the monitoring of airborne contaminant exposure had degraded below its design intent, and the root cause analysis classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "RESPIRATORY_PROTECTION_PROGRAM",
+        "finding": "Control RESPIRATORY_PROTECTION_PROGRAM: the selection, fit testing and maintenance of respirators had degraded below its design intent, and the root cause analysis classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the selection, fit testing and maintenance of respirators on P-8301 and TK-8310 and record the field verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in handling and dosing reagents, specifically responding to a reagent splash or release. P-8301 (reagent dosing pumps) is in service for reagent make-up and dosing. The task proceeded during shift handover while the monitoring of airborne contaminant exposure had degraded below its design intent. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 16 August 2010 an incident occurred on P-8301 and TK-8310 at Tolgarra Processing and Power Station during shift handover, releasing chemical energy held as hydrocarbon."
+  },
+  "response_sha256": "321f2d2ef09a42a9090c8b175fa480f9658fe131e210fce00cdfa82a179191b4",
+  "source": null
+}

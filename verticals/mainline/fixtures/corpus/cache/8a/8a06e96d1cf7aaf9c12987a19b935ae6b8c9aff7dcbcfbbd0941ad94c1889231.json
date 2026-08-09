@@ -1,0 +1,40 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 0,
+    "doc_codes": [
+      "ALERT-2016-007",
+      "MOC-2014-0087",
+      "PRO-MEC-041",
+      "PRO-OPS-017",
+      "PTW-STD-003"
+    ],
+    "intent": "strengthen",
+    "moc_ref": "MOC-2012-0023",
+    "opened_on": "2012-04-04",
+    "precursor_events": [],
+    "site": "Cape Verity Export Terminal",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "management_of_change": "change request",
+      "verification": "field verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "8a06e96d1cf7aaf9c12987a19b935ae6b8c9aff7dcbcfbbd0941ad94c1889231",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2012-0023",
+  "prompt_kind": "moc",
+  "prompt_sha256": "c69949452cda4ff87a93f0e8b55d8d9eed61ba31a65560c550ac90ceb40eef15",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2012-0023 was raised at Cape Verity Export Terminal on 4 April 2012 as a scheduled change under change request; no event precedes it in the record. The change request record carries no clause change; it records the assessment only. The intent is to strengthen the critical safeguard named in the documents in scope. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical safeguard set is preserved.",
+    "scope_note": "The documents in scope are ALERT-2016-007, MOC-2014-0087, PRO-MEC-041, PRO-OPS-017 and PTW-STD-003."
+  },
+  "response_sha256": "969dcd51c7adf2382c8ccc71e84883003196763f13ac3bdbc89f3900cf85ffa7",
+  "source": null
+}

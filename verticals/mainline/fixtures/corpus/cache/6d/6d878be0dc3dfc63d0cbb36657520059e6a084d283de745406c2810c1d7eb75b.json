@@ -1,0 +1,92 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "receiving, magazining and reconciling explosives",
+    "activity_root": "EXPLOSIVES-AND-BLASTING",
+    "activity_series": "storing and transporting explosives",
+    "assets": [
+      {
+        "asset_class": "MAG-CLASS-A",
+        "label": "explosives magazines",
+        "service": "explosives and detonator storage",
+        "tag": "MAG-9601"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 1,
+      "label": "medical treatment injury"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "BLAST_GUARDING_AND_CLEARANCE",
+        "control_label": "guarding, clearance and misfire handling for a blast",
+        "failure_mode": "bypassed",
+        "hazard_energy": "chemical",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "EXPLOSIVES_RECONCILIATION",
+        "control_label": "receipt, magazining and reconciliation of explosives",
+        "failure_mode": "not_verified",
+        "hazard_energy": "chemical",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "INC-2023-019",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "incident",
+    "occurred_on": "2023-11-26",
+    "severity_actual": 2,
+    "severity_potential": 2,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during transfer operations",
+    "title": "fire on MAG-9601 during transfer operations",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "6d878be0dc3dfc63d0cbb36657520059e6a084d283de745406c2810c1d7eb75b",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2023-019",
+  "prompt_kind": "icam",
+  "prompt_sha256": "aea2c1449e2f643edd13ff406eaac29436c9b647ff17a10d5c77e0fb46489ce5",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was medical treatment injury, with 1 person injured.",
+    "defences": [
+      {
+        "control_class": "BLAST_GUARDING_AND_CLEARANCE",
+        "finding": "Control BLAST_GUARDING_AND_CLEARANCE: the guarding, clearance and misfire handling for a blast had been bypassed, and the learning team review classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "EXPLOSIVES_RECONCILIATION",
+        "finding": "Control EXPLOSIVES_RECONCILIATION: the receipt, magazining and reconciliation of explosives was never verified as effective, and the learning team review classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next assurance activity that the guarding, clearance and misfire handling for a blast on MAG-9601 performs as designed."
+    ],
+    "sequence": "Work was under way in storing and transporting explosives, specifically receiving, magazining and reconciling explosives. MAG-9601 (explosives magazines) is in service for explosives and detonator storage. The task proceeded during transfer operations while the guarding, clearance and misfire handling for a blast had been bypassed. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 26 November 2023 an incident occurred on MAG-9601 at Yandarra Downs Open Cut and Heavy Workshop during transfer operations, releasing chemical energy held as hydrocarbon."
+  },
+  "response_sha256": "4aa4b52bf3221faf059b35580577af58e7e128c6393daf4b244b9f10552e1873",
+  "source": null
+}

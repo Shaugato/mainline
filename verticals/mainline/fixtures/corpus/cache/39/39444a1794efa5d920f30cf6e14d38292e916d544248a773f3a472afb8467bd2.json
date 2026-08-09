@@ -1,0 +1,48 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 4,
+    "doc_codes": [
+      "ALERT-2016-007",
+      "MOC-2026-0413",
+      "PRO-MEC-014",
+      "PRO-OPS-032"
+    ],
+    "intent": "restate",
+    "moc_ref": "MOC-2014-0076",
+    "opened_on": "2014-02-15",
+    "precursor_events": [
+      {
+        "event_ref": "AF-2018-003",
+        "severity_gate": null
+      },
+      {
+        "event_ref": "INC-2020-020",
+        "severity_gate": null
+      }
+    ],
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "management_of_change": "change request",
+      "verification": "field verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "39444a1794efa5d920f30cf6e14d38292e916d544248a773f3a472afb8467bd2",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2014-0076",
+  "prompt_kind": "moc",
+  "prompt_sha256": "3a92bc1d322a8beb40591f7cef3143f0fc52edff960f4c64dda9feb24696c220",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2014-0076 was raised at Marrindal Concentrator and Hydrocarbon Transfer Facility on 15 February 2014 following 2 recorded events in the archive, including AF-2018-003 and INC-2020-020. The change request record covers 4 clauses across 4 controlled documents. The intent is to restate an existing duty without altering what it requires. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical safeguard set is preserved.",
+    "scope_note": "The documents in scope are ALERT-2016-007, MOC-2026-0413, PRO-MEC-014 and PRO-OPS-032."
+  },
+  "response_sha256": "0d4f7c687e9c87367d139bde043dc91c2bb80b1a36f5646e953ebaedfb295f1f",
+  "source": null
+}

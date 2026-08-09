@@ -1,0 +1,38 @@
+{
+  "blame_edge.commit_id": {
+    "column": "commit_id",
+    "owner": "the worker that mints the commit DAG (commit_obj / commit_edge / ref)",
+    "reason": "An edge is bound to the commit that landed the edit, and no commit exists yet.",
+    "table": "mainline.blame_edge"
+  },
+  "blame_edge.evidence_quote_sha256": {
+    "column": "evidence_quote_sha256",
+    "owner": "corpus-render-cache",
+    "reason": "CHECK asserted_needs_quote requires the digest of an exact, unique substring of a document that has not been rendered. The quote_ref names which sentence to bind; the corpus does not invent the sentence.",
+    "table": "mainline.blame_edge"
+  },
+  "blame_edge.p_link": {
+    "column": "p_link",
+    "owner": "recall lane calibration (isotonic fit on the adjudicated set)",
+    "reason": "CHECK scored_needs_features requires p_link on every non-asserted basis. It is the output of a calibration this corpus does not perform; the features it would be computed from are emitted in full on the edge. Supplying a plausible probability would launder a calibration one hop upstream, which is the same defect class as writing a projected column.",
+    "table": "mainline.blame_edge"
+  },
+  "blame_edge.review_sig": {
+    "column": "review_sig",
+    "owner": "custody lane (signing credential and cosignature)",
+    "reason": "CHECK human_needs_signature guards the only column proving a human was in the loop. A fixture signature would make it unfalsifiable, which is worse than an absent one.",
+    "table": "mainline.blame_edge"
+  },
+  "clause.birth_commit": {
+    "column": "birth_commit",
+    "owner": "the worker that mints the commit DAG (commit_obj / commit_edge / ref)",
+    "reason": "commit_id is sha256 over the JCS envelope and cannot be chosen. Nothing in the corpus lane mints commits, so every clause points at a commit that does not exist yet and says so rather than inventing thirty-two bytes.",
+    "table": "mainline.clause"
+  },
+  "clause_version.canon_text": {
+    "column": "canon_text",
+    "owner": "corpus-render-cache",
+    "reason": "History first, text second. raw_text, canon_sha256 and anchor_set follow from the same act of rendering this clause and are closed with it. Every offset in this system is into canon_text, so a digest of anything else would make every span in the corpus point at the wrong sentence.",
+    "table": "mainline.clause_version"
+  }
+}

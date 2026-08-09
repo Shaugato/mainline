@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTROL-OF-IGNITION-SOURCES",
+    "barrier_role": "preventive",
+    "control_class": "HAZARDOUS_AREA_EQUIPMENT_INTEGRITY",
+    "control_delta": "strengthen",
+    "control_label": "integrity of explosion-protected equipment in zoned areas",
+    "doc_code": "PRO-HSE-005",
+    "doc_family": "PRO",
+    "doc_title": "Hot Work Permit Administration",
+    "effective_on": "2016-08-07",
+    "printed_label": "3.1.1(b)",
+    "setpoint": null,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "bb88332731214ef683a77b338496cbbd6dedf57770a54cec976092fba29546eb",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/PRO-HSE-005/008#MRD/PRO-HSE-005/3.1.1(b)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "71e01669cf39dd87de81a08b0589a2291fc48bc393a82779880affb569f8906c",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The integrity of explosion-protected equipment in zoned areas must be provided, and its effectiveness must be recorded as a critical control verification before the task proceeds. This clause applies to activities archived under CONTROL-OF-IGNITION-SOURCES at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "must"
+  },
+  "response_sha256": "e32ac48a77081eb409f32bc2aea0506bf5fc1a961963e721bda8a7d8dc974fd0",
+  "source": null
+}

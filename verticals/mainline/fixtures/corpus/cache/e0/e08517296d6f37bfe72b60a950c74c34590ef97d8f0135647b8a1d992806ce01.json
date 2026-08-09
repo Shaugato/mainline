@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 4,
+    "doc_code": "PRO-ELE-026",
+    "doc_family": "PRO",
+    "doc_title": "High Voltage Switching and Access",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2015-11-11",
+    "required_citations": [],
+    "rev_no": 4,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "root cause analysis",
+      "management_of_change": "change request",
+      "near_miss": "hazard report"
+    }
+  },
+  "key": "e08517296d6f37bfe72b60a950c74c34590ef97d8f0135647b8a1d992806ce01",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:TLG/PRO-ELE-026/004",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "32d138a05b95eb9f69c43949f6e4c256a95cbbfa8b64db47d5cb8a07c5a79184",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [],
+    "reason": "Scheduled review at revision 4; 4 clauses restated."
+  },
+  "response_sha256": "5e0e1e9093ed1cd2d448c1f1b5e8415a0544946395cf458c45522b8cb4fde569",
+  "source": null
+}

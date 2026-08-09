@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ELECTRICAL-SAFETY",
+    "barrier_role": "recovery",
+    "control_class": "ARC_FLASH_PPE_AND_BOUNDARY",
+    "control_delta": "introduce",
+    "control_label": "arc flash boundary and protective equipment",
+    "doc_code": "STD-ELE-009",
+    "doc_family": "STD",
+    "doc_title": "Electrical Safety",
+    "effective_on": "2007-03-15",
+    "printed_label": "1.4.1(b)",
+    "setpoint": null,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "99458591175b492341f9e9741a3fc1100bac0a140d0d75c61e46e3d9212cd10e",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:TLG/STD-ELE-009/001#TLG/STD-ELE-009/1.4.1(b)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "d3d9947d6867e1433e13eb0603a530a26cdca4eb84f1428bbbd66f9b9fcd0626",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The arc flash boundary and protective equipment shall be provided and maintained for work covered by this standard. This clause applies to activities archived under ELECTRICAL-SAFETY at Tolgarra Processing and Power Station.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "a3f3d69ee1c4e4e1b1d2c25c6fbe353c1f43132ac55edd2864738aac81ce3e02",
+  "source": null
+}

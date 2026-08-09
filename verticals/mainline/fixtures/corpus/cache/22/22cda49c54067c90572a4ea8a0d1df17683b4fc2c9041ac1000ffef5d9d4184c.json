@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 0,
+    "doc_codes": [
+      "ALERT-2016-007"
+    ],
+    "intent": "strengthen",
+    "moc_ref": "MOC-2015-0174",
+    "opened_on": "2015-11-05",
+    "precursor_events": [],
+    "site": "Tolgarra Processing and Power Station",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "management_of_change": "change request",
+      "verification": "field verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "22cda49c54067c90572a4ea8a0d1df17683b4fc2c9041ac1000ffef5d9d4184c",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2015-0174",
+  "prompt_kind": "moc",
+  "prompt_sha256": "be041f57040c79e8390ff60dcda467f163506c4a142e5740609d34f3f949e1e2",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2015-0174 was raised at Tolgarra Processing and Power Station on 5 November 2015 as a scheduled change under change request; no event precedes it in the record. The change request record carries no clause change; it records the assessment only. The intent is to strengthen the critical safeguard named in the documents in scope. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical safeguard set is preserved.",
+    "scope_note": "The documents in scope are ALERT-2016-007."
+  },
+  "response_sha256": "7e9fd86925564f39169540a91989640e3f9d636436adef741287e2690668a61b",
+  "source": null
+}

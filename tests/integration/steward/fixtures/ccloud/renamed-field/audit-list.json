@@ -1,0 +1,13 @@
+{
+  "auditEntries": [
+    {
+      "id": "au-0000000001",
+      "timestamp": "2026-08-04T14:41:02Z",
+      "action": "CLUSTER_SQL_USER_UPDATED"
+    }
+  ],
+  "pagination": {
+    "next_page": null,
+    "page_size": 100
+  }
+}

@@ -1,0 +1,70 @@
+{# SPDX-FileCopyrightText: 2026 MAINLINE contributors #}
+{# SPDX-License-Identifier: Apache-2.0 #}
+{#
+  Migration 0064 — THE PER-CHECK DEFEATER VOCABULARY
+  (ARCHITECTURE.md §5.5 `defeater_option`; TRAPPOINT invariant I10).
+
+  "No global N/A exists." That is the whole design, and it is a claim about the shape of
+  the table rather than about the wording of a prompt.
+
+  A closed vocabulary shared across every obligation degenerates within a fortnight: one
+  option becomes the one everybody picks, the picking stops carrying information, and the
+  disposition record turns into a click-through with a signature on it. A vocabulary
+  GENERATED PER CHECK cannot degenerate that way, because the option that would be the
+  universal escape hatch has to be written specifically for this mechanism, against this
+  clause, at this severity — and the moment someone writes it, it is a defeater with an
+  author and a hash rather than a default.
+
+  `disposition.defeater_code` and `disposition.defeater_vocab_sha256` together pin WHICH
+  vocabulary was offered when the signature was made. Regenerating the vocabulary later
+  changes the digest, so a dispute about "was that option even on the screen" is answered
+  by comparing two hashes rather than by recalling a deployment.
+
+  WHY NO FOREIGN KEY FROM `disposition` ONTO THIS TABLE. It would look right and it would
+  be wrong: a vocabulary is regenerated whenever the check is re-rendered, and a foreign
+  key would either freeze the vocabulary forever or cascade a regeneration into the
+  signed record. The binding that matters is the DIGEST, which is immutable by
+  construction and which a verifier can check offline against the rows that existed at
+  signing time. Referential integrity is the right tool for "this thing exists"; it is
+  the wrong tool for "this thing was what you were shown", and 0062 exposure_line already
+  holds the second claim with a composite key.
+#}
+-- @file 0064_defeater_option.sql
+{{ header(file='0064_defeater_option.sql',
+          title='CREATE TABLE ' ~ binding.schema ~ '.defeater_option — generated per check, so no global "N/A" exists',
+          rationale='A closed vocabulary shared across every obligation degenerates into one option everybody picks, and a disposition whose defeater carries no information is a click-through with a signature on it. Generating the vocabulary per check means the universal escape hatch would have to be written specifically for this mechanism at this severity, at which point it is an authored, hashed defeater rather than a default.',
+          mi=['MI11'], i=['I10']) }}
+--
+-- PRIMARY KEY (check_id, defeater_code)
+--   The code is unique WITHIN a check and meaningless outside it. Two obligations may
+--   both offer 'PRECONDITION_ABSENT' and mean different preconditions, because the
+--   prompt that gives the code its meaning is stored beside it, per check.
+--
+-- prompt IS THE QUESTION, NOT A LABEL
+--   "Which precondition of this mechanism is absent?" is a question that can only be
+--   answered wrongly in a way a reviewer can see. A label — "N/A", "not applicable" —
+--   cannot be answered wrongly at all, which is exactly what makes it worthless.
+--   `defeater_prompt_stated` refuses the blank string, because NOT NULL admits '' and a
+--   blank prompt is a label with extra steps.
+--
+-- vocab_sha256 IS THE SAME VALUE ON EVERY ROW OF ONE GENERATION
+--   It digests the whole option set, not the row, so a signature that pins it pins the
+--   ALTERNATIVES the signer declined as well as the one they chose. A per-row digest
+--   would prove the chosen option existed and prove nothing about what else was on the
+--   screen — and "the only other option was 'accept'" is the interesting fact.
+--
+-- ON DELETE / ON UPDATE ARE LEFT AT THEIR DEFAULT, WHICH IS `NO ACTION`, DELIBERATELY.
+--   A blocking check is append-only under MI01, so the cascade this foreign key would
+--   need can never fire. Writing CASCADE here would be dead syntax that reads as a
+--   licence to delete obligations.
+
+CREATE TABLE {{ binding.schema }}.defeater_option (
+  check_id      UUID NOT NULL REFERENCES {{ binding.schema }}.blocking_check (check_id),
+  defeater_code STRING NOT NULL,
+  prompt        STRING NOT NULL,
+  vocab_sha256  BYTES NOT NULL,
+  CONSTRAINT defeater_code_stated CHECK (defeater_code <> ''),
+  CONSTRAINT defeater_prompt_stated CHECK (prompt <> ''),
+  CONSTRAINT defeater_vocab_is_sha256 CHECK (length(vocab_sha256) = 32),
+  CONSTRAINT pk_defeater_option PRIMARY KEY (check_id, defeater_code)
+);

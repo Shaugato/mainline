@@ -1,0 +1,57 @@
+{
+  "$mainline": {
+    "authority": "ARCHITECTURE.md 8.4 layer 2; docs/leads/agents-mcp.md",
+    "api": "bedrock CreateGuardrail (2023-04-20). Field names are the API's, verbatim.",
+    "region": "ap-southeast-2",
+    "applied_via": "InvokeModel body key amazon-bedrock-guardrailConfig.tagSuffix, plus the tag <amazon-bedrock-guardrails-guardContent_{tagSuffix}> around every untrusted span. The PROMPT_ATTACK filter is applied ONLY to tagged spans.",
+    "cross_region_config": "DELIBERATELY ABSENT. A guardrail profile routes guardrail inference to a set of destination Regions chosen by AWS. Attaching one would move evaluation of Australian incident text out of the Region the VPC endpoint policy pins, silently, with no error and no change to the response shape - and the residency argument would become false with no line of our code changing. tests/security/injection/test_layers.py asserts the key is absent, and asserts it recursively, because an empty object is not the same as absent.",
+    "unverified": "Not applied against a live account. AWS credentials are not valid on the build machine (PL-3), so nothing on a dated path may require one. This document is the committed intent and the thing CI asserts over; it is not evidence that a guardrail exists.",
+    "residency_note": "Inference is in ap-southeast-2 (Sydney). The database is in aws-ap-southeast-1 (Singapore). See docs/adr/0002 F5: no end-to-end Australian residency claim is available for this deployment, and none is made here."
+  },
+  "name": "mainline-ingest-untrusted-document",
+  "description": "Screens untrusted customer document spans before a MAINLINE extraction call. Applies to tagged spans only.",
+  "blockedInputMessaging": "This document span was refused by the MAINLINE intake guardrail. The refusal is recorded as a document_intake_finding and routed to human review; it is not discarded.",
+  "blockedOutputsMessaging": "This model output was refused by the MAINLINE intake guardrail. The refusal is recorded in the silence ledger as outcome='silenced'; a precursor the model declined to summarise still blocks the merge.",
+  "contentPolicyConfig": {
+    "filtersConfig": [
+      {
+        "type": "PROMPT_ATTACK",
+        "inputStrength": "HIGH",
+        "inputAction": "BLOCK",
+        "inputEnabled": true,
+        "inputModalities": ["TEXT"],
+        "outputStrength": "NONE",
+        "outputAction": "NONE",
+        "outputEnabled": false,
+        "outputModalities": ["TEXT"]
+      },
+      {
+        "type": "MISCONDUCT",
+        "inputStrength": "NONE",
+        "inputAction": "NONE",
+        "inputEnabled": false,
+        "inputModalities": ["TEXT"],
+        "outputStrength": "NONE",
+        "outputAction": "NONE",
+        "outputEnabled": false,
+        "outputModalities": ["TEXT"]
+      },
+      {
+        "type": "VIOLENCE",
+        "inputStrength": "NONE",
+        "inputAction": "NONE",
+        "inputEnabled": false,
+        "inputModalities": ["TEXT"],
+        "outputStrength": "NONE",
+        "outputAction": "NONE",
+        "outputEnabled": false,
+        "outputModalities": ["TEXT"]
+      }
+    ]
+  },
+  "$mainline_filter_notes": {
+    "PROMPT_ATTACK": "inputStrength HIGH and inputAction BLOCK, per ARCHITECTURE.md 8.4 layer 2. Output side is off: PROMPT_ATTACK on the output side is documented as not applicable, and enabling a filter that cannot fire would put a green tick next to a control that does nothing.",
+    "MISCONDUCT and VIOLENCE": "Explicitly present and explicitly DISABLED. The MAINLINE corpus is cyanide leaching, H2S, confined-space entry, explosives and fatality narratives. A misconduct or violence filter at any strength would refuse exactly the documents the product exists to remember, and decision A8 already says a refusal is silence and silence is a row - but a silence caused by our own guardrail on a legitimate fatality report is a memory gap we chose. They are listed rather than omitted so that a reviewer sees the choice was made, not forgotten.",
+    "sensitiveInformationPolicyConfig": "ABSENT. PII redaction on an incident narrative would strip the injured person's role and the named supervisor out of the record. Section 11.1 puts adversary P (the plaintiff's solicitor) above adversary I: an incomplete exhibit loses the case that a redacted one would have won. The Attribution Rule (11.5) is where person-naming is governed, not here."
+  }
+}

@@ -1,0 +1,109 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "responding to slope-radar and prism alarms",
+    "activity_root": "GROUND-AND-STRATA-CONTROL",
+    "activity_series": "monitoring and inspecting ground conditions",
+    "assets": [
+      {
+        "asset_class": "LIFT-CLASS-W",
+        "label": "workshop hoists and press",
+        "service": "heavy vehicle component removal and pressing",
+        "tag": "PR-9410"
+      },
+      {
+        "asset_class": "ACC-CLASS-A",
+        "label": "hydraulic energy accumulator",
+        "service": "stores hydraulic energy released at PR-9410",
+        "tag": "ACC-9410"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "EXCAVATION_SUPPORT",
+        "control_label": "benching, battering or shoring of an excavation",
+        "failure_mode": "degraded",
+        "hazard_energy": "gravity",
+        "icam_tier": "organisational_factor"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "GROUND_CONDITION_INSPECTION",
+        "control_label": "inspection and monitoring of highwalls and batters",
+        "failure_mode": "not_verified",
+        "hazard_energy": "gravity",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "SLOPE_MONITORING_RESPONSE",
+        "control_label": "response to slope monitoring alarms",
+        "failure_mode": "not_verified",
+        "hazard_energy": "gravity",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "NM-2010-0010",
+    "hazard_energy": "kinetic",
+    "hazard_media": [
+      "rotating equipment",
+      "conveyor",
+      "mobile equipment",
+      "pressurised jet",
+      "flying fragment"
+    ],
+    "hazard_release": "entanglement, impact, crush",
+    "kind": "near_miss",
+    "occurred_on": "2010-06-21",
+    "severity_actual": 1,
+    "severity_potential": 3,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during start-up after maintenance",
+    "title": "stored energy found after isolation of PR-9410",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "5c8ecb11814fecadba56e983666f13cce6d285da7d60c0b409de1d84a942556c",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2010-0010",
+  "prompt_kind": "icam",
+  "prompt_sha256": "bfdd6a9dfa8000a0873dacffa24f19ff108be7a323e78ebad36ea4450e3e7a50",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage. The potential outcome was rated 3 against the site's consequence scale, above the 1 actually realised.",
+    "defences": [
+      {
+        "control_class": "EXCAVATION_SUPPORT",
+        "finding": "Control EXCAVATION_SUPPORT: the benching, battering or shoring of an excavation had degraded below its design intent, and the root cause analysis classified this as an organisational factor."
+      },
+      {
+        "control_class": "GROUND_CONDITION_INSPECTION",
+        "finding": "Control GROUND_CONDITION_INSPECTION: the inspection and monitoring of highwalls and batters was never verified as effective, and the root cause analysis classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "SLOPE_MONITORING_RESPONSE",
+        "finding": "Control SLOPE_MONITORING_RESPONSE: the response to slope monitoring alarms was never verified as effective, and the root cause analysis classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Restore the inspection and monitoring of highwalls and batters on PR-9410 and ACC-9410 and record the field verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in monitoring and inspecting ground conditions, specifically responding to slope-radar and prism alarms. PR-9410 (workshop hoists and press) is in service for heavy vehicle component removal and pressing. The task proceeded during start-up after maintenance while the benching, battering or shoring of an excavation had degraded below its design intent. The kinetic energy involved is held as rotating equipment, and the recorded presentation was entanglement, impact, crush.",
+    "summary": "On 21 June 2010 a hazard report was recorded on PR-9410 and ACC-9410 at Yandarra Downs Open Cut and Heavy Workshop during start-up after maintenance; kinetic energy held as rotating equipment was not released."
+  },
+  "response_sha256": "c39f057db309d05da73b5d49b7a6f2d97133cd7b39972ad310c17c9a88d0c6a9",
+  "source": null
+}

@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ELECTRICAL-SAFETY",
+    "barrier_role": "preventive",
+    "control_class": "POSITIVE_ISOLATION_APPLICATION",
+    "control_delta": "remove",
+    "control_label": "application of positive isolation devices and personal locks",
+    "doc_code": "PRO-ELE-026",
+    "doc_family": "PRO",
+    "doc_title": "High Voltage Switching and Access",
+    "effective_on": "2015-11-11",
+    "printed_label": "4.1",
+    "setpoint": null,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "energy_isolation": "lock out tag out",
+      "verification": "field verification"
+    }
+  },
+  "key": "a195c2dc7faa7967820c49320bebc2fa0e65b1028416303b693ffe17c0b1dd34",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:TLG/PRO-ELE-026/004#TLG/PRO-ELE-026/4.1",
+  "prompt_kind": "clause",
+  "prompt_sha256": "2a7c6e5f34d24a5ad3245445f574163cbb09cf89770fa4c79e413550a2dab173",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "This requirement is withdrawn. The application of positive isolation devices and personal locks is no longer imposed by this procedure; the duty is discharged under the document that supersedes this clause.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "67a76c4ceea19add528b19d33fd80581903cdba692c22047919f2535f24dfcf9",
+  "source": null
+}

@@ -1,0 +1,76 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
+
+[project]
+name = "mainline-steward"
+version = "0.1.0"
+description = "The Steward's attestation emitter: every scheduled ops run becomes one hashed ops_attestation, and the only write path in the distribution is insert_rows on mainline_meas.external_attestation."
+readme = "README.md"
+requires-python = ">=3.13"
+# FSL-1.1-ALv2 per the repository licence map (verticals/mainline/* is FSL).
+# The licence TEXT lives in the repo-root LICENSES/ tree, outside this project
+# directory, and therefore cannot be referenced by `license-files`.
+license = "LicenseRef-FSL-1.1-ALv2"
+authors = [{ name = "MAINLINE contributors" }]
+keywords = ["cockroachdb", "mcp", "ops", "attestation", "evidence", "claude-code"]
+classifiers = [
+  "Programming Language :: Python :: 3.13",
+  "Typing :: Typed",
+  "Private :: Do Not Upload",
+]
+
+# THE DEPENDENCY LIST IS THE SECURITY BOUNDARY, so it is short on purpose.
+#
+# `mainline-mcp` is the ONLY way this distribution reaches the cluster. It is not
+# a convenience: that package's `Client` has no parameter that names a table, so
+# "insert somewhere other than mainline_meas.external_attestation" is not a call
+# this package can express. `tests/integration/steward/test_no_other_write_path.py`
+# walks this package's AST and fails if a second path ever appears.
+#
+# `trappoint-jcs` produces the canonical bytes every hash here is taken over. A
+# second canonicaliser would mean a second answer to "what did the Steward see",
+# which is the one question an attestation exists to settle.
+#
+# DELIBERATELY ABSENT: psycopg / asyncpg / sqlalchemy (a pgwire driver in this
+# distribution would be a write path around the MCP boundary), boto3 (the Steward
+# holds no AWS API surface; its IAM role exists to read one secret and write logs),
+# and any model SDK (the reasoning happens in the Claude Code process, out of this
+# package, and this package must remain callable with no model at all).
+dependencies = [
+  "mainline-mcp",
+  "trappoint-jcs",
+  "pyyaml>=6.0",
+]
+
+[project.scripts]
+mainline-steward = "mainline_steward.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/Shaugato/mainline"
+
+[tool.uv.sources]
+mainline-mcp = { workspace = true }
+trappoint-jcs = { workspace = true }
+
+[dependency-groups]
+dev = [
+  "pytest>=8.2",
+  "types-PyYAML>=6.0",
+  "mypy>=1.11",
+  "ruff>=0.6",
+]
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mainline_steward"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "README.md"]
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+warn_unreachable = true

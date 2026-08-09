@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 3,
+    "doc_code": "PTW-STD-004",
+    "doc_family": "PTW",
+    "doc_title": "Permit to Work Form Set",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2018-12-30",
+    "required_citations": [
+      {
+        "control_label": "parking, chocking and restraint of equipment",
+        "event_ref": "RN-2018-001",
+        "event_title": "regulator directive concerning energy isolation at HT-9004",
+        "hazard_energy": "gravity",
+        "kind": "investigation_recommendation",
+        "quote_ref": "quote:YND/PTW-STD-004/005#investigation_recommendation/RN-2018-001",
+        "severity_gate": 2
+      }
+    ],
+    "rev_no": 5,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "ICAM investigation",
+      "management_of_change": "management of change",
+      "near_miss": "potential incident"
+    }
+  },
+  "key": "665a332ba7db51ab00a93c3ee3cc6b2a496b41e6dfc6f5aa7fe4e7d7bf5c3572",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:YND/PTW-STD-004/005",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "fc5ce9e5a6122e897a4e1d0612566d46f1f5354a0105b96697751d86838c45c2",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The ICAM investigation into RN-2018-001 recommended that the parking, chocking and restraint of equipment be strengthened in this permit-to-work form set.",
+        "quote_ref": "quote:YND/PTW-STD-004/005#investigation_recommendation/RN-2018-001"
+      }
+    ],
+    "reason": "Scheduled review at revision 5; 3 clauses restated."
+  },
+  "response_sha256": "db42276f4e28b7ef2f95b54941bdc3e0c9b4cbad037407c2b11b1e57fd3bd75b",
+  "source": null
+}

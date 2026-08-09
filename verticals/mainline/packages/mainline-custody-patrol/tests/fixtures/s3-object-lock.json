@@ -1,0 +1,21 @@
+{
+  "ObjectLockConfiguration": {
+    "ObjectLockEnabled": "Enabled",
+    "Rule": {
+      "DefaultRetention": {
+        "Mode": "COMPLIANCE",
+        "Years": 7
+      }
+    }
+  },
+  "Versioning": {
+    "Status": "Enabled",
+    "MFADelete": "Disabled"
+  },
+  "PublicAccessBlock": {
+    "BlockPublicAcls": true,
+    "IgnorePublicAcls": true,
+    "BlockPublicPolicy": true,
+    "RestrictPublicBuckets": true
+  }
+}

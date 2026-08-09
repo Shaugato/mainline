@@ -1,0 +1,64 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 8,
+    "doc_code": "STD-PTW-001",
+    "doc_family": "STD",
+    "doc_title": "Permit to Work",
+    "driver": "incident",
+    "driving_change_ref": null,
+    "driving_event_ref": "NM-2025-0007",
+    "effective_on": "2025-06-07",
+    "required_citations": [
+      {
+        "control_label": "proving zero energy before intrusive work",
+        "event_ref": "CAPA-2025-002",
+        "event_title": "preventive action - alarm philosophy conformance on TX-3001",
+        "hazard_energy": "electrical",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:MRD/STD-PTW-001/008#revision_history_line/CAPA-2025-002",
+        "severity_gate": 3
+      },
+      {
+        "control_label": "controlled removal of isolation and return to service",
+        "event_ref": "NM-2025-0007",
+        "event_title": "high potential incident - kinetic exposure at P-3221",
+        "hazard_energy": "kinetic",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:MRD/STD-PTW-001/008#revision_history_line/NM-2025-0007",
+        "severity_gate": 4
+      }
+    ],
+    "rev_no": 8,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "learning team review",
+      "management_of_change": "change assurance",
+      "near_miss": "high potential incident"
+    }
+  },
+  "key": "ce62a6498be995018d8587b1cd527eadba680e0cb0c82a2f06cae91818dfe967",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/STD-PTW-001/008",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "3593896906dfee7513633c216aae51d21f3c1dc2e8d3579cb9f0ed8f15a8f837",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "Revision 8 was raised in response to CAPA-2025-002, and the proving zero energy before intrusive work was amended as a result.",
+        "quote_ref": "quote:MRD/STD-PTW-001/008#revision_history_line/CAPA-2025-002"
+      },
+      {
+        "line": "Revision 8 was raised in response to NM-2025-0007, and the controlled removal of isolation and return to service was amended as a result.",
+        "quote_ref": "quote:MRD/STD-PTW-001/008#revision_history_line/NM-2025-0007"
+      }
+    ],
+    "reason": "Revised after NM-2025-0007; 8 clauses amended."
+  },
+  "response_sha256": "a9e00a2be40114c3976ba0866b8bd83ab0707043e93919cdac8e5b9b5a90f851",
+  "source": null
+}

@@ -1,0 +1,169 @@
+{# SPDX-FileCopyrightText: 2026 MAINLINE contributors #}
+{# SPDX-License-Identifier: Apache-2.0 #}
+{# @capability stored_digest #}
+{#
+  Migrations 0059 / 0060 — THE APPEND-ONLY STATE MACHINE, WITH FORK PREVENTION.
+  ARCHITECTURE.md §5.5 (verbatim), §4.1 laws 2 and 9, §16 MI09/MI10/MI24;
+  spec/invariants/I04-linear-head.md; merge-gate-invariant.md §3.4;
+  conformance cases CF-13 (legal_edge), CF-14 (linear), CF-15 (cr_linear),
+  CF-16/CF-17 (the chain trigger), CF-46 (the chain as the long-horizon history).
+
+  ── `UNIQUE (subject_id, prev_seq)` IS A LOCK-FREE COMPARE-AND-SWAP ───────────────
+  It is the single most important line in this file and it is four words long. Two
+  transitions that both read head = 4 both try to write prev_seq = 4; one commits and the
+  other collides on 23505. A fork is therefore impossible EVEN IF THE ISOLATION LEVEL
+  WERE DOWNGRADED — the conflict is materialised in data rather than inferred by the
+  concurrency control, which is exactly the property anomaly A12 needs and exactly the
+  property CockroachDB cannot give us any other way: there are no advisory locks on this
+  platform, so a lock-based head guard is not available to be got wrong.
+
+  ── WHY THERE IS NO `CHECK (seq = prev_seq + 1)` ─────────────────────────────────
+  Density is a real property of this chain — a gap MEANS tampering (I04) — and it is
+  nevertheless NOT written as a CHECK here, deliberately. With PRIMARY KEY (subject_id,
+  seq) already in place, `seq = prev_seq + 1` would make the second writer's row collide
+  on the PRIMARY KEY rather than on `linear`, and CockroachDB does not promise which of
+  two simultaneously violated unique constraints it reports. Conformance case CF-14
+  asserts the exhibit `linear` by name; a density CHECK would let the fork test observe
+  `permit_event_pkey`, or 23514 on the density constraint itself, and the exhibit the
+  suite is built on would become non-deterministic. Density is enforced where it can be
+  enforced without displacing the exhibit: the CAS append helper derives `seq = head + 1`
+  inside the transaction, and the chain trigger refuses an event whose declared
+  predecessor does not exist (P0001, CF-17). `seq > prev_seq` is kept because it costs
+  nothing and refuses a backwards chain, which no legal history contains.
+
+  ── THE CHAIN DIGEST IS COMPUTED, AND ITS INPUT IS VERIFIED ──────────────────────
+  `chain_digest` is a second, server-side chain over CockroachDB's own JSONB
+  normalisation. It is NOT the evidentiary hash: a third party cannot reproduce this
+  database's key ordering, so the evidentiary hash lives in the custody ledger under
+  RFC 8785 (JCS) computed client-side over the exact bytes hashed. Both exist because they
+  FAIL DIFFERENTLY, and a system with one of them has a single point of forgery.
+
+  `prev_digest` is the input to that chain and it arrives from the writer, so it is
+  VERIFIED against the stored predecessor by `fn_<kind>_event_chain` (migration band
+  0100-0109, another worker) and never trusted. That verification is the whole difference
+  between a comment claiming a chain and a chain; CF-16 is the case that proves it.
+
+  ── THE CAPABILITY SWITCH (ruling D5) ────────────────────────────────────────────
+  The generated-column branch is selected by `capabilities.stored_digest`, which is
+  decided by a DATED MEASUREMENT in `g1-attestation.json` (GT-13), never at runtime and
+  never by this template. Both branches are committed, readable SQL. If the measurement
+  ever flips to FALLBACK-SELECTED, `chain_digest` becomes a client-supplied BYTES column
+  with a length CHECK, the trigger verifies what the client supplied, and the sentence
+  "the server computes the chain, the inserter cannot lie" is withdrawn in the same commit
+  and replaced by "the trigger verifies the chain the inserter supplied" — which is a
+  weaker sentence and must be said out loud rather than quietly kept.
+
+  ── `subject_kind` IS PINNED, NOT MERELY DEFAULTED ───────────────────────────────
+  §5.5 gives the column a DEFAULT so that the composite `legal_edge` foreign key has its
+  first column without every caller repeating it. A default alone is not enough: a writer
+  may supply the OTHER kind's token and have the edge validated against the other kind's
+  edge set. The two edge sets are identical today (finding S16), so the hole is currently
+  harmless — which is precisely the kind of hole that survives review and then stops being
+  harmless when a binding diverges the sets. The pinning CHECK closes it for one line.
+#}
+{#
+  Per-kind constants the render context does not carry: the event table name and the
+  migration number are kernel facts, and every refusal-bearing name must be unique across
+  the whole schema (R-3), so the mirrored objects take the `cr_` prefix the conformance
+  manifest already fixes for `linear` / `cr_linear`.
+#}
+{% set event_spec = {
+     'permit': {
+       'file':        '0059_permit_event.sql',
+       'table':       'permit_event',
+       'pk':          'pk_permit_event',
+       'cas':         'linear',
+       'edge':        'legal_edge',
+       'fk_subject':  'fk_permit_event_subject',
+       'kind_pinned': 'permit_event_kind_pinned',
+       'seq_ordered': 'permit_event_seq_ordered',
+       'prev_sized':  'permit_event_prev_digest_sized',
+       'chain_sized': 'permit_event_chain_digest_sized',
+       'actor':       'permit_event_actor_stated',
+       'chain_fn':    'fn_permit_event_chain',
+     },
+     'change_request': {
+       'file':        '0060_cr_event.sql',
+       'table':       'cr_event',
+       'pk':          'pk_cr_event',
+       'cas':         'cr_linear',
+       'edge':        'cr_legal_edge',
+       'fk_subject':  'fk_cr_event_subject',
+       'kind_pinned': 'cr_event_kind_pinned',
+       'seq_ordered': 'cr_event_seq_ordered',
+       'prev_sized':  'cr_event_prev_digest_sized',
+       'chain_sized': 'cr_event_chain_digest_sized',
+       'actor':       'cr_event_actor_stated',
+       'chain_fn':    'fn_cr_event_chain',
+     },
+   } %}
+{% for s in subjects %}
+{% set spec = event_spec[s.kind] %}
+-- @file {{ spec.file }}
+{{ header(file=spec.file,
+          title='CREATE TABLE ' ~ binding.schema ~ '.' ~ spec.table ~ ' — a chain, not a tree',
+          rationale='UNIQUE (subject_id, prev_seq) is a lock-free compare-and-swap: two transitions extending the same head collide on 23505, so a forked history is impossible even if the isolation level were downgraded, and this platform has no advisory locks with which to get a lock-based head guard wrong. The legal edge set is a foreign-key target rather than an if-statement, so an illegal transition is 23503 with a constraint name attached for every writer including the one nobody anticipated. The chain digest is computed by the server over normalised JSONB and its predecessor input is verified by trigger rather than trusted, which is the difference between a comment claiming a chain and a chain.',
+          mi=['MI09', 'MI10', 'MI24'], i=['I04', 'I01']) }}
+--
+-- Sequence positions are DERIVED IN-TRANSACTION and defended by the CAS below. There is
+-- no generator anywhere in this schema, and that is what lets the ledger claim a gap
+-- MEANS tampering: a generator allocates outside the transaction and a rolled-back
+-- transaction consumes a value without producing a row, so under one a gap means
+-- nothing at all.
+--
+-- prev_digest    the writer's declaration of what it is extending. VERIFIED against the
+--                stored predecessor by {{ binding.schema }}.{{ spec.chain_fn }}, never trusted
+--                (P0001; conformance cases CF-16 and CF-17).
+{% if capabilities.stored_digest == 'stored' %}
+-- chain_digest   COMPUTED BY THE SERVER (GT-13 PASS, measured 2026-08-08 on
+--                cockroachdb/cockroach:v26.2.5). The inserter cannot choose it. It carries
+--                no length CHECK because digest() is total and 32 bytes wide by
+--                construction; a constraint that can never fire is noise in an exhibit
+--                list. (Measured: a CHECK over a STORED generated column IS legal here —
+--                the omission is a choice, not a limitation.)
+{% else %}
+-- chain_digest   CLIENT-COMPUTED FALLBACK (stored_digest = {{ capabilities.stored_digest }}).
+--                GT-13 did not pass, so the column is a plain BYTES the writer supplies,
+--                guarded by a width CHECK here and VERIFIED by
+--                {{ binding.schema }}.{{ spec.chain_fn }} on the way in. The claim "the server
+--                computes the chain, the inserter cannot lie" is WITHDRAWN under this
+--                branch and replaced by "the trigger verifies the chain the inserter
+--                supplied", which is weaker and is stated rather than glossed.
+{% endif %}
+-- at             a wall-clock record, never a gate input. Time cannot appear in a CHECK
+--                because now() is not immutable, and nothing here pretends otherwise.
+
+CREATE TABLE {{ binding.schema }}.{{ spec.table }} (
+  {{ '%-13s'|format(s.id_column) }} UUID   NOT NULL,
+  {{ '%-13s'|format('seq') }} INT8   NOT NULL,
+  {{ '%-13s'|format('prev_seq') }} INT8   NOT NULL,
+  {{ '%-13s'|format('from_state') }} {{ binding.schema }}.subject_state NOT NULL,
+  {{ '%-13s'|format('to_state') }} {{ binding.schema }}.subject_state NOT NULL,
+  {{ '%-13s'|format('subject_kind') }} STRING NOT NULL DEFAULT '{{ s.kind }}',
+  {{ '%-13s'|format('actor_sub') }} STRING NOT NULL,
+  {{ '%-13s'|format('payload') }} JSONB  NOT NULL,
+  {{ '%-13s'|format('prev_digest') }} BYTES  NOT NULL,
+  {{ '%-13s'|format('at') }} TIMESTAMPTZ NOT NULL DEFAULT now(),
+{% if capabilities.stored_digest == 'stored' %}
+  {{ '%-13s'|format('chain_digest') }} BYTES  AS (digest(prev_digest || payload::STRING::BYTES, 'sha256')) STORED,
+{% else %}
+  {{ '%-13s'|format('chain_digest') }} BYTES  NOT NULL,
+  CONSTRAINT {{ spec.chain_sized }} CHECK (length(chain_digest) = 32),
+{% endif %}
+  CONSTRAINT {{ spec.kind_pinned }} CHECK (subject_kind = '{{ s.kind }}'),
+  CONSTRAINT {{ spec.seq_ordered }} CHECK (seq > prev_seq AND prev_seq >= 0),
+  CONSTRAINT {{ spec.prev_sized }} CHECK (length(prev_digest) = 32),
+  CONSTRAINT {{ spec.actor }} CHECK (actor_sub <> ''),
+  CONSTRAINT {{ spec.fk_subject }} FOREIGN KEY ({{ s.id_column }})
+    REFERENCES {{ binding.schema }}.{{ s.table }} ({{ s.id_column }})
+    ON UPDATE RESTRICT ON DELETE RESTRICT,
+  -- The legal edge set as QUERYABLE DATA. An illegal transition is 23503 against a row
+  -- that is not there, not a branch in application code that a later commit can delete.
+  CONSTRAINT {{ spec.edge }} FOREIGN KEY (subject_kind, from_state, to_state)
+    REFERENCES {{ s.transition_table }} (subject_kind, from_state, to_state)
+    ON UPDATE RESTRICT ON DELETE RESTRICT,
+  CONSTRAINT {{ spec.pk }} PRIMARY KEY ({{ s.id_column }}, seq),
+  -- THE COMPARE-AND-SWAP. A chain, not a tree.
+  CONSTRAINT {{ spec.cas }} UNIQUE ({{ s.id_column }}, prev_seq)
+);
+{% endfor %}

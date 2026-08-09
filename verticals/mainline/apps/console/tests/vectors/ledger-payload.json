@@ -1,0 +1,302 @@
+{
+  "vectors_version": 1,
+  "kind": "ledger-payload",
+  "note": "A complete `ledger` envelope in which every cryptographic value is real. It exists so the in-browser verifier has a GREEN path that is not a mock, and so a browser spec can flip one byte and watch the seal go red.",
+  "vkey": "mainline.example/site/BLK-07+e74111d1+AjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABM7vTeyUxWuK0QAmVEOZYl6Cvb48JokLnOw5GETrRwDVysbYDJdybhpWsh3P4IGCNV+7w08nAFuOzYgm6rlc/3c=",
+  "canon_src_sha256": "260ed37ddc610f1fb94ddce98998fe4ae5ce883698ad5c7033839cd258dcd659",
+  "envelope": {
+    "envelope_version": 1,
+    "resource": "ledger",
+    "schema_id": "https://console.mainline.trappoint.org/contracts/1.0/ledger.schema.json",
+    "observed_at": "2026-08-07T02:15:00.000Z",
+    "server_date": "2026-08-07T02:15:00.000Z",
+    "staged": true,
+    "staged_note": "Cryptographically real, operationally staged. Every leaf hash, link hash, Merkle root, inclusion path, consistency proof and ECDSA P-256 signature in this payload is genuine and reproducible by anyone from spec/wire/checkpoint.md section 7 — the private key that signed the checkpoints is PUBLISHED in that document precisely so a stranger can repeat the arithmetic. What is staged is the OPERATIONAL content: no CockroachDB cluster and no MAINLINE sequencer produced these rows, the site, permit and actor identifiers are fictional, and the signing key is an example key that has never protected anything. Read the seals on this screen as a demonstration that the verifier works, never as a measurement of a live ledger.",
+    "statement_refs": [
+      {
+        "kind": "table",
+        "object": "mainline.ledger_checkpoint",
+        "text": null,
+        "sql_path": null
+      },
+      {
+        "kind": "table",
+        "object": "mainline.ledger_leaf",
+        "text": null,
+        "sql_path": null
+      }
+    ],
+    "provenance": [
+      {
+        "pointer": "/checkpoints/1/root_hex",
+        "chip": "db:column"
+      },
+      {
+        "pointer": "/checkpoints/1/admissible",
+        "chip": "db:column"
+      },
+      {
+        "pointer": "/leaves/0/leaf_hash_hex",
+        "chip": "db:column"
+      },
+      {
+        "pointer": "/inclusion_proofs/0/path_hex",
+        "chip": "db:column"
+      }
+    ],
+    "data": {
+      "site_code": "BLK-07",
+      "checkpoints": [
+        {
+          "site_code": "BLK-07",
+          "tree_size": 3,
+          "root_hex": "becb101128f79b8e5bd0e9a621f31dfd861eb5276efdeaaf25f467f383c153ea",
+          "note": "mainline.example/site/BLK-07\n3\nvssQESj3m45b0OmmIfMd/YYetSdu/eqvJfRn84PBU+o=\ncanon: 1 260ed37ddc610f1fb94ddce98998fe4ae5ce883698ad5c7033839cd258dcd659\ndrand: 52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971 31088470 4b1d9c2e7f0a5638d419ee73c05a2b8f6d3417ae90c2b5f4187dd6039a2ce41b\n\n— mainline.example/site/BLK-07 50ER0TBFAiBHl40dfCMH765Pm+mHZidDZxmxKfqQg/C32v2QRfrw7wIhAJZ7a1HmTA2sN6vBdxHTWxh3OyGhiABVoXDnw8YLh+PN\n",
+          "log_key": null,
+          "log_sig_b64": null,
+          "beacon": {
+            "chain": "drand-quicknet",
+            "round": 31088470,
+            "signature_b64": null
+          },
+          "tsa_token_b64": null,
+          "s3_version": null,
+          "canon_src_sha256": "260ed37ddc610f1fb94ddce98998fe4ae5ce883698ad5c7033839cd258dcd659",
+          "admissible": false,
+          "observed_at": "2026-08-07T02:10:30.000Z"
+        },
+        {
+          "site_code": "BLK-07",
+          "tree_size": 5,
+          "root_hex": "00c5dddf89d15dfbf9fb2349e0adadbcc4a5131b6612adfc85ad0df2005d359e",
+          "note": "mainline.example/site/BLK-07\n5\nAMXd34nRXfv5+yNJ4K2tvMSlExtmEq38ha0N8gBdNZ4=\ncanon: 1 260ed37ddc610f1fb94ddce98998fe4ae5ce883698ad5c7033839cd258dcd659\ndrand: 52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971 31088494 7d045d05caf218eff9f7bafe0acb452b94a8c369d138ce23c4807b4b62ce46c7\n\n— mainline.example/site/BLK-07 50ER0TBFAiB5MDFONk3Wy4VoVECf5ISctJzgqh3ijdupDvb27xkBhAIhANJVny0l4MjxPV3TmlusKHGP0RUCnke8sl+SXHnyy8fw\n",
+          "log_key": null,
+          "log_sig_b64": null,
+          "beacon": {
+            "chain": "drand-quicknet",
+            "round": 31088494,
+            "signature_b64": null
+          },
+          "tsa_token_b64": null,
+          "s3_version": null,
+          "canon_src_sha256": "260ed37ddc610f1fb94ddce98998fe4ae5ce883698ad5c7033839cd258dcd659",
+          "admissible": false,
+          "observed_at": "2026-08-07T02:14:06.000Z"
+        }
+      ],
+      "leaves": [
+        {
+          "seq": 0,
+          "entry_id": "018f3a36-0000-7a00-8000-000000000000",
+          "entry_kind": "schema",
+          "subject_id": "018f3a2f-1104-7c88-b3aa-77c1de40e2b1",
+          "payload_ver": 1,
+          "canon_bytes_b64": "eyJhcHBsaWVkX2F0IjoiMjAyNi0wOC0wN1QwMTo1ODowMC4wMDBaIiwiZW50cnlfa2luZCI6InNjaGVtYSIsIm1pZ3JhdGlvbiI6IjAwNzNfbGVkZ2VyX2xlYWYiLCJzaXRlX2NvZGUiOiJCTEstMDcifQ==",
+          "payload": {
+            "applied_at": "2026-08-07T01:58:00.000Z",
+            "entry_kind": "schema",
+            "migration": "0073_ledger_leaf",
+            "site_code": "BLK-07"
+          },
+          "leaf_hash_hex": "70c5e3eb5ac6f166d38308eda90eb814a0fab95f7c5a7864578677c2d985f565",
+          "link_hash_hex": "55b8d43b5df9834c483e55d69c45665aa04b573bb72c690fbc7dc9782eda4abb",
+          "prev_link_hash_hex": "0000000000000000000000000000000000000000000000000000000000000000",
+          "is_sandbox": false,
+          "actor": "service|sequencer",
+          "actor_kind": "service",
+          "recorded_at": "2026-08-07T01:58:00.000Z",
+          "batch_id": "018f3a36-1000-7b00-8000-0000000000ff"
+        },
+        {
+          "seq": 1,
+          "entry_id": "018f3a36-0000-7a00-8000-000000000001",
+          "entry_kind": "recall",
+          "subject_id": "018f3a2f-1104-7c88-b3aa-77c1de40e2b1",
+          "payload_ver": 1,
+          "canon_bytes_b64": "eyJhZHZpc29yeSI6MTIsImJsb2NraW5nIjoyLCJjYW5kaWRhdGVzIjo0MSwiZW50cnlfa2luZCI6InJlY2FsbCIsInBlcm1pdF9pZCI6IjAxOGYzYTJlLTZjNDAtN2IyMS05YzU1LTJhNWM5ZTBmMWI3NyIsInNpbGVuY2VkIjoyNywic2l0ZV9jb2RlIjoiQkxLLTA3In0=",
+          "payload": {
+            "advisory": 12,
+            "blocking": 2,
+            "candidates": 41,
+            "entry_kind": "recall",
+            "permit_id": "018f3a2e-6c40-7b21-9c55-2a5c9e0f1b77",
+            "silenced": 27,
+            "site_code": "BLK-07"
+          },
+          "leaf_hash_hex": "9dab2ac9240f71f0b83ad7bee9e3529ae44c6ca980efa513091a2dead5fea71a",
+          "link_hash_hex": "cbb447ff927810641bbb21d4753b11c006b18603cd1467b40620013b03f28df8",
+          "prev_link_hash_hex": "55b8d43b5df9834c483e55d69c45665aa04b573bb72c690fbc7dc9782eda4abb",
+          "is_sandbox": false,
+          "actor": "agent|recall-orchestrator",
+          "actor_kind": "agent",
+          "recorded_at": "2026-08-07T02:09:31.220Z",
+          "batch_id": "018f3a36-1000-7b00-8000-0000000000ff"
+        },
+        {
+          "seq": 2,
+          "entry_id": "018f3a36-0000-7a00-8000-000000000002",
+          "entry_kind": "check_open",
+          "subject_id": "018f3a2f-1104-7c88-b3aa-77c1de40e2b1",
+          "payload_ver": 1,
+          "canon_bytes_b64": "eyJjaGVja19pZCI6IjAxOGYzYTJmLTExMDQtN2M4OC1iM2FhLTc3YzFkZTQwZTJiMSIsImNsYXVzZV91dWlkIjoiMDE4ZjNhMzAtMjIwMC03ZDEwLTlmMzEtMGM5YTRlNzdiYjAyIiwiZW50cnlfa2luZCI6ImNoZWNrX29wZW4iLCJzZXZlcml0eSI6NSwic2l0ZV9jb2RlIjoiQkxLLTA3IiwidmlydWxlbmNlIjoiYmxvb2RfZmF0YWwifQ==",
+          "payload": {
+            "check_id": "018f3a2f-1104-7c88-b3aa-77c1de40e2b1",
+            "clause_uuid": "018f3a30-2200-7d10-9f31-0c9a4e77bb02",
+            "entry_kind": "check_open",
+            "severity": 5,
+            "site_code": "BLK-07",
+            "virulence": "blood_fatal"
+          },
+          "leaf_hash_hex": "b4d70447185d01f04fb4974602e9fb592065462156344d5dca6e0521893f1a74",
+          "link_hash_hex": "b6934b321ccac22e4bd9cabd955bd501fa4e19965743c802a1f7243dfeeb6281",
+          "prev_link_hash_hex": "cbb447ff927810641bbb21d4753b11c006b18603cd1467b40620013b03f28df8",
+          "is_sandbox": false,
+          "actor": "service|gate",
+          "actor_kind": "service",
+          "recorded_at": "2026-08-07T02:10:04.881Z",
+          "batch_id": "018f3a36-1000-7b00-8000-0000000000ff"
+        },
+        {
+          "seq": 3,
+          "entry_id": "018f3a36-0000-7a00-8000-000000000003",
+          "entry_kind": "disposition",
+          "subject_id": "018f3a2f-1104-7c88-b3aa-77c1de40e2b1",
+          "payload_ver": 1,
+          "canon_bytes_b64": "eyJjaGVja19pZCI6IjAxOGYzYTJmLTExMDQtN2M4OC1iM2FhLTc3YzFkZTQwZTJiMSIsImRpc3Bvc2l0aW9uX2tpbmQiOiJjb250cm9sbGVkIiwiZW50cnlfa2luZCI6ImRpc3Bvc2l0aW9uIiwiaXNzdWVkX2F0IjoiMjAyNi0wOC0wN1QwMjoxMTo0Mi4wMDZaIiwic2lnbmVyX3JhbmsiOjQsInNpZ25lcl9zdWIiOiJhdXRoMHw0ZjJjIiwic2l0ZV9jb2RlIjoiQkxLLTA3In0=",
+          "payload": {
+            "check_id": "018f3a2f-1104-7c88-b3aa-77c1de40e2b1",
+            "disposition_kind": "controlled",
+            "entry_kind": "disposition",
+            "issued_at": "2026-08-07T02:11:42.006Z",
+            "signer_rank": 4,
+            "signer_sub": "auth0|4f2c",
+            "site_code": "BLK-07"
+          },
+          "leaf_hash_hex": "7210abaaa02da99e69515827e6b73629f0ebb503fa248214980de321d9d7a103",
+          "link_hash_hex": "519a899406c29465c1734251bcbbcddc2e253482389a89a0fcd31d427265908f",
+          "prev_link_hash_hex": "b6934b321ccac22e4bd9cabd955bd501fa4e19965743c802a1f7243dfeeb6281",
+          "is_sandbox": false,
+          "actor": "oidc|blk07|shift-supervisor-2",
+          "actor_kind": "human",
+          "recorded_at": "2026-08-07T02:11:42.006Z",
+          "batch_id": "018f3a36-1000-7b00-8000-0000000000ff"
+        },
+        {
+          "seq": 4,
+          "entry_id": "018f3a36-0000-7a00-8000-000000000004",
+          "entry_kind": "merge",
+          "subject_id": "018f3a2f-1104-7c88-b3aa-77c1de40e2b1",
+          "payload_ver": 1,
+          "canon_bytes_b64": "eyJlbnRyeV9raW5kIjoibWVyZ2UiLCJtZXJnZWRfYXQiOiIyMDI2LTA4LTA3VDAyOjEzOjU1LjQxN1oiLCJvcGVuX2Jsb2NraW5nIjowLCJwZXJtaXRfaWQiOiIwMThmM2EyZS02YzQwLTdiMjEtOWM1NS0yYTVjOWUwZjFiNzciLCJzaXRlX2NvZGUiOiJCTEstMDcifQ==",
+          "payload": {
+            "entry_kind": "merge",
+            "merged_at": "2026-08-07T02:13:55.417Z",
+            "open_blocking": 0,
+            "permit_id": "018f3a2e-6c40-7b21-9c55-2a5c9e0f1b77",
+            "site_code": "BLK-07"
+          },
+          "leaf_hash_hex": "1976041b3afddddb75272afed810b6e45ed0f5be5092a87844f685673afc0e6d",
+          "link_hash_hex": "f1661ad080f19c06b85c9bfc415922d0ee01e1769aa05c288138c7325a7c14c0",
+          "prev_link_hash_hex": "519a899406c29465c1734251bcbbcddc2e253482389a89a0fcd31d427265908f",
+          "is_sandbox": false,
+          "actor": "service|gate",
+          "actor_kind": "service",
+          "recorded_at": "2026-08-07T02:13:55.417Z",
+          "batch_id": "018f3a36-1000-7b00-8000-0000000000ff"
+        }
+      ],
+      "nodes": [
+        {
+          "level": 1,
+          "idx": 0,
+          "hash_hex": "3d33e0fb80b2d6775cd4743f70ee0910d8abcf99b856df2122c2e219744ab345"
+        },
+        {
+          "level": 1,
+          "idx": 1,
+          "hash_hex": "9a5fd5e4d6b74dd8d4fc98ef2f20c07466b7c3b4c81739ca3e4565e2c5c150ae"
+        },
+        {
+          "level": 2,
+          "idx": 0,
+          "hash_hex": "a363e13a9756be8a1134a41a2bb1904552975dda2b74500cd3a7ccfcb977eda2"
+        }
+      ],
+      "inclusion_proofs": [
+        {
+          "seq": 3,
+          "tree_size": 5,
+          "path_hex": [
+            "b4d70447185d01f04fb4974602e9fb592065462156344d5dca6e0521893f1a74",
+            "3d33e0fb80b2d6775cd4743f70ee0910d8abcf99b856df2122c2e219744ab345",
+            "1976041b3afddddb75272afed810b6e45ed0f5be5092a87844f685673afc0e6d"
+          ]
+        },
+        {
+          "seq": 0,
+          "tree_size": 5,
+          "path_hex": [
+            "9dab2ac9240f71f0b83ad7bee9e3529ae44c6ca980efa513091a2dead5fea71a",
+            "9a5fd5e4d6b74dd8d4fc98ef2f20c07466b7c3b4c81739ca3e4565e2c5c150ae",
+            "1976041b3afddddb75272afed810b6e45ed0f5be5092a87844f685673afc0e6d"
+          ]
+        }
+      ],
+      "consistency_proofs": [
+        {
+          "from_size": 3,
+          "to_size": 5,
+          "path_hex": [
+            "b4d70447185d01f04fb4974602e9fb592065462156344d5dca6e0521893f1a74",
+            "7210abaaa02da99e69515827e6b73629f0ebb503fa248214980de321d9d7a103",
+            "3d33e0fb80b2d6775cd4743f70ee0910d8abcf99b856df2122c2e219744ab345",
+            "1976041b3afddddb75272afed810b6e45ed0f5be5092a87844f685673afc0e6d"
+          ]
+        }
+      ],
+      "cosignatures": [
+        {
+          "tree_size": 5,
+          "witness_id": "operator.mainline.example",
+          "trust_domain": "operator",
+          "adverse": false,
+          "sig_b64": "Y29zaWduYXR1cmUgYnl0ZXMgYXJlIG5vdCB2ZXJpZmllZCBieSB0aGUgaW4tYnJvd3NlciB2ZXJpZmllcg==",
+          "witness_key": null,
+          "received_at": "2026-08-07T02:14:11.400Z"
+        }
+      ],
+      "unwitnessed_debt": [
+        {
+          "debt_id": "018f3a37-2000-7c00-9000-0000000000a1",
+          "site_code": "BLK-07",
+          "permit_id": "018f3a2f-1104-7c88-b3aa-77c1de40e2b1",
+          "incurred_at": "2026-08-07T02:13:55.417Z",
+          "discharged_tree_size": null
+        }
+      ]
+    }
+  },
+  "expect": {
+    "overall": "bounded",
+    "reason": "Checks 1, 2, 3, 4, 7, 9, 10 and 13 pass. The report is BOUNDED rather than clean because checks 5, 6, 8, 11, 12 and 14 are not implemented in a browser and are reported as SKIP, and because check 7 carries the split-view bound.",
+    "pass": [
+      "payload_vs_canon_bytes",
+      "leaf_hash_recomputation",
+      "inclusion_proof",
+      "consistency_proof_every_pair",
+      "log_signature",
+      "witness_quorum",
+      "link_chain_and_density",
+      "canonicaliser_identity",
+      "no_sandbox_leaf"
+    ],
+    "skip": [
+      "rfc3161_upper_bound",
+      "beacon_lower_bound",
+      "archive_object_lock",
+      "gate_self_attestation",
+      "webauthn_reverification",
+      "closure_generation_monotone"
+    ]
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 3,
+    "doc_codes": [
+      "PRO-HSE-012",
+      "STD-CSE-002"
+    ],
+    "intent": "weaken",
+    "moc_ref": "MOC-2013-0015",
+    "opened_on": "2013-01-03",
+    "precursor_events": [],
+    "site": "Cape Verity Export Terminal",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "management_of_change": "change request",
+      "verification": "field verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "8cd95a98eb0fa34cb3b243c62f22665bdd5e3a576719b0ee5671e6559f867dc4",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2013-0015",
+  "prompt_kind": "moc",
+  "prompt_sha256": "1d4a22cb8db2ab4be875bb9a4469b06e705f40aae202c7897bb6408a88226fbd",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2013-0015 was raised at Cape Verity Export Terminal on 3 January 2013 as a scheduled change under change request; no event precedes it in the record. The change request record covers 3 clauses across 2 controlled documents. The intent is to relax a critical safeguard requirement, and the basis for the relaxation is recorded with the change. The record reached the state merged in the change stream.",
+    "risk_note": "This change relaxes a control: 0 steps of relaxation are recorded against it, and the residual risk position rests on that relaxation having been accepted deliberately.",
+    "scope_note": "The documents in scope are PRO-HSE-012 and STD-CSE-002."
+  },
+  "response_sha256": "cf65654f85f99cc1ea19763ccd9882b2a7319cf74dfbbf710af16ec670256bfa",
+  "source": null
+}

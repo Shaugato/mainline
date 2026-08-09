@@ -1,0 +1,68 @@
+{# SPDX-FileCopyrightText: 2026 MAINLINE contributors #}
+{# SPDX-License-Identifier: Apache-2.0 #}
+{#
+  Migration 0107 — APPEND-ONLY, EVERYWHERE IT MATTERS.
+
+  ARCHITECTURE.md §5.11 item 9 · §16 MI01 · spec/invariants/I01-append-only.md ·
+  spec/custody/ledger-schema.md §3.
+
+  Four lines, and they are the cheapest invariant in the repository per unit of value.
+
+  WHY A TRIGGER WHEN THE GRANT MATRIX ALREADY WITHHOLDS UPDATE AND DELETE.
+  Because the grant matrix is CLUSTER state and a restore into a new cluster does not carry it,
+  because an incident is exactly when somebody is granted more than they should have, and because
+  the owner role can always grant itself anything. Three mechanisms, deliberately redundant:
+
+      1. revoked privileges          — 42501, the cheapest refusal, and the first to be lost
+      2. this trigger                — P0001, travels with the schema, survives a restore
+      3. RESTRICTIVE row-level security policies — 42501 again, and independent of both
+
+  Refusal depth of three on the append-only claim, and the unwelding suite measures it by
+  disabling each in turn and asserting the write still fails. At runtime this one fires first
+  and deterministically, which is why the corpus asserts P0001 and nothing else.
+
+  WHY NO `WHEN` CLAUSE AND NO CONDITION IN THE BODY. There is no legal mutation of these tables.
+  A condition would be a place to add an exception, and an exception to append-only is not a
+  narrower rule — it is a different rule, with a different name, in a different file. The one
+  table that genuinely needs one is `disposition`, and it gets its own function (0104) whose
+  whole body is the argument for the exception.
+
+  WHY IT COVERS DELETE AS WELL AS UPDATE. A record deleted and a record rewritten are the same
+  event from the archive's point of view, and the Crimes (Document Destruction) Act 2006 (Vic)
+  does not distinguish them either. `BEFORE UPDATE OR DELETE` is one trigger per table, measured
+  working on v26.2.5 including the DELETE arm, where the function raises before any question of a
+  return value arises.
+
+  THE FUNCTION IS NOT THE INVARIANT. This file creates a function; the invariant is created by
+  the WELDS, migration 0128 and its lettered companions, and by nothing else. A table that owes
+  an append-only weld and has not got one is not protected by the existence of this function, and
+  0128's header names every table it welds and every table it does not.
+
+  PLATFORM: no reads, so no `(NEW).col` question arises. The body cannot fall out of date with a
+  schema change because it does not mention a column.
+#}
+-- @file 0107_fn_refuse_mutation.sql
+{{ header(file='0107_fn_refuse_mutation.sql',
+          title='CREATE FUNCTION ' ~ binding.schema ~ '.fn_refuse_mutation — there is no legal mutation of an evidentiary row',
+          rationale='Revoked privileges are cluster state and a restore into a new cluster does not carry them; an incident is exactly when somebody is granted more than they should have; and the owner role can always grant itself anything. This trigger travels with the schema, survives a restore, and is independent of both the grant matrix and the row-level security policies, which is what makes append-only a refusal of depth three rather than a promise. It carries no condition, because an exception to append-only is not a narrower rule but a different one, and the one table that needs it has its own function.',
+          mi=['MI01'], i=['I01']) }}
+--
+-- migration:  0107_fn_refuse_mutation
+-- band:       0100-0109z · kernel/projection-triggers · RENDERED
+-- statements: 1
+-- invariants: MI01 — evidentiary tables are append-only
+-- source:     ARCHITECTURE.md §5.11 item 9 · spec/invariants/I01-append-only.md ·
+--             spec/custody/ledger-schema.md §3
+-- requires:   nothing. It reads no relation and names no column, which is why it can be created
+--             before every table it will later guard.
+-- provides:   {{ binding.schema }}.fn_refuse_mutation() — welded by 0128 and its companions
+-- sqlstate:   P0001, always, with no path that returns
+-- forward-only; no .down.sql and no .up.sql (MR-5).
+--
+-- ACYCLICITY. It raises. Trigger depth contributed: 0, by construction.
+
+CREATE FUNCTION {{ binding.schema }}.fn_refuse_mutation() RETURNS TRIGGER LANGUAGE PLpgSQL AS $$
+BEGIN
+  RAISE EXCEPTION USING ERRCODE='P0001',
+    MESSAGE='{{ binding.name }}: this table is append-only; write a new row';
+END $$;

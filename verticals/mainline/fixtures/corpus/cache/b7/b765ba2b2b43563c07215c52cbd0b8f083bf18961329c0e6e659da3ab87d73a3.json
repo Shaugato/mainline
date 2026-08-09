@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 0,
+    "doc_codes": [
+      "PRO-EXP-002"
+    ],
+    "intent": "introduce",
+    "moc_ref": "MOC-2022-0162",
+    "opened_on": "2022-09-11",
+    "precursor_events": [],
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "management_of_change": "change assurance",
+      "verification": "assurance activity"
+    },
+    "weakening_steps": 0
+  },
+  "key": "b765ba2b2b43563c07215c52cbd0b8f083bf18961329c0e6e659da3ab87d73a3",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2022-0162",
+  "prompt_kind": "moc",
+  "prompt_sha256": "bd1657d426b78a9f435df87a7cbe4a57a6645f164311a799e9e5b157ce609414",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2022-0162 was raised at Yandarra Downs Open Cut and Heavy Workshop on 11 September 2022 as a scheduled change under change assurance; no event precedes it in the record. The change assurance record carries no clause change; it records the assessment only. The intent is to introduce a duty the documents in scope did not previously carry. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the material unwanted event control set is preserved.",
+    "scope_note": "The documents in scope are PRO-EXP-002."
+  },
+  "response_sha256": "e7c0d462f446ec84dd5e397e762f21bd19e809a4cfe2c6108e8baa4ed691ad30",
+  "source": null
+}

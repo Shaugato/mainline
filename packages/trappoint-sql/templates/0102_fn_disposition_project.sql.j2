@@ -1,0 +1,368 @@
+{# SPDX-FileCopyrightText: 2026 MAINLINE contributors #}
+{# SPDX-License-Identifier: Apache-2.0 #}
+{# @projects disposition.req_compensating, disposition.req_second_signer #}
+{# @projects disposition.req_foreign_org, disposition.req_predicate #}
+{# @projects disposition.req_reassert, disposition.min_signer_rank #}
+{# @projects disposition.signer_rank, disposition.signer_org, disposition.competency_sha256 #}
+{#
+  Migration 0102 — THE DISPOSITION IS TYPED BY THE RECORD, NOT BY THE SIGNER.
+
+  ARCHITECTURE.md §5.11 item 3 · §2.2 findings S1, S7, S8, S19 · §16 MI11, MI27, MI28, MI29 ·
+  docs/leads/kernel.md rulings D2, D3, D4 · spec/binding/authority-source.md §5.
+
+  This is the second half of finding S1 and the whole of finding S7. Five separate things a
+  writer could otherwise assert about itself become projections here:
+
+    virulence / closure_gen / severity_snapshot   RE-DERIVED FROM THE CLOSURE, at this
+        transaction's timestamp, THROUGH the check's (clause_uuid, commit_id) — never inherited
+        from `blocking_check`. That is not belt-and-braces. `blocking_check.virulence` is itself
+        a projection, and a projection of a projection is a copy: if the closure moved between
+        the check landing and the signature, the disposition must be typed by the closure the
+        signer was actually exposed to, not by a stale scalar. Re-deriving is also what makes a
+        laundered check unable to launder its disposition even if 0100 were unwelded.
+
+    signer_rank / signer_org / competency triple  PROJECTED FROM THE LIVE `person` ROW AND
+        FROZEN. Finding S7: before this, rank, organisation and competency were attacker-supplied
+        strings, so `rank_floor`, `needs_second_signer` and `needs_foreign_org` were comparing
+        the writer's own assertions with each other. A client signing with signer_rank = 6 on a
+        person whose live rank is 2 stores 2, and `rank_floor` then returns 23514 with its name
+        attached. That is conformance case CF-19.
+
+        FROZEN, not joined. A live join to the HR system returns TODAY's competency at trial,
+        which is useless and looks like backfilling. The frozen snapshot supports a provable
+        claim: at this instant the system checked, the record said this, and here is the digest
+        of the source record.
+
+    deliberation_seconds   COMPUTED FROM THE SERVER-ISSUED `exposure_receipt.issued_at`, a
+        DEFAULT now() on a row the kernel wrote. `presented_at` — a client-supplied timestamp —
+        was deleted for this reason. A signer cannot claim to have read for longer than the
+        server showed them the material.
+
+    prior_override_count   COUNTED FROM `override_ledger` ACROSS PERMITS for this person at this
+        site (finding S8). The override ladder escalates against the PERSON with no ceiling, so
+        `override_escalates` compares a rank the record projected against a count the record
+        kept. A per-permit counter was a bypass that reset itself.
+
+  RULING D3 — A MISSING CLEARANCE ROW DOES NOT RAISE A SYNTHETIC 23503.
+  ARCHITECTURE.md §5.11 raises `23503` from the trigger when the clearance lookup misses. That is
+  wrong twice: a synthetic 23503 carries NO CONSTRAINT NAME, and the constraint name is the
+  exhibit (spec/errors.md §3.3 bans it outright); and leaving the NOT NULL requirement columns
+  unset would emit 23502, which is outside the refusal taxonomy entirely. So the miss projects
+  the STRICTEST legal values and returns the row, and the real composite foreign key
+  `fk_clearance` fires 23503 WITH ITS NAME. The strictest values are themselves refusing, so if
+  that foreign key were ever dropped the row would still be refused by `rank_floor`,
+  `needs_second_signer`, `needs_foreign_org`, `needs_predicate` and `needs_reassert` — a refusal
+  depth of six from one declaration.
+
+  RULING D4 — NO `CASE` EXPRESSION ANYWHERE IN THIS BODY. `GT-13` has not answered whether a
+  `CASE` expression is legal inside a PL/pgSQL statement on this platform, and PL-3 forbids
+  resting a dated path on an unproven capability. Boolean casts are unconditionally legal and
+  are used instead.
+
+  THE ONE AGGREGATE. §4.1 law 4 allows one aggregate `SELECT … INTO` per body. Two counts are
+  needed — verbatim anchors and prior overrides — so they are two scalar subqueries inside ONE
+  `SELECT … INTO`, measured working on v26.2.5. That is the letter and the spirit: one aggregate
+  statement, no loop, no `RECORD`, no `PERFORM`, no `EXECUTE`, no `GET DIAGNOSTICS`.
+
+  WHAT THIS FUNCTION DELIBERATELY DOES NOT DO.
+    * It does not raise for a disposition whose kind is illegal at this virulence. The composite
+      foreign key does, with its name (spec/errors.md §3.3 corollary).
+    * It does not threshold `reading_floor_met`. Breaching the reading-rate floor is RECORDED and
+      PRICED — it projects onto the subject's unmet-floor counter and the merge then needs a
+      countersignature from a differently-credentialed second signer. Fast stays legal; it just
+      names a second person (finding S19, invariant I15).
+    * It does not name a human's competence, honesty or attentiveness in any message. Messages
+      name rows and rules (spec/errors.md §3.2, invariant I15).
+
+  A MEASURED ORDERING CONSEQUENCE NOBODY SHOULD DISCOVER IN PRODUCTION.
+  `verbatim_anchor_count` is counted from `disposition_citation`, whose `disposition_id` carries a
+  foreign key TO `disposition`. A citation therefore cannot exist before the row it cites, so at
+  BEFORE INSERT this count is NECESSARILY ZERO, and `verbatim_floor` — which admits a
+  `mechanism_absent` or `mitigated` disposition only when the anchor count reaches
+  `required_anchors` — is satisfiable today only while `required_anchors` is its default of zero.
+  That is fail-CLOSED and therefore safe, and it is also a live limit on the mechanism: the moment
+  anything projects a non-zero `required_anchors`, those two disposition kinds become
+  unreachable. Closing it needs a decision this file cannot make — a staging relation the writer
+  fills before the disposition, or dropping the citation table's foreign key — and it belongs to
+  whoever owns `disposition_citation`. It is recorded here rather than discovered later.
+
+  DECLARED VERSUS UNDECLARED PROJECTIONS — READ THIS BEFORE ADDING A COLUMN.
+  Nine of the columns written here are backed by `[[authority_source]]` entries in the binding and
+  are named in the `@projects` pragmas above; the Authority Source Contract enforces them at
+  render time. The rest — `subject_kind`, the two subject-id columns, `site_id`, `virulence`,
+  `closure_gen`, `severity_snapshot`, `competency_source_id`, `competency_snapshot`,
+  `max_ttl_hours`, `prior_override_count`, `verbatim_anchor_count`, `deliberation_seconds`,
+  `reading_floor_met` and the countersigner identity pair — are projected from the same three
+  declared relations but are NOT listed in any entry's `projects`, so the contract does not see
+  them. That is a gap in the BINDING, not in this file: `vertical.toml` is owned by the render
+  worker, and rule A-1 refuses a pragma naming a column no entry backs, so this template cannot
+  close it unilaterally. It is recorded here, in the rendered SQL, where a reviewer reads it.
+
+  PLATFORM (measured on CockroachDB CCL v26.2.5, local single node, 2026-08-09):
+    * `(NEW).col` for every read — the unparenthesised spelling creates and then fails at
+      execution with 42P01;
+    * a `DEFAULT gen_random_uuid()` primary key IS populated before a BEFORE INSERT trigger runs,
+      so `(NEW).disposition_id` is a real value here and the citation count addresses a real row;
+    * two scalar subqueries inside one `SELECT … INTO` are accepted.
+#}
+{% set strictest = {
+     'req_compensating':  'true',
+     'req_second_signer': 'true',
+     'req_foreign_org':   'true',
+     'req_predicate':     'true',
+     'req_reassert':      'true',
+     'min_signer_rank':   '9',
+   } %}
+{% set closurekeytype = {
+     'clause_uuid': 'UUID',
+     'commit_id':   'BYTES',
+   } %}
+{% set vartype = {
+     'req_compensating':  'BOOL',
+     'req_second_signer': 'BOOL',
+     'req_foreign_org':   'BOOL',
+     'req_predicate':     'BOOL',
+     'req_reassert':      'BOOL',
+     'min_signer_rank':   'INT2',
+     'signer_rank':       'INT2',
+     'signer_org':        'STRING',
+     'competency_sha256': 'BYTES',
+   } %}
+{% set ns = namespace(closure=none, clearance=none, person=none) %}
+{% for a in authority_sources %}
+{%   if 'blocking_check.severity' in a.projects %}{% set ns.closure = a %}{% endif %}
+{%   if 'disposition.min_signer_rank' in a.projects %}{% set ns.clearance = a %}{% endif %}
+{%   if 'disposition.signer_rank' in a.projects %}{% set ns.person = a %}{% endif %}
+{% endfor %}
+{% if ns.closure is none %}{{ binding_declares_no_authority_source_for_blocking_check_severity }}{% endif %}
+{% if ns.clearance is none %}{{ binding_declares_no_authority_source_for_disposition_min_signer_rank }}{% endif %}
+{% if ns.person is none %}{{ binding_declares_no_authority_source_for_disposition_signer_rank }}{% endif %}
+{% set cl = ns.clearance %}
+{% set pe = ns.person %}
+{% set clnames = [] %}{% for p in cl.projects %}{% set _ = clnames.append(p.split('.')[1]) %}{% endfor %}
+{% set penames = [] %}{% for p in pe.projects %}{% set _ = penames.append(p.split('.')[1]) %}{% endfor %}
+{% set clreads = [] %}{% for c in cl.columns %}{% set _ = clreads.append('cl.' ~ c) %}{% endfor %}
+{% set clintos = [] %}{% for n in clnames %}{% set _ = clintos.append('v_' ~ n) %}{% endfor %}
+{% set pereads = [] %}{% for c in pe.columns %}{% set _ = pereads.append('pr.' ~ c) %}{% endfor %}
+{% set peintos = [] %}{% for n in penames %}{% set _ = peintos.append('v_' ~ n) %}{% endfor %}
+{% set copreds = [] %}{% for kc in pe.key_columns %}{% set _ = copreds.append('pr.' ~ kc ~ ' = (NEW).countersigner_sub') %}{% endfor %}
+{% set pepreds = [] %}{% for kc in pe.key_columns %}{% set _ = pepreds.append('pr.' ~ kc ~ ' = (NEW).' ~ pe.key[loop.index0]) %}{% endfor %}
+{% set cspreds = [] %}{% for kc in ns.closure.key_columns %}{% set _ = cspreds.append('c.' ~ kc ~ ' = v_ck_' ~ ns.closure.key[loop.index0]) %}{% endfor %}
+{% set ckreads = [] %}{% for k in ns.closure.key %}{% set _ = ckreads.append('bc.' ~ k) %}{% endfor %}
+{% set ckintos = [] %}{% for k in ns.closure.key %}{% set _ = ckintos.append('v_ck_' ~ k) %}{% endfor %}
+{% set bcreads = [] %}{% for s in subjects %}{% set _ = bcreads.append('bc.' ~ s.id_column) %}{% endfor %}
+{% set bcintos = [] %}{% for s in subjects %}{% set _ = bcintos.append('v_' ~ s.id_column) %}{% endfor %}
+-- @file 0102_fn_disposition_project.sql
+{{ header(file='0102_fn_disposition_project.sql',
+          title='CREATE FUNCTION ' ~ binding.schema ~ '.fn_disposition_project — identity, virulence and deliberation are projections',
+          rationale='Findings S1 and S7 in one function. Virulence, closure generation and severity are re-derived from the blame closure rather than inherited from the blocking check, so a laundered check cannot launder its disposition. Rank, organisation and the competency triple are projected from the live person row and frozen, so a client signing with a rank it does not hold is overwritten before rank_floor compares. Deliberation derives from the server-issued exposure receipt. A missing clearance row projects the strictest legal values under ruling D3 rather than raising a synthetic 23503, because a synthetic code carries no constraint name and the constraint name is the exhibit.',
+          mi=['MI11', 'MI27', 'MI28', 'MI29'], i=['I09', 'I10', 'I15']) }}
+--
+-- migration:  0102_fn_disposition_project
+-- band:       0100-0109z · kernel/projection-triggers · RENDERED
+-- statements: 1
+-- invariants: MI27 (identity, rank, org and competency are projections of person; a missing
+--             person row refuses) · MI11 (no disposition kind dismisses a fatality-written
+--             control — enforced by fk_clearance, ARMED by the virulence projected here) ·
+--             MI29 (overrides escalate against the person across permits, no ceiling)
+-- source:     ARCHITECTURE.md §5.11 item 3 · §2.2 S1, S7, S8, S19 ·
+--             docs/leads/kernel.md D2, D3, D4 · spec/binding/authority-source.md §5
+-- requires:   {{ binding.schema }}.blocking_check (0058) · {{ binding.schema }}.exposure_receipt (0061) ·
+--             {{ binding.schema }}.disposition_citation (0067) · {{ binding.schema }}.override_ledger (0068) ·
+--             {{ ns.closure.relation }} · {{ cl.relation }} · {{ pe.relation }} ·
+--             {{ zone.meas }}.recall_policy (the reading-rate policy; absent values fall back to
+--             the substrate defaults tau0 = 5 s and rho = 4 tokens/s, which is a DEGRADATION,
+--             not a pass — the floor still computes and still projects)
+-- provides:   {{ binding.schema }}.fn_disposition_project() — welded to disposition by 0122
+-- sqlstate:   P0001 on an unknown check, an absent closure, an absent or expired exposure
+--             receipt, and an unknown signer or countersigner. 23503 on fk_clearance for an
+--             illegal (virulence, kind) pair — raised BY THE FOREIGN KEY, never here (D3).
+-- forward-only; no .down.sql and no .up.sql (MR-5).
+--
+-- @projects {{ cl.projects | join(', ') }}
+-- @authority {{ cl.relation }} ({{ cl.key_columns | join(', ') }}) <= NEW ({{ cl.key | join(', ') }})
+-- @on_missing raise
+--
+-- @projects {{ pe.projects | join(', ') }}
+-- @authority {{ pe.relation }} ({{ pe.key_columns | join(', ') }}) <= NEW ({{ pe.key | join(', ') }})
+-- @on_missing raise
+--
+-- ACYCLICITY. BEFORE INSERT on disposition, writing only to NEW. It reads six relations and
+-- writes none of them. Trigger depth contributed: 0.
+
+CREATE FUNCTION {{ binding.schema }}.fn_disposition_project() RETURNS TRIGGER LANGUAGE PLpgSQL AS $$
+DECLARE
+  v_subject_kind STRING;
+{% for s in subjects %}
+  v_{{ s.id_column }} UUID;
+{% endfor %}
+  v_site_id UUID;
+{% for k in ns.closure.key %}
+  v_ck_{{ k }} {{ closurekeytype[k] }};
+{% endfor %}
+  v_severity INT2;
+  v_virulence {{ binding.schema }}.virulence_class;
+  v_closure_gen INT8;
+{% for n in clnames %}
+  v_{{ n }} {{ vartype[n] }};
+{% endfor %}
+  v_max_ttl_hours INT4;
+{% for n in penames %}
+  v_{{ n }} {{ vartype[n] }};
+{% endfor %}
+  v_competency_source_id UUID;
+  v_competency_snapshot JSONB;
+  v_co_rank INT2;
+  v_co_org STRING;
+  v_issued_at TIMESTAMPTZ;
+  v_expires_at TIMESTAMPTZ;
+  v_tokens INT8;
+  v_tau0 FLOAT8;
+  v_rho FLOAT8;
+  v_anchors INT4;
+  v_overrides INT8;
+  v_deliberation INT8;
+BEGIN
+  -- 1 · WHICH OBLIGATION IS THIS. The subject, the site and the clause version all come from the
+  -- check row, never from the inserter: a disposition that names its own permit is a disposition
+  -- that can be filed against a permit its check never blocked.
+  SELECT bc.subject_kind, {{ bcreads | join(', ') }}, bc.site_id, {{ ckreads | join(', ') }}
+    INTO v_subject_kind, {{ bcintos | join(', ') }}, v_site_id, {{ ckintos | join(', ') }}
+    FROM {{ binding.schema }}.blocking_check bc
+   WHERE bc.check_id = (NEW).check_id;
+  IF v_subject_kind IS NULL THEN
+    RAISE EXCEPTION USING ERRCODE='P0001',
+      MESSAGE='{{ binding.name }}: no such blocking check — a disposition cannot be filed against an obligation that does not exist';
+  END IF;
+
+  -- 2 · FINDING S1. Virulence comes from the CLOSURE at this transaction's timestamp, reached
+  -- through the check's clause version. It is never inherited from the check row, so a laundered
+  -- check cannot launder the disposition even if 0100 were disabled.
+  SELECT c.{{ ns.closure.columns[0] }}, c.{{ ns.closure.columns[1] }}, c.{{ ns.closure.columns[2] }}
+    INTO v_severity, v_virulence, v_closure_gen
+    FROM {{ ns.closure.relation }} c
+   WHERE {{ cspreds | join(' AND ') }};
+  IF v_severity IS NULL THEN
+    RAISE EXCEPTION USING ERRCODE='P0001',
+      MESSAGE='{{ binding.name }}: blame closure absent — a disposition cannot be typed';
+  END IF;
+
+  -- 3 · WHAT WAS ACTUALLY SHOWN, AND WHEN THE SERVER SHOWED IT. `issued_at` is a server DEFAULT
+  -- now() on a row the kernel wrote. Expiry is a trigger comparison and never a CHECK, because
+  -- now() is not immutable and a CHECK sees only the row being written (§4.1 law 1).
+  SELECT er.issued_at, er.expires_at, er.total_tokens
+    INTO v_issued_at, v_expires_at, v_tokens
+    FROM {{ binding.schema }}.exposure_receipt er
+   WHERE er.receipt_id = (NEW).receipt_id;
+  IF v_expires_at IS NULL OR v_expires_at <= now() THEN
+    RAISE EXCEPTION USING ERRCODE='P0001',
+      MESSAGE='{{ binding.name }}: exposure receipt absent or expired — re-materialise before signing';
+  END IF;
+
+  -- 4 · THE CLEARANCE LATTICE, keyed on the virulence THIS FUNCTION derived and the kind the
+  -- signer chose. Ruling D3: a miss projects the strictest values and returns; fk_clearance then
+  -- refuses with 23503 and its own name.
+  -- The first key column is `{{ cl.key[0] }}`, and it is READ FROM v_virulence RATHER THAN FROM
+  -- NEW. That substitution IS finding S1: reading (NEW).{{ cl.key[0] }} here would let the signer
+  -- choose which row of the clearance lattice judges the signature.
+  SELECT {{ clreads | join(', ') }}, cl.max_ttl_hours
+    INTO {{ clintos | join(', ') }}, v_max_ttl_hours
+    FROM {{ cl.relation }} cl
+   WHERE cl.{{ cl.key_columns[0] }} = v_virulence
+     AND cl.{{ cl.key_columns[1] }} = (NEW).{{ cl.key[1] }};
+  IF v_{{ clnames[0] }} IS NULL THEN
+{% for n in clnames %}
+    v_{{ n }} := {{ strictest[n] }};
+{% endfor %}
+    v_max_ttl_hours := NULL;
+  END IF;
+
+  -- 5 · FINDING S7. Identity and competency are projected from the live person row and frozen
+  -- here. The current row for a signer is the FIRST row of the primary-key scan, because
+  -- `person` is keyed (signer_sub, effective_from DESC).
+  SELECT {{ pereads | join(', ') }}, pr.competency_source_id, pr.competency_snapshot
+    INTO {{ peintos | join(', ') }}, v_competency_source_id, v_competency_snapshot
+    FROM {{ pe.relation }} pr
+   WHERE {{ pepreds | join(' AND ') }}
+     AND pr.effective_from <= now()
+   ORDER BY pr.effective_from DESC
+   LIMIT 1;
+  IF v_{{ penames[0] }} IS NULL THEN
+    RAISE EXCEPTION USING ERRCODE='P0001',
+      MESSAGE='{{ binding.name }}: no competency record for this signer — fail closed';
+  END IF;
+
+  -- 6 · THE COUNTERSIGNER IS A SIGNER. `needs_foreign_org` compares two organisation strings; if
+  -- one of them is supplied by the party the requirement constrains, the requirement is a
+  -- formality. Projected from the same relation, or NULL when there is no countersigner.
+  IF (NEW).countersigner_sub IS NULL THEN
+    v_co_rank := NULL;
+    v_co_org := NULL;
+  ELSE
+    SELECT pr.{{ pe.columns[0] }}, pr.{{ pe.columns[1] }}
+      INTO v_co_rank, v_co_org
+      FROM {{ pe.relation }} pr
+     WHERE {{ copreds | join(' AND ') }}
+       AND pr.effective_from <= now()
+     ORDER BY pr.effective_from DESC
+     LIMIT 1;
+    IF v_co_rank IS NULL THEN
+      RAISE EXCEPTION USING ERRCODE='P0001',
+        MESSAGE='{{ binding.name }}: no competency record for this countersigner — fail closed';
+    END IF;
+  END IF;
+
+  -- 7 · THE ONE AGGREGATE STATEMENT (§4.1 law 4). Verbatim anchors bound what may ACQUIT; the
+  -- override count is the ladder that escalates against the person across permits (S8).
+  SELECT (SELECT count(*)
+            FROM {{ binding.schema }}.disposition_citation dc
+           WHERE dc.disposition_id = (NEW).disposition_id
+             AND dc.kind = 'verbatim')::INT4,
+         (SELECT count(*)
+            FROM {{ binding.schema }}.override_ledger ol
+           WHERE ol.site_id = v_site_id
+             AND ol.signer_sub = (NEW).signer_sub)::INT8
+    INTO v_anchors, v_overrides;
+
+  -- 8 · The reading-rate policy. Absent values degrade to the substrate defaults rather than
+  -- refusing, because the floor is a MEASUREMENT that prices a countersignature, not a gate.
+  SELECT (rp.tau->>'tau0')::FLOAT8, (rp.tau->>'rho')::FLOAT8
+    INTO v_tau0, v_rho
+    FROM {{ zone.meas }}.recall_policy rp
+    JOIN {{ binding.schema }}.exposure_receipt er2 ON er2.policy_version = rp.policy_version
+   WHERE er2.receipt_id = (NEW).receipt_id;
+
+  -- 9 · THE PROJECTION. Unconditional, every one of them.
+  NEW.subject_kind := v_subject_kind;
+{% for s in subjects %}
+  NEW.{{ s.id_column }} := v_{{ s.id_column }};
+{% endfor %}
+  NEW.site_id := v_site_id;
+  NEW.virulence := v_virulence;
+  NEW.closure_gen := v_closure_gen;
+  NEW.severity_snapshot := v_severity;
+{% for n in clnames %}
+  NEW.{{ n }} := v_{{ n }};
+{% endfor %}
+  NEW.max_ttl_hours := v_max_ttl_hours;
+{% for n in penames %}
+  NEW.{{ n }} := v_{{ n }};
+{% endfor %}
+  NEW.competency_source_id := v_competency_source_id;
+  NEW.competency_snapshot := v_competency_snapshot;
+  NEW.countersigner_rank := v_co_rank;
+  NEW.countersigner_org := v_co_org;
+  NEW.verbatim_anchor_count := v_anchors;
+  NEW.prior_override_count := v_overrides;
+
+  -- 10 · DELIBERATION AND THE READING-RATE FLOOR (S19). t_min = tau0 + tokens / rho, with rho
+  -- deliberately generous at 4 tokens/s (about 240 words per minute). Positive polarity: the
+  -- column records that the floor WAS met, so a row that never reached this function reads as
+  -- unmet rather than as compliant.
+  v_deliberation := extract(epoch FROM (now() - v_issued_at))::INT8;
+  NEW.deliberation_seconds := v_deliberation;
+  NEW.reading_floor_met :=
+    (v_deliberation::FLOAT8 >= coalesce(v_tau0, 5::FLOAT8)
+                             + (v_tokens::FLOAT8 / coalesce(v_rho, 4::FLOAT8)));
+  RETURN NEW;
+END $$;

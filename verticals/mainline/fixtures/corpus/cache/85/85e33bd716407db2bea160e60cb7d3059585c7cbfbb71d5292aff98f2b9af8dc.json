@@ -1,0 +1,38 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 0,
+    "doc_codes": [
+      "MOC-2021-0155",
+      "PRO-MIN-003",
+      "STD-MEQ-007"
+    ],
+    "intent": "introduce",
+    "moc_ref": "MOC-2019-0198",
+    "opened_on": "2019-11-30",
+    "precursor_events": [],
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "management_of_change": "management of change",
+      "verification": "critical control verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "85e33bd716407db2bea160e60cb7d3059585c7cbfbb71d5292aff98f2b9af8dc",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2019-0198",
+  "prompt_kind": "moc",
+  "prompt_sha256": "553cee02ab2f993dc3271cf64bc63d2f400938fb0278c6090a98d7e5c4796720",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2019-0198 was raised at Yandarra Downs Open Cut and Heavy Workshop on 30 November 2019 as a scheduled change under management of change; no event precedes it in the record. The management of change record carries no clause change; it records the assessment only. The intent is to introduce a duty the documents in scope did not previously carry. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical control set is preserved.",
+    "scope_note": "The documents in scope are MOC-2021-0155, PRO-MIN-003 and STD-MEQ-007."
+  },
+  "response_sha256": "546c1bac737bab7278da8bf441c7b1a27b5badcb35e7a25db4cca0166b20ecb9",
+  "source": null
+}

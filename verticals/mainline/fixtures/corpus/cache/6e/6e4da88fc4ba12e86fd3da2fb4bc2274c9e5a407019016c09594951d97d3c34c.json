@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 20,
+    "doc_code": "STD-CHM-011",
+    "doc_family": "STD",
+    "doc_title": "Hazardous Substances",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2008-01-24",
+    "required_citations": [
+      {
+        "control_label": "selection, fit testing and maintenance of respirators",
+        "event_ref": "AF-2007-002",
+        "event_title": "audit finding - work clearance records incomplete for TK-8311",
+        "hazard_energy": "chemical",
+        "kind": "investigation_recommendation",
+        "quote_ref": "quote:TLG/STD-CHM-011/001#investigation_recommendation/AF-2007-002",
+        "severity_gate": 3
+      }
+    ],
+    "rev_no": 1,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "accident investigation",
+      "management_of_change": "engineering change note",
+      "near_miss": "near hit"
+    }
+  },
+  "key": "6e4da88fc4ba12e86fd3da2fb4bc2274c9e5a407019016c09594951d97d3c34c",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:TLG/STD-CHM-011/001",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "7e66a9d728efd7bc56c5eb40b5c310d5ebe029fa0582a13fbec8d5c080643763",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The accident investigation into AF-2007-002 recommended that the selection, fit testing and maintenance of respirators be strengthened in this standard.",
+        "quote_ref": "quote:TLG/STD-CHM-011/001#investigation_recommendation/AF-2007-002"
+      }
+    ],
+    "reason": "Scheduled review at revision 1; 20 clauses restated."
+  },
+  "response_sha256": "4fb66911f5667f7c0c24b89e574e6a9a8b0a5347472b9c2a100962e15333def7",
+  "source": null
+}

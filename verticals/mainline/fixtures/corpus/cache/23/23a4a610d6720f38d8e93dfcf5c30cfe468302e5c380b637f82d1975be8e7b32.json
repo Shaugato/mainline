@@ -1,0 +1,91 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "receiving, magazining and reconciling explosives",
+    "activity_root": "EXPLOSIVES-AND-BLASTING",
+    "activity_series": "storing and transporting explosives",
+    "assets": [
+      {
+        "asset_class": "MAG-CLASS-A",
+        "label": "explosives magazines",
+        "service": "explosives and detonator storage",
+        "tag": "MAG-9601"
+      }
+    ],
+    "consequence": {
+      "days_lost": 4,
+      "injuries": 1,
+      "label": "lost time injury"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "BLAST_GUARDING_AND_CLEARANCE",
+        "control_label": "guarding, clearance and misfire handling for a blast",
+        "failure_mode": "bypassed",
+        "hazard_energy": "chemical",
+        "icam_tier": "individual_or_team_action"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "EXPLOSIVES_RECONCILIATION",
+        "control_label": "receipt, magazining and reconciliation of explosives",
+        "failure_mode": "not_verified",
+        "hazard_energy": "chemical",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "INC-2022-010",
+    "hazard_energy": "thermal",
+    "hazard_media": [
+      "hot surface",
+      "steam",
+      "molten material",
+      "hot work",
+      "exothermic reaction"
+    ],
+    "hazard_release": "burn, ignition, scald",
+    "kind": "incident",
+    "occurred_on": "2022-09-27",
+    "severity_actual": 3,
+    "severity_potential": 4,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during routine operation",
+    "title": "loss of containment at MAG-9601 during routine operation",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "23a4a610d6720f38d8e93dfcf5c30cfe468302e5c380b637f82d1975be8e7b32",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2022-010",
+  "prompt_kind": "icam",
+  "prompt_sha256": "a068ad984e880e9af89a615bd7b3900ca206d3f998e31a0e6bdb87cfb9b4ae5f",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was lost time injury, with 1 person injured and 4 days lost. The potential outcome was rated 4 against the site's consequence scale, above the 3 actually realised.",
+    "defences": [
+      {
+        "control_class": "BLAST_GUARDING_AND_CLEARANCE",
+        "finding": "Control BLAST_GUARDING_AND_CLEARANCE: the guarding, clearance and misfire handling for a blast had been bypassed, and the learning team review classified this as an individual or team action."
+      },
+      {
+        "control_class": "EXPLOSIVES_RECONCILIATION",
+        "finding": "Control EXPLOSIVES_RECONCILIATION: the receipt, magazining and reconciliation of explosives was never verified as effective, and the learning team review classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next assurance activity that the guarding, clearance and misfire handling for a blast on MAG-9601 performs as designed."
+    ],
+    "sequence": "Work was under way in storing and transporting explosives, specifically receiving, magazining and reconciling explosives. MAG-9601 (explosives magazines) is in service for explosives and detonator storage. The task proceeded during routine operation while the guarding, clearance and misfire handling for a blast had been bypassed. The thermal energy involved is held as hot surface, and the recorded presentation was burn, ignition, scald.",
+    "summary": "On 27 September 2022 an incident occurred on MAG-9601 at Yandarra Downs Open Cut and Heavy Workshop during routine operation, releasing thermal energy held as hot surface."
+  },
+  "response_sha256": "c4b677ae09e0e778ca084a50bce83eb871159963c9796038002ac8e35b4d0784",
+  "source": null
+}

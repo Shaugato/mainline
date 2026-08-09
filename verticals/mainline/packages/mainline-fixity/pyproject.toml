@@ -1,0 +1,69 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
+
+[project]
+name = "mainline-fixity"
+version = "0.1.0"
+description = "MAINLINE fixity patrol — as-documented vs as-operated, compared through the same lattice, with UNKNOWN kept first class."
+readme = "README.md"
+requires-python = ">=3.13"
+# FSL-1.1-ALv2 per the repository licence map (verticals/mainline/* is FSL).
+# The licence TEXT lives in the repo-root LICENSES/ tree, outside this project
+# directory, and therefore cannot be referenced by `license-files`: under PEP 639
+# a glob that matches nothing is a build error.
+license = "LicenseRef-FSL-1.1-ALv2"
+authors = [{ name = "MAINLINE contributors" }]
+keywords = ["mainline", "fixity", "drift", "patrol", "cockroachdb"]
+classifiers = [
+  "Programming Language :: Python :: 3.13",
+  "Typing :: Typed",
+  "Private :: Do Not Upload",
+]
+
+# ONE DEPENDENCY, AND THE ABSENCES ARE THE ARGUMENT.
+#
+# `mainline-domain` because a drift finding IS a `control_delta` whose author is
+# the plant (ARCHITECTURE.md §5.8). The comparison uses the SAME nine-rule
+# DELTALATTICE the clause pipeline uses, so a reality-authored weakening fires the
+# existing merge gate with no new gate logic. A second comparison implementation
+# here would be a second answer to a question that must have exactly one.
+#
+# DELIBERATELY ABSENT — `mainline-agentkit`, `boto3`, `anthropic`, `strands`.
+# ARCHITECTURE.md §8.4 row 6 says the decision this agent does NOT make is
+# `weaken`: the lattice compare decides, and abstain ⇒ weaken. There is therefore
+# no model call to make, and `tests/unit/fixity/test_starvation.py` walks this
+# package's AST to keep it that way. The fleet register entry says
+# `no_model: true` and this dependency list is what makes that entry checkable.
+#
+# DELIBERATELY ABSENT — any database driver. This package builds statements and
+# parameters and hands them back; the caller holds `agent_patroller`. That absence
+# is what `mainline-boundary`'s E3 SBOM scan reads.
+dependencies = [
+  "mainline-domain",
+]
+
+[tool.uv.sources]
+mainline-domain = { workspace = true }
+
+[dependency-groups]
+dev = [
+  "pytest>=8.3",
+  "mypy>=1.11",
+]
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mainline_fixity"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "README.md"]
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+warn_unreachable = true
+mypy_path = "src"
+packages = ["mainline_fixity"]

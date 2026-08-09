@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 2,
+    "doc_codes": [
+      "PRO-HSE-005",
+      "STD-HTW-004"
+    ],
+    "intent": "weaken",
+    "moc_ref": "MOC-2008-0090",
+    "opened_on": "2008-03-11",
+    "precursor_events": [],
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "management_of_change": "engineering change note",
+      "verification": "spot check"
+    },
+    "weakening_steps": 0
+  },
+  "key": "c416fe201f771c3f7e594bb22123e46bfe18cf9bc57ddaa238fe97a91abd2a19",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2008-0090",
+  "prompt_kind": "moc",
+  "prompt_sha256": "09867604522a1e9981278feeb73290a99315e76ca6007c9f0d3e34b6abc0de97",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2008-0090 was raised at Marrindal Concentrator and Hydrocarbon Transfer Facility on 11 March 2008 as a scheduled change under engineering change note; no event precedes it in the record. The engineering change note record covers 2 clauses across 2 controlled documents. The intent is to relax a key safeguard requirement, and the basis for the relaxation is recorded with the change. The record reached the state merged in the change stream.",
+    "risk_note": "This change relaxes a control: 0 steps of relaxation are recorded against it, and the residual risk position rests on that relaxation having been accepted deliberately.",
+    "scope_note": "The documents in scope are PRO-HSE-005 and STD-HTW-004."
+  },
+  "response_sha256": "c8f392b8b4c33598b576ee6e69541edb099f3c1bc6d0d35e84c0ec8a219bcc65",
+  "source": null
+}

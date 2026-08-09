@@ -32,7 +32,13 @@ _WITNESS = DeltaWitness(
 _THETA = 0.75
 
 
-def _a(delta: ControlDelta, *, basis: str = "lattice", witnesses: tuple = (), minimal: bool = False):
+def _a(
+    delta: ControlDelta,
+    *,
+    basis: str = "lattice",
+    witnesses: tuple = (),
+    minimal: bool = False,
+):
     return DeltaVerdict(delta=delta, basis=basis, witnesses=witnesses, minimal=minimal)  # type: ignore[arg-type]
 
 
@@ -139,8 +145,10 @@ def test_theta_is_inclusive_at_the_boundary() -> None:
     just_below = explain(
         _a(ControlDelta.RESTATE), _b(ControlDelta.STRENGTHEN, _THETA - 1e-9), theta=_THETA
     )
-    assert at.confident and at.cell.rule == "NEUTRAL_ACCEPTED"
-    assert not just_below.confident and just_below.cell.rule == "NEUTRAL_UNCONFIRMED"
+    assert at.confident is True
+    assert at.cell.rule == "NEUTRAL_ACCEPTED"
+    assert just_below.confident is False
+    assert just_below.cell.rule == "NEUTRAL_UNCONFIRMED"
 
 
 def test_a_model_that_disagrees_downward_is_ignored_and_says_so() -> None:

@@ -1,0 +1,43 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 3,
+    "doc_codes": [
+      "MOC-2023-0302",
+      "PRO-CHM-009",
+      "STD-CHM-011"
+    ],
+    "intent": "strengthen",
+    "moc_ref": "MOC-2026-0120",
+    "opened_on": "2026-06-19",
+    "precursor_events": [
+      {
+        "event_ref": "RN-2026-004",
+        "severity_gate": null
+      }
+    ],
+    "site": "Tolgarra Processing and Power Station",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "management_of_change": "change assurance",
+      "verification": "assurance activity"
+    },
+    "weakening_steps": 0
+  },
+  "key": "35a361d65d5bed70af8a40a8a50bb4e6fe7552b259fe8afe9696e6c2bc6b8511",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2026-0120",
+  "prompt_kind": "moc",
+  "prompt_sha256": "4f8c9f0c94ea0b76c1297f09ef4f6a34322c24f1c7d56967ed2b952f324cdb2a",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2026-0120 was raised at Tolgarra Processing and Power Station on 19 June 2026 following 1 recorded event in the archive, including RN-2026-004. The change assurance record covers 3 clauses across 3 controlled documents. The intent is to strengthen the material unwanted event control named in the documents in scope. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the material unwanted event control set is preserved.",
+    "scope_note": "The documents in scope are MOC-2023-0302, PRO-CHM-009 and STD-CHM-011."
+  },
+  "response_sha256": "311aa7853abdbd972d95dd61b8ebc7673f0746fe81102df1a6cff187d099246a",
+  "source": null
+}

@@ -1,0 +1,77 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 6,
+    "doc_code": "PRO-OPS-017",
+    "doc_family": "PRO",
+    "doc_title": "Ship Loading and Vapour Recovery",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2018-07-31",
+    "required_citations": [
+      {
+        "control_label": "seal-face high-temperature alarm and trip",
+        "event_ref": "AF-2018-002",
+        "event_title": "audit finding - critical control verification of critical control at K-7301",
+        "hazard_energy": "chemical",
+        "kind": "capa_action",
+        "quote_ref": "quote:CVY/PRO-OPS-017/008#capa_action/AF-2018-002",
+        "severity_gate": 2
+      },
+      {
+        "control_label": "integrity of the mechanical seal support system",
+        "event_ref": "INC-2018-004",
+        "event_title": "uncontrolled movement of LA-7202 during start-up after maintenance",
+        "hazard_energy": "chemical",
+        "kind": "capa_action",
+        "quote_ref": "quote:CVY/PRO-OPS-017/008#capa_action/INC-2018-004",
+        "severity_gate": 3
+      },
+      {
+        "control_label": "integrity of the mechanical seal support system",
+        "event_ref": "INC-2018-004",
+        "event_title": "uncontrolled movement of LA-7202 during start-up after maintenance",
+        "hazard_energy": "chemical",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:CVY/PRO-OPS-017/008#revision_history_line/INC-2018-004",
+        "severity_gate": 3
+      }
+    ],
+    "rev_no": 8,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "ICAM investigation",
+      "management_of_change": "management of change",
+      "near_miss": "potential incident"
+    }
+  },
+  "key": "dfc4d6d3090c2a0fd815eda24026f011905871c7eabe2ab1b9cbd6d1a07b472f",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:CVY/PRO-OPS-017/008",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "05614cd01d9f0234e0698de5529d38c1cb4b0cde3daf6e64e3facfeb33ef9d47",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The corrective action recorded against AF-2018-002 required the seal-face high-temperature alarm and trip to be restated in this procedure.",
+        "quote_ref": "quote:CVY/PRO-OPS-017/008#capa_action/AF-2018-002"
+      },
+      {
+        "line": "The corrective action recorded against INC-2018-004 required the integrity of the mechanical seal support system to be restated in this procedure.",
+        "quote_ref": "quote:CVY/PRO-OPS-017/008#capa_action/INC-2018-004"
+      },
+      {
+        "line": "Revision 8 was raised in response to INC-2018-004, and the integrity of the mechanical seal support system was amended as a result.",
+        "quote_ref": "quote:CVY/PRO-OPS-017/008#revision_history_line/INC-2018-004"
+      }
+    ],
+    "reason": "Scheduled review at revision 8; 6 clauses restated."
+  },
+  "response_sha256": "a1b76704ee12b5bea6c1b71ef5737e15a79d32fb49f4ceabeed49bc8e86854a8",
+  "source": null
+}

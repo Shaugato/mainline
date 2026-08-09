@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 26,
+    "doc_code": "STD-EMR-008",
+    "doc_family": "STD",
+    "doc_title": "Emergency Preparedness and Response",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2019-05-27",
+    "required_citations": [
+      {
+        "control_label": "alarm, muster and accounting for people",
+        "event_ref": "CAPA-2018-005",
+        "event_title": "preventive action - alarm rationalisation on PSV-7101",
+        "hazard_energy": "chemical",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:CVY/STD-EMR-008/005#revision_history_line/CAPA-2018-005",
+        "severity_gate": 1
+      }
+    ],
+    "rev_no": 5,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "ICAM investigation",
+      "management_of_change": "management of change",
+      "near_miss": "potential incident"
+    }
+  },
+  "key": "8210571ede5a889d5b9db0058d4d0e3231bfb6852e293963ccc91754d0c77792",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:CVY/STD-EMR-008/005",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "0c464c7ad9ec49fbc4e5985540148ab554b6cb894b137a71e04af485d164ecbb",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "Revision 5 was raised in response to CAPA-2018-005, and the alarm, muster and accounting for people was amended as a result.",
+        "quote_ref": "quote:CVY/STD-EMR-008/005#revision_history_line/CAPA-2018-005"
+      }
+    ],
+    "reason": "Scheduled review at revision 5; 26 clauses restated."
+  },
+  "response_sha256": "857159e449ec7d18ceb7a8e9be3a047768c1e6af16d57b0e130275d600a34755",
+  "source": null
+}

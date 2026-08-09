@@ -172,9 +172,12 @@ def test_the_epoch_of_a_merged_permit_cannot_be_moved(conn) -> None:
             (permit_id,),
         )
     assert raised.value.sqlstate == "23503", raised.value
-    assert conn.execute(
-        "SELECT gate_epoch FROM mainline.permit WHERE permit_id = %s", (permit_id,)
-    ).fetchone()[0] == 1
+    assert (
+        conn.execute(
+            "SELECT gate_epoch FROM mainline.permit WHERE permit_id = %s", (permit_id,)
+        ).fetchone()[0]
+        == 1
+    )
 
 
 @pytest.mark.requires_cluster
@@ -345,7 +348,7 @@ class _StatusTransport:
         self.body = body
         self.posts: list[str] = []
 
-    def post(self, url, body, headers, timeout):
+    def post(self, url, body, headers, timeout):  # noqa: ARG002 - KernelTransport shape
         self.posts.append(url)
         return self.status, self.body
 
@@ -400,7 +403,7 @@ def test_the_epoch_pin_sqlstates_are_classified_as_refusals() -> None:
         assert classify_sqlstate(sqlstate) == "refusal"
         assert sqlstate in GATE_REFUSAL_SQLSTATES
     assert classify_sqlstate("40001") == "retryable"
-    assert RETRYABLE_SQLSTATES == frozenset({"40001"})
+    assert frozenset({"40001"}) == RETRYABLE_SQLSTATES
     # An unknown code is deliberately NOT retryable: retrying a refusal nobody modelled is how
     # a gate quietly stops being a gate.
     assert classify_sqlstate("XX000") == "unmodelled"

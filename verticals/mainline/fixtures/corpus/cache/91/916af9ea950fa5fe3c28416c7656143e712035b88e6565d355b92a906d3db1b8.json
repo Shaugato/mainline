@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "HAZARDOUS-SUBSTANCE-EXPOSURE",
+    "barrier_role": "preventive",
+    "control_class": "EXPOSURE_MONITORING",
+    "control_delta": "introduce",
+    "control_label": "monitoring of airborne contaminant exposure",
+    "doc_code": "STD-CHM-011",
+    "doc_family": "STD",
+    "doc_title": "Hazardous Substances",
+    "effective_on": "2023-10-04",
+    "printed_label": "8.1",
+    "setpoint": null,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "energy_isolation": "positive isolation verification",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "916af9ea950fa5fe3c28416c7656143e712035b88e6565d355b92a906d3db1b8",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:TLG/STD-CHM-011/005#TLG/STD-CHM-011/8.1",
+  "prompt_kind": "clause",
+  "prompt_sha256": "e291dddad2f9e10765b441c5a3d6869ac271551835724e56742dad548e81c31e",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The monitoring of airborne contaminant exposure shall be provided and maintained for work covered by this standard. This clause applies to activities archived under HAZARDOUS-SUBSTANCE-EXPOSURE at Tolgarra Processing and Power Station.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "a6ea880258027c2b1ce70a4c10dab81a4a09dfe138cb42ac2f723edde9741cf1",
+  "source": null
+}

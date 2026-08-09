@@ -1,0 +1,52 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MAINLINE · 0181_permit_rls_enable.sql
+-- ALTER TABLE mainline.permit ENABLE ROW LEVEL SECURITY
+--
+-- MI: MI02
+-- I: I02
+-- COUNSEL-GATED: no
+-- RATIONALE: A fleet is many sites under one cluster, and a site's supervisor has no
+--            business reading another site's open permits. ENABLE is the switch; it changes
+--            nothing on its own, because the table has no policies yet and an owner is
+--            still exempt. The control is the three files after it, and separating them is
+--            what lets a reviewer see the order the cluster saw.
+--
+-- migration:  0181_permit_rls_enable
+-- domain:     datamodel / dm-views-rls
+-- band:       0180-0198z · datamodel/dm-views-rls · AUTHORED, allocated by
+--             verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1)
+-- statements: 1
+-- matrix:     verticals/mainline/db/RLS-MATRIX.yaml — this file is a RENDERING of one entry
+--             there; tests/integration/schema/test_mi_rls.py asserts the two agree
+-- source:     ARCHITECTURE.md §11.3 (RLS, SEC-1) · §4.1 law 10 · correction S22 · §11.2 (site_reader, fleet_hse)
+-- requires:   0050 mainline.permit
+-- sqlstate:   none — enabling RLS refuses nothing by itself, which is exactly the trap S22 names.
+-- forward-only; no .down.sql exists at or below the protected floor.
+--
+-- ────────────────────────────────────────────────────────────────────────────
+-- ENABLE IS NOT THE CONTROL, AND ON ITS OWN IT IS ALMOST A NO-OP
+-- ────────────────────────────────────────────────────────────────────────────
+-- Verified against the v26.2 row-level-security reference: with RLS enabled and no policy
+-- matching a given (user, statement) pair, ACCESS IS DENIED BY DEFAULT — but admin users,
+-- the table owner and any role holding BYPASSRLS still pass straight through. Since
+-- migrations run as a role that owns or admins this table, and since every application role
+-- in GRANTS.yaml reaches `permit` through a policy declared in 0181b-0181h, this single
+-- statement is the least consequential file in the band. It is a separate file because the
+-- runner does not wrap a file in a transaction, so a two-statement ENABLE+FORCE would leave
+-- an undiagnosable `dirty` marker if the second half failed.
+--
+-- ────────────────────────────────────────────────────────────────────────────
+-- SEC-1, ONCE, WHERE THE BAND STARTS
+-- ────────────────────────────────────────────────────────────────────────────
+-- RLS is tenancy hygiene and information partitioning. It is NOT tamper-evidence and NOT a
+-- defence against a privileged operator: CDC ignores it, TRUNCATE, BACKUP, RESTORE and
+-- replication bypass it, and a role may carry BYPASSRLS. The ledger is the rogue-DBA
+-- control. §11.7's must-not-claim list opens with 'RLS as a defence against a rogue admin',
+-- and this comment is here so that nobody reading the band from the top forms the opposite
+-- impression.
+--
+
+ALTER TABLE mainline.permit ENABLE ROW LEVEL SECURITY;
+

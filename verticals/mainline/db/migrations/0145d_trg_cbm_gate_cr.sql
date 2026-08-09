@@ -1,0 +1,67 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MAINLINE · 0145d_trg_cbm_gate_cr.sql
+-- CREATE TRIGGER z_cbm_gate_cr — the document branch is gated on the same arithmetic
+--
+-- MI: MI30, MI03, MI22
+-- I: I02
+-- COUNSEL-GATED: no
+-- RATIONALE: The change request is a gated subject in exactly the sense the permit is. A
+--            conservation law enforced over work permits and not over document merges would
+--            have a documented way around it — edit the procedure instead of working under it —
+--            and a gate with a documented way around it is a gate that will be routed around.
+--            This statement puts the same two refusals on the same edge of the same shape.
+--
+-- migration:  0145d_trg_cbm_gate_cr
+-- domain:     algorithms
+-- band:       0145-0149z · datamodel/dm-functions-triggers + algorithms · AUTHORED, allocated
+--             by verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1). MR-5 band
+--             overflow of this domain's own `0145`; `0146`-`0149` belong to
+--             `datamodel/dm-functions-triggers` and are untouched.
+-- statements: 1  (the CREATE TRIGGER, and nothing else)
+-- invariants: MI30 — the repository is a protected branch and its merge is gated.
+--             MI03, MI22, I02.
+-- source:     docs/leads/algorithms.md §5 · ARCHITECTURE.md §5.11 cr_merge_gate · §16 MI30.
+-- requires:   0051 mainline.change_request · 0053 mainline.cr_clause ·
+--             0140d mainline.fn_cbm_gate_cr
+-- sqlstate:   P0001, twice, with the same two messages `z_cbm_gate` raises on the permit.
+-- forward-only; no .down.sql exists at or below the protected floor (DM-14).
+--
+-- ═════════════════════════════════════════════════════════════════════════════════════════════
+-- SAME SEAM, SAME ANSWER
+-- ═════════════════════════════════════════════════════════════════════════════════════════════
+-- `mainline.change_request` is RENDERED SUBSTRATE (allocation band `0050`-`0053z`, mode
+-- `rendered`, template `0051_change_request.sql.j2`). This file edits none of it: it is an
+-- AUTHORED statement in an authored band attaching a VERTICAL trigger to a substrate table, and
+-- MR-1's object test answers no — a second TRAPPOINT vertical needs `change_request` to pass
+-- conformance; it does not need MAINLINE's blame-mass gate. `trappoint render --check` remains a
+-- zero-diff assertion.
+--
+-- `change_request.unbalanced_cbm_count` + `CONSTRAINT cbm_balanced_when_issued` IS a template
+-- change and is NOT made here. See `0145c_trg_cbm_gate_permit.sql` for the full statement of
+-- what was left undone and why, and `novelty/cbm-ledger.yaml` `unverified:` for the same fact
+-- in the form the mechanisms document consumes.
+--
+-- ── THE OBJECT NAME DIFFERS FROM THE PERMIT'S ON PURPOSE ─────────────────────────────────────
+-- `z_cbm_gate_cr`, not `z_cbm_gate`. CockroachDB scopes trigger names per table, so the same
+-- name would in fact be legal — but `ALTER TABLE … DISABLE TRIGGER z_cbm_gate` typed against
+-- the wrong table is a silent no-op nobody notices, and the custodian patrol names these
+-- objects verbatim. Two subjects, two names, one message.
+--
+-- ── THE `WHEN` CLAUSE ────────────────────────────────────────────────────────────────────────
+-- `(NEW).state` / `(OLD).state`, parenthesised, for the reason measured and recorded in 0145c:
+-- the unparenthesised form documented in ARCHITECTURE.md §5.11 fails on v26.2.5 with
+-- `42P01 no data source matches prefix: new in this context`. The enum cast is explicit for the
+-- same reason it is explicit there.
+--
+-- ── D10 ──────────────────────────────────────────────────────────────────────────────────────
+-- `mainline.change_request` also carries the kernel's `cr_merge_gate` on this edge. Both read
+-- only their own `NEW` key column plus other tables; the transition is refused if either
+-- condition holds, whichever ran first. The `z_` prefix is cosmetic.
+
+CREATE TRIGGER z_cbm_gate_cr BEFORE UPDATE ON mainline.change_request
+  FOR EACH ROW
+  WHEN ((NEW).state = 'merged'::mainline.subject_state
+        AND (OLD).state <> 'merged'::mainline.subject_state)
+  EXECUTE FUNCTION mainline.fn_cbm_gate_cr();

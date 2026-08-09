@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 5,
+    "doc_code": "PRO-CHM-009",
+    "doc_family": "PRO",
+    "doc_title": "Reagent Make-Up and Dosing",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2020-09-16",
+    "required_citations": [],
+    "rev_no": 9,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "ICAM investigation",
+      "management_of_change": "management of change",
+      "near_miss": "potential incident"
+    }
+  },
+  "key": "7936fa422e8acff984db06ddcf6ce293745be8ff3e3faadb3683b7dc6ab57a58",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:TLG/PRO-CHM-009/009",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "d607087c82b0eeebba332d2367805dda6e368442720f726b0d85abad1ee4f088",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [],
+    "reason": "Scheduled review at revision 9; 5 clauses restated."
+  },
+  "response_sha256": "d87da4cfb4eb219af91ad4f644f3207cbe147289d17d7f2354d54d5c9e57c429",
+  "source": null
+}

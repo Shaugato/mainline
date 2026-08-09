@@ -1,0 +1,121 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MAINLINE · 0199_exposure_receipt_fk_silence.sql
+-- ALTER TABLE mainline.exposure_receipt ADD CONSTRAINT fk_silence — the deferred cycle, and
+-- the reason it is the last file in the tree
+--
+-- MI: MI12, MI17
+-- I: I07
+-- COUNSEL-GATED: no
+-- RATIONALE: `exposure_receipt.silence_receipt_id` is NOT NULL, which is the whole claim: a
+--            receipt cannot be issued without committing to what was NOT shown. But
+--            `silence_receipt` lives in `mainline_meas` and references `recall_run`, and the
+--            receipt is written by the gate in the same serializable transaction — so the two
+--            tables form a dependency cycle that no single CREATE TABLE order resolves.
+--            `DEFERRABLE INITIALLY DEFERRED` is unimplemented on this platform (§4.1 law 2),
+--            so the cycle is broken at DDL time instead: create both tables, then close the
+--            edge last. This file is that closure.
+--
+-- migration:  0199_exposure_receipt_fk_silence
+-- domain:     datamodel / dm-views-rls
+-- band:       0199-0199z · datamodel/dm-views-rls · AUTHORED, allocated by
+--             verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1), which grants
+--             0199 to this worker for exactly one purpose and names it: "ALTER TABLE
+--             exposure_receipt ADD CONSTRAINT fk_silence — the deferred cycle".
+-- statements: 1
+-- invariants: MI12 — a disposition exists only for a precursor materialised to that actor.
+--                    The receipt is that materialisation, and this constraint is what stops
+--                    a receipt existing without its silence commitment.
+--             MI17 — recall candidates are exactly partitioned. The partition's boundary is
+--                    what `silence_receipt` proves, and an unreferenceable silence receipt is
+--                    a partition nobody committed to.
+--             I07  — universe commitment: any retrieval informing a gate commits to its
+--                    candidate universe and partition BEFORE any disposition may reference it.
+--                    This foreign key is that "before", expressed structurally.
+-- source:     ARCHITECTURE.md §18 (0171 in the original numbering: "ALTER TABLE
+--             exposure_receipt ADD CONSTRAINT fk_silence … (the deferred cycle)") ·
+--             §5.5 (exposure_receipt) · §5.7 (silence_receipt) · §4.1 law 2 ·
+--             §6.5 (the gate transaction) · docs/leads/datamodel.md, allocation band 0199
+-- requires:   0061 mainline.exposure_receipt · 0083 mainline_meas.silence_receipt
+-- sqlstate:   23503 naming fk_silence, on a receipt citing a silence receipt that does not
+--             exist. 23514 is not available here — a foreign key is the only construct that
+--             can express "this row must name a row in another table", because a CHECK sees
+--             only the row being written (§4.1 law 1).
+-- forward-only; no .down.sql exists at or below the protected floor.
+--
+-- ═════════════════════════════════════════════════════════════════════════════
+-- WHY THIS IS THE LAST FILE, AND WHY THAT IS STRUCTURAL RATHER THAN TIDY
+-- ═════════════════════════════════════════════════════════════════════════════
+-- The cycle is:
+--
+--   mainline.exposure_receipt.silence_receipt_id  →  mainline_meas.silence_receipt
+--   mainline_meas.silence_receipt.run_id          →  mainline_meas.recall_run
+--   mainline_meas.recall_run.permit_id            →  mainline.permit  (logically; the column
+--                                                    is deliberately unconstrained, see below)
+--
+-- and the gate transaction (§6.5) writes across all of it in one serializable
+-- transaction: the recall run and its silence receipt are inserted, then the
+-- exposure receipt naming them, then the exposure lines, then the blocking
+-- checks. Every intermediate state must be legal at a statement boundary, because
+-- §4.1 law 2 is that `DEFERRABLE INITIALLY DEFERRED` is unimplemented and the
+-- LAST WRITE MUST BE THE ONE THAT TRIPS.
+--
+-- That is satisfiable at RUN time — the writer orders its inserts so the
+-- referenced row always exists first. It is not satisfiable at MIGRATE time by
+-- ordering alone, because `exposure_receipt` is kernel substrate created at 0061
+-- and `silence_receipt` is a vertical measurement table created at 0083, and
+-- moving either would move an anchor other domains have committed against. So
+-- the table ships at 0061 with the column and without the constraint, and the
+-- constraint is added once every table it can possibly reference exists.
+--
+-- 0199 is the last allocated number in the tree: 0200 and above is UNALLOCATED
+-- and `trappoint migrate lint` rule B refuses any file that claims it. This is
+-- therefore not merely late in the sequence, it is the terminal migration, and
+-- that is the correct position for the edge that could not be created earlier.
+--
+-- ═════════════════════════════════════════════════════════════════════════════
+-- WHY THE CONSTRAINT IS ADDED AND NOT MERELY DOCUMENTED
+-- ═════════════════════════════════════════════════════════════════════════════
+-- Without it, `silence_receipt_id` is a NOT NULL UUID pointing at nothing in
+-- particular. A gate agent under pressure — or a corpus generator, or a test
+-- fixture, or an incident-response script — writes `gen_random_uuid()` into it
+-- and the receipt is issued with a silence commitment that does not exist. Every
+-- downstream claim then still holds SYNTACTICALLY: the receipt has a digest, the
+-- disposition binds to the receipt through `fk_exposure`, the merge gate counts
+-- correctly, and `trappoint-verify` reproduces the Merkle roots.
+--
+-- What fails is the one claim the product is sold on. Proof of Exhausted Recall
+-- rests on `candidate_root`, θ, s, n and the boundary pair with inclusion paths;
+-- if the receipt names a silence receipt that was never issued, PER is
+-- unverifiable and the exhibit says "we committed to a partition" while the
+-- database holds no partition. `23503` naming `fk_silence` is the difference
+-- between that being impossible and that being unlikely.
+--
+-- ═════════════════════════════════════════════════════════════════════════════
+-- WHAT THIS CONSTRAINT DOES NOT DO, STATED SO NOBODY OVERCLAIMS IT
+-- ═════════════════════════════════════════════════════════════════════════════
+-- 1. IT DOES NOT PROVE THE SILENCE RECEIPT IS ABOUT THIS PERMIT. The key is on
+--    `silence_receipt_id` alone. A composite key onto `(silence_receipt_id,
+--    permit_id)` would be stronger and is not available, because
+--    `silence_receipt` keys on `silence_receipt_id` alone and adding a UNIQUE
+--    over the pair is a change to another worker's table. The agreement of the
+--    two permit ids is asserted by the gate procedure and by the conformance
+--    corpus, not by this key, and that limitation is recorded here rather than
+--    left for someone to discover in cross-examination.
+-- 2. IT DOES NOT MAKE PER PROVE MORE THAN IT PROVES. PER establishes exhaustion
+--    of THE RETRIEVAL THAT RAN, never of the corpus, because ANN is approximate.
+--    That is stated in the receipt schema through `index_generation` and
+--    `index_plan_digest`, it is on §11.7's must-not-claim list, and no foreign
+--    key changes it.
+-- 3. ON UPDATE RESTRICT ON DELETE RESTRICT IS NOT AN EPOCH PIN. The epoch pin is
+--    the composite `(subject_id, gate_epoch)` FK on `merge_record` (MI07, I03).
+--    RESTRICT here means only that a silence receipt cannot be re-keyed or
+--    removed out from under a receipt that cites it — which is append-only
+--    hygiene (MI01), stated in the one place a cascade could otherwise be
+--    introduced by default.
+
+ALTER TABLE mainline.exposure_receipt
+  ADD CONSTRAINT fk_silence FOREIGN KEY (silence_receipt_id)
+    REFERENCES mainline_meas.silence_receipt (silence_receipt_id)
+    ON UPDATE RESTRICT ON DELETE RESTRICT;

@@ -1,0 +1,43 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 3,
+    "doc_codes": [
+      "MOC-2023-0302",
+      "PRO-CHM-009",
+      "STD-CHM-011"
+    ],
+    "intent": "introduce",
+    "moc_ref": "MOC-2025-0014",
+    "opened_on": "2025-01-31",
+    "precursor_events": [
+      {
+        "event_ref": "INC-2024-017",
+        "severity_gate": null
+      }
+    ],
+    "site": "Tolgarra Processing and Power Station",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "management_of_change": "change assurance",
+      "verification": "assurance activity"
+    },
+    "weakening_steps": 0
+  },
+  "key": "d6d48f1039a2b787fcee6cfc1fcd4091a8776fd13c452351ce782c8f4d434a16",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2025-0014",
+  "prompt_kind": "moc",
+  "prompt_sha256": "f513c8c0d5ca535a2535866fc1f70e9dc8acb348642429556e9f9fc110227702",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2025-0014 was raised at Tolgarra Processing and Power Station on 31 January 2025 following 1 recorded event in the archive, including INC-2024-017. The change assurance record covers 3 clauses across 3 controlled documents. The intent is to introduce a duty the documents in scope did not previously carry. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the material unwanted event control set is preserved.",
+    "scope_note": "The documents in scope are MOC-2023-0302, PRO-CHM-009 and STD-CHM-011."
+  },
+  "response_sha256": "34c95fef41ad66db3bcce9096d139bda0100e6b2126547d38f22124cab782dd0",
+  "source": null
+}

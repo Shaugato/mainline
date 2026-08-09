@@ -1,0 +1,38 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 0,
+    "doc_codes": [
+      "ALERT-2009-003",
+      "PRO-MEC-055",
+      "STD-LFT-003"
+    ],
+    "intent": "weaken",
+    "moc_ref": "MOC-2005-0014",
+    "opened_on": "2005-01-09",
+    "precursor_events": [],
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "management_of_change": "engineering change note",
+      "verification": "spot check"
+    },
+    "weakening_steps": 0
+  },
+  "key": "d9a2efc5d7e044d3ae01c76e8e2ad16832e555fa12690c4c1455424b66956df1",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2005-0014",
+  "prompt_kind": "moc",
+  "prompt_sha256": "857e858de85e5c1b1a3b6e82c2b77547b881963dda65d8df88e04f8a7e1cedb3",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2005-0014 was raised at Yandarra Downs Open Cut and Heavy Workshop on 9 January 2005 as a scheduled change under engineering change note; no event precedes it in the record. The engineering change note record carries no clause change; it records the assessment only. The intent is to relax a key safeguard requirement, and the basis for the relaxation is recorded with the change. The record reached the state merged in the change stream.",
+    "risk_note": "This change relaxes a control: 0 steps of relaxation are recorded against it, and the residual risk position rests on that relaxation having been accepted deliberately.",
+    "scope_note": "The documents in scope are ALERT-2009-003, PRO-MEC-055 and STD-LFT-003."
+  },
+  "response_sha256": "ba2ed531b5d672a625d88bd4a527a2067b788de971462f6a965fe5f44170b56d",
+  "source": null
+}

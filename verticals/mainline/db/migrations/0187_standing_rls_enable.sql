@@ -1,0 +1,40 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MAINLINE · 0187_standing_rls_enable.sql
+-- ALTER TABLE mainline_meas.standing ENABLE ROW LEVEL SECURITY
+--
+-- MI: MI28
+-- I: I15
+-- COUNSEL-GATED: yes
+-- RATIONALE: `mainline_meas.standing` is the only table in the deployment holding a derived
+--            score about a named human. SEC-3 permits it under four conditions, and the
+--            fourth — the scored person can obtain their own score and its derivation — is
+--            served by a DIFFERENT object in a DIFFERENT schema under a DIFFERENT role.
+--            Enabling RLS here is what makes 'a different object' true rather than
+--            aspirational.
+--
+-- migration:  0187_standing_rls_enable
+-- domain:     datamodel / dm-views-rls
+-- band:       0180-0198z · datamodel/dm-views-rls · AUTHORED, allocated by
+--             verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1)
+-- statements: 1
+-- matrix:     verticals/mainline/db/RLS-MATRIX.yaml — this file is a RENDERING of one entry
+--             there; tests/integration/schema/test_mi_rls.py asserts the two agree
+-- source:     ARCHITECTURE.md §11.3 (RLS, SEC-1) · §4.1 law 10 · correction S22 · §11.5 (SEC-3) · §5.7 · correction S18
+-- requires:   0089 mainline_meas.standing
+-- sqlstate:   none — enabling RLS refuses nothing by itself.
+-- forward-only; no .down.sql exists at or below the protected floor.
+--
+-- ────────────────────────────────────────────────────────────────────────────
+-- COUNSEL-GATED: yes (G0) · DEFAULT: conservative · ADR: docs/adr/0001-g0-counsel.md
+-- ────────────────────────────────────────────────────────────────────────────
+-- M10 ships INERT — W = 1.0 for every hazard class, i.e. quorum = one signature = today's
+-- behaviour — with the inertness itself a dated object. The conservative default for this
+-- file is that the table exists, is written, is scoped, and is read by nobody except the
+-- measurement role and the two `mainline_qa` views. Every one of those is a decision
+-- counsel can later widen; none is a decision that has to be reversed.
+--
+
+ALTER TABLE mainline_meas.standing ENABLE ROW LEVEL SECURITY;
+

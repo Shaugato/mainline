@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 28,
+    "doc_code": "PRO-MEC-041",
+    "doc_family": "PRO",
+    "doc_title": "Export Transfer Pump Maintenance",
+    "driver": "retypeset",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2016-11-21",
+    "required_citations": [],
+    "rev_no": 6,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "ICAM investigation",
+      "management_of_change": "management of change",
+      "near_miss": "potential incident"
+    }
+  },
+  "key": "8abdaf10654d783352064971b4de4a891809664a36d82bbdea20e7b551dc5d65",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:CVY/PRO-MEC-041/006",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "14229b98d9c6259165630efd13312145c93e6e2bff592b93cc8d7fe45544d134",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [],
+    "reason": "Full retypeset to the 2016 house style; numbering reissued, requirements unchanged."
+  },
+  "response_sha256": "95395301f1554d91995d574a99df2def92bb178e3a0adfae98faf6e85833a816",
+  "source": null
+}

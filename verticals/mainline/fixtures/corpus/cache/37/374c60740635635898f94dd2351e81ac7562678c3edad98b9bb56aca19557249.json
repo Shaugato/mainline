@@ -1,0 +1,64 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 4,
+    "doc_code": "PRO-OPS-017",
+    "doc_family": "PRO",
+    "doc_title": "Ship Loading and Vapour Recovery",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2014-10-16",
+    "required_citations": [
+      {
+        "control_label": "integrity of the mechanical seal support system",
+        "event_ref": "INC-2014-013",
+        "event_title": "pressure release during shift handover on TK-7103",
+        "hazard_energy": "pressure",
+        "kind": "capa_action",
+        "quote_ref": "quote:CVY/PRO-OPS-017/006#capa_action/INC-2014-013",
+        "severity_gate": 2
+      },
+      {
+        "control_label": "controlled transfer of hydrocarbon between vessels",
+        "event_ref": "INC-2014-013",
+        "event_title": "pressure release during shift handover on TK-7103",
+        "hazard_energy": "pressure",
+        "kind": "moc_reference",
+        "quote_ref": "quote:CVY/PRO-OPS-017/006#moc_reference/INC-2014-013",
+        "severity_gate": 2
+      }
+    ],
+    "rev_no": 6,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "root cause analysis",
+      "management_of_change": "change request",
+      "near_miss": "hazard report"
+    }
+  },
+  "key": "374c60740635635898f94dd2351e81ac7562678c3edad98b9bb56aca19557249",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:CVY/PRO-OPS-017/006",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "f27e499b63a16eb683f41cc8554f552668b170810ad8edc667e07c27dd7b1edf",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The corrective action recorded against INC-2014-013 required the integrity of the mechanical seal support system to be restated in this procedure.",
+        "quote_ref": "quote:CVY/PRO-OPS-017/006#capa_action/INC-2014-013"
+      },
+      {
+        "line": "The change request record for this revision cites INC-2014-013 as the reason the controlled transfer of hydrocarbon between vessels was amended.",
+        "quote_ref": "quote:CVY/PRO-OPS-017/006#moc_reference/INC-2014-013"
+      }
+    ],
+    "reason": "Scheduled review at revision 6; 4 clauses restated."
+  },
+  "response_sha256": "c13701654d9ca974a8d88d07b2e2cea271403389e4fe2548c0230438db18dd6b",
+  "source": null
+}

@@ -1,0 +1,38 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 0,
+    "doc_codes": [
+      "MOC-2021-0155",
+      "PRO-MIN-003",
+      "STD-MEQ-007"
+    ],
+    "intent": "restate",
+    "moc_ref": "MOC-2020-0253",
+    "opened_on": "2020-11-30",
+    "precursor_events": [],
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "management_of_change": "management of change",
+      "verification": "critical control verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "8f0b9ff62850dcb1302cc944445604faf55221c20605f5f7e9e6a49754c7642b",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2020-0253",
+  "prompt_kind": "moc",
+  "prompt_sha256": "a6d29723433e96eb7978025f1b7388c3d8acfd3af74954bf8946cf02a70674f0",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2020-0253 was raised at Yandarra Downs Open Cut and Heavy Workshop on 30 November 2020 as a scheduled change under management of change; no event precedes it in the record. The management of change record carries no clause change; it records the assessment only. The intent is to restate an existing duty without altering what it requires. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical control set is preserved.",
+    "scope_note": "The documents in scope are MOC-2021-0155, PRO-MIN-003 and STD-MEQ-007."
+  },
+  "response_sha256": "6f1ae83c645180453108c3ec210c89eb31c400c4ce45931a46810fa848d8f962",
+  "source": null
+}

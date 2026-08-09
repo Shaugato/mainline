@@ -1,0 +1,49 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 1,
+    "doc_codes": [
+      "ALERT-2016-007",
+      "MOC-2014-0087",
+      "PRO-MEC-041",
+      "PRO-OPS-017",
+      "PTW-STD-003"
+    ],
+    "intent": "introduce",
+    "moc_ref": "MOC-2021-0138",
+    "opened_on": "2021-09-28",
+    "precursor_events": [
+      {
+        "event_ref": "AF-2024-003",
+        "severity_gate": null
+      },
+      {
+        "event_ref": "INC-2005-003",
+        "severity_gate": null
+      }
+    ],
+    "site": "Cape Verity Export Terminal",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "management_of_change": "management of change",
+      "verification": "critical control verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "b6b2cce2b1a505ba15af381ca272b60d2c0d9cb86d081862edf1a72e0325c969",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2021-0138",
+  "prompt_kind": "moc",
+  "prompt_sha256": "5711a2ba1d6089bfeaf33f37d3bfc87bc0641ad529cdc096cc2d1be50757cab9",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2021-0138 was raised at Cape Verity Export Terminal on 28 September 2021 following 2 recorded events in the archive, including AF-2024-003 and INC-2005-003. The management of change record covers 1 clause across 5 controlled documents. The intent is to introduce a duty the documents in scope did not previously carry. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical control set is preserved.",
+    "scope_note": "The documents in scope are ALERT-2016-007, MOC-2014-0087, PRO-MEC-041, PRO-OPS-017 and PTW-STD-003."
+  },
+  "response_sha256": "504a449c63bd7aef3fc0c0b444687a9c590cd40b0e1688276a93e05e4d7b1122",
+  "source": null
+}

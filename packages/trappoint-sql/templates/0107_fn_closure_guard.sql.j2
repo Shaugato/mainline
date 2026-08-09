@@ -1,0 +1,176 @@
+{# SPDX-FileCopyrightText: 2026 MAINLINE contributors #}
+{# SPDX-License-Identifier: Apache-2.0 #}
+{#
+  Migration 0108 — THE CLOSURE IS APPEND-ONLY, GENERATION-DENSE, SEVERITY-MONOTONE, AND LEDGERED.
+
+  ARCHITECTURE.md §5.11 item 6 · §2.2 finding S2 · §16 MI26 · docs/leads/custody.md A10.
+
+  FINDING S2. Every ancestry gate in this system reads the blame closure, and the closure was
+  mutable, un-granted, un-ledgered and un-guarded. `UPDATE clause_blame_closure SET max_severity
+  = 0` was a shorter path to a laundered gate than any of the attacks the design was defending
+  against — one statement, no constraint violated, and every downstream refusal silently correct
+  about a fact that had been changed underneath it.
+
+  The fix is four mechanisms and this file is three of them:
+
+    1. append-only          the closure is keyed (clause_uuid, as_of_commit, closure_gen) and a
+                            rewrite is a NEW GENERATION, never an UPDATE. `fn_refuse_mutation`
+                            (0107, welded by the 0128 family) enforces that half.
+    2. dense generations    generation n+1 follows generation n with no gaps and no jumps. A gap
+                            would let a rewrite hide between two numbers nobody audits.
+    3. severity monotone    a downgrade is legal ONLY with a signed, second-rater severity
+                            revision written in the SAME TRANSACTION. Upgrades are free.
+    4. ledgered in-txn      every closure write leaves a row in the custody intake, in the same
+                            serializable transaction. THE POINT IS NOT THAT THE TRIGGER COMPUTES
+                            AN EVIDENTIARY HASH — SQL cannot, by platform law 8 — it is that a
+                            closure rewrite is IMPOSSIBLE TO PERFORM INVISIBLY.
+
+  THREE DEVIATIONS FROM ARCHITECTURE.md §5.11, EACH ONE A MEASURED DEFECT IN THE SOURCE TEXT.
+
+  (a) `crdb_internal.cluster_logical_timestamp()` DOES NOT RESOLVE on CockroachDB CCL v26.2.5.
+      Measured 2026-08-09 on the local node pinned to the Cloud version: `42883 unknown function`.
+      The builtin is spelled `cluster_logical_timestamp()`, unqualified, and that is what is
+      emitted here. A migration that created this function with the schema-qualified spelling
+      would fail at APPLY time, in the middle of the band, with a code outside the taxonomy.
+
+  (b) `site_code` IS PROJECTED FROM THE SITE TABLE, NOT CAST FROM `site_id`. §5.11 writes
+      `NEW.site_id::STRING` into `ledger_intake.site_code`. `ledger_intake` holds
+      `fk_site FOREIGN KEY (site_code) REFERENCES site (site_code)` and `site_code` is a lower-case
+      operational code, not a UUID, so the cast produces 23503 on every closure write ever
+      attempted. Projecting it — and RAISING when the site row is absent — is both the fix and the
+      idiom: the ledger's partition key has a source, and a projection with no source is a
+      partition key a writer can forge.
+
+  (c) THE PLACEHOLDER BYTES ARE NON-EMPTY AND CORRECTLY SIZED. §5.11 writes `''::BYTES` into both
+      `canon_bytes` and `leaf_hash`. `ledger_intake` carries
+      `canon_bytes_present CHECK (length(canon_bytes) > 0)` and
+      `leaf_hash_is_sha256 CHECK (length(leaf_hash) = 32)`, so the literal from §5.11 is refused
+      with 23514 and no closure could ever be written. The placeholders emitted here are a single
+      zero byte and thirty-two zero bytes: legal, unmistakably sentinel, and NOT valid JCS — so a
+      verifier that reaches one reports a DISCREPANCY rather than silently accepting bytes nobody
+      canonicalised. See the OPEN ITEM below.
+
+  OPEN ITEM, STATED RATHER THAN GLOSSED. `ledger_intake` is append-only, and the relay recomputes
+  `canon_bytes` and `leaf_hash` CLIENT-side under RFC 8785 before sequencing. An append-only table
+  cannot receive a corrected value by UPDATE, so the custody domain owns exactly one decision:
+  either `ledger_leaf` carries the relay's recomputed hash and the intake sentinel is understood
+  as "unsequenced", or intake gains an amendment row. This function is deliberately agnostic —
+  what it guarantees is that the closure write and the intake row commit together or not at all.
+
+  (d) THE SAME-TRANSACTION WINDOW IS EXACT, NOT ONE SECOND WIDE. §5.11 admits a severity
+      revision written within `transaction_timestamp() - INTERVAL '1 second'`, which admits a
+      revision from a DIFFERENT, just-committed transaction — precisely the laundering path the
+      guard exists to close (write a revision, commit, then downgrade). `now()` is the transaction
+      timestamp on this platform (measured: `transaction_timestamp() = now()` is true), so a row
+      written in THIS transaction carries `at = transaction_timestamp()` exactly and
+      `at >= transaction_timestamp()` is the precise in-transaction test.
+
+  WHAT THIS GUARD STILL DOES NOT CHECK, so nobody reads more into a green migration than it
+  carries: it counts severity revisions in this transaction; it does not verify that the revision
+  concerns an event in THIS clause's blame ancestry. That join is an ancestry walk, it belongs
+  outside a hot trigger (§4.1 law 4), and it is the projector's obligation. What the guard makes
+  impossible is a SILENT downgrade — every one of them now costs a signed, second-rater,
+  ledgered artefact in the same transaction.
+
+  PLATFORM (measured on CockroachDB CCL v26.2.5, 2026-08-09): `(NEW).col` for every read;
+  `cluster_logical_timestamp()` unqualified; `decode(repeat('0', 64), 'hex')` is exactly 32 bytes.
+#}
+-- @file 0108_fn_closure_guard.sql
+{{ header(file='0108_fn_closure_guard.sql',
+          title='CREATE FUNCTION ' ~ binding.schema ~ '.fn_closure_guard — generations dense, severity monotone, every write ledgered',
+          rationale='Finding S2: every ancestry gate reads the blame closure, and the closure was mutable, un-granted, un-ledgered and un-guarded, so a single UPDATE was a shorter path to a laundered gate than any attack the design was defending against. Generations must be dense so a rewrite cannot hide between two numbers nobody audits; severity may fall only against a signed second-rater revision written in the same transaction; and every write leaves a custody intake row in that transaction, so a closure rewrite is impossible to perform invisibly. The trigger does not compute the evidentiary hash — SQL cannot — and does not pretend to.',
+          mi=['MI26', 'MI15', 'MI01'], i=['I05']) }}
+--
+-- migration:  0108_fn_closure_guard
+-- band:       0100-0109z · kernel/projection-triggers · RENDERED
+-- statements: 1
+-- invariants: MI26 — the blame closure is append-only, generation-dense and severity-monotone
+--             across generations. This function is the DENSE and MONOTONE halves; the
+--             append-only half is `fn_refuse_mutation` welded by the 0128 family, and the grant
+--             half is `{{ role.projector }}` holding INSERT on this table and nothing else.
+-- source:     ARCHITECTURE.md §5.11 item 6 · §2.2 S2 · docs/leads/custody.md A10
+-- requires:   {{ binding.schema }}.clause_blame_closure · {{ binding.schema }}.site (site_code) ·
+--             {{ binding.schema }}.ledger_intake · {{ binding.schema }}.event_severity_revision
+-- provides:   {{ binding.schema }}.fn_closure_guard() — welded to clause_blame_closure by 0127
+-- sqlstate:   P0001 on a non-dense generation, on a silent severity downgrade, and on a closure
+--             whose site has no row. 23514 from ledger_intake's own CHECKs if the placeholder
+--             bytes were ever narrowed. 23503 on fk_site is unreachable BECAUSE site_code is
+--             projected here rather than cast.
+-- grants:     {{ role.projector }} needs INSERT on clause_blame_closure and on ledger_intake, and
+--             SELECT on site — nothing more, and nothing on any gated subject. Grants are cluster
+--             state applied by the declarative matrix, never by a migration; this line is the
+--             statement of what the matrix must say, and the privilege probe is the evidence.
+-- forward-only; no .down.sql and no .up.sql (MR-5).
+--
+-- ACYCLICITY. BEFORE INSERT on clause_blame_closure; reads that table, `site` and
+-- `event_severity_revision`, and writes `ledger_intake`, whose only trigger is the append-only
+-- guard on UPDATE and DELETE. Trigger depth contributed: 1.
+
+CREATE FUNCTION {{ binding.schema }}.fn_closure_guard() RETURNS TRIGGER LANGUAGE PLpgSQL AS $$
+DECLARE
+  v_prev_severity INT2;
+  v_prev_gen INT8;
+  v_revisions INT8;
+  v_site_code STRING;
+BEGIN
+  -- The immediately preceding generation for this exact clause version, by primary-key prefix.
+  SELECT c.max_severity, c.closure_gen
+    INTO v_prev_severity, v_prev_gen
+    FROM {{ binding.schema }}.clause_blame_closure c
+   WHERE c.clause_uuid = (NEW).clause_uuid
+     AND c.as_of_commit = (NEW).as_of_commit
+   ORDER BY c.closure_gen DESC
+   LIMIT 1;
+
+  -- DENSE: the first generation is zero and every later one is exactly one more. A closure that
+  -- may start at any number is a closure with room to hide a rewrite in.
+  IF v_prev_gen IS NULL AND (NEW).closure_gen <> 0 THEN
+    RAISE EXCEPTION USING ERRCODE='P0001',
+      MESSAGE='{{ binding.name }}: the first closure generation for a clause version must be zero';
+  END IF;
+  IF v_prev_gen IS NOT NULL AND (NEW).closure_gen <> v_prev_gen + 1 THEN
+    RAISE EXCEPTION USING ERRCODE='P0001',
+      MESSAGE='{{ binding.name }}: closure generations must be dense and monotone';
+  END IF;
+
+  -- MONOTONE: upgrades are free, downgrades cost a signed second-rater revision IN THIS
+  -- TRANSACTION. The one aggregate this body is allowed (§4.1 law 4), and it is nested inside
+  -- the only branch that needs it.
+  IF v_prev_severity IS NOT NULL AND (NEW).max_severity < v_prev_severity THEN
+    SELECT count(*) INTO v_revisions
+      FROM {{ binding.schema }}.event_severity_revision r
+     WHERE r.at >= transaction_timestamp();
+    IF v_revisions = 0 THEN
+      RAISE EXCEPTION USING ERRCODE='P0001',
+        MESSAGE='{{ binding.name }}: closure severity may not decrease without a signed severity revision';
+    END IF;
+  END IF;
+
+  -- The ledger partition key HAS A SOURCE. Projected, never cast from site_id, and absence
+  -- refuses.
+  SELECT st.site_code INTO v_site_code
+    FROM {{ binding.schema }}.site st
+   WHERE st.site_id = (NEW).site_id;
+  IF v_site_code IS NULL THEN
+    RAISE EXCEPTION USING ERRCODE='P0001',
+      MESSAGE='{{ binding.name }}: no site row for this closure — the ledger partition key has no source';
+  END IF;
+
+  -- LEDGERED IN THE SAME TRANSACTION. canon_bytes and leaf_hash are SENTINEL PLACEHOLDERS: one
+  -- zero byte and thirty-two zero bytes. They satisfy ledger_intake's own CHECKs, they are not
+  -- valid RFC 8785 bytes, and the relay recomputes both client-side before sequencing.
+  INSERT INTO {{ binding.schema }}.ledger_intake
+              (site_code, entry_kind, subject_id, actor, actor_kind, payload,
+               canon_bytes, payload_ver, leaf_hash, hlc)
+       VALUES (v_site_code, 'closure', (NEW).clause_uuid, (NEW).computed_by, 'service',
+               jsonb_build_object(
+                 'clause_uuid',    (NEW).clause_uuid,
+                 'as_of_commit',   encode((NEW).as_of_commit, 'hex'),
+                 'closure_gen',    (NEW).closure_gen,
+                 'max_severity',   (NEW).max_severity,
+                 'ancestor_count', (NEW).ancestor_count,
+                 'truncated',      (NEW).truncated),
+               decode('00', 'hex'), 1, decode(repeat('0', 64), 'hex'),
+               cluster_logical_timestamp());
+  RETURN NEW;
+END $$;

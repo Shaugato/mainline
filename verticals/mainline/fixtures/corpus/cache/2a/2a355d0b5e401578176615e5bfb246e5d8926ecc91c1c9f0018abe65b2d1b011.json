@@ -1,0 +1,39 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 3,
+    "doc_codes": [
+      "ALERT-2016-007",
+      "MOC-2026-0413",
+      "PRO-MEC-014",
+      "PRO-OPS-032"
+    ],
+    "intent": "weaken",
+    "moc_ref": "MOC-2020-0052",
+    "opened_on": "2020-03-23",
+    "precursor_events": [],
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "terminal_state": "abandoned",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "management_of_change": "management of change",
+      "verification": "critical control verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "2a355d0b5e401578176615e5bfb246e5d8926ecc91c1c9f0018abe65b2d1b011",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2020-0052",
+  "prompt_kind": "moc",
+  "prompt_sha256": "07d917d68673896063c72a4147307c1eb1c5817b451a48e80ae6bb59f6cf5654",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2020-0052 was raised at Marrindal Concentrator and Hydrocarbon Transfer Facility on 23 March 2020 as a scheduled change under management of change; no event precedes it in the record. The management of change record covers 3 clauses across 4 controlled documents. The intent is to relax a critical control requirement, and the basis for the relaxation is recorded with the change. The record reached the state abandoned in the change stream.",
+    "risk_note": "This change relaxes a control: 0 steps of relaxation are recorded against it, and the residual risk position rests on that relaxation having been accepted deliberately.",
+    "scope_note": "The documents in scope are ALERT-2016-007, MOC-2026-0413, PRO-MEC-014 and PRO-OPS-032."
+  },
+  "response_sha256": "10b69365572e3e9980bfe76c468896faa4d75315e8e314e1ed544a851b82c10a",
+  "source": null
+}

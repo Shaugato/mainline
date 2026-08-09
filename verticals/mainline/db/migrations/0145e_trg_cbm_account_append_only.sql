@@ -1,0 +1,76 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MAINLINE · 0145e_trg_cbm_account_append_only.sql
+-- CREATE TRIGGER z_cbm_account_append_only — the hole an INSERT-only guard leaves open
+--
+-- MI: MI26, MI03, MI25
+-- I: I01, I02
+-- COUNSEL-GATED: no
+-- RATIONALE: `fn_cbm_account_guard` (0140a) fires BEFORE INSERT, so an UPDATE walks straight
+--            past it. `CONSTRAINT cbm_balances` still evaluates on an UPDATE — but it only asks
+--            whether the six numbers sum correctly, and a writer supplying
+--            `inherited = 2, carried = 1, split_carried = 1` over a stored `inherited = 3`
+--            supplies six numbers that sum perfectly and are false. Every refusal this domain
+--            builds would then be reachable around, on one statement, by anyone with UPDATE.
+--            This statement is what makes "append-only, generation-versioned" (MI26) a property
+--            of the database rather than a sentence in a header.
+--
+-- migration:  0145e_trg_cbm_account_append_only
+-- domain:     algorithms
+-- band:       0145-0149z · datamodel/dm-functions-triggers + algorithms · AUTHORED, allocated
+--             by verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1). MR-5 band
+--             overflow of this domain's own `0145`; `0146`-`0149` belong to
+--             `datamodel/dm-functions-triggers` and are untouched.
+-- statements: 1  (the CREATE TRIGGER, and nothing else)
+-- invariants: MI26 — append-only and generation-versioned, exactly as the closure is.
+--             I01  — no UPDATE or DELETE on a ledger, obligation or certificate relation.
+--             MI03, MI25, I02 — the refusals this one stops being reachable around.
+-- source:     ARCHITECTURE.md §5.11 item 9 (`fn_refuse_mutation`, and the list of relations it
+--             is applied to) · §16 MI26 · docs/leads/algorithms.md §5.
+-- requires:   0049c mainline.cbm_account · 0107 mainline.fn_refuse_mutation
+-- sqlstate:   P0001 — `MAINLINE: this table is append-only; write a new row`
+-- forward-only; no .down.sql exists at or below the protected floor (DM-14).
+--
+-- ═════════════════════════════════════════════════════════════════════════════════════════════
+-- IT REUSES THE KERNEL'S FUNCTION AND DOES NOT WRITE ITS OWN
+-- ═════════════════════════════════════════════════════════════════════════════════════════════
+-- `mainline.fn_refuse_mutation` is the substrate's, created at 0107 and welded to eleven
+-- relations by 0128-0128j. `mainline.cbm_account` is a VERTICAL table, so it is not on that
+-- list and it never will be — MR-1's object test asks whether a second TRAPPOINT vertical needs
+-- the object to pass `trappoint-conform`, and it does not need MAINLINE's blame accounting. But
+-- the OBLIGATION is identical, and a second, near-identical `fn_cbm_account_refuse_mutation`
+-- would be a second message for the same event and a second thing to keep in step. One
+-- function, many tables, and the message an operator sees is the same wherever they hit it.
+--
+-- ── WHY THE GUARD AT 0145a CANNOT SIMPLY COVER `UPDATE` INSTEAD ──────────────────────────────
+-- It could be attached `BEFORE INSERT OR UPDATE` and would then re-derive on an UPDATE too,
+-- which sounds strictly better and is not. Re-deriving on UPDATE would make an in-place
+-- correction SUCCEED — quietly, with the correct numbers, leaving no trace that the earlier
+-- account had ever said something different. The whole attack this table exists to record is
+-- "the accounting was right when it was written and the world moved underneath it", and an
+-- UPDATE path erases exactly that evidence. A correction must be a NEW GENERATION, which is a
+-- new INSERT, which 0145a already guards. So the correct answer to an UPDATE is not to check it
+-- harder; it is to refuse it.
+--
+-- ── DELETE, TOO, AND FOR A DIFFERENT REASON ──────────────────────────────────────────────────
+-- `BEFORE UPDATE OR DELETE`. Deleting the newest generation would silently promote an older,
+-- more convenient one to authoritative — `z_cbm_gate` and `mainline_audit.v_cbm_ledger` both
+-- read `max(account_gen)` — so a DELETE is a generation rewrite wearing different clothes.
+-- Deletes are revoked at the grant layer as well; this is the structural half that survives a
+-- grant being edited, and it travels with the schema into a restored cluster where the grants
+-- do not.
+--
+-- ── WHAT THIS DOES NOT CLAIM ─────────────────────────────────────────────────────────────────
+-- `ALTER TABLE mainline.cbm_account DISABLE TRIGGER z_cbm_account_append_only` succeeds, like
+-- every trigger in this deployment. What the custodian patrol makes impossible is removing the
+-- RECORD that it was disabled, and that claim belongs to the custody domain and is not verified
+-- by this worker. Nor does this file make the account immune to a `DROP TABLE`.
+--
+-- ── D10 ──────────────────────────────────────────────────────────────────────────────────────
+-- This trigger fires on UPDATE and DELETE; 0145a fires on INSERT. They cannot both fire on one
+-- statement, so there is no order between them to depend on even in principle. The `z_` prefix
+-- is cosmetic, as it is everywhere in this domain.
+
+CREATE TRIGGER z_cbm_account_append_only BEFORE UPDATE OR DELETE ON mainline.cbm_account
+  FOR EACH ROW EXECUTE FUNCTION mainline.fn_refuse_mutation();

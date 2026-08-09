@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "HAZARDOUS-SUBSTANCE-EXPOSURE",
+    "barrier_role": "preventive",
+    "control_class": "LOAD_RESTRAINT_AND_PLACARDING",
+    "control_delta": "strengthen",
+    "control_label": "restraint and placarding of transported loads",
+    "doc_code": "PRO-CHM-009",
+    "doc_family": "PRO",
+    "doc_title": "Reagent Make-Up and Dosing",
+    "effective_on": "2012-03-05",
+    "printed_label": "4.2",
+    "setpoint": null,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "energy_isolation": "lock out tag out",
+      "verification": "field verification"
+    }
+  },
+  "key": "5e78305819ae6b61655e7ee5e71ecda1bd90009353a0231ccd9db7705e287f03",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:TLG/PRO-CHM-009/003#TLG/PRO-CHM-009/4.2",
+  "prompt_kind": "clause",
+  "prompt_sha256": "609741d09e51aed9c24083725f82a408fdc87d9ee7d48835c82e60312cbf57bc",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The restraint and placarding of transported loads must be provided, and its effectiveness must be recorded as a field verification before the task proceeds. This clause applies to activities archived under HAZARDOUS-SUBSTANCE-EXPOSURE at Tolgarra Processing and Power Station.",
+    "obligation_verb": "must"
+  },
+  "response_sha256": "2955eca6b525e64dc4766e7ce636cea8cf947993833f55dfe1a61f2c4ae97639",
+  "source": null
+}

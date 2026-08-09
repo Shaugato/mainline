@@ -1,0 +1,90 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
+
+[project]
+name = "mainline-sequencer"
+version = "0.1.0"
+description = "The lease-CAS singleton ledger sequencer: anti-join batch selection, in-transaction dense seq derivation, fork-free append, and the Signed Disposition Receipt sink."
+readme = "README.md"
+requires-python = ">=3.13"
+# FSL-1.1-ALv2 per the repository licence map (verticals/mainline/* is FSL).
+# The licence TEXT lives in the repo-root LICENSES/ tree, outside this project
+# directory, and therefore cannot be referenced by `license-files`.
+license = "LicenseRef-FSL-1.1-ALv2"
+authors = [{ name = "MAINLINE contributors" }]
+keywords = ["cockroachdb", "compare-and-swap", "rfc6962", "transparency-log", "sequencer"]
+classifiers = [
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Database",
+  "Typing :: Typed",
+  "Private :: Do Not Upload",
+]
+
+# TWO DECLARED DEPENDENCIES, and the absence of a third is deliberate.
+#
+#   psycopg 3     — the ledger write path is INSERT + SELECT and nothing else, so the
+#                   driver is the only infrastructure this package needs.
+#   trappoint-jcs — `sink.py` canonicalises every payload under RFC 8785 before hashing
+#                   it. Canonicalisation is CLIENT-side by construction
+#                   (spec/custody/ledger-schema.md §6): CockroachDB's `sha256()` returns
+#                   hex TEXT and JSONB reorders keys, so `sha256(payload::STRING)` is a
+#                   value no third party can reproduce.
+#
+# NOT DECLARED, AND THE REASON IS RECORDED RATHER THAN HIDDEN: `trappoint-ledger`.
+# `append.py` needs the RFC 6962 tree, the link-chain step and the C2SP checkpoint body
+# from `packages/trappoint-ledger` (custody workers 3 and 4). That distribution had not
+# landed when this package was written, and declaring a `{ workspace = true }` source
+# for a member that does not exist makes `uv lock` fail for EVERY worker in the
+# repository — a shared-state failure in exchange for a line of metadata.
+#
+# So the dependency is expressed the honest way instead: `append.default_algebra()` and
+# `sink.default_receipt_issuer()` bind to it lazily and raise `LedgerAlgebraUnavailable`
+# / `ReceiptIssuerUnavailable` naming the exact missing symbol. Nothing silently
+# degrades, nothing is re-implemented, and the day `packages/trappoint-ledger` lands the
+# fix is one line here plus `uv lock`. See README §"What this package does not own".
+#
+# NO tenacity/backoff/retrying: the bounded CAS loop in `append.py` is hand-written and
+# `.importlinter` contract 4 forbids those libraries repository-wide. A decorator that
+# retries "on exception" cannot tell `ledger_leaf_pkey` (contention) from
+# `ledger_leaf_entry_unique` (already done) from `fk_site` (a refusal), and CU-2 turns
+# on exactly that distinction.
+dependencies = [
+  "psycopg[binary]>=3.3.4",
+  "trappoint-jcs",
+]
+
+[project.urls]
+Homepage = "https://github.com/Shaugato/mainline"
+
+[tool.uv.sources]
+trappoint-jcs = { workspace = true }
+
+[dependency-groups]
+dev = [
+  "pytest>=8.3",
+  "mypy>=1.11",
+]
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mainline_sequencer"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "tests", "README.md"]
+
+[tool.pytest.ini_options]
+# `src` so the package tests run from a clean checkout without an editable install;
+# the root workspace's `testpaths` are `tests` and `packages`, so this tree is
+# collected only when pytest is pointed at it deliberately.
+pythonpath = ["src"]
+testpaths = ["tests"]
+addopts = ["--strict-markers", "-ra"]
+
+[tool.mypy]
+python_version = "3.13"
+warn_unreachable = true
+mypy_path = "src"
+packages = ["mainline_sequencer"]

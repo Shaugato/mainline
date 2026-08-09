@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 5,
+    "doc_code": "PRO-OPS-017",
+    "doc_family": "PRO",
+    "doc_title": "Ship Loading and Vapour Recovery",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2016-07-28",
+    "required_citations": [
+      {
+        "control_label": "secondary containment by bund and drainage",
+        "event_ref": "RN-2015-002",
+        "event_title": "prohibition notice - work stopped during start-up after maintenance on ZV-7210",
+        "hazard_energy": "pressure",
+        "kind": "investigation_recommendation",
+        "quote_ref": "quote:CVY/PRO-OPS-017/007#investigation_recommendation/RN-2015-002",
+        "severity_gate": 4
+      }
+    ],
+    "rev_no": 7,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "ICAM investigation",
+      "management_of_change": "management of change",
+      "near_miss": "potential incident"
+    }
+  },
+  "key": "a29af4422bb588f195203f7a3fdc85613cfc5957465adac8eaab0ac8c8618983",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:CVY/PRO-OPS-017/007",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "d0fc0bcd871ee1374fe4c006aefab110f18985c18b650ab7618ee4ace21669bf",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The ICAM investigation into RN-2015-002 recommended that the secondary containment by bund and drainage be strengthened in this procedure.",
+        "quote_ref": "quote:CVY/PRO-OPS-017/007#investigation_recommendation/RN-2015-002"
+      }
+    ],
+    "reason": "Scheduled review at revision 7; 5 clauses restated."
+  },
+  "response_sha256": "31045dfd459e6146aea448dc612c1380d782fc25cf5ebbed14b31ef53d691781",
+  "source": null
+}

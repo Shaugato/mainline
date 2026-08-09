@@ -1,0 +1,106 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "making up, decanting and dosing reagents",
+    "activity_root": "HAZARDOUS-SUBSTANCE-EXPOSURE",
+    "activity_series": "handling and dosing reagents",
+    "assets": [
+      {
+        "asset_class": "ESD-CLASS-A",
+        "label": "emergency shutdown valves",
+        "service": "jetty and manifold emergency isolation",
+        "tag": "ZV-7211"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 1,
+      "label": "fatality"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "EXPOSURE_MONITORING",
+        "control_label": "monitoring of airborne contaminant exposure",
+        "failure_mode": "not_verified",
+        "hazard_energy": "chemical",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "LOAD_RESTRAINT_AND_PLACARDING",
+        "control_label": "restraint and placarding of transported loads",
+        "failure_mode": "absent",
+        "hazard_energy": "chemical",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "REAGENT_HANDLING_CONTROL",
+        "control_label": "controlled make-up, decanting and dosing of reagents",
+        "failure_mode": "absent",
+        "hazard_energy": "chemical",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "INC-2007-003",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "incident",
+    "occurred_on": "2007-03-10",
+    "severity_actual": 5,
+    "severity_potential": 5,
+    "site": "Cape Verity Export Terminal",
+    "summary_facts": [],
+    "task_phase": "during a statutory inspection",
+    "title": "uncontrolled movement of ZV-7211 during a statutory inspection",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "investigation": "accident investigation",
+      "near_miss": "near hit",
+      "verification": "spot check"
+    }
+  },
+  "key": "8f52a21038fc5e9b22c501508a2ebcaed2d7b150f75087f6f0776a8adcd0f0b5",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2007-003",
+  "prompt_kind": "icam",
+  "prompt_sha256": "eda459e7d362f5181ea91f63f283a265f75ce7dafd886ccb2543d4824cb14280",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was fatality, with 1 person injured.",
+    "defences": [
+      {
+        "control_class": "EXPOSURE_MONITORING",
+        "finding": "Control EXPOSURE_MONITORING: the monitoring of airborne contaminant exposure was never verified as effective, and the accident investigation classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "LOAD_RESTRAINT_AND_PLACARDING",
+        "finding": "Control LOAD_RESTRAINT_AND_PLACARDING: the restraint and placarding of transported loads was not in place, and the accident investigation classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "REAGENT_HANDLING_CONTROL",
+        "finding": "Control REAGENT_HANDLING_CONTROL: the controlled make-up, decanting and dosing of reagents was not in place, and the accident investigation classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the monitoring of airborne contaminant exposure on ZV-7211 and record the spot check before this task is next authorised.",
+      "Restore the restraint and placarding of transported loads on ZV-7211 and record the spot check before this task is next authorised.",
+      "Restore the controlled make-up, decanting and dosing of reagents on ZV-7211 and record the spot check before this task is next authorised."
+    ],
+    "sequence": "Work was under way in handling and dosing reagents, specifically making up, decanting and dosing reagents. ZV-7211 (emergency shutdown valves) is in service for jetty and manifold emergency isolation. The task proceeded during a statutory inspection while the monitoring of airborne contaminant exposure was never verified as effective. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 10 March 2007 an incident occurred on ZV-7211 at Cape Verity Export Terminal during a statutory inspection, releasing chemical energy held as hydrocarbon."
+  },
+  "response_sha256": "71107de3e582e7af71fe0592bfca3d8d324f56c54795a0332d3032a88914fdeb",
+  "source": null
+}

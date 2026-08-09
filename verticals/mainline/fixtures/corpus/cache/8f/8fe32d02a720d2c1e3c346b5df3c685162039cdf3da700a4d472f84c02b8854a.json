@@ -1,0 +1,39 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 0,
+    "doc_codes": [
+      "ALERT-2016-007",
+      "MOC-2026-0413",
+      "PRO-MEC-014",
+      "PRO-OPS-032"
+    ],
+    "intent": "strengthen",
+    "moc_ref": "MOC-2004-0030",
+    "opened_on": "2004-04-17",
+    "precursor_events": [],
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "management_of_change": "engineering change note",
+      "verification": "spot check"
+    },
+    "weakening_steps": 0
+  },
+  "key": "8fe32d02a720d2c1e3c346b5df3c685162039cdf3da700a4d472f84c02b8854a",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2004-0030",
+  "prompt_kind": "moc",
+  "prompt_sha256": "b667fcd9fe3539272a3d3403495cadba628ade65bcca00084564ca7aaa48b7d6",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2004-0030 was raised at Marrindal Concentrator and Hydrocarbon Transfer Facility on 17 April 2004 as a scheduled change under engineering change note; no event precedes it in the record. The engineering change note record carries no clause change; it records the assessment only. The intent is to strengthen the key safeguard named in the documents in scope. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the key safeguard set is preserved.",
+    "scope_note": "The documents in scope are ALERT-2016-007, MOC-2026-0413, PRO-MEC-014 and PRO-OPS-032."
+  },
+  "response_sha256": "76a8fe98b4cc2e8f9ef24793a8f049566f028c0501c86f758e79f5687f65eae8",
+  "source": null
+}

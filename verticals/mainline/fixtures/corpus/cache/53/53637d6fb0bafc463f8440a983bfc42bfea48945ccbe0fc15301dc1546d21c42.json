@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 26,
+    "doc_code": "PRO-ELE-008",
+    "doc_family": "PRO",
+    "doc_title": "Electrical Isolation and Access to Switchgear",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2019-02-28",
+    "required_citations": [
+      {
+        "control_label": "authorisation of switching and access to apparatus",
+        "event_ref": "NM-2018-0008",
+        "event_title": "trapped hazardous energy found after isolation of TX-3002",
+        "hazard_energy": "thermal",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:MRD/PRO-ELE-008/007#revision_history_line/NM-2018-0008",
+        "severity_gate": 3
+      }
+    ],
+    "rev_no": 7,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "ICAM investigation",
+      "management_of_change": "management of change",
+      "near_miss": "potential incident"
+    }
+  },
+  "key": "53637d6fb0bafc463f8440a983bfc42bfea48945ccbe0fc15301dc1546d21c42",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/PRO-ELE-008/007",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "720f6e46b5f0cf1ff6fe1085c1c0bc24fb8f3e644a5879a84066dbb6137fbec8",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "Revision 7 was raised in response to NM-2018-0008, and the authorisation of switching and access to apparatus was amended as a result.",
+        "quote_ref": "quote:MRD/PRO-ELE-008/007#revision_history_line/NM-2018-0008"
+      }
+    ],
+    "reason": "Scheduled review at revision 7; 26 clauses restated."
+  },
+  "response_sha256": "ec3c769343760579a755d405bb978dd8b1dcb2d9707e4fddfdabf5ebc7248a6e",
+  "source": null
+}

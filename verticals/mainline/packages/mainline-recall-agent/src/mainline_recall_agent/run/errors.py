@@ -45,9 +45,7 @@ __all__ = [
 RETRYABLE_SQLSTATES: Final[frozenset[str]] = frozenset({"40001"})
 
 #: Refusals. Attempted exactly once, reported with the constraint or trigger name.
-GATE_REFUSAL_SQLSTATES: Final[frozenset[str]] = frozenset(
-    {"23514", "23503", "23505", "P0001"}
-)
+GATE_REFUSAL_SQLSTATES: Final[frozenset[str]] = frozenset({"23514", "23503", "23505", "P0001"})
 
 
 class RunRefused(Exception):

@@ -1,0 +1,17 @@
+{
+  "items": [
+    {
+      "id": "au-0000000201",
+      "timestamp": "2026-08-09T13:00:04Z",
+      "action": "CLUSTER_SQL_USER_UPDATED",
+      "source": "CONSOLE",
+      "user_email": "ops@example.test",
+      "resource_type": "CLUSTER",
+      "resource_id": "cl-custody-fixture"
+    }
+  ],
+  "pagination": {
+    "next_page": null,
+    "page_size": 100
+  }
+}

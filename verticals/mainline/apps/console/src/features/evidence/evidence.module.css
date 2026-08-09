@@ -1,0 +1,342 @@
+/*
+ * SPDX-FileCopyrightText: 2026 MAINLINE contributors
+ * SPDX-License-Identifier: FSL-1.1-ALv2
+ *
+ * The evidence view — EVIDENCE register (docs/leads/ui.md §1.1).
+ *
+ * No transition, no transform, no gradient, no shadow. Everything on this screen is a
+ * value the database or the manifest emitted, or arithmetic this browser did over one;
+ * nothing here should be reproducible only by watching it happen. A screenshot of this
+ * page is the whole page.
+ *
+ * Colour is used in exactly three places and each is a state, never a decoration:
+ * `--tp-refuse` for a digest that disagreed, `--tp-warn` for a slot nobody could fill,
+ * and the neutral ramp for everything else. There is no green here — the only green in
+ * the console belongs to the VerificationSeal, which is a primitive.
+ */
+
+/*
+ * Available to assistive technology, absent from the page and from a screenshot. Local
+ * rather than imported from the design package's a11y module: a feature directory that
+ * reaches into another worker's stylesheet for one class couples two trees for no gain.
+ */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.screen {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-5);
+  padding: var(--tp-space-4) 0;
+  color: var(--tp-ink);
+  font-family: var(--tp-sans);
+  font-size: var(--tp-step-0);
+  line-height: var(--tp-leading-body);
+}
+
+.title {
+  margin: 0 0 var(--tp-space-2);
+  font-size: var(--tp-step-3);
+  font-weight: var(--tp-weight-strong);
+  line-height: var(--tp-leading-tight);
+}
+
+.standfirst {
+  margin: 0;
+  max-width: 78ch;
+  color: var(--tp-ink-dim);
+}
+
+.sectionTitle {
+  margin: 0 0 var(--tp-space-3);
+  font-size: var(--tp-step-2);
+  font-weight: var(--tp-weight-medium);
+  line-height: var(--tp-leading-tight);
+}
+
+.note {
+  margin: var(--tp-space-2) 0 0;
+  max-width: 78ch;
+  color: var(--tp-ink-dim);
+  font-size: var(--tp-step--1);
+}
+
+/* ── Identity block ──────────────────────────────────────────────────────── */
+
+.identity {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: var(--tp-space-2) var(--tp-space-4);
+  margin: 0;
+}
+
+.identity dt {
+  color: var(--tp-ink-faint);
+  font-size: var(--tp-step--1);
+  letter-spacing: var(--tp-tracking-caps);
+  text-transform: uppercase;
+}
+
+.identity dd {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.verbatim {
+  margin: 0;
+  padding: var(--tp-space-3);
+  border: var(--tp-hairline) solid var(--tp-rule);
+  border-radius: var(--tp-radius);
+  background: var(--tp-bg-inset);
+  color: var(--tp-ink);
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step--1);
+  line-height: var(--tp-leading-tight);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.sealRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--tp-space-3);
+  margin-bottom: var(--tp-space-3);
+}
+
+/* ── Coverage ────────────────────────────────────────────────────────────── */
+
+.counters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: var(--tp-space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.counterCell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-1);
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.equation {
+  margin: var(--tp-space-4) 0 0;
+  padding: var(--tp-space-3);
+  border-left: 3px solid var(--tp-rule-strong);
+  background: var(--tp-bg-sunken);
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step--1);
+  overflow-wrap: anywhere;
+}
+
+.equation[data-conserved='false'] {
+  border-left-color: var(--tp-refuse);
+  color: var(--tp-refuse-ink);
+}
+
+/* ── Inventory table ─────────────────────────────────────────────────────── */
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--tp-step--1);
+}
+
+.table caption {
+  margin-bottom: var(--tp-space-2);
+  color: var(--tp-ink-dim);
+  text-align: left;
+}
+
+.table th,
+.table td {
+  padding: var(--tp-space-2) var(--tp-space-3) var(--tp-space-2) 0;
+  border-bottom: var(--tp-hairline) solid var(--tp-rule);
+  text-align: left;
+  vertical-align: top;
+}
+
+.table thead th {
+  border-bottom: var(--tp-hairline) solid var(--tp-rule-strong);
+  color: var(--tp-ink-faint);
+  font-weight: var(--tp-weight-medium);
+  letter-spacing: var(--tp-tracking-caps);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.table td[data-numeric='true'] {
+  font-family: var(--tp-mono);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.path {
+  font-family: var(--tp-mono);
+  overflow-wrap: anywhere;
+}
+
+.kind {
+  color: var(--tp-ink-faint);
+  white-space: nowrap;
+}
+
+.serves {
+  max-width: 42ch;
+  color: var(--tp-ink-dim);
+  overflow-wrap: anywhere;
+}
+
+.servesKey {
+  display: block;
+  color: var(--tp-ink);
+  font-family: var(--tp-mono);
+}
+
+.state {
+  font-weight: var(--tp-weight-medium);
+  white-space: nowrap;
+}
+
+.state[data-state='mismatch'],
+.state[data-state='unreadable'] {
+  color: var(--tp-refuse);
+  font-size: var(--tp-step-1);
+  font-weight: var(--tp-weight-strong);
+}
+
+.state[data-state='unchecked'] {
+  color: var(--tp-warn);
+}
+
+.rowDetail {
+  margin: var(--tp-space-1) 0 0;
+  color: var(--tp-refuse-ink);
+  font-family: var(--tp-mono);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+/* ── Findings, gaps, limits ──────────────────────────────────────────────── */
+
+.plainList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-3);
+}
+
+.finding {
+  padding-left: var(--tp-space-3);
+  border-left: 3px solid var(--tp-refuse);
+}
+
+.findingHead {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tp-space-2);
+  align-items: baseline;
+  font-family: var(--tp-mono);
+  overflow-wrap: anywhere;
+}
+
+.findingCheck {
+  color: var(--tp-refuse);
+  font-size: var(--tp-step-1);
+  font-weight: var(--tp-weight-strong);
+}
+
+.findingDetail {
+  margin: var(--tp-space-1) 0 0;
+  max-width: 88ch;
+  color: var(--tp-ink-dim);
+}
+
+.gap {
+  padding-left: var(--tp-space-3);
+  border-left: 3px solid var(--tp-rule-strong);
+}
+
+.gapHead {
+  font-family: var(--tp-mono);
+  overflow-wrap: anywhere;
+}
+
+.gapOwner {
+  color: var(--tp-warn);
+  font-size: var(--tp-step-1);
+  font-weight: var(--tp-weight-strong);
+}
+
+.limit {
+  padding-left: var(--tp-space-3);
+  border-left: 3px solid var(--tp-rule);
+}
+
+.limitClaim {
+  margin: 0;
+  font-weight: var(--tp-weight-medium);
+}
+
+.limitWhy {
+  margin: var(--tp-space-1) 0 0;
+  max-width: 88ch;
+  color: var(--tp-ink-dim);
+}
+
+/* ── Non-audited states ──────────────────────────────────────────────────── */
+
+.status {
+  margin: 0;
+  color: var(--tp-ink-dim);
+  font-family: var(--tp-mono);
+}
+
+.failure {
+  padding: var(--tp-space-4);
+  border: var(--tp-hairline) solid var(--tp-refuse);
+  border-radius: var(--tp-radius);
+  background: var(--tp-bg-raised);
+}
+
+.failureTitle {
+  margin: 0 0 var(--tp-space-2);
+  color: var(--tp-refuse);
+  font-size: var(--tp-step-1);
+  font-weight: var(--tp-weight-strong);
+}
+
+.absent {
+  padding: var(--tp-space-4);
+  border: var(--tp-hairline) dashed var(--tp-warn);
+  border-radius: var(--tp-radius);
+  background: var(--tp-bg-raised);
+}
+
+.absentTitle {
+  margin: 0 0 var(--tp-space-2);
+  color: var(--tp-warn);
+  font-size: var(--tp-step-1);
+  font-weight: var(--tp-weight-strong);
+}

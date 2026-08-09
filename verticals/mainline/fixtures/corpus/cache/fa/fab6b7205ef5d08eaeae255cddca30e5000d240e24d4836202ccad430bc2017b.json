@@ -1,0 +1,45 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 1,
+    "doc_codes": [
+      "ALERT-2016-007",
+      "MOC-2014-0087",
+      "PRO-MEC-041",
+      "PRO-OPS-017",
+      "PTW-STD-003"
+    ],
+    "intent": "strengthen",
+    "moc_ref": "MOC-2016-0102",
+    "opened_on": "2016-09-29",
+    "precursor_events": [
+      {
+        "event_ref": "INC-2016-004",
+        "severity_gate": null
+      }
+    ],
+    "site": "Cape Verity Export Terminal",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "management_of_change": "management of change",
+      "verification": "critical control verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "fab6b7205ef5d08eaeae255cddca30e5000d240e24d4836202ccad430bc2017b",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2016-0102",
+  "prompt_kind": "moc",
+  "prompt_sha256": "2a395dceed2d961e52efaff47bb40c67bc993599a9b6fbf81ffbd05614cbf14f",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2016-0102 was raised at Cape Verity Export Terminal on 29 September 2016 following 1 recorded event in the archive, including INC-2016-004. The management of change record covers 1 clause across 5 controlled documents. The intent is to strengthen the critical control named in the documents in scope. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical control set is preserved.",
+    "scope_note": "The documents in scope are ALERT-2016-007, MOC-2014-0087, PRO-MEC-041, PRO-OPS-017 and PTW-STD-003."
+  },
+  "response_sha256": "0dd0d3200a447c6c2f07c20bf86b12cf0e4ac39913e49eac64d1c9dcd310c2b8",
+  "source": null
+}

@@ -1,0 +1,103 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "loading, restraining and placarding a load",
+    "activity_root": "LAND-TRANSPORT",
+    "activity_series": "transporting materials by road",
+    "assets": [
+      {
+        "asset_class": "CONV-CLASS-A",
+        "label": "plant conveyors",
+        "service": "coarse ore and reclaim conveying",
+        "tag": "CV-3102"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 1,
+      "label": "medical treatment injury"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "FATIGUE_AND_FITNESS_CONTROL",
+        "control_label": "assessment of fatigue and fitness for driving",
+        "failure_mode": "not_verified",
+        "hazard_energy": "kinetic",
+        "icam_tier": "organisational_factor"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "LOAD_RESTRAINT_AND_PLACARDING",
+        "control_label": "restraint and placarding of transported loads",
+        "failure_mode": "degraded",
+        "hazard_energy": "kinetic",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "PROXIMITY_DETECTION_AND_SEGREGATION",
+        "control_label": "segregation of light vehicles and pedestrians from heavy equipment",
+        "failure_mode": "absent",
+        "hazard_energy": "kinetic",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "INC-2025-002",
+    "hazard_energy": "kinetic",
+    "hazard_media": [
+      "rotating equipment",
+      "conveyor",
+      "mobile equipment",
+      "pressurised jet",
+      "flying fragment"
+    ],
+    "hazard_release": "entanglement, impact, crush",
+    "kind": "incident",
+    "occurred_on": "2025-01-07",
+    "severity_actual": 2,
+    "severity_potential": 2,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during an intrusive maintenance task",
+    "title": "fire on CV-3102 during an intrusive maintenance task",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "e84af90f16c2b3aec406c384d0581f86ac4df819413be68b85bd79c0cc199826",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2025-002",
+  "prompt_kind": "icam",
+  "prompt_sha256": "174f09018d951fe726b4f93b4ef83d4d25e1394f0f05e91f0e03f6158491c4b9",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was medical treatment injury, with 1 person injured.",
+    "defences": [
+      {
+        "control_class": "FATIGUE_AND_FITNESS_CONTROL",
+        "finding": "Control FATIGUE_AND_FITNESS_CONTROL: the assessment of fatigue and fitness for driving was never verified as effective, and the learning team review classified this as an organisational factor."
+      },
+      {
+        "control_class": "LOAD_RESTRAINT_AND_PLACARDING",
+        "finding": "Control LOAD_RESTRAINT_AND_PLACARDING: the restraint and placarding of transported loads had degraded below its design intent, and the learning team review classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "PROXIMITY_DETECTION_AND_SEGREGATION",
+        "finding": "Control PROXIMITY_DETECTION_AND_SEGREGATION: the segregation of light vehicles and pedestrians from heavy equipment was not in place, and the learning team review classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Restore the restraint and placarding of transported loads on CV-3102 and record the assurance activity before this task is next authorised."
+    ],
+    "sequence": "Work was under way in transporting materials by road, specifically loading, restraining and placarding a load. CV-3102 (plant conveyors) is in service for coarse ore and reclaim conveying. The task proceeded during an intrusive maintenance task while the assessment of fatigue and fitness for driving was never verified as effective. The kinetic energy involved is held as rotating equipment, and the recorded presentation was entanglement, impact, crush.",
+    "summary": "On 7 January 2025 an incident occurred on CV-3102 at Marrindal Concentrator and Hydrocarbon Transfer Facility during an intrusive maintenance task, releasing kinetic energy held as rotating equipment."
+  },
+  "response_sha256": "9a36ea8467b2d1b4697e663d21588ead0b9ccb7929202ba11fce686e77e663ad",
+  "source": null
+}

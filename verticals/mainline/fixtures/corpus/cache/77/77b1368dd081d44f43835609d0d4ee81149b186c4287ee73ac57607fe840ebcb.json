@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 6,
+    "doc_code": "PRO-MEC-041",
+    "doc_family": "PRO",
+    "doc_title": "Export Transfer Pump Maintenance",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2017-12-11",
+    "required_citations": [
+      {
+        "control_label": "integrity of the mechanical seal support system",
+        "event_ref": "NM-2017-0020",
+        "event_title": "potential incident - thermal exposure at P-7113",
+        "hazard_energy": "thermal",
+        "kind": "investigation_recommendation",
+        "quote_ref": "quote:CVY/PRO-MEC-041/007#investigation_recommendation/NM-2017-0020",
+        "severity_gate": 2
+      }
+    ],
+    "rev_no": 7,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "ICAM investigation",
+      "management_of_change": "management of change",
+      "near_miss": "potential incident"
+    }
+  },
+  "key": "77b1368dd081d44f43835609d0d4ee81149b186c4287ee73ac57607fe840ebcb",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:CVY/PRO-MEC-041/007",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "52d4d745218166ffef55bd81c20b427b19103282776bb6bc02f8d65742e6d090",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The ICAM investigation into NM-2017-0020 recommended that the integrity of the mechanical seal support system be strengthened in this procedure.",
+        "quote_ref": "quote:CVY/PRO-MEC-041/007#investigation_recommendation/NM-2017-0020"
+      }
+    ],
+    "reason": "Scheduled review at revision 7; 6 clauses restated."
+  },
+  "response_sha256": "a4627e2429f8d2274e1261b834ff9ab0086b1d65ac55e55c8982806ed1207fc0",
+  "source": null
+}

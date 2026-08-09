@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 0,
+    "doc_codes": [
+      "PRO-HSE-012",
+      "STD-CSE-002"
+    ],
+    "intent": "weaken",
+    "moc_ref": "MOC-2005-0064",
+    "opened_on": "2005-04-28",
+    "precursor_events": [],
+    "site": "Cape Verity Export Terminal",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "management_of_change": "engineering change note",
+      "verification": "spot check"
+    },
+    "weakening_steps": 0
+  },
+  "key": "f6359f8a79a69e73a857d2bdb9f9e63e361268b14fedddc5034b25e1fcdce078",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2005-0064",
+  "prompt_kind": "moc",
+  "prompt_sha256": "7819ddec60e4cf9840092acedf9f4022b50ddb548f823f61113e0a2ad6564eed",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2005-0064 was raised at Cape Verity Export Terminal on 28 April 2005 as a scheduled change under engineering change note; no event precedes it in the record. The engineering change note record carries no clause change; it records the assessment only. The intent is to relax a key safeguard requirement, and the basis for the relaxation is recorded with the change. The record reached the state merged in the change stream.",
+    "risk_note": "This change relaxes a control: 0 steps of relaxation are recorded against it, and the residual risk position rests on that relaxation having been accepted deliberately.",
+    "scope_note": "The documents in scope are PRO-HSE-012 and STD-CSE-002."
+  },
+  "response_sha256": "13714ee05d21a1003c3120fa12284cb59a8b090c9bbd751478f3b490853378dc",
+  "source": null
+}

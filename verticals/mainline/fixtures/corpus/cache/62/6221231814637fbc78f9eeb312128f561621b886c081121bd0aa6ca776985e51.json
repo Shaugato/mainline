@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ELECTRICAL-SAFETY",
+    "barrier_role": "preventive",
+    "control_class": "SWITCHING_AUTHORISATION",
+    "control_delta": "strengthen",
+    "control_label": "authorisation of switching and access to apparatus",
+    "doc_code": "PRO-ELE-008",
+    "doc_family": "PRO",
+    "doc_title": "Electrical Isolation and Access to Switchgear",
+    "effective_on": "2010-07-04",
+    "printed_label": "1.4",
+    "setpoint": null,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "energy_isolation": "lock out tag out",
+      "verification": "field verification"
+    }
+  },
+  "key": "6221231814637fbc78f9eeb312128f561621b886c081121bd0aa6ca776985e51",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/PRO-ELE-008/003#MRD/PRO-ELE-008/1.4",
+  "prompt_kind": "clause",
+  "prompt_sha256": "aef57374be6cc7039f3a53cf52ee4c227b3eadce1123f0c3e61bf32495b90ffc",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The authorisation of switching and access to apparatus must be provided, and its effectiveness must be recorded as a field verification before the task proceeds. This clause applies to activities archived under ELECTRICAL-SAFETY at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "must"
+  },
+  "response_sha256": "d238db01ec67db6a563a39b4d2a83dea4dac7bb88c0a53cac8e66b979fe3efea",
+  "source": null
+}

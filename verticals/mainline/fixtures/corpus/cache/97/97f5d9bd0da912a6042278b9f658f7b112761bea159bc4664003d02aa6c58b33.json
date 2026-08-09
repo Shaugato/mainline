@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "barrier_role": "preventive",
+    "control_class": "HYDROCARBON_TRANSFER_CONTROL",
+    "control_delta": "introduce",
+    "control_label": "controlled transfer of hydrocarbon between vessels",
+    "doc_code": "ALERT-2016-007",
+    "doc_family": "ALERT",
+    "doc_title": "OEM Advisory - Mechanical Seal Support System Barrier Fluid Degradation",
+    "effective_on": "2016-03-22",
+    "printed_label": "1.3",
+    "setpoint": null,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "97f5d9bd0da912a6042278b9f658f7b112761bea159bc4664003d02aa6c58b33",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/ALERT-2016-007/001#MRD/ALERT-2016-007/1.3",
+  "prompt_kind": "clause",
+  "prompt_sha256": "d200606e47713722a51a2146a03ed113ed06c5f1b80fd9c82bf0570978a5c8ca",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The controlled transfer of hydrocarbon between vessels shall be provided and maintained for work covered by this safety alert. This clause applies to activities archived under CONTAINMENT-OF-HYDROCARBONS at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "d4579dcf8437d1db2fd8778ee06dc3e9cbb6e337676337385f339b338f89630a",
+  "source": null
+}

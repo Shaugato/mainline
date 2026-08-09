@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 3,
+    "doc_code": "PRO-MEC-014",
+    "doc_family": "PRO",
+    "doc_title": "Hydrocarbon Transfer Pump Maintenance",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2019-02-27",
+    "required_citations": [],
+    "rev_no": 12,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "ICAM investigation",
+      "management_of_change": "management of change",
+      "near_miss": "potential incident"
+    }
+  },
+  "key": "cba415755bbde2453e6c4aee643f52e4429d67271062696ebded6db4dc72fa73",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/PRO-MEC-014/012",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "f0ed10cf569a5d8589ef21d2398d62823ed179f39bd6bf792aba747c22b078c5",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [],
+    "reason": "Scheduled review at revision 12; 3 clauses restated."
+  },
+  "response_sha256": "a6ff02784aba1a744ca5015c03e1ec2bde698f105a974bb1526e901bcc5ad6e6",
+  "source": null
+}

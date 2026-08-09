@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "barrier_role": "preventive",
+    "control_class": "HYDROCARBON_TRANSFER_CONTROL",
+    "control_delta": "introduce",
+    "control_label": "controlled transfer of hydrocarbon between vessels",
+    "doc_code": "ALERT-2016-007",
+    "doc_family": "ALERT",
+    "doc_title": "OEM Advisory - Mechanical Seal Support System Barrier Fluid Degradation",
+    "effective_on": "2016-03-22",
+    "printed_label": "2.2",
+    "setpoint": null,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "672f8b5363cf222bc8302fdc54799b58073d7d8effd6264a9b163ac04f8bc44f",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:CVY/ALERT-2016-007/001#CVY/ALERT-2016-007/2.2",
+  "prompt_kind": "clause",
+  "prompt_sha256": "e4053b6fd32b8debc5b46cac115c97d67b72b809c0d74f412b7b2545e4d61975",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The controlled transfer of hydrocarbon between vessels shall be provided and maintained for work covered by this safety alert. This clause applies to activities archived under CONTAINMENT-OF-HYDROCARBONS at Cape Verity Export Terminal.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "16168fe31dc91fd1823f9a05cb42f5cbb65841dc445317044727c32ef1aad142",
+  "source": null
+}

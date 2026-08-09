@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "HAZARDOUS-SUBSTANCE-EXPOSURE",
+    "barrier_role": "preventive",
+    "control_class": "EXPOSURE_MONITORING",
+    "control_delta": "restate",
+    "control_label": "monitoring of airborne contaminant exposure",
+    "doc_code": "PRO-CHM-009",
+    "doc_family": "PRO",
+    "doc_title": "Reagent Make-Up and Dosing",
+    "effective_on": "2019-03-19",
+    "printed_label": "2.1.2",
+    "setpoint": null,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "cdc98e04d6d95d62fd0364305c50db23f14608df88126205c0b3ae799576832d",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:TLG/PRO-CHM-009/008#TLG/PRO-CHM-009/2.6",
+  "prompt_kind": "clause",
+  "prompt_sha256": "a13ac2cd9b56f114516d69a2ac1026e42d899bf05f69cf4e6fb16d9cb28178b1",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The monitoring of airborne contaminant exposure shall be provided and maintained wherever this procedure applies, and its condition shall be treated as a critical control. This clause applies to activities archived under HAZARDOUS-SUBSTANCE-EXPOSURE at Tolgarra Processing and Power Station.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "609c596202dc088ae830e1707f3964f9875967c37f707d1f86fba7c3323fabd2",
+  "source": null
+}

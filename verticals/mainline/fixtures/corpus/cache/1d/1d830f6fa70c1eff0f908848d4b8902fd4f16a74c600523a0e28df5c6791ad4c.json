@@ -1,0 +1,47 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 2,
+    "doc_codes": [
+      "MOC-2021-0155",
+      "PRO-MIN-003",
+      "STD-MEQ-007"
+    ],
+    "intent": "strengthen",
+    "moc_ref": "MOC-2011-0025",
+    "opened_on": "2011-02-22",
+    "precursor_events": [
+      {
+        "event_ref": "AF-2017-001",
+        "severity_gate": null
+      },
+      {
+        "event_ref": "NM-2010-0015",
+        "severity_gate": null
+      }
+    ],
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "terminal_state": "abandoned",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "management_of_change": "change request",
+      "verification": "field verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "1d830f6fa70c1eff0f908848d4b8902fd4f16a74c600523a0e28df5c6791ad4c",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2011-0025",
+  "prompt_kind": "moc",
+  "prompt_sha256": "280aeff6f534b0c5bfa707bb63e64e1b21ea2a28baefcccefc3a2060dd3d484c",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2011-0025 was raised at Yandarra Downs Open Cut and Heavy Workshop on 22 February 2011 following 2 recorded events in the archive, including AF-2017-001 and NM-2010-0015. The change request record covers 2 clauses across 3 controlled documents. The intent is to strengthen the critical safeguard named in the documents in scope. The record reached the state abandoned in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical safeguard set is preserved.",
+    "scope_note": "The documents in scope are MOC-2021-0155, PRO-MIN-003 and STD-MEQ-007."
+  },
+  "response_sha256": "9700ad0b1cded6933543cfb630908f861467b3730da7afbadb029e430c6761ac",
+  "source": null
+}

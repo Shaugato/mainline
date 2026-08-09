@@ -1,0 +1,160 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+#
+# ============================================================================
+# disposition_ext — THE COUNSEL-GATED SURFACE, AS CONFIGURATION (DM-17)
+#
+# Gate:      G0 (BUILD_PLAN.md section 2, exit criterion 1; section 2.1)
+# Decision:  docs/adr/0001-g0-counsel.md — G0 NOT SOUGHT, pre-committed
+#            conservative default EXECUTED, 2026-08-06
+# Reading:   verticals/mainline/db/ext/disposition_ext/README.md
+#
+# THIS FILE IS NOT IN THE APPLY PATH. It has no migration number, `discover()`
+# never sees it, and `trappoint migrate lint` never reads it. It is the
+# declaration of which legal reading the shipped DDL is operating under.
+#
+# WHY IT IS A TOML AND NOT A `.sql` VARIANT. BUILD_PLAN section 2.1 requires the
+# counsel-sensitive shape to be CONFIGURATION rather than variant DDL, and DM-17
+# is the data-model ruling that implements it: a DDL fork per legal answer is
+# two schemas to test and one to get wrong. Every switch below is therefore
+# answerable WITHOUT writing a migration — two of the three are answered by
+# rows in `mainline.clearance_legal`, which is versioned data with a named
+# approver, and the third is answered by which schema a table already sits in.
+#
+# HONESTY NOTE, STATED HERE RATHER THAN IMPLIED: nothing loads this file at
+# render time or at apply time today. The enforcement is the three absent rows
+# in `0018b_clearance_legal_seed.sql` and the two composite foreign keys that
+# point at that table (`disposition.fk_clearance`, `carried_disposition.
+# carried_fk_clearance`). This file records WHICH reading those rows encode and
+# what it would cost to change it. A configuration file that claims to be wired
+# when it is not is a worse artefact than one that says so.
+# ============================================================================
+
+[gate]
+id = "G0"
+name = "counsel gate — the legal shape of the disposition record"
+status = "default_executed"          # sought | default_executed | answered
+sought = false
+adr = "docs/adr/0001-g0-counsel.md"
+decided_at = "2026-08-06"
+decided_by = "founder"
+default = "conservative"
+# Filled in only when G0 is actually answered. Left empty deliberately: an
+# empty advice reference is a visible gap, and an invented one is a lie in a
+# file whose entire purpose is to be quoted at a lawyer.
+advice_reference = ""
+answered_at = ""
+answered_by = ""
+
+# ----------------------------------------------------------------------------
+# SWITCH 1 — may a `mechanism_absent` verdict be recorded over fatal ancestry?
+#
+# CONSERVATIVE (false): it may not, because `(blood_fatal, mechanism_absent)` is
+# NOT A ROW in `mainline.clearance_legal`. It is not a stricter row with a
+# higher rank and a shorter expiry; it is absence, and absence in a foreign-key
+# target is `23503` naming `fk_clearance` (on a signature) or
+# `carried_fk_clearance` (on a carry) for EVERY writer, including a DBA and
+# including the MCP insert path.
+#
+# The same absence covers `(blood_fatal, accept_residual)` and
+# `(blood_major, accept_residual)` — see `absent_cells` below.
+#
+# COST OF FLIPPING TO true: an INSERT into `mainline.clearance_legal` with a
+# named `approved_by_sub` and a bumped `policy_version`. No migration, no
+# column change, no test rewrite (DM-5: the MI tests assert the REFUSAL, and
+# the refusal is data-driven).
+# ----------------------------------------------------------------------------
+
+[disposition]
+mechanism_absent_over_fatal_ancestry = false
+
+# The three cells the conservative reading keeps absent. Read as an assertion,
+# not as a grant: this list must equal the set of (virulence, kind) pairs in the
+# 4x6 product that `0018b_clearance_legal_seed.sql` does NOT insert.
+absent_cells = [
+  ["blood_fatal", "mechanism_absent"],
+  ["blood_fatal", "accept_residual"],
+  ["blood_major", "accept_residual"],
+]
+absent_cells_asserted_by = "verticals/mainline/db/ext/disposition_ext/clearance_legal.conservative.sql"
+seeded_by = "verticals/mainline/db/migrations/0018b_clearance_legal_seed.sql"
+enforced_by = [
+  "mainline.disposition.fk_clearance",
+  "mainline.carried_disposition.fk_clearance",
+]
+# Both are spelled `fk_clearance`, which spec R-3 (Exhibit Uniqueness) forbids: a refusal-bearing
+# name must identify the refusal without a qualifying table. Recorded here because this file is
+# what a service reads to know which constraint to expect. See README.md, "Known divergence".
+
+# ----------------------------------------------------------------------------
+# SWITCH 2 — is it recorded whether the human opened the evidence?
+#
+# CONSERVATIVE (true): yes, it is recorded. `disposition.evidence_opened = false`
+# before a fatality is a devastating row and it ships anyway, because a system
+# that DELIBERATELY DECLINES to record whether the human read the warning is a
+# worse exhibit — that design choice is itself discoverable, dated and authored.
+# You cannot design your way out of recording facts; you can only choose between
+# recording them honestly and blinding yourself on purpose.
+#
+# Note the asymmetry with switch 1, which is the point of having two switches:
+# recording MORE is the conservative answer here, recording LESS is the
+# conservative answer for per-approver timing below.
+# ----------------------------------------------------------------------------
+
+[citation]
+record_evidence_opened = true
+citation_mandatory = true
+# `verbatim_floor` on `mainline.disposition`: gist may accuse, only verbatim may
+# acquit. A `mechanism_absent` or `mitigated` verdict must clear its required
+# anchor count, and anchors are S3 Object Lock objects with a span digest.
+verbatim_required_for = ["mechanism_absent", "mitigated"]
+
+# ----------------------------------------------------------------------------
+# SWITCH 3 — where does the silence ledger live, and who can read it?
+#
+# CONSERVATIVE ("mainline_meas"): the UNPRIVILEGED measurement zone. The ledger
+# of what the system declined to surface, with its arithmetic, is treated as
+# DISCOVERABLE BY DEFAULT. Putting it behind privilege would be the worst of
+# both worlds — the exhibit exists and the placement looks like concealment.
+#
+# COST OF FLIPPING: a schema move, which IS a migration. This is the one switch
+# whose flip is not free, and it is priced that way on purpose: "move the
+# uncomfortable record somewhere quieter" should cost a reviewed change with a
+# number on it.
+# ----------------------------------------------------------------------------
+
+[silence]
+silence_ledger_zone = "mainline_meas"
+silence_ledger_migration = "0086"
+privileged = false
+
+# ----------------------------------------------------------------------------
+# SWITCH 4 — per-approver dwell timing.
+#
+# CONSERVATIVE (false): OFF. ADR 0001, question 4 (NSW Workplace Surveillance
+# Act 2005 and its analogues). `deliberation_seconds` is derived from the
+# SERVER-issued `exposure_receipt.issued_at` — a record of what the SYSTEM did,
+# not a measurement of a worker — and no CHECK on `mainline.disposition` reads
+# it. Any per-person measurement family stays opt-in behind
+# `mainline_meas.person_measure_policy` and is enabled in no default
+# configuration and in no demo.
+# ----------------------------------------------------------------------------
+
+[measurement]
+per_approver_dwell_timing = false
+person_measure_policy_default = "opt_in"
+deliberation_source = "server:exposure_receipt.issued_at"
+
+# ----------------------------------------------------------------------------
+# WITHHELD UNTIL G0 CLEARS (ADR 0001, "Two things are withheld")
+# ----------------------------------------------------------------------------
+
+[withheld]
+public_claim_about_paid_audit = false      # false = not claimed anywhere
+publish_mainline_audit_package = false
+revisit_before = [
+  "the first commercial conversation about the paid MOC Ancestry Audit",
+  "publishing the mainline-audit policy package",
+  "enabling any per-person measurement in a customer tenant",
+  "freezing the disposition kind vocabulary as a SemVer-stable public API",
+]

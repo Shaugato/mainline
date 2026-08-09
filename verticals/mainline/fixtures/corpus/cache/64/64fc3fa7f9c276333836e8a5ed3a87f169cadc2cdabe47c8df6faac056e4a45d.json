@@ -1,0 +1,45 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 1,
+    "doc_codes": [
+      "ALERT-2016-007",
+      "MOC-2014-0087",
+      "PRO-MEC-041",
+      "PRO-OPS-017",
+      "PTW-STD-003"
+    ],
+    "intent": "weaken",
+    "moc_ref": "MOC-2009-0050",
+    "opened_on": "2009-03-01",
+    "precursor_events": [
+      {
+        "event_ref": "AF-2018-002",
+        "severity_gate": null
+      }
+    ],
+    "site": "Cape Verity Export Terminal",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "management_of_change": "engineering change note",
+      "verification": "spot check"
+    },
+    "weakening_steps": 0
+  },
+  "key": "64fc3fa7f9c276333836e8a5ed3a87f169cadc2cdabe47c8df6faac056e4a45d",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2009-0050",
+  "prompt_kind": "moc",
+  "prompt_sha256": "48992546280ec8ed09b828cb9fa17156a9ad20a887d786cad7e81f38af2f82e6",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2009-0050 was raised at Cape Verity Export Terminal on 1 March 2009 following 1 recorded event in the archive, including AF-2018-002. The engineering change note record covers 1 clause across 5 controlled documents. The intent is to relax a key safeguard requirement, and the basis for the relaxation is recorded with the change. The record reached the state merged in the change stream.",
+    "risk_note": "This change relaxes a control: 0 steps of relaxation are recorded against it, and the residual risk position rests on that relaxation having been accepted deliberately.",
+    "scope_note": "The documents in scope are ALERT-2016-007, MOC-2014-0087, PRO-MEC-041, PRO-OPS-017 and PTW-STD-003."
+  },
+  "response_sha256": "b53e9c7bc60470fd840424e2f1758f7764a674c3d58afb90fcdcfbc546928ae9",
+  "source": null
+}

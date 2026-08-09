@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "LIFTING-AND-SUSPENDED-LOADS",
+    "barrier_role": "preventive",
+    "control_class": "LIFTING_GEAR_INSPECTION",
+    "control_delta": "introduce",
+    "control_label": "inspection and periodic proof testing of lifting gear",
+    "doc_code": "ALERT-2009-003",
+    "doc_family": "ALERT",
+    "doc_title": "Fatality - Uncontrolled Descent of a Suspended Component in the Heavy Workshop",
+    "effective_on": "2009-11-09",
+    "printed_label": "1.5",
+    "setpoint": null,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "f044c0a395b00b9f80d2407c24dad91e75fdaa7f8af96e9444d71bb56c2911c2",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:YND/ALERT-2009-003/001#YND/ALERT-2009-003/1.5",
+  "prompt_kind": "clause",
+  "prompt_sha256": "1c988b3f6de59bb90fdc8ee75a96a637cf396d339adb93ceaa42743d9b580d3c",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The inspection and periodic proof testing of lifting gear shall be provided and maintained for work covered by this safety alert. This clause applies to activities archived under LIFTING-AND-SUSPENDED-LOADS at Yandarra Downs Open Cut and Heavy Workshop.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "323cbfe80ab428eaa8e1f258707e68992d073ee6f0a24d4c42995880696decb9",
+  "source": null
+}

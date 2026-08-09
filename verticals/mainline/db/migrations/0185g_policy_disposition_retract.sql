@@ -1,0 +1,51 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MAINLINE · 0185g_policy_disposition_retract.sql
+-- CREATE POLICY disposition_retract ON mainline.disposition — and what it does NOT control
+--
+-- MI: MI01, MI08
+-- I: I01
+-- COUNSEL-GATED: yes
+-- RATIONALE: §11.2 says UPDATE on `retracted_by` only. CockroachDB has no column-level
+--            privileges and a policy expression cannot compare OLD to NEW, so this policy
+--            cannot express the column restriction and does not try. It exists so that the
+--            trigger which DOES enforce it — `fn_disposition_retract_only`, 0104/0124 — is
+--            reached at all.
+--
+-- migration:  0185g_policy_disposition_retract
+-- domain:     datamodel / dm-views-rls
+-- band:       0180-0198z · datamodel/dm-views-rls · AUTHORED, allocated by
+--             verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1)
+-- statements: 1
+-- matrix:     verticals/mainline/db/RLS-MATRIX.yaml — this file is a RENDERING of one entry
+--             there; tests/integration/schema/test_mi_rls.py asserts the two agree
+-- source:     ARCHITECTURE.md §11.3 (RLS, SEC-1) · §4.1 law 10 · correction S22 · §11.2 · verticals/mainline/db/GRANTS.yaml (column_scope_enforced_by: trigger)
+-- requires:   0066 mainline.disposition · 0180 peer_visible · 0185 ENABLE · 0185a FORCE · 0124 trg_disposition_retract_only
+-- sqlstate:   42501 when absent; P0001 from the trigger when a column other than retracted_by moves.
+-- forward-only; no .down.sql exists at or below the protected floor.
+--
+-- ────────────────────────────────────────────────────────────────────────────
+-- READ THIS POLICY AS PLUMBING, NOT AS A CONTROL
+-- ────────────────────────────────────────────────────────────────────────────
+-- GRANTS.yaml marks the corresponding grant `column_scope_enforced_by: trigger` and warns
+-- that reading the column note as a privilege would be reading a control that does not
+-- exist. The same warning applies here with more force, because a policy LOOKS like a
+-- control. The append-only guarantee on this table is: no role holds DELETE (grants), every
+-- column except `retracted_by` and `peer_visible` is refused on UPDATE with P0001
+-- (trigger), and `disposition_delete_never` forbids DELETE outright (0185h). This file is
+-- none of those.
+--
+-- ────────────────────────────────────────────────────────────────────────────
+-- WHY A RETRACTION IS AN UPDATE AND NOT A DELETE
+-- ────────────────────────────────────────────────────────────────────────────
+-- MI01 and I01: a retracted disposition is not an erased one. `retracted_by` points at the
+-- disposition that superseded it, MI08's partial UNIQUE counts only rows where it is NULL,
+-- and the retracted row stays in the table, in the ledger and in the exhibit. Repairing
+-- history to make a verification pass is the exact behaviour this product exists to detect.
+--
+
+CREATE POLICY disposition_retract ON mainline.disposition
+  AS PERMISSIVE FOR UPDATE TO svc_disposition
+  USING (true) WITH CHECK (true);
+

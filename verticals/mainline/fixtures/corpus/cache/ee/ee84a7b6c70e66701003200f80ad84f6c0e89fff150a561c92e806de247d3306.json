@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "barrier_role": "preventive",
+    "control_class": "SEAL_SUPPORT_SYSTEM_INTEGRITY",
+    "control_delta": "introduce",
+    "control_label": "integrity of the mechanical seal support system",
+    "doc_code": "ALERT-2016-007",
+    "doc_family": "ALERT",
+    "doc_title": "OEM Advisory - Mechanical Seal Support System Barrier Fluid Degradation",
+    "effective_on": "2016-03-22",
+    "printed_label": "1.2.2(c)",
+    "setpoint": {
+      "from": 300.0,
+      "key": "barrier_fluid_pressure_low",
+      "label": "barrier fluid low-pressure alarm",
+      "strengthen_direction": "higher",
+      "to": 300.0,
+      "unit": "kPa"
+    },
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "ee84a7b6c70e66701003200f80ad84f6c0e89fff150a561c92e806de247d3306",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:CVY/ALERT-2016-007/001#CVY/ALERT-2016-007/1.2.2(c)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "1647c7052a47a42ff264da1b6e151bc7eb065e8fe916eef6970e21c4e945eb93",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The integrity of the mechanical seal support system shall be provided and maintained for work covered by this safety alert. The barrier fluid low-pressure alarm shall be set at 300 kPa. This clause applies to activities archived under CONTAINMENT-OF-HYDROCARBONS at Cape Verity Export Terminal.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "6c252e7950f332a91b0438ec21af331497053287d3ec23d3a95a91ed6eadd706",
+  "source": null
+}

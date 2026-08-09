@@ -1,0 +1,90 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "inspecting highwalls and batters",
+    "activity_root": "GROUND-AND-STRATA-CONTROL",
+    "activity_series": "monitoring and inspecting ground conditions",
+    "assets": [
+      {
+        "asset_class": "MOB-CLASS-E",
+        "label": "earthmoving fleet",
+        "service": "loading and dozing",
+        "tag": "EX-9101"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "GROUND_CONDITION_INSPECTION",
+        "control_label": "inspection and monitoring of highwalls and batters",
+        "failure_mode": "not_verified",
+        "hazard_energy": "kinetic",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "SLOPE_MONITORING_RESPONSE",
+        "control_label": "response to slope monitoring alarms",
+        "failure_mode": "ineffective",
+        "hazard_energy": "gravity",
+        "icam_tier": "organisational_factor"
+      }
+    ],
+    "event_ref": "AF-2011-001",
+    "hazard_energy": "gravity",
+    "hazard_media": [
+      "suspended load",
+      "stored potential of an elevated component",
+      "unsupported ground",
+      "person at height"
+    ],
+    "hazard_release": "fall, collapse, crush",
+    "kind": "audit_finding",
+    "occurred_on": "2011-03-07",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during commissioning of replacement equipment",
+    "title": "audit finding - work permit records incomplete for EX-9101",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "cac83c80f8ee633ebc3e742fe8c3bacfe823a3c7d0a4203fbfcb92c7180a538f",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:AF-2011-001",
+  "prompt_kind": "icam",
+  "prompt_sha256": "d8fcc3a863ca928e2b995448e334efb5ec01b8347e2958f76315e0b4114d857e",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "GROUND_CONDITION_INSPECTION",
+        "finding": "Control GROUND_CONDITION_INSPECTION: the inspection and monitoring of highwalls and batters was never verified as effective, and the root cause analysis classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "SLOPE_MONITORING_RESPONSE",
+        "finding": "Control SLOPE_MONITORING_RESPONSE: the response to slope monitoring alarms was in place but did not perform, and the root cause analysis classified this as an organisational factor."
+      }
+    ],
+    "recommendations": [
+      "Restore the inspection and monitoring of highwalls and batters on EX-9101 and record the field verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in monitoring and inspecting ground conditions, specifically inspecting highwalls and batters. EX-9101 (earthmoving fleet) is in service for loading and dozing. The task proceeded during commissioning of replacement equipment while the inspection and monitoring of highwalls and batters was never verified as effective. The gravity energy involved is held as suspended load, and the recorded presentation was fall, collapse, crush.",
+    "summary": "On 7 March 2011 a planned field verification of EX-9101 at Yandarra Downs Open Cut and Heavy Workshop found the inspection and monitoring of highwalls and batters not effective."
+  },
+  "response_sha256": "958d176fc33ff0936d56846983c8569222f4919af9beb3acbca61651b98e0cf7",
+  "source": null
+}

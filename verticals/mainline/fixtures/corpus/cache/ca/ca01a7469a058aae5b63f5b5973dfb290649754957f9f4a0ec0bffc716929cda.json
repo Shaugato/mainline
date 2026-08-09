@@ -1,0 +1,38 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 0,
+    "doc_codes": [
+      "MOC-2023-0302",
+      "PRO-CHM-009",
+      "STD-CHM-011"
+    ],
+    "intent": "strengthen",
+    "moc_ref": "MOC-2007-0034",
+    "opened_on": "2007-03-02",
+    "precursor_events": [],
+    "site": "Tolgarra Processing and Power Station",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "management_of_change": "engineering change note",
+      "verification": "spot check"
+    },
+    "weakening_steps": 0
+  },
+  "key": "ca01a7469a058aae5b63f5b5973dfb290649754957f9f4a0ec0bffc716929cda",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2007-0034",
+  "prompt_kind": "moc",
+  "prompt_sha256": "0b67215f08a2c295860b30f114b6e800c58eb26fd9d02d38d7825b52c76f36ed",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2007-0034 was raised at Tolgarra Processing and Power Station on 2 March 2007 as a scheduled change under engineering change note; no event precedes it in the record. The engineering change note record carries no clause change; it records the assessment only. The intent is to strengthen the key safeguard named in the documents in scope. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the key safeguard set is preserved.",
+    "scope_note": "The documents in scope are MOC-2023-0302, PRO-CHM-009 and STD-CHM-011."
+  },
+  "response_sha256": "2ce844f13057404a70dddefe48ad403930609496f4eb593d15175a2ad150a1f2",
+  "source": null
+}

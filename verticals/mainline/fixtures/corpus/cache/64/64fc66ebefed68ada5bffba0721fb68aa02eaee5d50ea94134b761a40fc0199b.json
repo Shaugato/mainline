@@ -1,0 +1,77 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 15,
+    "doc_code": "PTW-STD-003",
+    "doc_family": "PTW",
+    "doc_title": "Permit to Work Form Set",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2006-05-30",
+    "required_citations": [
+      {
+        "control_label": "integrity of the mechanical seal support system",
+        "event_ref": "NM-2005-0008",
+        "event_title": "residual pressure found after isolation of P-7111",
+        "hazard_energy": "thermal",
+        "kind": "moc_reference",
+        "quote_ref": "quote:CVY/PTW-STD-003/001#moc_reference/NM-2005-0008",
+        "severity_gate": 5
+      },
+      {
+        "control_label": "emergency isolation and depressuring on loss of containment",
+        "event_ref": "NM-2005-0019",
+        "event_title": "near hit - pressure exposure at P-7113",
+        "hazard_energy": "pressure",
+        "kind": "regulator_requirement",
+        "quote_ref": "quote:CVY/PTW-STD-003/001#regulator_requirement/NM-2005-0019",
+        "severity_gate": 2
+      },
+      {
+        "control_label": "secondary containment by bund and drainage",
+        "event_ref": "NM-2005-0008",
+        "event_title": "residual pressure found after isolation of P-7111",
+        "hazard_energy": "thermal",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:CVY/PTW-STD-003/001#revision_history_line/NM-2005-0008",
+        "severity_gate": 5
+      }
+    ],
+    "rev_no": 1,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "accident investigation",
+      "management_of_change": "engineering change note",
+      "near_miss": "near hit"
+    }
+  },
+  "key": "64fc66ebefed68ada5bffba0721fb68aa02eaee5d50ea94134b761a40fc0199b",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:CVY/PTW-STD-003/001",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "c7539b8530247f2acb483055ef30c192065f8d6157511d182e2fbfd9daf771e4",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The engineering change note record for this revision cites NM-2005-0008 as the reason the integrity of the mechanical seal support system was amended.",
+        "quote_ref": "quote:CVY/PTW-STD-003/001#moc_reference/NM-2005-0008"
+      },
+      {
+        "line": "A regulatory requirement arising from NM-2005-0019 obliges this permit-to-work form set to carry the emergency isolation and depressuring on loss of containment.",
+        "quote_ref": "quote:CVY/PTW-STD-003/001#regulator_requirement/NM-2005-0019"
+      },
+      {
+        "line": "Revision 1 was raised in response to NM-2005-0008, and the secondary containment by bund and drainage was amended as a result.",
+        "quote_ref": "quote:CVY/PTW-STD-003/001#revision_history_line/NM-2005-0008"
+      }
+    ],
+    "reason": "Scheduled review at revision 1; 15 clauses restated."
+  },
+  "response_sha256": "3c9803b675efa78a91668d333d3e69c0dbf8b5deff6dd1deb63fe635bcbf507f",
+  "source": null
+}

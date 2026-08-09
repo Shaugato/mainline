@@ -1,0 +1,89 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MAINLINE · 0181g_policy_permit_gate_write.sql
+-- CREATE POLICY gate_write ON mainline.permit — S22, the UPDATE arm, and TWO roles
+--
+-- MI: MI02, MI22
+-- I: I02
+-- COUNSEL-GATED: no
+-- RATIONALE: This is the policy conformance case CF-22 drops. With it, the entire gate
+--            transaction runs under FORCE ROW LEVEL SECURITY; without it, the same
+--            transaction returns 42501. The pair is the assertion — a transaction that
+--            succeeds with RLS switched off proves only that RLS was switched off.
+--
+-- migration:  0181g_policy_permit_gate_write
+-- domain:     datamodel / dm-views-rls
+-- band:       0180-0198z · datamodel/dm-views-rls · AUTHORED, allocated by
+--             verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1)
+-- statements: 1
+-- matrix:     verticals/mainline/db/RLS-MATRIX.yaml — this file is a RENDERING of one entry
+--             there; tests/integration/schema/test_mi_rls.py asserts the two agree
+-- source:     ARCHITECTURE.md §11.3 (RLS, SEC-1) · §4.1 law 10 · correction S22 · conformance case CF-22 · §5.11
+-- requires:   0050 mainline.permit · 0181 ENABLE · 0181a FORCE · 0121 trg_check_materialised · 0123 trg_disposition_close
+-- sqlstate:   NONE when absent. Read that again — see the measured block below. The INSERT arm
+--             (0181f) refuses with 42501; this UPDATE arm refuses with SILENCE.
+-- forward-only; no .down.sql exists at or below the protected floor.
+--
+-- ────────────────────────────────────────────────────────────────────────────
+-- ⚠ MEASURED: S22 IS WORSE THAN S22 SAYS, AND THIS IS THE FILE IT IS WORSE ON
+-- ────────────────────────────────────────────────────────────────────────────
+-- Measured against CockroachDB CCL v26.2.5 on 2026-08-10, not inferred:
+--
+--   DROP POLICY gate_insert  →  the INSERT raises 42501,
+--                               "new row violates row-level security policy"
+--   DROP POLICY gate_write   →  the UPDATE raises NOTHING. It matches zero rows
+--                               and returns successfully.
+--
+-- Standard PostgreSQL-family semantics, reproduced here: a `USING` clause
+-- FILTERS, and only a `WITH CHECK` violation on a NEW row RAISES. With no UPDATE
+-- policy there is no visible row to update, so there is nothing to refuse.
+-- Dropping `service_read` (0181d) alone produces the same silent zero, because an
+-- UPDATE carrying a WHERE clause also evaluates the SELECT policies.
+--
+-- Why that matters more here than anywhere else in the band:
+-- `fn_check_materialised` (0101) runs
+--
+--     UPDATE mainline.permit SET open_blocking = open_blocking + 1 WHERE …
+--
+-- and does not check that the update landed. Without this policy the trigger
+-- RETURNS NEW normally, the blocking check row exists, and `open_blocking` STAYS
+-- ZERO — so `gate_closed_when_issued CHECK (state <> 'merged' OR open_blocking =
+-- 0)` passes vacuously and the permit merges carrying an open obligation.
+--
+-- A missing UPDATE policy therefore SILENTLY DISARMS THE CENTRAL INVARIANT. That
+-- is strictly worse than the 42501 S22 predicts, because 42501 stops the
+-- transaction and this does not. `test_mi_rls.py` asserts the dangerous
+-- behaviour explicitly — `rowcount == 0, no exception, counter unchanged` — so
+-- that nobody re-derives the wrong expectation and relaxes a failing test into
+-- agreement with it. The durable fix is for the projection triggers to verify
+-- their own UPDATE affected a row and RAISE if it did not, which is P2's second
+-- half and belongs in 0101/0103/0104, files this worker does not own.
+--
+-- ────────────────────────────────────────────────────────────────────────────
+-- TWO ROLES IS THE ENTIRE POINT OF THIS FILE
+-- ────────────────────────────────────────────────────────────────────────────
+-- §11.3 writes `TO agent_gate`. That is correct for `fn_check_materialised` and
+-- `proc_merge_permit`, and it is INCOMPLETE: `fn_disposition_close` and
+-- `fn_disposition_retract_only` UPDATE the same counters on the same table, and they run as
+-- `svc_disposition`, because no trigger function in migrations 0100-0149 is declared
+-- SECURITY DEFINER. GRANTS.yaml records that execution-identity coupling explicitly rather
+-- than hiding it. Omitting the second role produces a system that passes every schema test,
+-- opens permits, materialises checks — and fails at the moment a human signs something.
+-- That is the worst possible moment for a control to fail, and it is why this file names
+-- both.
+--
+-- ────────────────────────────────────────────────────────────────────────────
+-- IF THE OUTBOX TRIGGERS EVER BECOME SECURITY DEFINER
+-- ────────────────────────────────────────────────────────────────────────────
+-- GRANTS.yaml's closing note offers that change, and it is almost certainly the better
+-- shape. If dm-functions-triggers takes it, the trigger bodies execute as `mainline_owner`
+-- and `svc_disposition` can be removed from this policy — at which point the privilege
+-- probe starts asserting 42501 on it instead. That is a one-line change to this file and a
+-- matrix edit, and it is recorded here so the coupling is not rediscovered.
+--
+
+CREATE POLICY gate_write ON mainline.permit
+  AS PERMISSIVE FOR UPDATE TO agent_gate, svc_disposition
+  USING (true) WITH CHECK (true);
+

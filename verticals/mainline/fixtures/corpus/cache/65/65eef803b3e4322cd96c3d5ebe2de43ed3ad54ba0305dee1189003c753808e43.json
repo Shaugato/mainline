@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ELECTRICAL-SAFETY",
+    "barrier_role": "recovery",
+    "control_class": "EARTH_LEAKAGE_PROTECTION",
+    "control_delta": "remove",
+    "control_label": "earth leakage and protection setting integrity",
+    "doc_code": "PRO-ELE-026",
+    "doc_family": "PRO",
+    "doc_title": "High Voltage Switching and Access",
+    "effective_on": "2012-07-14",
+    "printed_label": "9.1",
+    "setpoint": null,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "energy_isolation": "lock out tag out",
+      "verification": "field verification"
+    }
+  },
+  "key": "65eef803b3e4322cd96c3d5ebe2de43ed3ad54ba0305dee1189003c753808e43",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:TLG/PRO-ELE-026/003#TLG/PRO-ELE-026/9.1",
+  "prompt_kind": "clause",
+  "prompt_sha256": "11854130d5a31bc40c30aaf50c3f5cfbac5ccac1686c90f3fb75b320f542b9bb",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "This requirement is withdrawn. The earth leakage and protection setting integrity is no longer imposed by this procedure; the duty is discharged under the document that supersedes this clause.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "93a3f970bfcb5e060636edcea4aeb8f7c8d4b3b88532564d57b838f61e4b004f",
+  "source": null
+}

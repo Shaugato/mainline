@@ -1,0 +1,64 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 3,
+    "doc_code": "PRO-MIN-003",
+    "doc_family": "PRO",
+    "doc_title": "Haul Road and Light Vehicle Interaction",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2011-03-10",
+    "required_citations": [
+      {
+        "control_label": "segregation of light vehicles and pedestrians from heavy equipment",
+        "event_ref": "NM-2010-0015",
+        "event_title": "hazard report during transfer operations on HT-9003",
+        "hazard_energy": "kinetic",
+        "kind": "investigation_recommendation",
+        "quote_ref": "quote:YND/PRO-MIN-003/005#investigation_recommendation/NM-2010-0015",
+        "severity_gate": 3
+      },
+      {
+        "control_label": "segregation of light vehicles and pedestrians from heavy equipment",
+        "event_ref": "NM-2010-0015",
+        "event_title": "hazard report during transfer operations on HT-9003",
+        "hazard_energy": "kinetic",
+        "kind": "moc_reference",
+        "quote_ref": "quote:YND/PRO-MIN-003/005#moc_reference/NM-2010-0015",
+        "severity_gate": 3
+      }
+    ],
+    "rev_no": 5,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "root cause analysis",
+      "management_of_change": "change request",
+      "near_miss": "hazard report"
+    }
+  },
+  "key": "19a16b670d4478fe2a6fed04b0bf7107c8ef9bdb8709ec70127da2758d6c14d0",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:YND/PRO-MIN-003/005",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "c2e15291e9f5785df442555e2e0e8c0a0e0694ca64470770e7076629599eeeee",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The root cause analysis into NM-2010-0015 recommended that the segregation of light vehicles and pedestrians from heavy equipment be strengthened in this procedure.",
+        "quote_ref": "quote:YND/PRO-MIN-003/005#investigation_recommendation/NM-2010-0015"
+      },
+      {
+        "line": "The change request record for this revision cites NM-2010-0015 as the reason the segregation of light vehicles and pedestrians from heavy equipment was amended.",
+        "quote_ref": "quote:YND/PRO-MIN-003/005#moc_reference/NM-2010-0015"
+      }
+    ],
+    "reason": "Scheduled review at revision 5; 3 clauses restated."
+  },
+  "response_sha256": "51f6043d920dbf1edc50d17a2821132b0befe5bbe8a8fdee43fc78409566e2df",
+  "source": null
+}

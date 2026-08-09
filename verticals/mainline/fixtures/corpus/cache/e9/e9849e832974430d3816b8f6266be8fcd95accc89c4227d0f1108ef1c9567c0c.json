@@ -1,0 +1,40 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 0,
+    "doc_codes": [
+      "ALERT-2016-007",
+      "MOC-2014-0087",
+      "PRO-MEC-041",
+      "PRO-OPS-017",
+      "PTW-STD-003"
+    ],
+    "intent": "weaken",
+    "moc_ref": "MOC-2026-0048",
+    "opened_on": "2026-03-29",
+    "precursor_events": [],
+    "site": "Cape Verity Export Terminal",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "management_of_change": "change assurance",
+      "verification": "assurance activity"
+    },
+    "weakening_steps": 0
+  },
+  "key": "e9849e832974430d3816b8f6266be8fcd95accc89c4227d0f1108ef1c9567c0c",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2026-0048",
+  "prompt_kind": "moc",
+  "prompt_sha256": "dc33519a4126dce3213b3b9e2e069de3ef6c726e317c415475eb0292ad4089dd",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2026-0048 was raised at Cape Verity Export Terminal on 29 March 2026 as a scheduled change under change assurance; no event precedes it in the record. The change assurance record carries no clause change; it records the assessment only. The intent is to relax a material unwanted event control requirement, and the basis for the relaxation is recorded with the change. The record reached the state merged in the change stream.",
+    "risk_note": "This change relaxes a control: 0 steps of relaxation are recorded against it, and the residual risk position rests on that relaxation having been accepted deliberately.",
+    "scope_note": "The documents in scope are ALERT-2016-007, MOC-2014-0087, PRO-MEC-041, PRO-OPS-017 and PTW-STD-003."
+  },
+  "response_sha256": "b9398a599b070c3edf0e98da321ce7b8e6f1a46374d687b8fd0966438114a2d5",
+  "source": null
+}

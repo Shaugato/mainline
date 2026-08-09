@@ -30,7 +30,8 @@ from _run_corpus import (
     PERMIT_ID,
     POLICY_VERSION,
 )
-from conftest import KERNEL_BASE_URL, Harness
+from _run_harness import KERNEL_BASE_URL, Harness
+
 from trappoint_recall.per.leaf import quantise_micro
 from trappoint_recall.run.contract import BLOCKING_CAP_PROBABILISTIC, CandidateSet
 
@@ -189,7 +190,7 @@ def test_the_candidate_set_is_posted_to_the_kernel_once(harness: Harness) -> Non
 
 def test_the_posted_body_is_the_frozen_contract(harness: Harness) -> None:
     """Every blocking candidate carries the clause version its obligation will FK to."""
-    outcome = harness.run()
+    harness.run()
     document = json.loads(harness.transport.posts[0][1])
     assert document["schema_version"] == 1
     for candidate in document["candidates"]:
@@ -206,11 +207,7 @@ def test_the_receipt_commits_to_the_whole_candidate_set(clean_outcome) -> None:
     """``n`` is every candidate, and ``s`` is the cut at the lowest score a human was shown."""
     receipt = clean_outcome.receipt
     assert receipt.n == EXPECTED_COUNTS["n_candidates"]
-    raised = [
-        row
-        for row in clean_outcome.candidates
-        if row.outcome in {"blocking", "advisory"}
-    ]
+    raised = [row for row in clean_outcome.candidates if row.outcome in {"blocking", "advisory"}]
     assert receipt.theta_q == min(quantise_micro(row.p_relevant) for row in raised)
     assert receipt.s == len(raised)
     assert receipt.certificate_verdict == "partial"

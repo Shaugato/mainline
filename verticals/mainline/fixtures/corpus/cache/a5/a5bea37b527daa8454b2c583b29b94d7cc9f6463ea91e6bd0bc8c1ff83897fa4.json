@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 27,
+    "doc_code": "PRO-OPS-044",
+    "doc_family": "PRO",
+    "doc_title": "Boiler Start-Up and Warm Through",
+    "driver": "retypeset",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2016-11-21",
+    "required_citations": [],
+    "rev_no": 6,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "ICAM investigation",
+      "management_of_change": "management of change",
+      "near_miss": "potential incident"
+    }
+  },
+  "key": "a5bea37b527daa8454b2c583b29b94d7cc9f6463ea91e6bd0bc8c1ff83897fa4",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:TLG/PRO-OPS-044/006",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "1d45b52731677b3845e410abebda30ca1a6ce10c57f0e66e4f317f9ce4e71022",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [],
+    "reason": "Full retypeset to the 2016 house style; numbering reissued, requirements unchanged."
+  },
+  "response_sha256": "95395301f1554d91995d574a99df2def92bb178e3a0adfae98faf6e85833a816",
+  "source": null
+}

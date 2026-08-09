@@ -1,0 +1,39 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
+#
+# THE GT18-2 BROKEN FIXTURE. This file is deliberately wrong.
+#
+# It is named `.tf.fixture` and not `.tf` for two reasons that are the same reason: a
+# fixture that participates in the build is not a fixture. As a `.tf` it would be read by
+# `tofu` in whichever root module it sat in, and `terraform fmt -recursive` would rewrite
+# it — at which point the thing under test starts drifting toward the thing that passes.
+#
+# `check_evidence_plan.py selftest` copies it into a scratch tree under a fake
+# `infra/envs/someone-else/` and runs the GT18-2 scan there, which must refuse it twice:
+# once for the `mainline:evidence-class = "checkpoint"` tag and once for Object Lock being
+# declared outside the evidence stack.
+#
+# What it represents is the failure GT-18 actually has: not malice, but a second team
+# provisioning "a bucket for the checkpoints" in their own root module six weeks later,
+# with Object Lock configured almost right, and nobody noticing until a stranger is handed
+# two places to look.
+
+resource "aws_s3_bucket" "checkpoints" {
+  bucket              = "someone-elses-checkpoints"
+  object_lock_enabled = true
+
+  tags = {
+    "mainline:evidence-class" = "checkpoint"
+  }
+}
+
+resource "aws_s3_bucket_object_lock_configuration" "checkpoints" {
+  bucket = aws_s3_bucket.checkpoints.id
+
+  rule {
+    default_retention {
+      mode  = "GOVERNANCE"
+      years = 1
+    }
+  }
+}

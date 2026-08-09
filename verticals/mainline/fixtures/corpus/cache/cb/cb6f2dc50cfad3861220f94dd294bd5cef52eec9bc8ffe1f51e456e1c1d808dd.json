@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 5,
+    "doc_code": "STD-MEQ-007",
+    "doc_family": "STD",
+    "doc_title": "Mobile Equipment Interaction",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2016-04-02",
+    "required_citations": [],
+    "rev_no": 4,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "ICAM investigation",
+      "management_of_change": "management of change",
+      "near_miss": "potential incident"
+    }
+  },
+  "key": "cb6f2dc50cfad3861220f94dd294bd5cef52eec9bc8ffe1f51e456e1c1d808dd",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:YND/STD-MEQ-007/004",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "5a993f8deff78623504e9fef5c489c094307ac1306ca0cadd2af89f211766734",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [],
+    "reason": "Scheduled review at revision 4; 5 clauses restated."
+  },
+  "response_sha256": "12d73c3907458f9139bb4107c9eace82d53a1ead5e0e1afefa8d6fb97120fbf9",
+  "source": null
+}

@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 15,
+    "doc_code": "PTW-STD-002",
+    "doc_family": "PTW",
+    "doc_title": "Permit to Work Form Set",
+    "driver": "retypeset",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2016-11-21",
+    "required_citations": [
+      {
+        "control_label": "parking, chocking and restraint of equipment",
+        "event_ref": "INC-2016-009",
+        "event_title": "uncontrolled movement of P-3220 during transfer operations",
+        "hazard_energy": "electrical",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:MRD/PTW-STD-002/003#revision_history_line/INC-2016-009",
+        "severity_gate": 3
+      }
+    ],
+    "rev_no": 3,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "ICAM investigation",
+      "management_of_change": "management of change",
+      "near_miss": "potential incident"
+    }
+  },
+  "key": "d183d2903a102c21c44af56907601497c18d3f32eace0b36bc7621db668d7d0c",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/PTW-STD-002/003",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "a85624b92270ec6dbc10a73946bbf12acec1229581220a8625b59dd30747104f",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "Revision 3 was raised in response to INC-2016-009, and the parking, chocking and restraint of equipment was amended as a result.",
+        "quote_ref": "quote:MRD/PTW-STD-002/003#revision_history_line/INC-2016-009"
+      }
+    ],
+    "reason": "Full retypeset to the 2016 house style; numbering reissued, requirements unchanged."
+  },
+  "response_sha256": "544352176cbef2409886557c7544658be87d6c7dc4403574f545e3e6cf99f11f",
+  "source": null
+}

@@ -38,10 +38,15 @@ big-endian UTF-16 bytes, which is that ordering exactly.
 from __future__ import annotations
 
 from collections.abc import Mapping
+from typing import Final
 
 from trappoint_recall.per.errors import NotCanonicalisable
 
 __all__ = ["MAX_SAFE_INTEGER", "canonicalise_leaf", "serialise_member"]
+
+#: RFC 8785 3.2.2.2 escapes every code point below U+0020. At and above it, a character
+#: with no short escape is emitted literally.
+_FIRST_UNESCAPED: Final = 0x20
 
 #: ``2**53 - 1``. Above this an IEEE-754 double stops representing every integer, so an
 #: ECMAScript implementation and an exact-integer implementation would disagree about the
@@ -75,7 +80,7 @@ def _escape_string(value: str) -> str:
         short = _SHORT_ESCAPES.get(code)
         if short is not None:
             out.append(short)
-        elif code < 0x20:
+        elif code < _FIRST_UNESCAPED:
             out.append(f"\\u{code:04x}")
         else:
             out.append(char)
@@ -112,9 +117,7 @@ def _member_sort_key(name: str) -> bytes:
     try:
         return name.encode("utf-16-be")
     except UnicodeEncodeError as exc:
-        raise NotCanonicalisable(
-            f"object member name {name!r} is not encodable as UTF-16"
-        ) from exc
+        raise NotCanonicalisable(f"object member name {name!r} is not encodable as UTF-16") from exc
 
 
 def canonicalise_leaf(member: Mapping[str, int | str]) -> bytes:

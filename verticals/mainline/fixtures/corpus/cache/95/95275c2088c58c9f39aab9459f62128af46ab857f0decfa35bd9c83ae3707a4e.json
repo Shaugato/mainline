@@ -1,0 +1,52 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 3,
+    "doc_codes": [
+      "ALERT-2016-007",
+      "MOC-2026-0413",
+      "PRO-MEC-014",
+      "PRO-OPS-032"
+    ],
+    "intent": "strengthen",
+    "moc_ref": "MOC-2025-0111",
+    "opened_on": "2025-07-22",
+    "precursor_events": [
+      {
+        "event_ref": "INC-2004-008",
+        "severity_gate": null
+      },
+      {
+        "event_ref": "INC-2020-020",
+        "severity_gate": null
+      },
+      {
+        "event_ref": "INC-2025-010",
+        "severity_gate": null
+      }
+    ],
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "management_of_change": "change assurance",
+      "verification": "assurance activity"
+    },
+    "weakening_steps": 0
+  },
+  "key": "95275c2088c58c9f39aab9459f62128af46ab857f0decfa35bd9c83ae3707a4e",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2025-0111",
+  "prompt_kind": "moc",
+  "prompt_sha256": "5ff986b2cb870d93fc492baa8400e8a5f91140727f5e0f30584ad29e455cb483",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2025-0111 was raised at Marrindal Concentrator and Hydrocarbon Transfer Facility on 22 July 2025 following 3 recorded events in the archive, including INC-2004-008, INC-2020-020 and INC-2025-010. The change assurance record covers 3 clauses across 4 controlled documents. The intent is to strengthen the material unwanted event control named in the documents in scope. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the material unwanted event control set is preserved.",
+    "scope_note": "The documents in scope are ALERT-2016-007, MOC-2026-0413, PRO-MEC-014 and PRO-OPS-032."
+  },
+  "response_sha256": "1b01277de2bbf40d6b4e2b7352d4e236ca47f15a09b0691a3a9897b638cd2b1f",
+  "source": null
+}

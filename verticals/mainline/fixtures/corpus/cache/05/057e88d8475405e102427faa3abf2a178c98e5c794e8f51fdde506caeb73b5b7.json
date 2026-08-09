@@ -1,0 +1,84 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "proof testing and periodic inspection of hoists",
+    "activity_root": "LIFTING-AND-SUSPENDED-LOADS",
+    "activity_series": "maintaining lifting appliances",
+    "assets": [
+      {
+        "asset_class": "LIFT-CLASS-W",
+        "label": "workshop hoists and press",
+        "service": "heavy vehicle component removal and pressing",
+        "tag": "HO-9401"
+      },
+      {
+        "asset_class": "MOTOR-CLASS-A",
+        "label": "drive motor",
+        "service": "drives HO-9401",
+        "tag": "M-9401"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "LOAD_SUPPORT_FOR_MAINTENANCE",
+        "control_label": "mechanical support of a load during maintenance access",
+        "failure_mode": "ineffective",
+        "hazard_energy": "gravity",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "NM-2022-0007",
+    "hazard_energy": "gravity",
+    "hazard_media": [
+      "suspended load",
+      "stored potential of an elevated component",
+      "unsupported ground",
+      "person at height"
+    ],
+    "hazard_release": "fall, collapse, crush",
+    "kind": "near_miss",
+    "occurred_on": "2022-05-05",
+    "severity_actual": 1,
+    "severity_potential": 3,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during a statutory inspection",
+    "title": "high potential incident during a statutory inspection on HO-9401",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "057e88d8475405e102427faa3abf2a178c98e5c794e8f51fdde506caeb73b5b7",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2022-0007",
+  "prompt_kind": "icam",
+  "prompt_sha256": "623c840debc0b2e367cf529b97df55586d7d1c42439bf1aaf8062dcdf23c467c",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage. The potential outcome was rated 3 against the site's consequence scale, above the 1 actually realised.",
+    "defences": [
+      {
+        "control_class": "LOAD_SUPPORT_FOR_MAINTENANCE",
+        "finding": "Control LOAD_SUPPORT_FOR_MAINTENANCE: the mechanical support of a load during maintenance access was in place but did not perform, and the learning team review classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the mechanical support of a load during maintenance access on HO-9401 and M-9401 and record the assurance activity before this task is next authorised."
+    ],
+    "sequence": "Work was under way in maintaining lifting appliances, specifically proof testing and periodic inspection of hoists. HO-9401 (workshop hoists and press) is in service for heavy vehicle component removal and pressing. The task proceeded during a statutory inspection while the mechanical support of a load during maintenance access was in place but did not perform. The gravity energy involved is held as suspended load, and the recorded presentation was fall, collapse, crush.",
+    "summary": "On 5 May 2022 a high potential incident was recorded on HO-9401 and M-9401 at Yandarra Downs Open Cut and Heavy Workshop during a statutory inspection; gravity energy held as suspended load was not released."
+  },
+  "response_sha256": "e85b5bf2822248a0b8878412a4ad4c79a96b37bf4ce860acca651aaf44750d14",
+  "source": null
+}

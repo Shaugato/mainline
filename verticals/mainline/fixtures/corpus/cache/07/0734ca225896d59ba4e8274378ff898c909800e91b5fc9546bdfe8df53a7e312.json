@@ -1,0 +1,38 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 0,
+    "doc_codes": [
+      "MOC-2021-0155",
+      "PRO-MIN-003",
+      "STD-MEQ-007"
+    ],
+    "intent": "strengthen",
+    "moc_ref": "MOC-2020-0064",
+    "opened_on": "2020-04-24",
+    "precursor_events": [],
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "management_of_change": "management of change",
+      "verification": "critical control verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "0734ca225896d59ba4e8274378ff898c909800e91b5fc9546bdfe8df53a7e312",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2020-0064",
+  "prompt_kind": "moc",
+  "prompt_sha256": "108c1a815e813732f99e198b4a46bb05dff07530b6757b2fb399f0bb89fd94b1",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2020-0064 was raised at Yandarra Downs Open Cut and Heavy Workshop on 24 April 2020 as a scheduled change under management of change; no event precedes it in the record. The management of change record carries no clause change; it records the assessment only. The intent is to strengthen the critical control named in the documents in scope. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical control set is preserved.",
+    "scope_note": "The documents in scope are MOC-2021-0155, PRO-MIN-003 and STD-MEQ-007."
+  },
+  "response_sha256": "c55d4cb6e8c19c070bc2d9d668314439448317179d432a03ee17b1e21435ad34",
+  "source": null
+}

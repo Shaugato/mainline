@@ -1,0 +1,488 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+#
+# SHOT-LIST.yaml — the locked shot list. Machine-readable, because it is not a
+# document: it is the schedule the preflight warden and the video CI gate enforce.
+#
+# Run `python verticals/mainline/demo/script/validate_shotlist.py` to check it.
+# `.github/workflows/claims.yml` runs the same validator, so a shot list that has
+# drifted out of budget is a red build rather than a discovery on capture day.
+#
+# ── THE BUDGET ────────────────────────────────────────────────────────────────
+# BUILD_PLAN §5.5 disqualifier 1: a video under three minutes is required, and the
+# failure is SILENT. Three numbers, all enforced by the validator:
+#
+#   total_s          171   = 2:51, the BUILD_PLAN §5.5 target
+#   headroom_s         9   = 180 - 171, the margin to the disqualifier
+#   ci_margin_s        5   = 176 - 171, the margin to demo.yml's ffprobe hard fail
+#
+# Editing is additive in practice — a cut lands long, never short — so the plan
+# budgets nine seconds of slack rather than filling the envelope and hoping.
+#
+# ── WHAT EACH ROW PROMISES ────────────────────────────────────────────────────
+#   t                  cumulative start, seconds
+#   dur                duration, seconds
+#   shot_id            stable id; tapes, the Playwright spec and evidence use it
+#   on_screen          what a muted viewer sees. Every quoted string is resolved
+#                      from CAMERA-STRINGS.yaml or REFUSAL-STRINGS.yaml
+#   vo                 the spoken line, verbatim and identical to VO.md
+#   word_count         words in `vo`; the sum is the ≤360 budget
+#   judging_criterion  what these seconds buy
+#   requires_milestone the milestone that must be COMPLETE for the shot to exist
+#   fallback           what is filmed instead if it is not. Never "improvise"
+#   evidence_artifact  the file that corroborates the shot after the fact
+#   capture_order      worst-first, three takes each (BUILD_PLAN §5.3, D-2)
+#
+# ── THE TWO RULES THAT ARE NOT NEGOTIABLE ─────────────────────────────────────
+# 1. Beat 2 (s08–s12) is NEVER CUT FOR TIME. Every row carries never_cut: true.
+#    The DROP CONSTRAINT statement stays; if the patrol is not wired it degrades
+#    to two refusals, which is a smaller shot, not a smaller beat.
+# 2. Beat 4 films P0001, never 23503. The RAISE in fn_check_materialised fires
+#    before the epoch-bumping UPDATE, so 23503 CANNOT occur on that path and
+#    filming it would be the exact overclaim this project punishes in others.
+#    See docs/adr/0030-demo-beat4-m8-defeater-lease.md (findings S3, S4).
+#
+# ── THE SCOPE-CUT LADDER ──────────────────────────────────────────────────────
+# Executed top-down by the warden, pre-committed here so it is not a 02:00
+# judgement call. If the ladder reaches step 4, switch to SHOT-LIST-MWS.yaml.
+
+version: 1
+name: MAINLINE — ⟦H⟧ submission cut
+authority:
+  - "BUILD_PLAN.md §5.2 (beat → milestone tagging), §5.3 (schedule), §5.4 (MWS), §5.5 (silent disqualifiers)"
+  - "research/06-build/demo-engineering.md §3 (three pixel-final screens), §5 (the script), §6 (the card)"
+  - "docs/leads/corpus-demo.md D1, D15, D16"
+  - "docs/adr/0002-g1-platform-ground-truth.md (F5 residency; GT-06b index hint)"
+  - "docs/adr/0030-demo-beat4-m8-defeater-lease.md"
+
+budget:
+  total_s: 171                 # 2:51
+  hard_ceiling_s: 180          # BUILD_PLAN §5.5 disqualifier 1
+  ci_hard_fail_s: 176          # .github/workflows/demo.yml ffprobe gate
+  headroom_s: 9
+  ci_margin_s: 5
+  vo_word_budget: 360
+  export: { width: 1920, height: 1080, fps: 30, loudness_lufs: -16, true_peak_dbtp: -1 }
+  captions: burned_in          # judges watch muted; alignment against the KNOWN script
+
+string_sources:
+  camera: verticals/mainline/demo/script/CAMERA-STRINGS.yaml
+  refusal: verticals/mainline/demo/REFUSAL-STRINGS.yaml
+watermark: "SYNTHETIC CORPUS · KESTREL RESOURCES IS FICTIONAL"
+
+scope_cut_ladder:
+  - step: 1
+    cut: s07-beat1-identity-survival
+    recovers_s: 7
+    cost: "the reflow claim moves entirely to the VO of s06 and to the repository"
+  - step: 2
+    cut: s04-architecture
+    recovers_s: 5
+    cost: "the five-element architecture card; the thesis survives in s03"
+  - step: 3
+    trim: s01-cold-open
+    recovers_s: 3
+    cost: "3 s off the hold on the setpoint; the hook still lands"
+  - step: 4
+    switch_to: verticals/mainline/demo/script/SHOT-LIST-MWS.yaml
+    cost: "the Minimum Winnable Submission, 2:38, four beats, written on D-7 not D-1"
+never_cut: [s08-beat2-merge-refused, s09-beat2-constraint, s10-beat2-bypass-admin-update,
+            s11-beat2-bypass-append-only, s12-beat2-bypass-drop-constraint,
+            s13-beat3-lattice-refusal, s17-beat4-lease-revoked]
+
+shots:
+
+  - t: 0
+    dur: 6
+    shot_id: s01-cold-open
+    beat: null
+    capture_order: 14
+    on_screen: >-
+      One clause, mono, on warm paper: "The seal-face high-temperature alarm shall
+      be set at 135 °C." Cursor selects `135`. The red left-rule fades in.
+    vo: "One number in a maintenance procedure. Nobody at this site knows why it's 135."
+    word_count: 14
+    judging_criterion: Impact
+    requires_milestone: K3
+    fallback: "Static PNG of the same clause rendered from the authored fixture; no cursor move."
+    evidence_artifact: "evidence/demo-run-<ts>/screens/s01.png"
+
+  - t: 6
+    dur: 7
+    shot_id: s02-the-change
+    beat: null
+    capture_order: 15
+    on_screen: >-
+      Permit branch view. MOC-2026-0413, diff `135 → 150`, badge `control_delta: weaken`.
+    vo: "An engineer raised it to 150 — the manufacturer's number. Defensible. Approved."
+    word_count: 12
+    judging_criterion: Impact
+    requires_milestone: K3
+    fallback: "The same diff rendered by the mock fixture server in demo/browser/mock/."
+    evidence_artifact: "evidence/demo-run-<ts>/screens/s02.png"
+
+  - t: 13
+    dur: 5
+    shot_id: s03-title
+    beat: null
+    capture_order: 22
+    on_screen: "Title card, warm paper, one accent. No motion."
+    vo: "MAINLINE: institutional safety memory as a version-controlled repository, on CockroachDB."
+    word_count: 10
+    judging_criterion: Originality
+    requires_milestone: K0
+    fallback: "None required — the card is a static export and has no dependency."
+    evidence_artifact: "verticals/mainline/demo/script/cards/title.svg"
+
+  - t: 18
+    dur: 5
+    shot_id: s04-architecture
+    beat: null
+    capture_order: 23
+    on_screen: "Architecture card, five static elements. No animation."
+    vo: "Commits are written by incidents. Every clause points at the event that wrote it."
+    word_count: 14
+    judging_criterion: "Memory design"
+    requires_milestone: K0
+    fallback: "Scope-cut ladder step 2 removes this shot entirely; s03 carries the thesis."
+    evidence_artifact: "verticals/mainline/demo/script/cards/architecture.svg"
+
+  - t: 23
+    dur: 10
+    shot_id: s05-beat1-blame-walk
+    beat: 1
+    capture_order: 4
+    on_screen: >-
+      VHS terminal, prompt `mainline_demo=>`. `mainline blame STD-ISO-006 --clause 9.2.1`
+      walking 2011 → 2013 → 2016 → 2019, one node per line.
+    vo: "So we ask the clause where it came from."
+    word_count: 9
+    judging_criterion: "Memory design"
+    requires_milestone: K3
+    fallback: "Pre-recorded tape output replayed from evidence/; the VO is unchanged."
+    evidence_artifact: "evidence/demo-run-<ts>/roundtrips.jsonl#s05"
+
+  - t: 33
+    dur: 11
+    shot_id: s06-beat1-commit-message
+    beat: 1
+    capture_order: 5
+    on_screen: >-
+      Zoom on the 2013 node. Author `D. Okonjo`, date `2013-08-04`, message
+      "Lowered 150 → 135 after seal fire INC-2013-044 — two contractors burned".
+      Two seconds of silence over it. NO commit SHA is shown or spoken.
+    vo: "2013. A gland seal fire. Two contractors burned. The alarm gave ninety seconds; 135 would have given six minutes."
+    word_count: 19
+    judging_criterion: Impact
+    requires_milestone: K3
+    fallback: "Still frame of the same node from the authored fixture; the silence is kept."
+    evidence_artifact: "evidence/demo-run-<ts>/roundtrips.jsonl#s06"
+
+  - t: 44
+    dur: 7
+    shot_id: s07-beat1-identity-survival
+    beat: 1
+    capture_order: 16
+    on_screen: >-
+      Blame ribbon. The 2016 retypeset and 2019 split nodes light; caption
+      `7.3 → 5.2.1 → 9.2.1 · doc move`. One clause_uuid under all three labels.
+    vo: "Retypeset 2016. Split 2019. The clause kept its identity, so the blame survived."
+    word_count: 13
+    judging_criterion: "Memory design"
+    requires_milestone: K3
+    fallback: "Scope-cut ladder step 1 removes this shot; s06's VO absorbs the claim."
+    evidence_artifact: "evidence/demo-run-<ts>/screens/s07.png"
+
+  - t: 51
+    dur: 7
+    shot_id: s08-beat2-merge-refused
+    beat: 2
+    never_cut: true
+    capture_order: 3
+    on_screen: >-
+      Permit WO-88213, hot work on P-4104. Click merge. Red bar
+      `MERGE BLOCKED · 1 undispositioned precursor · gate_closed_when_issued`.
+    vo: "Today's permit relies on that clause. The supervisor clicks merge."
+    word_count: 10
+    judging_criterion: Implementation
+    requires_milestone: K1
+    fallback: "Run the same transition from the terminal; the red bar becomes the SQLSTATE line."
+    evidence_artifact: "evidence/demo-run-<ts>/roundtrips.jsonl#s08"
+
+  - t: 58
+    dur: 7
+    shot_id: s09-beat2-constraint
+    beat: 2
+    never_cut: true
+    capture_order: 2
+    on_screen: >-
+      VHS. Our client, which reads diag.constraint_name:
+      `GateRefused(constraint='gate_closed_when_issued', sqlstate='23514')`.
+    vo: "Refused — not by a warning. By a CHECK constraint: gate_closed_when_issued."
+    word_count: 11
+    judging_criterion: Implementation
+    requires_milestone: K1
+    fallback: "None. If this cannot be filmed there is no submission; K1 carries no reduction."
+    evidence_artifact: "evidence/demo-run-<ts>/roundtrips.jsonl#s09"
+
+  - t: 65
+    dur: 8
+    shot_id: s10-beat2-bypass-admin-update
+    beat: 2
+    never_cut: true
+    capture_order: 1
+    on_screen: >-
+      `ccloud cluster sql` as CLUSTER ADMIN. `UPDATE mainline.permit SET state='merged' …`
+      → `ERROR: failed to satisfy CHECK constraint (…)` and `SQLSTATE: 23514`. The server
+      prints the gate's own predicate; the constraint NAME comes from the next line,
+      `trappoint.explain_refusal('permit', …, 'gate_closed_when_issued')`.
+    vo: "Cluster admin. Raw SQL. Our application bypassed entirely. The database still refuses."
+    word_count: 12
+    judging_criterion: Implementation
+    requires_milestone: K1
+    fallback: "None. This is the most valuable footage in the video."
+    evidence_artifact: "evidence/demo-run-<ts>/roundtrips.jsonl#s10"
+
+  - t: 73
+    dur: 5
+    shot_id: s11-beat2-bypass-append-only
+    beat: 2
+    never_cut: true
+    capture_order: 6
+    on_screen: >-
+      Same admin session. `DELETE FROM mainline.blocking_check WHERE permit_id = …;`
+      → `MAINLINE: this table is append-only; write a new row` and `SQLSTATE: P0001`.
+    vo: "The obligation is append-only. It cannot be deleted."
+    word_count: 8
+    judging_criterion: Implementation
+    requires_milestone: K1
+    fallback: "None. Two of the three bypass statements are the floor for this beat."
+    evidence_artifact: "evidence/demo-run-<ts>/roundtrips.jsonl#s11"
+
+  - t: 78
+    dur: 10
+    shot_id: s12-beat2-bypass-drop-constraint
+    beat: 2
+    never_cut: true
+    capture_order: 7
+    on_screen: >-
+      `ALTER TABLE mainline.permit DROP CONSTRAINT gate_closed_when_issued;` →
+      `ALTER TABLE`. It SUCCEEDS. Fifteen seconds later the custodian patrol writes
+      an attested leaf: `gate_definition_changed`, with the prior triggerdef digest.
+      Shown at 4× as an inset so the wait is honest but not slow.
+    vo: "An admin can drop the constraint. What they cannot do is drop it unobserved."
+    word_count: 14
+    judging_criterion: Readiness
+    requires_milestone: K6
+    fallback: >-
+      If the K6 custodian patrol is not wired, drop this statement and end the beat
+      at s11 (BUILD_PLAN §5.2). The beat is never cut; only its third statement is.
+    evidence_artifact: "evidence/demo-run-<ts>/roundtrips.jsonl#s12 + ledger leaf digest"
+
+  - t: 88
+    dur: 9
+    shot_id: s13-beat3-lattice-refusal
+    beat: 3
+    never_cut: true
+    capture_order: 8
+    on_screen: >-
+      Disposition modal. Signer picks `accept_residual` against a `blood_major`
+      ancestry → `SQLSTATE: 23503`, constraint `fk_clearance`. Lattice inset shows
+      the three deliberately absent cells greyed with their reasons.
+    vo: "Accept the residual risk? There's no such verdict — no row, and a foreign key says so."
+    word_count: 17
+    judging_criterion: Originality
+    requires_milestone: K5
+    fallback: "None. This is the entry's single best thirty seconds and is never cut."
+    evidence_artifact: "evidence/demo-run-<ts>/roundtrips.jsonl#s13"
+
+  - t: 97
+    dur: 8
+    shot_id: s14-beat3-disposition-signed
+    beat: 3
+    capture_order: 9
+    on_screen: >-
+      `mechanism_absent` grows a predicate field; signer switches to `mitigated`;
+      the countersigner field APPEARS because req_second_signer is projected true.
+      Rationale counter ≥120 chars. `deliberation 00:47 · measured, never thresholded`.
+      Sign, then countersign.
+    vo: "Severity four forces a compensating control and a second signature. We measure deliberation. We never accuse."
+    word_count: 16
+    judging_criterion: Originality
+    requires_milestone: K5
+    fallback: >-
+      If WebAuthn is not enrolled, the sub-beat degrades to the OIDC + signed
+      envelope fallback and the honesty card says so in the NOT-BUILT-YET column.
+    evidence_artifact: "evidence/demo-run-<ts>/roundtrips.jsonl#s14"
+
+  - t: 105
+    dur: 5
+    shot_id: s15-beat3-merge-succeeds
+    beat: 3
+    capture_order: 10
+    on_screen: "Merge succeeds. `merge_record` row with its `clearance_digest`."
+    vo: "Now it merges, carrying a signed record of who overrode what."
+    word_count: 11
+    judging_criterion: Implementation
+    requires_milestone: K5
+    fallback: "Terminal rendering of the same merge_record row."
+    evidence_artifact: "evidence/demo-run-<ts>/roundtrips.jsonl#s15"
+
+  - t: 110
+    dur: 5
+    shot_id: s16-beat4-register-gains-activity
+    beat: 4
+    capture_order: 11
+    on_screen: >-
+      Split screen. Left: the site activity register gains one row. Right: the
+      permit, untouched, cursor parked. Nobody types.
+    vo: "Then the site register gains an activity. Nobody touches the screen."
+    word_count: 11
+    judging_criterion: Originality
+    requires_milestone: K6
+    fallback: "Insert the register row from the terminal in the same shot; the point survives."
+    evidence_artifact: "evidence/demo-run-<ts>/roundtrips.jsonl#s16"
+
+  - t: 115
+    dur: 6
+    shot_id: s17-beat4-lease-revoked
+    beat: 4
+    never_cut: true
+    capture_order: 12
+    on_screen: >-
+      `DEFEATER LEASE REVOKED · predicate falsified by site register`. The retro-block
+      attempts to attach to the issued permit and the database refuses:
+      `MAINLINE: precursor arrived after issue — use the post-issue recall path`,
+      `SQLSTATE: P0001`, raised by `mainline.fn_check_materialised`.
+      23503 is NOT filmed here; see docs/adr/0030.
+    vo: "He signed it away only while this stayed true."
+    word_count: 9
+    judging_criterion: Originality
+    requires_milestone: K5
+    fallback: >-
+      If the changefeed is not wired, fire the register write in the same
+      transaction and film the identical P0001. The mechanism is unchanged.
+    evidence_artifact: "evidence/demo-run-<ts>/roundtrips.jsonl#s17"
+
+  - t: 121
+    dur: 4
+    shot_id: s18-beat4-suspend-and-fork
+    beat: 4
+    capture_order: 13
+    on_screen: "Red banner `PERMIT SUSPENDED · child forked`, and the child permit's id."
+    vo: "The permit suspends itself and forks a child."
+    word_count: 8
+    judging_criterion: Implementation
+    requires_milestone: K5
+    fallback: "Terminal rendering of the parent/child permit rows."
+    evidence_artifact: "evidence/demo-run-<ts>/screens/s18.png"
+
+  - t: 125
+    dur: 8
+    shot_id: s19-beat5-mcp-connect
+    beat: 5
+    capture_order: 17
+    on_screen: >-
+      Claude Code. `/mcp → cockroachdb-cloud: connected`. Prompt 1 → `select_query`
+      on `mainline_audit.v_disposition_coverage` → surfaced / dispositioned / orphans,
+      with `ancestry_complete`.
+    vo: "Hand it to an auditor. CockroachDB's own managed MCP — read-only, not ours."
+    word_count: 13
+    judging_criterion: Readiness
+    requires_milestone: K6
+    fallback: >-
+      If GT-17 forbids publishing a key, this becomes a recorded MCP session against
+      the throwaway mainline-verify cluster plus our own read-only endpoints, and
+      VERIFY.md states exactly why.
+    evidence_artifact: "evidence/demo-run-<ts>/mcp/prompt1.json"
+
+  - t: 133
+    dur: 8
+    shot_id: s20-beat5-explain
+    beat: 5
+    capture_order: 18
+    on_screen: >-
+      Prompt 2 → `explain_query` returning the UNEDITED fragment containing
+      `vector search` and a non-empty `prefix spans` over
+      `mainline.event_cue_embedding@cue_scoped_idx`. Two-second hold.
+    vo: "Because everyone asks whether the vector search is real — C-SPANN, on the named index."
+    word_count: 15
+    judging_criterion: Implementation
+    requires_milestone: K4
+    fallback: "Run the same EXPLAIN in the SQL shell; the fragment is identical."
+    evidence_artifact: "evidence/demo-run-<ts>/mcp/prompt2.json"
+
+  - t: 141
+    dur: 6
+    shot_id: s21-beat5-silence
+    beat: 5
+    capture_order: 19
+    on_screen: >-
+      Prompt 3, "what did you decline to surface?" → `mainline_audit.v_silence_summary`:
+      candidates by reason with mean score, mean threshold and nearest miss.
+    vo: "Then the question nobody else answers: what did you not tell me?"
+    word_count: 12
+    judging_criterion: Originality
+    requires_milestone: K4
+    fallback: "Same view over the SQL shell if the MCP key is withheld."
+    evidence_artifact: "evidence/demo-run-<ts>/mcp/prompt3.json"
+
+  - t: 147
+    dur: 5
+    shot_id: s22-readiness-strip
+    beat: null
+    capture_order: 20
+    on_screen: >-
+      Four static tiles: RLS policy denying cross-site read; single-tenant boundary;
+      `ccloud audit list -o json` hashed into the ledger; CloudWatch alarm on
+      gate-bypass attempts.
+    vo: "Single tenant. Row-level security. CockroachDB's audit log hashed into our ledger."
+    word_count: 11
+    judging_criterion: Readiness
+    requires_milestone: K6
+    fallback: "Drop the CloudWatch tile if AWS is unreachable; the remaining three stand alone."
+    evidence_artifact: "evidence/demo-run-<ts>/screens/s22.png"
+
+  - t: 152
+    dur: 8
+    shot_id: s23-honesty-card
+    beat: null
+    capture_order: 21
+    on_screen: >-
+      The four-column card, full screen, generated by honesty/gen_card.py from
+      corpus.lock.json and the G1 attestation. REAL / SYNTHETIC / STAGED /
+      NOT BUILT YET, with M14 SHEPARD named in the fourth column.
+    vo: "Live: database in Singapore, inference in Sydney. Operator and incidents are synthetic."
+    word_count: 12
+    judging_criterion: Readiness
+    requires_milestone: K0
+    fallback: "None. The card ships in every cut, including the MWS."
+    evidence_artifact: "verticals/mainline/demo/honesty/card.html"
+
+  - t: 160
+    dur: 5
+    shot_id: s24-rubber-stamp
+    beat: null
+    capture_order: 24
+    on_screen: "The rubber-stamp limit card, one sentence, full screen."
+    vo: "The honest limit: nothing separates a considered disposition from a rubber stamp. We log our silence."
+    word_count: 16
+    judging_criterion: Originality
+    requires_milestone: K0
+    fallback: "None. Naming the limit is the cheapest credibility in the film."
+    evidence_artifact: "verticals/mainline/demo/honesty/card.html#limits"
+
+  - t: 165
+    dur: 6
+    shot_id: s25-end-card
+    beat: null
+    capture_order: 25
+    on_screen: >-
+      End card: repository, demo URL, the `claude mcp add` one-liner, the licence
+      triple (Apache-2.0 · FSL-1.1-ALv2 · CC-BY-4.0).
+    vo: "Repo, demo, read-only endpoint. Verify it yourself."
+    word_count: 7
+    judging_criterion: Readiness
+    requires_milestone: K0
+    fallback: "None."
+    evidence_artifact: "verticals/mainline/demo/script/cards/end.svg"

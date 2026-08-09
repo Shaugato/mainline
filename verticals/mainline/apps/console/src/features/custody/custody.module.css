@@ -1,0 +1,360 @@
+/*
+ * SPDX-FileCopyrightText: 2026 MAINLINE contributors
+ * SPDX-License-Identifier: FSL-1.1-ALv2
+ *
+ * The custody surface — EVIDENCE register (docs/leads/ui.md §1.1).
+ *
+ * Checkable against the register's law: no gradient, no shadow implying a light source,
+ * no blur, no transform, no transition, one severity accent over one neutral ramp, and
+ * every colour a token from src/design/tokens.css. Nothing here moves, so every state of
+ * this screen is reachable by a screenshot.
+ *
+ * The chain diagram is a CSS grid of four cells with a hairline between them, not an SVG
+ * and not a canvas: it has to print, it has to be selectable text, and a screen reader has
+ * to be able to read it in order.
+ */
+
+.surface {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-5);
+  font-family: var(--tp-sans);
+  color: var(--tp-ink);
+  max-width: 120rem;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-3);
+  border: var(--tp-hairline) solid var(--tp-rule-strong);
+  border-radius: var(--tp-radius);
+  background: var(--tp-bg-raised);
+  padding: var(--tp-space-4);
+}
+
+.headerTop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--tp-space-3);
+}
+
+.title {
+  font-size: var(--tp-step-2);
+  font-weight: var(--tp-weight-strong);
+  margin: 0;
+}
+
+.kicker {
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step--1);
+  letter-spacing: var(--tp-tracking-caps);
+  text-transform: uppercase;
+  color: var(--tp-ink-dim);
+}
+
+.facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tp-space-2) var(--tp-space-4);
+  margin: 0;
+}
+
+.fact {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.factLabel {
+  font-size: var(--tp-step--1);
+  color: var(--tp-ink-dim);
+}
+
+.factValue {
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step-0);
+}
+
+.prose {
+  margin: 0;
+  max-width: 80ch;
+  line-height: var(--tp-leading-body);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-3);
+  border: var(--tp-hairline) solid var(--tp-rule);
+  border-radius: var(--tp-radius);
+  background: var(--tp-bg-raised);
+  padding: var(--tp-space-4);
+}
+
+.sectionTitle {
+  font-size: var(--tp-step-1);
+  font-weight: var(--tp-weight-strong);
+  margin: 0;
+}
+
+/* ── The chain: L0 → L1 → L2 → L3 ────────────────────────────────────────── */
+
+.chain {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: var(--tp-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chainCell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-2);
+  border: var(--tp-hairline) solid var(--tp-rule);
+  border-radius: var(--tp-radius);
+  background: var(--tp-bg-inset);
+  padding: var(--tp-space-3);
+}
+
+.chainCell[data-absent='true'] {
+  border-style: dashed;
+  color: var(--tp-ink-dim);
+}
+
+.chainLevel {
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step--1);
+  letter-spacing: var(--tp-tracking-caps);
+  color: var(--tp-ink-dim);
+}
+
+.chainTitle {
+  font-weight: var(--tp-weight-strong);
+}
+
+.chainCount {
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step-1);
+}
+
+.chainPurpose {
+  font-size: var(--tp-step--1);
+  line-height: var(--tp-leading-body);
+  color: var(--tp-ink-dim);
+  margin: 0;
+}
+
+/* ── Checks ──────────────────────────────────────────────────────────────── */
+
+.checks {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.check {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-2);
+  border-left: var(--tp-space-1) solid var(--tp-rule);
+  background: var(--tp-bg-inset);
+  border-radius: var(--tp-radius);
+  padding: var(--tp-space-3);
+}
+
+.check[data-status='fail'] {
+  border-left-color: var(--tp-refuse);
+}
+
+.check[data-status='pass'] {
+  border-left-color: var(--tp-ok);
+}
+
+.check[data-status='skip'] {
+  border-left-color: var(--tp-warn);
+}
+
+.checkHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--tp-space-2);
+}
+
+.checkId {
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step--1);
+  color: var(--tp-ink-dim);
+}
+
+.checkName {
+  font-family: var(--tp-mono);
+  font-weight: var(--tp-weight-medium);
+}
+
+.detail {
+  margin: 0;
+  white-space: pre-wrap;
+  font-size: var(--tp-step--1);
+  line-height: var(--tp-leading-body);
+  max-width: 100ch;
+}
+
+.bounded {
+  margin: 0;
+  border: var(--tp-hairline) solid var(--tp-warn);
+  border-radius: var(--tp-radius);
+  padding: var(--tp-space-2) var(--tp-space-3);
+  font-size: var(--tp-step--1);
+  line-height: var(--tp-leading-body);
+  max-width: 100ch;
+}
+
+/* ── Recomputation tables ────────────────────────────────────────────────── */
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+.table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: var(--tp-step--1);
+}
+
+.table caption {
+  text-align: left;
+  color: var(--tp-ink-dim);
+  padding-bottom: var(--tp-space-2);
+}
+
+.table th,
+.table td {
+  border-bottom: var(--tp-hairline) solid var(--tp-rule);
+  padding: var(--tp-space-2);
+  text-align: left;
+  vertical-align: top;
+}
+
+.table th {
+  font-weight: var(--tp-weight-medium);
+  color: var(--tp-ink-dim);
+  white-space: nowrap;
+}
+
+.hash {
+  font-family: var(--tp-mono);
+  word-break: break-all;
+}
+
+.row[data-agrees='false'] .hash {
+  color: var(--tp-refuse-ink);
+}
+
+.verdictCell {
+  font-family: var(--tp-mono);
+  white-space: nowrap;
+}
+
+/* ── The note, verbatim ──────────────────────────────────────────────────── */
+
+.note {
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step--1);
+  line-height: var(--tp-leading-tight);
+  background: var(--tp-bg-sunken);
+  border: var(--tp-hairline) solid var(--tp-rule);
+  border-radius: var(--tp-radius);
+  padding: var(--tp-space-3);
+  margin: 0;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.limit {
+  border: var(--tp-hairline) solid var(--tp-warn);
+  border-left-width: var(--tp-space-1);
+  border-radius: var(--tp-radius);
+  background: var(--tp-bg-inset);
+  padding: var(--tp-space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-2);
+}
+
+.limitTitle {
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step--1);
+  letter-spacing: var(--tp-tracking-caps);
+  text-transform: uppercase;
+  color: var(--tp-ink-dim);
+}
+
+.limitText {
+  margin: 0;
+  font-weight: var(--tp-weight-medium);
+  line-height: var(--tp-leading-body);
+  max-width: 90ch;
+}
+
+.failure {
+  border: var(--tp-hairline) solid var(--tp-refuse);
+  border-left-width: var(--tp-space-1);
+  border-radius: var(--tp-radius);
+  background: var(--tp-bg-raised);
+  padding: var(--tp-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-2);
+}
+
+.plainList {
+  margin: 0;
+  padding-left: var(--tp-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-1);
+  font-size: var(--tp-step--1);
+  line-height: var(--tp-leading-body);
+}
+
+/* ── Print: a court-legible page (D14) ───────────────────────────────────── */
+
+@media print {
+  .surface {
+    color: #000;
+    max-width: none;
+  }
+
+  .header,
+  .section,
+  .check,
+  .chainCell,
+  .note,
+  .limit,
+  .failure {
+    background: transparent;
+    border-color: #000;
+  }
+
+  .tableWrap,
+  .note {
+    overflow: visible;
+  }
+
+  .note {
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+
+  .hash {
+    word-break: break-all;
+  }
+}

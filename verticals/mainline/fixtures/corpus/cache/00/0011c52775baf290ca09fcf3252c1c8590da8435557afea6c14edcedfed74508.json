@@ -1,0 +1,47 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 1,
+    "doc_codes": [
+      "MOC-2021-0155",
+      "PRO-MIN-003",
+      "STD-MEQ-007"
+    ],
+    "intent": "weaken",
+    "moc_ref": "MOC-2017-0038",
+    "opened_on": "2017-03-15",
+    "precursor_events": [
+      {
+        "event_ref": "AF-2017-001",
+        "severity_gate": null
+      },
+      {
+        "event_ref": "NM-2010-0015",
+        "severity_gate": null
+      }
+    ],
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "management_of_change": "management of change",
+      "verification": "critical control verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "0011c52775baf290ca09fcf3252c1c8590da8435557afea6c14edcedfed74508",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2017-0038",
+  "prompt_kind": "moc",
+  "prompt_sha256": "0b7d7cc39c682212e03d108552e93397e6d133c013b3e58b0eca4f513a8c94ce",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2017-0038 was raised at Yandarra Downs Open Cut and Heavy Workshop on 15 March 2017 following 2 recorded events in the archive, including AF-2017-001 and NM-2010-0015. The management of change record covers 1 clause across 3 controlled documents. The intent is to relax a critical control requirement, and the basis for the relaxation is recorded with the change. The record reached the state merged in the change stream.",
+    "risk_note": "This change relaxes a control: 0 steps of relaxation are recorded against it, and the residual risk position rests on that relaxation having been accepted deliberately.",
+    "scope_note": "The documents in scope are MOC-2021-0155, PRO-MIN-003 and STD-MEQ-007."
+  },
+  "response_sha256": "979e692c2ffbbaec3355dc5a4be267a1b3e034172726e69490213f08dbfd8a01",
+  "source": null
+}

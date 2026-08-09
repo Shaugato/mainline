@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTROL-OF-IGNITION-SOURCES",
+    "barrier_role": "preventive",
+    "control_class": "HOT_WORK_AUTHORISATION",
+    "control_delta": "introduce",
+    "control_label": "authorisation of hot work adjacent to live plant",
+    "doc_code": "PRO-HSE-005",
+    "doc_family": "PRO",
+    "doc_title": "Hot Work Permit Administration",
+    "effective_on": "2004-04-19",
+    "printed_label": "4.2.3(d)",
+    "setpoint": null,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "2021fe09f5b8d2dcaeab0ed927ba1b8a7b416e493467c52d6c1a2ae2d3ef83ce",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/PRO-HSE-005/001#MRD/PRO-HSE-005/4.2.3(d)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "fa3d1dbb673defb2ba4e7478343fc090fcf5d657362e2e8d59c9b90f82d414e6",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The authorisation of hot work adjacent to live plant shall be provided and maintained for work covered by this procedure. This clause applies to activities archived under CONTROL-OF-IGNITION-SOURCES at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "f9b2540dc009d2bae59c76977eb9304695f98d642773516fd4220c0f2c76d383",
+  "source": null
+}

@@ -1,0 +1,18 @@
+{
+  "id": "cl-steward-fixture",
+  "name": "mainline-demo",
+  "cloud_provider": "AWS",
+  "state": "CREATED",
+  "plan": "BASIC",
+  "regions": [
+    {
+      "name": "aws-ap-southeast-1",
+      "sql_dns": "mainline-demo-0000.aws-ap-southeast-1.cockroachlabs.cloud",
+      "primary": true
+    }
+  ],
+  "cockroach_version": "v26.2.5",
+  "upgrade_status": "FINALIZED",
+  "created_at": "2026-07-19T04:11:07Z",
+  "updated_at": "2026-08-04T02:00:00Z"
+}

@@ -1,0 +1,53 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 2,
+    "doc_codes": [
+      "ALERT-2016-007",
+      "MOC-2014-0087",
+      "PRO-MEC-041",
+      "PRO-OPS-017",
+      "PTW-STD-003"
+    ],
+    "intent": "restate",
+    "moc_ref": "MOC-2015-0177",
+    "opened_on": "2015-11-07",
+    "precursor_events": [
+      {
+        "event_ref": "INC-2018-004",
+        "severity_gate": null
+      },
+      {
+        "event_ref": "NM-2005-0008",
+        "severity_gate": null
+      },
+      {
+        "event_ref": "RN-2015-002",
+        "severity_gate": null
+      }
+    ],
+    "site": "Cape Verity Export Terminal",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "management_of_change": "change request",
+      "verification": "field verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "d93841cddade5fa3f947e22c6803db3254ca68ee99c4c21c2d6bc2602f15f632",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2015-0177",
+  "prompt_kind": "moc",
+  "prompt_sha256": "fb59da9508b781c5d3d613051d3f7b7f2627f81e59a297750d991f9351e00a50",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2015-0177 was raised at Cape Verity Export Terminal on 7 November 2015 following 3 recorded events in the archive, including INC-2018-004, NM-2005-0008 and RN-2015-002. The change request record covers 2 clauses across 5 controlled documents. The intent is to restate an existing duty without altering what it requires. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical safeguard set is preserved.",
+    "scope_note": "The documents in scope are ALERT-2016-007, MOC-2014-0087, PRO-MEC-041, PRO-OPS-017 and PTW-STD-003."
+  },
+  "response_sha256": "7bbdc4e5c3b3916bdf73bf8a6ee58a1ffb85e04f4534dda2ab8c3f625fc1b2f2",
+  "source": null
+}

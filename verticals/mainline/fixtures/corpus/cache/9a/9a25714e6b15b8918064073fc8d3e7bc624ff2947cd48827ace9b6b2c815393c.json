@@ -1,0 +1,64 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 6,
+    "doc_code": "PRO-EXP-002",
+    "doc_family": "PRO",
+    "doc_title": "Explosives Receipt and Magazine Control",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2017-01-14",
+    "required_citations": [
+      {
+        "control_label": "guarding, clearance and misfire handling for a blast",
+        "event_ref": "CAPA-2016-004",
+        "event_title": "corrective action following ICAM investigation at MAG-9602",
+        "hazard_energy": "kinetic",
+        "kind": "moc_reference",
+        "quote_ref": "quote:YND/PRO-EXP-002/005#moc_reference/CAPA-2016-004",
+        "severity_gate": 3
+      },
+      {
+        "control_label": "receipt, magazining and reconciliation of explosives",
+        "event_ref": "CAPA-2016-004",
+        "event_title": "corrective action following ICAM investigation at MAG-9602",
+        "hazard_energy": "kinetic",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:YND/PRO-EXP-002/005#revision_history_line/CAPA-2016-004",
+        "severity_gate": 3
+      }
+    ],
+    "rev_no": 5,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "ICAM investigation",
+      "management_of_change": "management of change",
+      "near_miss": "potential incident"
+    }
+  },
+  "key": "9a25714e6b15b8918064073fc8d3e7bc624ff2947cd48827ace9b6b2c815393c",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:YND/PRO-EXP-002/005",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "2896f19fa96a90d46d36aa0745dcd9bfd82e3e6eacc3f81e06dcdc4e00179805",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The management of change record for this revision cites CAPA-2016-004 as the reason the guarding, clearance and misfire handling for a blast was amended.",
+        "quote_ref": "quote:YND/PRO-EXP-002/005#moc_reference/CAPA-2016-004"
+      },
+      {
+        "line": "Revision 5 was raised in response to CAPA-2016-004, and the receipt, magazining and reconciliation of explosives was amended as a result.",
+        "quote_ref": "quote:YND/PRO-EXP-002/005#revision_history_line/CAPA-2016-004"
+      }
+    ],
+    "reason": "Scheduled review at revision 5; 6 clauses restated."
+  },
+  "response_sha256": "25096f1f8a6289b0d0640a4fdb35da8e193b9b17dea4c5e735121b925021f306",
+  "source": null
+}

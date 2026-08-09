@@ -180,16 +180,19 @@ def to_verdict(
             prompt_version=prompt_version,
         )
 
-    if adjudication.relation == "entails" and adjudication.numeric_disagreement:
-        if not (_DIGITS & set(adjudication.supporting_quote)):
-            return abstain(
-                "unsupported_numeric_claim",
-                "the model reported that B entails A while also reporting that the two "
-                "state different values, and its supporting quote contains no number. "
-                "That is the shape of a loosened setpoint described as a tightening.",
-                model_id=model_id,
-                prompt_version=prompt_version,
-            )
+    if (
+        adjudication.relation == "entails"
+        and adjudication.numeric_disagreement
+        and not (_DIGITS & set(adjudication.supporting_quote))
+    ):
+        return abstain(
+            "unsupported_numeric_claim",
+            "the model reported that B entails A while also reporting that the two "
+            "state different values, and its supporting quote contains no number. "
+            "That is the shape of a loosened setpoint described as a tightening.",
+            model_id=model_id,
+            prompt_version=prompt_version,
+        )
 
     span = locate_quote(descendant_text, adjudication.supporting_quote)
     if span is None:

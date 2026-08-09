@@ -8,7 +8,12 @@ SPDX-License-Identifier: Apache-2.0
 **Normative. Version `v1`, frozen 2026-08-08.** Media type:
 `application/vnd.trappoint.per-receipt+json`. Reference implementation:
 `packages/trappoint-recall/src/trappoint_recall/per/`. Reference verifier:
-`python -m trappoint_recall.per` (packaged as `trappoint-recall-verify-per`).
+**`python -m trappoint_recall.per`** — that invocation is the normative one and is asserted end
+to end, on an interpreter started with `-S` so that no installed distribution is reachable, by
+`tests/integration/recall_run/test_per_verifier.py`. The console-script alias
+`trappoint-recall-verify-per` is declared in the distribution's `[project.scripts]`; where that
+declaration is absent the same test reports a skip naming it, because a published command that
+does not resolve is a claim this document is not entitled to make.
 
 This document is what an opposing expert implements from — plausibly in Rust, plausibly
 hostile, certainly without asking us anything. Everything in it is specified to the byte for
@@ -25,8 +30,23 @@ BCP 14 (RFC 2119, RFC 8174).
 
 That sentence is reproduced **verbatim** in `packages/trappoint-recall/src/trappoint_recall/
 per/receipt.py` (as `PER_BOUND_SENTENCE`), in every receipt this format defines (field
-`claim_bound`), in every verifier report, in the README and in the exhibit renderer. CI greps
-for it. A change to its wording is a change to what the product claims and requires an ADR.
+`claim_bound`) and in every verifier report. A change to its wording is a change to what the
+product claims and requires an ADR.
+
+`tests/integration/recall_run/test_claim_bound_grep.py` is the grep. It anchors on the two words
+that open the claim and then works in two rings. Inside the recall domain — this directory,
+`packages/trappoint-recall/` and the recall agent — the sentence must appear byte for byte.
+Everywhere else in the repository, whatever follows that anchor must still be **this** claim
+once case, whitespace and markdown emphasis are folded away: another domain may shout the
+emphasis in its own medium, but it may not change what is being asserted. The realistic failure
+is not that someone deletes the caveat; it is that someone rewrites it. Any artefact outside this
+domain that *names* Proof of Exhausted Recall in prose owes the verbatim sentence; where such an
+artefact does not exist yet, the grep reports a skip with its reason rather than a pass.
+
+One consequence, stated so the next editor does not trip over it: **prose in this document may
+not quote the anchor words on their own.** The grep is deliberately dumb — a dumb grep is a
+grep that cannot be argued with — so a sentence *about* the claim reads to it exactly like a
+sentence *making* the claim.
 
 C-SPANN is an approximate index and its trees mutate on every insert. A receipt therefore
 carries `index_generation`, and the run it belongs to carries `index_plan_digest` and an M4
@@ -309,7 +329,7 @@ Everything in §9.1, plus:
 17. each disclosed boundary leaf equals the entry at its ordinal in the set.
 
 **Removing one candidate fails 9, 13, 14 and 17.** That is the property `done_when` names, and
-it is asserted in `tests/integration/recall_run/test_per_commitment.py`.
+it is asserted in `tests/integration/recall_run/test_per_verifier.py`.
 
 A verifier MUST report every check rather than stopping at the first failure. A verifier handed
 a hostile bundle that crashed would be telling its operator nothing, and "the receipt is

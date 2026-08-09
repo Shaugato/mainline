@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 5,
+    "doc_code": "PRO-OPS-017",
+    "doc_family": "PRO",
+    "doc_title": "Ship Loading and Vapour Recovery",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2025-11-14",
+    "required_citations": [
+      {
+        "control_label": "emergency isolation and depressuring on loss of containment",
+        "event_ref": "AF-2025-007",
+        "event_title": "audit finding - assurance activity of material unwanted event control at LA-7201",
+        "hazard_energy": "chemical",
+        "kind": "regulator_requirement",
+        "quote_ref": "quote:CVY/PRO-OPS-017/012#regulator_requirement/AF-2025-007",
+        "severity_gate": 2
+      }
+    ],
+    "rev_no": 12,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "learning team review",
+      "management_of_change": "change assurance",
+      "near_miss": "high potential incident"
+    }
+  },
+  "key": "ad0c2f80187635c3a715f9f724f4c832fe0dc8509f0d7b9377254846d258b4a3",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:CVY/PRO-OPS-017/012",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "97c73a91bd097b851da519cf52e9defbe4710bcc798308954f295dca0981b496",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "A regulatory requirement arising from AF-2025-007 obliges this procedure to carry the emergency isolation and depressuring on loss of containment.",
+        "quote_ref": "quote:CVY/PRO-OPS-017/012#regulator_requirement/AF-2025-007"
+      }
+    ],
+    "reason": "Scheduled review at revision 12; 5 clauses restated."
+  },
+  "response_sha256": "eee0be1d849c3d9e80f2ff053a8db30aa6486bd6f2e0035ecb91b7725ef10883",
+  "source": null
+}

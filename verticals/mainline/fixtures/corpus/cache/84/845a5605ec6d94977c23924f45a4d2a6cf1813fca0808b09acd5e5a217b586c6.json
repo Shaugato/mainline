@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "barrier_role": "preventive",
+    "control_class": "POSITIVE_ISOLATION_APPLICATION",
+    "control_delta": "strengthen",
+    "control_label": "application of positive isolation devices and personal locks",
+    "doc_code": "PTW-STD-004",
+    "doc_family": "PTW",
+    "doc_title": "Permit to Work Form Set",
+    "effective_on": "2009-05-23",
+    "printed_label": "2.4",
+    "setpoint": null,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "845a5605ec6d94977c23924f45a4d2a6cf1813fca0808b09acd5e5a217b586c6",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:YND/PTW-STD-004/002#YND/PTW-STD-004/2.4",
+  "prompt_kind": "clause",
+  "prompt_sha256": "1f5c578ab05a156fe42f45c55376a4792ee2b7af0027d59525d733ff83f37127",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The application of positive isolation devices and personal locks must be provided, and its effectiveness must be recorded as a spot check before the task proceeds. This clause applies to activities archived under ISOLATION-OF-STORED-ENERGY at Yandarra Downs Open Cut and Heavy Workshop.",
+    "obligation_verb": "must"
+  },
+  "response_sha256": "7c30a2d4bd43459594afbc01df900415e80ae4c84ab18f2382bc68e141753f8a",
+  "source": null
+}

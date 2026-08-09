@@ -1,0 +1,63 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MAINLINE · 0185c_policy_disposition_peer_blind.sql
+-- CREATE POLICY peer_blind ON mainline.disposition — access control doing epistemics
+--
+-- MI: MI08
+-- I: I15
+-- COUNSEL-GATED: yes
+-- RATIONALE: This stops the real-world failure 'I'll sign what Dave signed', and it costs
+--            one boolean. A signer sees their own disposition on a check always, and a
+--            peer's only once their own exists. It is not confidentiality — the peer's
+--            disposition is released moments later — it is the removal of an anchor before
+--            a judgement, which is what M10's peer-prediction channel structurally
+--            requires.
+--
+-- migration:  0185c_policy_disposition_peer_blind
+-- domain:     datamodel / dm-views-rls
+-- band:       0180-0198z · datamodel/dm-views-rls · AUTHORED, allocated by
+--             verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1)
+-- statements: 1
+-- matrix:     verticals/mainline/db/RLS-MATRIX.yaml — this file is a RENDERING of one entry
+--             there; tests/integration/schema/test_mi_rls.py asserts the two agree
+-- source:     ARCHITECTURE.md §11.3 (RLS, SEC-1) · §4.1 law 10 · correction S22 · §3.3 M10 · docs/leads/datamodel.md DM-16
+-- requires:   0066 mainline.disposition · 0180 peer_visible · 0185 ENABLE · 0185a FORCE
+-- sqlstate:   no error — a filtered row is absent, not refused. See below.
+-- forward-only; no .down.sql exists at or below the protected floor.
+--
+-- ────────────────────────────────────────────────────────────────────────────
+-- THE FAILURE MODE OF A FILTER IS SILENCE, AND THAT IS WHY THE COLUMN IS NOT NULL
+-- ────────────────────────────────────────────────────────────────────────────
+-- RLS filters SELECTs; it does not refuse them. A signer whose peers are blinded sees fewer
+-- rows and no message. If `peer_visible` were nullable, `peer_visible = true` would be NULL
+-- for those rows, NULL is not true, and the behaviour would be identical to `false` — a
+-- third state with no rule, indistinguishable at the read from the two that have one. 0180
+-- declares it `NOT NULL DEFAULT false` for exactly that reason.
+--
+-- ────────────────────────────────────────────────────────────────────────────
+-- WHAT MAINTAINS `peer_visible`, AND WHAT HAPPENS UNTIL IT DOES
+-- ────────────────────────────────────────────────────────────────────────────
+-- §11.3: a trigger-maintained denormalisation flipped once the actor's own disposition on
+-- that check exists. That trigger belongs in the kernel's function band beside
+-- `fn_disposition_project`, not here — see 0180's header, which states the gap rather than
+-- implying a mechanism. Until it lands, `peer_visible` is false on every row and this
+-- policy resolves to `signer_sub = CURRENT_USER`: a signer sees ONLY their own
+-- dispositions. That is tighter than designed, never looser, which is the direction an
+-- information partition must fail in.
+--
+-- ────────────────────────────────────────────────────────────────────────────
+-- WHY `signer_sub = CURRENT_USER` IS THE SAME IDIOM AS `site_role = CURRENT_USER`
+-- ────────────────────────────────────────────────────────────────────────────
+-- Policy expressions cannot contain subqueries (§4.1 law 10), so both scopes compare a
+-- denormalised token to the session role. `signer_sub` is projected onto the disposition by
+-- `fn_disposition_project` from `mainline.person` (MI27), so it is not a value the signing
+-- client chooses — which is what makes it a scope rather than a claim. The deployment
+-- contract is the one recorded in 0172: one SQL role per person, named with that person's
+-- `signer_sub`.
+--
+
+CREATE POLICY peer_blind ON mainline.disposition
+  AS RESTRICTIVE FOR SELECT TO signer
+  USING (signer_sub = CURRENT_USER OR peer_visible = true);
+

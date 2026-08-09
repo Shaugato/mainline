@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 0,
+    "doc_codes": [
+      "STD-EMR-008"
+    ],
+    "intent": "restate",
+    "moc_ref": "MOC-2018-0072",
+    "opened_on": "2018-03-16",
+    "precursor_events": [],
+    "site": "Cape Verity Export Terminal",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "management_of_change": "management of change",
+      "verification": "critical control verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "2971e47b531dfc9a3945ecb49249ad453e9b8e013b21d3498a873803c102fbbe",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2018-0072",
+  "prompt_kind": "moc",
+  "prompt_sha256": "73b567a2ab11222b0c8fcdd68b505413d14bfad355c5aaf3db2bfc965a4c6a20",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2018-0072 was raised at Cape Verity Export Terminal on 16 March 2018 as a scheduled change under management of change; no event precedes it in the record. The management of change record carries no clause change; it records the assessment only. The intent is to restate an existing duty without altering what it requires. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical control set is preserved.",
+    "scope_note": "The documents in scope are STD-EMR-008."
+  },
+  "response_sha256": "9dfda7d7a917955db0defe7799ffef5b0285d7e44ff686fe813a6a60ba9a0ed5",
+  "source": null
+}

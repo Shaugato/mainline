@@ -1,0 +1,57 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: Apache-2.0
+
+[project]
+name = "trappoint-ledger"
+version = "0.1.0"
+description = "The tamper-evidence log: RFC 6962 Merkle tree and proofs, C2SP tlog-tiles addressing, the link chain, signed checkpoints and receipts."
+readme = "README.md"
+requires-python = ">=3.13"
+license = "Apache-2.0"
+authors = [{ name = "MAINLINE contributors" }]
+keywords = ["rfc6962", "merkle", "transparency-log", "tlog-tiles", "c2sp", "tamper-evidence"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Security :: Cryptography",
+  "Typing :: Typed",
+]
+
+# `trappoint-jcs` and nothing else, and the dependency is one-directional: the bytes
+# are canonicalised before they are hashed, never after.
+#
+# `trappoint_ledger.merkle` and `trappoint_ledger.chain` import NEITHER this dependency
+# nor any other third-party module — `hashlib` is the whole of it. That is not tidiness:
+# `trappoint-verify`'s dependency floor is `cryptography` alone, and it lifts the proof
+# algorithms from here. A hidden import in the tree would become an import in the
+# verifier, and the verifier's floor is a claim we make to strangers.
+# `tests/test_merkle_vectors.py::test_merkle_imports_with_every_third_party_module_blocked`
+# runs a subprocess with every third-party import poisoned, so the claim is tested and
+# not merely asserted here.
+dependencies = [
+  "trappoint-jcs",
+]
+
+[project.urls]
+Homepage = "https://github.com/Shaugato/mainline"
+
+[tool.uv.sources]
+trappoint-jcs = { workspace = true }
+
+[dependency-groups]
+dev = ["pytest>=8.2", "hypothesis>=6.100"]
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/trappoint_ledger"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "tests", "README.md"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

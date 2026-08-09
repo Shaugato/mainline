@@ -1,0 +1,90 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
+
+[project]
+name = "mainline-cherrypick"
+version = "0.1.0"
+description = "MAINLINE cherry-pick worker — cross-site lesson propagation: only tightenings travel, and a recorded resolution is proposed, never auto-applied."
+readme = "README.md"
+requires-python = ">=3.13"
+# FSL-1.1-ALv2 per the repository licence map (verticals/mainline/* is FSL).
+# The licence TEXT lives in the repo-root LICENSES/ tree, outside this project
+# directory, and therefore cannot be referenced by `license-files`: under PEP 639
+# a glob that matches nothing is a build error.
+license = "LicenseRef-FSL-1.1-ALv2"
+authors = [{ name = "MAINLINE contributors" }]
+keywords = ["mainline", "propagation", "cherry-pick", "rerere", "cockroachdb"]
+classifiers = [
+  "Programming Language :: Python :: 3.13",
+  "Typing :: Typed",
+  "Private :: Do Not Upload",
+]
+
+# THREE DEPENDENCIES, AND THE THIRD ONE IS THE ARGUMENT.
+#
+# `trappoint-jcs` because `patch_digest` is a hash over a normalised delta set and
+# every hash in this system is taken over RFC 8785 canonical bytes. Never
+# `sha256(jsonb::string)`: JSONB reorders keys and returns hex text, so a digest
+# taken that way is not reproducible by a stranger with the same data.
+#
+# `mainline-domain` for `ControlDelta` and the lattice's notion of force. A lesson
+# that may travel is one whose delta has force zero, and there is exactly one
+# definition of force in this repository.
+#
+# `mainline-agentkit` rather than `boto3`: there is ONE model surface in this
+# repository, and the only model call this package makes is the T2 conflict
+# NARRATION profile — which §8.3 constrains in one line, *Claude explains a
+# conflict, never resolves one*. agentkit's own runtime dependency is `pydantic`
+# alone, so the offline lane installs no AWS SDK.
+#
+# DELIBERATELY ABSENT — any database driver. This package builds statements and
+# hands them back; the caller holds `agent_fleet`, whose grant is INSERT on
+# `lesson`, `merge_conflict` and `resolution_memory`, INSERT + a trigger-scoped
+# UPDATE on `propagation`, and NOTHING on `disposition`.
+dependencies = [
+  "mainline-agentkit",
+  "mainline-domain",
+  "trappoint-jcs",
+]
+
+[project.optional-dependencies]
+# The live Bedrock leg, off by default and never exercised in CI (PL-3). Reaching
+# it needs this extra AND `MAINLINE_AGENT_PROVIDER=bedrock`.
+bedrock = ["mainline-agentkit[bedrock]"]
+
+[tool.uv.sources]
+mainline-agentkit = { workspace = true }
+mainline-domain = { workspace = true }
+trappoint-jcs = { workspace = true }
+
+[dependency-groups]
+dev = [
+  "pytest>=8.3",
+  "mypy>=1.11",
+]
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mainline_cherrypick"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "README.md"]
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+warn_unreachable = true
+mypy_path = "src"
+packages = ["mainline_cherrypick"]
+
+# `boto3` ships no type information and is reached transitively through
+# `mainline-agentkit`'s live transport, which this package never imports. The
+# repository-level `mypy.ini` already carries exactly this override; mirroring it
+# here is what makes `mypy --config-file pyproject.toml` inside this directory
+# agree with `just lint-types`, rather than a new decision about a dependency.
+[[tool.mypy.overrides]]
+module = ["boto3.*", "botocore.*"]
+ignore_missing_imports = true

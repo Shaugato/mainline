@@ -1,0 +1,47 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 4,
+    "doc_codes": [
+      "ALERT-2009-003",
+      "PRO-MEC-055",
+      "STD-LFT-003"
+    ],
+    "intent": "restate",
+    "moc_ref": "MOC-2023-0053",
+    "opened_on": "2023-04-14",
+    "precursor_events": [
+      {
+        "event_ref": "INC-2007-010",
+        "severity_gate": null
+      },
+      {
+        "event_ref": "RN-2023-001",
+        "severity_gate": null
+      }
+    ],
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "management_of_change": "change assurance",
+      "verification": "assurance activity"
+    },
+    "weakening_steps": 0
+  },
+  "key": "7210f75a833caceb38308def76f642da053b544f8dd734b2ee3e08e1ef5b3811",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2023-0053",
+  "prompt_kind": "moc",
+  "prompt_sha256": "826adb849682c9f79109994b808009671e742fdf7d1e80dc285452b48b1afede",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2023-0053 was raised at Yandarra Downs Open Cut and Heavy Workshop on 14 April 2023 following 2 recorded events in the archive, including INC-2007-010 and RN-2023-001. The change assurance record covers 4 clauses across 3 controlled documents. The intent is to restate an existing duty without altering what it requires. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the material unwanted event control set is preserved.",
+    "scope_note": "The documents in scope are ALERT-2009-003, PRO-MEC-055 and STD-LFT-003."
+  },
+  "response_sha256": "76d5a2e7ad0f9f0439eb2c48d0d16208705f82eb46ba4a898b85387914524ed2",
+  "source": null
+}

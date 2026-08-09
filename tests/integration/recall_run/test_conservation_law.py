@@ -89,9 +89,7 @@ def test_a_duplicated_candidate_is_named() -> None:
 def test_a_lost_bonded_fatality_is_named(clean_outcome) -> None:
     """MI16 in code: an event channel B found and admission dropped must stop the run."""
     survivors = [
-        candidate
-        for candidate in clean_outcome.candidates
-        if candidate.event_id != E_BOND_SEV5
+        candidate for candidate in clean_outcome.candidates if candidate.event_id != E_BOND_SEV5
     ]
     with pytest.raises(ConservationViolated, match=str(E_BOND_SEV5)) as raised:
         enforce_conservation(survivors, bonded_event_ids=(E_ANC_SEV5, E_BOND_SEV5))

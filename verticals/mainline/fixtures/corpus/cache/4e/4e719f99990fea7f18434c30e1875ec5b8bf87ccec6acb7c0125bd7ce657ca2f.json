@@ -1,0 +1,40 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 1,
+    "doc_codes": [
+      "MOC-2019-0221",
+      "PRO-MEC-021",
+      "PTW-STD-002",
+      "STD-ISO-006",
+      "STD-PTW-001"
+    ],
+    "intent": "introduce",
+    "moc_ref": "MOC-2020-0137",
+    "opened_on": "2020-08-02",
+    "precursor_events": [],
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "management_of_change": "management of change",
+      "verification": "critical control verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "4e719f99990fea7f18434c30e1875ec5b8bf87ccec6acb7c0125bd7ce657ca2f",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2020-0137",
+  "prompt_kind": "moc",
+  "prompt_sha256": "2ff9c2fbaf4d412ae1a22cbcd246efc4c3db8f52ae0a4096a92278514c0ab39e",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2020-0137 was raised at Marrindal Concentrator and Hydrocarbon Transfer Facility on 2 August 2020 as a scheduled change under management of change; no event precedes it in the record. The management of change record covers 1 clause across 5 controlled documents. The intent is to introduce a duty the documents in scope did not previously carry. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical control set is preserved.",
+    "scope_note": "The documents in scope are MOC-2019-0221, PRO-MEC-021, PTW-STD-002, STD-ISO-006 and STD-PTW-001."
+  },
+  "response_sha256": "259ff65f394d6ca61683c86606547904d69cf29d8c32e381858a3cd35bbe694d",
+  "source": null
+}

@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 4,
+    "doc_code": "PRO-ELE-008",
+    "doc_family": "PRO",
+    "doc_title": "Electrical Isolation and Access to Switchgear",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2026-07-13",
+    "required_citations": [
+      {
+        "control_label": "arc flash boundary and protective equipment",
+        "event_ref": "OEM-2026-002",
+        "event_title": "OEM service bulletin affecting ELEC-CLASS-A",
+        "hazard_energy": "thermal",
+        "kind": "capa_action",
+        "quote_ref": "quote:MRD/PRO-ELE-008/010#capa_action/OEM-2026-002",
+        "severity_gate": 1
+      }
+    ],
+    "rev_no": 10,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "learning team review",
+      "management_of_change": "change assurance",
+      "near_miss": "high potential incident"
+    }
+  },
+  "key": "f9b05712e8a0201b3360fed363a88eca0bc346e3f776ff06b53d1eff8c27558a",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/PRO-ELE-008/010",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "63b2f70222418ebd699c4998600d2622694dc9631520905dbd6f3268c1919e45",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The corrective action recorded against OEM-2026-002 required the arc flash boundary and protective equipment to be restated in this procedure.",
+        "quote_ref": "quote:MRD/PRO-ELE-008/010#capa_action/OEM-2026-002"
+      }
+    ],
+    "reason": "Scheduled review at revision 10; 4 clauses restated."
+  },
+  "response_sha256": "31336c10ca8815a1f35cb3c453c637b15dfae729c327c25ec9564f7432b9f3b6",
+  "source": null
+}

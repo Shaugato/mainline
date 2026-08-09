@@ -1,0 +1,78 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "inspecting highwalls and batters",
+    "activity_root": "GROUND-AND-STRATA-CONTROL",
+    "activity_series": "monitoring and inspecting ground conditions",
+    "assets": [
+      {
+        "asset_class": "MOB-CLASS-E",
+        "label": "earthmoving fleet",
+        "service": "loading and dozing",
+        "tag": "EX-9101"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "GROUND_CONDITION_INSPECTION",
+        "control_label": "inspection and monitoring of highwalls and batters",
+        "failure_mode": "not_verified",
+        "hazard_energy": "gravity",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "RN-2012-001",
+    "hazard_energy": "gravity",
+    "hazard_media": [
+      "suspended load",
+      "stored potential of an elevated component",
+      "unsupported ground",
+      "person at height"
+    ],
+    "hazard_release": "fall, collapse, crush",
+    "kind": "regulator_notice",
+    "occurred_on": "2012-01-09",
+    "severity_actual": 0,
+    "severity_potential": 2,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during an intrusive maintenance task",
+    "title": "improvement notice - critical safeguard at EX-9101",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "30c57d99eb77654664b4d82e97cc78a0e139268a7760da3ae2241f78bb0deebd",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:RN-2012-001",
+  "prompt_kind": "icam",
+  "prompt_sha256": "ec5c71181ffb6a71d54f6acecb89f27ce137252359034b8decfb59f86a11984b",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 2 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "GROUND_CONDITION_INSPECTION",
+        "finding": "Control GROUND_CONDITION_INSPECTION: the inspection and monitoring of highwalls and batters was never verified as effective, and the root cause analysis classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next field verification that the inspection and monitoring of highwalls and batters on EX-9101 performs as designed."
+    ],
+    "sequence": "Work was under way in monitoring and inspecting ground conditions, specifically inspecting highwalls and batters. EX-9101 (earthmoving fleet) is in service for loading and dozing. The task proceeded during an intrusive maintenance task while the inspection and monitoring of highwalls and batters was never verified as effective. The gravity energy involved is held as suspended load, and the recorded presentation was fall, collapse, crush.",
+    "summary": "On 9 January 2012 a regulatory notice was issued concerning EX-9101 at Yandarra Downs Open Cut and Heavy Workshop following an intrusive maintenance task."
+  },
+  "response_sha256": "f0eb6da28a92ef76b34a25ca616702fb607339d7bd8c91759050ebccd5392912",
+  "source": null
+}

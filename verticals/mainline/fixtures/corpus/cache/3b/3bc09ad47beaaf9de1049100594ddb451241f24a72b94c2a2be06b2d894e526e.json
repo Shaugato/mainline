@@ -1,0 +1,103 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "preventing water ingress to hot material",
+    "activity_root": "MOLTEN-AND-HOT-MATERIAL",
+    "activity_series": "operating hot and steam systems",
+    "assets": [
+      {
+        "asset_class": "BOIL-CLASS-A",
+        "label": "package boilers and deaerator",
+        "service": "process steam generation and feedwater deaeration",
+        "tag": "B-8201"
+      },
+      {
+        "asset_class": "INST-CLASS-A",
+        "label": "instrument loop",
+        "service": "governs B-8201",
+        "tag": "PT-8201"
+      },
+      {
+        "asset_class": "INST-CLASS-A",
+        "label": "instrument loop",
+        "service": "governs B-8201",
+        "tag": "TT-8201"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "HOT_SURFACE_GUARDING",
+        "control_label": "insulation, guarding and signing of hot surfaces",
+        "failure_mode": "absent",
+        "hazard_energy": "thermal",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "STEAM_SYSTEM_WARM_THROUGH",
+        "control_label": "controlled draining, venting and warm-through of steam systems",
+        "failure_mode": "absent",
+        "hazard_energy": "thermal",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "NM-2017-0009",
+    "hazard_energy": "thermal",
+    "hazard_media": [
+      "hot surface",
+      "steam",
+      "molten material",
+      "hot work",
+      "exothermic reaction"
+    ],
+    "hazard_release": "burn, ignition, scald",
+    "kind": "near_miss",
+    "occurred_on": "2017-04-04",
+    "severity_actual": 1,
+    "severity_potential": 2,
+    "site": "Tolgarra Processing and Power Station",
+    "summary_facts": [],
+    "task_phase": "during cleaning and preparation",
+    "title": "potential incident - thermal exposure at B-8201",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "3bc09ad47beaaf9de1049100594ddb451241f24a72b94c2a2be06b2d894e526e",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2017-0009",
+  "prompt_kind": "icam",
+  "prompt_sha256": "42349c4d9db662c3e42f9d0280976ccb6d4eadf03228885232afef2c4d77e618",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage. The potential outcome was rated 2 against the site's consequence scale, above the 1 actually realised.",
+    "defences": [
+      {
+        "control_class": "HOT_SURFACE_GUARDING",
+        "finding": "Control HOT_SURFACE_GUARDING: the insulation, guarding and signing of hot surfaces was not in place, and the ICAM investigation classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "STEAM_SYSTEM_WARM_THROUGH",
+        "finding": "Control STEAM_SYSTEM_WARM_THROUGH: the controlled draining, venting and warm-through of steam systems was not in place, and the ICAM investigation classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Restore the insulation, guarding and signing of hot surfaces on B-8201, PT-8201 and TT-8201 and record the critical control verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in operating hot and steam systems, specifically preventing water ingress to hot material. B-8201 (package boilers and deaerator) is in service for process steam generation and feedwater deaeration. The task proceeded during cleaning and preparation while the insulation, guarding and signing of hot surfaces was not in place. The thermal energy involved is held as hot surface, and the recorded presentation was burn, ignition, scald.",
+    "summary": "On 4 April 2017 a potential incident was recorded on B-8201, PT-8201 and TT-8201 at Tolgarra Processing and Power Station during cleaning and preparation; thermal energy held as hot surface was not released."
+  },
+  "response_sha256": "5325ef2309ec25b93434a29e81270549d371af5350e2acaf49a116793ec07375",
+  "source": null
+}

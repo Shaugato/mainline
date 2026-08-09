@@ -26,6 +26,7 @@ import pytest
 from _run_corpus import INDEX_GENERATION, PLAN_DIGEST
 from _run_fakes import FailingArmRunner, FixtureArmRunner, arm_outcome
 from mainline_recall_agent.run.persist import NO_FINGERPRINT
+
 from trappoint_recall.horizon.certificate import CoverageCertificate
 from trappoint_recall.horizon.errors import CoverageRefused
 from trappoint_recall.per.errors import ExhaustionOverclaim
@@ -70,9 +71,7 @@ def test_a_degraded_run_cannot_certify_its_own_reach(build_harness) -> None:
 
 
 @pytest.mark.parametrize("injection", sorted(UNDETERMINED_INJECTIONS))
-def test_undetermined_forces_the_receipt_to_disclaim_exhaustion(
-    build_harness, injection
-) -> None:
+def test_undetermined_forces_the_receipt_to_disclaim_exhaustion(build_harness, injection) -> None:
     """The flag is on the receipt's face, on the wire, and in the verifier's report."""
     harness = build_harness(arm_runner=_arms(**UNDETERMINED_INJECTIONS[injection]))
     outcome = harness.run()
@@ -84,9 +83,7 @@ def test_undetermined_forces_the_receipt_to_disclaim_exhaustion(
 
     report = verify_receipt(outcome.receipt.to_json())
     assert report.ok, report.to_text()
-    bounded = next(
-        check for check in report.checks if check.name == "exhaustion_claim_bounded"
-    )
+    bounded = next(check for check in report.checks if check.name == "exhaustion_claim_bounded")
     assert bounded.ok
     assert PER_BOUND_SENTENCE in bounded.detail
 
@@ -160,9 +157,7 @@ def test_an_uncertified_certificate_row_records_the_sentinel_fingerprint(
     build_harness,
 ) -> None:
     """``index_fingerprint`` is NOT NULL, and an unknown fingerprint is 32 zero bytes."""
-    harness = build_harness(
-        arm_runner=_arms(generation_moves_to="gen-2026-08-01T09:15:00Z")
-    )
+    harness = build_harness(arm_runner=_arms(generation_moves_to="gen-2026-08-01T09:15:00Z"))
     harness.run()
 
     row = harness.cluster.committed["recall_certificate"][0]

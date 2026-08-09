@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "MOBILE-EQUIPMENT-INTERACTION",
+    "barrier_role": "preventive",
+    "control_class": "POSITIVE_COMMUNICATION_BEFORE_APPROACH",
+    "control_delta": "restate",
+    "control_label": "positive communication before approaching mobile equipment",
+    "doc_code": "PRO-MIN-003",
+    "doc_family": "PRO",
+    "doc_title": "Haul Road and Light Vehicle Interaction",
+    "effective_on": "2009-05-13",
+    "printed_label": "2.1",
+    "setpoint": null,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "e5541f97bfb80b2c8c84c4d4d58765f6665a1dad428fe2839959a431807bb7df",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:YND/PRO-MIN-003/004#YND/PRO-MIN-003/2.1",
+  "prompt_kind": "clause",
+  "prompt_sha256": "9459eed9d15c4f56c1aa73b5f42700476a3528495afcd464f834e99467dd392a",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The positive communication before approaching mobile equipment shall be provided and maintained wherever this procedure applies, and its condition shall be treated as a key safeguard. This clause applies to activities archived under MOBILE-EQUIPMENT-INTERACTION at Yandarra Downs Open Cut and Heavy Workshop.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "09f4a156113e1c40a823f44876d9fc00bfbccada53d51f924f36c0c69f85705f",
+  "source": null
+}

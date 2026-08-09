@@ -1,0 +1,64 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 6,
+    "doc_code": "PRO-OPS-032",
+    "doc_family": "PRO",
+    "doc_title": "Hydrocarbon Transfer Operations",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2026-05-26",
+    "required_citations": [
+      {
+        "control_label": "integrity of the mechanical seal support system",
+        "event_ref": "INC-2025-010",
+        "event_title": "uncontrolled movement of TK-4211 during a statutory inspection",
+        "hazard_energy": "chemical",
+        "kind": "regulator_requirement",
+        "quote_ref": "quote:MRD/PRO-OPS-032/012#regulator_requirement/INC-2025-010",
+        "severity_gate": 4
+      },
+      {
+        "control_label": "controlled transfer of hydrocarbon between vessels",
+        "event_ref": "INC-2025-010",
+        "event_title": "uncontrolled movement of TK-4211 during a statutory inspection",
+        "hazard_energy": "chemical",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:MRD/PRO-OPS-032/012#revision_history_line/INC-2025-010",
+        "severity_gate": 4
+      }
+    ],
+    "rev_no": 12,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "learning team review",
+      "management_of_change": "change assurance",
+      "near_miss": "high potential incident"
+    }
+  },
+  "key": "8d553555ab304d5dec91d7584c253ac767c6dc18f935d389bdbfd137bf70bc0b",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/PRO-OPS-032/012",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "ac4beae75bb819646162ea99de9a59b093fa742175b1a7c0e4cebe85fbed7248",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "A regulatory requirement arising from INC-2025-010 obliges this procedure to carry the integrity of the mechanical seal support system.",
+        "quote_ref": "quote:MRD/PRO-OPS-032/012#regulator_requirement/INC-2025-010"
+      },
+      {
+        "line": "Revision 12 was raised in response to INC-2025-010, and the controlled transfer of hydrocarbon between vessels was amended as a result.",
+        "quote_ref": "quote:MRD/PRO-OPS-032/012#revision_history_line/INC-2025-010"
+      }
+    ],
+    "reason": "Scheduled review at revision 12; 6 clauses restated."
+  },
+  "response_sha256": "ae36e8d4f9e5c2150d1c0e5fb8ddb49408328186230b05fb036006ae280a5097",
+  "source": null
+}

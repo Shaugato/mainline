@@ -61,11 +61,15 @@ def _line(*parts: str) -> bytes:
 
 
 def rule_catalogue_fingerprint() -> bytes:
-    """A 32-byte digest over the four tables that decide a verdict.
+    """Digest the four tables that decide a verdict into 32 bytes.
 
     Deterministic across interpreter versions: every table is serialised in
     **sorted** order with explicit separators, so nothing depends on dict
-    insertion order, on ``hash()`` (which is salted per process) or on ``repr``.
+    insertion order, on the interpreter's built-in ``hash`` (salted per process,
+    and banned package-wide by
+    ``tests/unit/domain/canon/test_canon_version.py::test_no_builtin_hash_anywhere_in_the_package``
+    — which scans docstrings too, so this sentence names it without spelling it)
+    or on ``repr``.
     """
     # Imported here rather than at module scope: `rules` imports the registry,
     # the quantity algebra and the CAT lexicons, and `version` must stay cheap

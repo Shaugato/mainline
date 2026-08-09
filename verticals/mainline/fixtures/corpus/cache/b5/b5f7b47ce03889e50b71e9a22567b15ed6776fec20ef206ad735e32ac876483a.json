@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 6,
+    "doc_code": "PRO-MEC-055",
+    "doc_family": "PRO",
+    "doc_title": "Workshop Component Removal and Load Support",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2023-10-11",
+    "required_citations": [
+      {
+        "control_label": "exclusion of people from beneath elevated work",
+        "event_ref": "RN-2023-001",
+        "event_title": "improvement notice - material unwanted event control at HO-9402",
+        "hazard_energy": "kinetic",
+        "kind": "moc_reference",
+        "quote_ref": "quote:YND/PRO-MEC-055/012#moc_reference/RN-2023-001",
+        "severity_gate": 3
+      }
+    ],
+    "rev_no": 12,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "learning team review",
+      "management_of_change": "change assurance",
+      "near_miss": "high potential incident"
+    }
+  },
+  "key": "b5f7b47ce03889e50b71e9a22567b15ed6776fec20ef206ad735e32ac876483a",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:YND/PRO-MEC-055/012",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "8a94e314feea3ae30237ce8337ae6be4557cb06602b92fd7bb1f82d93a331a05",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The change assurance record for this revision cites RN-2023-001 as the reason the exclusion of people from beneath elevated work was amended.",
+        "quote_ref": "quote:YND/PRO-MEC-055/012#moc_reference/RN-2023-001"
+      }
+    ],
+    "reason": "Scheduled review at revision 12; 6 clauses restated."
+  },
+  "response_sha256": "f0581d4bc1f701b876a0257dc35d978baa7b33428139e771d0ed66357ce4ade7",
+  "source": null
+}

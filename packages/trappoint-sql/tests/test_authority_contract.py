@@ -33,7 +33,7 @@ from pathlib import Path
 
 import pytest
 
-from trappoint_sql.binding import check_authority_contract, load_binding
+from trappoint_sql.binding import AuthorityReport, check_authority_contract, load_binding
 from trappoint_sql.errors import AuthoritySourceRefused
 from trappoint_sql.model import AuthoritySource
 from trappoint_sql.render import render_binding
@@ -98,8 +98,16 @@ class Fake:
         self.obligation_relations = frozenset({"probe.blocking_check"})
 
 
-def check(entries: tuple[AuthoritySource, ...], projections: dict[str, tuple[str, ...]]) -> object:
-    """Run the contract over a fake binding."""
+def check(
+    entries: tuple[AuthoritySource, ...], projections: dict[str, tuple[str, ...]]
+) -> AuthorityReport:
+    """Run the contract over a fake binding.
+
+    The return type is the real ``AuthorityReport`` rather than ``object``: the two tests
+    that read ``backed`` / ``pending`` / ``summary`` off it are asserting the report's
+    *shape*, and a widened return type turns that assertion into an unchecked attribute
+    access that a rename would silently break.
+    """
     return check_authority_contract(
         Fake(entries),  # type: ignore[arg-type]
         projections,

@@ -1,0 +1,92 @@
+{
+  "mutations": [
+    {
+      "actually_failed": [
+        "R04"
+      ],
+      "defect": "every clause's identity becomes uuid5 of the address it prints under after the reflow, so identity follows the page rather than the obligation",
+      "must_fail": [
+        "R04"
+      ],
+      "mutation_id": "N1",
+      "note": "the audit refused it on ['R04']",
+      "title": "identity minted from the printed label",
+      "verdict": "KILLED"
+    },
+    {
+      "actually_failed": [
+        "R04",
+        "R05",
+        "R06",
+        "R09",
+        "R10",
+        "R13"
+      ],
+      "defect": "the generation-2 template reuses the generation-1 addresses, so the 'new scheme' is a new font",
+      "must_fail": [
+        "R05",
+        "R06",
+        "R10"
+      ],
+      "mutation_id": "N2",
+      "note": "the audit refused it on ['R05', 'R06', 'R10']",
+      "title": "a retypeset that relabels nothing",
+      "verdict": "KILLED"
+    },
+    {
+      "actually_failed": [
+        "R07",
+        "R08",
+        "R09",
+        "R11"
+      ],
+      "defect": "labels change but every clause keeps its position, so the organising principle did not change and decision D6's claim is false",
+      "must_fail": [
+        "R07",
+        "R08"
+      ],
+      "mutation_id": "N3",
+      "note": "the audit refused it on ['R07', 'R08']",
+      "title": "a renumbering wearing a reflow's name",
+      "verdict": "KILLED"
+    },
+    {
+      "actually_failed": [
+        "R14"
+      ],
+      "defect": "reflow_pair.jsonl grows an identity_held field copied from the schedule, giving an unchecked claim a second home in the tree that was built to check it",
+      "must_fail": [
+        "R14"
+      ],
+      "mutation_id": "N4",
+      "note": "the audit refused it on ['R14']",
+      "title": "the injector's asserted boolean carried into the audit",
+      "verdict": "KILLED"
+    },
+    {
+      "actually_failed": [
+        "R04",
+        "R05",
+        "R06",
+        "R07",
+        "R08",
+        "R09",
+        "R10",
+        "R11",
+        "R13"
+      ],
+      "defect": "both sides of every register key read the pre-2016 value, so every register scores perfectly and the scoreboard measures nothing",
+      "must_fail": [
+        "R10",
+        "R11"
+      ],
+      "mutation_id": "N5",
+      "note": "the audit refused it on ['R10', 'R11']",
+      "title": "every register scored against itself",
+      "verdict": "KILLED"
+    }
+  ],
+  "principle": "PL-2: a suite that has never been red asserts nothing. Each mutation below is a plausible defect applied to the honest audit; a mutation the checks do not refuse is a check that measures something other than what it says.",
+  "summary": "5 killed, 0 survived, of 5",
+  "survivors": []
+}

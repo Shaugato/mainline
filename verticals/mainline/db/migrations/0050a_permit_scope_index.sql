@@ -1,0 +1,33 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MAINLINE · 0050a_permit_scope_index.sql
+-- CREATE INDEX permit_scope — the RLS scope token first, then state, then recency
+--
+-- MI: MI02
+-- I: I02
+-- COUNSEL-GATED: no
+-- RATIONALE: Leading on site_role rather than site_id is what makes the row-level security
+--            predicate an index seek instead of a filter over every permit in the cluster.
+--            Law 10 forbids a subquery in a policy expression, so the scope MUST already be
+--            a scalar on the row; this index is the half of that decision that makes it
+--            affordable. state second and opened_at DESC third serve the one query the
+--            console and the audit summary both run — the open gate for a scope, newest
+--            first.
+--
+-- @rendered-by  trappoint render
+-- @template     packages/trappoint-sql/templates/0050_permit.sql.j2
+-- @binding      verticals/mainline/vertical.toml
+-- DO NOT EDIT. `trappoint render --check` is a zero-diff assertion in CI, so a
+-- hand edit here is a red build, not a silent divergence.
+--
+-- Declared as its own migration rather than inline, because one statement per file is
+-- not negotiable: CockroachDB DDL is not transactional across statements, so an index
+-- build that fails beside a CREATE TABLE leaves a version nobody can diagnose.
+--
+-- NOT partial. A permit in every state is in scope for the audit views, and a partial
+-- index over the open states would silently stop serving the closed-permit history an
+-- investigation reads first.
+
+CREATE INDEX permit_scope
+  ON mainline.permit (site_role, state, opened_at DESC);

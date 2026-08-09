@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 2,
+    "doc_codes": [
+      "PRO-HSE-012",
+      "STD-CSE-002"
+    ],
+    "intent": "strengthen",
+    "moc_ref": "MOC-2019-0042",
+    "opened_on": "2019-02-12",
+    "precursor_events": [],
+    "site": "Cape Verity Export Terminal",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "management_of_change": "management of change",
+      "verification": "critical control verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "925fbb26caf8d6f60b221d0dbb3bf86ba1d62bf3ee77746154fe065e2176715c",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2019-0042",
+  "prompt_kind": "moc",
+  "prompt_sha256": "5cbe2031036e8e4821e422f74aaa15082c4ee466d4cc87da49a647238e20b402",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2019-0042 was raised at Cape Verity Export Terminal on 12 February 2019 as a scheduled change under management of change; no event precedes it in the record. The management of change record covers 2 clauses across 2 controlled documents. The intent is to strengthen the critical control named in the documents in scope. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical control set is preserved.",
+    "scope_note": "The documents in scope are PRO-HSE-012 and STD-CSE-002."
+  },
+  "response_sha256": "2f82235e3c82c9d127c13c8c46f27fb26fd32202c9412ae29d807e3b46095090",
+  "source": null
+}

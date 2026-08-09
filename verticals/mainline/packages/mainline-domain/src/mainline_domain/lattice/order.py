@@ -107,7 +107,7 @@ def rank(delta: ControlDelta) -> int:
 
 
 def join(deltas: Iterable[ControlDelta]) -> ControlDelta:
-    """The least upper bound along :data:`CHAIN`.  Empty input is :data:`NEUTRAL`.
+    """Return the least upper bound along :data:`CHAIN`.  Empty input is :data:`NEUTRAL`.
 
     Takes an iterable rather than varargs because every caller in this domain has
     a sequence in hand, and ``join(*findings)`` invites a caller to write
@@ -121,12 +121,12 @@ def join(deltas: Iterable[ControlDelta]) -> ControlDelta:
 
 
 def dual(delta: ControlDelta) -> ControlDelta:
-    """The semantic inverse of an edit: what the reversed diff would be called."""
+    """Return the semantic inverse of an edit: what the reversed diff would be called."""
     return _DUAL[delta]
 
 
 def is_weakening(delta: ControlDelta) -> bool:
-    """``True`` for the two labels the merge gate reacts to: ``weaken``, ``remove``.
+    """Report whether the merge gate reacts to this label: ``weaken``, ``remove``.
 
     Written as ``force(delta) > 0`` rather than as membership in a set, because
     ``force`` is worker W1's frozen definition of *how loudly the gate must

@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 3,
+    "doc_code": "STD-CHM-011",
+    "doc_family": "STD",
+    "doc_title": "Hazardous Substances",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2021-05-15",
+    "required_citations": [],
+    "rev_no": 4,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "ICAM investigation",
+      "management_of_change": "management of change",
+      "near_miss": "potential incident"
+    }
+  },
+  "key": "04b87f92e86d60275fd879fab7aa1b5f0378e899da29b6258bb74f514a7046e6",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:TLG/STD-CHM-011/004",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "b7ebc9c20a2ee0fa36ee409be8b5717b9026a8b9b8a1a61edd4482c81fef423c",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [],
+    "reason": "Scheduled review at revision 4; 3 clauses restated."
+  },
+  "response_sha256": "46194ce64802fb9d9cc5a5c4f49342e6e21ae25b50ddac85c060982bf3713882",
+  "source": null
+}

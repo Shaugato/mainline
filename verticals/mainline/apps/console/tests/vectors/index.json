@@ -1,0 +1,44 @@
+{
+  "vectors_version": 1,
+  "frozen_at": "2026-08-09",
+  "contract": "These vectors are the contract between verticals/mainline/apps/console/src/verify/ (TypeScript, in a Web Worker) and packages/trappoint-verify (Python, offline). Both implementations MUST agree on every case byte for byte, or CI fails on whichever side moved. A vector is never edited to make an implementation pass.",
+  "files": [
+    {
+      "path": "jcs.json",
+      "kind": "jcs",
+      "spec": "RFC 8785"
+    },
+    {
+      "path": "rfc6962.json",
+      "kind": "rfc6962",
+      "spec": "RFC 6962 2.1, 2.1.1, 2.1.2"
+    },
+    {
+      "path": "checkpoint.json",
+      "kind": "checkpoint",
+      "spec": "c2sp.org/tlog-checkpoint via spec/wire/checkpoint.md v1.0"
+    },
+    {
+      "path": "silence-boundary.json",
+      "kind": "silence-boundary",
+      "spec": "ARCHITECTURE.md 5.7 (Proof of Exhausted Recall)"
+    },
+    {
+      "path": "ledger-payload.json",
+      "kind": "ledger-payload",
+      "spec": "contracts/ledger.schema.json over ARCHITECTURE.md 5.6"
+    }
+  ],
+  "counts": {
+    "jcs_cases": 8,
+    "jcs_refusals": 5,
+    "rfc6962_inclusion": 5,
+    "rfc6962_consistency": 4,
+    "rfc6962_negative": 5,
+    "checkpoint_cases": 13,
+    "checkpoint_vkey": 3,
+    "silence_cases": 6,
+    "ledger_leaves": 5,
+    "ledger_checkpoints": 2
+  }
+}

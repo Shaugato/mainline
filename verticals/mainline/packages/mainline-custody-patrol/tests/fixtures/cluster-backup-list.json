@@ -1,0 +1,26 @@
+{
+  "backups": [
+    {
+      "id": "bk-2026-08-09-0200",
+      "as_of_time": "2026-08-09T02:00:00Z",
+      "created_at": "2026-08-09T02:03:52Z",
+      "state": "COMPLETE",
+      "type": "FULL",
+      "size_bytes": 431027744,
+      "retention_period_days": 30
+    },
+    {
+      "id": "bk-2026-08-09-0800",
+      "as_of_time": "2026-08-09T08:00:00Z",
+      "created_at": "2026-08-09T08:01:07Z",
+      "state": "COMPLETE",
+      "type": "INCREMENTAL",
+      "size_bytes": 9114322,
+      "retention_period_days": 30
+    }
+  ],
+  "pagination": {
+    "next_page": null,
+    "page_size": 100
+  }
+}

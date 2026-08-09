@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "barrier_role": "recovery",
+    "control_class": "SEAL_FACE_TEMPERATURE_ALARM",
+    "control_delta": "introduce",
+    "control_label": "seal-face high-temperature alarm and trip",
+    "doc_code": "MOC-2014-0087",
+    "doc_family": "MOC",
+    "doc_title": "Replacement of Jetty Emergency Shutdown Valve Actuators",
+    "effective_on": "2014-04-09",
+    "printed_label": "2.4.1(d)",
+    "setpoint": null,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "energy_isolation": "lock out tag out",
+      "verification": "field verification"
+    }
+  },
+  "key": "0ecfddb11b35110eac66a935a52a7c5fc6e24bb43452a0568679f9a7759bf27b",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:CVY/MOC-2014-0087/001#CVY/MOC-2014-0087/2.4.1(d)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "95fe979cba09e1df15c5c52e6236ffa44a41fa4ff1336145f1aed7dba11bd811",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The seal-face high-temperature alarm and trip shall be provided and maintained for work covered by this change record. This clause applies to activities archived under CONTAINMENT-OF-HYDROCARBONS at Cape Verity Export Terminal.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "88b1ddcde4f0592015b792b62ea707916cd83f832e90b8d38b8016347c4bb82c",
+  "source": null
+}

@@ -1,0 +1,239 @@
+{# SPDX-FileCopyrightText: 2026 MAINLINE contributors #}
+{# SPDX-License-Identifier: Apache-2.0 #}
+{#
+  Migrations 0115 / 0116 — THE MERGE GATE FUNCTIONS.
+
+  Authority: ARCHITECTURE.md §5.11 function 7, §6.5, §16 (MI02, MI06, MI22, MI30);
+  spec/errors.md §2.5 and §3.3; docs/leads/kernel.md rulings D4 (no CASE), D5, MR-8
+  (0115/0116 — 0111-0114 are recall's and are occupied on disk).
+
+  ────────────────────────────────────────────────────────────────────────────────
+  ONE TEMPLATE, TWO SUBJECTS. THAT IS THE THESIS, NOT A SAVING.
+  ────────────────────────────────────────────────────────────────────────────────
+  `MI02` ("a merged permit has zero open blocking checks") and `MI30` ("a change
+  request merges only with zero open blocking checks — the repository is a protected
+  branch") are the same invariant instantiated on two subjects. Writing them as two
+  hand-authored functions would let them drift into two different claims, and the
+  drift would be invisible: both files would still look correct. So this template
+  emits both, from the binding's own `[[subject]]` declarations, and every name it
+  needs is derived from `id_column`:
+
+      permit_id → permit → permit_event, permit_clause, fn_permit_merge_gate
+      cr_id     → cr     → cr_event,     cr_clause,     fn_cr_merge_gate
+
+  That derivation is a CONVENTION, not a guess, and it is guarded by a test that
+  reads both committed bindings and asserts the declared `event_table` agrees with
+  it: `packages/trappoint-core/tests/test_binding_conventions.py`. It exists because
+  `render._context()` does not yet expose `event_table`, `completion_table`,
+  `epoch_pin_constraint` or `obligation_sources` to a template. See that test and the
+  cross-domain note filed with this worker's output.
+
+  ────────────────────────────────────────────────────────────────────────────────
+  WHAT THIS FUNCTION MAY REFUSE, AND WHAT IT MUST LEAVE ALONE
+  ────────────────────────────────────────────────────────────────────────────────
+  `spec/errors.md` §3.3 is normative and it is the reason this function looks smaller
+  than ARCHITECTURE.md §5.11 function 7 does:
+
+    * a synthetic `23514` raised from procedural code carries NO CONSTRAINT NAME, and
+      the constraint name is the exhibit. §5.11's `RAISE ... ERRCODE='23514'` predates
+      the SQLSTATE contract; conformance case CF-01 pins the correct behaviour in one
+      line — "the trigger must NOT pre-empt the CHECK: the exhibit is the constraint
+      name" — and asserts `23514` on `gate_closed_when_issued`, which only the real
+      CHECK can produce.
+    * so a non-zero obligation counter is refused by the counter's own CHECK, on the
+      UPDATE this trigger has just returned NEW for, and this function says nothing.
+
+  What is left is exactly the set of conditions no CHECK can hold, which is what
+  `P0001` is reserved for (`spec/errors.md` §2.5):
+
+    1. DRIFT and TIME (CF-02, CF-03) — the anti-join re-derivation disagrees with the
+       projected counter. `now()` is not immutable, so an expired disposition can
+       never be a CHECK; and a counter forced to zero out of band is by definition a
+       value no CHECK over that counter can catch.
+    2. ABSENCE of an authority-source row for a cited clause (CF-06) — FAIL CLOSED. A
+       stale closure refusing while a missing one admitted was the original bug, and
+       it is the one with physical consequences.
+    3. ABSENCE of a boundary certificate (CF-53) — an asset with no modelled energy
+       edges is UNKNOWN, not SAFE. `unmodelled_asset_count = 0` on a permit that was
+       never certified is a certified null (I08), and it is indistinguishable from a
+       clean certificate to every CHECK that can be written over it.
+
+  The drift arm fires ONLY when the projected counter reads zero. When both the
+  re-derivation and the counter are non-zero the counter's CHECK refuses with its
+  name, and pre-empting it would trade a named exhibit for an unnamed one.
+
+  ────────────────────────────────────────────────────────────────────────────────
+  PLATFORM GROUND TRUTH MEASURED FOR THIS FILE (CockroachDB CCL v26.2.5, local node)
+  ────────────────────────────────────────────────────────────────────────────────
+  * READING a trigger row requires the PARENTHESISED form `(NEW).col`. `NEW.col` in a
+    read position fails at CREATE TRIGGER time with `42P01: no data source matches
+    prefix: new in this context` (cockroachdb#114687). WRITING `NEW.col := …` is fine
+    unparenthesised. The same applies to the trigger's `WHEN` clause — see 0130.
+  * `SELECT count(*) … FOR SHARE` is REFUSED with `0A000: FOR SHARE is not allowed
+    with aggregate functions`. ARCHITECTURE.md §6.5 is written that way and does not
+    run. The locking read is therefore a sub-select and the aggregate sits outside it.
+    This function takes no lock at all: it is a BEFORE trigger on the row the caller
+    already holds, and the locks that matter are the procedure's (0117/0118).
+  * PL/pgSQL restrictions held: no loop, no EXECUTE, no PERFORM, no CASE (ruling D4);
+    `IF`/`ELSIF` plus aggregate `SELECT … INTO`.
+  * **THE P0001 EXHIBIT IS NOT RECOVERABLE FROM THE DRIVER ON THIS PLATFORM.** Measured
+    through psycopg 3.3.4 against v26.2.5: a PL/pgSQL `RAISE` arrives with
+    `diag.constraint_name = None` (expected, spec/errors.md §3.1) AND
+    `diag.context = None` — there is no PL/pgSQL context stack — and
+    `diag.source_function` is a CockroachDB Go internal (`func397`), which names
+    nothing a courtroom could use. `spec/errors.md` §2.5 says the message MUST make
+    the raising object recoverable, and on this platform the message is the ONLY
+    channel that can. So every `RAISE` below names its own object:
+
+        <PREFIX>: merge refused by <schema>.<object> — <what and why>
+
+    which keeps §3.2's shape (one lower-case sentence, no trailing full stop) and lets
+    `trappoint_core.errors.diagnose()` recover the exhibit the conformance manifest
+    asserts. A refusal whose object name could only be inferred from the prefix is
+    reported as WEAKENED rather than silently guessed.
+#}
+{% set ns = namespace(closure=none) %}
+{% for a in authority_sources %}
+{% if 'blocking_check.severity' in a.projects %}
+{% set ns.closure = a %}
+{% endif %}
+{% endfor %}
+{% if ns.closure is none %}
+{#- A binding with no authority source for `blocking_check.severity` cannot render a
+    gate: rule P-2 says the gate reads only projections, and a projection with no
+    declared authority is the exact build error the Authority Source Contract exists to
+    produce. StrictUndefined turns the next line into a TemplateRefused naming it. -#}
+{{ this_binding_declares_no_authority_source_for_blocking_check_severity }}
+{% endif %}
+{% for s in subjects %}
+{% set stem = s.id_column[:-3] %}
+{% set number = 115 + loop.index0 %}
+{% set counter = (s.counters | selectattr('column', 'equalto', 'open_blocking') | list
+                  or s.counters | selectattr('polarity', 'equalto', 'zero_when_complete') | list)
+                 | first %}
+{% set cert_counter = (s.counters | selectattr('column', 'equalto', 'unmodelled_asset_count')
+                       | list) %}
+{% set certifies = binding.emit_outbox and (cert_counter | length) > 0 %}
+-- @file 0{{ number }}_fn_{{ stem }}_merge_gate.sql
+{{ header(file='0' ~ number ~ '_fn_' ~ stem ~ '_merge_gate.sql',
+          title='CREATE FUNCTION ' ~ binding.schema ~ '.fn_' ~ stem ~ '_merge_gate() — the re-derivation, the time condition, and the certified null',
+          rationale='A gate that trusted its own counters would be a gate that a single bad UPDATE disarms, so the completing transition re-derives the open obligation count from the base tables and refuses when the derivation disagrees with the projection. It refuses nothing a CHECK can refuse: a synthetic 23514 carries no constraint name and the constraint name is the exhibit. What is left is exactly what no CHECK can hold — a condition over now(), a condition over the absence of a row, and a counter that was never computed at all.',
+          mi=['MI02', 'MI22'] + (['MI06'] if certifies else []),
+          i=['I02'] + (['I08'] if certifies else []),
+          counsel_gated=false) }}
+--
+-- SUBJECT: {{ s.kind }} ({{ binding.schema }}.{{ s.table }}), completing state
+-- '{{ s.completing_state }}'. Welded to the table by migration
+-- 0{{ 130 + loop.index0 }}_trg_{{ stem }}_merge_gate.sql, which carries the WHEN clause that
+-- restricts this function to the completing transition and keeps the trigger graph
+-- acyclic and depth 1.
+--
+-- REFUSAL DEPTH, honestly stated. Every arm below is DEPTH 1 on its own: it is a
+-- RAISE, and a RAISE is one mechanism. The depth-2 claim the conformance suite makes
+-- for CF-01 and CF-31 is not made by this function — it is made by the counter's
+-- CHECK ({{ counter.constraint }}) surviving when this trigger is disabled, and by
+-- this trigger surviving when the CHECK is dropped. That claim is proved by the
+-- unwelding matrix, not asserted here, and at runtime the CHECK is what fires
+-- because this function deliberately declines to pre-empt it.
+--
+-- THE EXHIBIT for every refusal below is the fully-qualified name of this function
+-- ({{ binding.schema }}.fn_{{ stem }}_merge_gate), because `diag.constraint_name` is empty for
+-- P0001 (spec/errors.md §3.1). A client recovers it from the PL/pgSQL error context;
+-- where the driver cannot supply it, `trappoint_core.errors` records that the
+-- diagnosis was WEAKENED rather than silently inferring it.
+
+CREATE FUNCTION {{ binding.schema }}.fn_{{ stem }}_merge_gate() RETURNS TRIGGER
+LANGUAGE PLpgSQL AS $fn$
+DECLARE
+  v_subject   UUID;
+  v_projected INT8;
+  v_derived   INT8;
+  v_unbacked  INT8;
+{% if certifies %}
+  v_certified INT8;
+{% endif %}
+BEGIN
+  -- `(NEW).col`, not `NEW.col`. See the platform note in this file's template: the
+  -- unparenthesised read form does not survive CREATE TRIGGER on v26.2.5.
+  v_subject   := (NEW).{{ s.id_column }};
+  v_projected := (NEW).{{ counter.column }};
+
+  -- ── 1 · RE-DERIVE THE OPEN OBLIGATION COUNT FROM THE BASE TABLES ──────────────
+  -- The projection is enforced, never trusted (rule P-2). An obligation is OPEN when
+  -- no live disposition covers it, and "live" carries a time condition — `retracted_by
+  -- IS NULL` is a fact a CHECK could hold, `expires_at > now()` is not.
+  SELECT count(*) INTO v_derived
+    FROM {{ binding.schema }}.blocking_check bc
+   WHERE bc.{{ s.id_column }} = v_subject
+     AND NOT EXISTS (
+           SELECT 1 FROM {{ binding.schema }}.disposition d
+            WHERE d.check_id = bc.check_id
+              AND d.retracted_by IS NULL
+              AND (d.expires_at IS NULL OR d.expires_at > now()));
+
+  -- ── 2 · DRIFT AND TIME (CF-02, CF-03) ────────────────────────────────────────
+  -- Only when the projection reads ZERO. If the counter is also non-zero then
+  -- {{ counter.constraint }} refuses this write with its own name attached, and
+  -- trading that named exhibit for an unnamed P0001 would be a strictly worse
+  -- refusal (spec/errors.md §3.3, corollary).
+  IF v_derived <> 0 AND v_projected = 0 THEN
+    RAISE EXCEPTION USING ERRCODE = 'P0001',
+      MESSAGE = '{{ binding.name }}: merge refused by {{ binding.schema }}.fn_{{ stem }}_merge_gate'
+                || ' — re-derived open obligation count is '
+                || v_derived::STRING || ' while the projected counter reads zero';
+  END IF;
+
+  -- ── 3 · FAIL CLOSED ON AN ABSENT AUTHORITY-SOURCE ROW (CF-06) ────────────────
+  -- Declared by this binding, not known to the substrate:
+  --   authority {{ ns.closure.relation }} ({{ ns.closure.key_columns | join(', ') }})
+  --          <= cited ({{ ns.closure.key | join(', ') }})
+  --   on_missing raise
+  -- Absence of evidence refuses. The original bug was the other asymmetry: a stale
+  -- closure refused while a missing one admitted, and the missing one is the case
+  -- with physical consequences.
+  SELECT count(*) INTO v_unbacked
+    FROM {{ binding.schema }}.{{ stem }}_clause cited
+   WHERE cited.{{ s.id_column }} = v_subject
+     AND NOT EXISTS (
+           SELECT 1 FROM {{ ns.closure.relation }} auth
+            WHERE {% for column in ns.closure.key_columns %}auth.{{ column }} = cited.{{ ns.closure.key[loop.index0] }}{{ '
+              AND ' if not loop.last }}{% endfor %});
+  IF v_unbacked <> 0 THEN
+    RAISE EXCEPTION USING ERRCODE = 'P0001',
+      MESSAGE = '{{ binding.name }}: merge refused by {{ binding.schema }}.fn_{{ stem }}_merge_gate'
+                || ' — no authority-source row for '
+                || v_unbacked::STRING || ' cited clause version(s)';
+  END IF;
+{% if certifies %}
+
+  -- ── 4 · THE CERTIFIED NULL (CF-53, invariant I08) ────────────────────────────
+  -- {{ cert_counter[0].column }} = 0 means one of two things and they are not the same
+  -- fact: CERTIFIED ZERO, or NEVER COMPUTED. No CHECK over that column can tell them
+  -- apart, because both are the integer 0. So the gate demands the certificate row
+  -- itself, and a {{ s.kind }} whose boundary was never certified is refused rather than
+  -- admitted. CF-52 — a certificate that exists and reports unmodelled assets — is a
+  -- different refusal and belongs to {{ cert_counter[0].constraint }}, which this
+  -- function does not pre-empt.
+  SELECT count(*) INTO v_certified
+    FROM {{ binding.schema }}.boundary_certificate cert
+   WHERE cert.{{ s.id_column }} = v_subject;
+  IF v_certified = 0 THEN
+    RAISE EXCEPTION USING ERRCODE = 'P0001',
+      MESSAGE = '{{ binding.name }}: merge refused by {{ binding.schema }}.fn_{{ stem }}_merge_gate'
+                || ' — no boundary certificate for this {{ s.kind }}';
+  END IF;
+{% else %}
+
+  -- ── 4 · THE CERTIFIED NULL — NOT RENDERED FOR THIS BINDING ───────────────────
+  -- This arm reads {{ binding.schema }}.boundary_certificate, which this binding does not
+  -- declare and does not own (`emit_outbox = {{ 'true' if binding.emit_outbox else 'false' }}`, ruling D9). Stored
+  -- procedures and functions bind EARLY on v26.2, so naming an absent relation here
+  -- would make this migration un-appliable rather than make it degrade — which is
+  -- exactly why the switch is at RENDER time and the fallback is this committed
+  -- comment a reviewer can read (ruling D5). Conformance case CF-53 carries
+  -- `profiles = ["mainline"]` for the same reason.
+{% endif %}
+
+  RETURN NEW;
+END $fn$;
+{% endfor %}

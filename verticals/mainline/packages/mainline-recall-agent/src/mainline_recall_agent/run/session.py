@@ -146,7 +146,7 @@ def psycopg_session(dsn: str) -> Iterator[PsycopgTransactional]:
     fixture paths — the CI and demo default — must work on a machine where no driver is
     installed. That deferred import is the documented exception PLC0415 is disabled for.
     """
-    import psycopg  # noqa: PLC0415 - see the docstring; the driver must stay optional
+    import psycopg
 
     with psycopg.connect(dsn) as connection:
         yield PsycopgTransactional(connection)

@@ -1,0 +1,85 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "preventing water ingress to hot material",
+    "activity_root": "MOLTEN-AND-HOT-MATERIAL",
+    "activity_series": "operating hot and steam systems",
+    "assets": [
+      {
+        "asset_class": "BOIL-CLASS-A",
+        "label": "package boilers and deaerator",
+        "service": "process steam generation and feedwater deaeration",
+        "tag": "D-8210"
+      },
+      {
+        "asset_class": "INST-CLASS-A",
+        "label": "instrument loop",
+        "service": "governs D-8210",
+        "tag": "TT-8210"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "STEAM_SYSTEM_WARM_THROUGH",
+        "control_label": "controlled draining, venting and warm-through of steam systems",
+        "failure_mode": "not_verified",
+        "hazard_energy": "thermal",
+        "icam_tier": "organisational_factor"
+      }
+    ],
+    "event_ref": "RN-2026-005",
+    "hazard_energy": "thermal",
+    "hazard_media": [
+      "hot surface",
+      "steam",
+      "molten material",
+      "hot work",
+      "exothermic reaction"
+    ],
+    "hazard_release": "burn, ignition, scald",
+    "kind": "regulator_notice",
+    "occurred_on": "2026-05-01",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Tolgarra Processing and Power Station",
+    "summary_facts": [],
+    "task_phase": "during cleaning and preparation",
+    "title": "prohibition notice - work stopped during cleaning and preparation on D-8210",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "5e9b6b93dd0dadcd4a3610fd9cfeb681ab1ef78aff1125d699444b7edc494427",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:RN-2026-005",
+  "prompt_kind": "icam",
+  "prompt_sha256": "0361a8b0a60e15c3339a5c338b9dcdafb9c6cffaf01ab76ab02f45220828c3be",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "STEAM_SYSTEM_WARM_THROUGH",
+        "finding": "Control STEAM_SYSTEM_WARM_THROUGH: the controlled draining, venting and warm-through of steam systems was never verified as effective, and the learning team review classified this as an organisational factor."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next assurance activity that the controlled draining, venting and warm-through of steam systems on D-8210 and TT-8210 performs as designed."
+    ],
+    "sequence": "Work was under way in operating hot and steam systems, specifically preventing water ingress to hot material. D-8210 (package boilers and deaerator) is in service for process steam generation and feedwater deaeration. The task proceeded during cleaning and preparation while the controlled draining, venting and warm-through of steam systems was never verified as effective. The thermal energy involved is held as hot surface, and the recorded presentation was burn, ignition, scald.",
+    "summary": "On 1 May 2026 a regulatory notice was issued concerning D-8210 and TT-8210 at Tolgarra Processing and Power Station following cleaning and preparation."
+  },
+  "response_sha256": "5145424969456cecd10c1d3436ec4ff715a9bec3c60e6a9e19a8d156a9c63469",
+  "source": null
+}

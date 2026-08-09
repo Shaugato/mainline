@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 0,
+    "doc_codes": [
+      "PRO-ELE-008"
+    ],
+    "intent": "restate",
+    "moc_ref": "MOC-2005-0113",
+    "opened_on": "2005-10-12",
+    "precursor_events": [],
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "management_of_change": "engineering change note",
+      "verification": "spot check"
+    },
+    "weakening_steps": 0
+  },
+  "key": "1c1bcb079568a92f419a274555bd20e4db02fe79f0d21ccf907dfc5fe4956f7d",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2005-0113",
+  "prompt_kind": "moc",
+  "prompt_sha256": "11e8a80380c98d96a56630d98569554e22f206315036200f4824844c9804cd91",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2005-0113 was raised at Marrindal Concentrator and Hydrocarbon Transfer Facility on 12 October 2005 as a scheduled change under engineering change note; no event precedes it in the record. The engineering change note record carries no clause change; it records the assessment only. The intent is to restate an existing duty without altering what it requires. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the key safeguard set is preserved.",
+    "scope_note": "The documents in scope are PRO-ELE-008."
+  },
+  "response_sha256": "528bc3e2407e337429814da73486c2c7e72a9a74cd06ac596b69ab7fbf49a00f",
+  "source": null
+}

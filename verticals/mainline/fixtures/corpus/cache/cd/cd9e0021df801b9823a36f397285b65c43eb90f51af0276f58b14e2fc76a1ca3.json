@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 26,
+    "doc_code": "PRO-EXP-002",
+    "doc_family": "PRO",
+    "doc_title": "Explosives Receipt and Magazine Control",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2019-01-01",
+    "required_citations": [],
+    "rev_no": 6,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "ICAM investigation",
+      "management_of_change": "management of change",
+      "near_miss": "potential incident"
+    }
+  },
+  "key": "cd9e0021df801b9823a36f397285b65c43eb90f51af0276f58b14e2fc76a1ca3",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:YND/PRO-EXP-002/006",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "a3941ef14cf59019d8798ec2b3a0ca55da8d17c0169bd85acfc81a23a69487c9",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [],
+    "reason": "Scheduled review at revision 6; 26 clauses restated."
+  },
+  "response_sha256": "6eb8747466cdce98a67d245fca79fbacabcccf470dca5a9948093fd0d27ce296",
+  "source": null
+}

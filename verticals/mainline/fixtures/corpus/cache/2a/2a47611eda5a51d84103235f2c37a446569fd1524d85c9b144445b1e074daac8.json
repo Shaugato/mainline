@@ -1,0 +1,40 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 3,
+    "doc_codes": [
+      "ALERT-2016-007",
+      "MOC-2014-0087",
+      "PRO-MEC-041",
+      "PRO-OPS-017",
+      "PTW-STD-003"
+    ],
+    "intent": "strengthen",
+    "moc_ref": "MOC-2023-0235",
+    "opened_on": "2023-12-19",
+    "precursor_events": [],
+    "site": "Cape Verity Export Terminal",
+    "terminal_state": "abandoned",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "management_of_change": "change assurance",
+      "verification": "assurance activity"
+    },
+    "weakening_steps": 0
+  },
+  "key": "2a47611eda5a51d84103235f2c37a446569fd1524d85c9b144445b1e074daac8",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2023-0235",
+  "prompt_kind": "moc",
+  "prompt_sha256": "9f6c38f6c2baf18f83890e0607f9e503e877ff7a3519e38886349c6c82fcc4eb",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2023-0235 was raised at Cape Verity Export Terminal on 19 December 2023 as a scheduled change under change assurance; no event precedes it in the record. The change assurance record covers 3 clauses across 5 controlled documents. The intent is to strengthen the material unwanted event control named in the documents in scope. The record reached the state abandoned in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the material unwanted event control set is preserved.",
+    "scope_note": "The documents in scope are ALERT-2016-007, MOC-2014-0087, PRO-MEC-041, PRO-OPS-017 and PTW-STD-003."
+  },
+  "response_sha256": "5a8299a74f99566d386a98d45cbb3ad1fb6de3e303b341213c2d083f183a3f4d",
+  "source": null
+}

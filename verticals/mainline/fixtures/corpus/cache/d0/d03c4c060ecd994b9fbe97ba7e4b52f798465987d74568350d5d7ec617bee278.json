@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "HAZARDOUS-SUBSTANCE-EXPOSURE",
+    "barrier_role": "preventive",
+    "control_class": "LOAD_RESTRAINT_AND_PLACARDING",
+    "control_delta": "restate",
+    "control_label": "restraint and placarding of transported loads",
+    "doc_code": "STD-CHM-011",
+    "doc_family": "STD",
+    "doc_title": "Hazardous Substances",
+    "effective_on": "2023-10-04",
+    "printed_label": "7.2",
+    "setpoint": null,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "energy_isolation": "positive isolation verification",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "d03c4c060ecd994b9fbe97ba7e4b52f798465987d74568350d5d7ec617bee278",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:TLG/STD-CHM-011/005#TLG/STD-CHM-011/7.2",
+  "prompt_kind": "clause",
+  "prompt_sha256": "7e76b15e18f7d9affd190bd7b536feeb0784ed3a4fcbf28d181f222e3ce17b63",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The restraint and placarding of transported loads shall be provided and maintained wherever this standard applies, and its condition shall be treated as a material unwanted event control. This clause applies to activities archived under HAZARDOUS-SUBSTANCE-EXPOSURE at Tolgarra Processing and Power Station.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "a13bd0912c8791edb8d31add526c9f59f69100f82259fd4850dcc9ea25ec55c0",
+  "source": null
+}

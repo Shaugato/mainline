@@ -74,16 +74,25 @@ under `tests/fixtures/domain/oracle/cassettes/`, so the whole of Path B runs wit
 no AWS account and no network:
 
 ```python
-from mainline_delta_oracle import AdjudicationOracle, DeltaOracleRequest, OriginContext, PROMPT_VERSION
+from mainline_delta_oracle import (
+    AdjudicationOracle,
+    DeltaOracleRequest,
+    OriginContext,
+    PROMPT_VERSION,
+)
 
-oracle = AdjudicationOracle()                 # cassette transport, discovered from the checkout
-verdict = oracle.classify(DeltaOracleRequest(
-    ancestor_text=..., descendant_text=...,
-    ancestor_cat=..., descendant_cat=...,
-    parameter_hint="gas_test_interval",
-    prompt_version=PROMPT_VERSION,
-    origin=OriginContext(event_summary=..., severity=5, occurred_on="2019-07-14"),
-))
+oracle = AdjudicationOracle()  # cassette transport, discovered from the checkout
+verdict = oracle.classify(
+    DeltaOracleRequest(
+        ancestor_text=...,
+        descendant_text=...,
+        ancestor_cat=...,
+        descendant_cat=...,
+        parameter_hint="gas_test_interval",
+        prompt_version=PROMPT_VERSION,
+        origin=OriginContext(event_summary=..., severity=5, occurred_on="2019-07-14"),
+    )
+)
 ```
 
 The live lane needs **both** `MAINLINE_AGENT_PROVIDER=bedrock` and

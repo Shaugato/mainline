@@ -1,0 +1,192 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# THE CLAIM LANE — what this repository is entitled to say, and the arithmetic behind
+# the three minutes of video that says it.
+#
+# WHY THESE FIVE CHECKS SIT IN ONE WORKFLOW. They share a failure mode rather than a
+# subject matter: every one of them fails SILENTLY if it is left to a human on D-1.
+# A forbidden sentence reads fine. A shot list that has crept to 3:04 looks like a shot
+# list. A voice-over whose "20 % cut" never happened is indistinguishable from one whose
+# did. An honesty card generated from a stale corpus is a beautiful document full of
+# wrong numbers. None of those produce a stack trace, so each is arithmetic here instead.
+#
+# THE RED HALF IS THE POINT (PL-2). Two of the jobs below assert that a check can FAIL:
+# `claim_hygiene.py --self-test` plants one of every violation family and requires the
+# scanner to fire on all of them, and the committed `claim-hygiene-red.md` fixture is
+# asserted NON-ZERO. A lint that has never gone red is decoration, and decoration on a
+# project whose entire pitch is "we refuse to overclaim" is worse than nothing.
+#
+# NO CREDENTIAL. No cloud account, no AWS, no cluster, no network beyond the checkout.
+# Every assertion here runs on a stranger's laptop with `python` and `PyYAML`, which is
+# why this lane stays green even when everything requiring an account is red.
+
+name: claims
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "README.md"
+      - "VERIFY.md"
+      - "NOTICE"
+      - "TRADEMARKS.md"
+      - "docs/HONESTY.md"
+      - "docs/deck/**"
+      - "verticals/mainline/demo/**"
+      - "scripts/demo/**"
+      - ".github/workflows/claims.yml"
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: claims-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.13"
+  FORCE_COLOR: "1"
+
+jobs:
+  # ── 1 · the scanner must be able to go RED before its green means anything ──────────
+  hygiene:
+    name: claim hygiene (red half, then green half)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install the one dependency
+        run: python -m pip install --disable-pip-version-check "PyYAML>=6" "jsonschema>=4.23"
+
+      - name: The rule table, printed into the log
+        # So a reviewer reading a red build can see WHICH sentence is forbidden and why,
+        # without opening the source.
+        run: python scripts/demo/claim_hygiene.py --list-rules
+
+      - name: RED — the scanner fires on every planted violation family
+        run: python scripts/demo/claim_hygiene.py --self-test
+
+      - name: RED — the committed non-compliant fixture is refused
+        # `--check` on a file that is deliberately full of banned claims. Exit 0 here would
+        # mean the scanner had stopped working, which is exactly the state that looks like
+        # success everywhere else in this workflow.
+        run: |
+          set +e
+          python scripts/demo/claim_hygiene.py --check scripts/demo/fixtures/claim-hygiene-red.md
+          status=$?
+          set -e
+          if [ "$status" -eq 0 ]; then
+            echo "::error::claim_hygiene passed a file that is deliberately non-compliant."
+            echo "The scanner is broken, or TARGET_GLOBS no longer reaches the rules."
+            exit 1
+          fi
+          echo "fixture refused with status $status, as required"
+
+      - name: GREEN — the published surface carries no forbidden claim
+        run: python scripts/demo/claim_hygiene.py
+
+  # ── 2 · the video is eligible, and it is eligible by arithmetic ─────────────────────
+  schedule:
+    name: shot lists, budget and voice-over
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install the one dependency
+        run: python -m pip install --disable-pip-version-check "PyYAML>=6"
+
+      - name: Both shot lists parse, sum inside the envelope, and carry their fallbacks
+        # BUILD_PLAN §5.5 disqualifier 1 is silent: a video at 3:01 is simply not scored.
+        # The validator also asserts that the scope-cut ladder cannot reach a `never_cut`
+        # shot, because the bypass beat is the one thing that is never cut for time and a
+        # ladder that CAN reach it eventually WILL, at 02:00, when judgement is worst.
+        run: python verticals/mainline/demo/script/validate_shotlist.py
+
+      - name: The 20 % voice-over cut is a real diff, and it is current
+        # A line saying "we cut twenty per cent" is not evidence that anything was cut.
+        # The diff is generated from VO-DRAFT.md and VO.md and its header carries the
+        # MEASURED reduction, so staleness is a red build rather than an inaccuracy.
+        run: python verticals/mainline/demo/script/make_cut_diff.py --check
+
+  # ── 3 · the honesty card is generated, traceable, and cannot omit its worst news ────
+  card:
+    name: honesty card
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: python -m pip install --disable-pip-version-check "PyYAML>=6" "jsonschema>=4.23"
+
+      - name: The card regenerates from its inputs and matches what is committed
+        # Exit 3 means "built from at least one fixture" — true today, because
+        # corpus.lock.json is not frozen yet. It is a WARNING here and a REFUSAL in
+        # `just demo:preflight`, which is the right split: CI should stay green while the
+        # corpus is still being built, and the capture warden should not.
+        run: |
+          set +e
+          python verticals/mainline/demo/honesty/gen_card.py --check --allow-fixtures
+          status=$?
+          set -e
+          case "$status" in
+            0) echo "card is current and built from real inputs" ;;
+            3) echo "::warning::honesty card is built from a fixture — regenerate before capture" ;;
+            *) echo "::error::honesty card is stale or its inputs are broken"; exit "$status" ;;
+          esac
+
+      - name: Every value on the card is traceable to a named path
+        # The provenance ledger is the mechanical form of "no number was typed by hand".
+        # A card with an untraceable value cannot be produced — `fact()` raises instead —
+        # so this asserts the ledger is non-trivial and that every entry names a source.
+        run: |
+          python verticals/mainline/demo/honesty/gen_card.py --json --allow-fixtures > /tmp/facts.json || true
+          python - <<'PY'
+          import json, sys, pathlib
+          data = json.loads(pathlib.Path("/tmp/facts.json").read_text(encoding="utf-8"))
+          facts = data["facts"]
+          if len(facts) < 30:
+              sys.exit(f"only {len(facts)} traced values on the card; expected the full set")
+          bad = [f for f in facts if not f["source"]]
+          if bad:
+              sys.exit(f"{len(bad)} value(s) on the card carry no source: {bad[:3]}")
+          print(f"{len(facts)} traced values, every one with a named source")
+          PY
+
+      - name: The generated card itself passes claim hygiene
+        # The card is on camera, full screen, for eight seconds. It is scanned as a
+        # published surface rather than trusted because a program wrote it.
+        run: python scripts/demo/claim_hygiene.py --check verticals/mainline/demo/honesty/card.html
+
+  # ── 4 · the strings the film speaks agree with the schema that produces them ────────
+  strings:
+    name: refusal strings agree with the kernel and the spec
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install the one dependency
+        run: python -m pip install --disable-pip-version-check "PyYAML>=6"
+
+      - name: Every on-camera SQLSTATE, exhibit and RAISE message is real
+        # The cross-check the brief specifies: WARN while spec/errors.md is absent, FAIL
+        # once it is present. It is present, so this is enforcing.
+        run: python verticals/mainline/demo/check_refusal_strings.py

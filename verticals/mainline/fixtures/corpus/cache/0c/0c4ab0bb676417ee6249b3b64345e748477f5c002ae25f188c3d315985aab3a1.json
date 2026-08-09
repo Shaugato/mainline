@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "barrier_role": "recovery",
+    "control_class": "EMERGENCY_ISOLATION_ON_RELEASE",
+    "control_delta": "introduce",
+    "control_label": "emergency isolation and depressuring on loss of containment",
+    "doc_code": "MOC-2026-0413",
+    "doc_family": "MOC",
+    "doc_title": "Restore OEM Seal-Face Alarm Setpoint on the Hydrocarbon Transfer Pump Family",
+    "effective_on": "2026-07-28",
+    "printed_label": "3.2.1",
+    "setpoint": null,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "energy_isolation": "positive isolation verification",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "0c4ab0bb676417ee6249b3b64345e748477f5c002ae25f188c3d315985aab3a1",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/MOC-2026-0413/001#MRD/MOC-2026-0413/1.2.2(a)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "bd0ece227ce014ac5792710de72cb0d643d91db4cd405cd3655821fa57ddee69",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The emergency isolation and depressuring on loss of containment shall be provided and maintained for work covered by this change record. This clause applies to activities archived under CONTAINMENT-OF-HYDROCARBONS at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "95c057db3d668b24ff55a35e75b8c14d5ea25a5a0525bbf2180bbb5f68e20a4b",
+  "source": null
+}

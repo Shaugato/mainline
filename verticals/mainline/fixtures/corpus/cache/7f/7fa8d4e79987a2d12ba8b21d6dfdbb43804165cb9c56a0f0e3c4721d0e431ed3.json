@@ -1,0 +1,110 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "loading, restraining and placarding a load",
+    "activity_root": "LAND-TRANSPORT",
+    "activity_series": "transporting materials by road",
+    "assets": [
+      {
+        "asset_class": "CYC-CLASS-A",
+        "label": "cyclone clusters",
+        "service": "classification duty on the grinding circuit",
+        "tag": "CY-3211"
+      },
+      {
+        "asset_class": "INST-CLASS-A",
+        "label": "instrument loop",
+        "service": "governs CY-3211",
+        "tag": "PT-3211"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "FATIGUE_AND_FITNESS_CONTROL",
+        "control_label": "assessment of fatigue and fitness for driving",
+        "failure_mode": "absent",
+        "hazard_energy": "kinetic",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "LOAD_RESTRAINT_AND_PLACARDING",
+        "control_label": "restraint and placarding of transported loads",
+        "failure_mode": "absent",
+        "hazard_energy": "kinetic",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "PROXIMITY_DETECTION_AND_SEGREGATION",
+        "control_label": "segregation of light vehicles and pedestrians from heavy equipment",
+        "failure_mode": "ineffective",
+        "hazard_energy": "kinetic",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "INC-2008-011",
+    "hazard_energy": "kinetic",
+    "hazard_media": [
+      "rotating equipment",
+      "conveyor",
+      "mobile equipment",
+      "pressurised jet",
+      "flying fragment"
+    ],
+    "hazard_release": "entanglement, impact, crush",
+    "kind": "incident",
+    "occurred_on": "2008-12-23",
+    "severity_actual": 1,
+    "severity_potential": 1,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during start-up after maintenance",
+    "title": "loss of containment at CY-3211 during start-up after maintenance",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "investigation": "accident investigation",
+      "near_miss": "near hit",
+      "verification": "spot check"
+    }
+  },
+  "key": "7fa8d4e79987a2d12ba8b21d6dfdbb43804165cb9c56a0f0e3c4721d0e431ed3",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2008-011",
+  "prompt_kind": "icam",
+  "prompt_sha256": "a94479ebe76f0e2e9918adf0a360cb9acab9c35b368f9f2c9f704a21ae532b23",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage.",
+    "defences": [
+      {
+        "control_class": "FATIGUE_AND_FITNESS_CONTROL",
+        "finding": "Control FATIGUE_AND_FITNESS_CONTROL: the assessment of fatigue and fitness for driving was not in place, and the accident investigation classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "LOAD_RESTRAINT_AND_PLACARDING",
+        "finding": "Control LOAD_RESTRAINT_AND_PLACARDING: the restraint and placarding of transported loads was not in place, and the accident investigation classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "PROXIMITY_DETECTION_AND_SEGREGATION",
+        "finding": "Control PROXIMITY_DETECTION_AND_SEGREGATION: the segregation of light vehicles and pedestrians from heavy equipment was in place but did not perform, and the accident investigation classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the restraint and placarding of transported loads on CY-3211 and PT-3211 and record the spot check before this task is next authorised.",
+      "Restore the segregation of light vehicles and pedestrians from heavy equipment on CY-3211 and PT-3211 and record the spot check before this task is next authorised."
+    ],
+    "sequence": "Work was under way in transporting materials by road, specifically loading, restraining and placarding a load. CY-3211 (cyclone clusters) is in service for classification duty on the grinding circuit. The task proceeded during start-up after maintenance while the assessment of fatigue and fitness for driving was not in place. The kinetic energy involved is held as rotating equipment, and the recorded presentation was entanglement, impact, crush.",
+    "summary": "On 23 December 2008 an incident occurred on CY-3211 and PT-3211 at Marrindal Concentrator and Hydrocarbon Transfer Facility during start-up after maintenance, releasing kinetic energy held as rotating equipment."
+  },
+  "response_sha256": "edc7d7ecef81d6e0e9d7135716a9556adecc8ee1d60dc4b7310715564035cd55",
+  "source": null
+}

@@ -1,0 +1,980 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: Apache-2.0
+"""Building the legal world an illegal history is illegal *in*.
+
+Every case in this corpus has the same shape and the shape is the argument:
+
+1. **Setup** — a world that is entirely legal, built statement by statement in autocommit,
+   outside the history. If a setup statement is refused, the case is broken, not the
+   database, and it says so in those words.
+2. **The history** — the illegal part, in one transaction, through
+   :meth:`trappoint_conformance.harness.Harness.run_history`.
+3. **The assertion** — an exact SQLSTATE and an exact exhibit, made by the runner from the
+   manifest. Where the manifest also declares ``asserts_stored_row``, the case reads the
+   row back and puts what it found in :attr:`HistoryOutcome.stored`.
+
+**Nothing here writes a projected column and expects it to survive.** Where a builder
+accepts a value for a projected column — ``claim_severity``, ``claim_virulence``,
+``claim_signer_rank`` — the argument exists precisely so a case can prove the value did
+*not* survive. That is the difference between testing a constraint and testing the weld.
+
+**Identifiers are deterministic.** Every id is ``uuid5`` of the case's ``site_id`` and a
+tag, so a case re-run on its own lands on exactly the rows it left behind — which is the
+whole point of :mod:`trappoint_conformance.site` and is lost the moment a builder reaches
+for ``uuid4``.
+
+**Nothing is torn down.** Several tables under test are append-only; a builder that
+cleaned up would be exercising a delete path the product refuses to have. Disposal is the
+container's job.
+"""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import uuid
+from dataclasses import dataclass, field
+from datetime import UTC, datetime, timedelta
+from typing import Any
+
+from psycopg import sql as pgsql
+
+from trappoint_conformance.harness import Harness, HistoryOutcome, Step
+from trappoint_conformance.site import SiteScope
+
+from ._exhibit import normalise
+
+__all__ = [
+    "Disposition",
+    "SetupRefused",
+    "World",
+    "digest32",
+    "fail_stored",
+    "long_rationale",
+    "refusal",
+]
+
+# ``substantive CHECK (length(rationale) >= 120)``. A vertical policy with a number the
+# customer signs, so the corpus carries one string that clears it and one that does not.
+_RATIONALE = (
+    "The isolation boundary was walked end to end with the responsible engineer, every "
+    "stored-energy source was proved dead at the point of work, and the residual is "
+    "recorded against the compensating control cited below."
+)
+
+
+class SetupRefused(AssertionError):
+    """A statement that builds the legal world was refused.
+
+    Distinct from a conformance failure on purpose. The world is supposed to be legal; if
+    the database refuses to build it, the case never ran and reporting that as a red gate
+    would be a lie about which thing is broken.
+    """
+
+
+def digest32(label: str) -> bytes:
+    """Return a deterministic 32-byte value for a ``BYTES`` column with a length ``CHECK``."""
+    return hashlib.sha256(label.encode("utf-8")).digest()
+
+
+def long_rationale(suffix: str = "") -> str:
+    """Return a rationale that clears the ``substantive`` floor."""
+    return f"{_RATIONALE} {suffix}".strip()
+
+
+def fail_stored(outcome: HistoryOutcome, detail: str) -> HistoryOutcome:
+    """Turn a stored-row mismatch into a red result carrying its own diagnosis.
+
+    A case cannot raise: the runner catches only driver errors around an implementation,
+    so an ``AssertionError`` would escape as a crash and a red case would stop looking
+    like a red case. Instead the exhibit is replaced by a sentence that cannot equal any
+    manifest value, and the assertion the runner makes fails naming the real reason.
+    """
+    outcome.constraint = f"STORED-ROW MISMATCH — {detail}"
+    return outcome
+
+
+def refusal(
+    harness: Harness,
+    case_id: str,
+    steps: tuple[Step, ...],
+    *,
+    relation: str = "",
+) -> HistoryOutcome:
+    """Run *steps* as one history and resolve the exhibit if it was a ``P0001``.
+
+    *relation* is the table the history's failing statement targeted. It is only consulted
+    where two rendered copies of one function raise byte-identical messages; supplying it
+    everywhere costs nothing and makes the case self-describing.
+    """
+    outcome = harness.run_history(case_id, steps)
+    normalise(outcome, relation=relation)
+    return outcome
+
+
+@dataclass(slots=True)
+class Disposition:
+    """Every column of a ``disposition`` INSERT, with the projected ones marked.
+
+    The defaults describe a signature that clears every requirement the *strictest*
+    projection can impose — rank 9, a foreign-org countersigner on a different credential,
+    a compensating clause, a predicate and a reassertion date. That is deliberate: it is
+    the only way to reach ``fk_clearance``, because every ``CHECK`` on the table is
+    evaluated before the foreign keys and a disposition that trips one of them never gets
+    far enough to be judged by the clearance lattice. Each case then *removes* exactly the
+    one thing it is about.
+    """
+
+    check_id: uuid.UUID
+    receipt_id: uuid.UUID
+    signer_sub: str
+    signer_credential_id: bytes
+    kind: str = "mechanism_absent"
+    disposition_id: uuid.UUID | None = None
+    countersigner_sub: str | None = None
+    countersigner_credential_id: bytes | None = None
+    compensating_clause_uuid: uuid.UUID | None = None
+    predicate_id: uuid.UUID | None = None
+    reassert_by: datetime | None = None
+    expires_at: datetime | None = None
+    rationale: str = field(default_factory=long_rationale)
+    user_verified: bool = True
+    evidence_opened: bool = True
+    required_anchors: int = 0
+    defeater_code: str = "MECHANISM_ABSENT_PROVED"
+    # ▼ PROJECTED. Supplied so the corpus can prove they do not survive the trigger.
+    claim_signer_rank: int = 9
+    claim_virulence: str = "routine"
+    claim_severity: int = 0
+    claim_min_signer_rank: int = 1
+    claim_deliberation_seconds: int = 0
+    claim_prior_override_count: int = 0
+    # ▲
+
+    def step(self, world: World, label: str) -> Step:
+        """Render the INSERT as one :class:`Step`."""
+        return world.disposition_step(self, label=label)
+
+
+@dataclass(slots=True)
+class World:
+    """A builder bound to one case's tenancy.
+
+    Every method executes immediately, in autocommit, and returns the identifiers the
+    case needs. Nothing is batched: a setup failure must name the statement that failed.
+    """
+
+    harness: Harness
+    scope: SiteScope
+    schema: str
+
+    # ── plumbing ─────────────────────────────────────────────────────────────
+
+    @property
+    def site_id(self) -> uuid.UUID:
+        """The tenancy this case runs in."""
+        return self.scope.site_id
+
+    def uid(self, tag: str) -> uuid.UUID:
+        """Return a deterministic identifier for *tag* within this case's tenancy."""
+        return uuid.uuid5(self.site_id, tag)
+
+    def actor(self, name: str) -> str:
+        """Return a subject identifier scoped to this case.
+
+        ``person`` and ``signing_credential`` are NOT keyed by ``site_id`` — identity is a
+        substrate concern and a person is a person in every tenancy — so two cases using
+        the bare string ``"signer"`` would collide on the primary key and the second would
+        fail in setup. Scoping the *subject* is how the tenancy isolation reaches a table
+        that has no tenancy column.
+        """
+        return f"{self.scope.case_id.lower()}:{name}:{str(self.site_id)[:8]}"
+
+    def sql(self, text: str) -> pgsql.Composed:
+        """Bind ``{s}`` in *text* to the profile's schema as a quoted identifier.
+
+        The schema can arrive from ``--schema``, so it is input. It is interpolated as an
+        IDENTIFIER and never as text; every value below it is a bound parameter. A
+        conformance runner that could be made to execute arbitrary SQL by a command-line
+        flag would be a poor advertisement for a product about refusing bad writes.
+        """
+        return pgsql.SQL(text).format(s=pgsql.Identifier(self.schema))  # type: ignore[arg-type]
+
+    def run(self, label: str, text: str, params: tuple[Any, ...] = ()) -> None:
+        """Execute one setup statement, or explain why the world could not be built."""
+        try:
+            with self.harness.conn.cursor() as cur:
+                cur.execute(self.sql(text), params)
+        except Exception as exc:
+            raise SetupRefused(
+                f"{self.scope.case_id}: building the LEGAL world failed at {label!r}. "
+                f"The world a case is illegal in must itself be legal, so this is a "
+                f"broken case or an unmigrated schema, not a refusal. Cause: {exc}"
+            ) from exc
+
+    def read(self, text: str, params: tuple[Any, ...] = ()) -> list[tuple[Any, ...]]:
+        """Read rows back, for ``asserts_stored_row``."""
+        with self.harness.conn.cursor() as cur:
+            cur.execute(self.sql(text), params)
+            return list(cur.fetchall())
+
+    def scalar(self, text: str, params: tuple[Any, ...] = ()) -> Any:
+        """Read exactly one value, or ``None`` when the row is absent."""
+        rows = self.read(text, params)
+        return rows[0][0] if rows else None
+
+    # ── the vertical's own tables, where the substrate names them ────────────
+
+    def site_row(self) -> None:
+        """Insert the vertical's ``site`` row, where the binding has one.
+
+        The substrate does not own ``site`` — MR-1's object test puts it outside — but
+        ``fn_closure_guard`` and ``fn_site_role`` read it, so a case that writes a closure
+        needs one. Absent in a binding that does not declare the relation, in which case
+        this is a no-op and the case that needed it fails on the missing relation, which
+        is the honest outcome.
+        """
+        self.run(
+            "site",
+            "INSERT INTO {s}.site (site_id, site_code, site_role) VALUES (%s, %s, %s) "
+            "ON CONFLICT DO NOTHING",
+            (self.site_id, f"CONF-{str(self.site_id)[:8]}", "conf_role"),
+        )
+
+    def clause_row(self, tag: str = "clause") -> uuid.UUID:
+        """Insert a ``clause`` row — the target of ``disposition.compensating_clause_uuid``."""
+        clause_uuid = self.uid(tag)
+        self.run(
+            "clause",
+            "INSERT INTO {s}.clause (clause_uuid) VALUES (%s) ON CONFLICT DO NOTHING",
+            (clause_uuid,),
+        )
+        return clause_uuid
+
+    # ── the substrate ────────────────────────────────────────────────────────
+
+    def clause_version(
+        self, tag: str = "cv", *, control_delta: str = "weaken"
+    ) -> tuple[uuid.UUID, bytes]:
+        """Insert a clause version: the foreign-key target of every obligation."""
+        clause_uuid = self.uid(f"{tag}:clause")
+        commit_id = digest32(f"{self.site_id}:{tag}:commit")
+        self.run(
+            "clause_version",
+            "INSERT INTO {s}.clause_version "
+            "(clause_uuid, commit_id, site_id, control_delta, body_sha256) "
+            "VALUES (%s, %s, %s, %s, %s)",
+            (clause_uuid, commit_id, self.site_id, control_delta, digest32(f"{tag}:body")),
+        )
+        return clause_uuid, commit_id
+
+    def closure(
+        self,
+        clause_uuid: uuid.UUID,
+        commit_id: bytes,
+        *,
+        max_severity: int = 5,
+        virulence: str = "blood_fatal",
+        closure_gen: int = 0,
+        ancestor_count: int = 1,
+    ) -> None:
+        """Write the authority source: what the blame closure actually holds for this clause.
+
+        This is the row ``fn_check_project`` reads, and the reason a check's severity is
+        not the inserter's opinion.
+        """
+        self.run(
+            "clause_blame_closure",
+            "INSERT INTO {s}.clause_blame_closure "
+            "(clause_uuid, as_of_commit, closure_gen, site_id, ancestor_events, "
+            " ancestor_count, max_severity, virulence, depth, computed_by, projector_ver) "
+            "VALUES (%s, %s, %s, %s, ARRAY[%s]::UUID[], %s, %s, %s, 1, 'conformance', 'v1')",
+            (
+                clause_uuid,
+                commit_id,
+                closure_gen,
+                self.site_id,
+                self.uid(f"ancestor:{clause_uuid}"),
+                ancestor_count,
+                max_severity,
+                virulence,
+            ),
+        )
+
+    def permit(self, tag: str = "p", *, horizon_days: int = 7) -> uuid.UUID:
+        """Open a permit in ``draft``: the protected branch, before anything is asked of it."""
+        permit_id = self.uid(f"{tag}:permit")
+        self.run(
+            "permit",
+            "INSERT INTO {s}.permit "
+            "(permit_id, site_id, site_role, external_ref, ref_name, horizon_at) "
+            "VALUES (%s, %s, %s, %s, %s, now() + (%s::INT8 * INTERVAL '1 day'))",
+            (
+                permit_id,
+                self.site_id,
+                "conf_role",
+                f"{self.scope.external_ref}-{tag}",
+                f"refs/permits/{self.scope.case_id.lower()}-{tag}",
+                horizon_days,
+            ),
+        )
+        return permit_id
+
+    def change_request(self, tag: str = "cr") -> uuid.UUID:
+        """Open a change request: the other gated subject, and the reason MI30 exists."""
+        cr_id = self.uid(f"{tag}:cr")
+        self.run(
+            "change_request",
+            "INSERT INTO {s}.change_request "
+            "(cr_id, site_id, site_role, external_ref, ref_name, target_ref) "
+            "VALUES (%s, %s, %s, %s, %s, %s)",
+            (
+                cr_id,
+                self.site_id,
+                "conf_role",
+                f"{self.scope.external_ref}-{tag}",
+                f"refs/changes/{self.scope.case_id.lower()}-{tag}",
+                "refs/heads/main",
+            ),
+        )
+        return cr_id
+
+    def cite(
+        self,
+        permit_id: uuid.UUID,
+        clause_uuid: uuid.UUID,
+        commit_id: bytes,
+        *,
+        relation: str = "weakens",
+    ) -> None:
+        """Cite a clause version from the permit. The merge gate reads this to fail closed."""
+        self.run(
+            "permit_clause",
+            "INSERT INTO {s}.permit_clause (permit_id, clause_uuid, commit_id, relation) "
+            "VALUES (%s, %s, %s, %s)",
+            (permit_id, clause_uuid, commit_id, relation),
+        )
+
+    def cite_cr(
+        self,
+        cr_id: uuid.UUID,
+        clause_uuid: uuid.UUID,
+        commit_id: bytes,
+        *,
+        relation: str = "edits",
+    ) -> None:
+        """Cite a clause version from the change request."""
+        self.run(
+            "cr_clause",
+            "INSERT INTO {s}.cr_clause (cr_id, clause_uuid, commit_id, relation) "
+            "VALUES (%s, %s, %s, %s)",
+            (cr_id, clause_uuid, commit_id, relation),
+        )
+
+    def person(
+        self,
+        sub: str,
+        *,
+        rank: int = 9,
+        org: str = "conf-operator",
+        authorisations: tuple[str, ...] = ("ISOLATION_AUTHORITY",),
+    ) -> str:
+        """Enrol a competency record. Absence of one refuses the signature (MI27, CF-20)."""
+        snapshot = json.dumps({"authorisations": list(authorisations), "rank": rank})
+        self.run(
+            "person",
+            "INSERT INTO {s}.person "
+            "(signer_sub, effective_from, org, rank, competency_source_id, "
+            " competency_sha256, competency_snapshot, identity_source, enrolment_assurance) "
+            "VALUES (%s, now() - INTERVAL '1 day', %s, %s, %s, %s, %s::JSONB, %s, %s)",
+            (
+                sub,
+                org,
+                rank,
+                self.uid(f"competency:{sub}"),
+                digest32(f"competency:{sub}:{rank}:{org}"),
+                snapshot,
+                "conformance-corpus",
+                "hr_system_of_record",
+            ),
+        )
+        return sub
+
+    def credential(self, sub: str, *, tag: str = "k") -> bytes:
+        """Enrol a signing credential. ``distinct_credential`` is why a case may need two."""
+        credential_id = digest32(f"{self.site_id}:{sub}:{tag}")
+        self.run(
+            "signing_credential",
+            "INSERT INTO {s}.signing_credential "
+            "(credential_id, signer_sub, public_key_cose, aaguid, transports, attachment, "
+            " enrolment_assurance) "
+            "VALUES (%s, %s, %s, %s, ARRAY['usb']::STRING[], 'cross-platform', %s)",
+            (
+                credential_id,
+                sub,
+                digest32(f"cose:{sub}:{tag}"),
+                digest32(f"aaguid:{tag}")[:16],
+                "hr_system_of_record",
+            ),
+        )
+        return credential_id
+
+    def check(
+        self,
+        *,
+        clause_uuid: uuid.UUID,
+        commit_id: bytes,
+        permit_id: uuid.UUID | None = None,
+        cr_id: uuid.UUID | None = None,
+        origin: str = "weaken_over_blood",
+        claim_severity: int = 1,
+        claim_virulence: str = "routine",
+        precursor_event_id: uuid.UUID | None = None,
+        subject_kind: str | None = None,
+        tag: str = "bc",
+    ) -> uuid.UUID:
+        """Materialise one obligation, and let the projection overwrite what it claims.
+
+        ``claim_severity`` and ``claim_virulence`` are what the *inserter* says. They are
+        supplied on purpose and they are supposed to be thrown away: ``fn_check_project``
+        rewrites both from the blame closure before the row lands.
+        """
+        check_id = self.uid(f"{tag}:check")
+        kind = subject_kind or ("permit" if permit_id is not None else "change_request")
+        self.run(
+            "blocking_check",
+            "INSERT INTO {s}.blocking_check "
+            "(check_id, subject_kind, permit_id, cr_id, site_id, clause_uuid, commit_id, "
+            " precursor_event_id, origin, severity, virulence, closure_gen, evidence_summary) "
+            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 0, %s)",
+            (
+                check_id,
+                kind,
+                permit_id,
+                cr_id,
+                self.site_id,
+                clause_uuid,
+                commit_id,
+                precursor_event_id,
+                origin,
+                claim_severity,
+                claim_virulence,
+                f"conformance {self.scope.case_id}: one precursor",
+            ),
+        )
+        return check_id
+
+    def check_step(
+        self,
+        label: str,
+        *,
+        clause_uuid: uuid.UUID,
+        commit_id: bytes,
+        permit_id: uuid.UUID | None = None,
+        cr_id: uuid.UUID | None = None,
+        origin: str = "weaken_over_blood",
+        claim_severity: int = 1,
+        claim_virulence: str = "routine",
+        precursor_event_id: uuid.UUID | None = None,
+        subject_kind: str | None = None,
+        check_id: uuid.UUID | None = None,
+        on_conflict_skip: bool = False,
+    ) -> Step:
+        """Render the same INSERT, as a history step rather than as setup."""
+        kind = subject_kind or ("permit" if permit_id is not None else "change_request")
+        tail = " ON CONFLICT (dedupe_key) DO NOTHING" if on_conflict_skip else ""
+        return Step(
+            label=label,
+            sql=self.sql(
+                "INSERT INTO {s}.blocking_check "
+                "(check_id, subject_kind, permit_id, cr_id, site_id, clause_uuid, commit_id, "
+                " precursor_event_id, origin, severity, virulence, closure_gen, evidence_summary) "
+                "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 0, %s)" + tail
+            ),
+            params=(
+                check_id or uuid.uuid4(),
+                kind,
+                permit_id,
+                cr_id,
+                self.site_id,
+                clause_uuid,
+                commit_id,
+                precursor_event_id,
+                origin,
+                claim_severity,
+                claim_virulence,
+                f"conformance {self.scope.case_id}: one precursor",
+            ),
+        )
+
+    def receipt(
+        self,
+        *,
+        actor_sub: str,
+        permit_id: uuid.UUID | None = None,
+        cr_id: uuid.UUID | None = None,
+        issued_ago_seconds: int = 3600,
+        expires_in_seconds: int = 3600,
+        total_tokens: int = 1,
+        tag: str = "r",
+    ) -> uuid.UUID:
+        """Issue a receipt: what the substrate showed this actor, and when the server showed it.
+
+        ``issued_ago_seconds`` defaults to an hour for one reason and it is not
+        cosmetic. ``fn_disposition_project`` computes ``reading_floor_met`` as
+        ``now() - issued_at >= tau0 + tokens/rho``; a receipt issued in the same
+        statement as the signature therefore reads *floor unmet*, which projects
+        ``unmet_floor_count`` onto the subject and makes ``reading_floor_when_issued``
+        refuse every merge in the corpus for a reason unrelated to the case under test.
+        A world in which the human plausibly read the evidence is the world the other
+        cases mean to be illegal in. ``CF-05`` sets it to zero, which is the point of
+        ``CF-05``.
+        """
+        receipt_id = self.uid(f"{tag}:receipt")
+        kind = "permit" if permit_id is not None else "change_request"
+        self.run(
+            "exposure_receipt",
+            "INSERT INTO {s}.exposure_receipt "
+            "(receipt_id, subject_kind, permit_id, cr_id, actor_sub, issued_at, issued_hlc, "
+            " expires_at, corpus_root, silence_receipt_id, policy_version, total_tokens, "
+            " receipt_digest) "
+            "VALUES (%s, %s, %s, %s, %s, now() - (%s::INT8 * INTERVAL '1 second'), 1.0, "
+            "        now() + (%s::INT8 * INTERVAL '1 second'), %s, %s, %s, %s, %s)",
+            (
+                receipt_id,
+                kind,
+                permit_id,
+                cr_id,
+                actor_sub,
+                issued_ago_seconds,
+                expires_in_seconds,
+                digest32(f"corpus:{tag}"),
+                self.uid(f"{tag}:silence"),
+                "rp-1.0",
+                total_tokens,
+                digest32(f"receipt:{tag}"),
+            ),
+        )
+        return receipt_id
+
+    def line(self, receipt_id: uuid.UUID, check_id: uuid.UUID, *, tokens: int = 1) -> None:
+        """Record that this obligation was rendered to that actor, in that receipt.
+
+        The composite ``fk_exposure`` key points here, so this row is the difference
+        between a session and evidence.
+        """
+        self.run(
+            "exposure_line",
+            "INSERT INTO {s}.exposure_line (receipt_id, check_id, payload_digest, tokens) "
+            "VALUES (%s, %s, %s, %s)",
+            (receipt_id, check_id, digest32(f"line:{check_id}"), tokens),
+        )
+
+    # ── the disposition, which every clearance case is a variation on ────────
+
+    _DISPOSITION_SQL = (
+        "INSERT INTO {s}.disposition "
+        "(disposition_id, check_id, receipt_id, subject_kind, permit_id, cr_id, site_id, "
+        " kind, virulence, closure_gen, defeater_code, defeater_vocab_sha256, rationale, "
+        " evidence_sha256, signer_sub, signer_rank, signer_org, signer_credential_id, "
+        " countersigner_sub, countersigner_rank, countersigner_org, "
+        " countersigner_credential_id, signature_alg, authenticator_data, client_data_json, "
+        " user_verified, competency_snapshot, competency_source_id, competency_sha256, "
+        " req_compensating, req_second_signer, req_foreign_org, req_predicate, req_reassert, "
+        " min_signer_rank, max_ttl_hours, compensating_clause_uuid, predicate_id, "
+        " reassert_by, expires_at, required_anchors, deliberation_seconds, evidence_opened, "
+        " prior_override_count, severity_snapshot) "
+        "VALUES (%s, %s, %s, %s, NULL, NULL, %s, %s, %s, 0, %s, %s, %s, %s, %s, %s, %s, %s, "
+        "        %s, NULL, NULL, %s, 'ES256', %s, %s, %s, '{{}}'::JSONB, %s, %s, "
+        "        false, false, false, false, false, %s, NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+    )
+
+    def disposition_params(self, draft: Disposition) -> tuple[Any, ...]:
+        """Bind one :class:`Disposition` to the INSERT above."""
+        return (
+            draft.disposition_id or self.uid(f"disposition:{draft.check_id}:{draft.kind}"),
+            draft.check_id,
+            draft.receipt_id,
+            # subject_kind / site_id are PROJECTED from the check; a deliberately wrong
+            # value here is how CF-07's sibling claims are checked.
+            "permit",
+            self.site_id,
+            draft.kind,
+            draft.claim_virulence,
+            draft.defeater_code,
+            digest32("vocab:conformance"),
+            draft.rationale,
+            digest32(f"evidence:{draft.check_id}"),
+            draft.signer_sub,
+            draft.claim_signer_rank,
+            "claimed-org",
+            draft.signer_credential_id,
+            draft.countersigner_sub,
+            draft.countersigner_credential_id,
+            digest32("authenticator"),
+            digest32("clientdata"),
+            draft.user_verified,
+            self.uid("competency-source-claimed"),
+            digest32("competency-claimed"),
+            draft.claim_min_signer_rank,
+            draft.compensating_clause_uuid,
+            draft.predicate_id,
+            draft.reassert_by,
+            draft.expires_at,
+            draft.required_anchors,
+            draft.claim_deliberation_seconds,
+            draft.evidence_opened,
+            draft.claim_prior_override_count,
+            draft.claim_severity,
+        )
+
+    def disposition_step(self, draft: Disposition, *, label: str) -> Step:
+        """Render the disposition INSERT as a history step."""
+        return Step(
+            label=label,
+            sql=self.sql(self._DISPOSITION_SQL),
+            params=self.disposition_params(draft),
+        )
+
+    def sign(self, draft: Disposition, *, label: str = "disposition") -> uuid.UUID:
+        """Insert a disposition as **setup**, and return its id."""
+        params = self.disposition_params(draft)
+        self.run(label, self._DISPOSITION_SQL, params)
+        return params[0]  # type: ignore[return-value]
+
+    # ── a fully-cleared subject: the legal baseline several cases start from ──
+
+    def cleared_permit(
+        self,
+        *,
+        max_severity: int = 1,
+        virulence: str = "routine",
+        kind: str = "applied",
+        signer_rank: int = 4,
+        tag: str = "cleared",
+    ) -> dict[str, Any]:
+        """Build a permit with one obligation and one live disposition covering it.
+
+        The state a merge is *supposed* to be attempted from. Cases that need a legal
+        merge (CF-09, CF-40, CF-44) start here, so the thing they then do wrong is the
+        only thing wrong.
+        """
+        clause_uuid, commit_id = self.clause_version(tag)
+        self.closure(clause_uuid, commit_id, max_severity=max_severity, virulence=virulence)
+        permit_id = self.permit(tag)
+        signer = self.person(self.actor(f"signer-{tag}"), rank=signer_rank)
+        credential = self.credential(signer)
+        check_id = self.check(
+            clause_uuid=clause_uuid, commit_id=commit_id, permit_id=permit_id, tag=tag
+        )
+        receipt_id = self.receipt(actor_sub=signer, permit_id=permit_id, tag=tag)
+        self.line(receipt_id, check_id)
+        disposition_id = self.sign(
+            Disposition(
+                check_id=check_id,
+                receipt_id=receipt_id,
+                signer_sub=signer,
+                signer_credential_id=credential,
+                kind=kind,
+                claim_signer_rank=signer_rank,
+            )
+        )
+        self.walk_to_dispositioned(permit_id)
+        return {
+            "clause_uuid": clause_uuid,
+            "commit_id": commit_id,
+            "permit_id": permit_id,
+            "signer": signer,
+            "credential": credential,
+            "check_id": check_id,
+            "receipt_id": receipt_id,
+            "disposition_id": disposition_id,
+        }
+
+    def walk_to_dispositioned(self, permit_id: uuid.UUID) -> None:
+        """Walk a permit up to ``dispositioned``, chain and all.
+
+        ``merge_permit`` appends ``(state -> 'merged')`` to the event chain, and
+        ``legal_edge`` is a foreign key into ``subject_transition``: ``(permit, draft,
+        merged)`` is **not** in the seed, so a permit that has never been walked cannot be
+        merged through the procedure. That is ``CF-13`` working, and it means every case
+        that needs a *legal* merge has to build a legal lifecycle first rather than
+        teleporting the subject to the state it wants.
+
+        The direct-UPDATE spelling (:meth:`merge_step`) does not go through the chain and
+        does not need this — which is exactly why the table's own ``CHECK`` constraints,
+        and not the transition table, are what the product rests on.
+        """
+        self.append_event(
+            "walk: draft -> checks_materialised",
+            permit_id,
+            seq=1,
+            prev_seq=0,
+            from_state="draft",
+            to_state="checks_materialised",
+        )
+        self.append_event(
+            "walk: checks_materialised -> dispositioned",
+            permit_id,
+            seq=2,
+            prev_seq=1,
+            from_state="checks_materialised",
+            to_state="dispositioned",
+            prev_digest=self.chain_digest(permit_id, 1),
+        )
+        self.run(
+            "walk: move the head",
+            "UPDATE {s}.permit SET state = 'dispositioned', head_seq = 2 WHERE permit_id = %s",
+            (permit_id,),
+        )
+
+    def armed_permit(
+        self,
+        *,
+        tag: str,
+        max_severity: int = 1,
+        virulence: str = "routine",
+        signer_rank: int = 4,
+        signer_org: str = "alpha-operations",
+        countersigner_org: str | None = "beta-assurance",
+        countersigner_rank: int = 9,
+        authorisations: tuple[str, ...] = ("ISOLATION_AUTHORITY",),
+        receipt_kwargs: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Build a permit with one open obligation, an exposure receipt, and two signers ready.
+
+        The starting point for every clearance-lattice case: everything the disposition
+        needs *except* the one thing the case is about. The countersigner is enrolled by
+        default and on a different credential, because ``distinct_credential`` and
+        ``needs_foreign_org`` must be satisfiable by the cases that are not about them.
+        """
+        clause_uuid, commit_id = self.clause_version(tag)
+        self.closure(clause_uuid, commit_id, max_severity=max_severity, virulence=virulence)
+        permit_id = self.permit(tag)
+        signer = self.person(
+            self.actor(f"signer-{tag}"),
+            rank=signer_rank,
+            org=signer_org,
+            authorisations=authorisations,
+        )
+        signer_key = self.credential(signer, tag="signer")
+        countersigner = None
+        counter_key = None
+        if countersigner_org is not None:
+            countersigner = self.person(
+                self.actor(f"counter-{tag}"),
+                rank=countersigner_rank,
+                org=countersigner_org,
+                authorisations=authorisations,
+            )
+            counter_key = self.credential(countersigner, tag="counter")
+        check_id = self.check(
+            clause_uuid=clause_uuid, commit_id=commit_id, permit_id=permit_id, tag=tag
+        )
+        receipt_id = self.receipt(
+            actor_sub=signer, permit_id=permit_id, tag=tag, **(receipt_kwargs or {})
+        )
+        self.line(receipt_id, check_id)
+        return {
+            "clause_uuid": clause_uuid,
+            "commit_id": commit_id,
+            "permit_id": permit_id,
+            "signer": signer,
+            "signer_key": signer_key,
+            "countersigner": countersigner,
+            "counter_key": counter_key,
+            "check_id": check_id,
+            "receipt_id": receipt_id,
+        }
+
+    # ── the event chain ──────────────────────────────────────────────────────
+
+    GENESIS_DIGEST = b"\x00" * 32
+    """What the merge procedures use when a subject has no predecessor event. The chain
+    starts somewhere and the starting point is a stated constant, not a NULL."""
+
+    def _event_sql(self, table: str, key: str) -> str:
+        # S608 is about interpolating *input* into SQL. `table` and `key` are
+        # chosen from a two-element literal map five lines above; every VALUE is a
+        # bound parameter and the schema arrives as a quoted identifier.
+        return (
+            f"INSERT INTO {{s}}.{table} "  # noqa: S608
+            f"({key}, seq, prev_seq, from_state, to_state, subject_kind, actor_sub, "
+            f" payload, prev_digest) "
+            f"VALUES (%s, %s, %s, %s, %s, %s, %s, %s::JSONB, %s)"
+        )
+
+    def event_step(
+        self,
+        label: str,
+        subject_id: uuid.UUID,
+        *,
+        seq: int,
+        prev_seq: int,
+        from_state: str,
+        to_state: str,
+        prev_digest: bytes | None = None,
+        payload: str = "{}",
+        kind: str = "permit",
+    ) -> Step:
+        """One row of a subject's event chain, as a history step."""
+        table, key = ("permit_event", "permit_id") if kind == "permit" else ("cr_event", "cr_id")
+        return Step(
+            label=label,
+            sql=self.sql(self._event_sql(table, key)),
+            params=(
+                subject_id,
+                seq,
+                prev_seq,
+                from_state,
+                to_state,
+                kind,
+                f"conformance:{self.scope.case_id}",
+                payload,
+                prev_digest if prev_digest is not None else self.GENESIS_DIGEST,
+            ),
+        )
+
+    def append_event(self, label: str, subject_id: uuid.UUID, **kw: Any) -> None:
+        """Run the same insert, as setup."""
+        step = self.event_step(label, subject_id, **kw)
+        try:
+            with self.harness.conn.cursor() as cur:
+                cur.execute(step.sql, step.params)
+        except Exception as exc:
+            raise SetupRefused(
+                f"{self.scope.case_id}: building the LEGAL event chain failed at {label!r}: {exc}"
+            ) from exc
+
+    def chain_digest(self, subject_id: uuid.UUID, seq: int, *, kind: str = "permit") -> bytes:
+        """Read a predecessor's ``chain_digest`` back.
+
+        Read, never recomputed. The column is a ``STORED`` generated value the server
+        derives; a case that recomputed it in Python would be asserting agreement between
+        two implementations of the same formula rather than following the chain.
+        """
+        table, key = ("permit_event", "permit_id") if kind == "permit" else ("cr_event", "cr_id")
+        # Same reasoning as `_event_sql`: `table` and `key` come from a literal map,
+        # never from a caller.
+        value = self.scalar(
+            f"SELECT chain_digest FROM {{s}}.{table} WHERE {key} = %s AND seq = %s",  # noqa: S608
+            (subject_id, seq),
+        )
+        return bytes(value) if value is not None else self.GENESIS_DIGEST
+
+    # ── the merge, in both spellings ─────────────────────────────────────────
+
+    def merge_step(
+        self,
+        permit_id: uuid.UUID,
+        *,
+        label: str = "attempt the merge",
+        merged_commit: bytes | None = None,
+        omit_commit: bool = False,
+    ) -> Step:
+        """Render the completing UPDATE, straight at the table.
+
+        This is the spelling that proves the claim: the refusal belongs to the *table*,
+        so it holds for a writer who never heard of ``merge_permit`` — a DBA at a psql
+        prompt, a migration, a future service nobody has written yet.
+        """
+        if omit_commit:
+            return Step(
+                label=label,
+                sql=self.sql("UPDATE {s}.permit SET state = 'merged' WHERE permit_id = %s"),
+                params=(permit_id,),
+            )
+        return Step(
+            label=label,
+            sql=self.sql(
+                "UPDATE {s}.permit SET state = 'merged', merged_commit = %s WHERE permit_id = %s"
+            ),
+            params=(merged_commit or digest32("merged"), permit_id),
+        )
+
+    def merge_cr_step(
+        self,
+        cr_id: uuid.UUID,
+        *,
+        label: str = "attempt the change-request merge",
+        merged_commit: bytes | None = None,
+    ) -> Step:
+        """Render the completing UPDATE on a change request. MI30, and the whole of CF-31."""
+        return Step(
+            label=label,
+            sql=self.sql(
+                "UPDATE {s}.change_request SET state = 'merged', merged_commit = %s "
+                "WHERE cr_id = %s"
+            ),
+            params=(merged_commit or digest32("merged"), cr_id),
+        )
+
+    def call_merge_permit(self, permit_id: uuid.UUID, *, label: str = "CALL merge_permit") -> Step:
+        """Render the procedure spelling: event append, epoch pin and head CAS in one call."""
+        return Step(
+            label=label,
+            sql=self.sql(
+                "CALL {s}.merge_permit(%s, %s, %s, 'service', '{{}}'::JSONB, %s, 1::INT2, %s)"
+            ),
+            params=(
+                permit_id,
+                digest32("merged"),
+                f"conformance:{self.scope.case_id}",
+                b"\x00",
+                digest32("leaf"),
+            ),
+        )
+
+    def call_merge_cr(self, cr_id: uuid.UUID, *, label: str = "CALL merge_change_request") -> Step:
+        """Render the procedure spelling, for a change request."""
+        return Step(
+            label=label,
+            sql=self.sql(
+                "CALL {s}.merge_change_request(%s, %s, %s, 'service', '{{}}'::JSONB, %s, "
+                "1::INT2, %s)"
+            ),
+            params=(
+                cr_id,
+                digest32("merged"),
+                f"conformance:{self.scope.case_id}",
+                b"\x00",
+                digest32("leaf"),
+            ),
+        )
+
+    # ── a second writer ──────────────────────────────────────────────────────
+
+    def sibling_connection(self, *, isolation: Any = None) -> Any:
+        """Open a second connection to the same cluster.
+
+        Four cases genuinely need two writers — the materialised conflict (``CF-43``), the
+        parallel merge (``CF-44``), the isolation downgrade (``CF-45``) and the unwelding
+        harness — and none of them can be expressed on one connection, because the whole
+        claim is about what happens when two transactions overlap.
+
+        The DSN is taken from the connection the runner supplied, so a sibling reaches the
+        same cluster as the suite by construction and there is no second place to
+        configure. Callers close what they open.
+        """
+        import psycopg
+
+        conn = psycopg.connect(
+            self.harness.conn.info.dsn,
+            autocommit=True,
+            application_name="trappoint-conform:sibling",
+        )
+        if isolation is not None:
+            conn.isolation_level = isolation
+        return conn
+
+    # ── time ─────────────────────────────────────────────────────────────────
+
+    @staticmethod
+    def soon(seconds: int = 3600) -> datetime:
+        """Return a bounded future instant, for ``expires_at`` and ``reassert_by``."""
+        return datetime.now(UTC) + timedelta(seconds=seconds)
+
+    @staticmethod
+    def past(seconds: int = 3600) -> datetime:
+        """Return a past instant, for the expiry cases."""
+        return datetime.now(UTC) - timedelta(seconds=seconds)

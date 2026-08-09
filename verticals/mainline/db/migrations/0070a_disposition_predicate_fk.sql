@@ -1,0 +1,75 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MAINLINE · 0070a_disposition_predicate_fk.sql
+-- ALTER TABLE mainline.disposition — bind predicate_id to a predicate that actually exists
+--
+-- MI: MI28, MI11
+-- I: I12, I10
+-- COUNSEL-GATED: yes (G0) · DEFAULT: conservative · ADR: docs/adr/0001-g0-counsel.md
+-- RATIONALE: `needs_predicate` on 0066 checks only that `predicate_id IS NOT NULL`, and 0066 declares the column with no foreign key. So on the tree as it stands, a `mechanism_absent` disposition at a cell whose lattice row sets `req_predicate = true` is satisfied by ANY 128 bits — `gen_random_uuid()` clears it. The entire M8 falsifiable-mechanism apparatus (a compiled predicate, a stated probability, a bounded horizon, a watch set, a changefeed that calls the lease) is then optional in practice while appearing mandatory in the schema. This file makes the pointer point.
+--
+-- migration:  0070a_disposition_predicate_fk
+-- band:       0069-0070z · datamodel/ex-dm-disposition · AUTHORED, allocated by
+--             verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1). The key `(70, "a")`
+--             falls inside `first = "0069"` .. `last = "0070z"`, so this number is granted, and
+--             it is the MR-5 band-overflow letter slot: a worker who needs another statement
+--             suffixes their OWN last number and never borrows a neighbour's.
+-- statements: 1
+-- source:     ARCHITECTURE.md §5.5 (M8) · §16 MI28 · docs/leads/workers.json `dm-disposition`
+--             ("do not FK predicate_id yet if mechanism_predicate ordering fights you — it is at
+--             0065 so it will not"). The ordering does not fight: 0065 < 0066 < 0070a.
+-- requires:   0065 mainline.mechanism_predicate · 0066 mainline.disposition (RENDERED)
+-- projects:   nothing. This file adds one refusal and no columns.
+-- sqlstate:   23503 on fk_disposition_predicate
+-- forward-only; no .down.sql exists at or below the protected floor (DM-14).
+--
+-- ═════════════════════════════════════════════════════════════════════════════════════════════
+-- WHY A FILE IN THIS BAND ALTERS A TABLE CREATED BY ANOTHER — AND WHY THAT IS NOT A BREACH.
+--
+-- `mainline.disposition` is SUBSTRATE under MR-1 and it is RENDERED from
+-- `packages/trappoint-sql/templates/0066_disposition.sql.j2`. That file is not hand-edited by
+-- anyone, including this worker: `trappoint render --check` is a zero-diff assertion and a hand
+-- edit there is a red build. This file does not touch it. It adds a constraint in a LATER,
+-- SEPARATELY ALLOCATED migration, which is the pattern this tree already uses twice for exactly
+-- this situation — `0199` adds `fk_silence` to the rendered `exposure_receipt` to break a table-
+-- creation cycle, and `0086a` adds the thymogate key to `recall_policy`. A deferred foreign key
+-- in its own numbered file is the established, allocation-respecting way to close a link whose
+-- target is created after its source.
+--
+-- WHY IT IS DEFERRED HERE RATHER THAN INLINE IN THE TEMPLATE. The ordering genuinely permits
+-- inlining (0065 precedes 0066), so this is a coordination choice and not a technical necessity:
+-- the template belongs to another domain, the two verticals it renders into must both be
+-- re-rendered for any change to it, and a constraint that lives in its own file can be reviewed,
+-- cited and — if the kernel later absorbs it — deleted, in one place. THE CONSTRAINT NAME IS
+-- CHOSEN TO SURVIVE THAT ABSORPTION: `fk_disposition_predicate` rather than the `fk_predicate`
+-- the template would plausibly use, so that if both exist the result is one redundant foreign key
+-- and not a duplicate-name failure that stops the whole apply. Redundancy is recoverable; a tree
+-- that will not apply is not.
+--
+-- WHAT THIS DOES NOT FIX, STATED PLAINLY. A real `predicate_id` is still not necessarily a
+-- SUITABLE one: nothing here requires the predicate to belong to the same site as the
+-- disposition, to still be in state 'holding', or to have a horizon covering the disposition's
+-- own window. Each of those is a cross-row fact and therefore a PROJECTION plus a plain-column
+-- CHECK on `disposition` — columns this worker does not own and must not add. They are recorded
+-- as cross-domain notes against the kernel's `obligation-and-clearance` worker rather than
+-- half-built here. What this file buys is the floor: the pointer resolves, so the lease exists,
+-- so it can be called.
+--
+-- ON EXISTING ROWS. CockroachDB validates a newly added foreign key against the current contents
+-- of the table. On a fresh cluster `mainline.disposition` is empty at this point in the sequence,
+-- so validation is trivial; on a cluster where dispositions already carry a fabricated
+-- `predicate_id`, this statement FAILS and it should — that failure is the discovery that the
+-- apparatus was being routed around, which is the whole reason for the file.
+--
+-- VERIFIED 2026-08-10 against CockroachDB CCL v26.2.5 (local single node, insecure, 26257). The
+-- statement applies after 0065 and 0066, and `information_schema.table_constraints` reports
+-- exactly one `fk_disposition_predicate` on `mainline.disposition`. The ordering concern the
+-- `dm-disposition` brief raised does not arise: 0065 < 0066 < 0070a. Evidence:
+-- tests/integration/schema/test_mi_boundary_override.py::
+-- test_the_deferred_predicate_foreign_key_is_attached.
+
+ALTER TABLE mainline.disposition
+  ADD CONSTRAINT fk_disposition_predicate FOREIGN KEY (predicate_id)
+  REFERENCES mainline.mechanism_predicate (predicate_id)
+  ON UPDATE RESTRICT ON DELETE RESTRICT;

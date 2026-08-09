@@ -1,0 +1,43 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 2,
+    "doc_codes": [
+      "MOC-2023-0302",
+      "PRO-CHM-009",
+      "STD-CHM-011"
+    ],
+    "intent": "weaken",
+    "moc_ref": "MOC-2009-0094",
+    "opened_on": "2009-04-14",
+    "precursor_events": [
+      {
+        "event_ref": "NM-2006-0016",
+        "severity_gate": null
+      }
+    ],
+    "site": "Tolgarra Processing and Power Station",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "management_of_change": "engineering change note",
+      "verification": "spot check"
+    },
+    "weakening_steps": 0
+  },
+  "key": "9049db17a0c21b4e7f9ce51ba5abe903108549d4293cceb52d1ed302dbcca951",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2009-0094",
+  "prompt_kind": "moc",
+  "prompt_sha256": "f68cbb2cf3f4aa8f7a5076e368f274db0340c43f7fb874d72906363269e92661",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2009-0094 was raised at Tolgarra Processing and Power Station on 14 April 2009 following 1 recorded event in the archive, including NM-2006-0016. The engineering change note record covers 2 clauses across 3 controlled documents. The intent is to relax a key safeguard requirement, and the basis for the relaxation is recorded with the change. The record reached the state merged in the change stream.",
+    "risk_note": "This change relaxes a control: 0 steps of relaxation are recorded against it, and the residual risk position rests on that relaxation having been accepted deliberately.",
+    "scope_note": "The documents in scope are MOC-2023-0302, PRO-CHM-009 and STD-CHM-011."
+  },
+  "response_sha256": "8d097ff66ef8b0a0b54442c163c5168b132dbb6d92b97746f3ee8dbb8afbacca",
+  "source": null
+}

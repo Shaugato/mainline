@@ -1,0 +1,64 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 7,
+    "doc_code": "PRO-MEC-055",
+    "doc_family": "PRO",
+    "doc_title": "Workshop Component Removal and Load Support",
+    "driver": "incident",
+    "driving_change_ref": null,
+    "driving_event_ref": "INC-2016-016",
+    "effective_on": "2017-04-13",
+    "required_citations": [
+      {
+        "control_label": "exclusion of people from beneath elevated work",
+        "event_ref": "INC-2016-016",
+        "event_title": "loss of containment at HO-9403 during shift handover",
+        "hazard_energy": "kinetic",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:YND/PRO-MEC-055/009#revision_history_line/INC-2016-016",
+        "severity_gate": 4
+      },
+      {
+        "control_label": "preparation and approval of a lift study",
+        "event_ref": "INC-2017-001",
+        "event_title": "energy isolation failure on PR-9410",
+        "hazard_energy": "kinetic",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:YND/PRO-MEC-055/009#revision_history_line/INC-2017-001",
+        "severity_gate": 2
+      }
+    ],
+    "rev_no": 9,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "ICAM investigation",
+      "management_of_change": "management of change",
+      "near_miss": "potential incident"
+    }
+  },
+  "key": "6c1170ca015ac81664854d6553a21fa258a4faafbe30f6ea61550576430a354e",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:YND/PRO-MEC-055/009",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "432a7356082ffd860e7f6aec1b124f9ec05ce16ae760289c45d5aafe313d8d1b",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "Revision 9 was raised in response to INC-2016-016, and the exclusion of people from beneath elevated work was amended as a result.",
+        "quote_ref": "quote:YND/PRO-MEC-055/009#revision_history_line/INC-2016-016"
+      },
+      {
+        "line": "Revision 9 was raised in response to INC-2017-001, and the preparation and approval of a lift study was amended as a result.",
+        "quote_ref": "quote:YND/PRO-MEC-055/009#revision_history_line/INC-2017-001"
+      }
+    ],
+    "reason": "Revised after INC-2016-016; 7 clauses amended."
+  },
+  "response_sha256": "9b91ae13cbfac6636de1dea23ce4b3c6c0e746c4be84dd2832ae65f73f7b2a9a",
+  "source": null
+}

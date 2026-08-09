@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 4,
+    "doc_code": "PRO-MEC-055",
+    "doc_family": "PRO",
+    "doc_title": "Workshop Component Removal and Load Support",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2013-09-15",
+    "required_citations": [],
+    "rev_no": 6,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "root cause analysis",
+      "management_of_change": "change request",
+      "near_miss": "hazard report"
+    }
+  },
+  "key": "40b6a2fe94046e95d22e2e40e228625f6f1a5209bdda90f93aaecd074a66fb39",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:YND/PRO-MEC-055/006",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "4b618be40e1266bf7a0245643524d59f880ed7aa9977bcf71c23234cc416d91a",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [],
+    "reason": "Scheduled review at revision 6; 4 clauses restated."
+  },
+  "response_sha256": "75e6ce0f1c8666f23fc57f6f77f8e04024abcbd84697b058e9ab3bfc7dd963b2",
+  "source": null
+}

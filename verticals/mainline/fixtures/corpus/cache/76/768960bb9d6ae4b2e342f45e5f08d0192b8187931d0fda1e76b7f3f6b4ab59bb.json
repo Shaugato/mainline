@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 11,
+    "doc_code": "PTW-STD-002",
+    "doc_family": "PTW",
+    "doc_title": "Permit to Work Form Set",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2004-03-08",
+    "required_citations": [],
+    "rev_no": 1,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "accident investigation",
+      "management_of_change": "engineering change note",
+      "near_miss": "near hit"
+    }
+  },
+  "key": "768960bb9d6ae4b2e342f45e5f08d0192b8187931d0fda1e76b7f3f6b4ab59bb",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/PTW-STD-002/001",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "1e4003007b87705d2201cc92a7f7a7cb5ca9b3256e3f8eeda48bfea46bc372ae",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [],
+    "reason": "Scheduled review at revision 1; 11 clauses restated."
+  },
+  "response_sha256": "385291ba3a58eba06150f2adef3a27d168287c9158edb553426cb06373b6836a",
+  "source": null
+}

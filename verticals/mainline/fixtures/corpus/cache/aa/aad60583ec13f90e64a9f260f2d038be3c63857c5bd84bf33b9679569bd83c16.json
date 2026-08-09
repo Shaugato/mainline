@@ -1,0 +1,123 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "classifying a space and issuing an entry permit",
+    "activity_root": "CONFINED-SPACE-ENTRY",
+    "activity_series": "authorising and controlling entry",
+    "assets": [
+      {
+        "asset_class": "DOSE-CLASS-A",
+        "label": "reagent dosing pumps",
+        "service": "reagent make-up and dosing",
+        "tag": "P-8303"
+      },
+      {
+        "asset_class": "INST-CLASS-A",
+        "label": "instrument loop",
+        "service": "governs P-8303",
+        "tag": "PT-8303"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 1,
+      "label": "medical treatment injury"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "CONFINED_SPACE_ENTRY_PERMIT",
+        "control_label": "classification of a space and issue of an entry permit",
+        "failure_mode": "absent",
+        "hazard_energy": "chemical",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "CONTINUOUS_ATMOSPHERIC_MONITORING",
+        "control_label": "continuous atmospheric monitoring during occupancy",
+        "failure_mode": "not_verified",
+        "hazard_energy": "chemical",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "GAS_TEST_BEFORE_AND_DURING_HOT_WORK",
+        "control_label": "atmospheric gas testing before and during hot work",
+        "failure_mode": "bypassed",
+        "hazard_energy": "chemical",
+        "icam_tier": "absent_or_failed_defence"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "STANDBY_ATTENDANCE_AND_RESCUE",
+        "control_label": "standby attendance and non-entry rescue capability",
+        "failure_mode": "ineffective",
+        "hazard_energy": "chemical",
+        "icam_tier": "organisational_factor"
+      }
+    ],
+    "event_ref": "INC-2023-002",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "incident",
+    "occurred_on": "2023-01-05",
+    "severity_actual": 2,
+    "severity_potential": 2,
+    "site": "Tolgarra Processing and Power Station",
+    "summary_facts": [],
+    "task_phase": "during an intrusive maintenance task",
+    "title": "loss of containment at P-8303 during an intrusive maintenance task",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "aad60583ec13f90e64a9f260f2d038be3c63857c5bd84bf33b9679569bd83c16",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:INC-2023-002",
+  "prompt_kind": "icam",
+  "prompt_sha256": "3a2579094e6ba42109083601f14549cc90ebe57ba2c9875901dcc33c662c4158",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was medical treatment injury, with 1 person injured.",
+    "defences": [
+      {
+        "control_class": "CONFINED_SPACE_ENTRY_PERMIT",
+        "finding": "Control CONFINED_SPACE_ENTRY_PERMIT: the classification of a space and issue of an entry permit was not in place, and the learning team review classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "CONTINUOUS_ATMOSPHERIC_MONITORING",
+        "finding": "Control CONTINUOUS_ATMOSPHERIC_MONITORING: the continuous atmospheric monitoring during occupancy was never verified as effective, and the learning team review classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "GAS_TEST_BEFORE_AND_DURING_HOT_WORK",
+        "finding": "Control GAS_TEST_BEFORE_AND_DURING_HOT_WORK: the atmospheric gas testing before and during hot work had been bypassed, and the learning team review classified this as an absent or failed defence."
+      },
+      {
+        "control_class": "STANDBY_ATTENDANCE_AND_RESCUE",
+        "finding": "Control STANDBY_ATTENDANCE_AND_RESCUE: the standby attendance and non-entry rescue capability was in place but did not perform, and the learning team review classified this as an organisational factor."
+      }
+    ],
+    "recommendations": [
+      "Restore the classification of a space and issue of an entry permit on P-8303 and PT-8303 and record the assurance activity before this task is next authorised.",
+      "Restore the atmospheric gas testing before and during hot work on P-8303 and PT-8303 and record the assurance activity before this task is next authorised."
+    ],
+    "sequence": "Work was under way in authorising and controlling entry, specifically classifying a space and issuing an entry permit. P-8303 (reagent dosing pumps) is in service for reagent make-up and dosing. The task proceeded during an intrusive maintenance task while the classification of a space and issue of an entry permit was not in place. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 5 January 2023 an incident occurred on P-8303 and PT-8303 at Tolgarra Processing and Power Station during an intrusive maintenance task, releasing chemical energy held as hydrocarbon."
+  },
+  "response_sha256": "45063239242f69e689edc2a2e0f83ed4c4124328916e8fd74a701ebc6d49b39b",
+  "source": null
+}

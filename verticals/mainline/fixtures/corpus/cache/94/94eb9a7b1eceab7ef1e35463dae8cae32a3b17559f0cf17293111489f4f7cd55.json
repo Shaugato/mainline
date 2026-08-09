@@ -1,0 +1,104 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "planning and rehearsing non-entry rescue",
+    "activity_root": "CONFINED-SPACE-ENTRY",
+    "activity_series": "rescuing from a confined space",
+    "assets": [
+      {
+        "asset_class": "PRD-CLASS-A",
+        "label": "tank relief and vent devices",
+        "service": "tank overpressure and vacuum protection",
+        "tag": "PSV-7102"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "CONFINED_SPACE_ENTRY_PERMIT",
+        "control_label": "classification of a space and issue of an entry permit",
+        "failure_mode": "ineffective",
+        "hazard_energy": "chemical",
+        "icam_tier": "organisational_factor"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "GAS_TEST_BEFORE_AND_DURING_HOT_WORK",
+        "control_label": "atmospheric gas testing before and during hot work",
+        "failure_mode": "ineffective",
+        "hazard_energy": "chemical",
+        "icam_tier": "organisational_factor"
+      },
+      {
+        "barrier_role": "recovery",
+        "control_class": "STANDBY_ATTENDANCE_AND_RESCUE",
+        "control_label": "standby attendance and non-entry rescue capability",
+        "failure_mode": "ineffective",
+        "hazard_energy": "chemical",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "NM-2014-0003",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "near_miss",
+    "occurred_on": "2014-02-01",
+    "severity_actual": 0,
+    "severity_potential": 1,
+    "site": "Cape Verity Export Terminal",
+    "summary_facts": [],
+    "task_phase": "during transfer operations",
+    "title": "unplanned release of chemical energy at PSV-7102",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "94eb9a7b1eceab7ef1e35463dae8cae32a3b17559f0cf17293111489f4f7cd55",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2014-0003",
+  "prompt_kind": "icam",
+  "prompt_sha256": "c26e33f0f34c3307b3e0bbe3cec081221c987533726195c7f61f1bbd2dd58c0e",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 1 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "CONFINED_SPACE_ENTRY_PERMIT",
+        "finding": "Control CONFINED_SPACE_ENTRY_PERMIT: the classification of a space and issue of an entry permit was in place but did not perform, and the root cause analysis classified this as an organisational factor."
+      },
+      {
+        "control_class": "GAS_TEST_BEFORE_AND_DURING_HOT_WORK",
+        "finding": "Control GAS_TEST_BEFORE_AND_DURING_HOT_WORK: the atmospheric gas testing before and during hot work was in place but did not perform, and the root cause analysis classified this as an organisational factor."
+      },
+      {
+        "control_class": "STANDBY_ATTENDANCE_AND_RESCUE",
+        "finding": "Control STANDBY_ATTENDANCE_AND_RESCUE: the standby attendance and non-entry rescue capability was in place but did not perform, and the root cause analysis classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the standby attendance and non-entry rescue capability on PSV-7102 and record the field verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in rescuing from a confined space, specifically planning and rehearsing non-entry rescue. PSV-7102 (tank relief and vent devices) is in service for tank overpressure and vacuum protection. The task proceeded during transfer operations while the classification of a space and issue of an entry permit was in place but did not perform. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 1 February 2014 a hazard report was recorded on PSV-7102 at Cape Verity Export Terminal during transfer operations; chemical energy held as hydrocarbon was not released."
+  },
+  "response_sha256": "652a0204ef71aa1d1763e90827a22bb6775f0f8587540a31ab68043b4d15926a",
+  "source": null
+}

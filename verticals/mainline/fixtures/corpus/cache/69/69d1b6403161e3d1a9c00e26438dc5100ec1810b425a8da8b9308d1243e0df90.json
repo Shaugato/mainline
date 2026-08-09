@@ -1,0 +1,79 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "alarming, mustering and accounting for people",
+    "activity_root": "FIRE-AND-EMERGENCY-RESPONSE",
+    "activity_series": "mustering and rescuing",
+    "assets": [
+      {
+        "asset_class": "ELEC-CLASS-A",
+        "label": "mine switchgear",
+        "service": "pit and workshop distribution",
+        "tag": "SG-9000"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "FIXED_FIRE_SYSTEM_AVAILABILITY",
+        "control_label": "availability and testing of fixed fire protection",
+        "failure_mode": "degraded",
+        "hazard_energy": "thermal",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "OEM-2008-001",
+    "hazard_energy": "thermal",
+    "hazard_media": [
+      "hot surface",
+      "steam",
+      "molten material",
+      "hot work",
+      "exothermic reaction"
+    ],
+    "hazard_release": "burn, ignition, scald",
+    "kind": "oem_alert",
+    "occurred_on": "2008-11-22",
+    "severity_actual": 0,
+    "severity_potential": 4,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during an intrusive maintenance task",
+    "title": "OEM advisory - ELEC-CLASS-A quench and drain arrangement",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "investigation": "accident investigation",
+      "near_miss": "near hit",
+      "verification": "spot check"
+    }
+  },
+  "key": "69d1b6403161e3d1a9c00e26438dc5100ec1810b425a8da8b9308d1243e0df90",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:OEM-2008-001",
+  "prompt_kind": "icam",
+  "prompt_sha256": "bdde0f541eb5cb1b2219dd986eaeaa509dbb6e6796f19740f998767d3de774ac",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 4 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "FIXED_FIRE_SYSTEM_AVAILABILITY",
+        "finding": "Control FIXED_FIRE_SYSTEM_AVAILABILITY: the availability and testing of fixed fire protection had degraded below its design intent, and the accident investigation classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next spot check that the availability and testing of fixed fire protection on SG-9000 performs as designed."
+    ],
+    "sequence": "Work was under way in mustering and rescuing, specifically alarming, mustering and accounting for people. SG-9000 (mine switchgear) is in service for pit and workshop distribution. The task proceeded during an intrusive maintenance task while the availability and testing of fixed fire protection had degraded below its design intent. The thermal energy involved is held as hot surface, and the recorded presentation was burn, ignition, scald.",
+    "summary": "On 22 November 2008 the original equipment manufacturer issued an advisory affecting SG-9000 at Yandarra Downs Open Cut and Heavy Workshop."
+  },
+  "response_sha256": "1c4ab19deac04dac4e3336850db42df275b3a1b7f9e7818c90d589aaa83b2a16",
+  "source": null
+}

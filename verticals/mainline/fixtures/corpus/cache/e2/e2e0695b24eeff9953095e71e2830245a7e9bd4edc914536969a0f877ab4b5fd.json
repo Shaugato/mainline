@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 0,
+    "doc_codes": [
+      "STD-EMR-008"
+    ],
+    "intent": "strengthen",
+    "moc_ref": "MOC-2023-0184",
+    "opened_on": "2023-07-21",
+    "precursor_events": [],
+    "site": "Cape Verity Export Terminal",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "management_of_change": "change assurance",
+      "verification": "assurance activity"
+    },
+    "weakening_steps": 0
+  },
+  "key": "e2e0695b24eeff9953095e71e2830245a7e9bd4edc914536969a0f877ab4b5fd",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2023-0184",
+  "prompt_kind": "moc",
+  "prompt_sha256": "13736033eb6769eb94cf81e18a7b55979d3b2edda49c1649369cdfffcbf8bff8",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2023-0184 was raised at Cape Verity Export Terminal on 21 July 2023 as a scheduled change under change assurance; no event precedes it in the record. The change assurance record carries no clause change; it records the assessment only. The intent is to strengthen the material unwanted event control named in the documents in scope. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the material unwanted event control set is preserved.",
+    "scope_note": "The documents in scope are STD-EMR-008."
+  },
+  "response_sha256": "c93f666f2784b90b2be7f7f3f32434c1f0096b337b9c5c5528b61f4e7c309954",
+  "source": null
+}

@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 3,
+    "doc_code": "PRO-MIN-003",
+    "doc_family": "PRO",
+    "doc_title": "Haul Road and Light Vehicle Interaction",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2006-02-16",
+    "required_citations": [
+      {
+        "control_label": "parking, chocking and restraint of equipment",
+        "event_ref": "CAPA-2006-001",
+        "event_title": "preventive action - alarm setting on LV-9303",
+        "hazard_energy": "kinetic",
+        "kind": "regulator_requirement",
+        "quote_ref": "quote:YND/PRO-MIN-003/002#regulator_requirement/CAPA-2006-001",
+        "severity_gate": 2
+      }
+    ],
+    "rev_no": 2,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "accident investigation",
+      "management_of_change": "engineering change note",
+      "near_miss": "near hit"
+    }
+  },
+  "key": "dfd0eaf3c60b7546c7355a9700d769a31a8f2cbeec7dc4d649e9628c8938431e",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:YND/PRO-MIN-003/002",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "f2f689baebd33abdb10aab02eacb1a9bad3629ef5b999bae31af4db3e327d90b",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "A regulatory requirement arising from CAPA-2006-001 obliges this procedure to carry the parking, chocking and restraint of equipment.",
+        "quote_ref": "quote:YND/PRO-MIN-003/002#regulator_requirement/CAPA-2006-001"
+      }
+    ],
+    "reason": "Scheduled review at revision 2; 3 clauses restated."
+  },
+  "response_sha256": "8c50c9f18f816c6695760d460cacba517d4bafb52b5bda2fa183c7d918e7a8cf",
+  "source": null
+}

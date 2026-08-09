@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "barrier_role": "preventive",
+    "control_class": "HYDROCARBON_TRANSFER_CONTROL",
+    "control_delta": "introduce",
+    "control_label": "controlled transfer of hydrocarbon between vessels",
+    "doc_code": "MOC-2026-0413",
+    "doc_family": "MOC",
+    "doc_title": "Restore OEM Seal-Face Alarm Setpoint on the Hydrocarbon Transfer Pump Family",
+    "effective_on": "2026-07-28",
+    "printed_label": "1.1.1",
+    "setpoint": null,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "energy_isolation": "positive isolation verification",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "85c0081794e19e72f9c4e1e056d3c83ec0933caf4eca949bfacd7b15c8bf445d",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/MOC-2026-0413/001#MRD/MOC-2026-0413/2.4",
+  "prompt_kind": "clause",
+  "prompt_sha256": "e3f6d9edbdbad317a1a2c49dda5be0238189ce6ca5b02b7d948387122c7d62e9",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The controlled transfer of hydrocarbon between vessels shall be provided and maintained for work covered by this change record. This clause applies to activities archived under CONTAINMENT-OF-HYDROCARBONS at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "057b131dab509aaeeeb64b4b923ca77331008761bb7d4e57ad93239151f01a6f",
+  "source": null
+}

@@ -1,0 +1,38 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MAINLINE · 0187a_standing_rls_force.sql
+-- ALTER TABLE mainline_meas.standing FORCE ROW LEVEL SECURITY
+--
+-- MI: MI28
+-- I: I15
+-- COUNSEL-GATED: yes
+-- RATIONALE: A person-measure the owner can read past is a person-measure with an unnamed
+--            reader, and SEC-3 is entirely about naming who may read a score about a named
+--            human. FORCE removes the exemption; 0187e names the one reader that needs it
+--            back and says which two views it exists for.
+--
+-- migration:  0187a_standing_rls_force
+-- domain:     datamodel / dm-views-rls
+-- band:       0180-0198z · datamodel/dm-views-rls · AUTHORED, allocated by
+--             verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1)
+-- statements: 1
+-- matrix:     verticals/mainline/db/RLS-MATRIX.yaml — this file is a RENDERING of one entry
+--             there; tests/integration/schema/test_mi_rls.py asserts the two agree
+-- source:     ARCHITECTURE.md §11.3 (RLS, SEC-1) · §4.1 law 10 · correction S22 · §11.5 · v26.2 row-level-security reference
+-- requires:   0089 mainline_meas.standing · 0187 ENABLE
+-- sqlstate:   none — FORCE removes an exemption; it refuses nothing.
+-- forward-only; no .down.sql exists at or below the protected floor.
+--
+-- ────────────────────────────────────────────────────────────────────────────
+-- S22 APPLIES TO THIS TABLE TOO, AND THE WRITER IS `agent_assay`
+-- ────────────────────────────────────────────────────────────────────────────
+-- `agent_assay` holds INSERT on `standing` in GRANTS.yaml and is confined to
+-- `mainline_meas`. Under FORCE with no INSERT policy it cannot write, and the measure
+-- silently stops being computed — which, for a mechanism that ships inert, would be
+-- indistinguishable from working as designed. 0187d is the write policy and it is not
+-- optional for that reason.
+--
+
+ALTER TABLE mainline_meas.standing FORCE ROW LEVEL SECURITY;
+

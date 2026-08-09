@@ -1,0 +1,178 @@
+{# SPDX-FileCopyrightText: 2026 MAINLINE contributors #}
+{# SPDX-License-Identifier: Apache-2.0 #}
+{#
+  Migrations 0071 / 0071a / 0071b — THE COMPLETION RECORD AND THE EPOCH PIN.
+  ARCHITECTURE.md §5.5 (verbatim), §4.1 law 3, §16 MI07/MI09;
+  spec/TRAPPOINT-SPEC.md §5.4, spec/invariants/I03-epoch-pin.md, I04;
+  merge-gate-invariant.md §3.3 and anomalies A2, A3, A4;
+  kernel plan ruling D1; conformance cases CF-09, CF-40, CF-44.
+
+  ── THE ANOMALY THIS ANSWERS IS NOT A SERIALIZABILITY BUG ────────────────────────
+  A precursor discovered at T+e and inserted against a permit merged at T is a PERFECTLY
+  SERIALIZABLE history. There is no read-write dependency to detect, no anomaly for the
+  concurrency control to refuse; SERIALIZABLE orders writes, it does not prevent late
+  arrival (§4.1 law 3). Every competitor treats this as an alerting problem. It is a
+  referential-integrity problem.
+
+  Once a row here references `(subject_id, e)` through a composite foreign key declared
+  ON UPDATE RESTRICT, CockroachDB refuses ANY update that changes the subject's
+  `gate_epoch` — and every new obligation must change it, because materialising an
+  obligation increments the epoch in the same statement that increments the counter. So
+  attaching a new precursor to an issued subject is not forbidden, it is IMPOSSIBLE: the
+  write fails on referential integrity before any policy, any trigger and any role is
+  consulted. The writer is forced onto the declared path — suspend the issued subject,
+  fork a child whose gate is cleared afresh. That is git discipline (never rewrite a
+  merged commit; open a revert branch) expressed as a foreign key.
+
+  ── NEVER CASCADE, IN EITHER POSITION ────────────────────────────────────────────
+  `ON UPDATE RESTRICT ON DELETE RESTRICT`, stated explicitly on both statements. A
+  cascade rewrites history, which is the precise offence this substrate exists to detect:
+  ON UPDATE CASCADE would carry the pin forward to the new epoch and the gate would
+  silently reopen; ON DELETE CASCADE would let deleting a permit erase the proof that it
+  was ever issued. Neither is a default anyone should have to remember, so neither is
+  left to a default.
+
+  ── RULING D1 — THE "PARTIAL-FK PAIR" IS MATCH SIMPLE, SPELLED OUT ───────────────
+  §5.5 writes `FOREIGN KEY (subject_id, gate_epoch)` and then remarks that the two kinds
+  are "enforced by a partial-FK pair, one per kind". CockroachDB has no conditional
+  foreign key and never will; what it has is the SQL standard's MATCH SIMPLE semantics,
+  under which a composite foreign key containing ANY NULL column is NOT ENFORCED. That is
+  exactly, and only, the "one per kind" behaviour the architecture describes.
+
+  So the foreign-key columns are `permit_id` and `cr_id`, each nullable, and each carries
+  its own composite pin. A permit's merge record leaves `cr_id` NULL, so `epoch_pin_cr`
+  does not apply to it; a change request's leaves `permit_id` NULL, so `epoch_pin_permit`
+  does not apply to it. MEASURED, not assumed: on cockroachdb/cockroach:v26.2.5, a row
+  with `cr_id` NULL is admitted while `epoch_pin_cr` exists, and mutating the pinned epoch
+  returns 23503 naming the pin.
+
+  `subject_id` stays NOT NULL and is the second half of the primary key, because the
+  completion record must be addressable by (kind, id) without knowing which nullable
+  column holds it. Three CHECKs bind the polymorphism so the two representations can never
+  disagree: exactly one reference is present, `subject_id` equals whichever one it is, and
+  the kind token agrees with which one it is. Without the second CHECK, a row could pin
+  permit P's epoch while claiming to complete permit Q, and the pin would be enforced
+  against the wrong subject while every constraint still looked satisfied.
+
+  ── ONE COMPLETION PER SUBJECT, AND THE PK NAME IS AN EXHIBIT ────────────────────
+  `PRIMARY KEY (subject_kind, subject_id)` is declared WITHOUT a CONSTRAINT name on
+  purpose. The conformance manifest fixes the exhibit for CF-09 ("merge the same subject
+  twice") and CF-44 ("N parallel merges yield exactly one merge record") as
+  `merge_record_pkey`, which is the name CockroachDB derives for an unnamed primary key.
+  Naming it `pk_merge_record` here would rename the exhibit and both cases would fail on
+  the constraint name while passing on the SQLSTATE — the exact failure mode the manifest
+  exists to prevent. Verified on v26.2.5: an unnamed table-level PRIMARY KEY on
+  `merge_record` yields `merge_record_pkey`.
+
+  ── WHAT THIS TEMPLATE DELIBERATELY DOES NOT EMIT ────────────────────────────────
+  §5.5 writes `merged_commit BYTES NOT NULL REFERENCES mainline.commit_obj (commit_id)`.
+  `commit_obj` is VERTICAL (MAINLINE migration 0024, an authored band) and `merge_record`
+  is SUBSTRATE (MR-2 names it), so a substrate template may not name it: the rendered file
+  would fail against the reference binding with 42P01, outside the refusal taxonomy. The
+  column keeps NOT NULL and the 32-byte width CHECK that says it is a content address
+  rather than a counter; a vertical owning a commit relation adds the foreign key in its
+  own authored band.
+#}
+{% if subjects | length != 2 %}
+{# The completion record's shape is fixed by the migration numbering: 0071a and 0071b are
+   the two pins §18 allocates, and the exactly-one CHECK below is written as the
+   architecture writes it, `(a IS NULL) <> (b IS NULL)`, which is a two-term form. A
+   binding with a different number of gated subject kinds needs a numbering decision and
+   a cardinality expression that this template does not get to invent silently. #}
+{{ the_kernel_allocates_epoch_pin_migrations_for_exactly_two_subject_kinds }}
+{% endif %}
+{#
+  Per-kind constants the render context does not carry: the pin's constraint name (the
+  binding declares `epoch_pin_constraint`, which the context does not yet expose) and the
+  migration number, which is a §18 / MR-8 anchor cited by number in the corpus.
+#}
+{% set pin_spec = {
+     'permit':         {'file': '0071a_epoch_pin_permit.sql', 'constraint': 'epoch_pin_permit'},
+     'change_request': {'file': '0071b_epoch_pin_cr.sql',     'constraint': 'epoch_pin_cr'},
+   } %}
+-- @file 0071_merge_record.sql
+{{ header(file='0071_merge_record.sql',
+          title='CREATE TABLE ' ~ binding.schema ~ '.merge_record — at most one completion per subject, ever',
+          rationale='The completion record is what the epoch pin hangs from, and its primary key is what makes a double merge 23505 rather than two rows nobody compares. It is subject-polymorphic because both gated kinds complete into it: one nullable reference per kind plus a composite foreign key per kind, which under MATCH SIMPLE is enforced exactly when its reference is present — the only way this platform can express a conditional foreign key. Three CHECKs bind the polymorphic subject_id to whichever reference is non-null, so a record can never pin one subject while claiming to complete another.',
+          mi=['MI07', 'MI09'], i=['I03', 'I04']) }}
+--
+-- clearance_digest      sha256 over the sorted (obligation_id, disposition_id) set that
+--                       cleared this gate. It is the answer to "what exactly was signed
+--                       off, at the moment of issue" that does not depend on those rows
+--                       still being joinable years later.
+-- checkpoint_tree_size  the custody ledger's tree size at issue, NULLABLE on purpose: a
+--                       merge that happened while the ledger was unwitnessed is recorded
+--                       honestly as unwitnessed rather than given a fabricated size. The
+--                       unwitnessed-debt table is where that gap is accounted.
+-- merged_by             the acting identity, as a subject claim, not a foreign key: the
+--                       person table is versioned by (signer_sub, effective_from) and a
+--                       single-column reference would demand a UNIQUE index on
+--                       signer_sub, which is false by design.
+--
+-- NOTE ON ORDERING. This row is written BEFORE the subject reaches its completing state
+-- (spec §5.3 steps 5 then 7). DEFERRABLE INITIALLY DEFERRED is unimplemented on this
+-- platform, so every intermediate state must be legal at a statement boundary and THE
+-- LAST WRITE MUST BE THE ONE THAT TRIPS. Writing the completion record first is what puts
+-- the pin in place before the state change the CHECKs guard.
+
+CREATE TABLE {{ binding.schema }}.merge_record (
+  {{ '%-20s'|format('subject_kind') }} STRING NOT NULL,
+  {{ '%-20s'|format('subject_id') }} UUID   NOT NULL,
+{% for s in subjects %}
+  {{ '%-20s'|format(s.id_column) }} UUID   NULL,
+{% endfor %}
+  {{ '%-20s'|format('gate_epoch') }} INT8   NOT NULL,
+  {{ '%-20s'|format('merged_at') }} TIMESTAMPTZ NOT NULL DEFAULT now(),
+  {{ '%-20s'|format('merged_by') }} STRING NOT NULL,
+  {{ '%-20s'|format('merged_commit') }} BYTES  NOT NULL,
+  {{ '%-20s'|format('clearance_digest') }} BYTES  NOT NULL,
+  {{ '%-20s'|format('checkpoint_tree_size') }} INT8   NULL,
+
+  CONSTRAINT merge_subject_kind_known
+    CHECK (subject_kind IN ({% for s in subjects %}'{{ s.kind }}'{{ ', ' if not loop.last }}{% endfor %})),
+  -- MATCH SIMPLE made explicit: exactly one reference is present, so exactly one of the
+  -- two composite pins is enforced on any given row.
+  CONSTRAINT merge_exactly_one_subject
+    CHECK (({{ subjects[0].id_column }} IS NULL) <> ({{ subjects[1].id_column }} IS NULL)),
+  -- The polymorphic key and the foreign-key columns are the SAME subject. Without this,
+  -- a record could pin one subject's epoch while claiming to complete another.
+  CONSTRAINT merge_subject_id_bound
+    CHECK (subject_id = COALESCE({% for s in subjects %}{{ s.id_column }}{{ ', ' if not loop.last }}{% endfor %})),
+  CONSTRAINT merge_subject_matches
+    CHECK ({% for s in subjects %}(subject_kind = '{{ s.kind }}') = ({{ s.id_column }} IS NOT NULL){{ '
+       AND ' if not loop.last }}{% endfor %}),
+  CONSTRAINT merge_epoch_nonneg           CHECK (gate_epoch >= 0),
+  CONSTRAINT merge_merged_by_stated       CHECK (merged_by <> ''),
+  CONSTRAINT merge_commit_sized           CHECK (length(merged_commit) = 32),
+  CONSTRAINT merge_clearance_digest_sized CHECK (length(clearance_digest) = 32),
+  CONSTRAINT merge_checkpoint_nonneg
+    CHECK (checkpoint_tree_size IS NULL OR checkpoint_tree_size >= 0),
+  -- UNNAMED ON PURPOSE. CockroachDB derives `merge_record_pkey`, which is the exhibit the
+  -- conformance manifest fixes for CF-09 and CF-44. Naming it here would rename the
+  -- exhibit and both cases would fail on the constraint name while passing on the code.
+  PRIMARY KEY (subject_kind, subject_id)
+);
+{% for s in subjects %}
+{% set pin = pin_spec[s.kind] %}
+-- @file {{ pin.file }}
+{{ header(file=pin.file,
+          title='ALTER TABLE ' ~ binding.schema ~ '.merge_record ADD CONSTRAINT ' ~ pin.constraint ~ ' — the pin',
+          rationale='Late-arriving recall is not a serializability failure and cannot be answered by an isolation level: a precursor inserted after a merge is a perfectly serializable history. Once this foreign key references (subject_id, epoch), ON UPDATE RESTRICT makes any change to that epoch impossible, and every new obligation must change it — so attaching a precursor to a completed subject fails on referential integrity before any policy is consulted. CASCADE appears in neither position because a cascade rewrites history, which is the offence this substrate exists to detect.',
+          mi=['MI07'], i=['I03']) }}
+--
+-- Declared as an ALTER rather than inline with the table, because one statement per file
+-- is not negotiable and because the two pins reference two tables that are created in two
+-- earlier migrations; a single CREATE TABLE naming both would be a file whose failure
+-- mode nobody can diagnose.
+--
+-- Under MATCH SIMPLE this constraint is enforced on exactly those rows whose
+-- `{{ s.id_column }}` is non-null, which is exactly the rows completing a
+-- {{ s.kind }}. A row for the other kind leaves the column NULL and the constraint does
+-- not apply to it. That is the "partial-FK pair, one per kind" of §5.5, spelled out.
+
+ALTER TABLE {{ binding.schema }}.merge_record
+  ADD CONSTRAINT {{ pin.constraint }}
+  FOREIGN KEY ({{ s.id_column }}, gate_epoch)
+  REFERENCES {{ binding.schema }}.{{ s.table }} ({{ s.id_column }}, {{ s.epoch_column }})
+  ON UPDATE RESTRICT ON DELETE RESTRICT;
+{% endfor %}

@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 0,
+    "doc_codes": [
+      "STD-PRV-005"
+    ],
+    "intent": "restate",
+    "moc_ref": "MOC-2006-0042",
+    "opened_on": "2006-06-07",
+    "precursor_events": [],
+    "site": "Tolgarra Processing and Power Station",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "management_of_change": "engineering change note",
+      "verification": "spot check"
+    },
+    "weakening_steps": 0
+  },
+  "key": "d17d72d8f1d20d43e423e21b1046c9d7babe8fbc5f5a80d3465739df181d03f5",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2006-0042",
+  "prompt_kind": "moc",
+  "prompt_sha256": "8a9d5841ec6c0bc193c89eca8a3713ea9f924ce9571e7772800e63b773367517",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2006-0042 was raised at Tolgarra Processing and Power Station on 7 June 2006 as a scheduled change under engineering change note; no event precedes it in the record. The engineering change note record carries no clause change; it records the assessment only. The intent is to restate an existing duty without altering what it requires. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the key safeguard set is preserved.",
+    "scope_note": "The documents in scope are STD-PRV-005."
+  },
+  "response_sha256": "23b032dc42940c8ae9445205851cc32146c58680a286fbbff0cc9b992a60d376",
+  "source": null
+}

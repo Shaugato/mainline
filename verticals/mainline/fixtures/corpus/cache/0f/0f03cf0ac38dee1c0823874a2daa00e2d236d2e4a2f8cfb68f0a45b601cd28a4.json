@@ -1,0 +1,64 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 2,
+    "doc_code": "PTW-STD-003",
+    "doc_family": "PTW",
+    "doc_title": "Permit to Work Form Set",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2017-01-30",
+    "required_citations": [
+      {
+        "control_label": "controlled transfer of hydrocarbon between vessels",
+        "event_ref": "INC-2016-004",
+        "event_title": "uncontrolled movement of TK-7102 during routine operation",
+        "hazard_energy": "chemical",
+        "kind": "moc_reference",
+        "quote_ref": "quote:CVY/PTW-STD-003/004#moc_reference/INC-2016-004",
+        "severity_gate": 3
+      },
+      {
+        "control_label": "controlled transfer of hydrocarbon between vessels",
+        "event_ref": "INC-2016-004",
+        "event_title": "uncontrolled movement of TK-7102 during routine operation",
+        "hazard_energy": "chemical",
+        "kind": "regulator_requirement",
+        "quote_ref": "quote:CVY/PTW-STD-003/004#regulator_requirement/INC-2016-004",
+        "severity_gate": 3
+      }
+    ],
+    "rev_no": 4,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "ICAM investigation",
+      "management_of_change": "management of change",
+      "near_miss": "potential incident"
+    }
+  },
+  "key": "0f03cf0ac38dee1c0823874a2daa00e2d236d2e4a2f8cfb68f0a45b601cd28a4",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:CVY/PTW-STD-003/004",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "a08215068c1a665c3c798353ac32e9c7c234551a1ec92ce76d3eab1f718190bf",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The management of change record for this revision cites INC-2016-004 as the reason the controlled transfer of hydrocarbon between vessels was amended.",
+        "quote_ref": "quote:CVY/PTW-STD-003/004#moc_reference/INC-2016-004"
+      },
+      {
+        "line": "A regulatory requirement arising from INC-2016-004 obliges this permit-to-work form set to carry the controlled transfer of hydrocarbon between vessels.",
+        "quote_ref": "quote:CVY/PTW-STD-003/004#regulator_requirement/INC-2016-004"
+      }
+    ],
+    "reason": "Scheduled review at revision 4; 2 clauses restated."
+  },
+  "response_sha256": "dccf54c059c0cd3a4f5737831029604f6f7e739241a53a2555fe368201ede218",
+  "source": null
+}

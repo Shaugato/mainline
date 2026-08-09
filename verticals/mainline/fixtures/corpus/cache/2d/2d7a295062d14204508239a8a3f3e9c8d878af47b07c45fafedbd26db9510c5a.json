@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 2,
+    "doc_code": "STD-MEQ-007",
+    "doc_family": "STD",
+    "doc_title": "Mobile Equipment Interaction",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2026-02-10",
+    "required_citations": [],
+    "rev_no": 8,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "learning team review",
+      "management_of_change": "change assurance",
+      "near_miss": "high potential incident"
+    }
+  },
+  "key": "2d7a295062d14204508239a8a3f3e9c8d878af47b07c45fafedbd26db9510c5a",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:YND/STD-MEQ-007/008",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "777d07f09cf457ba88511ede5bb5b7d6efb0c5455f7b00ac69d4bfe0a190b5cb",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [],
+    "reason": "Scheduled review at revision 8; 2 clauses restated."
+  },
+  "response_sha256": "dddfb1455b42bdb2550f38909c85a506f0b85f4843e5d996c818f2cdc1db5ca1",
+  "source": null
+}

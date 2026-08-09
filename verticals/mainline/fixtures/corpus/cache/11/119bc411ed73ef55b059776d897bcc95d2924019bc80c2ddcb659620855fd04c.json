@@ -1,0 +1,64 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 20,
+    "doc_code": "STD-ISO-006",
+    "doc_family": "STD",
+    "doc_title": "Isolation of Stored Energy",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2008-07-15",
+    "required_citations": [
+      {
+        "control_label": "controlled removal of isolation and return to service",
+        "event_ref": "INC-2008-004",
+        "event_title": "loss of containment at P-3221 during shift handover",
+        "hazard_energy": "pressure",
+        "kind": "capa_action",
+        "quote_ref": "quote:MRD/STD-ISO-006/001#capa_action/INC-2008-004",
+        "severity_gate": 2
+      },
+      {
+        "control_label": "mechanical support of a load during maintenance access",
+        "event_ref": "NM-2008-0007",
+        "event_title": "unplanned release of gravity energy at CV-3102",
+        "hazard_energy": "gravity",
+        "kind": "capa_action",
+        "quote_ref": "quote:MRD/STD-ISO-006/001#capa_action/NM-2008-0007",
+        "severity_gate": 2
+      }
+    ],
+    "rev_no": 1,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "accident investigation",
+      "management_of_change": "engineering change note",
+      "near_miss": "near hit"
+    }
+  },
+  "key": "119bc411ed73ef55b059776d897bcc95d2924019bc80c2ddcb659620855fd04c",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/STD-ISO-006/001",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "26a75a2919e0a48eadb475fcf514ad4a4259652f8123f4a5576ce22393eba1b6",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The corrective action recorded against INC-2008-004 required the controlled removal of isolation and return to service to be restated in this standard.",
+        "quote_ref": "quote:MRD/STD-ISO-006/001#capa_action/INC-2008-004"
+      },
+      {
+        "line": "The corrective action recorded against NM-2008-0007 required the mechanical support of a load during maintenance access to be restated in this standard.",
+        "quote_ref": "quote:MRD/STD-ISO-006/001#capa_action/NM-2008-0007"
+      }
+    ],
+    "reason": "Scheduled review at revision 1; 20 clauses restated."
+  },
+  "response_sha256": "77d5533f24d6acf93c3fa7cc91f4d350cdf9856bc6b11cbbfa2c4d319e394931",
+  "source": null
+}

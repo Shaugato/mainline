@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "note": "Consumed CockroachDB Agent Skills, pinned by upstream commit. The commit was read from https://api.github.com/repos/cockroachlabs/cockroachdb-skills/commits on 2026-08-04 and is the repository HEAD of 2026-07-22. `expected_sha256` is null on every entry because the build machine had the commit and not the bytes; see mainline_steward/skills.py for why a digest we had not computed was not written here, and run `mainline-steward skills record` against a real checkout to fill them in. Nine skills across the three POPULATED domains (ARCHITECTURE.md §9.4); the four empty domains are consumed by nobody and filed into by `skills-published`.",
+  "skills": [
+    {
+      "skill_id": "triaging-live-sql-activity",
+      "domain": "observability",
+      "repo": "cockroachlabs/cockroachdb-skills",
+      "commit": "e14e86d23ce8ee2e7e40a34ce2944c2502b6eadd",
+      "path": "cockroachdb-observability-and-diagnostics/triaging-live-sql-activity",
+      "expected_sha256": null,
+      "why": "Nightly. Its native diagnostics read crdb_internal, which the Managed MCP surface cannot reach; it is pointed at mainline_audit.v_gate_latency_daily and v_txn_restart_daily instead."
+    },
+    {
+      "skill_id": "profiling-statement-fingerprints",
+      "domain": "observability",
+      "repo": "cockroachlabs/cockroachdb-skills",
+      "commit": "e14e86d23ce8ee2e7e40a34ce2944c2502b6eadd",
+      "path": "cockroachdb-observability-and-diagnostics/profiling-statement-fingerprints",
+      "expected_sha256": null,
+      "why": "Nightly. Same substitution: statement-level detail is unreachable over MCP, so the run reads the pre-materialised daily latency view and says so."
+    },
+    {
+      "skill_id": "monitoring-background-jobs",
+      "domain": "observability",
+      "repo": "cockroachlabs/cockroachdb-skills",
+      "commit": "e14e86d23ce8ee2e7e40a34ce2944c2502b6eadd",
+      "path": "cockroachdb-observability-and-diagnostics/monitoring-background-jobs",
+      "expected_sha256": null,
+      "why": "Nightly. Changefeeds are jobs, and a stalled custody feed is the failure that looks exactly like nothing happening; mainline_audit.v_changefeed_health is the job surface here."
+    },
+    {
+      "skill_id": "hardening-user-privileges",
+      "domain": "security",
+      "repo": "cockroachlabs/cockroachdb-skills",
+      "commit": "e14e86d23ce8ee2e7e40a34ce2944c2502b6eadd",
+      "path": "cockroachdb-security-and-governance/hardening-user-privileges",
+      "expected_sha256": null,
+      "why": "Weekly. Reads mainline_audit.v_agent_actions: which agent role used which tool, with what outcome. The grant matrix itself is in GRANTS.yaml and is asserted by the kernel suite, not by a model."
+    },
+    {
+      "skill_id": "configuring-audit-logging",
+      "domain": "security",
+      "repo": "cockroachlabs/cockroachdb-skills",
+      "commit": "e14e86d23ce8ee2e7e40a34ce2944c2502b6eadd",
+      "path": "cockroachdb-security-and-governance/configuring-audit-logging",
+      "expected_sha256": null,
+      "why": "Weekly. Pairs with the custodian patrol's `ccloud audit list`: the cloud audit log is the one record a cluster admin does not author."
+    },
+    {
+      "skill_id": "auditing-cloud-cluster-security",
+      "domain": "security",
+      "repo": "cockroachlabs/cockroachdb-skills",
+      "commit": "e14e86d23ce8ee2e7e40a34ce2944c2502b6eadd",
+      "path": "cockroachdb-security-and-governance/auditing-cloud-cluster-security",
+      "expected_sha256": null,
+      "why": "Weekly. The only skill whose native surface is the Cloud API rather than SQL, so it is the one the ccloud shim serves directly."
+    },
+    {
+      "skill_id": "reviewing-cluster-health",
+      "domain": "operations",
+      "repo": "cockroachlabs/cockroachdb-skills",
+      "commit": "e14e86d23ce8ee2e7e40a34ce2944c2502b6eadd",
+      "path": "cockroachdb-operations-and-lifecycle/reviewing-cluster-health",
+      "expected_sha256": null,
+      "why": "Weekly. Reads mainline_audit.v_ledger_health and v_open_gate_summary — in this product cluster health that ignores open witness debt is not health."
+    },
+    {
+      "skill_id": "managing-cluster-settings",
+      "domain": "operations",
+      "repo": "cockroachlabs/cockroachdb-skills",
+      "commit": "e14e86d23ce8ee2e7e40a34ce2944c2502b6eadd",
+      "path": "cockroachdb-operations-and-lifecycle/managing-cluster-settings",
+      "expected_sha256": null,
+      "why": "Weekly. SHOW CLUSTER SETTING is reachable over MCP via show_statement; the Steward may read a setting and may never change one."
+    },
+    {
+      "skill_id": "managing-cluster-capacity",
+      "domain": "operations",
+      "repo": "cockroachlabs/cockroachdb-skills",
+      "commit": "e14e86d23ce8ee2e7e40a34ce2944c2502b6eadd",
+      "path": "cockroachdb-operations-and-lifecycle/managing-cluster-capacity",
+      "expected_sha256": null,
+      "why": "Weekly. Reads mainline_audit.v_unused_indexes; index churn on a vector-indexed table is fenced by the circuit breaker, so the finding is advisory and is marked as such."
+    }
+  ]
+}

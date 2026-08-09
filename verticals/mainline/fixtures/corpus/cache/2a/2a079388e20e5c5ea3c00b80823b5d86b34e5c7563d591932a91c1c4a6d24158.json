@@ -1,0 +1,38 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 1,
+    "doc_codes": [
+      "MOC-2023-0302",
+      "PRO-CHM-009",
+      "STD-CHM-011"
+    ],
+    "intent": "replace",
+    "moc_ref": "MOC-2012-0148",
+    "opened_on": "2012-07-30",
+    "precursor_events": [],
+    "site": "Tolgarra Processing and Power Station",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "management_of_change": "change request",
+      "verification": "field verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "2a079388e20e5c5ea3c00b80823b5d86b34e5c7563d591932a91c1c4a6d24158",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2012-0148",
+  "prompt_kind": "moc",
+  "prompt_sha256": "1c59a1d969b65a3ab87bef393092a1d75493a0b827c6c537f23ad29f11b2e786",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2012-0148 was raised at Tolgarra Processing and Power Station on 30 July 2012 as a scheduled change under change request; no event precedes it in the record. The change request record covers 1 clause across 3 controlled documents. The intent is to replace an existing requirement with one written to the current house style. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical safeguard set is preserved.",
+    "scope_note": "The documents in scope are MOC-2023-0302, PRO-CHM-009 and STD-CHM-011."
+  },
+  "response_sha256": "70590d29cd05822b9e88589ddb15d6fa46c229b53cad6be9967cceae32c6e5a8",
+  "source": null
+}

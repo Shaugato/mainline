@@ -1,0 +1,64 @@
+{
+  "headline": "Across one retypeset of 24 controlled documents, a register keyed on the printed clause number recovers 0 of 624 obligations. A register keyed on the identity the document carries recovers 624.",
+  "must_not_claim": [
+    "This stage does not measure MAINLINE's clause linker. It measures what a register keyed on a printed label, an ordinal or a control class loses when a document is retypeset.",
+    "The clause_uuid register scores 1.000 by construction: the corpus carries that identity across the reflow, so a register keyed on it cannot miss. It is a control, not evidence.",
+    "The corpus is synthetic. These numbers bound a label-keyed register from above on a world built to be legible; a real fonds is messier, and the losses would be larger.",
+    "No clause text is compared anywhere in this stage. A real content-similarity register would score between control_class and clause_uuid, and is not measured here."
+  ],
+  "registers": {
+    "clause_uuid": {
+      "ambiguous": 0,
+      "description": "the identity the document carries through the reflow — MAINLINE's answer, present as a control",
+      "f1": 1.0,
+      "false_merge": 0,
+      "false_split": 0,
+      "pairs": 624,
+      "precision": 1.0,
+      "recall": 1.0,
+      "tautological": true,
+      "true_positive": 624
+    },
+    "control_class": {
+      "ambiguous": 616,
+      "description": "what the clause is *about* — the closest offline stand-in for a content or semantic match, and the only register here whose failures are ambiguity rather than blindness",
+      "f1": 0.025316,
+      "false_merge": 0,
+      "false_split": 0,
+      "pairs": 624,
+      "precision": 1.0,
+      "recall": 0.012821,
+      "tautological": false,
+      "true_positive": 8
+    },
+    "ordinal": {
+      "ambiguous": 0,
+      "description": "position within the document — what an importer that walks paragraphs in order keys on when the label is unparseable",
+      "f1": 0.041667,
+      "false_merge": 598,
+      "false_split": 0,
+      "pairs": 624,
+      "precision": 0.041667,
+      "recall": 0.041667,
+      "tautological": false,
+      "true_positive": 26
+    },
+    "printed_label": {
+      "ambiguous": 0,
+      "description": "the clause number as printed — what a paper register, a spreadsheet column and every cross-reference in a neighbouring document actually key on",
+      "f1": 0.0,
+      "false_merge": 0,
+      "false_split": 624,
+      "pairs": 624,
+      "precision": 0.0,
+      "recall": 0.0,
+      "tautological": false,
+      "true_positive": 0
+    }
+  },
+  "retypeset_effective_on": "2016-11-21",
+  "scored_against": "the clause identity the corpus carries across the reflow; see must_not_claim",
+  "tautological_registers": [
+    "clause_uuid"
+  ]
+}

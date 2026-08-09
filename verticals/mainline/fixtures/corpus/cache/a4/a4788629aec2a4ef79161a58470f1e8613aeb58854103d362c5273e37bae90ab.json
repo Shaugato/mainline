@@ -1,0 +1,64 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 8,
+    "doc_code": "MOC-2014-0087",
+    "doc_family": "MOC",
+    "doc_title": "Replacement of Jetty Emergency Shutdown Valve Actuators",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2014-04-09",
+    "required_citations": [
+      {
+        "control_label": "seal-face high-temperature alarm and trip",
+        "event_ref": "INC-2013-017",
+        "event_title": "uncontrolled movement of ZV-7210 during an intrusive maintenance task",
+        "hazard_energy": "chemical",
+        "kind": "capa_action",
+        "quote_ref": "quote:CVY/MOC-2014-0087/001#capa_action/INC-2013-017",
+        "severity_gate": 2
+      },
+      {
+        "control_label": "secondary containment by bund and drainage",
+        "event_ref": "INC-2013-017",
+        "event_title": "uncontrolled movement of ZV-7210 during an intrusive maintenance task",
+        "hazard_energy": "chemical",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:CVY/MOC-2014-0087/001#revision_history_line/INC-2013-017",
+        "severity_gate": 2
+      }
+    ],
+    "rev_no": 1,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "root cause analysis",
+      "management_of_change": "change request",
+      "near_miss": "hazard report"
+    }
+  },
+  "key": "a4788629aec2a4ef79161a58470f1e8613aeb58854103d362c5273e37bae90ab",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:CVY/MOC-2014-0087/001",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "101b862139a1a3c027c2ec2ab5cb0b4b769ad8d8dd4f167a735cc3e2424ea901",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The corrective action recorded against INC-2013-017 required the seal-face high-temperature alarm and trip to be restated in this change record.",
+        "quote_ref": "quote:CVY/MOC-2014-0087/001#capa_action/INC-2013-017"
+      },
+      {
+        "line": "Revision 1 was raised in response to INC-2013-017, and the secondary containment by bund and drainage was amended as a result.",
+        "quote_ref": "quote:CVY/MOC-2014-0087/001#revision_history_line/INC-2013-017"
+      }
+    ],
+    "reason": "Scheduled review at revision 1; 8 clauses restated."
+  },
+  "response_sha256": "905cf62f597efbc098939559c814ac24a11a64296955baf5fc3b0755de24e837",
+  "source": null
+}

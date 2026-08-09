@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 4,
+    "doc_code": "PRO-CHM-009",
+    "doc_family": "PRO",
+    "doc_title": "Reagent Make-Up and Dosing",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2017-09-13",
+    "required_citations": [
+      {
+        "control_label": "selection, fit testing and maintenance of respirators",
+        "event_ref": "CAPA-2017-003",
+        "event_title": "preventive action - alarm rationalisation on TK-8311",
+        "hazard_energy": "chemical",
+        "kind": "investigation_recommendation",
+        "quote_ref": "quote:TLG/PRO-CHM-009/007#investigation_recommendation/CAPA-2017-003",
+        "severity_gate": 1
+      }
+    ],
+    "rev_no": 7,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "ICAM investigation",
+      "management_of_change": "management of change",
+      "near_miss": "potential incident"
+    }
+  },
+  "key": "47c77e65889baef17ec03c79ff1e028b36adf0c70b8681211ad9cca714bffee0",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:TLG/PRO-CHM-009/007",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "8c9aba75aca1e4b13c711f8b2e303a5fc59e2dd4833e48d03f85b151116685ec",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The ICAM investigation into CAPA-2017-003 recommended that the selection, fit testing and maintenance of respirators be strengthened in this procedure.",
+        "quote_ref": "quote:TLG/PRO-CHM-009/007#investigation_recommendation/CAPA-2017-003"
+      }
+    ],
+    "reason": "Scheduled review at revision 7; 4 clauses restated."
+  },
+  "response_sha256": "a3bb2671ed4389442fa44971f0958fe0637d0df235b37e31d4037575309f6836",
+  "source": null
+}

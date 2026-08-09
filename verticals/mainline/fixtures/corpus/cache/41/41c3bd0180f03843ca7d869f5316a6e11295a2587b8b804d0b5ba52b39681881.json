@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "barrier_role": "recovery",
+    "control_class": "EMERGENCY_ISOLATION_ON_RELEASE",
+    "control_delta": "weaken",
+    "control_label": "emergency isolation and depressuring on loss of containment",
+    "doc_code": "PRO-OPS-032",
+    "doc_family": "PRO",
+    "doc_title": "Hydrocarbon Transfer Operations",
+    "effective_on": "2014-11-12",
+    "printed_label": "6.4",
+    "setpoint": null,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "energy_isolation": "lock out tag out",
+      "verification": "field verification"
+    }
+  },
+  "key": "41c3bd0180f03843ca7d869f5316a6e11295a2587b8b804d0b5ba52b39681881",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/PRO-OPS-032/005#MRD/PRO-OPS-032/6.4",
+  "prompt_kind": "clause",
+  "prompt_sha256": "d206a8c341954cac8bb0995f34e492ca750516df1cf4642dfe094e734645790d",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The emergency isolation and depressuring on loss of containment should be provided; the field verification may be recorded at the next scheduled review rather than before the task proceeds. This clause applies to activities archived under CONTAINMENT-OF-HYDROCARBONS at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "should"
+  },
+  "response_sha256": "558f6f43741372ee6b1fd215f783a811c5ee8b3dd274b4ac5b276d11c94865dc",
+  "source": null
+}

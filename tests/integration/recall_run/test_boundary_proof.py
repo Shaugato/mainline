@@ -29,6 +29,7 @@ from __future__ import annotations
 from dataclasses import replace
 
 from _run_corpus import EXPECTED_COUNTS
+
 from trappoint_recall.per.leaf import CandidateScore, leaf_hash, leaves_from_candidates
 from trappoint_recall.per.merkle import audit_path, merkle_root, verify_audit_path
 from trappoint_recall.per.receipt import BoundaryLeaf, BoundaryProof
@@ -75,7 +76,8 @@ def test_the_boundary_verifies_at_s_and_at_s_plus_one(clean_outcome) -> None:
 
     at_s = receipt.boundary.at_s
     at_next = receipt.boundary.at_s_plus_1
-    assert at_s is not None and at_next is not None
+    assert at_s is not None
+    assert at_next is not None
 
     assert at_s.index == receipt.s - 1
     assert at_next.index == receipt.s

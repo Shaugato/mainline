@@ -1,0 +1,118 @@
+{# SPDX-FileCopyrightText: 2026 MAINLINE contributors #}
+{# SPDX-License-Identifier: Apache-2.0 #}
+{#
+  Migrations 0052 / 0053 — DECLARED SCOPE, PINNED TO AN EXACT CLAUSE VERSION.
+  ARCHITECTURE.md §5.5 (verbatim); §16 MI05, MI30; spec R-3.
+
+  These two tables are what a subject SAYS it touches. They are claims, not derivations,
+  and the schema keeps them typed as claims: nothing in the gate reads `relation` as a
+  derived dependency edge (I06 reserves that for relations a projector computes). What
+  the gate does read is the CONSEQUENCE of the claim — the exposure slice bounds which
+  clauses may raise a blocking check, and the published denominator for every rate the
+  vertical quotes is that bounded set rather than "every clause in the corpus".
+
+  ── THE COMPOSITE VERSION KEY IS THE LOAD-BEARING PART ────────────────────────────
+  The foreign key is onto `(clause_uuid, commit_id)` and NOT onto `clause_uuid` alone.
+  Naming the version is what makes a declared scope un-inheritable across a revision: when
+  the clause is re-authored, the pair changes, so a row that pointed at the old pair does
+  not silently follow the clause forward into text nobody read. The same discipline on
+  the obligation table (`fk_check_version`, conformance case CF-42) is what stops a
+  disposition being inherited across a clause revision; here it is what stops a permit's
+  DECLARED scope drifting under it while the permit is open.
+
+  `commit_id` is a content address — sha256 over the canonical commit envelope, 32 bytes —
+  never a counter, because the repository has no generator anywhere in it and a gap in a
+  content-addressed chain is not a gap, it is a different object.
+
+  ── TWO VOCABULARIES, AND WHY THEY DIFFER ─────────────────────────────────────────
+  A permit RELATES to clauses it works under: it waives one, weakens another, relies on a
+  third, cites a fourth. A change request relates to clauses it CHANGES: edits,
+  introduces, retires. Sharing one vocabulary across both would make `weakens` legal on a
+  document branch and `introduces` legal on a work permit, and the blame projection reads
+  these tokens — a permit that claimed to `introduce` a clause would be asserting
+  authorship it does not have.
+
+  Both vocabularies are closed CHECKs rather than enum types, because they are the only
+  place in this file where a vertical could conceivably need a wider set, and a CHECK is
+  amendable in one ALTER while an enum in the substrate would be a MAJOR spec change.
+
+  ── THE ONE VERTICAL RELATION THE SUBSTRATE DOES NAME ─────────────────────────────
+  `<schema>.clause_version (clause_uuid, commit_id)` is a REQUIRED relation of any
+  TRAPPOINT binding: the obligation table names it too (`fk_check_version`), and the
+  reference vertical carries a hand-written stub for exactly this reason. It is named here
+  in full knowledge of the MR-1 seam rule, and the justification is that both bindings
+  create it and the conformance corpus asserts against it. `ref`, by contrast, is named by
+  NO binding but MAINLINE, which is why the subject tables carry no foreign key to it.
+#}
+{#
+  Per-kind constants the render context does not carry. `clause_spec` is keyed on subject
+  KIND, so a binding that declares a kind the kernel has no migration number for is a
+  render refusal (a KeyError reported against this template) rather than a file that
+  silently does not exist. The migration numbers are §18 / MR-8 anchors and the constraint
+  names satisfy R-3 exhibit uniqueness — `fk_version` on two tables would make "refused by
+  fk_version" a sentence that needs a footnote.
+#}
+{% set clause_spec = {
+     'permit': {
+       'file':      '0052_permit_clause.sql',
+       'table':     'permit_clause',
+       'pk':        'pk_permit_clause',
+       'fk_subject':'fk_permit_clause_subject',
+       'fk_version':'fk_permit_clause_version',
+       'vocab':     'permit_clause_relation_known',
+       'sized':     'permit_clause_commit_sized',
+       'relations': ['waives', 'weakens', 'relies_on', 'cites'],
+       'mi':        ['MI05'],
+       'gloss':     'what the crew works UNDER',
+     },
+     'change_request': {
+       'file':      '0053_cr_clause.sql',
+       'table':     'cr_clause',
+       'pk':        'pk_cr_clause',
+       'fk_subject':'fk_cr_clause_subject',
+       'fk_version':'fk_cr_clause_version',
+       'vocab':     'cr_clause_relation_known',
+       'sized':     'cr_clause_commit_sized',
+       'relations': ['edits', 'introduces', 'retires'],
+       'mi':        ['MI30'],
+       'gloss':     'what the change request CHANGES',
+     },
+   } %}
+{% for s in subjects %}
+{% set spec = clause_spec[s.kind] %}
+-- @file {{ spec.file }}
+{{ header(file=spec.file,
+          title='CREATE TABLE ' ~ binding.schema ~ '.' ~ spec.table ~ ' — declared scope, pinned to an exact clause version',
+          rationale='Declared scope is a claim and is stored as one; what the gate reads is its consequence. The foreign key is onto the (clause_uuid, commit_id) PAIR rather than onto the clause, so a re-authored clause does not silently carry an old declaration forward into text nobody read — the same discipline that makes a disposition un-inheritable across a revision. The relation vocabulary is closed and differs by subject kind because a work permit that claimed to introduce a clause would be asserting an authorship it does not have.',
+          mi=spec.mi, i=['I02']) }}
+--
+-- {{ spec.table }}: {{ spec.gloss }}.
+--
+-- PRIMARY KEY ({{ s.id_column }}, clause_uuid, relation)
+--   `relation` is IN the key, not beside it. One subject may both weaken a clause and
+--   rely on it, and those are two different declarations with two different consequences
+--   for the slice; collapsing them onto one row would make the second overwrite the
+--   first and the slice would then be computed from a claim nobody made.
+--
+-- NO ON DELETE CASCADE on either foreign key. A cascade rewrites history: deleting a
+-- subject would silently erase what it declared it touched, which is the single most
+-- useful row in a post-incident reconstruction. Deletes are revoked at the grant layer
+-- as well; RESTRICT is the structural half that survives a grant being edited.
+
+CREATE TABLE {{ binding.schema }}.{{ spec.table }} (
+  {{ '%-12s'|format(s.id_column) }} UUID   NOT NULL,
+  {{ '%-12s'|format('clause_uuid') }} UUID   NOT NULL,
+  {{ '%-12s'|format('commit_id') }} BYTES  NOT NULL,
+  {{ '%-12s'|format('relation') }} STRING NOT NULL,
+  CONSTRAINT {{ spec.vocab }}
+    CHECK (relation IN ({% for r in spec.relations %}'{{ r }}'{{ ', ' if not loop.last }}{% endfor %})),
+  CONSTRAINT {{ spec.sized }} CHECK (length(commit_id) = 32),
+  CONSTRAINT {{ spec.fk_subject }} FOREIGN KEY ({{ s.id_column }})
+    REFERENCES {{ binding.schema }}.{{ s.table }} ({{ s.id_column }})
+    ON UPDATE RESTRICT ON DELETE RESTRICT,
+  CONSTRAINT {{ spec.fk_version }} FOREIGN KEY (clause_uuid, commit_id)
+    REFERENCES {{ binding.schema }}.clause_version (clause_uuid, commit_id)
+    ON UPDATE RESTRICT ON DELETE RESTRICT,
+  CONSTRAINT {{ spec.pk }} PRIMARY KEY ({{ s.id_column }}, clause_uuid, relation)
+);
+{% endfor %}

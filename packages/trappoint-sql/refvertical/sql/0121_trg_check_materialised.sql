@@ -1,0 +1,31 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: Apache-2.0
+--
+-- TRAPPOINT_REF · 0121_trg_check_materialised.sql
+-- CREATE TRIGGER check_materialised — the gate closes and the epoch moves
+--
+-- MI: MI02, MI07, MI30
+-- I: I02, I03
+-- COUNSEL-GATED: no
+-- RATIONALE: AFTER INSERT, not BEFORE: the counters belong to another table, so there is
+--            nothing to project onto NEW, and the obligation row must be committed to
+--            before the subject accounting moves. This weld is what turns a row in
+--            blocking_check into a refusal on the subject, and the epoch bump inside it is
+--            what makes attaching a precursor to an issued subject physically impossible.
+--
+-- @rendered-by  trappoint render
+-- @template     packages/trappoint-sql/templates/0120_triggers_projection.sql.j2
+-- @binding      packages/trappoint-sql/refvertical/vertical.toml
+-- DO NOT EDIT. `trappoint render --check` is a zero-diff assertion in CI, so a
+-- hand edit here is a red build, not a silent divergence.
+--
+-- band: 0120-0129z · kernel/projection-triggers · RENDERED · statements: 1
+-- requires: 0101 trappoint_ref.fn_check_materialised · 0058 trappoint_ref.blocking_check
+--           · trappoint_ref.permit
+--           · trappoint_ref.change_request
+-- sqlstate: P0001 on a post-merge precursor. Structurally 23514 and 23503 as well — proved by
+--           the unwelding suite, never claimed from runtime behaviour (finding S4).
+-- forward-only; no .down.sql and no .up.sql (MR-5).
+
+CREATE TRIGGER check_materialised AFTER INSERT ON trappoint_ref.blocking_check
+  FOR EACH ROW EXECUTE FUNCTION trappoint_ref.fn_check_materialised();

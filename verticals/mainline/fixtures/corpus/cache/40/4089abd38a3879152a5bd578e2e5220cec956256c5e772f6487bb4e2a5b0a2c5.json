@@ -1,0 +1,39 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 1,
+    "doc_codes": [
+      "ALERT-2016-007",
+      "MOC-2026-0413",
+      "PRO-MEC-014",
+      "PRO-OPS-032"
+    ],
+    "intent": "strengthen",
+    "moc_ref": "MOC-2021-0107",
+    "opened_on": "2021-08-03",
+    "precursor_events": [],
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "terminal_state": "abandoned",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "management_of_change": "management of change",
+      "verification": "critical control verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "4089abd38a3879152a5bd578e2e5220cec956256c5e772f6487bb4e2a5b0a2c5",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2021-0107",
+  "prompt_kind": "moc",
+  "prompt_sha256": "b708994ae4f252295e172e6cb47ac8571a58da110bf9a038684b89806b4f09d5",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2021-0107 was raised at Marrindal Concentrator and Hydrocarbon Transfer Facility on 3 August 2021 as a scheduled change under management of change; no event precedes it in the record. The management of change record covers 1 clause across 4 controlled documents. The intent is to strengthen the critical control named in the documents in scope. The record reached the state abandoned in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical control set is preserved.",
+    "scope_note": "The documents in scope are ALERT-2016-007, MOC-2026-0413, PRO-MEC-014 and PRO-OPS-032."
+  },
+  "response_sha256": "f91fd6f8337556ed138bb846ab591bfbfdf26fcb487261cfa065bd5b9c4a0673",
+  "source": null
+}

@@ -180,7 +180,7 @@ class CoverageCertificate:
         return self.verdict != "UNDETERMINED"
 
     def to_row(self) -> dict[str, Any]:
-        """The insertable shape of ``mainline_meas.recall_certificate`` (0087).
+        """Return the insertable shape of ``mainline_meas.recall_certificate`` (0087).
 
         ``run_id`` is supplied by the writer, not here: a certificate is a statement about a
         retrieval, and binding it to a run is the persistence layer's job.
@@ -222,7 +222,11 @@ def _undetermined(
     )
 
 
-def certify(observation: CoverageObservation) -> CoverageCertificate:
+def certify(observation: CoverageObservation) -> CoverageCertificate:  # noqa: PLR0911
+    # PLR0911: the return count IS the rule count. This function is an ordered cascade of
+    # seven coverage rules, each of which decides the verdict outright; folding them into a
+    # single exit would replace a list a reader can check against the docstring with an
+    # accumulator they would have to simulate. The ordering is load-bearing and documented.
     """Turn an observation of a completed retrieval into a coverage certificate.
 
     The rules fire in this order, and the first that matches decides:
@@ -322,8 +326,7 @@ def certify(observation: CoverageObservation) -> CoverageCertificate:
         + (
             "; the 256-d coarse sweep also ran, so a taxonomy misclassification was covered"
             if observation.sweep_ran
-            else "; the coarse sweep did not run, so a taxonomy misclassification was not "
-            "covered"
+            else "; the coarse sweep did not run, so a taxonomy misclassification was not covered"
         )
     )
     return CoverageCertificate(

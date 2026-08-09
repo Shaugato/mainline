@@ -1,0 +1,80 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "planning and rehearsing non-entry rescue",
+    "activity_root": "CONFINED-SPACE-ENTRY",
+    "activity_series": "rescuing from a confined space",
+    "assets": [
+      {
+        "asset_class": "PRD-CLASS-A",
+        "label": "pressure relief devices",
+        "service": "overpressure protection on the transfer and storage system",
+        "tag": "PSV-4110"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "GAS_TEST_BEFORE_AND_DURING_HOT_WORK",
+        "control_label": "atmospheric gas testing before and during hot work",
+        "failure_mode": "ineffective",
+        "hazard_energy": "chemical",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "AF-2026-001",
+    "hazard_energy": "chemical",
+    "hazard_media": [
+      "hydrocarbon",
+      "reagent",
+      "acid",
+      "cyanide solution",
+      "hydrogen sulfide",
+      "explosives"
+    ],
+    "hazard_release": "fire, toxic exposure, corrosive contact, detonation",
+    "kind": "audit_finding",
+    "occurred_on": "2026-01-12",
+    "severity_actual": 0,
+    "severity_potential": 2,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "summary_facts": [],
+    "task_phase": "during an intrusive maintenance task",
+    "title": "audit finding - permit and isolation certificate records incomplete for PSV-4110",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "6cc66db1cb756b8bc8a4ca029327736ae590e5a4262a3b93c5b6ecbc3c7d0419",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:AF-2026-001",
+  "prompt_kind": "icam",
+  "prompt_sha256": "4c6d2f6283011fff754938695b099cb1d168de58023e723d8200fc54d6486a57",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 2 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "GAS_TEST_BEFORE_AND_DURING_HOT_WORK",
+        "finding": "Control GAS_TEST_BEFORE_AND_DURING_HOT_WORK: the atmospheric gas testing before and during hot work was in place but did not perform, and the learning team review classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next assurance activity that the atmospheric gas testing before and during hot work on PSV-4110 performs as designed."
+    ],
+    "sequence": "Work was under way in rescuing from a confined space, specifically planning and rehearsing non-entry rescue. PSV-4110 (pressure relief devices) is in service for overpressure protection on the transfer and storage system. The task proceeded during an intrusive maintenance task while the atmospheric gas testing before and during hot work was in place but did not perform. The chemical energy involved is held as hydrocarbon, and the recorded presentation was fire, toxic exposure, corrosive contact, detonation.",
+    "summary": "On 12 January 2026 a planned assurance activity of PSV-4110 at Marrindal Concentrator and Hydrocarbon Transfer Facility found the atmospheric gas testing before and during hot work not effective."
+  },
+  "response_sha256": "f5bdc86fbb068e148636fc3bd8a744961a9855c2d8e5aff8e872a3895f275b45",
+  "source": null
+}

@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 39,
+    "doc_code": "PRO-HSE-012",
+    "doc_family": "PRO",
+    "doc_title": "Confined Space Entry",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2019-11-03",
+    "required_citations": [],
+    "rev_no": 8,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "ICAM investigation",
+      "management_of_change": "management of change",
+      "near_miss": "potential incident"
+    }
+  },
+  "key": "16d6cd18cfa4194b0d51352e3f9d7023d2e1fb64fc6c9be264ff02eff893ca3b",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:CVY/PRO-HSE-012/008",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "aa21b9d5aaa82db06b014cb1cbaf484613b2032484e8cd609b6ffbf140b93fc9",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [],
+    "reason": "Scheduled review at revision 8; 39 clauses restated."
+  },
+  "response_sha256": "b10284f7d8ab26ada33db4de56408afb164a965e855d49a13ecce794750e255e",
+  "source": null
+}

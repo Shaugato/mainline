@@ -101,7 +101,10 @@ def verify_cassette_store(store: CassetteStore, *, model_id: str) -> int:
         CassetteModelDrift: naming the first divergent key.
     """
     checked = 0
-    for key in store.keys():
+    # `store` is a CassetteStore, not a mapping: `keys()` is a method that lists
+    # the directory and the object is not iterable. SIM118 is a false positive
+    # here and dropping the call would iterate nothing.
+    for key in store.keys():  # noqa: SIM118
         recorded = store.get(key).model_id
         if recorded != model_id:
             raise CassetteModelDrift(

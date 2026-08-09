@@ -1,0 +1,47 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 2,
+    "doc_codes": [
+      "MOC-2021-0155",
+      "PRO-MIN-003",
+      "STD-MEQ-007"
+    ],
+    "intent": "restate",
+    "moc_ref": "MOC-2007-0134",
+    "opened_on": "2007-11-07",
+    "precursor_events": [
+      {
+        "event_ref": "INC-2020-014",
+        "severity_gate": null
+      },
+      {
+        "event_ref": "NM-2010-0015",
+        "severity_gate": null
+      }
+    ],
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "management_of_change": "engineering change note",
+      "verification": "spot check"
+    },
+    "weakening_steps": 0
+  },
+  "key": "7d9c20405ecf9867b114ca74c529b008eb9ef3a9b432c7f2b8a3fe056d05adb0",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2007-0134",
+  "prompt_kind": "moc",
+  "prompt_sha256": "09762b6b9a2c7c2711f4d8665792326d0e72624bcdc45be393ed7fecffa5bfc0",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2007-0134 was raised at Yandarra Downs Open Cut and Heavy Workshop on 7 November 2007 following 2 recorded events in the archive, including INC-2020-014 and NM-2010-0015. The engineering change note record covers 2 clauses across 3 controlled documents. The intent is to restate an existing duty without altering what it requires. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the key safeguard set is preserved.",
+    "scope_note": "The documents in scope are MOC-2021-0155, PRO-MIN-003 and STD-MEQ-007."
+  },
+  "response_sha256": "9e5b793b8581f459addc500be4a4a00290b81e0de28a045cb477f8a6e92448ef",
+  "source": null
+}

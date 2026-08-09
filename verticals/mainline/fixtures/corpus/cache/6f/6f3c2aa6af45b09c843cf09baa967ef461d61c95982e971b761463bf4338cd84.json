@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 0,
+    "doc_codes": [
+      "PTW-STD-004"
+    ],
+    "intent": "restate",
+    "moc_ref": "MOC-2006-0075",
+    "opened_on": "2006-10-25",
+    "precursor_events": [],
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "management_of_change": "engineering change note",
+      "verification": "spot check"
+    },
+    "weakening_steps": 0
+  },
+  "key": "6f3c2aa6af45b09c843cf09baa967ef461d61c95982e971b761463bf4338cd84",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2006-0075",
+  "prompt_kind": "moc",
+  "prompt_sha256": "4b919969bf7354293fd4aae098180f810dcc87ccf722fb8eab741b8b725ddf51",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2006-0075 was raised at Yandarra Downs Open Cut and Heavy Workshop on 25 October 2006 as a scheduled change under engineering change note; no event precedes it in the record. The engineering change note record carries no clause change; it records the assessment only. The intent is to restate an existing duty without altering what it requires. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the key safeguard set is preserved.",
+    "scope_note": "The documents in scope are PTW-STD-004."
+  },
+  "response_sha256": "2f7b7246a0f310097d5568f90a4a4447fcb96e8b4314d666934ac1363acad0aa",
+  "source": null
+}

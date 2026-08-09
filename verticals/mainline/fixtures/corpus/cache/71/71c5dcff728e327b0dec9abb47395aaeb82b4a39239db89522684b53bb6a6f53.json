@@ -1,0 +1,48 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 2,
+    "doc_codes": [
+      "ALERT-2016-007",
+      "MOC-2026-0413",
+      "PRO-MEC-014",
+      "PRO-OPS-032"
+    ],
+    "intent": "strengthen",
+    "moc_ref": "MOC-2004-0107",
+    "opened_on": "2004-08-19",
+    "precursor_events": [
+      {
+        "event_ref": "AF-2004-001",
+        "severity_gate": null
+      },
+      {
+        "event_ref": "INC-2025-010",
+        "severity_gate": null
+      }
+    ],
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "terminal_state": "abandoned",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "management_of_change": "engineering change note",
+      "verification": "spot check"
+    },
+    "weakening_steps": 0
+  },
+  "key": "71c5dcff728e327b0dec9abb47395aaeb82b4a39239db89522684b53bb6a6f53",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2004-0107",
+  "prompt_kind": "moc",
+  "prompt_sha256": "ec52b3fff92fccc4f2c4ffdcfbd3e2bf6ce3804db460d0a02b83deb711e873a9",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2004-0107 was raised at Marrindal Concentrator and Hydrocarbon Transfer Facility on 19 August 2004 following 2 recorded events in the archive, including AF-2004-001 and INC-2025-010. The engineering change note record covers 2 clauses across 4 controlled documents. The intent is to strengthen the key safeguard named in the documents in scope. The record reached the state abandoned in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the key safeguard set is preserved.",
+    "scope_note": "The documents in scope are ALERT-2016-007, MOC-2026-0413, PRO-MEC-014 and PRO-OPS-032."
+  },
+  "response_sha256": "0c6f692200785d6b6e0b3276fbcf8d562fb3ab828b9718247c98ca4e9f62671e",
+  "source": null
+}

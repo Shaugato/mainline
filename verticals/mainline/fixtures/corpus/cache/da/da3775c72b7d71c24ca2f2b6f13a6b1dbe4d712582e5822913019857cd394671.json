@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 1,
+    "doc_codes": [
+      "PRO-HSE-012",
+      "STD-CSE-002"
+    ],
+    "intent": "restate",
+    "moc_ref": "MOC-2015-0048",
+    "opened_on": "2015-04-20",
+    "precursor_events": [],
+    "site": "Cape Verity Export Terminal",
+    "terminal_state": "abandoned",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "management_of_change": "change request",
+      "verification": "field verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "da3775c72b7d71c24ca2f2b6f13a6b1dbe4d712582e5822913019857cd394671",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2015-0048",
+  "prompt_kind": "moc",
+  "prompt_sha256": "c1b112f52464093419342d466489827f7a235f46f60423b21b17090a93fb8108",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2015-0048 was raised at Cape Verity Export Terminal on 20 April 2015 as a scheduled change under change request; no event precedes it in the record. The change request record covers 1 clause across 2 controlled documents. The intent is to restate an existing duty without altering what it requires. The record reached the state abandoned in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical safeguard set is preserved.",
+    "scope_note": "The documents in scope are PRO-HSE-012 and STD-CSE-002."
+  },
+  "response_sha256": "0e12393c5f26f416df1fa1198b1373a50ca1e51dc512e3b66a6c582abc668cdb",
+  "source": null
+}

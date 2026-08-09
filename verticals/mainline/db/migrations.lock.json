@@ -1,1867 +1,4397 @@
 {
-  "$comment": "GENERATED — DO NOT EDIT BY HAND. This file is a manifest of the migration tree, not a declaration about it. Every field is derived from the files on disk and from migrations.allocation.toml, which is the authority for numbers (MR-6 lock 1). A hand-edited entry is a second source of truth, which is the class of failure the migration reconciliation of 2026-08-08 exists to end. Regenerate; do not patch.",
-  "schema_version": 1,
-  "tree": "verticals/mainline/db/migrations",
-  "generated_from": {
-    "allocation": "verticals/mainline/db/migrations.allocation.toml",
-    "ruling": "docs/leads/migration-reconciliation.md",
-    "convention": "NNNN[a-z]_lower_snake_slug.sql (MR-5)",
-    "discovery": "trappoint_migrate.discovery.discover()",
-    "band_resolution": "trappoint_migrate.lint.load_allocation() + trappoint_migrate.lint.key_of_filename()",
-    "mode_resolution": "presence of '-- @rendered-by  trappoint render' in the first 4096 characters (the window trappoint_migrate.lint reads)",
-    "sha256": "sha256 of the file bytes; asserted equal to trappoint_migrate.discovery.MigrationFile.sha256, which is what the runner records in trappoint.schema_migration",
-    "invariants": "trappoint_migrate.discovery.MigrationFile.cited_invariants, de-duplicated on first appearance",
-    "counsel_gated": "the 'COUNSEL-GATED:' key of the leading comment block (trappoint_migrate.sqltext.header_comment); null when the header omits it",
-    "ordering": "lexicographic on the whole version stem, which is the order the runner applies in (ruling D7)",
-    "verified_by": [
-      "trappoint migrate lint --root verticals/mainline/db/migrations",
-      "trappoint render --binding verticals/mainline/vertical.toml --check",
-      "trappoint render --binding packages/trappoint-sql/refvertical/vertical.toml --check"
-    ]
-  },
-  "counts": {
-    "files": 105,
-    "rendered": 45,
-    "authored": 60,
-    "counsel_gated": 0,
-    "counsel_gated_undeclared": 0,
-    "bands_occupied": 15
-  },
-  "counsel_gated_undeclared": [],
-  "bands": [
-    {
-      "band": "0001-0018z",
-      "owner": "kernel/render-and-foundation",
-      "mode": "rendered",
-      "files": 42
-    },
-    {
-      "band": "0019-0020z",
-      "owner": "datamodel/dm-foundation",
-      "mode": "authored",
-      "files": 3
-    },
-    {
-      "band": "0021-0023z",
-      "owner": "kernel/render-and-foundation",
-      "mode": "rendered",
-      "files": 3
-    },
-    {
-      "band": "0024-0031z",
-      "owner": "datamodel/dm-spine",
-      "mode": "authored",
-      "files": 9
-    },
-    {
-      "band": "0032-0039z",
-      "owner": "datamodel/dm-blame",
-      "mode": "authored",
-      "files": 5
-    },
-    {
-      "band": "0040-0046z",
-      "owner": "recall/recall-ddl-triggers",
-      "mode": "authored",
-      "files": 7
-    },
-    {
-      "band": "0047-0049",
-      "owner": "datamodel/dm-spine",
-      "mode": "authored",
-      "files": 3
-    },
-    {
-      "band": "0049a-0049z",
-      "owner": "algorithms",
-      "mode": "authored",
-      "files": 1
-    },
-    {
-      "band": "0050-0053z",
-      "owner": "kernel/subject-and-pin",
-      "mode": "rendered",
-      "files": 0
-    },
-    {
-      "band": "0054-0057z",
-      "owner": "datamodel/ex-dm-gate",
-      "mode": "authored",
-      "files": 0
-    },
-    {
-      "band": "0058-0064z",
-      "owner": "kernel/obligation-and-clearance",
-      "mode": "rendered",
-      "files": 0
-    },
-    {
-      "band": "0065-0065z",
-      "owner": "datamodel/ex-dm-gate",
-      "mode": "authored",
-      "files": 0
-    },
-    {
-      "band": "0066-0068z",
-      "owner": "kernel/obligation-and-clearance",
-      "mode": "rendered",
-      "files": 0
-    },
-    {
-      "band": "0069-0070z",
-      "owner": "datamodel/ex-dm-disposition",
-      "mode": "authored",
-      "files": 0
-    },
-    {
-      "band": "0071-0071z",
-      "owner": "kernel/subject-and-pin+quickrefuse",
-      "mode": "rendered",
-      "files": 0
-    },
-    {
-      "band": "0072-0079z",
-      "owner": "custody",
-      "mode": "authored",
-      "files": 9
-    },
-    {
-      "band": "0080-0089z",
-      "owner": "recall",
-      "mode": "authored",
-      "files": 10
-    },
-    {
-      "band": "0090-0099z",
-      "owner": "datamodel/dm-periphery",
-      "mode": "authored",
-      "files": 0
-    },
-    {
-      "band": "0100-0109z",
-      "owner": "kernel/projection-triggers",
-      "mode": "rendered",
-      "files": 0
-    },
-    {
-      "band": "0110-0114z",
-      "owner": "recall",
-      "mode": "authored",
-      "files": 5
-    },
-    {
-      "band": "0115-0119",
-      "owner": "kernel/merge-gate-and-core",
-      "mode": "rendered",
-      "files": 0
-    },
-    {
-      "band": "0119a-0119z",
-      "owner": "kernel/quickrefuse",
-      "mode": "rendered",
-      "files": 0
-    },
-    {
-      "band": "0120-0129z",
-      "owner": "kernel/projection-triggers",
-      "mode": "rendered",
-      "files": 0
-    },
-    {
-      "band": "0130-0135z",
-      "owner": "kernel/merge-gate-and-core+quickrefuse",
-      "mode": "rendered",
-      "files": 0
-    },
-    {
-      "band": "0136-0139z",
-      "owner": "recall",
-      "mode": "authored",
-      "files": 5
-    },
-    {
-      "band": "0140-0144z",
-      "owner": "datamodel/dm-functions-triggers+algorithms",
-      "mode": "authored",
-      "files": 1
-    },
-    {
-      "band": "0145-0149z",
-      "owner": "datamodel/dm-functions-triggers+algorithms",
-      "mode": "authored",
-      "files": 1
-    },
-    {
-      "band": "0150-0154z",
-      "owner": "algorithms",
-      "mode": "authored",
-      "files": 1
-    },
-    {
-      "band": "0155-0169z",
-      "owner": "datamodel/dm-views-rls",
-      "mode": "authored",
-      "files": 0
-    },
-    {
-      "band": "0170-0179z",
-      "owner": "datamodel/dm-views-rls",
-      "mode": "authored",
-      "files": 0
-    },
-    {
-      "band": "0180-0198z",
-      "owner": "datamodel/dm-views-rls",
-      "mode": "authored",
-      "files": 0
-    },
-    {
-      "band": "0199-0199z",
-      "owner": "datamodel/dm-views-rls",
-      "mode": "authored",
-      "files": 0
-    },
-    {
-      "band": "0200-9999z",
-      "owner": "UNALLOCATED",
-      "mode": "unallocated",
-      "files": 0
-    }
-  ],
-  "migrations": [
-    {
-      "file": "0001a_schema_mainline.sql",
-      "version": "0001a_schema_mainline",
-      "number": "0001a",
-      "mode": "rendered",
-      "band": "0001-0018z",
-      "owner": "kernel/render-and-foundation",
-      "template": "packages/trappoint-sql/templates/0001_schemas.sql.j2",
-      "invariants": [
-        "MI01",
-        "I01"
-      ],
-      "sha256": "65c26de157d863e944f5252e25090ae82411a9fca529a5f2971c54eafc815040",
-      "counsel_gated": false
-    },
-    {
-      "file": "0002_schema_meas.sql",
-      "version": "0002_schema_meas",
-      "number": "0002",
-      "mode": "rendered",
-      "band": "0001-0018z",
-      "owner": "kernel/render-and-foundation",
-      "template": "packages/trappoint-sql/templates/0001_schemas.sql.j2",
-      "invariants": [
-        "MI17",
-        "I13"
-      ],
-      "sha256": "aafde86014e23a33a47148ce5842fbf4547cc9c429dd9eac1a29046d433660e4",
-      "counsel_gated": false
-    },
-    {
-      "file": "0003_schema_audit.sql",
-      "version": "0003_schema_audit",
-      "number": "0003",
-      "mode": "rendered",
-      "band": "0001-0018z",
-      "owner": "kernel/render-and-foundation",
-      "template": "packages/trappoint-sql/templates/0001_schemas.sql.j2",
-      "invariants": [
-        "MI01",
-        "I16"
-      ],
-      "sha256": "7ece1b876a11e2aa9f19de3a7d534e43216bcf4f405a77ec5c8953abf1a3dfe0",
-      "counsel_gated": false
-    },
-    {
-      "file": "0004_schema_qa.sql",
-      "version": "0004_schema_qa",
-      "number": "0004",
-      "mode": "rendered",
-      "band": "0001-0018z",
-      "owner": "kernel/render-and-foundation",
-      "template": "packages/trappoint-sql/templates/0001_schemas.sql.j2",
-      "invariants": [
-        "MI27",
-        "I15"
-      ],
-      "sha256": "0fb0f45f4580618bd93c2bbd20faf6b27c43ead7221cc15d122616e6944895e0",
-      "counsel_gated": false
-    },
-    {
-      "file": "0005_schema_ops.sql",
-      "version": "0005_schema_ops",
-      "number": "0005",
-      "mode": "rendered",
-      "band": "0001-0018z",
-      "owner": "kernel/render-and-foundation",
-      "template": "packages/trappoint-sql/templates/0001_schemas.sql.j2",
-      "invariants": [
-        "MI22",
-        "I06"
-      ],
-      "sha256": "69ce88c6397c9d1212bb685a9a533baee94e745908f4454bd280c55d99556de1",
-      "counsel_gated": false
-    },
-    {
-      "file": "0006a_role_migrator.sql",
-      "version": "0006a_role_migrator",
-      "number": "0006a",
-      "mode": "rendered",
-      "band": "0001-0018z",
-      "owner": "kernel/render-and-foundation",
-      "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
-      "invariants": [
-        "MI01",
-        "I01"
-      ],
-      "sha256": "2481312d92bd5dd4da6bd9bf37f5391be6a632787a946422825d8cd8a5a1c98e",
-      "counsel_gated": false
-    },
-    {
-      "file": "0006b_role_owner.sql",
-      "version": "0006b_role_owner",
-      "number": "0006b",
-      "mode": "rendered",
-      "band": "0001-0018z",
-      "owner": "kernel/render-and-foundation",
-      "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
-      "invariants": [
-        "MI01",
-        "I01"
-      ],
-      "sha256": "935159864580b51586addcbed96a57d813df4e896d0073a58a0303ecd17dfffd",
-      "counsel_gated": false
-    },
-    {
-      "file": "0006c_role_gate.sql",
-      "version": "0006c_role_gate",
-      "number": "0006c",
-      "mode": "rendered",
-      "band": "0001-0018z",
-      "owner": "kernel/render-and-foundation",
-      "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
-      "invariants": [
-        "MI02",
-        "I02"
-      ],
-      "sha256": "3ac8fd380041555f3959a53dac2b71f24dc93e860df562b7356a6a03c89a9b55",
-      "counsel_gated": false
-    },
-    {
-      "file": "0006d_role_projector.sql",
-      "version": "0006d_role_projector",
-      "number": "0006d",
-      "mode": "rendered",
-      "band": "0001-0018z",
-      "owner": "kernel/render-and-foundation",
-      "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
-      "invariants": [
-        "MI26",
-        "I05"
-      ],
-      "sha256": "e1f91389942ccbc2c9a12e498dc7f32a258311b313cbbae4e07ffdb50a1573a0",
-      "counsel_gated": false
-    },
-    {
-      "file": "0006e_role_recaller.sql",
-      "version": "0006e_role_recaller",
-      "number": "0006e",
-      "mode": "rendered",
-      "band": "0001-0018z",
-      "owner": "kernel/render-and-foundation",
-      "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
-      "invariants": [
-        "MI25",
-        "I13"
-      ],
-      "sha256": "5eb9115a1fc7e387f170847e38ea953b0226a157ec3c35f3f4f12834ef8c8b72",
-      "counsel_gated": false
-    },
-    {
-      "file": "0006f_role_disposer.sql",
-      "version": "0006f_role_disposer",
-      "number": "0006f",
-      "mode": "rendered",
-      "band": "0001-0018z",
-      "owner": "kernel/render-and-foundation",
-      "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
-      "invariants": [
-        "MI08",
-        "I10"
-      ],
-      "sha256": "6059ee31924feecc049b10e897d08a6716d3ad5e202898be5ddc2c0f97a6dd6a",
-      "counsel_gated": false
-    },
-    {
-      "file": "0006g_role_auditor.sql",
-      "version": "0006g_role_auditor",
-      "number": "0006g",
-      "mode": "rendered",
-      "band": "0001-0018z",
-      "owner": "kernel/render-and-foundation",
-      "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
-      "invariants": [
-        "MI01",
-        "I16"
-      ],
-      "sha256": "defc7b218339fa8393bd764a34de1c0e2352a48780bd453275e17589a20c49ca",
-      "counsel_gated": false
-    },
-    {
-      "file": "0006h_role_reader.sql",
-      "version": "0006h_role_reader",
-      "number": "0006h",
-      "mode": "rendered",
-      "band": "0001-0018z",
-      "owner": "kernel/render-and-foundation",
-      "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
-      "invariants": [
-        "MI01",
-        "I01"
-      ],
-      "sha256": "a9d77b55285b0e9fdba9e98deb83acc3aeee49ca2a8dff97f193788f25da6919",
-      "counsel_gated": false
-    },
-    {
-      "file": "0006i_role_qa.sql",
-      "version": "0006i_role_qa",
-      "number": "0006i",
-      "mode": "rendered",
-      "band": "0001-0018z",
-      "owner": "kernel/render-and-foundation",
-      "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
-      "invariants": [
-        "MI27",
-        "I15"
-      ],
-      "sha256": "45d95f0ee3124d42acc46ee7ad8b2959f21758ecdcf7519f5f5ec4e0d1c0e4a4",
-      "counsel_gated": false
-    },
-    {
-      "file": "0007a_revoke_public_business.sql",
-      "version": "0007a_revoke_public_business",
-      "number": "0007a",
-      "mode": "rendered",
-      "band": "0001-0018z",
-      "owner": "kernel/render-and-foundation",
-      "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
-      "invariants": [
-        "MI01",
-        "I01"
-      ],
-      "sha256": "64a1f5119944285ef04be027093bd2e7a42b42c6a115f414bfe09a75227fcc85",
-      "counsel_gated": false
-    },
-    {
-      "file": "0007b_revoke_public_meas.sql",
-      "version": "0007b_revoke_public_meas",
-      "number": "0007b",
-      "mode": "rendered",
-      "band": "0001-0018z",
-      "owner": "kernel/render-and-foundation",
-      "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
-      "invariants": [
-        "MI01",
-        "I01"
-      ],
-      "sha256": "44ac7dde4f642236595214c9dcebf7a7496847079d120690a598b50bea7cffe3",
-      "counsel_gated": false
-    },
-    {
-      "file": "0007c_revoke_public_audit.sql",
-      "version": "0007c_revoke_public_audit",
-      "number": "0007c",
-      "mode": "rendered",
-      "band": "0001-0018z",
-      "owner": "kernel/render-and-foundation",
-      "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
-      "invariants": [
-        "MI01",
-        "I01"
-      ],
-      "sha256": "80c6e201c9a4b700ee7585c4472782f52f171c4788c46bc9c9b914b29f5acd0c",
-      "counsel_gated": false
-    },
-    {
-      "file": "0007d_revoke_public_qa.sql",
-      "version": "0007d_revoke_public_qa",
-      "number": "0007d",
-      "mode": "rendered",
-      "band": "0001-0018z",
-      "owner": "kernel/render-and-foundation",
-      "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
-      "invariants": [
-        "MI01",
-        "I01"
-      ],
-      "sha256": "e0cd4dbe382f8bfbe1be8ad5a50c11a41f9e616be074159733675f733ff24b27",
-      "counsel_gated": false
-    },
-    {
-      "file": "0007e_revoke_public_ops.sql",
-      "version": "0007e_revoke_public_ops",
-      "number": "0007e",
-      "mode": "rendered",
-      "band": "0001-0018z",
-      "owner": "kernel/render-and-foundation",
-      "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
-      "invariants": [
-        "MI01",
-        "I01"
-      ],
-      "sha256": "e46899508179ff3627f402d2cf85df207c5043cb772bbe1052450e081f1461fb",
-      "counsel_gated": false
-    },
-    {
-      "file": "0008a_owner_business.sql",
-      "version": "0008a_owner_business",
-      "number": "0008a",
-      "mode": "rendered",
-      "band": "0001-0018z",
-      "owner": "kernel/render-and-foundation",
-      "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
-      "invariants": [
-        "MI01",
-        "I01"
-      ],
-      "sha256": "aaf04190253203b84a6962e9f19c79becd757312471f0e6c50d12164792443ba",
-      "counsel_gated": false
-    },
-    {
-      "file": "0008b_owner_meas.sql",
-      "version": "0008b_owner_meas",
-      "number": "0008b",
-      "mode": "rendered",
-      "band": "0001-0018z",
-      "owner": "kernel/render-and-foundation",
-      "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
-      "invariants": [
-        "MI01",
-        "I01"
-      ],
-      "sha256": "59c57ed010c7f5691513b1c64b99c7dd32fbb812b68bc160ae17fee01ac99676",
-      "counsel_gated": false
-    },
-    {
-      "file": "0008c_owner_audit.sql",
-      "version": "0008c_owner_audit",
-      "number": "0008c",
-      "mode": "rendered",
-      "band": "0001-0018z",
-      "owner": "kernel/render-and-foundation",
-      "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
-      "invariants": [
-        "MI01",
-        "I01"
-      ],
-      "sha256": "42a733a9421d3cdde33e3db1f17a4283ef0e82fc4f158767c2bb6d2fb3c01ad1",
-      "counsel_gated": false
-    },
-    {
-      "file": "0008d_owner_qa.sql",
-      "version": "0008d_owner_qa",
-      "number": "0008d",
-      "mode": "rendered",
-      "band": "0001-0018z",
-      "owner": "kernel/render-and-foundation",
-      "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
-      "invariants": [
-        "MI01",
-        "I01"
-      ],
-      "sha256": "17715ce3dae16f79a95599ecd0ffe3341bf04e8b5d157f7b197740d080a7140c",
-      "counsel_gated": false
-    },
-    {
-      "file": "0008e_owner_ops.sql",
-      "version": "0008e_owner_ops",
-      "number": "0008e",
-      "mode": "rendered",
-      "band": "0001-0018z",
-      "owner": "kernel/render-and-foundation",
-      "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
-      "invariants": [
-        "MI01",
-        "I01"
-      ],
-      "sha256": "e745c7611b3d38ef71ce725546472283f80a1d762a22642c27fe82f529761232",
-      "counsel_gated": false
-    },
-    {
-      "file": "0009a_grant_create_migrator.sql",
-      "version": "0009a_grant_create_migrator",
-      "number": "0009a",
-      "mode": "rendered",
-      "band": "0001-0018z",
-      "owner": "kernel/render-and-foundation",
-      "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
-      "invariants": [
-        "MI01",
-        "I01"
-      ],
-      "sha256": "aec802aefa625e16de28ba795daea0d867858c1ff65c9f2cd6e7d16633a0b44d",
-      "counsel_gated": false
-    },
-    {
-      "file": "0009b_grant_usage_agents.sql",
-      "version": "0009b_grant_usage_agents",
-      "number": "0009b",
-      "mode": "rendered",
-      "band": "0001-0018z",
-      "owner": "kernel/render-and-foundation",
-      "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
-      "invariants": [
-        "MI02",
-        "I02"
-      ],
-      "sha256": "630aad30a21f3aa7653ba1693b7314902eb520dc4bb55797ee83310f9d47f46d",
-      "counsel_gated": false
-    },
-    {
-      "file": "0009c_grant_usage_auditor.sql",
-      "version": "0009c_grant_usage_auditor",
-      "number": "0009c",
-      "mode": "rendered",
-      "band": "0001-0018z",
-      "owner": "kernel/render-and-foundation",
-      "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
-      "invariants": [
-        "MI01",
-        "I16"
-      ],
-      "sha256": "f1f7033c46bcfc913563ecef1a5bbf2365de7f332d92272d43ac8d6eb5cfb376",
-      "counsel_gated": false
-    },
-    {
-      "file": "0009d_grant_usage_qa.sql",
-      "version": "0009d_grant_usage_qa",
-      "number": "0009d",
-      "mode": "rendered",
-      "band": "0001-0018z",
-      "owner": "kernel/render-and-foundation",
-      "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
-      "invariants": [
-        "MI27",
-        "I15"
-      ],
-      "sha256": "a42303519351b41f15b638c1dece9cd6c77e51d2a47e745e4a7ce056d7e218b8",
-      "counsel_gated": false
-    },
-    {
-      "file": "0009e_default_privileges_floor.sql",
-      "version": "0009e_default_privileges_floor",
-      "number": "0009e",
-      "mode": "rendered",
-      "band": "0001-0018z",
-      "owner": "kernel/render-and-foundation",
-      "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
-      "invariants": [
-        "MI01",
-        "I01"
-      ],
-      "sha256": "04d1c34cedb5d71ce8c121fc379f1577c37e8f6ff21f64bb367f488d194fef38",
-      "counsel_gated": false
-    },
-    {
-      "file": "0009f_revoke_create_public_schema.sql",
-      "version": "0009f_revoke_create_public_schema",
-      "number": "0009f",
-      "mode": "rendered",
-      "band": "0001-0018z",
-      "owner": "kernel/render-and-foundation",
-      "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
-      "invariants": [
-        "MI01",
-        "I01"
-      ],
-      "sha256": "eefce5a05965f699c927015317766d3fda83156dce4fd493bae1ac8b61e737a0",
-      "counsel_gated": false
-    },
-    {
-      "file": "0009x_covenant_comment.sql",
-      "version": "0009x_covenant_comment",
-      "number": "0009x",
-      "mode": "rendered",
-      "band": "0001-0018z",
-      "owner": "kernel/render-and-foundation",
-      "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
-      "invariants": [
-        "MI25",
-        "I02"
-      ],
-      "sha256": "9efaf07c286c1de23b922519ca6ef340296d4d81af831bcf32e1bc319bf6ac09",
-      "counsel_gated": false
-    },
-    {
-      "file": "0010_type_control_delta.sql",
-      "version": "0010_type_control_delta",
-      "number": "0010",
-      "mode": "rendered",
-      "band": "0001-0018z",
-      "owner": "kernel/render-and-foundation",
-      "template": "packages/trappoint-sql/templates/0010_types.sql.j2",
-      "invariants": [
-        "MI23",
-        "I12"
-      ],
-      "sha256": "8fd5d79bf93333633fc32f24b23cff7458310c807437febbb2f9c125b56b3024",
-      "counsel_gated": false
-    },
-    {
-      "file": "0011_type_subject_state.sql",
-      "version": "0011_type_subject_state",
-      "number": "0011",
-      "mode": "rendered",
-      "band": "0001-0018z",
-      "owner": "kernel/render-and-foundation",
-      "template": "packages/trappoint-sql/templates/0010_types.sql.j2",
-      "invariants": [
-        "MI10",
-        "I04"
-      ],
-      "sha256": "68a8b27609b7e61adbb6d92a10cd00a313479504145cf80a37d21feeeb749c50",
-      "counsel_gated": false
-    },
-    {
-      "file": "0012_type_disposition_kind.sql",
-      "version": "0012_type_disposition_kind",
-      "number": "0012",
-      "mode": "rendered",
-      "band": "0001-0018z",
-      "owner": "kernel/render-and-foundation",
-      "template": "packages/trappoint-sql/templates/0010_types.sql.j2",
-      "invariants": [
-        "MI11",
-        "I10"
-      ],
-      "sha256": "89b3df64e9bc5f748ce7c6d3a549ad50e1630d2255a49ca9673996fe4b3886c0",
-      "counsel_gated": false
-    },
-    {
-      "file": "0013_type_virulence_class.sql",
-      "version": "0013_type_virulence_class",
-      "number": "0013",
-      "mode": "rendered",
-      "band": "0001-0018z",
-      "owner": "kernel/render-and-foundation",
-      "template": "packages/trappoint-sql/templates/0010_types.sql.j2",
-      "invariants": [
-        "MI25",
-        "I02"
-      ],
-      "sha256": "2dd69b0bc6f7f0add96f4d495777baddc9e95c641b49689e607c0bb09dd43c67",
-      "counsel_gated": false
-    },
-    {
-      "file": "0014_type_blame_basis.sql",
-      "version": "0014_type_blame_basis",
-      "number": "0014",
-      "mode": "rendered",
-      "band": "0001-0018z",
-      "owner": "kernel/render-and-foundation",
-      "template": "packages/trappoint-sql/templates/0010_types.sql.j2",
-      "invariants": [
-        "MI13",
-        "I11"
-      ],
-      "sha256": "1b466c16d24a11c4ef27a8427986464674d34b166746b5eca0b1be480841a969",
-      "counsel_gated": false
-    },
-    {
-      "file": "0015_type_blame_state.sql",
-      "version": "0015_type_blame_state",
-      "number": "0015",
-      "mode": "rendered",
-      "band": "0001-0018z",
-      "owner": "kernel/render-and-foundation",
-      "template": "packages/trappoint-sql/templates/0010_types.sql.j2",
-      "invariants": [
-        "MI15",
-        "I05"
-      ],
-      "sha256": "b34282d6586d7c16202c19be3874f927135eaf9c00beb4c6bc23bc3829e25033",
-      "counsel_gated": false
-    },
-    {
-      "file": "0016_type_prop_state.sql",
-      "version": "0016_type_prop_state",
-      "number": "0016",
-      "mode": "rendered",
-      "band": "0001-0018z",
-      "owner": "kernel/render-and-foundation",
-      "template": "packages/trappoint-sql/templates/0010_types.sql.j2",
-      "invariants": [
-        "MI23",
-        "I12"
-      ],
-      "sha256": "4ccf1f839671ca904f00533c28cd00aaff8a95465b1cc503d0090a742ec80476",
-      "counsel_gated": false
-    },
-    {
-      "file": "0017a_subject_transition.sql",
-      "version": "0017a_subject_transition",
-      "number": "0017a",
-      "mode": "rendered",
-      "band": "0001-0018z",
-      "owner": "kernel/render-and-foundation",
-      "template": "packages/trappoint-sql/templates/0017_subject_transition.sql.j2",
-      "invariants": [
-        "MI10",
-        "I04"
-      ],
-      "sha256": "e7baf2746a53ed5c6fe2ec1416448be27fd749b5de47751cecd413ddf3f5c625",
-      "counsel_gated": false
-    },
-    {
-      "file": "0017b_subject_transition_seed.sql",
-      "version": "0017b_subject_transition_seed",
-      "number": "0017b",
-      "mode": "rendered",
-      "band": "0001-0018z",
-      "owner": "kernel/render-and-foundation",
-      "template": "packages/trappoint-sql/templates/0017_subject_transition.sql.j2",
-      "invariants": [
-        "MI10",
-        "I04"
-      ],
-      "sha256": "ccef458d818f277d94a838be46943d1333f733eea2e70e58f3470189d58d580a",
-      "counsel_gated": false
-    },
-    {
-      "file": "0018a_clearance_legal.sql",
-      "version": "0018a_clearance_legal",
-      "number": "0018a",
-      "mode": "rendered",
-      "band": "0001-0018z",
-      "owner": "kernel/render-and-foundation",
-      "template": "packages/trappoint-sql/templates/0018_clearance_legal.sql.j2",
-      "invariants": [
-        "MI11",
-        "I10"
-      ],
-      "sha256": "4f65447c50a6db4609c0212fdd4bff67ab3d49943227444c5323993dd70a7ef9",
-      "counsel_gated": false
-    },
-    {
-      "file": "0018b_clearance_legal_seed.sql",
-      "version": "0018b_clearance_legal_seed",
-      "number": "0018b",
-      "mode": "rendered",
-      "band": "0001-0018z",
-      "owner": "kernel/render-and-foundation",
-      "template": "packages/trappoint-sql/templates/0018_clearance_legal.sql.j2",
-      "invariants": [
-        "MI11",
-        "I10"
-      ],
-      "sha256": "583a8fafaca774bfb54211b923a4eca1f8bdfc255a0ec313c2839ee455e26dfe",
-      "counsel_gated": false
-    },
-    {
-      "file": "0019_retention_class.sql",
-      "version": "0019_retention_class",
-      "number": "0019",
-      "mode": "authored",
-      "band": "0019-0020z",
-      "owner": "datamodel/dm-foundation",
-      "template": null,
-      "invariants": [
-        "MI01",
-        "I01"
-      ],
-      "sha256": "d4bf0ab7536dea9d2ab6ae6ccd70701a75ae40ab07b47de88acfea3afc3638d3",
-      "counsel_gated": false
-    },
-    {
-      "file": "0020_adm_decision_class.sql",
-      "version": "0020_adm_decision_class",
-      "number": "0020",
-      "mode": "authored",
-      "band": "0019-0020z",
-      "owner": "datamodel/dm-foundation",
-      "template": null,
-      "invariants": [
-        "MI01",
-        "I15"
-      ],
-      "sha256": "b11295d537368747e99184b6be4833745bd71b59c7c9679ab6bda586d1f9550d",
-      "counsel_gated": false
-    },
-    {
-      "file": "0020a_site.sql",
-      "version": "0020a_site",
-      "number": "0020a",
-      "mode": "authored",
-      "band": "0019-0020z",
-      "owner": "datamodel/dm-foundation",
-      "template": null,
-      "invariants": [
-        "MI01",
-        "MI25",
-        "I02",
-        "MI24"
-      ],
-      "sha256": "9817d8d07a63110b2139f4042e5004368f0a56f2d540c2ffab868b366e7bfef0",
-      "counsel_gated": false
-    },
-    {
-      "file": "0021_person.sql",
-      "version": "0021_person",
-      "number": "0021",
-      "mode": "rendered",
-      "band": "0021-0023z",
-      "owner": "kernel/render-and-foundation",
-      "template": "packages/trappoint-sql/templates/0021_identity.sql.j2",
-      "invariants": [
-        "MI27",
-        "I09"
-      ],
-      "sha256": "2ea56486c8d0cd2a6bc87b6ff721f02acc4f129a78ae39e52f21102d96b75ed8",
-      "counsel_gated": false
-    },
-    {
-      "file": "0022_signing_credential.sql",
-      "version": "0022_signing_credential",
-      "number": "0022",
-      "mode": "rendered",
-      "band": "0021-0023z",
-      "owner": "kernel/render-and-foundation",
-      "template": "packages/trappoint-sql/templates/0021_identity.sql.j2",
-      "invariants": [
-        "MI27",
-        "I09"
-      ],
-      "sha256": "14a41bf5ac1fe9b95110141073c5a8638f2a1b76b47ccdef3ede66f5d856c37e",
-      "counsel_gated": false
-    },
-    {
-      "file": "0023_signing_credential_index.sql",
-      "version": "0023_signing_credential_index",
-      "number": "0023",
-      "mode": "rendered",
-      "band": "0021-0023z",
-      "owner": "kernel/render-and-foundation",
-      "template": "packages/trappoint-sql/templates/0021_identity.sql.j2",
-      "invariants": [
-        "MI27",
-        "I09"
-      ],
-      "sha256": "4858e5ac0346435936cf8985ecd99fb342ea9cc44615ce224599f790d06f9c23",
-      "counsel_gated": false
-    },
-    {
-      "file": "0024_commit_obj.sql",
-      "version": "0024_commit_obj",
-      "number": "0024",
-      "mode": "authored",
-      "band": "0024-0031z",
-      "owner": "datamodel/dm-spine",
-      "template": null,
-      "invariants": [
-        "MI01",
-        "MI24",
-        "I01"
-      ],
-      "sha256": "ac2830ec48e812a0cd790898d5b18d1af6fd40457b03c4cb8df034f1bf7036fa",
-      "counsel_gated": false
-    },
-    {
-      "file": "0025_commit_edge.sql",
-      "version": "0025_commit_edge",
-      "number": "0025",
-      "mode": "authored",
-      "band": "0024-0031z",
-      "owner": "datamodel/dm-spine",
-      "template": null,
-      "invariants": [
-        "MI01",
-        "MI09",
-        "I04"
-      ],
-      "sha256": "3d493f6f150146e2682823499407b7778fc0fbdfe77de9d63681d9a3cced9e54",
-      "counsel_gated": false
-    },
-    {
-      "file": "0026_ref.sql",
-      "version": "0026_ref",
-      "number": "0026",
-      "mode": "authored",
-      "band": "0024-0031z",
-      "owner": "datamodel/dm-spine",
-      "template": null,
-      "invariants": [
-        "MI01",
-        "MI09",
-        "I04"
-      ],
-      "sha256": "5136e2b35b2cbef2c716b865982ade884614c3d98b78aa005aed033e25d303b5",
-      "counsel_gated": false
-    },
-    {
-      "file": "0027_doc.sql",
-      "version": "0027_doc",
-      "number": "0027",
-      "mode": "authored",
-      "band": "0024-0031z",
-      "owner": "datamodel/dm-spine",
-      "template": null,
-      "invariants": [
-        "MI19",
-        "MI01",
-        "I06"
-      ],
-      "sha256": "98131eeb82017ba3098ae695ba5d08052e7db4b61b0fa62471d23a30cfffcb8f",
-      "counsel_gated": false
-    },
-    {
-      "file": "0028_clause.sql",
-      "version": "0028_clause",
-      "number": "0028",
-      "mode": "authored",
-      "band": "0024-0031z",
-      "owner": "datamodel/dm-spine",
-      "template": null,
-      "invariants": [
-        "MI01",
-        "MI03",
-        "I01"
-      ],
-      "sha256": "6c6c793bc8a7ffae759175d8661abe8fe4b6ae8ac28d7a5dc1d59938bc304ba8",
-      "counsel_gated": false
-    },
-    {
-      "file": "0029_clause_version.sql",
-      "version": "0029_clause_version",
-      "number": "0029",
-      "mode": "authored",
-      "band": "0024-0031z",
-      "owner": "datamodel/dm-spine",
-      "template": null,
-      "invariants": [
-        "MI15",
-        "MI14",
-        "MI01",
-        "I05",
-        "I11"
-      ],
-      "sha256": "a97856a272e16f23db9d868cb90cd92a1c1ccdfebca6ebd81458d711a1dd54ca",
-      "counsel_gated": false
-    },
-    {
-      "file": "0029a_clause_version_trgm.sql",
-      "version": "0029a_clause_version_trgm",
-      "number": "0029a",
-      "mode": "authored",
-      "band": "0024-0031z",
-      "owner": "datamodel/dm-spine",
-      "template": null,
-      "invariants": [
-        "MI17",
-        "I13"
-      ],
-      "sha256": "ff9f7824f839cfe4694d84a378e0d371b78efbebbd011a5d7ee17baa970f2333",
-      "counsel_gated": false
-    },
-    {
-      "file": "0030_clause_band.sql",
-      "version": "0030_clause_band",
-      "number": "0030",
-      "mode": "authored",
-      "band": "0024-0031z",
-      "owner": "datamodel/dm-spine",
-      "template": null,
-      "invariants": [
-        "MI03",
-        "MI01",
-        "I06"
-      ],
-      "sha256": "e4aba8ffbdb5eb26ceb8a8ffa58d3578b9770e2cbaeb20819345e090e46ee263",
-      "counsel_gated": false
-    },
-    {
-      "file": "0031_clause_embedding.sql",
-      "version": "0031_clause_embedding",
-      "number": "0031",
-      "mode": "authored",
-      "band": "0024-0031z",
-      "owner": "datamodel/dm-spine",
-      "template": null,
-      "invariants": [
-        "MI25",
-        "MI01",
-        "I02"
-      ],
-      "sha256": "a7caa33d585a866c5d852982a1dc4041e41d28f177dfeaaa89e0144a30ae8e51",
-      "counsel_gated": false
-    },
-    {
-      "file": "0032_activity_node.sql",
-      "version": "0032_activity_node",
-      "number": "0032",
-      "mode": "authored",
-      "band": "0032-0039z",
-      "owner": "datamodel/dm-blame",
-      "template": null,
-      "invariants": [
-        "MI16",
-        "MI01",
-        "I13",
-        "I01"
-      ],
-      "sha256": "fe4cd6d3cb44ab6af501d5229c3017d507f222c78066a7bfe571463ad784aa05",
-      "counsel_gated": false
-    },
-    {
-      "file": "0033_event.sql",
-      "version": "0033_event",
-      "number": "0033",
-      "mode": "authored",
-      "band": "0032-0039z",
-      "owner": "datamodel/dm-blame",
-      "template": null,
-      "invariants": [
-        "MI14",
-        "MI16",
-        "I11",
-        "I13"
-      ],
-      "sha256": "796803decf9d0ca57ce34818d726ec3564b5d701851e7b72d9b3db4eeefa97a2",
-      "counsel_gated": false
-    },
-    {
-      "file": "0034_event_edge.sql",
-      "version": "0034_event_edge",
-      "number": "0034",
-      "mode": "authored",
-      "band": "0032-0039z",
-      "owner": "datamodel/dm-blame",
-      "template": null,
-      "invariants": [
-        "MI15",
-        "MI26",
-        "I05"
-      ],
-      "sha256": "3de694977222611d97fe174520d00af9f166439266bd3c87ffa832fdee967634",
-      "counsel_gated": false
-    },
-    {
-      "file": "0035_control_failure.sql",
-      "version": "0035_control_failure",
-      "number": "0035",
-      "mode": "authored",
-      "band": "0032-0039z",
-      "owner": "datamodel/dm-blame",
-      "template": null,
-      "invariants": [
-        "MI13",
-        "MI16",
-        "I11",
-        "I13"
-      ],
-      "sha256": "87ce9e58ccb3d801bb2807f0973198fd008143d77ef4e2e9e21d09abdaa63f8c",
-      "counsel_gated": false
-    },
-    {
-      "file": "0036_event_severity_revision.sql",
-      "version": "0036_event_severity_revision",
-      "number": "0036",
-      "mode": "authored",
-      "band": "0032-0039z",
-      "owner": "datamodel/dm-blame",
-      "template": null,
-      "invariants": [
-        "MI14",
-        "MI15",
-        "I11",
-        "I05"
-      ],
-      "sha256": "16c6745359db5b36638784ef3a4b34803653a195ddbdfd54c22bd86e8c5ec987",
-      "counsel_gated": false
-    },
-    {
-      "file": "0040_event_cue.sql",
-      "version": "0040_event_cue",
-      "number": "0040",
-      "mode": "authored",
-      "band": "0040-0046z",
-      "owner": "recall/recall-ddl-triggers",
-      "template": null,
-      "invariants": [
-        "MI16",
-        "MI17",
-        "I13"
-      ],
-      "sha256": "9b5e4eeb22701372470fca7b105e20645e13a7ceba2d0dcb1a3d4a3892cc2b4c",
-      "counsel_gated": false
-    },
-    {
-      "file": "0041_event_cue_embedding.sql",
-      "version": "0041_event_cue_embedding",
-      "number": "0041",
-      "mode": "authored",
-      "band": "0040-0046z",
-      "owner": "recall/recall-ddl-triggers",
-      "template": null,
-      "invariants": [
-        "MI25",
-        "I02",
-        "MI31"
-      ],
-      "sha256": "8ff83f3a73ac92b44f1207bd283f2c78724f342ad86cfc15c9863f9800ff970d",
-      "counsel_gated": false
-    },
-    {
-      "file": "0042_event_cue_coarse.sql",
-      "version": "0042_event_cue_coarse",
-      "number": "0042",
-      "mode": "authored",
-      "band": "0040-0046z",
-      "owner": "recall/recall-ddl-triggers",
-      "template": null,
-      "invariants": [
-        "MI16",
-        "MI25",
-        "I02",
-        "I13"
-      ],
-      "sha256": "8abde1d059e6f6c594e6a0278b190c197147613fd9bcbdc8950bc07a56ba93e0",
-      "counsel_gated": false
-    },
-    {
-      "file": "0043_lex_posting.sql",
-      "version": "0043_lex_posting",
-      "number": "0043",
-      "mode": "authored",
-      "band": "0040-0046z",
-      "owner": "recall/recall-ddl-triggers",
-      "template": null,
-      "invariants": [
-        "MI17",
-        "I13"
-      ],
-      "sha256": "51dffd7da3f6e6b6635f585d8f0caf89f6c9bef30336fff7a95ba975471aa762",
-      "counsel_gated": false
-    },
-    {
-      "file": "0044_lex_stats.sql",
-      "version": "0044_lex_stats",
-      "number": "0044",
-      "mode": "authored",
-      "band": "0040-0046z",
-      "owner": "recall/recall-ddl-triggers",
-      "template": null,
-      "invariants": [
-        "MI17",
-        "I13"
-      ],
-      "sha256": "a57add61e2a1a78f6b7aec2302e245a75be6f3a354b8b37aeb518ea05955728c",
-      "counsel_gated": false
-    },
-    {
-      "file": "0045_lex_doclen.sql",
-      "version": "0045_lex_doclen",
-      "number": "0045",
-      "mode": "authored",
-      "band": "0040-0046z",
-      "owner": "recall/recall-ddl-triggers",
-      "template": null,
-      "invariants": [
-        "MI17",
-        "I13"
-      ],
-      "sha256": "8beb670a0e792c0bed4417206e8596f30199b577836e759becbbcb754f4d6882",
-      "counsel_gated": false
-    },
-    {
-      "file": "0046_event_bond.sql",
-      "version": "0046_event_bond",
-      "number": "0046",
-      "mode": "authored",
-      "band": "0040-0046z",
-      "owner": "recall/recall-ddl-triggers",
-      "template": null,
-      "invariants": [
-        "MI16",
-        "I13"
-      ],
-      "sha256": "4cdeebc3e18fcfff81d7b2729038305289973f905923210876d07e2a1ba70830",
-      "counsel_gated": false
-    },
-    {
-      "file": "0047_control_series.sql",
-      "version": "0047_control_series",
-      "number": "0047",
-      "mode": "authored",
-      "band": "0047-0049",
-      "owner": "datamodel/dm-spine",
-      "template": null,
-      "invariants": [
-        "MI19",
-        "MI01",
-        "I06"
-      ],
-      "sha256": "0b74bc67decf8125ed2879e72a120743a3e470f16c37f395acca116ab51ac3e1",
-      "counsel_gated": false
-    },
-    {
-      "file": "0048_carriage.sql",
-      "version": "0048_carriage",
-      "number": "0048",
-      "mode": "authored",
-      "band": "0047-0049",
-      "owner": "datamodel/dm-spine",
-      "template": null,
-      "invariants": [
-        "MI19",
-        "MI01",
-        "I06"
-      ],
-      "sha256": "4839883f9a5eab2fa279d42a4b3bad45e4df7f7d794953fc68a0101f571d7fed",
-      "counsel_gated": false
-    },
-    {
-      "file": "0049_identity_residue.sql",
-      "version": "0049_identity_residue",
-      "number": "0049",
-      "mode": "authored",
-      "band": "0047-0049",
-      "owner": "datamodel/dm-spine",
-      "template": null,
-      "invariants": [
-        "MI03",
-        "MI01",
-        "I02"
-      ],
-      "sha256": "bc1db8dcc8a55f3b03dc836620cbe5b406c468928c0676c107aa00739451bdb1",
-      "counsel_gated": false
-    },
-    {
-      "file": "0049a_delta_witness.sql",
-      "version": "0049a_delta_witness",
-      "number": "0049a",
-      "mode": "authored",
-      "band": "0049a-0049z",
-      "owner": "algorithms",
-      "template": null,
-      "invariants": [
-        "MI22",
-        "I14"
-      ],
-      "sha256": "ba5bbc40d951a2120cb5cd578f73acd741b176faaf2de2101b95551463135332",
-      "counsel_gated": false
-    },
-    {
-      "file": "0072_ledger_intake.sql",
-      "version": "0072_ledger_intake",
-      "number": "0072",
-      "mode": "authored",
-      "band": "0072-0079z",
-      "owner": "custody",
-      "template": null,
-      "invariants": [
-        "MI01",
-        "MI24",
-        "I01",
-        "I04"
-      ],
-      "sha256": "3386acd9ff60584fd15f469b7f514bbcc10d76209f64950f8b4e6d3cfcc46bdc",
-      "counsel_gated": false
-    },
-    {
-      "file": "0072a_ledger_intake_hlc_comment.sql",
-      "version": "0072a_ledger_intake_hlc_comment",
-      "number": "0072a",
-      "mode": "authored",
-      "band": "0072-0079z",
-      "owner": "custody",
-      "template": null,
-      "invariants": [
-        "MI24",
-        "I04"
-      ],
-      "sha256": "bf3a46b6070f73f66e470c9dd2256cadccd99e393680fa68e51aac04bb7ad629",
-      "counsel_gated": false
-    },
-    {
-      "file": "0073_ledger_leaf.sql",
-      "version": "0073_ledger_leaf",
-      "number": "0073",
-      "mode": "authored",
-      "band": "0072-0079z",
-      "owner": "custody",
-      "template": null,
-      "invariants": [
-        "MI24",
-        "MI01",
-        "I04",
-        "I01"
-      ],
-      "sha256": "e7f993b3d6d578b49d1d8a7d6c74d43dab84168f28030bdfc0a5c8619d5db0e3",
-      "counsel_gated": false
-    },
-    {
-      "file": "0074_ledger_node.sql",
-      "version": "0074_ledger_node",
-      "number": "0074",
-      "mode": "authored",
-      "band": "0072-0079z",
-      "owner": "custody",
-      "template": null,
-      "invariants": [
-        "MI01",
-        "MI24",
-        "I01",
-        "I04"
-      ],
-      "sha256": "f83596f8bbf3b8785687c287067358c6e064db2bcc344d96ba6079168caf39ca",
-      "counsel_gated": false
-    },
-    {
-      "file": "0075_ledger_checkpoint.sql",
-      "version": "0075_ledger_checkpoint",
-      "number": "0075",
-      "mode": "authored",
-      "band": "0072-0079z",
-      "owner": "custody",
-      "template": null,
-      "invariants": [
-        "MI01",
-        "MI18",
-        "I01",
-        "I16"
-      ],
-      "sha256": "9ea4a57835df378ecafe29ce596f3b0e8413bebfcaaca97790c81d9da3e02b78",
-      "counsel_gated": false
-    },
-    {
-      "file": "0076_cosignature.sql",
-      "version": "0076_cosignature",
-      "number": "0076",
-      "mode": "authored",
-      "band": "0072-0079z",
-      "owner": "custody",
-      "template": null,
-      "invariants": [
-        "MI01",
-        "MI18",
-        "I16",
-        "I01"
-      ],
-      "sha256": "0bc1ae131df8b115d26941f3c5680b02be70af0fbf8e4ec5d26a5608e3a9a9ba",
-      "counsel_gated": false
-    },
-    {
-      "file": "0077_unwitnessed_debt.sql",
-      "version": "0077_unwitnessed_debt",
-      "number": "0077",
-      "mode": "authored",
-      "band": "0072-0079z",
-      "owner": "custody",
-      "template": null,
-      "invariants": [
-        "MI01",
-        "MI18",
-        "I16",
-        "I13",
-        "MI09"
-      ],
-      "sha256": "f0ef8dad229b25e2bd3bada897bb0092bcd8d96c94f84d288e858044f105d95c",
-      "counsel_gated": false
-    },
-    {
-      "file": "0078_custodian_attestation.sql",
-      "version": "0078_custodian_attestation",
-      "number": "0078",
-      "mode": "authored",
-      "band": "0072-0079z",
-      "owner": "custody",
-      "template": null,
-      "invariants": [
-        "MI01",
-        "I01",
-        "I16"
-      ],
-      "sha256": "ec5fbef4a2763cadea4c397235a9b0a9c827a172fb5ac520f4be57de5a0a5b10",
-      "counsel_gated": false
-    },
-    {
-      "file": "0079_sequencer_lease.sql",
-      "version": "0079_sequencer_lease",
-      "number": "0079",
-      "mode": "authored",
-      "band": "0072-0079z",
-      "owner": "custody",
-      "template": null,
-      "invariants": [
-        "MI24",
-        "I04"
-      ],
-      "sha256": "47ae81acbeee6232e2a98af4fc1b57d5461c01d94fb0e686bd616cce825d2f00",
-      "counsel_gated": false
-    },
-    {
-      "file": "0080_recall_policy.sql",
-      "version": "0080_recall_policy",
-      "number": "0080",
-      "mode": "authored",
-      "band": "0080-0089z",
-      "owner": "recall",
-      "template": null,
-      "invariants": [
-        "MI18",
-        "I07"
-      ],
-      "sha256": "f37a4e8eb8ff296a35ec6e20cfe9315d9f4ad018321e274f139603e199044249",
-      "counsel_gated": false
-    },
-    {
-      "file": "0081_recall_run.sql",
-      "version": "0081_recall_run",
-      "number": "0081",
-      "mode": "authored",
-      "band": "0080-0089z",
-      "owner": "recall",
-      "template": null,
-      "invariants": [
-        "MI16",
-        "MI17",
-        "MI18",
-        "I07",
-        "I13"
-      ],
-      "sha256": "7508535054fcbb663fee16808d40d28e5a71355163c778d0b49a59abaf1aa7ba",
-      "counsel_gated": false
-    },
-    {
-      "file": "0082_recall_candidate.sql",
-      "version": "0082_recall_candidate",
-      "number": "0082",
-      "mode": "authored",
-      "band": "0080-0089z",
-      "owner": "recall",
-      "template": null,
-      "invariants": [
-        "MI17",
-        "MI25",
-        "I02",
-        "I13"
-      ],
-      "sha256": "96709cdaaf91e24d1b71d5b957804d6f5ec7545192250f2ce7a21687ea6050f2",
-      "counsel_gated": false
-    },
-    {
-      "file": "0083_silence_receipt.sql",
-      "version": "0083_silence_receipt",
-      "number": "0083",
-      "mode": "authored",
-      "band": "0080-0089z",
-      "owner": "recall",
-      "template": null,
-      "invariants": [
-        "MI17",
-        "I13"
-      ],
-      "sha256": "7dcb1e8b02cf2ce3411cb2c15031c3b2e094c96b1e13e43862e68df897cb481b",
-      "counsel_gated": false
-    },
-    {
-      "file": "0084_silence_ledger.sql",
-      "version": "0084_silence_ledger",
-      "number": "0084",
-      "mode": "authored",
-      "band": "0080-0089z",
-      "owner": "recall",
-      "template": null,
-      "invariants": [
-        "MI01",
-        "MI17",
-        "I01",
-        "I13"
-      ],
-      "sha256": "18389d62af510528b81e7866245728591fa78b0ee6e5dc972e1fcba9a1c1a708",
-      "counsel_gated": false
-    },
-    {
-      "file": "0085_recall_policy_calibrator.sql",
-      "version": "0085_recall_policy_calibrator",
-      "number": "0085",
-      "mode": "authored",
-      "band": "0080-0089z",
-      "owner": "recall",
-      "template": null,
-      "invariants": [
-        "MI18",
-        "I07"
-      ],
-      "sha256": "0e2a3118c1c21acc8c2b61ddd9f82d92e7e780d37219f37c4ddf05d7aa19b6be",
-      "counsel_gated": false
-    },
-    {
-      "file": "0086_thymogate_certificate.sql",
-      "version": "0086_thymogate_certificate",
-      "number": "0086",
-      "mode": "authored",
-      "band": "0080-0089z",
-      "owner": "recall",
-      "template": null,
-      "invariants": [
-        "MI18",
-        "I08"
-      ],
-      "sha256": "0b270c7a72a9971a38328328b061c8a28f39cc98ba5ebb4d05f8a08987175ef0",
-      "counsel_gated": false
-    },
-    {
-      "file": "0086a_recall_policy_thymogate_fk.sql",
-      "version": "0086a_recall_policy_thymogate_fk",
-      "number": "0086a",
-      "mode": "authored",
-      "band": "0080-0089z",
-      "owner": "recall",
-      "template": null,
-      "invariants": [
-        "MI18",
-        "I08"
-      ],
-      "sha256": "0ecf84a7368bb3af4b1df91c7cd164bea5449e145fece99b6c03c6930f645a6c",
-      "counsel_gated": false
-    },
-    {
-      "file": "0087_recall_certificate.sql",
-      "version": "0087_recall_certificate",
-      "number": "0087",
-      "mode": "authored",
-      "band": "0080-0089z",
-      "owner": "recall",
-      "template": null,
-      "invariants": [
-        "MI17",
-        "I08"
-      ],
-      "sha256": "fa34909fb20e881249b5b39dc116bd5f927e16c1105b964395bccb17c15e60a5",
-      "counsel_gated": false
-    },
-    {
-      "file": "0088_event_cue_stage.sql",
-      "version": "0088_event_cue_stage",
-      "number": "0088",
-      "mode": "authored",
-      "band": "0080-0089z",
-      "owner": "recall",
-      "template": null,
-      "invariants": [
-        "MI25",
-        "I02",
-        "MI31"
-      ],
-      "sha256": "58abb376f341c784fd1d45887adf9b922f183a6963ff348c060ab0800b4c171c",
-      "counsel_gated": false
-    },
-    {
-      "file": "0110_fn_candidate_project.sql",
-      "version": "0110_fn_candidate_project",
-      "number": "0110",
-      "mode": "authored",
-      "band": "0110-0114z",
-      "owner": "recall",
-      "template": null,
-      "invariants": [
-        "MI17",
-        "MI25",
-        "I02"
-      ],
-      "sha256": "612fe84fa1c69b57536c369d47e6bd96dd7a5e69cb8c9a3769d0eef16e6e196d",
-      "counsel_gated": false
-    },
-    {
-      "file": "0112_fn_recall_policy_anchored.sql",
-      "version": "0112_fn_recall_policy_anchored",
-      "number": "0112",
-      "mode": "authored",
-      "band": "0110-0114z",
-      "owner": "recall",
-      "template": null,
-      "invariants": [
-        "MI18",
-        "I07"
-      ],
-      "sha256": "cffa04387f76a853e550d0b89d01289c090244a0db5a59fc8f9d6fff851bc8fd",
-      "counsel_gated": false
-    },
-    {
-      "file": "0113_fn_bonded_sev5.sql",
-      "version": "0113_fn_bonded_sev5",
-      "number": "0113",
-      "mode": "authored",
-      "band": "0110-0114z",
-      "owner": "recall",
-      "template": null,
-      "invariants": [
-        "MI16",
-        "I13"
-      ],
-      "sha256": "ef3e50fdd5a0ade54d8b75dfca989c012460660d1820effa9c24ac056b410bfa",
-      "counsel_gated": false
-    },
-    {
-      "file": "0114_fn_cue_prefix_project.sql",
-      "version": "0114_fn_cue_prefix_project",
-      "number": "0114",
-      "mode": "authored",
-      "band": "0110-0114z",
-      "owner": "recall",
-      "template": null,
-      "invariants": [
-        "MI25",
-        "I02",
-        "MI31"
-      ],
-      "sha256": "5e74e4d1220e28c69301cc58ca528298865d0cbae4c5ed9d2a063c5af89b261c",
-      "counsel_gated": false
-    },
-    {
-      "file": "0114a_fn_cue_coarse_project.sql",
-      "version": "0114a_fn_cue_coarse_project",
-      "number": "0114a",
-      "mode": "authored",
-      "band": "0110-0114z",
-      "owner": "recall",
-      "template": null,
-      "invariants": [
-        "MI16",
-        "MI25",
-        "I02",
-        "MI31"
-      ],
-      "sha256": "cfe095186494bae73a8767ac5586f075d8d7cbde50a8c7d7885ec86407e1ceeb",
-      "counsel_gated": false
-    },
-    {
-      "file": "0136_trg_recall_policy_anchored.sql",
-      "version": "0136_trg_recall_policy_anchored",
-      "number": "0136",
-      "mode": "authored",
-      "band": "0136-0139z",
-      "owner": "recall",
-      "template": null,
-      "invariants": [
-        "MI18",
-        "I07"
-      ],
-      "sha256": "49358e24a9dc4b79f5fe7ce0dfbe3130dccce7a7ae75c4d704e29470c0186d47",
-      "counsel_gated": false
-    },
-    {
-      "file": "0137_trg_bonded_sev5.sql",
-      "version": "0137_trg_bonded_sev5",
-      "number": "0137",
-      "mode": "authored",
-      "band": "0136-0139z",
-      "owner": "recall",
-      "template": null,
-      "invariants": [
-        "MI16",
-        "I13"
-      ],
-      "sha256": "6faeb77d8012e33b64b8268e1913ee5b0e381d223182cf4a139e9dc1f9b5bb45",
-      "counsel_gated": false
-    },
-    {
-      "file": "0138_trg_cue_prefix_project.sql",
-      "version": "0138_trg_cue_prefix_project",
-      "number": "0138",
-      "mode": "authored",
-      "band": "0136-0139z",
-      "owner": "recall",
-      "template": null,
-      "invariants": [
-        "MI25",
-        "I02",
-        "MI31"
-      ],
-      "sha256": "22ee827f0bcfcd16c5b83eb111102614a4cdf1ec8565ba0295a03df25c5d18bb",
-      "counsel_gated": false
-    },
-    {
-      "file": "0138a_trg_cue_prefix_project_coarse.sql",
-      "version": "0138a_trg_cue_prefix_project_coarse",
-      "number": "0138a",
-      "mode": "authored",
-      "band": "0136-0139z",
-      "owner": "recall",
-      "template": null,
-      "invariants": [
-        "MI16",
-        "MI25",
-        "I02",
-        "MI31"
-      ],
-      "sha256": "079d05102319840312b34468e08928668e747fbe772496e2f5477472813c5778",
-      "counsel_gated": false
-    },
-    {
-      "file": "0139_trg_candidate_project.sql",
-      "version": "0139_trg_candidate_project",
-      "number": "0139",
-      "mode": "authored",
-      "band": "0136-0139z",
-      "owner": "recall",
-      "template": null,
-      "invariants": [
-        "MI17",
-        "MI25",
-        "I02"
-      ],
-      "sha256": "8cc7569c7faf0b8f7fd67251bea3c8dafc8b03fedeb0e10a906a0c85d49998b1",
-      "counsel_gated": false
-    },
-    {
-      "file": "0140_fn_delta_witness_guard.sql",
-      "version": "0140_fn_delta_witness_guard",
-      "number": "0140",
-      "mode": "authored",
-      "band": "0140-0144z",
-      "owner": "datamodel/dm-functions-triggers+algorithms",
-      "template": null,
-      "invariants": [
-        "MI22",
-        "I14",
-        "MI15"
-      ],
-      "sha256": "e30578fa715ab2879df7af0a36589b79d4184bd7fa886515fb456f1fc605d9c3",
-      "counsel_gated": false
-    },
-    {
-      "file": "0145_trg_delta_witness_guard.sql",
-      "version": "0145_trg_delta_witness_guard",
-      "number": "0145",
-      "mode": "authored",
-      "band": "0145-0149z",
-      "owner": "datamodel/dm-functions-triggers+algorithms",
-      "template": null,
-      "invariants": [
-        "MI22",
-        "I14"
-      ],
-      "sha256": "15b17744e1da0345e89cde994586dd729ea648038f7de0056b4e5ed4e14dfbc6",
-      "counsel_gated": false
-    },
-    {
-      "file": "0150_v_safe_direction_current.sql",
-      "version": "0150_v_safe_direction_current",
-      "number": "0150",
-      "mode": "authored",
-      "band": "0150-0154z",
-      "owner": "algorithms",
-      "template": null,
-      "invariants": [
-        "MI22",
-        "I06"
-      ],
-      "sha256": "3510f3b2c683cea49ac95fc2b282213c16a28219fbf19bb652a7de08bf4135c6",
-      "counsel_gated": false
-    }
+ "$comment": "GENERATED — DO NOT EDIT BY HAND. This file is a manifest of the migration tree, not a declaration about it. Every field is derived from the files on disk and from migrations.allocation.toml, which is the authority for numbers (MR-6 lock 1). A hand-edited entry is a second source of truth, which is the class of failure the migration reconciliation of 2026-08-08 exists to end. Regenerate; do not patch.",
+ "schema_version": 1,
+ "tree": "verticals/mainline/db/migrations",
+ "generated_from": {
+  "allocation": "verticals/mainline/db/migrations.allocation.toml",
+  "ruling": "docs/leads/migration-reconciliation.md",
+  "convention": "NNNN[a-z]_lower_snake_slug.sql (MR-5)",
+  "discovery": "trappoint_migrate.discovery.discover()",
+  "band_resolution": "trappoint_migrate.lint.load_allocation() + trappoint_migrate.lint.key_of_filename()",
+  "mode_resolution": "presence of '-- @rendered-by  trappoint render' in the first 4096 characters (the window trappoint_migrate.lint reads)",
+  "sha256": "sha256 of the file bytes; asserted equal to trappoint_migrate.discovery.MigrationFile.sha256, which is what the runner records in trappoint.schema_migration",
+  "invariants": "trappoint_migrate.discovery.MigrationFile.cited_invariants, de-duplicated on first appearance",
+  "counsel_gated": "the 'COUNSEL-GATED:' key of the leading comment block (trappoint_migrate.sqltext.header_comment); null when the header omits it",
+  "ordering": "lexicographic on the whole version stem, which is the order the runner applies in (ruling D7)",
+  "generator": "trappoint_migrate.lockfile.build_lock() — `trappoint migrate lock --write`",
+  "verified_by": [
+   "trappoint migrate lint --root <tree>",
+   "trappoint migrate lock --check --migrations <tree>"
   ]
+ },
+ "counts": {
+  "files": 261,
+  "rendered": 107,
+  "authored": 154,
+  "counsel_gated": 27,
+  "counsel_gated_undeclared": 0,
+  "bands_occupied": 31
+ },
+ "counsel_gated_undeclared": [],
+ "bands": [
+  {
+   "band": "0001-0018z",
+   "owner": "kernel/render-and-foundation",
+   "mode": "rendered",
+   "files": 42
+  },
+  {
+   "band": "0019-0020z",
+   "owner": "datamodel/dm-foundation",
+   "mode": "authored",
+   "files": 3
+  },
+  {
+   "band": "0021-0023z",
+   "owner": "kernel/render-and-foundation",
+   "mode": "rendered",
+   "files": 3
+  },
+  {
+   "band": "0024-0031z",
+   "owner": "datamodel/dm-spine",
+   "mode": "authored",
+   "files": 9
+  },
+  {
+   "band": "0032-0039z",
+   "owner": "datamodel/dm-blame",
+   "mode": "authored",
+   "files": 8
+  },
+  {
+   "band": "0040-0046z",
+   "owner": "recall/recall-ddl-triggers",
+   "mode": "authored",
+   "files": 7
+  },
+  {
+   "band": "0047-0049",
+   "owner": "datamodel/dm-spine",
+   "mode": "authored",
+   "files": 3
+  },
+  {
+   "band": "0049a-0049z",
+   "owner": "algorithms",
+   "mode": "authored",
+   "files": 5
+  },
+  {
+   "band": "0050-0053z",
+   "owner": "kernel/subject-and-pin",
+   "mode": "rendered",
+   "files": 5
+  },
+  {
+   "band": "0054-0057z",
+   "owner": "datamodel/ex-dm-gate",
+   "mode": "authored",
+   "files": 4
+  },
+  {
+   "band": "0058-0064z",
+   "owner": "kernel/obligation-and-clearance",
+   "mode": "rendered",
+   "files": 9
+  },
+  {
+   "band": "0065-0065z",
+   "owner": "datamodel/ex-dm-gate",
+   "mode": "authored",
+   "files": 3
+  },
+  {
+   "band": "0066-0068z",
+   "owner": "kernel/obligation-and-clearance",
+   "mode": "rendered",
+   "files": 4
+  },
+  {
+   "band": "0069-0070z",
+   "owner": "datamodel/ex-dm-disposition",
+   "mode": "authored",
+   "files": 3
+  },
+  {
+   "band": "0071-0071z",
+   "owner": "kernel/subject-and-pin+quickrefuse",
+   "mode": "rendered",
+   "files": 5
+  },
+  {
+   "band": "0072-0079z",
+   "owner": "custody",
+   "mode": "authored",
+   "files": 9
+  },
+  {
+   "band": "0080-0089z",
+   "owner": "recall",
+   "mode": "authored",
+   "files": 10
+  },
+  {
+   "band": "0090-0099z",
+   "owner": "datamodel/dm-periphery",
+   "mode": "authored",
+   "files": 0
+  },
+  {
+   "band": "0100-0109z",
+   "owner": "kernel/projection-triggers",
+   "mode": "rendered",
+   "files": 10
+  },
+  {
+   "band": "0110-0114z",
+   "owner": "recall",
+   "mode": "authored",
+   "files": 5
+  },
+  {
+   "band": "0115-0119",
+   "owner": "kernel/merge-gate-and-core",
+   "mode": "rendered",
+   "files": 5
+  },
+  {
+   "band": "0119a-0119z",
+   "owner": "kernel/quickrefuse",
+   "mode": "rendered",
+   "files": 2
+  },
+  {
+   "band": "0120-0129z",
+   "owner": "kernel/projection-triggers",
+   "mode": "rendered",
+   "files": 19
+  },
+  {
+   "band": "0130-0135z",
+   "owner": "kernel/merge-gate-and-core+quickrefuse",
+   "mode": "rendered",
+   "files": 3
+  },
+  {
+   "band": "0136-0139z",
+   "owner": "recall",
+   "mode": "authored",
+   "files": 5
+  },
+  {
+   "band": "0140-0144z",
+   "owner": "datamodel/dm-functions-triggers+algorithms",
+   "mode": "authored",
+   "files": 6
+  },
+  {
+   "band": "0145-0149z",
+   "owner": "datamodel/dm-functions-triggers+algorithms",
+   "mode": "authored",
+   "files": 9
+  },
+  {
+   "band": "0150-0154z",
+   "owner": "algorithms",
+   "mode": "authored",
+   "files": 3
+  },
+  {
+   "band": "0155-0169z",
+   "owner": "datamodel/dm-views-rls",
+   "mode": "authored",
+   "files": 15
+  },
+  {
+   "band": "0170-0179z",
+   "owner": "datamodel/dm-views-rls",
+   "mode": "authored",
+   "files": 3
+  },
+  {
+   "band": "0180-0198z",
+   "owner": "datamodel/dm-views-rls",
+   "mode": "authored",
+   "files": 43
+  },
+  {
+   "band": "0199-0199z",
+   "owner": "datamodel/dm-views-rls",
+   "mode": "authored",
+   "files": 1
+  },
+  {
+   "band": "0200-9999z",
+   "owner": "UNALLOCATED",
+   "mode": "unallocated",
+   "files": 0
+  }
+ ],
+ "migrations": [
+  {
+   "file": "0001a_schema_mainline.sql",
+   "version": "0001a_schema_mainline",
+   "number": "0001a",
+   "mode": "rendered",
+   "band": "0001-0018z",
+   "owner": "kernel/render-and-foundation",
+   "template": "packages/trappoint-sql/templates/0001_schemas.sql.j2",
+   "invariants": [
+    "MI01",
+    "I01"
+   ],
+   "sha256": "65c26de157d863e944f5252e25090ae82411a9fca529a5f2971c54eafc815040",
+   "counsel_gated": false
+  },
+  {
+   "file": "0002_schema_meas.sql",
+   "version": "0002_schema_meas",
+   "number": "0002",
+   "mode": "rendered",
+   "band": "0001-0018z",
+   "owner": "kernel/render-and-foundation",
+   "template": "packages/trappoint-sql/templates/0001_schemas.sql.j2",
+   "invariants": [
+    "MI17",
+    "I13"
+   ],
+   "sha256": "aafde86014e23a33a47148ce5842fbf4547cc9c429dd9eac1a29046d433660e4",
+   "counsel_gated": false
+  },
+  {
+   "file": "0003_schema_audit.sql",
+   "version": "0003_schema_audit",
+   "number": "0003",
+   "mode": "rendered",
+   "band": "0001-0018z",
+   "owner": "kernel/render-and-foundation",
+   "template": "packages/trappoint-sql/templates/0001_schemas.sql.j2",
+   "invariants": [
+    "MI01",
+    "I16"
+   ],
+   "sha256": "7ece1b876a11e2aa9f19de3a7d534e43216bcf4f405a77ec5c8953abf1a3dfe0",
+   "counsel_gated": false
+  },
+  {
+   "file": "0004_schema_qa.sql",
+   "version": "0004_schema_qa",
+   "number": "0004",
+   "mode": "rendered",
+   "band": "0001-0018z",
+   "owner": "kernel/render-and-foundation",
+   "template": "packages/trappoint-sql/templates/0001_schemas.sql.j2",
+   "invariants": [
+    "MI27",
+    "I15"
+   ],
+   "sha256": "0fb0f45f4580618bd93c2bbd20faf6b27c43ead7221cc15d122616e6944895e0",
+   "counsel_gated": false
+  },
+  {
+   "file": "0005_schema_ops.sql",
+   "version": "0005_schema_ops",
+   "number": "0005",
+   "mode": "rendered",
+   "band": "0001-0018z",
+   "owner": "kernel/render-and-foundation",
+   "template": "packages/trappoint-sql/templates/0001_schemas.sql.j2",
+   "invariants": [
+    "MI22",
+    "I06"
+   ],
+   "sha256": "69ce88c6397c9d1212bb685a9a533baee94e745908f4454bd280c55d99556de1",
+   "counsel_gated": false
+  },
+  {
+   "file": "0006a_role_migrator.sql",
+   "version": "0006a_role_migrator",
+   "number": "0006a",
+   "mode": "rendered",
+   "band": "0001-0018z",
+   "owner": "kernel/render-and-foundation",
+   "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
+   "invariants": [
+    "MI01",
+    "I01"
+   ],
+   "sha256": "2481312d92bd5dd4da6bd9bf37f5391be6a632787a946422825d8cd8a5a1c98e",
+   "counsel_gated": false
+  },
+  {
+   "file": "0006b_role_owner.sql",
+   "version": "0006b_role_owner",
+   "number": "0006b",
+   "mode": "rendered",
+   "band": "0001-0018z",
+   "owner": "kernel/render-and-foundation",
+   "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
+   "invariants": [
+    "MI01",
+    "I01"
+   ],
+   "sha256": "935159864580b51586addcbed96a57d813df4e896d0073a58a0303ecd17dfffd",
+   "counsel_gated": false
+  },
+  {
+   "file": "0006c_role_gate.sql",
+   "version": "0006c_role_gate",
+   "number": "0006c",
+   "mode": "rendered",
+   "band": "0001-0018z",
+   "owner": "kernel/render-and-foundation",
+   "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
+   "invariants": [
+    "MI02",
+    "I02"
+   ],
+   "sha256": "3ac8fd380041555f3959a53dac2b71f24dc93e860df562b7356a6a03c89a9b55",
+   "counsel_gated": false
+  },
+  {
+   "file": "0006d_role_projector.sql",
+   "version": "0006d_role_projector",
+   "number": "0006d",
+   "mode": "rendered",
+   "band": "0001-0018z",
+   "owner": "kernel/render-and-foundation",
+   "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
+   "invariants": [
+    "MI26",
+    "I05"
+   ],
+   "sha256": "e1f91389942ccbc2c9a12e498dc7f32a258311b313cbbae4e07ffdb50a1573a0",
+   "counsel_gated": false
+  },
+  {
+   "file": "0006e_role_recaller.sql",
+   "version": "0006e_role_recaller",
+   "number": "0006e",
+   "mode": "rendered",
+   "band": "0001-0018z",
+   "owner": "kernel/render-and-foundation",
+   "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
+   "invariants": [
+    "MI25",
+    "I13"
+   ],
+   "sha256": "5eb9115a1fc7e387f170847e38ea953b0226a157ec3c35f3f4f12834ef8c8b72",
+   "counsel_gated": false
+  },
+  {
+   "file": "0006f_role_disposer.sql",
+   "version": "0006f_role_disposer",
+   "number": "0006f",
+   "mode": "rendered",
+   "band": "0001-0018z",
+   "owner": "kernel/render-and-foundation",
+   "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
+   "invariants": [
+    "MI08",
+    "I10"
+   ],
+   "sha256": "6059ee31924feecc049b10e897d08a6716d3ad5e202898be5ddc2c0f97a6dd6a",
+   "counsel_gated": false
+  },
+  {
+   "file": "0006g_role_auditor.sql",
+   "version": "0006g_role_auditor",
+   "number": "0006g",
+   "mode": "rendered",
+   "band": "0001-0018z",
+   "owner": "kernel/render-and-foundation",
+   "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
+   "invariants": [
+    "MI01",
+    "I16"
+   ],
+   "sha256": "defc7b218339fa8393bd764a34de1c0e2352a48780bd453275e17589a20c49ca",
+   "counsel_gated": false
+  },
+  {
+   "file": "0006h_role_reader.sql",
+   "version": "0006h_role_reader",
+   "number": "0006h",
+   "mode": "rendered",
+   "band": "0001-0018z",
+   "owner": "kernel/render-and-foundation",
+   "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
+   "invariants": [
+    "MI01",
+    "I01"
+   ],
+   "sha256": "a9d77b55285b0e9fdba9e98deb83acc3aeee49ca2a8dff97f193788f25da6919",
+   "counsel_gated": false
+  },
+  {
+   "file": "0006i_role_qa.sql",
+   "version": "0006i_role_qa",
+   "number": "0006i",
+   "mode": "rendered",
+   "band": "0001-0018z",
+   "owner": "kernel/render-and-foundation",
+   "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
+   "invariants": [
+    "MI27",
+    "I15"
+   ],
+   "sha256": "45d95f0ee3124d42acc46ee7ad8b2959f21758ecdcf7519f5f5ec4e0d1c0e4a4",
+   "counsel_gated": false
+  },
+  {
+   "file": "0007a_revoke_public_business.sql",
+   "version": "0007a_revoke_public_business",
+   "number": "0007a",
+   "mode": "rendered",
+   "band": "0001-0018z",
+   "owner": "kernel/render-and-foundation",
+   "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
+   "invariants": [
+    "MI01",
+    "I01"
+   ],
+   "sha256": "64a1f5119944285ef04be027093bd2e7a42b42c6a115f414bfe09a75227fcc85",
+   "counsel_gated": false
+  },
+  {
+   "file": "0007b_revoke_public_meas.sql",
+   "version": "0007b_revoke_public_meas",
+   "number": "0007b",
+   "mode": "rendered",
+   "band": "0001-0018z",
+   "owner": "kernel/render-and-foundation",
+   "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
+   "invariants": [
+    "MI01",
+    "I01"
+   ],
+   "sha256": "44ac7dde4f642236595214c9dcebf7a7496847079d120690a598b50bea7cffe3",
+   "counsel_gated": false
+  },
+  {
+   "file": "0007c_revoke_public_audit.sql",
+   "version": "0007c_revoke_public_audit",
+   "number": "0007c",
+   "mode": "rendered",
+   "band": "0001-0018z",
+   "owner": "kernel/render-and-foundation",
+   "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
+   "invariants": [
+    "MI01",
+    "I01"
+   ],
+   "sha256": "80c6e201c9a4b700ee7585c4472782f52f171c4788c46bc9c9b914b29f5acd0c",
+   "counsel_gated": false
+  },
+  {
+   "file": "0007d_revoke_public_qa.sql",
+   "version": "0007d_revoke_public_qa",
+   "number": "0007d",
+   "mode": "rendered",
+   "band": "0001-0018z",
+   "owner": "kernel/render-and-foundation",
+   "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
+   "invariants": [
+    "MI01",
+    "I01"
+   ],
+   "sha256": "e0cd4dbe382f8bfbe1be8ad5a50c11a41f9e616be074159733675f733ff24b27",
+   "counsel_gated": false
+  },
+  {
+   "file": "0007e_revoke_public_ops.sql",
+   "version": "0007e_revoke_public_ops",
+   "number": "0007e",
+   "mode": "rendered",
+   "band": "0001-0018z",
+   "owner": "kernel/render-and-foundation",
+   "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
+   "invariants": [
+    "MI01",
+    "I01"
+   ],
+   "sha256": "e46899508179ff3627f402d2cf85df207c5043cb772bbe1052450e081f1461fb",
+   "counsel_gated": false
+  },
+  {
+   "file": "0008a_owner_business.sql",
+   "version": "0008a_owner_business",
+   "number": "0008a",
+   "mode": "rendered",
+   "band": "0001-0018z",
+   "owner": "kernel/render-and-foundation",
+   "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
+   "invariants": [
+    "MI01",
+    "I01"
+   ],
+   "sha256": "aaf04190253203b84a6962e9f19c79becd757312471f0e6c50d12164792443ba",
+   "counsel_gated": false
+  },
+  {
+   "file": "0008b_owner_meas.sql",
+   "version": "0008b_owner_meas",
+   "number": "0008b",
+   "mode": "rendered",
+   "band": "0001-0018z",
+   "owner": "kernel/render-and-foundation",
+   "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
+   "invariants": [
+    "MI01",
+    "I01"
+   ],
+   "sha256": "59c57ed010c7f5691513b1c64b99c7dd32fbb812b68bc160ae17fee01ac99676",
+   "counsel_gated": false
+  },
+  {
+   "file": "0008c_owner_audit.sql",
+   "version": "0008c_owner_audit",
+   "number": "0008c",
+   "mode": "rendered",
+   "band": "0001-0018z",
+   "owner": "kernel/render-and-foundation",
+   "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
+   "invariants": [
+    "MI01",
+    "I01"
+   ],
+   "sha256": "42a733a9421d3cdde33e3db1f17a4283ef0e82fc4f158767c2bb6d2fb3c01ad1",
+   "counsel_gated": false
+  },
+  {
+   "file": "0008d_owner_qa.sql",
+   "version": "0008d_owner_qa",
+   "number": "0008d",
+   "mode": "rendered",
+   "band": "0001-0018z",
+   "owner": "kernel/render-and-foundation",
+   "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
+   "invariants": [
+    "MI01",
+    "I01"
+   ],
+   "sha256": "17715ce3dae16f79a95599ecd0ffe3341bf04e8b5d157f7b197740d080a7140c",
+   "counsel_gated": false
+  },
+  {
+   "file": "0008e_owner_ops.sql",
+   "version": "0008e_owner_ops",
+   "number": "0008e",
+   "mode": "rendered",
+   "band": "0001-0018z",
+   "owner": "kernel/render-and-foundation",
+   "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
+   "invariants": [
+    "MI01",
+    "I01"
+   ],
+   "sha256": "e745c7611b3d38ef71ce725546472283f80a1d762a22642c27fe82f529761232",
+   "counsel_gated": false
+  },
+  {
+   "file": "0009a_grant_create_migrator.sql",
+   "version": "0009a_grant_create_migrator",
+   "number": "0009a",
+   "mode": "rendered",
+   "band": "0001-0018z",
+   "owner": "kernel/render-and-foundation",
+   "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
+   "invariants": [
+    "MI01",
+    "I01"
+   ],
+   "sha256": "aec802aefa625e16de28ba795daea0d867858c1ff65c9f2cd6e7d16633a0b44d",
+   "counsel_gated": false
+  },
+  {
+   "file": "0009b_grant_usage_agents.sql",
+   "version": "0009b_grant_usage_agents",
+   "number": "0009b",
+   "mode": "rendered",
+   "band": "0001-0018z",
+   "owner": "kernel/render-and-foundation",
+   "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
+   "invariants": [
+    "MI02",
+    "I02"
+   ],
+   "sha256": "630aad30a21f3aa7653ba1693b7314902eb520dc4bb55797ee83310f9d47f46d",
+   "counsel_gated": false
+  },
+  {
+   "file": "0009c_grant_usage_auditor.sql",
+   "version": "0009c_grant_usage_auditor",
+   "number": "0009c",
+   "mode": "rendered",
+   "band": "0001-0018z",
+   "owner": "kernel/render-and-foundation",
+   "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
+   "invariants": [
+    "MI01",
+    "I16"
+   ],
+   "sha256": "f1f7033c46bcfc913563ecef1a5bbf2365de7f332d92272d43ac8d6eb5cfb376",
+   "counsel_gated": false
+  },
+  {
+   "file": "0009d_grant_usage_qa.sql",
+   "version": "0009d_grant_usage_qa",
+   "number": "0009d",
+   "mode": "rendered",
+   "band": "0001-0018z",
+   "owner": "kernel/render-and-foundation",
+   "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
+   "invariants": [
+    "MI27",
+    "I15"
+   ],
+   "sha256": "a42303519351b41f15b638c1dece9cd6c77e51d2a47e745e4a7ce056d7e218b8",
+   "counsel_gated": false
+  },
+  {
+   "file": "0009e_default_privileges_floor.sql",
+   "version": "0009e_default_privileges_floor",
+   "number": "0009e",
+   "mode": "rendered",
+   "band": "0001-0018z",
+   "owner": "kernel/render-and-foundation",
+   "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
+   "invariants": [
+    "MI01",
+    "I01"
+   ],
+   "sha256": "04d1c34cedb5d71ce8c121fc379f1577c37e8f6ff21f64bb367f488d194fef38",
+   "counsel_gated": false
+  },
+  {
+   "file": "0009f_revoke_create_public_schema.sql",
+   "version": "0009f_revoke_create_public_schema",
+   "number": "0009f",
+   "mode": "rendered",
+   "band": "0001-0018z",
+   "owner": "kernel/render-and-foundation",
+   "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
+   "invariants": [
+    "MI01",
+    "I01"
+   ],
+   "sha256": "eefce5a05965f699c927015317766d3fda83156dce4fd493bae1ac8b61e737a0",
+   "counsel_gated": false
+  },
+  {
+   "file": "0009x_covenant_comment.sql",
+   "version": "0009x_covenant_comment",
+   "number": "0009x",
+   "mode": "rendered",
+   "band": "0001-0018z",
+   "owner": "kernel/render-and-foundation",
+   "template": "packages/trappoint-sql/templates/0006_roles.sql.j2",
+   "invariants": [
+    "MI25",
+    "I02"
+   ],
+   "sha256": "9efaf07c286c1de23b922519ca6ef340296d4d81af831bcf32e1bc319bf6ac09",
+   "counsel_gated": false
+  },
+  {
+   "file": "0010_type_control_delta.sql",
+   "version": "0010_type_control_delta",
+   "number": "0010",
+   "mode": "rendered",
+   "band": "0001-0018z",
+   "owner": "kernel/render-and-foundation",
+   "template": "packages/trappoint-sql/templates/0010_types.sql.j2",
+   "invariants": [
+    "MI23",
+    "I12"
+   ],
+   "sha256": "8fd5d79bf93333633fc32f24b23cff7458310c807437febbb2f9c125b56b3024",
+   "counsel_gated": false
+  },
+  {
+   "file": "0011_type_subject_state.sql",
+   "version": "0011_type_subject_state",
+   "number": "0011",
+   "mode": "rendered",
+   "band": "0001-0018z",
+   "owner": "kernel/render-and-foundation",
+   "template": "packages/trappoint-sql/templates/0010_types.sql.j2",
+   "invariants": [
+    "MI10",
+    "I04"
+   ],
+   "sha256": "68a8b27609b7e61adbb6d92a10cd00a313479504145cf80a37d21feeeb749c50",
+   "counsel_gated": false
+  },
+  {
+   "file": "0012_type_disposition_kind.sql",
+   "version": "0012_type_disposition_kind",
+   "number": "0012",
+   "mode": "rendered",
+   "band": "0001-0018z",
+   "owner": "kernel/render-and-foundation",
+   "template": "packages/trappoint-sql/templates/0010_types.sql.j2",
+   "invariants": [
+    "MI11",
+    "I10"
+   ],
+   "sha256": "89b3df64e9bc5f748ce7c6d3a549ad50e1630d2255a49ca9673996fe4b3886c0",
+   "counsel_gated": false
+  },
+  {
+   "file": "0013_type_virulence_class.sql",
+   "version": "0013_type_virulence_class",
+   "number": "0013",
+   "mode": "rendered",
+   "band": "0001-0018z",
+   "owner": "kernel/render-and-foundation",
+   "template": "packages/trappoint-sql/templates/0010_types.sql.j2",
+   "invariants": [
+    "MI25",
+    "I02"
+   ],
+   "sha256": "2dd69b0bc6f7f0add96f4d495777baddc9e95c641b49689e607c0bb09dd43c67",
+   "counsel_gated": false
+  },
+  {
+   "file": "0014_type_blame_basis.sql",
+   "version": "0014_type_blame_basis",
+   "number": "0014",
+   "mode": "rendered",
+   "band": "0001-0018z",
+   "owner": "kernel/render-and-foundation",
+   "template": "packages/trappoint-sql/templates/0010_types.sql.j2",
+   "invariants": [
+    "MI13",
+    "I11"
+   ],
+   "sha256": "1b466c16d24a11c4ef27a8427986464674d34b166746b5eca0b1be480841a969",
+   "counsel_gated": false
+  },
+  {
+   "file": "0015_type_blame_state.sql",
+   "version": "0015_type_blame_state",
+   "number": "0015",
+   "mode": "rendered",
+   "band": "0001-0018z",
+   "owner": "kernel/render-and-foundation",
+   "template": "packages/trappoint-sql/templates/0010_types.sql.j2",
+   "invariants": [
+    "MI15",
+    "I05"
+   ],
+   "sha256": "b34282d6586d7c16202c19be3874f927135eaf9c00beb4c6bc23bc3829e25033",
+   "counsel_gated": false
+  },
+  {
+   "file": "0016_type_prop_state.sql",
+   "version": "0016_type_prop_state",
+   "number": "0016",
+   "mode": "rendered",
+   "band": "0001-0018z",
+   "owner": "kernel/render-and-foundation",
+   "template": "packages/trappoint-sql/templates/0010_types.sql.j2",
+   "invariants": [
+    "MI23",
+    "I12"
+   ],
+   "sha256": "4ccf1f839671ca904f00533c28cd00aaff8a95465b1cc503d0090a742ec80476",
+   "counsel_gated": false
+  },
+  {
+   "file": "0017a_subject_transition.sql",
+   "version": "0017a_subject_transition",
+   "number": "0017a",
+   "mode": "rendered",
+   "band": "0001-0018z",
+   "owner": "kernel/render-and-foundation",
+   "template": "packages/trappoint-sql/templates/0017_subject_transition.sql.j2",
+   "invariants": [
+    "MI10",
+    "I04"
+   ],
+   "sha256": "e7baf2746a53ed5c6fe2ec1416448be27fd749b5de47751cecd413ddf3f5c625",
+   "counsel_gated": false
+  },
+  {
+   "file": "0017b_subject_transition_seed.sql",
+   "version": "0017b_subject_transition_seed",
+   "number": "0017b",
+   "mode": "rendered",
+   "band": "0001-0018z",
+   "owner": "kernel/render-and-foundation",
+   "template": "packages/trappoint-sql/templates/0017_subject_transition.sql.j2",
+   "invariants": [
+    "MI10",
+    "I04"
+   ],
+   "sha256": "ccef458d818f277d94a838be46943d1333f733eea2e70e58f3470189d58d580a",
+   "counsel_gated": false
+  },
+  {
+   "file": "0018a_clearance_legal.sql",
+   "version": "0018a_clearance_legal",
+   "number": "0018a",
+   "mode": "rendered",
+   "band": "0001-0018z",
+   "owner": "kernel/render-and-foundation",
+   "template": "packages/trappoint-sql/templates/0018_clearance_legal.sql.j2",
+   "invariants": [
+    "MI11",
+    "I10"
+   ],
+   "sha256": "4f65447c50a6db4609c0212fdd4bff67ab3d49943227444c5323993dd70a7ef9",
+   "counsel_gated": false
+  },
+  {
+   "file": "0018b_clearance_legal_seed.sql",
+   "version": "0018b_clearance_legal_seed",
+   "number": "0018b",
+   "mode": "rendered",
+   "band": "0001-0018z",
+   "owner": "kernel/render-and-foundation",
+   "template": "packages/trappoint-sql/templates/0018_clearance_legal.sql.j2",
+   "invariants": [
+    "MI11",
+    "I10"
+   ],
+   "sha256": "583a8fafaca774bfb54211b923a4eca1f8bdfc255a0ec313c2839ee455e26dfe",
+   "counsel_gated": false
+  },
+  {
+   "file": "0019_retention_class.sql",
+   "version": "0019_retention_class",
+   "number": "0019",
+   "mode": "authored",
+   "band": "0019-0020z",
+   "owner": "datamodel/dm-foundation",
+   "template": null,
+   "invariants": [
+    "MI01",
+    "I01"
+   ],
+   "sha256": "d4bf0ab7536dea9d2ab6ae6ccd70701a75ae40ab07b47de88acfea3afc3638d3",
+   "counsel_gated": false
+  },
+  {
+   "file": "0020_adm_decision_class.sql",
+   "version": "0020_adm_decision_class",
+   "number": "0020",
+   "mode": "authored",
+   "band": "0019-0020z",
+   "owner": "datamodel/dm-foundation",
+   "template": null,
+   "invariants": [
+    "MI01",
+    "I15"
+   ],
+   "sha256": "b11295d537368747e99184b6be4833745bd71b59c7c9679ab6bda586d1f9550d",
+   "counsel_gated": false
+  },
+  {
+   "file": "0020a_site.sql",
+   "version": "0020a_site",
+   "number": "0020a",
+   "mode": "authored",
+   "band": "0019-0020z",
+   "owner": "datamodel/dm-foundation",
+   "template": null,
+   "invariants": [
+    "MI01",
+    "MI25",
+    "I02",
+    "MI24"
+   ],
+   "sha256": "9817d8d07a63110b2139f4042e5004368f0a56f2d540c2ffab868b366e7bfef0",
+   "counsel_gated": false
+  },
+  {
+   "file": "0021_person.sql",
+   "version": "0021_person",
+   "number": "0021",
+   "mode": "rendered",
+   "band": "0021-0023z",
+   "owner": "kernel/render-and-foundation",
+   "template": "packages/trappoint-sql/templates/0021_identity.sql.j2",
+   "invariants": [
+    "MI27",
+    "I09"
+   ],
+   "sha256": "2ea56486c8d0cd2a6bc87b6ff721f02acc4f129a78ae39e52f21102d96b75ed8",
+   "counsel_gated": false
+  },
+  {
+   "file": "0022_signing_credential.sql",
+   "version": "0022_signing_credential",
+   "number": "0022",
+   "mode": "rendered",
+   "band": "0021-0023z",
+   "owner": "kernel/render-and-foundation",
+   "template": "packages/trappoint-sql/templates/0021_identity.sql.j2",
+   "invariants": [
+    "MI27",
+    "I09"
+   ],
+   "sha256": "14a41bf5ac1fe9b95110141073c5a8638f2a1b76b47ccdef3ede66f5d856c37e",
+   "counsel_gated": false
+  },
+  {
+   "file": "0023_signing_credential_index.sql",
+   "version": "0023_signing_credential_index",
+   "number": "0023",
+   "mode": "rendered",
+   "band": "0021-0023z",
+   "owner": "kernel/render-and-foundation",
+   "template": "packages/trappoint-sql/templates/0021_identity.sql.j2",
+   "invariants": [
+    "MI27",
+    "I09"
+   ],
+   "sha256": "4858e5ac0346435936cf8985ecd99fb342ea9cc44615ce224599f790d06f9c23",
+   "counsel_gated": false
+  },
+  {
+   "file": "0024_commit_obj.sql",
+   "version": "0024_commit_obj",
+   "number": "0024",
+   "mode": "authored",
+   "band": "0024-0031z",
+   "owner": "datamodel/dm-spine",
+   "template": null,
+   "invariants": [
+    "MI01",
+    "MI24",
+    "I01"
+   ],
+   "sha256": "ac2830ec48e812a0cd790898d5b18d1af6fd40457b03c4cb8df034f1bf7036fa",
+   "counsel_gated": false
+  },
+  {
+   "file": "0025_commit_edge.sql",
+   "version": "0025_commit_edge",
+   "number": "0025",
+   "mode": "authored",
+   "band": "0024-0031z",
+   "owner": "datamodel/dm-spine",
+   "template": null,
+   "invariants": [
+    "MI01",
+    "MI09",
+    "I04"
+   ],
+   "sha256": "3d493f6f150146e2682823499407b7778fc0fbdfe77de9d63681d9a3cced9e54",
+   "counsel_gated": false
+  },
+  {
+   "file": "0026_ref.sql",
+   "version": "0026_ref",
+   "number": "0026",
+   "mode": "authored",
+   "band": "0024-0031z",
+   "owner": "datamodel/dm-spine",
+   "template": null,
+   "invariants": [
+    "MI01",
+    "MI09",
+    "I04"
+   ],
+   "sha256": "5136e2b35b2cbef2c716b865982ade884614c3d98b78aa005aed033e25d303b5",
+   "counsel_gated": false
+  },
+  {
+   "file": "0027_doc.sql",
+   "version": "0027_doc",
+   "number": "0027",
+   "mode": "authored",
+   "band": "0024-0031z",
+   "owner": "datamodel/dm-spine",
+   "template": null,
+   "invariants": [
+    "MI19",
+    "MI01",
+    "I06"
+   ],
+   "sha256": "98131eeb82017ba3098ae695ba5d08052e7db4b61b0fa62471d23a30cfffcb8f",
+   "counsel_gated": false
+  },
+  {
+   "file": "0028_clause.sql",
+   "version": "0028_clause",
+   "number": "0028",
+   "mode": "authored",
+   "band": "0024-0031z",
+   "owner": "datamodel/dm-spine",
+   "template": null,
+   "invariants": [
+    "MI01",
+    "MI03",
+    "I01"
+   ],
+   "sha256": "6c6c793bc8a7ffae759175d8661abe8fe4b6ae8ac28d7a5dc1d59938bc304ba8",
+   "counsel_gated": false
+  },
+  {
+   "file": "0029_clause_version.sql",
+   "version": "0029_clause_version",
+   "number": "0029",
+   "mode": "authored",
+   "band": "0024-0031z",
+   "owner": "datamodel/dm-spine",
+   "template": null,
+   "invariants": [
+    "MI15",
+    "MI14",
+    "MI01",
+    "I05",
+    "I11"
+   ],
+   "sha256": "a97856a272e16f23db9d868cb90cd92a1c1ccdfebca6ebd81458d711a1dd54ca",
+   "counsel_gated": false
+  },
+  {
+   "file": "0029a_clause_version_trgm.sql",
+   "version": "0029a_clause_version_trgm",
+   "number": "0029a",
+   "mode": "authored",
+   "band": "0024-0031z",
+   "owner": "datamodel/dm-spine",
+   "template": null,
+   "invariants": [
+    "MI17",
+    "I13"
+   ],
+   "sha256": "ff9f7824f839cfe4694d84a378e0d371b78efbebbd011a5d7ee17baa970f2333",
+   "counsel_gated": false
+  },
+  {
+   "file": "0030_clause_band.sql",
+   "version": "0030_clause_band",
+   "number": "0030",
+   "mode": "authored",
+   "band": "0024-0031z",
+   "owner": "datamodel/dm-spine",
+   "template": null,
+   "invariants": [
+    "MI03",
+    "MI01",
+    "I06"
+   ],
+   "sha256": "e4aba8ffbdb5eb26ceb8a8ffa58d3578b9770e2cbaeb20819345e090e46ee263",
+   "counsel_gated": false
+  },
+  {
+   "file": "0031_clause_embedding.sql",
+   "version": "0031_clause_embedding",
+   "number": "0031",
+   "mode": "authored",
+   "band": "0024-0031z",
+   "owner": "datamodel/dm-spine",
+   "template": null,
+   "invariants": [
+    "MI25",
+    "MI01",
+    "I02"
+   ],
+   "sha256": "a7caa33d585a866c5d852982a1dc4041e41d28f177dfeaaa89e0144a30ae8e51",
+   "counsel_gated": false
+  },
+  {
+   "file": "0032_activity_node.sql",
+   "version": "0032_activity_node",
+   "number": "0032",
+   "mode": "authored",
+   "band": "0032-0039z",
+   "owner": "datamodel/dm-blame",
+   "template": null,
+   "invariants": [
+    "MI16",
+    "MI01",
+    "I13",
+    "I01"
+   ],
+   "sha256": "fe4cd6d3cb44ab6af501d5229c3017d507f222c78066a7bfe571463ad784aa05",
+   "counsel_gated": false
+  },
+  {
+   "file": "0033_event.sql",
+   "version": "0033_event",
+   "number": "0033",
+   "mode": "authored",
+   "band": "0032-0039z",
+   "owner": "datamodel/dm-blame",
+   "template": null,
+   "invariants": [
+    "MI14",
+    "MI16",
+    "I11",
+    "I13"
+   ],
+   "sha256": "796803decf9d0ca57ce34818d726ec3564b5d701851e7b72d9b3db4eeefa97a2",
+   "counsel_gated": false
+  },
+  {
+   "file": "0034_event_edge.sql",
+   "version": "0034_event_edge",
+   "number": "0034",
+   "mode": "authored",
+   "band": "0032-0039z",
+   "owner": "datamodel/dm-blame",
+   "template": null,
+   "invariants": [
+    "MI15",
+    "MI26",
+    "I05"
+   ],
+   "sha256": "3de694977222611d97fe174520d00af9f166439266bd3c87ffa832fdee967634",
+   "counsel_gated": false
+  },
+  {
+   "file": "0035_control_failure.sql",
+   "version": "0035_control_failure",
+   "number": "0035",
+   "mode": "authored",
+   "band": "0032-0039z",
+   "owner": "datamodel/dm-blame",
+   "template": null,
+   "invariants": [
+    "MI13",
+    "MI16",
+    "I11",
+    "I13"
+   ],
+   "sha256": "87ce9e58ccb3d801bb2807f0973198fd008143d77ef4e2e9e21d09abdaa63f8c",
+   "counsel_gated": false
+  },
+  {
+   "file": "0036_event_severity_revision.sql",
+   "version": "0036_event_severity_revision",
+   "number": "0036",
+   "mode": "authored",
+   "band": "0032-0039z",
+   "owner": "datamodel/dm-blame",
+   "template": null,
+   "invariants": [
+    "MI14",
+    "MI15",
+    "I11",
+    "I05"
+   ],
+   "sha256": "16c6745359db5b36638784ef3a4b34803653a195ddbdfd54c22bd86e8c5ec987",
+   "counsel_gated": false
+  },
+  {
+   "file": "0037_blame_edge.sql",
+   "version": "0037_blame_edge",
+   "number": "0037",
+   "mode": "authored",
+   "band": "0032-0039z",
+   "owner": "datamodel/dm-blame",
+   "template": null,
+   "invariants": [
+    "MI13",
+    "MI15",
+    "I11",
+    "I05"
+   ],
+   "sha256": "4f825ab3fc68cee05a99a68b7eacf9c911effac5e1fcf4d04060d154c0a2cb50",
+   "counsel_gated": false
+  },
+  {
+   "file": "0038_clause_blame_closure.sql",
+   "version": "0038_clause_blame_closure",
+   "number": "0038",
+   "mode": "authored",
+   "band": "0032-0039z",
+   "owner": "datamodel/dm-blame",
+   "template": null,
+   "invariants": [
+    "MI26",
+    "MI22",
+    "MI25",
+    "I05",
+    "I02"
+   ],
+   "sha256": "3e4e27199e838b625f7721b8ff3a473e79515a281437e0b3235b65add9f9e1a8",
+   "counsel_gated": false
+  },
+  {
+   "file": "0039_clause_blame_current.sql",
+   "version": "0039_clause_blame_current",
+   "number": "0039",
+   "mode": "authored",
+   "band": "0032-0039z",
+   "owner": "datamodel/dm-blame",
+   "template": null,
+   "invariants": [
+    "MI26",
+    "MI22",
+    "MI25",
+    "I05",
+    "I02"
+   ],
+   "sha256": "8db1dcab404f9634a720913929c6564b1d72320bc4760adb8152cb91cf66e620",
+   "counsel_gated": false
+  },
+  {
+   "file": "0040_event_cue.sql",
+   "version": "0040_event_cue",
+   "number": "0040",
+   "mode": "authored",
+   "band": "0040-0046z",
+   "owner": "recall/recall-ddl-triggers",
+   "template": null,
+   "invariants": [
+    "MI16",
+    "MI17",
+    "I13"
+   ],
+   "sha256": "9b5e4eeb22701372470fca7b105e20645e13a7ceba2d0dcb1a3d4a3892cc2b4c",
+   "counsel_gated": false
+  },
+  {
+   "file": "0041_event_cue_embedding.sql",
+   "version": "0041_event_cue_embedding",
+   "number": "0041",
+   "mode": "authored",
+   "band": "0040-0046z",
+   "owner": "recall/recall-ddl-triggers",
+   "template": null,
+   "invariants": [
+    "MI25",
+    "I02",
+    "MI31"
+   ],
+   "sha256": "8ff83f3a73ac92b44f1207bd283f2c78724f342ad86cfc15c9863f9800ff970d",
+   "counsel_gated": false
+  },
+  {
+   "file": "0042_event_cue_coarse.sql",
+   "version": "0042_event_cue_coarse",
+   "number": "0042",
+   "mode": "authored",
+   "band": "0040-0046z",
+   "owner": "recall/recall-ddl-triggers",
+   "template": null,
+   "invariants": [
+    "MI16",
+    "MI25",
+    "I02",
+    "I13"
+   ],
+   "sha256": "8abde1d059e6f6c594e6a0278b190c197147613fd9bcbdc8950bc07a56ba93e0",
+   "counsel_gated": false
+  },
+  {
+   "file": "0043_lex_posting.sql",
+   "version": "0043_lex_posting",
+   "number": "0043",
+   "mode": "authored",
+   "band": "0040-0046z",
+   "owner": "recall/recall-ddl-triggers",
+   "template": null,
+   "invariants": [
+    "MI17",
+    "I13"
+   ],
+   "sha256": "51dffd7da3f6e6b6635f585d8f0caf89f6c9bef30336fff7a95ba975471aa762",
+   "counsel_gated": false
+  },
+  {
+   "file": "0044_lex_stats.sql",
+   "version": "0044_lex_stats",
+   "number": "0044",
+   "mode": "authored",
+   "band": "0040-0046z",
+   "owner": "recall/recall-ddl-triggers",
+   "template": null,
+   "invariants": [
+    "MI17",
+    "I13"
+   ],
+   "sha256": "a57add61e2a1a78f6b7aec2302e245a75be6f3a354b8b37aeb518ea05955728c",
+   "counsel_gated": false
+  },
+  {
+   "file": "0045_lex_doclen.sql",
+   "version": "0045_lex_doclen",
+   "number": "0045",
+   "mode": "authored",
+   "band": "0040-0046z",
+   "owner": "recall/recall-ddl-triggers",
+   "template": null,
+   "invariants": [
+    "MI17",
+    "I13"
+   ],
+   "sha256": "8beb670a0e792c0bed4417206e8596f30199b577836e759becbbcb754f4d6882",
+   "counsel_gated": false
+  },
+  {
+   "file": "0046_event_bond.sql",
+   "version": "0046_event_bond",
+   "number": "0046",
+   "mode": "authored",
+   "band": "0040-0046z",
+   "owner": "recall/recall-ddl-triggers",
+   "template": null,
+   "invariants": [
+    "MI16",
+    "I13"
+   ],
+   "sha256": "4cdeebc3e18fcfff81d7b2729038305289973f905923210876d07e2a1ba70830",
+   "counsel_gated": false
+  },
+  {
+   "file": "0047_control_series.sql",
+   "version": "0047_control_series",
+   "number": "0047",
+   "mode": "authored",
+   "band": "0047-0049",
+   "owner": "datamodel/dm-spine",
+   "template": null,
+   "invariants": [
+    "MI19",
+    "MI01",
+    "I06"
+   ],
+   "sha256": "0b74bc67decf8125ed2879e72a120743a3e470f16c37f395acca116ab51ac3e1",
+   "counsel_gated": false
+  },
+  {
+   "file": "0048_carriage.sql",
+   "version": "0048_carriage",
+   "number": "0048",
+   "mode": "authored",
+   "band": "0047-0049",
+   "owner": "datamodel/dm-spine",
+   "template": null,
+   "invariants": [
+    "MI19",
+    "MI01",
+    "I06"
+   ],
+   "sha256": "4839883f9a5eab2fa279d42a4b3bad45e4df7f7d794953fc68a0101f571d7fed",
+   "counsel_gated": false
+  },
+  {
+   "file": "0049_identity_residue.sql",
+   "version": "0049_identity_residue",
+   "number": "0049",
+   "mode": "authored",
+   "band": "0047-0049",
+   "owner": "datamodel/dm-spine",
+   "template": null,
+   "invariants": [
+    "MI03",
+    "MI01",
+    "I02"
+   ],
+   "sha256": "bc1db8dcc8a55f3b03dc836620cbe5b406c468928c0676c107aa00739451bdb1",
+   "counsel_gated": false
+  },
+  {
+   "file": "0049a_delta_witness.sql",
+   "version": "0049a_delta_witness",
+   "number": "0049a",
+   "mode": "authored",
+   "band": "0049a-0049z",
+   "owner": "algorithms",
+   "template": null,
+   "invariants": [
+    "MI22",
+    "I14"
+   ],
+   "sha256": "ba5bbc40d951a2120cb5cd578f73acd741b176faaf2de2101b95551463135332",
+   "counsel_gated": false
+  },
+  {
+   "file": "0049b_commutation_edge.sql",
+   "version": "0049b_commutation_edge",
+   "number": "0049b",
+   "mode": "authored",
+   "band": "0049a-0049z",
+   "owner": "algorithms",
+   "template": null,
+   "invariants": [
+    "MI01",
+    "I06",
+    "MI15",
+    "MI02",
+    "MI30"
+   ],
+   "sha256": "010644124cd278a21665484266ad2107dfb42b952abb99c2860e7f7f1ee2a478",
+   "counsel_gated": false
+  },
+  {
+   "file": "0049c_cbm_account.sql",
+   "version": "0049c_cbm_account",
+   "number": "0049c",
+   "mode": "authored",
+   "band": "0049a-0049z",
+   "owner": "algorithms",
+   "template": null,
+   "invariants": [
+    "MI03",
+    "MI25",
+    "MI26",
+    "I02",
+    "I05"
+   ],
+   "sha256": "5865bff2dc2f7ef1eb7f703dd3195e395dd81ce83f340c8df296d4a23f7aa14f",
+   "counsel_gated": false
+  },
+  {
+   "file": "0049y_meas_mutation_run.sql",
+   "version": "0049y_meas_mutation_run",
+   "number": "0049y",
+   "mode": "authored",
+   "band": "0049a-0049z",
+   "owner": "algorithms",
+   "template": null,
+   "invariants": [
+    "MI01",
+    "I17"
+   ],
+   "sha256": "73e42fa5a5001cc1069cdb8dd8b6154db8938adbb23be8422482aef54d921c14",
+   "counsel_gated": false
+  },
+  {
+   "file": "0049z_meas_mutation_result.sql",
+   "version": "0049z_meas_mutation_result",
+   "number": "0049z",
+   "mode": "authored",
+   "band": "0049a-0049z",
+   "owner": "algorithms",
+   "template": null,
+   "invariants": [
+    "MI01",
+    "I14",
+    "I17"
+   ],
+   "sha256": "1d993f87c4e96a87b8b3b09cef58c40e9ebeba42e726815fece0a762adc10bd1",
+   "counsel_gated": false
+  },
+  {
+   "file": "0050_permit.sql",
+   "version": "0050_permit",
+   "number": "0050",
+   "mode": "rendered",
+   "band": "0050-0053z",
+   "owner": "kernel/subject-and-pin",
+   "template": "packages/trappoint-sql/templates/0050_permit.sql.j2",
+   "invariants": [
+    "MI02",
+    "MI03",
+    "MI04",
+    "MI05",
+    "MI06",
+    "I02",
+    "I03"
+   ],
+   "sha256": "7ee33a2dcfcef9fa3b7e59946ec560634e57985674db4384fd86b3c586979825",
+   "counsel_gated": false
+  },
+  {
+   "file": "0050a_permit_scope_index.sql",
+   "version": "0050a_permit_scope_index",
+   "number": "0050a",
+   "mode": "rendered",
+   "band": "0050-0053z",
+   "owner": "kernel/subject-and-pin",
+   "template": "packages/trappoint-sql/templates/0050_permit.sql.j2",
+   "invariants": [
+    "MI02",
+    "I02"
+   ],
+   "sha256": "d5ed4b7c415948e0220ce43a23e86d392c67193e8a54ad9ea83d9a37b84591a2",
+   "counsel_gated": false
+  },
+  {
+   "file": "0051_change_request.sql",
+   "version": "0051_change_request",
+   "number": "0051",
+   "mode": "rendered",
+   "band": "0050-0053z",
+   "owner": "kernel/subject-and-pin",
+   "template": "packages/trappoint-sql/templates/0051_change_request.sql.j2",
+   "invariants": [
+    "MI30",
+    "MI03",
+    "MI04",
+    "I02",
+    "I03"
+   ],
+   "sha256": "08a5a70dbaf7b43e633d73e247977cb525372a93ff8149cd2647f56c4bb0c086",
+   "counsel_gated": false
+  },
+  {
+   "file": "0052_permit_clause.sql",
+   "version": "0052_permit_clause",
+   "number": "0052",
+   "mode": "rendered",
+   "band": "0050-0053z",
+   "owner": "kernel/subject-and-pin",
+   "template": "packages/trappoint-sql/templates/0052_subject_clause.sql.j2",
+   "invariants": [
+    "MI05",
+    "I02"
+   ],
+   "sha256": "9e09106290d7b36c019a36ee85cdd515c5901ce2b8db42ba422381c1402d08b9",
+   "counsel_gated": false
+  },
+  {
+   "file": "0053_cr_clause.sql",
+   "version": "0053_cr_clause",
+   "number": "0053",
+   "mode": "rendered",
+   "band": "0050-0053z",
+   "owner": "kernel/subject-and-pin",
+   "template": "packages/trappoint-sql/templates/0052_subject_clause.sql.j2",
+   "invariants": [
+    "MI30",
+    "I02"
+   ],
+   "sha256": "2622f4bf7b60579e57f33ee5952aa1ba40a71498cdea429f170536c4d99fc0de",
+   "counsel_gated": false
+  },
+  {
+   "file": "0054_asset_edge.sql",
+   "version": "0054_asset_edge",
+   "number": "0054",
+   "mode": "authored",
+   "band": "0054-0057z",
+   "owner": "datamodel/ex-dm-gate",
+   "template": null,
+   "invariants": [
+    "MI06",
+    "I06"
+   ],
+   "sha256": "fe3f755c1bcd3da3b5c77f3331f39d14398452feace0bc78d5dd40af80b0e5f9",
+   "counsel_gated": false
+  },
+  {
+   "file": "0055_permit_boundary.sql",
+   "version": "0055_permit_boundary",
+   "number": "0055",
+   "mode": "authored",
+   "band": "0054-0057z",
+   "owner": "datamodel/ex-dm-gate",
+   "template": null,
+   "invariants": [
+    "MI06",
+    "I06"
+   ],
+   "sha256": "3795136d7a9b471c0478560436b60646a51e28ddf59a5863e87cfb67aca1a637",
+   "counsel_gated": false
+  },
+  {
+   "file": "0056_permit_slice.sql",
+   "version": "0056_permit_slice",
+   "number": "0056",
+   "mode": "authored",
+   "band": "0054-0057z",
+   "owner": "datamodel/ex-dm-gate",
+   "template": null,
+   "invariants": [
+    "MI06",
+    "MI17",
+    "I06"
+   ],
+   "sha256": "65f406191cec5203e83b73ce599ce3e214d8a54b0af0a1ad011950cf0958adfb",
+   "counsel_gated": false
+  },
+  {
+   "file": "0057_boundary_certificate.sql",
+   "version": "0057_boundary_certificate",
+   "number": "0057",
+   "mode": "authored",
+   "band": "0054-0057z",
+   "owner": "datamodel/ex-dm-gate",
+   "template": null,
+   "invariants": [
+    "MI06",
+    "MI01",
+    "I06",
+    "I01"
+   ],
+   "sha256": "f52969f7b4feeec158eb28c1243c757a2310e3d84c88809661923ff5871ec985",
+   "counsel_gated": false
+  },
+  {
+   "file": "0058_blocking_check.sql",
+   "version": "0058_blocking_check",
+   "number": "0058",
+   "mode": "rendered",
+   "band": "0058-0064z",
+   "owner": "kernel/obligation-and-clearance",
+   "template": "packages/trappoint-sql/templates/0058_blocking_check.sql.j2",
+   "invariants": [
+    "MI25",
+    "MI02",
+    "MI30",
+    "I02"
+   ],
+   "sha256": "7013da14f8cf1e6a9112e9ae8acf4ed15983cd32648c307827dd96d7b15a1959",
+   "counsel_gated": false
+  },
+  {
+   "file": "0058a_bc_open_index.sql",
+   "version": "0058a_bc_open_index",
+   "number": "0058a",
+   "mode": "rendered",
+   "band": "0058-0064z",
+   "owner": "kernel/obligation-and-clearance",
+   "template": "packages/trappoint-sql/templates/0058_blocking_check.sql.j2",
+   "invariants": [
+    "MI02",
+    "MI30",
+    "I02"
+   ],
+   "sha256": "a6f009f02467fcfb28a92e059b12dbc9bf0079201ef19365806f8affc8e7e7ea",
+   "counsel_gated": false
+  },
+  {
+   "file": "0058b_bc_open_cr_index.sql",
+   "version": "0058b_bc_open_cr_index",
+   "number": "0058b",
+   "mode": "rendered",
+   "band": "0058-0064z",
+   "owner": "kernel/obligation-and-clearance",
+   "template": "packages/trappoint-sql/templates/0058_blocking_check.sql.j2",
+   "invariants": [
+    "MI02",
+    "MI30",
+    "I02"
+   ],
+   "sha256": "52a05c74c69bddfa8f0a60215befc99dafd8e29ff964306989138c82c527aa73",
+   "counsel_gated": false
+  },
+  {
+   "file": "0059_permit_event.sql",
+   "version": "0059_permit_event",
+   "number": "0059",
+   "mode": "rendered",
+   "band": "0058-0064z",
+   "owner": "kernel/obligation-and-clearance",
+   "template": "packages/trappoint-sql/templates/0059_subject_event.sql.j2",
+   "invariants": [
+    "MI09",
+    "MI10",
+    "MI24",
+    "I04",
+    "I01"
+   ],
+   "sha256": "d0728c410455471d11befb498456c3deb3b794d964e9e263662b6e1bf22b5638",
+   "counsel_gated": false
+  },
+  {
+   "file": "0060_cr_event.sql",
+   "version": "0060_cr_event",
+   "number": "0060",
+   "mode": "rendered",
+   "band": "0058-0064z",
+   "owner": "kernel/obligation-and-clearance",
+   "template": "packages/trappoint-sql/templates/0059_subject_event.sql.j2",
+   "invariants": [
+    "MI09",
+    "MI10",
+    "MI24",
+    "I04",
+    "I01"
+   ],
+   "sha256": "c4e16683969729e8c9334b184fa1c4ee19bf572fcbe121942978e60309e9f09b",
+   "counsel_gated": false
+  },
+  {
+   "file": "0061_exposure_receipt.sql",
+   "version": "0061_exposure_receipt",
+   "number": "0061",
+   "mode": "rendered",
+   "band": "0058-0064z",
+   "owner": "kernel/obligation-and-clearance",
+   "template": "packages/trappoint-sql/templates/0061_exposure.sql.j2",
+   "invariants": [
+    "MI12",
+    "I09",
+    "MI30",
+    "MI28"
+   ],
+   "sha256": "08b4a9125b55da25ca67d00e9e6c7febbd8345cf58a603004fa90995ab1c8d52",
+   "counsel_gated": false
+  },
+  {
+   "file": "0062_exposure_line.sql",
+   "version": "0062_exposure_line",
+   "number": "0062",
+   "mode": "rendered",
+   "band": "0058-0064z",
+   "owner": "kernel/obligation-and-clearance",
+   "template": "packages/trappoint-sql/templates/0061_exposure.sql.j2",
+   "invariants": [
+    "MI12",
+    "I09"
+   ],
+   "sha256": "30ff7eb4e9a27772b5f1368e255151c56dcfecc9375991a599fba39dab2ef670",
+   "counsel_gated": false
+  },
+  {
+   "file": "0063_receipt_expiry.sql",
+   "version": "0063_receipt_expiry",
+   "number": "0063",
+   "mode": "rendered",
+   "band": "0058-0064z",
+   "owner": "kernel/obligation-and-clearance",
+   "template": "packages/trappoint-sql/templates/0061_exposure.sql.j2",
+   "invariants": [
+    "MI12",
+    "I09"
+   ],
+   "sha256": "d99940e12e9f1ad0c3699092b2b1c86818663afda3bb34dc7d2a006d8cdf8bcd",
+   "counsel_gated": false
+  },
+  {
+   "file": "0064_defeater_option.sql",
+   "version": "0064_defeater_option",
+   "number": "0064",
+   "mode": "rendered",
+   "band": "0058-0064z",
+   "owner": "kernel/obligation-and-clearance",
+   "template": "packages/trappoint-sql/templates/0064_defeater_option.sql.j2",
+   "invariants": [
+    "MI11",
+    "I10",
+    "MI01"
+   ],
+   "sha256": "fde3b6cbb9db17ebd8a91931a248357a8209dfd4127bafd3599033a1849131c3",
+   "counsel_gated": false
+  },
+  {
+   "file": "0065_mechanism_predicate.sql",
+   "version": "0065_mechanism_predicate",
+   "number": "0065",
+   "mode": "authored",
+   "band": "0065-0065z",
+   "owner": "datamodel/ex-dm-gate",
+   "template": null,
+   "invariants": [
+    "MI28",
+    "MI12",
+    "I12",
+    "I10"
+   ],
+   "sha256": "044763e25eed2a36d750ec9ebb8e059f990acbf7fb909902e4d6ff2cce9f0773",
+   "counsel_gated": false
+  },
+  {
+   "file": "0065a_predicate_watch_set_index.sql",
+   "version": "0065a_predicate_watch_set_index",
+   "number": "0065a",
+   "mode": "authored",
+   "band": "0065-0065z",
+   "owner": "datamodel/ex-dm-gate",
+   "template": null,
+   "invariants": [
+    "MI28",
+    "I12"
+   ],
+   "sha256": "2e6d2b592cf88b3c6564f7574e0822c756332ce7040b7c25bd5de897ef50bf9c",
+   "counsel_gated": false
+  },
+  {
+   "file": "0065b_predicate_revocation.sql",
+   "version": "0065b_predicate_revocation",
+   "number": "0065b",
+   "mode": "authored",
+   "band": "0065-0065z",
+   "owner": "datamodel/ex-dm-gate",
+   "template": null,
+   "invariants": [
+    "MI28",
+    "MI01",
+    "I12",
+    "I01"
+   ],
+   "sha256": "1425d9f950108090a8c9cb8d1ba8a59f35ba8047a2b8904a20deba8097a467ee",
+   "counsel_gated": false
+  },
+  {
+   "file": "0066_disposition.sql",
+   "version": "0066_disposition",
+   "number": "0066",
+   "mode": "rendered",
+   "band": "0066-0068z",
+   "owner": "kernel/obligation-and-clearance",
+   "template": "packages/trappoint-sql/templates/0066_disposition.sql.j2",
+   "invariants": [
+    "MI11",
+    "MI12",
+    "MI27",
+    "MI28",
+    "MI29",
+    "I09",
+    "I10",
+    "MI30",
+    "I15"
+   ],
+   "sha256": "346386bf943a1d005639b0956585306b4a51dfbd40f22aa4d5ee0ccb19b593fc",
+   "counsel_gated": true
+  },
+  {
+   "file": "0066a_one_live_disposition.sql",
+   "version": "0066a_one_live_disposition",
+   "number": "0066a",
+   "mode": "rendered",
+   "band": "0066-0068z",
+   "owner": "kernel/obligation-and-clearance",
+   "template": "packages/trappoint-sql/templates/0066_disposition.sql.j2",
+   "invariants": [
+    "MI08",
+    "I09"
+   ],
+   "sha256": "5eca30fd212c8da41871cf8e163f4ef572b01e3d548f9d1920eb998873b8afb2",
+   "counsel_gated": true
+  },
+  {
+   "file": "0067_disposition_citation.sql",
+   "version": "0067_disposition_citation",
+   "number": "0067",
+   "mode": "rendered",
+   "band": "0066-0068z",
+   "owner": "kernel/obligation-and-clearance",
+   "template": "packages/trappoint-sql/templates/0066_disposition.sql.j2",
+   "invariants": [
+    "MI11",
+    "I11"
+   ],
+   "sha256": "2e204abf30e1d1ef1565770497104cabfc2080d8fa37276c1b09955ba8bf8f0a",
+   "counsel_gated": true
+  },
+  {
+   "file": "0068_override_ledger.sql",
+   "version": "0068_override_ledger",
+   "number": "0068",
+   "mode": "rendered",
+   "band": "0066-0068z",
+   "owner": "kernel/obligation-and-clearance",
+   "template": "packages/trappoint-sql/templates/0068_override_ledger.sql.j2",
+   "invariants": [
+    "MI29",
+    "I10",
+    "MI30"
+   ],
+   "sha256": "ae9e741e5c6dbd1a14300ec89108468bd3c443da1d8382a139b851bd0a3f12fc",
+   "counsel_gated": true
+  },
+  {
+   "file": "0069_carried_disposition.sql",
+   "version": "0069_carried_disposition",
+   "number": "0069",
+   "mode": "authored",
+   "band": "0069-0070z",
+   "owner": "datamodel/ex-dm-disposition",
+   "template": null,
+   "invariants": [
+    "MI28",
+    "MI11",
+    "MI08",
+    "I12",
+    "I10"
+   ],
+   "sha256": "b4d64986dcc8ba412d44902d819f1586f1de09b4da668192ca0a0ef735b4de40",
+   "counsel_gated": true
+  },
+  {
+   "file": "0070_carried_disposition_use.sql",
+   "version": "0070_carried_disposition_use",
+   "number": "0070",
+   "mode": "authored",
+   "band": "0069-0070z",
+   "owner": "datamodel/ex-dm-disposition",
+   "template": null,
+   "invariants": [
+    "MI28",
+    "MI11",
+    "MI01",
+    "I12",
+    "I10",
+    "I01",
+    "MI07"
+   ],
+   "sha256": "1ff5d794ea88a4a9d73c20d299eec0011500c71feb72b591c0f7d0f5a47ce352",
+   "counsel_gated": true
+  },
+  {
+   "file": "0070a_disposition_predicate_fk.sql",
+   "version": "0070a_disposition_predicate_fk",
+   "number": "0070a",
+   "mode": "authored",
+   "band": "0069-0070z",
+   "owner": "datamodel/ex-dm-disposition",
+   "template": null,
+   "invariants": [
+    "MI28",
+    "MI11",
+    "I12",
+    "I10"
+   ],
+   "sha256": "f2c02a0bae0f5d1ef00c869c4136065d762dbbed22f1f5dfc373a00988674a88",
+   "counsel_gated": true
+  },
+  {
+   "file": "0071_merge_record.sql",
+   "version": "0071_merge_record",
+   "number": "0071",
+   "mode": "rendered",
+   "band": "0071-0071z",
+   "owner": "kernel/subject-and-pin+quickrefuse",
+   "template": "packages/trappoint-sql/templates/0071_merge_record.sql.j2",
+   "invariants": [
+    "MI07",
+    "MI09",
+    "I03",
+    "I04"
+   ],
+   "sha256": "bf81a4e0f17eb0328ba333dbc42d1438920b431200f110a0691859807954e8a2",
+   "counsel_gated": false
+  },
+  {
+   "file": "0071a_epoch_pin_permit.sql",
+   "version": "0071a_epoch_pin_permit",
+   "number": "0071a",
+   "mode": "rendered",
+   "band": "0071-0071z",
+   "owner": "kernel/subject-and-pin+quickrefuse",
+   "template": "packages/trappoint-sql/templates/0071_merge_record.sql.j2",
+   "invariants": [
+    "MI07",
+    "I03"
+   ],
+   "sha256": "dbd3e5278619eb1a9a55a27e13af3d9136df277a8a30a34e9357e7c3b0f31339",
+   "counsel_gated": false
+  },
+  {
+   "file": "0071b_epoch_pin_cr.sql",
+   "version": "0071b_epoch_pin_cr",
+   "number": "0071b",
+   "mode": "rendered",
+   "band": "0071-0071z",
+   "owner": "kernel/subject-and-pin+quickrefuse",
+   "template": "packages/trappoint-sql/templates/0071_merge_record.sql.j2",
+   "invariants": [
+    "MI07",
+    "I03"
+   ],
+   "sha256": "1dd5785f733c11c692520e66a63ec37c289176ee7b70b74040cac612b4411e8d",
+   "counsel_gated": false
+  },
+  {
+   "file": "0071c_refusal_ledger.sql",
+   "version": "0071c_refusal_ledger",
+   "number": "0071c",
+   "mode": "rendered",
+   "band": "0071-0071z",
+   "owner": "kernel/subject-and-pin+quickrefuse",
+   "template": "packages/trappoint-sql/templates/0071c_refusal_ledger.sql.j2",
+   "invariants": [
+    "MI01",
+    "MI02",
+    "I14",
+    "I01",
+    "I15"
+   ],
+   "sha256": "3f67925b8196fa9d438d9bb24024b73c68c4c20f9f030e14ea39ede98c2dbfd3",
+   "counsel_gated": false
+  },
+  {
+   "file": "0071d_refusal_ledger_index.sql",
+   "version": "0071d_refusal_ledger_index",
+   "number": "0071d",
+   "mode": "rendered",
+   "band": "0071-0071z",
+   "owner": "kernel/subject-and-pin+quickrefuse",
+   "template": "packages/trappoint-sql/templates/0071c_refusal_ledger.sql.j2",
+   "invariants": [
+    "MI01",
+    "I14"
+   ],
+   "sha256": "4248d4bb9d73f3e351c99a9d41456346214c76c3710005ab2efb3e92d3b7015c",
+   "counsel_gated": false
+  },
+  {
+   "file": "0072_ledger_intake.sql",
+   "version": "0072_ledger_intake",
+   "number": "0072",
+   "mode": "authored",
+   "band": "0072-0079z",
+   "owner": "custody",
+   "template": null,
+   "invariants": [
+    "MI01",
+    "MI24",
+    "I01",
+    "I04"
+   ],
+   "sha256": "3386acd9ff60584fd15f469b7f514bbcc10d76209f64950f8b4e6d3cfcc46bdc",
+   "counsel_gated": false
+  },
+  {
+   "file": "0072a_ledger_intake_hlc_comment.sql",
+   "version": "0072a_ledger_intake_hlc_comment",
+   "number": "0072a",
+   "mode": "authored",
+   "band": "0072-0079z",
+   "owner": "custody",
+   "template": null,
+   "invariants": [
+    "MI24",
+    "I04"
+   ],
+   "sha256": "bf3a46b6070f73f66e470c9dd2256cadccd99e393680fa68e51aac04bb7ad629",
+   "counsel_gated": false
+  },
+  {
+   "file": "0073_ledger_leaf.sql",
+   "version": "0073_ledger_leaf",
+   "number": "0073",
+   "mode": "authored",
+   "band": "0072-0079z",
+   "owner": "custody",
+   "template": null,
+   "invariants": [
+    "MI24",
+    "MI01",
+    "I04",
+    "I01"
+   ],
+   "sha256": "e7f993b3d6d578b49d1d8a7d6c74d43dab84168f28030bdfc0a5c8619d5db0e3",
+   "counsel_gated": false
+  },
+  {
+   "file": "0074_ledger_node.sql",
+   "version": "0074_ledger_node",
+   "number": "0074",
+   "mode": "authored",
+   "band": "0072-0079z",
+   "owner": "custody",
+   "template": null,
+   "invariants": [
+    "MI01",
+    "MI24",
+    "I01",
+    "I04"
+   ],
+   "sha256": "f83596f8bbf3b8785687c287067358c6e064db2bcc344d96ba6079168caf39ca",
+   "counsel_gated": false
+  },
+  {
+   "file": "0075_ledger_checkpoint.sql",
+   "version": "0075_ledger_checkpoint",
+   "number": "0075",
+   "mode": "authored",
+   "band": "0072-0079z",
+   "owner": "custody",
+   "template": null,
+   "invariants": [
+    "MI01",
+    "MI18",
+    "I01",
+    "I16"
+   ],
+   "sha256": "9ea4a57835df378ecafe29ce596f3b0e8413bebfcaaca97790c81d9da3e02b78",
+   "counsel_gated": false
+  },
+  {
+   "file": "0076_cosignature.sql",
+   "version": "0076_cosignature",
+   "number": "0076",
+   "mode": "authored",
+   "band": "0072-0079z",
+   "owner": "custody",
+   "template": null,
+   "invariants": [
+    "MI01",
+    "MI18",
+    "I16",
+    "I01"
+   ],
+   "sha256": "0bc1ae131df8b115d26941f3c5680b02be70af0fbf8e4ec5d26a5608e3a9a9ba",
+   "counsel_gated": false
+  },
+  {
+   "file": "0077_unwitnessed_debt.sql",
+   "version": "0077_unwitnessed_debt",
+   "number": "0077",
+   "mode": "authored",
+   "band": "0072-0079z",
+   "owner": "custody",
+   "template": null,
+   "invariants": [
+    "MI01",
+    "MI18",
+    "I16",
+    "I13",
+    "MI09"
+   ],
+   "sha256": "f0ef8dad229b25e2bd3bada897bb0092bcd8d96c94f84d288e858044f105d95c",
+   "counsel_gated": false
+  },
+  {
+   "file": "0078_custodian_attestation.sql",
+   "version": "0078_custodian_attestation",
+   "number": "0078",
+   "mode": "authored",
+   "band": "0072-0079z",
+   "owner": "custody",
+   "template": null,
+   "invariants": [
+    "MI01",
+    "I01",
+    "I16"
+   ],
+   "sha256": "ec5fbef4a2763cadea4c397235a9b0a9c827a172fb5ac520f4be57de5a0a5b10",
+   "counsel_gated": false
+  },
+  {
+   "file": "0079_sequencer_lease.sql",
+   "version": "0079_sequencer_lease",
+   "number": "0079",
+   "mode": "authored",
+   "band": "0072-0079z",
+   "owner": "custody",
+   "template": null,
+   "invariants": [
+    "MI24",
+    "I04"
+   ],
+   "sha256": "47ae81acbeee6232e2a98af4fc1b57d5461c01d94fb0e686bd616cce825d2f00",
+   "counsel_gated": false
+  },
+  {
+   "file": "0080_recall_policy.sql",
+   "version": "0080_recall_policy",
+   "number": "0080",
+   "mode": "authored",
+   "band": "0080-0089z",
+   "owner": "recall",
+   "template": null,
+   "invariants": [
+    "MI18",
+    "I07"
+   ],
+   "sha256": "f37a4e8eb8ff296a35ec6e20cfe9315d9f4ad018321e274f139603e199044249",
+   "counsel_gated": false
+  },
+  {
+   "file": "0081_recall_run.sql",
+   "version": "0081_recall_run",
+   "number": "0081",
+   "mode": "authored",
+   "band": "0080-0089z",
+   "owner": "recall",
+   "template": null,
+   "invariants": [
+    "MI16",
+    "MI17",
+    "MI18",
+    "I07",
+    "I13"
+   ],
+   "sha256": "7508535054fcbb663fee16808d40d28e5a71355163c778d0b49a59abaf1aa7ba",
+   "counsel_gated": false
+  },
+  {
+   "file": "0082_recall_candidate.sql",
+   "version": "0082_recall_candidate",
+   "number": "0082",
+   "mode": "authored",
+   "band": "0080-0089z",
+   "owner": "recall",
+   "template": null,
+   "invariants": [
+    "MI17",
+    "MI25",
+    "I02",
+    "I13"
+   ],
+   "sha256": "96709cdaaf91e24d1b71d5b957804d6f5ec7545192250f2ce7a21687ea6050f2",
+   "counsel_gated": false
+  },
+  {
+   "file": "0083_silence_receipt.sql",
+   "version": "0083_silence_receipt",
+   "number": "0083",
+   "mode": "authored",
+   "band": "0080-0089z",
+   "owner": "recall",
+   "template": null,
+   "invariants": [
+    "MI17",
+    "I13"
+   ],
+   "sha256": "7dcb1e8b02cf2ce3411cb2c15031c3b2e094c96b1e13e43862e68df897cb481b",
+   "counsel_gated": false
+  },
+  {
+   "file": "0084_silence_ledger.sql",
+   "version": "0084_silence_ledger",
+   "number": "0084",
+   "mode": "authored",
+   "band": "0080-0089z",
+   "owner": "recall",
+   "template": null,
+   "invariants": [
+    "MI01",
+    "MI17",
+    "I01",
+    "I13"
+   ],
+   "sha256": "18389d62af510528b81e7866245728591fa78b0ee6e5dc972e1fcba9a1c1a708",
+   "counsel_gated": false
+  },
+  {
+   "file": "0085_recall_policy_calibrator.sql",
+   "version": "0085_recall_policy_calibrator",
+   "number": "0085",
+   "mode": "authored",
+   "band": "0080-0089z",
+   "owner": "recall",
+   "template": null,
+   "invariants": [
+    "MI18",
+    "I07"
+   ],
+   "sha256": "0e2a3118c1c21acc8c2b61ddd9f82d92e7e780d37219f37c4ddf05d7aa19b6be",
+   "counsel_gated": false
+  },
+  {
+   "file": "0086_thymogate_certificate.sql",
+   "version": "0086_thymogate_certificate",
+   "number": "0086",
+   "mode": "authored",
+   "band": "0080-0089z",
+   "owner": "recall",
+   "template": null,
+   "invariants": [
+    "MI18",
+    "I08"
+   ],
+   "sha256": "0b270c7a72a9971a38328328b061c8a28f39cc98ba5ebb4d05f8a08987175ef0",
+   "counsel_gated": false
+  },
+  {
+   "file": "0086a_recall_policy_thymogate_fk.sql",
+   "version": "0086a_recall_policy_thymogate_fk",
+   "number": "0086a",
+   "mode": "authored",
+   "band": "0080-0089z",
+   "owner": "recall",
+   "template": null,
+   "invariants": [
+    "MI18",
+    "I08"
+   ],
+   "sha256": "0ecf84a7368bb3af4b1df91c7cd164bea5449e145fece99b6c03c6930f645a6c",
+   "counsel_gated": false
+  },
+  {
+   "file": "0087_recall_certificate.sql",
+   "version": "0087_recall_certificate",
+   "number": "0087",
+   "mode": "authored",
+   "band": "0080-0089z",
+   "owner": "recall",
+   "template": null,
+   "invariants": [
+    "MI17",
+    "I08"
+   ],
+   "sha256": "fa34909fb20e881249b5b39dc116bd5f927e16c1105b964395bccb17c15e60a5",
+   "counsel_gated": false
+  },
+  {
+   "file": "0088_event_cue_stage.sql",
+   "version": "0088_event_cue_stage",
+   "number": "0088",
+   "mode": "authored",
+   "band": "0080-0089z",
+   "owner": "recall",
+   "template": null,
+   "invariants": [
+    "MI25",
+    "I02",
+    "MI31"
+   ],
+   "sha256": "58abb376f341c784fd1d45887adf9b922f183a6963ff348c060ab0800b4c171c",
+   "counsel_gated": false
+  },
+  {
+   "file": "0100_fn_check_project.sql",
+   "version": "0100_fn_check_project",
+   "number": "0100",
+   "mode": "rendered",
+   "band": "0100-0109z",
+   "owner": "kernel/projection-triggers",
+   "template": "packages/trappoint-sql/templates/0100_fn_check_project.sql.j2",
+   "invariants": [
+    "MI25",
+    "MI01",
+    "I02"
+   ],
+   "sha256": "56c57b65761ed1a48f325a5434e6344b2596ec250c2c945587443a40ea522f29",
+   "counsel_gated": false
+  },
+  {
+   "file": "0101_fn_check_materialised.sql",
+   "version": "0101_fn_check_materialised",
+   "number": "0101",
+   "mode": "rendered",
+   "band": "0100-0109z",
+   "owner": "kernel/projection-triggers",
+   "template": "packages/trappoint-sql/templates/0101_fn_check_materialised.sql.j2",
+   "invariants": [
+    "MI02",
+    "MI07",
+    "MI30",
+    "I02",
+    "I03"
+   ],
+   "sha256": "ea895858aace097720205d8eccc5fb82a867b64d20da75a553fdeb498992ef66",
+   "counsel_gated": false
+  },
+  {
+   "file": "0102_fn_disposition_project.sql",
+   "version": "0102_fn_disposition_project",
+   "number": "0102",
+   "mode": "rendered",
+   "band": "0100-0109z",
+   "owner": "kernel/projection-triggers",
+   "template": "packages/trappoint-sql/templates/0102_fn_disposition_project.sql.j2",
+   "invariants": [
+    "MI11",
+    "MI27",
+    "MI28",
+    "MI29",
+    "I09",
+    "I10",
+    "I15"
+   ],
+   "sha256": "950f618d4f67c798db17b8356cd20609864858f50e8a0e846761488ab1a5cbb1",
+   "counsel_gated": false
+  },
+  {
+   "file": "0103_fn_disposition_close.sql",
+   "version": "0103_fn_disposition_close",
+   "number": "0103",
+   "mode": "rendered",
+   "band": "0100-0109z",
+   "owner": "kernel/projection-triggers",
+   "template": "packages/trappoint-sql/templates/0103_fn_disposition_close.sql.j2",
+   "invariants": [
+    "MI02",
+    "MI29",
+    "MI30",
+    "I02",
+    "I10"
+   ],
+   "sha256": "b5b9f562445b5c91a80bfea658524b2ad95d6ac1a5e9d6c61476b39ad9311ae0",
+   "counsel_gated": false
+  },
+  {
+   "file": "0104_fn_disposition_retract_only.sql",
+   "version": "0104_fn_disposition_retract_only",
+   "number": "0104",
+   "mode": "rendered",
+   "band": "0100-0109z",
+   "owner": "kernel/projection-triggers",
+   "template": "packages/trappoint-sql/templates/0104_fn_disposition_retract_only.sql.j2",
+   "invariants": [
+    "MI01",
+    "MI07",
+    "I01",
+    "I03"
+   ],
+   "sha256": "9eb40d690071af14d3cd6fd6b2bd9eb1e244eb4f124fd567da675863c7da2942",
+   "counsel_gated": false
+  },
+  {
+   "file": "0105_fn_permit_event_chain.sql",
+   "version": "0105_fn_permit_event_chain",
+   "number": "0105",
+   "mode": "rendered",
+   "band": "0100-0109z",
+   "owner": "kernel/projection-triggers",
+   "template": "packages/trappoint-sql/templates/0105_fn_event_chain.sql.j2",
+   "invariants": [
+    "MI01",
+    "MI09",
+    "MI24",
+    "I04"
+   ],
+   "sha256": "ea61ce18e2e7097f6fb460f9d2ad13929d16bd57a2c1e775b819f11f7bb52960",
+   "counsel_gated": false
+  },
+  {
+   "file": "0106_fn_cr_event_chain.sql",
+   "version": "0106_fn_cr_event_chain",
+   "number": "0106",
+   "mode": "rendered",
+   "band": "0100-0109z",
+   "owner": "kernel/projection-triggers",
+   "template": "packages/trappoint-sql/templates/0105_fn_event_chain.sql.j2",
+   "invariants": [
+    "MI01",
+    "MI09",
+    "MI24",
+    "I04"
+   ],
+   "sha256": "5b5ce9bb5a945121215d57f9676b33f3cae5aa03df7ecd4008149609f473110f",
+   "counsel_gated": false
+  },
+  {
+   "file": "0107_fn_refuse_mutation.sql",
+   "version": "0107_fn_refuse_mutation",
+   "number": "0107",
+   "mode": "rendered",
+   "band": "0100-0109z",
+   "owner": "kernel/projection-triggers",
+   "template": "packages/trappoint-sql/templates/0106_fn_refuse_mutation.sql.j2",
+   "invariants": [
+    "MI01",
+    "I01"
+   ],
+   "sha256": "0603b13c797b03b361d2edde0b05f13566559d9a2d0000c8d82348affeb24462",
+   "counsel_gated": false
+  },
+  {
+   "file": "0108_fn_closure_guard.sql",
+   "version": "0108_fn_closure_guard",
+   "number": "0108",
+   "mode": "rendered",
+   "band": "0100-0109z",
+   "owner": "kernel/projection-triggers",
+   "template": "packages/trappoint-sql/templates/0107_fn_closure_guard.sql.j2",
+   "invariants": [
+    "MI26",
+    "MI15",
+    "MI01",
+    "I05"
+   ],
+   "sha256": "d7fac5f0cb908c3fbcd9a476eb06b897838603846d0b9b699741f368eefdc08d",
+   "counsel_gated": false
+  },
+  {
+   "file": "0109_fn_site_role.sql",
+   "version": "0109_fn_site_role",
+   "number": "0109",
+   "mode": "rendered",
+   "band": "0100-0109z",
+   "owner": "kernel/projection-triggers",
+   "template": "packages/trappoint-sql/templates/0108_fn_site_role.sql.j2",
+   "invariants": [
+    "MI01",
+    "I01"
+   ],
+   "sha256": "2cd87794990b4ffb0adf8f1981b0043080d3e4471e7735311c15fb65a3828160",
+   "counsel_gated": false
+  },
+  {
+   "file": "0110_fn_candidate_project.sql",
+   "version": "0110_fn_candidate_project",
+   "number": "0110",
+   "mode": "authored",
+   "band": "0110-0114z",
+   "owner": "recall",
+   "template": null,
+   "invariants": [
+    "MI17",
+    "MI25",
+    "I02"
+   ],
+   "sha256": "612fe84fa1c69b57536c369d47e6bd96dd7a5e69cb8c9a3769d0eef16e6e196d",
+   "counsel_gated": false
+  },
+  {
+   "file": "0112_fn_recall_policy_anchored.sql",
+   "version": "0112_fn_recall_policy_anchored",
+   "number": "0112",
+   "mode": "authored",
+   "band": "0110-0114z",
+   "owner": "recall",
+   "template": null,
+   "invariants": [
+    "MI18",
+    "I07"
+   ],
+   "sha256": "cffa04387f76a853e550d0b89d01289c090244a0db5a59fc8f9d6fff851bc8fd",
+   "counsel_gated": false
+  },
+  {
+   "file": "0113_fn_bonded_sev5.sql",
+   "version": "0113_fn_bonded_sev5",
+   "number": "0113",
+   "mode": "authored",
+   "band": "0110-0114z",
+   "owner": "recall",
+   "template": null,
+   "invariants": [
+    "MI16",
+    "I13"
+   ],
+   "sha256": "ef3e50fdd5a0ade54d8b75dfca989c012460660d1820effa9c24ac056b410bfa",
+   "counsel_gated": false
+  },
+  {
+   "file": "0114_fn_cue_prefix_project.sql",
+   "version": "0114_fn_cue_prefix_project",
+   "number": "0114",
+   "mode": "authored",
+   "band": "0110-0114z",
+   "owner": "recall",
+   "template": null,
+   "invariants": [
+    "MI25",
+    "I02",
+    "MI31"
+   ],
+   "sha256": "5e74e4d1220e28c69301cc58ca528298865d0cbae4c5ed9d2a063c5af89b261c",
+   "counsel_gated": false
+  },
+  {
+   "file": "0114a_fn_cue_coarse_project.sql",
+   "version": "0114a_fn_cue_coarse_project",
+   "number": "0114a",
+   "mode": "authored",
+   "band": "0110-0114z",
+   "owner": "recall",
+   "template": null,
+   "invariants": [
+    "MI16",
+    "MI25",
+    "I02",
+    "MI31"
+   ],
+   "sha256": "cfe095186494bae73a8767ac5586f075d8d7cbde50a8c7d7885ec86407e1ceeb",
+   "counsel_gated": false
+  },
+  {
+   "file": "0115_fn_permit_merge_gate.sql",
+   "version": "0115_fn_permit_merge_gate",
+   "number": "0115",
+   "mode": "rendered",
+   "band": "0115-0119",
+   "owner": "kernel/merge-gate-and-core",
+   "template": "packages/trappoint-sql/templates/0115_fn_merge_gate.sql.j2",
+   "invariants": [
+    "MI02",
+    "MI22",
+    "MI06",
+    "I02",
+    "I08"
+   ],
+   "sha256": "2f111e6a22cd97d69d528f0c70af1ef175c275c36ed19609469c2d3012dad9c7",
+   "counsel_gated": false
+  },
+  {
+   "file": "0116_fn_cr_merge_gate.sql",
+   "version": "0116_fn_cr_merge_gate",
+   "number": "0116",
+   "mode": "rendered",
+   "band": "0115-0119",
+   "owner": "kernel/merge-gate-and-core",
+   "template": "packages/trappoint-sql/templates/0115_fn_merge_gate.sql.j2",
+   "invariants": [
+    "MI02",
+    "MI22",
+    "I02"
+   ],
+   "sha256": "89fca69fd3a779c6e9819fec3e9a51ddb9b97d298d016299e8a6daa23e473900",
+   "counsel_gated": false
+  },
+  {
+   "file": "0117_proc_merge_permit.sql",
+   "version": "0117_proc_merge_permit",
+   "number": "0117",
+   "mode": "rendered",
+   "band": "0115-0119",
+   "owner": "kernel/merge-gate-and-core",
+   "template": "packages/trappoint-sql/templates/0117_proc_merge.sql.j2",
+   "invariants": [
+    "MI09",
+    "MI24",
+    "I03",
+    "I04"
+   ],
+   "sha256": "92111bb8762345ba51e9640607f0db9826bbccfd2eac22d3096c82cddb135df8",
+   "counsel_gated": false
+  },
+  {
+   "file": "0118_proc_merge_change_request.sql",
+   "version": "0118_proc_merge_change_request",
+   "number": "0118",
+   "mode": "rendered",
+   "band": "0115-0119",
+   "owner": "kernel/merge-gate-and-core",
+   "template": "packages/trappoint-sql/templates/0117_proc_merge.sql.j2",
+   "invariants": [
+    "MI09",
+    "MI30",
+    "I03",
+    "I04"
+   ],
+   "sha256": "afd1fd8e7b8f91317242c8ee7cbfaeb4f269b6af8046066f7874e2a9de639e2a",
+   "counsel_gated": false
+  },
+  {
+   "file": "0119_fn_ledger_cas_append.sql",
+   "version": "0119_fn_ledger_cas_append",
+   "number": "0119",
+   "mode": "rendered",
+   "band": "0115-0119",
+   "owner": "kernel/merge-gate-and-core",
+   "template": "packages/trappoint-sql/templates/0117_proc_merge.sql.j2",
+   "invariants": [
+    "MI24",
+    "I04"
+   ],
+   "sha256": "32f3431c7012fec541c83a1565d90cb35a226f8105ad20f959a710964e7c07bf",
+   "counsel_gated": false
+  },
+  {
+   "file": "0119a_fn_explain_refusal.sql",
+   "version": "0119a_fn_explain_refusal",
+   "number": "0119a",
+   "mode": "rendered",
+   "band": "0119a-0119z",
+   "owner": "kernel/quickrefuse",
+   "template": "packages/trappoint-sql/templates/0119a_fn_explain_refusal.sql.j2",
+   "invariants": [
+    "MI02",
+    "MI11",
+    "MI07",
+    "I14",
+    "I02",
+    "I10"
+   ],
+   "sha256": "1e6e6f44facafc238147c73a37bd3f604c3cf70c46d984d41938d1e1b99e4ed1",
+   "counsel_gated": false
+  },
+  {
+   "file": "0119b_fn_refusal_ledger_guard.sql",
+   "version": "0119b_fn_refusal_ledger_guard",
+   "number": "0119b",
+   "mode": "rendered",
+   "band": "0119a-0119z",
+   "owner": "kernel/quickrefuse",
+   "template": "packages/trappoint-sql/templates/0119a_fn_explain_refusal.sql.j2",
+   "invariants": [
+    "MI01",
+    "I01",
+    "I14",
+    "I15"
+   ],
+   "sha256": "7fcaf20eda35f77e2d3eba56faafd67d5ae657584ef80ee52a6f19e5dc752724",
+   "counsel_gated": false
+  },
+  {
+   "file": "0120_trg_check_project.sql",
+   "version": "0120_trg_check_project",
+   "number": "0120",
+   "mode": "rendered",
+   "band": "0120-0129z",
+   "owner": "kernel/projection-triggers",
+   "template": "packages/trappoint-sql/templates/0120_triggers_projection.sql.j2",
+   "invariants": [
+    "MI25",
+    "I02"
+   ],
+   "sha256": "679c912168317baabceade87eb27e00ad9b28bb90620e45f9c18c966eacb1aa4",
+   "counsel_gated": false
+  },
+  {
+   "file": "0121_trg_check_materialised.sql",
+   "version": "0121_trg_check_materialised",
+   "number": "0121",
+   "mode": "rendered",
+   "band": "0120-0129z",
+   "owner": "kernel/projection-triggers",
+   "template": "packages/trappoint-sql/templates/0120_triggers_projection.sql.j2",
+   "invariants": [
+    "MI02",
+    "MI07",
+    "MI30",
+    "I02",
+    "I03"
+   ],
+   "sha256": "0632f254634b8de01a5cce32649a064d4f46978318cab24275305428c933856c",
+   "counsel_gated": false
+  },
+  {
+   "file": "0122_trg_disposition_project.sql",
+   "version": "0122_trg_disposition_project",
+   "number": "0122",
+   "mode": "rendered",
+   "band": "0120-0129z",
+   "owner": "kernel/projection-triggers",
+   "template": "packages/trappoint-sql/templates/0120_triggers_projection.sql.j2",
+   "invariants": [
+    "MI11",
+    "MI27",
+    "MI28",
+    "MI29",
+    "I09",
+    "I10"
+   ],
+   "sha256": "8948897430b423a621cd4c43830fc6ca289f9a74efd6d23123223a59b014da0f",
+   "counsel_gated": false
+  },
+  {
+   "file": "0123_trg_disposition_close.sql",
+   "version": "0123_trg_disposition_close",
+   "number": "0123",
+   "mode": "rendered",
+   "band": "0120-0129z",
+   "owner": "kernel/projection-triggers",
+   "template": "packages/trappoint-sql/templates/0120_triggers_projection.sql.j2",
+   "invariants": [
+    "MI02",
+    "MI29",
+    "MI30",
+    "I02"
+   ],
+   "sha256": "d4bf354e8275a1b08a86f0ed28be8bf4945e21dcaff8b4998205d53fd806d48b",
+   "counsel_gated": false
+  },
+  {
+   "file": "0124_trg_disposition_retract_only.sql",
+   "version": "0124_trg_disposition_retract_only",
+   "number": "0124",
+   "mode": "rendered",
+   "band": "0120-0129z",
+   "owner": "kernel/projection-triggers",
+   "template": "packages/trappoint-sql/templates/0120_triggers_projection.sql.j2",
+   "invariants": [
+    "MI01",
+    "MI07",
+    "I01",
+    "I03"
+   ],
+   "sha256": "6700898a01abf5e9a3b1472db8397f0966216c4deb8d12ed74b80a5d04e56a33",
+   "counsel_gated": false
+  },
+  {
+   "file": "0125_trg_permit_event_chain.sql",
+   "version": "0125_trg_permit_event_chain",
+   "number": "0125",
+   "mode": "rendered",
+   "band": "0120-0129z",
+   "owner": "kernel/projection-triggers",
+   "template": "packages/trappoint-sql/templates/0120_triggers_projection.sql.j2",
+   "invariants": [
+    "MI01",
+    "MI09",
+    "MI24",
+    "I04"
+   ],
+   "sha256": "9e0a12007f1032e323d66d6be90b460e26e569d178e8aeb0a826e9b2bb9e9517",
+   "counsel_gated": false
+  },
+  {
+   "file": "0126_trg_cr_event_chain.sql",
+   "version": "0126_trg_cr_event_chain",
+   "number": "0126",
+   "mode": "rendered",
+   "band": "0120-0129z",
+   "owner": "kernel/projection-triggers",
+   "template": "packages/trappoint-sql/templates/0120_triggers_projection.sql.j2",
+   "invariants": [
+    "MI01",
+    "MI09",
+    "MI24",
+    "I04"
+   ],
+   "sha256": "12e85a174cdfd7d6674041a0bb5dbe1afa723402823f7f41411c3f1d0a8d65c1",
+   "counsel_gated": false
+  },
+  {
+   "file": "0127_trg_closure_guard.sql",
+   "version": "0127_trg_closure_guard",
+   "number": "0127",
+   "mode": "rendered",
+   "band": "0120-0129z",
+   "owner": "kernel/projection-triggers",
+   "template": "packages/trappoint-sql/templates/0120_triggers_projection.sql.j2",
+   "invariants": [
+    "MI26",
+    "MI15",
+    "MI01",
+    "I05"
+   ],
+   "sha256": "8fa3292c6b0c60145dda712209120730cd644f98227d4c2660f6f07e8c781357",
+   "counsel_gated": false
+  },
+  {
+   "file": "0128_trg_refuse_mutation.sql",
+   "version": "0128_trg_refuse_mutation",
+   "number": "0128",
+   "mode": "rendered",
+   "band": "0120-0129z",
+   "owner": "kernel/projection-triggers",
+   "template": "packages/trappoint-sql/templates/0120_triggers_projection.sql.j2",
+   "invariants": [
+    "MI01",
+    "I01"
+   ],
+   "sha256": "6c5ce17aea8c0c7efa15a4b91172614ca79e01a9f4ffd0dc9d62139bc3f34a38",
+   "counsel_gated": false
+  },
+  {
+   "file": "0128a_trg_refuse_mutation_cr_event.sql",
+   "version": "0128a_trg_refuse_mutation_cr_event",
+   "number": "0128a",
+   "mode": "rendered",
+   "band": "0120-0129z",
+   "owner": "kernel/projection-triggers",
+   "template": "packages/trappoint-sql/templates/0120_triggers_projection.sql.j2",
+   "invariants": [
+    "MI01",
+    "I01"
+   ],
+   "sha256": "76cd07d3fee3edc0878d0ea23c7376fb49b4c7d1fec9e2189dfdf5062f09f02d",
+   "counsel_gated": false
+  },
+  {
+   "file": "0128b_trg_refuse_mutation_blocking_check.sql",
+   "version": "0128b_trg_refuse_mutation_blocking_check",
+   "number": "0128b",
+   "mode": "rendered",
+   "band": "0120-0129z",
+   "owner": "kernel/projection-triggers",
+   "template": "packages/trappoint-sql/templates/0120_triggers_projection.sql.j2",
+   "invariants": [
+    "MI01",
+    "I01"
+   ],
+   "sha256": "7bcf764db7315d2704dbc2c25fd7dee630d9340f609554696b55084d6760127f",
+   "counsel_gated": false
+  },
+  {
+   "file": "0128c_trg_refuse_mutation_merge_record.sql",
+   "version": "0128c_trg_refuse_mutation_merge_record",
+   "number": "0128c",
+   "mode": "rendered",
+   "band": "0120-0129z",
+   "owner": "kernel/projection-triggers",
+   "template": "packages/trappoint-sql/templates/0120_triggers_projection.sql.j2",
+   "invariants": [
+    "MI01",
+    "I01"
+   ],
+   "sha256": "01cf3eaf43500a93f4cd7511dd0ffd25ecb54414a87831feb42e7fa115427002",
+   "counsel_gated": false
+  },
+  {
+   "file": "0128d_trg_refuse_mutation_exposure_receipt.sql",
+   "version": "0128d_trg_refuse_mutation_exposure_receipt",
+   "number": "0128d",
+   "mode": "rendered",
+   "band": "0120-0129z",
+   "owner": "kernel/projection-triggers",
+   "template": "packages/trappoint-sql/templates/0120_triggers_projection.sql.j2",
+   "invariants": [
+    "MI01",
+    "I01"
+   ],
+   "sha256": "4aff6b40bbdabb329d3d8668aed39a5536810db665dc45ed27f79c3e48683f97",
+   "counsel_gated": false
+  },
+  {
+   "file": "0128e_trg_refuse_mutation_exposure_line.sql",
+   "version": "0128e_trg_refuse_mutation_exposure_line",
+   "number": "0128e",
+   "mode": "rendered",
+   "band": "0120-0129z",
+   "owner": "kernel/projection-triggers",
+   "template": "packages/trappoint-sql/templates/0120_triggers_projection.sql.j2",
+   "invariants": [
+    "MI01",
+    "I01"
+   ],
+   "sha256": "37467edec7628791a9b8fa36379fe3c3bbb56f68aaa695c6c3b69f71039d1b31",
+   "counsel_gated": false
+  },
+  {
+   "file": "0128f_trg_refuse_mutation_override_ledger.sql",
+   "version": "0128f_trg_refuse_mutation_override_ledger",
+   "number": "0128f",
+   "mode": "rendered",
+   "band": "0120-0129z",
+   "owner": "kernel/projection-triggers",
+   "template": "packages/trappoint-sql/templates/0120_triggers_projection.sql.j2",
+   "invariants": [
+    "MI01",
+    "I01"
+   ],
+   "sha256": "4b46794a1aa64f9a2420ec41f4f747c473ff897458cc9fef0fa3bbe267817dba",
+   "counsel_gated": false
+  },
+  {
+   "file": "0128g_trg_refuse_mutation_person.sql",
+   "version": "0128g_trg_refuse_mutation_person",
+   "number": "0128g",
+   "mode": "rendered",
+   "band": "0120-0129z",
+   "owner": "kernel/projection-triggers",
+   "template": "packages/trappoint-sql/templates/0120_triggers_projection.sql.j2",
+   "invariants": [
+    "MI01",
+    "I01"
+   ],
+   "sha256": "c01a71a2fc3812f0b0516cb049042ed7ab02f85780eba8541096dd23e4fb72ff",
+   "counsel_gated": false
+  },
+  {
+   "file": "0128h_trg_refuse_mutation_signing_credential.sql",
+   "version": "0128h_trg_refuse_mutation_signing_credential",
+   "number": "0128h",
+   "mode": "rendered",
+   "band": "0120-0129z",
+   "owner": "kernel/projection-triggers",
+   "template": "packages/trappoint-sql/templates/0120_triggers_projection.sql.j2",
+   "invariants": [
+    "MI01",
+    "I01"
+   ],
+   "sha256": "a8fab9a98d97db7e91e60870c5445cfeb269875dc0122fe03a0f3bf99ff0f40a",
+   "counsel_gated": false
+  },
+  {
+   "file": "0128i_trg_refuse_mutation_clause_version.sql",
+   "version": "0128i_trg_refuse_mutation_clause_version",
+   "number": "0128i",
+   "mode": "rendered",
+   "band": "0120-0129z",
+   "owner": "kernel/projection-triggers",
+   "template": "packages/trappoint-sql/templates/0120_triggers_projection.sql.j2",
+   "invariants": [
+    "MI01",
+    "I01",
+    "MI15"
+   ],
+   "sha256": "c00713d948ed29b7f6d3884a19735c53c52f4f9561b9fb49091f418fc7667296",
+   "counsel_gated": false
+  },
+  {
+   "file": "0128j_trg_refuse_mutation_clause_blame_closure.sql",
+   "version": "0128j_trg_refuse_mutation_clause_blame_closure",
+   "number": "0128j",
+   "mode": "rendered",
+   "band": "0120-0129z",
+   "owner": "kernel/projection-triggers",
+   "template": "packages/trappoint-sql/templates/0120_triggers_projection.sql.j2",
+   "invariants": [
+    "MI01",
+    "I01",
+    "MI26"
+   ],
+   "sha256": "64635e386bf23c395e272b11a02c50251f31a20161c7c9cf94c9879efc4a37e7",
+   "counsel_gated": false
+  },
+  {
+   "file": "0130_trg_permit_merge_gate.sql",
+   "version": "0130_trg_permit_merge_gate",
+   "number": "0130",
+   "mode": "rendered",
+   "band": "0130-0135z",
+   "owner": "kernel/merge-gate-and-core+quickrefuse",
+   "template": "packages/trappoint-sql/templates/0130_triggers_merge_gate.sql.j2",
+   "invariants": [
+    "MI02",
+    "I02",
+    "MI09"
+   ],
+   "sha256": "332a81f806f566f2f40f300741933ac8a75acd99ccaea597854d25c912708af2",
+   "counsel_gated": false
+  },
+  {
+   "file": "0131_trg_cr_merge_gate.sql",
+   "version": "0131_trg_cr_merge_gate",
+   "number": "0131",
+   "mode": "rendered",
+   "band": "0130-0135z",
+   "owner": "kernel/merge-gate-and-core+quickrefuse",
+   "template": "packages/trappoint-sql/templates/0130_triggers_merge_gate.sql.j2",
+   "invariants": [
+    "MI30",
+    "I02",
+    "MI09"
+   ],
+   "sha256": "3a030eda0d15b5502d5d8b8ccc5a815f264d07313e783c8829eb49ed527cc0f5",
+   "counsel_gated": false
+  },
+  {
+   "file": "0133_trg_refusal_ledger_append_only.sql",
+   "version": "0133_trg_refusal_ledger_append_only",
+   "number": "0133",
+   "mode": "rendered",
+   "band": "0130-0135z",
+   "owner": "kernel/merge-gate-and-core+quickrefuse",
+   "template": "packages/trappoint-sql/templates/0119a_fn_explain_refusal.sql.j2",
+   "invariants": [
+    "MI01",
+    "I01",
+    "I14"
+   ],
+   "sha256": "c42851e10ab293793dfcac8187192fd59fd59247c4ac11b93a5bfc95ba80e496",
+   "counsel_gated": false
+  },
+  {
+   "file": "0136_trg_recall_policy_anchored.sql",
+   "version": "0136_trg_recall_policy_anchored",
+   "number": "0136",
+   "mode": "authored",
+   "band": "0136-0139z",
+   "owner": "recall",
+   "template": null,
+   "invariants": [
+    "MI18",
+    "I07"
+   ],
+   "sha256": "49358e24a9dc4b79f5fe7ce0dfbe3130dccce7a7ae75c4d704e29470c0186d47",
+   "counsel_gated": false
+  },
+  {
+   "file": "0137_trg_bonded_sev5.sql",
+   "version": "0137_trg_bonded_sev5",
+   "number": "0137",
+   "mode": "authored",
+   "band": "0136-0139z",
+   "owner": "recall",
+   "template": null,
+   "invariants": [
+    "MI16",
+    "I13"
+   ],
+   "sha256": "6faeb77d8012e33b64b8268e1913ee5b0e381d223182cf4a139e9dc1f9b5bb45",
+   "counsel_gated": false
+  },
+  {
+   "file": "0138_trg_cue_prefix_project.sql",
+   "version": "0138_trg_cue_prefix_project",
+   "number": "0138",
+   "mode": "authored",
+   "band": "0136-0139z",
+   "owner": "recall",
+   "template": null,
+   "invariants": [
+    "MI25",
+    "I02",
+    "MI31"
+   ],
+   "sha256": "22ee827f0bcfcd16c5b83eb111102614a4cdf1ec8565ba0295a03df25c5d18bb",
+   "counsel_gated": false
+  },
+  {
+   "file": "0138a_trg_cue_prefix_project_coarse.sql",
+   "version": "0138a_trg_cue_prefix_project_coarse",
+   "number": "0138a",
+   "mode": "authored",
+   "band": "0136-0139z",
+   "owner": "recall",
+   "template": null,
+   "invariants": [
+    "MI16",
+    "MI25",
+    "I02",
+    "MI31"
+   ],
+   "sha256": "079d05102319840312b34468e08928668e747fbe772496e2f5477472813c5778",
+   "counsel_gated": false
+  },
+  {
+   "file": "0139_trg_candidate_project.sql",
+   "version": "0139_trg_candidate_project",
+   "number": "0139",
+   "mode": "authored",
+   "band": "0136-0139z",
+   "owner": "recall",
+   "template": null,
+   "invariants": [
+    "MI17",
+    "MI25",
+    "I02"
+   ],
+   "sha256": "8cc7569c7faf0b8f7fd67251bea3c8dafc8b03fedeb0e10a906a0c85d49998b1",
+   "counsel_gated": false
+  },
+  {
+   "file": "0140_fn_delta_witness_guard.sql",
+   "version": "0140_fn_delta_witness_guard",
+   "number": "0140",
+   "mode": "authored",
+   "band": "0140-0144z",
+   "owner": "datamodel/dm-functions-triggers+algorithms",
+   "template": null,
+   "invariants": [
+    "MI22",
+    "I14",
+    "MI15"
+   ],
+   "sha256": "e30578fa715ab2879df7af0a36589b79d4184bd7fa886515fb456f1fc605d9c3",
+   "counsel_gated": false
+  },
+  {
+   "file": "0140a_fn_cbm_account_guard.sql",
+   "version": "0140a_fn_cbm_account_guard",
+   "number": "0140a",
+   "mode": "authored",
+   "band": "0140-0144z",
+   "owner": "datamodel/dm-functions-triggers+algorithms",
+   "template": null,
+   "invariants": [
+    "MI25",
+    "MI26",
+    "MI03",
+    "I02",
+    "I05",
+    "MI22"
+   ],
+   "sha256": "63fa95672a58dcaded74eb4428f06f016353f3e36f86ff208028a6e7cd789c77",
+   "counsel_gated": false
+  },
+  {
+   "file": "0140b_fn_residue_project.sql",
+   "version": "0140b_fn_residue_project",
+   "number": "0140b",
+   "mode": "authored",
+   "band": "0140-0144z",
+   "owner": "datamodel/dm-functions-triggers+algorithms",
+   "template": null,
+   "invariants": [
+    "MI25",
+    "MI03",
+    "MI22",
+    "I02"
+   ],
+   "sha256": "54c42c8a8f18905f6febeb9eefd08e7a3cc6d6ec63792ed0cbcc43ac4d605308",
+   "counsel_gated": false
+  },
+  {
+   "file": "0140c_fn_cbm_gate_permit.sql",
+   "version": "0140c_fn_cbm_gate_permit",
+   "number": "0140c",
+   "mode": "authored",
+   "band": "0140-0144z",
+   "owner": "datamodel/dm-functions-triggers+algorithms",
+   "template": null,
+   "invariants": [
+    "MI03",
+    "MI22",
+    "MI25",
+    "I02"
+   ],
+   "sha256": "77e4dc7539dde3a1f581770873b3888aba8ab5863210e061b33a890c6b78548f",
+   "counsel_gated": false
+  },
+  {
+   "file": "0140d_fn_cbm_gate_cr.sql",
+   "version": "0140d_fn_cbm_gate_cr",
+   "number": "0140d",
+   "mode": "authored",
+   "band": "0140-0144z",
+   "owner": "datamodel/dm-functions-triggers+algorithms",
+   "template": null,
+   "invariants": [
+    "MI30",
+    "MI03",
+    "MI22",
+    "I02"
+   ],
+   "sha256": "a84dc2dd61a5484e89f5648c0eb6cc71c91d3ef1fb5d95578a05cb86e77d3a60",
+   "counsel_gated": false
+  },
+  {
+   "file": "0141_fn_clause_version_guard.sql",
+   "version": "0141_fn_clause_version_guard",
+   "number": "0141",
+   "mode": "authored",
+   "band": "0140-0144z",
+   "owner": "datamodel/dm-functions-triggers+algorithms",
+   "template": null,
+   "invariants": [
+    "MI15",
+    "I05",
+    "MI22"
+   ],
+   "sha256": "aad04a4016e951a8360ffd46189fac1de17416ecaf6d9bb9f3a2613330f4aa2b",
+   "counsel_gated": false
+  },
+  {
+   "file": "0145_trg_delta_witness_guard.sql",
+   "version": "0145_trg_delta_witness_guard",
+   "number": "0145",
+   "mode": "authored",
+   "band": "0145-0149z",
+   "owner": "datamodel/dm-functions-triggers+algorithms",
+   "template": null,
+   "invariants": [
+    "MI22",
+    "I14"
+   ],
+   "sha256": "15b17744e1da0345e89cde994586dd729ea648038f7de0056b4e5ed4e14dfbc6",
+   "counsel_gated": false
+  },
+  {
+   "file": "0145a_trg_cbm_account_guard.sql",
+   "version": "0145a_trg_cbm_account_guard",
+   "number": "0145a",
+   "mode": "authored",
+   "band": "0145-0149z",
+   "owner": "datamodel/dm-functions-triggers+algorithms",
+   "template": null,
+   "invariants": [
+    "MI25",
+    "MI26",
+    "MI03",
+    "I02",
+    "I05"
+   ],
+   "sha256": "adf379b0004bb8a333a4247c760a40c8a7c7ab9cdec18f32485110d42ad3e446",
+   "counsel_gated": false
+  },
+  {
+   "file": "0145b_trg_residue_project.sql",
+   "version": "0145b_trg_residue_project",
+   "number": "0145b",
+   "mode": "authored",
+   "band": "0145-0149z",
+   "owner": "datamodel/dm-functions-triggers+algorithms",
+   "template": null,
+   "invariants": [
+    "MI25",
+    "MI22",
+    "MI03",
+    "I02"
+   ],
+   "sha256": "bf7520daf937973fbb40b7d9fe70a2e39c6ab755e8032259245443065e30855a",
+   "counsel_gated": false
+  },
+  {
+   "file": "0145c_trg_cbm_gate_permit.sql",
+   "version": "0145c_trg_cbm_gate_permit",
+   "number": "0145c",
+   "mode": "authored",
+   "band": "0145-0149z",
+   "owner": "datamodel/dm-functions-triggers+algorithms",
+   "template": null,
+   "invariants": [
+    "MI03",
+    "MI22",
+    "MI25",
+    "I02"
+   ],
+   "sha256": "4aa65a22b4056bd5a0e1a29d3dd4b8ef2432aba018a42dfdc577b16bd45162ad",
+   "counsel_gated": false
+  },
+  {
+   "file": "0145d_trg_cbm_gate_cr.sql",
+   "version": "0145d_trg_cbm_gate_cr",
+   "number": "0145d",
+   "mode": "authored",
+   "band": "0145-0149z",
+   "owner": "datamodel/dm-functions-triggers+algorithms",
+   "template": null,
+   "invariants": [
+    "MI30",
+    "MI03",
+    "MI22",
+    "I02"
+   ],
+   "sha256": "a4a5c21a119eab3e9b092405b94e7237e38d0e9da70af5ba4de465b8dc03779a",
+   "counsel_gated": false
+  },
+  {
+   "file": "0145e_trg_cbm_account_append_only.sql",
+   "version": "0145e_trg_cbm_account_append_only",
+   "number": "0145e",
+   "mode": "authored",
+   "band": "0145-0149z",
+   "owner": "datamodel/dm-functions-triggers+algorithms",
+   "template": null,
+   "invariants": [
+    "MI26",
+    "MI03",
+    "MI25",
+    "I01",
+    "I02"
+   ],
+   "sha256": "e03a7ce71e2f0e1f20e89bfbfab1258126fc38cde52a7c72763905c6ba1bf17c",
+   "counsel_gated": false
+  },
+  {
+   "file": "0146_trg_clause_version_guard.sql",
+   "version": "0146_trg_clause_version_guard",
+   "number": "0146",
+   "mode": "authored",
+   "band": "0145-0149z",
+   "owner": "datamodel/dm-functions-triggers+algorithms",
+   "template": null,
+   "invariants": [
+    "MI15",
+    "I05",
+    "MI22"
+   ],
+   "sha256": "d7e0ac5034fe66870dad637d14957a3cdf8b55ab0f7e432da7bb709639010bd7",
+   "counsel_gated": false
+  },
+  {
+   "file": "0149y_trg_mutation_run_append_only.sql",
+   "version": "0149y_trg_mutation_run_append_only",
+   "number": "0149y",
+   "mode": "authored",
+   "band": "0145-0149z",
+   "owner": "datamodel/dm-functions-triggers+algorithms",
+   "template": null,
+   "invariants": [
+    "MI01",
+    "I01"
+   ],
+   "sha256": "e726121f12729fb295a217425857bbfb68997497bda0d030dfc4dd51843cc416",
+   "counsel_gated": false
+  },
+  {
+   "file": "0149z_trg_mutation_result_append_only.sql",
+   "version": "0149z_trg_mutation_result_append_only",
+   "number": "0149z",
+   "mode": "authored",
+   "band": "0145-0149z",
+   "owner": "datamodel/dm-functions-triggers+algorithms",
+   "template": null,
+   "invariants": [
+    "MI01",
+    "I01"
+   ],
+   "sha256": "aa94e2ecae2934451f3eb8589110d5b1616d9f15810b0f94f7efc5263237f06e",
+   "counsel_gated": false
+  },
+  {
+   "file": "0150_v_safe_direction_current.sql",
+   "version": "0150_v_safe_direction_current",
+   "number": "0150",
+   "mode": "authored",
+   "band": "0150-0154z",
+   "owner": "algorithms",
+   "template": null,
+   "invariants": [
+    "MI22",
+    "I06"
+   ],
+   "sha256": "3510f3b2c683cea49ac95fc2b282213c16a28219fbf19bb652a7de08bf4135c6",
+   "counsel_gated": false
+  },
+  {
+   "file": "0151_v_cbm_ledger.sql",
+   "version": "0151_v_cbm_ledger",
+   "number": "0151",
+   "mode": "authored",
+   "band": "0150-0154z",
+   "owner": "algorithms",
+   "template": null,
+   "invariants": [
+    "MI03",
+    "MI25",
+    "MI26",
+    "I02",
+    "I13",
+    "I15"
+   ],
+   "sha256": "4085c2617dd4818500fb4ed37b50249e736e5ed7b638341483073f7b8291d9d7",
+   "counsel_gated": false
+  },
+  {
+   "file": "0152_v_blame_origin.sql",
+   "version": "0152_v_blame_origin",
+   "number": "0152",
+   "mode": "authored",
+   "band": "0150-0154z",
+   "owner": "algorithms",
+   "template": null,
+   "invariants": [
+    "MI22",
+    "MI26",
+    "I05",
+    "I06",
+    "MI02",
+    "MI30",
+    "MI13",
+    "MI14"
+   ],
+   "sha256": "17a90375939be9dd6cad61bc3982db3e29442d5bf360e3c8089f851d0e145743",
+   "counsel_gated": false
+  },
+  {
+   "file": "0155_ops_index_usage_snapshot.sql",
+   "version": "0155_ops_index_usage_snapshot",
+   "number": "0155",
+   "mode": "authored",
+   "band": "0155-0169z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI22",
+    "I06"
+   ],
+   "sha256": "6667d3adcc0249823a62eb30ba068424a83fa0e64e5e5e908e50d90e767b7506",
+   "counsel_gated": false
+  },
+  {
+   "file": "0155a_ops_changefeed_health_snapshot.sql",
+   "version": "0155a_ops_changefeed_health_snapshot",
+   "number": "0155a",
+   "mode": "authored",
+   "band": "0155-0169z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI22",
+    "I06"
+   ],
+   "sha256": "f7795a15f5cb1c10ebd3bfae34345e12ef6428cbb3aec0d8c0ebb47949ea41ea",
+   "counsel_gated": false
+  },
+  {
+   "file": "0156_v_open_gate_summary.sql",
+   "version": "0156_v_open_gate_summary",
+   "number": "0156",
+   "mode": "authored",
+   "band": "0155-0169z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI02",
+    "MI29",
+    "I02"
+   ],
+   "sha256": "5297f5faf8872c7beba6d0dfaacb724871c4e7711647ca4ec22fa12d93ced1df",
+   "counsel_gated": false
+  },
+  {
+   "file": "0157_v_weakenings_without_disposition.sql",
+   "version": "0157_v_weakenings_without_disposition",
+   "number": "0157",
+   "mode": "authored",
+   "band": "0155-0169z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI02",
+    "MI26",
+    "I02",
+    "MI15",
+    "MI13"
+   ],
+   "sha256": "d3dd76819823bb97531d6658f38198ad412646df9233c75435c5917309ca9153",
+   "counsel_gated": false
+  },
+  {
+   "file": "0158_v_blame_coverage.sql",
+   "version": "0158_v_blame_coverage",
+   "number": "0158",
+   "mode": "authored",
+   "band": "0155-0169z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI26",
+    "MI25",
+    "I05"
+   ],
+   "sha256": "93e8c3e70736484ab74cccd0efddb5001f4027264cd73da3f11855f163e4d0e3",
+   "counsel_gated": false
+  },
+  {
+   "file": "0159_v_disposition_coverage.sql",
+   "version": "0159_v_disposition_coverage",
+   "number": "0159",
+   "mode": "authored",
+   "band": "0155-0169z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI08",
+    "MI12",
+    "MI25",
+    "I09"
+   ],
+   "sha256": "f17b24c8cd13ba9efbb20483d00eae9c5c5b31127ae716251ac1ee648568a322",
+   "counsel_gated": false
+  },
+  {
+   "file": "0160_v_silence_summary.sql",
+   "version": "0160_v_silence_summary",
+   "number": "0160",
+   "mode": "authored",
+   "band": "0155-0169z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI17",
+    "MI16",
+    "I13",
+    "I15"
+   ],
+   "sha256": "5ca02b68c7cb5fead5af1f492c52497541b8d8692b53f736ac21011975b58d76",
+   "counsel_gated": true
+  },
+  {
+   "file": "0161_v_recall_conservation.sql",
+   "version": "0161_v_recall_conservation",
+   "number": "0161",
+   "mode": "authored",
+   "band": "0155-0169z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI17",
+    "MI16",
+    "MI18",
+    "I13"
+   ],
+   "sha256": "a1c49f2b5fd9de5399cc2cfb16059b1513bc1b430722e9b015933b9dbb2e107f",
+   "counsel_gated": false
+  },
+  {
+   "file": "0162_v_ledger_health.sql",
+   "version": "0162_v_ledger_health",
+   "number": "0162",
+   "mode": "authored",
+   "band": "0155-0169z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI24",
+    "MI18",
+    "I16"
+   ],
+   "sha256": "79d14a32357712f3900525776edf3983f3cd9e90ec02767c1bece1cd191a8a6a",
+   "counsel_gated": false
+  },
+  {
+   "file": "0163_v_fixity_coverage.sql",
+   "version": "0163_v_fixity_coverage",
+   "number": "0163",
+   "mode": "authored",
+   "band": "0155-0169z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI21",
+    "MI22",
+    "I06"
+   ],
+   "sha256": "f88bd097d1aaf15744afee9457da532374434d46039b94e7ee8978cc652f4e41",
+   "counsel_gated": false
+  },
+  {
+   "file": "0164_v_agent_actions.sql",
+   "version": "0164_v_agent_actions",
+   "number": "0164",
+   "mode": "authored",
+   "band": "0155-0169z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI01",
+    "MI22",
+    "I15"
+   ],
+   "sha256": "b18209f021669551efeac90a024c0ae5224cdab704e3bd36de087ef7accabca9",
+   "counsel_gated": false
+  },
+  {
+   "file": "0165_v_gate_latency_daily.sql",
+   "version": "0165_v_gate_latency_daily",
+   "number": "0165",
+   "mode": "authored",
+   "band": "0155-0169z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI22",
+    "I14"
+   ],
+   "sha256": "b61934f245335ac971e0ad598d799cb1a93b65bc2192156f94d53e270d5b408c",
+   "counsel_gated": false
+  },
+  {
+   "file": "0166_v_txn_restart_daily.sql",
+   "version": "0166_v_txn_restart_daily",
+   "number": "0166",
+   "mode": "authored",
+   "band": "0155-0169z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI22",
+    "I14"
+   ],
+   "sha256": "67e209465b759d892a291cda7f242ae4558a80b109ec6b1bdb16cc7e24ea4118",
+   "counsel_gated": false
+  },
+  {
+   "file": "0167_v_unused_indexes.sql",
+   "version": "0167_v_unused_indexes",
+   "number": "0167",
+   "mode": "authored",
+   "band": "0155-0169z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI22",
+    "I06",
+    "MI08"
+   ],
+   "sha256": "b3ff0d883bc72a05a741178741bfaf0a0225289522265417192b868dc53fc7a1",
+   "counsel_gated": false
+  },
+  {
+   "file": "0168_v_changefeed_health.sql",
+   "version": "0168_v_changefeed_health",
+   "number": "0168",
+   "mode": "authored",
+   "band": "0155-0169z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI22",
+    "MI26",
+    "I06"
+   ],
+   "sha256": "b0597d5647a7fd37473badbf2eb01fe594d2b689ae97be64525880325a470b4c",
+   "counsel_gated": false
+  },
+  {
+   "file": "0170_v_disposition_profile.sql",
+   "version": "0170_v_disposition_profile",
+   "number": "0170",
+   "mode": "authored",
+   "band": "0170-0179z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI27",
+    "MI29",
+    "I15"
+   ],
+   "sha256": "9e9c9acf8551b63eba88125e9922353b93a68cc9b2ae991da7bff93f027a7d85",
+   "counsel_gated": true
+  },
+  {
+   "file": "0171_v_standing_components.sql",
+   "version": "0171_v_standing_components",
+   "number": "0171",
+   "mode": "authored",
+   "band": "0170-0179z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI28",
+    "I15"
+   ],
+   "sha256": "0cd592750215792dc12ae53d2a4f9cf5e0b983b158be367ed69a563cc3e7aa4b",
+   "counsel_gated": true
+  },
+  {
+   "file": "0172_v_my_record.sql",
+   "version": "0172_v_my_record",
+   "number": "0172",
+   "mode": "authored",
+   "band": "0170-0179z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI27",
+    "MI28",
+    "I15"
+   ],
+   "sha256": "a0ec75c2f6b272cbc82c078c7da4c14d1e2dd8c2ffca898afc8f4e7e97dabb70",
+   "counsel_gated": true
+  },
+  {
+   "file": "0180_disposition_peer_visible.sql",
+   "version": "0180_disposition_peer_visible",
+   "number": "0180",
+   "mode": "authored",
+   "band": "0180-0198z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI01",
+    "I15",
+    "MI25"
+   ],
+   "sha256": "a0e5491d16f5d2970cb8a5284c53884c6170545d1d3be05e2c9b5dc6c3aba367",
+   "counsel_gated": true
+  },
+  {
+   "file": "0180a_role_agent_ingestor.sql",
+   "version": "0180a_role_agent_ingestor",
+   "number": "0180a",
+   "mode": "authored",
+   "band": "0180-0198z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI01",
+    "I01"
+   ],
+   "sha256": "0ebbaaddede69a94f2a0eb7be4dc2710b75089c02c1bf442f09b0969b9955d22",
+   "counsel_gated": false
+  },
+  {
+   "file": "0180b_role_agent_cartographer.sql",
+   "version": "0180b_role_agent_cartographer",
+   "number": "0180b",
+   "mode": "authored",
+   "band": "0180-0198z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI01",
+    "I01"
+   ],
+   "sha256": "32f0215594f8575207d8285981e96a767d40e0c0d2d64fad4b231db6a1c63518",
+   "counsel_gated": false
+  },
+  {
+   "file": "0180c_role_agent_patroller.sql",
+   "version": "0180c_role_agent_patroller",
+   "number": "0180c",
+   "mode": "authored",
+   "band": "0180-0198z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI01",
+    "I01"
+   ],
+   "sha256": "d02f7976229f3a38f3335cddfe8a201b149ec997db4456c2560fe6b77333c1b8",
+   "counsel_gated": false
+  },
+  {
+   "file": "0180d_role_agent_fleet.sql",
+   "version": "0180d_role_agent_fleet",
+   "number": "0180d",
+   "mode": "authored",
+   "band": "0180-0198z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI01",
+    "I01",
+    "MI23"
+   ],
+   "sha256": "226ff78395ac5ffe8909322c92a2142722f679512b9a32b728973ae8fcf488d3",
+   "counsel_gated": false
+  },
+  {
+   "file": "0180e_role_agent_assay.sql",
+   "version": "0180e_role_agent_assay",
+   "number": "0180e",
+   "mode": "authored",
+   "band": "0180-0198z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI01",
+    "I01"
+   ],
+   "sha256": "dc2d6e1f79a2f6a5fb397d2a3c38b1ab713ed9bb28231011def3943cadc810b5",
+   "counsel_gated": false
+  },
+  {
+   "file": "0180f_role_site_reader.sql",
+   "version": "0180f_role_site_reader",
+   "number": "0180f",
+   "mode": "authored",
+   "band": "0180-0198z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI01",
+    "I01"
+   ],
+   "sha256": "980f9c7af50e21cdb5f707bfac91858fa55d2a77e62f50a1584f7a7b38a9d940",
+   "counsel_gated": false
+  },
+  {
+   "file": "0180g_role_fleet_hse.sql",
+   "version": "0180g_role_fleet_hse",
+   "number": "0180g",
+   "mode": "authored",
+   "band": "0180-0198z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI01",
+    "I01"
+   ],
+   "sha256": "9f8373067a3048768017478fbb754fabe0eaa27987511a8dc08104f01d50efdf",
+   "counsel_gated": false
+  },
+  {
+   "file": "0180h_role_signer.sql",
+   "version": "0180h_role_signer",
+   "number": "0180h",
+   "mode": "authored",
+   "band": "0180-0198z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI01",
+    "I01"
+   ],
+   "sha256": "4b2f3f32b2197f19ed159556dec743b21623f811a5a4842fb5242e7adbca8ebf",
+   "counsel_gated": false
+  },
+  {
+   "file": "0181_permit_rls_enable.sql",
+   "version": "0181_permit_rls_enable",
+   "number": "0181",
+   "mode": "authored",
+   "band": "0180-0198z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI02",
+    "I02"
+   ],
+   "sha256": "7b9cdf71dddd3f46e26784599649e533d0c95b07445ac4afbfcc961f016fc901",
+   "counsel_gated": false
+  },
+  {
+   "file": "0181a_permit_rls_force.sql",
+   "version": "0181a_permit_rls_force",
+   "number": "0181a",
+   "mode": "authored",
+   "band": "0180-0198z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI02",
+    "I02"
+   ],
+   "sha256": "024f67c6edc7eb03500b36d777ae0311a4b229f7dd9955a9a6489c73552ae544",
+   "counsel_gated": false
+  },
+  {
+   "file": "0181b_policy_permit_site_scope.sql",
+   "version": "0181b_policy_permit_site_scope",
+   "number": "0181b",
+   "mode": "authored",
+   "band": "0180-0198z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI02",
+    "I02"
+   ],
+   "sha256": "a62e56bc4fb835b1ec9e5b9d9321ee13c52c65c019f3774f758ac0804e12e970",
+   "counsel_gated": false
+  },
+  {
+   "file": "0181c_policy_permit_fleet_scope.sql",
+   "version": "0181c_policy_permit_fleet_scope",
+   "number": "0181c",
+   "mode": "authored",
+   "band": "0180-0198z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI02",
+    "I02"
+   ],
+   "sha256": "3903d70955132b1d0f4616d862a1e94ec9f387d69c2a715c64ead0bf68402d99",
+   "counsel_gated": false
+  },
+  {
+   "file": "0181d_policy_permit_service_read.sql",
+   "version": "0181d_policy_permit_service_read",
+   "number": "0181d",
+   "mode": "authored",
+   "band": "0180-0198z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI02",
+    "MI22",
+    "I02"
+   ],
+   "sha256": "309f98e766c552e2e95e25d4d1d3c6f57fb8562f7f269dfe31bfec6e61ed2f94",
+   "counsel_gated": false
+  },
+  {
+   "file": "0181e_policy_permit_view_owner_read.sql",
+   "version": "0181e_policy_permit_view_owner_read",
+   "number": "0181e",
+   "mode": "authored",
+   "band": "0180-0198z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI02",
+    "MI22",
+    "I02"
+   ],
+   "sha256": "993eaddeb62df8e9fd4055028b05eb2fd185bc375578ab86ac9037f7621e2f2b",
+   "counsel_gated": false
+  },
+  {
+   "file": "0181f_policy_permit_gate_insert.sql",
+   "version": "0181f_policy_permit_gate_insert",
+   "number": "0181f",
+   "mode": "authored",
+   "band": "0180-0198z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI02",
+    "I02"
+   ],
+   "sha256": "8104efc0a4be0a878396a60a30d0f7b52a97537a0d8ce7c8a3c461c8c1a0e7d7",
+   "counsel_gated": false
+  },
+  {
+   "file": "0181g_policy_permit_gate_write.sql",
+   "version": "0181g_policy_permit_gate_write",
+   "number": "0181g",
+   "mode": "authored",
+   "band": "0180-0198z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI02",
+    "MI22",
+    "I02"
+   ],
+   "sha256": "ace51ddb894ffa1e09fe8bd003865551a4c6a0a430ebde27d42d198904b2af6e",
+   "counsel_gated": false
+  },
+  {
+   "file": "0181h_policy_permit_hold_blocks_delete.sql",
+   "version": "0181h_policy_permit_hold_blocks_delete",
+   "number": "0181h",
+   "mode": "authored",
+   "band": "0180-0198z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI01",
+    "I01"
+   ],
+   "sha256": "50c7b0d08ddd6a00b1249f86db0f8da260574165d217f7dd6f5dc44c1b39cc40",
+   "counsel_gated": false
+  },
+  {
+   "file": "0183_change_request_rls_enable.sql",
+   "version": "0183_change_request_rls_enable",
+   "number": "0183",
+   "mode": "authored",
+   "band": "0180-0198z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI30",
+    "I02"
+   ],
+   "sha256": "e66061d3ef3d17295b9b9b413704debff3ac895f09d66fbe2f8e4aa932586d63",
+   "counsel_gated": false
+  },
+  {
+   "file": "0183a_change_request_rls_force.sql",
+   "version": "0183a_change_request_rls_force",
+   "number": "0183a",
+   "mode": "authored",
+   "band": "0180-0198z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI30",
+    "I02"
+   ],
+   "sha256": "20deffaa2806d77d39702f9d16d5e5ee363aebdb51f0b8d8210c56017c641483",
+   "counsel_gated": false
+  },
+  {
+   "file": "0183b_policy_cr_site_scope.sql",
+   "version": "0183b_policy_cr_site_scope",
+   "number": "0183b",
+   "mode": "authored",
+   "band": "0180-0198z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI30",
+    "I02"
+   ],
+   "sha256": "17046050a93a7ccb12cd568dce99384f047c155e7948fa2793aee1ba9a37acea",
+   "counsel_gated": false
+  },
+  {
+   "file": "0183c_policy_cr_fleet_scope.sql",
+   "version": "0183c_policy_cr_fleet_scope",
+   "number": "0183c",
+   "mode": "authored",
+   "band": "0180-0198z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI30",
+    "I02"
+   ],
+   "sha256": "f5b68b9f91c6d189e4c1d575b8b7cf1ef9a932d98932058b486cffd0ac3bbc66",
+   "counsel_gated": false
+  },
+  {
+   "file": "0183d_policy_cr_service_read.sql",
+   "version": "0183d_policy_cr_service_read",
+   "number": "0183d",
+   "mode": "authored",
+   "band": "0180-0198z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI30",
+    "MI22",
+    "I02"
+   ],
+   "sha256": "970ae4a86b19f536facfff7469a4b97e0553b0f5a8a5cd2a5ed44d953036867f",
+   "counsel_gated": false
+  },
+  {
+   "file": "0183e_policy_cr_view_owner_read.sql",
+   "version": "0183e_policy_cr_view_owner_read",
+   "number": "0183e",
+   "mode": "authored",
+   "band": "0180-0198z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI30",
+    "MI22",
+    "I02"
+   ],
+   "sha256": "c878e8100fefca174ad18bb91f52358d3ce1c576c1b9fe4ac3f35aedb5ebf672",
+   "counsel_gated": false
+  },
+  {
+   "file": "0183f_policy_cr_gate_insert.sql",
+   "version": "0183f_policy_cr_gate_insert",
+   "number": "0183f",
+   "mode": "authored",
+   "band": "0180-0198z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI30",
+    "I02"
+   ],
+   "sha256": "ce7d3d411e65908deb8aa45004ec5fd9ef0f072796c3e7f85bf110535de8e68f",
+   "counsel_gated": false
+  },
+  {
+   "file": "0183g_policy_cr_gate_write.sql",
+   "version": "0183g_policy_cr_gate_write",
+   "number": "0183g",
+   "mode": "authored",
+   "band": "0180-0198z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI30",
+    "MI22",
+    "I02"
+   ],
+   "sha256": "21119d19f80a93e6ea727e0975124cb518533c40be3fd206875810544fc9bde3",
+   "counsel_gated": false
+  },
+  {
+   "file": "0183h_policy_cr_delete_never.sql",
+   "version": "0183h_policy_cr_delete_never",
+   "number": "0183h",
+   "mode": "authored",
+   "band": "0180-0198z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI01",
+    "I01"
+   ],
+   "sha256": "f67e675a435ff670711baf5dc261e81a4922479d1521192cd6b8ac245649f49a",
+   "counsel_gated": false
+  },
+  {
+   "file": "0185_disposition_rls_enable.sql",
+   "version": "0185_disposition_rls_enable",
+   "number": "0185",
+   "mode": "authored",
+   "band": "0180-0198z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI08",
+    "I15"
+   ],
+   "sha256": "61df4e3e3e2da18c434b271d46e4295f9e644214228d8b502205b9868b388b17",
+   "counsel_gated": true
+  },
+  {
+   "file": "0185a_disposition_rls_force.sql",
+   "version": "0185a_disposition_rls_force",
+   "number": "0185a",
+   "mode": "authored",
+   "band": "0180-0198z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI08",
+    "I15"
+   ],
+   "sha256": "6c205e9d276429f530af6149b32cf851c1a39ef0161bd2d5c1f9e34a9be0fda3",
+   "counsel_gated": true
+  },
+  {
+   "file": "0185b_policy_disposition_signer_read.sql",
+   "version": "0185b_policy_disposition_signer_read",
+   "number": "0185b",
+   "mode": "authored",
+   "band": "0180-0198z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI08",
+    "I15"
+   ],
+   "sha256": "4faacf6ac4ea7260aefc9dd7493a47d0d07b065e58b0f19dcd83cfb265f05444",
+   "counsel_gated": true
+  },
+  {
+   "file": "0185c_policy_disposition_peer_blind.sql",
+   "version": "0185c_policy_disposition_peer_blind",
+   "number": "0185c",
+   "mode": "authored",
+   "band": "0180-0198z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI08",
+    "I15",
+    "MI27"
+   ],
+   "sha256": "e9af152e1621110d788fdf88ac74d735b482bac1f7c2435273ecf7c6d42f35c4",
+   "counsel_gated": true
+  },
+  {
+   "file": "0185d_policy_disposition_service_read.sql",
+   "version": "0185d_policy_disposition_service_read",
+   "number": "0185d",
+   "mode": "authored",
+   "band": "0180-0198z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI08",
+    "MI02",
+    "I09"
+   ],
+   "sha256": "7dd010217ca8db4186039d7409a331051235e3f47f6a4f2126713ba3bf064979",
+   "counsel_gated": true
+  },
+  {
+   "file": "0185e_policy_disposition_view_owner_read.sql",
+   "version": "0185e_policy_disposition_view_owner_read",
+   "number": "0185e",
+   "mode": "authored",
+   "band": "0180-0198z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI08",
+    "I15"
+   ],
+   "sha256": "d89a5a4846f3ad978228c3c720bde8f75c01d1e8ad3b8cccfc3bfc60a7049663",
+   "counsel_gated": true
+  },
+  {
+   "file": "0185f_policy_disposition_insert.sql",
+   "version": "0185f_policy_disposition_insert",
+   "number": "0185f",
+   "mode": "authored",
+   "band": "0180-0198z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI08",
+    "MI12",
+    "I09"
+   ],
+   "sha256": "cad721531ad28afa8d969351503d55de46531c7342530af2e106ba30dafcc0da",
+   "counsel_gated": true
+  },
+  {
+   "file": "0185g_policy_disposition_retract.sql",
+   "version": "0185g_policy_disposition_retract",
+   "number": "0185g",
+   "mode": "authored",
+   "band": "0180-0198z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI01",
+    "MI08",
+    "I01"
+   ],
+   "sha256": "08db64198d77cf9ed435ee0872dab01258f23f9cfbfb1762186ffce60baa8a88",
+   "counsel_gated": true
+  },
+  {
+   "file": "0185h_policy_disposition_delete_never.sql",
+   "version": "0185h_policy_disposition_delete_never",
+   "number": "0185h",
+   "mode": "authored",
+   "band": "0180-0198z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "I01",
+    "MI01"
+   ],
+   "sha256": "d0df64b76c0aad1329d6a6575cde78a9486a26d16fefaf96123be8a0ad94de83",
+   "counsel_gated": true
+  },
+  {
+   "file": "0187_standing_rls_enable.sql",
+   "version": "0187_standing_rls_enable",
+   "number": "0187",
+   "mode": "authored",
+   "band": "0180-0198z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI28",
+    "I15"
+   ],
+   "sha256": "aa3e8a53b37abd0768299264de16f23c143e75badd2c6ffd41dc730f6f30a253",
+   "counsel_gated": true
+  },
+  {
+   "file": "0187a_standing_rls_force.sql",
+   "version": "0187a_standing_rls_force",
+   "number": "0187a",
+   "mode": "authored",
+   "band": "0180-0198z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI28",
+    "I15"
+   ],
+   "sha256": "ab6eb3bc891df77dd915c5bdfef021716ea1aeecab50d1d88ee7b434100986cb",
+   "counsel_gated": true
+  },
+  {
+   "file": "0187b_policy_standing_blind.sql",
+   "version": "0187b_policy_standing_blind",
+   "number": "0187b",
+   "mode": "authored",
+   "band": "0180-0198z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI28",
+    "I15"
+   ],
+   "sha256": "3ac66853c433d9cd3f37674c2c9d0b111a95586f7f0ecadbfb1c5eb99c85873d",
+   "counsel_gated": true
+  },
+  {
+   "file": "0187c_policy_standing_assay_read.sql",
+   "version": "0187c_policy_standing_assay_read",
+   "number": "0187c",
+   "mode": "authored",
+   "band": "0180-0198z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI28",
+    "I15"
+   ],
+   "sha256": "af91299de337a363efb71452267196f9d82b9ba70aefe1d7765cc7b36f720609",
+   "counsel_gated": true
+  },
+  {
+   "file": "0187d_policy_standing_assay_insert.sql",
+   "version": "0187d_policy_standing_assay_insert",
+   "number": "0187d",
+   "mode": "authored",
+   "band": "0180-0198z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI28",
+    "I15"
+   ],
+   "sha256": "b5d63123e4d6c9b0a4caae5895785a3e4ec8eb71adc19a4e6fd8bfe3e018ae7c",
+   "counsel_gated": true
+  },
+  {
+   "file": "0187e_policy_standing_view_owner_read.sql",
+   "version": "0187e_policy_standing_view_owner_read",
+   "number": "0187e",
+   "mode": "authored",
+   "band": "0180-0198z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI28",
+    "I15"
+   ],
+   "sha256": "526ae43f2e0b1bf07e2f64ca1af3baca52b12e1b13bdb2d14b46e7e95ec51492",
+   "counsel_gated": true
+  },
+  {
+   "file": "0198x_no_rls_on_cdc_sources.sql",
+   "version": "0198x_no_rls_on_cdc_sources",
+   "number": "0198x",
+   "mode": "authored",
+   "band": "0180-0198z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI22",
+    "I06"
+   ],
+   "sha256": "21cee6839c1b7dca69ce1c14949e095dcfde7422cc999033f04ccf696b0374dd",
+   "counsel_gated": false
+  },
+  {
+   "file": "0199_exposure_receipt_fk_silence.sql",
+   "version": "0199_exposure_receipt_fk_silence",
+   "number": "0199",
+   "mode": "authored",
+   "band": "0199-0199z",
+   "owner": "datamodel/dm-views-rls",
+   "template": null,
+   "invariants": [
+    "MI12",
+    "MI17",
+    "I07",
+    "MI07",
+    "I03",
+    "MI01"
+   ],
+   "sha256": "fe383f24897a83aeaaf4f906abd9d93dd50f6d216dc314e23e0986a1fe69265b",
+   "counsel_gated": false
+  }
+ ]
 }

@@ -1,0 +1,48 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 2,
+    "doc_codes": [
+      "ALERT-2016-007",
+      "MOC-2026-0413",
+      "PRO-MEC-014",
+      "PRO-OPS-032"
+    ],
+    "intent": "introduce",
+    "moc_ref": "MOC-2013-0079",
+    "opened_on": "2013-02-26",
+    "precursor_events": [
+      {
+        "event_ref": "INC-2004-008",
+        "severity_gate": null
+      },
+      {
+        "event_ref": "INC-2025-010",
+        "severity_gate": null
+      }
+    ],
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "terminal_state": "abandoned",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "management_of_change": "change request",
+      "verification": "field verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "2928ca93f3d818a00e17aedf7034d979220ae059a7270435808a824de521803f",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2013-0079",
+  "prompt_kind": "moc",
+  "prompt_sha256": "b4a517c76062c60248ab0174bc72d6b12e82c8529b85d882902d4104bafc33fe",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2013-0079 was raised at Marrindal Concentrator and Hydrocarbon Transfer Facility on 26 February 2013 following 2 recorded events in the archive, including INC-2004-008 and INC-2025-010. The change request record covers 2 clauses across 4 controlled documents. The intent is to introduce a duty the documents in scope did not previously carry. The record reached the state abandoned in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical safeguard set is preserved.",
+    "scope_note": "The documents in scope are ALERT-2016-007, MOC-2026-0413, PRO-MEC-014 and PRO-OPS-032."
+  },
+  "response_sha256": "5c55e890c3d1f7f70fca59bf600cb4456fe51bed615dd7d7505ae17f05fcfdd4",
+  "source": null
+}

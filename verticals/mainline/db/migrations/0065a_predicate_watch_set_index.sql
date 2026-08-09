@@ -1,0 +1,66 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MI: MI28
+-- I: I12
+-- COUNSEL-GATED: no
+-- RATIONALE: The lease is only called if the router can FIND it. Every row landing in `mainline_ops.site_register_signal` must be resolved to the set of holding predicates that watch that register, and `registers` is a STRING[] — so without an inverted index that resolution is a full scan of every predicate at the site, per signal. A revocation path whose cost grows with the number of predicates ever written is a revocation path that gets switched off in production, and a lease nobody calls is the prose waiver M8 exists to replace.
+--
+-- migration:  0065a_predicate_watch_set_index
+-- band:       0065-0065z · datamodel/ex-dm-gate · AUTHORED, allocated by
+--             verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1)
+-- statements: 1
+-- source:     ARCHITECTURE.md §5.5 (M8, the changefeed that watches the registers) ·
+--             docs/leads/datamodel.md §4 constraint 9 (inverted column LAST, no STORING)
+-- requires:   0065 mainline.mechanism_predicate
+-- projects:   nothing. This file adds an access path and no semantics.
+-- sqlstate:   none. An index refuses nothing.
+-- forward-only; no .down.sql exists at or below the protected floor (DM-14).
+--
+-- WHY THIS IS A SEPARATE FILE AND NOT AN INLINE INDEX, WHICH DM-6 WOULD OTHERWISE REQUIRE.
+-- DM-6 puts secondary indexes inline so that one statement per file survives without an index
+-- explosion, and so that every index exists from row zero. Both still hold here — this table is
+-- created empty and the index lands immediately after, in the same apply. The split is a RISK
+-- decision, not a style one: a multi-column INVERTED index over a `STRING[]` with two scalar
+-- prefix columns is the least-verified construct in this band, and inlining it would mean that
+-- if v26.2 refuses the index it also refuses the TABLE, taking `mechanism_predicate`,
+-- `predicate_revocation` and the whole M8 mechanism down with it. Split, the worst case is one
+-- red file, a named platform finding, and a scan-based router — degraded, not absent. This is
+-- the same reasoning DR-1 applies to the vector sidecar, and it is exactly what MR-5's
+-- multi-statement letter slot is for.
+--
+-- THE SHAPE. `(site_id, state, registers)` — the inverted column LAST, per §4 constraint 9, with
+-- the two scalar prefixes the router always constrains: a signal arrives for one site, and only
+-- a predicate still in 'holding' can be called. No `STORING`: the router needs `predicate_id` to
+-- open a revocation, and the primary key is already carried by every secondary index.
+--
+-- `state` IS A MUTABLE PREFIX COLUMN, and that is deliberate. Calling a lease moves the row out
+-- of 'holding' and therefore out of the part of this index the router reads, so a revoked
+-- predicate stops being a candidate without anything having to remember to exclude it. The write
+-- cost is one index entry per element of `registers` per state change, on a table with hundreds
+-- of rows per site rather than millions.
+--
+-- WHAT IS ALREADY EVIDENCED ON THIS TREE, AND WHAT IS NOT. `0029_clause_version.sql` ships
+-- `INVERTED INDEX cv_anchors (anchor_set)` over a `STRING[]`, so the element type and the
+-- inverted form itself are not novel here. What is novel is the TWO SCALAR PREFIX COLUMNS ahead
+-- of the inverted one. That is the part this file is honest about not having measured.
+--
+-- VERIFIED 2026-08-10 against CockroachDB CCL v26.2.5 (local single node, insecure, 26257). A
+-- multi-column INVERTED index with TWO scalar prefix columns ahead of a `STRING[]` is ACCEPTED.
+-- `information_schema.statistics` reports the key columns in the order
+-- `(site_id, state, registers, predicate_id)` — note the fourth entry: CockroachDB appends the
+-- primary key to every secondary index, so a test asserting "the inverted column is last" by
+-- taking the final row would fail on a correct index. What is asserted instead, and what §4
+-- constraint 9 actually requires, is that `registers` follows every DECLARED prefix column.
+--
+-- The split into its own file is therefore vindicated but unused: the risk it insured against did
+-- not materialise. The insurance stays, because the reason for it does not depend on the outcome.
+--
+-- IF IT IS EVER REFUSED on another version: delete nothing and change no table. Replace the
+-- statement below with
+--   CREATE INDEX predicate_by_state ON mainline.mechanism_predicate (site_id, state);
+-- and have the router post-filter on `registers` in the application. Record the refusal as a
+-- platform finding next to F1-F5 in docs/leads/datamodel.md rather than quietly downgrading it.
+
+CREATE INVERTED INDEX predicate_watch_set
+  ON mainline.mechanism_predicate (site_id, state, registers);

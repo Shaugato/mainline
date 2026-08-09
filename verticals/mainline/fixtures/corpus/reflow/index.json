@@ -1,0 +1,98 @@
+{
+  "files": {
+    "reflow_collision.jsonl": {
+      "bytes": 1016170,
+      "description": "every wrong or undecidable match the four registers proposed across the reflow boundary, with the operational consequence spelled out",
+      "rows": 1838,
+      "sha256": "ad82d45f8d5ff6920d7ce09a5f74732ce6a4f43129332ae53fb9b2e8b95a0815",
+      "table": null
+    },
+    "reflow_document.jsonl": {
+      "bytes": 10726,
+      "description": "one row per retypeset document: label-change and ordinal-change fractions, Kendall tau distance, normalised footrule displacement, and the reflow verdict",
+      "rows": 24,
+      "sha256": "d7d32a4df3cd79593c3c7a6f50966354c9c454ebf1aaf90c4ec759513e469084",
+      "table": null
+    },
+    "reflow_nemesis.json": {
+      "bytes": 2733,
+      "description": "five deliberate defects, and which checks refused each of them",
+      "rows": 1,
+      "sha256": "268d2cabefe37b7bbbfb47af3e082356b38beccf6c636bfa1073493a300c1ee8",
+      "table": null
+    },
+    "reflow_pair.jsonl": {
+      "bytes": 411704,
+      "description": "one row per clause carried through the 2016 retypeset; identity re-derived from the birth key and refuted against the post-reflow printed label",
+      "rows": 624,
+      "sha256": "b2593ed418de3cea845ac5d1d70df6c5a1385533f9fa08c2cfdfc0e6bd0067dd",
+      "table": null
+    },
+    "reflow_scoreboard.json": {
+      "bytes": 2764,
+      "description": "four registers scored over the reflow boundary, with the caveats attached",
+      "rows": 1,
+      "sha256": "82cd9a9ac09124aabd18071eb79a8f311892004cf62c628d5562e81eef375265",
+      "table": null
+    },
+    "reflow_thresholds.json": {
+      "bytes": 534,
+      "description": "the floors this stage enforces, and the values measured when they were chosen",
+      "rows": 1,
+      "sha256": "1620a6c010dce49757ca100eced1916d8b9d38a0c8548d8a310bf8edab5b9c56",
+      "table": null
+    },
+    "spine_reflow.json": {
+      "bytes": 999,
+      "description": "beat 1's exhibit: one clause, two numbering schemes, one identity",
+      "rows": 1,
+      "sha256": "26b57dad7d004c582fa688295d5b8e6f2b2179a4f431bee3d1846f87dc63d22b",
+      "table": null
+    },
+    "verify_report.json": {
+      "bytes": 5190,
+      "description": "every check this stage runs, its verdict, and the numbers behind it",
+      "rows": 1,
+      "sha256": "0a1c0572ea09104720babda6fb55be338e49444e59e7b4f7c9d3474da7ef31e7",
+      "table": null
+    }
+  },
+  "loads_into_database": false,
+  "loads_into_database_reason": "the reflow's effect on the schema is already carried by clause_version.printed_label and clause_version.ordinal; this tree is evidence about the corpus, not more corpus",
+  "must_not_claim": [
+    "This stage does not measure MAINLINE's clause linker. It measures what a register keyed on a printed label, an ordinal or a control class loses when a document is retypeset.",
+    "The clause_uuid register scores 1.000 by construction: the corpus carries that identity across the reflow, so a register keyed on it cannot miss. It is a control, not evidence.",
+    "The corpus is synthetic. These numbers bound a label-keyed register from above on a world built to be legible; a real fonds is messier, and the losses would be larger.",
+    "No clause text is compared anywhere in this stage. A real content-similarity register would score between control_class and clause_uuid, and is not measured here."
+  ],
+  "nemesis_survivors": [],
+  "projected_columns_denied": [
+    "ancestor_count",
+    "ancestor_events",
+    "blood_peaks",
+    "blood_root",
+    "blood_size",
+    "closure_gen",
+    "countersigned_count",
+    "gate_epoch",
+    "head_seq",
+    "max_ancestral_severity",
+    "max_severity",
+    "open_blocking",
+    "open_conflicts",
+    "open_residue",
+    "open_token_count",
+    "open_warrants",
+    "sev_max",
+    "site_role",
+    "tags_resolved",
+    "tags_unmodelled",
+    "under_declared",
+    "unmet_floor_count",
+    "unmodelled_asset_count",
+    "virulence"
+  ],
+  "stage": "3r",
+  "title": "the reflow injector — the 2016 retypeset, measured",
+  "verify": "14 pass, 0 fail, 0 skip"
+}

@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 4,
+    "doc_code": "STD-LFT-003",
+    "doc_family": "STD",
+    "doc_title": "Lifting and Cranage",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2006-12-30",
+    "required_citations": [],
+    "rev_no": 2,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "accident investigation",
+      "management_of_change": "engineering change note",
+      "near_miss": "near hit"
+    }
+  },
+  "key": "17b0659523dd72b85247a3b6a0d239a22955417724b92dc4fdd58f9c345855c6",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:YND/STD-LFT-003/002",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "bd43105b75c6f5aa0e6013f4eb66a7146bb3d4b0f18c825f7896da59274e1b76",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [],
+    "reason": "Scheduled review at revision 2; 4 clauses restated."
+  },
+  "response_sha256": "943e3c592a8ba44c03d2e065805064ec1e7e1ac0f5c34cf74ad22b2b2572160c",
+  "source": null
+}

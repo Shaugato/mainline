@@ -1,0 +1,88 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
+
+[project]
+name = "mainline-anchor"
+version = "0.1.0"
+description = "The per-checkpoint anchor fanout: beacon, KMS signature, S3 Object Lock COMPLIANCE, RFC 3161 timestamps from two authorities, tile publication, and the push to external witnesses."
+readme = "README.md"
+requires-python = ">=3.13"
+# FSL-1.1-ALv2 per the repository licence map (verticals/mainline/* is FSL). The licence
+# TEXT lives in the repo-root LICENSES/ tree, outside this project directory, and
+# therefore cannot be referenced by `license-files`.
+license = "LicenseRef-FSL-1.1-ALv2"
+authors = [{ name = "MAINLINE contributors" }]
+keywords = ["rfc3161", "object-lock", "kms", "drand", "transparency-log", "anchoring"]
+classifiers = [
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Security :: Cryptography",
+  "Typing :: Typed",
+  "Private :: Do Not Upload",
+]
+
+# ONE DECLARED DEPENDENCY, and the three that are absent are the interesting part.
+#
+#   trappoint-ledger — the checkpoint body, the C2SP signed note and the `Signer`
+#                      protocol. This package assembles an anchoring pass; it does not
+#                      own a wire format, and two spellings of a signed object is how a
+#                      log comes to disagree with its own verifier.
+#
+# NOT DECLARED:
+#
+#   boto3 / botocore — never imported, on any path. `mainline_anchor.aws` takes an
+#                      injected client. AWS credentials are not valid on the machine this
+#                      package was written on, so "we send ObjectLockMode='COMPLIANCE'"
+#                      would otherwise be an untested claim about the one call the whole
+#                      custody argument rests on. With the client injected,
+#                      tests/test_call_shapes.py asserts the literal kwargs and the first
+#                      live invocation fails loudly on a mismatch. The runtime that
+#                      actually calls AWS supplies boto3 — a Lambda has it in the
+#                      execution environment, and a Fargate image installs it in its own
+#                      layer.
+#
+#   requests / httpx — `mainline_anchor.tsa_client.UrllibTransport` is thirty lines of
+#                      `urllib.request` behind the `HttpTransport` protocol. Custody's
+#                      egress is an enumerated allowlist (ARCHITECTURE.md §10.3), and a
+#                      transport that can be swapped is a transport whose destinations a
+#                      test can assert.
+#
+#   cryptography     — this package never verifies a signature and never holds a key. It
+#                      hands note bytes to a `KmsSignPort` and stores what comes back.
+#                      `trappoint_ledger.signer` imports `cryptography` lazily, so the
+#                      whole fanout — and its entire test suite — runs on an install that
+#                      does not have it.
+#
+#   tenacity/backoff — `.importlinter` contract 4 forbids them repository-wide. Nothing
+#                      here retries. A failed non-fatal step becomes an `AnchorDebt` on
+#                      the result; a failed fatal step aborts. A decorator that retried
+#                      "on exception" could not tell a TSA timeout from a bucket that is
+#                      not holding our object, and those are not the same event.
+dependencies = [
+  "trappoint-ledger",
+]
+
+[project.urls]
+Homepage = "https://github.com/Shaugato/mainline"
+
+[tool.uv.sources]
+trappoint-ledger = { workspace = true }
+
+[dependency-groups]
+dev = ["pytest>=8.2"]
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mainline_anchor"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "tests", "README.md"]
+
+[tool.pytest.ini_options]
+# So that `cd verticals/mainline/packages/mainline-anchor && pytest` works on a checkout
+# where the workspace has not been `uv sync`-ed. The test modules also bootstrap sys.path
+# themselves (see tests/fakes.py), so the suite runs from the repository root too.
+pythonpath = ["src"]
+testpaths = ["tests"]

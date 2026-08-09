@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 4,
+    "doc_code": "PRO-MEC-021",
+    "doc_family": "PRO",
+    "doc_title": "Mechanical Isolation and Lockout",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2023-03-22",
+    "required_citations": [],
+    "rev_no": 11,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "learning team review",
+      "management_of_change": "change assurance",
+      "near_miss": "high potential incident"
+    }
+  },
+  "key": "3781e64d472735273a507a0881dcdfd53ec0db9327b3c9e4056f2cd6ca711d09",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/PRO-MEC-021/011",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "c78967c1c0808498716adb34268137e001fccdb5fd5bc73d1ee6c268df597064",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [],
+    "reason": "Scheduled review at revision 11; 4 clauses restated."
+  },
+  "response_sha256": "f17fa5571d75a5e5c42d57a0224cc7e515329421e4b8690674ebb4af9e4348a8",
+  "source": null
+}

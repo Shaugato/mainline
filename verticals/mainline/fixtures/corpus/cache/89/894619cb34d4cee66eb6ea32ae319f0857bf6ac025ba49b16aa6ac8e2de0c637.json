@@ -1,0 +1,45 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 3,
+    "doc_codes": [
+      "MOC-2019-0221",
+      "PRO-MEC-021",
+      "PTW-STD-002",
+      "STD-ISO-006",
+      "STD-PTW-001"
+    ],
+    "intent": "replace",
+    "moc_ref": "MOC-2005-0139",
+    "opened_on": "2005-11-02",
+    "precursor_events": [
+      {
+        "event_ref": "NM-2011-0012",
+        "severity_gate": null
+      }
+    ],
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "terminal_state": "abandoned",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "management_of_change": "engineering change note",
+      "verification": "spot check"
+    },
+    "weakening_steps": 0
+  },
+  "key": "894619cb34d4cee66eb6ea32ae319f0857bf6ac025ba49b16aa6ac8e2de0c637",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2005-0139",
+  "prompt_kind": "moc",
+  "prompt_sha256": "91d5aee7719c0c721191d3e24f3f52da1f2c9c6b2f8ec576a03317190c2fb81b",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2005-0139 was raised at Marrindal Concentrator and Hydrocarbon Transfer Facility on 2 November 2005 following 1 recorded event in the archive, including NM-2011-0012. The engineering change note record covers 3 clauses across 5 controlled documents. The intent is to replace an existing requirement with one written to the current house style. The record reached the state abandoned in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the key safeguard set is preserved.",
+    "scope_note": "The documents in scope are MOC-2019-0221, PRO-MEC-021, PTW-STD-002, STD-ISO-006 and STD-PTW-001."
+  },
+  "response_sha256": "a77d28500d1ab27ea9867eb1da271e3e63061e03bb883b1070fea63b6e5f931b",
+  "source": null
+}

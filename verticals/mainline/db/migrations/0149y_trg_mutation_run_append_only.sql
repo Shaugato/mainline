@@ -1,0 +1,39 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MI: MI01
+-- I: I01
+-- COUNSEL-GATED: no
+-- RATIONALE: A residual-risk number that can be edited after it is published is not a measurement, it is a draft. Welding this table append-only means a bad figure can only be superseded by a later row, never quietly improved, and the pair of rows is the record of what changed.
+--
+-- migration:  0149y_trg_mutation_run_append_only
+-- domain:     algorithms
+-- band:       0145-0149z · datamodel/dm-functions-triggers+algorithms · AUTHORED, allocated by
+--             verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1). The band is
+--             CO-OWNED and this file takes the tail of it (`y`, `z`) rather than the head, so
+--             that the datamodel worker's vertical triggers keep the numbers that sort next to
+--             the functions they attach.
+-- statements: 1
+-- invariants: MI01 — evidentiary tables are append-only
+-- source:     ARCHITECTURE.md §5.11 item 9 · spec/invariants/I01-append-only.md
+-- requires:   0049y mainline_meas.mutation_run · 0107 mainline.fn_refuse_mutation
+-- sqlstate:   P0001 on UPDATE or DELETE, with the substrate's own message
+-- forward-only; no .down.sql and no .up.sql (MR-5).
+--
+-- REUSING THE SUBSTRATE'S FUNCTION RATHER THAN WRITING A SECOND ONE. `mainline.fn_refuse_mutation`
+-- (migration 0107, RENDERED from `packages/trappoint-sql/templates/`) reads no relation and names
+-- no column: it raises, always, with one message. A vertical copy of it would be a second place
+-- for the append-only refusal message to drift, and a message that differs between two tables is
+-- a message an operator learns to ignore.
+--
+-- DEPTH. The function raises and returns nothing, so this trigger contributes 0 to trigger depth
+-- and cannot participate in a cycle. Decision D10 holds: nothing here depends on inter-trigger
+-- firing order, and this trigger asserts nothing about what fires around it.
+--
+-- WHAT THIS DOES NOT MAKE TRUE. `ALTER TABLE mainline_meas.mutation_run DISABLE TRIGGER
+-- append_only` succeeds; admin can remove the guard. What the custody patrol makes hard is
+-- removing the RECORD that they removed it. That is the custody domain's claim and it is not
+-- verified by this worker, which is why it is stated here rather than implied.
+
+CREATE TRIGGER append_only BEFORE UPDATE OR DELETE ON mainline_meas.mutation_run
+  FOR EACH ROW EXECUTE FUNCTION mainline.fn_refuse_mutation();

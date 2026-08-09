@@ -1,0 +1,409 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# THE CUSTODY CHAIN LANE — K2, in the order the proofs depend on each other.
+#
+# `docs/leads/custody.md` §1.4 fixes the proof order and this file is that order made
+# executable: canonical bytes before hashes (a hash of bytes nobody can reproduce is not
+# evidence) -> tree before signature (signing a root you cannot prove inclusion into is
+# theatre) -> signature before anchor (anchoring an unsigned root anchors nothing) ->
+# verifier before ledger content (the verifier is the specification's executable form) ->
+# attack matrix last (an attack harness is only meaningful against a complete defence).
+#
+# Two steps in this file are the ones that would be embarrassing to lose:
+#
+#   * `tier-1-clean-venv` installs NOTHING but `cryptography` and verifies the committed
+#     reference bundle. That is the sentence the whole domain exists to make true, tested
+#     as a fact rather than asserted as a promise. It does not use `uv sync`, does not put
+#     the workspace on `sys.path`, and fails if either would have been needed.
+#   * `nemesis` runs fifteen attacks against a disposable CockroachDB and regenerates
+#     `evidence/CUSTODY_ATTACK_MATRIX.md` from the RUN. CI fails if any executed attack was
+#     detected by zero checks; it FLAGS, and does not fail, an attack detected by exactly
+#     one.
+#
+# NOT NAMED `custody.yml`: the kernel lead owns the eight base workflows and a ninth with a
+# colliding name is a merge conflict waiting for the worst possible moment.
+#
+# No AWS account and no CockroachDB Cloud organisation is used anywhere in this file. Every
+# cluster it touches is a container it started and will delete. That is PL-1, and it is why
+# a stranger can reproduce this lane on a laptop.
+
+name: custody-chain
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/trappoint-jcs/**"
+      - "packages/trappoint-ledger/**"
+      - "packages/trappoint-verify/**"
+      - "spec/custody/**"
+      - "spec/wire/checkpoint.md"
+      - "spec/wire/evidence-bundle.md"
+      - "spec/wire/receipt.md"
+      - "evidence/reference-ledger/**"
+      - "scripts/custody/**"
+      - "tests/integration/custody/**"
+      - "infra/policy/custody/**"
+      - "uv.lock"
+      - ".github/workflows/custody-chain.yml"
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: custody-chain-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.13"
+  FORCE_COLOR: "1"
+
+jobs:
+  # =====================================================================================
+  # 1 · CANONICAL BYTES, THEN HASHES, THEN THE OFFLINE VERIFIER
+  # =====================================================================================
+  algebra-and-verifier:
+    name: canon vectors · merkle properties · verifier floor · vendoring equality
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install the workspace from the one lockfile
+        run: uv sync --frozen
+
+      # RFC 8785 first. Every hash below is a hash OF these bytes, so a canonicaliser that
+      # is wrong makes every green result underneath it meaningless.
+      - name: JCS test vectors (canon_v1, ES6 numbers, the float ban)
+        run: uv run pytest packages/trappoint-jcs -q
+
+      - name: RFC 6962 merkle — vectors and properties
+        run: uv run pytest packages/trappoint-ledger -q
+
+      # CU-8 / §1.4a. The one-dependency claim dies the moment the vendored canonicaliser
+      # drifts from the one the sequencer used, so the equality is a byte comparison rather
+      # than a promise, and the registry pins every canonicaliser ever shipped.
+      - name: Vendored canonicaliser is byte-identical to the shipped one
+        run: uv run python scripts/custody/check_vendored_canon.py
+
+      # CU-7. "Requires no cooperation from us" must be a 200 ms test.
+      - name: Verifier dependency floor and no-network guarantee
+        run: |
+          set -euo pipefail
+          if [ -d packages/trappoint-verify ]; then
+            uv run pytest packages/trappoint-verify -q
+          else
+            echo "::error title=trappoint-verify absent::packages/trappoint-verify has not \
+            landed. Checks 1-16 are unimplemented and the reference bundle has no verifier. \
+            This step is RED on purpose: a lane that passed here would be green by absence."
+            exit 1
+          fi
+
+  # =====================================================================================
+  # 2 · THE REFERENCE BUNDLE — ZERO-DIFF REGENERATION, THEN TIER 1
+  # =====================================================================================
+  reference-bundle:
+    name: reference bundle regenerates to zero diff
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - run: uv sync --frozen
+
+      # CU-6, mirroring `trappoint render --check`. A fixture a stranger cannot regenerate
+      # is a screenshot; a fixture that regenerates differently every time has no
+      # "ordinarily" to appeal to under Evidence Act 1995 (Cth) ss.146-147.
+      - name: Regeneration is a no-op
+        run: uv run python scripts/custody/regen_reference_ledger.py --check
+
+      - name: The bundle carries what the K2 criteria name
+        run: |
+          uv run python - <<'PY'
+          import json, pathlib
+          bundle = json.loads(pathlib.Path("evidence/reference-ledger/bundle.json").read_text())
+          required = {
+              "leaves": 64, "checkpoints": 2, "consistency_proofs": 1,
+              "inclusion_proofs": 1, "receipts": 1, "schema_attestations": 1,
+              "closure_generations": 1, "webauthn_assertions": 1,
+          }
+          for section, minimum in required.items():
+              count = len(bundle[section])
+              assert count >= minimum, f"{section}: {count} < {minimum}"
+              print(f"{section}: {count}")
+          sizes = [c["tree_size"] for c in bundle["checkpoints"]]
+          pairs = {(p["from_size"], p["to_size"]) for p in bundle["consistency_proofs"]}
+          missing = [p for p in zip(sizes, sizes[1:]) if p not in pairs]
+          assert not missing, f"consecutive checkpoint pairs with no consistency proof: {missing}"
+          assert all(t["token_b64"] for c in bundle["checkpoints"] for t in c["tsa_tokens"])
+          print("every consecutive checkpoint pair carries a consistency proof")
+          PY
+
+  # =====================================================================================
+  # 3 · TIER 1 — A CLEAN VENV HOLDING ONLY `cryptography`
+  # =====================================================================================
+  tier-1-clean-venv:
+    name: a stranger verifies the bundle with cryptography and nothing else
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    needs: [reference-bundle]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      # Deliberately NOT `uv sync`. This job models a person who received one JSON file and
+      # was told they need Python and `cryptography`. If anything in the workspace is
+      # required for the bundle to verify, this job is where that becomes visible.
+      - name: A venv with exactly one dependency
+        run: |
+          set -euo pipefail
+          python -m venv /tmp/stranger
+          /tmp/stranger/bin/pip install --quiet --upgrade pip
+          /tmp/stranger/bin/pip install --quiet cryptography
+          echo "--- installed distributions ---"
+          /tmp/stranger/bin/pip list --format=freeze
+
+      - name: Install trappoint-verify from source, with no workspace on the path
+        run: |
+          set -euo pipefail
+          if [ ! -d packages/trappoint-verify ]; then
+            echo "::error title=Tier 1 cannot be tested::packages/trappoint-verify has not \
+            landed, so 'a stranger verifies the bundle offline with no credential' is \
+            UNPROVEN by this run. Reported as a failure rather than a skip, because this is \
+            the deliverable sentence of the custody domain."
+            exit 1
+          fi
+          /tmp/stranger/bin/pip install --quiet --no-deps ./packages/trappoint-verify
+
+      - name: Verify the committed bundle, offline
+        run: |
+          set -euo pipefail
+          cd /tmp    # nothing of ours is importable from here except what pip installed
+          /tmp/stranger/bin/trappoint-verify verify \
+            --bundle "${GITHUB_WORKSPACE}/evidence/reference-ledger/bundle.json" | tee out.txt
+          grep -q "0 findings" out.txt
+
+      - name: Confirm the floor is exactly one dependency
+        run: |
+          set -euo pipefail
+          /tmp/stranger/bin/pip list --format=freeze | grep -viE '^(pip|setuptools|wheel|cffi|pycparser|cryptography|trappoint-verify)' \
+            && { echo "::error::the verifier pulled in a dependency beyond cryptography"; exit 1; } || true
+          echo "dependency floor holds"
+
+  # =====================================================================================
+  # 4 · THE SEQUENCER'S CONCURRENCY PROOF, AGAINST A REAL CLUSTER
+  # =====================================================================================
+  sequencer-concurrency:
+    name: dense, fork-free append under N parallel sequencers
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - run: uv sync --frozen
+
+      - name: Read the ONE image pin out of compose.yaml
+        id: image
+        run: |
+          set -euo pipefail
+          image="$(python3 - <<'PY'
+          import pathlib, re
+          lines = pathlib.Path("compose.yaml").read_text(encoding="utf-8").splitlines()
+          for i, line in enumerate(lines):
+              if "trappoint:crdb-image-pin" in line:
+                  for candidate in lines[i + 1 : i + 4]:
+                      m = re.match(r"^\s*image:\s*(\S+)\s*$", candidate)
+                      if m:
+                          print(m.group(1)); raise SystemExit(0)
+          raise SystemExit("compose.yaml carries no marked image pin")
+          PY
+          )"
+          echo "image=${image}" >> "$GITHUB_OUTPUT"
+
+      - name: Start a disposable single-node cluster
+        run: |
+          set -euo pipefail
+          docker run -d --name crdb -p 26257:26257 "${{ steps.image.outputs.image }}" \
+            start-single-node --insecure --store=type=mem,size=2GiB
+          for _ in $(seq 1 60); do
+            docker exec crdb ./cockroach sql --insecure -e "SELECT 1" >/dev/null 2>&1 && break
+            sleep 2
+          done
+
+      - name: The append is dense and fork-free under contention
+        env:
+          MAINLINE_TEST_DSN: postgresql://root@127.0.0.1:26257/defaultdb?sslmode=disable
+        run: uv run pytest tests/integration/custody/test_ledger_append.py -q
+
+  # =====================================================================================
+  # 5 · ATTACK-DEPTH — LAST, BECAUSE AN ATTACK HARNESS NEEDS A COMPLETE DEFENCE
+  # =====================================================================================
+  nemesis:
+    name: fifteen attacks · the matrix is generated from the run
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    needs: [reference-bundle]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - run: uv sync --frozen
+
+      - name: Read the ONE image pin out of compose.yaml
+        id: image
+        run: |
+          set -euo pipefail
+          image="$(python3 - <<'PY'
+          import pathlib, re
+          lines = pathlib.Path("compose.yaml").read_text(encoding="utf-8").splitlines()
+          for i, line in enumerate(lines):
+              if "trappoint:crdb-image-pin" in line:
+                  for candidate in lines[i + 1 : i + 4]:
+                      m = re.match(r"^\s*image:\s*(\S+)\s*$", candidate)
+                      if m:
+                          print(m.group(1)); raise SystemExit(0)
+          raise SystemExit("compose.yaml carries no marked image pin")
+          PY
+          )"
+          echo "image=${image}" >> "$GITHUB_OUTPUT"
+
+      - name: Start the DISPOSABLE cluster the attacks destroy
+        run: |
+          set -euo pipefail
+          docker run -d --name nemesis-crdb -p 26257:26257 "${{ steps.image.outputs.image }}" \
+            start-single-node --insecure --store=type=mem,size=2GiB
+          for _ in $(seq 1 60); do
+            docker exec nemesis-crdb ./cockroach sql --insecure -e "SELECT 1" >/dev/null 2>&1 && break
+            sleep 2
+          done
+
+      # The conftest refuses any DSN whose host is not localhost/127.0.0.1 before opening a
+      # socket. This step proves the guard is armed rather than assuming it: a nemesis suite
+      # that can reach production IS a T1 attack surface.
+      - name: The lane refuses a non-local DSN
+        run: |
+          set -euo pipefail
+          uv run python - <<'PY'
+          import sys, pathlib
+          sys.path.insert(0, str(pathlib.Path("tests/integration/custody/nemesis").resolve()))
+          from conftest import RemoteDsnRefused, refuse_remote
+          for dsn in (
+              "postgresql://root@ledger.prod.internal:26257/mainline",
+              "postgresql://root@10.0.4.7:26257/mainline",
+              "postgresql://u@free-tier.aws-ap-southeast-1.cockroachlabs.cloud:26257/defaultdb",
+          ):
+              try:
+                  refuse_remote(dsn)
+              except RemoteDsnRefused:
+                  print(f"refused: {dsn}")
+              else:
+                  raise SystemExit(f"NOT REFUSED: {dsn}")
+          refuse_remote("postgresql://root@127.0.0.1:26257/defaultdb?sslmode=disable")
+          print("localhost accepted")
+          PY
+
+      - name: Execute the fifteen attacks
+        env:
+          MAINLINE_TEST_DSN: postgresql://root@127.0.0.1:26257/defaultdb?sslmode=disable
+        run: uv run pytest tests/integration/custody/nemesis -q
+
+      # ATTACK-DEPTH. Zero detectors fails; exactly one is flagged and printed.
+      - name: Regenerate the matrix from the run and enforce ATTACK-DEPTH
+        run: |
+          uv run python tests/integration/custody/nemesis/matrix.py \
+            --run evidence/custody-nemesis-run.json \
+            --out evidence/CUSTODY_ATTACK_MATRIX.md \
+            --enforce
+
+      - name: A15 appears as a SKIP and is never silently absent
+        run: |
+          set -euo pipefail
+          grep -q "A15" evidence/CUSTODY_ATTACK_MATRIX.md
+          grep -qE "A15.*SKIP\(" evidence/CUSTODY_ATTACK_MATRIX.md
+          echo "A15 is present and reported as skipped"
+
+      - name: The K2 exit criteria, unedited
+        run: uv run pytest tests/integration/custody/test_k2_exit.py -q
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: custody-attack-matrix
+          path: |
+            evidence/CUSTODY_ATTACK_MATRIX.md
+            evidence/custody-nemesis-run.json
+
+  # =====================================================================================
+  # 6 · THE CONTROLS THAT CANNOT BE RETROFITTED, AND THE SPEC THAT MUST NOT DRIFT
+  # =====================================================================================
+  policy-and-spec:
+    name: Object Lock policy-as-code · the chain function matches its spec
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - run: uv sync --frozen
+
+      # CU-10 / GT-18. Object Lock and versioning cannot be retrofitted and backup retention
+      # is set once at provisioning, so the assertion is over the OpenTofu PLAN rather than
+      # over `moto`, whose Object Lock enforcement is incomplete — a green test against a
+      # mock that does not enforce the thing is worse than no test.
+      - name: Evidence-stack plan carries the indelible controls
+        run: |
+          set -euo pipefail
+          if [ -f scripts/custody/check_evidence_plan.py ]; then
+            uv run python scripts/custody/check_evidence_plan.py
+          else
+            echo "::error title=check_evidence_plan.py absent::CU-10's plan-JSON assertion \
+            has not landed (owner: custody worker 8, anchor-and-evidence-infra). GT-18 is a \
+            one-shot and this is the only thing standing between us and getting it wrong \
+            once, permanently."
+            exit 1
+          fi
+
+      # CU-9. Migrations have exactly one owner, so custody SPECIFIES fn_permit_event_chain
+      # and FALSIFIES it; the datamodel lead implements it. This is the falsification.
+      - name: The live chain function still matches its normative spec
+        run: |
+          set -euo pipefail
+          if [ -f scripts/custody/check_chain_fn_matches_spec.py ]; then
+            uv run python scripts/custody/check_chain_fn_matches_spec.py
+          else
+            echo "::error title=check_chain_fn_matches_spec.py absent::CU-9's \
+            pg_get_functiondef diff has not landed (owner: custody worker 1, \
+            custody-spec-and-red). Without it spec/custody/chain-verification.md is prose \
+            that nothing compares against anything."
+            exit 1
+          fi
+
+      # CU-12. Evidence Act 1995 (Cth) s.69(3) and s.147(3) exclude representations prepared
+      # in contemplation of a proceeding. A ledger built to be evidence is not a business
+      # record, so this is an admissibility requirement rather than a style guide.
+      - name: The exhibit vocabulary leads with the gate
+        run: |
+          set -euo pipefail
+          uv run pytest tests/integration/custody/test_k2_exit.py::test_no_litigation_vocabulary -q
+          if grep -rniE "split[- ]view resistan" README.md docs/ --include="*.md" \
+               | grep -viE "not claim|never claim|is not|MUST NOT|until a genuinely adverse"; then
+            echo "::error::split-view resistance is claimed somewhere it must not be. \
+            Quorum is q=1 over our own infrastructure, which is not adverse in the legal sense."
+            exit 1
+          fi
+          echo "vocabulary holds"

@@ -1,0 +1,165 @@
+{
+  "checks": [
+    {
+      "check_id": "R01",
+      "facts": {
+        "floor": 500,
+        "pairs": 624
+      },
+      "reason": "624 clauses were carried through the retypeset",
+      "status": "PASS",
+      "title": "the retypeset carried enough clauses to measure"
+    },
+    {
+      "check_id": "R02",
+      "facts": {
+        "documents": 24,
+        "floor": 20
+      },
+      "reason": "24 documents were retypeset in one project, on one date",
+      "status": "PASS",
+      "title": "the retypeset was a project and not an amendment"
+    },
+    {
+      "check_id": "R03",
+      "facts": {
+        "examples": [],
+        "pairs": 624,
+        "reminted": 0
+      },
+      "reason": "all 624 identities reproduce uuid5(CORPUS_NS, 'clause:' || clause_key) when recomputed here from the birth natural key",
+      "status": "PASS",
+      "title": "identity re-derived from the birth key, not copied"
+    },
+    {
+      "check_id": "R04",
+      "facts": {
+        "examples": [],
+        "label_derived": 0,
+        "label_moved": 624
+      },
+      "reason": "for all 624 clauses whose printed label moved, the identity is NOT the mint of the label they now print under; identity is not a function of the address",
+      "status": "PASS",
+      "title": "identity refuted against the post-reflow printed label"
+    },
+    {
+      "check_id": "R05",
+      "facts": {
+        "floor": 1.0,
+        "partial": []
+      },
+      "reason": "every clause of every retypeset document changed its printed label",
+      "status": "PASS",
+      "title": "the relabelling is total"
+    },
+    {
+      "check_id": "R06",
+      "facts": {
+        "overlapping": []
+      },
+      "reason": "no retypeset document shares a label grammar between its two generations; the schemes are structurally different and not the same scheme renumbered",
+      "status": "PASS",
+      "title": "the two generations share no label grammar"
+    },
+    {
+      "check_id": "R07",
+      "facts": {
+        "below_floor": [],
+        "document_floor": 0.2,
+        "mean_floor": 0.3,
+        "mean_kendall_tau_distance": 0.389844,
+        "min_kendall_tau_distance": 0.286154
+      },
+      "reason": "every document reordered at least 20% of its clause pairs (min 0.286), mean 0.390; a pure renumbering would score 0.000",
+      "status": "PASS",
+      "title": "the reflow reordered the clauses, it did not only renumber them"
+    },
+    {
+      "check_id": "R08",
+      "facts": {
+        "floor": 0.9,
+        "moved": 598,
+        "ordinal_change_fraction": 0.958333,
+        "pairs": 624
+      },
+      "reason": "598 of 624 clauses (95.8%) sit at a different position in their document after the reflow",
+      "status": "PASS",
+      "title": "most clauses physically moved within their document"
+    },
+    {
+      "check_id": "R09",
+      "facts": {
+        "not_reflowed": []
+      },
+      "reason": "all 24 documents are classified 'reflowed'",
+      "status": "PASS",
+      "title": "every retypeset document earns the verdict 'reflowed'"
+    },
+    {
+      "check_id": "R10",
+      "facts": {
+        "ceiling": 0.05,
+        "false_split": 624,
+        "recall": 0.0,
+        "true_positive": 0
+      },
+      "reason": "a label-keyed register recovers 0 of 624 obligations across the reflow (recall 0.000)",
+      "status": "PASS",
+      "title": "the reflow defeats a register keyed on the printed clause number"
+    },
+    {
+      "check_id": "R11",
+      "facts": {
+        "false_merge_rows": 598,
+        "registers": [
+          "ordinal"
+        ]
+      },
+      "reason": "registers ['ordinal'] misattribute rather than merely lose: 598 confident wrong answers are on record in reflow_collision.jsonl",
+      "status": "PASS",
+      "title": "at least one register misattributes rather than merely losing"
+    },
+    {
+      "check_id": "R12",
+      "facts": {
+        "must_not_claim": 4,
+        "recall": 1.0,
+        "tautological": true
+      },
+      "reason": "the identity-keyed register recovers every obligation, is flagged tautological, and ships with 4 must-not-claim statements attached",
+      "status": "PASS",
+      "title": "the identity control is perfect AND is labelled as a control"
+    },
+    {
+      "check_id": "R13",
+      "facts": {
+        "clause_uuid": "2ad35fa5-d174-5eb1-8550-05adfa90e08d",
+        "declared": [
+          "7.3",
+          "5.2.1"
+        ],
+        "measured": [
+          "7.3",
+          "5.2.1"
+        ]
+      },
+      "reason": "the spine clause prints as 7.3 before the retypeset and 5.2.1 after it, which is what anchors.yaml declares and what the voice-over says",
+      "status": "PASS",
+      "title": "beat 1's exhibit agrees with anchors.yaml"
+    },
+    {
+      "check_id": "R14",
+      "facts": {
+        "carried": [],
+        "forbidden": [
+          "identity_held"
+        ]
+      },
+      "reason": "the emitted pair carries no field the injector merely asserted; the survival claim in this tree is the re-derivation and the refutation, and nothing else",
+      "status": "PASS",
+      "title": "the injector's asserted boolean was dropped, not carried"
+    }
+  ],
+  "failed": [],
+  "summary": "14 pass, 0 fail, 0 skip"
+}

@@ -1,0 +1,51 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MAINLINE · 0185d_policy_disposition_service_read.sql
+-- CREATE POLICY disposition_service_read ON mainline.disposition
+--
+-- MI: MI08, MI02
+-- I: I09
+-- COUNSEL-GATED: yes
+-- RATIONALE: The merge gate counts live dispositions to decide whether a subject may
+--            transition; `svc_disposition` reads back what it wrote; `auditor_ro` is the
+--            human read-only auditor. None of the three is a peer in the epistemic sense,
+--            so none is narrowed by `peer_blind` — which is scoped `TO signer` and
+--            therefore does not apply to them at all.
+--
+-- migration:  0185d_policy_disposition_service_read
+-- domain:     datamodel / dm-views-rls
+-- band:       0180-0198z · datamodel/dm-views-rls · AUTHORED, allocated by
+--             verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1)
+-- statements: 1
+-- matrix:     verticals/mainline/db/RLS-MATRIX.yaml — this file is a RENDERING of one entry
+--             there; tests/integration/schema/test_mi_rls.py asserts the two agree
+-- source:     ARCHITECTURE.md §11.3 (RLS, SEC-1) · §4.1 law 10 · correction S22 · §11.2 · §5.11 (the merge gate reads live dispositions)
+-- requires:   0066 mainline.disposition · 0180 peer_visible · 0185 ENABLE · 0185a FORCE
+-- sqlstate:   42501 when absent — on the merge gate, which is the transaction that matters most.
+-- forward-only; no .down.sql exists at or below the protected floor.
+--
+-- ────────────────────────────────────────────────────────────────────────────
+-- WHY A RESTRICTIVE POLICY `TO signer` DOES NOT TOUCH THESE ROLES
+-- ────────────────────────────────────────────────────────────────────────────
+-- A policy applies only to the roles named in its `TO` clause. `peer_blind` names `signer`,
+-- so for `agent_gate` the AND-set is empty and only the permissive policies matter. That is
+-- the correct semantics and it is worth stating, because the intuitive reading of
+-- 'RESTRICTIVE' is 'applies to everyone', and under that reading this file would look like
+-- a hole in the partition rather than the absence of one.
+--
+-- ────────────────────────────────────────────────────────────────────────────
+-- A HUMAN WHO IS BOTH A SIGNER AND AN AUDITOR
+-- ────────────────────────────────────────────────────────────────────────────
+-- If one principal were granted both `signer` and `auditor_ro`, the permissive set is the
+-- union and `peer_blind` still applies — restrictive policies AND against whatever the
+-- permissive policies produced, and role membership does not exempt a session from a policy
+-- naming a role it holds. The partition therefore survives that combination. It does NOT
+-- survive a principal granted `agent_gate`, which is why no human is ever granted a service
+-- role and why every role in GRANTS.yaml is NOLOGIN.
+--
+
+CREATE POLICY disposition_service_read ON mainline.disposition
+  AS PERMISSIVE FOR SELECT TO agent_gate, svc_disposition, auditor_ro
+  USING (true);
+

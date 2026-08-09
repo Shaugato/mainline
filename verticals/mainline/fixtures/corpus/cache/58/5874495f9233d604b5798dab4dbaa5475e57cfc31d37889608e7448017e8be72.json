@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ELECTRICAL-SAFETY",
+    "barrier_role": "recovery",
+    "control_class": "EARTH_LEAKAGE_PROTECTION",
+    "control_delta": "weaken",
+    "control_label": "earth leakage and protection setting integrity",
+    "doc_code": "PRO-ELE-026",
+    "doc_family": "PRO",
+    "doc_title": "High Voltage Switching and Access",
+    "effective_on": "2015-11-11",
+    "printed_label": "8.2",
+    "setpoint": {
+      "from": 30.0,
+      "key": "earth_leakage_trip",
+      "label": "earth leakage protection trip current",
+      "strengthen_direction": "lower",
+      "to": 100.0,
+      "unit": "mA"
+    },
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "energy_isolation": "lock out tag out",
+      "verification": "field verification"
+    }
+  },
+  "key": "5874495f9233d604b5798dab4dbaa5475e57cfc31d37889608e7448017e8be72",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:TLG/PRO-ELE-026/004#TLG/PRO-ELE-026/8.2",
+  "prompt_kind": "clause",
+  "prompt_sha256": "d525fa4b4d05c5ebf97124719d0e47c8b6c982edbf87cd226a3a5fc10286b32f",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The earth leakage and protection setting integrity should be provided; the field verification may be recorded at the next scheduled review rather than before the task proceeds. The earth leakage protection trip current should be set at 100 mA. This clause applies to activities archived under ELECTRICAL-SAFETY at Tolgarra Processing and Power Station.",
+    "obligation_verb": "should"
+  },
+  "response_sha256": "a5985d613ea37cb19eeb9c09cfeed0fbf272728029915f1b37af7fced419b811",
+  "source": null
+}

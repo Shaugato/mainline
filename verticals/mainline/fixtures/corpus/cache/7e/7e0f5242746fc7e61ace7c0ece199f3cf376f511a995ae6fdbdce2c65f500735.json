@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONFINED-SPACE-ENTRY",
+    "barrier_role": "preventive",
+    "control_class": "CONTINUOUS_ATMOSPHERIC_MONITORING",
+    "control_delta": "restate",
+    "control_label": "continuous atmospheric monitoring during occupancy",
+    "doc_code": "PRO-HSE-012",
+    "doc_family": "PRO",
+    "doc_title": "Confined Space Entry",
+    "effective_on": "2016-11-21",
+    "printed_label": "2.1.1",
+    "setpoint": {
+      "from": 20.0,
+      "key": "confined_space_oxygen_floor",
+      "label": "minimum oxygen concentration for entry",
+      "strengthen_direction": "higher",
+      "to": 20.0,
+      "unit": "%vol"
+    },
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "7e0f5242746fc7e61ace7c0ece199f3cf376f511a995ae6fdbdce2c65f500735",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:CVY/PRO-HSE-012/006#CVY/PRO-HSE-012/1.2",
+  "prompt_kind": "clause",
+  "prompt_sha256": "bcd1972689fa9e1b3da1c937fa09e6084576ae40fce4026fb3ca76190fc2bbdd",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The continuous atmospheric monitoring during occupancy shall be provided and maintained wherever this procedure applies, and its condition shall be treated as a critical control. The minimum oxygen concentration for entry shall be set at 20 %vol. This clause applies to activities archived under CONFINED-SPACE-ENTRY at Cape Verity Export Terminal.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "c16af806e804eabf2ae9f413e21af919c7315ee13ac32b0ba47178ff200ad5ba",
+  "source": null
+}

@@ -1,0 +1,64 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 5,
+    "doc_code": "PTW-STD-002",
+    "doc_family": "PTW",
+    "doc_title": "Permit to Work Form Set",
+    "driver": "incident",
+    "driving_change_ref": null,
+    "driving_event_ref": "NM-2025-0007",
+    "effective_on": "2025-08-26",
+    "required_citations": [
+      {
+        "control_label": "identification of every energy source for the task",
+        "event_ref": "NM-2024-0019",
+        "event_title": "high potential incident - electrical exposure at P-3220",
+        "hazard_energy": "electrical",
+        "kind": "moc_reference",
+        "quote_ref": "quote:MRD/PTW-STD-002/006#moc_reference/NM-2024-0019",
+        "severity_gate": 3
+      },
+      {
+        "control_label": "controlled removal of isolation and return to service",
+        "event_ref": "NM-2025-0007",
+        "event_title": "high potential incident - kinetic exposure at P-3221",
+        "hazard_energy": "kinetic",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:MRD/PTW-STD-002/006#revision_history_line/NM-2025-0007",
+        "severity_gate": 4
+      }
+    ],
+    "rev_no": 6,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "learning team review",
+      "management_of_change": "change assurance",
+      "near_miss": "high potential incident"
+    }
+  },
+  "key": "e3ea7843e5805c2bd92b1a3cec3eefcf75097bd41ae51c6f35aae85aeca77b89",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/PTW-STD-002/006",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "e2d39364d28d8cce89169ca0a0489869858c287ca9ccf9c4cd4ab054076134be",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The change assurance record for this revision cites NM-2024-0019 as the reason the identification of every energy source for the task was amended.",
+        "quote_ref": "quote:MRD/PTW-STD-002/006#moc_reference/NM-2024-0019"
+      },
+      {
+        "line": "Revision 6 was raised in response to NM-2025-0007, and the controlled removal of isolation and return to service was amended as a result.",
+        "quote_ref": "quote:MRD/PTW-STD-002/006#revision_history_line/NM-2025-0007"
+      }
+    ],
+    "reason": "Revised after NM-2025-0007; 5 clauses amended."
+  },
+  "response_sha256": "ee15dc116819dd5f473a333228cd74f449b8ff602549dc91eaa51ee0eddd011d",
+  "source": null
+}

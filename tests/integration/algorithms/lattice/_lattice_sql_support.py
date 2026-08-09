@@ -150,8 +150,7 @@ def spine_migrations() -> list[Path]:
         broken spine into a green run.
     """
     texts = {
-        path: path.read_text(encoding="utf-8")
-        for path in sorted(MIGRATIONS_DIR.glob("*.sql"))
+        path: path.read_text(encoding="utf-8") for path in sorted(MIGRATIONS_DIR.glob("*.sql"))
     }
     ordered: list[Path] = []
     missing: list[str] = []

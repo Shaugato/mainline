@@ -1,0 +1,40 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 1,
+    "doc_codes": [
+      "ALERT-2016-007",
+      "MOC-2014-0087",
+      "PRO-MEC-041",
+      "PRO-OPS-017",
+      "PTW-STD-003"
+    ],
+    "intent": "introduce",
+    "moc_ref": "MOC-2025-0130",
+    "opened_on": "2025-08-08",
+    "precursor_events": [],
+    "site": "Cape Verity Export Terminal",
+    "terminal_state": "abandoned",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "management_of_change": "change assurance",
+      "verification": "assurance activity"
+    },
+    "weakening_steps": 0
+  },
+  "key": "659cef47643b3a0f2f9c8fbeacf13a6306b725877b0c136bc2c25c2b4f375f51",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2025-0130",
+  "prompt_kind": "moc",
+  "prompt_sha256": "fdb70e16ccee4ea32a0a5002a9f5183d32b255125a68e43090af79639f5420e1",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2025-0130 was raised at Cape Verity Export Terminal on 8 August 2025 as a scheduled change under change assurance; no event precedes it in the record. The change assurance record covers 1 clause across 5 controlled documents. The intent is to introduce a duty the documents in scope did not previously carry. The record reached the state abandoned in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the material unwanted event control set is preserved.",
+    "scope_note": "The documents in scope are ALERT-2016-007, MOC-2014-0087, PRO-MEC-041, PRO-OPS-017 and PTW-STD-003."
+  },
+  "response_sha256": "2a3ce6689b93bb024619db48808012238200d158025636c9feef709c0a79e7a3",
+  "source": null
+}

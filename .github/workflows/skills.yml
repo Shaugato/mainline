@@ -1,0 +1,314 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# THE OSS / DISTRIBUTION LANE.
+#
+# BUILD_PLAN.md §11 makes this a parallel track that must never touch the critical path:
+# nothing downstream may depend on an upstream maintainer doing anything. So this lane
+# asserts only things that are true inside this repository — that every skill validates,
+# that every script it ships can actually fail, that the de-branded tree really is
+# de-branded, and that our own documentation does not claim an upstream merge we have not
+# been given.
+#
+# THREE PROPERTIES ARE ASSERTED HERE THAT NOTHING ELSE ASSERTS:
+#
+#   1. `assert_gate_refuses.py` goes RED against an unwelded schema. A skill whose selling
+#      point is "this script fails when the gate does not refuse" has to demonstrate the
+#      failing half in CI, on every push, or it is a claim rather than a control.
+#   2. `skills/upstream/` contains no vocabulary from this project. A file destined for
+#      somebody else's repository that mentions our brand is not a contribution.
+#   3. We claim THE FILING, NEVER THE MERGE. The grep below fails the build on a string
+#      that asserts an upstream acceptance, and on a string that characterises the upstream
+#      repository as stalled or dead. It is not stalled — PR #18 merged 2026-07-22 — and
+#      the honest sentence is about two specific pull requests having had no maintainer
+#      engagement, which is a fact rather than a verdict on a team.
+#
+# NO AWS ACCOUNT, NO COCKROACHDB CLOUD ORGANISATION, NO CREDENTIAL OF OURS. Every proof in
+# this lane runs on a stranger's laptop, which is PL-1 and is why the skills ship even if
+# the cloud, the vertical and the demo all slip.
+
+name: skills
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "skills/**"
+      - ".claude-plugin/**"
+      - "docs/upstream/**"
+      - "README.md"
+      - "VERIFY.md"
+      - ".github/workflows/skills.yml"
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: skills-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.13"
+  FORCE_COLOR: "1"
+
+jobs:
+  # ── 1 · every SKILL.md validates, against two independent validators ──────────────────
+  validate:
+    name: spec conformance (ours + skills-ref)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Our validator, warnings promoted to errors
+        # `skills/validate-spec.py` is OUR implementation of the published rules, not a
+        # byte copy of upstream's `scripts/validate-spec.py` — which is stated in that
+        # file's docstring and in skills/README.md, because a local validator agreeing
+        # with itself is not evidence about somebody else's CI. It runs in --strict mode
+        # so a warning is a red build here and never a surprise there.
+        run: python skills/validate-spec.py skills/ --strict --github
+
+      - name: skills-ref — the specification's own reference implementation
+        # This is the check that matters. Run it per skill directory rather than over the
+        # tree, so the failing skill is named in the log rather than inferred.
+        run: |
+          set -euo pipefail
+          status=0
+          while IFS= read -r skill; do
+            directory="$(dirname "$skill")"
+            echo "::group::skills-ref validate ${directory}"
+            if ! npx --yes skills-ref validate "${directory}"; then
+              echo "::error file=${skill}::skills-ref rejected this skill"
+              status=1
+            fi
+            echo "::endgroup::"
+          done < <(find skills -name SKILL.md | sort)
+          exit "${status}"
+
+      - name: The plugin marketplace resolves to skills that exist
+        # Plugins are the distribution format; skills are the content. A marketplace entry
+        # pointing at a directory that is not there installs cleanly and does nothing,
+        # which is the worst possible failure for a distribution artefact.
+        run: |
+          python3 - <<'PY'
+          import json, pathlib, sys
+
+          data = json.loads(pathlib.Path(".claude-plugin/marketplace.json").read_text("utf-8"))
+          problems = []
+          for required in ("name", "owner", "plugins"):
+              if required not in data:
+                  problems.append(f"marketplace.json is missing `{required}`")
+          for plugin in data.get("plugins", []):
+              if "name" not in plugin or "source" not in plugin:
+                  problems.append(f"plugin entry lacks name or source: {plugin}")
+              paths = plugin.get("skills", [])
+              if isinstance(paths, str):
+                  paths = [paths]
+              for entry in paths:
+                  target = pathlib.Path(entry.lstrip("./"))
+                  if not (target / "SKILL.md").is_file():
+                      problems.append(f"declared skill path has no SKILL.md: {entry}")
+          # The upstream staging tree must never be distributed as one of ours.
+          declared = " ".join(str(p) for pl in data.get("plugins", []) for p in pl.get("skills", []))
+          if "upstream" in declared:
+              problems.append("a plugin declares a path under skills/upstream/, which is a "
+                              "staging area for a de-branded contribution and is not ours to ship")
+          for problem in problems:
+              print(f"::error file=.claude-plugin/marketplace.json::{problem}")
+          sys.exit(1 if problems else 0)
+          PY
+
+  # ── 2 · the claims we are allowed to make ─────────────────────────────────────────────
+  claims:
+    name: filing not merge · de-branded upstream tree
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: No string claims an upstream merge, and none disparages the repository
+        # SCOPE. Published copy only: the root documents, the upstream proposal, and the
+        # skills tree. `docs/leads/**` is excluded deliberately — those are internal
+        # planning documents whose job is to STATE this rule, and they state it by quoting
+        # the forbidden phrase. For the same reason a line that also contains `never`,
+        # `must not`, `do not` or `forbidden` is read as the rule rather than the offence.
+        # That exemption is narrow, visible here, and the alternative is a check nobody can
+        # write documentation past.
+        run: |
+          python3 - <<'PY'
+          import pathlib, re, sys
+
+          MERGE = re.compile(
+              r"(our|the)\s+(skill|contribution|pull request|pr)[^.]{0,60}"
+              r"(was|has been|is|were|have been)\s+(merged|accepted)"
+              r"|merged\s+(in)?to\s+upstream|merged\s+upstream"
+              r"|upstream\s+(has\s+)?(merged|accepted)"
+              r"|accepted\s+(in)?to\s+(the\s+)?(cockroach|upstream)"
+              r"|landed\s+(in\s+)?upstream"
+              r"|now\s+(part of|in)\s+(the\s+)?cockroachdb-skills"
+              r"|shipped\s+(in|to)\s+(the\s+)?cockroachdb-skills",
+              re.IGNORECASE,
+          )
+          DISPARAGE = re.compile(
+              r"repo(sitory)?\s+(is|was|has been)\s+"
+              r"(stalled|dead|unmaintained|abandoned|inactive)"
+              r"|(stalled|dead|abandoned|unmaintained)\s+repo(sitory)?"
+              r"|no longer maintained",
+              re.IGNORECASE,
+          )
+          EXEMPT = re.compile(r"\bnever\b|\bmust not\b|\bdo not\b|\bforbidden\b", re.IGNORECASE)
+
+          targets = [pathlib.Path(name) for name in ("README.md", "VERIFY.md", "NOTICE")]
+          targets += sorted(pathlib.Path("docs/upstream").rglob("*.md"))
+          targets += [p for p in sorted(pathlib.Path("skills").rglob("*"))
+                      if p.is_file() and p.suffix in {".md", ".py"}]
+
+          failures = 0
+          for path in targets:
+              if not path.is_file():
+                  continue
+              for number, line in enumerate(path.read_text("utf-8").splitlines(), start=1):
+                  if EXEMPT.search(line):
+                      continue
+                  for label, pattern in (("claims an upstream merge", MERGE),
+                                         ("disparages the upstream repository", DISPARAGE)):
+                      if pattern.search(line):
+                          failures += 1
+                          print(f"::error file={path},line={number}::this line {label}: "
+                                f"{line.strip()[:160]}")
+          if failures:
+              print("We claim THE FILING, never the merge. Upstream acceptance is not ours "
+                    "to promise and nothing downstream depends on it.")
+          sys.exit(1 if failures else 0)
+          PY
+
+      - name: The upstream tree carries none of this project's vocabulary
+        # A contribution that mentions our brand is an advertisement. The `.license`
+        # sidecars are excluded because that is exactly why they exist: the SPDX header
+        # lives beside the file rather than inside it, so the file itself stays clean.
+        run: |
+          python3 - <<'PY'
+          import pathlib, re, sys
+
+          BRANDED = re.compile(
+              r"mainline|trappoint|diachronic|permit[- ]to[- ]work|blame (edge|pointer|closure)"
+              r"|precursor|unwelding|SSE\b",
+              re.IGNORECASE,
+          )
+          failures = 0
+          for path in sorted(pathlib.Path("skills/upstream").rglob("*")):
+              if not path.is_file() or path.name.endswith(".license"):
+                  continue
+              for number, line in enumerate(path.read_text("utf-8").splitlines(), start=1):
+                  found = BRANDED.search(line)
+                  if found:
+                      failures += 1
+                      print(f"::error file={path},line={number}::branded vocabulary "
+                            f"{found.group(0)!r} in a file destined for another repository")
+          sys.exit(1 if failures else 0)
+          PY
+
+  # ── 3 · the scripts, including the half that has to FAIL ──────────────────────────────
+  proofs:
+    name: every shipped script proves it can fail
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: No third-party packages are installed for these steps
+        # The skills claim "standard library only". Asserting it costs one line, and the
+        # claim is load-bearing: a stranger runs these on a machine we do not control.
+        run: |
+          python -c "import sys; print(sys.version)"
+          pip list --format=freeze | grep -vE '^(pip|setuptools|wheel)==' || true
+
+      - name: Diagnostic parser, no database required
+        run: |
+          python skills/designing-diachronic-gates/scripts/assert_gate_refuses.py \
+            --parser-self-test
+
+      - name: Merkle restore verifier, no database required
+        run: |
+          python "skills/upstream/cockroachdb-resilience-and-disaster-recovery/verifying-a-restore-by-merkle-root/scripts/verify_restore_merkle_root.py" \
+            --self-test
+
+      - name: Vector-plan assertion, no database required
+        run: |
+          python skills/designing-vector-recall-prefixes/scripts/assert_prefix_index_used.py \
+            --self-test
+
+      - name: Pull the CockroachDB image the gate assertion will use
+        run: docker pull cockroachdb/cockroach:v26.2.5
+
+      - name: THE UNWELDING MATRIX — welded refuses, unwelded ADMITS
+        # Nine histories against nine freshly created databases on one throwaway node.
+        # Four of the rows must end in ADMITTED; those are the rows that make the other
+        # five mean anything. The script exits non-zero if any row disagrees with its
+        # prediction, in either direction.
+        run: |
+          python skills/designing-diachronic-gates/scripts/assert_gate_refuses.py \
+            --self-test --docker-only --image cockroachdb/cockroach:v26.2.5
+
+      - name: RED BEFORE GREEN — the assertion must fail on a schema with the gate removed
+        # PL-2 made executable for this lane. `--print-schema` emits the reference gate;
+        # we then remove the CHECK and disable the re-derivation trigger and require the
+        # SAME assertion that passed above to exit 1. A test suite that has never been red
+        # asserts nothing about a product whose deliverable is a refusal.
+        run: |
+          set -euo pipefail
+          work="$(mktemp -d)"
+          gate="skills/designing-diachronic-gates/scripts/assert_gate_refuses.py"
+          python "${gate}" --print-schema > "${work}/unwelded.sql"
+          cat >> "${work}/unwelded.sql" <<'SQL'
+          ALTER TABLE subject DROP CONSTRAINT gate_closed_when_issued;
+          ALTER TABLE subject DISABLE TRIGGER subject_close_gate;
+          SQL
+          cat > "${work}/prelude.sql" <<'SQL'
+          INSERT INTO subject (subject_id) VALUES (101);
+          INSERT INTO obligation (obligation_id, subject_id, severity) VALUES (1101, 101, 4);
+          SQL
+          cat > "${work}/illegal.sql" <<'SQL'
+          UPDATE subject SET state = 'closed' WHERE subject_id = 101;
+          SQL
+          set +e
+          python "${gate}" --docker-only --image cockroachdb/cockroach:v26.2.5 \
+            --schema "${work}/unwelded.sql" --prelude "${work}/prelude.sql" \
+            --history "${work}/illegal.sql" \
+            --expect-sqlstate 23514 --expect-exhibit gate_closed_when_issued
+          code=$?
+          set -e
+          if [ "${code}" -ne 1 ]; then
+            echo "::error::the gate assertion exited ${code} against an UNWELDED schema; it must exit 1."
+            echo "::error::An assertion that cannot go red is not an assertion."
+            exit 1
+          fi
+          echo "the assertion went red against the unwelded schema, as it must"
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "## skills lane"
+            echo ""
+            echo "| proof | meaning |"
+            echo "|---|---|"
+            echo "| unwelding matrix | the welded gate refuses; each mechanism removed makes it ADMIT |"
+            echo "| red before green | the same assertion exits 1 on an unwelded schema |"
+            echo "| merkle self-test | truncation, tampering and reordering are all caught |"
+            echo "| claims grep | we claim the filing, never the merge |"
+          } >> "$GITHUB_STEP_SUMMARY"

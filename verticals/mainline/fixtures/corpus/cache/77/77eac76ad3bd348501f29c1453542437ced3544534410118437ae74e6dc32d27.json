@@ -1,0 +1,43 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 2,
+    "doc_codes": [
+      "MOC-2023-0302",
+      "PRO-CHM-009",
+      "STD-CHM-011"
+    ],
+    "intent": "strengthen",
+    "moc_ref": "MOC-2011-0006",
+    "opened_on": "2011-01-29",
+    "precursor_events": [
+      {
+        "event_ref": "AF-2007-002",
+        "severity_gate": null
+      }
+    ],
+    "site": "Tolgarra Processing and Power Station",
+    "terminal_state": "abandoned",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "management_of_change": "change request",
+      "verification": "field verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "77eac76ad3bd348501f29c1453542437ced3544534410118437ae74e6dc32d27",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2011-0006",
+  "prompt_kind": "moc",
+  "prompt_sha256": "550192dc8600c363eb4111b51cacaeda4e71c0e932bc7ad809875010cc069c8c",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2011-0006 was raised at Tolgarra Processing and Power Station on 29 January 2011 following 1 recorded event in the archive, including AF-2007-002. The change request record covers 2 clauses across 3 controlled documents. The intent is to strengthen the critical safeguard named in the documents in scope. The record reached the state abandoned in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical safeguard set is preserved.",
+    "scope_note": "The documents in scope are MOC-2023-0302, PRO-CHM-009 and STD-CHM-011."
+  },
+  "response_sha256": "c30b4f0b07108687088a557eb23d283c4ab1a87b3952a6d3f6866d9adada0dfa",
+  "source": null
+}

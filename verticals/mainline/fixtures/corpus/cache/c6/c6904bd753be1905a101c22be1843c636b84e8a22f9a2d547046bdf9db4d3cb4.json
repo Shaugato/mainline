@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 26,
+    "doc_code": "STD-ISO-006",
+    "doc_family": "STD",
+    "doc_title": "Isolation of Stored Energy",
+    "driver": "moc",
+    "driving_change_ref": "MOC-2019-0221",
+    "driving_event_ref": null,
+    "effective_on": "2019-02-19",
+    "required_citations": [],
+    "rev_no": 5,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "ICAM investigation",
+      "management_of_change": "management of change",
+      "near_miss": "potential incident"
+    }
+  },
+  "key": "c6904bd753be1905a101c22be1843c636b84e8a22f9a2d547046bdf9db4d3cb4",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/STD-ISO-006/005",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "86cf1993a19ab1d20c34053670a0342a437b43f31d6893b42479188393585616",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [],
+    "reason": "Revised under MOC-2019-0221; 26 clauses amended."
+  },
+  "response_sha256": "365fb9d3cb6214467db233e7ec97b4edbc00c7682a6eaa2297f8bd1464e21c5c",
+  "source": null
+}

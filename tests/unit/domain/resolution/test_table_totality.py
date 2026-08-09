@@ -112,7 +112,7 @@ def test_the_digest_covers_the_rows_and_the_version() -> None:
             token = str(field).encode("utf-8")
             digest.update(len(token).to_bytes(4, "big"))
             digest.update(token)
-    assert TABLE_SHA256 == digest.hexdigest()
+    assert digest.hexdigest() == TABLE_SHA256
     assert len(TABLE_SHA256) == 64
 
 

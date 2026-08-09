@@ -1,0 +1,20 @@
+// SPDX-FileCopyrightText: 2026 MAINLINE contributors
+// SPDX-License-Identifier: FSL-1.1-ALv2
+//
+// DELIBERATELY WRONG. Read as text by source-checks.test.ts; never compiled, never bundled.
+// Eight violations, one per line, each named in fixtures/planted/README.md.
+
+export function PlantedSurface(): unknown {
+  return (
+    <section>
+      <button tabIndex={4}>jumps the whole document queue</button>
+      <a aria-hidden="true" href="#/gate">unreachable to speech, reachable to Tab</a>
+      <div onClick={handle}>a click target a keyboard cannot reach</div>
+      <img src="seal.png" />
+      <p dangerouslySetInnerHTML={{ __html: payload }} />
+      <button accessKey="s">collides with a screen-reader shortcut</button>
+      <canvas id="not-the-memory-register" />
+      <table data-sort-key="signer_sub">a chart of people</table>
+    </section>
+  );
+}

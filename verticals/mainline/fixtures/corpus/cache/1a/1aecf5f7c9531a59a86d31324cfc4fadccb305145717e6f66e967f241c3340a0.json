@@ -1,0 +1,91 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "assessing and permitting hot work adjacent to live plant",
+    "activity_root": "CONTROL-OF-IGNITION-SOURCES",
+    "activity_series": "authorising hot work",
+    "assets": [
+      {
+        "asset_class": "PRD-CLASS-A",
+        "label": "steam relief devices",
+        "service": "boiler and deaerator overpressure protection",
+        "tag": "PSV-8201"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "recovery",
+        "control_class": "FIRE_WATCH_PROVISION",
+        "control_label": "provision and briefing of a competent fire watch",
+        "failure_mode": "absent",
+        "hazard_energy": "thermal",
+        "icam_tier": "task_or_environmental_condition"
+      },
+      {
+        "barrier_role": "preventive",
+        "control_class": "HOT_WORK_AUTHORISATION",
+        "control_label": "authorisation of hot work adjacent to live plant",
+        "failure_mode": "absent",
+        "hazard_energy": "thermal",
+        "icam_tier": "absent_or_failed_defence"
+      }
+    ],
+    "event_ref": "CAPA-2012-002",
+    "hazard_energy": "thermal",
+    "hazard_media": [
+      "hot surface",
+      "steam",
+      "molten material",
+      "hot work",
+      "exothermic reaction"
+    ],
+    "hazard_release": "burn, ignition, scald",
+    "kind": "capa",
+    "occurred_on": "2012-04-27",
+    "severity_actual": 0,
+    "severity_potential": 2,
+    "site": "Tolgarra Processing and Power Station",
+    "summary_facts": [],
+    "task_phase": "during routine operation",
+    "title": "corrective action following root cause analysis at PSV-8201",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "investigation": "root cause analysis",
+      "near_miss": "hazard report",
+      "verification": "field verification"
+    }
+  },
+  "key": "1aecf5f7c9531a59a86d31324cfc4fadccb305145717e6f66e967f241c3340a0",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:CAPA-2012-002",
+  "prompt_kind": "icam",
+  "prompt_sha256": "b3f112d8e2cce4669426c448827c0b338fa8f13dd78b95e5bd7cf41d02b20087",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 2 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "FIRE_WATCH_PROVISION",
+        "finding": "Control FIRE_WATCH_PROVISION: the provision and briefing of a competent fire watch was not in place, and the root cause analysis classified this as a task or environmental condition."
+      },
+      {
+        "control_class": "HOT_WORK_AUTHORISATION",
+        "finding": "Control HOT_WORK_AUTHORISATION: the authorisation of hot work adjacent to live plant was not in place, and the root cause analysis classified this as an absent or failed defence."
+      }
+    ],
+    "recommendations": [
+      "Restore the authorisation of hot work adjacent to live plant on PSV-8201 and record the field verification before this task is next authorised."
+    ],
+    "sequence": "Work was under way in authorising hot work, specifically assessing and permitting hot work adjacent to live plant. PSV-8201 (steam relief devices) is in service for boiler and deaerator overpressure protection. The task proceeded during routine operation while the provision and briefing of a competent fire watch was not in place. The thermal energy involved is held as hot surface, and the recorded presentation was burn, ignition, scald.",
+    "summary": "On 27 April 2012 a corrective action on PSV-8201 at Tolgarra Processing and Power Station was reviewed against the critical safeguard it was raised to restore."
+  },
+  "response_sha256": "843004ebcdd9eb7285d3c6c4c50cc13631bdaaf7b3a6bf60c69af0504a354e8f",
+  "source": null
+}

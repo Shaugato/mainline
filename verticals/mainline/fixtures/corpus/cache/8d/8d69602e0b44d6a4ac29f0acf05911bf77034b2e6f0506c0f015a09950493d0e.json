@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 2,
+    "doc_codes": [
+      "PRO-HSE-005",
+      "STD-HTW-004"
+    ],
+    "intent": "introduce",
+    "moc_ref": "MOC-2016-0138",
+    "opened_on": "2016-12-15",
+    "precursor_events": [],
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "management_of_change": "management of change",
+      "verification": "critical control verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "8d69602e0b44d6a4ac29f0acf05911bf77034b2e6f0506c0f015a09950493d0e",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2016-0138",
+  "prompt_kind": "moc",
+  "prompt_sha256": "e7edc0ef10e2bbdcd6ef2b2c13ba4bc72306fc2736d73eb6cc13e35bfb24fed0",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2016-0138 was raised at Marrindal Concentrator and Hydrocarbon Transfer Facility on 15 December 2016 as a scheduled change under management of change; no event precedes it in the record. The management of change record covers 2 clauses across 2 controlled documents. The intent is to introduce a duty the documents in scope did not previously carry. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical control set is preserved.",
+    "scope_note": "The documents in scope are PRO-HSE-005 and STD-HTW-004."
+  },
+  "response_sha256": "bb36ffa0f78f7fe323577d1ef3389876fc94a0a7eb9cbd4597837000ef2b8c82",
+  "source": null
+}

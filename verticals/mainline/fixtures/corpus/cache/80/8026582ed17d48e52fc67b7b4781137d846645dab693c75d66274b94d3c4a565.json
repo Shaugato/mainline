@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 2,
+    "doc_codes": [
+      "ALERT-2016-007",
+      "MOC-2026-0413",
+      "PRO-MEC-014",
+      "PRO-OPS-032"
+    ],
+    "intent": "strengthen",
+    "moc_ref": "MOC-2022-0226",
+    "opened_on": "2022-11-21",
+    "precursor_events": [
+      {
+        "event_ref": "RN-2011-002",
+        "severity_gate": null
+      }
+    ],
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "terminal_state": "abandoned",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "management_of_change": "change assurance",
+      "verification": "assurance activity"
+    },
+    "weakening_steps": 0
+  },
+  "key": "8026582ed17d48e52fc67b7b4781137d846645dab693c75d66274b94d3c4a565",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2022-0226",
+  "prompt_kind": "moc",
+  "prompt_sha256": "f6f4db30ff73c7c2940d042833376eaab2b4ae5df320aabedea2744bb94ee24d",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2022-0226 was raised at Marrindal Concentrator and Hydrocarbon Transfer Facility on 21 November 2022 following 1 recorded event in the archive, including RN-2011-002. The change assurance record covers 2 clauses across 4 controlled documents. The intent is to strengthen the material unwanted event control named in the documents in scope. The record reached the state abandoned in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the material unwanted event control set is preserved.",
+    "scope_note": "The documents in scope are ALERT-2016-007, MOC-2026-0413, PRO-MEC-014 and PRO-OPS-032."
+  },
+  "response_sha256": "637051ecf06101817fc9eae93e54b4a5d8671d25fa59c38dc6cbfbee23bbb5c4",
+  "source": null
+}

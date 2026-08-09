@@ -1,0 +1,239 @@
+{
+  "body_providers_available": {
+    "authored": false,
+    "cache": false
+  },
+  "documents": {
+    "CVY-MOC-2014-0087-r001-2014-04-09-g1.docx": {
+      "clause_count": 8,
+      "doc_code": "MOC-2014-0087",
+      "effective_on": "2014-04-09",
+      "family": "MOC",
+      "generation": 1,
+      "note": "a change record in the pre-2016 house style",
+      "renderer_census": {
+        "structural": 8
+      },
+      "revision": "001",
+      "revision_rows": 1,
+      "site_code": "CVY",
+      "template": "moc_g1"
+    },
+    "CVY-PRO-HSE-012-r005-2015-04-10-g1.docx": {
+      "clause_count": 35,
+      "doc_code": "PRO-HSE-012",
+      "effective_on": "2015-04-10",
+      "family": "PRO",
+      "generation": 1,
+      "note": "a second retypeset family, BEFORE: the reflow is not a one-document special case",
+      "renderer_census": {
+        "structural": 35
+      },
+      "revision": "005",
+      "revision_rows": 5,
+      "site_code": "CVY",
+      "template": "pro_g1"
+    },
+    "CVY-PRO-HSE-012-r006-2016-11-21-g2.docx": {
+      "clause_count": 36,
+      "doc_code": "PRO-HSE-012",
+      "effective_on": "2016-11-21",
+      "family": "PRO",
+      "generation": 2,
+      "note": "a second retypeset family, AFTER",
+      "renderer_census": {
+        "structural": 36
+      },
+      "revision": "006",
+      "revision_rows": 6,
+      "site_code": "CVY",
+      "template": "pro_g2"
+    },
+    "MRD-MOC-2026-0413-r001-2026-07-28-g2.docx": {
+      "clause_count": 8,
+      "doc_code": "MOC-2026-0413",
+      "effective_on": "2026-07-28",
+      "family": "MOC",
+      "generation": 2,
+      "note": "the weakening change request whose merge the database refuses",
+      "renderer_census": {
+        "structural": 8
+      },
+      "revision": "001",
+      "revision_rows": 1,
+      "site_code": "MRD",
+      "template": "moc_g2"
+    },
+    "MRD-PRO-MEC-014-r005-2011-03-14-g1.docx": {
+      "clause_count": 28,
+      "doc_code": "PRO-MEC-014",
+      "effective_on": "2011-03-14",
+      "family": "PRO",
+      "generation": 1,
+      "note": "the spine clause enters the record at 7.3, setpoint 150",
+      "renderer_census": {
+        "structural": 28
+      },
+      "revision": "005",
+      "revision_rows": 5,
+      "site_code": "MRD",
+      "template": "pro_g1"
+    },
+    "MRD-PRO-MEC-014-r007-2013-08-04-g1.docx": {
+      "clause_count": 28,
+      "doc_code": "PRO-MEC-014",
+      "effective_on": "2013-08-04",
+      "family": "PRO",
+      "generation": 1,
+      "note": "the strengthen after INC-2013-044: 150 becomes 135, still printed 7.3",
+      "renderer_census": {
+        "structural": 28
+      },
+      "revision": "007",
+      "revision_rows": 7,
+      "site_code": "MRD",
+      "template": "pro_g1"
+    },
+    "MRD-PRO-MEC-014-r009-2016-11-02-g1.docx": {
+      "clause_count": 29,
+      "doc_code": "PRO-MEC-014",
+      "effective_on": "2016-11-02",
+      "family": "PRO",
+      "generation": 1,
+      "note": "retypeset pair, BEFORE: the last issue in the 2004-2016 house style",
+      "renderer_census": {
+        "structural": 29
+      },
+      "revision": "009",
+      "revision_rows": 9,
+      "site_code": "MRD",
+      "template": "pro_g1"
+    },
+    "MRD-PRO-MEC-014-r010-2016-11-21-g2.docx": {
+      "clause_count": 29,
+      "doc_code": "PRO-MEC-014",
+      "effective_on": "2016-11-21",
+      "family": "PRO",
+      "generation": 2,
+      "note": "retypeset pair, AFTER: the same clause identities, 7.3 is now 5.2.1",
+      "renderer_census": {
+        "structural": 29
+      },
+      "revision": "010",
+      "revision_rows": 10,
+      "site_code": "MRD",
+      "template": "pro_g2"
+    },
+    "MRD-PRO-MEC-014-r015-2025-09-07-g2.docx": {
+      "clause_count": 34,
+      "doc_code": "PRO-MEC-014",
+      "effective_on": "2025-09-07",
+      "family": "PRO",
+      "generation": 2,
+      "note": "the current issue, nine years and four revisions after the retypeset",
+      "renderer_census": {
+        "structural": 34
+      },
+      "revision": "015",
+      "revision_rows": 15,
+      "site_code": "MRD",
+      "template": "pro_g2"
+    },
+    "MRD-PTW-STD-002-r002-2010-06-10-g1.docx": {
+      "clause_count": 14,
+      "doc_code": "PTW-STD-002",
+      "effective_on": "2010-06-10",
+      "family": "PTW",
+      "generation": 1,
+      "note": "the permit form set as it stood before the retypeset",
+      "renderer_census": {
+        "structural": 14
+      },
+      "revision": "002",
+      "revision_rows": 2,
+      "site_code": "MRD",
+      "template": "ptw_g1"
+    },
+    "MRD-PTW-STD-002-r006-2025-08-26-g2.docx": {
+      "clause_count": 18,
+      "doc_code": "PTW-STD-002",
+      "effective_on": "2025-08-26",
+      "family": "PTW",
+      "generation": 2,
+      "note": "the current permit form set",
+      "renderer_census": {
+        "structural": 18
+      },
+      "revision": "006",
+      "revision_rows": 6,
+      "site_code": "MRD",
+      "template": "ptw_g2"
+    },
+    "MRD-STD-PTW-001-r004-2014-11-07-g1.docx": {
+      "clause_count": 22,
+      "doc_code": "STD-PTW-001",
+      "effective_on": "2014-11-07",
+      "family": "STD",
+      "generation": 1,
+      "note": "a standard in the pre-2016 house style",
+      "renderer_census": {
+        "structural": 22
+      },
+      "revision": "004",
+      "revision_rows": 4,
+      "site_code": "MRD",
+      "template": "std_g1"
+    },
+    "MRD-STD-PTW-001-r007-2022-10-04-g2.docx": {
+      "clause_count": 33,
+      "doc_code": "STD-PTW-001",
+      "effective_on": "2022-10-04",
+      "family": "STD",
+      "generation": 2,
+      "note": "the same standard after the retypeset",
+      "renderer_census": {
+        "structural": 33
+      },
+      "revision": "007",
+      "revision_rows": 8,
+      "site_code": "MRD",
+      "template": "std_g2"
+    }
+  },
+  "file_count": 21,
+  "manifest": "MANIFEST.docx.sha256",
+  "producer": "MAINLINE corpusgen docx 1.0.0",
+  "renderer_census": {
+    "structural": 322
+  },
+  "retypeset_pair": {
+    "after": {
+      "document": "MRD-PRO-MEC-014-r010-2016-11-21-g2.docx",
+      "generation": 2,
+      "heading": "5 seal-face high-temperature alarm and trip",
+      "ordinal": 29,
+      "printed_label": "5.2.1"
+    },
+    "before": {
+      "document": "MRD-PRO-MEC-014-r009-2016-11-02-g1.docx",
+      "generation": 1,
+      "heading": "7 Monitoring, alarms and setpoints",
+      "ordinal": 25,
+      "printed_label": "7.3"
+    },
+    "clause_uuid": "2ad35fa5-d174-5eb1-8550-05adfa90e08d",
+    "identity_held": true,
+    "label_changed": true,
+    "ordinal_changed": true
+  },
+  "templates": {
+    "moc_g1": "9e186a753367445044a53b8449f96a92fc72b6f17bc44e089149225d8c698c9d",
+    "moc_g2": "a844c4b699b1015487dc96e7907d45e57bd60fbf3f2aeb67d61e8d6cb22a7ff3",
+    "pro_g1": "44252f42f4d5f72756b337555395a0a80be853c894bdf127ad07c225a2eda5ef",
+    "pro_g2": "e59b894c6d4379b58a9c244b441b2bd1f788470042d2075165322577ee9cb94b",
+    "ptw_g1": "7a1f4655d41e7c60d78a81acf3879fcfa5f98db441b4d6adb053c6e0bb730ca5",
+    "ptw_g2": "73cae39f369bd94f168b47c0338a714f66f678484ea97051c5c7a4e75ecdc03b",
+    "std_g1": "5c93d25b8878ae4a034e7e5426527bdf7b83076b71cb21f3b22e108cdf856efe",
+    "std_g2": "d5884ce7c5682435b2326065ef9a106bf25ffa42872a4be05a873db64466de37"
+  }
+}

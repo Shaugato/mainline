@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 0,
+    "doc_codes": [
+      "PRO-EXP-002"
+    ],
+    "intent": "introduce",
+    "moc_ref": "MOC-2026-0070",
+    "opened_on": "2026-06-01",
+    "precursor_events": [],
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "management_of_change": "change assurance",
+      "verification": "assurance activity"
+    },
+    "weakening_steps": 0
+  },
+  "key": "cc39ca3566e43a921a136cc54203284606135c8016f5f5b08509dcdefd449e78",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2026-0070",
+  "prompt_kind": "moc",
+  "prompt_sha256": "fc33ec00406b2a3947e52adc7d03adc62ca8e430ecbe53e0348299679f73bf81",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2026-0070 was raised at Yandarra Downs Open Cut and Heavy Workshop on 1 June 2026 as a scheduled change under change assurance; no event precedes it in the record. The change assurance record carries no clause change; it records the assessment only. The intent is to introduce a duty the documents in scope did not previously carry. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the material unwanted event control set is preserved.",
+    "scope_note": "The documents in scope are PRO-EXP-002."
+  },
+  "response_sha256": "a84c659fbf5479c514e5c706eeb793c830a5acc62c71a1f0e1ff065cbe6fe500",
+  "source": null
+}

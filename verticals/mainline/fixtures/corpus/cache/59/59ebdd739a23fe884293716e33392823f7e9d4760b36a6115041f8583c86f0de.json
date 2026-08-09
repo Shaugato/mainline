@@ -1,0 +1,79 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "loading, restraining and placarding a load",
+    "activity_root": "LAND-TRANSPORT",
+    "activity_series": "transporting materials by road",
+    "assets": [
+      {
+        "asset_class": "MOB-CLASS-L",
+        "label": "light vehicles",
+        "service": "personnel movement on operating areas",
+        "tag": "LV-9303"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "first aid or minor property damage"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "FATIGUE_AND_FITNESS_CONTROL",
+        "control_label": "assessment of fatigue and fitness for driving",
+        "failure_mode": "ineffective",
+        "hazard_energy": "kinetic",
+        "icam_tier": "task_or_environmental_condition"
+      }
+    ],
+    "event_ref": "OEM-2009-001",
+    "hazard_energy": "kinetic",
+    "hazard_media": [
+      "rotating equipment",
+      "conveyor",
+      "mobile equipment",
+      "pressurised jet",
+      "flying fragment"
+    ],
+    "hazard_release": "entanglement, impact, crush",
+    "kind": "oem_alert",
+    "occurred_on": "2009-06-28",
+    "severity_actual": 1,
+    "severity_potential": 2,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during start-up after maintenance",
+    "title": "vendor notification - premature wear on MOB-CLASS-L",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "investigation": "accident investigation",
+      "near_miss": "near hit",
+      "verification": "spot check"
+    }
+  },
+  "key": "59ebdd739a23fe884293716e33392823f7e9d4760b36a6115041f8583c86f0de",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:OEM-2009-001",
+  "prompt_kind": "icam",
+  "prompt_sha256": "2c867e7ac5a085a940e07bd0607a2acbb18088086a0f5317195204266b98fc80",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was first aid or minor property damage. The potential outcome was rated 2 against the site's consequence scale, above the 1 actually realised.",
+    "defences": [
+      {
+        "control_class": "FATIGUE_AND_FITNESS_CONTROL",
+        "finding": "Control FATIGUE_AND_FITNESS_CONTROL: the assessment of fatigue and fitness for driving was in place but did not perform, and the accident investigation classified this as a task or environmental condition."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next spot check that the assessment of fatigue and fitness for driving on LV-9303 performs as designed."
+    ],
+    "sequence": "Work was under way in transporting materials by road, specifically loading, restraining and placarding a load. LV-9303 (light vehicles) is in service for personnel movement on operating areas. The task proceeded during start-up after maintenance while the assessment of fatigue and fitness for driving was in place but did not perform. The kinetic energy involved is held as rotating equipment, and the recorded presentation was entanglement, impact, crush.",
+    "summary": "On 28 June 2009 the original equipment manufacturer issued an advisory affecting LV-9303 at Yandarra Downs Open Cut and Heavy Workshop."
+  },
+  "response_sha256": "0ced5040800eedb19b4e19794e5fe43f7d5ef2af90e26b499ebc91a57620f2fe",
+  "source": null
+}

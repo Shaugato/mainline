@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 8,
+    "doc_code": "PRO-ELE-026",
+    "doc_family": "PRO",
+    "doc_title": "High Voltage Switching and Access",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2018-07-26",
+    "required_citations": [],
+    "rev_no": 6,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "ICAM investigation",
+      "management_of_change": "management of change",
+      "near_miss": "potential incident"
+    }
+  },
+  "key": "0ade4f04bac23be435398b3590437862cd786976f8ad571a3a40df9c96d7d450",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:TLG/PRO-ELE-026/006",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "f5b5b9d465a659f7c02e9e7e13a924b99590d1c18dc5a00659d21ed861621925",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [],
+    "reason": "Scheduled review at revision 6; 8 clauses restated."
+  },
+  "response_sha256": "5bf438bc0e9333c821144c4da8ff4a01b544225dbb7e2177821b065b5369ae57",
+  "source": null
+}

@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "FIRE-AND-EMERGENCY-RESPONSE",
+    "barrier_role": "recovery",
+    "control_class": "FIRE_WATCH_PROVISION",
+    "control_delta": "weaken",
+    "control_label": "provision and briefing of a competent fire watch",
+    "doc_code": "STD-EMR-008",
+    "doc_family": "STD",
+    "doc_title": "Emergency Preparedness and Response",
+    "effective_on": "2015-07-25",
+    "printed_label": "3.5",
+    "setpoint": null,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "energy_isolation": "lock out tag out",
+      "verification": "field verification"
+    }
+  },
+  "key": "27520786383c860fe3fa8ca79761961a6507e410196fedd49b2a7fb2b7dc09bc",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:CVY/STD-EMR-008/003#CVY/STD-EMR-008/3.5",
+  "prompt_kind": "clause",
+  "prompt_sha256": "45b25602b13e96dfc111ed59f56efc49275539405370f8b0b9b10e26107b3fe3",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The provision and briefing of a competent fire watch should be provided; the field verification may be recorded at the next scheduled review rather than before the task proceeds. This clause applies to activities archived under FIRE-AND-EMERGENCY-RESPONSE at Cape Verity Export Terminal.",
+    "obligation_verb": "should"
+  },
+  "response_sha256": "0f99a83fd848970d40e4e0650cafee6b03d9cdcddbd4f9ece01afabdb8366fe6",
+  "source": null
+}

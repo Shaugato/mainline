@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "barrier_role": "preventive",
+    "control_class": "SEAL_SUPPORT_SYSTEM_INTEGRITY",
+    "control_delta": "weaken",
+    "control_label": "integrity of the mechanical seal support system",
+    "doc_code": "PRO-OPS-017",
+    "doc_family": "PRO",
+    "doc_title": "Ship Loading and Vapour Recovery",
+    "effective_on": "2025-11-14",
+    "printed_label": "8.3.1(a)",
+    "setpoint": {
+      "from": 75.0,
+      "key": "bearing_temperature_alarm",
+      "label": "bearing high-temperature alarm",
+      "strengthen_direction": "lower",
+      "to": 80.0,
+      "unit": "°C"
+    },
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "energy_isolation": "positive isolation verification",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "5076dfccf8d535e3e87d5058a35e13fe0776564430ee659ed714c0562d3f2a71",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:CVY/PRO-OPS-017/012#CVY/PRO-OPS-017/8.3.1(a)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "722b80d4404d34365d74d0e21188f1e821d0119241a6fd008573f0c481aefae6",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The integrity of the mechanical seal support system should be provided; the assurance activity may be recorded at the next scheduled review rather than before the task proceeds. The bearing high-temperature alarm should be set at 80 °C. This clause applies to activities archived under CONTAINMENT-OF-HYDROCARBONS at Cape Verity Export Terminal.",
+    "obligation_verb": "should"
+  },
+  "response_sha256": "c3c495d01522994749005b7636e0ffbbf27ac90276197211599c7f2d81433402",
+  "source": null
+}

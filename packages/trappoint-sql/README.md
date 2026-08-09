@@ -140,6 +140,21 @@ the rule §11.2 already follows:
 For `schema = "mainline"` that reproduces §11.2's nine names exactly, with no table of
 hard-coded vertical knowledge anywhere in the substrate.
 
+**What that costs a second binding, measured rather than glossed.** The reference
+vertical renames every slot `[roles]` can express, and still shares exactly two names
+with MAINLINE: `agent_recaller` and `quality_assurance`. They are the two derived slots
+whose §11.2 default is a cluster-global constant rather than a schema-scoped name
+(`auditor`, the third derived slot, is schema-scoped and comes out
+`trappoint_ref_auditor`). The set is pinned by
+`test_the_two_bindings_share_no_schema_role_or_output_directory`, so it is a fact this
+suite asserts, not a property anyone is trusting.
+
+The consequence on a cluster carrying both bindings: `0009b` grants `agent_recaller`
+`USAGE` on the `trappoint_ref*` schemas as well as the `mainline*` ones. `USAGE` is the
+right to name an object and nothing more, and rule `R-1` below refuses any rendered
+write privilege to that role under either binding, so the separation covenant survives
+the sharing. Adding the three keys removes the sharing as well.
+
 > **Requested of the spec worker, next MINOR:** add `recaller`, `auditor` and `qa` keys
 > to `$defs.vertical.roles`. Adding optional keys is MINOR under `spec/VERSIONING.md`,
 > and it would let a binding name all nine rather than six. Until then the derivation

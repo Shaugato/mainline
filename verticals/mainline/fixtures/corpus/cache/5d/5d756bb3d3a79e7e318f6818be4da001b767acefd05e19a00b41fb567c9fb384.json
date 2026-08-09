@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 5,
+    "doc_code": "PRO-MIN-003",
+    "doc_family": "PRO",
+    "doc_title": "Haul Road and Light Vehicle Interaction",
+    "driver": "incident",
+    "driving_change_ref": null,
+    "driving_event_ref": "INC-2020-014",
+    "effective_on": "2020-12-19",
+    "required_citations": [
+      {
+        "control_label": "segregation of light vehicles and pedestrians from heavy equipment",
+        "event_ref": "INC-2020-014",
+        "event_title": "loss of containment at HT-9006 during start-up after maintenance",
+        "hazard_energy": "kinetic",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:YND/PRO-MIN-003/012#revision_history_line/INC-2020-014",
+        "severity_gate": 4
+      }
+    ],
+    "rev_no": 12,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "ICAM investigation",
+      "management_of_change": "management of change",
+      "near_miss": "potential incident"
+    }
+  },
+  "key": "5d756bb3d3a79e7e318f6818be4da001b767acefd05e19a00b41fb567c9fb384",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:YND/PRO-MIN-003/012",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "5f654e81d710256e65d206b272dcf8873bf1058059d91f1dbf2f4427bd01633c",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "Revision 12 was raised in response to INC-2020-014, and the segregation of light vehicles and pedestrians from heavy equipment was amended as a result.",
+        "quote_ref": "quote:YND/PRO-MIN-003/012#revision_history_line/INC-2020-014"
+      }
+    ],
+    "reason": "Revised after INC-2020-014; 5 clauses amended."
+  },
+  "response_sha256": "c505e1c54d4fc8b1d8d72b3cf76a1062fd9ebd175cd29924b243e58b2bfbc7a4",
+  "source": null
+}

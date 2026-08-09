@@ -164,9 +164,7 @@ def test_r2_negative_a_comparator_family_change_belongs_to_r3() -> None:
     before = cat(parameter="max_operating_pressure", comparator="=", value=qty("1750", "kPa"))
     after = cat(parameter="max_operating_pressure", comparator="~", value=qty("1750", "kPa"))
     assert r2_setpoint(_inp(before, after, _PRESSURE)) == ()
-    assert [f.delta for f in r3_comparator(_inp(before, after, _PRESSURE))] == [
-        ControlDelta.WEAKEN
-    ]
+    assert [f.delta for f in r3_comparator(_inp(before, after, _PRESSURE))] == [ControlDelta.WEAKEN]
 
 
 def test_r2_a_gauge_to_absolute_comparison_reaches_the_gate_as_a_weakening() -> None:

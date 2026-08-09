@@ -1,0 +1,64 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 6,
+    "doc_code": "PRO-EXP-002",
+    "doc_family": "PRO",
+    "doc_title": "Explosives Receipt and Magazine Control",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2014-08-16",
+    "required_citations": [
+      {
+        "control_label": "guarding, clearance and misfire handling for a blast",
+        "event_ref": "RN-2013-003",
+        "event_title": "prohibition notice - work stopped during a planned shutdown on MAG-9602",
+        "hazard_energy": "chemical",
+        "kind": "moc_reference",
+        "quote_ref": "quote:YND/PRO-EXP-002/004#moc_reference/RN-2013-003",
+        "severity_gate": 2
+      },
+      {
+        "control_label": "guarding, clearance and misfire handling for a blast",
+        "event_ref": "RN-2013-003",
+        "event_title": "prohibition notice - work stopped during a planned shutdown on MAG-9602",
+        "hazard_energy": "chemical",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:YND/PRO-EXP-002/004#revision_history_line/RN-2013-003",
+        "severity_gate": 2
+      }
+    ],
+    "rev_no": 4,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "root cause analysis",
+      "management_of_change": "change request",
+      "near_miss": "hazard report"
+    }
+  },
+  "key": "9a89282076d93a101858f70a0423172e150cad96604026df9f6017c1436a6027",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:YND/PRO-EXP-002/004",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "07577f1d715b0b925524867408fcf594bd61a38bc3d0378799ae444eabd8aee4",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The change request record for this revision cites RN-2013-003 as the reason the guarding, clearance and misfire handling for a blast was amended.",
+        "quote_ref": "quote:YND/PRO-EXP-002/004#moc_reference/RN-2013-003"
+      },
+      {
+        "line": "Revision 4 was raised in response to RN-2013-003, and the guarding, clearance and misfire handling for a blast was amended as a result.",
+        "quote_ref": "quote:YND/PRO-EXP-002/004#revision_history_line/RN-2013-003"
+      }
+    ],
+    "reason": "Scheduled review at revision 4; 6 clauses restated."
+  },
+  "response_sha256": "ab7b6fd7e367ca8008738855e6870fa61a653f08e309552439be6956eda87f28",
+  "source": null
+}

@@ -1,0 +1,47 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 3,
+    "doc_codes": [
+      "MOC-2023-0302",
+      "PRO-CHM-009",
+      "STD-CHM-011"
+    ],
+    "intent": "strengthen",
+    "moc_ref": "MOC-2024-0242",
+    "opened_on": "2024-12-14",
+    "precursor_events": [
+      {
+        "event_ref": "INC-2024-017",
+        "severity_gate": null
+      },
+      {
+        "event_ref": "RN-2026-004",
+        "severity_gate": null
+      }
+    ],
+    "site": "Tolgarra Processing and Power Station",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "management_of_change": "change assurance",
+      "verification": "assurance activity"
+    },
+    "weakening_steps": 0
+  },
+  "key": "e8c6ff33b4d94cc8613af68ae271aa538d55f7cb025706fe4814df7461bf1920",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2024-0242",
+  "prompt_kind": "moc",
+  "prompt_sha256": "4af25ea0618b34845d53837883841f30b4df6ed376a1c031c7d1336b52ec98de",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2024-0242 was raised at Tolgarra Processing and Power Station on 14 December 2024 following 2 recorded events in the archive, including INC-2024-017 and RN-2026-004. The change assurance record covers 3 clauses across 3 controlled documents. The intent is to strengthen the material unwanted event control named in the documents in scope. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the material unwanted event control set is preserved.",
+    "scope_note": "The documents in scope are MOC-2023-0302, PRO-CHM-009 and STD-CHM-011."
+  },
+  "response_sha256": "987944bb1c2045a5faadb41b663267b60547e305a8fe2f120e75b91d945f0912",
+  "source": null
+}

@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTROL-OF-IGNITION-SOURCES",
+    "barrier_role": "recovery",
+    "control_class": "SEAL_FACE_TEMPERATURE_ALARM",
+    "control_delta": "remove",
+    "control_label": "seal-face high-temperature alarm and trip",
+    "doc_code": "PRO-HSE-005",
+    "doc_family": "PRO",
+    "doc_title": "Hot Work Permit Administration",
+    "effective_on": "2011-07-09",
+    "printed_label": "6.4",
+    "setpoint": null,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "energy_isolation": "lock out tag out",
+      "verification": "field verification"
+    }
+  },
+  "key": "3a82808510ce07eb6e6a933d1a5a97dbd6fac1db10ad944cd46c84514d6e9a9d",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/PRO-HSE-005/005#MRD/PRO-HSE-005/6.4",
+  "prompt_kind": "clause",
+  "prompt_sha256": "ca24adc12768713c5efe486df4b6034aa39f2b05e11be55668dd5beba192903d",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "This requirement is withdrawn. The seal-face high-temperature alarm and trip is no longer imposed by this procedure; the duty is discharged under the document that supersedes this clause.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "1f2a868b6c2a76b6783ba34456b7a4764a1bb689f91e4682b897852608c8af9c",
+  "source": null
+}

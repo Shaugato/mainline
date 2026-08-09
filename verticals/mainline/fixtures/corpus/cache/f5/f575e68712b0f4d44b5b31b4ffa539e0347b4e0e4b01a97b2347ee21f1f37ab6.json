@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "PRESSURE-SYSTEM-INTEGRITY",
+    "barrier_role": "preventive",
+    "control_class": "STEAM_SYSTEM_WARM_THROUGH",
+    "control_delta": "introduce",
+    "control_label": "controlled draining, venting and warm-through of steam systems",
+    "doc_code": "STD-PRV-005",
+    "doc_family": "STD",
+    "doc_title": "Pressure Relief and Overpressure Protection",
+    "effective_on": "2007-06-21",
+    "printed_label": "6.3",
+    "setpoint": null,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "f575e68712b0f4d44b5b31b4ffa539e0347b4e0e4b01a97b2347ee21f1f37ab6",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:TLG/STD-PRV-005/001#TLG/STD-PRV-005/6.3",
+  "prompt_kind": "clause",
+  "prompt_sha256": "0a42929219fb749d0043a19a1c6a9eb4d9c97e14f69ab8e9e819457d5ae77b14",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The controlled draining, venting and warm-through of steam systems shall be provided and maintained for work covered by this standard. This clause applies to activities archived under PRESSURE-SYSTEM-INTEGRITY at Tolgarra Processing and Power Station.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "c27f06f0852d0095dfb9a42ba71ea052f66e54749fc9a98c7ae7684754012225",
+  "source": null
+}

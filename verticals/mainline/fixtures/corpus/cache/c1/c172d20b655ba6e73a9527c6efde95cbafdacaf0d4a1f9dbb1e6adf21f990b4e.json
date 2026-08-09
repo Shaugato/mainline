@@ -1,0 +1,38 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 1,
+    "doc_codes": [
+      "ALERT-2009-003",
+      "PRO-MEC-055",
+      "STD-LFT-003"
+    ],
+    "intent": "strengthen",
+    "moc_ref": "MOC-2008-0060",
+    "opened_on": "2008-02-26",
+    "precursor_events": [],
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "terminal_state": "dispositioned",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "management_of_change": "engineering change note",
+      "verification": "spot check"
+    },
+    "weakening_steps": 0
+  },
+  "key": "c172d20b655ba6e73a9527c6efde95cbafdacaf0d4a1f9dbb1e6adf21f990b4e",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2008-0060",
+  "prompt_kind": "moc",
+  "prompt_sha256": "e50b788d78c21b5142057e53aba7b09e4c3073cb00ae5d8449439cf5b00f5933",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2008-0060 was raised at Yandarra Downs Open Cut and Heavy Workshop on 26 February 2008 as a scheduled change under engineering change note; no event precedes it in the record. The engineering change note record covers 1 clause across 3 controlled documents. The intent is to strengthen the key safeguard named in the documents in scope. The record reached the state dispositioned in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the key safeguard set is preserved.",
+    "scope_note": "The documents in scope are ALERT-2009-003, PRO-MEC-055 and STD-LFT-003."
+  },
+  "response_sha256": "e456b81c5868c4727dfb437ecf459c0edc260d21cb045f4863bd86db2d9b8957",
+  "source": null
+}

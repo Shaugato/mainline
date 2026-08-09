@@ -1,0 +1,80 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MAINLINE · 0145a_trg_cbm_account_guard.sql
+-- CREATE TRIGGER z_cbm_account_guard — the statement that makes the projector untrusted
+--
+-- MI: MI25, MI26, MI03
+-- I: I02, I05
+-- COUNSEL-GATED: no
+-- RATIONALE: A function nothing calls overwrites nothing. This statement is the whole of the
+--            mechanism: it attaches `mainline.fn_cbm_account_guard` to `mainline.cbm_account`
+--            BEFORE INSERT FOR EACH ROW, which is the only position from which the six counters
+--            can be replaced by re-derived values BEFORE `CONSTRAINT cbm_balances` evaluates
+--            them. AFTER would be too late in the way that matters: the identity would then be
+--            checked against the numbers the writer chose. Separating it from the function is
+--            not tidiness — CockroachDB DDL is not transactional across statements, so one file
+--            carrying both leaves an operator unable to tell which half applied.
+--
+-- migration:  0145a_trg_cbm_account_guard
+-- domain:     algorithms
+-- band:       0145-0149z · datamodel/dm-functions-triggers + algorithms · AUTHORED, allocated
+--             by verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1). MR-5 BAND
+--             OVERFLOW of this domain's own `0145` (`trg_delta_witness_guard`);
+--             docs/leads/migration-chain-verification.md gives `0146`-`0149` to
+--             `datamodel/dm-functions-triggers`, so this domain suffixes its own last number
+--             rather than borrowing a neighbour's. `0145a` sorts after `0145_` and before
+--             `0146_`.
+-- statements: 1  (the CREATE TRIGGER, and nothing else)
+-- invariants: MI25, MI26, MI03, I02, I05.
+-- source:     docs/leads/algorithms.md §5 · ARCHITECTURE.md §5.11 (trigger style).
+-- requires:   0049c mainline.cbm_account · 0140a mainline.fn_cbm_account_guard
+--             Ordering: 0049c (table) < 0140a (function) < 0145a (this). Lexicographic ordering
+--             on the whole filename stem gives exactly that and every dependency points back.
+-- sqlstate:   P0001 x3, raised by the function this statement attaches; and 23514 on
+--             `cbm_balances` afterwards, raised by the TABLE on the corrected numbers.
+-- forward-only; no .down.sql exists at or below the protected floor (DM-14).
+--
+-- ═════════════════════════════════════════════════════════════════════════════════════════════
+-- THE ORDER OF EVENTS ON ONE INSERT, WHICH IS THE PRODUCT
+-- ═════════════════════════════════════════════════════════════════════════════════════════════
+--   1. a projector INSERTs an account, supplying six counters that make the identity close;
+--   2. this trigger fires and REPLACES all six with values re-derived from
+--      `clause_blame_current`, `identity_assignment` and `identity_residue`;
+--   3. the STORED column `balanced` is computed from the REPLACED values;
+--   4. `CONSTRAINT cbm_balances` refuses the row if they do not balance — 23514.
+--
+-- Step 2 is why step 4 means anything. Without it, "the account balanced" is a statement about
+-- the projector's arithmetic; with it, the projector's arithmetic is never consulted at all.
+-- `tests/integration/algorithms/cbm/test_balance_refusal.py::test_an_inflated_carried_is_silently_overwritten_and_then_refused`
+-- performs exactly this: it inserts an account whose `carried` is inflated to make the sum
+-- close, and the write is refused on the corrected numbers.
+--
+-- ── WHY BEFORE INSERT FOR EACH ROW, AND NOTHING ELSE ─────────────────────────────────────────
+-- BEFORE, because the counters must be replaced before the CHECK reads them and before the row
+-- exists. INSERT only, because `cbm_account` is append-only (MI26): a correction is a new
+-- generation, which is another INSERT, which this same trigger guards. FOR EACH ROW, because
+-- the derivation is about one (site_id, commit_id, account_gen); a statement-level trigger has
+-- no NEW to overwrite.
+--
+-- ── THE OBJECT NAME, AND WHAT THE `z_` PREFIX DOES AND DOES NOT MEAN ─────────────────────────
+-- The FILE slug is `trg_cbm_account_guard` because that is what the object it attaches is
+-- called. The TRIGGER OBJECT is `z_cbm_account_guard`. The `z_` prefix follows the convention
+-- `z_cbm_gate` sets in docs/leads/algorithms.md §5 and is COSMETIC ONLY: decision D10 says
+-- nothing in this domain may depend on inter-trigger firing order, which CockroachDB v26.2 does
+-- not document. GT-A1 records what was observed (on this table there is exactly one trigger, so
+-- there is no order to observe) and nothing consults the result. Anyone reading `z_` as a
+-- guarantee that this fires last is reading something that is not there.
+--
+-- ── REFUSAL DEPTH ────────────────────────────────────────────────────────────────────────────
+-- Depth 2, and this is the file where the second layer is real. `cbm_balances` is a plain-column
+-- CHECK on `mainline.cbm_account` and it survives `ALTER TABLE mainline.cbm_account DISABLE
+-- TRIGGER z_cbm_account_guard`: with the trigger disabled a writer can supply any six numbers
+-- they like, but they must still supply six that SUM CORRECTLY, and the row they get is one an
+-- auditor can compare against the three source relations in a single query
+-- (`mainline_audit.v_cbm_ledger`, 0151, reports the live comparison). Disabling the trigger
+-- converts a refusal into a discoverable lie, which is a strictly weaker but non-empty guarantee
+-- and is stated here as such.
+
+CREATE TRIGGER z_cbm_account_guard BEFORE INSERT ON mainline.cbm_account
+  FOR EACH ROW EXECUTE FUNCTION mainline.fn_cbm_account_guard();

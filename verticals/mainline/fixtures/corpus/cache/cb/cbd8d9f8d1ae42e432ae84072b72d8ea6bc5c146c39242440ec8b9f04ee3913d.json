@@ -1,0 +1,42 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 2,
+    "doc_codes": [
+      "PRO-HSE-005",
+      "STD-HTW-004"
+    ],
+    "intent": "weaken",
+    "moc_ref": "MOC-2012-0131",
+    "opened_on": "2012-07-24",
+    "precursor_events": [
+      {
+        "event_ref": "INC-2024-003",
+        "severity_gate": null
+      }
+    ],
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "management_of_change": "change request",
+      "verification": "field verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "cbd8d9f8d1ae42e432ae84072b72d8ea6bc5c146c39242440ec8b9f04ee3913d",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2012-0131",
+  "prompt_kind": "moc",
+  "prompt_sha256": "3b100dfeaaaf6ff365d8a41b5e7114ca966ef571015e7d2a34dd2daffcbded5f",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2012-0131 was raised at Marrindal Concentrator and Hydrocarbon Transfer Facility on 24 July 2012 following 1 recorded event in the archive, including INC-2024-003. The change request record covers 2 clauses across 2 controlled documents. The intent is to relax a critical safeguard requirement, and the basis for the relaxation is recorded with the change. The record reached the state merged in the change stream.",
+    "risk_note": "This change relaxes a control: 0 steps of relaxation are recorded against it, and the residual risk position rests on that relaxation having been accepted deliberately.",
+    "scope_note": "The documents in scope are PRO-HSE-005 and STD-HTW-004."
+  },
+  "response_sha256": "2bf48032bbda22e7ad43950ef9cc75452170a73568c5fb747a467e93cdabd6d6",
+  "source": null
+}

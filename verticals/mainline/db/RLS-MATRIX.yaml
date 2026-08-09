@@ -1,0 +1,601 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+#
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+#  RLS-MATRIX.yaml — the MAINLINE row-level-security matrix, declared once and rendered into
+#  one `CREATE POLICY` per migration file (band 0181–0198z).
+#
+#  owner:    datamodel / dm-views-rls
+#  source:   ARCHITECTURE.md §11.3 (RLS, SEC-1) · §11.2 (the role matrix) · §4.1 laws 10 and 11 ·
+#            correction S22 (the FORCE trap) · correction S14 · docs/leads/datamodel.md DM-10, DM-16
+#  consumers: verticals/mainline/db/migrations/018*.sql   (one policy per file, rendered by hand
+#             and asserted equal to this file by tests/integration/schema/test_mi_rls.py)
+#             tests/integration/schema/test_mi_rls.py     (reads this file and asserts the cluster
+#             matches it exactly — no extra policy, no missing policy, no altered expression)
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+#
+# ──────────────────────────────────────────────────────────────────────────────────────────────
+# SEC-1, FIRST, BECAUSE EVERY LINE BELOW IS READ IN ITS LIGHT
+#
+#   RLS is tenancy hygiene and information partitioning. It is NOT tamper-evidence and NOT a
+#   defence against a privileged operator. Admin bypasses it. The table owner bypasses it absent
+#   FORCE. A role may carry BYPASSRLS. CDC ignores it entirely. TRUNCATE, BACKUP, RESTORE and
+#   cluster replication all bypass it. THE LEDGER IS THE ROGUE-DBA CONTROL. Any slide that says
+#   otherwise is a slide a competent expert takes apart in one question — see §11.7's
+#   must-not-claim list, which names "RLS as a defence against a rogue admin" first.
+#
+#   What RLS is FOR here is narrower and real: it partitions information between people who all
+#   legitimately hold the privilege. `peer_blind` is the case that shows it — a signer holds
+#   SELECT on `disposition` and always will; what they must not hold is the ability to read what
+#   Dave signed BEFORE they have signed themselves. That is not access control protecting data.
+#   It is access control doing epistemics, and M10's peer-prediction channel structurally
+#   requires it.
+#
+# ──────────────────────────────────────────────────────────────────────────────────────────────
+# THE THREE PLATFORM LAWS THAT DECIDE EVERY SHAPE BELOW
+#
+#   §4.1 law 10 — POLICY EXPRESSIONS CANNOT CONTAIN SUBQUERIES. Verified against the v26.2
+#   CREATE POLICY reference: "these expressions cannot contain a subexpression." So scope is a
+#   DENORMALISED ROLE-NAME TOKEN and the only documented-safe shape is
+#
+#       USING (site_role = CURRENT_USER)
+#
+#   over `mainline.permit.site_role NAME`, itself projected by `fn_site_role` from
+#   `mainline.site` (DM-3). It is NEVER a session variable. A session variable is client-settable,
+#   which degrades RLS to an application-cooperative control against precisely the adversary it
+#   is meant to constrain. `CURRENT_USER` changes only via `SET ROLE`, which succeeds only for
+#   roles you have been granted, and the grant graph is alterable only by the provisioning
+#   service account.
+#
+#   §4.1 law 11 — CDC BYPASSES RLS ENTIRELY, AND CDC QUERIES *FAIL* ON RLS-ENABLED TABLES.
+#   Verified against the v26.2 row-level-security page: "CDC queries are not supported on tables
+#   using RLS, and will fail." `mainline_ops.outbox` is the one changefeed-query source in the
+#   deployment, and `mainline_ops.site_register_signal` is the mechanism-predicate watch source.
+#   Enabling RLS on either would not weaken a control; it would BREAK THE FLEET, silently, at the
+#   next changefeed restart. They appear below under `rls_forbidden`, with a test.
+#
+#   S22 — WITH `FORCE ROW LEVEL SECURITY` AND SELECT-ONLY POLICIES THE DEFAULT IS DENY AND THE
+#   GATE LOCKS ITSELF OUT. Verified: "If RLS is enabled but no policies apply to a given
+#   combination of user and SQL statement, access is denied by default." Every trigger in this
+#   schema executes as the INVOKING role — there is no SECURITY DEFINER anywhere in
+#   migrations 0100–0149, and `GRANTS.yaml` records that as an open coupling rather than hiding
+#   it. So `fn_check_materialised` UPDATEs `mainline.permit` as `agent_gate`, and
+#   `fn_disposition_close` UPDATEs the same row as `svc_disposition`. EVERY RLS-FORCED TABLE THAT
+#   A TRIGGER OR THE GATE WRITES CARRIES AN EXPLICIT WRITE POLICY, and conformance case CF-22
+#   runs the entire gate transaction with RLS forced and then asserts 42501 with the write policy
+#   dropped.
+#
+# ──────────────────────────────────────────────────────────────────────────────────────────────
+# ⚠ S22 IS WORSE THAN S22 SAYS — MEASURED, NOT INFERRED (CockroachDB CCL v26.2.5, 2026-08-10)
+#
+#   S22 and §11.3 both describe the symptom of a missing write policy as `42501`. That is TRUE
+#   FOR INSERT AND FALSE FOR UPDATE, and the difference is a safety hole rather than a detail.
+#
+#     DROP POLICY gate_insert  →  INSERT raises 42501,
+#                                 "new row violates row-level security policy for table permit"
+#     DROP POLICY gate_write   →  UPDATE raises NOTHING. It matches zero rows and returns
+#                                 successfully.
+#
+#   That is the standard PostgreSQL-family semantics and CockroachDB reproduces it: a `USING`
+#   clause FILTERS — rows that do not match are simply not seen — and only a `WITH CHECK`
+#   violation on a NEW row RAISES. With no UPDATE policy there is no visible row to update, so
+#   there is nothing to refuse. Dropping `service_read` alone produces the same silent zero,
+#   because an UPDATE carrying a WHERE clause also evaluates the SELECT policies.
+#
+#   In THIS schema that means:
+#
+#     `fn_check_materialised` runs `UPDATE mainline.permit SET open_blocking = open_blocking + 1`
+#     and does not check that the update landed. Under a missing UPDATE policy the trigger
+#     RETURNS NEW normally, the blocking check row exists, and `open_blocking` STAYS ZERO — so
+#     `gate_closed_when_issued CHECK (state <> 'merged' OR open_blocking = 0)` passes vacuously
+#     and the permit merges carrying an open obligation.
+#
+#   A missing UPDATE policy therefore SILENTLY DISARMS THE CENTRAL INVARIANT, which is strictly
+#   worse than the 42501 S22 predicts: 42501 stops the transaction and this does not. Two
+#   consequences, both binding:
+#
+#     1. `tests/integration/schema/test_mi_rls.py` asserts BOTH shapes — 42501 on the INSERT arm
+#        and `rowcount == 0 with no exception` on the UPDATE arm. Writing the UPDATE assertion as
+#        "expect 42501" would give a test that fails today for the right reason and gets
+#        "repaired" tomorrow by relaxing it, which is how a finding is lost.
+#     2. CROSS-DOMAIN, NOT FIXABLE HERE: the projection triggers should assert their own UPDATE
+#        affected a row and RAISE if it did not. That is P2's second half — a projection whose
+#        authoritative write silently did nothing is precisely the "stale or absent projection"
+#        MI22 exists to fail closed on. The fix belongs in migrations 0101, 0103 and 0104, which
+#        this worker does not own.
+#
+# ──────────────────────────────────────────────────────────────────────────────────────────────
+# THE FOURTH TRAP, WHICH IS NOT IN §11.3 AND IS THE ONE THAT WOULD HAVE SHIPPED BROKEN
+#
+#   A VIEW EVALUATES RLS AS ITS OWNER. The v26.2 documentation is explicit: policies apply when a
+#   view accesses an underlying table, and "by default policies use the view owner's privileges."
+#   FORCE means the owner is NOT exempt. Therefore `mainline_audit.v_open_gate_summary`, whose
+#   whole job is to read `mainline.permit`, RETURNS ZERO ROWS under FORCE unless the view's owner
+#   has a policy of its own. Zero rows is the worst possible failure for an audit surface: it is
+#   indistinguishable from "nothing is wrong."
+#
+#   The fix is `view_owner_read`, one PERMISSIVE SELECT policy per forced table, granted to
+#   `mainline_owner` and `mainline_migrator` — both, because the object's owner is the role that
+#   executed CREATE VIEW and the deployment may apply migrations as either.
+#
+#   Naming the owner's read is STRICTLY BETTER than dropping FORCE to get the same effect. FORCE
+#   plus a named policy leaves one diffable, revocable object that a reviewer can see and a test
+#   can assert. No FORCE leaves a silent, unnameable exemption. This file prefers the object.
+#
+# ──────────────────────────────────────────────────────────────────────────────────────────────
+# SCOPE — WHY THIS MATRIX IS FOUR TABLES AND NOT FORTY
+#
+#   §18 says policies are for "read-facing tables ONLY, never a changefeed source". RLS earns its
+#   place on a table only where two principals who both hold the privilege must see different
+#   rows. That is true of exactly four tables:
+#
+#     mainline.permit          site scoping across a fleet (site_scope), plus the S22 write set
+#     mainline.change_request  the same, because S16 made it a gated subject with the same idiom
+#     mainline.disposition     peer_blind — the epistemics case, and the reason RLS is here at all
+#     mainline_meas.standing   standing_blind — a person-measure a signer may not read laterally
+#
+#   Append-only on everything else is enforced by layer one (revoked grants: no role in
+#   GRANTS.yaml holds DELETE on anything) and layer two (the `fn_refuse_mutation` triggers,
+#   migrations 0128*). Adding `RESTRICTIVE … USING (false)` to forty more tables would add a
+#   third assertion of the same fact and forty more chances to lock a trigger out. Where I01's
+#   RESTRICTIVE-RLS leg does appear it is on a table that has RLS for another reason already.
+#
+# ──────────────────────────────────────────────────────────────────────────────────────────────
+# FILE ORDER IS APPLY ORDER
+#
+#   ENABLE, then FORCE, then the policies. A policy created before ENABLE is inert but legal; a
+#   FORCE applied before the write policies exist is a window in which the gate is locked out.
+#   The window does not matter inside a migration run, and the order is fixed anyway so that a
+#   reader of `ls migrations/018*` sees the same sequence the cluster saw.
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+
+version: 1
+band: "0181-0198z"
+owner: "datamodel/dm-views-rls"
+allocation: "verticals/mainline/db/migrations.allocation.toml"
+
+# The roles referenced below, each defined in GRANTS.yaml §1. Listed here so that a typo in a
+# policy file is a test failure rather than a policy that silently applies to nobody: CockroachDB
+# refuses `TO <unknown role>` at DDL time, but a role that exists and is simply the WRONG one is
+# accepted, and only this list catches that.
+roles_referenced:
+  - mainline_owner
+  - mainline_migrator
+  - agent_gate
+  - svc_disposition
+  - agent_recaller
+  - agent_projector
+  - agent_cartographer
+  - agent_ingestor
+  - agent_patroller
+  - agent_fleet
+  - agent_assay
+  - auditor_ro
+  - mainline_auditor
+  - site_reader
+  - fleet_hse
+  - signer
+
+# The service roles that must retain an unscoped read on the two gated subjects. This is not a
+# convenience: a trigger executing as one of these roles that cannot SELECT the row it is about
+# to UPDATE fails the UPDATE, and under SERIALIZABLE it fails the whole gate transaction.
+service_read_roles: &service_read_roles
+  - agent_gate
+  - svc_disposition
+  - agent_recaller
+  - agent_projector
+  - agent_cartographer
+  - agent_ingestor
+  - agent_patroller
+  - agent_fleet
+
+view_owner_roles: &view_owner_roles
+  - mainline_owner
+  - mainline_migrator
+
+tables:
+
+  # ════════════════════════════════════════════════════════════════════════════════════════════
+  - table: mainline.permit
+    migration_enable: "0181_permit_rls_enable"
+    migration_force: "0181a_permit_rls_force"
+    force: true
+    why_force: >
+      §11.3 is explicit that owners are NOT exempt. Without FORCE, `mainline_owner` — which owns
+      every table in the schema and holds no credential — reads and writes past every policy
+      below, and the matrix becomes a statement about application roles only.
+    policies:
+
+      - name: site_scope
+        migration: "0181b_policy_permit_site_scope"
+        type: PERMISSIVE
+        command: SELECT
+        to: [site_reader]
+        using: "site_role = CURRENT_USER"
+        with_check: null
+        why: >
+          The one documented-safe scope shape (§4.1 law 10). `site_role` is a NAME column
+          projected by `fn_site_role` from `mainline.site.site_role`, which carries a UNIQUE
+          constraint, so the token is not forgeable by an inserter (P2).
+
+      - name: fleet_scope
+        migration: "0181c_policy_permit_fleet_scope"
+        type: PERMISSIVE
+        command: SELECT
+        to: [fleet_hse, auditor_ro, mainline_auditor]
+        using: "true"
+        with_check: null
+        why: >
+          Cross-site readers, verbatim from §11.3. `mainline_auditor` appears here even though
+          GRANTS.yaml denies it SELECT on schema `mainline`: the two controls are independent and
+          the grant is the binding one. Listing it is honest about the design's own pessimistic
+          assumption (§9.1) that the MCP SQL identity may be admin-equivalent.
+
+      - name: service_read
+        migration: "0181d_policy_permit_service_read"
+        type: PERMISSIVE
+        command: SELECT
+        to: *service_read_roles
+        using: "true"
+        with_check: null
+        why: >
+          S22, the half §11.3 does not spell out. An UPDATE with a WHERE clause also evaluates the
+          SELECT policies; a trigger running as `svc_disposition` that cannot SEE the permit row
+          cannot decrement its counter, and the gate transaction dies with 42501 rather than with
+          a refusal anyone can read.
+
+      - name: view_owner_read
+        migration: "0181e_policy_permit_view_owner_read"
+        type: PERMISSIVE
+        command: SELECT
+        to: *view_owner_roles
+        using: "true"
+        with_check: null
+        why: >
+          A view evaluates RLS as its OWNER, and FORCE means the owner is not exempt. Without
+          this, every `mainline_audit` view over `permit` returns zero rows — which reads exactly
+          like a clean site.
+
+      - name: gate_insert
+        migration: "0181f_policy_permit_gate_insert"
+        type: PERMISSIVE
+        command: INSERT
+        to: [agent_gate]
+        using: null
+        with_check: "true"
+        why: "S22. INSERT policies take WITH CHECK and never USING; there is no old row."
+
+      - name: gate_write
+        migration: "0181g_policy_permit_gate_write"
+        type: PERMISSIVE
+        command: UPDATE
+        to: [agent_gate, svc_disposition]
+        using: "true"
+        with_check: "true"
+        why: >
+          Two roles, not one. `fn_check_materialised` and `proc_merge_permit` UPDATE this table as
+          `agent_gate`; `fn_disposition_close` and `fn_disposition_retract_only` UPDATE the same
+          counters as `svc_disposition`, because no trigger function in 0100–0149 is SECURITY
+          DEFINER. Omitting the second role is the exact shape of S22 and it fails only at the
+          moment a human signs something, which is the worst moment for it to fail.
+
+      - name: hold_blocks_delete
+        migration: "0181h_policy_permit_hold_blocks_delete"
+        type: RESTRICTIVE
+        command: DELETE
+        to: [PUBLIC]
+        using: "under_hold = false"
+        with_check: null
+        why: >
+          Verbatim from §11.3. RESTRICTIVE, so it ANDs with every permissive policy instead of
+          widening the set. No role in GRANTS.yaml holds DELETE on anything, so this is layer
+          three of three and it is deliberately redundant: `under_hold` is a legal-hold flag and
+          the Crimes (Document Destruction) Act 2006 (Vic) is the reason it gets three layers.
+
+  # ════════════════════════════════════════════════════════════════════════════════════════════
+  - table: mainline.change_request
+    migration_enable: "0183_change_request_rls_enable"
+    migration_force: "0183a_change_request_rls_force"
+    force: true
+    why_force: >
+      S16 made `change_request` a gated subject with the same kernel idiom, the same counters and
+      the same epoch pin. A scope control that covered the permit and not the change request would
+      leave the repository — the thing the thesis calls a protected branch — unscoped.
+    policies:
+
+      - name: cr_site_scope
+        migration: "0183b_policy_cr_site_scope"
+        type: PERMISSIVE
+        command: SELECT
+        to: [site_reader]
+        using: "site_role = CURRENT_USER"
+        with_check: null
+        why: "Identical shape to permit.site_scope; `change_request.site_role` is the same token."
+
+      - name: cr_fleet_scope
+        migration: "0183c_policy_cr_fleet_scope"
+        type: PERMISSIVE
+        command: SELECT
+        to: [fleet_hse, auditor_ro, mainline_auditor]
+        using: "true"
+        with_check: null
+        why: "Cross-site readers, mirroring permit.fleet_scope."
+
+      - name: cr_service_read
+        migration: "0183d_policy_cr_service_read"
+        type: PERMISSIVE
+        command: SELECT
+        to: *service_read_roles
+        using: "true"
+        with_check: null
+        why: "S22, mirrored: the same triggers touch both subjects."
+
+      - name: cr_view_owner_read
+        migration: "0183e_policy_cr_view_owner_read"
+        type: PERMISSIVE
+        command: SELECT
+        to: *view_owner_roles
+        using: "true"
+        with_check: null
+        why: "The audit views read both gated subjects and evaluate as their owner."
+
+      - name: cr_gate_insert
+        migration: "0183f_policy_cr_gate_insert"
+        type: PERMISSIVE
+        command: INSERT
+        to: [agent_gate]
+        using: null
+        with_check: "true"
+        why: "S22, mirrored."
+
+      - name: cr_gate_write
+        migration: "0183g_policy_cr_gate_write"
+        type: PERMISSIVE
+        command: UPDATE
+        to: [agent_gate, svc_disposition]
+        using: "true"
+        with_check: "true"
+        why: >
+          `fn_check_materialised` and `fn_disposition_close` both branch on `subject_kind` and
+          UPDATE this table on the change-request arm, as the same two roles.
+
+      - name: cr_delete_never
+        migration: "0183h_policy_cr_delete_never"
+        type: RESTRICTIVE
+        command: DELETE
+        to: [PUBLIC]
+        using: "false"
+        with_check: null
+        why: >
+          `change_request` carries no `under_hold` column, so the permit's conditional form is not
+          expressible here. The honest mirror is unconditional: MI01, and no role holds DELETE.
+          A policy that pretended to read a column this table does not have would be a lie that
+          `CREATE POLICY` would refuse anyway.
+
+  # ════════════════════════════════════════════════════════════════════════════════════════════
+  - table: mainline.disposition
+    migration_enable: "0185_disposition_rls_enable"
+    migration_force: "0185a_disposition_rls_force"
+    force: true
+    why_force: >
+      This is the table `peer_blind` exists for, and the whole value of `peer_blind` is that it
+      binds a person who legitimately holds SELECT. An owner exemption here would mean the
+      partition holds against signers and not against anything else.
+    depends_on_column:
+      column: mainline.disposition.peer_visible
+      added_by: "0180_disposition_peer_visible"
+      note: >
+        DM-16 orphan. §11.3 reads `peer_visible` and §5.5 never defines it. `disposition` became
+        SUBSTRATE under MR-1 and is rendered from
+        packages/trappoint-sql/templates/0066_disposition.sql.j2, so the column's permanent home is
+        that template and the kernel worker owning it. 0180 is an idempotent
+        `ADD COLUMN IF NOT EXISTS` that becomes a no-op the moment the template carries it.
+    policies:
+
+      - name: signer_read
+        migration: "0185b_policy_disposition_signer_read"
+        type: PERMISSIVE
+        command: SELECT
+        to: [signer]
+        using: "true"
+        with_check: null
+        why: >
+          RESTRICTIVE policies only ever narrow. With `peer_blind` alone and no permissive policy,
+          the signer role matches nothing and the default is DENY — the partition would degrade
+          into a blackout and nobody would notice, because a signer who sees nothing assumes there
+          is nothing to see.
+
+      - name: peer_blind
+        migration: "0185c_policy_disposition_peer_blind"
+        type: RESTRICTIVE
+        command: SELECT
+        to: [signer]
+        using: "signer_sub = CURRENT_USER OR peer_visible = true"
+        with_check: null
+        why: >
+          Verbatim from §11.3. `peer_visible` is a trigger-maintained denormalisation flipped once
+          the reader's own disposition on that check exists. It stops the real-world failure
+          "I'll sign what Dave signed", and it costs one boolean.
+
+      - name: disposition_service_read
+        migration: "0185d_policy_disposition_service_read"
+        type: PERMISSIVE
+        command: SELECT
+        to: [agent_gate, svc_disposition, auditor_ro]
+        using: "true"
+        with_check: null
+        why: >
+          The merge gate counts live dispositions; `svc_disposition` reads back what it wrote;
+          `auditor_ro` is the human read-only auditor. None of the three is a peer in the
+          epistemic sense, so none is narrowed by `peer_blind`, which is scoped `TO signer`.
+
+      - name: disposition_view_owner_read
+        migration: "0185e_policy_disposition_view_owner_read"
+        type: PERMISSIVE
+        command: SELECT
+        to: *view_owner_roles
+        using: "true"
+        with_check: null
+        why: >
+          `v_weakenings_without_disposition`, `v_disposition_coverage` and the whole of
+          `mainline_qa` read this table and evaluate as their owner.
+
+      - name: disposition_insert
+        migration: "0185f_policy_disposition_insert"
+        type: PERMISSIVE
+        command: INSERT
+        to: [svc_disposition]
+        using: null
+        with_check: "true"
+        why: "S22. The one role that records a human decision."
+
+      - name: disposition_retract
+        migration: "0185g_policy_disposition_retract"
+        type: PERMISSIVE
+        command: UPDATE
+        to: [svc_disposition]
+        using: "true"
+        with_check: "true"
+        why: >
+          §11.2 says UPDATE on `retracted_by` only. CockroachDB has no column-level privileges and
+          a policy expression cannot compare OLD to NEW, so the column restriction is
+          `fn_disposition_retract_only` (0104/0124) and this policy exists only so that the
+          trigger is reached at all. Recorded here so nobody reads the policy as the control.
+
+      - name: disposition_delete_never
+        migration: "0185h_policy_disposition_delete_never"
+        type: RESTRICTIVE
+        command: DELETE
+        to: [PUBLIC]
+        using: "false"
+        with_check: null
+        why: "MI01 / I01, the RESTRICTIVE-RLS leg, on the table where it matters most."
+
+  # ════════════════════════════════════════════════════════════════════════════════════════════
+  - table: mainline_meas.standing
+    migration_enable: "0187_standing_rls_enable"
+    migration_force: "0187a_standing_rls_force"
+    force: true
+    why_force: >
+      A person-measure that the owner can read past is a person-measure with an unnamed reader,
+      and SEC-3 condition (4) is about naming exactly who may read a score about a named human.
+    policies:
+
+      - name: standing_blind
+        migration: "0187b_policy_standing_blind"
+        type: RESTRICTIVE
+        command: SELECT
+        to: [signer]
+        using: "false"
+        with_check: null
+        why: >
+          Verbatim from §11.3. Not "a signer may read their own row" — `USING (false)`, nothing at
+          all, because M10's peer-prediction channel is defeated by a participant who can see the
+          scoring. The disclosure path SEC-3 condition (4) requires is
+          `mainline_qa.v_my_record`, reached through the `subject_access` role, which is a
+          different role, a different schema and a ledgered read.
+
+      - name: standing_assay_read
+        migration: "0187c_policy_standing_assay_read"
+        type: PERMISSIVE
+        command: SELECT
+        to: [agent_assay]
+        using: "true"
+        with_check: null
+        why: "The role that computes the measure reads back the window it is extending."
+
+      - name: standing_assay_insert
+        migration: "0187d_policy_standing_assay_insert"
+        type: PERMISSIVE
+        command: INSERT
+        to: [agent_assay]
+        using: null
+        with_check: "true"
+        why: "S22. `mainline_meas.standing` ships inert (W = 1.0); inert is not the same as unwritten."
+
+      - name: standing_view_owner_read
+        migration: "0187e_policy_standing_view_owner_read"
+        type: PERMISSIVE
+        command: SELECT
+        to: *view_owner_roles
+        using: "true"
+        with_check: null
+        why: >
+          `mainline_qa.v_standing_components` and `mainline_qa.v_my_record` read this table and
+          evaluate as their owner. Note what this does NOT do: it grants no `mainline_qa`
+          privilege to any MCP identity, because S14 forbids one on any tier, ever.
+
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+# TABLES ON WHICH ENABLING RLS IS FORBIDDEN, AND WHY IT IS AN ERROR AND NOT A PREFERENCE
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+
+rls_forbidden:
+  - table: mainline_ops.outbox
+    reason: >
+      THE ONE CDC-QUERY SOURCE in the deployment (§4.1 law 11, §8.5 `cf_outbox`). CDC queries are
+      not supported on tables using RLS and FAIL; the changefeed would not degrade, it would stop.
+      The table is also single-family for the same class of reason, and it carries the only
+      row-level TTL in `mainline_ops`. Nothing here is a secret: `payload` holds POINTERS AND
+      DIGESTS ONLY, never clause or narrative text, which is what makes the absence of RLS
+      defensible rather than merely necessary.
+    asserted_by: "tests/integration/schema/test_mi_rls.py::test_outbox_has_no_row_level_security"
+
+  - table: mainline_ops.site_register_signal
+    reason: >
+      The mechanism-predicate watch source. A changefeed on this table is what revokes a
+      `mechanism_absent` disposition when the predicate falsifies, re-opens the check and bumps
+      `gate_epoch`. Enabling RLS here would not hide rows from an attacker; it would stop the
+      revocation, and the exhibit would go back to "he signed it away and a man died".
+    asserted_by: "tests/integration/schema/test_mi_rls.py::test_site_register_signal_has_no_row_level_security"
+
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+# THE NEGATIVE ASSERTIONS THIS FILE MAKES, WHICH THE TEST SUITE TURNS INTO EVIDENCE
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+
+negative_assertions:
+  - id: RLS-N1
+    claim: "mainline_qa is unreachable from mainline_auditor, on every object, forever (S14)."
+    expect_sqlstate: "42501"
+    test: "tests/integration/schema/test_mi_rls.py::test_mainline_qa_is_unreachable_from_the_mcp_identity"
+    note: >
+      This is a GRANT-layer assertion, not an RLS-layer one, and it is in this file because the
+      question "why is there no policy protecting mainline_qa" has exactly one correct answer:
+      because there is no grant to protect it from. A per-named-person distribution behind a
+      Managed-MCP service account is the single worst credential this system could issue, so the
+      control is the absence of the account and the test is the absence of the reach.
+
+  - id: RLS-N2
+    claim: "The full gate transaction succeeds with FORCE ROW LEVEL SECURITY active (CF-22)."
+    test: "tests/integration/schema/test_mi_rls.py::test_cf22_the_gate_transaction_survives_forced_rls"
+
+  - id: RLS-N3
+    claim: "Dropping gate_insert turns the gate's INSERT into 42501."
+    expect_sqlstate: "42501"
+    test: "tests/integration/schema/test_mi_rls.py::test_cf22_dropping_the_insert_policy_refuses_with_42501"
+    note: >
+      PL-2. RLS-N2 asserts nothing on its own — a transaction that would have succeeded with RLS
+      switched off entirely proves only that RLS was switched off. The pair is the assertion.
+
+  - id: RLS-N3b
+    claim: >
+      Dropping gate_write does NOT refuse. The UPDATE matches zero rows, returns successfully,
+      and the projected counter does not move — which is how a missing UPDATE policy silently
+      disarms gate_closed_when_issued.
+    expect_sqlstate: null
+    expect: "rowcount == 0, no exception, open_blocking unchanged"
+    test: "tests/integration/schema/test_mi_rls.py::test_cf22_dropping_the_update_policy_is_silent_not_refused"
+    note: >
+      Measured on CockroachDB CCL v26.2.5, 2026-08-10. This assertion is deliberately written as
+      the DANGEROUS behaviour rather than the desired one. A test asserting 42501 here would fail
+      honestly today and would be "repaired" by relaxing it, at which point the finding is gone.
+      See the ⚠ block at the head of this file, and the cross-domain note about migrations 0101,
+      0103 and 0104 needing to verify their own UPDATE landed.
+
+  - id: RLS-N4
+    claim: "No policy expression in the matrix contains a subquery (§4.1 law 10)."
+    test: "tests/integration/schema/test_mi_rls.py::test_no_policy_expression_contains_a_subquery"
+
+  - id: RLS-N5
+    claim: "Every policy in the cluster is named, and every name in the cluster is in this file."
+    test: "tests/integration/schema/test_mi_rls.py::test_the_cluster_matches_the_declared_matrix"
+    note: "DM-10: the policy name is the courtroom exhibit; `policy_1` is not an exhibit."

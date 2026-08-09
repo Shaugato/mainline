@@ -43,12 +43,29 @@ stored_digest = "stored"
 triggerdef    = "pg_get_triggerdef"
 isolation     = "serializable"
 
-# Distinct role names on purpose. Two bindings sharing one cluster must not collide, and
-# a reference vertical that reused MAINLINE's role names would prove nothing about
-# whether the templates read the binding or hard-code the vertical.
+# Distinct role names on purpose: a reference vertical that reused MAINLINE's role names
+# would prove nothing about whether the templates read the binding or hard-code the
+# vertical. Six of the nine differ, and that is what this table can express.
 #
-# `recaller`, `auditor` and `qa` are absent from this table because vertical.schema.json
-# 1.0 has no key for them; the renderer derives them (see the package README).
+# MEASURED, NOT CLAIMED — two of the nine names ARE shared with MAINLINE, and the set is
+# pinned by `test_the_two_bindings_share_no_schema_role_or_output_directory`:
+#
+#     agent_recaller       the `recaller` slot
+#     quality_assurance    the `qa` slot
+#
+# `recaller`, `auditor` and `qa` are absent from this table because
+# vertical.schema.json 1.0 closes `[roles]` with `additionalProperties: false` and has no
+# key for them, so a binding cannot name them and the renderer derives them: `auditor`
+# is schema-scoped (`trappoint_ref_auditor`, distinct), and the other two are the
+# cluster-global constants of ARCHITECTURE.md §11.2 (shared). See the package README for
+# the derivation and for the request to add the three keys in the next MINOR.
+#
+# The consequence, stated rather than glossed: on a cluster carrying BOTH bindings,
+# 0009b grants `agent_recaller` USAGE on the `trappoint_ref*` schemas as well as the
+# `mainline*` ones. USAGE is the right to name an object and nothing more, and rule R-1
+# still refuses any rendered write privilege to that role under EITHER binding — so the
+# separation covenant survives the sharing. What does not survive is the sentence "two
+# bindings on one cluster share no role name", which is why it is not written here.
 [roles]
 migrator  = "tref_migrator"
 owner     = "tref_owner"

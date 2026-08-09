@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "barrier_role": "recovery",
+    "control_class": "BUND_AND_DRAINAGE_CONTAINMENT",
+    "control_delta": "introduce",
+    "control_label": "secondary containment by bund and drainage",
+    "doc_code": "MOC-2014-0087",
+    "doc_family": "MOC",
+    "doc_title": "Replacement of Jetty Emergency Shutdown Valve Actuators",
+    "effective_on": "2014-04-09",
+    "printed_label": "2.1",
+    "setpoint": null,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "energy_isolation": "lock out tag out",
+      "verification": "field verification"
+    }
+  },
+  "key": "5fc68288dd42dd45573e7b64e4965e525f53086fe63f1b9393649f69a8f0eaf0",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:CVY/MOC-2014-0087/001#CVY/MOC-2014-0087/2.1",
+  "prompt_kind": "clause",
+  "prompt_sha256": "bb657fc1abe255b89ce8a0d9e731cc6e5118d1bee3cba1e366052bd44f466532",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The secondary containment by bund and drainage shall be provided and maintained for work covered by this change record. This clause applies to activities archived under CONTAINMENT-OF-HYDROCARBONS at Cape Verity Export Terminal.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "4c2040deb9cf0a7ed5a435ac5f43af54f86cc66709e345a9cc92caa44b91c5eb",
+  "source": null
+}

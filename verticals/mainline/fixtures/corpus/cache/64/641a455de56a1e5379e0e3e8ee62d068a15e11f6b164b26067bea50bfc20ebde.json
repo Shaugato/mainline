@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "HAZARDOUS-SUBSTANCE-EXPOSURE",
+    "barrier_role": "preventive",
+    "control_class": "REAGENT_HANDLING_CONTROL",
+    "control_delta": "introduce",
+    "control_label": "controlled make-up, decanting and dosing of reagents",
+    "doc_code": "MOC-2023-0302",
+    "doc_family": "MOC",
+    "doc_title": "Change of Reagent Dosing Line Material and Pressure Alarm",
+    "effective_on": "2023-09-14",
+    "printed_label": "3.1.1",
+    "setpoint": {
+      "from": 800.0,
+      "key": "reagent_dosing_pressure_alarm",
+      "label": "reagent dosing line high-pressure alarm",
+      "strengthen_direction": "lower",
+      "to": 800.0,
+      "unit": "kPa"
+    },
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "energy_isolation": "positive isolation verification",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "641a455de56a1e5379e0e3e8ee62d068a15e11f6b164b26067bea50bfc20ebde",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:TLG/MOC-2023-0302/001#TLG/MOC-2023-0302/1.2",
+  "prompt_kind": "clause",
+  "prompt_sha256": "77906a880204967b03f0dc4d4ed60ba8aa3dc64814a46618225188b894e389b5",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The controlled make-up, decanting and dosing of reagents shall be provided and maintained for work covered by this change record. The reagent dosing line high-pressure alarm shall be set at 800 kPa. This clause applies to activities archived under HAZARDOUS-SUBSTANCE-EXPOSURE at Tolgarra Processing and Power Station.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "97167d704aa779666d2296689f30cb20d421c68323341cd45cae01be7f810351",
+  "source": null
+}

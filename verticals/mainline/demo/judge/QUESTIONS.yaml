@@ -1,0 +1,646 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+#
+# QUESTIONS.yaml — the Tier-3 judge pack: every question a stranger can ask the
+# cluster over CockroachDB's own Managed MCP Server, with none of our code in the
+# path, and the exact statement that asks it.
+#
+# WHY THIS FILE EXISTS, AND WHY IT IS NOT JUST PROSE IN VERIFY.md
+# ---------------------------------------------------------------------------
+# `demo/VERIFY.md` tells a judge what to paste. It cannot tell them, or us,
+# whether what it says to paste is still legal. Three things can rot underneath
+# a paste-ready prompt, and every one of them is discovered in front of the
+# judge unless something checks it first:
+#
+#   1. a column is renamed in the migration and the prompt now names a column
+#      the view does not have;
+#   2. the statement drifts past a Managed-MCP limit — one statement per call,
+#      16 384 characters, a 25-row SELECT page, a 10 KiB response — and the
+#      server TRUNCATES rather than raising, so a partial answer about how much
+#      is currently blocked arrives looking exactly like a complete one;
+#   3. a negative stops being negative. The four statements at the bottom of
+#      this file MUST fail. A negative suite that has quietly gone green is the
+#      worst artefact in the repository, because it reads as the strongest.
+#
+# So the prompts live here as data, `judge/envelope.py` refuses any that breaks
+# a documented limit, `judge/drift.py` reads the ACTUAL view definitions out of
+# `verticals/mainline/db/migrations/` and refuses any that names a column that
+# is not there, and `judge/cli.py check` fails CI when `demo/VERIFY.md` and this
+# file disagree about a single character of SQL.
+#
+# OWNERSHIP. `demo/VERIFY.md`, `demo/REFUSAL-STRINGS.yaml` and the migrations are
+# owned elsewhere in the fleet. This pack never edits them; it reads them and
+# refuses to disagree with them. Where a statement below is marked
+# `transcribed_from`, that file is the authority and this one is the copy.
+
+version: 1
+
+authority:
+  - "ARCHITECTURE.md §9.1 (the Managed-MCP surface, its verbs and its limits)"
+  - "ARCHITECTURE.md §17 (the mainline_audit view family, and mainline_qa's exclusion)"
+  - "ARCHITECTURE.md §19 GT-07 (does explain_query render the vector fragment), GT-10, GT-17"
+  - "docs/adr/0002-g1-platform-ground-truth.md F1 (the index is traversed only when named)"
+  - "verticals/mainline/demo/VERIFY.md (Tier 3 — the three prompts used on camera)"
+  - "verticals/mainline/demo/REFUSAL-STRINGS.yaml (`explain_fragment`)"
+
+# The envelope this pack was validated against. These numbers are DOCUMENTED
+# limits of CockroachDB's Managed MCP Server, not preferences of ours, and
+# `judge/envelope.py` holds the same numbers as constants. The validator asserts
+# the two agree, so loosening a limit here to make a prompt fit fails the build
+# instead of shipping a prompt that will be truncated.
+envelope:
+  endpoint: "https://cockroachlabs.cloud/mcp"
+  cluster_header: "mcp-cluster-id"
+  max_statement_chars: 16384
+  max_statements_per_call: 1
+  request_timeout_seconds: 20
+  max_response_bytes: 10240
+  our_response_budget_bytes: 8192      # 80 % of the cap: the alarm fires with headroom left
+  select_page_rows: 25
+  unreachable_schemas: [system, crdb_internal, pg_catalog, information_schema, pg_extension]
+  never_mcp_schemas: [mainline_qa]
+  write_surface: "mainline_meas.external_attestation"
+
+# Two properties every reader of a result from this pack needs, stated once here
+# rather than repeated in eleven `does_not_prove` blocks.
+reading_notes:
+  outer_order_by: >-
+    Every mainline_audit view applies its OWN `ORDER BY … LIMIT 25` inside the view.
+    An `ORDER BY` in the statement below therefore RE-ORDERS the page the view already
+    chose; it does not reach past it for a different page. When `rows_complete` is
+    false the rows you are looking at are the view's top 25 by the view's ordering,
+    and the ones you would most like to see may not be among them.
+  truncation_guard: >-
+    Every statement carries an explicit `LIMIT 25` rather than relying on the server's
+    default page of the same size. A result of exactly 25 rows is therefore the shape a
+    truncated result has, and `judge/runner.py` flags it as `possibly_truncated`
+    independently of anything the view reports about itself.
+
+questions:
+
+  # ── Q01 ─────────────────────────────────────────────────────────────────────
+  - id: Q01
+    ask: "What is the database refusing to merge right now, and who has been overriding?"
+    verb: select_query
+    channel: mcp
+    expectation: answers
+    view: v_open_gate_summary
+    defined_in: verticals/mainline/db/migrations/0156_v_open_gate_summary.sql
+    sql: |-
+      SELECT site_id, state, permits, open_blocking, open_residue, open_conflicts,
+             open_warrants, unmodelled_assets, unmet_floor, countersigned, under_hold,
+             overrides_30d, group_count, rows_complete
+        FROM mainline_audit.v_open_gate_summary
+       ORDER BY open_blocking DESC, site_id
+       LIMIT 25;
+    completeness:
+      columns: [rows_complete, group_count]
+      guard: row_count_equals_limit
+    proves: >-
+      The five counters summed here are the five plain-column CHECKs that refuse a merge,
+      so this is the state of the gate as the gate itself reads it, aggregated. Nothing in
+      the view computes a judgement; it sums trigger-written scalars.
+    does_not_prove:
+      - >-
+        Not a merge prediction. `open_blocking = 0` means the counters read zero at the
+        moment you asked. The gate re-derives inside the merge transaction and pins the
+        epoch, so a precursor arriving a moment later is an ordinary serializable history
+        and this view has no opinion about it.
+      - >-
+        Not site-scoped by identity. Which SQL identity the managed endpoint runs as is a
+        day-1 question (GT-10) and the pessimistic answer is assumed, so this view is built
+        to be safe when read in full: counts, states and site ids, no clause text, no
+        narrative, and no person.
+
+  # ── Q02 ─────────────────────────────────────────────────────────────────────
+  - id: Q02
+    ask: >-
+      Which weakenings of controls written over severe ancestry have never been answered
+      for?
+    verb: select_query
+    channel: mcp
+    expectation: answers
+    view: v_weakenings_without_disposition
+    defined_in: verticals/mainline/db/migrations/0157_v_weakenings_without_disposition.sql
+    sql: |-
+      SELECT site_id, activity_root, sev_max, n, n_removed, most_recent,
+             ancestry_complete, closures_absent, closures_truncated,
+             group_count, rows_complete
+        FROM mainline_audit.v_weakenings_without_disposition
+       ORDER BY sev_max DESC, n DESC
+       LIMIT 25;
+    completeness:
+      columns: [ancestry_complete, closures_absent, closures_truncated, rows_complete]
+      guard: row_count_equals_limit
+    proves: >-
+      This is the accusation surface: MAINLINE's own list of weakenings over severe
+      ancestry for which no disposition exists. `sev_max` is a projected accumulator fed
+      only by active blame edges, and inferred edges are kept out of the active set, so no
+      model output can raise the number that puts a row on this list.
+    does_not_prove:
+      - >-
+        Not a list of unsafe clauses. A weakening with no disposition may simply be a
+        weakening no permit has cited yet; the obligation materialises when a subject cites
+        the clause. Reading it as a defect list overstates it.
+      - >-
+        `ancestry_complete = false` means the closure was truncated at the ancestor cap or
+        is absent entirely, and the counts beside it are then lower bounds. It fails closed
+        on purpose: absence reports false, not null.
+
+  # ── Q03 ─────────────────────────────────────────────────────────────────────
+  - id: Q03
+    ask: "How deep does the blame ancestry actually go, and how much of it was walked?"
+    verb: select_query
+    channel: mcp
+    expectation: answers
+    view: v_blame_coverage
+    defined_in: verticals/mainline/db/migrations/0158_v_blame_coverage.sql
+    sql: |-
+      SELECT site_id, virulence, clause_versions, truncated_closures, max_depth,
+             max_ancestors, max_severity, max_closure_gen, total_generations,
+             last_computed_at, ancestry_complete, group_count, rows_complete
+        FROM mainline_audit.v_blame_coverage
+       ORDER BY virulence DESC, site_id
+       LIMIT 25;
+    completeness:
+      columns: [ancestry_complete, truncated_closures, rows_complete]
+      guard: row_count_equals_limit
+    proves: >-
+      `max_depth` is the answer to "is the blame walk one hop deep?" — the question a
+      sceptical reader should ask of any provenance claim, and the one a fluent synthetic
+      corpus fails. `total_generations` rises when a mass rewrite regenerates closures, so
+      a sudden jump is visible rather than silent.
+    does_not_prove:
+      - >-
+        Depth is not correctness. A deep closure over a synthetic corpus is deep because
+        the corpus was authored with causal structure; it is not evidence about a real
+        repository. See DEMO-HONESTY.md §2.
+
+  # ── Q04 · ON CAMERA, beat 5 ─────────────────────────────────────────────────
+  - id: Q04
+    ask: >-
+      Are dispositions keeping up with what was surfaced? Show orphans and the worst
+      ancestor severity per site and quarter.
+    verb: select_query
+    channel: mcp
+    expectation: answers
+    view: v_disposition_coverage
+    defined_in: verticals/mainline/db/migrations/0159_v_disposition_coverage.sql
+    beat: 5
+    shot_id: s19-beat5-mcp-connect
+    transcribed_from: verticals/mainline/demo/VERIFY.md
+    sql: |-
+      SELECT site_id, q, surfaced, dispositioned, orphans,
+             worst_ancestor, worst_severity, ancestry_complete, rows_complete
+        FROM mainline_audit.v_disposition_coverage
+       ORDER BY orphans DESC, q DESC
+       LIMIT 25;
+    completeness:
+      columns: [ancestry_complete, rows_complete]
+      guard: row_count_equals_limit
+    proves: >-
+      `orphans` counts obligations that were surfaced and never dispositioned. A system
+      that cannot answer this about itself is not answering it favourably; it is not
+      answering it.
+    does_not_prove:
+      - >-
+        Nothing here separates a considered disposition from a rubber stamp, and no column
+        in this view is evidence about anyone's care. What the schema does instead is in
+        DEMO-HONESTY.md §5.
+      - >-
+        `dispositioned` counts signatures against obligations, not the quality of the
+        reasoning attached to them.
+
+  # ── Q05 · ON CAMERA, beat 5 ─────────────────────────────────────────────────
+  - id: Q05
+    ask: "What did you decline to surface, and with what arithmetic?"
+    verb: select_query
+    channel: mcp
+    expectation: answers
+    view: v_silence_summary
+    defined_in: verticals/mainline/db/migrations/0160_v_silence_summary.sql
+    beat: 5
+    shot_id: s21-beat5-silence
+    transcribed_from: verticals/mainline/demo/VERIFY.md
+    sql: |-
+      SELECT site_id, source, reason, severity, n,
+             mean_score, mean_threshold, nearest_miss
+        FROM mainline_audit.v_silence_summary
+       ORDER BY severity DESC, n DESC
+       LIMIT 25;
+    completeness:
+      columns: []
+      guard: row_count_equals_limit
+      why_no_columns: >-
+        Transcribed verbatim from demo/VERIFY.md, which selects the arithmetic columns and
+        not the completeness pair. That file is the authority for what appears on camera and
+        this pack does not edit it. Q05F below is the same question with the view's own
+        completeness columns attached, and the runner's row-count guard applies to both.
+    proves: >-
+      `nearest_miss` is the highest score that still fell under threshold — the closest the
+      system came to speaking and did not. A band whose nearest miss sits a thousandth
+      under its threshold is a calibration finding rather than a clean report.
+    does_not_prove:
+      - >-
+        Not that the silence was correct. It is a disclosure of the arithmetic, and the
+        arithmetic being disclosed is the claim. Whether the threshold is right is what the
+        recall calibration panel measures, and full calibration is deferred work.
+
+  # ── Q05F ────────────────────────────────────────────────────────────────────
+  - id: Q05F
+    ask: >-
+      The same silence question, with the view's own completeness columns, for a reader who
+      is not restricted to the on-camera prompt.
+    verb: select_query
+    channel: mcp
+    expectation: answers
+    view: v_silence_summary
+    defined_in: verticals/mainline/db/migrations/0160_v_silence_summary.sql
+    sql: |-
+      SELECT site_id, source, reason, severity, n,
+             mean_score, mean_threshold, nearest_miss, scoreless, most_recent,
+             ancestry_complete, group_count, rows_complete
+        FROM mainline_audit.v_silence_summary
+       ORDER BY severity DESC, n DESC
+       LIMIT 25;
+    completeness:
+      columns: [ancestry_complete, rows_complete]
+      guard: row_count_equals_limit
+    proves: >-
+      `scoreless` counts silences that carry no score at all — a decline with no arithmetic
+      behind it is a different object from a decline that missed a threshold, and the view
+      refuses to average the two together.
+    does_not_prove:
+      - >-
+        `ancestry_complete` here reports whether the group's reason was the ancestor-cap
+        truncation, not whether the retrieval was exhaustive over anything.
+
+  # ── Q06 ─────────────────────────────────────────────────────────────────────
+  - id: Q06
+    ask: >-
+      Does the recall arithmetic balance — does every candidate end up blocking, advisory,
+      silenced or deduped?
+    verb: select_query
+    channel: mcp
+    expectation: answers
+    view: v_recall_conservation
+    defined_in: verticals/mainline/db/migrations/0161_v_recall_conservation.sql
+    sql: |-
+      SELECT site_id, d, runs, candidates, blocking, advisory, silenced, deduped,
+             bonded_sev5, bonded_sev5_blocking, any_degraded, conserved,
+             fatalities_all_blocking, retrieval_complete, group_count, rows_complete
+        FROM mainline_audit.v_recall_conservation
+       ORDER BY d DESC, site_id
+       LIMIT 25;
+    completeness:
+      columns: [retrieval_complete, any_degraded, rows_complete]
+      guard: row_count_equals_limit
+    proves: >-
+      `conserved` re-derives the conservation law in the view rather than trusting the
+      counter that the database already CHECKs: candidates must equal blocking plus
+      advisory plus silenced plus deduped. It reads true unless the CHECK is gone, which
+      makes a false here a structural alarm rather than a data quality note.
+    does_not_prove:
+      - >-
+        Conservation is over the retrieval that ran. It is never exhaustiveness over the
+        corpus, and the difference is the whole honesty of the mechanism.
+      - >-
+        `retrieval_complete` reports that no arm was degraded during the window. It does
+        not report that an undegraded arm found everything there was to find.
+
+  # ── Q07 ─────────────────────────────────────────────────────────────────────
+  - id: Q07
+    ask: "Is the custody ledger healthy — admissible checkpoints, and any unwitnessed debt?"
+    verb: select_query
+    channel: mcp
+    expectation: answers
+    view: v_ledger_health
+    defined_in: verticals/mainline/db/migrations/0162_v_ledger_health.sql
+    sql: |-
+      SELECT site_code, tree_size, checkpoints, admissible_checkpoints,
+             inadmissible_checkpoints, time_bounded_checkpoints,
+             object_locked_checkpoints, canonicaliser_versions, last_issued_at,
+             open_debt, oldest_open_debt_at, witness_complete,
+             group_count, rows_complete
+        FROM mainline_audit.v_ledger_health
+       ORDER BY site_code
+       LIMIT 25;
+    completeness:
+      columns: [witness_complete, rows_complete]
+      guard: row_count_equals_limit
+    proves: >-
+      The ledger's own account of itself: how many checkpoints are admissible, how many are
+      time-bounded, how many sit under an object-storage lock, and how much debt is open.
+      The offline verifier in Tier 1 checks the same chain without this endpoint or us.
+    does_not_prove:
+      - >-
+        Not split-view resistance. Until an adverse witness is running, the ledger is
+        tamper-evident to a party holding a checkpoint and nothing stronger is claimed.
+      - >-
+        `canonicaliser_versions > 1` is a fact about the ledger, not a defect: it means
+        leaves were canonicalised under more than one version, and the verifier needs the
+        matching one.
+
+  # ── Q08 ─────────────────────────────────────────────────────────────────────
+  - id: Q08
+    ask: >-
+      How much of what the documents say is installed has actually been checked in the
+      field?
+    verb: select_query
+    channel: mcp
+    expectation: answers
+    view: v_fixity_coverage
+    defined_in: verticals/mainline/db/migrations/0163_v_fixity_coverage.sql
+    sql: |-
+      SELECT site_id, patrol_class, runs, unfinished_runs, scopeless_runs,
+             last_completed, in_scope, checked, not_checked, not_checked_ratio,
+             coverage_complete, group_count, rows_complete
+        FROM mainline_audit.v_fixity_coverage
+       ORDER BY not_checked_ratio DESC NULLS LAST, site_id
+       LIMIT 25;
+    completeness:
+      columns: [coverage_complete, unfinished_runs, rows_complete]
+      guard: row_count_equals_limit
+    proves: >-
+      `not_checked_ratio` is the gap between as-documented and as-operated, per patrol
+      class. A high ratio is the honest reading of "we do not know", which is a different
+      answer from "it is fine".
+    does_not_prove:
+      - >-
+        Not live plant state. There is no live OT connectivity anywhere in this system and
+        nothing is auto-remediated; ingestion is a periodic one-way export from the OT DMZ.
+      - >-
+        `coverage_complete` fails closed: an unfinished run, an unchecked asset or an empty
+        declared scope all report false.
+
+  # ── Q09 ─────────────────────────────────────────────────────────────────────
+  - id: Q09
+    ask: "What have the agents been doing, and did any of them fail in a way nobody modelled?"
+    verb: select_query
+    channel: mcp
+    expectation: answers
+    view: v_agent_actions
+    defined_in: verticals/mainline/db/migrations/0164_v_agent_actions.sql
+    sql: |-
+      SELECT agent_role, tool, outcome, n, last_at, transports, retryable,
+             modelled_refusals, unmodelled_refusals, model_ids, prompt_versions,
+             mean_latency_ms, outcomes_modelled, group_count, rows_complete
+        FROM mainline_audit.v_agent_actions
+       ORDER BY n DESC, agent_role
+       LIMIT 25;
+    completeness:
+      columns: [outcomes_modelled, unmodelled_refusals, rows_complete]
+      guard: row_count_equals_limit
+    proves: >-
+      Every agent action is attributed to a role, a tool, a model id and a prompt version.
+      `unmodelled_refusals > 0` means a SQLSTATE arrived that the error taxonomy does not
+      model — a refusal nobody designed — and the flag fails closed on it.
+    does_not_prove:
+      - >-
+        An agent's report is evidence that a review occurred, never evidence of a
+        condition. That is why each finding elsewhere carries the SQL it ran and the digest
+        of its result rows: so it can be re-run rather than believed.
+
+  # ── Q10 · ON CAMERA, beat 5 ─────────────────────────────────────────────────
+  - id: Q10
+    ask: "Prove the vector search actually used an index. Show me the plan."
+    verb: explain_query
+    channel: mcp
+    expectation: answers
+    view: null
+    defined_in: verticals/mainline/db/migrations/0041_event_cue_embedding.sql
+    beat: 5
+    shot_id: s20-beat5-explain
+    transcribed_from: verticals/mainline/demo/VERIFY.md
+    sql: |-
+      EXPLAIN
+      SELECT c.cue_id
+        FROM mainline.event_cue_embedding@cue_scoped_idx AS c
+       WHERE c.site_id = $1 AND c.scope_id = $2 AND c.facet = $3
+       ORDER BY c.emb <=> $4
+       LIMIT 10;
+    plan:
+      index: "mainline.event_cue_embedding@cue_scoped_idx"
+      prefix_columns: [site_id, scope_id, facet]
+      required_substrings_from: verticals/mainline/demo/REFUSAL-STRINGS.yaml
+      hint_is_mandatory: true
+      placeholders:
+        note: >-
+          `$1` to `$4` are placeholders. The Managed-MCP verbs take a statement, not a
+          parameter list, so a judge substitutes literals before sending. `judge/cli.py
+          envelope` binds them for you and prints the resulting length against the
+          16 384-character cap, and `judge/cli.py run --via sql` sends the bound form.
+        substitute:
+          - "$1 — a site_id UUID literal, e.g. '00000000-0000-4000-8000-000000000001'::UUID"
+          - "$2 — a scope_id UUID literal from the same site"
+          - >-
+            $3 — a facet, which must be one of the five `event_cue.facet` CHECK allows:
+            'mechanism', 'precondition', 'control_failure', 'recurrence_test', 'narrative'.
+            A value outside that set is not merely empty, it is a value the column cannot
+            hold.
+          - "$4 — a 1024-dimension vector literal, e.g. '[0.01,-0.02, …]'::VECTOR(1024)"
+    completeness:
+      columns: []
+      guard: plan_substrings
+    proves: >-
+      A `vector search` node on `cue_scoped_idx` with a non-empty `prefix spans:` line is
+      the index being traversed, printed by the server, over an endpoint we do not operate.
+    does_not_prove:
+      - >-
+        Not that the retrieval was exhaustive, and not that an approximate-nearest-neighbour
+        result is replayable bit for bit. What is claimed is replayability of the arithmetic
+        and of the disclosed boundary.
+      - >-
+        Whether `explain_query` renders this fragment over the managed endpoint at all is
+        day-1 check GT-07. If it does not, the assertion runs over pgwire and the claim is
+        stated at that strength instead of this one.
+    honest_notes:
+      - >-
+        The index is named explicitly because at demo corpus scale the optimizer does not
+        choose it: the plan becomes top-k, render, filter, scan. That is a measurement
+        recorded in ADR 0002 F1, and pinning the index is the more deterministic
+        engineering anyway — a plan that flips on table statistics has no business sitting
+        beneath a safety gate.
+      - >-
+        Every prefix column is constrained to a single value. A prefix constrained with
+        `IN (...)` does not qualify, which is why an ancestry walk is one such statement per
+        ancestor, unioned and re-ranked, rather than one statement with a list.
+      - >-
+        MEASURED, not assumed: this statement was bound to type-valid literals and run on a
+        local CockroachDB CCL v26.2.5 node on 2026-08-10. The index hint written before the
+        alias parses, the 10 526-character bound statement is accepted, and the plan carries
+        `vector search` on `cue_scoped_idx` with a NON-EMPTY `prefix spans:` line naming all
+        three prefix values. The plan is `top-k -> render -> lookup join -> vector search`,
+        so the index is traversed and the primary key is joined back for the projection.
+      - >-
+        What that measurement does NOT settle is whether `explain_query` renders the same
+        fragment over the Managed MCP endpoint. That is day-1 check GT-07 and it is settled
+        by `tests/integration/mcp/test_explain_index_truth.py` against the live endpoint,
+        not by this pack. Until then the claim is stated at pgwire strength.
+
+  # ── Q10C ────────────────────────────────────────────────────────────────────
+  - id: Q10C
+    ask: >-
+      The same plan proof against the 256-dimension coarse sidecar, whose vector literal is
+      a quarter the size.
+    verb: explain_query
+    channel: mcp
+    expectation: answers
+    view: null
+    defined_in: verticals/mainline/db/migrations/0042_event_cue_coarse.sql
+    sql: |-
+      EXPLAIN
+      SELECT c.cue_id
+        FROM mainline.event_cue_coarse@cue_sweep_idx AS c
+       WHERE c.tenant_id = $1
+       ORDER BY c.emb_coarse <=> $2
+       LIMIT 10;
+    plan:
+      index: "mainline.event_cue_coarse@cue_sweep_idx"
+      prefix_columns: [tenant_id]
+      required_substrings_from: verticals/mainline/demo/REFUSAL-STRINGS.yaml
+      hint_is_mandatory: true
+      placeholders:
+        note: >-
+          One prefix column and a 256-dimension literal, so the bound statement is roughly a
+          quarter of Q10's length. Use this when the full-width literal crowds the character
+          cap or when a shorter paste is easier to read on a call. Measured on the same local
+          v26.2.5 node on 2026-08-10: 2 756 characters bound, plan `vector search` on
+          `cue_sweep_idx` with a non-empty `prefix spans:` line.
+        substitute:
+          - "$1 — the deployment's tenant_id UUID literal"
+          - "$2 — a 256-dimension vector literal, renormalised client-side"
+    completeness:
+      columns: []
+      guard: plan_substrings
+    proves: >-
+      The same two properties as Q10 — a named index and a single-valued prefix — on the
+      sweep index that runs as insurance against taxonomy-induction error.
+    does_not_prove:
+      - >-
+        The coarse sweep is insurance, not the primary channel. A plan proof here says
+        nothing about whether the scoped arms in Q10 ran.
+
+  # ── THE NEGATIVES ───────────────────────────────────────────────────────────
+  # These MUST fail. They are listed as questions because a judge should run them,
+  # and because a pack that only carries its positives is a pack whose green means
+  # nothing. `judge/envelope.py` asserts OFFLINE that our own client refuses each
+  # one and names the limit it broke; the server-side half is asserted by
+  # `tests/integration/mcp/test_negative_reachability.py`, which deliberately
+  # bypasses our client screen — a control that lives only in our client is a
+  # control an attacker skips by not using our client.
+
+  - id: N01
+    ask: "Can an MCP identity read the per-person deliberation measurements?"
+    verb: select_query
+    channel: mcp_only
+    expectation: refused
+    refused_by: client_and_server
+    client_refusal: never_mcp_schema
+    view: null
+    sql: |-
+      SELECT count(*) FROM mainline_qa.v_disposition_profile;
+    must_fail_because: >-
+      mainline_qa holds per-person deliberation measurement, which runs only behind a
+      customer-signed notified policy and writes a record every time it is read. No MCP
+      service account is issued for that schema on any tier, ever.
+    proves: >-
+      When this fails, the exclusion is a property of the deployment rather than a promise
+      in a document.
+    does_not_prove:
+      - >-
+        A refusal here says nothing about whether the schema exists or what is in it, and
+        that is the intended amount of information to leak.
+
+  - id: N02
+    ask: "Can an MCP identity reach the cluster's internal job catalogue?"
+    verb: select_query
+    channel: mcp_only
+    expectation: refused
+    refused_by: server
+    client_refusal: forbidden_schema
+    view: null
+    sql: |-
+      SELECT count(*) FROM crdb_internal.jobs;
+    must_fail_because: >-
+      The Managed MCP tools cannot reach `crdb_internal` at all. That is a property of the
+      server, not of our client.
+    proves: >-
+      That `crdb_internal` is unreachable is what makes the mainline_audit ops views the
+      API rather than a bypass around one: with no system catalogue, an operator question
+      has nowhere to go except a view we wrote, versioned and budgeted.
+    does_not_prove:
+      - >-
+        Unreachability over MCP is not unreachability over pgwire. A cluster admin on a SQL
+        connection reads `crdb_internal` freely, and the bypass beat exists to show what
+        an administrator can in fact do.
+
+  - id: N03
+    ask: "Can an MCP identity read the PostgreSQL compatibility catalogue?"
+    verb: select_query
+    channel: mcp_only
+    expectation: refused
+    refused_by: server
+    client_refusal: forbidden_schema
+    view: null
+    sql: |-
+      SELECT count(*) FROM pg_catalog.pg_class;
+    must_fail_because: "`pg_catalog` is one of the five schemas the Managed MCP tools cannot reach."
+    proves: "The same structural point as N02, on a second catalogue."
+    does_not_prove:
+      - "Nothing beyond reachability. It is a probe, not a security proof."
+
+  - id: N04
+    ask: "Can an MCP identity enumerate the schema through information_schema?"
+    verb: select_query
+    channel: mcp_only
+    expectation: refused
+    refused_by: server
+    client_refusal: forbidden_schema
+    view: null
+    sql: |-
+      SELECT count(*) FROM information_schema.tables;
+    must_fail_because: "`information_schema` is one of the five unreachable schemas."
+    proves: >-
+      Schema enumeration goes through `list_tables` and `get_table_schema`, which are
+      themselves paged and capped, rather than through an unbounded catalogue scan.
+    does_not_prove:
+      - "Nothing beyond reachability."
+
+# Assertions this pack points at rather than performs, because they are not
+# statements and cannot be pasted into a prompt.
+related_assertions:
+  - id: A01
+    claim: >-
+      `insert_rows` cannot write anywhere except `mainline_meas.external_attestation`.
+    how: >-
+      Bound into the SIGNATURE of the write verb in `packages/mainline-mcp`, not checked at
+      run time: the supported client API has no parameter that names a table, so "insert
+      into something else" is not a call a caller can express. The server-side half is in
+      `tests/integration/mcp/test_negative_reachability.py`.
+    why_not_a_question: "It is the absence of a parameter, and an absence cannot be pasted."
+  - id: A02
+    claim: "The audit views fit the response budget with headroom as the corpus grows."
+    how: >-
+      `packages/mainline-mcp` measures actual response bytes per view and fails at 8 KiB
+      rather than at the server's 10 KiB, so the alarm fires with a fifth of the budget
+      still unused.
+    why_not_a_question: "It is a nightly measurement over time, not a single answer."
+
+# SQL blocks that appear in demo/VERIFY.md and are deliberately NOT questions in
+# this pack. `judge/drift.py` requires every statement in that file to be either a
+# question here or listed here with a reason, so a new prompt appearing there
+# without landing here fails the build.
+verify_md_exemptions:
+  - statement_contains: "UPDATE mainline.permit SET state = 'merged'"
+    reason: >-
+      Tier 2, not Tier 3. It runs as cluster admin over a pgwire connection on the reader's
+      own Docker cluster; it is not an MCP question and the managed surface is read-only by
+      default.
+  - statement_contains: "DELETE FROM mainline.blocking_check"
+    reason: "Tier 2, pgwire, same reason as the UPDATE above."
+  - statement_contains: "ALTER TABLE mainline.permit DROP CONSTRAINT"
+    reason: >-
+      Tier 2, pgwire, and it SUCCEEDS by design — it is the bypass beat's third statement,
+      whose point is that removing the gate is possible and not unobservable. DDL is outside
+      the managed read surface entirely.

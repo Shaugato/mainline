@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 0,
+    "doc_codes": [
+      "PRO-HSE-005",
+      "STD-HTW-004"
+    ],
+    "intent": "weaken",
+    "moc_ref": "MOC-2026-0030",
+    "opened_on": "2026-01-19",
+    "precursor_events": [],
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "management_of_change": "change assurance",
+      "verification": "assurance activity"
+    },
+    "weakening_steps": 0
+  },
+  "key": "b4993180c870b039dec8cf16f643109e142adbe7d126b3aeca97e75dff447166",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2026-0030",
+  "prompt_kind": "moc",
+  "prompt_sha256": "e9b3aab68c529c779bd6471264351c4cb4c599cb44398a5e1697362498c24401",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2026-0030 was raised at Marrindal Concentrator and Hydrocarbon Transfer Facility on 19 January 2026 as a scheduled change under change assurance; no event precedes it in the record. The change assurance record carries no clause change; it records the assessment only. The intent is to relax a material unwanted event control requirement, and the basis for the relaxation is recorded with the change. The record reached the state merged in the change stream.",
+    "risk_note": "This change relaxes a control: 0 steps of relaxation are recorded against it, and the residual risk position rests on that relaxation having been accepted deliberately.",
+    "scope_note": "The documents in scope are PRO-HSE-005 and STD-HTW-004."
+  },
+  "response_sha256": "d802fa368ff576ef474ec4710ee009d93eb9d08b29ac8e6ea4a76feab3f78672",
+  "source": null
+}

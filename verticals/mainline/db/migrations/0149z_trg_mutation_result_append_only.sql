@@ -1,0 +1,35 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MI: MI01
+-- I: I01
+-- COUNSEL-GATED: no
+-- RATIONALE: The rows a reader wants from a mutation run are the SURVIVORS — the control mutations that reached the gate undetected. Those are the rows an author would most like to delete, so they are the rows the database must refuse to let anyone delete.
+--
+-- migration:  0149z_trg_mutation_result_append_only
+-- domain:     algorithms
+-- band:       0145-0149z · datamodel/dm-functions-triggers+algorithms · AUTHORED, allocated by
+--             verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1)
+-- statements: 1
+-- invariants: MI01 — evidentiary tables are append-only
+-- source:     ARCHITECTURE.md §5.11 item 9 · spec/invariants/I01-append-only.md
+-- requires:   0049z mainline_meas.mutation_result · 0107 mainline.fn_refuse_mutation
+-- sqlstate:   P0001 on UPDATE or DELETE
+-- forward-only; no .down.sql and no .up.sql (MR-5).
+--
+-- WHY THIS MATTERS MORE HERE THAN ON THE RUN ROW. A run row is a summary and a wrong summary is
+-- visible: the counts stop matching the results. A RESULT row is the evidence, and the specific
+-- evidence somebody would want gone is `outcome = 'survived'` — the named residual risk. Deleting
+-- four survivor rows raises the run's kill rate from 0.96 to 1.00 and leaves a table that looks
+-- entirely consistent with itself. The refusal is what makes the aggregate recountable rather
+-- than merely stated, and recountability is the whole reason one row per mutant is stored at all.
+--
+-- The counts on `mainline_meas.mutation_run` are NOT projected from this table by a trigger, and
+-- that absence is deliberate rather than an omission. P2 says a column a GATE reads must be
+-- projected from an authoritative source — and nothing gates on these numbers. A projector here
+-- would add trigger depth and a firing-order question to a table whose entire purpose is to be
+-- read by a human afterwards. `tests/e2e/mutation/test_sql_shape.py` holds the Python and the SQL
+-- vocabularies equal instead, which is the check that would actually have caught a drift.
+
+CREATE TRIGGER append_only BEFORE UPDATE OR DELETE ON mainline_meas.mutation_result
+  FOR EACH ROW EXECUTE FUNCTION mainline.fn_refuse_mutation();

@@ -58,8 +58,8 @@ __all__ = [
     "DETERMINISTIC_ORIGINS",
     "FACETS",
     "KERNEL_ORIGIN",
-    "OUTCOMES",
     "ORIGINS",
+    "OUTCOMES",
     "Candidate",
     "CandidateSet",
     "Counts",
@@ -345,7 +345,5 @@ class CandidateSet(BaseModel):
         return self.counts.n_blocking
 
     def blocking(self) -> tuple[Candidate, ...]:
-        """The candidates that will become ``blocking_check`` rows."""
-        return tuple(
-            candidate for candidate in self.candidates if candidate.outcome == "blocking"
-        )
+        """Return the candidates that will become ``blocking_check`` rows."""
+        return tuple(candidate for candidate in self.candidates if candidate.outcome == "blocking")

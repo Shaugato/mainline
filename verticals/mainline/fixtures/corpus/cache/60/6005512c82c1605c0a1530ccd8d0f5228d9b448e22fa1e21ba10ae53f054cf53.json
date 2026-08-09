@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 10,
+    "doc_code": "PRO-ELE-026",
+    "doc_family": "PRO",
+    "doc_title": "High Voltage Switching and Access",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2022-03-28",
+    "required_citations": [
+      {
+        "control_label": "proving zero energy before intrusive work",
+        "event_ref": "INC-2021-016",
+        "event_title": "injury during cleaning and preparation on G-8102",
+        "hazard_energy": "thermal",
+        "kind": "investigation_recommendation",
+        "quote_ref": "quote:TLG/PRO-ELE-026/007#investigation_recommendation/INC-2021-016",
+        "severity_gate": 2
+      }
+    ],
+    "rev_no": 7,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "learning team review",
+      "management_of_change": "change assurance",
+      "near_miss": "high potential incident"
+    }
+  },
+  "key": "6005512c82c1605c0a1530ccd8d0f5228d9b448e22fa1e21ba10ae53f054cf53",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:TLG/PRO-ELE-026/007",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "2dd7a01a2e09c01070dc90f6d01881a63e54912cb0f7f862532f6894eebbe00b",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The learning team review into INC-2021-016 recommended that the proving zero energy before intrusive work be strengthened in this procedure.",
+        "quote_ref": "quote:TLG/PRO-ELE-026/007#investigation_recommendation/INC-2021-016"
+      }
+    ],
+    "reason": "Scheduled review at revision 7; 10 clauses restated."
+  },
+  "response_sha256": "3c6296a0813ca08636fcc5e5a35c3aaea8003544a622a3de8c6868d5add8f5ab",
+  "source": null
+}

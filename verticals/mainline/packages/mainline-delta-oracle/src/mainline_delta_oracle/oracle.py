@@ -136,7 +136,7 @@ class AdjudicationOracle:
             )
 
     def request_identity(self, request: OracleRequest) -> Mapping[str, str]:
-        """The cassette key and input digest for one pair, without calling anything.
+        """Compute the cassette key and input digest for one pair, calling nothing.
 
         Used by the fixture generator and by provenance on the failure paths,
         where no ``Validated`` exists to read them off.
@@ -171,7 +171,9 @@ class AdjudicationOracle:
                 transport=self._transport,
                 model_id=self.model_id,
             )
-        except Exception as exc:  # noqa: BLE001 — classified, then re-raised or converted
+        except Exception as exc:
+            # Caught broadly and never swallowed: classified, then re-raised or
+            # converted.
             # The classifier returns None for anything that is not a model
             # BEHAVIOUR failure, and the `raise` below is what stops this from
             # being a blanket swallow: a broken deployment crashes, a model that

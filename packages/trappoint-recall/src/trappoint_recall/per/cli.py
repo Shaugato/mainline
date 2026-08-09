@@ -36,7 +36,7 @@ _EXIT_UNREADABLE = 2
 
 
 def build_parser() -> argparse.ArgumentParser:
-    """The argument parser, exposed so a test can assert the surface without running it."""
+    """Build the argument parser, exposed so a test can assert the surface unrun."""
     parser = argparse.ArgumentParser(
         prog="trappoint-recall-verify-per",
         description=(

@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 0,
+    "doc_codes": [
+      "STD-EMR-008"
+    ],
+    "intent": "restate",
+    "moc_ref": "MOC-2013-0131",
+    "opened_on": "2013-04-20",
+    "precursor_events": [],
+    "site": "Cape Verity Export Terminal",
+    "terminal_state": "closed",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "management_of_change": "change request",
+      "verification": "field verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "4fb3a10489420e75c2a8e4d37351d68455f0af21cbe772f7856d815302011dcd",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2013-0131",
+  "prompt_kind": "moc",
+  "prompt_sha256": "b3b39199d1a30c7ef2e369ae8a97bed58e4851f35973b3df8b8ebeb060f84c2a",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2013-0131 was raised at Cape Verity Export Terminal on 20 April 2013 as a scheduled change under change request; no event precedes it in the record. The change request record carries no clause change; it records the assessment only. The intent is to restate an existing duty without altering what it requires. The record reached the state closed in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical safeguard set is preserved.",
+    "scope_note": "The documents in scope are STD-EMR-008."
+  },
+  "response_sha256": "280d6b1ca4d07ee89c71c759adcd58139db98165b5e5acf020533f828a09e6a3",
+  "source": null
+}

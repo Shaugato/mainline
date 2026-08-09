@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONFINED-SPACE-ENTRY",
+    "barrier_role": "preventive",
+    "control_class": "GAS_TEST_BEFORE_AND_DURING_HOT_WORK",
+    "control_delta": "introduce",
+    "control_label": "atmospheric gas testing before and during hot work",
+    "doc_code": "PRO-HSE-012",
+    "doc_family": "PRO",
+    "doc_title": "Confined Space Entry",
+    "effective_on": "2004-10-08",
+    "printed_label": "6.1",
+    "setpoint": {
+      "from": 240.0,
+      "key": "gas_test_revalidation_interval",
+      "label": "gas test revalidation interval during hot work",
+      "strengthen_direction": "lower",
+      "to": 240.0,
+      "unit": "min"
+    },
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "energy_isolation": "danger tagging",
+      "verification": "spot check"
+    }
+  },
+  "key": "a13acd5693d74a2e69cc1317643eed4af0a0696c457b304bb64e1e0127b6e1ea",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:CVY/PRO-HSE-012/001#CVY/PRO-HSE-012/6.1",
+  "prompt_kind": "clause",
+  "prompt_sha256": "f13684a8add10b32319fc69c62af5d2a69b8e28d413b0dec08f5ee1aed5e67bc",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The atmospheric gas testing before and during hot work shall be provided and maintained for work covered by this procedure. The gas test revalidation interval during hot work shall be set at 240 min. This clause applies to activities archived under CONFINED-SPACE-ENTRY at Cape Verity Export Terminal.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "1e852f5dfddc91bd1c4a31a7fbaf9d516460a2fc1cd019b8d2e48a212c6c3f42",
+  "source": null
+}

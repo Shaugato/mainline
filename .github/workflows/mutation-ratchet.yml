@@ -1,0 +1,263 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# THE STANDING MEASUREMENT LANE.
+#
+# `docs/leads/algorithms.md` §8 R-A1: delta false negatives — a real weakening that both
+# paths classify as `restate` — are IRREDUCIBLE and are "not argued away; MEASURED by the
+# mutation ratchet and published per mutation class with Wilson bounds. It is the residual
+# risk and it is named in the honesty card."
+#
+# So this lane exists to publish a number, nightly, and it has one property that every
+# other lane in this repository does not:
+#
+#   ══════════════════════════════════════════════════════════════════════════════════
+#   IT NEVER FAILS BECAUSE THE NUMBER IS LOW. IT IS NOT A GATE AND MUST NEVER BECOME ONE.
+#   ══════════════════════════════════════════════════════════════════════════════════
+#
+# `mainline-mutation run` exits 0 whatever the kill rate is. The only conditions that
+# fail this job are conditions under which the MEASUREMENT DID NOT HAPPEN: a catalogue
+# class with no operator, a fixture whose paraphrase cassette has drifted, a class that
+# produced no trial, an injection point that stopped injecting. A threshold here would
+# give the figure an incentive to be high, and the cheapest way to raise a mutation score
+# is to delete the mutants the system fails on. This catalogue keeps them.
+#
+# TWO ARMS, AND THE SECOND ONE IS THE PL-2 ARTEFACT.
+# The lane runs the harness twice: intact, and crippled with lattice rule R1_DEONTIC
+# switched off. The crippled arm MUST report a lower kill rate with `deontic_downgrade`
+# named as a surviving class. That comparison is the only assertion in this workflow that
+# is about the numbers at all, and it asserts that the harness is measuring something —
+# not that what it measures is good.
+#
+# NO CLOUD, NO CREDENTIAL. The cluster is a local single-node CockroachDB started with
+# `docker run` from the image pinned in `compose.yaml` (PL-1: a judge reproduces this on a
+# laptop). There is no AWS call anywhere in this lane: the adversarial-paraphrase mutants
+# come from committed cassettes (PL-3, decision D12) and `test_no_model_reach.py` walks
+# the package AST to keep it that way.
+
+name: mutation-ratchet
+
+on:
+  schedule:
+    # 17:20 UTC ≈ 03:20 Australia/Brisbane. Nightly, off the hour, so it does not
+    # queue behind everybody else's midnight cron.
+    - cron: "20 17 * * *"
+  workflow_dispatch:
+    inputs:
+      seed:
+        description: "master seed (the run is a pure function of it)"
+        required: false
+        default: "0"
+  pull_request:
+    # On a PR only when something that could move the number changes. A measurement
+    # that re-ran on every documentation edit would be noise, and noise is what gets
+    # a lane muted.
+    paths:
+      - "verticals/mainline/packages/mainline-mutation/**"
+      - "verticals/mainline/packages/mainline-domain/**"
+      - "verticals/mainline/db/migrations/0049y_meas_mutation_run.sql"
+      - "verticals/mainline/db/migrations/0049z_meas_mutation_result.sql"
+      - "verticals/mainline/db/migrations/0149y_trg_mutation_run_append_only.sql"
+      - "verticals/mainline/db/migrations/0149z_trg_mutation_result_append_only.sql"
+      - "tests/e2e/mutation/**"
+      - "tests/unit/domain/novelty/**"
+      - ".github/workflows/mutation-ratchet.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mutation-ratchet-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.13"
+  LOCAL_DSN: "postgresql://root@127.0.0.1:26257/defaultdb?sslmode=disable"
+  FORCE_COLOR: "1"
+
+jobs:
+  ratchet:
+    name: KILL / SURVIVE catalogues, Wilson-bounded
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install the harness and the domain it measures
+        # `--frozen` asserts uv.lock is authoritative. A published residual-risk
+        # figure computed under a dependency graph that differs from a stranger's
+        # is a figure a stranger cannot reproduce, which is PL-1's whole point.
+        run: |
+          uv sync --frozen \
+            --package mainline-mutation \
+            --package mainline-domain
+
+      - name: Resolve the seed
+        id: seed
+        run: |
+          set -euo pipefail
+          seed="${{ github.event.inputs.seed || '0' }}"
+          case "$seed" in
+            ''|*[!0-9]*) echo "::error::seed must be a non-negative integer"; exit 1 ;;
+          esac
+          echo "seed=${seed}" >> "$GITHUB_OUTPUT"
+
+      - name: The catalogue, as declared
+        run: uv run --frozen --package mainline-mutation mainline-mutation catalogue
+
+      # ── ARM 1: intact. The production code path and nothing else. ──────────
+      - name: INTACT arm
+        id: intact
+        run: |
+          set -euo pipefail
+          uv run --frozen --package mainline-mutation \
+            mainline-mutation run --seed "${{ steps.seed.outputs.seed }}" \
+            --out evidence/mutation | tee intact.txt
+
+      # ── ARM 2: crippled. PL-2 — the harness must be able to go red. ────────
+      - name: CRIPPLED arm (R1_DEONTIC disabled)
+        id: crippled
+        run: |
+          set -euo pipefail
+          uv run --frozen --package mainline-mutation \
+            mainline-mutation run --seed "${{ steps.seed.outputs.seed }}" \
+            --disable R1_DEONTIC \
+            --out evidence/mutation | tee crippled.txt
+
+      - name: PL-2 — assert the crippled arm is WORSE and names its survivor
+        # The ONLY numeric assertion in this lane, and it is not about quality.
+        # It asserts that switching off a rule changes the answer — i.e. that the
+        # harness is measuring the lattice rather than measuring itself. A harness
+        # that has only ever reported 100 % has not been observed to assert
+        # anything, and a harness whose crippled arm reports the same number as
+        # its intact arm is not measuring the thing it names.
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import pathlib, re, sys
+
+          def bound(path):
+              text = pathlib.Path(path).read_text(encoding="utf-8")
+              m = re.search(r"^KILL\s+wilson_lower=([0-9.]+)", text, re.MULTILINE)
+              if not m:
+                  sys.exit(f"{path}: no KILL line; the harness did not report")
+              return float(m.group(1)), text
+
+          whole, whole_text = bound("intact.txt")
+          hurt, hurt_text = bound("crippled.txt")
+          print(f"intact  KILL wilson_lower = {whole}")
+          print(f"crippled KILL wilson_lower = {hurt}")
+
+          if not hurt < whole:
+              sys.exit(
+                  "PL-2 FAILED: disabling R1_DEONTIC did not lower the kill rate. Either the "
+                  "injection point does nothing, or the catalogue contains no mutation that "
+                  "R1_DEONTIC is the only detector of. Both mean this harness asserts nothing."
+              )
+          if "deontic_downgrade" not in hurt_text:
+              sys.exit(
+                  "PL-2 FAILED: R1_DEONTIC was disabled and no deontic_downgrade mutant "
+                  "survived. A kill rate below 1.0 with no named surviving class is unactionable."
+              )
+          print("PL-2 OK: the crippled arm is strictly worse and names deontic_downgrade.")
+          PY
+
+      # ── The record. A cluster is started ONLY to prove the DDL applies and
+      #    that the run is recordable; the published number needs no database.
+      - name: Read the CockroachDB image pin out of compose.yaml
+        id: image
+        run: |
+          set -euo pipefail
+          image="$(python3 - <<'PY'
+          import pathlib, re
+          lines = pathlib.Path("compose.yaml").read_text(encoding="utf-8").splitlines()
+          for i, line in enumerate(lines):
+              if "trappoint:crdb-image-pin" in line:
+                  for candidate in lines[i + 1 : i + 4]:
+                      m = re.match(r"^\s*image:\s*(\S+)\s*$", candidate)
+                      if m:
+                          print(m.group(1))
+                          raise SystemExit(0)
+          raise SystemExit("compose.yaml carries no marked image pin")
+          PY
+          )"
+          echo "image=${image}" >> "$GITHUB_OUTPUT"
+
+      - name: Start a single-node CockroachDB
+        run: |
+          set -euo pipefail
+          docker run -d --name mutation-crdb \
+            -p 127.0.0.1:26257:26257 \
+            "${{ steps.image.outputs.image }}" \
+            start-single-node --insecure \
+              --listen-addr=0.0.0.0:26257 --store=type=mem,size=2GiB
+          for attempt in $(seq 1 60); do
+            if docker exec mutation-crdb ./cockroach sql --insecure --execute "SELECT 1" >/dev/null 2>&1; then
+              echo "cluster answering SQL after ${attempt} attempt(s)"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::error::the cluster never answered SQL"
+          docker logs mutation-crdb | tail -50
+          exit 1
+
+      - name: Apply the migration tree
+        run: |
+          uv sync --frozen --package trappoint-migrate
+          uv run --frozen --package trappoint-migrate trappoint migrate bootstrap --dsn "$LOCAL_DSN"
+          uv run --frozen --package trappoint-migrate trappoint migrate up \
+            --dsn "$LOCAL_DSN" \
+            --tree mainline \
+            --migrations verticals/mainline/db/migrations
+
+      - name: The measurement suite
+        # These are the failures that mean the measurement did not happen. They
+        # are NOT thresholds on the number.
+        run: |
+          uv run --frozen --package mainline-mutation \
+            python -m pytest tests/e2e/mutation tests/unit/domain/novelty -q
+
+      - name: Publish the dated artefacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutation-${{ github.run_id }}
+          path: evidence/mutation/*.json
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Record the numbers in the job summary
+        if: always()
+        run: |
+          {
+            echo "## mutation ratchet"
+            echo ""
+            echo '```'
+            cat intact.txt 2>/dev/null || echo "(intact arm did not report)"
+            echo ""
+            cat crippled.txt 2>/dev/null || echo "(crippled arm did not report)"
+            echo '```'
+            echo ""
+            echo "**This is a standing measurement and never a gate.** Nothing here blocks a"
+            echo "merge or fails a build on a low figure. Every proportion is a WILSON LOWER"
+            echo "BOUND; the point estimates beside them are not the claim."
+            echo ""
+            echo "Path B (the LLM oracle) is not consulted, so the figure is the model-free"
+            echo "floor and a LOWER bound on the whole system's detection. The"
+            echo "adversarial-paraphrase mutants come from HAND-AUTHORED committed cassettes"
+            echo "(PL-3): no model was called."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Cluster logs on failure
+        if: failure()
+        run: docker logs mutation-crdb | tail -100
+
+      - name: Tear down
+        if: always()
+        run: docker rm -f mutation-crdb || true

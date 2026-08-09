@@ -1,0 +1,64 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 5,
+    "doc_code": "PTW-STD-002",
+    "doc_family": "PTW",
+    "doc_title": "Permit to Work Form Set",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2010-06-10",
+    "required_citations": [
+      {
+        "control_label": "controlled removal of isolation and return to service",
+        "event_ref": "INC-2009-006",
+        "event_title": "danger tagging failure on ML-3202",
+        "hazard_energy": "electrical",
+        "kind": "investigation_recommendation",
+        "quote_ref": "quote:MRD/PTW-STD-002/002#investigation_recommendation/INC-2009-006",
+        "severity_gate": 1
+      },
+      {
+        "control_label": "parking, chocking and restraint of equipment",
+        "event_ref": "INC-2010-002",
+        "event_title": "uncontrolled movement of P-3220 during an intrusive maintenance task",
+        "hazard_energy": "kinetic",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:MRD/PTW-STD-002/002#revision_history_line/INC-2010-002",
+        "severity_gate": 3
+      }
+    ],
+    "rev_no": 2,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "root cause analysis",
+      "management_of_change": "change request",
+      "near_miss": "hazard report"
+    }
+  },
+  "key": "50720bfa6b8166a0387c4a14f32d78891bca7d094577d2a816a5904d4cf029ba",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/PTW-STD-002/002",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "7de203bebe3981a82994744d1d30dc06d1fe78bc26615b58f9cb6c2a33721b5d",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The root cause analysis into INC-2009-006 recommended that the controlled removal of isolation and return to service be strengthened in this permit-to-work form set.",
+        "quote_ref": "quote:MRD/PTW-STD-002/002#investigation_recommendation/INC-2009-006"
+      },
+      {
+        "line": "Revision 2 was raised in response to INC-2010-002, and the parking, chocking and restraint of equipment was amended as a result.",
+        "quote_ref": "quote:MRD/PTW-STD-002/002#revision_history_line/INC-2010-002"
+      }
+    ],
+    "reason": "Scheduled review at revision 2; 5 clauses restated."
+  },
+  "response_sha256": "70b311c3472fe53efb3a7a27482c94d20d7caf2f60a23fb20551e98fc945450a",
+  "source": null
+}

@@ -1,0 +1,47 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 4,
+    "doc_codes": [
+      "ALERT-2009-003",
+      "PRO-MEC-055",
+      "STD-LFT-003"
+    ],
+    "intent": "restate",
+    "moc_ref": "MOC-2020-0161",
+    "opened_on": "2020-08-24",
+    "precursor_events": [
+      {
+        "event_ref": "INC-2016-016",
+        "severity_gate": null
+      },
+      {
+        "event_ref": "INC-2020-019",
+        "severity_gate": null
+      }
+    ],
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "management_of_change": "management of change",
+      "verification": "critical control verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "dd8da6deb490e4bc569bd269cc269b1788ee2ec28be2e7d0a4871b8971cac6f6",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2020-0161",
+  "prompt_kind": "moc",
+  "prompt_sha256": "80e9d7611e5ad95fe7e1d9eb90464548bc814cb3deec4933476d81ec380d62c5",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2020-0161 was raised at Yandarra Downs Open Cut and Heavy Workshop on 24 August 2020 following 2 recorded events in the archive, including INC-2016-016 and INC-2020-019. The management of change record covers 4 clauses across 3 controlled documents. The intent is to restate an existing duty without altering what it requires. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical control set is preserved.",
+    "scope_note": "The documents in scope are ALERT-2009-003, PRO-MEC-055 and STD-LFT-003."
+  },
+  "response_sha256": "5fcef00b61a7d14a12855933341e099a0190d9453441d58060d17a39c6751312",
+  "source": null
+}

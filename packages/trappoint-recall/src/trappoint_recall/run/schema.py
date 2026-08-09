@@ -49,7 +49,7 @@ _CROSS_FIELD_NOTE: Final = (
 
 
 def candidate_set_json_schema() -> dict[str, Any]:
-    """The JSON Schema for :class:`~trappoint_recall.run.contract.CandidateSet`."""
+    """Build the JSON Schema for :class:`~trappoint_recall.run.contract.CandidateSet`."""
     schema = CandidateSet.model_json_schema(mode="serialization")
     schema["$schema"] = "https://json-schema.org/draft/2020-12/schema"
     schema["$id"] = SCHEMA_ID
@@ -57,14 +57,13 @@ def candidate_set_json_schema() -> dict[str, Any]:
     schema["description"] = (
         "The payload of POST /v1/permits/{id}/checks:materialise. The recall agent never "
         "writes blocking_check; it hands the kernel this set and the kernel decides what "
-        f"becomes an obligation. Contract version {CONTRACT_SCHEMA_VERSION}. "
-        + _CROSS_FIELD_NOTE
+        f"becomes an obligation. Contract version {CONTRACT_SCHEMA_VERSION}. " + _CROSS_FIELD_NOTE
     )
     return schema
 
 
 def render_schema() -> str:
-    """The committed text: two-space indent, sorted keys, one trailing newline."""
+    """Render the committed text: two-space indent, sorted keys, one trailing newline."""
     return json.dumps(candidate_set_json_schema(), indent=2, sort_keys=True) + "\n"
 
 

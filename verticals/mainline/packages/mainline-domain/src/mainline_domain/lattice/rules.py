@@ -172,7 +172,7 @@ def _finding(
 
 
 def _q(value: Quantity | None) -> str:
-    """A quantity as it will be printed in a refusal.  ``'—'`` for absent.
+    """Render a quantity as it will be printed in a refusal.  ``'—'`` for absent.
 
     The unit is the *canonical* one, not the document's spelling, because the
     reader of a refusal needs to see the thing that was actually compared.  The
@@ -394,14 +394,8 @@ cost as unacceptable, the two cells are **removed**, not re-weighted.
 """
 
 BOUND_POLARITY_INVERSIONS: Final[frozenset[tuple[str, str]]] = frozenset(
-    (a, b)
-    for a in ("<", "<=")
-    for b in (">", ">=")
-) | frozenset(
-    (b, a)
-    for a in ("<", "<=")
-    for b in (">", ">=")
-)
+    (a, b) for a in ("<", "<=") for b in (">", ">=")
+) | frozenset((b, a) for a in ("<", "<=") for b in (">", ">="))
 """Upper bound ↔ lower bound.  ``weaken`` in **both** directions, and not orderable.
 
 The second of exactly two non-dual cells in the lattice (the first is the deontic
@@ -411,8 +405,11 @@ edit in which one of the two directions is a tightening.
 """
 
 
-def r3_comparator(inp: RuleInput) -> tuple[RuleFinding, ...]:
-    """Comparator loosening: ``<=`` to ``<``, ``=`` to ``~``, bound removed.
+# PLR0911: the return count IS the transition table made visible. Each `return` is one
+# reviewable cell — unknown token, polarity inversion, listed loosening, its reverse,
+# silence — and folding them into an accumulator would hide which cell decided.
+def r3_comparator(inp: RuleInput) -> tuple[RuleFinding, ...]:  # noqa: PLR0911
+    """Judge comparator loosening: ``<=`` to ``<``, ``=`` to ``~``, bound removed.
 
     R3 judges the **relation class only**.  The magnitude belongs to R2, and the
     two never both fire on one edit: when the family changes R2 falls silent, and
@@ -489,7 +486,7 @@ def r3_comparator(inp: RuleInput) -> tuple[RuleFinding, ...]:
 
 
 def _nothing_moved(reference: CAT, descendant: CAT) -> bool:
-    """``True`` when parameter, comparator family and value are all identical.
+    """Report whether parameter, comparator family and value are all identical.
 
     This short-circuit is what keeps decision D6 pointed at the thing it is for.
     D6 says an *unratified parameter abstains and an abstention is a weakening* —
@@ -553,9 +550,7 @@ def r2_setpoint(inp: RuleInput) -> tuple[RuleFinding, ...]:
     if reference.parameter != descendant.parameter:
         return (_parameter_changed(reference, descendant),)
 
-    if COMPARATOR_FAMILY.get(reference.comparator) != COMPARATOR_FAMILY.get(
-        descendant.comparator
-    ):
+    if COMPARATOR_FAMILY.get(reference.comparator) != COMPARATOR_FAMILY.get(descendant.comparator):
         return ()  # R3's edit, not this one
 
     parameter = reference.parameter
@@ -602,7 +597,7 @@ def r2_setpoint(inp: RuleInput) -> tuple[RuleFinding, ...]:
 
 
 def _parameter_changed(reference: CAT, descendant: CAT) -> RuleFinding:
-    """The parameter under control is not the one it was.
+    """Rule on an edit in which the parameter under control is not the one it was.
 
     Two shapes, and only one of them is rankable.  A parameter *appearing* where
     none was named fills a slot, and ``cat/schema.py``'s ``EMPTY_CAT`` doctrine
@@ -650,7 +645,7 @@ def _parameter_changed(reference: CAT, descendant: CAT) -> RuleFinding:
 
 
 def _hedge_phrases() -> frozenset[str]:
-    """The committed hedge lexicon, normalised the way a CAT slot is.
+    """Return the committed hedge lexicon, normalised the way a CAT slot is.
 
     Loaded through :func:`mainline_domain.cat.lexicon.load_lexicons`, which is
     ``lru_cache``d and reads only committed files — no network, no environment.
@@ -661,7 +656,7 @@ def _hedge_phrases() -> frozenset[str]:
 
 
 def _hedge_in(element: str) -> str | None:
-    """The lexicon hedge this exception is, or contains.  ``None`` otherwise."""
+    """Return the lexicon hedge this exception is, or contains.  ``None`` otherwise."""
     normalised = normalise_phrase(element)
     phrases = _hedge_phrases()
     if normalised in phrases:
@@ -812,7 +807,7 @@ def r5_quantifier(inp: RuleInput) -> tuple[RuleFinding, ...]:
 
 
 def r6_verification(inp: RuleInput) -> tuple[RuleFinding, ...]:
-    """An independent check, second signature or hold point was deleted.
+    """Detect an independent check, second signature or hold point being deleted.
 
     The cues are ``data/lexicon/slots.toml``'s ``[verification.cues]`` — the
     things quietly removed when a procedure is "streamlined".  One finding per
@@ -861,8 +856,12 @@ def r6_verification(inp: RuleInput) -> tuple[RuleFinding, ...]:
 # --------------------------------------------------------------------------- #
 
 
-def r7_frequency(inp: RuleInput) -> tuple[RuleFinding, ...]:
-    """The test or inspection **interval** lengthened.
+# PLR0911: ten returns because there are ten distinct outcomes, and every one of them is
+# a different sentence in a refusal — removed, stated, uncomparable, longer, shorter,
+# unchanged. Collapsing them into a shared exit would make the ten sentences one, which
+# is exactly the "a refusal that tells the writer the wrong thing costs an hour" failure.
+def r7_frequency(inp: RuleInput) -> tuple[RuleFinding, ...]:  # noqa: PLR0911
+    """Detect the test or inspection **interval** lengthening.
 
     ``CAT.frequency`` is always an interval, never a rate: ``grammar.toml``
     inverts "twice per shift" into ``0.5 shift`` at extraction time precisely so
@@ -1029,7 +1028,7 @@ def r8_anchor(inp: RuleInput) -> tuple[RuleFinding, ...]:
 
 
 def r9_coverage(inp: RuleInput) -> tuple[RuleFinding, ...]:
-    """A CAT present in the reference version is absent in the descendant.
+    """Detect a CAT present in the reference version and absent in the descendant.
 
     ``remove`` is force 3 — the loudest label there is — and it is the one verdict
     that needs no other rule to agree with it.  The dual is ``introduce``, which

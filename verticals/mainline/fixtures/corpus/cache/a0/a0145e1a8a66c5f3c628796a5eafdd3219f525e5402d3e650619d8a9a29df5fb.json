@@ -1,0 +1,45 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 1,
+    "doc_codes": [
+      "MOC-2019-0221",
+      "PRO-MEC-021",
+      "PTW-STD-002",
+      "STD-ISO-006",
+      "STD-PTW-001"
+    ],
+    "intent": "strengthen",
+    "moc_ref": "MOC-2022-0140",
+    "opened_on": "2022-07-04",
+    "precursor_events": [
+      {
+        "event_ref": "INC-2026-009",
+        "severity_gate": null
+      }
+    ],
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "management_of_change": "change assurance",
+      "verification": "assurance activity"
+    },
+    "weakening_steps": 0
+  },
+  "key": "a0145e1a8a66c5f3c628796a5eafdd3219f525e5402d3e650619d8a9a29df5fb",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2022-0140",
+  "prompt_kind": "moc",
+  "prompt_sha256": "a0eee95ce20b51bf7a484675366e7c6370a45bc97a60a1d6ec23a8158a5a9a58",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2022-0140 was raised at Marrindal Concentrator and Hydrocarbon Transfer Facility on 4 July 2022 following 1 recorded event in the archive, including INC-2026-009. The change assurance record covers 1 clause across 5 controlled documents. The intent is to strengthen the material unwanted event control named in the documents in scope. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the material unwanted event control set is preserved.",
+    "scope_note": "The documents in scope are MOC-2019-0221, PRO-MEC-021, PTW-STD-002, STD-ISO-006 and STD-PTW-001."
+  },
+  "response_sha256": "28445b15c8e6b197ac026171ef902874af1602be6977a4a1fef014ebb2fcab60",
+  "source": null
+}

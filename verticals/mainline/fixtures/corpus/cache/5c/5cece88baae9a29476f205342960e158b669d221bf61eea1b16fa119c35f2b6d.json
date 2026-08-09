@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 6,
+    "doc_code": "PRO-OPS-032",
+    "doc_family": "PRO",
+    "doc_title": "Hydrocarbon Transfer Operations",
+    "driver": "incident",
+    "driving_change_ref": null,
+    "driving_event_ref": "INC-2020-020",
+    "effective_on": "2021-04-10",
+    "required_citations": [
+      {
+        "control_label": "seal-face high-temperature alarm and trip",
+        "event_ref": "INC-2020-020",
+        "event_title": "uncontrolled movement of P-4103 during a planned shutdown",
+        "hazard_energy": "thermal",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:MRD/PRO-OPS-032/009#revision_history_line/INC-2020-020",
+        "severity_gate": 4
+      }
+    ],
+    "rev_no": 9,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "ICAM investigation",
+      "management_of_change": "management of change",
+      "near_miss": "potential incident"
+    }
+  },
+  "key": "5cece88baae9a29476f205342960e158b669d221bf61eea1b16fa119c35f2b6d",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/PRO-OPS-032/009",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "a53fd4ff63acd3ff8e87b66a2b9050eadfd43144fb9b266b5a1f70c4c1ff4d93",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "Revision 9 was raised in response to INC-2020-020, and the seal-face high-temperature alarm and trip was amended as a result.",
+        "quote_ref": "quote:MRD/PRO-OPS-032/009#revision_history_line/INC-2020-020"
+      }
+    ],
+    "reason": "Revised after INC-2020-020; 6 clauses amended."
+  },
+  "response_sha256": "bbcad75515445ffa385712d6dec48ebb342944db16b6c96aea75b2ac38de53eb",
+  "source": null
+}

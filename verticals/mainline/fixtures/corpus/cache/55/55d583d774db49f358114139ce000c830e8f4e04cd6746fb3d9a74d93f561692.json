@@ -1,0 +1,79 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "assessing fatigue and fitness for driving",
+    "activity_root": "LAND-TRANSPORT",
+    "activity_series": "authorising and fitting drivers to vehicles",
+    "assets": [
+      {
+        "asset_class": "MOB-CLASS-H",
+        "label": "haul trucks",
+        "service": "waste and ore haulage",
+        "tag": "HT-9004"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 0,
+      "label": "no injury or loss"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "FATIGUE_AND_FITNESS_CONTROL",
+        "control_label": "assessment of fatigue and fitness for driving",
+        "failure_mode": "not_verified",
+        "hazard_energy": "kinetic",
+        "icam_tier": "organisational_factor"
+      }
+    ],
+    "event_ref": "NM-2024-0024",
+    "hazard_energy": "kinetic",
+    "hazard_media": [
+      "rotating equipment",
+      "conveyor",
+      "mobile equipment",
+      "pressurised jet",
+      "flying fragment"
+    ],
+    "hazard_release": "entanglement, impact, crush",
+    "kind": "near_miss",
+    "occurred_on": "2024-12-23",
+    "severity_actual": 0,
+    "severity_potential": 3,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during start-up after maintenance",
+    "title": "unrelieved potential energy found after isolation of HT-9004",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "investigation": "learning team review",
+      "near_miss": "high potential incident",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "55d583d774db49f358114139ce000c830e8f4e04cd6746fb3d9a74d93f561692",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:NM-2024-0024",
+  "prompt_kind": "icam",
+  "prompt_sha256": "76c5e5808308e32d49d21fd9832d230f591f4f7f50b60a9ff92c7945f913e985",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was no injury or loss. The potential outcome was rated 3 against the site's consequence scale, above the 0 actually realised.",
+    "defences": [
+      {
+        "control_class": "FATIGUE_AND_FITNESS_CONTROL",
+        "finding": "Control FATIGUE_AND_FITNESS_CONTROL: the assessment of fatigue and fitness for driving was never verified as effective, and the learning team review classified this as an organisational factor."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next assurance activity that the assessment of fatigue and fitness for driving on HT-9004 performs as designed."
+    ],
+    "sequence": "Work was under way in authorising and fitting drivers to vehicles, specifically assessing fatigue and fitness for driving. HT-9004 (haul trucks) is in service for waste and ore haulage. The task proceeded during start-up after maintenance while the assessment of fatigue and fitness for driving was never verified as effective. The kinetic energy involved is held as rotating equipment, and the recorded presentation was entanglement, impact, crush.",
+    "summary": "On 23 December 2024 a high potential incident was recorded on HT-9004 at Yandarra Downs Open Cut and Heavy Workshop during start-up after maintenance; kinetic energy held as rotating equipment was not released."
+  },
+  "response_sha256": "e7daa12f0440c08908928c2fc3c9800f20bf44765a415cf8fdacd45b76dad518",
+  "source": null
+}

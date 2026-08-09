@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONTAINMENT-OF-HYDROCARBONS",
+    "barrier_role": "recovery",
+    "control_class": "SEAL_FACE_TEMPERATURE_ALARM",
+    "control_delta": "weaken",
+    "control_label": "seal-face high-temperature alarm and trip",
+    "doc_code": "PRO-OPS-032",
+    "doc_family": "PRO",
+    "doc_title": "Hydrocarbon Transfer Operations",
+    "effective_on": "2026-05-26",
+    "printed_label": "5.2.10",
+    "setpoint": {
+      "from": 135.0,
+      "key": "seal_face_temperature_alarm",
+      "label": "seal-face high-temperature alarm",
+      "strengthen_direction": "lower",
+      "to": 140.0,
+      "unit": "°C"
+    },
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "energy_isolation": "positive isolation verification",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "cdc2c21d77486e95267de129dc1b7dbe9cf2026a551752f456cb96c00827b92a",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/PRO-OPS-032/012#MRD/PRO-OPS-032/1.3",
+  "prompt_kind": "clause",
+  "prompt_sha256": "7bd85d37575a7ec1baf05144b75f2e0996ec801bcf07772c99b1bafcdb53c7be",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The seal-face high-temperature alarm and trip should be provided; the assurance activity may be recorded at the next scheduled review rather than before the task proceeds. The seal-face high-temperature alarm should be set at 140 °C. This clause applies to activities archived under CONTAINMENT-OF-HYDROCARBONS at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "should"
+  },
+  "response_sha256": "52d58a3e4709a6bd026af0d405255225e2cd7078fcf730d7a59bd97c1420bdd9",
+  "source": null
+}

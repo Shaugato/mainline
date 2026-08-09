@@ -47,6 +47,11 @@ __all__ = [
 #: document in this slot is an unbounded prompt-injection surface for no gain.
 MAX_ORIGIN_SUMMARY_CHARS: Final[int] = 2000
 
+#: The coded severity scale (ARCHITECTURE.md §8.4).  Named rather than inlined so
+#: that the bound in the refusal message and the bound in the comparison are one
+#: fact, not two that can drift.
+_MAX_CODED_SEVERITY: Final[int] = 5
+
 _SEPARATOR: Final[bytes] = b"\x1f"
 
 
@@ -60,7 +65,7 @@ class OriginContext:
 
     def __post_init__(self) -> None:
         """Bound the summary and refuse a severity outside the coded scale."""
-        if not 0 <= self.severity <= 5:
+        if not 0 <= self.severity <= _MAX_CODED_SEVERITY:
             raise ValueError(
                 f"severity {self.severity} is outside the coded 0..5 scale. Severity "
                 f"comes from a coded field, a regulator classification or a signed "
@@ -88,7 +93,7 @@ class DeltaOracleRequest(OracleRequest):
 
 
 def text_pair_digest(ancestor_text: str, descendant_text: str) -> str:
-    """A stand-in source digest computed from the two canonical texts.
+    """Compute a stand-in source digest from the two canonical texts.
 
     ``UntrustedText.source_sha256`` exists so a claim about a model call can be
     tied back to an Object-Locked object.  When the caller holds that digest it
@@ -107,12 +112,12 @@ def text_pair_digest(ancestor_text: str, descendant_text: str) -> str:
 
 
 def source_digest_of(request: OracleRequest) -> str:
-    """The digest to stamp on the untrusted block for ``request``."""
+    """Return the digest to stamp on the untrusted block for ``request``."""
     if isinstance(request, DeltaOracleRequest) and request.source_sha256:
         return request.source_sha256
     return text_pair_digest(request.ancestor_text, request.descendant_text)
 
 
 def origin_of(request: OracleRequest) -> OriginContext | None:
-    """The blame-origin context, when the caller supplied one."""
+    """Return the blame-origin context, when the caller supplied one."""
     return request.origin if isinstance(request, DeltaOracleRequest) else None

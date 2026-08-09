@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 2,
+    "doc_codes": [
+      "PRO-ELE-008"
+    ],
+    "intent": "replace",
+    "moc_ref": "MOC-2021-0162",
+    "opened_on": "2021-10-12",
+    "precursor_events": [],
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "management_of_change": "management of change",
+      "verification": "critical control verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "6a958278a489afbb2550da479b7f3f21f04324ecc06abc399798abf946a00e5f",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2021-0162",
+  "prompt_kind": "moc",
+  "prompt_sha256": "f39ba404c86607491b5bc01ccab14535c625b0f79929c5fcbae0c100e1e2cccd",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2021-0162 was raised at Marrindal Concentrator and Hydrocarbon Transfer Facility on 12 October 2021 as a scheduled change under management of change; no event precedes it in the record. The management of change record covers 2 clauses across 1 controlled document. The intent is to replace an existing requirement with one written to the current house style. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical control set is preserved.",
+    "scope_note": "The documents in scope are PRO-ELE-008."
+  },
+  "response_sha256": "598a0193945ffee38ddec789ecd11a0a925fcfbbe2c329b82a4d608c3a73699a",
+  "source": null
+}

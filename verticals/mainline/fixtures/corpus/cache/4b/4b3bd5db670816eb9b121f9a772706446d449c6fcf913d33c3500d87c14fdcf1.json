@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 2,
+    "doc_codes": [
+      "PRO-ELE-026",
+      "STD-ELE-009"
+    ],
+    "intent": "restate",
+    "moc_ref": "MOC-2017-0161",
+    "opened_on": "2017-10-04",
+    "precursor_events": [],
+    "site": "Tolgarra Processing and Power Station",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "management_of_change": "management of change",
+      "verification": "critical control verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "4b3bd5db670816eb9b121f9a772706446d449c6fcf913d33c3500d87c14fdcf1",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2017-0161",
+  "prompt_kind": "moc",
+  "prompt_sha256": "eee7a82ce65962fb7485c0f7595d5f72ba8c22173993eaf5825c28d53e411dcb",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2017-0161 was raised at Tolgarra Processing and Power Station on 4 October 2017 as a scheduled change under management of change; no event precedes it in the record. The management of change record covers 2 clauses across 2 controlled documents. The intent is to restate an existing duty without altering what it requires. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical control set is preserved.",
+    "scope_note": "The documents in scope are PRO-ELE-026 and STD-ELE-009."
+  },
+  "response_sha256": "fca35694415990d2addc2f43f86466879b112f5d1e22a281b36570e0cff9aa5f",
+  "source": null
+}

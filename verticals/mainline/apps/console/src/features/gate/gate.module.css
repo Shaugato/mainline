@@ -1,0 +1,502 @@
+/*
+ * SPDX-FileCopyrightText: 2026 MAINLINE contributors
+ * SPDX-License-Identifier: FSL-1.1-ALv2
+ *
+ * The gate surface — EVIDENCE register (docs/leads/ui.md §1.1).
+ *
+ * Every declaration here is checkable against the register's law:
+ *   • no gradient, no shadow implying a light source, no blur, no transform;
+ *   • no transition longer than --tp-duration-evidence (120 ms), and none at all on
+ *     anything a screenshot would have to catch mid-flight;
+ *   • one severity accent (--tp-refuse) over one neutral ramp;
+ *   • every colour is a token from src/design/tokens.css — no literal in this file.
+ *
+ * The print block at the bottom is not a nicety. An EVIDENCE surface must print to a
+ * court-legible page (D14), and a refusal that prints as a dark rectangle with white
+ * text is a refusal nobody will tender.
+ */
+
+.surface {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-5);
+  font-family: var(--tp-sans);
+  color: var(--tp-ink);
+  max-width: 120rem;
+}
+
+/* ── 1. The refusal bar ──────────────────────────────────────────────────── */
+
+.refusalBar {
+  border: var(--tp-hairline) solid var(--tp-refuse);
+  border-left-width: var(--tp-space-1);
+  border-radius: var(--tp-radius);
+  background: var(--tp-bg-raised);
+  padding: var(--tp-space-4) var(--tp-space-4) var(--tp-space-4) var(--tp-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-3);
+}
+
+.refusalBar[data-state='none'] {
+  border-color: var(--tp-rule-strong);
+  border-left-color: var(--tp-warn);
+}
+
+.refusalBar[data-state='defect'] {
+  border-color: var(--tp-warn);
+  border-left-color: var(--tp-warn);
+}
+
+.refusalHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--tp-space-3);
+}
+
+/*
+ * The constraint name is the headline of this screen, so it is set at --tp-step-3 —
+ * the refusal headline size, one per screen at most.
+ *
+ * It is rendered through the shared `ConstraintName` primitive (verbatim, mono,
+ * selectable, with `data-constraint`), whose own rule sets --tp-step-1 for the refuse
+ * tone. This selector carries one more element than that rule carries attribute, so it
+ * wins on specificity rather than on stylesheet order — CSS-module ordering across two
+ * files is a bundler detail and is not something an evidentiary headline may depend on.
+ */
+.refusalHead .refusalConstraintSlot code {
+  font-size: var(--tp-step-3);
+  line-height: var(--tp-leading-tight);
+}
+
+.refusalHead .refusalSqlstateSlot code {
+  font-size: var(--tp-step-2);
+}
+
+.refusalKicker {
+  font-size: var(--tp-step--1);
+  letter-spacing: var(--tp-tracking-caps);
+  text-transform: uppercase;
+  font-weight: var(--tp-weight-medium);
+  color: var(--tp-refuse-ink);
+}
+
+.refusalMessage {
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step-0);
+  line-height: var(--tp-leading-tight);
+  background: var(--tp-bg-inset);
+  border: var(--tp-hairline) solid var(--tp-rule);
+  border-radius: var(--tp-radius);
+  padding: var(--tp-space-3);
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.weakened {
+  border: var(--tp-hairline) solid var(--tp-warn);
+  border-radius: var(--tp-radius);
+  padding: var(--tp-space-2) var(--tp-space-3);
+  color: var(--tp-ink);
+  font-size: var(--tp-step--1);
+}
+
+/* ── Shared furniture ────────────────────────────────────────────────────── */
+
+.panel {
+  border: var(--tp-hairline) solid var(--tp-rule-strong);
+  border-radius: var(--tp-radius);
+  background: var(--tp-bg-raised);
+  padding: var(--tp-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-3);
+}
+
+.panelTitle {
+  font-size: var(--tp-step-2);
+  font-weight: var(--tp-weight-strong);
+  line-height: var(--tp-leading-tight);
+  margin: 0;
+}
+
+.panelNote {
+  font-size: var(--tp-step--1);
+  color: var(--tp-ink-dim);
+  line-height: var(--tp-leading-body);
+  margin: 0;
+  max-width: 68ch;
+}
+
+.label {
+  font-size: var(--tp-step--1);
+  letter-spacing: var(--tp-tracking-caps);
+  text-transform: uppercase;
+  font-weight: var(--tp-weight-medium);
+  color: var(--tp-ink-faint);
+}
+
+.facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tp-space-2) var(--tp-space-4);
+  margin: 0;
+  font-size: var(--tp-step--1);
+}
+
+.fact {
+  display: flex;
+  align-items: baseline;
+  gap: var(--tp-space-2);
+}
+
+.factValue {
+  font-family: var(--tp-mono);
+  color: var(--tp-ink);
+  overflow-wrap: anywhere;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-3);
+}
+
+.item {
+  border: var(--tp-hairline) solid var(--tp-rule);
+  border-radius: var(--tp-radius);
+  padding: var(--tp-space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-2);
+  background: var(--tp-bg);
+}
+
+.itemHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--tp-space-2);
+}
+
+.prose {
+  font-size: var(--tp-step-0);
+  line-height: var(--tp-leading-body);
+  margin: 0;
+  max-width: 78ch;
+}
+
+.absent {
+  border: var(--tp-hairline) dashed var(--tp-warn);
+  border-radius: var(--tp-radius);
+  padding: var(--tp-space-3);
+  font-size: var(--tp-step--1);
+  color: var(--tp-ink);
+  line-height: var(--tp-leading-body);
+}
+
+.absentTitle {
+  display: block;
+  font-weight: var(--tp-weight-strong);
+  letter-spacing: var(--tp-tracking-caps);
+  text-transform: uppercase;
+  color: var(--tp-warn);
+  margin-bottom: var(--tp-space-1);
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(28rem, 1fr));
+  gap: var(--tp-space-4);
+  align-items: start;
+}
+
+/* ── Provenance slot ─────────────────────────────────────────────────────── */
+
+.slot {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--tp-space-1);
+  font-size: var(--tp-step--1);
+}
+
+.chipDerived,
+.chipUndeclared {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--tp-space-1);
+  border: var(--tp-hairline) solid var(--tp-rule-strong);
+  border-radius: var(--tp-radius);
+  padding: 0 var(--tp-space-1);
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step--1);
+  color: var(--tp-ink-dim);
+}
+
+.chipUndeclared {
+  border-style: dashed;
+  border-color: var(--tp-warn);
+}
+
+.slotPointer {
+  font-family: var(--tp-mono);
+  color: var(--tp-ink-faint);
+}
+
+/* ── 3. The weld diagram ─────────────────────────────────────────────────── */
+
+.weld {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-2);
+}
+
+.weldRow {
+  display: grid;
+  grid-template-columns: minmax(20rem, 24rem) 1fr;
+  gap: var(--tp-space-3);
+  align-items: start;
+  border: var(--tp-hairline) solid var(--tp-rule);
+  border-left-width: var(--tp-space-1);
+  border-left-color: var(--tp-rule-strong);
+  border-radius: var(--tp-radius);
+  padding: var(--tp-space-3);
+  background: var(--tp-bg);
+}
+
+.weldRow[data-blamed='true'] {
+  border-color: var(--tp-refuse);
+  border-left-color: var(--tp-refuse);
+}
+
+.weldPredicate {
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step--1);
+  color: var(--tp-ink-dim);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin: var(--tp-space-1) 0 0;
+}
+
+.weldCounters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-2);
+}
+
+.weldCounter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--tp-space-2);
+  border-left: var(--tp-hairline) solid var(--tp-rule);
+  padding-left: var(--tp-space-3);
+}
+
+.weldCounter[data-counter-state='blocking'] {
+  border-left-color: var(--tp-refuse);
+}
+
+.weldCounter[data-counter-state='unwitnessed-zero'] {
+  border-left-color: var(--tp-warn);
+}
+
+.weldCounter[data-counter-state='clear'] {
+  border-left-color: var(--tp-rule-strong);
+}
+
+.weldState {
+  font-size: var(--tp-step--1);
+  letter-spacing: var(--tp-tracking-caps);
+  text-transform: uppercase;
+  font-weight: var(--tp-weight-strong);
+}
+
+.weldCounter[data-counter-state='blocking'] .weldState {
+  color: var(--tp-refuse);
+}
+
+.weldCounter[data-counter-state='unwitnessed-zero'] .weldState {
+  color: var(--tp-warn);
+}
+
+.weldCounter[data-counter-state='clear'] .weldState {
+  color: var(--tp-ink-dim);
+}
+
+.unknownBlocks {
+  border: var(--tp-hairline) solid var(--tp-warn);
+  border-radius: var(--tp-radius);
+  padding: var(--tp-space-2);
+  font-size: var(--tp-step--1);
+  line-height: var(--tp-leading-body);
+  color: var(--tp-ink);
+  flex-basis: 100%;
+}
+
+.witnessLink {
+  font-size: var(--tp-step--1);
+  color: var(--tp-ink);
+}
+
+/* ── 4/5. Precursors and the clause diff ─────────────────────────────────── */
+
+.anchorStrength {
+  font-size: var(--tp-step--1);
+  letter-spacing: var(--tp-tracking-caps);
+  text-transform: uppercase;
+  font-weight: var(--tp-weight-strong);
+  border: var(--tp-hairline) solid var(--tp-rule-strong);
+  border-radius: var(--tp-radius);
+  padding: 0 var(--tp-space-1);
+}
+
+.anchorStrength[data-anchor='verbatim'] {
+  border-color: var(--tp-ink);
+  color: var(--tp-ink);
+}
+
+.anchorStrength[data-anchor='gist'] {
+  border-style: dashed;
+  border-color: var(--tp-warn);
+  color: var(--tp-ink-dim);
+}
+
+.canon {
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step-0);
+  line-height: var(--tp-leading-tight);
+  background: var(--tp-bg-inset);
+  border: var(--tp-hairline) solid var(--tp-rule);
+  border-radius: var(--tp-radius);
+  padding: var(--tp-space-3);
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.deltaTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--tp-step--1);
+}
+
+.deltaTable th,
+.deltaTable td {
+  text-align: left;
+  vertical-align: top;
+  padding: var(--tp-space-2);
+  border-bottom: var(--tp-hairline) solid var(--tp-rule);
+}
+
+.deltaTable th {
+  color: var(--tp-ink-faint);
+  letter-spacing: var(--tp-tracking-caps);
+  text-transform: uppercase;
+  font-weight: var(--tp-weight-medium);
+  border-bottom-color: var(--tp-rule-strong);
+}
+
+.deltaTable code {
+  font-family: var(--tp-mono);
+  overflow-wrap: anywhere;
+}
+
+.anchorRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tp-space-2);
+  align-items: baseline;
+}
+
+.anchorTag {
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step--1);
+  border: var(--tp-hairline) solid var(--tp-rule-strong);
+  border-radius: var(--tp-radius);
+  padding: 0 var(--tp-space-1);
+}
+
+.anchorTag[data-change='removed'] {
+  border-color: var(--tp-refuse);
+  color: var(--tp-refuse);
+  text-decoration: line-through;
+}
+
+.anchorTag[data-change='added'] {
+  border-color: var(--tp-ink);
+}
+
+.anchorTag[data-change='kept'] {
+  color: var(--tp-ink-dim);
+}
+
+/* ── The attempt control ─────────────────────────────────────────────────── */
+
+.attempt {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--tp-space-3);
+}
+
+.attemptButton {
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step-0);
+  font-weight: var(--tp-weight-strong);
+  color: var(--tp-ink);
+  background: var(--tp-bg-sunken);
+  border: var(--tp-hairline) solid var(--tp-ink);
+  border-radius: var(--tp-radius);
+  padding: var(--tp-space-2) var(--tp-space-4);
+  cursor: pointer;
+  /* Under the EVIDENCE ceiling. Colour only; nothing moves. */
+  transition: background-color var(--tp-duration-evidence) linear;
+}
+
+.attemptButton:hover:not(:disabled) {
+  background: var(--tp-bg-inset);
+}
+
+.attemptButton:disabled {
+  color: var(--tp-ink-faint);
+  border-color: var(--tp-rule-strong);
+  cursor: not-allowed;
+}
+
+.attemptButton:focus-visible,
+.witnessLink:focus-visible {
+  outline: var(--tp-focus-width) solid var(--tp-focus);
+  outline-offset: var(--tp-focus-offset);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .attemptButton {
+    transition: none;
+  }
+}
+
+/* ── Print: the exhibit form ─────────────────────────────────────────────── */
+
+@media print {
+  .surface {
+    max-width: none;
+    gap: var(--tp-space-4);
+  }
+
+  .attempt {
+    display: none;
+  }
+
+  .refusalBar,
+  .panel,
+  .item,
+  .weldRow {
+    break-inside: avoid;
+  }
+}

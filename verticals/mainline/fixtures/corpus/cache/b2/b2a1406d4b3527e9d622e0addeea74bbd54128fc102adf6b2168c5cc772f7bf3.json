@@ -1,0 +1,45 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 4,
+    "doc_codes": [
+      "PRO-ELE-008"
+    ],
+    "intent": "strengthen",
+    "moc_ref": "MOC-2026-0104",
+    "opened_on": "2026-06-12",
+    "precursor_events": [
+      {
+        "event_ref": "INC-2023-004",
+        "severity_gate": null
+      },
+      {
+        "event_ref": "OEM-2026-002",
+        "severity_gate": null
+      }
+    ],
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "management_of_change": "change assurance",
+      "verification": "assurance activity"
+    },
+    "weakening_steps": 0
+  },
+  "key": "b2a1406d4b3527e9d622e0addeea74bbd54128fc102adf6b2168c5cc772f7bf3",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2026-0104",
+  "prompt_kind": "moc",
+  "prompt_sha256": "0c1815e20619a4d4b3021e491d1bfc68d0dc3dd8a27c6c5de16d00992a2d1e24",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2026-0104 was raised at Marrindal Concentrator and Hydrocarbon Transfer Facility on 12 June 2026 following 2 recorded events in the archive, including INC-2023-004 and OEM-2026-002. The change assurance record covers 4 clauses across 1 controlled document. The intent is to strengthen the material unwanted event control named in the documents in scope. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the material unwanted event control set is preserved.",
+    "scope_note": "The documents in scope are PRO-ELE-008."
+  },
+  "response_sha256": "5634d43871e686aca21ef048596a84226fcc9e0086982227911041f795665558",
+  "source": null
+}

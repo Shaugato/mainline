@@ -1,0 +1,38 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 0,
+    "doc_codes": [
+      "MOC-2023-0302",
+      "PRO-CHM-009",
+      "STD-CHM-011"
+    ],
+    "intent": "introduce",
+    "moc_ref": "MOC-2016-0007",
+    "opened_on": "2016-01-03",
+    "precursor_events": [],
+    "site": "Tolgarra Processing and Power Station",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "management_of_change": "management of change",
+      "verification": "critical control verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "b59f0764b3f9da2982156d8cef59aeecf6bb1d25a12c29f4ba0cd5931b7497c6",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2016-0007",
+  "prompt_kind": "moc",
+  "prompt_sha256": "e5085688b1414206ad2e69f32b86899b2dfc5fee772faed8f8983bc901101570",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2016-0007 was raised at Tolgarra Processing and Power Station on 3 January 2016 as a scheduled change under management of change; no event precedes it in the record. The management of change record carries no clause change; it records the assessment only. The intent is to introduce a duty the documents in scope did not previously carry. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical control set is preserved.",
+    "scope_note": "The documents in scope are MOC-2023-0302, PRO-CHM-009 and STD-CHM-011."
+  },
+  "response_sha256": "2450d60d272b26664e4a647d17c1c22b9e32099f195099d4783ee6ece92ca5ea",
+  "source": null
+}

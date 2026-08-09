@@ -1,0 +1,64 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 6,
+    "doc_code": "PRO-OPS-044",
+    "doc_family": "PRO",
+    "doc_title": "Boiler Start-Up and Warm Through",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2009-12-18",
+    "required_citations": [
+      {
+        "control_label": "insulation, guarding and signing of hot surfaces",
+        "event_ref": "INC-2009-013",
+        "event_title": "thermal release during routine operation on B-8202",
+        "hazard_energy": "thermal",
+        "kind": "capa_action",
+        "quote_ref": "quote:TLG/PRO-OPS-044/002#capa_action/INC-2009-013",
+        "severity_gate": 2
+      },
+      {
+        "control_label": "controlled draining, venting and warm-through of steam systems",
+        "event_ref": "INC-2009-013",
+        "event_title": "thermal release during routine operation on B-8202",
+        "hazard_energy": "thermal",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:TLG/PRO-OPS-044/002#revision_history_line/INC-2009-013",
+        "severity_gate": 2
+      }
+    ],
+    "rev_no": 2,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "accident investigation",
+      "management_of_change": "engineering change note",
+      "near_miss": "near hit"
+    }
+  },
+  "key": "6f24a89d7fa72db02853555860719e53f0d17092c2fc8c7b54659d07a4680347",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:TLG/PRO-OPS-044/002",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "8585f603709dfc047af7fdd491532ef3abca088351e7f60a7126c05ae0c8fe05",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The corrective action recorded against INC-2009-013 required the insulation, guarding and signing of hot surfaces to be restated in this procedure.",
+        "quote_ref": "quote:TLG/PRO-OPS-044/002#capa_action/INC-2009-013"
+      },
+      {
+        "line": "Revision 2 was raised in response to INC-2009-013, and the controlled draining, venting and warm-through of steam systems was amended as a result.",
+        "quote_ref": "quote:TLG/PRO-OPS-044/002#revision_history_line/INC-2009-013"
+      }
+    ],
+    "reason": "Scheduled review at revision 2; 6 clauses restated."
+  },
+  "response_sha256": "69377a89968f8e3a4fbd00dd1d3edddc167dc3e71c64d439523b1f6c9132891a",
+  "source": null
+}

@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 1,
+    "doc_codes": [
+      "PTW-STD-004"
+    ],
+    "intent": "introduce",
+    "moc_ref": "MOC-2018-0120",
+    "opened_on": "2018-05-16",
+    "precursor_events": [],
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "management_of_change": "management of change",
+      "verification": "critical control verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "abed9d6ef92cd8517996490a5a6d241c7edbc80c21579b742a7dcb01cc9c5f06",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2018-0120",
+  "prompt_kind": "moc",
+  "prompt_sha256": "56007ab76d0251b567414238ececfca863f2123ccafebe95feb4630bc9122469",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2018-0120 was raised at Yandarra Downs Open Cut and Heavy Workshop on 16 May 2018 as a scheduled change under management of change; no event precedes it in the record. The management of change record covers 1 clause across 1 controlled document. The intent is to introduce a duty the documents in scope did not previously carry. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical control set is preserved.",
+    "scope_note": "The documents in scope are PTW-STD-004."
+  },
+  "response_sha256": "65db44d9be5d8142c4ffdb61ac97cd7860babeec626e6453f54ebfb467c88982",
+  "source": null
+}

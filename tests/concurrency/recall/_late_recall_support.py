@@ -23,6 +23,7 @@ from uuid import UUID, uuid4
 from mainline_recall_agent.run.conservation import CandidateRow, ConservationReport
 from mainline_recall_agent.run.persist import READ_PROJECTED_SEVERITY_SQL, RunRecord
 from mainline_recall_agent.run.probabilistic import SilenceRow
+
 from trappoint_recall.run.contract import (
     Candidate,
     CandidateSet,
@@ -69,7 +70,11 @@ class _Session:
         if "recall_candidate" in sql:
             self.candidates.append(tuple(params))
 
-    def query(self, sql: str, params: Sequence[object] = ()) -> Sequence[Sequence[Any]]:
+    def query(
+        self,
+        sql: str,
+        params: Sequence[object] = (),  # noqa: ARG002 - the SqlSession shape is the contract
+    ) -> Sequence[Sequence[Any]]:
         self.statements.append(sql)
         if sql != READ_PROJECTED_SEVERITY_SQL:
             raise AssertionError(f"unexpected in-transaction read: {sql}")
@@ -108,10 +113,14 @@ class RecordingWriter:
 class RefusingSession:
     """A read session that must never be consulted in this lane."""
 
-    def query(self, sql: str, params: Sequence[object] = ()) -> Sequence[Sequence[Any]]:
+    def query(
+        self,
+        sql: str,
+        params: Sequence[object] = (),  # noqa: ARG002 - conforms in order to refuse
+    ) -> Sequence[Sequence[Any]]:
         raise AssertionError(f"the write-path lane issued a read: {sql}")
 
-    def execute(self, sql: str, params: Sequence[object] = ()) -> None:
+    def execute(self, sql: str, params: Sequence[object] = ()) -> None:  # noqa: ARG002
         raise AssertionError(f"the write-path lane wrote outside its transaction: {sql}")
 
 

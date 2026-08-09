@@ -1,0 +1,37 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MAINLINE · 0183a_change_request_rls_force.sql
+-- ALTER TABLE mainline.change_request FORCE ROW LEVEL SECURITY
+--
+-- MI: MI30
+-- I: I02
+-- COUNSEL-GATED: no
+-- RATIONALE: Same argument as 0181a, on the subject the thesis is actually about: the
+--            repository is a protected branch and the permit is one of its refs. An owner
+--            exemption on the branch would be an exemption on the thing being protected.
+--
+-- migration:  0183a_change_request_rls_force
+-- domain:     datamodel / dm-views-rls
+-- band:       0180-0198z · datamodel/dm-views-rls · AUTHORED, allocated by
+--             verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1)
+-- statements: 1
+-- matrix:     verticals/mainline/db/RLS-MATRIX.yaml — this file is a RENDERING of one entry
+--             there; tests/integration/schema/test_mi_rls.py asserts the two agree
+-- source:     ARCHITECTURE.md §11.3 (RLS, SEC-1) · §4.1 law 10 · correction S22 · correction S16
+-- requires:   0051 mainline.change_request · 0183 ENABLE
+-- sqlstate:   none — FORCE removes an exemption; it refuses nothing.
+-- forward-only; no .down.sql exists at or below the protected floor.
+--
+-- ────────────────────────────────────────────────────────────────────────────
+-- S22 APPLIES HERE IDENTICALLY
+-- ────────────────────────────────────────────────────────────────────────────
+-- `fn_check_materialised` and `fn_disposition_close` both branch on `subject_kind` and
+-- UPDATE this table on the change-request arm, as `agent_gate` and `svc_disposition`
+-- respectively. Both write policies are therefore required here for the same reason and by
+-- the same code paths — see 0183f and 0183g. A deployment that forced RLS on `permit` only
+-- would pass CF-22 and fail CF-31.
+--
+
+ALTER TABLE mainline.change_request FORCE ROW LEVEL SECURITY;
+

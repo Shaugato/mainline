@@ -1,0 +1,64 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 25,
+    "doc_code": "PRO-MEC-014",
+    "doc_family": "PRO",
+    "doc_title": "Hydrocarbon Transfer Pump Maintenance",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2004-05-11",
+    "required_citations": [
+      {
+        "control_label": "emergency isolation and depressuring on loss of containment",
+        "event_ref": "AF-2004-001",
+        "event_title": "audit finding - spot check of key safeguard at HX-4120",
+        "hazard_energy": "thermal",
+        "kind": "capa_action",
+        "quote_ref": "quote:MRD/PRO-MEC-014/001#capa_action/AF-2004-001",
+        "severity_gate": 1
+      },
+      {
+        "control_label": "emergency isolation and depressuring on loss of containment",
+        "event_ref": "AF-2004-001",
+        "event_title": "audit finding - spot check of key safeguard at HX-4120",
+        "hazard_energy": "thermal",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:MRD/PRO-MEC-014/001#revision_history_line/AF-2004-001",
+        "severity_gate": 1
+      }
+    ],
+    "rev_no": 1,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "accident investigation",
+      "management_of_change": "engineering change note",
+      "near_miss": "near hit"
+    }
+  },
+  "key": "09cf0fcb70f95c5cc113ec4e91103e20153416b384df87cabde2e92d4167d9b6",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/PRO-MEC-014/001",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "93251c7e96d0cb10bab542bb9e7e7ea08a6bfb56842911bb27b59ac655326aff",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The corrective action recorded against AF-2004-001 required the emergency isolation and depressuring on loss of containment to be restated in this procedure.",
+        "quote_ref": "quote:MRD/PRO-MEC-014/001#capa_action/AF-2004-001"
+      },
+      {
+        "line": "Revision 1 was raised in response to AF-2004-001, and the emergency isolation and depressuring on loss of containment was amended as a result.",
+        "quote_ref": "quote:MRD/PRO-MEC-014/001#revision_history_line/AF-2004-001"
+      }
+    ],
+    "reason": "Scheduled review at revision 1; 25 clauses restated."
+  },
+  "response_sha256": "ec56251781cf695f35531a97d85a6ca0eb9b60bbfba938ad8683d8809eb39743",
+  "source": null
+}

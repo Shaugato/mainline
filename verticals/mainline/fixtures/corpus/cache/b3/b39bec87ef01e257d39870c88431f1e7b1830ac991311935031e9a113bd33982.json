@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 4,
+    "doc_code": "MOC-2023-0302",
+    "doc_family": "MOC",
+    "doc_title": "Change of Reagent Dosing Line Material and Pressure Alarm",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2023-09-14",
+    "required_citations": [
+      {
+        "control_label": "monitoring of airborne contaminant exposure",
+        "event_ref": "CAPA-2022-007",
+        "event_title": "preventive action - alarm philosophy conformance on TK-8310",
+        "hazard_energy": "chemical",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:TLG/MOC-2023-0302/001#revision_history_line/CAPA-2022-007",
+        "severity_gate": 1
+      }
+    ],
+    "rev_no": 1,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "learning team review",
+      "management_of_change": "change assurance",
+      "near_miss": "high potential incident"
+    }
+  },
+  "key": "b39bec87ef01e257d39870c88431f1e7b1830ac991311935031e9a113bd33982",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:TLG/MOC-2023-0302/001",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "b37c9fe16127f19c2000d71c917e522fdb343b3791f5c49bfc6e8fbf53f6887f",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "Revision 1 was raised in response to CAPA-2022-007, and the monitoring of airborne contaminant exposure was amended as a result.",
+        "quote_ref": "quote:TLG/MOC-2023-0302/001#revision_history_line/CAPA-2022-007"
+      }
+    ],
+    "reason": "Scheduled review at revision 1; 4 clauses restated."
+  },
+  "response_sha256": "2deeb1f1027aa0be91bfdddc1f2fabc8aa295b07863f204babfaec00a1eea9cc",
+  "source": null
+}

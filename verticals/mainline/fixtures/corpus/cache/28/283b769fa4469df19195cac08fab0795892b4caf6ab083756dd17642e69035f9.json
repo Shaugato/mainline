@@ -1,0 +1,64 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 7,
+    "doc_code": "STD-ELE-009",
+    "doc_family": "STD",
+    "doc_title": "Electrical Safety",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2020-08-04",
+    "required_citations": [
+      {
+        "control_label": "integrity of explosion-protected equipment in zoned areas",
+        "event_ref": "RN-2020-002",
+        "event_title": "prohibition notice - work stopped during an intrusive maintenance task on G-8101",
+        "hazard_energy": "electrical",
+        "kind": "capa_action",
+        "quote_ref": "quote:TLG/STD-ELE-009/006#capa_action/RN-2020-002",
+        "severity_gate": 1
+      },
+      {
+        "control_label": "integrity of explosion-protected equipment in zoned areas",
+        "event_ref": "RN-2020-002",
+        "event_title": "prohibition notice - work stopped during an intrusive maintenance task on G-8101",
+        "hazard_energy": "electrical",
+        "kind": "regulator_requirement",
+        "quote_ref": "quote:TLG/STD-ELE-009/006#regulator_requirement/RN-2020-002",
+        "severity_gate": 1
+      }
+    ],
+    "rev_no": 6,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "ICAM investigation",
+      "management_of_change": "management of change",
+      "near_miss": "potential incident"
+    }
+  },
+  "key": "283b769fa4469df19195cac08fab0795892b4caf6ab083756dd17642e69035f9",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:TLG/STD-ELE-009/006",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "5749c84136ad5dcf84e049c2e8222b5c686054d7aefa45d06ea53dd3074c021d",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The corrective action recorded against RN-2020-002 required the integrity of explosion-protected equipment in zoned areas to be restated in this standard.",
+        "quote_ref": "quote:TLG/STD-ELE-009/006#capa_action/RN-2020-002"
+      },
+      {
+        "line": "A regulatory requirement arising from RN-2020-002 obliges this standard to carry the integrity of explosion-protected equipment in zoned areas.",
+        "quote_ref": "quote:TLG/STD-ELE-009/006#regulator_requirement/RN-2020-002"
+      }
+    ],
+    "reason": "Scheduled review at revision 6; 7 clauses restated."
+  },
+  "response_sha256": "2688a290526dad2ee6d1ad2231c04d4aa46e0aeaa8155c4050e7a632a8d4a13b",
+  "source": null
+}

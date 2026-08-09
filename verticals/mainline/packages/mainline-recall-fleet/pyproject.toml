@@ -1,0 +1,77 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "mainline-recall-fleet"
+version = "0.1.0"
+description = "Fleet binding for the MAINLINE recall agent — one wire, one register, one ledger row."
+readme = "README.md"
+requires-python = ">=3.13"
+# FSL-1.1-ALv2 per the repository licence map (verticals/mainline/* is FSL).  This package
+# imports `mainline_recall_agent` (FSL) and therefore cannot itself be Apache-2.0; the
+# Apache-2.0 half of the binding is `mainline-agentkit`, which this package depends on and
+# never modifies.  The licence TEXT lives in the repo-root LICENSES/ tree, outside this
+# project directory, so `license-files` is deliberately absent (a glob that matches nothing
+# is a PEP 639 build error).  Matches the sibling `mainline-recall-agent` package.
+license = "LicenseRef-FSL-1.1-ALv2"
+authors = [{ name = "MAINLINE contributors" }]
+keywords = ["mainline", "trappoint", "recall", "agent-fleet", "bedrock"]
+classifiers = [
+  "Private :: Do Not Upload",
+  "Programming Language :: Python :: 3.13",
+  "Typing :: Typed",
+]
+
+# Both halves of the binding, and nothing else.  No AWS SDK, no model SDK, no database
+# driver: this package builds a request body and translates an exception, and it must be
+# importable on a machine with neither an AWS account nor a cluster.
+dependencies = [
+  "mainline-agentkit",
+  "mainline-recall-agent",
+  "pydantic>=2.9",
+]
+
+[tool.uv.sources]
+mainline-agentkit = { workspace = true }
+mainline-recall-agent = { workspace = true }
+
+[project.urls]
+Homepage = "https://github.com/Shaugato/mainline"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mainline_recall_fleet"]
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+warn_unreachable = true
+disallow_any_explicit = false
+
+# This package imports neither SDK.  The overrides exist because mypy follows imports
+# into `mainline_recall_agent.providers.judge`, whose live path imports `anthropic`
+# lazily, and into the AWS-facing modules beside it.  Without these, type-checking this
+# package would fail on someone else's optional dependency.
+[[tool.mypy.overrides]]
+module = ["anthropic.*", "boto3.*", "botocore.*", "sentence_transformers.*"]
+ignore_missing_imports = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "B", "A", "C4", "RUF", "SIM", "TID", "PL"]
+ignore = [
+  # The leg register is a declaration table: every field is a column a reader must be
+  # able to see at the definition site.  Bundling them into a config object would hide
+  # exactly the fields `spec/agents/fleet.yaml` and `agent_action_provenance` consume.
+  "PLR0913",
+  # The exception names here are the vocabulary the recall orchestrator branches on and
+  # the silence ledger records.  `FleetContractViolationError` would read worse in a
+  # traceback a supervisor is shown.
+  "N818",
+]

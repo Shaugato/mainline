@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 5,
+    "doc_code": "PRO-OPS-017",
+    "doc_family": "PRO",
+    "doc_title": "Ship Loading and Vapour Recovery",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2024-05-16",
+    "required_citations": [
+      {
+        "control_label": "emergency isolation and depressuring on loss of containment",
+        "event_ref": "AF-2024-003",
+        "event_title": "audit finding - change assurance not applied to LA-7201",
+        "hazard_energy": "chemical",
+        "kind": "moc_reference",
+        "quote_ref": "quote:CVY/PRO-OPS-017/011#moc_reference/AF-2024-003",
+        "severity_gate": 3
+      }
+    ],
+    "rev_no": 11,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "learning team review",
+      "management_of_change": "change assurance",
+      "near_miss": "high potential incident"
+    }
+  },
+  "key": "ee391c90e338ef44e5c374a8f7a8462a94eb8a1a179926aaf80c36f8686b4729",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:CVY/PRO-OPS-017/011",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "58e19f93e04e77b9aed1b509f1d52311482a352733ee258586857ef7ee38abcd",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The change assurance record for this revision cites AF-2024-003 as the reason the emergency isolation and depressuring on loss of containment was amended.",
+        "quote_ref": "quote:CVY/PRO-OPS-017/011#moc_reference/AF-2024-003"
+      }
+    ],
+    "reason": "Scheduled review at revision 11; 5 clauses restated."
+  },
+  "response_sha256": "2c3f265df6f069ded16fcc1813811ae9e5a67670b1c70664e6af187d4a041568",
+  "source": null
+}

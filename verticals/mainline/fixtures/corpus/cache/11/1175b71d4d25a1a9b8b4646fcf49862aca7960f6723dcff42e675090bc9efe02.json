@@ -1,0 +1,45 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 1,
+    "doc_codes": [
+      "ALERT-2016-007",
+      "MOC-2014-0087",
+      "PRO-MEC-041",
+      "PRO-OPS-017",
+      "PTW-STD-003"
+    ],
+    "intent": "introduce",
+    "moc_ref": "MOC-2015-0181",
+    "opened_on": "2015-11-16",
+    "precursor_events": [
+      {
+        "event_ref": "NM-2005-0008",
+        "severity_gate": null
+      }
+    ],
+    "site": "Cape Verity Export Terminal",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "management_of_change": "change request",
+      "verification": "field verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "1175b71d4d25a1a9b8b4646fcf49862aca7960f6723dcff42e675090bc9efe02",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2015-0181",
+  "prompt_kind": "moc",
+  "prompt_sha256": "e4d87cb775d41206f29c12b12d60f3ddc11295ace7b0fc1381292f5d3fcf3f81",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2015-0181 was raised at Cape Verity Export Terminal on 16 November 2015 following 1 recorded event in the archive, including NM-2005-0008. The change request record covers 1 clause across 5 controlled documents. The intent is to introduce a duty the documents in scope did not previously carry. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical safeguard set is preserved.",
+    "scope_note": "The documents in scope are ALERT-2016-007, MOC-2014-0087, PRO-MEC-041, PRO-OPS-017 and PTW-STD-003."
+  },
+  "response_sha256": "065091ab23d9d12c29bde5d75a0e8d591d177705cdd9caebdc36922acf6f5366",
+  "source": null
+}

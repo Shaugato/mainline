@@ -6,106 +6,27 @@ One fixture builds the recorded cluster, one builds the orchestrator over it, an
 the loop. Nothing here is shared mutable state across tests: every fixture is function-scoped
 because half of this suite works by injecting a failure and asserting what survived it, and a
 session-scoped cluster would carry one test's injection into the next.
+
+The harness itself lives in :mod:`_run_harness`, not here. A ``conftest.py`` in a non-package
+directory is imported under the bare name ``conftest``, and this repository has several — so a
+test module importing a symbol *from* ``conftest`` binds to whichever one pytest loaded first.
+Fixtures are safe (pytest resolves those per-directory); named imports are not.
 """
 
 from __future__ import annotations
 
 from collections.abc import Callable
-from dataclasses import dataclass
-from typing import Any
 
 import pytest
-from _run_corpus import (
-    ACTIVITY_SCOPE_ID,
-    CORPUS_COMMIT,
-    CORPUS_ROOT,
-    INDEX_GENERATION,
-    PERMIT_CONTROL_CLASSES,
-    PERMIT_ID,
-    PLAN_DIGEST,
-    POLICY_VERSION,
-    SITE_ID,
-    clause_control_classes,
-)
-from _run_fakes import (
-    FakeCluster,
-    FakeKernelTransport,
-    FixtureArmRunner,
-    FixtureLexicalRunner,
-    FixtureReranker,
-    arm_outcome,
-    lexical_hits,
-    verdicts,
-)
-from mainline_recall_agent.run.kernel import MaterialiseClient
-from mainline_recall_agent.run.orchestrator import RecallOrchestrator, RunOutcome, RunRequest
-from trappoint_recall.run.contract import ExposureCueRef
-
-KERNEL_BASE_URL = "https://kernel.mainline.invalid"
-
-EXPOSURE_CUES: tuple[ExposureCueRef, ...] = (
-    ExposureCueRef(
-        facet="mechanism",
-        cue_sha256="11" * 32,
-        template_sha256="ff" * 32,
-        gen_model="au.anthropic.claude-sonnet-5",
-        prompt_version="recall.cue/1",
-        embed_model="BAAI/bge-large-en-v1.5@fixture",
-    ),
-    ExposureCueRef(
-        facet="precondition",
-        cue_sha256="12" * 32,
-        template_sha256="ff" * 32,
-        gen_model="au.anthropic.claude-sonnet-5",
-        prompt_version="recall.cue/1",
-        embed_model="BAAI/bge-large-en-v1.5@fixture",
-    ),
-    ExposureCueRef(
-        facet="recurrence_test",
-        cue_sha256="13" * 32,
-        template_sha256="ff" * 32,
-        gen_model="au.anthropic.claude-sonnet-5",
-        prompt_version="recall.cue/1",
-        embed_model="BAAI/bge-large-en-v1.5@fixture",
-        insufficient_evidence=True,
-    ),
-)
-
-
-@dataclass
-class Harness:
-    """Everything one run needs, plus the recorders the assertions read."""
-
-    cluster: FakeCluster
-    transport: FakeKernelTransport
-    orchestrator: RecallOrchestrator
-    request: RunRequest
-    reranker: Any
-
-    def run(self) -> RunOutcome:
-        """Execute the run loop once."""
-        return self.orchestrator.run(self.request)
-
-
-def _request() -> RunRequest:
-    return RunRequest(
-        permit_id=PERMIT_ID,
-        site_id=SITE_ID,
-        activity_scope_id=ACTIVITY_SCOPE_ID,
-        policy_version=POLICY_VERSION,
-        corpus_commit=CORPUS_COMMIT,
-        corpus_root=CORPUS_ROOT,
-        index_generation=INDEX_GENERATION,
-        exposure_cues=EXPOSURE_CUES,
-        clause_control_classes=clause_control_classes(),
-        permit_control_classes=PERMIT_CONTROL_CLASSES,
-    )
+from _run_fakes import FakeCluster
+from _run_harness import Harness, build_harness, run_request
+from mainline_recall_agent.run.orchestrator import RunOutcome, RunRequest
 
 
 @pytest.fixture
 def request_fixture() -> RunRequest:
     """A fresh :class:`RunRequest` with a fresh ``run_id``."""
-    return _request()
+    return run_request()
 
 
 @pytest.fixture
@@ -114,60 +35,10 @@ def cluster() -> FakeCluster:
     return FakeCluster()
 
 
-@pytest.fixture
-def build_harness() -> Callable[..., Harness]:
-    """Build a harness, overriding any collaborator an injection test needs to replace."""
-
-    def _build(
-        *,
-        cluster: FakeCluster | None = None,
-        arm_runner: Any | None = None,
-        lexical_runner: Any | None = None,
-        reranker: Any | None = "default",
-        transport: FakeKernelTransport | None = None,
-        with_kernel: bool = True,
-        request: RunRequest | None = None,
-    ) -> Harness:
-        cluster = cluster if cluster is not None else FakeCluster()
-        transport = transport if transport is not None else FakeKernelTransport()
-        run_request = request if request is not None else _request()
-
-        arms = (
-            arm_runner
-            if arm_runner is not None
-            else FixtureArmRunner(
-                arm_outcome(index_generation=INDEX_GENERATION, plan_digest=PLAN_DIGEST)
-            )
-        )
-        lexical = (
-            lexical_runner
-            if lexical_runner is not None
-            else FixtureLexicalRunner(hits=lexical_hits())
-        )
-        judge = FixtureReranker(table=verdicts()) if reranker == "default" else reranker
-
-        kernel = (
-            MaterialiseClient(base_url=KERNEL_BASE_URL, transport=transport)
-            if with_kernel
-            else None
-        )
-        orchestrator = RecallOrchestrator(
-            session=cluster.session(),
-            writer=cluster,
-            arm_runner_factory=lambda _request: arms,
-            lexical_runner_factory=lambda _request: lexical,
-            reranker_factory=(None if judge is None else (lambda _request: judge)),
-            kernel=kernel,
-        )
-        return Harness(
-            cluster=cluster,
-            transport=transport,
-            orchestrator=orchestrator,
-            request=run_request,
-            reranker=judge,
-        )
-
-    return _build
+@pytest.fixture(name="build_harness")
+def build_harness_fixture() -> Callable[..., Harness]:
+    """Expose :func:`_run_harness.build_harness` as a fixture."""
+    return build_harness
 
 
 @pytest.fixture

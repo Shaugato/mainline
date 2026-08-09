@@ -1,0 +1,68 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MAINLINE · 0145b_trg_residue_project.sql
+-- CREATE TRIGGER z_residue_project — `max_ancestral_severity` stops being client-supplied here
+--
+-- MI: MI25, MI22, MI03
+-- I: I02
+-- COUNSEL-GATED: no
+-- RATIONALE: 0049's own header says of `max_ancestral_severity`: "Until band 0130-0199 lands it
+--            is client-supplied, and this file says so rather than implying a control that does
+--            not exist yet." This statement is that band landing. From here the column is
+--            written by `mainline.fn_residue_project` from `mainline.clause_blame_current`, and
+--            a matcher that supplies a value gets it discarded unread. The column decides which
+--            clearance verdicts are legal over the row (`mainline.clearance_legal` has three
+--            deliberately absent cells over blood-fatal ancestry), so a writer who could choose
+--            it could choose whether their own missing control was disposable.
+--
+-- migration:  0145b_trg_residue_project
+-- domain:     algorithms
+-- band:       0145-0149z · datamodel/dm-functions-triggers + algorithms · AUTHORED, allocated
+--             by verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1). MR-5 band
+--             overflow of this domain's own `0145`.
+-- statements: 1  (the CREATE TRIGGER, and nothing else)
+-- invariants: MI25 — the projection this closes.  MI22 — it fails closed.  MI03.
+-- source:     docs/leads/algorithms.md §4 (the P2 hole and its closure) · ARCHITECTURE.md §5.3.
+-- requires:   0049 mainline.identity_residue · 0140b mainline.fn_residue_project
+-- sqlstate:   P0001, twice, raised by the function this statement attaches.
+-- forward-only; no .down.sql exists at or below the protected floor (DM-14).
+--
+-- ═════════════════════════════════════════════════════════════════════════════════════════════
+-- WHAT THIS STATEMENT COSTS THE PROJECTOR FLEET, STATED UP FRONT
+-- ═════════════════════════════════════════════════════════════════════════════════════════════
+-- After this trigger exists, an `identity_residue` INSERT REQUIRES a `clause_blame_current` row
+-- for (ancestor_clause_uuid, as_of_commit = first parent of the residue's commit). The closure
+-- projector must therefore run before the matcher emits residue for a commit. That is a real
+-- ordering obligation, it will surface as `P0001` in a backlog, and it is the correct direction
+-- of failure: a residue row whose severity is unknown is a blocking row whose loudness is
+-- unknown, and P3 says unknown is not zero.
+--
+-- The same demand already exists one stage later — `fn_permit_merge_gate` refuses a merge with
+-- "blame closure not materialised for cited clauses". This statement moves it earlier, to the
+-- moment the doubt is recorded, where an operator can still fix it before a permit is waiting.
+--
+-- ── WHY BEFORE INSERT FOR EACH ROW ───────────────────────────────────────────────────────────
+-- BEFORE, because the projected value must be in the row before `CONSTRAINT severity_range`
+-- (0049) evaluates it and before the `ir_open` partial index and `fn_residue_counter` see it.
+-- INSERT only: `identity_residue` rows are amended in exactly one way — a disposition is
+-- attached — and that is an UPDATE this trigger deliberately does not touch, because
+-- dispositioning must not re-derive a severity from a closure generation that has moved since
+-- the doubt was recorded.
+--
+-- ── THE `z_` PREFIX IS COSMETIC (D10) ────────────────────────────────────────────────────────
+-- `mainline.identity_residue` also carries `fn_residue_counter` (the kernel's projection band),
+-- which maintains `permit.open_residue` / `change_request.open_residue`. This function reads
+-- only `(NEW).commit_id` and `(NEW).ancestor_clause_uuid`, both supplied by the INSERT, and
+-- writes only `NEW.max_ancestral_severity`, which no other trigger on this table reads. The two
+-- are order-independent by construction. CockroachDB v26.2 does not document multi-trigger
+-- firing order and nothing here consults GT-A1's observation of it.
+--
+-- ── REFUSAL DEPTH ────────────────────────────────────────────────────────────────────────────
+-- Depth 1 for the projection itself: `severity_range CHECK (max_ancestral_severity BETWEEN 0
+-- AND 5)` on 0049 survives `DISABLE TRIGGER`, but a bound is not a derivation and this file does
+-- not pretend otherwise. What disabling this trigger restores is exactly the state 0049's header
+-- described and objected to.
+
+CREATE TRIGGER z_residue_project BEFORE INSERT ON mainline.identity_residue
+  FOR EACH ROW EXECUTE FUNCTION mainline.fn_residue_project();

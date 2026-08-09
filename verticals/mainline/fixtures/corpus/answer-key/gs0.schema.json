@@ -1,0 +1,311 @@
+{
+  "$id": "https://mainline.trappoint.dev/schemas/corpus/gs0-v1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "anyOf": [
+    {
+      "properties": {
+        "basis": {
+          "enum": [
+            "asserted_document",
+            "asserted_human",
+            "derived_documentary",
+            "inferred_semantic"
+          ]
+        },
+        "decoy_of": {
+          "type": "null"
+        },
+        "documented_cause": {
+          "type": "null"
+        },
+        "label": {
+          "const": "true"
+        },
+        "p_doc_trace": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        "state": {
+          "enum": [
+            "active",
+            "provisional",
+            "dormant",
+            "refuted"
+          ]
+        }
+      },
+      "required": [
+        "basis",
+        "p_doc_trace",
+        "state"
+      ],
+      "title": "true"
+    },
+    {
+      "properties": {
+        "basis": {
+          "type": "null"
+        },
+        "channel_a_visible": {
+          "const": false
+        },
+        "decoy_of": {
+          "minLength": 3,
+          "type": "string"
+        },
+        "documented_cause": {
+          "type": "null"
+        },
+        "label": {
+          "const": "decoy"
+        },
+        "p_doc_trace": {
+          "type": "null"
+        },
+        "state": {
+          "type": "null"
+        }
+      },
+      "required": [
+        "decoy_of"
+      ],
+      "title": "decoy"
+    },
+    {
+      "properties": {
+        "basis": {
+          "type": "null"
+        },
+        "channel_a_visible": {
+          "const": false
+        },
+        "decoy_of": {
+          "type": "null"
+        },
+        "documented_cause": {
+          "enum": [
+            "regulatory_update",
+            "scheduled_review",
+            "template_migration",
+            "typo_fix"
+          ]
+        },
+        "label": {
+          "const": "negative_control"
+        },
+        "p_doc_trace": {
+          "type": "null"
+        },
+        "state": {
+          "type": "null"
+        }
+      },
+      "required": [
+        "documented_cause"
+      ],
+      "title": "negative_control"
+    }
+  ],
+  "description": "One judged (event, clause) pair per row. Authored by the generator that created the causal fact; see README.md in this directory for what the numbers computed over it do and do not mean.",
+  "properties": {
+    "basis": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "enum": [
+            "asserted_document",
+            "asserted_human",
+            "derived_documentary",
+            "inferred_semantic"
+          ]
+        }
+      ],
+      "description": "the strongest edge the archive supports; null unless label=true"
+    },
+    "channel_a_visible": {
+      "description": "whether the citation resolver (channel A) can see this link. True exactly when the basis is asserted_document.",
+      "type": "boolean"
+    },
+    "clause_key": {
+      "minLength": 5,
+      "type": "string"
+    },
+    "clause_uuid": {
+      "description": "uuid5(CORPUS_NS, 'clause:' || clause_key)",
+      "maxLength": 36,
+      "minLength": 36,
+      "type": "string"
+    },
+    "control_class": {
+      "minLength": 3,
+      "type": "string"
+    },
+    "decoy_of": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "minLength": 3,
+          "type": "string"
+        }
+      ],
+      "description": "the true precursor this decoy shadows"
+    },
+    "doc_code": {
+      "type": "string"
+    },
+    "documented_cause": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "enum": [
+            "regulatory_update",
+            "scheduled_review",
+            "template_migration",
+            "typo_fix"
+          ]
+        }
+      ],
+      "description": "the recorded non-incident reason a negative control was reissued"
+    },
+    "effective_on": {
+      "maxLength": 10,
+      "minLength": 10,
+      "type": "string"
+    },
+    "event_id": {
+      "description": "uuid5(CORPUS_NS, 'event:' || event_ref)",
+      "maxLength": 36,
+      "minLength": 36,
+      "type": "string"
+    },
+    "event_ref": {
+      "minLength": 3,
+      "type": "string"
+    },
+    "generative_reason": {
+      "description": "prose, mandatory on every row, including the negatives",
+      "minLength": 40,
+      "type": "string"
+    },
+    "hazard_energy": {
+      "enum": [
+        "gravity",
+        "pressure",
+        "electrical",
+        "thermal",
+        "chemical",
+        "kinetic",
+        "radiation",
+        "biological"
+      ]
+    },
+    "injector": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "minLength": 3,
+          "type": "string"
+        }
+      ]
+    },
+    "label": {
+      "enum": [
+        "true",
+        "decoy",
+        "negative_control"
+      ]
+    },
+    "occurred_at": {
+      "minLength": 20,
+      "type": "string"
+    },
+    "p_doc_trace": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "type": "number"
+        }
+      ],
+      "description": "the probability this causal fact left a documentary trace, recorded per row so the capture-recapture estimator can state its own assumption"
+    },
+    "quote_ref": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "minLength": 6,
+          "type": "string"
+        }
+      ]
+    },
+    "revision_key": {
+      "type": "string"
+    },
+    "severity_gate": {
+      "maximum": 5,
+      "minimum": 0,
+      "type": "integer"
+    },
+    "site_code": {
+      "maxLength": 3,
+      "minLength": 3,
+      "type": "string"
+    },
+    "site_id": {
+      "description": "uuid5(CORPUS_NS, 'site:' || site_code)",
+      "maxLength": 36,
+      "minLength": 36,
+      "type": "string"
+    },
+    "state": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "enum": [
+            "active",
+            "provisional",
+            "dormant",
+            "refuted"
+          ]
+        }
+      ]
+    }
+  },
+  "required": [
+    "channel_a_visible",
+    "clause_key",
+    "clause_uuid",
+    "control_class",
+    "doc_code",
+    "effective_on",
+    "event_id",
+    "event_ref",
+    "generative_reason",
+    "hazard_energy",
+    "label",
+    "occurred_at",
+    "revision_key",
+    "severity_gate",
+    "site_code",
+    "site_id"
+  ],
+  "title": "MAINLINE corpus gold set GS0",
+  "type": "object"
+}

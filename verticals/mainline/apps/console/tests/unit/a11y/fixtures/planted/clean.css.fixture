@@ -1,0 +1,21 @@
+/*
+ * SPDX-FileCopyrightText: 2026 MAINLINE contributors
+ * SPDX-License-Identifier: FSL-1.1-ALv2
+ *
+ * The CONTROL stylesheet. Zero findings, including the near-misses: a real focus ring, a
+ * decorative pseudo-element with a glyph rather than words, and an `outline` that is set
+ * rather than removed.
+ */
+
+.signButton:focus-visible {
+  outline: var(--tp-focus-width) solid var(--tp-focus);
+  outline-offset: var(--tp-focus-offset);
+}
+
+.separator::after {
+  content: "·";
+}
+
+.panel {
+  outline: 1px solid var(--tp-rule-strong);
+}

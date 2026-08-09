@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 6,
+    "doc_code": "STD-ELE-009",
+    "doc_family": "STD",
+    "doc_title": "Electrical Safety",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2018-01-23",
+    "required_citations": [
+      {
+        "control_label": "earth leakage and protection setting integrity",
+        "event_ref": "RN-2017-002",
+        "event_title": "improvement notice - critical control at TX-8001",
+        "hazard_energy": "electrical",
+        "kind": "regulator_requirement",
+        "quote_ref": "quote:TLG/STD-ELE-009/005#regulator_requirement/RN-2017-002",
+        "severity_gate": 3
+      }
+    ],
+    "rev_no": 5,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "ICAM investigation",
+      "management_of_change": "management of change",
+      "near_miss": "potential incident"
+    }
+  },
+  "key": "d43269b8258a982e8dfa5067215c4ebeda8c30ea0555b90960964efe10f61504",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:TLG/STD-ELE-009/005",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "2908cc74791cf29cf930350417515a901cca870a0402c2df18f9c12670e84c77",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "A regulatory requirement arising from RN-2017-002 obliges this standard to carry the earth leakage and protection setting integrity.",
+        "quote_ref": "quote:TLG/STD-ELE-009/005#regulator_requirement/RN-2017-002"
+      }
+    ],
+    "reason": "Scheduled review at revision 5; 6 clauses restated."
+  },
+  "response_sha256": "f8d25c0a0ef39896077b8021243ce483193f1a65c02d448a9c1f2b563fb754c8",
+  "source": null
+}

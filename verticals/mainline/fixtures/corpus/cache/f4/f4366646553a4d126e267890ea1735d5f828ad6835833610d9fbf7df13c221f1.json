@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "MOBILE-EQUIPMENT-INTERACTION",
+    "barrier_role": "preventive",
+    "control_class": "PROXIMITY_DETECTION_AND_SEGREGATION",
+    "control_delta": "introduce",
+    "control_label": "segregation of light vehicles and pedestrians from heavy equipment",
+    "doc_code": "MOC-2021-0155",
+    "doc_family": "MOC",
+    "doc_title": "Revised Light Vehicle Exclusion Radius on Active Benches",
+    "effective_on": "2021-05-27",
+    "printed_label": "2.1.1",
+    "setpoint": {
+      "from": 20.0,
+      "key": "light_vehicle_exclusion_radius",
+      "label": "light vehicle exclusion radius from operating haul trucks",
+      "strengthen_direction": "higher",
+      "to": 20.0,
+      "unit": "m"
+    },
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "f4366646553a4d126e267890ea1735d5f828ad6835833610d9fbf7df13c221f1",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:YND/MOC-2021-0155/001#YND/MOC-2021-0155/1.2",
+  "prompt_kind": "clause",
+  "prompt_sha256": "c2f6b00243aa6d17b8a3f4666483d5a921be043f300c536de8167913274e8d4e",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The segregation of light vehicles and pedestrians from heavy equipment shall be provided and maintained for work covered by this change record. The light vehicle exclusion radius from operating haul trucks shall be set at 20 m. This clause applies to activities archived under MOBILE-EQUIPMENT-INTERACTION at Yandarra Downs Open Cut and Heavy Workshop.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "4e678449c1de7ef5852d82273f8088d6e0dfd801b2aaf901a8add2d0024dcc98",
+  "source": null
+}

@@ -1,0 +1,38 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 0,
+    "doc_codes": [
+      "MOC-2021-0155",
+      "PRO-MIN-003",
+      "STD-MEQ-007"
+    ],
+    "intent": "strengthen",
+    "moc_ref": "MOC-2014-0004",
+    "opened_on": "2014-01-11",
+    "precursor_events": [],
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "management_of_change": "change request",
+      "verification": "field verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "7a0c5066e51300207802cba697abdaf8fa0af71a50c0783b94132b326a112d2e",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2014-0004",
+  "prompt_kind": "moc",
+  "prompt_sha256": "a7bbdf1ec28d861fe5053ca35cb5f9ce07d880d6fd94a4f08d6bf8929fa4992c",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2014-0004 was raised at Yandarra Downs Open Cut and Heavy Workshop on 11 January 2014 as a scheduled change under change request; no event precedes it in the record. The change request record carries no clause change; it records the assessment only. The intent is to strengthen the critical safeguard named in the documents in scope. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical safeguard set is preserved.",
+    "scope_note": "The documents in scope are MOC-2021-0155, PRO-MIN-003 and STD-MEQ-007."
+  },
+  "response_sha256": "8745f085e25ee6a642ee0296ef603e597593e4545318f791d2757d67d0313985",
+  "source": null
+}

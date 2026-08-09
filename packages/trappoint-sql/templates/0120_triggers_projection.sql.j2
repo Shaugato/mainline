@@ -1,0 +1,211 @@
+{# SPDX-FileCopyrightText: 2026 MAINLINE contributors #}
+{# SPDX-License-Identifier: Apache-2.0 #}
+{#
+  Migrations 0120-0128j — THE WELDS.
+
+  ARCHITECTURE.md §5.11 · §18 (trigger band) · §16 MI01, MI02, MI07, MI09, MI25, MI26, MI27,
+  MI29, MI30 · docs/leads/kernel.md D7, D8 · MR-5 (the one filename convention).
+
+  A function is not an invariant. Everything in band 0100-0109 is inert until it is attached to a
+  table, and THIS TEMPLATE IS WHERE THE CLAIMS BECOME TRUE. A reviewer auditing whether MI25 holds
+  reads 0120, not 0100: the function could be perfect and unwelded and the gate would pass every
+  test that does not insert a blocking check.
+
+  ONE STATEMENT PER FILE, WHICH IS WHY THERE ARE SO MANY FILES. CockroachDB DDL is not
+  transactional across statements, so a multi-statement file leaves a half-applied version and an
+  undiagnosable `dirty` marker. `CREATE TRIGGER` names exactly one table, so an append-only family
+  covering eleven tables is eleven statements and therefore eleven files. Under MR-5 the extra ten
+  take the lowercase-letter suffix of their own number — the multi-statement slot, which is the
+  first of the letter's two legal uses — and they stay inside band 0120-0129z, which the
+  allocation grants to this worker exclusively. A worker that runs out of numbers suffixes; it
+  never borrows.
+
+  ORDERING WITHIN THE BAND is the order a reviewer should read them in: project before it
+  materialises, materialise before it closes, close before it re-opens, verify the chain, guard
+  the closure, and only then refuse every mutation. Lexicographic ordering on the whole stem gives
+  exactly that, and `0128 < 0128a < 0128b < … < 0129`.
+
+  FIRING ORDER BETWEEN TWO TRIGGERS ON ONE TABLE IS NOT ASSUMED ANYWHERE.
+  `blocking_check` carries three row-level triggers after this band: `check_project` BEFORE
+  INSERT, `check_materialised` AFTER INSERT, and recall's `bonded_sev5` AFTER INSERT (migration
+  0137). PostgreSQL fires row triggers in name order; CockroachDB v26.2 does not document its
+  order, and PL-3 forbids resting a dated path on an unproven capability. Nothing here needs it:
+  BEFORE always precedes AFTER, which is the only ordering this design depends on, and the two
+  AFTER triggers commute — if either raises, the whole statement unwinds in either order.
+
+  THE APPEND-ONLY FAMILY IS THE SUBSTRATE'S SHARE OF §5.11 ITEM 9, AND NOT ALL OF IT.
+  §5.11 lists thirty relations. Eleven of them are welded here — the nine SUBSTRATE relations of
+  MR-2 that appear on that list, plus the two authority-lineage relations both shipped bindings
+  carry. The other nineteen (`ledger_intake`, `ledger_leaf`, `ledger_node`, `ledger_checkpoint`,
+  `cosignature`, `blame_edge`, `commit_obj`, `commit_edge`, `silence_ledger`, `silence_receipt`,
+  `recall_candidate`, `frontier_move`, `custodian_attestation`, `agent_action`, `drift_finding`,
+  `event_severity_revision`, `destruction_record`, `boundary_certificate`,
+  `external_attestation`) are VERTICAL objects by MR-1's object test — a second TRAPPOINT vertical
+  does not need them to pass `trappoint-conform` — and a template that welded them would emit
+  `CREATE TRIGGER` against relations the reference vertical will never own, failing at APPLY time
+  in a band nobody would think to look in. They owe an append-only weld in their OWN domain's
+  band, against this same function, and each of their migrations already records the debt
+  (`0072_ledger_intake.sql` names it explicitly). NAMING THE NINETEEN HERE IS THE POINT: a table
+  that owes a weld and has not got one must not be able to hide behind the existence of the
+  function.
+
+  `permit`, `change_request` and `disposition` ARE NOT ON THIS LIST, deliberately. The first two
+  are the state machine and must be updatable — that is what a merge IS. The third has exactly
+  one legal UPDATE and gets its own guard at 0124, whose body is the argument for the exception.
+
+  PLATFORM (measured on CockroachDB CCL v26.2.5, 2026-08-09): `BEFORE UPDATE OR DELETE` in one
+  `CREATE TRIGGER` is accepted and both arms raise; two triggers on different tables may share a
+  name.
+#}
+{% set eventof = {
+     'permit':         {'table': 'permit_event', 'fn': 'fn_permit_event_chain', 'file': '0125_trg_permit_event_chain.sql', 'trg': 'permit_event_chain'},
+     'change_request': {'table': 'cr_event',     'fn': 'fn_cr_event_chain',     'file': '0126_trg_cr_event_chain.sql',     'trg': 'cr_event_chain'},
+   } %}
+{% set appendonly = [
+     {'suffix': '',  'table': 'permit_event',         'why': 'the permit state machine: a rewritten transition is a rewritten history'},
+     {'suffix': 'a', 'table': 'cr_event',             'why': 'the change-request state machine, same argument'},
+     {'suffix': 'b', 'table': 'blocking_check',       'why': 'an obligation that can be edited away is not an obligation'},
+     {'suffix': 'c', 'table': 'merge_record',         'why': 'the completion record IS the epoch pin; editing it unpins every merge'},
+     {'suffix': 'd', 'table': 'exposure_receipt',     'why': 'what the system showed, and when the SERVER showed it'},
+     {'suffix': 'e', 'table': 'exposure_line',        'why': 'the per-obligation half of the same receipt'},
+     {'suffix': 'f', 'table': 'override_ledger',      'why': 'the ladder escalates only while its own rows cannot be removed'},
+     {'suffix': 'g', 'table': 'person',               'why': 'a promotion is a new row; editing rank rewrites what the gate enforced'},
+     {'suffix': 'h', 'table': 'signing_credential',   'why': 'a 2029 signature must still verify in 2036, so the old key never leaves'},
+     {'suffix': 'i', 'table': 'clause_version',       'why': 'MI15: editing sev_max is a shorter path to a laundered ancestry than authoring a child'},
+     {'suffix': 'j', 'table': 'clause_blame_closure', 'why': 'MI26 and finding S2: the one UPDATE that would launder every ancestry gate at once'},
+   ] %}
+-- @file 0120_trg_check_project.sql
+{{ header(file='0120_trg_check_project.sql',
+          title='CREATE TRIGGER check_project — the projection becomes true here',
+          rationale='The function at 0100 is inert until it is attached. BEFORE INSERT because the projection must be written onto NEW before the row lands and before any CHECK over it is evaluated; FOR EACH ROW because the question is about one clause version and one closure. This is the weld that makes MI25 a property of the database rather than a property of the code that happens to call it.',
+          mi=['MI25'], i=['I02']) }}
+--
+-- band: 0120-0129z · kernel/projection-triggers · RENDERED · statements: 1
+-- requires: 0100 {{ binding.schema }}.fn_check_project · 0058 {{ binding.schema }}.blocking_check
+-- sqlstate: P0001 when the blame closure is absent; otherwise the row is silently rewritten,
+--           which is the entire product.
+-- forward-only; no .down.sql and no .up.sql (MR-5).
+
+CREATE TRIGGER check_project BEFORE INSERT ON {{ binding.schema }}.blocking_check
+  FOR EACH ROW EXECUTE FUNCTION {{ binding.schema }}.fn_check_project();
+-- @file 0121_trg_check_materialised.sql
+{{ header(file='0121_trg_check_materialised.sql',
+          title='CREATE TRIGGER check_materialised — the gate closes and the epoch moves',
+          rationale='AFTER INSERT, not BEFORE: the counters belong to another table, so there is nothing to project onto NEW, and the obligation row must be committed to before the subject accounting moves. This weld is what turns a row in blocking_check into a refusal on the subject, and the epoch bump inside it is what makes attaching a precursor to an issued subject physically impossible.',
+          mi=['MI02', 'MI07', 'MI30'], i=['I02', 'I03']) }}
+--
+-- band: 0120-0129z · kernel/projection-triggers · RENDERED · statements: 1
+-- requires: 0101 {{ binding.schema }}.fn_check_materialised · 0058 {{ binding.schema }}.blocking_check
+{% for s in subjects %}
+--           · {{ binding.schema }}.{{ s.table }}
+{% endfor %}
+-- sqlstate: P0001 on a post-merge precursor. Structurally 23514 and 23503 as well — proved by
+--           the unwelding suite, never claimed from runtime behaviour (finding S4).
+-- forward-only; no .down.sql and no .up.sql (MR-5).
+
+CREATE TRIGGER check_materialised AFTER INSERT ON {{ binding.schema }}.blocking_check
+  FOR EACH ROW EXECUTE FUNCTION {{ binding.schema }}.fn_check_materialised();
+-- @file 0122_trg_disposition_project.sql
+{{ header(file='0122_trg_disposition_project.sql',
+          title='CREATE TRIGGER disposition_project — identity and virulence become projections',
+          rationale='BEFORE INSERT, because every column this function writes is read by a CHECK or a foreign key on the same row: rank_floor compares the projected rank, fk_clearance keys on the projected virulence, and override_escalates compares the projected override count. A projection that landed after those evaluated would be decoration.',
+          mi=['MI11', 'MI27', 'MI28', 'MI29'], i=['I09', 'I10']) }}
+--
+-- band: 0120-0129z · kernel/projection-triggers · RENDERED · statements: 1
+-- requires: 0102 {{ binding.schema }}.fn_disposition_project · 0066 {{ binding.schema }}.disposition
+-- sqlstate: P0001 on an unknown check, absent closure, absent or expired receipt, unknown signer.
+--           23503 on fk_clearance and 23514 on rank_floor are raised BY THOSE CONSTRAINTS, after
+--           this trigger has written the values they compare (conformance cases CF-07, CF-19).
+-- forward-only; no .down.sql and no .up.sql (MR-5).
+
+CREATE TRIGGER disposition_project BEFORE INSERT ON {{ binding.schema }}.disposition
+  FOR EACH ROW EXECUTE FUNCTION {{ binding.schema }}.fn_disposition_project();
+-- @file 0123_trg_disposition_close.sql
+{{ header(file='0123_trg_disposition_close.sql',
+          title='CREATE TRIGGER disposition_close — one signature closes exactly one obligation',
+          rationale='AFTER INSERT, because the disposition must survive every CHECK and every foreign key on its own row before it is allowed to move a counter that governs a merge. A gate closed by a disposition that was then refused would be a gate closed by nothing.',
+          mi=['MI02', 'MI29', 'MI30'], i=['I02']) }}
+--
+-- band: 0120-0129z · kernel/projection-triggers · RENDERED · statements: 1
+-- requires: 0103 {{ binding.schema }}.fn_disposition_close · 0066 {{ binding.schema }}.disposition
+--           · 0068 {{ binding.schema }}.override_ledger
+-- sqlstate: P0001 when the disposition names no gated subject; 23514 on the counter
+--           non-negativity CHECK if one were ever closed twice.
+-- forward-only; no .down.sql and no .up.sql (MR-5).
+
+CREATE TRIGGER disposition_close AFTER INSERT ON {{ binding.schema }}.disposition
+  FOR EACH ROW EXECUTE FUNCTION {{ binding.schema }}.fn_disposition_close();
+-- @file 0124_trg_disposition_retract_only.sql
+{{ header(file='0124_trg_disposition_retract_only.sql',
+          title='CREATE TRIGGER disposition_retract_only — the one permitted UPDATE, guarded',
+          rationale='BEFORE UPDATE, because the refusal must happen before the row changes and because the guard compares OLD with NEW, which only a BEFORE trigger can do while the write is still preventable. This weld is what makes disposition an append-only table with exactly one stated exception rather than a mutable one with a convention.',
+          mi=['MI01', 'MI07'], i=['I01', 'I03']) }}
+--
+-- band: 0120-0129z · kernel/projection-triggers · RENDERED · statements: 1
+-- requires: 0104 {{ binding.schema }}.fn_disposition_retract_only · 0066 {{ binding.schema }}.disposition
+-- sqlstate: P0001 on a re-retraction, an un-retraction, or any other column changing.
+--           23503 on the epoch pin when the subject has already merged.
+-- forward-only; no .down.sql and no .up.sql (MR-5).
+
+CREATE TRIGGER disposition_retract_only BEFORE UPDATE ON {{ binding.schema }}.disposition
+  FOR EACH ROW EXECUTE FUNCTION {{ binding.schema }}.fn_disposition_retract_only();
+{% for s in subjects %}
+{% set ev = eventof[s.kind] %}
+-- @file {{ ev.file }}
+{{ header(file=ev.file,
+          title='CREATE TRIGGER ' ~ ev.trg ~ ' — the ' ~ s.kind ~ ' chain verifies its own input',
+          rationale='BEFORE INSERT, because a chain link whose parent digest is wrong must never exist, not even inside the transaction that would have rolled it back. The STORED chain_digest column hashes whatever prev_digest it is given; this weld is what makes the input to that hash verified rather than trusted, which is what the column comment claimed and finding S9 found to be false.',
+          mi=['MI01', 'MI09', 'MI24'], i=['I04']) }}
+--
+-- band: 0120-0129z · kernel/projection-triggers · RENDERED · statements: 1
+-- requires: {{ '0105' if s.kind == 'permit' else '0106' }} {{ binding.schema }}.{{ ev.fn }}
+--           · {{ binding.schema }}.{{ ev.table }}
+-- sqlstate: P0001 on a missing predecessor or a digest mismatch. The FORK case is 23505 on
+--           `linear`, raised by that constraint and deliberately not pre-empted here.
+-- forward-only; no .down.sql and no .up.sql (MR-5).
+
+CREATE TRIGGER {{ ev.trg }} BEFORE INSERT ON {{ binding.schema }}.{{ ev.table }}
+  FOR EACH ROW EXECUTE FUNCTION {{ binding.schema }}.{{ ev.fn }}();
+{% endfor %}
+-- @file 0127_trg_closure_guard.sql
+{{ header(file='0127_trg_closure_guard.sql',
+          title='CREATE TRIGGER closure_guard — dense generations, monotone severity, ledgered writes',
+          rationale='BEFORE INSERT, because a closure generation that is out of sequence must never exist and because the custody intake row must be written in the same transaction as the closure it records. Finding S2 in one weld: after this, a mass rewrite of the blame closure is impossible to perform invisibly, which is a strictly stronger claim than making it impossible to perform.',
+          mi=['MI26', 'MI15', 'MI01'], i=['I05']) }}
+--
+-- band: 0120-0129z · kernel/projection-triggers · RENDERED · statements: 1
+-- requires: 0108 {{ binding.schema }}.fn_closure_guard · {{ binding.schema }}.clause_blame_closure
+--           · {{ binding.schema }}.site · {{ binding.schema }}.ledger_intake
+--           · {{ binding.schema }}.event_severity_revision
+-- sqlstate: P0001 on a non-dense generation, a silent downgrade, or an unprovisioned site.
+--           Conformance case CF-08 asserts both halves.
+-- forward-only; no .down.sql and no .up.sql (MR-5).
+
+CREATE TRIGGER closure_guard BEFORE INSERT ON {{ binding.schema }}.clause_blame_closure
+  FOR EACH ROW EXECUTE FUNCTION {{ binding.schema }}.fn_closure_guard();
+{% for t in appendonly %}
+-- @file 0128{{ t.suffix }}_trg_refuse_mutation{{ '_' ~ t.table if t.suffix else '' }}.sql
+{{ header(file='0128' ~ t.suffix ~ '_trg_refuse_mutation' ~ ('_' ~ t.table if t.suffix else '') ~ '.sql',
+          title='CREATE TRIGGER append_only ON ' ~ binding.schema ~ '.' ~ t.table,
+          rationale='Weld ' ~ loop.index ~ ' of ' ~ loop.length ~ ' in the append-only family: ' ~ t.why ~ '. UPDATE and DELETE are one trigger because a record rewritten and a record deleted are the same event from the archive point of view. Revoked privileges are cluster state that a restore does not carry and that an incident is exactly the moment somebody widens; this weld travels with the schema.',
+          mi=['MI01'], i=['I01']) }}
+--
+-- band: 0120-0129z · kernel/projection-triggers · RENDERED · statements: 1
+-- requires: 0107 {{ binding.schema }}.fn_refuse_mutation · {{ binding.schema }}.{{ t.table }}
+-- sqlstate: P0001, on every UPDATE and every DELETE, for every role, forever.
+-- forward-only; no .down.sql and no .up.sql (MR-5).
+{% if not t.suffix %}
+--
+-- THIS IS THE FIRST OF {{ appendonly | length }} FILES IN ONE LOGICAL OBJECT. `CREATE TRIGGER`
+-- names one table and one file holds one statement, so the family takes the MR-5 lettered
+-- multi-statement slot: 0128, then 0128a through 0128{{ appendonly[-1].suffix }}. Every one of
+-- them stays inside band 0120-0129z, which the allocation grants to this worker exclusively.
+-- The relations welded, in order:
+{% for u in appendonly %}
+--   0128{{ u.suffix }}  {{ binding.schema }}.{{ u.table }}
+{% endfor %}
+{% endif %}
+
+CREATE TRIGGER append_only BEFORE UPDATE OR DELETE ON {{ binding.schema }}.{{ t.table }}
+  FOR EACH ROW EXECUTE FUNCTION {{ binding.schema }}.fn_refuse_mutation();
+{% endfor %}

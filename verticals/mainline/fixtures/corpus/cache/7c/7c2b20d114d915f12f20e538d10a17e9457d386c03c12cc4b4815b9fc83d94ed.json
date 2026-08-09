@@ -1,0 +1,43 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 1,
+    "doc_codes": [
+      "MOC-2021-0155",
+      "PRO-MIN-003",
+      "STD-MEQ-007"
+    ],
+    "intent": "restate",
+    "moc_ref": "MOC-2024-0173",
+    "opened_on": "2024-09-28",
+    "precursor_events": [
+      {
+        "event_ref": "INC-2024-011",
+        "severity_gate": null
+      }
+    ],
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "management_of_change": "change assurance",
+      "verification": "assurance activity"
+    },
+    "weakening_steps": 0
+  },
+  "key": "7c2b20d114d915f12f20e538d10a17e9457d386c03c12cc4b4815b9fc83d94ed",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2024-0173",
+  "prompt_kind": "moc",
+  "prompt_sha256": "8eded77e6770d419b0d6b654ad449b7af68d4b2608437b0c41bac66efc5f8c3b",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2024-0173 was raised at Yandarra Downs Open Cut and Heavy Workshop on 28 September 2024 following 1 recorded event in the archive, including INC-2024-011. The change assurance record covers 1 clause across 3 controlled documents. The intent is to restate an existing duty without altering what it requires. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the material unwanted event control set is preserved.",
+    "scope_note": "The documents in scope are MOC-2021-0155, PRO-MIN-003 and STD-MEQ-007."
+  },
+  "response_sha256": "483a7f3a225915ac092004fc1fd816908c8bd453459f24f5dee72314372ce0bb",
+  "source": null
+}

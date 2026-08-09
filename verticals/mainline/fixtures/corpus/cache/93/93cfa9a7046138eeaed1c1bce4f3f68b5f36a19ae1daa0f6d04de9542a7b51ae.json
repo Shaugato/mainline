@@ -1,0 +1,38 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 2,
+    "doc_codes": [
+      "MOC-2023-0302",
+      "PRO-CHM-009",
+      "STD-CHM-011"
+    ],
+    "intent": "strengthen",
+    "moc_ref": "MOC-2021-0231",
+    "opened_on": "2021-12-28",
+    "precursor_events": [],
+    "site": "Tolgarra Processing and Power Station",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "management_of_change": "management of change",
+      "verification": "critical control verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "93cfa9a7046138eeaed1c1bce4f3f68b5f36a19ae1daa0f6d04de9542a7b51ae",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2021-0231",
+  "prompt_kind": "moc",
+  "prompt_sha256": "6c961e0f1c5c38a6eab0d83337ca50fa2751ee904a2b7f54c6266bcaa6dae72e",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2021-0231 was raised at Tolgarra Processing and Power Station on 28 December 2021 as a scheduled change under management of change; no event precedes it in the record. The management of change record covers 2 clauses across 3 controlled documents. The intent is to strengthen the critical control named in the documents in scope. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical control set is preserved.",
+    "scope_note": "The documents in scope are MOC-2023-0302, PRO-CHM-009 and STD-CHM-011."
+  },
+  "response_sha256": "a79315a4ce014eadeac2cbdc6af887e17d67941c13c9b033ef199bad2e9b7ae3",
+  "source": null
+}

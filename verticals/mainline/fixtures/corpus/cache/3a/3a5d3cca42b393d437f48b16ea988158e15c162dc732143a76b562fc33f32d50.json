@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ISOLATION-OF-STORED-ENERGY",
+    "barrier_role": "preventive",
+    "control_class": "ENERGY_SOURCE_IDENTIFICATION",
+    "control_delta": "weaken",
+    "control_label": "identification of every energy source for the task",
+    "doc_code": "PRO-MEC-021",
+    "doc_family": "PRO",
+    "doc_title": "Mechanical Isolation and Lockout",
+    "effective_on": "2023-03-22",
+    "printed_label": "1.1.7",
+    "setpoint": null,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "energy_isolation": "positive isolation verification",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "3a5d3cca42b393d437f48b16ea988158e15c162dc732143a76b562fc33f32d50",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:MRD/PRO-MEC-021/011#MRD/PRO-MEC-021/6.2",
+  "prompt_kind": "clause",
+  "prompt_sha256": "3656fe1e397f282ba9dd255a40d9767bcb5695ccddb04951f78024db46501939",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The identification of every energy source for the task should be provided; the assurance activity may be recorded at the next scheduled review rather than before the task proceeds. This clause applies to activities archived under ISOLATION-OF-STORED-ENERGY at Marrindal Concentrator and Hydrocarbon Transfer Facility.",
+    "obligation_verb": "should"
+  },
+  "response_sha256": "93ffafc8e59a07d6ca4ec3f85d7c60d4e566a32f9daf822ec3bbac1f821897e6",
+  "source": null
+}

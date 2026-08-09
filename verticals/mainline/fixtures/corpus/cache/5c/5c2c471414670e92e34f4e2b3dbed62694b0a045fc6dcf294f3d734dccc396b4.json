@@ -1,0 +1,48 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 1,
+    "doc_codes": [
+      "ALERT-2016-007",
+      "MOC-2026-0413",
+      "PRO-MEC-014",
+      "PRO-OPS-032"
+    ],
+    "intent": "strengthen",
+    "moc_ref": "MOC-2024-0109",
+    "opened_on": "2024-06-02",
+    "precursor_events": [
+      {
+        "event_ref": "INC-2004-008",
+        "severity_gate": null
+      },
+      {
+        "event_ref": "INC-2025-010",
+        "severity_gate": null
+      }
+    ],
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "management_of_change": "change assurance",
+      "verification": "assurance activity"
+    },
+    "weakening_steps": 0
+  },
+  "key": "5c2c471414670e92e34f4e2b3dbed62694b0a045fc6dcf294f3d734dccc396b4",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2024-0109",
+  "prompt_kind": "moc",
+  "prompt_sha256": "bf3b375efb5fa6b93955f5be8be1c20e12ca309482915252e85d77308493e0ba",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2024-0109 was raised at Marrindal Concentrator and Hydrocarbon Transfer Facility on 2 June 2024 following 2 recorded events in the archive, including INC-2004-008 and INC-2025-010. The change assurance record covers 1 clause across 4 controlled documents. The intent is to strengthen the material unwanted event control named in the documents in scope. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the material unwanted event control set is preserved.",
+    "scope_note": "The documents in scope are ALERT-2016-007, MOC-2026-0413, PRO-MEC-014 and PRO-OPS-032."
+  },
+  "response_sha256": "95ba32ec77924465782dcb09bbc3a9f6ed4df5293803b3605c1489235b26b108",
+  "source": null
+}

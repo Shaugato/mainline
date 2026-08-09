@@ -1,0 +1,82 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MAINLINE · 0180g_role_fleet_hse.sql
+-- CREATE ROLE IF NOT EXISTS fleet_hse — a DDL-time dependency of the policy band, and nothing more
+--
+-- MI: MI01
+-- I: I01
+-- COUNSEL-GATED: no
+-- RATIONALE: `CREATE POLICY … TO fleet_hse` is refused at DDL time with
+--            `role/user "fleet_hse" does not exist` — measured against CockroachDB CCL
+--            v26.2.5 on 2026-08-10, not inferred. DM-7 moved roles and grants out of the
+--            migration set into GRANTS.yaml because they are CLUSTER state a RESTORE does not
+--            carry, and that ruling stands: this file creates the role and grants it
+--            NOTHING. A migration cannot depend on a separate tool having run first, so the
+--            existence of the principal a policy names has to be asserted where the policy
+--            is applied.
+--
+-- migration:  0180g_role_fleet_hse
+-- domain:     datamodel / dm-views-rls
+-- band:       0180-0198z · datamodel/dm-views-rls · AUTHORED, allocated by
+--             verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1)
+-- statements: 1
+-- source:     verticals/mainline/db/GRANTS.yaml §1 (roles, phase 1 of apply_order, whose
+--             statement form is exactly `CREATE ROLE IF NOT EXISTS <name> WITH [NO]LOGIN`) ·
+--             ARCHITECTURE.md §11.2 (the SQL role matrix) · §11.3 · docs/leads/datamodel.md DM-7
+-- requires:   0006a-0006i (the nine roles the kernel templates already render)
+-- sqlstate:   none — idempotent by `IF NOT EXISTS`; a second run is a no-op.
+-- forward-only; no .down.sql exists at or below the protected floor.
+--
+-- ────────────────────────────────────────────────────────────────────────────
+-- WHAT THIS ROLE IS FOR
+-- ────────────────────────────────────────────────────────────────────────────
+-- The cross-site HSE reader. `fleet_scope` grants it `USING (true)` on both
+-- gated subjects — the one place in this matrix where an unscoped read is
+-- intended rather than conceded, because a fleet safety function that can only
+-- see one site is not a fleet safety function.
+--
+-- ────────────────────────────────────────────────────────────────────────────
+-- WHY THIS IS NOT A REVERSAL OF DM-7
+-- ────────────────────────────────────────────────────────────────────────────
+-- DM-7's argument is about GRANTS, and it is correct: a grant applied once in a
+-- migration exists in dev and does not exist in the cluster a restore drill
+-- produces, so object privileges must be re-asserted and drift-checked rather
+-- than applied once. Nothing in this file grants anything. `fleet_hse` leaves
+-- here with NOLOGIN, no membership, no schema USAGE and no table privilege —
+-- exactly as `mainline_owner` does out of 0006b — and every privilege it ever
+-- holds is asserted by `trappoint-migrate grants apply` from GRANTS.yaml, every
+-- run, drift-checked, with the privilege probe asserting 42501 on everything the
+-- matrix does not name.
+--
+-- What this file asserts is EXISTENCE, and existence is a DDL-time dependency of
+-- the object in the next file. The statement is byte-identical to phase 1 of
+-- GRANTS.yaml's own apply order and is idempotent, so a cluster where
+-- `grants apply` ran first sees a no-op and a cluster where it did not sees a
+-- principal with no power.
+--
+-- NOLOGIN is not decoration. Every role in this matrix is reached by GRANT plus
+-- SET ROLE and never by logging in as it, because CURRENT_USER is the RLS scope
+-- token (§11.3): a role that can be logged in as directly is a role whose scope
+-- a credential holder chooses.
+--
+-- ────────────────────────────────────────────────────────────────────────────
+-- WHERE THIS BELONGS, AND WHY IT IS HERE INSTEAD
+-- ────────────────────────────────────────────────────────────────────────────
+-- The permanent home is `packages/trappoint-sql/templates/0006_roles.sql.j2`,
+-- beside the nine roles it already renders — the kernel creates
+-- `mainline_migrator`, `mainline_owner`, `agent_gate`, `agent_projector`,
+-- `agent_recaller`, `svc_disposition`, `mainline_auditor`, `auditor_ro` and
+-- `quality_assurance`, and stops there, while §11.2 names eighteen. The eleven
+-- absentees are not an oversight in this band; they are a gap between two
+-- documents that only becomes a failure at the first `CREATE POLICY` that names
+-- one.
+--
+-- This file is not an edit to that template and must never become one: a
+-- rendered file is never hand-edited and a hand-authored twin of one is
+-- permanently red in the worst way — `render --check` stays green while the
+-- runner refuses the tree (MR-1). When the kernel worker adds the role to the
+-- template, this file becomes a no-op and can be deleted in one commit with no
+-- coordination, because `IF NOT EXISTS` makes both orders correct.
+
+CREATE ROLE IF NOT EXISTS fleet_hse WITH NOLOGIN;

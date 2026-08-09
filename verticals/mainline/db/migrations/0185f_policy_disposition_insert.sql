@@ -1,0 +1,52 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MAINLINE · 0185f_policy_disposition_insert.sql
+-- CREATE POLICY disposition_insert ON mainline.disposition — one role, and only one
+--
+-- MI: MI08, MI12
+-- I: I09
+-- COUNSEL-GATED: yes
+-- RATIONALE: S22's INSERT arm on the table where the separation covenant is sharpest: the
+--            role that materialises an obligation may never dispose of it.
+--            `svc_disposition` is named here and `agent_gate` is denied INSERT on this
+--            table explicitly in GRANTS.yaml, so the policy and the grant say the same
+--            thing in two layers.
+--
+-- migration:  0185f_policy_disposition_insert
+-- domain:     datamodel / dm-views-rls
+-- band:       0180-0198z · datamodel/dm-views-rls · AUTHORED, allocated by
+--             verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1)
+-- statements: 1
+-- matrix:     verticals/mainline/db/RLS-MATRIX.yaml — this file is a RENDERING of one entry
+--             there; tests/integration/schema/test_mi_rls.py asserts the two agree
+-- source:     ARCHITECTURE.md §11.3 (RLS, SEC-1) · §4.1 law 10 · correction S22 · §11.2 · §9.x separation covenant (0009x_covenant_comment.sql)
+-- requires:   0066 mainline.disposition · 0180 peer_visible · 0185 ENABLE · 0185a FORCE
+-- sqlstate:   42501 when absent.
+-- forward-only; no .down.sql exists at or below the protected floor.
+--
+-- ────────────────────────────────────────────────────────────────────────────
+-- THE COVENANT IS IN THE CATALOG, AND THIS FILE IS ONE OF ITS THREE LAYERS
+-- ────────────────────────────────────────────────────────────────────────────
+-- Migration 0009x writes the separation covenant into `COMMENT ON SCHEMA mainline` so an
+-- auditor can read it out of the database rather than out of a design document: 'the role
+-- that materialises an obligation may never dispose of it: only svc_disposition writes a
+-- disposition. Enforced by grants, by trigger, and by RLS, in that order.' This is the RLS
+-- third of that sentence, and the comment names it in advance so a reviewer can check the
+-- claim against the object.
+--
+-- ────────────────────────────────────────────────────────────────────────────
+-- WITH CHECK (true) IS NOT A WEAK CHECK — IT IS THE ONLY EXPRESSIBLE ONE
+-- ────────────────────────────────────────────────────────────────────────────
+-- Everything that makes a disposition legal is a composite foreign key or a CHECK:
+-- `fk_clearance` into the versioned clearance lattice, `fk_exposure` into the exposure line
+-- pair, `rank_floor`, `uv_required`, `ttl_enforced`, `override_escalates`,
+-- `verbatim_floor`. Not one of those is expressible in a policy expression, which cannot
+-- contain a subquery. A policy that tried would be a weaker duplicate of a control that
+-- already exists.
+--
+
+CREATE POLICY disposition_insert ON mainline.disposition
+  AS PERMISSIVE FOR INSERT TO svc_disposition
+  WITH CHECK (true);
+

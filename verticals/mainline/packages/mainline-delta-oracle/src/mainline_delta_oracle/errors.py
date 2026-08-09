@@ -132,6 +132,28 @@ def _error_code(exc: BaseException) -> str:
     return str(code) if code else ""
 
 
+#: Agentkit exception classes that mean "the model answered, and the answer is
+#: unusable", in the order they are tested.  A table rather than a chain of
+#: ``if isinstance`` returns so that adding a mode is a data edit and so that the
+#: whole mapping is visible in one place.
+_BEHAVIOUR_CODES: Final[tuple[tuple[type[BaseException], str], ...]] = (
+    (TruncatedResponse, "truncated"),
+    (UnknownStopReason, "unknown_stop_reason"),
+    (DeadLettered, "schema_violation"),
+    (SchemaViolation, "schema_violation"),
+)
+
+
+def _transport_code(exc: BaseException) -> str | None:
+    """Classify a call that never completed, by exception class name or AWS code."""
+    name = type(exc).__name__
+    if name in TIMEOUT_EXCEPTION_NAMES:
+        return "timeout"
+    if name in THROTTLE_ERROR_CODES or _error_code(exc) in THROTTLE_ERROR_CODES:
+        return "throttled"
+    return None
+
+
 def abstention_code_for(exc: BaseException) -> str | None:
     """Classify one exception into an abstention code, or ``None`` to re-raise.
 
@@ -145,20 +167,13 @@ def abstention_code_for(exc: BaseException) -> str | None:
         else, including every configuration refusal.
     """
     if isinstance(exc, ModelRefused):
-        return (
-            "guardrail_intervention" if exc.category == "guardrail_intervention" else "model_refusal"
-        )
-    if isinstance(exc, TruncatedResponse):
-        return "truncated"
-    if isinstance(exc, UnknownStopReason):
-        return "unknown_stop_reason"
-    if isinstance(exc, DeadLettered | SchemaViolation):
-        return "schema_violation"
+        guardrail = exc.category == "guardrail_intervention"
+        return "guardrail_intervention" if guardrail else "model_refusal"
+    for kind, code in _BEHAVIOUR_CODES:
+        if isinstance(exc, kind):
+            return code
     if isinstance(exc, OracleConfigurationRefused):
+        # Bucket 2. Never converted: a broken deployment must crash rather than
+        # write a row saying a model declined a question nobody put to it.
         return None
-    name = type(exc).__name__
-    if name in TIMEOUT_EXCEPTION_NAMES:
-        return "timeout"
-    if name in THROTTLE_ERROR_CODES or _error_code(exc) in THROTTLE_ERROR_CODES:
-        return "throttled"
-    return None
+    return _transport_code(exc)

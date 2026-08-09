@@ -1,0 +1,40 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 1,
+    "doc_codes": [
+      "ALERT-2016-007",
+      "MOC-2014-0087",
+      "PRO-MEC-041",
+      "PRO-OPS-017",
+      "PTW-STD-003"
+    ],
+    "intent": "weaken",
+    "moc_ref": "MOC-2014-0183",
+    "opened_on": "2014-11-17",
+    "precursor_events": [],
+    "site": "Cape Verity Export Terminal",
+    "terminal_state": "closed",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "management_of_change": "change request",
+      "verification": "field verification"
+    },
+    "weakening_steps": 1
+  },
+  "key": "9a3fb965c91422ab6b1b60e595b0437c9c669aa9bb0786c7b3726debb0f7418d",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2014-0183",
+  "prompt_kind": "moc",
+  "prompt_sha256": "2f3050a29203349edbc06ca73846468328c0529058d867d3ee60e2f2b46c109a",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2014-0183 was raised at Cape Verity Export Terminal on 17 November 2014 as a scheduled change under change request; no event precedes it in the record. The change request record covers 1 clause across 5 controlled documents. The intent is to relax a critical safeguard requirement, and the basis for the relaxation is recorded with the change. The record reached the state closed in the change stream.",
+    "risk_note": "This change relaxes a control: 1 step of relaxation is recorded against it, and the residual risk position rests on that relaxation having been accepted deliberately.",
+    "scope_note": "The documents in scope are ALERT-2016-007, MOC-2014-0087, PRO-MEC-041, PRO-OPS-017 and PTW-STD-003."
+  },
+  "response_sha256": "b3defcba777094e3bee58853e63b2673e74d918cf928a02bab8d8d8a02b1d9fe",
+  "source": null
+}

@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "CONFINED-SPACE-ENTRY",
+    "barrier_role": "preventive",
+    "control_class": "GAS_TEST_BEFORE_AND_DURING_HOT_WORK",
+    "control_delta": "remove",
+    "control_label": "atmospheric gas testing before and during hot work",
+    "doc_code": "STD-CSE-002",
+    "doc_family": "STD",
+    "doc_title": "Confined Spaces",
+    "effective_on": "2018-08-24",
+    "printed_label": "3.1.3",
+    "setpoint": {
+      "from": 25.0,
+      "key": "flammable_gas_alarm",
+      "label": "flammable gas alarm threshold",
+      "strengthen_direction": "lower",
+      "to": 25.0,
+      "unit": "%LEL"
+    },
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "3fbc6dc960847fa79c22c173a9aba1fb1496686e9f60934c2c1ba9d5523542ec",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:CVY/STD-CSE-002/005#CVY/STD-CSE-002/3.1",
+  "prompt_kind": "clause",
+  "prompt_sha256": "9199d8a007d004f697a4cabcc709083902c9365b9ff258cfc25743d6f219369e",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "This requirement is withdrawn. The atmospheric gas testing before and during hot work is no longer imposed by this standard; the duty is discharged under the document that supersedes this clause. The flammable gas alarm threshold shall be set at 25 %LEL.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "1f195af84ab2715463ed7f58901931d9dda89d82008d60cdfee24e4264d23931",
+  "source": null
+}

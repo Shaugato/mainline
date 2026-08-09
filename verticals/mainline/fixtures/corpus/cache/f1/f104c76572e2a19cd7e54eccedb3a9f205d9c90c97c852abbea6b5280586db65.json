@@ -1,0 +1,43 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 2,
+    "doc_codes": [
+      "MOC-2021-0155",
+      "PRO-MIN-003",
+      "STD-MEQ-007"
+    ],
+    "intent": "replace",
+    "moc_ref": "MOC-2005-0041",
+    "opened_on": "2005-03-14",
+    "precursor_events": [
+      {
+        "event_ref": "CAPA-2006-001",
+        "severity_gate": null
+      }
+    ],
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "management_of_change": "engineering change note",
+      "verification": "spot check"
+    },
+    "weakening_steps": 0
+  },
+  "key": "f104c76572e2a19cd7e54eccedb3a9f205d9c90c97c852abbea6b5280586db65",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2005-0041",
+  "prompt_kind": "moc",
+  "prompt_sha256": "925c9a06d0bd163961f2165bf4c409fae628ae9480d2d1792b0a774096ddaaf7",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2005-0041 was raised at Yandarra Downs Open Cut and Heavy Workshop on 14 March 2005 following 1 recorded event in the archive, including CAPA-2006-001. The engineering change note record covers 2 clauses across 3 controlled documents. The intent is to replace an existing requirement with one written to the current house style. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the key safeguard set is preserved.",
+    "scope_note": "The documents in scope are MOC-2021-0155, PRO-MIN-003 and STD-MEQ-007."
+  },
+  "response_sha256": "38e4dfb21f0f1df1058325f954b19d06ec260058d42ad2922f27bb432774bf15",
+  "source": null
+}

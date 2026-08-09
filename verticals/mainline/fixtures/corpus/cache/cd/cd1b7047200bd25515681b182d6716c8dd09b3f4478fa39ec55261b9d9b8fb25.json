@@ -1,0 +1,42 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 2,
+    "doc_codes": [
+      "PRO-HSE-005",
+      "STD-HTW-004"
+    ],
+    "intent": "restate",
+    "moc_ref": "MOC-2020-0073",
+    "opened_on": "2020-06-10",
+    "precursor_events": [
+      {
+        "event_ref": "AF-2004-001",
+        "severity_gate": null
+      }
+    ],
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "terminal_state": "closed",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "management_of_change": "management of change",
+      "verification": "critical control verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "cd1b7047200bd25515681b182d6716c8dd09b3f4478fa39ec55261b9d9b8fb25",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2020-0073",
+  "prompt_kind": "moc",
+  "prompt_sha256": "d478f82a5f8509bc05a2bc89c7fe2c67bc1cb29c6478dd8c1acc82e53000a8fc",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2020-0073 was raised at Marrindal Concentrator and Hydrocarbon Transfer Facility on 10 June 2020 following 1 recorded event in the archive, including AF-2004-001. The management of change record covers 2 clauses across 2 controlled documents. The intent is to restate an existing duty without altering what it requires. The record reached the state closed in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical control set is preserved.",
+    "scope_note": "The documents in scope are PRO-HSE-005 and STD-HTW-004."
+  },
+  "response_sha256": "12a6e8b80bbfbcb93430c45de3fb5d8d0d1bf02de098f8941e980235cd4f6976",
+  "source": null
+}

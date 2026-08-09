@@ -1,0 +1,43 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 1,
+    "doc_codes": [
+      "ALERT-2009-003",
+      "PRO-MEC-055",
+      "STD-LFT-003"
+    ],
+    "intent": "introduce",
+    "moc_ref": "MOC-2018-0178",
+    "opened_on": "2018-09-10",
+    "precursor_events": [
+      {
+        "event_ref": "INC-2016-016",
+        "severity_gate": null
+      }
+    ],
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "management_of_change": "management of change",
+      "verification": "critical control verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "55c3ca58b0882cd3db5e491fec972f2fc2864d2af9392abfc154092920b277a7",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2018-0178",
+  "prompt_kind": "moc",
+  "prompt_sha256": "d70cc5a3de4980bc02af21a827da2f7775c02a5eed5fc50cfe3f17d1a8a7f675",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2018-0178 was raised at Yandarra Downs Open Cut and Heavy Workshop on 10 September 2018 following 1 recorded event in the archive, including INC-2016-016. The management of change record covers 1 clause across 3 controlled documents. The intent is to introduce a duty the documents in scope did not previously carry. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical control set is preserved.",
+    "scope_note": "The documents in scope are ALERT-2009-003, PRO-MEC-055 and STD-LFT-003."
+  },
+  "response_sha256": "fc8ff76f6982f8273e525d5398364d575ae40290d520b347a2c0686ffc64c773",
+  "source": null
+}

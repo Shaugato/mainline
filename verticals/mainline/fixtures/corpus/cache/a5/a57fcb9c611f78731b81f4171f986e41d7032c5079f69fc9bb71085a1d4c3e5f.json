@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 7,
+    "doc_code": "STD-ISO-006",
+    "doc_family": "STD",
+    "doc_title": "Isolation of Stored Energy",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2015-09-05",
+    "required_citations": [
+      {
+        "control_label": "controlled removal of isolation and return to service",
+        "event_ref": "INC-2015-007",
+        "event_title": "gravity release during start-up after maintenance on CV-3102",
+        "hazard_energy": "gravity",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:MRD/STD-ISO-006/003#revision_history_line/INC-2015-007",
+        "severity_gate": 1
+      }
+    ],
+    "rev_no": 3,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "root cause analysis",
+      "management_of_change": "change request",
+      "near_miss": "hazard report"
+    }
+  },
+  "key": "a57fcb9c611f78731b81f4171f986e41d7032c5079f69fc9bb71085a1d4c3e5f",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/STD-ISO-006/003",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "3562338cf1e8c9ab016d15b2773f02a6edd58c556d1f5a111debb37d70187607",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "Revision 3 was raised in response to INC-2015-007, and the controlled removal of isolation and return to service was amended as a result.",
+        "quote_ref": "quote:MRD/STD-ISO-006/003#revision_history_line/INC-2015-007"
+      }
+    ],
+    "reason": "Scheduled review at revision 3; 7 clauses restated."
+  },
+  "response_sha256": "78a9e82c900bb3563fa0f5a7ba45cd3651ea773ba185e7e0486bc6c5b943320b",
+  "source": null
+}

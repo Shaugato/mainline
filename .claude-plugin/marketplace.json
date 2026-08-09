@@ -1,0 +1,46 @@
+{
+  "name": "trappoint",
+  "description": "Skills for building refusal gates and tamper-evident ledgers on CockroachDB.",
+  "version": "0.1.0",
+  "owner": {
+    "name": "TRAPPOINT contributors",
+    "url": "https://github.com/Shaugato/mainline"
+  },
+  "plugins": [
+    {
+      "name": "trappoint-skills",
+      "displayName": "TRAPPOINT skills",
+      "source": "./",
+      "description": "Design and prove database-enforced refusals on CockroachDB: diachronic merge gates whose constraint name is the exhibit, and prefix-constrained vector recall you can prove from EXPLAIN. Each skill ships a script that fails when the guarantee does not hold.",
+      "version": "0.1.0",
+      "author": {
+        "name": "TRAPPOINT contributors",
+        "url": "https://github.com/Shaugato/mainline"
+      },
+      "homepage": "https://github.com/Shaugato/mainline/tree/main/skills",
+      "repository": "https://github.com/Shaugato/mainline",
+      "license": "Apache-2.0",
+      "keywords": [
+        "cockroachdb",
+        "sql",
+        "constraints",
+        "audit-ledger",
+        "tamper-evidence",
+        "vector-index",
+        "database-testing"
+      ],
+      "category": "database",
+      "tags": [
+        "cockroachdb",
+        "postgres",
+        "schema-design",
+        "testing"
+      ],
+      "strict": false,
+      "skills": [
+        "./skills/designing-diachronic-gates",
+        "./skills/designing-vector-recall-prefixes"
+      ]
+    }
+  ]
+}

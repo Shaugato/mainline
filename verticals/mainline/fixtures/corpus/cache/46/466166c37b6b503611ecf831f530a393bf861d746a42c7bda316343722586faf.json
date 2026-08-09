@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "MOBILE-EQUIPMENT-INTERACTION",
+    "barrier_role": "preventive",
+    "control_class": "PARK_UP_AND_RESTRAINT",
+    "control_delta": "introduce",
+    "control_label": "parking, chocking and restraint of equipment",
+    "doc_code": "MOC-2021-0155",
+    "doc_family": "MOC",
+    "doc_title": "Revised Light Vehicle Exclusion Radius on Active Benches",
+    "effective_on": "2021-05-27",
+    "printed_label": "1.1.4",
+    "setpoint": null,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "466166c37b6b503611ecf831f530a393bf861d746a42c7bda316343722586faf",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:YND/MOC-2021-0155/001#YND/MOC-2021-0155/2.1.2(a)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "30956ed5aa1158352b292f4fba7eb696c7064a6417a48d46b1792efc85b55dea",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The parking, chocking and restraint of equipment shall be provided and maintained for work covered by this change record. This clause applies to activities archived under MOBILE-EQUIPMENT-INTERACTION at Yandarra Downs Open Cut and Heavy Workshop.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "894eed14cfe1d245dbea7e7e5da57ab52687a336eaa9f59ba3f347d20f99b67d",
+  "source": null
+}

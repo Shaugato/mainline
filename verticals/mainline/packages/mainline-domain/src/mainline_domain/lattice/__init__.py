@@ -7,15 +7,15 @@ Public surface::
     from mainline_domain.lattice import decide, explain
 
     verdict = decide(reference_cat, descendant_cat, registry, as_of=commit_id)
-    verdict.delta        # ControlDelta.WEAKEN
-    verdict.basis        # 'lattice'
-    verdict.witnesses    # the irreducible reason set — I14
-    verdict.minimal      # always True for a lattice verdict
+    verdict.delta  # ControlDelta.WEAKEN
+    verdict.basis  # 'lattice'
+    verdict.witnesses  # the irreducible reason set — I14
+    verdict.minimal  # always True for a lattice verdict
 
     decision = explain(reference_cat, descendant_cat, registry, as_of=commit_id)
-    decision.findings    # every rule finding, R1 → R9
-    decision.minimal     # why the answer is no
-    decision.repair      # what would have to change for it to be yes
+    decision.findings  # every rule finding, R1 → R9
+    decision.minimal  # why the answer is no
+    decision.repair  # what would have to change for it to be yes
 
 WHAT IS UNCLAIMED HERE, AND WHAT IS NOT
 ---------------------------------------

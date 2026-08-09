@@ -1,0 +1,55 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MAINLINE · 0181a_permit_rls_force.sql
+-- ALTER TABLE mainline.permit FORCE ROW LEVEL SECURITY — owners are NOT exempt
+--
+-- MI: MI02
+-- I: I02
+-- COUNSEL-GATED: no
+-- RATIONALE: Without FORCE, `mainline_owner` reads and writes past every policy in this
+--            band, and the matrix becomes a statement about application roles only.
+--            `mainline_owner` is NOLOGIN and unassumable, so the exemption is not reachable
+--            by a credential — but it IS reachable by every VIEW, because a view evaluates
+--            its base-table access as its owner. FORCE is what makes the audit surface
+--            subject to the same partition as everyone else, and 0181e is the named policy
+--            that then lets it read.
+--
+-- migration:  0181a_permit_rls_force
+-- domain:     datamodel / dm-views-rls
+-- band:       0180-0198z · datamodel/dm-views-rls · AUTHORED, allocated by
+--             verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1)
+-- statements: 1
+-- matrix:     verticals/mainline/db/RLS-MATRIX.yaml — this file is a RENDERING of one entry
+--             there; tests/integration/schema/test_mi_rls.py asserts the two agree
+-- source:     ARCHITECTURE.md §11.3 (RLS, SEC-1) · §4.1 law 10 · correction S22 · v26.2 row-level-security reference (owner bypass absent FORCE)
+-- requires:   0050 mainline.permit · 0181 ENABLE
+-- sqlstate:   none — FORCE refuses nothing by itself; it removes an exemption.
+-- forward-only; no .down.sql exists at or below the protected floor.
+--
+-- ────────────────────────────────────────────────────────────────────────────
+-- THE FOUR FILES AFTER THIS ONE EXIST BECAUSE OF THIS ONE
+-- ────────────────────────────────────────────────────────────────────────────
+-- S22 in one sentence: with FORCE and SELECT-only policies the default is DENY and the gate
+-- locks itself out. Every trigger in this schema executes as the INVOKING role — there is
+-- no SECURITY DEFINER anywhere in migrations 0100-0149, and GRANTS.yaml records that as an
+-- open coupling rather than hiding it — so `fn_check_materialised` UPDATEs this table as
+-- `agent_gate` and `fn_disposition_close` UPDATEs the same counters as `svc_disposition`.
+-- Both need a write policy AND a read policy, because an UPDATE carrying a WHERE clause
+-- also evaluates the SELECT policies.
+--
+-- ────────────────────────────────────────────────────────────────────────────
+-- AND THE FIFTH EXISTS BECAUSE OF SOMETHING §11.3 DOES NOT SAY
+-- ────────────────────────────────────────────────────────────────────────────
+-- A view evaluates RLS as its OWNER (v26.2: policies use the view owner's privileges unless
+-- the view is created WITH (security_invoker)). FORCE means the owner is not exempt. So
+-- `mainline_audit.v_open_gate_summary` — whose entire job is to read this table — returns
+-- ZERO ROWS under FORCE unless the owner has a policy. Zero rows is the worst possible
+-- failure for an audit surface: it is indistinguishable from a site with nothing wrong.
+-- 0181e is that policy, and naming the owner's read is strictly better than dropping FORCE
+-- to get the same effect, because a named policy is a diffable, revocable object and an
+-- exemption is not.
+--
+
+ALTER TABLE mainline.permit FORCE ROW LEVEL SECURITY;
+

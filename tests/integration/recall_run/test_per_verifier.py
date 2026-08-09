@@ -21,14 +21,30 @@ checking anything at all.
 from __future__ import annotations
 
 import json
+import os
+import subprocess
+import sys
+import tomllib
 from pathlib import Path
 from typing import Any
 
 import pytest
 from _run_corpus import EXPECTED_COUNTS
+
+import trappoint_recall
 from trappoint_recall.per.cli import main as per_cli
 from trappoint_recall.per.receipt import PER_BOUND_SENTENCE
 from trappoint_recall.per.verify import verify_receipt
+
+#: ``…/packages/trappoint-recall/src`` — the one path a stranger needs on ``PYTHONPATH``.
+PACKAGE_SRC = Path(trappoint_recall.__file__).resolve().parent.parent
+
+#: The distribution root, for the entry-point declaration.
+PACKAGE_ROOT = PACKAGE_SRC.parent
+
+#: The console script the recall lead's plan and ``spec/wire/candidate-commitment.md`` name.
+CONSOLE_SCRIPT = "trappoint-recall-verify-per"
+CONSOLE_TARGET = "trappoint_recall.per.cli:main"
 
 
 def disclosed_rows(outcome) -> list[dict[str, Any]]:
@@ -137,7 +153,7 @@ def test_the_verifier_depends_on_the_standard_library_alone() -> None:
     ``pydantic``, no ``numpy``, no ``cryptography``, and nothing from the rest of this
     package either.
     """
-    import trappoint_recall.per as per  # noqa: PLC0415 - the subject of the assertion
+    from trappoint_recall import per
 
     root = Path(per.__file__).parent
     allowed_prefixes = ("trappoint_recall.per",)
@@ -195,3 +211,109 @@ def test_the_cli_emits_a_machine_readable_report(
     assert document["ok"] is True
     assert document["mode"] == "boundary"
     assert document["claim_bound"] == PER_BOUND_SENTENCE
+
+
+def _stock_python(*arguments: str) -> subprocess.CompletedProcess[str]:
+    """Run the interpreter with ``-S``: no ``site``, therefore no installed distribution.
+
+    ``-S`` removes ``site-packages`` from ``sys.path`` entirely, leaving the standard library,
+    the interpreter's own directories and whatever ``PYTHONPATH`` names. Pointing
+    ``PYTHONPATH`` at this distribution's ``src`` and nothing else reproduces, on this machine,
+    the situation the dependency floor is a promise about: a stranger with a stock Python, this
+    source tree, and not one wheel installed.
+    """
+    environment = dict(os.environ)
+    # Overwritten, not appended: the parent process may have several workspace packages on
+    # PYTHONPATH, and inheriting them would put the rest of the repository back within reach.
+    environment["PYTHONPATH"] = str(PACKAGE_SRC)
+    return subprocess.run(
+        [sys.executable, "-S", *arguments],
+        capture_output=True,
+        text=True,
+        check=False,
+        env=environment,
+    )
+
+
+def test_the_isolation_this_suite_relies_on_is_real() -> None:
+    """Green-half of the pair below: under ``-S`` the installed distributions are gone.
+
+    Without this, the next test could pass because the verifier quietly imported ``pydantic``
+    from a ``site-packages`` that was still on the path, and the dependency-floor claim would
+    be asserted against an environment that never tested it.
+    """
+    present = _stock_python("-c", "import trappoint_recall.per.verify")
+    assert present.returncode == 0, present.stderr
+
+    absent = _stock_python("-c", "import pydantic")
+    assert absent.returncode != 0, (
+        "pydantic is importable under -S, so this environment does not isolate anything and "
+        "the dependency-floor assertion below would be vacuous"
+    )
+    assert "ModuleNotFoundError" in absent.stderr
+
+
+def test_the_verifier_runs_on_a_stock_interpreter_with_nothing_installed(
+    clean_outcome, tmp_path: Path
+) -> None:
+    """The dependency floor, executed rather than reasoned about.
+
+    ``spec/wire/candidate-commitment.md`` section 10 makes this a requirement of the *format*,
+    not a property of one implementation: the person a silence receipt is written for does not
+    trust us, so the tool they check it with cannot be ours to change. The static import scan
+    above proves no banned name is written down; this proves the module tree actually loads and
+    produces the right three exit statuses with no third-party package reachable at all.
+    """
+    receipt_path = tmp_path / "receipt.json"
+    receipt_path.write_text(clean_outcome.receipt.to_json_text(), encoding="utf-8")
+
+    honest = tmp_path / "candidates.json"
+    honest.write_text(json.dumps(disclosed_rows(clean_outcome)), encoding="utf-8")
+
+    tampered_rows = disclosed_rows(clean_outcome)
+    tampered_rows.pop()
+    tampered = tmp_path / "tampered.json"
+    tampered.write_text(json.dumps(tampered_rows), encoding="utf-8")
+
+    verified = _stock_python("-m", "trappoint_recall.per", str(receipt_path))
+    assert verified.returncode == 0, verified.stderr
+    assert PER_BOUND_SENTENCE in verified.stdout
+
+    full = _stock_python(
+        "-m", "trappoint_recall.per", str(receipt_path), "--candidates", str(honest)
+    )
+    assert full.returncode == 0, full.stderr
+
+    refused = _stock_python(
+        "-m", "trappoint_recall.per", str(receipt_path), "--candidates", str(tampered)
+    )
+    assert refused.returncode == 1, refused.stderr
+    assert "FAIL" in refused.stdout
+
+    unreadable = _stock_python("-m", "trappoint_recall.per", str(tmp_path / "absent.json"))
+    assert unreadable.returncode == 2
+
+
+def test_the_console_script_is_declared_under_the_name_the_spec_publishes() -> None:
+    """``trappoint-recall-verify-per`` is the name the specification tells a reader to run.
+
+    The module invocation ``python -m trappoint_recall.per`` is asserted above and is what the
+    specification calls the reference verifier, so nothing is *broken* while this declaration is
+    absent — but the published name should resolve, and it lives in a file this worker does not
+    own (``packages/trappoint-recall/pyproject.toml``, allocated to ``recall-eval-harness``).
+    A missing declaration is therefore reported as a cross-domain dependency with the exact line
+    to add, never silently passed over.
+    """
+    manifest = PACKAGE_ROOT / "pyproject.toml"
+    assert manifest.is_file(), f"{manifest} is the distribution manifest and must exist"
+    scripts = (
+        tomllib.loads(manifest.read_text(encoding="utf-8")).get("project", {}).get("scripts", {})
+    )
+    if CONSOLE_SCRIPT not in scripts:
+        pytest.skip(
+            f"{manifest.name} does not declare {CONSOLE_SCRIPT!r}. It is one line in a file "
+            f'owned by recall-eval-harness:  {CONSOLE_SCRIPT} = "{CONSOLE_TARGET}"  under '
+            "[project.scripts]. Reported rather than assumed; the reference invocation "
+            "'python -m trappoint_recall.per' is asserted by the tests above and works today."
+        )
+    assert scripts[CONSOLE_SCRIPT] == CONSOLE_TARGET

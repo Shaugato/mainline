@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 6,
+    "doc_code": "PRO-HSE-012",
+    "doc_family": "PRO",
+    "doc_title": "Confined Space Entry",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2015-04-10",
+    "required_citations": [],
+    "rev_no": 5,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "root cause analysis",
+      "management_of_change": "change request",
+      "near_miss": "hazard report"
+    }
+  },
+  "key": "4d464ffa3b6deb6df52f4fe7521c432605a329da608efd46eb67955775f72063",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:CVY/PRO-HSE-012/005",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "a1603a57faf07f2629110783cf2ff77550419a80ccacc78c6e17fc9e86c9b2ed",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [],
+    "reason": "Scheduled review at revision 5; 6 clauses restated."
+  },
+  "response_sha256": "66e8f507771e6a2fab98f791097dd89cefc26ae9fb5138afaa09e4cb55fdb8b0",
+  "source": null
+}

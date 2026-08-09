@@ -1,0 +1,279 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
+#
+# Novelty fragment per docs/leads/algorithms.md §6.  Validated by
+# tests/unit/domain/novelty/test_novelty_manifest.py (worker W10) and consumed by
+# MECHANISMS.md generation.  Anything not yet proven belongs under `unverified:`
+# and NEVER inside `claim:`.
+
+slug: commutation-footprint
+name: COMMUTATION FOOTPRINT
+mechanism: M1
+claim: >-
+  Two clause edits COMMUTE iff their footprints are disjoint, where the footprint of an edit is
+  the union over both of its versions of (identity anchors in scope) ∪ (CAT parameter keys
+  asserted on) ∪ (the implied control class).  A non-commuting pair is a DEPENDENCY: the two
+  edits are about the same equipment, the same controlled parameter or the same class of control,
+  so neither can be read as independent of the other.  Those pairs are written to
+  mainline.commutation_edge (migration 0049b) and they widen the antecedent set the existing
+  weaken gate reads.  That is invariant I06 in its literal form — a dependency edge a gate
+  consumes is COMPUTED, never declared.
+  The table is what makes "computed" checkable rather than asserted.  `overlap_nonempty` refuses
+  (23514) a row whose footprint_overlap is empty: such a row asserts that a gate should widen its
+  antecedent set while withholding the evidence for the assertion, which is a declaration wearing
+  a derivation's costume.  `canonical_direction` makes the relation's symmetry and irreflexivity
+  physical rather than conventional — a strict lexicographic ordering on (commit_id, clause_uuid)
+  makes the reverse row and the self-edge unstorable for every writer, so two rows for one pair
+  can never disagree after a partial re-derivation.  `computed_by_stated` and
+  `footprint_ver_stated` refuse an anonymous derivation, because after the fact the only thing
+  separating a row somebody computed from a row somebody typed is that the computed one names the
+  code and the encoding that produced it.  Both endpoints carry a COMPOSITE foreign key onto
+  clause_version's (clause_uuid, commit_id) unique constraint, so an edge names two VERSIONS and
+  not two clauses.
+  The footprint reads "touched" as IN SCOPE OF rather than CHANGED BY, and the direction of that
+  reading is deliberate: an edit that adjusts the deontic of a clause about P-101A did not change
+  the tag, but it is an edit about that pump, and a second edit about the same pump is not
+  independent of it.  The cost is a wider antecedent set, which can only make a gate louder.
+  Two things the arithmetic will not do.  It never answers "these commute" for an edit whose
+  footprint is EMPTY — an empty set is disjoint from everything, so that answer would report
+  ignorance as independence in a computation whose entire purpose is to widen an antecedent set —
+  and it never answers at all for an edit compared against itself.
+
+enforcement:
+  refuses:
+    - "overlap_nonempty (23514) — a derived dependency edge whose footprint_overlap is empty: the conclusion without the evidence (I06)"
+    - "canonical_direction (23514) — the reverse row, so two rows for one pair can never disagree"
+    - "canonical_direction (23514) — the self-edge, which is never a derivation"
+    - "computed_by_stated (23514) — an anonymous derivation"
+    - "footprint_ver_stated (23514) — an edge that does not say which encoding decided what 'touched' means"
+    - "fk_from_version / fk_to_version (23503) — an edge naming a clause that has no version at that commit"
+    - "commutation_edge_pk (23505) — a duplicate pair"
+    - "FootprintError (mainline_domain) — commutes() on an empty footprint, and canonical() on a self-comparison"
+  refusal_depth: 1
+# Depth 1, and there are two separate honesty debts behind that number.
+#
+# FIRST: this table refuses nothing a MERGE cares about, and is not meant to.  It
+# widens the antecedent set the weaken gate reads; the merge refusal itself is the
+# kernel lead's (MI02 gate_closed_when_issued, MI30 cr_gate_closed_when_merged) and
+# is unchanged by anything in this fragment.  What is contributed is that those
+# antecedents are DERIVED FROM THE DOCUMENTS rather than declared by the author of
+# the change — which is the whole of I06 and none of the gate.
+#
+# SECOND: append-only is NOT yet enforced on this table.  MI01 wants a
+# BEFORE UPDATE/DELETE trigger calling mainline.fn_refuse_mutation (migration 0107),
+# attached the way 0128a-0128j attach it to ten other tables.  It is not in 0049b
+# because MR-5 permits one top-level statement per file and a trigger belongs in the
+# vertical trigger band (0145-0149), for which this worker holds no number.  Today an
+# owner-level UPDATE succeeds, and
+# tests/integration/algorithms/diachronic/test_commutation_edge_refusals.py::test_append_only_is_not_yet_enforced_and_this_test_demonstrates_it
+# PERFORMS the update and asserts that it worked — a test written to fail the day the
+# trigger lands, which is a better reminder than a TODO.
+
+position: transplant
+# Labelled a transplant, deliberately and in the lead's own words (§2: "Darcs/Pijul
+# patch commutation is published; applying it to safety-control footprints to derive
+# blame antecedents is unclaimed. Labelled a transplant").
+#
+# What is transplanted, precisely, is the SUBJECT and not the machinery:
+#
+#   * the RELATION is Darcs' and Pijul's.  "Two patches commute when they touch
+#     disjoint regions, and a system that knows which patches commute can reorder,
+#     cherry-pick and merge without a three-way diff" is patch theory, it is
+#     twenty years old, and none of it is claimed here;
+#   * the DERIVATION of a dependency from a footprint is change impact analysis and
+#     program slicing, which have computed exactly this shape of edge over exactly
+#     this shape of input since the 1980s;
+#   * the SET ARITHMETIC is disjointness.
+#
+# The transplant is what counts as a "region".  For a version-control system a region
+# is a line range, and a line range is the wrong unit for this corpus: procedure text
+# is retypeset, renumbered and reflowed on a cycle unrelated to its content, so a
+# line-range footprint would make every pair of edits to one document non-commuting
+# and every pair across documents commuting — the answer would be a fact about the
+# typesetter.  Here a region is what the clause is ABOUT: which equipment, which
+# controlled parameter, which class of control.  Two edits about the same pump are
+# dependent whether or not they touched the same paragraph; two edits to adjacent
+# paragraphs about different equipment are not.
+#
+# Two smaller choices are unclaimed as far as this survey found, and both are
+# refusals rather than computations:
+#
+#   (a) AN EDGE THAT CANNOT NAME ITS OVERLAP IS REFUSED BY THE STORAGE LAYER.  Every
+#       system below computes dependency edges and then STORES them; none of them
+#       makes storing one conditional on the evidence being present in the row.  That
+#       is what turns "computed, never declared" from a project convention into
+#       something an opposing expert can check against the database rather than
+#       against the code that wrote it.
+#   (b) SYMMETRY AND IRREFLEXIVITY ARE ENFORCED BY A CHECK RATHER THAN OBSERVED BY A
+#       TEST.  The strict lexicographic ordering makes the reverse row unstorable, so
+#       there is exactly one row per unordered pair and no possibility of the two
+#       directions disagreeing after a partial re-derivation.  The Python
+#       canonicaliser produces exactly the rows the CHECK accepts, and a property test
+#       holds the two together — including the equal-commit case, which is the one a
+#       hand-written test forgets.
+
+prior_art:
+  - url: "https://en.wikipedia.org/wiki/Darcs"
+    what_it_covers: >-
+      Darcs' theory of patches is the origin of the idea this fragment transplants: patches as
+      first-class objects with a commutation relation, so that a sequence of changes can be
+      reordered when the changes are independent, and cherry-picking is an operation on the patch
+      algebra rather than a textual re-application.  The relation, its algebraic properties, and
+      the observation that disjointness of touched regions is what licenses reordering are all
+      theirs.
+    what_it_does_not: >-
+      The unit of "touched" is textual — a hunk, a line range in a file.  Applied to a procedure
+      library that unit is actively misleading: the same clause reflows to different line numbers
+      on every retypeset, so two edits to one obligation would commute whenever the document was
+      reformatted between them.  Darcs also has no notion of a change being SAFETY-RELEVANT, no
+      severity, no blame, and commutation there is used to REORDER patches — the answer feeds a
+      merge algorithm, never a gate, and nothing anywhere refuses an operation because two patches
+      failed to commute.
+  - url: "https://pijul.org/"
+    what_it_covers: >-
+      Pijul is the modern continuation of the same programme, with a sounder theory: changes as
+      elements of a category, a datastructure in which independent changes genuinely commute, and
+      associativity properties Darcs did not have.  It is the state of the art for "which of these
+      changes are independent of each other" and this fragment claims none of that.
+    what_it_does_not: >-
+      Same boundary, for the same reason: the objects are text changes and the purpose is merging.
+      Pijul's independence relation is about whether two changes can be applied in either order to
+      produce the same file; this one is about whether two edits to a safety document can be
+      REASONED ABOUT independently.  Those are different questions with different answers — two
+      Pijul-independent changes to different paragraphs about the same pump are exactly the pair
+      this fragment must report as dependent — and nothing in Pijul is stored anywhere a gate
+      reads.
+  - url: "https://en.wikipedia.org/wiki/Change_impact_analysis"
+    what_it_covers: >-
+      Change impact analysis, and program slicing beneath it, computes precisely this shape of
+      edge: given a change, derive the set of other artefacts it can affect, from a dependency
+      relation extracted from the artefacts themselves rather than declared by the author.  Safety
+      standards mandate it — IEC 61508 and DO-178C both require impact analysis for a change to a
+      certified item — so "derive the antecedent set, do not ask for it" is not merely published,
+      it is required practice in the adjacent industry.
+    what_it_does_not: >-
+      The output is a REPORT, produced to inform a person or to scope a re-test.  It is not stored
+      as a row that a state transition is conditioned on, nothing refuses an impact-analysis result
+      whose evidence is missing, and the derivation's provenance — which tool, which version, which
+      definition of "affects" — is not on the artefact.  The subject is also code or a design
+      artefact with a mechanical dependency relation (call graph, data flow); a footprint over the
+      SEMANTICS of a natural-language obligation, keyed on equipment tags and controlled
+      parameters, is not something the surveyed impact-analysis literature computes.
+  - url: "https://en.wikipedia.org/wiki/Operational_transformation"
+    what_it_covers: >-
+      Operational transformation, and CRDTs after it, formalise when two concurrent operations
+      commute and what must be done when they do not.  The convergence properties (TP1/TP2) are
+      the rigorous form of the question "can these two edits be reordered", and the whole
+      collaborative-editing field rests on them.
+    what_it_does_not: >-
+      Non-commutation there is a problem to be SOLVED — the transformation function exists
+      precisely to make the operations commute so that replicas converge.  Here non-commutation is
+      the PRODUCT: the pair is recorded, kept, and used to widen what a gate must consider.  A
+      system whose response to two dependent edits is to transform them until they are independent
+      is doing the exact opposite of what this table is for.  There is also no persistence: OT
+      state is transient replica bookkeeping, not an auditable row with a deriver on it.
+  - url: "https://en.wikipedia.org/wiki/Traceability_matrix"
+    what_it_covers: >-
+      The incumbent in this industry, and the thing this table replaces.  A requirements or safety
+      traceability matrix records which requirements, controls and hazards relate to which others,
+      and every regulated engineering organisation maintains one.  It answers the same question:
+      "if this changes, what else is implicated".
+    what_it_does_not: >-
+      Every edge in it is DECLARED — typed by a person, at authoring time, into a spreadsheet or a
+      requirements tool.  That makes the matrix exactly as complete as the diligence of whoever
+      last maintained it, and it makes an omission invisible: a link nobody entered is
+      indistinguishable from a link that does not exist.  Invariant I06 exists because of that
+      failure mode, and this table is its answer: the edges are recomputed from the documents on
+      every derivation pass, and a row that cannot name why the two edits overlap cannot be
+      stored at all.
+
+implemented_by:
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/diachronic/footprint.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/diachronic/commutation.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/diachronic/version.py"
+  - "verticals/mainline/packages/mainline-domain/src/mainline_domain/diachronic/errors.py"
+  - "verticals/mainline/db/migrations/0049b_commutation_edge.sql"
+
+tests:
+  # The footprint: what it includes, what it deliberately excludes, and why.
+  - "tests/unit/domain/diachronic/test_footprint.py::test_a_footprint_is_the_union_over_both_versions_not_the_difference"
+  - "tests/unit/domain/diachronic/test_footprint.py::test_setpoint_and_named_role_anchors_are_deliberately_absent"
+  - "tests/unit/domain/diachronic/test_footprint.py::test_an_empty_cat_implies_no_control_class"
+  - "tests/unit/domain/diachronic/test_footprint.py::test_an_empty_footprint_is_disjoint_from_everything_which_is_why_it_is_refused"
+  # The relation: symmetry, irreflexivity, determinism, provenance.
+  - "tests/unit/domain/diachronic/test_commutation.py::test_commutation_is_symmetric_and_the_edge_is_the_same_row_either_way"
+  - "tests/unit/domain/diachronic/test_commutation.py::test_an_edit_never_commutes_with_itself_and_asking_is_a_refusal"
+  - "tests/unit/domain/diachronic/test_commutation.py::test_an_empty_footprint_refuses_rather_than_reporting_independence"
+  - "tests/unit/domain/diachronic/test_commutation.py::test_every_derived_row_names_the_code_and_the_encoding_that_derived_it"
+  - "tests/unit/domain/diachronic/test_commutation.py::test_derivation_is_byte_identical_across_two_runs_over_a_shuffled_input"
+  - "tests/unit/domain/diachronic/test_commutation.py::test_one_row_per_unordered_pair_and_never_two"
+  # The Python canonicaliser and the SQL CHECK are two statements of one rule.
+  - "tests/unit/domain/diachronic/test_commutation.py::test_canonical_order_matches_the_lexicographic_rule_the_sql_check_enforces"
+  - "tests/unit/domain/diachronic/test_commutation.py::test_uuid_ordering_agrees_with_the_hex_string_ordering_cockroachdb_uses"
+  # The refusals, against a real CockroachDB v26.2, each paired with an accepted twin.
+  - "tests/integration/algorithms/diachronic/test_commutation_edge_refusals.py::test_an_edge_with_an_empty_overlap_is_refused"
+  - "tests/integration/algorithms/diachronic/test_commutation_edge_refusals.py::test_the_reverse_row_is_unstorable"
+  - "tests/integration/algorithms/diachronic/test_commutation_edge_refusals.py::test_a_self_edge_is_unstorable"
+  - "tests/integration/algorithms/diachronic/test_commutation_edge_refusals.py::test_an_anonymous_derivation_is_refused"
+  - "tests/integration/algorithms/diachronic/test_commutation_edge_refusals.py::test_an_edge_naming_a_version_that_does_not_exist_is_refused"
+  - "tests/integration/algorithms/diachronic/test_commutation_edge_refusals.py::test_a_duplicate_row_without_on_conflict_is_a_primary_key_violation"
+  - "tests/integration/algorithms/diachronic/test_commutation_edge_refusals.py::test_append_only_is_not_yet_enforced_and_this_test_demonstrates_it"
+  # The static checks that still run when no cluster is reachable.
+  - "tests/integration/algorithms/diachronic/test_commutation_edge_shape.py"
+
+unverified:
+  - >-
+    APPEND-ONLY IS NOT ENFORCED ON mainline.commutation_edge.  MI01 is cited in 0049b's header and
+    its BEFORE UPDATE/DELETE trigger is OWED, not written: one file carries one statement, the
+    trigger belongs in the vertical trigger band 0145-0149, and this worker holds no number there.
+    An owner-level UPDATE succeeds today and an integration test performs one to prove it.  Until
+    that trigger lands the table is append-only by GRANT and by convention, which is a materially
+    weaker statement than the one MI01 makes.
+  - >-
+    THE FOOTPRINT IS WIDE AND THE NUISANCE COST IS UNMEASURED.  Reading "touched" as IN SCOPE OF
+    rather than CHANGED BY means edits commute less often and more dependency edges exist.  That
+    is the fail-closed direction — a wider antecedent set can only make a gate louder — but HOW
+    MUCH louder on a real corpus is a number nobody has.  Risk R-A7 says a rule that breaches the
+    nuisance ceiling is REJECTED, not tuned, and this reading has not been measured against that
+    ceiling.  Worker W10's mutation ratchet is what would measure it.
+  - >-
+    control_class_key() IS THIS PACKAGE'S DERIVATION AND IS JOINED TO NOTHING.
+    ARCHITECTURE.md §5.4 describes mainline.control_failure.control_class as "the JOIN KEY to a
+    clause's CAT control class", and no module in this repository derives that key from a CAT.
+    The `control:` token here is used ONLY to decide commutation between two edits computed by
+    this same package.  It is NOT joined against control_failure and any future code that wants to
+    join them must first prove the two derivations agree — a claim this worker does not make.
+  - >-
+    NO CORPUS-SCALE DERIVATION HAS BEEN RUN.  derive_commutation_edges is quadratic in the number
+    of edits and the docstring states the bound rather than hiding it: the intended input is the
+    edits in one commit, which is tens of clauses.  A caller applying it across a whole history
+    must partition first, by site and by document family, and this package deliberately will not
+    do that for them — a partitioning rule chosen inside a derivation is a rule nobody reviews.
+    Nobody has yet run it over the demo corpus, so neither the edge count nor the runtime is known.
+  - >-
+    THE OVERLAP IS EXACT BUT IT IS NOT SEMANTIC.  Two clauses about the same physical pump under
+    two different tag conventions — P-101A in one document and 101-P-A in another — produce
+    disjoint footprints and are reported as commuting.  Anchor NORMALISATION is worker W1's
+    (mainline_domain.anchors), it is gazetteer-driven and model-free by design, and whatever it
+    cannot normalise this relation cannot see.  That is a recall failure in the dependency
+    derivation and it is silent.
+  - >-
+    AN EMPTY FOOTPRINT IS A REFUSAL IN PYTHON AND NOTHING IN SQL.  commutes() raises on one, and
+    derive_commutation_edges skips it and reports it through unfootprintable() — but a clause the
+    footprinter cannot read produces NO ROW, and no row is indistinguishable from "commutes with
+    everything" to a reader of the table.  Mapping such a clause to
+    identity_residue.reason='opaque_control' is the intended handling and it belongs to worker W8;
+    this package does not do it and does not verify that anybody does.
+  - >-
+    EXECUTED AGAINST CockroachDB CCL v26.2.5 IN DOCKER ON 2026-08-09.  The four CHECKs, both
+    composite foreign keys and the primary key were exercised and refused as claimed.  On a
+    machine with no `cockroach` binary, no MAINLINE_TEST_DSN and no Docker daemon the cluster
+    suite SKIPS with a reason, and a skipped run verifies nothing; the shape suite still runs
+    everywhere and is what remains.
+  - >-
+    MEASURED PLATFORM DETAIL, RECORDED BECAUSE AN EXHIBIT DEPENDS ON IT: a CockroachDB v26.2.5
+    23514 names the CHECK EXPRESSION and not the constraint — `failed to satisfy CHECK constraint
+    (COALESCE(array_length(footprint_overlap, 1), 0) >= 1)` — where PostgreSQL names the
+    constraint.  Any refusal exhibit or console rendering that promises an operator a constraint
+    NAME for a 23514 must supply the name itself.  Worker W4 recorded the same measurement for
+    mainline.delta_witness.

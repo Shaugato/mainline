@@ -1,0 +1,64 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 8,
+    "doc_code": "MOC-2026-0413",
+    "doc_family": "MOC",
+    "doc_title": "Restore OEM Seal-Face Alarm Setpoint on the Hydrocarbon Transfer Pump Family",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2026-07-28",
+    "required_citations": [
+      {
+        "control_label": "controlled transfer of hydrocarbon between vessels",
+        "event_ref": "INC-2025-010",
+        "event_title": "uncontrolled movement of TK-4211 during a statutory inspection",
+        "hazard_energy": "chemical",
+        "kind": "moc_reference",
+        "quote_ref": "quote:MRD/MOC-2026-0413/001#moc_reference/INC-2025-010",
+        "severity_gate": 4
+      },
+      {
+        "control_label": "emergency isolation and depressuring on loss of containment",
+        "event_ref": "INC-2025-010",
+        "event_title": "uncontrolled movement of TK-4211 during a statutory inspection",
+        "hazard_energy": "chemical",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:MRD/MOC-2026-0413/001#revision_history_line/INC-2025-010",
+        "severity_gate": 4
+      }
+    ],
+    "rev_no": 1,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "learning team review",
+      "management_of_change": "change assurance",
+      "near_miss": "high potential incident"
+    }
+  },
+  "key": "22992e4f9833e1ab240ea77c19474b4f0c666d9f91f4aa722e973a7fcbf7b15e",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/MOC-2026-0413/001",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "1ed9500cb456e863f6f98aefd8ae5cbe543e6179ea640f75068e770bf442f3f4",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The change assurance record for this revision cites INC-2025-010 as the reason the controlled transfer of hydrocarbon between vessels was amended.",
+        "quote_ref": "quote:MRD/MOC-2026-0413/001#moc_reference/INC-2025-010"
+      },
+      {
+        "line": "Revision 1 was raised in response to INC-2025-010, and the emergency isolation and depressuring on loss of containment was amended as a result.",
+        "quote_ref": "quote:MRD/MOC-2026-0413/001#revision_history_line/INC-2025-010"
+      }
+    ],
+    "reason": "Scheduled review at revision 1; 8 clauses restated."
+  },
+  "response_sha256": "a53e6a1a1d2681d60a3e7d8c732e3aafe2df5dd4e8edbe42f13858973c643062",
+  "source": null
+}

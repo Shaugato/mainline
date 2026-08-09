@@ -1,0 +1,178 @@
+{
+  "admissible_authored_drivers": [
+    "moc",
+    "regulator",
+    "routine_review"
+  ],
+  "blame_generator_version": "blame-1.0.0",
+  "change_requests": 340,
+  "clauses_declared_by_multiple_change_requests": 114,
+  "corpus_now": "2026-08-04T09:14:00+10:00",
+  "counts": {
+    "cr_clause": 496,
+    "cr_clause_registry": 496,
+    "cr_transition_plan": 1088,
+    "moc_dossier": 340,
+    "pending": 2672
+  },
+  "declared_clause_rows": 496,
+  "files": {
+    "cr_clause.jsonl": {
+      "bytes": 68778,
+      "description": "declared scope: what each change request changes; commit_id is null and pending",
+      "rows": 496,
+      "sha256": "46375de2c7b5deea226f239f902f8977685d116d45ae91f6ca75bc02be258643",
+      "table": "mainline.cr_clause"
+    },
+    "cr_clause_registry.jsonl": {
+      "bytes": 257204,
+      "description": "corpus scaffolding: the basis of each declaration, the version it pins, and the delta",
+      "rows": 496,
+      "sha256": "2e5bc255097c17076e7be8e7b99c1d27b1ce6044c680ccccf8eb3dd73090a3fb",
+      "table": null
+    },
+    "cr_transition_plan.jsonl": {
+      "bytes": 713759,
+      "description": "the ordered acts the loader performs; NOT cr_event rows, because the chain is the database's to mint",
+      "rows": 1088,
+      "sha256": "7406fc2cbb037a7fd984dffbfcc1a86ed5e7aa61767462e8edb6566657b40965",
+      "table": null
+    },
+    "moc_dossier.jsonl": {
+      "bytes": 243696,
+      "description": "one row per change request: declared scope, plan shape, and the precursors the gate should find",
+      "rows": 340,
+      "sha256": "dd03eeda52bf43094d0f221d65fff7172ef226d38f3dd72d0bdf6bb1b6a57ec9",
+      "table": null
+    },
+    "pending.jsonl": {
+      "bytes": 840379,
+      "description": "columns this stage deliberately left null, and who closes each one",
+      "rows": 2672,
+      "sha256": "ae7b5b562eced7b5453419427e01d0e4726f867ad70fd37cdca9b9c1d731779d",
+      "table": null
+    },
+    "pending_reasons.json": {
+      "bytes": 1984,
+      "description": "the prose behind pending.jsonl's reason_code, written once",
+      "rows": 1,
+      "sha256": "bf561d8331ee92e66c9e4455659ce131111e5347b92ce46d8b2852f84f025c2a",
+      "table": null
+    },
+    "spine_change_request.json": {
+      "bytes": 777,
+      "description": "the 2026 weakening's declared scope and the act its plan deliberately omits",
+      "rows": 1,
+      "sha256": "d94ea551e4aeac1fa4e91389606cd556f2d9c19bab40d4a3ca81d2d04d39311d",
+      "table": null
+    },
+    "verify_report.json": {
+      "bytes": 2493,
+      "description": "every check the database would eventually run, run here first; SKIP carries a reason",
+      "rows": 1,
+      "sha256": "21076f6a22b589da99eef31d10ca7d17ba0d7fcb446e48e2292aec8c2ec683f2",
+      "table": null
+    }
+  },
+  "gazetteer_sha256": "6e62437c0064a9b47cf424e2c6da40d087b422d8f57089443bea550dd6aa71aa",
+  "generator_version": "moc-stream-1.0.0",
+  "intent_histogram": {
+    "introduce": 72,
+    "replace": 45,
+    "restate": 78,
+    "split": 1,
+    "strengthen": 110,
+    "weaken": 34
+  },
+  "projected_columns_denied": [
+    "ancestor_count",
+    "ancestor_events",
+    "blood_peaks",
+    "blood_root",
+    "blood_size",
+    "closure_gen",
+    "countersigned_count",
+    "gate_epoch",
+    "head_seq",
+    "max_ancestral_severity",
+    "max_severity",
+    "open_blocking",
+    "open_conflicts",
+    "open_residue",
+    "open_token_count",
+    "open_warrants",
+    "sev_max",
+    "site_role",
+    "tags_resolved",
+    "tags_unmodelled",
+    "under_declared",
+    "unmet_floor_count",
+    "unmodelled_asset_count",
+    "virulence"
+  ],
+  "realised_scope_rows": 398,
+  "scope_basis_histogram": {
+    "blame:proposed_revision": 1,
+    "injector:document_split": 48,
+    "injector:weakening_chain": 12,
+    "moc_stream:window": 379,
+    "skeleton:driving_change_ref": 56
+  },
+  "scope_relation_histogram": {
+    "edits": 424,
+    "introduces": 62,
+    "retires": 10
+  },
+  "scope_window_days": 400.0,
+  "seed": "0xMAINLINE",
+  "skeleton_generator_version": "skeleton-1.0.0",
+  "spine": {
+    "cr_external_ref": "MOC-2026-0413",
+    "declared_clause_keys": [
+      "MRD/PRO-MEC-014/7.3"
+    ],
+    "declared_clause_uuids": [
+      "2ad35fa5-d174-5eb1-8550-05adfa90e08d"
+    ],
+    "declared_relations": [
+      "edits"
+    ],
+    "first_act_at": "2026-07-29T10:53:42+10:00",
+    "opened_at": "2026-07-28T07:55:00+10:00",
+    "plan_ends_at_state": "dispositioned",
+    "precursor_events": [
+      "INC-2013-044"
+    ],
+    "precursor_severity_max_from_answer_key": 4,
+    "realised": [
+      false
+    ],
+    "statement": "One declared clause, unrealised, and a plan that stops short of the merge. The merge is not missing from the plan because it was forgotten; it is absent because whether it may happen is the database's answer to give, and the beat is that the answer is no.",
+    "transition_count": 2
+  },
+  "stage": "moc-stream",
+  "terminal_state_histogram": {
+    "abandoned": 33,
+    "closed": 25,
+    "dispositioned": 16,
+    "merged": 266
+  },
+  "transition_edge_histogram": {
+    "checks_materialised->checks_materialised": 71,
+    "checks_materialised->dispositioned": 334,
+    "dispositioned->checks_materialised": 27,
+    "dispositioned->merged": 291,
+    "draft->abandoned": 33,
+    "draft->checks_materialised": 307,
+    "merged->closed": 25
+  },
+  "unscoped_change_requests": 128,
+  "verify": {
+    "skipped": [],
+    "summary": {
+      "FAIL": 0,
+      "PASS": 14,
+      "SKIP": 0
+    }
+  }
+}

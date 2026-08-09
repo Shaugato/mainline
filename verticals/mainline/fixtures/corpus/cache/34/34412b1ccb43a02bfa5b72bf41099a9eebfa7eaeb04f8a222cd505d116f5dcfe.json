@@ -1,0 +1,64 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 6,
+    "doc_code": "PRO-MEC-021",
+    "doc_family": "PRO",
+    "doc_title": "Mechanical Isolation and Lockout",
+    "driver": "incident",
+    "driving_change_ref": null,
+    "driving_event_ref": "INC-2026-009",
+    "effective_on": "2026-06-27",
+    "required_citations": [
+      {
+        "control_label": "proving zero energy before intrusive work",
+        "event_ref": "CAPA-2025-004",
+        "event_title": "preventive action - alarm philosophy conformance on SG-3100",
+        "hazard_energy": "electrical",
+        "kind": "capa_action",
+        "quote_ref": "quote:MRD/PRO-MEC-021/013#capa_action/CAPA-2025-004",
+        "severity_gate": 3
+      },
+      {
+        "control_label": "dissipation or restraint of trapped and residual energy",
+        "event_ref": "INC-2026-009",
+        "event_title": "fire on ML-3201 during a statutory inspection",
+        "hazard_energy": "kinetic",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:MRD/PRO-MEC-021/013#revision_history_line/INC-2026-009",
+        "severity_gate": 4
+      }
+    ],
+    "rev_no": 13,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "learning team review",
+      "management_of_change": "change assurance",
+      "near_miss": "high potential incident"
+    }
+  },
+  "key": "34412b1ccb43a02bfa5b72bf41099a9eebfa7eaeb04f8a222cd505d116f5dcfe",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/PRO-MEC-021/013",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "27b208d3fb4e5e2f68c27233cce40f5f637937f0e7d756f9ba72a931c6940504",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The corrective action recorded against CAPA-2025-004 required the proving zero energy before intrusive work to be restated in this procedure.",
+        "quote_ref": "quote:MRD/PRO-MEC-021/013#capa_action/CAPA-2025-004"
+      },
+      {
+        "line": "Revision 13 was raised in response to INC-2026-009, and the dissipation or restraint of trapped and residual energy was amended as a result.",
+        "quote_ref": "quote:MRD/PRO-MEC-021/013#revision_history_line/INC-2026-009"
+      }
+    ],
+    "reason": "Revised after INC-2026-009; 6 clauses amended."
+  },
+  "response_sha256": "58f3191cb7129931dc7e1bf116356212d8e9ac05b3c7690959501a11c80b2a8c",
+  "source": null
+}

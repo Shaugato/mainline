@@ -1,0 +1,255 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# THE SCHEMA-MUTATING SUITES. Everything here DROPS CONSTRAINTS and DISABLES TRIGGERS, so
+# it runs serially, on a container it creates and destroys, and never on a cluster any
+# other job shares.
+#
+# `testing-invariants.md` §1: two suites are exempt from the parallel-against-one-cluster
+# architecture — migrations and unwelding — and both get a serialised job on a disposable
+# container. This file is where that is written down.
+#
+# Three properties this workflow has, each because its absence has a failure mode:
+#
+#   `concurrency` with no cancel-in-progress. Two unwelding runs against two containers
+#   would be fine; two runs racing to write REFUSAL_DEPTH.md would not, and a cancelled
+#   run that had already dropped a constraint is a container nobody reaps.
+#
+#   `-p no:xdist` and `-p no:randomly`. Parallelism is the thing this suite must not have:
+#   one probe's DROP CONSTRAINT is another probe's silent unwelding. Order shuffling is
+#   equally fatal — the matrix restores what it removed, and a shuffle can interleave a
+#   removal with a restoration.
+#
+#   The image pin is READ OUT of compose.yaml rather than repeated here. A second copy of a
+#   version string is a second thing to forget, and a dev/CI skew that changes DDL
+#   behaviour is precisely the drift the schema fingerprint exists to catch — so the
+#   harness must not introduce one.
+
+name: schema
+
+on:
+  pull_request:
+    paths:
+      - "packages/trappoint-sql/**"
+      - "packages/trappoint-conformance/**"
+      - "packages/trappoint-migrate/**"
+      - "verticals/mainline/db/**"
+      - "spec/conformance/**"
+      - ".github/workflows/schema.yml"
+      - "compose.yaml"
+  push:
+    branches: [main]
+  schedule:
+    # Nightly, because the full matrix is the long form: CI runs it on every PR that
+    # touches the schema, and this catches the case where nothing touched the schema and
+    # the platform moved underneath it.
+    - cron: "17 15 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: schema-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  # The corpus reads these exactly as `trappoint-conform` does, so a developer who can run
+  # the CLI can run the suite with nothing else to configure.
+  TRAPPOINT_PROFILE: trappoint-ref
+  PYTHONIOENCODING: utf-8
+
+jobs:
+  unweld:
+    name: unwelding matrix (serial, disposable cluster)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read the pinned CockroachDB image out of compose.yaml
+        id: image
+        # One constant, one place. The line is tagged `trappoint:crdb-image-pin` in
+        # compose.yaml and this is the only reader in this workflow.
+        run: |
+          set -euo pipefail
+          image="$(grep -A1 'trappoint:crdb-image-pin' compose.yaml | tail -n1 | sed 's/.*image: *//')"
+          test -n "$image"
+          echo "image=$image" >> "$GITHUB_OUTPUT"
+          echo "pinned image: $image"
+
+      - name: Start a cluster this job is allowed to break
+        run: |
+          set -euo pipefail
+          docker run -d --name trappoint-unweld-ci \
+            -p 127.0.0.1:26399:26257 \
+            "${{ steps.image.outputs.image }}" \
+            start-single-node --insecure --store=type=mem,size=2GiB
+          for _ in $(seq 1 60); do
+            if docker exec trappoint-unweld-ci ./cockroach sql --insecure \
+                 --host=127.0.0.1:26257 --execute='SELECT 1' >/dev/null 2>&1; then
+              echo "cluster up"; exit 0
+            fi
+            sleep 2
+          done
+          echo "the disposable cluster never answered SQL"; docker logs trappoint-unweld-ci; exit 1
+
+      - name: Make local behaviour Cloud-truthful
+        # F2: gc.ttlseconds is 4500 on Cloud Basic and 14400 locally. Local is MORE
+        # PERMISSIVE than production, so a time-travel assertion that passes here can fail
+        # there. Standing rule: where local and Cloud differ, configure local to the
+        # stricter value. CF-46 reads this back and asserts against it.
+        run: |
+          docker exec trappoint-unweld-ci ./cockroach sql --insecure --host=127.0.0.1:26257 \
+            --execute="ALTER RANGE default CONFIGURE ZONE USING gc.ttlseconds = 4500"
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install the workspace
+        run: uv sync --all-packages
+
+      - name: Apply the reference vertical
+        env:
+          TRAPPOINT_UNWELD_DSN: postgresql://root@127.0.0.1:26399/defaultdb?sslmode=disable
+        run: |
+          uv run --package trappoint-migrate trappoint migrate bootstrap \
+            --dsn "$TRAPPOINT_UNWELD_DSN"
+          uv run --package trappoint-migrate trappoint migrate up \
+            --dsn "$TRAPPOINT_UNWELD_DSN" --tree trappoint-ref \
+            --migrations packages/trappoint-sql/refvertical/sql
+
+      - name: Unwelding matrix
+        env:
+          TRAPPOINT_UNWELD_DSN: postgresql://root@127.0.0.1:26399/defaultdb?sslmode=disable
+          TRAPPOINT_UNWELD_PROFILE: trappoint-ref
+        # -p no:xdist  — one probe's DROP CONSTRAINT is another probe's silent unwelding.
+        # -p no:randomly — the matrix restores what it removed; a shuffle can interleave a
+        #                  removal with its own restoration.
+        # -m schema    — this job runs the mutating suites and nothing else.
+        run: |
+          uv run --package trappoint-conformance pytest \
+            packages/trappoint-conformance/unweld \
+            -m schema -p no:xdist -p no:randomly -q
+
+      - name: The refusal-depth matrix must be committed and current
+        # The generated artefact is part of the assurance pack, so a run that changed it
+        # and did not commit it is a run whose published matrix describes a schema that no
+        # longer exists.
+        run: |
+          set -euo pipefail
+          if ! git diff --quiet -- packages/trappoint-conformance/REFUSAL_DEPTH.md; then
+            echo "::error::REFUSAL_DEPTH.md changed. The unwelding matrix measured something"
+            echo "::error::different from what is committed. Commit the regenerated file."
+            git --no-pager diff -- packages/trappoint-conformance/REFUSAL_DEPTH.md
+            exit 1
+          fi
+
+      - name: Publish the matrix
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: refusal-depth-matrix
+          path: packages/trappoint-conformance/REFUSAL_DEPTH.md
+          if-no-files-found: warn
+
+      - name: Destroy the cluster
+        if: always()
+        run: docker rm -f trappoint-unweld-ci || true
+
+  gate-source:
+    name: the self-attesting gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read the pinned CockroachDB image out of compose.yaml
+        id: image
+        run: |
+          set -euo pipefail
+          image="$(grep -A1 'trappoint:crdb-image-pin' compose.yaml | tail -n1 | sed 's/.*image: *//')"
+          test -n "$image"
+          echo "image=$image" >> "$GITHUB_OUTPUT"
+
+      - name: Start a cluster
+        run: |
+          set -euo pipefail
+          docker run -d --name trappoint-gatesrc-ci \
+            -p 127.0.0.1:26401:26257 \
+            "${{ steps.image.outputs.image }}" \
+            start-single-node --insecure --store=type=mem,size=2GiB
+          for _ in $(seq 1 60); do
+            if docker exec trappoint-gatesrc-ci ./cockroach sql --insecure \
+                 --host=127.0.0.1:26257 --execute='SELECT 1' >/dev/null 2>&1; then
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "the cluster never answered SQL"; exit 1
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install the workspace
+        run: uv sync --all-packages
+
+      - name: Apply the reference vertical
+        env:
+          LOCAL_DSN: postgresql://root@127.0.0.1:26401/defaultdb?sslmode=disable
+        run: |
+          uv run --package trappoint-migrate trappoint migrate bootstrap --dsn "$LOCAL_DSN"
+          uv run --package trappoint-migrate trappoint migrate up \
+            --dsn "$LOCAL_DSN" --tree trappoint-ref \
+            --migrations packages/trappoint-sql/refvertical/sql
+
+      - name: The gate's own source must match the committed snapshot
+        env:
+          LOCAL_DSN: postgresql://root@127.0.0.1:26401/defaultdb?sslmode=disable
+        # This is the step whose failure message is meant to be read rather than silenced:
+        # the text the database will execute the next time somebody merges a permit is not
+        # the text the last reviewer read.
+        run: |
+          uv run --package trappoint-conformance pytest \
+            packages/trappoint-conformance/tests/test_gate_source_snapshot.py -q
+
+      - name: Destroy the cluster
+        if: always()
+        run: docker rm -f trappoint-gatesrc-ci || true
+
+  coverage-artefacts:
+    name: anomaly coverage and manifest totality (hermetic)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install the workspace
+        run: uv sync --all-packages
+
+      - name: Totality, taxonomy, raise-site grounding and A1-A14 coverage
+        # No cluster. These are the guards against a suite that shrinks silently, and they
+        # belong in the fastest job because the fastest job is the one nobody skips.
+        run: |
+          uv run --package trappoint-conformance pytest \
+            packages/trappoint-conformance/tests/test_manifest_totality.py \
+            packages/trappoint-conformance/tests/test_taxonomy_totality.py \
+            packages/trappoint-conformance/tests/test_raise_sites.py \
+            packages/trappoint-conformance/tests/test_anomaly_coverage.py \
+            packages/trappoint-conformance/unweld/test_unweld.py::test_restoration_matches_the_migration \
+            -q -m "not db and not schema"
+
+      - name: ANOMALY_COVERAGE.md must be committed and current
+        run: |
+          set -euo pipefail
+          if ! git diff --quiet -- packages/trappoint-conformance/ANOMALY_COVERAGE.md; then
+            echo "::error::ANOMALY_COVERAGE.md is stale. Regenerate and commit it."
+            git --no-pager diff -- packages/trappoint-conformance/ANOMALY_COVERAGE.md
+            exit 1
+          fi

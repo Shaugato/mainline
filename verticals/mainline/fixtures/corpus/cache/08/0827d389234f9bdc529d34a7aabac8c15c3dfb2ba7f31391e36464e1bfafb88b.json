@@ -1,0 +1,45 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 4,
+    "doc_codes": [
+      "MOC-2019-0221",
+      "PRO-MEC-021",
+      "PTW-STD-002",
+      "STD-ISO-006",
+      "STD-PTW-001"
+    ],
+    "intent": "strengthen",
+    "moc_ref": "MOC-2007-0058",
+    "opened_on": "2007-06-20",
+    "precursor_events": [
+      {
+        "event_ref": "INC-2018-015",
+        "severity_gate": null
+      }
+    ],
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "management_of_change": "engineering change note",
+      "verification": "spot check"
+    },
+    "weakening_steps": 0
+  },
+  "key": "0827d389234f9bdc529d34a7aabac8c15c3dfb2ba7f31391e36464e1bfafb88b",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2007-0058",
+  "prompt_kind": "moc",
+  "prompt_sha256": "4d5368ba6d0e769864af92c106892bed2a45bab74dee090c177e83cc205c3b45",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2007-0058 was raised at Marrindal Concentrator and Hydrocarbon Transfer Facility on 20 June 2007 following 1 recorded event in the archive, including INC-2018-015. The engineering change note record covers 4 clauses across 5 controlled documents. The intent is to strengthen the key safeguard named in the documents in scope. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the key safeguard set is preserved.",
+    "scope_note": "The documents in scope are MOC-2019-0221, PRO-MEC-021, PTW-STD-002, STD-ISO-006 and STD-PTW-001."
+  },
+  "response_sha256": "730c7af564730d552a720cfbe9d9b03e85f0fbc63f18aacf5958b4bfa2e614ef",
+  "source": null
+}

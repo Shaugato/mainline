@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 4,
+    "doc_codes": [
+      "ALERT-2016-007",
+      "MOC-2026-0413",
+      "PRO-MEC-014",
+      "PRO-OPS-032"
+    ],
+    "intent": "strengthen",
+    "moc_ref": "MOC-2013-0163",
+    "opened_on": "2013-10-13",
+    "precursor_events": [
+      {
+        "event_ref": "NM-2011-0013",
+        "severity_gate": null
+      }
+    ],
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "management_of_change": "change request",
+      "verification": "field verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "1828072dac6d6d86bd5b7e7a6c5a432b350abc82cdb329fba04b3b00538e8a77",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2013-0163",
+  "prompt_kind": "moc",
+  "prompt_sha256": "59e7b89b0228afb64904795feaf4fac8ed662cedd68a57ee03359b9dfba0e32a",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2013-0163 was raised at Marrindal Concentrator and Hydrocarbon Transfer Facility on 13 October 2013 following 1 recorded event in the archive, including NM-2011-0013. The change request record covers 4 clauses across 4 controlled documents. The intent is to strengthen the critical safeguard named in the documents in scope. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical safeguard set is preserved.",
+    "scope_note": "The documents in scope are ALERT-2016-007, MOC-2026-0413, PRO-MEC-014 and PRO-OPS-032."
+  },
+  "response_sha256": "047666c3937d525b7a6fe1f1192f60263514b2ae1b55348eec01f62cec3b2147",
+  "source": null
+}

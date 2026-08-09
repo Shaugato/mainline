@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 4,
+    "doc_code": "PRO-MEC-014",
+    "doc_family": "PRO",
+    "doc_title": "Hydrocarbon Transfer Pump Maintenance",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2006-11-03",
+    "required_citations": [
+      {
+        "control_label": "integrity of the mechanical seal support system",
+        "event_ref": "NM-2006-0003",
+        "event_title": "unplanned release of pressure energy at P-4102",
+        "hazard_energy": "pressure",
+        "kind": "capa_action",
+        "quote_ref": "quote:MRD/PRO-MEC-014/002#capa_action/NM-2006-0003",
+        "severity_gate": 3
+      }
+    ],
+    "rev_no": 2,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "accident investigation",
+      "management_of_change": "engineering change note",
+      "near_miss": "near hit"
+    }
+  },
+  "key": "c91fa69395918b77145f3cd40314389a89513011937b2a781490ec89d5708cee",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/PRO-MEC-014/002",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "9a095eb00c1cce9dcc4f33b033c66b771362ae3f8686e5e4eabf5dee110cd98a",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The corrective action recorded against NM-2006-0003 required the integrity of the mechanical seal support system to be restated in this procedure.",
+        "quote_ref": "quote:MRD/PRO-MEC-014/002#capa_action/NM-2006-0003"
+      }
+    ],
+    "reason": "Scheduled review at revision 2; 4 clauses restated."
+  },
+  "response_sha256": "e940790cce11142f86e5394ef38dbbc61b037f6f5c4253701a7c71bafa51596f",
+  "source": null
+}

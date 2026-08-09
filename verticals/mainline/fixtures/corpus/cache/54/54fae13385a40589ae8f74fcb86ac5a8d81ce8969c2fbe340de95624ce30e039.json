@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 3,
+    "doc_code": "PRO-ELE-008",
+    "doc_family": "PRO",
+    "doc_title": "Electrical Isolation and Access to Switchgear",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2010-07-04",
+    "required_citations": [
+      {
+        "control_label": "arc flash boundary and protective equipment",
+        "event_ref": "INC-2009-009",
+        "event_title": "fire on SG-4100 during a breakdown response",
+        "hazard_energy": "thermal",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:MRD/PRO-ELE-008/003#revision_history_line/INC-2009-009",
+        "severity_gate": 3
+      }
+    ],
+    "rev_no": 3,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "root cause analysis",
+      "management_of_change": "change request",
+      "near_miss": "hazard report"
+    }
+  },
+  "key": "54fae13385a40589ae8f74fcb86ac5a8d81ce8969c2fbe340de95624ce30e039",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/PRO-ELE-008/003",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "e8a4e08154968f4932a9267dc472fa1a260e07a72b331bbc6e4e6b7e36de92fc",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "Revision 3 was raised in response to INC-2009-009, and the arc flash boundary and protective equipment was amended as a result.",
+        "quote_ref": "quote:MRD/PRO-ELE-008/003#revision_history_line/INC-2009-009"
+      }
+    ],
+    "reason": "Scheduled review at revision 3; 3 clauses restated."
+  },
+  "response_sha256": "8a072e0dbb3a692fef2115d53ee51d0659f4008ba907a1c52fdc8682119ad779",
+  "source": null
+}

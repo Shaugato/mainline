@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 3,
+    "doc_code": "PRO-MIN-003",
+    "doc_family": "PRO",
+    "doc_title": "Haul Road and Light Vehicle Interaction",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2009-05-13",
+    "required_citations": [
+      {
+        "control_label": "positive communication before approaching mobile equipment",
+        "event_ref": "AF-2009-001",
+        "event_title": "audit finding - work clearance records incomplete for HO-9402",
+        "hazard_energy": "gravity",
+        "kind": "capa_action",
+        "quote_ref": "quote:YND/PRO-MIN-003/004#capa_action/AF-2009-001",
+        "severity_gate": 3
+      }
+    ],
+    "rev_no": 4,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "accident investigation",
+      "management_of_change": "engineering change note",
+      "near_miss": "near hit"
+    }
+  },
+  "key": "8d8b7c2a036acdfaa8c1aaff0348021a719e84a67a7246c417fc92fe1e3ec1b7",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:YND/PRO-MIN-003/004",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "967d5f3fc64736e6801ffee1b96265ce323a322dcc2cf58ff3eaea7e13e304ff",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "The corrective action recorded against AF-2009-001 required the positive communication before approaching mobile equipment to be restated in this procedure.",
+        "quote_ref": "quote:YND/PRO-MIN-003/004#capa_action/AF-2009-001"
+      }
+    ],
+    "reason": "Scheduled review at revision 4; 3 clauses restated."
+  },
+  "response_sha256": "fcc6db9cd2b32691687a08ae8fee4359e359b23de08556149a26bb6c809c8342",
+  "source": null
+}

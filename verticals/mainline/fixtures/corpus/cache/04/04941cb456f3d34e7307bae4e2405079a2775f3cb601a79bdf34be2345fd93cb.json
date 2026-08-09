@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 5,
+    "doc_code": "STD-HTW-004",
+    "doc_family": "STD",
+    "doc_title": "Hot Work",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2016-12-15",
+    "required_citations": [],
+    "rev_no": 5,
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "template_generation": 2,
+    "vocabulary": {
+      "investigation": "ICAM investigation",
+      "management_of_change": "management of change",
+      "near_miss": "potential incident"
+    }
+  },
+  "key": "04941cb456f3d34e7307bae4e2405079a2775f3cb601a79bdf34be2345fd93cb",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:MRD/STD-HTW-004/005",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "bc74e2724656bc72e2ff31525d0da0905d9ed6dd7f45d453d8e3dc17f1e709a5",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [],
+    "reason": "Scheduled review at revision 5; 5 clauses restated."
+  },
+  "response_sha256": "1cfc0552bc0b1dc45017267143e433213efb29378fce58ca77f982c775baf223",
+  "source": null
+}

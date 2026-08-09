@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "MOLTEN-AND-HOT-MATERIAL",
+    "barrier_role": "preventive",
+    "control_class": "STEAM_SYSTEM_WARM_THROUGH",
+    "control_delta": "weaken",
+    "control_label": "controlled draining, venting and warm-through of steam systems",
+    "doc_code": "PRO-OPS-044",
+    "doc_family": "PRO",
+    "doc_title": "Boiler Start-Up and Warm Through",
+    "effective_on": "2014-04-08",
+    "printed_label": "3.5.2(b)",
+    "setpoint": {
+      "from": -200.0,
+      "key": "boiler_drum_level_low_low",
+      "label": "boiler drum low-low level trip",
+      "strengthen_direction": "higher",
+      "to": -250.0,
+      "unit": "mm"
+    },
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "energy_isolation": "lock out tag out",
+      "verification": "field verification"
+    }
+  },
+  "key": "5ec7393d7bbf248ea40dce7990d5a020ab9dff965699dc0c8dd7627abfbe04ff",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:TLG/PRO-OPS-044/004#TLG/PRO-OPS-044/3.5.2(b)",
+  "prompt_kind": "clause",
+  "prompt_sha256": "24be88b5f5e6a8eadd63d5006e59c4faf9a577c515d4c30c3a12e588b4e3f371",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The controlled draining, venting and warm-through of steam systems should be provided; the field verification may be recorded at the next scheduled review rather than before the task proceeds. The boiler drum low-low level trip should be set at -250 mm. This clause applies to activities archived under MOLTEN-AND-HOT-MATERIAL at Tolgarra Processing and Power Station.",
+    "obligation_verb": "should"
+  },
+  "response_sha256": "539264d0f42e8d2e2adf639b41f5d5de2fbfa696bfe99bd601289fbd4652cbdc",
+  "source": null
+}

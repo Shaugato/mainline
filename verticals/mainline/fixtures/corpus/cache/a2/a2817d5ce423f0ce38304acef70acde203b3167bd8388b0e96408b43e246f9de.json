@@ -1,0 +1,44 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "EXPLOSIVES-AND-BLASTING",
+    "barrier_role": "preventive",
+    "control_class": "EXPLOSIVES_RECONCILIATION",
+    "control_delta": "remove",
+    "control_label": "receipt, magazining and reconciliation of explosives",
+    "doc_code": "PRO-EXP-002",
+    "doc_family": "PRO",
+    "doc_title": "Explosives Receipt and Magazine Control",
+    "effective_on": "2017-01-14",
+    "printed_label": "4.5",
+    "setpoint": {
+      "from": 12.0,
+      "key": "explosives_magazine_reconciliation_interval",
+      "label": "explosives reconciliation interval",
+      "strengthen_direction": "lower",
+      "to": 12.0,
+      "unit": "hours"
+    },
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical control",
+      "energy_isolation": "energy isolation",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "a2817d5ce423f0ce38304acef70acde203b3167bd8388b0e96408b43e246f9de",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:YND/PRO-EXP-002/005#YND/PRO-EXP-002/4.5",
+  "prompt_kind": "clause",
+  "prompt_sha256": "a6ff356f5ea0fd7add8904e65f3c50b51efdcdcbf3cc70bb6ca2526337bfcf74",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "This requirement is withdrawn. The receipt, magazining and reconciliation of explosives is no longer imposed by this procedure; the duty is discharged under the document that supersedes this clause. The explosives reconciliation interval shall be set at 12 hours.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "d1b7e5b6f633a9211bf01771081da27a1a820c820f964af976620cee4360a887",
+  "source": null
+}

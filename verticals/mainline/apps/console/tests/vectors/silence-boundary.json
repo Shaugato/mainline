@@ -1,0 +1,251 @@
+{
+  "vectors_version": 1,
+  "kind": "silence-boundary",
+  "source": "ARCHITECTURE.md 5.7 (mainline_meas.silence_receipt) and contracts/silence.schema.json.",
+  "reading": "Positions are 1-based in the receipt (s counts ADMITTED leaves); Merkle leaf indices are 0-based. leaf_s is therefore Merkle index s-1 (the last admitted) and leaf_s_plus_1 is Merkle index s (the first excluded). The multiset is sorted by score DESCENDING.",
+  "candidate_leaves": [
+    {
+      "index": 0,
+      "canon_bytes_utf8": "{\"event_id\":\"018f3a34-1100-7a40-8811-e73a5b2d6091\",\"rank\":0,\"score\":\"0.91\"}",
+      "leaf_hash_hex": "3288033737e3dbf583165f8b6ea1723242da3c49d0ba802d489f40fb5b8af261",
+      "score": "0.91"
+    },
+    {
+      "index": 1,
+      "canon_bytes_utf8": "{\"event_id\":\"018f3a34-1100-7a40-8811-e73a5b2d6092\",\"rank\":1,\"score\":\"0.77\"}",
+      "leaf_hash_hex": "0e536f8fd7bc23e8a83c8104ef2ec3a1fece312ee39734dabd01d6e857302d80",
+      "score": "0.77"
+    },
+    {
+      "index": 2,
+      "canon_bytes_utf8": "{\"event_id\":\"018f3a34-1100-7a40-8811-e73a5b2d6093\",\"rank\":2,\"score\":\"0.52\"}",
+      "leaf_hash_hex": "e9a6e6ca83a1fecb60fc0fd4f1475a20035defd511ed887a18f8eaab317c4db9",
+      "score": "0.52"
+    },
+    {
+      "index": 3,
+      "canon_bytes_utf8": "{\"event_id\":\"018f3a34-1100-7a40-8811-e73a5b2d6094\",\"rank\":3,\"score\":\"0.31\"}",
+      "leaf_hash_hex": "aa85ffa37a77987e42c096fc06c6f60bd24fe53454d278781aa73a0abafb9291",
+      "score": "0.31"
+    },
+    {
+      "index": 4,
+      "canon_bytes_utf8": "{\"event_id\":\"018f3a34-1100-7a40-8811-e73a5b2d6095\",\"rank\":4,\"score\":\"0.28\"}",
+      "leaf_hash_hex": "8153cfba492efb718bda09d9338dff36fdae4e38f7b0ce513bd6fd4a97e08a71",
+      "score": "0.28"
+    },
+    {
+      "index": 5,
+      "canon_bytes_utf8": "{\"event_id\":\"018f3a34-1100-7a40-8811-e73a5b2d6096\",\"rank\":5,\"score\":\"0.19\"}",
+      "leaf_hash_hex": "0e8a7b713bf9bbc2168647452e8f37cde0e7fed3eef69ce1bf05dafe15c9956b",
+      "score": "0.19"
+    },
+    {
+      "index": 6,
+      "canon_bytes_utf8": "{\"event_id\":\"018f3a34-1100-7a40-8811-e73a5b2d6097\",\"rank\":6,\"score\":\"0.11\"}",
+      "leaf_hash_hex": "3f7995f6c221a2ad4a20411d1fa86bcfa51a63adc1b1251aa52c179699130971",
+      "score": "0.11"
+    },
+    {
+      "index": 7,
+      "canon_bytes_utf8": "{\"event_id\":\"018f3a34-1100-7a40-8811-e73a5b2d6098\",\"rank\":7,\"score\":\"0.04\"}",
+      "leaf_hash_hex": "a450a27035025a62a18dc75ddec9dd23463777481891fc230c04f96e1daa9bc6",
+      "score": "0.04"
+    }
+  ],
+  "cases": [
+    {
+      "id": "per-boundary-holds",
+      "note": "The honest receipt: three admitted, five silenced, the boundary pair adjacent, both inclusion paths reaching candidate_root, and sortedness across the boundary.",
+      "receipt": {
+        "candidate_root": "7ca04114906371c37bfbc9ea2233dddbf1ff056201229e7d621dd84cb32ac4d4",
+        "theta": "0.45",
+        "s": 3,
+        "n": 8,
+        "boundary_proof": {
+          "leaf_s": {
+            "index": 2,
+            "leaf_hash_hex": "e9a6e6ca83a1fecb60fc0fd4f1475a20035defd511ed887a18f8eaab317c4db9",
+            "score": "0.52",
+            "path_hex": [
+              "aa85ffa37a77987e42c096fc06c6f60bd24fe53454d278781aa73a0abafb9291",
+              "2e1acfd392c8722e4c11abfa503c0d0acfc364c1cd30468ea431fe6586198cf5",
+              "78e277bc9e096c893bd9d53f2062e92484e0d7b10377809f0dc7d5528773810f"
+            ]
+          },
+          "leaf_s_plus_1": {
+            "index": 3,
+            "leaf_hash_hex": "aa85ffa37a77987e42c096fc06c6f60bd24fe53454d278781aa73a0abafb9291",
+            "score": "0.31",
+            "path_hex": [
+              "e9a6e6ca83a1fecb60fc0fd4f1475a20035defd511ed887a18f8eaab317c4db9",
+              "2e1acfd392c8722e4c11abfa503c0d0acfc364c1cd30468ea431fe6586198cf5",
+              "78e277bc9e096c893bd9d53f2062e92484e0d7b10377809f0dc7d5528773810f"
+            ]
+          }
+        }
+      },
+      "expect": "pass"
+    },
+    {
+      "id": "per-nothing-silenced",
+      "note": "s = n: every candidate was surfaced, so there is no first-excluded leaf and leaf_s_plus_1 is null.",
+      "receipt": {
+        "candidate_root": "7ca04114906371c37bfbc9ea2233dddbf1ff056201229e7d621dd84cb32ac4d4",
+        "theta": "0.01",
+        "s": 8,
+        "n": 8,
+        "boundary_proof": {
+          "leaf_s": {
+            "index": 7,
+            "leaf_hash_hex": "a450a27035025a62a18dc75ddec9dd23463777481891fc230c04f96e1daa9bc6",
+            "score": "0.04",
+            "path_hex": [
+              "3f7995f6c221a2ad4a20411d1fa86bcfa51a63adc1b1251aa52c179699130971",
+              "b9bc44ed8113476112a1544e66bf550086db473444b0b971774b57413d24e258",
+              "aa9a6e9584779ba534bf48eca43bb6b063f74218cebe18f08384464a876be7ad"
+            ]
+          },
+          "leaf_s_plus_1": null
+        }
+      },
+      "expect": "pass"
+    },
+    {
+      "id": "per-hand-excluded-item",
+      "note": "THE ATTACK PER EXISTS FOR. An item scoring 0.52 was dropped and the boundary moved up one, which makes the pair non-adjacent in score order: the claimed first-excluded leaf scores ABOVE theta. No item can be hand-excluded without breaking sortedness, and this is what breaking it looks like.",
+      "receipt": {
+        "candidate_root": "7ca04114906371c37bfbc9ea2233dddbf1ff056201229e7d621dd84cb32ac4d4",
+        "theta": "0.45",
+        "s": 2,
+        "n": 8,
+        "boundary_proof": {
+          "leaf_s": {
+            "index": 1,
+            "leaf_hash_hex": "0e536f8fd7bc23e8a83c8104ef2ec3a1fece312ee39734dabd01d6e857302d80",
+            "score": "0.77",
+            "path_hex": [
+              "3288033737e3dbf583165f8b6ea1723242da3c49d0ba802d489f40fb5b8af261",
+              "4b1d239b3a7a184a529bcd40dbce0db4cf1c0b8cacec1068b64d8d55ed6af14f",
+              "78e277bc9e096c893bd9d53f2062e92484e0d7b10377809f0dc7d5528773810f"
+            ]
+          },
+          "leaf_s_plus_1": {
+            "index": 2,
+            "leaf_hash_hex": "e9a6e6ca83a1fecb60fc0fd4f1475a20035defd511ed887a18f8eaab317c4db9",
+            "score": "0.52",
+            "path_hex": [
+              "aa85ffa37a77987e42c096fc06c6f60bd24fe53454d278781aa73a0abafb9291",
+              "2e1acfd392c8722e4c11abfa503c0d0acfc364c1cd30468ea431fe6586198cf5",
+              "78e277bc9e096c893bd9d53f2062e92484e0d7b10377809f0dc7d5528773810f"
+            ]
+          }
+        }
+      },
+      "expect": "fail",
+      "expect_reason_contains": "theta"
+    },
+    {
+      "id": "per-non-adjacent-boundary",
+      "note": "The pair must be adjacent: index(leaf_s_plus_1) = index(leaf_s) + 1. A gap hides whatever sat between them.",
+      "receipt": {
+        "candidate_root": "7ca04114906371c37bfbc9ea2233dddbf1ff056201229e7d621dd84cb32ac4d4",
+        "theta": "0.45",
+        "s": 3,
+        "n": 8,
+        "boundary_proof": {
+          "leaf_s": {
+            "index": 2,
+            "leaf_hash_hex": "e9a6e6ca83a1fecb60fc0fd4f1475a20035defd511ed887a18f8eaab317c4db9",
+            "score": "0.52",
+            "path_hex": [
+              "aa85ffa37a77987e42c096fc06c6f60bd24fe53454d278781aa73a0abafb9291",
+              "2e1acfd392c8722e4c11abfa503c0d0acfc364c1cd30468ea431fe6586198cf5",
+              "78e277bc9e096c893bd9d53f2062e92484e0d7b10377809f0dc7d5528773810f"
+            ]
+          },
+          "leaf_s_plus_1": {
+            "index": 4,
+            "leaf_hash_hex": "8153cfba492efb718bda09d9338dff36fdae4e38f7b0ce513bd6fd4a97e08a71",
+            "score": "0.28",
+            "path_hex": [
+              "0e8a7b713bf9bbc2168647452e8f37cde0e7fed3eef69ce1bf05dafe15c9956b",
+              "19086bc43fe3c9992b3a0076e6b12c7bed06959ccfade7d50f209c71a4bd5420",
+              "aa9a6e9584779ba534bf48eca43bb6b063f74218cebe18f08384464a876be7ad"
+            ]
+          }
+        }
+      },
+      "expect": "fail",
+      "expect_reason_contains": "adjacent"
+    },
+    {
+      "id": "per-forged-inclusion-path",
+      "note": "A boundary leaf whose path does not reach candidate_root was never in the committed multiset.",
+      "receipt": {
+        "candidate_root": "7ca04114906371c37bfbc9ea2233dddbf1ff056201229e7d621dd84cb32ac4d4",
+        "theta": "0.45",
+        "s": 3,
+        "n": 8,
+        "boundary_proof": {
+          "leaf_s": {
+            "index": 2,
+            "leaf_hash_hex": "e9a6e6ca83a1fecb60fc0fd4f1475a20035defd511ed887a18f8eaab317c4db9",
+            "score": "0.52",
+            "path_hex": [
+              "aa85ffa37a77987e42c096fc06c6f60bd24fe53454d278781aa73a0abafb9291",
+              "2e1acfd392c8722e4c11abfa503c0d0acfc364c1cd30468ea431fe6586198cf5",
+              "78e277bc9e096c893bd9d53f2062e92484e0d7b10377809f0dc7d5528773810f"
+            ]
+          },
+          "leaf_s_plus_1": {
+            "index": 3,
+            "leaf_hash_hex": "abababababababababababababababababababababababababababababababab",
+            "score": "0.31",
+            "path_hex": [
+              "e9a6e6ca83a1fecb60fc0fd4f1475a20035defd511ed887a18f8eaab317c4db9",
+              "2e1acfd392c8722e4c11abfa503c0d0acfc364c1cd30468ea431fe6586198cf5",
+              "78e277bc9e096c893bd9d53f2062e92484e0d7b10377809f0dc7d5528773810f"
+            ]
+          }
+        }
+      },
+      "expect": "fail",
+      "expect_reason_contains": "inclusion"
+    },
+    {
+      "id": "per-s-greater-than-n",
+      "note": "The database CHECK (s >= 0 AND s <= n) is the first line; the verifier is the second, for a payload that never met it.",
+      "receipt": {
+        "candidate_root": "7ca04114906371c37bfbc9ea2233dddbf1ff056201229e7d621dd84cb32ac4d4",
+        "theta": "0.45",
+        "s": 9,
+        "n": 8,
+        "boundary_proof": {
+          "leaf_s": {
+            "index": 2,
+            "leaf_hash_hex": "e9a6e6ca83a1fecb60fc0fd4f1475a20035defd511ed887a18f8eaab317c4db9",
+            "score": "0.52",
+            "path_hex": [
+              "aa85ffa37a77987e42c096fc06c6f60bd24fe53454d278781aa73a0abafb9291",
+              "2e1acfd392c8722e4c11abfa503c0d0acfc364c1cd30468ea431fe6586198cf5",
+              "78e277bc9e096c893bd9d53f2062e92484e0d7b10377809f0dc7d5528773810f"
+            ]
+          },
+          "leaf_s_plus_1": {
+            "index": 3,
+            "leaf_hash_hex": "aa85ffa37a77987e42c096fc06c6f60bd24fe53454d278781aa73a0abafb9291",
+            "score": "0.31",
+            "path_hex": [
+              "e9a6e6ca83a1fecb60fc0fd4f1475a20035defd511ed887a18f8eaab317c4db9",
+              "2e1acfd392c8722e4c11abfa503c0d0acfc364c1cd30468ea431fe6586198cf5",
+              "78e277bc9e096c893bd9d53f2062e92484e0d7b10377809f0dc7d5528773810f"
+            ]
+          }
+        }
+      },
+      "expect": "fail",
+      "expect_reason_contains": "s"
+    }
+  ]
+}

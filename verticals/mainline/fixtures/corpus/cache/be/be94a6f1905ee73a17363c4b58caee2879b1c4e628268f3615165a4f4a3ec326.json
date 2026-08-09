@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 0,
+    "doc_codes": [
+      "PTW-STD-004"
+    ],
+    "intent": "replace",
+    "moc_ref": "MOC-2019-0174",
+    "opened_on": "2019-11-10",
+    "precursor_events": [],
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "management_of_change": "management of change",
+      "verification": "critical control verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "be94a6f1905ee73a17363c4b58caee2879b1c4e628268f3615165a4f4a3ec326",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2019-0174",
+  "prompt_kind": "moc",
+  "prompt_sha256": "915558b3fc2b5060a09a237ab6df665d55ae24fb530ba5e21cf7c4e57db193fd",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2019-0174 was raised at Yandarra Downs Open Cut and Heavy Workshop on 10 November 2019 as a scheduled change under management of change; no event precedes it in the record. The management of change record carries no clause change; it records the assessment only. The intent is to replace an existing requirement with one written to the current house style. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical control set is preserved.",
+    "scope_note": "The documents in scope are PTW-STD-004."
+  },
+  "response_sha256": "bb15ceeaf0e5cb7b5f16c30791ace3f8ce16e25dd9a508c79cda3b9fce11deb5",
+  "source": null
+}

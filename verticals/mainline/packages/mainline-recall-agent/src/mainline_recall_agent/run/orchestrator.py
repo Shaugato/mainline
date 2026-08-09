@@ -197,9 +197,7 @@ class RecallOrchestrator:
         lexical_runner_factory: Callable[[RunRequest], LexicalRunner] | None = None,
         reranker_factory: Callable[[RunRequest], Reranker | None] | None = None,
         kernel: MaterialiseClient | None = None,
-        asset_match_resolver: Callable[
-            [Sequence[UUID]], Mapping[UUID, bool]
-        ] = _no_asset_match,
+        asset_match_resolver: Callable[[Sequence[UUID]], Mapping[UUID, bool]] = _no_asset_match,
         clock: Callable[[], datetime] = lambda: datetime.now(UTC),
         cap: int = BLOCKING_CAP_PROBABILISTIC,
     ) -> None:
@@ -229,18 +227,13 @@ class RecallOrchestrator:
         rows = self._session.query(EVENT_SEVERITY_SQL, (str(site_id), payload))
         return {UUID(str(row[0])): int(row[1]) for row in rows}
 
-    def _control_classes(
-        self, event_ids: Sequence[UUID]
-    ) -> dict[UUID, frozenset[str]]:
+    def _control_classes(self, event_ids: Sequence[UUID]) -> dict[UUID, frozenset[str]]:
         """Read each event's recorded control-failure classes."""
         if not event_ids:
             return {}
         payload = json.dumps(sorted({str(event_id) for event_id in event_ids}))
         rows = self._session.query(EVENT_CONTROL_CLASSES_SQL, (payload,))
-        return {
-            UUID(str(row[0])): frozenset(str(item) for item in (row[1] or []))
-            for row in rows
-        }
+        return {UUID(str(row[0])): frozenset(str(item) for item in (row[1] or [])) for row in rows}
 
     # ── clause binding ───────────────────────────────────────────────────────────────
 
@@ -299,9 +292,7 @@ class RecallOrchestrator:
             provenance={"source": "mainline_meas.recall_policy", "gate": "MI18 anchored"},
         )
 
-        clauses = cited_clauses(
-            self._session, request.permit_id, request.clause_control_classes
-        )
+        clauses = cited_clauses(self._session, request.permit_id, request.clause_control_classes)
         if not clauses:
             raise RunRefused(
                 f"permit {request.permit_id} cites no clause versions. A permit that declares "
@@ -355,9 +346,7 @@ class RecallOrchestrator:
         finished_at = self._clock()
         latency_ms = max(0, int((finished_at - started_at).total_seconds() * 1000))
         plan_digest = (
-            probabilistic.coverage.index_plan_digest
-            if probabilistic is not None
-            else bytes(32)
+            probabilistic.coverage.index_plan_digest if probabilistic is not None else bytes(32)
         )
 
         record = RunRecord(
@@ -502,9 +491,7 @@ class RecallOrchestrator:
                     )
                 ],
             )
-        reranker = (
-            None if self._reranker_factory is None else self._reranker_factory(request)
-        )
+        reranker = None if self._reranker_factory is None else self._reranker_factory(request)
         try:
             outcome = run_probabilistic(
                 arm_runner=self._arm_runner_factory(request),
@@ -582,18 +569,14 @@ class RecallOrchestrator:
             channels_of.setdefault(bond.event_id, set()).add("B")
             if origin_of.get(bond.event_id) != _ORIGIN_ANCESTRY:
                 origin_of[bond.event_id] = _ORIGIN_BONDED
-                evidence_of[bond.event_id] = bond.evidence_summary(
-                    request.activity_scope_id
-                )
+                evidence_of[bond.event_id] = bond.evidence_summary(request.activity_scope_id)
         for event_id, candidate in scored_by_id.items():
             channels_of.setdefault(event_id, set()).update(candidate.channels)
             origin_of.setdefault(event_id, _ORIGIN_PROBABILISTIC)
             evidence_of.setdefault(event_id, candidate.evidence_summary)
 
         deduped_ids = {sibling.event_id for sibling in deduped} - set(origin_of)
-        severities = self._severities(
-            request.site_id, [*origin_of, *deduped_ids]
-        )
+        severities = self._severities(request.site_id, [*origin_of, *deduped_ids])
 
         admission_input: list[AdmissionCandidate] = []
         pre_silenced: list[CandidateRow] = []
@@ -800,8 +783,7 @@ class RecallOrchestrator:
             "and NO shared precondition are asserted here, and this justification is not a "
             "judge's citation. The candidate is raised regardless: a precursor the model "
             "declined to summarise must still block the merge, and this run is recorded with "
-            "arms_degraded set."
-            + (f" Admission demotion: {demotion}." if demotion else "")
+            "arms_degraded set." + (f" Admission demotion: {demotion}." if demotion else "")
         )
 
     def _observation(
@@ -882,9 +864,7 @@ class RecallOrchestrator:
                 clause_uuid, commit_id = hit.clause_uuid, hit.commit_id
                 binding = "channel_a_join"
             else:
-                bound = self._bind_clause(
-                    clauses, event_classes.get(row.event_id, frozenset())
-                )
+                bound = self._bind_clause(clauses, event_classes.get(row.event_id, frozenset()))
                 clause_uuid, commit_id = bound.clause_uuid, bound.commit_id
                 binding = "control_class_overlap"
             scored = scored_by_id.get(row.event_id)
@@ -948,7 +928,7 @@ class RecallOrchestrator:
             try:
                 with self._writer.transaction() as session:
                     insert_run(session, record)
-            except Exception as exc:  # noqa: BLE001 - immediately classified and re-raised
+            except Exception as exc:
                 sqlstate = _sqlstate_of(exc)
                 if sqlstate is None:
                     raise

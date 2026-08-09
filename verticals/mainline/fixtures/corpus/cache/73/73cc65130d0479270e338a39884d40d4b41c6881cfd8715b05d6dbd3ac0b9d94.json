@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "ELECTRICAL-SAFETY",
+    "barrier_role": "preventive",
+    "control_class": "SWITCHING_AUTHORISATION",
+    "control_delta": "strengthen",
+    "control_label": "authorisation of switching and access to apparatus",
+    "doc_code": "PRO-ELE-026",
+    "doc_family": "PRO",
+    "doc_title": "High Voltage Switching and Access",
+    "effective_on": "2010-08-10",
+    "printed_label": "8.4",
+    "setpoint": null,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 1,
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "energy_isolation": "lock out tag out",
+      "verification": "field verification"
+    }
+  },
+  "key": "73cc65130d0479270e338a39884d40d4b41c6881cfd8715b05d6dbd3ac0b9d94",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:TLG/PRO-ELE-026/002#TLG/PRO-ELE-026/8.4",
+  "prompt_kind": "clause",
+  "prompt_sha256": "cc279d01063c46891565a42f5ad6dffe0cf555006db7b26d10998575309ddc9a",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The authorisation of switching and access to apparatus must be provided, and its effectiveness must be recorded as a field verification before the task proceeds. This clause applies to activities archived under ELECTRICAL-SAFETY at Tolgarra Processing and Power Station.",
+    "obligation_verb": "must"
+  },
+  "response_sha256": "8033f9715b49187c6102374621a15a66a318638b86d9ab01d11ce582ac4dc49c",
+  "source": null
+}

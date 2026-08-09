@@ -1,0 +1,78 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_file": "parking, chocking and restraining equipment",
+    "activity_root": "MOBILE-EQUIPMENT-INTERACTION",
+    "activity_series": "controlling traffic on operating areas",
+    "assets": [
+      {
+        "asset_class": "MOB-CLASS-H",
+        "label": "haul trucks",
+        "service": "waste and ore haulage",
+        "tag": "HT-9005"
+      }
+    ],
+    "consequence": {
+      "days_lost": 0,
+      "injuries": 1,
+      "label": "medical treatment injury"
+    },
+    "control_failures": [
+      {
+        "barrier_role": "preventive",
+        "control_class": "PROXIMITY_DETECTION_AND_SEGREGATION",
+        "control_label": "segregation of light vehicles and pedestrians from heavy equipment",
+        "failure_mode": "ineffective",
+        "hazard_energy": "kinetic",
+        "icam_tier": "individual_or_team_action"
+      }
+    ],
+    "event_ref": "AF-2017-001",
+    "hazard_energy": "gravity",
+    "hazard_media": [
+      "suspended load",
+      "stored potential of an elevated component",
+      "unsupported ground",
+      "person at height"
+    ],
+    "hazard_release": "fall, collapse, crush",
+    "kind": "audit_finding",
+    "occurred_on": "2017-02-01",
+    "severity_actual": 2,
+    "severity_potential": 3,
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "summary_facts": [],
+    "task_phase": "during an intrusive maintenance task",
+    "title": "audit finding - critical control verification of critical control at HT-9005",
+    "vocabulary": {
+      "critical_control": "critical control",
+      "investigation": "ICAM investigation",
+      "near_miss": "potential incident",
+      "verification": "critical control verification"
+    }
+  },
+  "key": "ddb5580b8d7caa176c869b1cf4678b01279f8d16e9188e2ed6f67b73e5e22a41",
+  "model_id": "template/deterministic-1",
+  "node_id": "event_narrative:AF-2017-001",
+  "prompt_kind": "icam",
+  "prompt_sha256": "ac84459501c34d8ad6483d65d3d04c9d7e5f6bd37ef25d79ef9f32dc7b904e35",
+  "prompt_template_sha256": "43b86b9f7aabfbb1336be23d93dcdb0d26715ae4a555d42f5249934d2187be86",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "consequence": "The recorded outcome was medical treatment injury, with 1 person injured. The potential outcome was rated 3 against the site's consequence scale, above the 2 actually realised.",
+    "defences": [
+      {
+        "control_class": "PROXIMITY_DETECTION_AND_SEGREGATION",
+        "finding": "Control PROXIMITY_DETECTION_AND_SEGREGATION: the segregation of light vehicles and pedestrians from heavy equipment was in place but did not perform, and the ICAM investigation classified this as an individual or team action."
+      }
+    ],
+    "recommendations": [
+      "Confirm at the next critical control verification that the segregation of light vehicles and pedestrians from heavy equipment on HT-9005 performs as designed."
+    ],
+    "sequence": "Work was under way in controlling traffic on operating areas, specifically parking, chocking and restraining equipment. HT-9005 (haul trucks) is in service for waste and ore haulage. The task proceeded during an intrusive maintenance task while the segregation of light vehicles and pedestrians from heavy equipment was in place but did not perform. The gravity energy involved is held as suspended load, and the recorded presentation was fall, collapse, crush.",
+    "summary": "On 1 February 2017 a planned critical control verification of HT-9005 at Yandarra Downs Open Cut and Heavy Workshop found the segregation of light vehicles and pedestrians from heavy equipment not effective."
+  },
+  "response_sha256": "21e12d432f43fbcd92458d9b3ca00ffa7dd85bda03d6ff7ad99387ed0c8501de",
+  "source": null
+}

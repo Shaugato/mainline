@@ -1,0 +1,26 @@
+{
+  "entries": [
+    {
+      "id": "au-0000000001",
+      "timestamp": "2026-08-04T14:41:02Z",
+      "action": "CLUSTER_SQL_USER_UPDATED",
+      "source": "CONSOLE",
+      "user_email": "ops@example.test",
+      "resource_type": "CLUSTER",
+      "resource_id": "cl-steward-fixture"
+    },
+    {
+      "id": "au-0000000002",
+      "timestamp": "2026-08-04T14:52:37Z",
+      "action": "SERVICE_ACCOUNT_API_KEY_CREATED",
+      "source": "API",
+      "user_email": "ops@example.test",
+      "resource_type": "SERVICE_ACCOUNT",
+      "resource_id": "sa-steward-mcp-read"
+    }
+  ],
+  "pagination": {
+    "next_page": null,
+    "page_size": 100
+  }
+}

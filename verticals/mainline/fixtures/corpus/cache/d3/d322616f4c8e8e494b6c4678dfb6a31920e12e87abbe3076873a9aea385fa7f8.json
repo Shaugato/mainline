@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 0,
+    "doc_codes": [
+      "ALERT-2016-007"
+    ],
+    "intent": "replace",
+    "moc_ref": "MOC-2013-0030",
+    "opened_on": "2013-01-20",
+    "precursor_events": [],
+    "site": "Tolgarra Processing and Power Station",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "management_of_change": "change request",
+      "verification": "field verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "d322616f4c8e8e494b6c4678dfb6a31920e12e87abbe3076873a9aea385fa7f8",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2013-0030",
+  "prompt_kind": "moc",
+  "prompt_sha256": "47eec8706c1168953ef0398b7176dae0e2f77a1a6e0cc054e064643a79432df5",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2013-0030 was raised at Tolgarra Processing and Power Station on 20 January 2013 as a scheduled change under change request; no event precedes it in the record. The change request record carries no clause change; it records the assessment only. The intent is to replace an existing requirement with one written to the current house style. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical safeguard set is preserved.",
+    "scope_note": "The documents in scope are ALERT-2016-007."
+  },
+  "response_sha256": "ae0e933336afcbe8cf46671c8bee78f84d372d67132400b3f02801ddb8f25079",
+  "source": null
+}

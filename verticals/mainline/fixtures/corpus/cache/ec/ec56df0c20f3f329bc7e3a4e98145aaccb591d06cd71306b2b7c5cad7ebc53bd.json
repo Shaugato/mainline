@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 7,
+    "doc_code": "PRO-OPS-017",
+    "doc_family": "PRO",
+    "doc_title": "Ship Loading and Vapour Recovery",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2021-12-07",
+    "required_citations": [],
+    "rev_no": 10,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "ICAM investigation",
+      "management_of_change": "management of change",
+      "near_miss": "potential incident"
+    }
+  },
+  "key": "ec56df0c20f3f329bc7e3a4e98145aaccb591d06cd71306b2b7c5cad7ebc53bd",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:CVY/PRO-OPS-017/010",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "956b0be54f425a6c5082f528a9671e4a15e7af33588accf948ff68bf216fce4b",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [],
+    "reason": "Scheduled review at revision 10; 7 clauses restated."
+  },
+  "response_sha256": "b0bd1eca134fefb7f4d75a606bbff7e92806c3482df9cd412377d49f0e6a42d7",
+  "source": null
+}

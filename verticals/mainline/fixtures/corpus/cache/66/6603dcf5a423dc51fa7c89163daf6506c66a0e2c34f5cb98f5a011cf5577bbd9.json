@@ -1,0 +1,36 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 6,
+    "doc_code": "STD-PRV-005",
+    "doc_family": "STD",
+    "doc_title": "Pressure Relief and Overpressure Protection",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2013-09-19",
+    "required_citations": [],
+    "rev_no": 3,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "root cause analysis",
+      "management_of_change": "change request",
+      "near_miss": "hazard report"
+    }
+  },
+  "key": "6603dcf5a423dc51fa7c89163daf6506c66a0e2c34f5cb98f5a011cf5577bbd9",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:TLG/STD-PRV-005/003",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "84c76597605cf4c9bc925e59c6dfd55359e464600bb5d3b369e7767cc2617ee8",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [],
+    "reason": "Scheduled review at revision 3; 6 clauses restated."
+  },
+  "response_sha256": "feba642ec230bf15df8091e2c7c451637ffa5162b12efb0748545651ece3c7ff",
+  "source": null
+}

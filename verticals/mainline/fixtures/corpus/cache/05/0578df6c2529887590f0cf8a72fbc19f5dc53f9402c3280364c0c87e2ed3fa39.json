@@ -1,0 +1,51 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 3,
+    "doc_codes": [
+      "MOC-2021-0155",
+      "PRO-MIN-003",
+      "STD-MEQ-007"
+    ],
+    "intent": "strengthen",
+    "moc_ref": "MOC-2005-0015",
+    "opened_on": "2005-01-14",
+    "precursor_events": [
+      {
+        "event_ref": "AF-2017-001",
+        "severity_gate": null
+      },
+      {
+        "event_ref": "CAPA-2006-001",
+        "severity_gate": null
+      },
+      {
+        "event_ref": "NM-2010-0015",
+        "severity_gate": null
+      }
+    ],
+    "site": "Yandarra Downs Open Cut and Heavy Workshop",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "key safeguard",
+      "management_of_change": "engineering change note",
+      "verification": "spot check"
+    },
+    "weakening_steps": 0
+  },
+  "key": "0578df6c2529887590f0cf8a72fbc19f5dc53f9402c3280364c0c87e2ed3fa39",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2005-0015",
+  "prompt_kind": "moc",
+  "prompt_sha256": "2391b1ff7fde6bcc45bdbcb7f2704e761f7d385a323338a2fadfdd2f893e32da",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2005-0015 was raised at Yandarra Downs Open Cut and Heavy Workshop on 14 January 2005 following 3 recorded events in the archive, including AF-2017-001, CAPA-2006-001 and NM-2010-0015. The engineering change note record covers 3 clauses across 3 controlled documents. The intent is to strengthen the key safeguard named in the documents in scope. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the key safeguard set is preserved.",
+    "scope_note": "The documents in scope are MOC-2021-0155, PRO-MIN-003 and STD-MEQ-007."
+  },
+  "response_sha256": "0ad1890fcdc5ade12346eecad42443c75d69fe2b0a43ec337ce644dec0cadc65",
+  "source": null
+}

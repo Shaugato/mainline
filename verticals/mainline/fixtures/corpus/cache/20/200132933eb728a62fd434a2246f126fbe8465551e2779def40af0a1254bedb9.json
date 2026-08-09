@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 4,
+    "doc_codes": [
+      "PRO-HSE-005",
+      "STD-HTW-004"
+    ],
+    "intent": "introduce",
+    "moc_ref": "MOC-2014-0113",
+    "opened_on": "2014-06-23",
+    "precursor_events": [],
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "terminal_state": "dispositioned",
+    "vocabulary": {
+      "critical_control": "critical safeguard",
+      "management_of_change": "change request",
+      "verification": "field verification"
+    },
+    "weakening_steps": 0
+  },
+  "key": "200132933eb728a62fd434a2246f126fbe8465551e2779def40af0a1254bedb9",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2014-0113",
+  "prompt_kind": "moc",
+  "prompt_sha256": "f27530fb2ec38642ae7e84472aaf3365b0be5f9767e78f3315203096f637e2bf",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2014-0113 was raised at Marrindal Concentrator and Hydrocarbon Transfer Facility on 23 June 2014 as a scheduled change under change request; no event precedes it in the record. The change request record covers 4 clauses across 2 controlled documents. The intent is to introduce a duty the documents in scope did not previously carry. The record reached the state dispositioned in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the critical safeguard set is preserved.",
+    "scope_note": "The documents in scope are PRO-HSE-005 and STD-HTW-004."
+  },
+  "response_sha256": "930aac615c46d5b05ffe4c995d8f412e6adfca6d08e562e153a06d061e7e44ba",
+  "source": null
+}

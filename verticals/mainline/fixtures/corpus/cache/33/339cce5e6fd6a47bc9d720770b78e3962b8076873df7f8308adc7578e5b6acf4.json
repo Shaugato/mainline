@@ -1,0 +1,40 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clause_count": 1,
+    "doc_codes": [
+      "MOC-2019-0221",
+      "PRO-MEC-021",
+      "PTW-STD-002",
+      "STD-ISO-006",
+      "STD-PTW-001"
+    ],
+    "intent": "introduce",
+    "moc_ref": "MOC-2023-0265",
+    "opened_on": "2023-12-25",
+    "precursor_events": [],
+    "site": "Marrindal Concentrator and Hydrocarbon Transfer Facility",
+    "terminal_state": "merged",
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "management_of_change": "change assurance",
+      "verification": "assurance activity"
+    },
+    "weakening_steps": 0
+  },
+  "key": "339cce5e6fd6a47bc9d720770b78e3962b8076873df7f8308adc7578e5b6acf4",
+  "model_id": "template/deterministic-1",
+  "node_id": "moc_justification:MOC-2023-0265",
+  "prompt_kind": "moc",
+  "prompt_sha256": "03d4b8292799f62fa28489f196cdc5325d063b20ab40de37a44da7f23fd201ec",
+  "prompt_template_sha256": "5cab5443a74b797f58ced22e113eda6728c45125166668de296fcabec89b3937",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "justification": "MOC-2023-0265 was raised at Marrindal Concentrator and Hydrocarbon Transfer Facility on 25 December 2023 as a scheduled change under change assurance; no event precedes it in the record. The change assurance record covers 1 clause across 5 controlled documents. The intent is to introduce a duty the documents in scope did not previously carry. The record reached the state merged in the change stream.",
+    "risk_note": "No control is relaxed by this change; the residual risk position is unchanged or improved, and the material unwanted event control set is preserved.",
+    "scope_note": "The documents in scope are MOC-2019-0221, PRO-MEC-021, PTW-STD-002, STD-ISO-006 and STD-PTW-001."
+  },
+  "response_sha256": "e6bcf392e025734a0c671624efffd1a004ef8538be5f2ddca406cefb98ef3170",
+  "source": null
+}

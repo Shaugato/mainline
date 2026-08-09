@@ -1,0 +1,30 @@
+// SPDX-FileCopyrightText: 2026 MAINLINE contributors
+// SPDX-License-Identifier: FSL-1.1-ALv2
+//
+// The CONTROL. Structurally correct, and it must produce ZERO findings. Without it, a
+// check that returned a hit for every line would still satisfy every assertion made
+// against violations.tsx.fixture.
+//
+// It deliberately contains the near-misses:
+//   · tabIndex={0} and tabIndex={-1}, which are correct and must not trip positive-tabindex
+//   · aria-hidden on a decorative glyph with no interactivity
+//   · a div with onClick AND a role AND a key handler, which is the legitimate escape
+//   · alt="" on a decorative image, which is a decision rather than an omission
+//   · a sort key that is not signer_sub
+
+export function CleanSurface(): unknown {
+  return (
+    <section aria-labelledby="h">
+      <h2 id="h">Blocking precursors</h2>
+      <main tabIndex={-1}>
+        <button tabIndex={0}>Dispose</button>
+        <span aria-hidden="true">×</span>
+        <div role="button" tabIndex={0} onClick={handle} onKeyDown={handleKey}>
+          a real, reachable control
+        </div>
+        <img src="rule.png" alt="" />
+        <table data-sort-key="virulence_class">ordered by severity, never by person</table>
+      </main>
+    </section>
+  );
+}

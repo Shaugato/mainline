@@ -1,0 +1,77 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "clauses_touched": 21,
+    "doc_code": "PRO-MEC-041",
+    "doc_family": "PRO",
+    "doc_title": "Export Transfer Pump Maintenance",
+    "driver": "routine_review",
+    "driving_change_ref": null,
+    "driving_event_ref": null,
+    "effective_on": "2006-07-25",
+    "required_citations": [
+      {
+        "control_label": "controlled transfer of hydrocarbon between vessels",
+        "event_ref": "INC-2006-005",
+        "event_title": "injury during a breakdown response on P-7111",
+        "hazard_energy": "thermal",
+        "kind": "regulator_requirement",
+        "quote_ref": "quote:CVY/PRO-MEC-041/001#regulator_requirement/INC-2006-005",
+        "severity_gate": 1
+      },
+      {
+        "control_label": "controlled transfer of hydrocarbon between vessels",
+        "event_ref": "INC-2006-005",
+        "event_title": "injury during a breakdown response on P-7111",
+        "hazard_energy": "thermal",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:CVY/PRO-MEC-041/001#revision_history_line/INC-2006-005",
+        "severity_gate": 1
+      },
+      {
+        "control_label": "secondary containment by bund and drainage",
+        "event_ref": "NM-2005-0019",
+        "event_title": "near hit - pressure exposure at P-7113",
+        "hazard_energy": "pressure",
+        "kind": "revision_history_line",
+        "quote_ref": "quote:CVY/PRO-MEC-041/001#revision_history_line/NM-2005-0019",
+        "severity_gate": 2
+      }
+    ],
+    "rev_no": 1,
+    "site": "Cape Verity Export Terminal",
+    "template_generation": 1,
+    "vocabulary": {
+      "investigation": "accident investigation",
+      "management_of_change": "engineering change note",
+      "near_miss": "near hit"
+    }
+  },
+  "key": "9ca3590cb4515a049a79fe92742c98a757f447e422f403d63c6a1471c48592fc",
+  "model_id": "template/deterministic-1",
+  "node_id": "revision_reason:CVY/PRO-MEC-041/001",
+  "prompt_kind": "revreason",
+  "prompt_sha256": "ea0d230db5c9a9d9f25d9312e4324467980768b26b0780006c6b60d37f91413c",
+  "prompt_template_sha256": "540af75d2f4d9ae0607ad6b4a461402e7961ee99a193521e90e97025021b3b7e",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "citations": [
+      {
+        "line": "A regulatory requirement arising from INC-2006-005 obliges this procedure to carry the controlled transfer of hydrocarbon between vessels.",
+        "quote_ref": "quote:CVY/PRO-MEC-041/001#regulator_requirement/INC-2006-005"
+      },
+      {
+        "line": "Revision 1 was raised in response to INC-2006-005, and the controlled transfer of hydrocarbon between vessels was amended as a result.",
+        "quote_ref": "quote:CVY/PRO-MEC-041/001#revision_history_line/INC-2006-005"
+      },
+      {
+        "line": "Revision 1 was raised in response to NM-2005-0019, and the secondary containment by bund and drainage was amended as a result.",
+        "quote_ref": "quote:CVY/PRO-MEC-041/001#revision_history_line/NM-2005-0019"
+      }
+    ],
+    "reason": "Scheduled review at revision 1; 21 clauses restated."
+  },
+  "response_sha256": "c4b3ad64f67a2eb4d5a24a0906ce4e9d6d1662f8b0924d787049db396cd04f8f",
+  "source": null
+}

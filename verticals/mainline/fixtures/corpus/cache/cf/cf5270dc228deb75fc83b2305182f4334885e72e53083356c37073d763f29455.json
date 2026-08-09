@@ -1,0 +1,37 @@
+{
+  "cache_version": 1,
+  "facts": {
+    "activity_root": "PRESSURE-SYSTEM-INTEGRITY",
+    "barrier_role": "preventive",
+    "control_class": "PRESSURE_EQUIPMENT_INSPECTION",
+    "control_delta": "introduce",
+    "control_label": "in-service inspection of pressure equipment",
+    "doc_code": "STD-PRV-005",
+    "doc_family": "STD",
+    "doc_title": "Pressure Relief and Overpressure Protection",
+    "effective_on": "2022-11-20",
+    "printed_label": "3.1.11",
+    "setpoint": null,
+    "site": "Tolgarra Processing and Power Station",
+    "template_generation": 2,
+    "vocabulary": {
+      "critical_control": "material unwanted event control",
+      "energy_isolation": "positive isolation verification",
+      "verification": "assurance activity"
+    }
+  },
+  "key": "cf5270dc228deb75fc83b2305182f4334885e72e53083356c37073d763f29455",
+  "model_id": "template/deterministic-1",
+  "node_id": "clause_text:TLG/STD-PRV-005/006#TLG/STD-PRV-005/2.4",
+  "prompt_kind": "clause",
+  "prompt_sha256": "6bbe83ead304de50dc9b2b6f6fb95a647d81fc5a5aecccbbe58a97e7fe0c1fcf",
+  "prompt_template_sha256": "6d44e0ec190eeabd94c7eec41eb552199c6a648b8332bcefa301fa0d7d90a882",
+  "prompt_version": "v1",
+  "renderer": "template",
+  "response": {
+    "body": "The in-service inspection of pressure equipment shall be provided and maintained for work covered by this standard. This clause applies to activities archived under PRESSURE-SYSTEM-INTEGRITY at Tolgarra Processing and Power Station.",
+    "obligation_verb": "shall"
+  },
+  "response_sha256": "bfbfe3ce3f5eef59efe6f787cf01949212bd9155657344a06343fa5d60f85062",
+  "source": null
+}

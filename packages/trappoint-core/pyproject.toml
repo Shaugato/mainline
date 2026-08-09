@@ -1,0 +1,55 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: Apache-2.0
+
+[project]
+name = "trappoint-core"
+version = "0.1.0"
+description = "The gate client: an explicit SERIALIZABLE transaction, a hand-written discriminating retry loop that retries 40001 and nothing else, a typed GateRefused carrying the constraint name, and the gap-free-by-compare-and-swap ledger append."
+readme = "README.md"
+requires-python = ">=3.13"
+license = "Apache-2.0"
+authors = [{ name = "MAINLINE contributors" }]
+keywords = ["cockroachdb", "serializable", "retry", "sqlstate", "merge-gate"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Database",
+  "Typing :: Typed",
+]
+
+# psycopg 3 and nothing else — and the ABSENCE of a second dependency is the point.
+#
+# `tenacity`, `backoff`, `retrying`, `stamina` and every one of their relatives are
+# FORBIDDEN repository-wide by `.importlinter` contract 4, and this is the distribution
+# the contract exists for. `40001` is the only retryable SQLSTATE (spec/errors.md §2.1);
+# `23514`, `23503`, `23505` and `P0001` are decisions the gate already made and are
+# attempted exactly once, ever (§4). A decorator that retries "on exception" cannot tell
+# an undecided transaction from a decided refusal, and the difference between those two
+# is the product: a retried `23514` writes five identical rows into the refusal ledger
+# for one attempted history, and the count of refusals stops being a count of anything.
+#
+# The loop that replaces it is forty lines in `retry.py` and reads in one screen.
+dependencies = [
+  "psycopg[binary,pool]>=3.3.4",
+]
+
+[project.urls]
+Homepage = "https://github.com/Shaugato/mainline"
+
+[dependency-groups]
+dev = ["pytest>=8.2", "mypy>=1.11", "ruff>=0.6"]
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/trappoint_core"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "tests", "README.md"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["--strict-markers", "-ra"]

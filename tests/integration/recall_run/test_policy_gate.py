@@ -53,8 +53,16 @@ class SpyArmRunner:
 def _policy(**overrides) -> tuple:
     """One POLICY_SQL row with named columns overridden."""
     columns = [
-        "policy_version", "taxonomy_ver", "embed_model", "gen_model", "prompt_version",
-        "beam_size", "tau", "arms", "calibrator", "anchored_tree_size",
+        "policy_version",
+        "taxonomy_ver",
+        "embed_model",
+        "gen_model",
+        "prompt_version",
+        "beam_size",
+        "tau",
+        "arms",
+        "calibrator",
+        "anchored_tree_size",
         "thymogate_certificate_id",
     ]
     row = list(POLICY_ROW)
@@ -65,7 +73,12 @@ def _policy(**overrides) -> tuple:
 
 def _thymogate(**overrides) -> tuple:
     columns = [
-        "certificate_id", "config_digest", "panel_digest", "panel_size", "n_missed", "verdict"
+        "certificate_id",
+        "config_digest",
+        "panel_digest",
+        "panel_size",
+        "n_missed",
+        "verdict",
     ]
     row = list(THYMOGATE_ROW)
     for name, value in overrides.items():
@@ -74,7 +87,7 @@ def _thymogate(**overrides) -> tuple:
 
 
 def _gated_harness(build_harness, cluster_kwargs: dict):
-    from _run_fakes import FakeCluster  # noqa: PLC0415 - sibling fixture module
+    from _run_fakes import FakeCluster
 
     spy = SpyArmRunner()
     judge = FixtureReranker(table=verdicts())
@@ -159,11 +172,9 @@ def test_no_certificate_at_all_is_legal_at_k4(build_harness) -> None:
     asserted. Naming a certificate that cannot be read is a refusal; naming none is a gap that
     a later milestone closes with a ``NOT NULL``, not with an exception today.
     """
-    from _run_fakes import FakeCluster  # noqa: PLC0415 - sibling fixture module
+    from _run_fakes import FakeCluster
 
-    harness = build_harness(
-        cluster=FakeCluster(policy_row=_policy(thymogate_certificate_id=None))
-    )
+    harness = build_harness(cluster=FakeCluster(policy_row=_policy(thymogate_certificate_id=None)))
     outcome = harness.run()
     assert outcome.open_blocking > 0
 
@@ -181,7 +192,7 @@ def test_an_unloadable_calibrator_refuses(build_harness) -> None:
 
 def test_a_permit_citing_no_clause_refuses(build_harness) -> None:
     """A receipt asserting that nothing was relevant to nothing is not evidence."""
-    from _run_fakes import FakeCluster  # noqa: PLC0415 - sibling fixture module
+    from _run_fakes import FakeCluster
 
     cluster = FakeCluster()
     harness = build_harness(cluster=cluster)
@@ -189,7 +200,7 @@ def test_a_permit_citing_no_clause_refuses(build_harness) -> None:
     original = harness.orchestrator._session.query
 
     def _empty(sql, params=()):
-        from mainline_recall_agent.run.channels import (  # noqa: PLC0415
+        from mainline_recall_agent.run.channels import (
             CITED_CLAUSES_SQL,
         )
 

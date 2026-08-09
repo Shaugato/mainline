@@ -1,0 +1,144 @@
+{# SPDX-FileCopyrightText: 2026 MAINLINE contributors #}
+{# SPDX-License-Identifier: Apache-2.0 #}
+{#
+  Migration 0101 — THE MATERIALISED CONFLICT.
+
+  ARCHITECTURE.md §5.11 item 2 · §3 (PROJECT / PIN / REFUSE) · §16 MI02, MI07, MI30 ·
+  docs/leads/kernel.md ruling D9.
+
+  A new blocking check does two things to its subject and they are not the same thing:
+
+    open_blocking + 1   the gate CLOSES. A CHECK over a plain scalar column now refuses the
+                        merge, for every writer, forever, with a constraint name attached.
+    gate_epoch  + 1     the subject moves to a NEW (id, epoch) pair. `merge_record` holds a
+                        composite foreign key onto (subject_id, gate_epoch) with
+                        ON UPDATE RESTRICT, so once a subject has merged at epoch e, any
+                        statement that would move it off e is refused by the DATABASE. That
+                        is what makes attaching a precursor to an issued permit PHYSICALLY
+                        IMPOSSIBLE rather than merely forbidden — the answer to the anomaly
+                        SERIALIZABLE provably cannot address (§4.1 law 3).
+
+  Both increments happen in ONE statement per subject, so the counter CHECK holds at every
+  statement boundary. `DEFERRABLE INITIALLY DEFERRED` is unimplemented on this platform
+  (§4.1 law 2), so an intermediate state that violates a CHECK is not a transient — it is a
+  refusal.
+
+  ON THE RAISE, AND ON THE TWO STRUCTURAL REFUSALS BEHIND IT (finding S4).
+  Delete the RAISE and the write still fails twice over: the UPDATE drives `open_blocking > 0`
+  on a row whose state is 'merged' (23514 on the counter CHECK) AND it mutates a pinned
+  `gate_epoch` (23503 on the epoch pin). That claim is proved by the UNWELDING SUITE in CI, one
+  mechanism disabled at a time — it is NOT asserted from runtime behaviour, because at runtime
+  the RAISE fires first, deterministically. Reordering would make the observable SQLSTATE a race
+  between CHECK and FK evaluation, which is unassertable and unfilmable. The corpus therefore
+  claims exactly one thing about this path at runtime: P0001.
+
+  THE THREE-WAY BRANCH, AND WHY IT IS NOT THE TWO-WAY BRANCH IN §5.11.
+  ARCHITECTURE.md writes `IF permit_id IS NOT NULL … ELSE <change request> END IF`, which treats
+  "names no subject at all" as "names a change request" and then silently updates zero rows —
+  a blocking check that blocks nothing, which is the exact failure this file exists to prevent.
+  The `exactly_one_subject` CHECK on `blocking_check` should make that state unreachable; a
+  trigger that would fail SILENTLY if that constraint were ever dropped is a trigger with no
+  refusal depth. The final ELSE raises.
+
+  WHY `FOR UPDATE` IS HERE AND IS NOT LOAD-BEARING.
+  It narrows the window in which two concurrent checks read the same state, and it is an
+  optimisation only: `SELECT … FOR UPDATE` under SERIALIZABLE is best-effort unless
+  `enable_durable_locking_for_serializable` is set, and nothing in this design may depend on a
+  lock. Correctness comes from SERIALIZABLE plus the counter CHECK plus the epoch pin. If the
+  lock were removed the behaviour would be unchanged; if SERIALIZABLE were removed the gate
+  would still hold, because the conflict is MATERIALISED as a row rather than inferred from an
+  isolation level.
+
+  RULING D9 — THE OUTBOX INSERT IS A RENDER-TIME SWITCH, NOT A RUNTIME BRANCH.
+  `<schema>_ops.outbox` is the vertical's changefeed spine (migration 0099) and the substrate
+  must not hard-depend on a table it does not own. `emit_outbox` is declared in the binding;
+  the reference vertical sets it false and this file then contains no reference to a relation
+  that does not exist there. A runtime `IF` would have been a branch nobody audited.
+
+  PLATFORM (measured on CockroachDB CCL v26.2.5, 2026-08-09): `(NEW).col` for every read; the
+  unparenthesised spelling creates and then fails at execution with 42P01.
+#}
+{% set ns = namespace(ok=true) %}
+{% for s in subjects %}
+{%   set inner = namespace(found=false) %}
+{%   for c in s.counters %}
+{%     if c.column == 'open_blocking' %}{% set inner.found = true %}{% endif %}
+{%   endfor %}
+{%   if not inner.found %}{% set ns.ok = false %}{% endif %}
+{% endfor %}
+{% if not ns.ok %}{{ a_gated_subject_declares_no_open_blocking_counter }}{% endif %}
+-- @file 0101_fn_check_materialised.sql
+{{ header(file='0101_fn_check_materialised.sql',
+          title='CREATE FUNCTION ' ~ binding.schema ~ '.fn_check_materialised — a new obligation closes the gate and bumps the epoch',
+          rationale='PROJECT and PIN in one function: open_blocking + 1 closes a CHECK over a plain scalar so the merge is refused for every writer forever, and gate_epoch + 1 moves the subject to a new (id, epoch) pair so the completion record composite FK with ON UPDATE RESTRICT makes attaching a precursor to an issued subject physically impossible. A precursor arriving after the merge raises P0001 rather than racing two structural refusals whose order is unassertable.',
+          mi=['MI02', 'MI07', 'MI30'], i=['I02', 'I03']) }}
+--
+-- migration:  0101_fn_check_materialised
+-- band:       0100-0109z · kernel/projection-triggers · RENDERED
+-- statements: 1
+-- invariants: MI02 / MI30 (a merged subject has zero open blocking checks — this function is the
+--             half the database MAINTAINS; the counter CHECK is the half that REFUSES) ·
+--             MI07 (no precursor may be attached to an issued subject)
+-- source:     ARCHITECTURE.md §5.11 item 2 · §2.2 S4, S16 · docs/leads/kernel.md D9
+-- requires:   {{ binding.schema }}.blocking_check (0058) ·
+{% for s in subjects %}
+--             {{ binding.schema }}.{{ s.table }} with {{ s.epoch_column }} and open_blocking
+{% endfor %}
+{% if binding.emit_outbox %}
+--             {{ zone.ops }}.outbox (0099) — required because this binding declares emit_outbox
+{% endif %}
+-- provides:   {{ binding.schema }}.fn_check_materialised() — welded to blocking_check by 0121
+-- sqlstate:   P0001 on a post-merge precursor and on a check naming no gated subject.
+--             Structurally also 23514 (counter CHECK) and 23503 (epoch pin) — proved by the
+--             unwelding suite, never claimed from runtime behaviour (finding S4).
+-- forward-only; no .down.sql and no .up.sql (MR-5).
+--
+-- ACYCLICITY. AFTER INSERT on blocking_check. It writes the gated subject tables{% if binding.emit_outbox %} and
+-- {{ zone.ops }}.outbox{% endif %}, and the only trigger on a gated subject table is the merge gate,
+-- whose WHEN clause restricts it to the merge transition — so this UPDATE cannot re-enter.
+-- Trigger depth contributed: 1.
+
+CREATE FUNCTION {{ binding.schema }}.fn_check_materialised() RETURNS TRIGGER LANGUAGE PLpgSQL AS $$
+DECLARE
+  v_state {{ binding.schema }}.subject_state;
+BEGIN
+{% for s in subjects %}
+{%   if loop.first %}
+  IF (NEW).{{ s.id_column }} IS NOT NULL THEN
+{%   else %}
+  ELSIF (NEW).{{ s.id_column }} IS NOT NULL THEN
+{%   endif %}
+    SELECT t.{{ s.state_column }} INTO v_state
+      FROM {{ binding.schema }}.{{ s.table }} t
+     WHERE t.{{ s.id_column }} = (NEW).{{ s.id_column }}
+       FOR UPDATE;
+    IF v_state IS NULL THEN
+      RAISE EXCEPTION USING ERRCODE='P0001',
+        MESSAGE='{{ binding.name }}: no {{ s.kind }} row for this blocking check — the gate has no subject to close';
+    END IF;
+    IF v_state = '{{ s.completing_state }}' THEN
+      RAISE EXCEPTION USING ERRCODE='P0001',
+        MESSAGE='{{ binding.name }}: precursor arrived after issue — use the post-issue recall path';
+    END IF;
+    UPDATE {{ binding.schema }}.{{ s.table }}
+       SET open_blocking = open_blocking + 1,
+           {{ s.epoch_column }} = {{ s.epoch_column }} + 1
+     WHERE {{ s.id_column }} = (NEW).{{ s.id_column }};
+{% endfor %}
+  ELSE
+    RAISE EXCEPTION USING ERRCODE='P0001',
+      MESSAGE='{{ binding.name }}: a blocking check names no gated subject — an obligation that blocks nothing is not an obligation';
+  END IF;
+
+{% if binding.emit_outbox %}
+  -- Ruling D9. Rendered because this binding declares emit_outbox. The row carries POINTERS AND
+  -- DIGESTS ONLY — never clause or narrative text — because a changefeed bypasses row-level
+  -- security entirely and this table is the one CDC-query source in the deployment.
+  INSERT INTO {{ zone.ops }}.outbox (kind, subject_id, site_id, max_severity, payload)
+       VALUES ('check_opened', (NEW).check_id, (NEW).site_id, (NEW).severity, '{}'::JSONB);
+{% else %}
+  -- Ruling D9. This binding declares emit_outbox = false, so no changefeed row is written and
+  -- this file names no relation the binding does not own.
+{% endif %}
+  RETURN NEW;
+END $$;
