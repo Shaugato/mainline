@@ -248,6 +248,47 @@ def test_a_planted_temperature_on_a_real_request_builder_is_still_caught(
     assert "model transport" in reasons and "standing beside 'maxTokens'" in reasons
 
 
+#: The repository's own Bedrock body builder. A rule proved only against fixtures
+#: its own author wrote is proved against that author's idea of a request; this
+#: file is the shape the product actually sends.
+_REAL_BUILDER = "packages/mainline-agentkit/src/mainline_agentkit/fallback_toolform.py"
+_REAL_BUILDER_ANCHOR = '"anthropic_version": ANTHROPIC_VERSION,'
+
+
+def test_the_rule_fires_on_this_repositorys_own_request_builder(
+    repo_root: Path, tmp_path: Path
+) -> None:
+    """Plant a sampling parameter into a copy of the real agentkit body builder.
+
+    Copied verbatim, mutated by one line, and the rule must report that line and
+    no other — in a 224-line module that mentions ``tools``, ``schema`` and
+    ``thinking``. This is the assertion that would catch a narrowing which had
+    quietly stopped measuring the thing A6 is about.
+    """
+    source = (repo_root / _REAL_BUILDER).read_text(encoding="utf-8")
+    assert _REAL_BUILDER_ANCHOR in source, (
+        f"{_REAL_BUILDER} no longer contains {_REAL_BUILDER_ANCHOR!r}. Re-point this "
+        "test at the current body builder; do not delete it — it is the only place "
+        "the A6 ban is proved against production code rather than a fixture."
+    )
+    lines: list[str] = []
+    planted = 0
+    for line in source.splitlines():
+        lines.append(line)
+        if _REAL_BUILDER_ANCHOR in line and not planted:
+            lines.append('        "temperature": 0.0,')
+            planted = len(lines)
+
+    target = tmp_path / _REAL_BUILDER
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+    report = scan_sampling_params(tmp_path)
+    reported = sorted(int(v.subject.rsplit(":", 1)[1]) for v in report.violations)
+    assert reported == [planted], report.summary()
+    assert "anthropic_version" in report.violations[0].detail, report.summary()
+
+
 def test_the_two_measured_false_positives_are_clean_without_an_exemption(
     repo_root: Path,
 ) -> None:

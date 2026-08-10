@@ -75,6 +75,33 @@
 # `ci-greps` carries a standing RED step below that plants a genuine
 # `temperature=` on a genuine `converse` call, in the same module as a copy of the
 # table that used to trip the rule, and fails if the scan comes back clean.
+#
+# ── THE ONE THING THIS LANE IS STILL RED ON, NAMED AND OWED ──────────────────
+#
+# Run 31436815826 (commit a4c24ee): seven of eight jobs green. `CI greps` passed
+# 37 tests and its RED step; `mainline-boundary unit tests` passed 56 tests and
+# published `GREP: examined=3203 violations=0 skips=0 exemptions=20`. That job
+# then failed at its `ruff` step, which had NEVER RUN BEFORE — the pytest step
+# above it had failed on every prior run, so this is a debt being surfaced for
+# the first time rather than a regression. Measured, `ruff check
+# packages/mainline-boundary tests/boundary` with ruff 0.16.2:
+#
+#   E402   tests/boundary/conftest.py:39           (sys.path insert before import)
+#   I001   tests/boundary/test_e1_iam.py:18        (first-party block not separated)
+#   I001   tests/boundary/test_e2_network.py:18
+#   E501   tests/boundary/test_e2_network.py:76    (105 > 100)
+#   I001   tests/boundary/test_e3_code.py:20
+#   RUF002 tests/boundary/test_fleet_matrix.py:5   (EN DASH in a docstring)
+#   I001   tests/boundary/test_fleet_matrix.py:28
+#   Found 7 errors.  [4 fixable with --fix]
+#
+# `packages/mainline-boundary/**`, `tests/boundary/test_ci_greps.py` and every
+# other file this worker owns are at zero, under both `ruff check` and
+# `ruff format --check`. The seven above sit in five files this worker does not
+# own, so they are recorded here rather than fixed in the same commit: the cure
+# is `ruff check --fix tests/boundary`, one `# noqa: E402` with its reason on
+# conftest.py:39, one hyphen, and one rewrap. The step is NOT narrowed to dodge
+# them — `tests/boundary` is this job's suite and linting it is the point.
 
 name: boundary
 
