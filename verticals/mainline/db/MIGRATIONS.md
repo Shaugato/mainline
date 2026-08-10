@@ -12,15 +12,73 @@ command — and then fix this document, because a contract that has drifted from
 enforcement is worse than no contract.
 
 ```
-uv run trappoint migrate lint          # naming, allocation, sequences, header block
-uv run trappoint migrate lock          # the manifest is derived and current
-uv run trappoint migrate verify --offline
-python scripts/mi_ratchet.py check     # the invariant catalogue is committed and current
+trappoint migrate lint --root verticals/mainline/db/migrations   # naming, allocation, sequences, headers, producers
+trappoint migrate lock --migrations verticals/mainline/db/migrations   # the manifest is derived and current
+trappoint migrate verify --offline
+python scripts/mi_ratchet.py check                               # the invariant catalogue is committed and current
 ```
+
+> **On `uv run`.** CI invokes these as `uv run trappoint …`. `uv` is **not installed on the
+> founder's workstation** (`docs/HONESTY.md`), so the spellings above are the ones that work
+> today: the console script from `.venv/Scripts/`. Both reach the same `main`.
 
 ---
 
-## 0 · The five files that are the authority
+## 0 · The tree, measured
+
+Every number in this section is read off the tree or off a recorded run. Nothing here is a
+target.
+
+| | | source |
+|---|---|---|
+| files in the tree | **271** | `migrations.lock.json#counts.files` |
+| rendered | 107 | `#counts.rendered` |
+| authored | 164 | `#counts.authored` |
+| counsel-gated | 30 | `#counts.counsel_gated` |
+| counsel-gated but undeclared | **0** | `#counsel_gated_undeclared` |
+| bands occupied (of 33 declared) | 32 | `#counts.bands_occupied` |
+| **applied through `trappoint migrate up`** | **271 / 271**, exit 0 | `evidence/chain/chain-20260810T062542Z.json#result` |
+| attestation rows written | 272 (genesis + one per file) | `#attestation.rows`, `chain_dense: true` |
+| lint findings, incl. `producer-absent` | **0** | `trappoint migrate lint --root verticals/mainline/db/migrations` |
+| relations with a consumer and no producer | **0** of 603 references | `trappoint_migrate.producers.census` |
+
+**One statement per file, so the file census is a statement census:**
+
+| first statement | files | | first statement | files |
+|---|--:|---|---|--:|
+| `CREATE TABLE` | 86 | | `CREATE SCHEMA` | 5 |
+| `CREATE TRIGGER` | 39 | | `REVOKE …` | 6 |
+| `CREATE FUNCTION` / `PROCEDURE` | 28 | | `ALTER SCHEMA` | 5 |
+| `CREATE POLICY` | 25 | | `GRANT …` (bootstrap floor) | 4 |
+| `CREATE VIEW` | 20 | | `COMMENT ON` | 3 |
+| `CREATE ROLE` | 17 | | `INSERT INTO` (seed) | 2 |
+| `ALTER TABLE` | 15 | | `CREATE INDEX` (incl. unique/inverted) | 8 |
+| `CREATE TYPE` | 7 | | `ALTER DEFAULT PRIVILEGES` | 1 |
+
+### 0.1 · Two numbers that are not the same number
+
+This tree has been counted two ways, and the difference is not a rounding error.
+
+| | census | **deployment** |
+|---|---|---|
+| driver | `scripts/proof/gate_refusal.py`'s own chain | `trappoint migrate up` |
+| on a failing file | logs it and **continues** | marks the version `dirty` and **stops** |
+| bookkeeping | none | `trappoint.schema_migration`, one row per file |
+| what it answers | "how many of these can take effect?" | "does this tree deploy?" |
+| before this wave | 246 of 261 | **155 of 261** — halted at `0121_trg_check_materialised`, `[42P01] relation "mainline_ops.outbox" does not exist` |
+| now | — | **271 of 271**, exit 0 |
+
+`0121_trg_check_materialised.sql` was file **156 of 261** in apply order, so the halt left
+155 applied, `0121` dirty, and 105 files that had never been executed at all by the runner
+that executes migrations in production.
+
+Only the right-hand column describes a deployment. It is the number this file quotes, it is
+produced by `scripts/chain/apply_chain.py`, and the run is recorded under `evidence/chain/`.
+`docs/release/chain-268.md` is the release note.
+
+---
+
+## 1 · The five files that are the authority
 
 | File | What it is authoritative for | Who writes it |
 |---|---|---|
@@ -38,7 +96,7 @@ here compares a file against **one** declaration instead.
 
 ---
 
-## 1 · The one filename convention (MR-5)
+## 2 · The one filename convention (MR-5)
 
 ```
 NNNN[a-z]_lower_snake_slug.sql
@@ -72,7 +130,7 @@ makes `dirty` answerable in seconds.
 
 ---
 
-## 2 · The mandatory header block
+## 3 · The mandatory header block
 
 Four keys, in the **leading comment block** — not "somewhere in the first N characters",
 because a rule whose window can be widened by adding SQL is a rule that erodes.
@@ -107,7 +165,7 @@ and `packages/trappoint-sql/refvertical/vertical.toml`).
 
 ---
 
-## 3 · Rendered or authored, decided by object (MR-1)
+## 4 · Rendered or authored, decided by object (MR-1)
 
 Every number belongs to exactly one mode, and the mode is declared in the allocation:
 
@@ -133,7 +191,100 @@ Three consequences that are not negotiable:
 
 ---
 
-## 4 · What is banned, and what the ban buys
+## 5 · The band table
+
+Thirty-three bands, exhaustive and disjoint over the key space `(1, "")` to `(9999, "z")`.
+`packages/trappoint-migrate/tests/test_allocation.py` asserts exhaustive-and-disjoint; the
+`files` column below is **projected from disk** by `trappoint migrate lock --write` and is
+not a declaration.
+
+| band | owner | mode | files |
+|---|---|---|--:|
+| `0001-0018z` | kernel/render-and-foundation | rendered | 42 |
+| `0019-0020z` | datamodel/dm-foundation | authored | 3 |
+| `0021-0023z` | kernel/render-and-foundation | rendered | 3 |
+| `0024-0031z` | datamodel/dm-spine | authored | 9 |
+| `0032-0039z` | datamodel/dm-blame | authored | 8 |
+| `0040-0046z` | recall/recall-ddl-triggers | authored | 7 |
+| `0047-0049` | datamodel/dm-spine | authored | 3 |
+| `0049a-0049z` | algorithms | authored | **6** |
+| `0050-0053z` | kernel/subject-and-pin | rendered | 5 |
+| `0054-0057z` | datamodel/ex-dm-gate | authored | 4 |
+| `0058-0064z` | kernel/obligation-and-clearance | rendered | 9 |
+| `0065-0065z` | datamodel/ex-dm-gate | authored | 3 |
+| `0066-0068z` | kernel/obligation-and-clearance | rendered | 4 |
+| `0069-0070z` | datamodel/ex-dm-disposition | authored | 3 |
+| `0071-0071z` | kernel/subject-and-pin+quickrefuse | rendered | 5 |
+| `0072-0079z` | custody | authored | 9 |
+| `0080-0089z` | recall | authored | **13** |
+| `0090-0099z` | datamodel/dm-periphery | authored | **3** |
+| `0100-0109z` | kernel/projection-triggers | rendered | 10 |
+| `0110-0114z` | recall | authored | 5 |
+| `0115-0119` | kernel/merge-gate-and-core | rendered | 5 |
+| `0119a-0119z` | kernel/quickrefuse | rendered | 2 |
+| `0120-0129z` | kernel/projection-triggers | rendered | 19 |
+| `0130-0135z` | kernel/merge-gate-and-core+quickrefuse | rendered | 3 |
+| `0136-0139z` | recall | authored | 5 |
+| `0140-0144z` | datamodel/dm-functions-triggers+algorithms | authored | 6 |
+| `0145-0149z` | datamodel/dm-functions-triggers+algorithms | authored | **12** |
+| `0150-0154z` | algorithms | authored | 3 |
+| `0155-0169z` | datamodel/dm-views-rls | authored | 15 |
+| `0170-0179z` | datamodel/dm-views-rls | authored | 3 |
+| `0180-0198z` | datamodel/dm-views-rls | authored | 43 |
+| `0199-0199z` | datamodel/dm-views-rls | authored | 1 |
+| `0200-9999z` | **UNALLOCATED** | unallocated | **0** |
+| | | | **271** |
+
+The four bolded bands are the ones the producer-completion wave of 2026-08-10 grew. No
+`first`, `last`, `owner` or `mode` moved; only the `contents` prose was restated to name the
+new files, and only by the wave that added them (producers-plan D3).
+
+---
+
+## 6 · Every consumer has a producer
+
+The tree spent a week in a state where triggers, views and row-level-security policies had
+been written for tables **nobody had written a `CREATE TABLE` for**. It cost 15 files
+directly and it stopped `trappoint migrate up` dead at file 156 of 261 — because a `CREATE
+TRIGGER` on v26.2.5 *does* resolve its table, and forward-only means nothing below a halt is
+ever executed.
+
+Seven tables were missing. All seven now exist, and the numbers were not chosen freely: the
+consumers' `requires:` headers, `GRANTS.yaml`'s `since:` keys, `ARCHITECTURE.md` §18 and
+`RLS-MATRIX.yaml` had already fixed each one, and moving any of them would have falsified
+four committed artefacts.
+
+| producer | relation | the consumers it unblocks |
+|---|---|---|
+| `0049d_identity_assignment` | `mainline.identity_assignment` | `0140a` (fn body), `0145a_trg_cbm_account_guard` |
+| `0089_agent_action` | `mainline_meas.agent_action` | `0164_v_agent_actions`, `0165_v_gate_latency_daily`, `0166_v_txn_restart_daily` |
+| `0089a_person_measure_policy` | `mainline_meas.person_measure_policy` | `0089b` (`NOT NULL REFERENCES`), `0171`, `0172` |
+| `0089b_standing` | `mainline_meas.standing` | `0171_v_standing_components`, `0172_v_my_record`, `0187_standing_rls_enable`, `0187a`–`0187e` |
+| `0090_patrol_run` | `mainline.patrol_run` | `0163_v_fixity_coverage` |
+| `0099_outbox` | `mainline_ops.outbox` | `0101` (fn body), `0121_trg_check_materialised`, `0198x_no_rls_on_cdc_sources` |
+| `0099a_site_register_signal` | `mainline_ops.site_register_signal` | `RLS-MATRIX.yaml` `rls_forbidden`; `test_mi_rls.py::test_site_register_signal_has_no_row_level_security` |
+
+Three of them additionally carry an append-only weld — `0145f`, `0149a`, `0149b` — because
+MI01 is cited by the very views that read them. **`mainline_ops.outbox` deliberately has no
+weld**: it is one of the three allow-listed row-level-TTL tables (30 days), and a
+`BEFORE DELETE` refusal trigger would make the expiry job fail forever.
+
+**This class of defect is now refused at lint time.** `trappoint migrate lint` carries a
+`producer-absent` rule: every schema-qualified relation a migration references must have a
+producer in the same tree. Its red output — captured against the tree *before* the seven
+tables landed — is in `evidence/producers/`.
+
+Eleven further relations are named by `GRANTS.yaml` and produced by nothing:
+`discordance_warrant`, `document_intake_finding`, `drift_finding`, `lesson`,
+`merge_conflict`, `observed_assertion`, `propagation`, `resolution_memory`, `time_witness`,
+`mainline_meas.assay_outcome`, `mainline_meas.external_attestation`. **None of them blocks a
+migration** — no file in this tree references one — so they are *reported, not authored*
+(producers-plan D12). `grants apply --allow-missing` skips them by name and the census is
+recorded in `evidence/chain/`.
+
+---
+
+## 7 · What is banned, and what the ban buys
 
 **`CREATE SEQUENCE`, `nextval(`, `SERIAL`, `unique_rowid()` — anywhere, including
 templates.** Measured on this cluster: `CREATE SEQUENCE` *succeeds*, so the lint is
@@ -149,6 +300,8 @@ is the whole evidentiary value of the ledger.
 
 A convention cannot hold that. A lint can.
 
+`FAMILY` is a **reserved keyword** on this platform and is never used as a bare column name.
+
 Also refused, by ruling rather than by this runner: a `CHECK` containing a subquery,
 `now()`, a JSONB operator or a UDF-of-column (DM-4); `DEFERRABLE INITIALLY DEFERRED`
 (unimplemented on this platform); row-level TTL outside the three allow-listed tables; and
@@ -157,7 +310,7 @@ the courtroom exhibit, and `check_permit_1` is not an exhibit*).
 
 ---
 
-## 5 · The protected floor (DM-14)
+## 8 · The protected floor (DM-14)
 
 The floor is **`0149z`** — the end of the trigger bands. At or below it a `.down.sql` is
 refused **before the runner opens a connection**, because a down migration discovered
@@ -173,14 +326,21 @@ not to open a door.
 
 ---
 
-## 6 · Applying a migration, and what the runner refuses
+## 9 · Applying a migration, and what the runner refuses
 
 ```
-uv run trappoint migrate bootstrap --dsn "$TRAPPOINT_DSN"
-uv run trappoint migrate up --dsn "$TRAPPOINT_DSN" \
+trappoint migrate bootstrap --dsn "$TRAPPOINT_DSN"
+trappoint migrate up --dsn "$TRAPPOINT_DSN" \
     --tree mainline --migrations verticals/mainline/db/migrations
-uv run trappoint migrate grants apply --dsn "$TRAPPOINT_DSN"
-uv run trappoint migrate status --dsn "$TRAPPOINT_DSN" --tree mainline
+trappoint migrate grants apply --dsn "$TRAPPOINT_DSN"
+trappoint migrate status --dsn "$TRAPPOINT_DSN" --tree mainline
+```
+
+Or, from a fresh database with the run recorded as evidence — which is what CI and the
+release note quote:
+
+```
+python scripts/chain/apply_chain.py            # see scripts/chain/README.md
 ```
 
 `apply` is an alias of `up`. The bookkeeping lives in schema **`trappoint`**, created
@@ -193,7 +353,7 @@ The runner refuses, and each refusal is a decision rather than a surprise:
 |---|---|---|
 | `BootstrapMissing` | bookkeeping absent | `bootstrap`; a migration with no record is the failure this runner exists to prevent |
 | `LockUnavailable` | another migrator holds the lease | wait, or find them. There are **no advisory locks** in CockroachDB, so `trappoint.schema_lock` is a real table with a real lease |
-| `DirtyMigration` | a previous run left `applying`/`dirty` | `force <version> --incident <id> --resolve applied\|pending`. A dirty schema is a custody event, which is why clearing one requires an incident id and writes an attestation row |
+| `DirtyMigration` | a previous run left `applying`/`dirty` | `force <version> --incident <id> --resolve applied\|pending`. A dirty schema is a custody event, which is why clearing one requires an incident id and writes an attestation row. **In a build loop the answer is a fresh database, not a force** |
 | `MigrationTreeInvalid` | a file's sha changed after it was applied; a new file sorts *before* the last applied one; an applied version has no file | all three mean the same thing — the stream on disk is not the stream that produced this schema. Write a new migration; forward-only means the applied file is history |
 | `SchemaJobFailed` | the statement returned but the job did not | a DDL statement starts a background job. The version does not advance on `SHOW JOBS` reaching anything but success |
 | `AttestationDrift` | the live schema disagrees with the chain head | something changed the schema outside this runner, or the chain was edited. Both are the same alarm and neither is a warning |
@@ -201,14 +361,19 @@ The runner refuses, and each refusal is a decision rather than a surprise:
 **`40001` is the only retryable code.** Nothing else is retried, ever — not even a failed
 DDL statement, because "did it happen" is answered by `SHOW JOBS`, not by trying again.
 
+**Budget the run.** `--attest each` (the default) recomputes the live schema fingerprint —
+twice, and compares — after **every** statement, over a schema that is growing. Measured:
+≈5–6 s/file, so a full-tree run is 25–30 minutes on an idle local node and longer on a
+contended one. Iterate with `--attest final`; take the record run with `--attest each`.
+
 ---
 
-## 7 · Two fingerprints
+## 10 · Two fingerprints
 
 ```
-uv run trappoint migrate fingerprint                  # the INPUTS. No cluster.
-uv run trappoint migrate fingerprint --live --dsn …   # the SCHEMA, incl. trigger source
-uv run trappoint migrate attest --dsn … --expect <hex>
+trappoint migrate fingerprint                  # the INPUTS. No cluster.
+trappoint migrate fingerprint --live --dsn …   # the SCHEMA, incl. trigger source
+trappoint migrate attest --dsn … --expect <hex>
 ```
 
 The **tree** fingerprint hashes the migration and seed files. DM-12 calls it the
@@ -226,16 +391,21 @@ prose.
 Both are computed **twice** and refuse when the two computations disagree. A fingerprint
 that flickers is worse than no fingerprint: it trains everybody to ignore the alarm.
 
+The chain's ordinals are **dense by compare-and-swap** (`UNIQUE (prev_ordinal)`), so a gap
+is not a lost row — it is a rewrite. `apply_chain.py` asserts density on every recorded run
+and stores the answer as `attestation.chain_dense`.
+
 ---
 
-## 8 · Roles and grants are not migrations (DM-7)
+## 11 · Roles and grants are not migrations (DM-7)
 
 `GRANTS.yaml` is a declarative matrix, re-asserted idempotently:
 
 ```
-uv run trappoint migrate grants plan       # the SQL, to read before it runs
-uv run trappoint migrate grants apply --dsn …
-uv run trappoint migrate grants denials    # the negative space, as data
+trappoint migrate grants plan       # the SQL, to read before it runs
+trappoint migrate grants apply --dsn …
+trappoint migrate grants apply --dsn … --allow-missing   # mid-build: report absences, do not refuse
+trappoint migrate grants denials    # the negative space, as data
 ```
 
 A migration runs once. **A `RESTORE` into a new cluster does not carry role membership or
@@ -243,16 +413,20 @@ grants**, so they must be re-asserted and drift-checked. DR-8 is the accepted co
 freshly restored cluster is unusable until `grants apply` runs, which is better than one
 that looks correct and is not.
 
+`--allow-missing` reports a grant whose object does not exist instead of refusing. That is
+legitimate while the tree is mid-build and a **defect on a finished cluster** — which is why
+the census of what it skipped is recorded in `evidence/chain/` rather than discarded.
+
 The real control is the `denials:` block and the privilege probe that asserts `42501` for
 every forbidden (role, object) pair. A matrix listing only what is *permitted* would be a
 document about intentions.
 
 ---
 
-## 9 · Adding a migration — the whole checklist
+## 12 · Adding a migration — the whole checklist
 
-1. **Find your band** in `migrations.allocation.toml`. If your band is full, suffix your
-   own last number. **Never borrow a neighbour's**; ask the owner.
+1. **Find your band** in `migrations.allocation.toml` (§5 above renders it). If your band is
+   full, suffix your own last number. **Never borrow a neighbour's**; ask the owner.
 2. **Check the mode.** `rendered` means you edit a template and re-render *both* bindings.
    `authored` means you write the file here.
 3. **One statement.** Declare secondary indexes inline in `CREATE TABLE` (DM-6), including
@@ -260,13 +434,19 @@ document about intentions.
    index-file explosion.
 4. **Write the header block**, citing an `MI` the catalogue has adopted. If the invariant
    you need does not exist, that is an ADR, not a comment.
-5. **Write the failing test first** and let it fail *for the right reason*. `mi-red`
+5. **If you reference a table, make sure this tree produces it** — and if it does not, write
+   the producer or do not write the consumer. `trappoint migrate lint`'s `producer-absent`
+   rule will refuse you, and §6 is the week that rule was bought with.
+6. **Write the failing test first** and let it fail *for the right reason*. `mi-red`
    requires every `pending` invariant to have a currently-failing owning test; a suite for
    a product whose deliverable is a refusal, that has never been red, asserts nothing.
-6. **Run the four commands** at the top of this file.
-7. **Regenerate the manifest**: `trappoint migrate lock --write`.
-8. When the mechanism lands and the test goes green, `mi-red` will fail with
-   *"MIxx is pending but its tests pass — promote it"*. **That is the ratchet working.**
-   Flip `status: enforced` in `mi_catalogue.yaml`, run
-   `python scripts/mi_ratchet.py reconcile --write`, and commit. The promotion is in blame
-   forever, and demoting it later needs an `ADR-NNNN` in the commit body.
+7. **Run the four commands** at the top of this file.
+8. **Regenerate the manifest**: `trappoint migrate lock --write`, then `trappoint migrate
+   lock` with no flag — it must print *is current*.
+9. **Drive the whole tree through the real runner**: `python scripts/chain/apply_chain.py`.
+   A green lint is not a green deployment; §0.1 is what that distinction cost.
+10. When the mechanism lands and the test goes green, `mi-red` will fail with
+    *"MIxx is pending but its tests pass — promote it"*. **That is the ratchet working.**
+    Flip `status: enforced` in `mi_catalogue.yaml`, run
+    `python scripts/mi_ratchet.py reconcile --write`, and commit. The promotion is in blame
+    forever, and demoting it later needs an `ADR-NNNN` in the commit body.

@@ -1,0 +1,229 @@
+{
+  "$comment": "SPDX-FileCopyrightText: 2026 MAINLINE contributors / SPDX-License-Identifier: FSL-1.1-ALv2. The capture plan for the Phase-1 demo bundle — the EvidenceBundle the demo URL serves when there is no live API behind it. Prose: docs/deploy/replay-fallback.md. Executed by scripts/deploy/capture_demo_bundle.py; sealed and checked by scripts/capture-bundle.ts.",
+  "plan_version": 1,
+  "plan_id": "demo-cloud",
+  "owner": "deploy / w9-evidence-bundle",
+
+  "executed_by": {
+    "program": "scripts/deploy/capture_demo_bundle.py",
+    "seal": "node verticals/mainline/apps/console/scripts/capture-bundle.ts seal --dir fixtures/bundles/demo-cloud",
+    "check": "node verticals/mainline/apps/console/scripts/capture-bundle.ts check --dir fixtures/bundles/demo-cloud",
+    "why_not_capture_bundle_capture": "scripts/capture-bundle.ts `capture` is not used, and the reason is structural rather than a preference. Its sql step spawns ONE `cockroach sql` process per statement, so every statement lands in its own session and its own implicit transaction. The three beats this plan exists to capture are only meaningful inside ONE serializable transaction with SAVEPOINT / ROLLBACK TO SAVEPOINT — that is what makes the successful merge (beat 4) undo itself and the whole capture persist nothing (docs/leads/deploy-plan.md §1.4). A per-statement shell cannot hold a savepoint across process boundaries. Two lesser reasons follow: there is no `cockroach` binary on the machine this was written on, and psycopg's Diagnostic object reports `constraint_name` as a field rather than as text a reader has to parse out of stderr. `seal` and `check` ARE used, unchanged, and they are the only thing that writes manifest.json.",
+    "why_not_http": "No read API is deployed yet (docs/leads/deploy-plan.md §1.6: no HTTP server exists anywhere in the repository as of 2026-08-10). Rather than invent payloads, this capture calls the SAME functions the Lambda will serve — mainline_demo_api.reads.READS[...] and the envelope builders in mainline_demo_api.transitions — against the Cloud database. The bytes in these frames are therefore the bytes the live API will return for the same request, minus the HTTP hop, and the frame records `via: python-call` so nobody reads them as an observed network exchange."
+  },
+
+  "out_dir": "verticals/mainline/apps/console/fixtures/bundles/demo-cloud",
+
+  "target": {
+    "$comment": "Filled by the capture from the cluster itself; these values are the EXPECTATION the run is checked against, not the source of the fingerprint.",
+    "database": "mainline_demo",
+    "cluster": "mainline-dev, CockroachDB Cloud Basic, aws-ap-southeast-1 (Singapore)",
+    "expect_product_prefix": "CockroachDB",
+    "seeded_by": "scripts/deploy/seed_demo.py (w2-cloud-database); evidence/deploy/cloud-seed.json"
+  },
+
+  "manifest": {
+    "$comment": "The seed capture-bundle.ts `seal` consumes. `captured_at`, `cluster_fingerprint` and `schema_version` are null here and are OVERWRITTEN by the capture with values read from the cluster. A null that survives into manifest.seed.json is a failed run, not a default. `staged` is written false here because the capture writes no hand-authored bytes; the capture RAISES it to true, with a note, whenever any frame it produced carries staged: true — which the twin frames always do. A plan cannot know in advance how many frames will be staged, so the flag is a floor here and a fact in manifest.json.",
+    "bundle_id": "demo-cloud",
+    "captured_at": null,
+    "generator": "scripts/deploy/capture_demo_bundle.py 1.0 (frames) + capture-bundle.ts seal 1.0 (digests)",
+    "cluster_fingerprint": null,
+    "schema_version": null,
+    "staged": false,
+    "staged_note": null,
+    "checkpoint": null,
+    "checkpoint_note": "null on purpose. mainline.ledger_checkpoint holds one seeded row, but a manifest checkpoint must name a C2SP signed note carried in this bundle at note_path, and no signed note is produced by this deployment — the log signing key belongs to the custody domain and no deployment holds it. A checkpoint reference to a note that is not in the bundle would fail the in-browser verifier's own parse, and inventing one would be worse. src/verify/bundle-verifier.ts records `no checkpoint declared` as a SKIP finding, which is exactly the honest rendering: the bundle carries no custody anchor, and the console says so rather than implying one."
+  },
+
+  "subject": {
+    "$comment": "The seeded permit the whole demo turns on. `discover_if_absent` lets the capture find the single seeded permit when a deployment used different identifiers, rather than 404ing on a hard-coded UUID; the discovered value is recorded in the evidence.",
+    "permit_id": "dec0de00-0006-4000-8000-000000000001",
+    "external_ref": "DEMO-PTW-0001",
+    "discover_if_absent": true,
+    "expect": {
+      "state": "dispositioned",
+      "open_blocking": 1,
+      "gate_epoch": 1,
+      "dispositions": 0
+    }
+  },
+
+  "twins": {
+    "$comment": "THE TWO TRANSIENT SUBJECTS, and why they exist. The drift beat and the admission beat each need a DIFFERENT world from the one the seeded permit is in: one where the projected counter has been forced to zero out of band, and one where a disposition has been signed. The console addresses a gate screen by permit id (#/gate?permit=<uuid>) and a bundle frame is keyed by method+path, so three worlds need three permit ids — one frame per key, and no way to file two answers under one name. Each twin is therefore built INSIDE the capture transaction as a row-for-row copy of the seeded permit's history, driven through the same triggers, and rolled back with everything else. Their frames carry staged: true with a verbatim note, because a reader must be told that these rows are not in the database now. What is NOT staged about them is the part that matters: the SQLSTATE, the constraint name and the message are the cluster's own, captured from psycopg's Diagnostic object.",
+    "namespace_url": "https://mainline.trappoint.org/demo/2026-08/bundle",
+    "derivation": "uuid5(uuid5(NAMESPACE_URL, namespace_url), '<twin>/<what>') — recomputable by anyone from two strings in this file, so a re-capture names the same permits and the demo's URLs stay stable.",
+    "drift": {
+      "permit_id": "98832832-cb53-54ce-a709-d0af8c0c7f8b",
+      "external_ref": "DEMO-PTW-0002",
+      "recall_run_id": "23b34875-b741-560e-befb-63cab9fe4e42",
+      "silence_receipt_id": "a7135bcd-4b43-58f1-b8b1-8cfa3c579193",
+      "check_id": "d4ce345c-39a1-5096-9bd3-8decf6ec0134",
+      "receipt_id": "0345d5fd-1e21-58cd-b7ad-8a2e195ed988",
+      "disposition_id": null
+    },
+    "cleared": {
+      "permit_id": "f4976f47-599a-52ac-b7aa-379c80e6e849",
+      "external_ref": "DEMO-PTW-0003",
+      "recall_run_id": "9a5c2e7a-970a-53b9-bd4d-441aac9b5549",
+      "silence_receipt_id": "58ef96ee-83b0-57df-90f9-a773052580ea",
+      "check_id": "04f3ad82-0345-5649-a8eb-cb23607221dd",
+      "receipt_id": "d782cca9-d1d8-57e3-b5fa-8308128c5577",
+      "disposition_id": "eb017411-483b-591d-bc5f-6c56b8d0d31f"
+    }
+  },
+
+  "context": [
+    {
+      "resource": "permit",
+      "subject": "seeded",
+      "required": true,
+      "purpose": "The permit row and its seven projected counters. The gate screen's first read."
+    },
+    {
+      "resource": "blocking_checks",
+      "subject": "seeded",
+      "required": true,
+      "purpose": "The one open obligation behind open_blocking = 1, with the severity and virulence fn_check_project wrote over the seed's values."
+    },
+    {
+      "resource": "disposition",
+      "subject": "seeded",
+      "required": true,
+      "purpose": "The clearance lattice row governing that obligation, the defeater vocabulary, the reading floor — and NO signature, which is the absence the gate refuses on."
+    },
+    {
+      "resource": "exposure_receipt",
+      "subject": "seeded",
+      "required": true,
+      "purpose": "What was actually shown to a human, and the composite foreign key a disposition must land on."
+    },
+    {
+      "resource": "clause_version",
+      "subject": "seeded",
+      "required": true,
+      "purpose": "The clause version the obligation was materialised from, addressed by (clause_uuid, commit_id) read out of the blocking check row."
+    },
+    {
+      "resource": "clause_ancestry",
+      "subject": "seeded",
+      "required": true,
+      "purpose": "The blame walk behind that clause. resources.ts records this endpoint as having no owner; the capture sources it the same way the live API would."
+    },
+    {
+      "resource": "ledger",
+      "subject": "seeded",
+      "required": true,
+      "purpose": "The custody ledger head for this site — leaves, checkpoint, cosignatures — addressed by the site_code read off mainline.site."
+    },
+    {
+      "resource": "silence",
+      "subject": "seeded",
+      "required": false,
+      "purpose": "What the recall pass declined to surface, with its arithmetic and its Proof of Exhausted Recall receipt."
+    },
+    {
+      "resource": "recall_run",
+      "subject": "seeded",
+      "required": false,
+      "purpose": "The recall run that found the precursor: conservation arithmetic and the observed index plan digest."
+    },
+    {
+      "resource": "audit",
+      "subject": "seeded",
+      "required": true,
+      "purpose": "The mainline_audit.v_* aggregates and the row and byte caps each ran under. The audit page."
+    }
+  ],
+
+  "beats": [
+    {
+      "ordinal": 2,
+      "name": "refusal",
+      "subject": "seeded",
+      "label": "MERGE the seeded permit with one obligation open.",
+      "sql_name": "beat-2-merge-refused-23514",
+      "expect": {
+        "outcome": "refused",
+        "http_status": 409,
+        "sqlstate": "23514",
+        "exhibit": "gate_closed_when_issued",
+        "constraint_source": "reported"
+      },
+      "why": "A plain CHECK constraint on mainline.permit. The database refuses by name; the console renders the name it was given and composes nothing."
+    },
+    {
+      "ordinal": 3,
+      "name": "projection_drift_attack",
+      "subject": "drift",
+      "label": "THE ATTACK: force the projected counter to zero out of band, then merge again.",
+      "sql_name": "beat-3-merge-refused-p0001",
+      "force_counter": "UPDATE mainline.permit SET open_blocking = 0 WHERE permit_id = <drift>",
+      "expect": {
+        "outcome": "refused",
+        "http_status": 409,
+        "sqlstate": "P0001",
+        "exhibit": "mainline.fn_permit_merge_gate",
+        "constraint_source": "parsed"
+      },
+      "why": "gate_closed_when_issued is now SATISFIED and would admit the merge. It is refused anyway, because mainline.fn_permit_merge_gate re-derives the open count from blocking_check LEFT JOIN disposition instead of trusting the column. Rule P-2: a projection is enforced, never trusted. This is the beat that distinguishes the product from a CHECK constraint."
+    },
+    {
+      "ordinal": 4,
+      "name": "admission",
+      "subject": "cleared",
+      "label": "Sign ONE disposition against the obligation, then merge again.",
+      "sql_name": "beat-4-merge-admitted-00000",
+      "expect": {
+        "outcome": "committed",
+        "http_status": 200,
+        "sqlstate": "00000",
+        "exhibit": null,
+        "constraint_source": null
+      },
+      "why": "A gate that always refuses is broken, not safe. One signed disposition closes the counter through the projection trigger and the same merge succeeds, with a mainline.merge_record row and a clearance digest the SERVER computed over the sorted (check_id, disposition_id) set."
+    }
+  ],
+
+  "request_body": {
+    "$comment": "The body the console's gate screen sends for merge_permit (src/features/gate/useGateData.ts). BundleTransport.assertBodyMatches compares the replayed request body with the captured one and refuses a mismatch, so this shape is load-bearing: get it wrong and the frame exists but will never be served.",
+    "template": {
+      "subject_kind": "permit",
+      "subject_id": "<permit_id>",
+      "expected_gate_epoch": "<gate_epoch read from the row>"
+    }
+  },
+
+  "sql_files": {
+    "$comment": "Verbatim round trips written into sql/ and referenced from the invoke payloads' `sql_round_trip` and from the refusal payloads' evidence list. They are bundle CONTENT: sealed, listed in manifest.files, and hashed by the in-browser verifier along with everything else.",
+    "beats": ["sql/beat-2-merge-refused-23514.txt", "sql/beat-3-merge-refused-p0001.txt", "sql/beat-4-merge-admitted-00000.txt"],
+    "context": ["sql/cluster-fingerprint.txt", "sql/twin-construction.txt", "sql/persistence-check.txt"]
+  },
+
+  "retry": {
+    "$comment": "docs/leads/deploy-plan.md §1.2: a single-node Docker cluster never produces 40001; a managed multi-node cluster does, and it killed the first Cloud run of 2026-08-10. The retry is on the WHOLE capture transaction, because the retry unit of a serializable transaction is the transaction — re-running one statement of an aborted one is how a caller gets 25P02.",
+    "sqlstate": "40001",
+    "max_attempts": 6,
+    "backoff_base_seconds": 0.25,
+    "backoff": "exponential with full jitter"
+  },
+
+  "persistence_check": {
+    "$comment": "Row counts over every table the beats can write, taken BEFORE the capture transaction opens and AFTER it is rolled back, plus mainline.permit's own column values — because the drift beat mutates a column without changing a count. A capture that mutated the world the live API later serves would be a capture that broke the thing it was documenting.",
+    "tables": [
+      "mainline.permit",
+      "mainline.permit_event",
+      "mainline.merge_record",
+      "mainline.disposition",
+      "mainline.blocking_check",
+      "mainline.boundary_certificate",
+      "mainline.exposure_receipt",
+      "mainline.exposure_line",
+      "mainline.ledger_intake",
+      "mainline.refusal_ledger",
+      "mainline_meas.recall_run",
+      "mainline_meas.silence_receipt",
+      "mainline_ops.outbox"
+    ],
+    "fail_run_if_changed": true
+  }
+}

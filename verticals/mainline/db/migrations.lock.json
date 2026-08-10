@@ -20,12 +20,12 @@
   ]
  },
  "counts": {
-  "files": 261,
+  "files": 271,
   "rendered": 107,
-  "authored": 154,
-  "counsel_gated": 27,
+  "authored": 164,
+  "counsel_gated": 30,
   "counsel_gated_undeclared": 0,
-  "bands_occupied": 31
+  "bands_occupied": 32
  },
  "counsel_gated_undeclared": [],
  "bands": [
@@ -75,7 +75,7 @@
    "band": "0049a-0049z",
    "owner": "algorithms",
    "mode": "authored",
-   "files": 5
+   "files": 6
   },
   {
    "band": "0050-0053z",
@@ -129,13 +129,13 @@
    "band": "0080-0089z",
    "owner": "recall",
    "mode": "authored",
-   "files": 10
+   "files": 13
   },
   {
    "band": "0090-0099z",
    "owner": "datamodel/dm-periphery",
    "mode": "authored",
-   "files": 0
+   "files": 3
   },
   {
    "band": "0100-0109z",
@@ -189,7 +189,7 @@
    "band": "0145-0149z",
    "owner": "datamodel/dm-functions-triggers+algorithms",
    "mode": "authored",
-   "files": 9
+   "files": 12
   },
   {
    "band": "0150-0154z",
@@ -1442,6 +1442,24 @@
    "counsel_gated": false
   },
   {
+   "file": "0049d_identity_assignment.sql",
+   "version": "0049d_identity_assignment",
+   "number": "0049d",
+   "mode": "authored",
+   "band": "0049a-0049z",
+   "owner": "algorithms",
+   "template": null,
+   "invariants": [
+    "MI03",
+    "MI25",
+    "I06",
+    "I02",
+    "I13"
+   ],
+   "sha256": "ae85d8acdb5b748adeb5394c27ceced6294121efc1c6de7e3bad616ccc7c01e5",
+   "counsel_gated": false
+  },
+  {
    "file": "0049y_meas_mutation_run.sql",
    "version": "0049y_meas_mutation_run",
    "number": "0049y",
@@ -1469,7 +1487,7 @@
     "I14",
     "I17"
    ],
-   "sha256": "1d993f87c4e96a87b8b3b09cef58c40e9ebeba42e726815fece0a762adc10bd1",
+   "sha256": "b18fee0d2d19a5d6f70f4e37ea6e4474287359c05a2b4e6e1eee45c5c735ee88",
    "counsel_gated": false
   },
   {
@@ -2323,6 +2341,97 @@
     "MI31"
    ],
    "sha256": "58abb376f341c784fd1d45887adf9b922f183a6963ff348c060ab0800b4c171c",
+   "counsel_gated": false
+  },
+  {
+   "file": "0089_agent_action.sql",
+   "version": "0089_agent_action",
+   "number": "0089",
+   "mode": "authored",
+   "band": "0080-0089z",
+   "owner": "recall",
+   "template": null,
+   "invariants": [
+    "MI01",
+    "I15"
+   ],
+   "sha256": "98adaef5d7f6ea8ab36369de107b54c1a2cd063bff59c1c3615982847667086e",
+   "counsel_gated": false
+  },
+  {
+   "file": "0089a_person_measure_policy.sql",
+   "version": "0089a_person_measure_policy",
+   "number": "0089a",
+   "mode": "authored",
+   "band": "0080-0089z",
+   "owner": "recall",
+   "template": null,
+   "invariants": [
+    "MI01",
+    "I15"
+   ],
+   "sha256": "e994990eab2762f1df16a64cf73e3056e16a4432ed163d363127aa7cd9f5c6d3",
+   "counsel_gated": true
+  },
+  {
+   "file": "0089b_standing.sql",
+   "version": "0089b_standing",
+   "number": "0089b",
+   "mode": "authored",
+   "band": "0080-0089z",
+   "owner": "recall",
+   "template": null,
+   "invariants": [
+    "MI28",
+    "I15"
+   ],
+   "sha256": "b71c7dfac02ad0755540a576444d271993d429f07bd0f70be684da3ba6d5400f",
+   "counsel_gated": true
+  },
+  {
+   "file": "0090_patrol_run.sql",
+   "version": "0090_patrol_run",
+   "number": "0090",
+   "mode": "authored",
+   "band": "0090-0099z",
+   "owner": "datamodel/dm-periphery",
+   "template": null,
+   "invariants": [
+    "MI21",
+    "MI22",
+    "I06"
+   ],
+   "sha256": "383888fbb73fbbc99658e594736a972762e7ff22402712c64d489df7872a44df",
+   "counsel_gated": false
+  },
+  {
+   "file": "0099_outbox.sql",
+   "version": "0099_outbox",
+   "number": "0099",
+   "mode": "authored",
+   "band": "0090-0099z",
+   "owner": "datamodel/dm-periphery",
+   "template": null,
+   "invariants": [
+    "MI22",
+    "I06"
+   ],
+   "sha256": "3e3536495a4bc28bad9e0fafd28c48e4c060dac808b18d725e8ccbe0a1cb43ca",
+   "counsel_gated": false
+  },
+  {
+   "file": "0099a_site_register_signal.sql",
+   "version": "0099a_site_register_signal",
+   "number": "0099a",
+   "mode": "authored",
+   "band": "0090-0099z",
+   "owner": "datamodel/dm-periphery",
+   "template": null,
+   "invariants": [
+    "MI22",
+    "I06"
+   ],
+   "sha256": "077ffb8887fa32f4cf6adac5ca0f45326237813328dadbfbc7f42469bb977f42",
    "counsel_gated": false
   },
   {
@@ -3329,6 +3438,23 @@
    "counsel_gated": false
   },
   {
+   "file": "0145f_trg_identity_assignment_append_only.sql",
+   "version": "0145f_trg_identity_assignment_append_only",
+   "number": "0145f",
+   "mode": "authored",
+   "band": "0145-0149z",
+   "owner": "datamodel/dm-functions-triggers+algorithms",
+   "template": null,
+   "invariants": [
+    "MI01",
+    "MI03",
+    "I01",
+    "I02"
+   ],
+   "sha256": "49bcbf5b2a5fb2a99704d7da49108cb24c299c750581b3289e9abb10ca551e73",
+   "counsel_gated": false
+  },
+  {
    "file": "0146_trg_clause_version_guard.sql",
    "version": "0146_trg_clause_version_guard",
    "number": "0146",
@@ -3343,6 +3469,38 @@
    ],
    "sha256": "d7e0ac5034fe66870dad637d14957a3cdf8b55ab0f7e432da7bb709639010bd7",
    "counsel_gated": false
+  },
+  {
+   "file": "0149a_trg_agent_action_append_only.sql",
+   "version": "0149a_trg_agent_action_append_only",
+   "number": "0149a",
+   "mode": "authored",
+   "band": "0145-0149z",
+   "owner": "datamodel/dm-functions-triggers+algorithms",
+   "template": null,
+   "invariants": [
+    "MI01",
+    "I01",
+    "I15"
+   ],
+   "sha256": "2f54c4fe31de17ab93bf700ee0fd5b5505d0ba050ce77247b60d543ac234fb61",
+   "counsel_gated": false
+  },
+  {
+   "file": "0149b_trg_person_measure_policy_append_only.sql",
+   "version": "0149b_trg_person_measure_policy_append_only",
+   "number": "0149b",
+   "mode": "authored",
+   "band": "0145-0149z",
+   "owner": "datamodel/dm-functions-triggers+algorithms",
+   "template": null,
+   "invariants": [
+    "MI01",
+    "I01",
+    "I15"
+   ],
+   "sha256": "f51483d450cdd236423758d1ec877edf247a518b84e1d03602b4d893f769fa4c",
+   "counsel_gated": true
   },
   {
    "file": "0149y_trg_mutation_run_append_only.sql",

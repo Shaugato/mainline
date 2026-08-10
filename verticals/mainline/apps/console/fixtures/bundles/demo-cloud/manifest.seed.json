@@ -1,0 +1,18 @@
+{
+  "bundle_id": "demo-cloud",
+  "captured_at": "2026-08-10T04:04:53.057Z",
+  "generator": "scripts/deploy/capture_demo_bundle.py 1.0 (frames) + capture-bundle.ts seal 1.0 (digests)",
+  "cluster_fingerprint": {
+    "source": "observed",
+    "product": "CockroachDB CCL",
+    "version": "v26.2.5",
+    "cluster_version": "26.2",
+    "tier": null,
+    "region": "aws-ap-southeast-1",
+    "evidence_ref": "Read from the cluster during this capture by scripts/deploy/capture_demo_bundle.py; the verbatim round trip is sql/cluster-fingerprint.txt in this bundle. `source: observed` means exactly that and nothing more: it is a statement about the database that answered, not about where inference runs. Residency is split in this deployment — database in aws-ap-southeast-1 (Singapore), Bedrock in ap-southeast-2 (Sydney) — so no end-to-end Australian residency claim may be made from this bundle."
+  },
+  "schema_version": "chain 271/271 applied, 0 failed; tree_fingerprint fe27b6208d2281929a9d3c554e4612ac…; applied_at 2026-08-10T02:55:13.074389+00:00",
+  "staged": true,
+  "staged_note": "Captured from a live CockroachDB cluster: every SQLSTATE, constraint name, counter and digest in this bundle was produced by the database during the capture, and nothing in it was hand-authored. It is flagged STAGED because 8 of 18 frames describe two TRANSIENT subjects — permits DEMO-PTW-0002 and DEMO-PTW-0003 — which were built inside the capture transaction as copies of the seeded permit DEMO-PTW-0001 and rolled back with it. Those rows are not in the database now. They exist because the drift beat and the admission beat each need a different world from the one the seeded permit is in, and a bundle frame is keyed by method and path, so three worlds need three permit ids. Each such frame carries its own note saying the same thing. See docs/deploy/replay-fallback.md §4.",
+  "checkpoint": null
+}

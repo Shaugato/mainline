@@ -1,0 +1,812 @@
+{
+  "artefact": "third-party",
+  "schema": 1,
+  "generator": "scripts/submission/provenance_census.py",
+  "repository": "github.com/Shaugato/mainline",
+  "head": "bb21962f188fa1c23a231463018282b3c2959bf0",
+  "determinism": "licences come from the declared table in the generator, not from the machine; `--check-licences` re-reads the machine and fails on divergence",
+  "tracked_file_count": 7120,
+  "manifests": {
+    "pyproject_toml": [
+      "packages/mainline-agentkit/pyproject.toml",
+      "packages/mainline-boundary/pyproject.toml",
+      "packages/mainline-mcp/pyproject.toml",
+      "packages/trappoint-conformance/pyproject.toml",
+      "packages/trappoint-core/pyproject.toml",
+      "packages/trappoint-diagnose/pyproject.toml",
+      "packages/trappoint-jcs/pyproject.toml",
+      "packages/trappoint-ledger/pyproject.toml",
+      "packages/trappoint-migrate/pyproject.toml",
+      "packages/trappoint-model/pyproject.toml",
+      "packages/trappoint-recall/pyproject.toml",
+      "packages/trappoint-sql/pyproject.toml",
+      "packages/trappoint-testkit/pyproject.toml",
+      "packages/trappoint-verify/pyproject.toml",
+      "pyproject.toml",
+      "verticals/mainline/packages/mainline-anchor/pyproject.toml",
+      "verticals/mainline/packages/mainline-archivist/pyproject.toml",
+      "verticals/mainline/packages/mainline-cartographer/pyproject.toml",
+      "verticals/mainline/packages/mainline-cherrypick/pyproject.toml",
+      "verticals/mainline/packages/mainline-corpus/pyproject.toml",
+      "verticals/mainline/packages/mainline-custody-patrol/pyproject.toml",
+      "verticals/mainline/packages/mainline-delta-oracle/pyproject.toml",
+      "verticals/mainline/packages/mainline-domain/pyproject.toml",
+      "verticals/mainline/packages/mainline-fixity/pyproject.toml",
+      "verticals/mainline/packages/mainline-gate-svc/pyproject.toml",
+      "verticals/mainline/packages/mainline-mutation/pyproject.toml",
+      "verticals/mainline/packages/mainline-quarantine/pyproject.toml",
+      "verticals/mainline/packages/mainline-recall-agent/pyproject.toml",
+      "verticals/mainline/packages/mainline-recall-fleet/pyproject.toml",
+      "verticals/mainline/packages/mainline-sequencer/pyproject.toml",
+      "verticals/mainline/packages/mainline-steward/pyproject.toml"
+    ],
+    "pyproject_toml_count": 31,
+    "package_json": [
+      "verticals/mainline/apps/console/package.json"
+    ],
+    "package_json_count": 1,
+    "command": "git ls-files '*pyproject.toml' '*package.json'"
+  },
+  "first_party_distributions": [
+    "mainline-agentkit",
+    "mainline-anchor",
+    "mainline-archivist",
+    "mainline-boundary",
+    "mainline-cartographer",
+    "mainline-cherrypick",
+    "mainline-corpus",
+    "mainline-custody-patrol",
+    "mainline-delta-oracle",
+    "mainline-domain",
+    "mainline-fixity",
+    "mainline-gate-svc",
+    "mainline-mcp",
+    "mainline-mutation",
+    "mainline-quarantine",
+    "mainline-recall-agent",
+    "mainline-recall-fleet",
+    "mainline-sequencer",
+    "mainline-steward",
+    "trappoint-conformance",
+    "trappoint-core",
+    "trappoint-diagnose",
+    "trappoint-jcs",
+    "trappoint-ledger",
+    "trappoint-migrate",
+    "trappoint-model",
+    "trappoint-recall",
+    "trappoint-sql",
+    "trappoint-testkit",
+    "trappoint-verify"
+  ],
+  "first_party_distribution_count": 30,
+  "declaration_count": {
+    "total": 187,
+    "first_party": 27,
+    "third_party": 160
+  },
+  "third_party": {
+    "python_runtime": [
+      {
+        "name": "anthropic",
+        "licence": "MIT",
+        "licence_source": "core-metadata:License",
+        "measured_version": "0.120.2",
+        "required_by": [
+          "mainline-recall-agent [runtime]"
+        ]
+      },
+      {
+        "name": "boto3",
+        "licence": "Apache-2.0",
+        "licence_source": "core-metadata:License-Expression",
+        "measured_version": "1.43.66",
+        "required_by": [
+          "mainline-agentkit [optional:bedrock]",
+          "mainline-archivist [optional:aws]",
+          "mainline-boundary [optional:aws]",
+          "mainline-corpus [optional:bedrock]",
+          "mainline-quarantine [optional:bedrock]",
+          "mainline-recall-agent [runtime]"
+        ]
+      },
+      {
+        "name": "cryptography",
+        "licence": "Apache-2.0 OR BSD-3-Clause",
+        "licence_source": "core-metadata:License-Expression",
+        "measured_version": "50.0.0",
+        "required_by": [
+          "trappoint-verify [runtime]"
+        ],
+        "licence_note": "dual-licensed; either limb is permissive"
+      },
+      {
+        "name": "httpx",
+        "licence": "BSD-3-Clause",
+        "licence_source": "core-metadata:License-Expression",
+        "measured_version": "0.28.1",
+        "required_by": [
+          "mainline-mcp [runtime]"
+        ]
+      },
+      {
+        "name": "hypothesis",
+        "licence": "MPL-2.0",
+        "licence_source": "core-metadata:License-Expression",
+        "measured_version": "6.165.2",
+        "required_by": [
+          "trappoint-model [runtime]"
+        ],
+        "licence_note": "weak copyleft, file-scoped; a development dependency, never imported by shipped code"
+      },
+      {
+        "name": "jinja2",
+        "licence": "BSD-3-Clause",
+        "licence_source": "trove-classifier:License :: OSI Approved :: BSD License",
+        "measured_version": "3.1.6",
+        "required_by": [
+          "mainline-corpus [runtime]",
+          "trappoint-sql [runtime]"
+        ],
+        "licence_note": "no License field in core metadata; SPDX read from the classifier"
+      },
+      {
+        "name": "numpy",
+        "licence": "BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0",
+        "licence_source": "core-metadata:License-Expression",
+        "measured_version": "2.5.1",
+        "required_by": [
+          "mainline-domain [runtime]",
+          "mainline-recall-agent [runtime]",
+          "trappoint-recall [runtime]"
+        ],
+        "licence_note": "compound expression covering numpy's own vendored components"
+      },
+      {
+        "name": "pint",
+        "licence": "BSD-3-Clause",
+        "licence_source": "core-metadata:License + trove-classifier",
+        "measured_version": "0.25.3",
+        "required_by": [
+          "mainline-domain [runtime]"
+        ],
+        "licence_note": "free-text 'BSD'; classifier says OSI Approved :: BSD License"
+      },
+      {
+        "name": "psycopg",
+        "licence": "LGPL-3.0-only",
+        "licence_source": "core-metadata:License-Expression",
+        "measured_version": "3.3.4",
+        "required_by": [
+          "mainline-domain [optional:db]",
+          "mainline-gate-svc [runtime]",
+          "mainline-mutation [optional:db]",
+          "mainline-sequencer [runtime]",
+          "trappoint-conformance [runtime]",
+          "trappoint-core [runtime]",
+          "trappoint-diagnose [optional:pg]",
+          "trappoint-migrate [runtime]",
+          "trappoint-model [runtime]",
+          "trappoint-testkit [runtime]"
+        ],
+        "licence_note": "COPYLEFT. Imported unmodified as a library; no psycopg source is copied into, or redistributed by, any MAINLINE distribution."
+      },
+      {
+        "name": "psycopg-binary",
+        "licence": "LGPL-3.0-only",
+        "licence_source": "core-metadata:License-Expression",
+        "measured_version": "3.3.4",
+        "required_by": [
+          "mainline-domain [optional:db]",
+          "mainline-gate-svc [runtime]",
+          "mainline-mutation [optional:db]",
+          "mainline-sequencer [runtime]",
+          "trappoint-conformance [runtime]",
+          "trappoint-core [runtime]",
+          "trappoint-diagnose [optional:pg]",
+          "trappoint-migrate [runtime]",
+          "trappoint-model [runtime]",
+          "trappoint-testkit [runtime]"
+        ],
+        "licence_note": "pulled in by the psycopg[binary] extra"
+      },
+      {
+        "name": "psycopg-pool",
+        "licence": "LGPL-3.0-only",
+        "licence_source": "core-metadata:License-Expression",
+        "measured_version": "3.3.1",
+        "required_by": [
+          "trappoint-core [runtime]",
+          "trappoint-migrate [runtime]"
+        ],
+        "licence_note": "pulled in by the psycopg[pool] extra"
+      },
+      {
+        "name": "pydantic",
+        "licence": "MIT",
+        "licence_source": "core-metadata:License-Expression",
+        "measured_version": "2.13.4",
+        "required_by": [
+          "mainline-agentkit [runtime]",
+          "mainline-recall-agent [runtime]",
+          "mainline-recall-fleet [runtime]",
+          "trappoint-recall [runtime]"
+        ]
+      },
+      {
+        "name": "pyyaml",
+        "licence": "MIT",
+        "licence_source": "core-metadata:License",
+        "measured_version": "6.0.3",
+        "required_by": [
+          "mainline-boundary [runtime]",
+          "mainline-corpus [runtime]",
+          "mainline-mcp [runtime]",
+          "mainline-steward [runtime]"
+        ]
+      },
+      {
+        "name": "rapidfuzz",
+        "licence": "MIT",
+        "licence_source": "core-metadata:License-Expression",
+        "measured_version": "3.14.5",
+        "required_by": [
+          "mainline-domain [runtime]"
+        ]
+      },
+      {
+        "name": "scikit-learn",
+        "licence": "BSD-3-Clause",
+        "licence_source": "core-metadata:License-Expression",
+        "measured_version": "1.9.0",
+        "required_by": [
+          "trappoint-recall [runtime]"
+        ]
+      },
+      {
+        "name": "scipy",
+        "licence": "BSD-3-Clause",
+        "licence_source": "trove-classifier:License :: OSI Approved :: BSD License",
+        "measured_version": "1.18.0",
+        "required_by": [
+          "mainline-domain [runtime]",
+          "trappoint-recall [runtime]"
+        ],
+        "licence_note": "License field holds the full text; the observed string is its first 60 characters"
+      },
+      {
+        "name": "sentence-transformers",
+        "licence": "UNVERIFIED",
+        "licence_source": "not-installed",
+        "measured_version": "",
+        "required_by": [
+          "mainline-recall-agent [optional:local-embed]"
+        ],
+        "licence_note": "declared only by the mainline-recall-agent [local-embed] extra, which is not installed in this environment. Not measured here, so not claimed here."
+      }
+    ],
+    "python_development": [
+      {
+        "name": "hypothesis",
+        "licence": "MPL-2.0",
+        "licence_source": "core-metadata:License-Expression",
+        "measured_version": "6.165.2",
+        "required_by": [
+          "<virtual workspace root> [dev:dev]",
+          "mainline-delta-oracle [dev:dev]",
+          "mainline-domain [dev:dev]",
+          "trappoint-jcs [dev:dev]",
+          "trappoint-ledger [dev:dev]",
+          "trappoint-recall [dev:dev]"
+        ],
+        "licence_note": "weak copyleft, file-scoped; a development dependency, never imported by shipped code"
+      },
+      {
+        "name": "import-linter",
+        "licence": "BSD-2-Clause",
+        "licence_source": "core-metadata:License",
+        "measured_version": "2.13",
+        "required_by": [
+          "<virtual workspace root> [dev:dev]"
+        ],
+        "licence_note": "free-text field"
+      },
+      {
+        "name": "mypy",
+        "licence": "MIT",
+        "licence_source": "core-metadata:License-Expression",
+        "measured_version": "2.3.0",
+        "required_by": [
+          "<virtual workspace root> [dev:dev]",
+          "mainline-agentkit [dev:dev]",
+          "mainline-archivist [dev:dev]",
+          "mainline-boundary [dev:dev]",
+          "mainline-cartographer [dev:dev]",
+          "mainline-cherrypick [dev:dev]",
+          "mainline-corpus [dev:dev]",
+          "mainline-custody-patrol [dev:dev]",
+          "mainline-delta-oracle [dev:dev]",
+          "mainline-domain [dev:dev]",
+          "mainline-fixity [dev:dev]",
+          "mainline-gate-svc [dev:dev]",
+          "mainline-mcp [dev:dev]",
+          "mainline-mutation [dev:dev]",
+          "mainline-quarantine [dev:dev]",
+          "mainline-sequencer [dev:dev]",
+          "mainline-steward [dev:dev]",
+          "trappoint-conformance [dev:dev]",
+          "trappoint-core [dev:dev]",
+          "trappoint-diagnose [dev:dev]",
+          "trappoint-migrate [dev:dev]",
+          "trappoint-model [dev:dev]",
+          "trappoint-sql [dev:dev]",
+          "trappoint-testkit [dev:dev]"
+        ]
+      },
+      {
+        "name": "psycopg",
+        "licence": "LGPL-3.0-only",
+        "licence_source": "core-metadata:License-Expression",
+        "measured_version": "3.3.4",
+        "required_by": [
+          "trappoint-diagnose [dev:dev]"
+        ],
+        "licence_note": "COPYLEFT. Imported unmodified as a library; no psycopg source is copied into, or redistributed by, any MAINLINE distribution."
+      },
+      {
+        "name": "psycopg-binary",
+        "licence": "LGPL-3.0-only",
+        "licence_source": "core-metadata:License-Expression",
+        "measured_version": "3.3.4",
+        "required_by": [
+          "trappoint-diagnose [dev:dev]"
+        ],
+        "licence_note": "pulled in by the psycopg[binary] extra"
+      },
+      {
+        "name": "pytest",
+        "licence": "MIT",
+        "licence_source": "core-metadata:License-Expression",
+        "measured_version": "9.1.1",
+        "required_by": [
+          "<virtual workspace root> [dev:dev]",
+          "mainline-agentkit [dev:dev]",
+          "mainline-anchor [dev:dev]",
+          "mainline-archivist [dev:dev]",
+          "mainline-boundary [dev:dev]",
+          "mainline-cartographer [dev:dev]",
+          "mainline-cherrypick [dev:dev]",
+          "mainline-corpus [dev:dev]",
+          "mainline-custody-patrol [dev:dev]",
+          "mainline-delta-oracle [dev:dev]",
+          "mainline-domain [dev:dev]",
+          "mainline-fixity [dev:dev]",
+          "mainline-gate-svc [dev:dev]",
+          "mainline-mcp [dev:dev]",
+          "mainline-mutation [dev:dev]",
+          "mainline-quarantine [dev:dev]",
+          "mainline-sequencer [dev:dev]",
+          "mainline-steward [dev:dev]",
+          "trappoint-conformance [dev:dev]",
+          "trappoint-core [dev:dev]",
+          "trappoint-diagnose [dev:dev]",
+          "trappoint-jcs [dev:dev]",
+          "trappoint-ledger [dev:dev]",
+          "trappoint-migrate [dev:dev]",
+          "trappoint-model [dev:dev]",
+          "trappoint-recall [dev:dev]",
+          "trappoint-sql [dev:dev]",
+          "trappoint-testkit [dev:dev]",
+          "trappoint-verify [dev:dev]"
+        ]
+      },
+      {
+        "name": "pytest-timeout",
+        "licence": "MIT",
+        "licence_source": "core-metadata:License",
+        "measured_version": "2.4.0",
+        "required_by": [
+          "<virtual workspace root> [dev:dev]",
+          "trappoint-model [dev:dev]",
+          "trappoint-testkit [dev:dev]"
+        ]
+      },
+      {
+        "name": "ruff",
+        "licence": "MIT",
+        "licence_source": "core-metadata:License-Expression",
+        "measured_version": "0.16.1",
+        "required_by": [
+          "<virtual workspace root> [dev:dev]",
+          "mainline-agentkit [dev:dev]",
+          "mainline-boundary [dev:dev]",
+          "mainline-mcp [dev:dev]",
+          "mainline-steward [dev:dev]",
+          "trappoint-conformance [dev:dev]",
+          "trappoint-core [dev:dev]",
+          "trappoint-diagnose [dev:dev]",
+          "trappoint-migrate [dev:dev]",
+          "trappoint-model [dev:dev]",
+          "trappoint-sql [dev:dev]",
+          "trappoint-testkit [dev:dev]"
+        ]
+      },
+      {
+        "name": "types-PyYAML",
+        "licence": "Apache-2.0",
+        "licence_source": "core-metadata:License-Expression",
+        "measured_version": "6.0.12.20260724",
+        "required_by": [
+          "mainline-boundary [dev:dev]",
+          "mainline-corpus [dev:dev]",
+          "mainline-mcp [dev:dev]",
+          "mainline-steward [dev:dev]"
+        ]
+      }
+    ],
+    "npm_runtime": [
+      {
+        "name": "@react-three/drei",
+        "licence": "MIT",
+        "licence_source": "node_modules:package.json#license",
+        "measured_version": "10.7.8",
+        "required_by": [
+          "@mainline/console [runtime]"
+        ]
+      },
+      {
+        "name": "@react-three/fiber",
+        "licence": "MIT",
+        "licence_source": "node_modules:package.json#license",
+        "measured_version": "9.7.0",
+        "required_by": [
+          "@mainline/console [runtime]"
+        ]
+      },
+      {
+        "name": "motion",
+        "licence": "MIT",
+        "licence_source": "node_modules:package.json#license",
+        "measured_version": "12.43.0",
+        "required_by": [
+          "@mainline/console [runtime]"
+        ]
+      },
+      {
+        "name": "react",
+        "licence": "MIT",
+        "licence_source": "node_modules:package.json#license",
+        "measured_version": "19.2.8",
+        "required_by": [
+          "@mainline/console [runtime]"
+        ]
+      },
+      {
+        "name": "react-dom",
+        "licence": "MIT",
+        "licence_source": "node_modules:package.json#license",
+        "measured_version": "19.2.8",
+        "required_by": [
+          "@mainline/console [runtime]"
+        ]
+      },
+      {
+        "name": "three",
+        "licence": "MIT",
+        "licence_source": "node_modules:package.json#license",
+        "measured_version": "0.185.1",
+        "required_by": [
+          "@mainline/console [runtime]"
+        ]
+      }
+    ],
+    "npm_development": [
+      {
+        "name": "@axe-core/playwright",
+        "licence": "MPL-2.0",
+        "licence_source": "node_modules:package.json#license",
+        "measured_version": "4.12.1",
+        "required_by": [
+          "@mainline/console [dev]"
+        ],
+        "licence_note": "weak copyleft; accessibility test tooling, never bundled into dist/"
+      },
+      {
+        "name": "@eslint/js",
+        "licence": "MIT",
+        "licence_source": "node_modules:package.json#license",
+        "measured_version": "9.39.5",
+        "required_by": [
+          "@mainline/console [dev]"
+        ]
+      },
+      {
+        "name": "@playwright/test",
+        "licence": "Apache-2.0",
+        "licence_source": "node_modules:package.json#license",
+        "measured_version": "1.62.1",
+        "required_by": [
+          "@mainline/console [dev]"
+        ]
+      },
+      {
+        "name": "@testing-library/dom",
+        "licence": "MIT",
+        "licence_source": "node_modules:package.json#license",
+        "measured_version": "10.4.1",
+        "required_by": [
+          "@mainline/console [dev]"
+        ]
+      },
+      {
+        "name": "@testing-library/jest-dom",
+        "licence": "MIT",
+        "licence_source": "node_modules:package.json#license",
+        "measured_version": "6.10.0",
+        "required_by": [
+          "@mainline/console [dev]"
+        ]
+      },
+      {
+        "name": "@testing-library/react",
+        "licence": "MIT",
+        "licence_source": "node_modules:package.json#license",
+        "measured_version": "16.3.2",
+        "required_by": [
+          "@mainline/console [dev]"
+        ]
+      },
+      {
+        "name": "@testing-library/user-event",
+        "licence": "MIT",
+        "licence_source": "node_modules:package.json#license",
+        "measured_version": "14.6.3",
+        "required_by": [
+          "@mainline/console [dev]"
+        ]
+      },
+      {
+        "name": "@types/node",
+        "licence": "MIT",
+        "licence_source": "node_modules:package.json#license",
+        "measured_version": "24.13.3",
+        "required_by": [
+          "@mainline/console [dev]"
+        ]
+      },
+      {
+        "name": "@types/react",
+        "licence": "MIT",
+        "licence_source": "node_modules:package.json#license",
+        "measured_version": "19.2.18",
+        "required_by": [
+          "@mainline/console [dev]"
+        ]
+      },
+      {
+        "name": "@types/react-dom",
+        "licence": "MIT",
+        "licence_source": "node_modules:package.json#license",
+        "measured_version": "19.2.4",
+        "required_by": [
+          "@mainline/console [dev]"
+        ]
+      },
+      {
+        "name": "@types/three",
+        "licence": "MIT",
+        "licence_source": "node_modules:package.json#license",
+        "measured_version": "0.185.4",
+        "required_by": [
+          "@mainline/console [dev]"
+        ]
+      },
+      {
+        "name": "@vitejs/plugin-react",
+        "licence": "MIT",
+        "licence_source": "node_modules:package.json#license",
+        "measured_version": "5.2.0",
+        "required_by": [
+          "@mainline/console [dev]"
+        ]
+      },
+      {
+        "name": "@vitest/coverage-v8",
+        "licence": "MIT",
+        "licence_source": "node_modules:package.json#license",
+        "measured_version": "3.2.7",
+        "required_by": [
+          "@mainline/console [dev]"
+        ]
+      },
+      {
+        "name": "eslint",
+        "licence": "MIT",
+        "licence_source": "node_modules:package.json#license",
+        "measured_version": "9.39.5",
+        "required_by": [
+          "@mainline/console [dev]"
+        ]
+      },
+      {
+        "name": "eslint-plugin-react-hooks",
+        "licence": "MIT",
+        "licence_source": "node_modules:package.json#license",
+        "measured_version": "6.1.1",
+        "required_by": [
+          "@mainline/console [dev]"
+        ]
+      },
+      {
+        "name": "eslint-plugin-react-refresh",
+        "licence": "MIT",
+        "licence_source": "node_modules:package.json#license",
+        "measured_version": "0.5.3",
+        "required_by": [
+          "@mainline/console [dev]"
+        ]
+      },
+      {
+        "name": "globals",
+        "licence": "MIT",
+        "licence_source": "node_modules:package.json#license",
+        "measured_version": "16.5.0",
+        "required_by": [
+          "@mainline/console [dev]"
+        ]
+      },
+      {
+        "name": "jsdom",
+        "licence": "MIT",
+        "licence_source": "node_modules:package.json#license",
+        "measured_version": "27.4.0",
+        "required_by": [
+          "@mainline/console [dev]"
+        ]
+      },
+      {
+        "name": "typescript",
+        "licence": "Apache-2.0",
+        "licence_source": "node_modules:package.json#license",
+        "measured_version": "5.9.3",
+        "required_by": [
+          "@mainline/console [dev]"
+        ]
+      },
+      {
+        "name": "typescript-eslint",
+        "licence": "MIT",
+        "licence_source": "node_modules:package.json#license",
+        "measured_version": "8.66.0",
+        "required_by": [
+          "@mainline/console [dev]"
+        ]
+      },
+      {
+        "name": "vite",
+        "licence": "MIT",
+        "licence_source": "node_modules:package.json#license",
+        "measured_version": "7.1.12",
+        "required_by": [
+          "@mainline/console [dev]"
+        ]
+      },
+      {
+        "name": "vitest",
+        "licence": "MIT",
+        "licence_source": "node_modules:package.json#license",
+        "measured_version": "3.2.7",
+        "required_by": [
+          "@mainline/console [dev]"
+        ]
+      }
+    ],
+    "distinct_count": {
+      "python_runtime": 17,
+      "python_development": 9,
+      "npm_runtime": 6,
+      "npm_development": 22
+    }
+  },
+  "licence_summary": {
+    "MIT": 33,
+    "BSD-3-Clause": 5,
+    "LGPL-3.0-only": 5,
+    "Apache-2.0": 4,
+    "MPL-2.0": 3,
+    "Apache-2.0 OR BSD-3-Clause": 1,
+    "BSD-2-Clause": 1,
+    "BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0": 1,
+    "UNVERIFIED": 1
+  },
+  "licence_summary_note": "counted once per (bucket, package) across the four buckets above, so a package declared as both a runtime and a development dependency — hypothesis is — is counted twice. It is a census of declarations, not of distinct distributions.",
+  "copyleft_present": [
+    [
+      "@axe-core/playwright",
+      "MPL-2.0"
+    ],
+    [
+      "hypothesis",
+      "MPL-2.0"
+    ],
+    [
+      "psycopg",
+      "LGPL-3.0-only"
+    ],
+    [
+      "psycopg-binary",
+      "LGPL-3.0-only"
+    ],
+    [
+      "psycopg-pool",
+      "LGPL-3.0-only"
+    ]
+  ],
+  "vendored_scan": {
+    "vendor_directory_names_scanned": [
+      "3rdparty",
+      "_vendor",
+      "node_modules",
+      "third-party",
+      "third_party",
+      "thirdparty",
+      "vendor",
+      "vendors"
+    ],
+    "vendored_directories": [
+      {
+        "path": "packages/trappoint-verify/src/trappoint_verify/vendor/",
+        "file_count": 2,
+        "files": [
+          "packages/trappoint-verify/src/trappoint_verify/vendor/__init__.py",
+          "packages/trappoint-verify/src/trappoint_verify/vendor/canon_v1.py"
+        ],
+        "copyright_holders": [
+          "2026 MAINLINE contributors"
+        ],
+        "licences": [
+          "Apache-2.0"
+        ],
+        "classification": "internal-copy",
+        "note": "every file carries this project's own SPDX copyright, so this is a copy of our code, not somebody else's"
+      }
+    ],
+    "third_party_directory_count": 0,
+    "own_licence_files": [
+      "LICENSES/Apache-2.0.txt",
+      "LICENSES/LicenseRef-FSL-1.1-ALv2.txt",
+      "NOTICE"
+    ],
+    "foreign_licence_files": [],
+    "bundles_third_party_code": false,
+    "command": "git ls-files | grep -E '(^|/)(vendor|third_party|_vendor|node_modules)(/|$)'"
+  },
+  "outbound_contribution": {
+    "path": "skills/upstream/",
+    "direction": "outbound",
+    "prepared_for": "https://github.com/cockroachlabs/cockroachdb-skills",
+    "file_count": 4,
+    "files": [
+      {
+        "path": "skills/upstream/cockroachdb-resilience-and-disaster-recovery/verifying-a-restore-by-merkle-root/SKILL.md",
+        "licence": "Apache-2.0",
+        "copyright": "2026 MAINLINE contributors",
+        "licence_carrier": "sidecar"
+      },
+      {
+        "path": "skills/upstream/cockroachdb-resilience-and-disaster-recovery/verifying-a-restore-by-merkle-root/scripts/verify_restore_merkle_root.py",
+        "licence": "Apache-2.0",
+        "copyright": "2026 MAINLINE contributors",
+        "licence_carrier": "sidecar"
+      }
+    ],
+    "meaning": "Work authored here and shaped for another repository's layout. It is not pre-existing code taken in; it is a contribution not yet offered out. It carries no inbound licence obligation, and its outbound licence is whatever the receiving project's contribution terms turn out to require — a question that is open and is stated rather than assumed.",
+    "command": "git ls-files skills/upstream/"
+  },
+  "notice_file_claim": {
+    "path": "NOTICE",
+    "text": "MAINLINE bundles no third-party code at this time.",
+    "mechanically_supported": true,
+    "basis": "No tracked directory holds code under a copyright other than this project's, and no foreign licence file is tracked. The claim is about *bundling* — copying somebody else's source into this tree — and it survives the scan. It says nothing about the dependency closure, which is what this artefact enumerates instead."
+  }
+}

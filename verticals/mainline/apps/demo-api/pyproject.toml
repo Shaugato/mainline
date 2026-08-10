@@ -1,0 +1,82 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
+[project]
+name = "mainline-demo-api"
+version = "0.1.0"
+description = "The MAINLINE demo read API: one AWS Lambda handler over CockroachDB, no web framework, twelve GET resources under one signed envelope."
+readme = "README.md"
+requires-python = ">=3.13"
+# FSL-1.1-ALv2 per the repository licence map (verticals/mainline/* is FSL). The
+# licence TEXT lives in the repo-root LICENSES/ tree, which is outside this project
+# directory and therefore cannot be referenced by `license-files`.
+license = "LicenseRef-FSL-1.1-ALv2"
+authors = [{ name = "MAINLINE contributors" }]
+keywords = ["cockroachdb", "aws-lambda", "read-api", "provenance", "envelope"]
+classifiers = [
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Database",
+  "Typing :: Typed",
+  "Private :: Do Not Upload",
+]
+
+# THE DEPENDENCY LIST IS THE DEPLOYMENT PACKAGE.
+#
+# `psycopg` and `psycopg-binary`, pinned exactly, and NOTHING ELSE. There is no
+# FastAPI, no Flask, no Starlette, no uvicorn, no aiohttp and no Mangum, because a
+# Lambda invocation is already a function call with a dict argument: a WSGI/ASGI
+# adapter would exist only to translate that dict into an HTTP request so a framework
+# could translate it back. `app.handler(event, context)` is the whole server.
+#
+# The two are named SEPARATELY rather than as `psycopg[binary]` because the Lambda
+# artefact is built cross-platform from a Windows workstation:
+#
+#     pip install --target build/python --platform manylinux2014_x86_64 \
+#         --implementation cp --python-version 3.13 --only-binary=:all: \
+#         psycopg==3.3.4 psycopg-binary==3.3.4
+#
+# `--platform` refuses to resolve an extra marker, so the extra has to be spelled out
+# as a distribution. Measured by the deployment lead on 2026-08-10: 21 MB unzipped,
+# against Lambda's 250 MB unzipped limit.
+#
+# NO boto3. It is present in the Lambda runtime image, but this handler does not
+# import it: `db.py` signs its one SSM `GetParameter` call with SigV4 out of hashlib
+# and hmac, so the deployment package's behaviour does not depend on which boto3 the
+# runtime happens to ship this month. `tests/test_envelope.py::test_no_web_framework_or_sdk_is_imported`
+# is what keeps that true.
+dependencies = [
+  "psycopg==3.3.4",
+  "psycopg-binary==3.3.4",
+]
+
+[project.urls]
+Homepage = "https://github.com/Shaugato/mainline"
+
+[dependency-groups]
+dev = [
+  "pytest>=8.3",
+  "mypy>=1.11",
+]
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mainline_demo_api"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "tests", "README.md"]
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+warn_unreachable = true
+files = ["src/mainline_demo_api"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["--strict-markers", "-ra"]
+markers = [
+  "requires_cluster: needs a live CockroachDB; skips with a written reason when none is shared",
+]

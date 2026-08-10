@@ -1,0 +1,404 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://console.mainline.trappoint.org/contracts/1.0/gate-run.schema.json",
+  "$comment": "Governs the `data` member of the POST /v1/demo/gate-run envelope. Prose contract: docs/deploy/gate-run-contract.md. Licensing: gate-run.schema.json.license (REUSE sidecar; JSON admits no comment syntax).",
+  "title": "MAINLINE demo — four-beat gate run",
+  "description": "Four beats played against the seeded permit inside ONE SERIALIZABLE transaction that is rolled back: read the subject, merge and be refused, forge the projected counter and be refused anyway, sign one disposition and be admitted. The payload carries what the DATABASE said at each beat — SQLSTATE, constraint name, how that name was obtained — and it proves rather than asserts the two properties the demo depends on: that the beats shared one transaction (equal cluster logical timestamps) and that nothing persisted (a fingerprint taken before and after).",
+  "allOf": [
+    { "$ref": "envelope.schema.json" },
+    {
+      "properties": { "data": { "$ref": "#/$defs/gate_run" } },
+      "required": ["data"]
+    }
+  ],
+  "$defs": {
+    "gate_run": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_id",
+        "run_id",
+        "generated_at",
+        "outcome",
+        "verdict",
+        "failures",
+        "persisted",
+        "elapsed_ms",
+        "transaction",
+        "subject",
+        "beats",
+        "persistence_check"
+      ],
+      "properties": {
+        "schema_id": {
+          "description": "This contract's own $id, repeated inside the payload so that a gate-run captured into an evidence bundle still names the contract that governs it once it is separated from its envelope.",
+          "const": "https://console.mainline.trappoint.org/contracts/1.0/gate-run.schema.json"
+        },
+        "run_id": { "$ref": "#/$defs/uuid_or_token" },
+        "generated_at": { "$ref": "#/$defs/timestamp" },
+        "outcome": {
+          "description": "completed = all four beats were attempted. retry = SQLSTATE 40001 aborted the run; the transaction was UNDECIDED, which is not a refusal, and this driver does not re-send on the caller's behalf.",
+          "enum": ["completed", "retry"]
+        },
+        "verdict": {
+          "description": "PROVEN only when every beat matched the expectation it was written against AND the persistence check came back identical. A run that observed something else still returns 200 and still says NOT PROVEN — a truthful red beats a fabricated green.",
+          "enum": ["PROVEN", "NOT PROVEN"]
+        },
+        "failures": {
+          "description": "One sentence per thing that did not hold. Empty exactly when the verdict is PROVEN.",
+          "type": "array",
+          "maxItems": 32,
+          "items": { "type": "string", "minLength": 1, "maxLength": 2048 }
+        },
+        "persisted": {
+          "description": "Always false. The whole transaction is rolled back, including the beat that succeeded. This is the field that makes the demo safe to share with a hundred judges at once, and `persistence_check` is the evidence for it.",
+          "const": false
+        },
+        "elapsed_ms": { "type": "number", "minimum": 0 },
+        "transaction": { "$ref": "#/$defs/transaction" },
+        "subject": { "$ref": "#/$defs/subject" },
+        "beats": {
+          "description": "Exactly four, in order. The count is fixed because the narrative is fixed: refuse, refuse under attack, admit — with the reading that makes the first two legible in front of them.",
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "items": { "$ref": "#/$defs/beat" }
+        },
+        "persistence_check": { "$ref": "#/$defs/persistence_check" }
+      }
+    },
+
+    "transaction": {
+      "description": "How the four beats were run, with the evidence for the claim rather than the claim alone.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "isolation",
+        "disposition",
+        "opened_logical_timestamp",
+        "closed_logical_timestamp",
+        "single_transaction",
+        "savepoints",
+        "retry_sqlstate",
+        "canonicalisation"
+      ],
+      "properties": {
+        "isolation": {
+          "description": "Issued explicitly by the client on every attempt, never inherited from a pool default (spec/errors.md §2.1). On a warm Lambda the session is by definition a reused one.",
+          "const": "SERIALIZABLE"
+        },
+        "disposition": { "const": "rolled_back" },
+        "opened_logical_timestamp": {
+          "description": "cluster_logical_timestamp() read at the first beat.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "closed_logical_timestamp": {
+          "description": "The same builtin read after the last beat. Null when the run was aborted by 40001 before it could be read.",
+          "type": ["string", "null"],
+          "maxLength": 64
+        },
+        "single_transaction": {
+          "description": "The two timestamps are equal. cluster_logical_timestamp() is constant within a CockroachDB transaction and moves between them, so this is a READ-ONLY witness that no beat quietly opened a transaction of its own — not an assertion the driver makes about itself.",
+          "type": "boolean"
+        },
+        "savepoints": {
+          "description": "The savepoint fenced around each write beat. A constraint refusal rolls back to its own savepoint and the transaction keeps taking statements.",
+          "type": "array",
+          "maxItems": 8,
+          "items": { "type": "string", "minLength": 1, "maxLength": 64 }
+        },
+        "retry_sqlstate": {
+          "description": "40001 when the run was abandoned as undecided; null otherwise. Never a refusal code: an undecided transaction has no reason set.",
+          "enum": ["40001", null]
+        },
+        "canonicalisation": {
+          "description": "Which implementation produced a_canon_bytes and a_leaf_hash for the merge call. The procedure takes both from the CLIENT so that a third party can recompute the ledger leaf without this cluster (migration 0117), which only works if the client says which canonicaliser it used.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        }
+      }
+    },
+
+    "subject": {
+      "description": "The gated subject as it stood when the run opened. Read from the database in one statement, so the counters and the state describe one moment rather than several.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "subject_kind",
+        "subject_id",
+        "external_ref",
+        "state",
+        "head_seq",
+        "gate_epoch",
+        "open_blocking",
+        "open_blocking_derived",
+        "blocking_check_id",
+        "exposure_receipt_id",
+        "site_code"
+      ],
+      "properties": {
+        "subject_kind": { "const": "permit" },
+        "subject_id": { "$ref": "#/$defs/uuid" },
+        "external_ref": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "state": {
+          "enum": [
+            "draft",
+            "checks_materialised",
+            "dispositioned",
+            "merged",
+            "suspended",
+            "closed",
+            "abandoned"
+          ]
+        },
+        "head_seq": { "type": "integer", "minimum": 0 },
+        "gate_epoch": { "type": "integer", "minimum": 0 },
+        "open_blocking": {
+          "description": "The PROJECTED counter — the column a trigger wrote.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "open_blocking_derived": {
+          "description": "The same quantity re-derived from blocking_check LEFT JOIN disposition by the anti-join the gate itself uses. Carried separately and never reconciled: the whole product is the observation that a gate trusting the first is a gate one UPDATE disarms.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "blocking_check_id": { "oneOf": [{ "$ref": "#/$defs/uuid" }, { "type": "null" }] },
+        "exposure_receipt_id": { "oneOf": [{ "$ref": "#/$defs/uuid" }, { "type": "null" }] },
+        "site_code": { "type": "string", "minLength": 1, "maxLength": 256 }
+      }
+    },
+
+    "beat": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ordinal",
+        "name",
+        "label",
+        "expected",
+        "outcome",
+        "sqlstate",
+        "constraint",
+        "constraint_source",
+        "message",
+        "matched_expectation",
+        "elapsed_ms",
+        "statement",
+        "refusal",
+        "observed",
+        "note"
+      ],
+      "properties": {
+        "ordinal": { "type": "integer", "minimum": 1, "maximum": 4 },
+        "name": {
+          "enum": ["read", "merge", "projection_drift_attack", "admit"]
+        },
+        "label": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "expected": {
+          "description": "What this beat was WRITTEN against, carried in the response so that a reader can check the driver's arithmetic instead of taking `matched_expectation` on trust.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["outcome"],
+          "properties": {
+            "outcome": { "$ref": "#/$defs/beat_outcome" },
+            "sqlstate": { "type": "string", "minLength": 5, "maxLength": 5 },
+            "constraint": { "type": "string", "minLength": 1, "maxLength": 128 },
+            "constraint_source": { "enum": ["reported", "parsed"] }
+          }
+        },
+        "outcome": { "$ref": "#/$defs/beat_outcome" },
+        "sqlstate": {
+          "description": "Verbatim from the driver. 00000 for a beat that did not raise. Never composed.",
+          "type": ["string", "null"],
+          "minLength": 5,
+          "maxLength": 5
+        },
+        "constraint": {
+          "description": "The exhibit. A constraint or unique-index name for 23514/23503/23505; the fully-qualified name of the raising object for P0001.",
+          "type": ["string", "null"],
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z_][A-Za-z0-9_.$]*$"
+        },
+        "constraint_source": {
+          "description": "reported = taken from driver diagnostics. parsed = recovered from the kernel's own `refused by <schema>.<object>` clause, which is a WEAKENED diagnosis and must be rendered as such. Every P0001 lands in the parsed case, measured: on CockroachDB v26.2.5 a PL/pgSQL RAISE carries no constraint_name and no PL/pgSQL context.",
+          "enum": ["reported", "parsed", "absent", null]
+        },
+        "message": {
+          "description": "The database's own message, verbatim apart from whitespace normalisation and the length cap. The driver never writes this sentence.",
+          "type": ["string", "null"],
+          "maxLength": 2048
+        },
+        "matched_expectation": { "type": "boolean" },
+        "elapsed_ms": { "type": "number", "minimum": 0 },
+        "statement": {
+          "description": "The parameterised SQL this beat sent, so a reader can run it themselves.",
+          "type": ["string", "null"],
+          "maxLength": 4096
+        },
+        "refusal": {
+          "description": "The spec/wire refusal payload, unchanged. Its minimal unsatisfiable subset and nearest admissible alternative come from trappoint.explain_refusal — the same engine that produced the refusal — so the explanation cannot disagree with it.",
+          "oneOf": [
+            { "$ref": "https://spec.trappoint.org/1.0/wire/refusal.schema.json" },
+            { "type": "null" }
+          ]
+        },
+        "observed": { "$ref": "#/$defs/observed" },
+        "note": {
+          "description": "Set only when something needs saying: a beat that was skipped, or a beat whose outcome was not the one it was written against.",
+          "type": ["string", "null"],
+          "maxLength": 1024
+        }
+      },
+      "allOf": [
+        {
+          "$comment": "outcome refused -> refusal non-null. A refusal with no payload is the prettified refusal D18 forbids.",
+          "if": { "properties": { "outcome": { "const": "refused" } }, "required": ["outcome"] },
+          "then": {
+            "required": ["refusal"],
+            "properties": {
+              "refusal": { "type": "object" },
+              "constraint": { "type": "string" },
+              "constraint_source": { "enum": ["reported", "parsed"] }
+            }
+          },
+          "else": { "properties": { "refusal": { "type": "null" } } }
+        },
+        {
+          "$comment": "A beat that did not match its expectation must say why, in words. Silence about a red is the failure mode this whole payload exists to prevent.",
+          "if": {
+            "properties": { "matched_expectation": { "const": false } },
+            "required": ["matched_expectation"]
+          },
+          "then": { "properties": { "note": { "type": ["string", "null"] } } }
+        }
+      ]
+    },
+
+    "beat_outcome": {
+      "description": "read = a SELECT, nothing attempted. refused = the gate said no and named what said it. admitted = the transition succeeded (and was then rolled back). retry = 40001. skipped = a precondition the API refuses to fabricate was absent. error = a SQLSTATE outside the modelled taxonomy, reported rather than smoothed over.",
+      "enum": ["read", "refused", "admitted", "retry", "skipped", "error"]
+    },
+
+    "observed": {
+      "description": "What this beat saw. Every member is optional because the beats observe different things, and every member that is present is a value the database produced.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "state": { "type": "string", "maxLength": 64 },
+        "gate_epoch": { "type": "integer", "minimum": 0 },
+        "head_seq": { "type": "integer", "minimum": 0 },
+        "open_blocking_projected": { "type": "integer", "minimum": 0 },
+        "open_blocking_derived": { "type": "integer", "minimum": 0 },
+        "blocking_check_id": { "oneOf": [{ "$ref": "#/$defs/uuid" }, { "type": "null" }] },
+        "counters_agree": { "type": "boolean" },
+        "counter_forced_to": { "type": ["integer", "null"] },
+        "attack": { "type": "string", "maxLength": 512 },
+        "disposition_id": { "$ref": "#/$defs/uuid" },
+        "disposition_kind": {
+          "enum": [
+            "applied",
+            "mitigated",
+            "mechanism_absent",
+            "escalated",
+            "accept_residual",
+            "emergency_override"
+          ]
+        },
+        "open_blocking_after_signature": { "type": ["integer", "null"], "minimum": 0 },
+        "merge_record": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["clearance_digest", "merged_commit", "gate_epoch", "merged_at"],
+              "properties": {
+                "clearance_digest": {
+                  "description": "SHA-256 over the sorted (check_id, disposition_id) set, computed by the SERVER from the base tables — so a completion record cannot claim a clearance set the database does not hold.",
+                  "type": ["string", "null"],
+                  "pattern": "^[0-9a-f]{64}$"
+                },
+                "merged_commit": { "type": "string", "pattern": "^([0-9a-f]{2})*$", "maxLength": 4096 },
+                "gate_epoch": { "type": "integer", "minimum": 0 },
+                "merged_at": { "$ref": "#/$defs/timestamp" },
+                "permit_state": { "type": "string", "maxLength": 64 },
+                "permit_open_blocking": { "type": "integer", "minimum": 0 },
+                "permit_head_seq": { "type": "integer", "minimum": 0 }
+              }
+            },
+            { "type": "null" }
+          ]
+        }
+      }
+    },
+
+    "persistence_check": {
+      "description": "The evidence for `persisted: false`. Row counts over every table the four beats can write, taken before the transaction opened and after it was rolled back, plus mainline.permit's own columns — because the attack beat mutates a column without changing a count.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["before", "after", "identical", "tables", "note"],
+      "properties": {
+        "before": { "$ref": "#/$defs/fingerprint" },
+        "after": { "$ref": "#/$defs/fingerprint" },
+        "identical": { "type": "boolean" },
+        "tables": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "items": { "type": "string", "minLength": 1, "maxLength": 128 }
+        },
+        "note": { "type": "string", "minLength": 1, "maxLength": 1024 }
+      }
+    },
+
+    "fingerprint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["row_counts", "permit_row"],
+      "properties": {
+        "row_counts": {
+          "type": "object",
+          "additionalProperties": { "type": "integer", "minimum": 0 }
+        },
+        "permit_row": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "state",
+                "head_seq",
+                "gate_epoch",
+                "open_blocking",
+                "unmet_floor_count",
+                "countersigned_count",
+                "merged_commit"
+              ],
+              "properties": {
+                "state": { "type": "string", "maxLength": 64 },
+                "head_seq": { "type": "integer", "minimum": 0 },
+                "gate_epoch": { "type": "integer", "minimum": 0 },
+                "open_blocking": { "type": "integer", "minimum": 0 },
+                "unmet_floor_count": { "type": "integer", "minimum": 0 },
+                "countersigned_count": { "type": "integer", "minimum": 0 },
+                "merged_commit": { "type": ["string", "null"], "pattern": "^([0-9a-f]{2})*$" }
+              }
+            },
+            { "type": "null" }
+          ]
+        }
+      }
+    },
+
+    "uuid": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+    },
+    "uuid_or_token": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "timestamp": { "type": "string", "format": "date-time", "minLength": 1, "maxLength": 64 }
+  }
+}

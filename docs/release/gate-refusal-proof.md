@@ -3,59 +3,75 @@ SPDX-FileCopyrightText: 2026 MAINLINE contributors
 SPDX-License-Identifier: CC-BY-4.0
 -->
 
-# The gate-refusal proof — RED, then GREEN
+# The gate-refusal proof — RED, GREEN, and then a stronger sentence
 
-**Worker:** `qr-gate-refusal-proof` · **Date:** 2026-08-10
+**Workers:** `qr-gate-refusal-proof` (2026-08-09) · `W8 producer-completion` (2026-08-10)
 **Cluster for every transcript below:** the local single-node Docker container
 `mainline-crdb`, **CockroachDB CCL v26.2.5** (x86_64-pc-linux-gnu, built 2026/07/28,
 go1.25.5). **Interpreter:** `.venv/Scripts/python.exe`, **Python 3.13.14**.
 **Every block on this page is verbatim stdout.** Nothing is paraphrased and nothing is
 trimmed except where a line is marked `[…]`.
 
-> Two notes on fidelity, so that "verbatim" means something:
+> Three notes on fidelity, so that "verbatim" means something:
 >
-> * The host's UTC clock reads `2026-08-09T21:0x` while the working date is 2026-08-10.
->   The timestamps are as the machine emitted them, not corrected to the date in the
->   brief. A transcript that has been adjusted is no longer a transcript.
-> * The Windows console rendered the em-dashes in the assertion messages as replacement
->   characters. They are restored to `—` here. That is the only character-level edit on
->   this page, and it is a fact about the terminal's code page rather than about the
->   program's output.
-> * §3's shape-test run carries `-p no:trappoint_testkit`. Between the red run and the
->   green run another worker landed `packages/trappoint-testkit`, and for a window the
->   root `conftest.py` registered its plugin a second time under a different name, which
->   aborted **every** `pytest` invocation in the repository during collection with
->   `ValueError: Plugin already registered under a different name`. That worker has since
->   guarded it (`pytest_plugins = [] if _PLUGIN in sys.modules else [_PLUGIN]`), and the
->   final green in §4 is the unmodified CI invocation with no flag. The transcript keeps
->   the flag where it was actually used.
+> * The host's UTC clock read `2026-08-09T21:0x` on the day the working date was
+>   2026-08-10. The timestamps are as the machine emitted them, not corrected to the
+>   date in the brief. A transcript that has been adjusted is no longer a transcript.
+> * The Windows console rendered the em-dashes and middots in the program's output as
+>   replacement characters. They are restored to `—` and `·` here. That is the only
+>   character-level edit on this page, and it is a fact about the terminal's code page
+>   rather than about the program's output.
+> * §3's shape-test run carries `-p no:trappoint_testkit`. Between the first red run and
+>   the first green run another worker landed `packages/trappoint-testkit`, and for a
+>   window the root `conftest.py` registered its plugin a second time under a different
+>   name, which aborted **every** `pytest` invocation in the repository during collection
+>   with `ValueError: Plugin already registered under a different name`. That worker has
+>   since guarded it. The transcript keeps the flag where it was actually used.
 
 ---
 
-## 0. What was being proven
+## 0. What is being proven
+
+On 2026-08-09 the claim was:
 
 > **The database refuses a permit merge when a recalled precursor carries no signed
 > disposition — and admits the same merge once a disposition is signed.**
 
-Until this run, nobody had demonstrated it. The migration-chain verifier's 2026-08-08
-report said so honestly: the kernel gate tables did not exist when it ran. They exist
-now — `0050_permit.sql`, `0058_blocking_check.sql`, `0066_disposition.sql`,
-`0071_merge_record.sql`, `0071c_refusal_ledger.sql`, `0115_fn_permit_merge_gate.sql`,
-`0117_proc_merge_permit.sql`, `0130_trg_permit_merge_gate.sql` — and this page is the
-first record of the claim being put to a database and answered.
+Since 2026-08-10 it is strictly stronger, and every clause of it is a value in the
+evidence file rather than a sentence in this one:
+
+> **The trigger projected the counter, emitted the CDC signal, bumped the epoch, and the
+> gate refused** — and admitted the same merge once a disposition was signed.
 
 The artefacts:
 
 | Path | What it is |
 |---|---|
-| `scripts/proof/gate_refusal.py` | Builds a throwaway database, bootstraps, applies all 261 migrations continuing past failures, seeds the history, attempts the merge three times, writes the evidence. |
+| `scripts/proof/gate_refusal.py` | Builds a throwaway database, bootstraps, applies the whole migration tree continuing past failures, measures the projection, attempts the merge three times, writes the evidence. |
 | `tests/release/test_gate_refusal_proof.py` | Runs it and asserts each half separately. |
 | `.github/workflows/release-proof.yml` | The same on a pinned `cockroachdb/cockroach:v26.2.5` with `gc.ttlseconds=4500`, uploading the evidence JSON. |
 | `evidence/gate-refusal/proof-<utc>.json` | The transcript, per run. |
 
+## 0.1 The three states of this proof, in one table
+
+**The old numbers are kept, not deleted.** A documented before/after is worth more than
+either half on its own, and a repository that quietly replaces its weaker evidence has
+made its stronger evidence unfalsifiable.
+
+| When | Chain | Projection | Caveats | Verdict | Evidence |
+|---|---|---|---|---|---|
+| 2026-08-09 21:07Z | **244 / 261**, 17 failed — **2 of them unexplained** (`0049z` `42601`, `0149z` `42P01` cascade) | not measured | 2 | **NOT PROVEN** | §2 |
+| 2026-08-09 21:38Z | **246 / 261**, 15 failed, all attributable to five tables with no producer | not measured | 2 | PROVEN | `proof-20260809T213857Z.json` |
+| 2026-08-10 05:44Z | **271 / 271**, **0 failed** | **10 / 10 assertions held** | **0** | PROVEN | `proof-20260810T054407Z.json` |
+
+The middle row is the one this page used to end on. It was an honest green about a
+narrower claim: the chain applied *except for gaps it could name*, and `open_blocking`
+was written by the proof script because the trigger that should have written it could not
+apply. Both of those are now false, and the difference is §4 onward.
+
 ---
 
-## 1. The one file in the way
+## 1. The one file in the way (2026-08-09)
 
 `0049z_meas_mutation_result.sql` declared, at what was line 79:
 
@@ -91,7 +107,7 @@ the two vocabularies meet.
 
 ---
 
-## 2. RED — before the fix
+## 2. RED #1 — before the fix
 
 `tests/release/test_gate_refusal_proof.py`, run against the live node with the tree
 exactly as found.
@@ -122,20 +138,10 @@ E   AssertionError: 2 migration(s) failed for a reason that is not one of the en
           "unproduced_table": null
         }
       ]
-    assert [{'version': ...lained', ...}] == []
-      
-      Left contains 2 more items, first extra item: {'version': '0049z_meas_mutation_result', 'sqlstate': '42601', 'message': 'at or near "not": syntax error DETAIL: sour...ixture_id STRING NOT NULL, family STRING NOT NULL, ^ HINT: try \\h CREATE TABLE', 'classification': 'unexplained', ...}
-      Use -v to get more diff
-D:\CoackroachDBxAWS\mainline\tests\release\test_gate_refusal_proof.py:131: AssertionError: 2 migration(s) failed for a reason that is not one of the enumerated unproduced tables ['mainline_ops.outbox', 'mainline.identity_assignment', 'mainline.patrol_run', 'mainline_meas.agent_action', 'mainline_meas.standing']:
-E   AssertionError: gate_refusal.py exited 1 — verdict 'NOT PROVEN', failures [
-        "2 migration(s) failed for a reason that is not one of the 5 enumerated unproduced tables: 0049z_meas_mutation_result [42601], 0149z_trg_mutation_result_append_only [42P01]"
-      ]
-      stdout:
-      cluster       CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)
-      database      release_gate_refusal_proof
+[…]
       chain         244/261 applied, 17 failed, 44.732s
       reached 0115  True
-        ! UNEXPLAINED 0049z_meas_mutation_result [42601] at or near "not": syntax error DETAIL: source SQL: CREATE TABLE mainline_meas.mutation_result ( run_id UUID NOT NULL, mutant_id STRING NOT NULL, -- blake2b(seed || class || fixture), 32 hex kind STRING NOT NULL, -- 'KILL' | 'SURVIVE' class_id STRING NOT NULL, fixture_id STRING NOT NULL, family STRING NOT NULL, ^ HINT: try \h CREATE TABLE
+        ! UNEXPLAINED 0049z_meas_mutation_result [42601] at or near "not": syntax error […]
         ! UNEXPLAINED 0149z_trg_mutation_result_append_only [42P01] relation "mainline_meas.mutation_result" does not exist
         - no producer 0121_trg_check_materialised [42P01] needs mainline_ops.outbox
         - no producer 0145a_trg_cbm_account_guard [42P01] needs mainline.identity_assignment
@@ -156,13 +162,8 @@ E   AssertionError: gate_refusal.py exited 1 — verdict 'NOT PROVEN', failures 
       DRIFT         REFUSED [P0001] mainline.fn_permit_merge_gate (parsed)
       ADMISSION     ADMITTED [00000]
       caveat        17 of 261 migrations did not apply. […]
-      caveat        mainline.permit.open_blocking was written by this script, not by the check_materialised trigger, because 0121_trg_check_materialised.sql could not apply (mainline_ops.outbox has no migration). The value written is the count the gate re-derives for itself, so the refusal below is still the database's.
-        ! 2 migration(s) failed for a reason that is not one of the 5 enumerated unproduced tables: 0049z_meas_mutation_result [42601], 0149z_trg_mutation_result_append_only [42P01]
+      caveat        mainline.permit.open_blocking was written by this script, not by the check_materialised trigger, because 0121_trg_check_materialised.sql could not apply (mainline_ops.outbox has no migration). […]
       VERDICT       NOT PROVEN
-      evidence      C:\Users\shaug\AppData\Local\Temp\pytest-of-shaug\pytest-491\gate-refusal0\proof.json
-      
-    assert 1 == 0
-D:\CoackroachDBxAWS\mainline\tests\release\test_gate_refusal_proof.py:201: AssertionError: gate_refusal.py exited 1 — verdict 'NOT PROVEN', failures [
 =========================== short test summary info ===========================
 FAILED tests/release/test_gate_refusal_proof.py::test_no_migration_failed_for_an_unexplained_reason
 FAILED tests/release/test_gate_refusal_proof.py::test_the_proof_exits_zero
@@ -183,26 +184,16 @@ is not an accident of ordering; it is what the proof is designed to distinguish.
   cleanly except for gaps it can name. `42601` on `0049z` is not a nameable gap, so the
   verdict is `NOT PROVEN` even though every refusal landed.
 
-Keeping those two claims apart is the whole design. A proof that only asserted "the merge
-was refused" would have been green on a tree whose migration chain does not apply — and
-would have been telling the truth about the wrong thing.
+Keeping those two claims apart is the whole design, and it is the same design that makes
+§6 below readable.
 
 ---
 
-## 3. The fix
+## 3. The fix, and GREEN #1 — the before-state, kept
 
-Three files, and only three.
-
-| File | Change |
-|---|---|
-| `verticals/mainline/db/migrations/0049z_meas_mutation_result.sql` | `family` → `mutation_family`, plus the measured reasoning for why quoting was rejected. |
-| `verticals/mainline/packages/mainline-mutation/src/mainline_mutation/sql.py` | `RESULT_COLUMNS` entry `"family"` → `"mutation_family"`. The parameter tuple still reads `result.family`; that attribute is Python and stays. |
-| `tests/e2e/mutation/test_sql_shape.py` | Two new tests: no column in `0049y`/`0049z` may be spelled with a CockroachDB reserved keyword, and the result table must name the column `mutation_family`. |
-
-`0149z_trg_mutation_result_append_only.sql` does **not** reference the column. It was read
-and left alone: its `42P01` was a cascade from `0049z`, not a defect of its own.
-
-The shape test after the rename:
+Three files: `0049z` (`family` → `mutation_family`), `mainline_mutation/sql.py`
+(`RESULT_COLUMNS`), and two new shape tests in `tests/e2e/mutation/test_sql_shape.py`
+that refuse any column spelled with a CockroachDB reserved keyword.
 
 ```
 $ python -m pytest tests/e2e/mutation/test_sql_shape.py --no-header -q -p no:trappoint_testkit
@@ -210,21 +201,7 @@ $ python -m pytest tests/e2e/mutation/test_sql_shape.py --no-header -q -p no:tra
 23 passed in 0.62s
 ```
 
----
-
-## 4. GREEN — the proof itself
-
-Run with the exact DSN in the brief, `localhost` and all.
-
-```
-$ python scripts/proof/gate_refusal.py --dsn postgresql://root@localhost:26257/defaultdb?sslmode=disable
-```
-
-This is the run whose evidence file is committed as
-`evidence/gate-refusal/proof-20260809T213857Z.json`. An earlier green at `21:25:48Z` was
-identical in every observable except run identifiers; it was superseded only because a
-lint pass over `gate_refusal.py` followed it, and a transcript that does not correspond to
-the artefact on disk is worth less than one that does.
+The green that followed is `evidence/gate-refusal/proof-20260809T213857Z.json`:
 
 ```
 RUN STARTED 2026-08-09T21:38:57Z
@@ -235,30 +212,238 @@ reached 0115  True
   - no producer 0121_trg_check_materialised [42P01] needs mainline_ops.outbox
   - no producer 0145a_trg_cbm_account_guard [42P01] needs mainline.identity_assignment
   - no producer 0163_v_fixity_coverage [42P01] needs mainline.patrol_run
-  - no producer 0164_v_agent_actions [42P01] needs mainline_meas.agent_action
-  - no producer 0165_v_gate_latency_daily [42P01] needs mainline_meas.agent_action
-  - no producer 0166_v_txn_restart_daily [42P01] needs mainline_meas.agent_action
-  - no producer 0171_v_standing_components [42P01] needs mainline_meas.standing
-  - no producer 0172_v_my_record [42P01] needs mainline_meas.standing
-  - no producer 0187_standing_rls_enable [42P01] needs mainline_meas.standing
-  - no producer 0187a_standing_rls_force [42P01] needs mainline_meas.standing
-  - no producer 0187b_policy_standing_blind [42P01] needs mainline_meas.standing
-  - no producer 0187c_policy_standing_assay_read [42P01] needs mainline_meas.standing
-  - no producer 0187d_policy_standing_assay_insert [42P01] needs mainline_meas.standing
-  - no producer 0187e_policy_standing_view_owner_read [42P01] needs mainline_meas.standing
+  […twelve more, every one named…]
   - no producer 0198x_no_rls_on_cdc_sources [42P01] needs mainline_ops.outbox
 REFUSAL       REFUSED [23514] gate_closed_when_issued (reported)
 DRIFT         REFUSED [P0001] mainline.fn_permit_merge_gate (parsed)
 ADMISSION     ADMITTED [00000]
-caveat        15 of 261 migrations did not apply. Every one is listed under chain.failures_* with its file name and SQLSTATE. The five tables with no producer are named in chain.unproduced_tables_enumerated; this script does not create them, because a new table takes a number the allocation table grants and this worker owns no band.
+caveat        15 of 261 migrations did not apply. […]
 caveat        mainline.permit.open_blocking was written by this script, not by the check_materialised trigger, because 0121_trg_check_materialised.sql could not apply (mainline_ops.outbox has no migration). The value written is the count the gate re-derives for itself, so the refusal below is still the database's.
 VERDICT       PROVEN
-evidence      D:\CoackroachDBxAWS\mainline\evidence\gate-refusal\proof-20260809T213857Z.json
 EXIT=0
 RUN FINISHED 2026-08-09T21:40:44Z
 ```
 
-And the release suite, run with exactly the invocation `release-proof.yml` uses:
+**244/261 → 246/261. Two migrations, and the verdict moved from NOT PROVEN to PROVEN.**
+That sentence was true and it was also the ceiling of what the artefact could then claim.
+Fifteen files still did not apply, and the counter in the refusal was written by the
+script.
+
+---
+
+## 4. What changed on 2026-08-10 — and the caveat that retired itself
+
+The producer-completion wave authored the missing producers. Seven, not five: the census
+had counted SQLSTATEs, and **CockroachDB names only the first absent relation in a
+statement**, so `mainline_meas.person_measure_policy` was shadowed by
+`mainline_meas.standing` in both views that join it and never appeared in an error at
+all. `mainline_ops.site_register_signal` blocked no migration and only an RLS negative
+assertion.
+
+```
+$ ls verticals/mainline/db/migrations/*.sql | wc -l
+271
+```
+
+`0049d_identity_assignment` · `0089_agent_action` · `0089a_person_measure_policy` ·
+`0089b_standing` · `0090_patrol_run` · `0099_outbox` · `0099a_site_register_signal`, plus
+three append-only welds at `0145f` / `0149a` / `0149b`. **`mainline_ops.outbox`
+deliberately gets no weld** — it is the one row-level-TTL table in `mainline_ops`, and a
+`BEFORE DELETE` refusal trigger would make the TTL job fail forever.
+
+Two things then happened to this proof **without a line of it being edited**, and both
+were verified before anything was written about them.
+
+### 4.1 The caveat removed itself
+
+`seed_history()` already probed `information_schema.triggers` for `check_materialised`
+and only wrote `open_blocking` by hand when the probe came back false; the caveat was
+conditional on the same flag. Running the *unmodified* script against the new tree:
+
+```
+$ .venv/Scripts/python.exe scripts/proof/gate_refusal.py \
+    --dsn postgresql://root@localhost:26257/defaultdb?sslmode=disable --database w_W8_baseline
+chain         271/271 applied, 0 failed, 63.309s
+reached 0115  True
+REFUSAL       REFUSED [23514] gate_closed_when_issued (reported)
+DRIFT         REFUSED [P0001] mainline.fn_permit_merge_gate (parsed)
+ADMISSION     ADMITTED [00000]
+VERDICT       PROVEN
+```
+
+```
+caveats []
+unproduced ['mainline_ops.outbox', 'mainline.identity_assignment', 'mainline.patrol_run',
+            'mainline_meas.agent_action', 'mainline_meas.standing']
+files 271 applied 271 failed 0
+trigger True
+counter_source trigger check_materialised -> mainline.fn_check_materialised
+```
+
+Both caveats gone; `271/271`; the counter written by the trigger. **That is the whole of
+what "retire the caveat" would have delivered, and it delivered itself.** Note what is
+still wrong in that output: `unproduced` still enumerates five tables that now all exist,
+which means the proof was still willing to forgive a failure attributable to any of them.
+
+### 4.2 The ratchet: `UNPRODUCED_TABLES` is now `()`
+
+`apply_chain` classifies a failure as *explained* only when it is attributable to a listed
+table. An empty tuple therefore turns **any** residual failure into
+`chain.failures_unexplained`, which is a hard NOT PROVEN. The list is emptied, the release
+test's five-table tolerance is **deleted rather than narrowed**, and
+`test_no_table_is_left_without_a_producer` now asserts the list stays empty — so
+re-populating it to make a red run green fails a test before it hides anything.
+
+---
+
+## 5. The stronger sentence — the `projection` block
+
+Removing an apology is a subtraction. The deliverable is the addition: read back the
+evidence that the **trigger** did the work, and make every clause of it an assertion that
+can fail.
+
+`mainline.permit` is read immediately before and immediately after the single
+`INSERT INTO mainline.blocking_check`, **with no other statement in between**, so the
+delta is attributable to the weld and to nothing else in the seed. Then
+`mainline_ops.outbox` is read back for the row the trigger emitted.
+
+Verbatim from `evidence/gate-refusal/proof-20260810T054407Z.json`:
+
+```json
+{
+  "claim": "the trigger projected the counter, emitted the CDC signal, bumped the epoch, and the gate refused",
+  "trigger": { "name": "check_materialised", "timing": "AFTER INSERT",
+               "on": "mainline.blocking_check",
+               "function": "mainline.fn_check_materialised",
+               "migration": "0121_trg_check_materialised.sql", "present": true },
+  "fired_by": "one INSERT INTO mainline.blocking_check, with no other statement between the before and after readings",
+  "open_blocking": { "before": 0, "after": 1, "expected_after": 1 },
+  "gate_epoch":    { "before": 0, "after": 1, "moved": true },
+  "severity": { "supplied_by_this_script": 0, "projected_onto_the_check": 4,
+                "virulence_projected": "blood_major", "closure_gen_projected": 0 },
+  "outbox": {
+    "relation": "mainline_ops.outbox", "relation_present": true,
+    "rows_in_table": 1, "rows_for_this_check": 1, "expected_kind": "check_opened",
+    "row": {
+      "signal_id": "1906c6b6-3a55-40a3-aa5e-9b44df2f6c8b",
+      "kind": "check_opened",
+      "subject_id": "c211d4dc-65c6-4254-8912-3d48a3991908",
+      "site_id": "83a3e243-3c46-45f2-85c7-11ad2b636e06",
+      "target_site": null, "activity_root": null,
+      "max_severity": 4, "score": "0", "payload": {},
+      "emitted_at": "2026-08-10T05:45:31.693997+00:00",
+      "expires_at": "2026-09-09T05:45:31.693997+00:00"
+    }
+  },
+  "assertions_held": 10, "assertions_total": 10
+}
+```
+
+`subject_id` is the `check_id` in `history.blocking_check_id`, character for character.
+`rows_in_table` is `1`: the entire seeded history emitted exactly one CDC signal, and it
+is this one.
+
+### The three clauses worth arguing about
+
+* **`gate_epoch` 0 → 1, strictly.** MI07. The completion record's composite FK carries
+  `ON UPDATE RESTRICT`, so moving the epoch is what makes attaching a precursor to an
+  already-issued subject *physically* impossible rather than merely disallowed. An epoch
+  that stands still is a pin that does not pin, which is why the assertion is `after >
+  before` and not `after >= before`.
+* **`max_severity` is 4 and the script supplied 0.** This is the sharpest value on the
+  page, because it demonstrates an *ordering* rather than a fact. `fn_check_project`
+  (BEFORE INSERT, 0120) overwrites the client's `severity` from `clause_blame_current`;
+  `fn_check_materialised` (AFTER INSERT, 0121) copies `(NEW).severity` into the signal. A
+  `4` in the outbox proves both triggers ran and proves which ran first.
+* **`payload` is `{}`.** Pointers and digests only. A changefeed bypasses row-level
+  security entirely, so every byte in that column is readable by anything that can read
+  the feed, and `mainline_ops.outbox` has no policy to fall back on by construction
+  (§4.1 law 11: exactly one changefeed-query source).
+
+---
+
+## 6. RED #2 — the projection assertions, observed failing
+
+PL-2 again: an assertion that has never been red asserts nothing. The tree was copied to a
+scratch directory with **`0121_trg_check_materialised.sql` removed** — the weld, not the
+table — and the proof was pointed at the copy with `--migrations`. `mainline_ops.outbox`
+still exists, so the chain still applies in full; only the projection is gone.
+
+```
+$ cp -r verticals/mainline/db/migrations $SCRATCH/tree_no_0121
+$ rm $SCRATCH/tree_no_0121/0121_trg_check_materialised.sql
+$ .venv/Scripts/python.exe scripts/proof/gate_refusal.py \
+    --dsn postgresql://root@localhost:26257/defaultdb?sslmode=disable \
+    --database w_W8_red --migrations $SCRATCH/tree_no_0121 --out $SCRATCH/red.json
+```
+
+```
+cluster       CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)
+database      w_W8_red
+chain         270/270 applied, 0 failed, 58.938s
+reached 0115  True
+unproduced    (none) — every relation this tree references has a producer
+PROJECTION    1/10 held · open_blocking 0->0 · gate_epoch 0->0 · outbox None severity None (client supplied 0)
+  ! trigger_present: present=False
+  ! counter_source_is_the_trigger: scripts/proof/gate_refusal.py — the check_materialised trigger is ABSENT from this schema, so 0121_trg_check_materialised.sql did not apply. […]
+  ! open_blocking_projected: 0 -> 0
+  ! gate_epoch_strictly_increased: 0 -> 0
+  ! outbox_row_emitted: rows_for_this_check=0
+  ! outbox_kind_is_check_opened: None
+  ! outbox_subject_is_the_check: None vs check_id 39eb5987-3847-4431-9590-3bfe3b83a3c7
+  ! outbox_site_is_the_seeded_site: None vs site_id 66571be9-423c-4a88-900c-ff1428f03b26
+  ! outbox_max_severity_is_the_projected_severity: emitted=None projected=4 supplied=0
+REFUSAL       REFUSED [23514] gate_closed_when_issued (reported)
+DRIFT         REFUSED [P0001] mainline.fn_permit_merge_gate (parsed)
+ADMISSION     ADMITTED [00000]
+caveat        mainline.permit.open_blocking was written by this script, not by the check_materialised trigger, because that trigger is absent from this schema (0121_trg_check_materialised.sql did not apply). […] the projection is NOT proven, and projection.assertions names every clause that failed.
+  ! projection.trigger_present: […]
+  […nine failures, each naming its clause and the value observed…]
+VERDICT       NOT PROVEN
+EXIT=1
+```
+
+**Nine of ten assertions failed and all three refusal beats still landed.** That is the
+design, not a leak: the run does not abort on a broken projection, because "the gate
+refused but nothing projected it" and "the gate admitted the merge" are different
+findings and the reader has to be able to tell them apart. The one assertion that held
+was `outbox_relation_present` — the table exists; nothing wrote to it.
+
+The caveat is still emitted on this path, because on this path something genuinely *is*
+unproven and the hand-written counter needs explaining. It is emitted **alongside** the
+failure, not instead of it.
+
+---
+
+## 7. GREEN #2 — the record run
+
+```
+$ .venv/Scripts/python.exe scripts/proof/gate_refusal.py \
+    --dsn postgresql://root@localhost:26257/defaultdb?sslmode=disable --database w_W8
+```
+
+```
+RUN STARTED 2026-08-10T05:44:07Z
+cluster       CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)
+database      w_W8
+chain         271/271 applied, 0 failed, 63.094s
+reached 0115  True
+unproduced    (none) — every relation this tree references has a producer
+PROJECTION    10/10 held · open_blocking 0->1 · gate_epoch 0->1 · outbox 'check_opened' severity 4 (client supplied 0)
+REFUSAL       REFUSED [23514] gate_closed_when_issued (reported)
+DRIFT         REFUSED [P0001] mainline.fn_permit_merge_gate (parsed)
+ADMISSION     ADMITTED [00000]
+caveats       (none) — nothing in this run is unproven-but-tolerated
+VERDICT       PROVEN
+evidence      D:\CoackroachDBxAWS\mainline\evidence\gate-refusal\proof-20260810T054407Z.json
+EXIT=0
+```
+
+The `caveats       (none)` line is printed deliberately. An absent caveat line and an
+empty caveat list read identically to a human, and they are not the same thing; the
+release test asserts that the string is in stdout for exactly that reason.
+
+And the release suite, with the invocation `release-proof.yml` uses:
 
 ```
 $ export MAINLINE_TEST_DSN="postgresql://root@127.0.0.1:26257/defaultdb?sslmode=disable"
@@ -266,31 +451,22 @@ $ python -m pytest tests/release/test_gate_refusal_proof.py -q --no-header -p no
 ```
 
 ```
-RUN STARTED 2026-08-09T21:35:29Z
-........                                                                 [100%]
-8 passed in 70.57s (0:01:10)
-RUN FINISHED 2026-08-09T21:36:41Z
+...............                                                          [100%]
+15 passed in 79.25s (0:01:19)
 ```
 
-The same eight tests were `2 failed, 6 passed` in §2 and are `8 passed` here. Nothing in
-the test file changed between the two runs.
+Eight tests on 2026-08-09, fifteen now. The seven added assert the projection clause by
+clause, that the chain applied in full, that the enumerated-tolerance list is empty, and
+that `caveats == []`.
 
-Finally, the release lane together with the shape tests that hold the rename in place:
-
-```
-$ python -m pytest tests/release/test_gate_refusal_proof.py tests/e2e/mutation/test_sql_shape.py \
-    -q --no-header -p no:cacheprovider
-...............................                                          [100%]
-31 passed in 90.15s (0:01:30)
-```
-
-**244/261 → 246/261. Two migrations, and the verdict moves from NOT PROVEN to PROVEN.**
+**246/261 with two caveats → 271/271 with none, and a claim that names its own
+mechanism.**
 
 ---
 
-## 5. What the database actually said
+## 8. What the database actually said
 
-Verbatim from `evidence/gate-refusal/proof-20260809T212549Z.json`.
+Verbatim from `evidence/gate-refusal/proof-20260810T054407Z.json`.
 
 ### The refusal — CF-01
 
@@ -311,6 +487,9 @@ not pre-empt this CHECK: a synthetic `P0001` would carry no `constraint_name` at
 trading a named exhibit for an unnamed one is a strictly worse refusal
 (`spec/errors.md` §3.3).
 
+The `open_blocking = 1` this CHECK fired on is the value in §5 — the one the trigger
+wrote. The refusal and the projection are now the same story told twice.
+
 ### The drift refusal — CF-03
 
 ```json
@@ -329,7 +508,9 @@ This is the case **no CHECK can hold.** "Live disposition" carries `expires_at >
 `now()` is not immutable, and a CHECK sees only the row being written. So the gate
 re-derives the count from `blocking_check` anti-joined against `disposition` and refuses
 on disagreement. That is rule **P-2** — *a projection is enforced, never trusted* —
-demonstrated rather than asserted.
+demonstrated rather than asserted. Note that it refuses a counter the **trigger** wrote,
+once that counter has been tampered with: the projection being trustworthy in §5 does not
+make it trusted here.
 
 `constraint_source` is `parsed`, not `reported`, because `diag.constraint_name` is empty
 for `P0001` (`spec/errors.md` §3.1). The refusal ledger's own
@@ -341,7 +522,8 @@ distinction is enforced by the database and not by the script's manners.
 ```json
 {
   "written": true, "read_back": true,
-  "refusal_id": "0f66d651-457f-46fc-be71-5eb82ca9d8bf",
+  "refusal_id": "4086aeda-a46c-4a04-9b74-941614c1f1ce",
+  "observed_at": "2026-08-10T05:45:32.377653+00:00",
   "sqlstate": "23514", "constraint_name": "gate_closed_when_issued",
   "constraint_source": "reported", "subject_kind": "permit",
   "gate_epoch": 1, "diagnosis": "declarative", "mus_cardinality": 1,
@@ -355,11 +537,16 @@ distinction is enforced by the database and not by the script's manners.
 inserted.** A refusal this script had invented would have been refused by the table that
 stores refusals.
 
+`gate_epoch: 1` is the same epoch the trigger produced in §5, and the release test asserts
+those two values are equal — a ledgered refusal that named a different epoch than the
+projection left behind would mean the two halves disagree about what was refused.
+
 ### The admission
 
 ```json
 {
   "signed": true,
+  "disposition_id": "80b8da7a-31d9-4154-a614-f1b1358cee6a",
   "kind": "applied",
   "virulence_projected": "blood_major",
   "signer_rank_projected": 5,
@@ -384,12 +571,13 @@ arithmetic over a receipt issued ten minutes earlier, not a client's claim.
     "present": true, "subject_kind": "permit", "gate_epoch": 1,
     "merged_by": "proof.signer",
     "merged_commit": "93bb35d778549a7d35b210b04612e80a9ecc88c84630a6b32e7340eda97a04ae",
-    "clearance_digest": "98d9a4eb4affb07ef396916eb25ca7c7aa28a4bc3144bea886d07fda906bec83",
+    "clearance_digest": "eef67f8c994c41bd5adf1eb9476dc84b10902612f6e19bc314b60cb48649ab4b",
+    "merged_at": "2026-08-10T05:45:32.876050+00:00",
     "permit_state": "merged", "permit_open_blocking": 0,
     "event_chain": [
       {"seq": 1, "from": "draft",               "to": "checks_materialised", "chain_digest": "ff92e576…"},
       {"seq": 2, "from": "checks_materialised", "to": "dispositioned",       "chain_digest": "03c06e37…"},
-      {"seq": 3, "from": "dispositioned",       "to": "merged",              "chain_digest": "cf8abbd9…"}
+      {"seq": 3, "from": "dispositioned",       "to": "merged",              "chain_digest": "…"}
     ]
   }
 }
@@ -403,7 +591,7 @@ which signatures, at the instant of the merge.
 
 ---
 
-## 6. The history that was seeded, and why each part had to be there
+## 9. The history that was seeded, and why each part had to be there
 
 The permit is walked `draft → checks_materialised → dispositioned` through its own
 hash-chained event log **before** the merge is attempted. That last edge is the client
@@ -417,7 +605,8 @@ Reaching the gate at all meant walking real trigger chains rather than around th
   **zero**, and ledgers the closure into `ledger_intake` in the same transaction.
 * `fn_check_project` overwrites the supplied `severity`/`virulence`/`closure_gen` from
   `clause_blame_current` and **raises** if there is no closure — a check cannot be armed
-  against a clause whose ancestry has not been computed.
+  against a clause whose ancestry has not been computed. Since 2026-08-10 the proof reads
+  that overwrite back and compares it against the outbox row (§5).
 * `mainline_meas.silence_receipt` is what an exposure receipt must point at; a silence
   receipt belongs to a `recall_run`; and `fn_recall_policy_anchored` refuses a run whose
   policy anchor is not inside a **cosigned checkpoint**. So the proof seeds a
@@ -435,30 +624,24 @@ have been proving a different schema.
 
 ---
 
-## 7. What is NOT proven, stated plainly
+## 10. What is NOT proven, stated plainly
 
-1. **Fifteen migrations did not apply.** Every one is named in the evidence with its
-   SQLSTATE and the table it needed. Five tables have consumers and no producer:
-   `mainline_ops.outbox`, `mainline.identity_assignment`, `mainline.patrol_run`,
-   `mainline_meas.agent_action`, `mainline_meas.standing`. **They were not created here.**
-   A new table takes a number from a band whose owner and mode match in
-   `migrations.allocation.toml`, and this worker owns no band. A recorded gap is a
-   finding; an invented table is a lie about what the schema is.
+1. **This is a census runner, not a deployment runner.** `gate_refusal.py` applies each
+   file in its own transaction and continues past failures, which is why it could report
+   246/261 on a tree that `trappoint migrate up` halted at file 156. `271/271, 0 failed`
+   here means *every file applied when applied independently*. The forward-only,
+   attested, one-uninterrupted-run claim through `trappoint migrate up` belongs to the
+   chain lane's own release note and is **not** made on this page. Do not quote
+   `271/271` as a deployment result; quote it as what it is, a census.
 
-2. **`open_blocking` was written by the proof script, not by the projection trigger.**
-   `0121_trg_check_materialised.sql` is the trigger that increments it, and it cannot
-   apply because its function inserts into the missing `mainline_ops.outbox`. The script
-   writes the counter to the value the gate independently re-derives, and says so in
-   `caveats` and in `history.open_blocking_counter_written_by`. This does not weaken
-   either refusal — CF-01 is a CHECK firing on the completing row, and CF-03 is precisely
-   the case where the counter is *not* trusted whoever wrote it — but a proof that stood
-   in for a missing trigger without naming it would be asserting more than it measured.
-   When the outbox migration lands, `projection_trigger_check_materialised_present` flips
-   to `true` and the caveat disappears on its own.
-
-3. **This is two conformance cases, not seventy-one.** CF-01 and CF-03 of a manifest with
+2. **This is two conformance cases, not seventy-one.** CF-01 and CF-03 of a manifest with
    71. The rest belong to `trappoint-conform`; this lane proves the central claim, not the
    suite.
+
+3. **One CDC signal is not a changefeed.** The proof reads the row the trigger wrote into
+   `mainline_ops.outbox` directly. It does not create a changefeed, does not consume one,
+   and therefore proves that the *emitter* works, not that the transport does. Saying "the
+   trigger emitted the CDC signal" is exact; saying "the CDC pipeline works" would not be.
 
 4. **Two clusters, not one.** Every transcript here is the local single-node container.
    Nothing on this page has been run against CockroachDB Cloud. `release-proof.yml` runs
@@ -468,13 +651,13 @@ have been proving a different schema.
 
 5. **The `localhost` DSN costs 130 seconds per connection on this host.** Measured:
    `localhost` resolves to `::1` first, nothing answers there, and libpq waits out the OS
-   TCP timeout. The proof now sets `connect_timeout` (default 10s, `--connect-timeout`)
-   and reuses one connection for the whole run. That is a fix to the harness, not to the
-   product, and it is why the GREEN run above took two minutes rather than one.
+   TCP timeout. The proof sets `connect_timeout` (default 10s, `--connect-timeout`) and
+   reuses one connection for the whole run. That is a fix to the harness, not to the
+   product.
 
 ---
 
-## 8. Reproducing this
+## 11. Reproducing this
 
 ```bash
 docker run -d --name mainline-crdb -p 26257:26257 cockroachdb/cockroach:v26.2.5 \
@@ -488,7 +671,19 @@ export MAINLINE_TEST_DSN="postgresql://root@127.0.0.1:26257/defaultdb?sslmode=di
 python -m pytest tests/release/test_gate_refusal_proof.py -q
 ```
 
-To watch it go red again on purpose, put `family` back in `0049z` — or delete any
-migration between `0050` and `0130` — and run it. `chain.failures_unexplained` stops being
-empty and the verdict changes. That is the property that makes this a test rather than a
-demonstration.
+To watch it go red again on purpose, pick the half you want to break:
+
+```bash
+# break the CHAIN: put `family` back in 0049z, or delete any migration between 0050 and 0130.
+#   -> chain.failures_unexplained stops being empty. NOT PROVEN.
+
+# break the PROJECTION: copy the tree, remove 0121_trg_check_materialised.sql, point at the copy.
+cp -r verticals/mainline/db/migrations /tmp/tree_no_0121
+rm /tmp/tree_no_0121/0121_trg_check_materialised.sql
+python scripts/proof/gate_refusal.py --dsn "$MAINLINE_TEST_DSN" \
+  --migrations /tmp/tree_no_0121 --out /tmp/red.json
+#   -> PROJECTION 1/10 held, every refusal still lands, NOT PROVEN, exit 1.
+```
+
+That both halves can be broken independently, and that each says which one broke, is the
+property that makes this a test rather than a demonstration.

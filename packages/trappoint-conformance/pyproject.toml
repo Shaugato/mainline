@@ -44,8 +44,26 @@ dev = ["pytest>=8.2", "mypy>=1.11", "ruff>=0.6"]
 requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
 
+# TWO PACKAGES, AND THE SECOND ONE IS THE CORPUS.
+#
+# `cases/` deliberately sits OUTSIDE `src/`: it is the corpus, one module per conformance
+# case, and it imports the runner rather than being imported by it. That layout is fine.
+# Omitting it from this list was not. Until 2026-08-10 this key read
+# `packages = ["src/trappoint_conformance"]`, so the distribution shipped a runner with no
+# cases in it and `trappoint-conform --profile mainline --list` reported
+# `implemented 1 / 71` from every working directory except the package root — where a bare
+# `import cases` happened to succeed because `''` is on `sys.path`. Seventy implementations
+# existed, imported cleanly, and were invisible to the tool that runs them.
+#
+# `cases` is a top-level distribution package on purpose and not a sub-package of
+# `trappoint_conformance`: `cases/__init__.py` imports `trappoint_conformance.runner` to
+# read the registry back, and re-parenting it under the runner would put an import cycle
+# between a package and its own sub-package. The name is generic, which is the cost; the
+# corpus being reachable from an installed environment is the benefit, and
+# `tests/test_runner_wiring.py::test_installed_environment_loads_seventy_one_cases` is what
+# keeps it true — it runs the entry point from a directory that is not this one.
 [tool.hatch.build.targets.wheel]
-packages = ["src/trappoint_conformance"]
+packages = ["src/trappoint_conformance", "cases"]
 
 [tool.hatch.build.targets.sdist]
-include = ["src", "README.md"]
+include = ["src", "cases", "README.md"]

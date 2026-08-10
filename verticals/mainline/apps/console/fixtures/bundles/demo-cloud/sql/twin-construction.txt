@@ -1,0 +1,92 @@
+# Twin construction — the two transient subjects, and what built them
+--- connection ---
+database mainline_demo
+--- transaction ---
+inside the capture transaction, under SAVEPOINT; rolled back with everything else
+--- statement ---
+INSERT INTO mainline.permit (permit_id, site_id, site_role, external_ref, ref_name,
+       opened_at, horizon_at)
+SELECT %(new)s, site_id, site_role, %(ref)s, %(refname)s, opened_at, horizon_at
+  FROM mainline.permit WHERE permit_id = %(src)s
+INSERT INTO mainline.permit_clause (permit_id, clause_uuid, commit_id, relation)
+SELECT %(new)s, clause_uuid, commit_id, relation
+  FROM mainline.permit_clause WHERE permit_id = %(src)s
+INSERT INTO mainline.boundary_certificate (permit_id, cert_gen, asset_graph_version,
+       tags_declared, tags_resolved, tags_unmodelled, under_declared, computed_at)
+SELECT %(new)s, cert_gen, asset_graph_version, tags_declared, tags_resolved,
+       tags_unmodelled, under_declared, computed_at
+  FROM mainline.boundary_certificate WHERE permit_id = %(src)s
+INSERT INTO mainline_meas.recall_run (run_id, permit_id, site_id, corpus_commit,
+       policy_version, index_plan_digest, index_generation, n_candidates, n_blocking,
+       n_advisory, n_silenced, n_deduped, started_at)
+SELECT %(run)s, %(new)s, site_id, corpus_commit, policy_version, index_plan_digest,
+       index_generation, n_candidates, n_blocking, n_advisory, n_silenced, n_deduped,
+       started_at
+  FROM mainline_meas.recall_run WHERE permit_id = %(src)s
+INSERT INTO mainline_meas.silence_receipt (silence_receipt_id, run_id, permit_id,
+       corpus_root, candidate_root, theta, s, n, boundary_proof, policy_version, issued_at)
+SELECT %(sil)s, %(run)s, %(new)s, corpus_root, candidate_root, theta, s, n, boundary_proof,
+       policy_version, issued_at
+  FROM mainline_meas.silence_receipt WHERE permit_id = %(src)s
+INSERT INTO mainline.blocking_check (check_id, subject_kind, permit_id, site_id,
+       clause_uuid, commit_id, precursor_event_id, origin, severity, virulence,
+       closure_gen, recall_run_id, evidence_summary, materialised_at)
+SELECT %(chk)s, subject_kind, %(new)s, site_id, clause_uuid, commit_id, precursor_event_id,
+       origin, 0, 'routine', 0, %(run)s, evidence_summary, materialised_at
+  FROM mainline.blocking_check WHERE permit_id = %(src)s
+INSERT INTO mainline.exposure_receipt (receipt_id, subject_kind, permit_id, actor_sub,
+       issued_at, issued_hlc, expires_at, corpus_root, silence_receipt_id, policy_version,
+       total_tokens, receipt_digest)
+SELECT %(rcpt)s, subject_kind, %(new)s, actor_sub, issued_at, issued_hlc, expires_at,
+       corpus_root, %(sil)s, policy_version, total_tokens, receipt_digest
+  FROM mainline.exposure_receipt WHERE permit_id = %(src)s
+INSERT INTO mainline.exposure_line (receipt_id, check_id, payload_digest, tokens)
+SELECT %(rcpt)s, %(chk)s, l.payload_digest, l.tokens
+  FROM mainline.exposure_line l
+  JOIN mainline.exposure_receipt r ON r.receipt_id = l.receipt_id
+ WHERE r.permit_id = %(src)s
+INSERT INTO mainline.permit_event (permit_id, seq, prev_seq, from_state, to_state,
+       subject_kind, actor_sub, payload, prev_digest, at)
+SELECT %(new)s, 1, 0, 'draft', 'checks_materialised', 'permit', actor_sub, payload,
+       prev_digest, at
+  FROM mainline.permit_event WHERE permit_id = %(src)s AND seq = 1
+INSERT INTO mainline.permit_event (permit_id, seq, prev_seq, from_state, to_state,
+       subject_kind, actor_sub, payload, prev_digest, at)
+SELECT %(new)s, 2, 1, 'checks_materialised', 'dispositioned', 'permit', src.actor_sub,
+       src.payload, prior.chain_digest, src.at
+  FROM mainline.permit_event src
+  JOIN mainline.permit_event prior ON prior.permit_id = %(new)s AND prior.seq = 1
+ WHERE src.permit_id = %(src)s AND src.seq = 2
+UPDATE mainline.permit SET state = 'dispositioned', head_seq = 2 WHERE permit_id = %(new)s
+--- parameters ---
+src     = dec0de00-0006-4000-8000-000000000001   (DEMO-PTW-0001, the seeded permit)
+drift   = 98832832-cb53-54ce-a709-d0af8c0c7f8b   (DEMO-PTW-0002)
+cleared = f4976f47-599a-52ac-b7aa-379c80e6e849   (DEMO-PTW-0003)
+--- outcome ---
+OK
+--- sqlstate ---
+00000
+--- constraint ---
+(none reported)
+--- message ---
+(none)
+--- detail ---
+(none)
+--- hint ---
+(none)
+--- result ---
+permit                   rows=1
+permit_clause            rows=1
+boundary_certificate     rows=1
+recall_run               rows=1
+silence_receipt          rows=1
+blocking_check           rows=1
+exposure_receipt         rows=1
+exposure_line            rows=1
+permit_event seq 1       rows=1
+permit_event seq 2       rows=1
+head                     rows=1
+--- driver ---
+psycopg 3.3.4
+--- note ---
+Every statement is INSERT ... SELECT from the seeded rows, so a twin is a copy of what is in the database rather than a second opinion about it. No statement sets a counter: inserting the blocking check fires check_materialised, which increments open_blocking and bumps gate_epoch, and severity/virulence/closure_gen are overwritten by fn_check_project from mainline.clause_blame_current (invariant MI25). Both twins were rolled back; neither is in the database now.

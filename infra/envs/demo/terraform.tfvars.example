@@ -1,0 +1,49 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
+#
+# Copy to terraform.tfvars ONLY if you want to override a default. You do not need to:
+# every variable in variables.tf has a default that works on account 022950218246, and
+# `scripts/deploy/deploy.ps1` passes the two values it computes (`lambda_package_path`
+# and `enable_api`) on the command line with `-var`, which beats a tfvars file.
+#
+# terraform.tfvars is NOT committed. Nothing secret belongs in it either — the only
+# secret in this system is the CockroachDB DSN, and that goes to SSM Parameter Store as a
+# SecureString written by the AWS CLI. If you find yourself putting a password in this
+# file, stop: see infra/envs/demo/variables.tf § dsn_parameter_name.
+
+# Singapore, beside the CockroachDB Cloud Basic cluster. Changing this moves the Lambda
+# away from the database and adds ~90 ms to each of the gate surface's six round trips.
+aws_region = "ap-southeast-1"
+
+# Must start with "mainline-demo" — scripts/deploy/teardown.sh keys its refusal on it.
+name_prefix = "mainline-demo"
+
+# Leave empty to derive "<name_prefix>-site-<account id>", which is globally unique
+# without you having to invent a name. Set it only if that name is somehow taken.
+site_bucket_name = ""
+
+# false is the Phase-1 cut line: a complete HTTPS demo URL, console + verified
+# EvidenceBundle, REPLAY badge, and no Lambda at all. `deploy.ps1 --phase1` sets this.
+enable_api = true
+
+# Written by scripts/deploy/build_lambda.{sh,ps1}. Relative paths resolve against
+# infra/envs/demo. The deploy script overrides this with an absolute path.
+# The architecture in the FILENAME and in lambda_architecture must agree: a mismatch is a
+# clean plan, a clean apply, and an ELFCLASS error on the first request.
+lambda_package_path = "../../../out/lambda/mainline-demo-api-arm64.zip"
+lambda_architecture = "arm64"
+
+# The NAME of the SSM SecureString. Never the value.
+dsn_parameter_name = "/mainline/demo/cockroach_dsn"
+
+# Free-tier either way; PriceClass_All keeps latency low for a judge anywhere.
+cloudfront_price_class = "PriceClass_All"
+
+# Short, and never 0 — an unexpiring log group is the one line item here with no ceiling.
+log_retention_days = 7
+
+# Merged on top of project=mainline and managed_by=terraform, which are not overridable.
+tags = {
+  # environment = "demo"
+  # owner       = "shaugato2003@gmail.com"
+}

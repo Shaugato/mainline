@@ -168,17 +168,59 @@ attest:
 
 # ── The refusal ──────────────────────────────────────────────────────────────
 
+# Resolve the conformance runner without assuming uv. MEASURED 2026-08-10: uv is not on
+# PATH on the machine this repository is built on, and `conform`, `conform-mainline` and
+# `cases` all began with `uv run` — so `just up && just bootstrap && just conform`, the
+# sequence this file's own header calls the entire K1 proof, answered
+# `uv: command not found`. The repository venv is tried first because it is what a
+# checkout that ran `just setup` (or a plain `pip install -e`) actually has; uv remains a
+# fallback, scoped, for a workspace that prefers it. Underscore-prefixed: `just --list`
+# shows the three recipes a reader wants, not the plumbing under them.
+_conform *ARGS:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if   [ -x .venv/Scripts/trappoint-conform.exe ] ; then RUNNER=(.venv/Scripts/trappoint-conform.exe)
+    elif [ -x .venv/bin/trappoint-conform ]         ; then RUNNER=(.venv/bin/trappoint-conform)
+    elif [ -x .venv/Scripts/python.exe ]            ; then RUNNER=(.venv/Scripts/python.exe -m trappoint_conformance.cli)
+    elif [ -x .venv/bin/python ]                    ; then RUNNER=(.venv/bin/python -m trappoint_conformance.cli)
+    elif command -v uv >/dev/null 2>&1              ; then RUNNER=(uv run --package trappoint-conformance trappoint-conform)
+    elif command -v trappoint-conform >/dev/null 2>&1 ; then RUNNER=(trappoint-conform)
+    else
+        echo "no conformance runner found." >&2
+        echo "  the repository venv:  python -m venv .venv && .venv/bin/pip install -e packages/trappoint-conformance" >&2
+        echo "  or the workspace:     just setup" >&2
+        exit 1
+    fi
+    echo "── ${RUNNER[*]} {{ARGS}}"
+    "${RUNNER[@]}" {{ARGS}}
+
 # The K1 proof. Exits non-zero until the DDL that owns each case has landed.
 conform:
-    uv run --package trappoint-conformance trappoint-conform --dsn '{{LOCAL_DSN}}' --profile trappoint-ref
+    @just _conform --dsn '{{LOCAL_DSN}}' --profile trappoint-ref
 
-# The same suite against MAINLINE. Blocked on K3; see docs/leads/kernel.md §5 risk 1.
+# The same suite against MAINLINE, resolving every `requires` against the live cluster.
 conform-mainline:
-    uv run --package trappoint-conformance trappoint-conform --dsn '{{LOCAL_DSN}}' --profile mainline
+    @just _conform --dsn '{{LOCAL_DSN}}' --profile mainline --autodetect-requires
 
 # List every case the manifest declares for a profile, and which are implemented.
 cases:
-    uv run --package trappoint-conformance trappoint-conform --profile trappoint-ref --list
+    @just _conform --profile trappoint-ref --list
+
+# Writes qa/conformance-census.json and docs/release/conformance-census.md. Extra
+# arguments pass straight through, so `just conform-census --run-id w9-20260810` pins
+# the tenancy and a second run at the same id lands on the same rows.
+#
+# Build a migrated MAINLINE database, run all 71 cases, publish pass/fail/cannot-run per case.
+conform-census *ARGS:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if   [ -x .venv/Scripts/python.exe ] ; then PY=(.venv/Scripts/python.exe)
+    elif [ -x .venv/bin/python ]         ; then PY=(.venv/bin/python)
+    elif command -v uv >/dev/null 2>&1   ; then PY=(uv run --package trappoint-conformance python)
+    else PY=({{PYTHON}})
+    fi
+    echo "── ${PY[*]} scripts/qa/run_conformance_census.py --build {{ARGS}}"
+    "${PY[@]}" scripts/qa/run_conformance_census.py --build {{ARGS}}
 
 # PL-2, on demand: the whole red-before-green sequence from an empty machine.
 red: up bootstrap

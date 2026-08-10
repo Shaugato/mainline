@@ -1,0 +1,480 @@
+{
+  "artefact": "MAINLINE AWS service census",
+  "subject": "AWS service",
+  "generated_by": "scripts/submission/capture_tool_evidence.py",
+  "note": "No AWS account identifier appears in this file, by construction: the census reads the tree and writes counts, never credentials or account numbers. DESIGNED dominates on purpose — most of this infrastructure is written and unapplied, and saying so is the point of the verdict column.",
+  "verdict_meanings": {
+    "EXERCISED": "it ran, and a committed artefact or a check in this repository records the result",
+    "DESIGNED": "the code or configuration is complete and on disk; nothing recorded has run it end to end",
+    "NOT-AVAILABLE": "checked on this platform and absent; no dependency was taken on it"
+  },
+  "scan": {
+    "root": "<repository root>",
+    "method": "filesystem walk, NOT the git index. A count here will not equal `git grep -l <pattern> | wc -l`: the walk sees files that are present but not yet committed, and it prunes directories git tracks (out_mainline/, out_trappoint_ref/, .hypothesis-corpus/). The walk is the right unit for a submission document, because a judge checks out a working tree.",
+    "files_scanned": 7233,
+    "files_by_category": {
+      "config": 4750,
+      "docs": 247,
+      "migration": 271,
+      "other": 334,
+      "python": 1180,
+      "sql": 128,
+      "terraform": 25,
+      "typescript": 282,
+      "workflow": 16
+    },
+    "skipped_binary": 22,
+    "skipped_too_large": 0,
+    "skipped_unreadable": 0,
+    "excluded_dir_names": [
+      ".git",
+      ".hypothesis",
+      ".hypothesis-corpus",
+      ".import_linter_cache",
+      ".mypy_cache",
+      ".next",
+      ".pytest_cache",
+      ".ruff_cache",
+      ".terraform",
+      ".venv",
+      "__pycache__",
+      "build",
+      "dist",
+      "mine_templates",
+      "node_modules",
+      "out",
+      "out_mainline",
+      "out_trappoint_ref",
+      "site-packages",
+      "venv"
+    ],
+    "excluded_relpaths": [
+      "evidence/tool-usage",
+      "docs/TOOL-USAGE.md",
+      "scripts/submission/capture_tool_evidence.py"
+    ],
+    "max_file_bytes": 4000000,
+    "category_order": [
+      "migration",
+      "sql",
+      "terraform",
+      "python",
+      "typescript",
+      "config",
+      "workflow",
+      "docs",
+      "other"
+    ]
+  },
+  "totals": {
+    "rows": 12,
+    "by_verdict": {
+      "EXERCISED": 0,
+      "DESIGNED": 11,
+      "NOT-AVAILABLE": 1
+    },
+    "by_kind": {
+      "tool": 0,
+      "feature": 0,
+      "service": 12
+    }
+  },
+  "rows": {
+    "aws_bedrock_runtime": {
+      "key": "aws_bedrock_runtime",
+      "name": "Amazon Bedrock — Claude inference via au.* profiles",
+      "kind": "service",
+      "verdict": "DESIGNED",
+      "verdict_basis": "eight au.* Claude inference profiles are listed live in region ap-southeast-2, but every agent test in this repository replays a recorded cassette; no live model call is captured under evidence/, and docs/HONESTY.md says so",
+      "how": "bedrock-runtime InvokeModel with the Anthropic native body. The modelId is an au.* inference-profile ARN RESOLVED AT START-UP from ListInferenceProfiles and pinned into the run record — never hard-coded — and any identifier without the au. prefix is refused by the transport as a residency violation. One model generation across the fleet, differentiated by effort rather than by model.",
+      "anchor": "packages/mainline-agentkit/src/mainline_agentkit/transport.py:273",
+      "anchor_resolved": {
+        "path": "packages/mainline-agentkit/src/mainline_agentkit/transport.py",
+        "line": 273,
+        "resolves": true,
+        "line_text": "\"\"\"Refuse any model identifier that is not an ``au.*`` inference profile."
+      },
+      "file_count": 245,
+      "files_by_category": {
+        "config": 58,
+        "docs": 42,
+        "migration": 2,
+        "other": 4,
+        "python": 129,
+        "sql": 1,
+        "terraform": 5,
+        "typescript": 1,
+        "workflow": 3
+      },
+      "representative_paths": [
+        "verticals/mainline/db/migrations/0049y_meas_mutation_run.sql",
+        "verticals/mainline/db/migrations/0089_agent_action.sql",
+        "verticals/mainline/db/seeds/demo/demo_world.sql"
+      ],
+      "search": {
+        "pattern": "bedrock",
+        "case_sensitive": false,
+        "scope": "<repository root>"
+      }
+    },
+    "aws_bedrock_embeddings": {
+      "key": "aws_bedrock_embeddings",
+      "name": "Amazon Bedrock — embeddings (Titan v2, Cohere embed v4)",
+      "kind": "service",
+      "verdict": "DESIGNED",
+      "verdict_basis": "amazon.titan-embed-text-v2:0 and cohere.embed-v4:0 are both available in ap-southeast-2 and the provider is implemented; the committed embeddings are fixtures, so Tier-2 verification needs no model call at all",
+      "how": "The embedding provider writes into the C-SPANN sidecar tables. Model ids are never hard-coded at a call site — tests/unit/recall_providers/test_no_hardcoded_model_ids.py enforces that — and every embedding row stores its embed_model and index_gen, because a vector whose model is unknown cannot be compared to anything.",
+      "anchor": "verticals/mainline/packages/mainline-recall-agent/src/mainline_recall_agent/providers/bedrock_titan.py:39",
+      "anchor_resolved": {
+        "path": "verticals/mainline/packages/mainline-recall-agent/src/mainline_recall_agent/providers/bedrock_titan.py",
+        "line": 39,
+        "resolves": true,
+        "line_text": "TITAN_EMBED_MODEL_ID: Final[str] = \"amazon.titan-embed-text-v2:0\""
+      },
+      "file_count": 25,
+      "files_by_category": {
+        "config": 2,
+        "docs": 11,
+        "migration": 1,
+        "python": 9,
+        "sql": 2
+      },
+      "representative_paths": [
+        "verticals/mainline/db/migrations/0031_clause_embedding.sql",
+        "verticals/mainline/db/ext/vector_fallback/clause_embedding_table.sql",
+        "verticals/mainline/db/seeds/demo/demo_world.sql"
+      ],
+      "search": {
+        "pattern": "titan-embed-text-v2|cohere\\.embed-v4|titan_embed|BedrockTitan",
+        "case_sensitive": false,
+        "scope": "<repository root>"
+      }
+    },
+    "aws_bedrock_rerank": {
+      "key": "aws_bedrock_rerank",
+      "name": "Amazon Bedrock Rerank",
+      "kind": "service",
+      "verdict": "NOT-AVAILABLE",
+      "verdict_basis": "Bedrock Rerank is not offered in ap-southeast-2; docs/HONESTY.md records it as absent and confirms no dependency was taken on it",
+      "how": "NOT USED, and named here because a services list that omits what you checked and could not have is a list you cannot audit. Listwise reranking is done by the Claude profile at high effort instead, and CockroachDB's own vector_search_rerank_multiplier session variable (observed at 50) governs the ANN side. The design assumed Rerank's absence before it was checked.",
+      "anchor": "docs/HONESTY.md:276",
+      "anchor_resolved": {
+        "path": "docs/HONESTY.md",
+        "line": 276,
+        "resolves": true,
+        "line_text": "| Bedrock Rerank in `ap-southeast-2` | **not available.** No dependency was taken on it |"
+      },
+      "file_count": 18,
+      "files_by_category": {
+        "config": 2,
+        "docs": 13,
+        "python": 2,
+        "workflow": 1
+      },
+      "representative_paths": [
+        "scripts/qa/report_test_state.py",
+        "verticals/mainline/packages/mainline-recall-agent/src/mainline_recall_agent/rerank/evidence.py",
+        "docs/leads/workers.json"
+      ],
+      "search": {
+        "pattern": "[Bb]edrock [Rr]erank|bedrock-agent-runtime|amazon\\.rerank|cohere\\.rerank",
+        "case_sensitive": false,
+        "scope": "<repository root>"
+      }
+    },
+    "aws_s3_object_lock": {
+      "key": "aws_s3_object_lock",
+      "name": "Amazon S3 + Object Lock (COMPLIANCE mode) — the evidence store",
+      "kind": "service",
+      "verdict": "DESIGNED",
+      "verdict_basis": "the module and its Rego policies are complete and the plan fixtures exercise them, but no bucket has been applied: the S3 object-lock comparison is one of the SEVEN cryptographic checks in the custody bundle that DID NOT RUN (qa/test-state.json#external_checks.custody_bundle_verification.counts.not_checked)",
+      "how": "Checkpoints of the tamper-evident ledger are written to a versioned bucket whose Object Lock configuration is COMPLIANCE mode — which even the root account cannot shorten — and object_lock_enabled is set AT BUCKET CREATION because it cannot be added afterwards, which is why the module refuses a second bucket. The writer identity is denied DeleteObjectVersion and denied PutObjectRetention with an unconstrained retention date.",
+      "anchor": "infra/modules/evidence-store/main.tf:100",
+      "anchor_resolved": {
+        "path": "infra/modules/evidence-store/main.tf",
+        "line": 100,
+        "resolves": true,
+        "line_text": "resource \"aws_s3_bucket_object_lock_configuration\" \"evidence\" {"
+      },
+      "file_count": 117,
+      "files_by_category": {
+        "config": 32,
+        "docs": 28,
+        "migration": 5,
+        "other": 3,
+        "python": 33,
+        "sql": 1,
+        "terraform": 8,
+        "typescript": 6,
+        "workflow": 1
+      },
+      "representative_paths": [
+        "verticals/mainline/db/migrations/0033_event.sql",
+        "verticals/mainline/db/migrations/0067_disposition_citation.sql",
+        "verticals/mainline/db/migrations/0075_ledger_checkpoint.sql"
+      ],
+      "search": {
+        "pattern": "aws_s3_bucket|s3:PutObject|object[_ -]?lock",
+        "case_sensitive": false,
+        "scope": "<repository root>"
+      }
+    },
+    "aws_kms": {
+      "key": "aws_kms",
+      "name": "AWS KMS — ECC_NIST_P256 SIGN_VERIFY key",
+      "kind": "service",
+      "verdict": "DESIGNED",
+      "verdict_basis": "the signer and its key policy are implemented against an injected client and unit-tested offline; the live KMS signature check is one of the seven cryptographic checks that did not run",
+      "how": "Checkpoint signatures use an asymmetric ECC_NIST_P256 SIGN_VERIFY key with MessageType=RAW, so KMS hashes the message itself — passing pre-hashed bytes under DIGEST would have KMS hash our note text a second time and produce a signature over the wrong thing. DER signatures are stored exactly as KMS returns them, no re-encoding. Key deletion is gated and rotation is off, because a rotated signing key silently invalidates historical verification.",
+      "anchor": "packages/trappoint-ledger/src/trappoint_ledger/signer.py:63",
+      "anchor_resolved": {
+        "path": "packages/trappoint-ledger/src/trappoint_ledger/signer.py",
+        "line": 63,
+        "resolves": true,
+        "line_text": "KMS_SIGNING_ALGORITHM: Final = \"ECDSA_SHA_256\""
+      },
+      "file_count": 41,
+      "files_by_category": {
+        "config": 17,
+        "docs": 8,
+        "python": 9,
+        "terraform": 7
+      },
+      "representative_paths": [
+        "infra/envs/evidence/main.tf",
+        "infra/envs/evidence/variables.tf",
+        "infra/modules/demo-api/variables.tf"
+      ],
+      "search": {
+        "pattern": "aws_kms|kms:Sign|KMS_SIGNING_ALGORITHM|ECC_NIST_P256",
+        "case_sensitive": false,
+        "scope": "<repository root>"
+      }
+    },
+    "aws_cloudtrail": {
+      "key": "aws_cloudtrail",
+      "name": "AWS CloudTrail — custody of the custodian",
+      "kind": "service",
+      "verdict": "DESIGNED",
+      "verdict_basis": "one aws_cloudtrail resource with log-file validation and two advanced event selectors is written and never applied; no trail exists in the account",
+      "how": "A multi-region trail with enable_log_file_validation, so AWS produces its own signed digest chain over the same events — weaker than ours because AWS holds the key, and useful for exactly that reason: it is a chain we could not have forged. Management events make kms:ScheduleKeyDeletion, PutKeyPolicy and PutObjectLockConfiguration visible to the custody patrol within one checkpoint cadence instead of at the next audit.",
+      "anchor": "infra/envs/evidence/main.tf:114",
+      "anchor_resolved": {
+        "path": "infra/envs/evidence/main.tf",
+        "line": 114,
+        "resolves": true,
+        "line_text": "resource \"aws_cloudtrail\" \"evidence\" {"
+      },
+      "file_count": 27,
+      "files_by_category": {
+        "config": 17,
+        "docs": 6,
+        "python": 2,
+        "terraform": 2
+      },
+      "representative_paths": [
+        "infra/envs/evidence/main.tf",
+        "infra/envs/evidence/variables.tf",
+        "scripts/custody/check_evidence_plan.py"
+      ],
+      "search": {
+        "pattern": "aws_cloudtrail|cloudtrail",
+        "case_sensitive": false,
+        "scope": "<repository root>"
+      }
+    },
+    "aws_lambda": {
+      "key": "aws_lambda",
+      "name": "AWS Lambda — the /v1/* demo API",
+      "kind": "service",
+      "verdict": "DESIGNED",
+      "verdict_basis": "the module is complete (python3.13, IAM-only Function URL, four alarms) and nothing is deployed: the repository has no demo URL as of this census",
+      "how": "One python3.13 function behind a Function URL whose authorization_type is AWS_IAM — never NONE — invoked only by CloudFront with an OAC signature. It runs in ap-southeast-1 beside the Cloud cluster, because the same call from ap-southeast-2 pays about 90 ms each way and the gate screen makes six of them. Its execution role's entire non-managed grant is ssm:GetParameter on one parameter plus a conditioned kms:Decrypt.",
+      "anchor": "infra/modules/demo-api/main.tf:257",
+      "anchor_resolved": {
+        "path": "infra/modules/demo-api/main.tf",
+        "line": 257,
+        "resolves": true,
+        "line_text": "resource \"aws_lambda_function_url\" \"this\" {"
+      },
+      "file_count": 8,
+      "files_by_category": {
+        "docs": 3,
+        "terraform": 5
+      },
+      "representative_paths": [
+        "infra/envs/demo/main.tf",
+        "infra/envs/demo/outputs.tf",
+        "infra/modules/demo-api/main.tf"
+      ],
+      "search": {
+        "pattern": "aws_lambda|lambda_function|LambdaFunctionURL",
+        "case_sensitive": false,
+        "scope": "<repository root>"
+      }
+    },
+    "aws_cloudfront": {
+      "key": "aws_cloudfront",
+      "name": "Amazon CloudFront + Origin Access Control — the demo site",
+      "kind": "service",
+      "verdict": "DESIGNED",
+      "verdict_basis": "one distribution with two OACs is written; nothing is deployed and the submission's demo URL is unresolved",
+      "how": "A single distribution fronts the static console from a private S3 origin and the /v1/* Lambda Function URL, so the judge sees one origin and the bucket is never public. Origin Access Control (not the legacy OAI) signs both origins, which is what lets the Function URL keep AWS_IAM auth instead of NONE.",
+      "anchor": "infra/modules/demo-site/main.tf:263",
+      "anchor_resolved": {
+        "path": "infra/modules/demo-site/main.tf",
+        "line": 263,
+        "resolves": true,
+        "line_text": "resource \"aws_cloudfront_distribution\" \"site\" {"
+      },
+      "file_count": 32,
+      "files_by_category": {
+        "config": 3,
+        "docs": 9,
+        "other": 4,
+        "python": 3,
+        "terraform": 11,
+        "typescript": 1,
+        "workflow": 1
+      },
+      "representative_paths": [
+        "infra/envs/demo/main.tf",
+        "infra/envs/demo/outputs.tf",
+        "infra/envs/demo/variables.tf"
+      ],
+      "search": {
+        "pattern": "aws_cloudfront|CloudFront|origin_access_control",
+        "case_sensitive": false,
+        "scope": "<repository root>"
+      }
+    },
+    "aws_cloudwatch": {
+      "key": "aws_cloudwatch",
+      "name": "Amazon CloudWatch — logs, four alarms, one dashboard",
+      "kind": "service",
+      "verdict": "DESIGNED",
+      "verdict_basis": "written in infra/modules/demo-api; nothing deployed, so no metric exists",
+      "how": "A log group with a finite retention — an unbounded retention on a demo account is a cost bug, not a safety feature — plus four metric alarms and a dashboard that makes the demo's latency and error rate visible to a judge who wants to look.",
+      "anchor": "infra/modules/demo-api/main.tf:391",
+      "anchor_resolved": {
+        "path": "infra/modules/demo-api/main.tf",
+        "line": 391,
+        "resolves": true,
+        "line_text": "resource \"aws_cloudwatch_dashboard\" \"this\" {"
+      },
+      "file_count": 21,
+      "files_by_category": {
+        "config": 3,
+        "docs": 7,
+        "python": 4,
+        "terraform": 6,
+        "workflow": 1
+      },
+      "representative_paths": [
+        "infra/envs/demo/main.tf",
+        "infra/envs/demo/variables.tf",
+        "infra/modules/demo-api/main.tf"
+      ],
+      "search": {
+        "pattern": "aws_cloudwatch|CloudWatch",
+        "case_sensitive": false,
+        "scope": "<repository root>"
+      }
+    },
+    "aws_iam": {
+      "key": "aws_iam",
+      "name": "AWS IAM — deny-first policy documents",
+      "kind": "service",
+      "verdict": "DESIGNED",
+      "verdict_basis": "eleven aws_iam_policy_document data sources exist across infra/; the Rego suite asserts the deny statements against plan fixtures, offline",
+      "how": "The interesting IAM here is what is DENIED. The evidence-store bucket policy denies the writer s3:DeleteObjectVersion and denies PutObjectRetention without a bounded retention date, so the identity that appends checkpoints cannot shorten or remove them. infra/policy/custody/*.rego asserts each denial against a compliant plan and a family of deliberately broken ones.",
+      "anchor": "infra/modules/evidence-store/main.tf:145",
+      "anchor_resolved": {
+        "path": "infra/modules/evidence-store/main.tf",
+        "line": 145,
+        "resolves": true,
+        "line_text": "data \"aws_iam_policy_document\" \"evidence\" {"
+      },
+      "file_count": 16,
+      "files_by_category": {
+        "config": 2,
+        "docs": 3,
+        "python": 5,
+        "terraform": 6
+      },
+      "representative_paths": [
+        "infra/modules/demo-api/main.tf",
+        "infra/modules/demo-api/outputs.tf",
+        "infra/modules/demo-site/main.tf"
+      ],
+      "search": {
+        "pattern": "aws_iam_|iam:PassRole|assume_role_policy",
+        "case_sensitive": false,
+        "scope": "<repository root>"
+      }
+    },
+    "aws_ssm_parameter_store": {
+      "key": "aws_ssm_parameter_store",
+      "name": "AWS Systems Manager Parameter Store — the DSN",
+      "kind": "service",
+      "verdict": "DESIGNED",
+      "verdict_basis": "granted in the Lambda execution role; nothing deployed",
+      "how": "The CockroachDB Cloud DSN is a SecureString parameter, not a Lambda environment variable, so the connection string never appears in the function configuration that anyone with lambda:GetFunction can read. The role's grant is scoped to exactly one parameter ARN.",
+      "anchor": "infra/modules/demo-api/main.tf:146",
+      "anchor_resolved": {
+        "path": "infra/modules/demo-api/main.tf",
+        "line": 146,
+        "resolves": true,
+        "line_text": "actions = [\"ssm:GetParameter\"]"
+      },
+      "file_count": 8,
+      "files_by_category": {
+        "docs": 4,
+        "terraform": 4
+      },
+      "representative_paths": [
+        "infra/envs/demo/variables.tf",
+        "infra/modules/demo-api/main.tf",
+        "infra/modules/demo-api/outputs.tf"
+      ],
+      "search": {
+        "pattern": "ssm:GetParameter|aws_ssm_",
+        "case_sensitive": false,
+        "scope": "<repository root>"
+      }
+    },
+    "aws_eventbridge": {
+      "key": "aws_eventbridge",
+      "name": "Amazon EventBridge — scheduled patrol and steward runs",
+      "kind": "service",
+      "verdict": "DESIGNED",
+      "verdict_basis": "named in the steward schedule design and its runbooks, and there is NO aws_cloudwatch_event_* resource anywhere under infra/ — the schedule is a container entrypoint today, not an EventBridge rule",
+      "how": "The custody patrol and the steward's periodic sweeps are described as scheduled invocations. Stated as DESIGNED rather than used: the schedule currently lives in verticals/mainline/apps/steward/schedules.yaml and its entrypoint, and no Terraform in this tree creates a rule or a bus.",
+      "anchor": "verticals/mainline/apps/steward/schedules.yaml:14",
+      "anchor_resolved": {
+        "path": "verticals/mainline/apps/steward/schedules.yaml",
+        "line": 14,
+        "resolves": true,
+        "line_text": "# `(schedule_id, occurrence_ts)`, where `occurrence_ts` is EventBridge's"
+      },
+      "file_count": 24,
+      "files_by_category": {
+        "config": 2,
+        "docs": 6,
+        "migration": 2,
+        "other": 2,
+        "python": 12
+      },
+      "representative_paths": [
+        "verticals/mainline/db/migrations/0090_patrol_run.sql",
+        "verticals/mainline/db/migrations/0168_v_changefeed_health.sql",
+        "tests/integration/schema/test_ops_producer.py"
+      ],
+      "search": {
+        "pattern": "EventBridge|aws_cloudwatch_event|events:PutEvents|event_bus",
+        "case_sensitive": false,
+        "scope": "<repository root>"
+      }
+    }
+  }
+}

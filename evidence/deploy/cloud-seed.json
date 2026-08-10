@@ -1,0 +1,112 @@
+{
+  "artefact": "MAINLINE demo seed",
+  "generated_at_utc": "2026-08-10T03:03:09Z",
+  "generated_by": "scripts/deploy/seed_demo.py",
+  "honesty": "No real incident, no real site, no real fatality. Every row named below is synthetic and corresponds to nobody. See verticals/mainline/demo/DEMO-HONESTY.md.",
+  "target": {
+    "cluster": "mainline-dev-31219.j77.aws-ap-southeast-1.cockroachlabs.cloud:26257/defaultdb",
+    "database": "mainline_demo",
+    "version": "CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)",
+    "connected_as": "mainline-sql"
+  },
+  "subject": {
+    "permit_id": "dec0de00-0006-4000-8000-000000000001",
+    "check_id": "dec0de00-0007-4000-8000-000000000001",
+    "site_id": "dec0de00-0001-4000-8000-000000000001",
+    "clause_uuid": "dec0de00-0004-4000-8000-000000000001",
+    "precursor_event_id": "dec0de00-0005-4000-8000-000000000001",
+    "exposure_receipt_id": "dec0de00-0008-4000-8000-000000000001",
+    "recall_run_id": "dec0de00-0009-4000-8000-000000000001"
+  },
+  "seed_files": [
+    {
+      "file": "demo_world.sql",
+      "seconds": 0.983,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "demo_permit.sql",
+      "seconds": 0.354,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    }
+  ],
+  "row_counts": {
+    "mainline.site": 1,
+    "mainline.person": 2,
+    "mainline.signing_credential": 2,
+    "mainline.commit_obj": 2,
+    "mainline.commit_edge": 1,
+    "mainline.doc": 1,
+    "mainline.clause": 1,
+    "mainline.clause_version": 1,
+    "mainline.event": 1,
+    "mainline.blame_edge": 1,
+    "mainline.clause_blame_closure": 1,
+    "mainline.cbm_account": 1,
+    "mainline.ledger_checkpoint": 1,
+    "mainline.cosignature": 1,
+    "mainline_meas.recall_policy": 1,
+    "mainline_meas.recall_run": 1,
+    "mainline_meas.silence_receipt": 1,
+    "mainline.permit": 1,
+    "mainline.permit_clause": 1,
+    "mainline.permit_event": 2,
+    "mainline.boundary_certificate": 1,
+    "mainline.blocking_check": 1,
+    "mainline.exposure_receipt": 1,
+    "mainline.exposure_line": 1,
+    "mainline.disposition": 0,
+    "mainline.merge_record": 0,
+    "mainline_ops.outbox": 1
+  },
+  "observed": {
+    "permit": {
+      "permit_id": "dec0de00-0006-4000-8000-000000000001",
+      "state": "dispositioned",
+      "open_blocking": 1,
+      "gate_epoch": 1,
+      "head_seq": 2,
+      "site_role": "demo_site",
+      "external_ref": "DEMO-PTW-0001",
+      "under_hold": false
+    },
+    "blocking_check": {
+      "check_id": "dec0de00-0007-4000-8000-000000000001",
+      "severity": 4,
+      "virulence": "blood_major",
+      "closure_gen": 0,
+      "origin": "blame_ancestry",
+      "precursor_event_id": "dec0de00-0005-4000-8000-000000000001",
+      "recall_run_id": "dec0de00-0009-4000-8000-000000000001",
+      "projected_by": "mainline.fn_check_project from mainline.clause_blame_current (MI25) \u2014 the seed supplied severity 0 / virulence 'routine' and both were overwritten"
+    },
+    "dispositions_against_the_check": 0,
+    "projection_trigger_check_materialised_present": true,
+    "re_derived_open_obligations": 1
+  },
+  "verification": {
+    "outcome": "REFUSED",
+    "sqlstate": "23514",
+    "constraint": "gate_closed_when_issued",
+    "constraint_source": "reported",
+    "message": "failed to satisfy CHECK constraint ((state != 'merged':::mainline.subject_state) OR (open_blocking = 0:::INT8))",
+    "seconds": 0.412,
+    "expected_sqlstate": "23514",
+    "expected_constraint": "gate_closed_when_issued",
+    "as_expected": true,
+    "after_rollback": {
+      "permit_state": "dispositioned",
+      "open_blocking": 1,
+      "gate_epoch": 1,
+      "merge_record_rows": 0,
+      "nothing_persisted": true
+    }
+  },
+  "total_seconds": 12.3,
+  "failures": [],
+  "verdict": "SEEDED AND REFUSABLE"
+}

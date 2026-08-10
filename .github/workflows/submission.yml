@@ -1,0 +1,256 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# THE SUBMISSION LANE — is this repository submittable, and can the program that answers
+# that question say no?
+#
+# WHY THIS LANE EXISTS. The hackathon's Stage One gates are mechanical: a public
+# repository with an open-source LICENSE, and a URL to a functional demo. Both are
+# pass/fail before a judge reads a word. Both fail silently — a private repository looks
+# exactly like a public one from the machine that owns it, and an unresolved demo URL
+# looks like a document nobody has scrolled to the bottom of. Neither produces a stack
+# trace, so both are arithmetic here instead of a human's memory at 16:50 EDT on 18 August.
+#
+# THE RED HALF IS THE POINT. Two steps below assert that the gate can REFUSE:
+# `--self-test` plants one of every failure family — the unresolved sentinel, eight
+# credential shapes, a rebased commit whose author date is outside the window, a repo
+# ahead of its remote, a `"false"` that is a string and not a boolean — and requires the
+# gate to fire on all of them; and the gate is then pointed at an empty directory and
+# asserted NON-ZERO. A submission gate that has never refused is a green tick with
+# nothing behind it.
+#
+# REPORT-ONLY, THEN BLOCKING. Until D-3 the real check runs and prints, and does not fail
+# the build: during the build week the honest state of the table is RED and a permanently
+# red lane teaches people to ignore it. From D-3 (2026-08-15 21:00Z) a push to the default
+# branch that leaves a row unresolved fails. Pull requests never block, because a pull
+# request's HEAD is ahead of `origin/master` by construction and that row would be red for
+# a reason that has nothing to do with the submission.
+#
+# NO CREDENTIAL, NO NETWORK BEYOND THE CHECKOUT. Repository visibility is read from
+# $GITHUB_EVENT_PATH, which the runner writes for every event and which already carries
+# `repository.visibility` — no token, no `gh`, no API call. `--check-urls` is the gate's
+# only networked mode and it is deliberately NOT used here: fetching a demo URL on every
+# push is a request the demo host did not ask for, and it is the founder's step 5, run
+# from a machine that did not deploy it.
+
+name: submission
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: submission-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.13"
+  FORCE_COLOR: "1"
+  # D-3, at the same clock time as the deadline (2026-08-18T21:00:00Z = 17:00 EDT).
+  BLOCKING_FROM: "2026-08-15T21:00:00Z"
+
+jobs:
+  # ---------------------------------------------------------------------------------
+  # 1 · The gate must be able to refuse before its green means anything.
+  # ---------------------------------------------------------------------------------
+  gate_can_refuse:
+    name: the submission gate can say no
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - name: Deny all egress
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            objects.githubusercontent.com:443
+            raw.githubusercontent.com:443
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: The gate imports and parses with nothing installed
+        # Standard library only. If this step ever needs `pip install`, the claim in the
+        # module docstring has stopped being true and the build should say so here.
+        run: python scripts/submission/check_submission_ready.py --help
+
+      - name: RED — every planted failure family fires
+        run: python scripts/submission/check_submission_ready.py --self-test
+
+      - name: RED — an empty tree is refused, not waved through
+        # A directory with no LICENSE, no SUBMISSION.json and no git history. Exit 0 here
+        # would mean the gate had stopped asking, which is the failure that looks like
+        # success everywhere else in this file.
+        run: |
+          set -euo pipefail
+          mkdir -p "${RUNNER_TEMP}/not-a-submission"
+          set +e
+          python scripts/submission/check_submission_ready.py \
+            --repo "${RUNNER_TEMP}/not-a-submission" > /dev/null 2>&1
+          status=$?
+          set -e
+          if [ "${status}" -eq 0 ]; then
+            echo "::error::the gate returned 0 for a directory containing nothing at all"
+            exit 1
+          fi
+          echo "an empty tree exits ${status}, as it must"
+
+      - name: RED — the path-length ratchet fires on its planted cases
+        run: python scripts/submission/check_path_lengths.py --self-test
+
+      - name: RED — the REUSE checker refuses a synthetic uncovered tree
+        run: python scripts/qa/check_reuse.py --self-test
+
+  # ---------------------------------------------------------------------------------
+  # 2 · The real table, against this checkout.
+  # ---------------------------------------------------------------------------------
+  submission_ready:
+    name: submission readiness (report-only until D-3)
+    runs-on: ubuntu-24.04
+    needs: [gate_can_refuse]
+    timeout-minutes: 10
+    steps:
+      - name: Deny all egress
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            objects.githubusercontent.com:443
+            raw.githubusercontent.com:443
+
+      - uses: actions/checkout@v4
+        with:
+          # The `remote_sync` row compares HEAD against `origin/<branch>`. A shallow
+          # single-commit checkout has no such ref, and the row would report NOT CHECKED —
+          # which blocks, correctly, but for a reason that is an artefact of CI rather
+          # than a fact about the submission.
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Make the remote-tracking ref the gate compares against
+        # Best effort: on a fork's pull request this may not resolve, and the gate then
+        # reports NOT CHECKED rather than guessing.
+        continue-on-error: true
+        run: |
+          git fetch --no-tags origin \
+            "+refs/heads/${{ github.event.repository.default_branch || 'master' }}:refs/remotes/origin/${{ github.event.repository.default_branch || 'master' }}"
+
+      - name: The table
+        id: table
+        continue-on-error: true
+        run: |
+          set -uo pipefail
+          # `-e` is on by default in an Actions `run:` block. Under `-e` with `pipefail`
+          # the pipeline below would abort the step the moment the gate exits 1 — before
+          # PIPESTATUS is read — and `gate_status` would never be written, leaving the
+          # decision step with an empty value and no way to tell red from green.
+          set +e
+          python scripts/submission/check_submission_ready.py \
+            --branch "${{ github.event.repository.default_branch || 'master' }}" \
+            | tee submission-ready.txt
+          status="${PIPESTATUS[0]}"
+          set -e
+          echo "gate_status=${status}" >> "${GITHUB_OUTPUT}"
+          exit 0
+
+      - name: The machine record
+        continue-on-error: true
+        run: |
+          python scripts/submission/check_submission_ready.py \
+            --branch "${{ github.event.repository.default_branch || 'master' }}" \
+            --json > submission-ready.json || true
+          python -c "import json;d=json.load(open('submission-ready.json'));print('ready:',d['ready']);print('unresolved:',', '.join(d['unresolved_rows']) or 'none')"
+
+      - name: Report-only until D-3, blocking after
+        env:
+          GATE_STATUS: ${{ steps.table.outputs.gate_status }}
+        run: |
+          set -euo pipefail
+          now="$(date -u +%s)"
+          cutover="$(date -u -d "${BLOCKING_FROM}" +%s)"
+          if [ "${GITHUB_EVENT_NAME}" != "push" ]; then
+            mode="report-only (a pull request's HEAD is ahead of the default branch by construction)"
+            blocking=0
+          elif [ "${now}" -lt "${cutover}" ]; then
+            mode="report-only (before ${BLOCKING_FROM})"
+            blocking=0
+          else
+            mode="BLOCKING (${BLOCKING_FROM} or later)"
+            blocking=1
+          fi
+          echo "mode:        ${mode}"
+          echo "gate status: ${GATE_STATUS:-<none recorded>}"
+          if [ -z "${GATE_STATUS}" ]; then
+            # The table step did not record an exit code. That is not a pass: the same
+            # rule the gate applies to its own NOTRUN rows applies to the gate itself.
+            echo "::error::the readiness table recorded no exit code, so nothing is asserted"
+            exit 1
+          fi
+          if [ "${GATE_STATUS}" = "0" ]; then
+            echo "every blocking row is resolved"
+            exit 0
+          fi
+          if [ "${blocking}" -eq 0 ]; then
+            echo "::warning::the submission gate is not green. Rows and remedies are in the log above."
+            exit 0
+          fi
+          echo "::error::the submission gate exited ${GATE_STATUS} inside the blocking window."
+          echo "Read the numbered remedies in the step above; each one is a literal command."
+          exit 1
+
+      - name: Keep the report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: submission-ready
+          path: |
+            submission-ready.txt
+            submission-ready.json
+          if-no-files-found: warn
+          retention-days: 14
+
+  # ---------------------------------------------------------------------------------
+  # 3 · The two mechanical checks a stranger's clone depends on.
+  # ---------------------------------------------------------------------------------
+  clone_and_licensing:
+    name: a stranger can clone it, and every file names a licence
+    runs-on: ubuntu-24.04
+    needs: [gate_can_refuse]
+    timeout-minutes: 10
+    steps:
+      - name: Deny all egress
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            objects.githubusercontent.com:443
+            raw.githubusercontent.com:443
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: No tracked path may grow past the Windows clone budget
+        run: python scripts/submission/check_path_lengths.py
+
+      - name: Every tracked file names a licence whose text is in the tree
+        run: python scripts/qa/check_reuse.py

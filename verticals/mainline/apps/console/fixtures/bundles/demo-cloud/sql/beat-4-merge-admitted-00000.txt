@@ -1,0 +1,36 @@
+# Beat 4 · Sign ONE disposition against the obligation, then merge again.
+--- connection ---
+database mainline_demo
+--- transaction ---
+one SERIALIZABLE transaction; SAVEPOINT beat_4 / beat_4_merge … ROLLBACK TO SAVEPOINT; the whole transaction then rolled back
+--- statement ---
+INSERT INTO mainline.disposition ( disposition_id, check_id, receipt_id, subject_kind, permit_id, site_id, kind, virulence, closure_gen, defeater_code, defeater_vocab_sha256, rationale, evidence_sha256, signer_sub, signer_rank, signer_org, signer_credential_id, countersigner_sub, countersigner_credential_id, signature_alg, authenticator_data, client_data_json, user_verified, competency_snapshot, competency_source_id, competency_sha256, req_compensating, req_second_signer, req_foreign_org, req_predicate, req_reassert, min_signer_rank, severity_snapshot, deliberation_seconds, evidence_opened, prior_override_count) VALUES (%s, %s, %s, 'permit', %s, %s, 'applied', 'routine', 0, 'MECHANISM_PRESENT_AND_VERIFIED', %s, %s, %s, %s, 1, 'x', %s, %s, %s, 'ES256', %s, %s, true, %s, %s, %s, false, false, false, false, false, 1, 0, 0, true, 0);
+CALL mainline.merge_permit(%s, %s, %s, %s, %s, %s, %s, %s)
+--- parameters ---
+permit_id        = f4976f47-599a-52ac-b7aa-379c80e6e849
+disposition_id   = eb017411-483b-591d-bc5f-6c56b8d0d31f
+check_id         = 04f3ad82-0345-5649-a8eb-cb23607221dd
+receipt_id       = d782cca9-d1d8-57e3-b5fa-8308128c5577
+canonicalisation = trappoint_jcs.canonicalise
+--- outcome ---
+ADMITTED
+--- sqlstate ---
+00000
+--- constraint ---
+(none reported)
+--- message ---
+(none)
+--- detail ---
+(none)
+--- hint ---
+(none)
+--- result ---
+open_blocking after the signature = 0
+merge_record.merged_commit        = fd5f9814cefe5ce1bd8178838cdf62c4fd5f9814cefe5ce1bd8178838cdf62c4
+merge_record.clearance_digest     = 3b2c35b443895ed9daf565146a53c60a8539969954fd6e31492fdc5ad0f9052c
+merge_record.gate_epoch           = 1
+merge_record.merged_at            = 2026-08-10T04:04:06.901Z
+--- driver ---
+psycopg 3.3.4
+--- note ---
+A gate that always refuses is broken, not safe. The clearance digest was computed by the SERVER over the sorted (check_id, disposition_id) set; this program supplied none of it. The merge_record row was read back inside the savepoint and then undone with it.

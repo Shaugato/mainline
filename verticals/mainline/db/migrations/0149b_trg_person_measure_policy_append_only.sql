@@ -1,0 +1,72 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MI: MI01
+-- I: I01, I15
+-- COUNSEL-GATED: yes
+-- RATIONALE: SEC-3's whole argument is that the authorising instrument PREDATES the data it scores. `instrument_precedes_effect` and `notice_precedes_effect` are CHECKs, and a CHECK constrains a row — an UPDATE simply produces a different row that also satisfies it. So an instrument whose `approved_at`, `notice_given_at` or `instrument_sha256` can be edited after the fact makes conditions (2) and (3) UNFALSIFIABLE: every policy row is, at the moment anyone looks at it, correctly ordered, and no reader can tell one that was ordered when written from one that was reordered afterwards. This trigger is what makes the ordering a claim a third party can rely on. A superseding instrument is a NEW ROW with its own `policy_id`, and the pair of rows is the record of what changed.
+--
+-- migration:  0149b_trg_person_measure_policy_append_only
+-- domain:     producers (measurement zone)
+-- band:       0145-0149z · datamodel/dm-functions-triggers+algorithms · AUTHORED, allocated
+--             by verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1). The band is
+--             CO-OWNED; this file takes a low letter beside 0149a (`agent_action`) and away
+--             from the tail (`y`, `z`) that the algorithms lane already occupies.
+-- statements: 1
+-- invariants: MI01 — evidentiary tables are append-only
+--             I01  — the append-only invariant this instantiates
+--             I15  — the allegation firewall: condition (2) is falsifiable only if the
+--                    instrument's dates are immutable
+-- source:     ARCHITECTURE.md §5.11 item 9 · §11.5 (SEC-3 conditions 2 and 3) ·
+--             spec/invariants/I01-append-only.md ·
+--             spec/invariants/I15-allegation-firewall.md · docs/adr/0001-g0-counsel.md
+-- requires:   0089a mainline_meas.person_measure_policy · 0107 mainline.fn_refuse_mutation
+-- sqlstate:   P0001 on UPDATE or DELETE, with the substrate's own message
+-- forward-only; no .down.sql and no .up.sql (MR-5).
+--
+-- COUNSEL-GATED: yes (G0) · DEFAULT: conservative · ADR: docs/adr/0001-g0-counsel.md
+--
+-- ═════════════════════════════════════════════════════════════════════════════
+-- WHY THIS TABLE AND NOT ITS CONSUMER
+-- ═════════════════════════════════════════════════════════════════════════════
+-- `mainline_meas.standing` deliberately gets NO weld. RLS-MATRIX.yaml already
+-- declares its complete write surface — FORCE row level security (0187/0187a) and
+-- exactly one write policy, `standing_assay_insert`, PERMISSIVE FOR INSERT TO
+-- agent_assay (0187d) — with no UPDATE and no DELETE policy, which under FORCE is
+-- the control rather than an omission. A trigger there would be a SECOND,
+-- UNDECLARED control on a table whose matrix is committed and asserted by
+-- tests/integration/schema/test_mi_rls.py, and two controls for one property is
+-- how a matrix stops describing the database.
+--
+-- `person_measure_policy` carries no RLS declaration at all, so its append-only
+-- property has no other home — and it is the row the legal argument rests on.
+--
+-- ═════════════════════════════════════════════════════════════════════════════
+-- REUSING THE SUBSTRATE'S FUNCTION RATHER THAN WRITING A SECOND ONE
+-- ═════════════════════════════════════════════════════════════════════════════
+-- `mainline.fn_refuse_mutation` (migration 0107, RENDERED from
+-- packages/trappoint-sql/templates/) reads no relation and names no column: it
+-- raises, always, with one message. A vertical copy would be a second place for
+-- the append-only refusal message to drift, and a message that differs between two
+-- tables is a message an operator learns to ignore.
+--
+-- ═════════════════════════════════════════════════════════════════════════════
+-- DEPTH
+-- ═════════════════════════════════════════════════════════════════════════════
+-- The function raises and returns nothing, so this trigger contributes 0 to trigger
+-- depth and cannot participate in a cycle. Decision D10 holds: nothing here depends
+-- on inter-trigger firing order, and this trigger asserts nothing about what fires
+-- around it.
+--
+-- ═════════════════════════════════════════════════════════════════════════════
+-- WHAT THIS DOES NOT MAKE TRUE
+-- ═════════════════════════════════════════════════════════════════════════════
+-- `ALTER TABLE mainline_meas.person_measure_policy DISABLE TRIGGER append_only`
+-- succeeds; an admin can remove the guard. What the custody patrol makes hard is
+-- removing the RECORD that they removed it. That is the custody domain's claim and
+-- it is not verified by this worker, which is why it is stated here rather than
+-- implied. SEC-1 applies in full: this is not a defence against a privileged
+-- operator, and the ledger is the rogue-DBA control.
+
+CREATE TRIGGER append_only BEFORE UPDATE OR DELETE ON mainline_meas.person_measure_policy
+  FOR EACH ROW EXECUTE FUNCTION mainline.fn_refuse_mutation();

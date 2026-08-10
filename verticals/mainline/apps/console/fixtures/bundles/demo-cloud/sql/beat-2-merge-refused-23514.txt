@@ -1,0 +1,30 @@
+# Beat 2 · MERGE the seeded permit with one obligation open.
+--- connection ---
+database mainline_demo
+--- transaction ---
+one SERIALIZABLE transaction; SAVEPOINT beat_2 … ROLLBACK TO SAVEPOINT beat_2; the whole transaction rolled back
+--- statement ---
+CALL mainline.merge_permit(%s, %s, %s, %s, %s, %s, %s, %s)
+--- parameters ---
+permit_id        = dec0de00-0006-4000-8000-000000000001
+gate_epoch       = 1
+canonicalisation = trappoint_jcs.canonicalise
+--- outcome ---
+REFUSED
+--- sqlstate ---
+23514
+--- constraint ---
+gate_closed_when_issued
+source: reported
+--- message ---
+failed to satisfy CHECK constraint ((state != 'merged':::mainline.subject_state) OR (open_blocking = 0:::INT8))
+--- detail ---
+(none)
+--- hint ---
+(none)
+--- result ---
+(none)
+--- driver ---
+psycopg 3.3.4 — Diagnostic.sqlstate, Diagnostic.constraint_name, Diagnostic.message_primary. constraint_source='reported': 'reported' means the driver handed us the name; 'parsed' means it was read out of the message the procedure raised, because PL/pgSQL RAISE carries no constraint field.
+--- note ---
+A plain CHECK constraint on mainline.permit. The database refuses by name; the console renders the name it was given and composes nothing.

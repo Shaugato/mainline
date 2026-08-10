@@ -1,0 +1,2054 @@
+{
+  "generated_at_utc": "2026-08-10T01:04:40.141447+00:00",
+  "target": "CockroachDB Cloud Basic, aws-ap-southeast-1, mainline-dev",
+  "database": "w_deploy_cloud_probe",
+  "zone_gc_ttlseconds": 4500,
+  "files": 261,
+  "applied": 246,
+  "failed": 15,
+  "files_that_needed_a_retry": 0,
+  "total_seconds": 362.1,
+  "slowest": [
+    {
+      "file": "0180_disposition_peer_visible.sql",
+      "seconds": 7.287,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0071d_refusal_ledger_index.sql",
+      "seconds": 7.143,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0023_signing_credential_index.sql",
+      "seconds": 7.077,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0085_recall_policy_calibrator.sql",
+      "seconds": 6.533,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0065a_predicate_watch_set_index.sql",
+      "seconds": 5.554,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0058b_bc_open_cr_index.sql",
+      "seconds": 5.431,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0050a_permit_scope_index.sql",
+      "seconds": 5.077,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0066a_one_live_disposition.sql",
+      "seconds": 5.034,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0058a_bc_open_index.sql",
+      "seconds": 4.989,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0029a_clause_version_trgm.sql",
+      "seconds": 4.875,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0071a_epoch_pin_permit.sql",
+      "seconds": 2.269,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0199_exposure_receipt_fk_silence.sql",
+      "seconds": 2.222,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0071b_epoch_pin_cr.sql",
+      "seconds": 2.07,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0070a_disposition_predicate_fk.sql",
+      "seconds": 1.996,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0086a_recall_policy_thymogate_fk.sql",
+      "seconds": 1.947,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    }
+  ],
+  "failures": [
+    {
+      "file": "0121_trg_check_materialised.sql",
+      "seconds": 0.245,
+      "attempts": 1,
+      "sqlstate": "42P01",
+      "error": "relation \"mainline_ops.outbox\" does not exist"
+    },
+    {
+      "file": "0145a_trg_cbm_account_guard.sql",
+      "seconds": 0.287,
+      "attempts": 1,
+      "sqlstate": "42P01",
+      "error": "relation \"mainline.identity_assignment\" does not exist"
+    },
+    {
+      "file": "0163_v_fixity_coverage.sql",
+      "seconds": 0.235,
+      "attempts": 1,
+      "sqlstate": "42P01",
+      "error": "relation \"mainline.patrol_run\" does not exist"
+    },
+    {
+      "file": "0164_v_agent_actions.sql",
+      "seconds": 0.238,
+      "attempts": 1,
+      "sqlstate": "42P01",
+      "error": "relation \"mainline_meas.agent_action\" does not exist"
+    },
+    {
+      "file": "0165_v_gate_latency_daily.sql",
+      "seconds": 0.232,
+      "attempts": 1,
+      "sqlstate": "42P01",
+      "error": "relation \"mainline_meas.agent_action\" does not exist"
+    },
+    {
+      "file": "0166_v_txn_restart_daily.sql",
+      "seconds": 0.236,
+      "attempts": 1,
+      "sqlstate": "42P01",
+      "error": "relation \"mainline_meas.agent_action\" does not exist"
+    },
+    {
+      "file": "0171_v_standing_components.sql",
+      "seconds": 0.234,
+      "attempts": 1,
+      "sqlstate": "42P01",
+      "error": "relation \"mainline_meas.standing\" does not exist"
+    },
+    {
+      "file": "0172_v_my_record.sql",
+      "seconds": 0.233,
+      "attempts": 1,
+      "sqlstate": "42P01",
+      "error": "relation \"mainline_meas.standing\" does not exist"
+    },
+    {
+      "file": "0187_standing_rls_enable.sql",
+      "seconds": 0.232,
+      "attempts": 1,
+      "sqlstate": "42P01",
+      "error": "relation \"mainline_meas.standing\" does not exist"
+    },
+    {
+      "file": "0187a_standing_rls_force.sql",
+      "seconds": 0.236,
+      "attempts": 1,
+      "sqlstate": "42P01",
+      "error": "relation \"mainline_meas.standing\" does not exist"
+    },
+    {
+      "file": "0187b_policy_standing_blind.sql",
+      "seconds": 0.23,
+      "attempts": 1,
+      "sqlstate": "42P01",
+      "error": "relation \"mainline_meas.standing\" does not exist"
+    },
+    {
+      "file": "0187c_policy_standing_assay_read.sql",
+      "seconds": 0.228,
+      "attempts": 1,
+      "sqlstate": "42P01",
+      "error": "relation \"mainline_meas.standing\" does not exist"
+    },
+    {
+      "file": "0187d_policy_standing_assay_insert.sql",
+      "seconds": 0.23,
+      "attempts": 1,
+      "sqlstate": "42P01",
+      "error": "relation \"mainline_meas.standing\" does not exist"
+    },
+    {
+      "file": "0187e_policy_standing_view_owner_read.sql",
+      "seconds": 0.23,
+      "attempts": 1,
+      "sqlstate": "42P01",
+      "error": "relation \"mainline_meas.standing\" does not exist"
+    },
+    {
+      "file": "0198x_no_rls_on_cdc_sources.sql",
+      "seconds": 0.233,
+      "attempts": 1,
+      "sqlstate": "42P01",
+      "error": "relation \"mainline_ops.outbox\" does not exist"
+    }
+  ],
+  "rows": [
+    {
+      "file": "0001a_schema_mainline.sql",
+      "seconds": 0.789,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0002_schema_meas.sql",
+      "seconds": 0.652,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0003_schema_audit.sql",
+      "seconds": 0.671,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0004_schema_qa.sql",
+      "seconds": 0.811,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0005_schema_ops.sql",
+      "seconds": 0.711,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0006a_role_migrator.sql",
+      "seconds": 0.225,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0006b_role_owner.sql",
+      "seconds": 0.225,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0006c_role_gate.sql",
+      "seconds": 0.225,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0006d_role_projector.sql",
+      "seconds": 0.225,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0006e_role_recaller.sql",
+      "seconds": 0.225,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0006f_role_disposer.sql",
+      "seconds": 0.225,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0006g_role_auditor.sql",
+      "seconds": 0.226,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0006h_role_reader.sql",
+      "seconds": 0.224,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0006i_role_qa.sql",
+      "seconds": 0.232,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0007a_revoke_public_business.sql",
+      "seconds": 0.23,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0007b_revoke_public_meas.sql",
+      "seconds": 0.229,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0007c_revoke_public_audit.sql",
+      "seconds": 0.235,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0007d_revoke_public_qa.sql",
+      "seconds": 0.231,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0007e_revoke_public_ops.sql",
+      "seconds": 0.23,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0008a_owner_business.sql",
+      "seconds": 0.809,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0008b_owner_meas.sql",
+      "seconds": 0.866,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0008c_owner_audit.sql",
+      "seconds": 0.866,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0008d_owner_qa.sql",
+      "seconds": 0.9,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0008e_owner_ops.sql",
+      "seconds": 0.847,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0009a_grant_create_migrator.sql",
+      "seconds": 0.806,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0009b_grant_usage_agents.sql",
+      "seconds": 0.705,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0009c_grant_usage_auditor.sql",
+      "seconds": 0.796,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0009d_grant_usage_qa.sql",
+      "seconds": 0.645,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0009e_default_privileges_floor.sql",
+      "seconds": 0.762,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0009f_revoke_create_public_schema.sql",
+      "seconds": 0.775,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0009x_covenant_comment.sql",
+      "seconds": 0.636,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0010_type_control_delta.sql",
+      "seconds": 0.8,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0011_type_subject_state.sql",
+      "seconds": 0.797,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0012_type_disposition_kind.sql",
+      "seconds": 0.814,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0013_type_virulence_class.sql",
+      "seconds": 0.83,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0014_type_blame_basis.sql",
+      "seconds": 0.808,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0015_type_blame_state.sql",
+      "seconds": 0.798,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0016_type_prop_state.sql",
+      "seconds": 0.798,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0017a_subject_transition.sql",
+      "seconds": 0.928,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0017b_subject_transition_seed.sql",
+      "seconds": 0.251,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0018a_clearance_legal.sql",
+      "seconds": 0.962,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0018b_clearance_legal_seed.sql",
+      "seconds": 0.233,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0019_retention_class.sql",
+      "seconds": 0.686,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0020_adm_decision_class.sql",
+      "seconds": 0.793,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0020a_site.sql",
+      "seconds": 0.732,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0021_person.sql",
+      "seconds": 0.786,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0022_signing_credential.sql",
+      "seconds": 0.74,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0023_signing_credential_index.sql",
+      "seconds": 7.077,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0024_commit_obj.sql",
+      "seconds": 0.759,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0025_commit_edge.sql",
+      "seconds": 1.449,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0026_ref.sql",
+      "seconds": 1.473,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0027_doc.sql",
+      "seconds": 0.787,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0028_clause.sql",
+      "seconds": 1.463,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0029_clause_version.sql",
+      "seconds": 1.506,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0029a_clause_version_trgm.sql",
+      "seconds": 4.875,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0030_clause_band.sql",
+      "seconds": 1.47,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0031_clause_embedding.sql",
+      "seconds": 1.454,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0032_activity_node.sql",
+      "seconds": 0.803,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0033_event.sql",
+      "seconds": 0.687,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0034_event_edge.sql",
+      "seconds": 1.443,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0035_control_failure.sql",
+      "seconds": 1.46,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0036_event_severity_revision.sql",
+      "seconds": 1.488,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0037_blame_edge.sql",
+      "seconds": 1.567,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0038_clause_blame_closure.sql",
+      "seconds": 1.503,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0039_clause_blame_current.sql",
+      "seconds": 0.965,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0040_event_cue.sql",
+      "seconds": 1.467,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0041_event_cue_embedding.sql",
+      "seconds": 1.46,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0042_event_cue_coarse.sql",
+      "seconds": 1.477,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0043_lex_posting.sql",
+      "seconds": 0.645,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0044_lex_stats.sql",
+      "seconds": 0.651,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0045_lex_doclen.sql",
+      "seconds": 0.65,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0046_event_bond.sql",
+      "seconds": 1.47,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0047_control_series.sql",
+      "seconds": 1.576,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0048_carriage.sql",
+      "seconds": 1.494,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0049_identity_residue.sql",
+      "seconds": 1.52,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0049a_delta_witness.sql",
+      "seconds": 1.496,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0049b_commutation_edge.sql",
+      "seconds": 1.529,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0049c_cbm_account.sql",
+      "seconds": 1.468,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0049y_meas_mutation_run.sql",
+      "seconds": 0.746,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0049z_meas_mutation_result.sql",
+      "seconds": 1.481,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0050_permit.sql",
+      "seconds": 0.955,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0050a_permit_scope_index.sql",
+      "seconds": 5.077,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0051_change_request.sql",
+      "seconds": 0.968,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0052_permit_clause.sql",
+      "seconds": 1.506,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0053_cr_clause.sql",
+      "seconds": 1.485,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0054_asset_edge.sql",
+      "seconds": 0.721,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0055_permit_boundary.sql",
+      "seconds": 1.493,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0056_permit_slice.sql",
+      "seconds": 1.475,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0057_boundary_certificate.sql",
+      "seconds": 1.482,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0058_blocking_check.sql",
+      "seconds": 1.564,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0058a_bc_open_index.sql",
+      "seconds": 4.989,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0058b_bc_open_cr_index.sql",
+      "seconds": 5.431,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0059_permit_event.sql",
+      "seconds": 1.491,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0060_cr_event.sql",
+      "seconds": 1.543,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0061_exposure_receipt.sql",
+      "seconds": 1.471,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0062_exposure_line.sql",
+      "seconds": 1.489,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0063_receipt_expiry.sql",
+      "seconds": 1.509,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0064_defeater_option.sql",
+      "seconds": 1.467,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0065_mechanism_predicate.sql",
+      "seconds": 0.705,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0065a_predicate_watch_set_index.sql",
+      "seconds": 5.554,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0065b_predicate_revocation.sql",
+      "seconds": 1.461,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0066_disposition.sql",
+      "seconds": 1.618,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0066a_one_live_disposition.sql",
+      "seconds": 5.034,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0067_disposition_citation.sql",
+      "seconds": 1.464,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0068_override_ledger.sql",
+      "seconds": 1.515,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0069_carried_disposition.sql",
+      "seconds": 1.555,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0070_carried_disposition_use.sql",
+      "seconds": 1.526,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0070a_disposition_predicate_fk.sql",
+      "seconds": 1.996,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0071_merge_record.sql",
+      "seconds": 0.683,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0071a_epoch_pin_permit.sql",
+      "seconds": 2.269,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0071b_epoch_pin_cr.sql",
+      "seconds": 2.07,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0071c_refusal_ledger.sql",
+      "seconds": 0.688,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0071d_refusal_ledger_index.sql",
+      "seconds": 7.143,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0072_ledger_intake.sql",
+      "seconds": 1.456,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0072a_ledger_intake_hlc_comment.sql",
+      "seconds": 0.717,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0073_ledger_leaf.sql",
+      "seconds": 1.463,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0074_ledger_node.sql",
+      "seconds": 1.452,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0075_ledger_checkpoint.sql",
+      "seconds": 1.466,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0076_cosignature.sql",
+      "seconds": 1.451,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0077_unwitnessed_debt.sql",
+      "seconds": 1.505,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0078_custodian_attestation.sql",
+      "seconds": 0.73,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0079_sequencer_lease.sql",
+      "seconds": 1.454,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0080_recall_policy.sql",
+      "seconds": 0.728,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0081_recall_run.sql",
+      "seconds": 1.453,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0082_recall_candidate.sql",
+      "seconds": 1.466,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0083_silence_receipt.sql",
+      "seconds": 1.45,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0084_silence_ledger.sql",
+      "seconds": 0.653,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0085_recall_policy_calibrator.sql",
+      "seconds": 6.533,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0086_thymogate_certificate.sql",
+      "seconds": 0.668,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0086a_recall_policy_thymogate_fk.sql",
+      "seconds": 1.947,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0087_recall_certificate.sql",
+      "seconds": 1.481,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0088_event_cue_stage.sql",
+      "seconds": 0.72,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0100_fn_check_project.sql",
+      "seconds": 0.67,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0101_fn_check_materialised.sql",
+      "seconds": 0.65,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0102_fn_disposition_project.sql",
+      "seconds": 0.65,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0103_fn_disposition_close.sql",
+      "seconds": 0.659,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0104_fn_disposition_retract_only.sql",
+      "seconds": 0.65,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0105_fn_permit_event_chain.sql",
+      "seconds": 0.652,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0106_fn_cr_event_chain.sql",
+      "seconds": 0.651,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0107_fn_refuse_mutation.sql",
+      "seconds": 0.65,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0108_fn_closure_guard.sql",
+      "seconds": 0.653,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0109_fn_site_role.sql",
+      "seconds": 0.652,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0110_fn_candidate_project.sql",
+      "seconds": 0.65,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0112_fn_recall_policy_anchored.sql",
+      "seconds": 0.655,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0113_fn_bonded_sev5.sql",
+      "seconds": 0.649,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0114_fn_cue_prefix_project.sql",
+      "seconds": 0.66,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0114a_fn_cue_coarse_project.sql",
+      "seconds": 0.656,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0115_fn_permit_merge_gate.sql",
+      "seconds": 0.66,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0116_fn_cr_merge_gate.sql",
+      "seconds": 0.648,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0117_proc_merge_permit.sql",
+      "seconds": 0.953,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0118_proc_merge_change_request.sql",
+      "seconds": 1.09,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0119_fn_ledger_cas_append.sql",
+      "seconds": 0.809,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0119a_fn_explain_refusal.sql",
+      "seconds": 1.132,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0119b_fn_refusal_ledger_guard.sql",
+      "seconds": 0.813,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0120_trg_check_project.sql",
+      "seconds": 1.634,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0121_trg_check_materialised.sql",
+      "seconds": 0.245,
+      "attempts": 1,
+      "sqlstate": "42P01",
+      "error": "relation \"mainline_ops.outbox\" does not exist"
+    },
+    {
+      "file": "0122_trg_disposition_project.sql",
+      "seconds": 1.774,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0123_trg_disposition_close.sql",
+      "seconds": 1.694,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0124_trg_disposition_retract_only.sql",
+      "seconds": 1.715,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0125_trg_permit_event_chain.sql",
+      "seconds": 1.518,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0126_trg_cr_event_chain.sql",
+      "seconds": 1.462,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0127_trg_closure_guard.sql",
+      "seconds": 1.635,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0128_trg_refuse_mutation.sql",
+      "seconds": 1.5,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0128a_trg_refuse_mutation_cr_event.sql",
+      "seconds": 1.576,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0128b_trg_refuse_mutation_blocking_check.sql",
+      "seconds": 1.47,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0128c_trg_refuse_mutation_merge_record.sql",
+      "seconds": 1.534,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0128d_trg_refuse_mutation_exposure_receipt.sql",
+      "seconds": 1.526,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0128e_trg_refuse_mutation_exposure_line.sql",
+      "seconds": 1.519,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0128f_trg_refuse_mutation_override_ledger.sql",
+      "seconds": 1.518,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0128g_trg_refuse_mutation_person.sql",
+      "seconds": 1.525,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0128h_trg_refuse_mutation_signing_credential.sql",
+      "seconds": 1.517,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0128i_trg_refuse_mutation_clause_version.sql",
+      "seconds": 1.527,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0128j_trg_refuse_mutation_clause_blame_closure.sql",
+      "seconds": 1.516,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0130_trg_permit_merge_gate.sql",
+      "seconds": 1.794,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0131_trg_cr_merge_gate.sql",
+      "seconds": 1.753,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0133_trg_refusal_ledger_append_only.sql",
+      "seconds": 1.487,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0136_trg_recall_policy_anchored.sql",
+      "seconds": 1.573,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0137_trg_bonded_sev5.sql",
+      "seconds": 1.505,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0138_trg_cue_prefix_project.sql",
+      "seconds": 1.494,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0138a_trg_cue_prefix_project_coarse.sql",
+      "seconds": 1.549,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0139_trg_candidate_project.sql",
+      "seconds": 1.509,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0140_fn_delta_witness_guard.sql",
+      "seconds": 0.796,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0140a_fn_cbm_account_guard.sql",
+      "seconds": 0.655,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0140b_fn_residue_project.sql",
+      "seconds": 0.652,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0140c_fn_cbm_gate_permit.sql",
+      "seconds": 0.643,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0140d_fn_cbm_gate_cr.sql",
+      "seconds": 0.656,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0141_fn_clause_version_guard.sql",
+      "seconds": 0.652,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0145_trg_delta_witness_guard.sql",
+      "seconds": 1.377,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0145a_trg_cbm_account_guard.sql",
+      "seconds": 0.287,
+      "attempts": 1,
+      "sqlstate": "42P01",
+      "error": "relation \"mainline.identity_assignment\" does not exist"
+    },
+    {
+      "file": "0145b_trg_residue_project.sql",
+      "seconds": 1.447,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0145c_trg_cbm_gate_permit.sql",
+      "seconds": 1.551,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0145d_trg_cbm_gate_cr.sql",
+      "seconds": 1.567,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0145e_trg_cbm_account_append_only.sql",
+      "seconds": 1.455,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0146_trg_clause_version_guard.sql",
+      "seconds": 1.508,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0149y_trg_mutation_run_append_only.sql",
+      "seconds": 1.528,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0149z_trg_mutation_result_append_only.sql",
+      "seconds": 1.53,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0150_v_safe_direction_current.sql",
+      "seconds": 1.031,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0151_v_cbm_ledger.sql",
+      "seconds": 0.999,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0152_v_blame_origin.sql",
+      "seconds": 1.113,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0155_ops_index_usage_snapshot.sql",
+      "seconds": 0.694,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0155a_ops_changefeed_health_snapshot.sql",
+      "seconds": 0.693,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0156_v_open_gate_summary.sql",
+      "seconds": 1.063,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0157_v_weakenings_without_disposition.sql",
+      "seconds": 1.206,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0158_v_blame_coverage.sql",
+      "seconds": 0.993,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0159_v_disposition_coverage.sql",
+      "seconds": 1.144,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0160_v_silence_summary.sql",
+      "seconds": 0.912,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0161_v_recall_conservation.sql",
+      "seconds": 0.933,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0162_v_ledger_health.sql",
+      "seconds": 0.936,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0163_v_fixity_coverage.sql",
+      "seconds": 0.235,
+      "attempts": 1,
+      "sqlstate": "42P01",
+      "error": "relation \"mainline.patrol_run\" does not exist"
+    },
+    {
+      "file": "0164_v_agent_actions.sql",
+      "seconds": 0.238,
+      "attempts": 1,
+      "sqlstate": "42P01",
+      "error": "relation \"mainline_meas.agent_action\" does not exist"
+    },
+    {
+      "file": "0165_v_gate_latency_daily.sql",
+      "seconds": 0.232,
+      "attempts": 1,
+      "sqlstate": "42P01",
+      "error": "relation \"mainline_meas.agent_action\" does not exist"
+    },
+    {
+      "file": "0166_v_txn_restart_daily.sql",
+      "seconds": 0.236,
+      "attempts": 1,
+      "sqlstate": "42P01",
+      "error": "relation \"mainline_meas.agent_action\" does not exist"
+    },
+    {
+      "file": "0167_v_unused_indexes.sql",
+      "seconds": 0.927,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0168_v_changefeed_health.sql",
+      "seconds": 0.926,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0170_v_disposition_profile.sql",
+      "seconds": 1.142,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0171_v_standing_components.sql",
+      "seconds": 0.234,
+      "attempts": 1,
+      "sqlstate": "42P01",
+      "error": "relation \"mainline_meas.standing\" does not exist"
+    },
+    {
+      "file": "0172_v_my_record.sql",
+      "seconds": 0.233,
+      "attempts": 1,
+      "sqlstate": "42P01",
+      "error": "relation \"mainline_meas.standing\" does not exist"
+    },
+    {
+      "file": "0180_disposition_peer_visible.sql",
+      "seconds": 7.287,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0180a_role_agent_ingestor.sql",
+      "seconds": 0.227,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0180b_role_agent_cartographer.sql",
+      "seconds": 0.227,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0180c_role_agent_patroller.sql",
+      "seconds": 0.227,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0180d_role_agent_fleet.sql",
+      "seconds": 0.232,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0180e_role_agent_assay.sql",
+      "seconds": 0.227,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0180f_role_site_reader.sql",
+      "seconds": 0.226,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0180g_role_fleet_hse.sql",
+      "seconds": 0.226,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0180h_role_signer.sql",
+      "seconds": 0.226,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0181_permit_rls_enable.sql",
+      "seconds": 1.777,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0181a_permit_rls_force.sql",
+      "seconds": 1.73,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0181b_policy_permit_site_scope.sql",
+      "seconds": 1.737,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0181c_policy_permit_fleet_scope.sql",
+      "seconds": 1.762,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0181d_policy_permit_service_read.sql",
+      "seconds": 1.728,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0181e_policy_permit_view_owner_read.sql",
+      "seconds": 1.733,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0181f_policy_permit_gate_insert.sql",
+      "seconds": 1.738,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0181g_policy_permit_gate_write.sql",
+      "seconds": 1.748,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0181h_policy_permit_hold_blocks_delete.sql",
+      "seconds": 1.743,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0183_change_request_rls_enable.sql",
+      "seconds": 1.752,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0183a_change_request_rls_force.sql",
+      "seconds": 1.724,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0183b_policy_cr_site_scope.sql",
+      "seconds": 1.751,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0183c_policy_cr_fleet_scope.sql",
+      "seconds": 1.758,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0183d_policy_cr_service_read.sql",
+      "seconds": 1.729,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0183e_policy_cr_view_owner_read.sql",
+      "seconds": 1.745,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0183f_policy_cr_gate_insert.sql",
+      "seconds": 1.73,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0183g_policy_cr_gate_write.sql",
+      "seconds": 1.74,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0183h_policy_cr_delete_never.sql",
+      "seconds": 1.734,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0185_disposition_rls_enable.sql",
+      "seconds": 1.759,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0185a_disposition_rls_force.sql",
+      "seconds": 1.742,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0185b_policy_disposition_signer_read.sql",
+      "seconds": 1.733,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0185c_policy_disposition_peer_blind.sql",
+      "seconds": 1.759,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0185d_policy_disposition_service_read.sql",
+      "seconds": 1.728,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0185e_policy_disposition_view_owner_read.sql",
+      "seconds": 1.746,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0185f_policy_disposition_insert.sql",
+      "seconds": 1.733,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0185g_policy_disposition_retract.sql",
+      "seconds": 1.743,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0185h_policy_disposition_delete_never.sql",
+      "seconds": 1.751,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    },
+    {
+      "file": "0187_standing_rls_enable.sql",
+      "seconds": 0.232,
+      "attempts": 1,
+      "sqlstate": "42P01",
+      "error": "relation \"mainline_meas.standing\" does not exist"
+    },
+    {
+      "file": "0187a_standing_rls_force.sql",
+      "seconds": 0.236,
+      "attempts": 1,
+      "sqlstate": "42P01",
+      "error": "relation \"mainline_meas.standing\" does not exist"
+    },
+    {
+      "file": "0187b_policy_standing_blind.sql",
+      "seconds": 0.23,
+      "attempts": 1,
+      "sqlstate": "42P01",
+      "error": "relation \"mainline_meas.standing\" does not exist"
+    },
+    {
+      "file": "0187c_policy_standing_assay_read.sql",
+      "seconds": 0.228,
+      "attempts": 1,
+      "sqlstate": "42P01",
+      "error": "relation \"mainline_meas.standing\" does not exist"
+    },
+    {
+      "file": "0187d_policy_standing_assay_insert.sql",
+      "seconds": 0.23,
+      "attempts": 1,
+      "sqlstate": "42P01",
+      "error": "relation \"mainline_meas.standing\" does not exist"
+    },
+    {
+      "file": "0187e_policy_standing_view_owner_read.sql",
+      "seconds": 0.23,
+      "attempts": 1,
+      "sqlstate": "42P01",
+      "error": "relation \"mainline_meas.standing\" does not exist"
+    },
+    {
+      "file": "0198x_no_rls_on_cdc_sources.sql",
+      "seconds": 0.233,
+      "attempts": 1,
+      "sqlstate": "42P01",
+      "error": "relation \"mainline_ops.outbox\" does not exist"
+    },
+    {
+      "file": "0199_exposure_receipt_fk_silence.sql",
+      "seconds": 2.222,
+      "attempts": 1,
+      "sqlstate": "00000",
+      "error": null
+    }
+  ]
+}

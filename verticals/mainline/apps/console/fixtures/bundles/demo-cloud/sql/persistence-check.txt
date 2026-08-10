@@ -1,0 +1,96 @@
+# Persistence check — the capture mutated nothing
+--- connection ---
+database mainline_demo
+--- transaction ---
+autocommit, outside the capture transaction, before and after
+--- statement ---
+SELECT count(*) FROM mainline.permit;
+SELECT count(*) FROM mainline.permit_event;
+SELECT count(*) FROM mainline.merge_record;
+SELECT count(*) FROM mainline.disposition;
+SELECT count(*) FROM mainline.blocking_check;
+SELECT count(*) FROM mainline.boundary_certificate;
+SELECT count(*) FROM mainline.exposure_receipt;
+SELECT count(*) FROM mainline.exposure_line;
+SELECT count(*) FROM mainline.ledger_intake;
+SELECT count(*) FROM mainline.refusal_ledger;
+SELECT count(*) FROM mainline_meas.recall_run;
+SELECT count(*) FROM mainline_meas.silence_receipt;
+SELECT count(*) FROM mainline_ops.outbox;
+SELECT state::STRING, head_seq, gate_epoch, open_blocking, unmet_floor_count,
+       countersigned_count, encode(merged_commit, 'hex')
+  FROM mainline.permit WHERE permit_id = %s
+--- parameters ---
+permit_id = dec0de00-0006-4000-8000-000000000001
+--- outcome ---
+IDENTICAL
+--- sqlstate ---
+00000
+--- constraint ---
+(none reported)
+--- message ---
+(none)
+--- detail ---
+(none)
+--- hint ---
+(none)
+--- result ---
+before:
+{
+  "row_counts": {
+    "mainline.permit": 1,
+    "mainline.permit_event": 2,
+    "mainline.merge_record": 0,
+    "mainline.disposition": 0,
+    "mainline.blocking_check": 1,
+    "mainline.boundary_certificate": 1,
+    "mainline.exposure_receipt": 1,
+    "mainline.exposure_line": 1,
+    "mainline.ledger_intake": 1,
+    "mainline.refusal_ledger": 0,
+    "mainline_meas.recall_run": 1,
+    "mainline_meas.silence_receipt": 1,
+    "mainline_ops.outbox": 1
+  },
+  "permit_row": {
+    "state": "dispositioned",
+    "head_seq": 2,
+    "gate_epoch": 1,
+    "open_blocking": 1,
+    "unmet_floor_count": 0,
+    "countersigned_count": 0,
+    "merged_commit": null
+  }
+}
+
+after:
+{
+  "row_counts": {
+    "mainline.permit": 1,
+    "mainline.permit_event": 2,
+    "mainline.merge_record": 0,
+    "mainline.disposition": 0,
+    "mainline.blocking_check": 1,
+    "mainline.boundary_certificate": 1,
+    "mainline.exposure_receipt": 1,
+    "mainline.exposure_line": 1,
+    "mainline.ledger_intake": 1,
+    "mainline.refusal_ledger": 0,
+    "mainline_meas.recall_run": 1,
+    "mainline_meas.silence_receipt": 1,
+    "mainline_ops.outbox": 1
+  },
+  "permit_row": {
+    "state": "dispositioned",
+    "head_seq": 2,
+    "gate_epoch": 1,
+    "open_blocking": 1,
+    "unmet_floor_count": 0,
+    "countersigned_count": 0,
+    "merged_commit": null
+  }
+}
+--- driver ---
+psycopg 3.3.4
+--- note ---
+The demo needs no per-visitor state, no reset button, no session table and no cleanup sweeper, because the transition beats roll back. This block is the check on that claim rather than the claim itself.

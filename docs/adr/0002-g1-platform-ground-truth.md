@@ -61,7 +61,7 @@ The cluster is **Singapore (`aws-ap-southeast-1`)**. Sydney (`ap-southeast-2`) i
 
 ## AWS ground truth (same session)
 
-- Identity: account `022950218246`, `user/mainline-dev`.
+- Identity: account `0229…8246`, `user/mainline-dev`. [The account id is masked for public release; the full twelve-digit value lives in the founder's `.env`, which is gitignored and has never been committed.]
 - **8 `au.*` Claude inference profiles ACTIVE** in `ap-southeast-2`, including `au.anthropic.claude-sonnet-5` and `au.anthropic.claude-opus-5`.
 - **`amazon.titan-embed-text-v2:0` is available in `ap-southeast-2`** — this closes the `recall-providers` worker's explicitly-flagged unverified item (AWS's launch announcement listed only US regions).
 - **`cohere.embed-v4:0` is also available** and was not in the design. Recorded as a benchmark candidate against Titan in the recall evaluation harness; no change made unilaterally.

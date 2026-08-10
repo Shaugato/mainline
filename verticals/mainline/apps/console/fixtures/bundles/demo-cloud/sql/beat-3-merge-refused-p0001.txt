@@ -1,0 +1,32 @@
+# Beat 3 · THE ATTACK: force the projected counter to zero out of band, then merge again.
+--- connection ---
+database mainline_demo
+--- transaction ---
+one SERIALIZABLE transaction; SAVEPOINT beat_3 … ROLLBACK TO SAVEPOINT beat_3; the whole transaction rolled back
+--- statement ---
+UPDATE mainline.permit SET open_blocking = 0 WHERE permit_id = %s
+-- open_blocking forced to 0; the count re-derived from blocking_check LEFT JOIN disposition is 1
+CALL mainline.merge_permit(%s, %s, %s, %s, %s, %s, %s, %s)
+--- parameters ---
+permit_id        = 98832832-cb53-54ce-a709-d0af8c0c7f8b
+gate_epoch       = 1
+canonicalisation = trappoint_jcs.canonicalise
+--- outcome ---
+REFUSED
+--- sqlstate ---
+P0001
+--- constraint ---
+mainline.fn_permit_merge_gate
+source: parsed
+--- message ---
+MAINLINE: merge refused by mainline.fn_permit_merge_gate — re-derived open obligation count is 1 while the projected counter reads zero
+--- detail ---
+(none)
+--- hint ---
+(none)
+--- result ---
+(none)
+--- driver ---
+psycopg 3.3.4 — Diagnostic.sqlstate, Diagnostic.constraint_name, Diagnostic.message_primary. constraint_source='parsed': 'reported' means the driver handed us the name; 'parsed' means it was read out of the message the procedure raised, because PL/pgSQL RAISE carries no constraint field.
+--- note ---
+gate_closed_when_issued is now SATISFIED and would admit the merge. It is refused anyway, because mainline.fn_permit_merge_gate re-derives the open count from blocking_check LEFT JOIN disposition instead of trusting the column. Rule P-2: a projection is enforced, never trusted. This is the beat that distinguishes the product from a CHECK constraint.

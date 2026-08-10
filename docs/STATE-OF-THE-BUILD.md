@@ -5,602 +5,810 @@ SPDX-License-Identifier: CC-BY-4.0
 
 # STATE OF THE BUILD
 
-**Measured 2026-08-10 by the final proof agent, against the live local node, from the
-working tree at `D:/CoackroachDBxAWS/mainline`.** Nothing here is quoted from a worker's
-self-report. Every claim carries the command that produced it and the output that came
-back. Where a claim could not be established, this document says so and names what is
-missing.
+**Measured 2026-08-10 by the final certification agent, against the live local node and
+the live AWS and CockroachDB Cloud accounts, from the working tree at
+`D:/CoackroachDBxAWS/mainline`.**
 
-Read the two headline findings first. They point in opposite directions and both are true.
+This document replaces every earlier version. Nothing in it is quoted from a worker's
+self-report. Every claim below carries the command that produced it and the output that
+came back, run by me, today. Where a claim could not be established, the document says so
+and names exactly what is missing.
 
-> **1. THE GATE REFUSES. It is real, and it survives adversarial inspection.**
-> The database refused a permit merge whose recalled precursor carried no signed
-> disposition — `23514 gate_closed_when_issued` on the ordinary path, and
-> `P0001 mainline.fn_permit_merge_gate` when the projected counter was forged to zero.
-> The second refusal is the load-bearing one: the gate function re-derived the open
-> obligation count from the base tables and refused a write whose counter said the
-> obligation was closed. That refusal owes nothing to any counter, any client, or any
-> projection. It is the product's central claim, and it is now demonstrated.
->
-> **2. THE REPOSITORY A JUDGE WOULD CLONE DOES NOT CONTAIN THE PROOF.**
-> `scripts/proof/`, `scripts/qa/`, `qa/`, `LICENSES/`, `conftest.py`,
-> `packages/trappoint-testkit/` and `verticals/mainline/packages/mainline-gate-svc/` are
-> **untracked**. `git clone` of `github.com/Shaugato/mainline` produces a tree in which
-> `just doctor`, `just prove` and `pytest` cannot run and CI cannot start. This is a
-> `git add` away from being fixed and is, in the judge's five minutes, fatal.
+**The headline, in four sentences.** The product's central claim is proven, and it is
+stronger than it was: the whole 271-file chain now applies with zero failures, the five
+unproduced tables have producers, and the `open_blocking` caveat is gone because a trigger
+projects the counter rather than a script writing it. The conformance suite has now been
+demonstrated end to end for the first time, and it is red — 10 of 71 — with 46 of the 61
+non-passing cases blocked by a **single defect in one test-harness helper**, not by 46
+product defects. Both Stage One pass/fail gates are still unmet: the repository is
+**PRIVATE** and there is **no demo URL**. And no AWS service has ever actually executed —
+Bedrock invocation is `NOT_AUTHORIZED` on this account, which I confirmed by calling it.
 
 ---
 
-## 0 · The machine these numbers came from
+## How to read this
 
-| | |
+Four verdicts, used strictly:
+
+| verdict | means |
 |---|---|
-| Cluster | `CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28)`, container `mainline-crdb`, `postgresql://root@127.0.0.1:26257/…?sslmode=disable` |
-| Zone | every throwaway database created with `gc.ttlseconds = 4500` (Cloud Basic's value, the stricter of the two) |
-| Interpreter | `.venv/Scripts/python.exe` — Python 3.13.14, 30 workspace distributions installed editable |
-| Tree | working tree, **58 uncommitted paths** (see §4.1); HEAD is `174b29f` |
-| Source census | 1,145 `.py` · 390 `.sql` · 278 `.ts`/`.tsx` · 261 migrations |
+| **PROVEN** | I ran the command today and the output is quoted below |
+| **BUILT-BUT-UNPROVEN** | the code is complete and on disk; nothing recorded has run it end to end, or it runs but its result is not established |
+| **BROKEN** | it ran and gave the wrong answer, or it cannot run at all |
+| **NOT BUILT** | it does not exist |
 
-`uv` and `just` are **not on `PATH`** on this machine; `uv.exe` exists only inside
-`.venv/Scripts/`. Every command below was therefore run with the venv interpreter
-directly. That substitution changes nothing about what the database did.
+A number in this document is a measurement. A number in `code span` is a name — `v26.2.5`,
+SQLSTATE `23514`, `271`.
 
 ---
 
-## 1 · PROVEN
+# 1 · PROVEN
 
-### 1.1 The migration chain applies 246 of 261 files, and the 15 that fail have one cause
-
-```
-$ ./.venv/Scripts/trappoint.exe migrate bootstrap --dsn '…/proof_chain'
-bootstrapped: schema, schema_migration, schema_lock, schema_attestation, genesis attestation
-
-$ ./.venv/Scripts/trappoint.exe migrate up --dsn '…/proof_chain' \
-      --tree mainline --migrations verticals/mainline/db/migrations
-trappoint migrate: REFUSED: 0121_trg_check_materialised: [42P01] relation "mainline_ops.outbox" does not exist
-                                                                                   (7m04s)
-$ … SELECT state, count(*) FROM trappoint.schema_migration WHERE tree='mainline' GROUP BY state;
-applied  155
-dirty      1
-```
-
-The real runner is forward-only and halts on the first refusal, which is correct for a
-deployment and useless for a census. Applying the same files with the runner's own
-`discover()` and `execute_ddl()`, continuing past failures, into a separately
-bootstrapped database:
+## 1.1 The database refuses the merge — and the last caveat is gone
 
 ```
-246/261 applied in 55.3s; 15 failed
-```
+$ .venv/Scripts/python.exe scripts/proof/gate_refusal.py \
+    --dsn 'postgresql://root@localhost:26257/defaultdb?sslmode=disable'
 
-**All 15 failures are `42P01`, and every one names one of five tables that no migration
-creates.** `grep -rlE "CREATE TABLE[^;]*<name>"` over `verticals/mainline/db/migrations`
-and `packages/trappoint-sql` returns **zero producer files** for each:
-
-| missing table | migrations it breaks |
-|---|---|
-| `mainline_ops.outbox` | `0121_trg_check_materialised`, `0198x_no_rls_on_cdc_sources` |
-| `mainline.identity_assignment` | `0145a_trg_cbm_account_guard` |
-| `mainline.patrol_run` | `0163_v_fixity_coverage` |
-| `mainline_meas.agent_action` | `0164_v_agent_actions`, `0165_v_gate_latency_daily`, `0166_v_txn_restart_daily` |
-| `mainline_meas.standing` | `0171_v_standing_components`, `0172_v_my_record`, `0187_standing_rls_enable`, `0187a`, `0187b`, `0187c`, `0187d`, `0187e` |
-
-**The two other failure classes reported by the previous wave are CLOSED.**
-
-* **Class B (syntax) is fixed.** `0049z_meas_mutation_result.sql` applied. The column was
-  renamed `mutation_family`; the file's own header records that `"family"` would have
-  been legal in DDL but not everywhere it is read, so quoting was rejected in favour of
-  renaming. `mainline_meas.mutation_result` exists in the applied schema.
-* **Class C was never a bug.** `0119a_fn_explain_refusal.sql` applies once
-  `trappoint migrate bootstrap` has run, exactly as ruling D6 says. Confirmed by its
-  absence from the failure list above.
-
-### 1.2 The attestation chain is gap-free and reports no drift
-
-```
-$ ./.venv/Scripts/trappoint.exe migrate attest --dsn '…/proof_chain'
-fingerprint d648982556bd633cacaebb302cd78072037e336569cf1b517331a83d67c17e7b
-grade       strong (covers: schemas, types, tables, triggers, routines)
-chain head  ordinal 155 · d648982556bd633cacaebb302cd78072037e336569cf1b517331a83d67c17e7b
-no drift
-```
-
-156 attestation rows, head at ordinal 155, one per applied migration plus genesis. The
-CAS sequencing works; no sequence, no `unique_rowid()`.
-
-### 1.3 THE GATE REFUSES — the central claim, measured
-
-```
-$ ./.venv/Scripts/python.exe scripts/proof/gate_refusal.py \
-      --dsn 'postgresql://root@127.0.0.1:26257/defaultdb?sslmode=disable' \
-      --database proof_gate_final --keep
-cluster       CockroachDB CCL v26.2.5 …
-chain         246/261 applied, 15 failed, 35.033s
+cluster       CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)
+database      w_qr_gate_refusal_proof
+chain         271/271 applied, 0 failed, 58.807s
 reached 0115  True
+unproduced    (none) — every relation this tree references has a producer
+PROJECTION    10/10 held — open_blocking 0->1 — gate_epoch 0->1 — outbox 'check_opened' severity 4 (client supplied 0)
 REFUSAL       REFUSED [23514] gate_closed_when_issued (reported)
 DRIFT         REFUSED [P0001] mainline.fn_permit_merge_gate (parsed)
 ADMISSION     ADMITTED [00000]
+caveats       (none) — nothing in this run is unproven-but-tolerated
 VERDICT       PROVEN
+evidence      evidence/gate-refusal/proof-20260810T075418Z.json
 ```
 
-**I did not take that at face value.** I re-ran the same history through my own harness,
-in eight independently created and independently migrated databases, one per probe, and
-read the mechanism inventory out of `pg_trigger` / `pg_constraint` before each attempt.
+The three verdict lines, verbatim, are the three lines above beginning `REFUSAL`, `DRIFT`
+and `ADMISSION`. All three matter and the middle one carries the argument: the projected
+counter is forged to zero out of band and the gate refuses **anyway**, because
+`mainline.fn_permit_merge_gate` re-derives the count instead of believing the column. The
+third line matters too — a gate that always refuses is broken, not safe.
 
-| probe | trigger present | CHECK present | projected `open_blocking` | derived open obligations | outcome |
-|---|---|---|---|---|---|
-| A0 baseline | yes | yes | 1 | 1 | **REFUSED `23514 gate_closed_when_issued`** |
-| A1 − trigger | **no** | yes | 1 | 1 | **REFUSED `23514 gate_closed_when_issued`** |
-| A2 − CHECK | yes | **no** | 1 | 1 | ADMITTED `00000` |
-| A3 − both | **no** | **no** | 1 | 1 | ADMITTED `00000` |
-| B0 drift baseline | yes | yes | **0 (forged)** | 1 | **REFUSED `P0001 mainline.fn_permit_merge_gate`** |
-| B1 drift − trigger | **no** | yes | 0 | 1 | ADMITTED `00000` |
-| B2 drift − CHECK | yes | **no** | 0 | 1 | **REFUSED `P0001 mainline.fn_permit_merge_gate`** |
-| B3 drift − both | **no** | **no** | 0 | 1 | ADMITTED `00000` |
+### The `open_blocking` caveat is GONE, and it is trigger-projected
 
-The exact refusals, verbatim from the database:
+This was the open question. It is settled. `caveats` is now the empty list, and the
+`projection` block of `evidence/gate-refusal/proof-20260810T075418Z.json` shows the
+mechanism rather than asserting it:
 
-```
-23514  failed to satisfy CHECK constraint
-       ((state != 'merged':::mainline.subject_state) OR (open_blocking = 0:::INT8))
+| field | value |
+|---|---|
+| `projection.trigger.name` | `check_materialised`, `AFTER INSERT` on `mainline.blocking_check` |
+| `projection.trigger.function` | `mainline.fn_check_materialised` |
+| `projection.trigger.migration` | `0121_trg_check_materialised.sql`, `present: true` |
+| `projection.fired_by` | one `INSERT INTO mainline.blocking_check`, no other statement between the readings |
+| `projection.open_blocking` | `before: 0` → `after: 1` |
+| `projection.gate_epoch` | `before: 0` → `after: 1`, `moved: true` |
+| `projection.severity.supplied_by_this_script` | `0` |
+| `projection.severity.projected_onto_the_check` | `4` |
+| `projection.outbox` | one `check_opened` row, `max_severity: 4`, emitted by the trigger |
 
-P0001  MAINLINE: merge refused by mainline.fn_permit_merge_gate
-       — re-derived open obligation count is 1 while the projected counter reads zero
-```
+**The client supplied severity `0` and the database stored `4`.** The script cannot have
+written the number that closed the gate, because the number the script wrote is not the
+number in the row. That is the difference between a projection and an assignment, and it
+is now on the record.
 
-**What is proven by this.** The refusal is the database's, not the client's. The `P0001`
-arm is the one that matters: the counter said zero, the base tables said one, and the
-gate believed the base tables. Rule P-2 — *a projection is enforced, never trusted* — is
-not a slogan here; it is observable, and it is observable precisely because the write
-that the CHECK would have waved through was refused anyway.
+## 1.2 The chain applies — 271 of 271, zero failures
 
-### 1.4 MEASURED REFUSAL DEPTH = 1, on both paths
+Three independent applications to a **fresh** database today, all mine:
 
-Read the table again with only the removals in view. On the ordinary path exactly one
-mechanism refuses (`gate_closed_when_issued`) and removing it admits the write. On the
-drift path exactly one mechanism refuses (`fn_permit_merge_gate`) and removing it admits
-the write. **Neither is a second weld for the other.**
+| run | how | result |
+|---|---|---|
+| gate proof | `scripts/proof/gate_refusal.py` built `w_qr_gate_refusal_proof` | **271/271 applied, 0 failed**, 58.807 s |
+| conformance census | `scripts/qa/run_conformance_census.py --build` built `prod_w9` via `scripts/chain/apply_chain.py` | built clean, 271 rows in `trappoint.schema_migration` |
+| record run | `evidence/chain/chain-20260810T062542Z.json` (`scripts/chain/apply_chain.py`, `--attest each`) | `applied: 271, failed: 0, dirty: false, complete: true` |
 
-This is not a discovered defect; it is a documented decision whose consequence had not
-been measured on the MAINLINE tree until now. `0115_fn_permit_merge_gate.sql` says so in
-its own header: the function *deliberately declines to decide* when the projection agrees
-with the re-derivation, because raising an unnamed `P0001` over a named `23514` would
-trade the exhibit for nothing. `packages/trappoint-conformance/REFUSAL_DEPTH.md` reports
-the same depth of 1 for the reference vertical and records the pre-committed response —
-*cut the mechanism, do not ship it.* **My measurement extends that finding from the
-reference vertical to the shipped MAINLINE schema.** The architecture's sentence *"delete
-the RAISE and the write still fails twice over"* is **NOT TRUE** of this schema, and the
-number is now in front of the decision.
-
-### 1.5 What the shipped schema actually does on the natural path — and the one table between it and a complete loop
-
-`0121_trg_check_materialised` cannot apply, so the trigger that *increments*
-`open_blocking` is absent from the applied schema. The trigger that *decrements* it
-(`disposition.disposition_close`, from `0122`) is present. The counter therefore has a
-consumer and no producer. `just prove` writes the counter itself and discloses that in a
-caveat. I measured what happens when nobody writes it — i.e. what a real deployment of
-this schema would do:
+The record run's own final line:
 
 ```
-natural open_blocking = 0 (column DEFAULT; no trigger maintains it)
-C1  merge, obligation open        -> REFUSED [P0001] mainline.fn_permit_merge_gate
-C2  sign a disposition            -> REFUSED [23514] ctr_nonneg
-C3  merge after the attempt       -> REFUSED [P0001] mainline.fn_permit_merge_gate
+fingerprint 7749748562a77f98a84c7f6d5cf25ead9453494f413044133e1a4e3484cbad28
+  (grade strong, attestation ordinal 271)
 ```
 
-**On the shipped schema the gate can never be opened.** The disposition that would close
-the obligation drives the counter to −1 and `ctr_nonneg` refuses it, so the merge refuses
-forever. By the repository's own standard — *a gate that always refuses is a broken gate,
-not a safe one* — the admission half of the claim is **not reachable on the tree as it
-stands**. The `ADMISSION ADMITTED` line in `just prove` is reachable only because the
-proof script stands in for the missing trigger.
+with `attestation.rows: 272`, `chain_dense: true`. Wall clock 2 724.962 s — the
+`--attest each` mode recomputes a whole-schema fingerprint per file, so it is quadratic and
+slow by design; the fast path is the 58.8 s figure above.
 
-I then measured how far away the complete loop is. Counterfactual, in memory only,
-nothing written to the repository: supply a minimal `mainline_ops.outbox`
-(`outbox_id, kind, subject_id, site_id, max_severity, payload, emitted_at` — the column
-set is fixed verbatim by the only `INSERT` in the tree, `0101_fn_check_materialised.sql`
-line 91) before the chain runs.
+**The brief's "ONE BLOCKER" is closed.** All five previously-unproduced tables now have a
+producer migration, which I verified by locating each `CREATE TABLE`:
+
+| relation | producer |
+|---|---|
+| `mainline_ops.outbox` | `0099_outbox.sql` |
+| `mainline.identity_assignment` | `0049d_identity_assignment.sql` |
+| `mainline.patrol_run` | `0090_patrol_run.sql` |
+| `mainline_meas.agent_action` | `0089_agent_action.sql` |
+| `mainline_meas.standing` | `0089b_standing.sql` |
+
+The tree is now **271** files, not 261; `246/261` is dead and should never be quoted again.
+
+## 1.3 The conformance suite has been demonstrated — and it is red
+
+This is the biggest change since the brief, in both directions. `docs/HONESTY.md` still
+says the suite "has still not been demonstrated" and that `qa/conformance-census.json`
+"does not exist". **Both statements are now false.** I built a fresh migrated database and
+ran all 71 cases:
 
 ```
-chain 248/261  failed=13          (0121 and 0198x now apply)
-projection trigger check_materialised present: True
-counter_source: trigger check_materialised -> mainline.fn_check_materialised
-open_blocking maintained by the DATABASE = 1     ← no script wrote this
-D1  merge, obligation open        -> REFUSED [23514] gate_closed_when_issued
-D2  sign a disposition            -> signed; open_blocking -> 0
-D3  merge after signed disposition-> ADMITTED [00000]
+$ .venv/Scripts/python.exe scripts/qa/run_conformance_census.py --build --run-id cert-final
+
+census: built postgresql://root@127.0.0.1:26257/prod_w9?sslmode=disable via scripts/chain/apply_chain.py
+census: DROP DATABASE prod_w9 CASCADE
+census — 10/71 passed — fail 6 — cannot run 55
+census — spec 1.0.0-rc.1 — profile mainline
+census — sha256:e641fa2113f6112e9568b0814dc2b811992202eeaf0967b3b7498cfb06a9026b
+census — COMPLETE — every declared case carries a status, nothing is PENDING, nothing
+         ERRORed, and every non-PASSED case carries a reason naming an object
 ```
 
-**Refuse → dispose → admit, end to end, with the counter maintained by the database and
-no caveat.** One table, seven columns, is the entire distance between the proof this
-repository can currently make and the proof it claims. That table needs a number from a
-band whose owner and mode match in
-`verticals/mainline/db/migrations.allocation.toml`; I own no band and did not create it.
+The digest is **byte-identical** to the run recorded in `docs/release/conformance-census.md`,
+from a separately built database. The census is reproducible.
 
-### 1.6 Static gates that are green
+| status | n |
+|---|---:|
+| PASS | 10 |
+| FAIL | 6 |
+| CANNOT RUN | 55 |
+| PENDING / ERROR | 0 |
+| — | **71** |
+
+Passing: `CF-13 CF-14 CF-15 CF-16 CF-17 CF-39 CF-46 CF-48 CF-55 CF-69`.
+
+**Read the 55 before despairing.** They are not 55 independent gaps:
+
+| root cause | cases |
+|---|---:|
+| the legal world will not build at `clause_version` | **46** |
+| a relation this repo deliberately never authored (`recall_run`, `merge_conflict`, `discordance_warrant`, `frontier_move`, `observed_assertion`, `propagation`, `coverage_certificate`) | 8 |
+| a syntax error in an unrelated builder step | 1 |
+
+Section 3.1 dissects the 46. It is one bug in one function.
+
+## 1.4 The honesty mechanism works — and it is correctly red right now
+
+`docs/HONESTY.md` pre-declares that when certain evidence families appear on disk, the
+build must fail until the prose absorbs them. Both families have now appeared. The guard
+fired:
+
+```
+$ .venv/Scripts/python.exe -m pytest tests/release/test_honesty_is_checkable.py --crdb=none -q
+
+E   AssertionError: docs/HONESTY.md is behind its own evidence:
+E     family 'chain-run' has 1 file(s) on disk (evidence/chain/chain-20260810T062542Z.json)
+E       and docs/HONESTY.md cites none of them
+E     family 'conformance-census' has 1 file(s) on disk (qa/conformance-census.json)
+E       and docs/HONESTY.md cites none of them
+FAILED tests/release/test_honesty_is_checkable.py::test_the_document_does_not_lag_a_family_that_landed
+1 failed, 33 passed in 0.97s
+```
+
+**This red is the feature working, not the feature failing.** A repository whose honesty
+document is guarded by a test that fails when the document falls behind the evidence is
+doing something almost nobody does. It is also a real task: two sections of
+`docs/HONESTY.md` must be rewritten around the artefacts, and until they are, the release
+lane is red.
+
+## 1.5 The static gates that pass
 
 | gate | command | result |
 |---|---|---|
-| import-linter | `lint-imports --config .importlinter` | **7 kept, 0 broken** · 537 files, 3,466 dependencies |
-| mypy (strict substrate) | `mypy --config-file mypy.ini packages/trappoint-migrate/src/… packages/trappoint-conformance/src/…` | **Success: no issues found in 25 source files** |
-| SQL migration lint | `trappoint migrate lint --root …refvertical/sql --root …db/migrations --root …templates` | **401 files, no findings** — no sequence, every migration cites an invariant, every header answers MI/I/COUNSEL-GATED/RATIONALE |
-| workspace membership | `python scripts/qa/check_workspace_members.py` | tree and `uv.lock` agree: 30 distributions, 30 locked members |
-| import registry | `python scripts/qa/check_import_registry.py` | 30 distributions, 29 root packages, 7 contracts, none unlinted |
-| ruff ratchet | `python scripts/qa/ruff_ratchet.py` | **OK — no rule/tree count increased**; 28 entries can be tightened |
-| console typecheck | `pnpm run typecheck` | clean (`tsc` twice, `--noEmit`) |
-| console eslint | `pnpm run lint` | clean (`--max-warnings 0`) |
-| console vitest | `pnpm run test` | **78 files, 1,438 tests, 1,438 passed** |
+| SQL / migration lint | `trappoint migrate lint --root verticals/mainline/db/migrations --root packages/trappoint-sql/templates` | **302 files, no findings** — no sequence, every migration cites an invariant, every header answers MI/I/COUNSEL-GATED/RATIONALE |
+| import contracts | `.venv/Scripts/lint-imports.exe --config .importlinter` | **7 kept, 0 broken** over 540 files / 3 479 dependencies |
+| REUSE / licensing | `scripts/qa/check_reuse.py` | **7 120 tracked files, 0 uncovered, 4 licence texts**, no counted number rose (see note) |
+| mypy (as CI runs it) | `mypy --config-file mypy.ini packages/trappoint-{migrate,conformance}/src/…` | **Success: no issues found in 27 source files** |
+| Terraform | `terraform init -backend=false && terraform validate` in `infra/envs/demo` | **Success! The configuration is valid.** |
+| workspace lock | `scripts/qa/check_workspace_members.py` | **30 distributions, 30 locked members** — the "7 of 27" defect is fixed |
 
-### 1.7 The Python suite is overwhelmingly green
+**Note on the REUSE result.** `0 uncovered` is real and the `LICENSES/` directory is no
+longer empty — it holds four texts. But the coverage is mostly *blanket*, not inline:
 
 ```
-$ ./.venv/Scripts/python.exe -m pytest --crdb=none -q
-44 failed, 8066 passed, 739 skipped, 2 warnings in 435.54s
+directory   files  header  sidecar  REUSE.toml  exempt  UNCOVERED
+TOTAL        7120    2250      172        4518     180          0
 ```
 
-Collected per root: `tests/` 7,037 · `packages/` 1,605 · `verticals/*/packages/*/tests`
-207 = 8,849. The 739 skips are cluster tests declining to start a private container under
-`--crdb=none`, each with the named reason its own fixture writes. §3.4 classifies all 44
-failures.
+2 250 files carry an inline SPDX header; **4 518 are covered by `REUSE.toml` globs**. That
+is REUSE-compliant and a legitimate pass — but a reader who opens a random file under
+`verticals/` will not see a licence in it. The brief's "~4 738 files carry no SPDX header"
+was therefore roughly right about the headers and wrong about the compliance.
+
+The import-linter result is the one worth pausing on, because it is what makes the
+licensing story true rather than asserted:
+
+```
+1. The Apache substrate never imports the FSL vertical KEPT
+5. The merge-gate service can reach no model SDK, directly or transitively KEPT
+7. The offline verifier imports no driver and no network client KEPT
+```
+
+## 1.6 The console has real CI coverage now
+
+The brief said 278 TypeScript files had **zero** CI coverage. That is fixed: there is a
+`.github/workflows/console.yml`, and `pnpm run ci` — eslint, `tsc` twice, vitest, `vite
+build`, budget checks, licence checks — **exited 0** when I ran it:
+
+```
+check-budgets: all budgets held.
+  PASS  evidentiary-shell  124.5 KB gzip / 220 KB (57%, 2 files)
+check-licences: every dependency is permissive and named.
+  packages audited : 372 · runtime closure : 70 · distinct licences: 12
+```
+
+173 TypeScript files under `apps/console/src`, 1 461 vitest tests. See §3.4 — the suite is
+load-sensitive.
+
+## 1.7 CockroachDB Cloud is live and carries the schema
+
+I connected to the cluster myself:
+
+```
+CLOUD REACHABLE
+ version:  CockroachDB CCL v26.2.5 …
+ database: mainline_demo
+ now:      2026-08-10 08:16:44+00
+```
+
+`mainline_demo` holds the real product schema — `mainline` 72 tables, `mainline_audit` 14,
+`mainline_meas` 12, `mainline_ops` 5, `mainline_qa` 3, `trappoint` 4 — and seeded demo
+state (1 permit, 1 blocking check). `evidence/deploy/cloud-chain.json` records
+`applied: 271, failed: 0, verdict: "APPLIED"` against it, and
+`evidence/deploy/cloud-seed.json` records `"SEEDED AND REFUSABLE"`.
+
+One defect in that picture is in §3.5.
+
+## 1.8 CockroachDB tool usage clears the bar
+
+`evidence/tool-usage/crdb-features.json`: 4 tools and 10 engine features, of which
+**11 are EXERCISED**.
+
+```
+TOOL crdb_database      EXERCISED
+TOOL crdb_cloud_ccloud  EXERCISED
+TOOL crdb_managed_mcp   DESIGNED   (but see below)
+TOOL crdb_agent_skills  DESIGNED
+EXERCISED: crdb_database, crdb_serializable, crdb_triggers, crdb_check_constraints,
+           crdb_vector_index, crdb_as_of_system_time, crdb_follower_reads,
+           crdb_row_level_security, crdb_show_create, crdb_internal, crdb_cloud_ccloud
+```
+
+The managed MCP is marked `DESIGNED` by the census's code-evidence rule, but
+`evidence/deploy/judge-run.json` shows it **ran** against `https://cockroachlabs.cloud/mcp`
+on cluster `7cfc9ee9-…`, 16 questions, with PASS verdicts. The requirement is
+**≥2 CockroachDB tools**; this is comfortably met either way.
 
 ---
 
-## 2 · BUILT BUT UNPROVEN
+# 2 · BUILT-BUT-UNPROVEN
 
-### 2.1 The conformance corpus has never run against MAINLINE
+## 2.1 The demo application
 
-74 case modules exist. The manifest declares 71 cases for the `mainline` profile. Here is
-what happens when they are actually run.
+`scripts/deploy/` is complete — `deploy.sh`/`deploy.ps1`, `build_lambda.*`, `seed_demo.py`,
+`demo_acceptance.py`, `judge_access.py`, `capture_demo_bundle.py`, `teardown.sh` — and
+`infra/` holds Terraform that **validates**. The console builds. The Cloud database is
+seeded. Every part exists.
 
-**As shipped.** `trappoint-conform` sees **one** implementation:
-
-```
-$ ./.venv/Scripts/trappoint-conform.exe --profile mainline --list
-implemented 1 / 71
-$ ./.venv/Scripts/trappoint-conform.exe --dsn '…/conf_mainline' --profile mainline
-FAIL  CF-01 …
-0/71 · spec 1.0.0-rc.1 · profile mainline · failed 1 · skipped 25 · pending 45   (exit 1)
-```
-
-Two structural reasons, both mechanical:
-
-1. **The CLI never loads the corpus.** `cases/` is not in the wheel
-   (`[tool.hatch.build.targets.wheel] packages = ["src/trappoint_conformance"]`) and
-   nothing in `cli.py` calls `cases.load_all()`. Only CF-01, registered inline by
-   `runner.py`, is in the registry. The package's *own* tests call `cases.load_all()`;
-   the shipped entry point does not.
-2. **No capability token is ever satisfied.** `_requirements_met` compares against
-   `--requires` flags only — nothing probes the catalogue. `mainline.person` and
-   `mainline.boundary_certificate` exist in the applied schema and their cases skip
-   anyway.
-
-**Run properly** — `cases.load_all()` called, and every `requires` token checked against
-`information_schema` / `pg_roles` / `pg_policies` on the live database, each case isolated
-on its own connection:
+**The Phase-1 static demo is, in substance, already built.** `evidence/deploy/bundle-capture.json`
+records an EvidenceBundle captured from the **real Cloud cluster** — 18 frames, 24 files,
+173 954 bytes, `failures: []`, `omitted: []` — sealed and re-checked, both exit 0:
 
 ```
-71 cases · 70 modules discovered · 71 implementations registered
-capability tokens: 23 declared, 15 satisfiable, 8 not
-
-passed                 2   CF-48, CF-69
-failed                 1   CF-01
-cannot-run: setup     59
-cannot-run: capability 9
+capture-bundle seal:  fixtures/bundles/demo-cloud — 24 file(s), 173954 bytes, STAGED
+capture-bundle check: fixtures/bundles/demo-cloud — 24 file(s) agree.
 ```
 
-**All 59 setup failures share one cause.** `cases/_world.py::site_row` runs
+Its recorded beats include the real refusal (`23514`, `gate_closed_when_issued`,
+`constraint_source: reported`) captured inside a `SERIALIZABLE` transaction that was rolled
+back, with a `persistence_check` proving the database was left unchanged. The bundle is on
+disk at `verticals/mainline/apps/console/fixtures/bundles/demo-cloud/`, and `pnpm run ci`
+produced `apps/console/dist/` during this certification. **A static site that satisfies
+requirement 2 is sitting in the tree, built, waiting for an `aws s3 sync`.** The data behind
+it is synthetic and says so (`verticals/mainline/demo/DEMO-HONESTY.md`).
 
-```sql
-INSERT INTO {s}.site (site_id, site_code, site_role) VALUES (%s, %s, %s)
-```
-
-against `mainline.site`, which declares `tenant_id UUID NOT NULL` and
-`taxonomy_ver INT4 NOT NULL` with no defaults, and a `site_code_is_lower_case` CHECK that
-the builder's `f"CONF-{…}"` violates. The corpus's world builder was written against the
-reference vertical's `site` and has never been executed against MAINLINE.
-
-I measured how much is behind that one door — patched in memory, nothing written:
-
-```
-passed 10   (CF-13 CF-14 CF-15 CF-16 CF-17 CF-39 CF-46 CF-48 CF-55 CF-69)
-failed  5   (CF-01, CF-42, CF-60, CF-63, CF-67)
-cannot-run: setup 47   — next wall is `clause_version`, same class of shape mismatch
-cannot-run: capability 9
-```
-
-**Status: the corpus is written, and it has never told anyone anything about MAINLINE.**
-It is a bounded repair — a world builder that matches the shipped schema — not a design
-fault. Note also that `runner.run` catches `psycopg.Error` but not
-`cases._world.SetupRefused`, so one broken builder aborts the entire run and no census is
-possible; I had to write my own loop to get the numbers above.
-
-### 2.2 CF-01, the one case the shipped CLI runs, fails
+Nothing has been applied. `evidence/deploy/acceptance.json` is the closest thing to a
+demonstration and its verdict is **`NOT PROVEN`**, against `http://127.0.0.1:8731` — a
+loopback address, not a deployment:
 
 ```
-FAIL CF-01  expected 23514 on 'gate_closed_when_issued'; observed 23502 …
-            Message: null value in column "site_role" violates not-null constraint
+"url": "http://127.0.0.1:8731",
+"verdict": "NOT PROVEN",
+"failures": [
+  "POST /v1/demo/gate-run (run 1) returned 404, expected 200",
+  "POST /v1/demo/gate-run (run 2) returned 404, expected 200",
+  "fewer than two gate runs completed, so repeatability … was NOT established"
+]
 ```
 
-The case's own setup, not the gate. Note the irony worth stating plainly: **CF-01 is the
-red-before-green artefact PL-2 rests on, and it is currently red for a reason that has
-nothing to do with the gate.** The gate itself refuses that exact history correctly — §1.3
-probe A0 is CF-01's history and it produced `23514 gate_closed_when_issued`.
+## 2.2 The demo video
 
-### 2.3 Cluster-dependent tests: 739 skipped, and a skip is not evidence
+`docs/submission/VIDEO-KIT.md` holds the script, the shot list and the seeded state, and
+CI validates it. The film is the founder's to record. Correctly scoped, not done.
 
-Every skipped test names its own reason and most say so bluntly — *"A SKIPPED RUN IS NOT
-EVIDENCE: the gate is a database mechanism and nothing in this package can stand in for
-it."* `just test-cluster` (`pytest --crdb=reuse`) was **not** run here: the repository's
-own justfile records that an unqualified full-suite run started thirteen private
-single-node containers, all of which exited 7 or 8 and took the real node down. That is
-the correct guard, and it means the cluster lane's true result is **unmeasured** in this
-report.
+## 2.3 Changefeeds, agent skills
 
-### 2.4 `evidence/` claims with no generator run in this wave
-
-`evidence/CUSTODY_ATTACK_MATRIX.md`, `evidence/custody-nemesis-run.json`,
-`evidence/ccloud/`, `evidence/mutation/`, `evidence/reference-ledger/` were read but not
-regenerated. `tests/integration/custody/test_k2_exit.py` fails against them (§3.4 class
-E), which is itself evidence that the K2 exit criteria are not met.
+`crdb_changefeed`, `crdb_managed_mcp` and `crdb_agent_skills` are `DESIGNED` in the census:
+code and configuration on disk, no recorded end-to-end run.
 
 ---
 
-## 3 · BROKEN
+# 3 · BROKEN
 
-### 3.1 `ruff check` is red: 786 findings, 237 files unformatted
+## 3.1 The conformance world builder is written against a schema that does not exist
+
+**This is the single highest-leverage defect in the repository.** One function blocks 46 of
+71 conformance cases — 65 % of the suite.
+
+`packages/trappoint-conformance/cases/_world.py:394` inserts:
+
+```python
+"INSERT INTO {s}.clause_version "
+"(clause_uuid, commit_id, site_id, control_delta, body_sha256) "
+"VALUES (%s, %s, %s, %s, %s)",
+```
+
+`mainline.clause_version` (`0029_clause_version.sql:190`) has **no column
+`body_sha256`** — the column that holds a digest is `canon_sha256`. The census reports the
+consequence 46 times:
 
 ```
-$ ./.venv/Scripts/ruff.exe check .
-Found 786 errors.   [147 fixable]
-$ ./.venv/Scripts/ruff.exe format --check .
-237 files would be reformatted, 1082 files already formatted
+CANNOT RUN: legal world could not be built at 'clause_version'
+            — column "body_sha256" does not exist. Nothing was asked of the gate.
 ```
 
-Top rules: `D102` 162, `D401` 110, `E501` 61, `I001` 61, `PLR2004` 55, `RUF100` 54.
+Renaming the column is necessary and **not sufficient**. The table declares 16 `NOT NULL`
+columns without defaults; the builder supplies 4 of them. These 12 are missing:
 
-The project's policy is a ratchet, not zero, and **the ratchet passes** (baseline 847,
-measured 786 — a fall of 61). But `just lint-py` runs bare `ruff check .` and
-`ruff format --check .`, both of which exit non-zero. **`just lint` fails today.** The
-recipe and the policy disagree, and the recipe is what a contributor types.
+```
+gen, doc_id, activity_root, ordinal, raw_text, canon_text, canon_version,
+anchor_set, delta_basis, blood_root, blood_peaks, blood_size
+```
 
-### 3.2 Workspace-wide mypy: 5 errors in 5 files
+So the fix is: rewrite `_world.py::clause_version` to insert a legal row against the real
+table. It is one function, in the test harness — **not in the product**. The 46 cases are
+not 46 product defects, and nobody should read the census as if they were.
+
+## 3.2 Two cases where the gate admitted a write it should have refused
+
+These are the real product holes, and they deserve to be read separately from the 46:
+
+| case | expected | observed | what it means |
+|---|---|---|---|
+| **CF-60** | `23514` on `no_orphan_controls` | `00000` | *"the history COMPLETED. A gate that admits this write is not a gate."* |
+| **CF-63** | `23505` on `ledger_leaf_pkey` | `00000` | *"the history COMPLETED. A gate that admits this write is not a gate."* |
+
+Two more are wrong-mechanism rather than wrong-outcome:
+
+| case | expected | observed |
+|---|---|---|
+| CF-01 | `23514` `gate_closed_when_issued` | `23502` — a `NOT NULL` projected column left unset by a trigger; the trigger should project the strictest legal value |
+| CF-42 | `23503` `fk_check_version` | `P0001` `mainline.fn_check_project` (exhibit inferred from the message, not reported) |
+
+And two are schema/syntax gaps: CF-67 (`42703`, `witness_quorum` column absent — the census
+labels it `SCHEMA NOT MIGRATED`) and CF-68 (`42601`, a syntax error).
+
+## 3.3 No AWS service has ever executed — Bedrock is NOT_AUTHORIZED
+
+`evidence/tool-usage/aws-services.json`:
+
+```
+by_verdict: { "EXERCISED": 0, "DESIGNED": 11, "NOT-AVAILABLE": 1 }
+aws_bedrock_runtime DESIGNED · aws_bedrock_embeddings DESIGNED · aws_bedrock_rerank NOT-AVAILABLE
+aws_s3_object_lock · aws_kms · aws_cloudtrail · aws_lambda · aws_cloudfront
+aws_cloudwatch · aws_iam · aws_ssm_parameter_store · aws_eventbridge — all DESIGNED
+```
+
+**Zero.** I did not take that on trust; I called Bedrock myself, three ways, and all three
+failed:
+
+```
+$ aws bedrock list-foundation-models --region ap-southeast-2 → 64          # control plane OK
+$ invoke_model  amazon.titan-embed-text-v2:0                  → ValidationException: Operation not allowed
+$ converse      au.anthropic.claude-haiku-4-5-20251001-v1:0   → ValidationException: Operation not allowed
+$ invoke_model  global.cohere.embed-v4:0                      → ValidationException: Operation not allowed
+```
+
+The cause is not a code bug. It is account entitlement:
+
+```
+$ aws bedrock get-foundation-model-availability \
+      --model-id anthropic.claude-haiku-4-5-20251001-v1:0 --region ap-southeast-2
+{
+  "agreementAvailability": { "status": "NOT_AVAILABLE" },
+  "authorizationStatus":   "NOT_AUTHORIZED",
+  "entitlementAvailability": "AVAILABLE",
+  "regionAvailability":      "AVAILABLE"
+}
+```
+
+Model access was never enabled in the Bedrock console for account `022950218246`. Region
+and entitlement are fine, so this is a one-time click by the account owner — but **until it
+is done, every Bedrock code path in this repository is unreachable**, and the brief's claim
+that "AWS is LIVE … Bedrock has 8 `au.*` Claude profiles" is true only in the sense that
+the profiles are *listed*. They cannot be invoked.
+
+Nothing MAINLINE-shaped is deployed either. The account holds exactly one CloudFront
+distribution and it belongs to a different project:
+
+```
+$ aws cloudfront get-distribution --id E2FCXK8NILPNWF
+  Comment: "checkout-platform static site distribution"
+  Origin:  checkout-platform-debd5edd-site.s3.ap-southeast-2.amazonaws.com
+
+$ curl -s -o /dev/null -w "HTTP=%{http_code}" https://d2hlkr5e2hb7k7.cloudfront.net/
+  HTTP=403
+```
+
+The only Lambda in the account is `cci-chage-enricher`, also unrelated. There is no
+MAINLINE S3 site bucket.
+
+## 3.4 The console test suite is load-sensitive
+
+Three runs of the same suite on the same tree, minutes apart, gave three different answers:
+
+| run | conditions | result |
+|---|---|---|
+| `pnpm run ci` | machine otherwise idle | **exit 0**, all stages passed |
+| `pnpm run test` | test census running concurrently | **1 failed**, 1 460 passed (1 461) |
+| `pnpm run test` | test census running concurrently | **3 failed**, 79 files (1 failed) |
+
+Every failure was in `tests/unit/silence/screen.test.tsx`, all the same shape:
+
+```
+TestingLibraryElementError: Unable to find an element by: [data-testid="conservation-panel"]
+```
+
+The element is absent at assertion time and present in the surrounding DOM dump's sibling
+region — the signature of an async render the test does not wait for. **It is green on an
+idle machine and flaky under CPU pressure**, which is exactly the condition a CI runner
+imposes. Treat `pnpm run ci` exit 0 as "passed once", not "passes".
+
+## 3.5 The Cloud database cannot attest to its own schema
+
+`mainline_demo` on CockroachDB Cloud carries 106 product tables, but its migration ledger is
+empty:
+
+```
+migrations applied (trappoint.schema_migration): 0
+attestations   (trappoint.schema_attestation):   1     ← genesis only
+```
+
+`evidence/deploy/cloud-chain.json` says 271 applied. The live ledger says 0. Whatever the
+cause — a re-seed that rebuilt DDL without bookkeeping, or a bootstrap after the fact — the
+consequence is concrete: **`trappoint migrate status` and `trappoint migrate attest` against
+Cloud will report the schema as unapplied and drifted.** The one command this project would
+most want a judge to run against its live database is the one that will contradict its own
+evidence file.
+
+## 3.6 ruff, and the formatter
+
+```
+$ ruff check .            → Found 786 errors.  (147 fixable with --fix)
+$ ruff format --check .   → 246 files would be reformatted, 1147 files already formatted
+```
+
+Down from ~896 but still red, and `just lint-py` fails. `ruff format .` and
+`ruff check --fix .` would clear a large fraction mechanically.
+
+## 3.7 mypy's CI gate checks 4 % of what mypy can check
+
+The gate CI runs covers 27 files and passes. The target list the repository itself derives
+covers **32 distributions / 658 source files**, and does not pass:
 
 ```
 $ mypy --config-file mypy.ini $(python scripts/qa/mypy_targets.py)
-Found 5 errors in 5 files (checked 572 source files)
+Found 9 errors in 7 files (checked 658 source files)
 ```
 
-Named example: `mainline-recall-agent/src/mainline_recall_agent/run/probabilistic.py:431`
-— `Incompatible types in assignment (expression has type "Mapping[str, Any]", variable
-has type "dict[str, Any]")`; and `run/orchestrator.py:886` — `Unused "type: ignore"`.
-`tests/release/test_mypy_covers_workspace.py::test_check_passes_on_the_real_tree` catches
-this, and it is one of the 44 failures.
+Mostly unused `type: ignore` comments and one `no-any-return` in
+`packages/trappoint-conformance/cases/_world.py:780`. Nine errors is a morning's work; the
+defect is that `just lint-types` does not look at them.
 
-### 3.3 The migrations lockfile is stale, for exactly the file that was repaired
+## 3.8 Neither `just` nor `uv` is installed — every documented entry point fails
 
 ```
-$ ./.venv/Scripts/trappoint.exe migrate lock
-! 0049z_meas_mutation_result.sql: manifest says sha256='1d993f87…', the tree says 'b18fee0d…'
-! regenerate with `trappoint migrate lock --write`; the manifest is derived, never authored (MR-6 lock 1)
+$ just --version → just: command not found
+$ uv --version   → uv: command not found
+$ pnpm --version → 11.5.3          (installed)
 ```
 
-The `FAMILY` repair landed and `migrations.lock.json` was not regenerated. One command.
+This is worse than the brief recorded, and it is a Product Readiness problem rather than a
+cosmetic one. The README and the justfile's own header point a reader at
+`just up && just bootstrap && just prove` and call that sequence the entire K1 proof. **On
+the machine this repository is built on, that sequence fails at the first word.** `uv.lock`
+is now correct and complete (30/30 members), but the runner that consumes it is absent too,
+so even a working `just` would fail on the next line.
 
-### 3.4 The 44 test failures, by cause
+Everything proven in §1 of this document was proven by invoking
+`.venv/Scripts/python.exe`, `.venv/Scripts/trappoint.exe`,
+`.venv/Scripts/lint-imports.exe` and `pnpm` directly — never through `just`. The
+`_conform` recipe already carries a `.venv`-first fallback and a comment explaining exactly
+this failure; the lesson was learned in one recipe and not propagated to the other twenty.
 
-| # | class | failures | what it means |
+A judge who clones the repository and follows the README does not reach the proof.
+
+---
+
+# 4 · NOT BUILT
+
+| thing | state |
+|---|---|
+| **the deployed demo URL** | nothing exists. `docs/submission/SUBMISSION.json` has `"demo_url": "UNRESOLVED"`. **Stage One pass/fail.** |
+| **the demo video** | not recorded. `"video_url": "UNRESOLVED"`. |
+| **judge access declaration** | all three members `UNRESOLVED`. |
+| **a public repository** | `gh repo view` → `"visibility": "PRIVATE"`, `"licenseInfo": null`. **Stage One pass/fail.** |
+| **any applied AWS infrastructure** | Terraform validates; `terraform apply` has never been run. |
+
+---
+
+# 5 · Rules-compliance matrix
+
+Deadline **2026-08-18 17:00 EDT** — 8 d 13 h remaining at the time of this measurement.
+
+| # | Requirement | Verdict | Evidence / what is missing |
 |---|---|---|---|
-| A | **`0207` migration was never written** | 8 in `test_0207_shape.py` + 1 in `test_novelty_manifest[directrix]` | `RuntimeError: migration 0207 is missing from …/db/migrations`. `directrix.yaml` claims `0207_v_safe_direction_current.sql` implements it. The test's own words: *a fragment whose evidence points at a file nobody wrote is the most expensive kind of wrong, because it reads as proof.* |
-| B | **deliberate PL-2 red** | 8 | Each asserts *"PL-2 RED, as intended"* — `fn_boundary_project`, the carried-use projection, append-only on `carried_disposition_use`/`predicate_revocation`, the stale-lease hole, `sev_max` projection, severity-revision provenance, the MI-26 monotone guard. Honest, expected, and still red in CI. |
-| C | **MI ratchet** | 1 | `28 of 30 MAINLINE invariants are still pending: MI01…MI30` (all but two). The invariant catalogue is almost entirely unpromoted. |
-| D | **G4-alpha recall quality floors** | 5 | `retro_recall@3 sev5`, `p@block`, `nuisance_rate`, `mean_blocking_checks_per_permit`, `silence_conservation_l3` all below their declared floors. Real quality gates, genuinely failing. |
-| E | **K2 custody exit criteria** | 6 | `evidence/k2-checkpoint-cadence.json` and `evidence/k2-migration-attestation.json` **do not exist**; the attack matrix does not record A1 as detected by check 3 or A10 by check 14; `spec/CHANGELOG.md` carries no `wire/checkpoint.md` v1.0 entry; the determinism assertion is an unwired `Failed:` stub. |
-| F | **cross-package `conftest` collision** | 2 | `ImportError: cannot import name 'FIXTURE_DDL' from 'conftest' (…/packages/trappoint-model/tests/conftest.py)`. Several `tests/` directories lack `__init__.py`, so `import conftest` resolves to whichever one is first on `sys.path`. Infrastructure bug, not a product bug. |
-| G | **grep/scanner violations** | 3 | boundary grep 2 violations over 757 and 3,080 files; injection scanner: `mainline-corpus/src/mainline_corpus/render/bedrock.py:126` — *dict literal key `'tools'` constructs a tool surface; the quarantined call shape holds no tools*. |
-| H | **derived artefacts stale / declarations out of sync** | 5 | `migrations.lock.json` (§3.3); mypy ratchet missing `mainline_corpus`; `test_mi_spine` band declaration ≠ disk (`0049a`…`0049z` present, undeclared); `0084_silence_ledger.sql` declares `COUNSEL-GATED: no` where the test requires yes; DM-9 — a file outside `0038`/`0039`/`queries/closure_write.sql` touches `mainline.clause_blame_closure` executably. |
-| I | **dangling references** | 3 | `deltalattice.yaml` cites three tests in `tests/unit/domain/lattice/test_red_first.py` that do not exist (the file was renamed to `test_lattice_red_first.py`, untracked); `0139_trg_candidate_project.sql` calls `mainline.fn_candidate_project`, *which the band never creates*; a recall claim-bound grep finds statements that restate the caveat differently. |
-| J | **order-dependent** | 1 | `mainline-agentkit/tests/test_transport_residency.py::test_the_offline_path_imports_no_aws_sdk` fails in the full suite and **passes in isolation**. A test that depends on import order is a test that will lie eventually. |
+| **1** | Public repo with an open-source LICENSE file | **UNMET** | `gh repo view Shaugato/mainline --json visibility` → `PRIVATE`; `licenseInfo: null`. `LICENSE` exists on disk (Apache-2.0, byte-identical to `LICENSES/Apache-2.0.txt`) but is **untracked**, and the repo is 2 commits ahead of `origin/master` with 89 dirty paths. Nothing is on the server. **Stage One.** |
+| **2** | A URL to a functional demo app | **UNMET** | `demo_url: "UNRESOLVED"`. No MAINLINE resource is deployed. The only CloudFront distribution in the account belongs to `checkout-platform` and returns HTTP 403. **Stage One.** |
+| **3** | Text description of features | **MET** | `docs/submission/DEVPOST.md`, 14 637 bytes, 111 non-blank lines; `check_submission_ready.py` passes this row. |
+| **4** | Video < 3 min on YouTube/Vimeo | **UNMET** | `video_url: "UNRESOLVED"`. Script, shot list and seeded state exist in `docs/submission/VIDEO-KIT.md`. Founder's to record. |
+| **5** | Documentation of which CockroachDB and AWS services were used, and how | **MET, with a caveat** | `docs/TOOL-USAGE.md` names 4 CockroachDB tools + 10 features and 12 AWS services, each with a file:line mechanism and a verdict. Caveat: the census is **stale by a few bytes** — `capture_tool_evidence.py --check` says re-run it. The document is honest that AWS `EXERCISED` is 0. |
+| **6** | Free, unrestricted judge access | **UNMET** | `judge_access.required`, `.how`, `.credentials_location` all `UNRESOLVED`. Cannot be resolved before a demo exists. |
+| **7** | Newly created in the submission window; pre-existing code disclosed | **MET** | First commit `f80fefd`, 2026-08-05 22:47 — inside the window. 16 commits, all inside per `check_submission_ready.py`. `docs/submission/DISCLOSURE.md`, 20 445 bytes. |
+| **≥2 CockroachDB tools** | | **MET** | 11 of 14 rows `EXERCISED` incl. `crdb_database` and `crdb_cloud_ccloud`; the managed MCP additionally has a real run in `evidence/deploy/judge-run.json`. |
+| **≥1 AWS service used** | | **AT RISK / effectively UNMET** | 0 of 12 `EXERCISED`. Bedrock invocation is `NOT_AUTHORIZED` (§3.3). Terraform unapplied. The only successful AWS calls this project can demonstrate are IAM/STS auth and the Bedrock *control plane* listing models. |
 
-### 3.5 CI cannot start — a referenced checker does not exist
+### One judgement call the founder should make consciously
 
-`.github/workflows/ci.yml` job `checkers` ("every checker this lane invokes exists")
-enumerates five programs and exits 1 if any is absent. **`scripts/qa/check_reuse.py` is
-not on disk.** The other four are.
+The root `LICENSE` is **Apache-2.0** and the substrate under `packages/` and `spec/` genuinely
+is Apache-2.0 — enforced, not asserted, by import-linter contract 1. But the **product**
+under `verticals/` and `infra/` is **FSL-1.1-ALv2**: source-available, converting to
+Apache-2.0 two years after each release, and *not* an OSI-approved open-source licence.
+That is 4 773 + 1 213 files by the REUSE census, against 886 Apache-2.0.
 
-```
-$ ./.venv/Scripts/python.exe scripts/qa/check_reuse.py
-can't open file '…\scripts\qa\check_reuse.py': [Errno 2] No such file or directory
-```
-
-Every substantive job — `lockfile`, `format`, `types`, `imports`, `reuse`,
-`hermetic-tests`, `sql-lint` — declares `needs: [checkers]`. **The entire pipeline is dead
-on arrival at the first job.** The REUSE gate, therefore, is the one static check in this
-report I could not run at all: the checker it names was never written.
-
-### 3.6 `git clone` fails on Windows below a shallow directory
-
-```
-$ git clone D:/CoackroachDBxAWS/mainline <deep-path>
-error: unable to create file verticals/mainline/apps/console/fixtures/bundles/blk-07/frames/
-        GET~20~2Fv1~2Fclauses~2F…~2Fancestry~3Fas_of~3D5f91…e576.json: Filename too long
-fatal: unable to checkout working tree
-warning: Clone succeeded, but checkout failed.
-```
-
-Longest tracked path: **214 characters**, in the console's URL-encoded fixture bundles.
-`core.longpaths` is unset. A clone into `D:/tc` succeeds cleanly (0 dirty files); a clone
-into a path of ~60 characters or more does not. A judge on Windows who clones into
-`C:\Users\<name>\Documents\projects\` gets a broken tree and no error they can act on.
+GitHub will report the repository as Apache-2.0 and the rule's letter ("a public repo with
+an open-source LICENSE file") is satisfied. A judge who opens `verticals/` and reads the
+headers may see it differently. `docs/submission/LICENSING.md` argues the position well and
+in good faith. **I am flagging it as a decision, not a defect** — but it should be a decision
+the founder has made on purpose, not one he discovers during judging.
 
 ---
 
-## 4 · NOT BUILT
+# 6 · The top three things to do next, in order
 
-### 4.1 The proof, the QA harness and two whole distributions are UNTRACKED
+## 1 — Deploy the demo, then flip the repo public
 
-`git status --porcelain` reports 58 paths. The untracked set is the finding:
+These are the only two Stage One pass/fail gates, and **deploying fixes three requirements
+at once**: requirement 2 (demo URL), requirement 6 (judge access becomes answerable), and
+the ≥1-AWS-service bar, which today is the weakest claim in the submission. Everything is
+ready: Terraform validates, the console builds, the Cloud database is seeded, the deploy
+scripts exist, and `docs/leads/deploy-plan.md` §2.3 prices the whole stack at
+**≈ $0.03/month, worst case < $1.00** — CloudFront and Lambda both inside perpetual free
+tiers, no custom domain, no DynamoDB lock table.
 
-```
-?? scripts/proof/          ← gate_refusal.py — `just prove`, the entire product claim
-?? scripts/qa/             ← doctor.py + all four QA checkers
-?? qa/                     ← the ruff / mypy / test-state ratchets
-?? conftest.py             ← the root conftest; --crdb wiring. Without it pytest cannot run
-?? LICENSES/               ← the REUSE licence texts
-?? packages/trappoint-testkit/                        ← a whole workspace distribution
-?? verticals/mainline/packages/mainline-gate-svc/     ← a whole workspace distribution
-?? verticals/mainline/packages/mainline-corpus/{pyproject.toml,README.md,src/…}
-?? docs/HONESTY.md · docs/release/ · evidence/gate-refusal/ · tests/release/
-?? .github/actions/ · .github/workflows/{cloud-verify,console,release-proof,supply-chain}.yml
-?? .env.example · .github/dependabot.yml
-```
+**The lowest-risk version of this is very small.** The Phase-1 static console is already
+built (`apps/console/dist/`) over an already-sealed, already-verified EvidenceBundle
+(§2.1). Getting a live HTTPS URL requires an S3 bucket, a CloudFront distribution and one
+`aws s3 sync` — no Lambda, no database in the request path, nothing that can fall over
+while a judge is looking at it. Do that **first**, today, and the Stage One gate is closed.
+Phase 2 (the live `/v1/demo/gate-run` Lambda against Cloud) is then an upgrade to a
+submission that already qualifies, not a prerequisite for one.
 
-Verified by cloning HEAD into a fresh directory:
+Order matters:
 
-```
-$ git clone D:/CoackroachDBxAWS/mainline /d/tc && ls /d/tc/scripts
-agents  custody  demo  grep_closure_readpath.py  mi_ratchet.py  recall
-```
+1. `terraform apply` in `infra/envs/demo` → S3 + CloudFront (+ Lambda for Phase 2).
+2. `python scripts/deploy/demo_acceptance.py` against the **real URL** until the verdict is
+   `PROVEN`, not `NOT PROVEN` against `127.0.0.1`.
+3. Write the URL into `docs/submission/SUBMISSION.json`, resolve the three `judge_access`
+   members, then `check_submission_ready.py --check-urls` from a machine that did not
+   deploy it.
+4. `python scripts/submission/audit_public_readiness.py` until it exits 0.
+5. `git add` the 89 untracked/modified paths (including `LICENSE`, which is *untracked*
+   today), commit, **push**, then flip visibility.
 
-No `qa/`. No `proof/`. The clone's `README.md` is a different, older document with **no
-"Four commands" section at all**, and its `justfile` has no `doctor` and no `prove`
-recipe. **The four commands the README promises do not exist in the repository the README
-would be read from.**
+Do not flip visibility before step 4. It is irreversible in practice.
 
-### 4.2 Five tables and their migrations
+Separately and in parallel: **enable Bedrock model access** in the console for account
+`022950218246`. It is one click, it costs nothing, and without it §3.3 stands.
 
-`mainline_ops.outbox`, `mainline.identity_assignment`, `mainline.patrol_run`,
-`mainline_meas.agent_action`, `mainline_meas.standing`. Consumers written, producers
-never. §1.1 and §1.5.
+## 2 — Fix `_world.py::clause_version` and re-run the census
 
-### 4.3 Migration `0207_v_safe_direction_current.sql`
+One function, in the test harness, gates 46 of 71 conformance cases. Rewrite the insert
+against the real `mainline.clause_version` — `canon_sha256` not `body_sha256`, plus the 12
+missing `NOT NULL` columns listed in §3.1 — then re-run
+`scripts/qa/run_conformance_census.py --build`.
 
-Claimed by `directrix.yaml`, asserted by nine tests, absent from the tree.
+This is the best return on effort in the whole repository: a few hours of work moves the
+headline conformance number from *10 of 71* to whatever the product actually deserves, and
+for the first time that number will be a statement about the product rather than about the
+harness. It will also expose the real product defects (§3.2, CF-60 and CF-63, where the
+gate **admits** writes it should refuse) instead of burying them under 46 harness errors.
 
-### 4.4 `mainline.fn_candidate_project`
+## 3 — Re-base `docs/HONESTY.md` on the evidence that landed, and green the release lane
 
-`0139_trg_candidate_project.sql` creates a trigger that calls it. The band never creates
-the function. Caught by
-`test_rc00_migration_shape.py::test_rc00g_a_trigger_function_only_names_columns_its_own_table_has`.
+The build is red right now, correctly, because `docs/HONESTY.md` says the conformance suite
+"has still not been demonstrated" and that `qa/conformance-census.json` "does not exist" —
+and both are now false. Rewrite those two sections around
+`qa/conformance-census.json` and `evidence/chain/chain-20260810T062542Z.json`, including the
+per-status totals and the named reason per cannot-run, exactly as the document's own
+`> Same deliberate breakage` note instructs.
 
-### 4.5 `scripts/qa/check_reuse.py`
+While in there, correct the two stale numbers this certification found: the chain is
+**271/271**, not 246/261; and the suite **has** been demonstrated, at 10/71.
 
-Named by CI as one of five mandatory checkers. §3.5.
-
-### 4.6 K2 evidence artefacts
-
-`evidence/k2-checkpoint-cadence.json` and `evidence/k2-migration-attestation.json`. The
-tests state the consequence themselves: *"the ~60 s window is an assumption"* and *"the
-migration attestation chain has never been computed"* — the latter is now false in
-substance (§1.2 computed it) and still true as an artefact.
-
----
-
-## 5 · The judge's first five minutes, as measured
-
-| step | working tree | fresh clone of HEAD |
-|---|---|---|
-| `git clone` | — | **fails on Windows** into any path ≳ 60 chars (§3.6) |
-| README makes sense | yes — four commands, an honest caveat block, a link to `docs/HONESTY.md` | **no** — README is an older document with no command section |
-| `just doctor` | `just` is not installed; `python scripts/qa/doctor.py` works | **file does not exist** |
-| `just up` | compose is valid; note the running node is `mainline-crdb`, compose names it `trappoint-crdb`, so `just sql` targets a container that is not the one running | compose present |
-| `just prove` | **works — exit 0, VERDICT PROVEN** (§1.3) | **file does not exist** |
-| `pytest` | 8,066 pass / 44 fail | **cannot collect — no root `conftest.py`** |
-| CI configured | 16 workflows, well structured, egress-hardened, `needs:` graph correct | **`ci.yml` untracked in part; `checkers` job fails on a missing file (§3.5)** |
-| `just conform` | exit 1, `0/71` | same |
-
-`README.md` is honest where it speaks. Its claim of *"246 of 261"* is **exactly right** —
-I measured 246/261. Its claim that *"the fifteen that fail are enumerated"* is right. Its
-claim that *"the conformance suite has not been demonstrated"* is right, and §2.1 puts
-numbers on it. The README's failure is not honesty; it is that **it is not in the
-repository.**
+Then take the cheap green: `ruff format . && ruff check --fix .` clears a large fraction of
+786; the 9 mypy errors are a morning; and `just lint-types` should be pointed at
+`scripts/qa/mypy_targets.py` so the gate checks 658 files instead of 27. Install `uv`, or
+give every `just` recipe the `.venv`-first fallback that `_conform` already has — a judge
+who runs `just test` should not meet `uv: command not found`.
 
 ---
 
-## 6 · What I would do next, in order
+# 7 · Appendix A — the test census
 
-1. **`git add` the untracked set and commit.** Nothing else in this document matters to a
-   judge until `scripts/proof/`, `scripts/qa/`, `conftest.py`, `qa/`, `LICENSES/`,
-   `trappoint-testkit` and `mainline-gate-svc` are in the repository. This is the highest
-   ratio of value to effort in the entire build.
-2. **Write `mainline_ops.outbox`** into an allocation-legal band. §1.5 shows the exact
-   column set and shows that it converts the proof from *refuse-with-a-caveat* to
-   *refuse → dispose → admit, unassisted*, and takes the chain from 246 to 248.
-3. **Write `scripts/qa/check_reuse.py`.** One missing file is holding the entire CI
-   pipeline at zero.
-4. **Fix `cases/_world.py::site_row`** (add `tenant_id`, `taxonomy_ver`, lower-case the
-   `site_code`), then the `clause_version` builder behind it. That is the door between a
-   corpus with 2 results and a corpus with results.
-5. **Make `trappoint-conform` load its own cases** and probe capability tokens from the
-   catalogue. A conformance CLI that cannot see 70 of its 71 implementations is not a
-   conformance CLI.
-6. **Decide the refusal-depth question with the number in hand.** Measured depth is 1 on
-   both paths (§1.4). The pre-committed response is *cut the mechanism, do not ship it*.
-   Either honour it, or amend the architecture's sentence to match the schema. Do not
-   leave the claim standing unmeasured — it is the one place where this repository's
-   prose currently outruns its evidence, and honesty is the moat.
-7. Regenerate `migrations.lock.json`; write `0207` or delete the claim that it exists;
-   add `__init__.py` to the colliding `tests/` directories.
+**Read this paragraph before any number in this appendix.** I launched
+`scripts/qa/report_test_state.py --pass both --dsn <local>` during this certification and it
+ran for the whole of it. It executes one pytest subprocess per target across two passes and
+writes `qa/test-state.json` only at the very end, so a run that has not finished produces no
+partial totals. At the time this document was written it had worked through all 13 package
+targets and the roots `tests/{agents,boundary,concurrency,e2e,eval}` and was inside
+**`tests/integration` under `--crdb=reuse`** — the one target that hit its wall-clock ceiling
+in the previous census and the slowest in the tree.
 
----
+**So the totals below are NOT from my run.** They are the last COMPLETE both-ways census —
+`qa/test-state.json`,
+`generated_utc 2026-08-09T22:44:59Z`, 2 414.6 s of wall clock, with the re-measures listed
+in `docs/release/test-state.md`. It is a real measurement of this repository, not an
+estimate, but it **predates today's producer wave**, and §7.1 says exactly where that
+matters. This is the one section of this document whose numbers I did not produce myself,
+and it is labelled as such rather than quietly presented as mine.
 
-## 7 · Reproducing every claim in this document
+**To finish the measurement**, re-run and let it complete:
 
 ```bash
-PY=./.venv/Scripts/python.exe
-ADMIN='postgresql://root@127.0.0.1:26257/defaultdb?sslmode=disable'
-
-# §1.1  the chain, via the real runner
-docker exec mainline-crdb ./cockroach sql --insecure \
-  -e "DROP DATABASE IF EXISTS proof_chain CASCADE; CREATE DATABASE proof_chain;
-      ALTER DATABASE proof_chain CONFIGURE ZONE USING gc.ttlseconds = 4500;"
-./.venv/Scripts/trappoint.exe migrate bootstrap --dsn '…/proof_chain'
-./.venv/Scripts/trappoint.exe migrate up --dsn '…/proof_chain' \
-    --tree mainline --migrations verticals/mainline/db/migrations
-
-# §1.2  the attestation chain
-./.venv/Scripts/trappoint.exe migrate attest --dsn '…/proof_chain'
-
-# §1.3  THE GATE
-$PY scripts/proof/gate_refusal.py --dsn "$ADMIN" --database proof_gate_final --keep
-
-# §1.6  static gates
-./.venv/Scripts/lint-imports.exe --config .importlinter
-./.venv/Scripts/mypy.exe --config-file mypy.ini \
-    packages/trappoint-migrate/src/trappoint_migrate \
-    packages/trappoint-conformance/src/trappoint_conformance
-./.venv/Scripts/trappoint.exe migrate lint \
-    --root packages/trappoint-sql/refvertical/sql \
-    --root verticals/mainline/db/migrations --root packages/trappoint-sql/templates
-
-# §1.7 / §3.4  the suite
-$PY -m pytest --crdb=none -q
-
-# §2.1  the corpus as shipped
-./.venv/Scripts/trappoint-conform.exe --profile mainline --list
-./.venv/Scripts/trappoint-conform.exe --dsn '…/conf_mainline' --profile mainline
-
-# §3.1–3.3  the red gates
-./.venv/Scripts/ruff.exe check . ; ./.venv/Scripts/ruff.exe format --check .
-./.venv/Scripts/mypy.exe --config-file mypy.ini $($PY scripts/qa/mypy_targets.py)
-./.venv/Scripts/trappoint.exe migrate lock
-
-# §4.1  the clone test
-git status --porcelain ; git clone D:/CoackroachDBxAWS/mainline /d/tc && ls /d/tc/scripts
+.venv/Scripts/python.exe scripts/qa/report_test_state.py --pass both \
+    --dsn 'postgresql://root@localhost:26257/defaultdb?sslmode=disable'
+# → qa/test-state.json + docs/release/test-state.md
 ```
 
-The unwelding harness (§1.4), the natural-path probe (§1.5), the outbox counterfactual
-(§1.5) and the conformance census (§2.1) were written for this run and left in the
-session scratchpad rather than committed, because they touch paths this agent does not
-own. Each is described here in enough detail to be rewritten in under an hour, and each
-reduces to primitives already in `scripts/proof/gate_refusal.py`
-(`_prepare_database`, `apply_chain`, `seed_history`, `attempt_merge`, `force_counter`,
-`sign_disposition`) plus `DROP TRIGGER permit_merge_gate ON mainline.permit` and
-`ALTER TABLE mainline.permit DROP CONSTRAINT gate_closed_when_issued`.
+| pass | targets | tests | passed | failed | errored | skipped | timed out |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| `--crdb=none` | 26 | **8 845** | 8 065 | **44** | 0 | 736 | 0 |
+| `--crdb=reuse` | 26 | **7 187** | 6 960 | **29** | **182** | 16 | 1 |
+
+**Zero collection errors in the hermetic pass** — the brief's "8 746 tests collecting with
+zero collection errors" is confirmed in kind, at 8 845.
+
+### Per target
+
+```
+target                                     n(none)    pass    fail |  n(clu)    pass    fail     err
+packages/mainline-agentkit                     129     129       0 |     129     129       0       0
+packages/mainline-boundary                      55      54       1 |      55      54       1       0
+packages/mainline-mcp                          147     147       0 |     147     147       0       0
+packages/trappoint-conformance                 207      24       0 |     207      24       0     182
+packages/trappoint-core                         56      56       0 |      56      56       0       0
+packages/trappoint-diagnose                    143     126       0 |     143     126      14       0
+packages/trappoint-jcs                          82      82       0 |      82      82       0       0
+packages/trappoint-ledger                      285     285       0 |     285     285       0       0
+packages/trappoint-migrate                     217     216       1 |     217     216       1       0
+packages/trappoint-model                        33      22       0 |      33      33       0       0
+packages/trappoint-sql                         131     131       0 |     131     131       0       0
+packages/trappoint-testkit                      28      26       0 |      28      28       0       0
+packages/trappoint-verify                       88      88       0 |      88      88       0       0
+tests/agents                                    54      54       0 |      54      54       0       0
+tests/boundary                                 122     115       1 |     122     115       1       0
+tests/concurrency                               36      20       0 |      36      35       0       0
+tests/e2e                                      967     967       0 |     967     967       0       0
+tests/eval                                     171     166       5 |     171     166       5       0
+tests/integration                             1658    1141      29 |       0       0       0       0
+tests/release                                  131     119       4 |     131     127       4       0
+tests/security                                 461     458       1 |     461     458       1       0
+tests/unit                                    3437    3432       2 |    3437    3432       2       0
+verticals/…/mainline-anchor                     59      59       0 |      59      59       0       0
+verticals/…/mainline-custody                    28      28       0 |      28      28       0       0
+verticals/…/mainline-gate-svc                   61      61       0 |      61      61       0       0
+verticals/…/mainline-sequencer                  59      59       0 |      59      59       0       0
+```
+
+## 7.1 Two rows in that table are now stale, and both moved in the right direction
+
+**`packages/trappoint-conformance`, 182 errored under the cluster pass.** That was the suite
+erroring against an unmigrated database instead of skipping — the defect
+`docs/HONESTY.md` describes. It is at least partly repaired: I ran the census to completion
+today against a migrated schema and it produced 71 statuses with **zero ERROR** (§1.3). The
+182 is the last reading of a condition that has since changed.
+
+**`tests/integration`, cluster pass, all zeros with `timed_out: true`.** That target hit the
+census's own wall-clock ceiling and was never measured under a cluster. Its `--crdb=none`
+row — 1 658 tests, 29 failed — is real; its cluster row is an absence, not a zero.
+
+**What is not stale:** the failures. 44 hermetic failures and 29 cluster failures are spread
+across `tests/eval` (5), `tests/release` (4), `tests/integration` (29 hermetic),
+`trappoint-diagnose` (14 cluster), `tests/unit` (2), and single failures in
+`mainline-boundary`, `trappoint-migrate`, `tests/boundary` and `tests/security`. **The suite
+is not green and no document should say it is.** One of the release failures is the
+deliberate honesty red in §1.4.
 
 ---
 
-**A truthful red is worth more than a fabricated green.** The gate is real; I broke it
-open and it held where it claims to hold and gave way exactly where its own comments say
-it gives way. The distance between this build and a defensible demonstration is a
-`git add`, one seven-column table, one missing checker script, and a world builder that
-knows what shape `mainline.site` is.
+# 8 · Appendix B — the conformance suite, per case
+
+All 71 cases from the run in §1.3, `run-id cert-final`, digest
+`sha256:e641fa2113f6112e9568b0814dc2b811992202eeaf0967b3b7498cfb06a9026b`.
+
+| case | status | why |
+|---|---|---|
+| `CF-01` | **FAIL** | expected 23514 gate_closed_when_issued, observed 23502 <no exhibit>. CF-01: expected 23514 on 'gate_closed_when_issued'; observed 23502 is o |
+| `CF-02` | **CANNOT RUN** | legal world could not be built at 'clause_version' — column "body_sha256" does not exist |
+| `CF-03` | **CANNOT RUN** | legal world could not be built at 'clause_version' — column "body_sha256" does not exist |
+| `CF-04` | **CANNOT RUN** | legal world could not be built at 'clause_version' — column "body_sha256" does not exist |
+| `CF-05` | **CANNOT RUN** | legal world could not be built at 'clause_version' — column "body_sha256" does not exist |
+| `CF-06` | **CANNOT RUN** | legal world could not be built at 'clause_version' — column "body_sha256" does not exist |
+| `CF-07` | **CANNOT RUN** | legal world could not be built at 'clause_version' — column "body_sha256" does not exist |
+| `CF-08` | **CANNOT RUN** | legal world could not be built at 'clause_version' — column "body_sha256" does not exist |
+| `CF-09` | **CANNOT RUN** | legal world could not be built at 'clause_version' — column "body_sha256" does not exist |
+| `CF-10` | **CANNOT RUN** | legal world could not be built at 'clause_version' — column "body_sha256" does not exist |
+| `CF-11` | **CANNOT RUN** | legal world could not be built at 'clause_version' — column "body_sha256" does not exist |
+| `CF-12` | **CANNOT RUN** | legal world could not be built at 'clause_version' — column "body_sha256" does not exist |
+| `CF-13` | **PASS** | refused exactly as the manifest requires |
+| `CF-14` | **PASS** | refused exactly as the manifest requires |
+| `CF-15` | **PASS** | refused exactly as the manifest requires |
+| `CF-16` | **PASS** | refused exactly as the manifest requires |
+| `CF-17` | **PASS** | refused exactly as the manifest requires |
+| `CF-18` | **CANNOT RUN** | legal world could not be built at 'clause_version' — column "body_sha256" does not exist |
+| `CF-19` | **CANNOT RUN** | legal world could not be built at 'clause_version' — column "body_sha256" does not exist |
+| `CF-20` | **CANNOT RUN** | legal world could not be built at 'clause_version' — column "body_sha256" does not exist |
+| `CF-21` | **CANNOT RUN** | legal world could not be built at 'clause_version' — column "body_sha256" does not exist |
+| `CF-22` | **CANNOT RUN** | legal world could not be built at 'clause_version' — column "body_sha256" does not exist |
+| `CF-23` | **CANNOT RUN** | legal world could not be built at 'clause_version' — column "body_sha256" does not exist |
+| `CF-24` | **CANNOT RUN** | legal world could not be built at 'clause_version' — column "body_sha256" does not exist |
+| `CF-25` | **CANNOT RUN** | legal world could not be built at 'clause_version' — column "body_sha256" does not exist |
+| `CF-26` | **CANNOT RUN** | legal world could not be built at 'clause_version' — column "body_sha256" does not exist |
+| `CF-27` | **CANNOT RUN** | legal world could not be built at 'clause_version' — column "body_sha256" does not exist |
+| `CF-28` | **CANNOT RUN** | legal world could not be built at 'clause_version' — column "body_sha256" does not exist |
+| `CF-29` | **CANNOT RUN** | legal world could not be built at 'clause_version' — column "body_sha256" does not exist |
+| `CF-30` | **CANNOT RUN** | legal world could not be built at 'clause_version' — column "body_sha256" does not exist |
+| `CF-31` | **CANNOT RUN** | legal world could not be built at 'clause_version' — column "body_sha256" does not exist |
+| `CF-32` | **CANNOT RUN** | legal world could not be built at 'clause_version' — column "body_sha256" does not exist |
+| `CF-33` | **CANNOT RUN** | legal world could not be built at 'clause_version' — column "body_sha256" does not exist |
+| `CF-34` | **CANNOT RUN** | legal world could not be built at 'clause_version' — column "body_sha256" does not exist |
+| `CF-35` | **CANNOT RUN** | legal world could not be built at 'clause_version' — column "body_sha256" does not exist |
+| `CF-36` | **CANNOT RUN** | legal world could not be built at 'clause_version' — column "body_sha256" does not exist |
+| `CF-37` | **CANNOT RUN** | legal world could not be built at 'clause_version' — column "body_sha256" does not exist |
+| `CF-38` | **CANNOT RUN** | legal world could not be built at 'clause_version' — column "body_sha256" does not exist |
+| `CF-39` | **PASS** | refused exactly as the manifest requires |
+| `CF-40` | **CANNOT RUN** | legal world could not be built at 'clause_version' — column "body_sha256" does not exist |
+| `CF-41` | **CANNOT RUN** | legal world could not be built at 'clause_version' — column "body_sha256" does not exist |
+| `CF-42` | **FAIL** | expected 23503 fk_check_version, observed P0001 mainline.fn_check_project (exhibit INFERRED from the message, not reported by the driver). C |
+| `CF-43` | **CANNOT RUN** | legal world could not be built at 'clause_version' — column "body_sha256" does not exist |
+| `CF-44` | **CANNOT RUN** | legal world could not be built at 'clause_version' — column "body_sha256" does not exist |
+| `CF-45` | **CANNOT RUN** | legal world could not be built at 'clause_version' — column "body_sha256" does not exist |
+| `CF-46` | **PASS** | refused exactly as the manifest requires |
+| `CF-47` | **CANNOT RUN** | legal world could not be built at 'clause_version' — column "body_sha256" does not exist |
+| `CF-48` | **PASS** | refused exactly as the manifest requires |
+| `CF-49` | **CANNOT RUN** | legal world could not be built at 'clause_version' — column "body_sha256" does not exist |
+| `CF-50` | **CANNOT RUN** | mainline.merge_conflict: relation "mainline.merge_conflict" does not exist (pg_class; schema "mainline" is present in database "prod_w9") |
+| `CF-51` | **CANNOT RUN** | mainline.discordance_warrant: relation "mainline.discordance_warrant" does not exist (pg_class; schema "mainline" is present in database "pr |
+| `CF-52` | **CANNOT RUN** | legal world could not be built at 'clause_version' — column "body_sha256" does not exist |
+| `CF-53` | **CANNOT RUN** | legal world could not be built at 'clause_version' — column "body_sha256" does not exist |
+| `CF-54` | **CANNOT RUN** | legal world could not be built at 'clause_version' — column "body_sha256" does not exist |
+| `CF-55` | **PASS** | refused exactly as the manifest requires |
+| `CF-56` | **CANNOT RUN** | legal world could not be built at 'clause_version' — column "body_sha256" does not exist |
+| `CF-57` | **CANNOT RUN** | mainline.recall_run: relation "mainline.recall_run" does not exist (pg_class; schema "mainline" is present in database "prod_w9") |
+| `CF-58` | **CANNOT RUN** | mainline.recall_run: relation "mainline.recall_run" does not exist (pg_class; schema "mainline" is present in database "prod_w9") |
+| `CF-59` | **CANNOT RUN** | legal world could not be built at 'commit a policy that has never been anchored' — at or near "_meas": syntax error DETAIL: source SQL: INSE |
+| `CF-60` | **FAIL** | expected 23514 no_orphan_controls, observed 00000 <no exhibit>. CF-60: the history COMPLETED. Expected 23514 on 'no_orphan_controls'. A gate |
+| `CF-61` | **CANNOT RUN** | mainline.frontier_move: relation "mainline.frontier_move" does not exist (pg_class; schema "mainline" is present in database "prod_w9") |
+| `CF-62` | **CANNOT RUN** | mainline.observed_assertion: relation "mainline.observed_assertion" does not exist (pg_class; schema "mainline" is present in database "prod |
+| `CF-63` | **FAIL** | expected 23505 ledger_leaf_pkey, observed 00000 <no exhibit>. CF-63: the history COMPLETED. Expected 23505 on 'ledger_leaf_pkey'. A gate tha |
+| `CF-64` | **CANNOT RUN** | mainline.propagation: relation "mainline.propagation" does not exist (pg_class; schema "mainline" is present in database "prod_w9") |
+| `CF-65` | **CANNOT RUN** | mainline.coverage_certificate: relation "mainline.coverage_certificate" does not exist (pg_class; schema "mainline" is present in database " |
+| `CF-66` | **CANNOT RUN** | legal world could not be built at 'clause_version' — column "body_sha256" does not exist |
+| `CF-67` | **FAIL** | expected 23514 witness_quorum, observed 42703 <no exhibit>. SCHEMA NOT MIGRATED — CF-67: expected 23514 on 'witness_quorum'; observed 42703  |
+| `CF-68` | **FAIL** | expected 23514 measure_policy_predates_data, observed 42601 <no exhibit>. CF-68: expected 23514 on 'measure_policy_predates_data'; observed  |
+| `CF-69` | **PASS** | refused exactly as the manifest requires |
+| `CF-70` | **CANNOT RUN** | legal world could not be built at 'clause_version' — column "body_sha256" does not exist |
+| `CF-71` | **CANNOT RUN** | legal world could not be built at 'clause_version' — column "body_sha256" does not exist |

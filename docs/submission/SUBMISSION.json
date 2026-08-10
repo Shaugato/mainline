@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "schema_documented_in": "docs/submission/RULES-MATRIX.md",
+  "read_by": [
+    "scripts/submission/check_submission_ready.py",
+    "docs/submission/RULES-MATRIX.md",
+    "docs/submission/RUNBOOK.md"
+  ],
+  "unresolved_sentinel": "UNRESOLVED",
+  "never_write_a_credential_here": "This file becomes world-readable the moment the repository is flipped public. judge_access.credentials_location is a POINTER to where a credential lives, never the credential itself. scripts/submission/check_submission_ready.py scans every value in this file and refuses if any of them is credential-shaped.",
+  "demo_url": "UNRESOLVED",
+  "repo_url": "UNRESOLVED",
+  "video_url": "UNRESOLVED",
+  "judge_access": {
+    "required": "UNRESOLVED",
+    "how": "UNRESOLVED",
+    "credentials_location": "UNRESOLVED"
+  },
+  "deadline_utc": "2026-08-18T21:00:00Z",
+  "deadline_local": "2026-08-18 17:00 EDT",
+  "devpost_description_file": "docs/submission/DEVPOST.md",
+  "tool_usage_file": "docs/TOOL-USAGE.md",
+  "disclosure_file": "docs/submission/DISCLOSURE.md",
+  "licence_file": "LICENSE"
+}

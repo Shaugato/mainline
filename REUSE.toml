@@ -1,0 +1,259 @@
+# REUSE.toml — the bulk licence map for MAINLINE / TRAPPOINT.
+#
+# REUSE Specification 3.3, <https://reuse.software/spec-3.3/>.
+#
+# WHY THIS FILE EXISTS. 7 120 files are tracked. 2 602 of them resolve a licence on their
+# own — an `SPDX-License-Identifier` comment in the file, or an adjacent `.license`
+# sidecar. The remaining 4 518 cannot: 4 461 of them are `.json`, and JSON has no comment
+# syntax. Writing 4 518 sidecar files to say three sentences each is not a licence map, it
+# is landfill. REUSE.toml states the same thing in one file that a human can read and a
+# checker can parse.
+#
+#   $ git ls-files | wc -l                     -> 7120
+#   $ python scripts/qa/check_reuse.py          (S02 — the CI-named checker)
+#
+# TWO SEMANTICS FROM THE SPEC GOVERN EVERY BLOCK BELOW. Both are quoted in
+# docs/submission/LICENSING.md.
+#
+#   1. `precedence = "closest"` (the default, and stated explicitly on every block here)
+#      means a file that carries its own header KEEPS it. Nothing in this file rewrites,
+#      relicenses or contradicts a single one of the 2 602 headers already on disk. These
+#      annotations only fill gaps.
+#
+#   2. "If a Covered File is covered by multiple [[annotations]] tables in the same
+#      REUSE.toml file, then exclusively the LAST matching table in the file is used."
+#      So the blocks run general-to-specific: broad trees first, narrower overrides after.
+#      Reordering this file changes its meaning.
+#
+# GLOBS. `*` matches anything except `/`. `**` matches anything including `/`.
+#
+# NOT COVERED, DELIBERATELY. `LICENSES/*.txt` carry no annotation. The spec exempts them:
+# "The License Files stored in the `LICENSES/` directory" are not Covered Files. They are
+# licence texts, not licensed material, and assigning the project's copyright to the
+# Apache Software Foundation's or Creative Commons' text would be false. That is 2 files
+# of the 4 518.
+#
+# The licence chosen for each tree is not invented here — it is the licence that tree's own
+# files already declare, counted. The census and the command that reproduces it are in
+# docs/submission/LICENSING.md.
+
+version = 1
+
+SPDX-PackageName = "mainline"
+SPDX-PackageSupplier = "MAINLINE contributors <https://github.com/Shaugato/mainline>"
+SPDX-PackageDownloadLocation = "https://github.com/Shaugato/mainline"
+
+# ======================================================================================
+# 1 · Root
+# ======================================================================================
+
+# The root `LICENSE` is a byte-identical copy of `LICENSES/Apache-2.0.txt`. It exists
+# because GitHub's licence detector reads `LICENSE` at the root and reads nothing else,
+# and an unmodified text is the only thing it will classify. It is the Apache Software
+# Foundation's text, so it carries the Apache Software Foundation's notice — not the
+# project's. `override` because the Apache text contains the string
+# "SPDX-License-Identifier: Apache-2.0" inside its own appendix boilerplate, and the file
+# is a licence text rather than a file licensed under one.
+[[annotations]]
+path = "LICENSE"
+precedence = "override"
+SPDX-FileCopyrightText = "2004 The Apache Software Foundation"
+SPDX-License-Identifier = "Apache-2.0"
+
+# Root build and tooling files follow the substrate licence, which is what the nine
+# header-carrying root files already declare (Apache-2.0=9).
+[[annotations]]
+path = [
+  ".gitignore",
+  ".env.example",
+  ".importlinter",
+  ".python-version",
+  "NOTICE",
+  "compose.yaml",
+  "conftest.py",
+  "justfile",
+  "mypy.ini",
+  "pyproject.toml",
+  "ruff.toml",
+  "uv.lock",
+]
+precedence = "closest"
+SPDX-FileCopyrightText = "2026 MAINLINE contributors"
+SPDX-License-Identifier = "Apache-2.0"
+
+# Root prose. `README.md` and `VERIFY.md` already declare CC-BY-4.0; `TRADEMARKS.md` is
+# the same kind of document and did not.
+[[annotations]]
+path = ["README.md", "VERIFY.md", "TRADEMARKS.md"]
+precedence = "closest"
+SPDX-FileCopyrightText = "2026 MAINLINE contributors"
+SPDX-License-Identifier = "CC-BY-4.0"
+
+# ======================================================================================
+# 2 · The substrate — Apache-2.0
+#
+# TRAPPOINT is the reusable layer and it is genuinely forkable. `packages/` declares
+# Apache-2.0 in 586 of 586 files that declare anything; `spec/` in 38 of 38; `skills/` in
+# 13 of 13; `scripts/` in 18 of 20. No file in `packages/` declares FSL.
+# ======================================================================================
+
+[[annotations]]
+path = [
+  "packages/**",
+  "spec/**",
+  "skills/**",
+  "scripts/**",
+  ".github/**",
+  ".claude-plugin/**",
+  ".hypothesis-corpus/**",
+  "mine_templates/**",
+  "out_trappoint_ref/**",
+]
+precedence = "closest"
+SPDX-FileCopyrightText = "2026 MAINLINE contributors"
+SPDX-License-Identifier = "Apache-2.0"
+
+# The comment-less file classes inside the substrate, named explicitly so that narrowing
+# the block above cannot silently drop them. `py.typed` is empty by definition (PEP 561),
+# `.json` has no comment syntax, and the JCS conformance vectors are byte-exact inputs
+# that must not gain a header.
+[[annotations]]
+path = [
+  "packages/**/*.json",
+  "packages/**/*.jsonl",
+  "packages/**/py.typed",
+  "packages/mainline-agentkit/tests/**",
+  "packages/trappoint-jcs/tests/vectors/**",
+]
+precedence = "closest"
+SPDX-FileCopyrightText = "2026 MAINLINE contributors"
+SPDX-License-Identifier = "Apache-2.0"
+
+# ======================================================================================
+# 3 · Documentation, evidence and quality state — CC-BY-4.0
+#
+# `docs/` declares CC-BY-4.0 in 26 of 26 files that declare anything; `evidence/` in 16 of
+# 17; `qa/` in 1 of 1. Evidence artefacts are records, not code: CC-BY-4.0 lets a judge or
+# an auditor quote and republish a proof bundle with attribution, which is the entire
+# point of publishing one.
+# ======================================================================================
+
+[[annotations]]
+path = ["docs/**", "qa/**", "evidence/**"]
+precedence = "closest"
+SPDX-FileCopyrightText = "2026 MAINLINE contributors"
+SPDX-License-Identifier = "CC-BY-4.0"
+
+# Submission-window namespaces. Some of these directories are still being written by other
+# workers in this fleet; a glob that matches nothing today is not an error, and it means
+# the files land already covered instead of landing red.
+[[annotations]]
+path = [
+  "docs/submission/**",
+  "docs/leads/**",
+  "evidence/tool-usage/**",
+  "evidence/provenance/**",
+  "evidence/ccloud/**",
+  "evidence/mutation/**",
+  "qa/*.json",
+]
+precedence = "closest"
+SPDX-FileCopyrightText = "2026 MAINLINE contributors"
+SPDX-License-Identifier = "CC-BY-4.0"
+
+# The quality ratchets are the exception inside `qa/`, and they are an exception this file
+# did not invent. `qa/mypy-ratchet.json` and `qa/test-state.json` carry the licence
+# IN BAND, as ordinary JSON keys:
+#
+#   $ head -c 200 qa/test-state.json
+#     "SPDX-FileCopyrightText": "2026 MAINLINE contributors",
+#     "SPDX-License-Identifier": "Apache-2.0",
+#
+# REUSE reads comment headers, not JSON keys, so a checker sees those two files as bare
+# and this file would otherwise hand them CC-BY-4.0 and contradict their own text.
+# `qa/ruff-ratchet.json` declares nothing at all and is their sibling. All three follow
+# the declaration the two that speak already made. This block must stay after the `qa/**`
+# block above; last matching table wins.
+[[annotations]]
+path = ["qa/*-ratchet.json", "qa/test-state.json"]
+precedence = "closest"
+SPDX-FileCopyrightText = "2026 MAINLINE contributors"
+SPDX-License-Identifier = "Apache-2.0"
+
+# ======================================================================================
+# 4 · The product — LicenseRef-FSL-1.1-ALv2
+#
+# MAINLINE, the permit-to-work vertical, is source-available under the Functional Source
+# License 1.1 with an Apache-2.0 future grant. `verticals/` declares FSL in 1 203 of the
+# 1 205 files that declare anything; `infra/` in 11 of 11.
+#
+# `LicenseRef-FSL-1.1-ALv2` is the spelling used here because FSL is not on the SPDX
+# licence list, and the spec requires a non-listed licence to use `LicenseRef-[idstring]`.
+# 1 163 files on disk use the bare spelling `FSL-1.1-ALv2` instead. Ruling L-1: both
+# filenames ship in `LICENSES/` holding byte-identical text, and the divergence is
+# published as a counted ratchet rather than repaired by a 1 163-file mass edit across
+# eight ownership domains. See docs/submission/LICENSING.md.
+# ======================================================================================
+
+[[annotations]]
+path = ["verticals/**", "infra/**", "out_mainline/**"]
+precedence = "closest"
+SPDX-FileCopyrightText = "2026 MAINLINE contributors"
+SPDX-License-Identifier = "LicenseRef-FSL-1.1-ALv2"
+
+# The bulk of the uncovered tree lives here: 4 369 of the 4 518 uncovered files are under
+# `verticals/`, and 4 303 of those are replay fixtures under
+# `verticals/mainline/fixtures/`. These are recorded request/response frames, ledger
+# checkpoints and captured SQL transcripts. They are byte-addressed by the console loader
+# and by the fixity checker, so not one of them may gain a header.
+[[annotations]]
+path = [
+  "verticals/**/*.json",
+  "verticals/**/*.jsonl",
+  "verticals/**/*.txt",
+  "verticals/**/*.note",
+  "verticals/**/*.html",
+  "verticals/**/py.typed",
+  "verticals/mainline/fixtures/**",
+  "verticals/mainline/apps/console/fixtures/**",
+  "verticals/mainline/demo/**",
+  "infra/policy/custody/fixtures/**",
+  "infra/policy/custody/**/*.json",
+]
+precedence = "closest"
+SPDX-FileCopyrightText = "2026 MAINLINE contributors"
+SPDX-License-Identifier = "LicenseRef-FSL-1.1-ALv2"
+
+# ======================================================================================
+# 5 · Tests — split, because the suite is split
+#
+# `tests/` is the one tree with no single answer: 375 files declare FSL, 92 declare
+# Apache-2.0 and 8 declare CC-BY-4.0. Substrate tests are Apache; tests that exercise the
+# MAINLINE vertical are FSL. The two blocks below reproduce that split by subtree rather
+# than flattening it to whichever number is larger.
+# ======================================================================================
+
+[[annotations]]
+path = [
+  "tests/**",
+  "tests/**/*.json",
+  "tests/**/*.jsonl",
+  "tests/**/*.txt",
+  "tests/fixtures/**",
+  "tests/unit/recall_fusion/**",
+  "tests/unit/recall_lexical/**",
+  "tests/eval/recall/**",
+]
+precedence = "closest"
+SPDX-FileCopyrightText = "2026 MAINLINE contributors"
+SPDX-License-Identifier = "Apache-2.0"
+
+# LAST BLOCK IN THE FILE, AND THAT IS LOAD-BEARING. `tests/unit/recall_cue/` declares
+# LicenseRef-FSL-1.1-ALv2 in 11 of 11 headers and `tests/integration/recall_index/`
+# declares FSL in 20 of 20. Their fixtures must follow their siblings, so this table must
+# stay after the Apache block above — last matching table wins.
+[[annotations]]
+path = ["tests/unit/recall_cue/**", "tests/integration/recall_index/**"]
+precedence = "closest"
+SPDX-FileCopyrightText = "2026 MAINLINE contributors"
+SPDX-License-Identifier = "LicenseRef-FSL-1.1-ALv2"

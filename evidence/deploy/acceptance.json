@@ -1,0 +1,436 @@
+{
+  "generated_at": "2026-08-10T04:51:06Z",
+  "mode": "phase2",
+  "mode_description": "the live stack: console, /v1/health, and two /v1/demo/gate-run calls against CockroachDB Cloud",
+  "url": "http://127.0.0.1:8731",
+  "tls_verified": true,
+  "verdict": "NOT PROVEN",
+  "failures": [
+    "POST /v1/demo/gate-run (run 1) returned 404, expected 200",
+    "POST /v1/demo/gate-run (run 2) returned 404, expected 200",
+    "fewer than two gate runs completed, so repeatability \u2014 the property that makes this demo safe for concurrent judges \u2014 was NOT established"
+  ],
+  "total_ms": 160.4,
+  "reachable": true,
+  "volatile_fields": [
+    "run_id",
+    "generated_at",
+    "observed_at",
+    "refusal_id",
+    "elapsed_ms",
+    "ms",
+    "seconds",
+    "opened_logical_timestamp",
+    "closed_logical_timestamp",
+    "disposition_id",
+    "clearance_digest",
+    "message"
+  ],
+  "expected_beats": [
+    {
+      "ordinal": 1,
+      "name": "read",
+      "outcome": "read",
+      "sqlstate": "00000",
+      "constraint": null,
+      "constraint_source": null,
+      "why": "the permit and its open obligation, read from the cluster"
+    },
+    {
+      "ordinal": 2,
+      "name": "merge",
+      "outcome": "refused",
+      "sqlstate": "23514",
+      "constraint": "gate_closed_when_issued",
+      "constraint_source": "reported",
+      "why": "a plain CHECK refuses the merge while an obligation is open"
+    },
+    {
+      "ordinal": 3,
+      "name": "projection_drift_attack",
+      "outcome": "refused",
+      "sqlstate": "P0001",
+      "constraint": "mainline.fn_permit_merge_gate",
+      "constraint_source": "parsed",
+      "why": "the counter is forged to zero and the gate refuses anyway, by re-deriving it"
+    },
+    {
+      "ordinal": 4,
+      "name": "admit",
+      "outcome": "admitted",
+      "sqlstate": "00000",
+      "constraint": null,
+      "constraint_source": null,
+      "why": "one signed disposition, and the same merge succeeds \u2014 a gate that always refuses is broken"
+    }
+  ],
+  "checks": {
+    "console": {
+      "url": "http://127.0.0.1:8731/",
+      "status": 200,
+      "ms": 9.9,
+      "bytes": 4655,
+      "content_type": "text/html",
+      "html_markers": [
+        "<html",
+        "<!doctype html",
+        "<div id=\"root\"",
+        "<script"
+      ]
+    },
+    "health": {
+      "url": "http://127.0.0.1:8731/v1/health",
+      "status": 200,
+      "ms": 22.0,
+      "bytes": 326,
+      "content_type": "application/json; charset=utf-8",
+      "cluster_version": "CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)",
+      "database": "w_w10_judge_and_acceptance",
+      "schema_fingerprint": "8cb8a7244a2750dedd8cfd35ba7adb686be981fd5cbba4ea09e29895304a5f03",
+      "migrations_applied": 0,
+      "server_date": "2026-08-10T04:51:06.805751Z",
+      "ok": true
+    },
+    "gate_runs": [
+      {
+        "run": 1,
+        "url": "http://127.0.0.1:8731/v1/demo/gate-run",
+        "status": 404,
+        "ms": 2.4,
+        "bytes": 599,
+        "content_type": "application/json; charset=utf-8",
+        "body": "{\"error\":{\"declared\":[\"/v1/audit\",\"/v1/change-requests/{cr_id}\",\"/v1/checks/{check_id}/disposition\",\"/v1/clauses/{clause_uuid}/ancestry\",\"/v1/clauses/{clause_uuid}/versions/{commit_id}\",\"/v1/ledger\",\"/v1/lessons/{lesson_id}/propagation\",\"/v1/permits/{permit_id}\",\"/v1/permits/{permit_id}/blocking-checks\",\"/v1/permits/{permit_id}/checks:materialise\",\"/v1/permits/{permit_id}/merge\",\"/v1/permits/{permit_id}/silence\",\"/v1/permits/{permit_id}/suspend\",\"/v1/recall-runs/{run_id}\",\"/v1/receipts/{receipt_id}\"],\"detail\":\"no resource is declared at POST /v1/demo/gate-run\",\"kind\":\"no_route\",\"status\":404}}"
+      },
+      {
+        "run": 2,
+        "url": "http://127.0.0.1:8731/v1/demo/gate-run",
+        "status": 404,
+        "ms": 2.3,
+        "bytes": 599,
+        "content_type": "application/json; charset=utf-8",
+        "body": "{\"error\":{\"declared\":[\"/v1/audit\",\"/v1/change-requests/{cr_id}\",\"/v1/checks/{check_id}/disposition\",\"/v1/clauses/{clause_uuid}/ancestry\",\"/v1/clauses/{clause_uuid}/versions/{commit_id}\",\"/v1/ledger\",\"/v1/lessons/{lesson_id}/propagation\",\"/v1/permits/{permit_id}\",\"/v1/permits/{permit_id}/blocking-checks\",\"/v1/permits/{permit_id}/checks:materialise\",\"/v1/permits/{permit_id}/merge\",\"/v1/permits/{permit_id}/silence\",\"/v1/permits/{permit_id}/suspend\",\"/v1/recall-runs/{run_id}\",\"/v1/receipts/{receipt_id}\"],\"detail\":\"no resource is declared at POST /v1/demo/gate-run\",\"kind\":\"no_route\",\"status\":404}}"
+      }
+    ]
+  },
+  "advisories": [
+    "/v1/health reports migrations_applied=0. trappoint.schema_migration is empty on this database \u2014 the appliers do not record into it \u2014 so this number contradicts the 271-file chain the submission describes. The schema fingerprint above is the trustworthy identifier; this counter is not."
+  ],
+  "note": "NO CLOUDFRONT URL EXISTS. Terraform has never been applied (infra/envs/demo holds no state; no *.cloudfront.net hostname appears anywhere outside a placeholder). This run targets a local shim serving the REAL, UNMODIFIED demo-api Lambda handler and the REAL console dist over http, against a scratch database carrying the full 271-file chain and w2's demo seed. It is the truthful state of the deployment path on 2026-08-10 and it is RED. Three blockers, all outside this worker's files: (1) POST /v1/demo/gate-run is not routed in app.py so it 404s - w4 documents this as a known gap, w3 owns the route table; (2) scenario.resolve() unpacks its row as an 8-tuple while db.connection() sets row_factory=dict_row, so through the app's own connection the endpoint raises InvalidTextRepresentation on the string 'check_id'; (3) scenario.py defaults permit_id to 077a6fdd-2167-559c-b2ff-8e3c8352504d while seed_demo.py seeds dec0de00-0006-4000-8000-000000000001 on both the scratch database AND the live Cloud database, so the API cannot find its own subject without MAINLINE_DEMO_PERMIT_ID. See corroborating_run: with those three worked around, this same prover returned PROVEN on all four beats, twice, persisted=false. The acceptance gate is correct; the deployment is not ready.",
+  "corroborating_run": {
+    "generated_at": "2026-08-10T04:51:06Z",
+    "mode": "phase2",
+    "mode_description": "the live stack: console, /v1/health, and two /v1/demo/gate-run calls against CockroachDB Cloud",
+    "url": "http://127.0.0.1:8733",
+    "tls_verified": true,
+    "verdict": "PROVEN",
+    "failures": [],
+    "total_ms": 2340.8,
+    "reachable": true,
+    "volatile_fields": [
+      "run_id",
+      "generated_at",
+      "observed_at",
+      "refusal_id",
+      "elapsed_ms",
+      "ms",
+      "seconds",
+      "opened_logical_timestamp",
+      "closed_logical_timestamp",
+      "disposition_id",
+      "clearance_digest",
+      "message"
+    ],
+    "expected_beats": [
+      {
+        "ordinal": 1,
+        "name": "read",
+        "outcome": "read",
+        "sqlstate": "00000",
+        "constraint": null,
+        "constraint_source": null,
+        "why": "the permit and its open obligation, read from the cluster"
+      },
+      {
+        "ordinal": 2,
+        "name": "merge",
+        "outcome": "refused",
+        "sqlstate": "23514",
+        "constraint": "gate_closed_when_issued",
+        "constraint_source": "reported",
+        "why": "a plain CHECK refuses the merge while an obligation is open"
+      },
+      {
+        "ordinal": 3,
+        "name": "projection_drift_attack",
+        "outcome": "refused",
+        "sqlstate": "P0001",
+        "constraint": "mainline.fn_permit_merge_gate",
+        "constraint_source": "parsed",
+        "why": "the counter is forged to zero and the gate refuses anyway, by re-deriving it"
+      },
+      {
+        "ordinal": 4,
+        "name": "admit",
+        "outcome": "admitted",
+        "sqlstate": "00000",
+        "constraint": null,
+        "constraint_source": null,
+        "why": "one signed disposition, and the same merge succeeds \u2014 a gate that always refuses is broken"
+      }
+    ],
+    "checks": {
+      "console": {
+        "url": "http://127.0.0.1:8733/",
+        "status": 200,
+        "ms": 31.8,
+        "bytes": 4655,
+        "content_type": "text/html",
+        "html_markers": [
+          "<html",
+          "<!doctype html",
+          "<div id=\"root\"",
+          "<script"
+        ]
+      },
+      "health": {
+        "url": "http://127.0.0.1:8733/v1/health",
+        "status": 200,
+        "ms": 25.9,
+        "bytes": 326,
+        "content_type": "application/json; charset=utf-8",
+        "cluster_version": "CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)",
+        "database": "w_w10_judge_and_acceptance",
+        "schema_fingerprint": "8cb8a7244a2750dedd8cfd35ba7adb686be981fd5cbba4ea09e29895304a5f03",
+        "migrations_applied": 0,
+        "server_date": "2026-08-10T04:51:04.156493Z",
+        "ok": true
+      },
+      "gate_runs": [
+        {
+          "run": 1,
+          "url": "http://127.0.0.1:8733/v1/demo/gate-run",
+          "status": 200,
+          "ms": 1104.1,
+          "bytes": 9900,
+          "content_type": "application/json",
+          "envelope_version": 1,
+          "staged": false,
+          "verdict": "PROVEN",
+          "persisted": false,
+          "outcome": "completed",
+          "beats": [
+            {
+              "ordinal": 1,
+              "name": "read",
+              "label": "The permit, and the obligation that is still open on it.",
+              "outcome": "read",
+              "sqlstate": "00000",
+              "constraint": null,
+              "constraint_source": null,
+              "matched_expectation": true,
+              "message": null,
+              "ms": 0.009,
+              "expected": {
+                "outcome": "read",
+                "sqlstate": "00000",
+                "constraint": null,
+                "constraint_source": null
+              },
+              "why_it_matters": "the permit and its open obligation, read from the cluster",
+              "present": true
+            },
+            {
+              "ordinal": 2,
+              "name": "merge",
+              "label": "MERGE the permit. One open obligation, no signed disposition.",
+              "outcome": "refused",
+              "sqlstate": "23514",
+              "constraint": "gate_closed_when_issued",
+              "constraint_source": "reported",
+              "matched_expectation": true,
+              "message": "failed to satisfy CHECK constraint ((state != 'merged':::mainline.subject_state) OR (open_blocking = 0:::INT8))",
+              "ms": 361.372,
+              "expected": {
+                "outcome": "refused",
+                "sqlstate": "23514",
+                "constraint": "gate_closed_when_issued",
+                "constraint_source": "reported"
+              },
+              "why_it_matters": "a plain CHECK refuses the merge while an obligation is open",
+              "present": true
+            },
+            {
+              "ordinal": 3,
+              "name": "projection_drift_attack",
+              "label": "THE ATTACK: force the projected counter to zero out of band, then merge again.",
+              "outcome": "refused",
+              "sqlstate": "P0001",
+              "constraint": "mainline.fn_permit_merge_gate",
+              "constraint_source": "parsed",
+              "matched_expectation": true,
+              "message": "MAINLINE: merge refused by mainline.fn_permit_merge_gate \u2014 re-derived open obligation count is 1 while the projected counter reads zero",
+              "ms": 361.211,
+              "expected": {
+                "outcome": "refused",
+                "sqlstate": "P0001",
+                "constraint": "mainline.fn_permit_merge_gate",
+                "constraint_source": "parsed"
+              },
+              "why_it_matters": "the counter is forged to zero and the gate refuses anyway, by re-deriving it",
+              "present": true
+            },
+            {
+              "ordinal": 4,
+              "name": "admit",
+              "label": "Sign one disposition against the obligation, then merge again.",
+              "outcome": "admitted",
+              "sqlstate": "00000",
+              "constraint": null,
+              "constraint_source": null,
+              "matched_expectation": true,
+              "message": null,
+              "ms": 328.3,
+              "expected": {
+                "outcome": "admitted",
+                "sqlstate": "00000",
+                "constraint": null,
+                "constraint_source": null
+              },
+              "why_it_matters": "one signed disposition, and the same merge succeeds \u2014 a gate that always refuses is broken",
+              "present": true
+            }
+          ],
+          "persistence_identical": true,
+          "persistence_tables": 10,
+          "single_transaction": true
+        },
+        {
+          "run": 2,
+          "url": "http://127.0.0.1:8733/v1/demo/gate-run",
+          "status": 200,
+          "ms": 1061.7,
+          "bytes": 9902,
+          "content_type": "application/json",
+          "envelope_version": 1,
+          "staged": false,
+          "verdict": "PROVEN",
+          "persisted": false,
+          "outcome": "completed",
+          "beats": [
+            {
+              "ordinal": 1,
+              "name": "read",
+              "label": "The permit, and the obligation that is still open on it.",
+              "outcome": "read",
+              "sqlstate": "00000",
+              "constraint": null,
+              "constraint_source": null,
+              "matched_expectation": true,
+              "message": null,
+              "ms": 0.009,
+              "expected": {
+                "outcome": "read",
+                "sqlstate": "00000",
+                "constraint": null,
+                "constraint_source": null
+              },
+              "why_it_matters": "the permit and its open obligation, read from the cluster",
+              "present": true
+            },
+            {
+              "ordinal": 2,
+              "name": "merge",
+              "label": "MERGE the permit. One open obligation, no signed disposition.",
+              "outcome": "refused",
+              "sqlstate": "23514",
+              "constraint": "gate_closed_when_issued",
+              "constraint_source": "reported",
+              "matched_expectation": true,
+              "message": "failed to satisfy CHECK constraint ((state != 'merged':::mainline.subject_state) OR (open_blocking = 0:::INT8))",
+              "ms": 343.995,
+              "expected": {
+                "outcome": "refused",
+                "sqlstate": "23514",
+                "constraint": "gate_closed_when_issued",
+                "constraint_source": "reported"
+              },
+              "why_it_matters": "a plain CHECK refuses the merge while an obligation is open",
+              "present": true
+            },
+            {
+              "ordinal": 3,
+              "name": "projection_drift_attack",
+              "label": "THE ATTACK: force the projected counter to zero out of band, then merge again.",
+              "outcome": "refused",
+              "sqlstate": "P0001",
+              "constraint": "mainline.fn_permit_merge_gate",
+              "constraint_source": "parsed",
+              "matched_expectation": true,
+              "message": "MAINLINE: merge refused by mainline.fn_permit_merge_gate \u2014 re-derived open obligation count is 1 while the projected counter reads zero",
+              "ms": 365.973,
+              "expected": {
+                "outcome": "refused",
+                "sqlstate": "P0001",
+                "constraint": "mainline.fn_permit_merge_gate",
+                "constraint_source": "parsed"
+              },
+              "why_it_matters": "the counter is forged to zero and the gate refuses anyway, by re-deriving it",
+              "present": true
+            },
+            {
+              "ordinal": 4,
+              "name": "admit",
+              "label": "Sign one disposition against the obligation, then merge again.",
+              "outcome": "admitted",
+              "sqlstate": "00000",
+              "constraint": null,
+              "constraint_source": null,
+              "matched_expectation": true,
+              "message": null,
+              "ms": 303.459,
+              "expected": {
+                "outcome": "admitted",
+                "sqlstate": "00000",
+                "constraint": null,
+                "constraint_source": null
+              },
+              "why_it_matters": "one signed disposition, and the same merge succeeds \u2014 a gate that always refuses is broken",
+              "present": true
+            }
+          ],
+          "persistence_identical": true,
+          "persistence_tables": 10,
+          "single_transaction": true
+        }
+      ],
+      "repeatability": {
+        "compared": "stable projection of the two runs",
+        "identical": true,
+        "volatile_fields_excluded": [
+          "run_id",
+          "generated_at",
+          "observed_at",
+          "refusal_id",
+          "elapsed_ms",
+          "ms",
+          "seconds",
+          "opened_logical_timestamp",
+          "closed_logical_timestamp",
+          "disposition_id",
+          "clearance_digest",
+          "message"
+        ],
+        "clearance_digest_run_1": "9fbb48c8bc96eea3bdfd1bf4ad8cb17f197e3564940cfd10a27a91b982645bae",
+        "clearance_digest_run_2": "9482849b5d28990a9fc2267173891fddb071f5e3fe5db4461856624a9ba049c9",
+        "clearance_digest_stable": false,
+        "note": "The digest is OBSERVED, not asserted: it is computed over the sorted (check_id, disposition_id) set and the disposition is inserted fresh inside each run, so two runs may legitimately differ. A difference here is not a failure; a difference in the stable projection is."
+      }
+    },
+    "advisories": [
+      "/v1/health reports migrations_applied=0. trappoint.schema_migration is empty on this database \u2014 the appliers do not record into it \u2014 so this number contradicts the 271-file chain the submission describes. The schema fingerprint above is the trustworthy identifier; this counter is not."
+    ],
+    "note": "CORROBORATING RUN. Same prover, same real handler and console dist, same scratch database, with the three blockers named in the primary run worked around at the harness: the missing route supplied by calling handle_transition('demo_gate_run',...) exactly as w4 documents it is reachable today; a tuple-row psycopg connection in place of db.connection()'s dict_row; and MAINLINE_DEMO_PERMIT_ID set to the permit w2 actually seeded. Nothing in the payload is fabricated - every SQLSTATE, constraint name and clearance digest below came from CockroachDB.",
+    "_embedded_from": "C:\\Users\\shaug\\AppData\\Local\\Temp\\claude\\D--CoackroachDBxAWS\\b1150179-8ec5-4ec7-bdfb-3da356eb4402\\scratchpad\\accept-fixed.json",
+    "_this_is_not_the_verdict": "This block is a SEPARATE run, embedded for reference. The verdict of the run this file documents is the top-level `verdict` key."
+  }
+}

@@ -25,13 +25,57 @@ It captures THREE outcomes, and all three are load-bearing:
 The third is not decoration.  **A gate that always refuses is a broken gate, not a
 safe one**, and a proof that only shows a refusal has not distinguished the two.
 
+AND BEFORE ALL THREE: WHO DID THE WORK
+--------------------------------------
+A refusal is only as good as the projection it refused against, so the run opens by
+measuring the projection itself rather than assuming it.  ``mainline.permit`` is read
+IMMEDIATELY BEFORE and IMMEDIATELY AFTER the single ``INSERT INTO
+mainline.blocking_check``, and ``mainline_ops.outbox`` is read back for the row the
+trigger emitted.  Every clause of the sentence
+
+    *the trigger projected the counter, emitted the CDC signal, bumped the epoch,
+    and the gate refused*
+
+is therefore a value in :data:`~evidence` ``projection`` — ``open_blocking`` 0 → 1,
+``gate_epoch`` 0 → 1, one ``mainline_ops.outbox`` row whose ``kind`` is
+``check_opened`` and whose ``subject_id`` is the ``check_id`` — and each is an
+ASSERTION that can turn the verdict red, not a field that is merely populated.  If
+the trigger is absent, if the outbox row is missing, or if the epoch did not move,
+the verdict is ``NOT PROVEN`` and ``projection.assertions`` says which clause failed.
+
+The ``max_severity`` on that row is the sharpest of them.  This script inserts the
+blocking check with ``severity = 0``; ``fn_check_project`` (BEFORE INSERT, 0120)
+overwrites it from ``clause_blame_current``; ``fn_check_materialised`` (AFTER INSERT,
+0121) then copies ``(NEW).severity`` into the outbox row.  A signal carrying ``4``
+where the client wrote ``0`` is the projection ordering demonstrated, not asserted.
+
 WHAT THIS SCRIPT WILL NOT DO
 ----------------------------
-It will not create a table that has no migration.  Five tables in this tree have
-consumers but no producer (see :data:`UNPRODUCED_TABLES`); their consumer migrations
-fail, and this script RECORDS each failure with its file name and SQLSTATE rather
-than inventing a number the allocation table has not granted.  A recorded gap is a
-finding.  An invented table is a lie about what the schema is.
+It will not create a table that has no migration, and for most of this repository's
+life that refusal had a visible cost.  Five tables had consumers and no producer —
+``mainline_ops.outbox``, ``mainline.identity_assignment``, ``mainline.patrol_run``,
+``mainline_meas.agent_action``, ``mainline_meas.standing`` — fifteen consumer
+migrations failed because of them, and this script RECORDED each failure with its
+file name and SQLSTATE rather than inventing a number the allocation table had not
+granted.  A recorded gap is a finding; an invented table is a lie about what the
+schema is.
+
+**They were authored on 2026-08-10 by the producer-completion wave**, in the numbers
+four already-committed artefacts had fixed for them (each consumer's ``requires:``
+header, ``GRANTS.yaml``'s ``since:``, ARCHITECTURE.md §18, ``RLS-MATRIX.yaml``):
+``0049d`` ``identity_assignment`` · ``0089`` ``agent_action`` · ``0090``
+``patrol_run`` · ``0099`` ``outbox``, plus two gaps no census could see because
+CockroachDB names only the FIRST absent relation in a statement — ``0089a``
+``person_measure_policy`` (shadowed by ``standing`` in both views that join it) and
+``0099a`` ``site_register_signal`` (named only by an RLS negative assertion) — and
+three append-only welds at ``0145f`` / ``0149a`` / ``0149b``.  ``mainline_ops.outbox``
+deliberately gets NO weld: it is the one row-level-TTL table in ``mainline_ops``, and
+a ``BEFORE DELETE`` refusal would make the TTL job fail forever.
+
+:data:`UNPRODUCED_TABLES` is therefore now empty, and that is a RATCHET rather than
+tidiness: :func:`apply_chain` classifies a failure as *explained* only when it is
+attributable to a listed table, so an empty tuple turns any residual failure into
+``chain.failures_unexplained``, which is a hard NOT PROVEN.
 
 It also does not stop at the first failing migration.  ``trappoint migrate up`` is
 forward-only and halts on the first refusal — correct for a deployment, useless for a
@@ -50,10 +94,10 @@ Usage::
 
 Exit codes:
 
-* ``0`` — the claim is proven: the chain reached the gate, both refusals were captured
-  with the SQLSTATE and exhibit the conformance manifest fixes, the admission
-  succeeded, and every migration that did not apply is attributable to one of the
-  enumerated unproduced tables.
+* ``0`` — the claim is proven: the chain applied in full, the projection was performed
+  by the trigger and read back from ``mainline_ops.outbox``, both refusals were
+  captured with the SQLSTATE and exhibit the conformance manifest fixes, and the
+  admission succeeded.
 * ``1`` — the claim is NOT proven.  The evidence file is still written, and it says
   which half failed.  **Publish it.**
 * ``2`` — the invocation was wrong, or there was no database to talk to.  Distinct
@@ -86,26 +130,36 @@ EXIT_NOT_PROVEN = 1
 EXIT_USAGE = 2
 
 # ─────────────────────────────────────────────────────────────────────────────────────
-# THE ENUMERATED GAPS
+# THE ENUMERATED GAPS — NOW EMPTY, AND THAT IS THE RATCHET
 #
-# Five tables have consumers in this tree and no producer. `grep -lE "CREATE
-# TABLE[^;]*<name>"` over verticals/mainline/db/migrations returns empty for every one.
-# They are listed here so that a migration failing because one of them is absent is
-# CLASSIFIED rather than merely counted — and so that the day one of them gains a
-# migration, this list shrinks in a reviewable diff instead of a failure quietly
-# changing category.
+# This tuple used to name five tables with consumers and no producer. A migration that
+# failed because one of them was absent was CLASSIFIED rather than merely counted, so
+# that the day a producer landed, the list would shrink in a reviewable diff instead of
+# a failure quietly changing category.
 #
-# They are NOT created here. A new table takes a number from a band whose owner and
-# mode match in verticals/mainline/db/migrations.allocation.toml, and this worker owns
-# no band. Recording the gap is the honest move; minting a number is not.
+# That day was 2026-08-10. Seven producers were authored — the five below plus
+# `mainline_meas.person_measure_policy` and `mainline_ops.site_register_signal`, which
+# no SQLSTATE census could see because CockroachDB names only the first absent relation
+# in a statement — and the list is now empty:
+#
+#     mainline_ops.outbox            -> 0099_outbox.sql
+#     mainline.identity_assignment   -> 0049d_identity_assignment.sql
+#     mainline.patrol_run            -> 0090_patrol_run.sql
+#     mainline_meas.agent_action     -> 0089_agent_action.sql
+#     mainline_meas.standing         -> 0089b_standing.sql
+#
+# An EMPTY tuple is strictly stronger than a populated one. `_classify` can no longer
+# return "unproduced_dependency" for anything, so every residual failure lands in
+# `chain.failures_unexplained`, and a non-empty `failures_unexplained` is a hard NOT
+# PROVEN. The tolerance this proof used to extend to fifteen known-bad files is gone;
+# nothing is forgiven any more.
+#
+# If a future tree acquires a genuine gap, the honest move is unchanged: record it here
+# so the failure is named, never create the table from this script. A new table takes a
+# number from a band whose owner and mode match in
+# verticals/mainline/db/migrations.allocation.toml, and this worker owns no band.
 # ─────────────────────────────────────────────────────────────────────────────────────
-UNPRODUCED_TABLES: tuple[str, ...] = (
-    "mainline_ops.outbox",
-    "mainline.identity_assignment",
-    "mainline.patrol_run",
-    "mainline_meas.agent_action",
-    "mainline_meas.standing",
-)
+UNPRODUCED_TABLES: tuple[str, ...] = ()
 
 #: The gate objects. If any of these is absent the proof is not merely red, it is
 #: unanswerable, and saying so is different from saying the gate admitted the merge.
@@ -124,6 +178,25 @@ GATE_OBJECTS: tuple[tuple[str, str, str], ...] = (
 #: for; every other case belongs to `trappoint-conform`.
 CF01_SQLSTATE, CF01_EXHIBIT = "23514", "gate_closed_when_issued"
 CF03_SQLSTATE, CF03_EXHIBIT = "P0001", "mainline.fn_permit_merge_gate"
+
+#: The projection under test. `0121_trg_check_materialised.sql` welds
+#: `mainline.fn_check_materialised` (0101) to `mainline.blocking_check` AFTER INSERT;
+#: the function bumps two counters on the gated subject and emits ONE row into the
+#: deployment's single CDC-query source. Each name here is read back from the live
+#: catalogue or the live row, never assumed.
+PROJECTION_TRIGGER = "check_materialised"
+PROJECTION_TABLE_SCHEMA, PROJECTION_TABLE_NAME = "mainline", "blocking_check"
+PROJECTION_FUNCTION = "mainline.fn_check_materialised"
+COUNTER_SOURCE_TRIGGER = f"trigger {PROJECTION_TRIGGER} -> {PROJECTION_FUNCTION}"
+OUTBOX_SCHEMA, OUTBOX_TABLE = "mainline_ops", "outbox"
+OUTBOX_KIND = "check_opened"
+
+#: The client writes this severity into `mainline.blocking_check`; `fn_check_project`
+#: (BEFORE INSERT, 0120) overwrites it from `clause_blame_current` before
+#: `fn_check_materialised` (AFTER INSERT, 0121) copies it into the outbox row. An
+#: emitted `max_severity` that still reads this value would mean the BEFORE trigger did
+#: not run, which is a different defect from the AFTER trigger not running.
+CLIENT_SUPPLIED_SEVERITY = 0
 
 #: `spec/errors.md` §3.1: `diag.constraint_name` is empty for P0001, so the exhibit is
 #: recovered from the message the raising body wrote. Recorded as `parsed` rather than
@@ -296,6 +369,13 @@ def _discover(migrations: Path) -> list[Path]:
 
 
 def _classify(message: str) -> tuple[str, str | None]:
+    """Attribute a migration failure to an enumerated gap, or call it unexplained.
+
+    With :data:`UNPRODUCED_TABLES` empty the loop below cannot match, so every failure
+    is now ``unexplained`` and therefore fatal. The loop is kept rather than deleted
+    because the mechanism is the point: the day a real gap has to be recorded again,
+    naming it in one tuple restores the classification without touching this function.
+    """
     lowered = message.lower()
     for table in UNPRODUCED_TABLES:
         schema, _, name = table.partition(".")
@@ -446,6 +526,12 @@ class History:
     merged_commit: bytes
     counter_source: str
     projection_trigger_present: bool
+    #: What the trigger did, measured on both sides of the one INSERT that fires it.
+    #: Built by :func:`_capture_projection` and published as the top-level ``projection``
+    #: block by :func:`evaluate_projection`; deliberately NOT folded into
+    #: :meth:`as_json`, because a claim that can fail the verdict belongs at the top
+    #: level of the evidence rather than inside a bag of identifiers.
+    projection: dict[str, Any] = field(default_factory=dict)
 
     def as_json(self) -> dict[str, Any]:
         return {
@@ -466,7 +552,278 @@ class History:
         }
 
 
-def seed_history(conn: psycopg.Connection[Any]) -> History:
+# ─────────────────────────────────────────────────────────────────────────────────────
+# THE PROJECTION, MEASURED
+#
+# Every read below is deliberately narrow and deliberately guarded. The seed runs inside
+# ONE SERIALIZABLE transaction, and on CockroachDB an error inside a transaction poisons
+# it — so a `SELECT` against a table that might not exist would take the whole seed down
+# and report the absence of a table as "the history could not be seeded". Existence is
+# therefore asked of `information_schema` first, which cannot fail, and the table is read
+# only once it is known to be there.
+# ─────────────────────────────────────────────────────────────────────────────────────
+
+
+def _relation_present(conn: psycopg.Connection[Any], schema: str, name: str) -> bool:
+    row = conn.execute(
+        "SELECT count(*) FROM information_schema.tables "
+        "WHERE table_schema = %s AND table_name = %s",
+        (schema, name),
+    ).fetchone()
+    return bool(row and row[0])
+
+
+def _trigger_present(conn: psycopg.Connection[Any], schema: str, table: str, name: str) -> bool:
+    row = conn.execute(
+        "SELECT count(*) FROM information_schema.triggers "
+        "WHERE event_object_schema = %s AND event_object_table = %s AND trigger_name = %s",
+        (schema, table, name),
+    ).fetchone()
+    return bool(row and row[0])
+
+
+def _permit_counters(conn: psycopg.Connection[Any], permit_id: uuid.UUID) -> dict[str, int | None]:
+    """``open_blocking`` and ``gate_epoch`` as they stand right now.
+
+    Called twice — immediately before and immediately after the single INSERT into
+    ``mainline.blocking_check`` — with nothing in between. The gap between the two
+    readings contains exactly one statement, so whatever moved was moved by the weld on
+    that statement and by nothing else.
+    """
+    row = conn.execute(
+        "SELECT open_blocking, gate_epoch FROM mainline.permit WHERE permit_id = %s",
+        (permit_id,),
+    ).fetchone()
+    if row is None:
+        return {"open_blocking": None, "gate_epoch": None}
+    return {"open_blocking": int(row[0]), "gate_epoch": int(row[1])}
+
+
+def _capture_projection(
+    conn: psycopg.Connection[Any],
+    permit_id: uuid.UUID,
+    check_id: uuid.UUID,
+    site_id: uuid.UUID,
+    before: dict[str, int | None],
+    after: dict[str, int | None],
+    *,
+    trigger_present: bool,
+) -> dict[str, Any]:
+    """Read back the evidence that ``fn_check_materialised`` did the work.
+
+    Three artefacts, from three different places: the counters on the gated subject, the
+    severity the BEFORE trigger projected onto the obligation row, and the row the AFTER
+    trigger emitted into the one CDC-query source in the deployment. None of them is
+    supplied by this script; all three are read out of the database after the fact.
+    """
+    projected = conn.execute(
+        "SELECT severity, virulence::STRING, closure_gen FROM mainline.blocking_check "
+        "WHERE check_id = %s",
+        (check_id,),
+    ).fetchone()
+
+    outbox_present = _relation_present(conn, OUTBOX_SCHEMA, OUTBOX_TABLE)
+    rows: list[dict[str, Any]] = []
+    total = None
+    if outbox_present:
+        total_row = conn.execute("SELECT count(*) FROM mainline_ops.outbox").fetchone()
+        total = int(total_row[0]) if total_row else None
+        for emitted in conn.execute(
+            "SELECT signal_id, kind, subject_id, site_id, target_site, activity_root, "
+            # NUMERIC comes back as Decimal, which json.dumps will not serialise; the
+            # cast keeps the evidence file writable without rounding the value.
+            "max_severity, score::STRING, payload, emitted_at, expires_at "
+            "FROM mainline_ops.outbox WHERE subject_id = %s ORDER BY emitted_at",
+            (check_id,),
+        ).fetchall():
+            rows.append(
+                {
+                    "signal_id": str(emitted[0]),
+                    "kind": emitted[1],
+                    "subject_id": str(emitted[2]),
+                    "site_id": str(emitted[3]),
+                    "target_site": None if emitted[4] is None else str(emitted[4]),
+                    "activity_root": emitted[5],
+                    "max_severity": int(emitted[6]),
+                    "score": emitted[7],
+                    "payload": emitted[8],
+                    "emitted_at": emitted[9].astimezone(UTC).isoformat(),
+                    "expires_at": emitted[10].astimezone(UTC).isoformat(),
+                }
+            )
+
+    return {
+        "claim": (
+            "the trigger projected the counter, emitted the CDC signal, bumped the epoch, "
+            "and the gate refused"
+        ),
+        "trigger": {
+            "name": PROJECTION_TRIGGER,
+            "timing": "AFTER INSERT",
+            "on": f"{PROJECTION_TABLE_SCHEMA}.{PROJECTION_TABLE_NAME}",
+            "function": PROJECTION_FUNCTION,
+            "migration": "0121_trg_check_materialised.sql",
+            "present": trigger_present,
+        },
+        "subject": {
+            "permit_id": str(permit_id),
+            "check_id": str(check_id),
+            "site_id": str(site_id),
+        },
+        "fired_by": (
+            "one INSERT INTO mainline.blocking_check, with no other statement between the "
+            "before and after readings"
+        ),
+        "open_blocking": {
+            "before": before["open_blocking"],
+            "after": after["open_blocking"],
+            "expected_after": 1,
+        },
+        "gate_epoch": {
+            "before": before["gate_epoch"],
+            "after": after["gate_epoch"],
+            "moved": (
+                after["gate_epoch"] is not None
+                and before["gate_epoch"] is not None
+                and after["gate_epoch"] > before["gate_epoch"]
+            ),
+        },
+        "severity": {
+            "supplied_by_this_script": CLIENT_SUPPLIED_SEVERITY,
+            "projected_onto_the_check": None if projected is None else int(projected[0]),
+            "virulence_projected": None if projected is None else projected[1],
+            "closure_gen_projected": None if projected is None else int(projected[2]),
+        },
+        "outbox": {
+            "relation": f"{OUTBOX_SCHEMA}.{OUTBOX_TABLE}",
+            "relation_present": outbox_present,
+            "rows_in_table": total,
+            "rows_for_this_check": len(rows),
+            "expected_kind": OUTBOX_KIND,
+            "row": rows[0] if rows else None,
+            "all_rows_for_this_check": rows,
+        },
+    }
+
+
+def evaluate_projection(history: History) -> tuple[dict[str, Any], list[str]]:
+    """Turn the captured projection into ASSERTIONS, and say which ones failed.
+
+    The distinction the brief insists on, and the reason this function exists rather than
+    the block simply being written into the evidence: a populated field proves nothing,
+    because nobody reads it. An assertion that can turn the verdict red is read by the
+    exit code. Every clause of the sentence in ``projection.claim`` is one row here.
+    """
+    block = dict(history.projection)
+    if not block:
+        return (
+            {
+                "captured": False,
+                "why": "the history was not seeded, so there was no INSERT to measure",
+                "assertions": [],
+            },
+            ["projection: nothing was measured — the history was not seeded"],
+        )
+
+    outbox = block["outbox"]
+    row = outbox["row"] or {}
+    open_before, open_after = block["open_blocking"]["before"], block["open_blocking"]["after"]
+    epoch_before, epoch_after = block["gate_epoch"]["before"], block["gate_epoch"]["after"]
+
+    checks: list[tuple[str, str, bool, str]] = [
+        (
+            "trigger_present",
+            (
+                f"the {PROJECTION_TRIGGER} trigger is welded to "
+                f"{PROJECTION_TABLE_SCHEMA}.{PROJECTION_TABLE_NAME}"
+            ),
+            bool(block["trigger"]["present"]),
+            f"present={block['trigger']['present']}",
+        ),
+        (
+            "counter_source_is_the_trigger",
+            "open_blocking was written by the trigger, not by this script",
+            history.counter_source == COUNTER_SOURCE_TRIGGER,
+            history.counter_source,
+        ),
+        (
+            "open_blocking_projected",
+            "the trigger raised open_blocking from 0 to 1 across the one INSERT",
+            open_before == 0 and open_after == 1,
+            f"{open_before} -> {open_after}",
+        ),
+        (
+            "gate_epoch_strictly_increased",
+            "the trigger bumped gate_epoch, pinning the subject to a new (id, epoch) pair",
+            epoch_before is not None and epoch_after is not None and epoch_after > epoch_before,
+            f"{epoch_before} -> {epoch_after}",
+        ),
+        (
+            "outbox_relation_present",
+            f"{OUTBOX_SCHEMA}.{OUTBOX_TABLE} exists — 0099_outbox.sql applied",
+            bool(outbox["relation_present"]),
+            f"present={outbox['relation_present']}",
+        ),
+        (
+            "outbox_row_emitted",
+            "exactly one CDC signal was emitted for this obligation",
+            outbox["rows_for_this_check"] == 1,
+            f"rows_for_this_check={outbox['rows_for_this_check']}",
+        ),
+        (
+            "outbox_kind_is_check_opened",
+            f"the emitted signal's kind is {OUTBOX_KIND!r}",
+            row.get("kind") == OUTBOX_KIND,
+            repr(row.get("kind")),
+        ),
+        (
+            "outbox_subject_is_the_check",
+            "the emitted signal's subject_id is the blocking check's id",
+            row.get("subject_id") == str(history.check_id),
+            f"{row.get('subject_id')} vs check_id {history.check_id}",
+        ),
+        (
+            "outbox_site_is_the_seeded_site",
+            "the emitted signal carries the site denormalised, as a CDC query needs",
+            row.get("site_id") == str(history.site_id),
+            f"{row.get('site_id')} vs site_id {history.site_id}",
+        ),
+        (
+            "outbox_max_severity_is_the_projected_severity",
+            (
+                "the signal carries the severity the BEFORE trigger projected, not the "
+                "severity this script supplied"
+            ),
+            row.get("max_severity") is not None
+            and row.get("max_severity") == block["severity"]["projected_onto_the_check"]
+            and row.get("max_severity") != CLIENT_SUPPLIED_SEVERITY,
+            (
+                f"emitted={row.get('max_severity')} "
+                f"projected={block['severity']['projected_onto_the_check']} "
+                f"supplied={CLIENT_SUPPLIED_SEVERITY}"
+            ),
+        ),
+    ]
+
+    block["captured"] = True
+    block["assertions"] = [
+        {"id": name, "claim": claim, "holds": holds, "observed": observed}
+        for name, claim, holds, observed in checks
+    ]
+    block["assertions_total"] = len(checks)
+    block["assertions_held"] = sum(1 for check in checks if check[2])
+    failures = [
+        f"projection.{name}: {claim} — observed {observed}"
+        for name, claim, holds, observed in checks
+        if not holds
+    ]
+    return block, failures
+
+
+# One statement per row the history needs, in the order the trigger chains demand.
+# Collapsing them into a loop over a table of inserts would hide exactly the thing this
+# function exists to show: which row each refusal below depends on.
+def seed_history(conn: psycopg.Connection[Any]) -> History:  # noqa: PLR0915
     """The smallest history in which the central claim is decidable.
 
     A clause, an incident whose ancestry reaches it, a blame closure that bands the
@@ -709,15 +1066,22 @@ def seed_history(conn: psycopg.Connection[Any]) -> History:
         ),
     )
 
-    # ── THE OBLIGATION. severity / virulence / closure_gen are supplied and immediately
-    #    overwritten by `fn_check_project` from `clause_blame_current`; they are inputs
-    #    to nothing (invariant MI25).
+    # ── THE OBLIGATION, AND THE ONE STATEMENT THE WHOLE PROJECTION HANGS OFF.
+    #    severity / virulence / closure_gen are supplied and immediately overwritten by
+    #    `fn_check_project` (BEFORE INSERT, 0120) from `clause_blame_current`; they are
+    #    inputs to nothing (invariant MI25). `fn_check_materialised` (AFTER INSERT, 0121)
+    #    then bumps the subject's counters and emits the CDC signal.
+    #
+    #    The permit's counters are read on BOTH SIDES of this INSERT with nothing in
+    #    between, so the delta cannot be attributed to anything else in the seed.
     check_id = uuid.uuid4()
+    counters_before = _permit_counters(conn, permit_id)
     conn.execute(
         "INSERT INTO mainline.blocking_check (check_id, subject_kind, permit_id, site_id, "
         "clause_uuid, commit_id, precursor_event_id, origin, severity, virulence, closure_gen, "
         "recall_run_id, evidence_summary) "
-        "VALUES (%s, 'permit', %s, %s, %s, %s, %s, 'blame_ancestry', 0, 'routine', 0, %s, %s)",
+        "VALUES (%s, 'permit', %s, %s, %s, %s, %s, 'blame_ancestry', %s, "
+        "'routine', 0, %s, %s)",
         (
             check_id,
             permit_id,
@@ -725,31 +1089,36 @@ def seed_history(conn: psycopg.Connection[Any]) -> History:
             clause_uuid,
             commit_id,
             event_id,
+            CLIENT_SUPPLIED_SEVERITY,
             recall_run_id,
             "Recalled precursor INC-PROOF-1 reaches the clause this permit relies on.",
         ),
     )
+    counters_after = _permit_counters(conn, permit_id)
 
-    # ── WHO WROTE THE COUNTER. `check_materialised` (0121) is the projection that bumps
-    #    `open_blocking`; it depends on `mainline_ops.outbox`, which has no migration, so
-    #    on this tree it is absent. The counter is then set here to the value the trigger
-    #    would have written — the count the gate itself re-derives — and the evidence
-    #    SAYS SO. A proof that quietly stood in for a missing trigger without naming it
-    #    would be asserting more than it measured.
-    row = conn.execute(
-        "SELECT count(*) FROM information_schema.triggers "
-        "WHERE event_object_schema = 'mainline' AND event_object_table = 'blocking_check' "
-        "AND trigger_name = 'check_materialised'"
-    ).fetchone()
-    projection_present = bool(row and row[0])
+    # ── WHO WROTE THE COUNTER, AND THE EVIDENCE THAT THEY DID.
+    #    `check_materialised` (0121) is the projection that bumps `open_blocking` and
+    #    `gate_epoch` and emits `check_opened` into `mainline_ops.outbox`. Since
+    #    0099_outbox.sql landed, that trigger applies, so the counters above moved on
+    #    their own and the outbox row is read back below as proof of it.
+    #
+    #    The fallback branch is kept for a tree where the weld is missing. It is no
+    #    longer a caveat that the run tolerates: `evaluate_projection` turns an absent
+    #    trigger into a FAILED ASSERTION, so the verdict goes red and the JSON names the
+    #    clause that broke. The hand-written counter exists only so the three refusal
+    #    beats below still run and a reader can see which half failed.
+    projection_present = _trigger_present(
+        conn, PROJECTION_TABLE_SCHEMA, PROJECTION_TABLE_NAME, PROJECTION_TRIGGER
+    )
     if projection_present:
-        counter_source = "trigger check_materialised -> mainline.fn_check_materialised"
+        counter_source = COUNTER_SOURCE_TRIGGER
     else:
         counter_source = (
-            "scripts/proof/gate_refusal.py — trigger check_materialised is ABSENT because "
-            "0121_trg_check_materialised.sql could not apply (mainline_ops.outbox has no "
-            "migration). The value written is the count the gate re-derives from "
-            "mainline.blocking_check LEFT JOIN mainline.disposition."
+            "scripts/proof/gate_refusal.py — the check_materialised trigger is ABSENT from "
+            "this schema, so 0121_trg_check_materialised.sql did not apply. The value "
+            "written here is the count the gate re-derives from mainline.blocking_check "
+            "LEFT JOIN mainline.disposition. This is a FAILED ASSERTION, not a caveat: see "
+            "projection.assertions."
         )
         conn.execute(
             "UPDATE mainline.permit SET open_blocking = ("
@@ -763,6 +1132,16 @@ def seed_history(conn: psycopg.Connection[Any]) -> History:
             "WHERE permit_id = %s",
             (permit_id, permit_id),
         )
+
+    projection = _capture_projection(
+        conn,
+        permit_id,
+        check_id,
+        site_id,
+        counters_before,
+        counters_after,
+        trigger_present=projection_present,
+    )
 
     # ── THE EXPOSURE RECEIPT. Issued ten minutes ago so that the reading-rate floor is
     #    genuinely met rather than papered over by the countersignature.
@@ -812,6 +1191,7 @@ def seed_history(conn: psycopg.Connection[Any]) -> History:
         merged_commit=merged_commit,
         counter_source=counter_source,
         projection_trigger_present=projection_present,
+        projection=projection,
     )
 
 
@@ -1163,12 +1543,15 @@ def run(args: argparse.Namespace) -> tuple[int, dict[str, Any]]:  # noqa: PLR091
     evidence: dict[str, Any] = {
         "artefact": "MAINLINE gate-refusal proof",
         "claim": (
-            "The database refuses a permit merge when a recalled precursor carries no "
-            "signed disposition, and admits the same merge once a disposition is signed."
+            "The trigger projected the counter, emitted the CDC signal, bumped the epoch, "
+            "and the gate refused: the database refuses a permit merge when a recalled "
+            "precursor carries no signed disposition, and admits the same merge once a "
+            "disposition is signed."
         ),
         "generated_at_utc": _now_utc(),
         "generated_by": "scripts/proof/gate_refusal.py",
         "conformance_cases": {
+            "projection": "the check_materialised weld (0121), read back from mainline_ops.outbox",
             "refusal": "CF-01 (23514 gate_closed_when_issued)",
             "drift_refusal": "CF-03 (P0001 mainline.fn_permit_merge_gate)",
             "admission": "the same history, after one signed disposition",
@@ -1187,18 +1570,24 @@ def run(args: argparse.Namespace) -> tuple[int, dict[str, Any]]:  # noqa: PLR091
     chain = apply_chain(work, dsn, migrations, repo_root)
     evidence["chain"] = chain.as_json()
     if chain.unexplained:
+        # With UNPRODUCED_TABLES empty this fires on ANY failure. That is the ratchet:
+        # there is no longer a class of migration failure this proof forgives.
+        enumerated = (
+            f"the {len(UNPRODUCED_TABLES)} enumerated unproduced tables"
+            if UNPRODUCED_TABLES
+            else "an enumerated unproduced table — the list is EMPTY, so no migration "
+            "failure is excused any more"
+        )
         failures.append(
-            f"{len(chain.unexplained)} migration(s) failed for a reason that is not one of "
-            f"the {len(UNPRODUCED_TABLES)} enumerated unproduced tables: "
-            + ", ".join(f"{f.version} [{f.sqlstate}]" for f in chain.unexplained)
+            f"{len(chain.unexplained)} migration(s) failed for a reason that is not "
+            f"{enumerated}: " + ", ".join(f"{f.version} [{f.sqlstate}]" for f in chain.unexplained)
         )
     if chain.failures:
         evidence["caveats"].append(
             f"{len(chain.failures)} of {chain.files} migrations did not apply. Every one is "
-            "listed under chain.failures_* with its file name and SQLSTATE. The five tables "
-            "with no producer are named in chain.unproduced_tables_enumerated; this script "
-            "does not create them, because a new table takes a number the allocation table "
-            "grants and this worker owns no band."
+            "listed under chain.failures_* with its file name and SQLSTATE. This script does "
+            "not create a table that has no migration: a new table takes a number the "
+            "allocation table grants, and this worker owns no band."
         )
 
     objects = inspect_gate_objects(work)
@@ -1206,6 +1595,13 @@ def run(args: argparse.Namespace) -> tuple[int, dict[str, Any]]:  # noqa: PLR091
     missing = sorted(name for name, ok in objects.items() if not ok)
     if missing:
         failures.append("gate objects absent: " + ", ".join(missing))
+        # The key is present on every exit path, so a reader never has to distinguish
+        # "the projection was not measured" from "the field was forgotten".
+        evidence["projection"] = {
+            "captured": False,
+            "why": "gate objects were absent, so no history was seeded and no trigger fired",
+            "assertions": [],
+        }
         evidence["verdict"] = "NOT PROVEN"
         evidence["failures"] = failures
         work.close()
@@ -1224,17 +1620,35 @@ def run(args: argparse.Namespace) -> tuple[int, dict[str, Any]]:  # noqa: PLR091
             "constraint": _constraint(exc)[0],
             "message": _message(exc),
         }
+        evidence["projection"] = {
+            "captured": False,
+            "why": "the history could not be seeded, so there was no INSERT to measure",
+            "assertions": [],
+        }
         evidence["verdict"] = "NOT PROVEN"
         evidence["failures"] = [*failures, f"the history could not be seeded: {_message(exc)}"]
         return EXIT_NOT_PROVEN, evidence
     work.commit()
     evidence["history"] = {"seeded": True, **history.as_json()}
+
+    # ── 0 · THE PROJECTION. Who moved the counter, what signal it emitted, and whether
+    #        the epoch moved. Ten assertions, each of which can turn the verdict red.
+    #        This block replaces a caveat: the run used to APOLOGISE for writing
+    #        open_blocking by hand, and now it demonstrates that it did not have to.
+    projection, projection_failures = evaluate_projection(history)
+    evidence["projection"] = projection
+    failures.extend(projection_failures)
     if not history.projection_trigger_present:
+        # Still a caveat as well as a failure: the caveat explains what the hand-written
+        # counter is, so a reader of a red run knows the refusals below are still the
+        # database's own. A caveat is only written when something is genuinely unproven.
         evidence["caveats"].append(
             "mainline.permit.open_blocking was written by this script, not by the "
-            "check_materialised trigger, because 0121_trg_check_materialised.sql could not "
-            "apply (mainline_ops.outbox has no migration). The value written is the count "
-            "the gate re-derives for itself, so the refusal below is still the database's."
+            "check_materialised trigger, because that trigger is absent from this schema "
+            "(0121_trg_check_materialised.sql did not apply). The value written is the "
+            "count the gate re-derives for itself, so the refusals below are still the "
+            "database's — but the projection is NOT proven, and projection.assertions "
+            "names every clause that failed."
         )
 
     # ── 1 · THE REFUSAL. One open obligation, no disposition.
@@ -1321,6 +1735,12 @@ def _print_summary(evidence: dict[str, Any], out: Path) -> None:
         f"{chain.get('failed_count', 0)} failed, {chain.get('seconds', 0)}s"
     )
     print(f"reached 0115  {chain.get('reached_0115_fn_permit_merge_gate')}")
+    unproduced = chain.get("unproduced_tables_enumerated", [])
+    print(
+        "unproduced    (none) — every relation this tree references has a producer"
+        if not unproduced
+        else f"unproduced    {len(unproduced)}: " + ", ".join(unproduced)
+    )
     for failure in chain.get("failures_unexplained", []):
         print(f"  ! UNEXPLAINED {failure['version']} [{failure['sqlstate']}] {failure['message']}")
     for failure in chain.get("failures_attributable_to_an_unproduced_table", []):
@@ -1328,6 +1748,25 @@ def _print_summary(evidence: dict[str, Any], out: Path) -> None:
             f"  - no producer {failure['version']} [{failure['sqlstate']}] "
             f"needs {failure['unproduced_table']}"
         )
+
+    projection = evidence.get("projection", {})
+    if projection.get("captured"):
+        outbox = projection["outbox"]
+        row = outbox.get("row") or {}
+        print(
+            f"PROJECTION    {projection['assertions_held']}/{projection['assertions_total']} "
+            f"held · open_blocking {projection['open_blocking']['before']}"
+            f"->{projection['open_blocking']['after']} · gate_epoch "
+            f"{projection['gate_epoch']['before']}->{projection['gate_epoch']['after']} · "
+            f"outbox {row.get('kind')!r} severity {row.get('max_severity')} "
+            f"(client supplied {projection['severity']['supplied_by_this_script']})"
+        )
+        for assertion in projection.get("assertions", []):
+            if not assertion["holds"]:
+                print(f"  ! {assertion['id']}: {assertion['observed']}")
+    else:
+        print(f"PROJECTION    NOT MEASURED — {projection.get('why', 'no reason recorded')}")
+
     for key, label in (("refusal", "REFUSAL"), ("drift_refusal", "DRIFT  ")):
         section = evidence.get(key)
         if section:
@@ -1338,7 +1777,13 @@ def _print_summary(evidence: dict[str, Any], out: Path) -> None:
     admission = evidence.get("admission")
     if admission:
         print(f"ADMISSION     {admission.get('outcome')} [{admission.get('sqlstate')}]")
-    for caveat in evidence.get("caveats", []):
+    # The empty case is PRINTED, not omitted. A reader who sees no caveat line cannot
+    # tell "there were none" from "the field was dropped", and the difference between
+    # those two is the whole reason this repository publishes its caveats.
+    caveats = evidence.get("caveats", [])
+    if not caveats:
+        print("caveats       (none) — nothing in this run is unproven-but-tolerated")
+    for caveat in caveats:
         print(f"caveat        {caveat}")
     for failure in evidence.get("failures", []):
         print(f"  ! {failure}")

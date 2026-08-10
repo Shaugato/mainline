@@ -1,0 +1,427 @@
+{
+  "artefact": "MAINLINE demo EvidenceBundle capture",
+  "generated_at_utc": "2026-08-10T04:03:57.014Z",
+  "generated_by": "scripts/deploy/capture_demo_bundle.py",
+  "plan": "verticals/mainline/apps/console/capture-plan.demo.json",
+  "bundle_dir": "verticals/mainline/apps/console/fixtures/bundles/demo-cloud",
+  "target": {
+    "database": "mainline_demo",
+    "dsn": "postgresql://mainline-sql:***@mainline-dev-31219.j77.aws-ap-southeast-1.cockroachlabs.cloud:26257/mainline_demo?sslmode=verify-full&connect_timeout=20&application_name=mainline-deploy"
+  },
+  "honesty": "No real incident, no real site, no real fatality. Every row behind these frames is synthetic and corresponds to nobody. See verticals/mainline/demo/DEMO-HONESTY.md and docs/deploy/replay-fallback.md.",
+  "frames": [
+    {
+      "path": "frames/GET~20~2Fv1~2Fpermits~2Fdec0de00-0006-4000-8000-000000000001.json",
+      "key": "GET /v1/permits/dec0de00-0006-4000-8000-000000000001",
+      "resource": "permit",
+      "status": 200,
+      "source": "sql",
+      "via": "python-call",
+      "staged": false,
+      "bytes": 11188,
+      "duration_ms": 1270.226
+    },
+    {
+      "path": "frames/GET~20~2Fv1~2Fpermits~2Fdec0de00-0006-4000-8000-000000000001~2Fblocking-checks.json",
+      "key": "GET /v1/permits/dec0de00-0006-4000-8000-000000000001/blocking-checks",
+      "resource": "blocking_checks",
+      "status": 200,
+      "source": "sql",
+      "via": "python-call",
+      "staged": false,
+      "bytes": 4739,
+      "duration_ms": 700.338
+    },
+    {
+      "path": "frames/GET~20~2Fv1~2Fchecks~2Fdec0de00-0007-4000-8000-000000000001~2Fdisposition.json",
+      "key": "GET /v1/checks/dec0de00-0007-4000-8000-000000000001/disposition",
+      "resource": "disposition",
+      "status": 200,
+      "source": "sql",
+      "via": "python-call",
+      "staged": false,
+      "bytes": 5694,
+      "duration_ms": 1149.7
+    },
+    {
+      "path": "frames/GET~20~2Fv1~2Freceipts~2Fdec0de00-0008-4000-8000-000000000001.json",
+      "key": "GET /v1/receipts/dec0de00-0008-4000-8000-000000000001",
+      "resource": "exposure_receipt",
+      "status": 200,
+      "source": "sql",
+      "via": "python-call",
+      "staged": false,
+      "bytes": 3729,
+      "duration_ms": 680.594
+    },
+    {
+      "path": "frames/GET~20~2Fv1~2Fclauses~2Fdec0de00-0004-4000-8000-000000000001~2Fversions~2F9f12114dc1a94f43ffe3eaae9f95b861efa7a6a88d7a9d90b1196aa06cd49a39.json",
+      "key": "GET /v1/clauses/dec0de00-0004-4000-8000-000000000001/versions/9f12114dc1a94f43ffe3eaae9f95b861efa7a6a88d7a9d90b1196aa06cd49a39",
+      "resource": "clause_version",
+      "status": 200,
+      "source": "sql",
+      "via": "python-call",
+      "staged": false,
+      "bytes": 6431,
+      "duration_ms": 682.107
+    },
+    {
+      "path": "frames/GET~20~2Fv1~2Fclauses~2Fdec0de00-0004-4000-8000-000000000001~2Fancestry~3Fas_of~3D9f12114dc1a94f43ffe3eaae9f95b861efa7a6a88d7a9d90b1196aa06cd49a39.json",
+      "key": "GET /v1/clauses/dec0de00-0004-4000-8000-000000000001/ancestry?as_of=9f12114dc1a94f43ffe3eaae9f95b861efa7a6a88d7a9d90b1196aa06cd49a39",
+      "resource": "clause_ancestry",
+      "status": 200,
+      "source": "sql",
+      "via": "python-call",
+      "staged": false,
+      "bytes": 7159,
+      "duration_ms": 2364.76
+    },
+    {
+      "path": "frames/GET~20~2Fv1~2Fledger~3Fsite_code~3Ddec0de00-0001-4000-8000-000000000001.json",
+      "key": "GET /v1/ledger?site_code=dec0de00-0001-4000-8000-000000000001",
+      "resource": "ledger",
+      "status": 200,
+      "source": "sql",
+      "via": "python-call",
+      "staged": false,
+      "bytes": 4637,
+      "duration_ms": 1369.362
+    },
+    {
+      "path": "frames/GET~20~2Fv1~2Fpermits~2Fdec0de00-0006-4000-8000-000000000001~2Fsilence.json",
+      "key": "GET /v1/permits/dec0de00-0006-4000-8000-000000000001/silence",
+      "resource": "silence",
+      "status": 200,
+      "source": "sql",
+      "via": "python-call",
+      "staged": true,
+      "bytes": 4343,
+      "duration_ms": 907.135
+    },
+    {
+      "path": "frames/GET~20~2Fv1~2Frecall-runs~2Fdec0de00-0009-4000-8000-000000000001.json",
+      "key": "GET /v1/recall-runs/dec0de00-0009-4000-8000-000000000001",
+      "resource": "recall_run",
+      "status": 200,
+      "source": "sql",
+      "via": "python-call",
+      "staged": false,
+      "bytes": 4311,
+      "duration_ms": 449.388
+    },
+    {
+      "path": "frames/GET~20~2Fv1~2Faudit.json",
+      "key": "GET /v1/audit",
+      "resource": "audit",
+      "status": 200,
+      "source": "sql",
+      "via": "python-call",
+      "staged": false,
+      "bytes": 47546,
+      "duration_ms": 4569.833
+    },
+    {
+      "path": "frames/POST~20~2Fv1~2Fpermits~2Fdec0de00-0006-4000-8000-000000000001~2Fmerge.json",
+      "key": "POST /v1/permits/dec0de00-0006-4000-8000-000000000001/merge",
+      "resource": "merge_permit",
+      "status": 409,
+      "source": "sql",
+      "via": "python-call",
+      "staged": false,
+      "bytes": 4388,
+      "duration_ms": 1013.079
+    },
+    {
+      "path": "frames/GET~20~2Fv1~2Fpermits~2F98832832-cb53-54ce-a709-d0af8c0c7f8b.json",
+      "key": "GET /v1/permits/98832832-cb53-54ce-a709-d0af8c0c7f8b",
+      "resource": "permit",
+      "status": 200,
+      "source": "sql",
+      "via": "python-call",
+      "staged": true,
+      "bytes": 12372,
+      "duration_ms": 1292.36
+    },
+    {
+      "path": "frames/GET~20~2Fv1~2Fpermits~2F98832832-cb53-54ce-a709-d0af8c0c7f8b~2Fblocking-checks.json",
+      "key": "GET /v1/permits/98832832-cb53-54ce-a709-d0af8c0c7f8b/blocking-checks",
+      "resource": "blocking_checks",
+      "status": 200,
+      "source": "sql",
+      "via": "python-call",
+      "staged": true,
+      "bytes": 5915,
+      "duration_ms": 684.908
+    },
+    {
+      "path": "frames/POST~20~2Fv1~2Fpermits~2F98832832-cb53-54ce-a709-d0af8c0c7f8b~2Fmerge.json",
+      "key": "POST /v1/permits/98832832-cb53-54ce-a709-d0af8c0c7f8b/merge",
+      "resource": "merge_permit",
+      "status": 409,
+      "source": "sql",
+      "via": "python-call",
+      "staged": true,
+      "bytes": 4867,
+      "duration_ms": 862.255
+    },
+    {
+      "path": "frames/GET~20~2Fv1~2Fpermits~2Ff4976f47-599a-52ac-b7aa-379c80e6e849.json",
+      "key": "GET /v1/permits/f4976f47-599a-52ac-b7aa-379c80e6e849",
+      "resource": "permit",
+      "status": 200,
+      "source": "sql",
+      "via": "python-call",
+      "staged": true,
+      "bytes": 12280,
+      "duration_ms": 1222.4
+    },
+    {
+      "path": "frames/GET~20~2Fv1~2Fpermits~2Ff4976f47-599a-52ac-b7aa-379c80e6e849~2Fblocking-checks.json",
+      "key": "GET /v1/permits/f4976f47-599a-52ac-b7aa-379c80e6e849/blocking-checks",
+      "resource": "blocking_checks",
+      "status": 200,
+      "source": "sql",
+      "via": "python-call",
+      "staged": true,
+      "bytes": 5875,
+      "duration_ms": 686.244
+    },
+    {
+      "path": "frames/GET~20~2Fv1~2Fchecks~2F04f3ad82-0345-5649-a8eb-cb23607221dd~2Fdisposition.json",
+      "key": "GET /v1/checks/04f3ad82-0345-5649-a8eb-cb23607221dd/disposition",
+      "resource": "disposition",
+      "status": 200,
+      "source": "sql",
+      "via": "python-call",
+      "staged": true,
+      "bytes": 10298,
+      "duration_ms": 1132.881
+    },
+    {
+      "path": "frames/POST~20~2Fv1~2Fpermits~2Ff4976f47-599a-52ac-b7aa-379c80e6e849~2Fmerge.json",
+      "key": "POST /v1/permits/f4976f47-599a-52ac-b7aa-379c80e6e849/merge",
+      "resource": "merge_permit",
+      "status": 200,
+      "source": "sql",
+      "via": "python-call",
+      "staged": true,
+      "bytes": 3811,
+      "duration_ms": 991.02
+    }
+  ],
+  "omitted": [],
+  "beats": [
+    {
+      "ordinal": 2,
+      "name": "refusal",
+      "subject": "dec0de00-0006-4000-8000-000000000001",
+      "outcome": "refused",
+      "sqlstate": "23514",
+      "constraint": "gate_closed_when_issued",
+      "constraint_source": "reported",
+      "expected": {
+        "outcome": "refused",
+        "http_status": 409,
+        "sqlstate": "23514",
+        "exhibit": "gate_closed_when_issued",
+        "constraint_source": "reported"
+      },
+      "matched_expectation": true,
+      "sql_round_trip": "sql/beat-2-merge-refused-23514.txt",
+      "elapsed_ms": 1013.079
+    },
+    {
+      "ordinal": 3,
+      "name": "projection_drift_attack",
+      "subject": "98832832-cb53-54ce-a709-d0af8c0c7f8b",
+      "outcome": "refused",
+      "sqlstate": "P0001",
+      "constraint": "mainline.fn_permit_merge_gate",
+      "constraint_source": "parsed",
+      "expected": {
+        "outcome": "refused",
+        "http_status": 409,
+        "sqlstate": "P0001",
+        "exhibit": "mainline.fn_permit_merge_gate",
+        "constraint_source": "parsed"
+      },
+      "matched_expectation": true,
+      "sql_round_trip": "sql/beat-3-merge-refused-p0001.txt",
+      "elapsed_ms": 862.255
+    },
+    {
+      "ordinal": 4,
+      "name": "admission",
+      "subject": "f4976f47-599a-52ac-b7aa-379c80e6e849",
+      "outcome": "committed",
+      "sqlstate": "00000",
+      "constraint": null,
+      "constraint_source": null,
+      "expected": {
+        "outcome": "committed",
+        "http_status": 200,
+        "sqlstate": "00000",
+        "exhibit": null,
+        "constraint_source": null
+      },
+      "matched_expectation": true,
+      "sql_round_trip": "sql/beat-4-merge-admitted-00000.txt",
+      "clearance_digest": "3b2c35b443895ed9daf565146a53c60a8539969954fd6e31492fdc5ad0f9052c",
+      "open_blocking_after_signature": 0,
+      "elapsed_ms": 991.02
+    }
+  ],
+  "failures": [],
+  "subject": {
+    "permit_id": "dec0de00-0006-4000-8000-000000000001",
+    "external_ref": "DEMO-PTW-0001",
+    "site_id": "dec0de00-0001-4000-8000-000000000001",
+    "site_code": "dec0de00-0001-4000-8000-000000000001",
+    "state": "dispositioned",
+    "gate_epoch": 1,
+    "open_blocking": 1,
+    "blocking_check_id": "dec0de00-0007-4000-8000-000000000001",
+    "clause_uuid": "dec0de00-0004-4000-8000-000000000001",
+    "commit_id": "9f12114dc1a94f43ffe3eaae9f95b861efa7a6a88d7a9d90b1196aa06cd49a39",
+    "exposure_receipt_id": "dec0de00-0008-4000-8000-000000000001",
+    "recall_run_id": "dec0de00-0009-4000-8000-000000000001"
+  },
+  "cluster_fingerprint": {
+    "source": "observed",
+    "product": "CockroachDB CCL",
+    "version": "v26.2.5",
+    "cluster_version": "26.2",
+    "tier": null,
+    "region": "aws-ap-southeast-1",
+    "evidence_ref": "Read from the cluster during this capture by scripts/deploy/capture_demo_bundle.py; the verbatim round trip is sql/cluster-fingerprint.txt in this bundle. `source: observed` means exactly that and nothing more: it is a statement about the database that answered, not about where inference runs. Residency is split in this deployment — database in aws-ap-southeast-1 (Singapore), Bedrock in ap-southeast-2 (Sydney) — so no end-to-end Australian residency claim may be made from this bundle."
+  },
+  "schema_version": "chain 271/271 applied, 0 failed; tree_fingerprint fe27b6208d2281929a9d3c554e4612ac…; applied_at 2026-08-10T02:55:13.074389+00:00",
+  "transaction": {
+    "isolation": "SERIALIZABLE",
+    "disposition": "rolled_back",
+    "opened_logical_timestamp": "1786334646901673932.0000000000",
+    "closed_logical_timestamp": "1786334646901673932.0000000000",
+    "single_transaction": true,
+    "savepoints": [
+      "beat_2",
+      "beat_3",
+      "beat_3_merge",
+      "beat_4",
+      "beat_4_merge",
+      "ctx"
+    ],
+    "attempt": 1
+  },
+  "retries": [],
+  "persistence_check": {
+    "before": {
+      "row_counts": {
+        "mainline.permit": 1,
+        "mainline.permit_event": 2,
+        "mainline.merge_record": 0,
+        "mainline.disposition": 0,
+        "mainline.blocking_check": 1,
+        "mainline.boundary_certificate": 1,
+        "mainline.exposure_receipt": 1,
+        "mainline.exposure_line": 1,
+        "mainline.ledger_intake": 1,
+        "mainline.refusal_ledger": 0,
+        "mainline_meas.recall_run": 1,
+        "mainline_meas.silence_receipt": 1,
+        "mainline_ops.outbox": 1
+      },
+      "permit_row": {
+        "state": "dispositioned",
+        "head_seq": 2,
+        "gate_epoch": 1,
+        "open_blocking": 1,
+        "unmet_floor_count": 0,
+        "countersigned_count": 0,
+        "merged_commit": null
+      }
+    },
+    "after": {
+      "row_counts": {
+        "mainline.permit": 1,
+        "mainline.permit_event": 2,
+        "mainline.merge_record": 0,
+        "mainline.disposition": 0,
+        "mainline.blocking_check": 1,
+        "mainline.boundary_certificate": 1,
+        "mainline.exposure_receipt": 1,
+        "mainline.exposure_line": 1,
+        "mainline.ledger_intake": 1,
+        "mainline.refusal_ledger": 0,
+        "mainline_meas.recall_run": 1,
+        "mainline_meas.silence_receipt": 1,
+        "mainline_ops.outbox": 1
+      },
+      "permit_row": {
+        "state": "dispositioned",
+        "head_seq": 2,
+        "gate_epoch": 1,
+        "open_blocking": 1,
+        "unmet_floor_count": 0,
+        "countersigned_count": 0,
+        "merged_commit": null
+      }
+    },
+    "identical": true,
+    "tables": [
+      "mainline.permit",
+      "mainline.permit_event",
+      "mainline.merge_record",
+      "mainline.disposition",
+      "mainline.blocking_check",
+      "mainline.boundary_certificate",
+      "mainline.exposure_receipt",
+      "mainline.exposure_line",
+      "mainline.ledger_intake",
+      "mainline.refusal_ledger",
+      "mainline_meas.recall_run",
+      "mainline_meas.silence_receipt",
+      "mainline_ops.outbox"
+    ],
+    "note": "Row counts over every table the beats can write, taken on a separate autocommit connection BEFORE the capture transaction opened and AFTER it was rolled back, plus mainline.permit's own column values — because the drift beat mutates a column without changing a count."
+  },
+  "frame_count": 18,
+  "file_count": 24,
+  "total_bytes": 173954,
+  "manifest_seed": {
+    "bundle_id": "demo-cloud",
+    "captured_at": "2026-08-10T04:04:53.057Z",
+    "generator": "scripts/deploy/capture_demo_bundle.py 1.0 (frames) + capture-bundle.ts seal 1.0 (digests)",
+    "cluster_fingerprint": {
+      "source": "observed",
+      "product": "CockroachDB CCL",
+      "version": "v26.2.5",
+      "cluster_version": "26.2",
+      "tier": null,
+      "region": "aws-ap-southeast-1",
+      "evidence_ref": "Read from the cluster during this capture by scripts/deploy/capture_demo_bundle.py; the verbatim round trip is sql/cluster-fingerprint.txt in this bundle. `source: observed` means exactly that and nothing more: it is a statement about the database that answered, not about where inference runs. Residency is split in this deployment — database in aws-ap-southeast-1 (Singapore), Bedrock in ap-southeast-2 (Sydney) — so no end-to-end Australian residency claim may be made from this bundle."
+    },
+    "schema_version": "chain 271/271 applied, 0 failed; tree_fingerprint fe27b6208d2281929a9d3c554e4612ac…; applied_at 2026-08-10T02:55:13.074389+00:00",
+    "staged": true,
+    "staged_note": "Captured from a live CockroachDB cluster: every SQLSTATE, constraint name, counter and digest in this bundle was produced by the database during the capture, and nothing in it was hand-authored. It is flagged STAGED because 8 of 18 frames describe two TRANSIENT subjects — permits DEMO-PTW-0002 and DEMO-PTW-0003 — which were built inside the capture transaction as copies of the seeded permit DEMO-PTW-0001 and rolled back with it. Those rows are not in the database now. They exist because the drift beat and the admission beat each need a different world from the one the seeded permit is in, and a bundle frame is keyed by method and path, so three worlds need three permit ids. Each such frame carries its own note saying the same thing. See docs/deploy/replay-fallback.md §4.",
+    "checkpoint": null
+  },
+  "canonicalisation": "trappoint_jcs.canonicalise",
+  "total_seconds": 56.1,
+  "seal": {
+    "exit_code": 0,
+    "output": "capture-bundle seal: fixtures/bundles/demo-cloud — 24 file(s), 173954 bytes, STAGED"
+  },
+  "check": {
+    "exit_code": 0,
+    "output": "capture-bundle check: fixtures/bundles/demo-cloud — 24 file(s) agree."
+  },
+  "manifest_digest": "7772131bf9424359140540254167c40e37d458cb212df0f1b78ffff359076614",
+  "manifest_bytes": 7938,
+  "manifest_files": 24,
+  "independent_digest_check": {
+    "implementation": "hashlib.sha256 in capture_demo_bundle.py",
+    "files": 24,
+    "disagreements": []
+  },
+  "verdict": "CAPTURED AND VERIFIED"
+}

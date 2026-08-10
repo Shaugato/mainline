@@ -1,0 +1,462 @@
+{
+  "generated_at": "2026-08-10T04:50:31Z",
+  "pack": "verticals/mainline/demo/judge/QUESTIONS.yaml",
+  "questions": 16,
+  "positive": 12,
+  "negative": 4,
+  "channels": {
+    "mcp": {
+      "channel": "mcp",
+      "endpoint": "https://cockroachlabs.cloud/mcp",
+      "cluster_id": "7cfc9ee9-f9b4-413d-bcad-d81fca2c6c7e",
+      "database": "mainline_demo",
+      "ran": true,
+      "results": [
+        {
+          "qid": "Q01",
+          "verb": "select_query",
+          "negative": false,
+          "ms": 758.9,
+          "answered": true,
+          "rows": 1,
+          "bytes": 323,
+          "expected": "answered",
+          "verdict": "PASS"
+        },
+        {
+          "qid": "Q02",
+          "verb": "select_query",
+          "negative": false,
+          "ms": 604.3,
+          "answered": true,
+          "rows": 0,
+          "bytes": 12,
+          "expected": "answered",
+          "verdict": "PASS"
+        },
+        {
+          "qid": "Q03",
+          "verb": "select_query",
+          "negative": false,
+          "ms": 633.1,
+          "answered": true,
+          "rows": 1,
+          "bytes": 358,
+          "expected": "answered",
+          "verdict": "PASS"
+        },
+        {
+          "qid": "Q04",
+          "verb": "select_query",
+          "negative": false,
+          "ms": 660.9,
+          "answered": true,
+          "rows": 1,
+          "bytes": 245,
+          "expected": "answered",
+          "verdict": "PASS"
+        },
+        {
+          "qid": "Q05",
+          "verb": "select_query",
+          "negative": false,
+          "ms": 621.7,
+          "answered": true,
+          "rows": 0,
+          "bytes": 12,
+          "expected": "answered",
+          "verdict": "PASS"
+        },
+        {
+          "qid": "Q05F",
+          "verb": "select_query",
+          "negative": false,
+          "ms": 633.8,
+          "answered": true,
+          "rows": 0,
+          "bytes": 12,
+          "expected": "answered",
+          "verdict": "PASS"
+        },
+        {
+          "qid": "Q06",
+          "verb": "select_query",
+          "negative": false,
+          "ms": 643.9,
+          "answered": true,
+          "rows": 1,
+          "bytes": 368,
+          "expected": "answered",
+          "verdict": "PASS"
+        },
+        {
+          "qid": "Q07",
+          "verb": "select_query",
+          "negative": false,
+          "ms": 649.9,
+          "answered": true,
+          "rows": 1,
+          "bytes": 405,
+          "expected": "answered",
+          "verdict": "PASS"
+        },
+        {
+          "qid": "Q08",
+          "verb": "select_query",
+          "negative": false,
+          "ms": 602.2,
+          "answered": true,
+          "rows": 0,
+          "bytes": 12,
+          "expected": "answered",
+          "verdict": "PASS"
+        },
+        {
+          "qid": "Q09",
+          "verb": "select_query",
+          "negative": false,
+          "ms": 614.9,
+          "answered": true,
+          "rows": 0,
+          "bytes": 12,
+          "expected": "answered",
+          "verdict": "PASS"
+        },
+        {
+          "qid": "Q10",
+          "verb": "explain_query",
+          "negative": false,
+          "ms": 878.7,
+          "answered": true,
+          "rows": 18,
+          "bytes": 961,
+          "expected": "answered",
+          "verdict": "PASS"
+        },
+        {
+          "qid": "Q10C",
+          "verb": "explain_query",
+          "negative": false,
+          "ms": 754.6,
+          "answered": true,
+          "rows": 18,
+          "bytes": 837,
+          "expected": "answered",
+          "verdict": "PASS"
+        },
+        {
+          "qid": "N01",
+          "verb": "select_query",
+          "negative": true,
+          "ms": 689.7,
+          "answered": true,
+          "rows": 1,
+          "bytes": 24,
+          "expected": "refused",
+          "verdict": "FAIL",
+          "why": "the statement ANSWERED (rows=1). A negative that returns an empty result has not been refused; zero rows and 'you may not ask' are different facts."
+        },
+        {
+          "qid": "N02",
+          "verb": "select_query",
+          "negative": true,
+          "ms": 249.4,
+          "answered": false,
+          "refusal": "query references a restricted schema: access to \"crdb_internal\" is blocked for security reasons",
+          "expected": "refused",
+          "verdict": "PASS"
+        },
+        {
+          "qid": "N03",
+          "verb": "select_query",
+          "negative": true,
+          "ms": 268.6,
+          "answered": false,
+          "refusal": "query references a restricted schema: access to \"pg_catalog\" is blocked for security reasons",
+          "expected": "refused",
+          "verdict": "PASS"
+        },
+        {
+          "qid": "N04",
+          "verb": "select_query",
+          "negative": true,
+          "ms": 252.0,
+          "answered": false,
+          "refusal": "query references a restricted schema: access to \"information_schema\" is blocked for security reasons",
+          "expected": "refused",
+          "verdict": "PASS"
+        }
+      ],
+      "protocol_version": "2025-06-18",
+      "server_info": {
+        "name": "cockroachdb-cloud",
+        "version": "1.0.0"
+      },
+      "tools": [
+        "create_database",
+        "create_table",
+        "explain_query",
+        "get_cluster",
+        "get_table_schema",
+        "insert_rows",
+        "list_clusters",
+        "list_databases",
+        "list_tables",
+        "select_query",
+        "show_running_queries",
+        "show_statement"
+      ],
+      "sql_identity": "managed-mcp",
+      "passed": 15,
+      "total": 16
+    },
+    "sql": {
+      "channel": "sql",
+      "database": "w_w10_judge_and_acceptance",
+      "identity": "mainline_judge",
+      "ran": true,
+      "results": [
+        {
+          "qid": "Q01",
+          "verb": "select_query",
+          "negative": false,
+          "answered": true,
+          "sqlstate": "00000",
+          "rows": 2,
+          "ms": 12.6,
+          "expected": "answered",
+          "verdict": "PASS"
+        },
+        {
+          "qid": "Q02",
+          "verb": "select_query",
+          "negative": false,
+          "answered": true,
+          "sqlstate": "00000",
+          "rows": 0,
+          "ms": 12.5,
+          "expected": "answered",
+          "verdict": "PASS"
+        },
+        {
+          "qid": "Q03",
+          "verb": "select_query",
+          "negative": false,
+          "answered": true,
+          "sqlstate": "00000",
+          "rows": 2,
+          "ms": 5.8,
+          "expected": "answered",
+          "verdict": "PASS"
+        },
+        {
+          "qid": "Q04",
+          "verb": "select_query",
+          "negative": false,
+          "answered": true,
+          "sqlstate": "00000",
+          "rows": 2,
+          "ms": 10.5,
+          "expected": "answered",
+          "verdict": "PASS"
+        },
+        {
+          "qid": "Q05",
+          "verb": "select_query",
+          "negative": false,
+          "answered": true,
+          "sqlstate": "00000",
+          "rows": 0,
+          "ms": 3.4,
+          "expected": "answered",
+          "verdict": "PASS"
+        },
+        {
+          "qid": "Q05F",
+          "verb": "select_query",
+          "negative": false,
+          "answered": true,
+          "sqlstate": "00000",
+          "rows": 0,
+          "ms": 4.8,
+          "expected": "answered",
+          "verdict": "PASS"
+        },
+        {
+          "qid": "Q06",
+          "verb": "select_query",
+          "negative": false,
+          "answered": true,
+          "sqlstate": "00000",
+          "rows": 2,
+          "ms": 5.8,
+          "expected": "answered",
+          "verdict": "PASS"
+        },
+        {
+          "qid": "Q07",
+          "verb": "select_query",
+          "negative": false,
+          "answered": true,
+          "sqlstate": "00000",
+          "rows": 2,
+          "ms": 6.0,
+          "expected": "answered",
+          "verdict": "PASS"
+        },
+        {
+          "qid": "Q08",
+          "verb": "select_query",
+          "negative": false,
+          "answered": true,
+          "sqlstate": "00000",
+          "rows": 0,
+          "ms": 4.3,
+          "expected": "answered",
+          "verdict": "PASS"
+        },
+        {
+          "qid": "Q09",
+          "verb": "select_query",
+          "negative": false,
+          "answered": true,
+          "sqlstate": "00000",
+          "rows": 0,
+          "ms": 4.7,
+          "expected": "answered",
+          "verdict": "PASS"
+        },
+        {
+          "qid": "Q10",
+          "verb": "explain_query",
+          "negative": false,
+          "answered": false,
+          "sqlstate": "42501",
+          "refusal": "user mainline_judge does not have SELECT privilege on relation event_cue_embedding",
+          "ms": 2.1,
+          "expected": "answered",
+          "verdict": "FAIL"
+        },
+        {
+          "qid": "Q10C",
+          "verb": "explain_query",
+          "negative": false,
+          "answered": false,
+          "sqlstate": "42501",
+          "refusal": "user mainline_judge does not have SELECT privilege on relation event_cue_coarse",
+          "ms": 1.4,
+          "expected": "answered",
+          "verdict": "FAIL"
+        },
+        {
+          "qid": "N01",
+          "verb": "select_query",
+          "negative": true,
+          "answered": false,
+          "sqlstate": "42501",
+          "refusal": "user mainline_judge does not have USAGE privilege on schema mainline_qa",
+          "ms": 1.0,
+          "expected": "refused",
+          "verdict": "PASS"
+        },
+        {
+          "qid": "N02",
+          "verb": "select_query",
+          "negative": true,
+          "answered": false,
+          "sqlstate": "42501",
+          "refusal": "Access to crdb_internal and system is restricted. HINT: These interfaces are unsupported in production. To proceed, set the session variable allow_unsafe_internals = true (not recommended), or contact Cockroach Labs for a supported alternative.",
+          "ms": 1.1,
+          "expected": "refused",
+          "verdict": "PASS"
+        },
+        {
+          "qid": "N03",
+          "verb": "select_query",
+          "negative": true,
+          "answered": true,
+          "sqlstate": "00000",
+          "rows": 1,
+          "ms": 21.7,
+          "expected": "refused",
+          "verdict": "FAIL",
+          "why": "answered over pgwire. FALLBACK.md B2 says this exactly: over a SQL connection these statements can succeed, and reporting a pass would invert their meaning. The property is about the MCP transport."
+        },
+        {
+          "qid": "N04",
+          "verb": "select_query",
+          "negative": true,
+          "answered": true,
+          "sqlstate": "00000",
+          "rows": 1,
+          "ms": 10.1,
+          "expected": "refused",
+          "verdict": "FAIL",
+          "why": "answered over pgwire. FALLBACK.md B2 says this exactly: over a SQL connection these statements can succeed, and reporting a pass would invert their meaning. The property is about the MCP transport."
+        }
+      ],
+      "sql_identity": "mainline_judge",
+      "passed": 12,
+      "total": 16
+    }
+  },
+  "managed_mcp_availability": {
+    "question": "Is the CockroachDB Managed MCP Server available on the SERVERLESS/Basic tier, and can its credential be published to anonymous judges?",
+    "available_on_basic": true,
+    "how_established": "MCP initialize against https://cockroachlabs.cloud/mcp with the cluster's own Cloud service-account key returned HTTP 200 and a session id; tools/list returned 12 tools; 15 of 16 pack questions were then executed over it against the live Basic cluster.",
+    "plan_tier": "BASIC",
+    "sql_identity": "managed-mcp",
+    "gt10_answer": "GT-10, which FALLBACK.md records as unanswered and assumes pessimistically: the endpoint runs as the SQL user 'managed-mcp' \u2014 not root, not the database owner, a purpose-built identity.",
+    "credential_publishable": false,
+    "why_not_publishable": "The credential that reaches this endpoint is the account's Cloud service-account key, and the surface it opens is not read-only. FALLBACK.md's Branch A rests on the premise that the MCP write surface is 'insert-only and bound to mainline_meas.external_attestation'. Measured, the tool list carries ['create_database', 'create_table', 'insert_rows'] and `create_database` returned {\"success\": true} against the live demo cluster \u2014 a database was created and dropped again in the same session. `list_clusters` also enumerates every cluster the account owns. So the degrade to Branch B executes, but NOT for the anticipated reason: Managed MCP is available and works well; the key is simply far too powerful to hand to a stranger.",
+    "published_instead": "the read-only SQL login mainline_judge, whose reach is the fourteen mainline_audit views and nothing else, verified from the other side by `judge_access.py provision`.",
+    "write_tools_present": [
+      "create_database",
+      "create_table",
+      "insert_rows"
+    ]
+  },
+  "divergences": [
+    {
+      "channel": "mcp",
+      "qid": "N01",
+      "observed": "answered, rows=1",
+      "disposition": "real_gap",
+      "by_design": false,
+      "reading": "mainline_qa IS readable by the Managed MCP identity. N01 claims an MCP identity cannot read per-person deliberation measurement; measured, `managed-mcp` runs SELECT count(*) FROM mainline_qa.v_disposition_profile successfully. GRANTS.yaml S14 and PACK.md's envelope both assert this is impossible. It is not. The read-only SQL login refuses the same statement with 42501 (no USAGE on the schema), so the credential this deployment actually publishes is the tighter of the two."
+    },
+    {
+      "channel": "sql",
+      "qid": "Q10",
+      "observed": "user mainline_judge does not have SELECT privilege on relation event_cue_embedding",
+      "disposition": "by_grant_design",
+      "by_design": true,
+      "reading": "42501 on mainline.event_cue_embedding. The plan-proof questions read a base table, and the judge login holds SELECT on the fourteen mainline_audit views and on no base relation anywhere. This failure IS the grant working. The plan proof is available over the MCP channel, which runs as a different identity."
+    },
+    {
+      "channel": "sql",
+      "qid": "Q10C",
+      "observed": "user mainline_judge does not have SELECT privilege on relation event_cue_coarse",
+      "disposition": "by_grant_design",
+      "by_design": true,
+      "reading": "42501 on mainline.event_cue_coarse, for the same reason as Q10: the judge login holds no base-table privilege. Granting it to make this line green would widen the published credential to make a test pass."
+    },
+    {
+      "channel": "sql",
+      "qid": "N03",
+      "observed": "answered, rows=1",
+      "disposition": "wrong_transport",
+      "by_design": true,
+      "reading": "pg_catalog is readable over pgwire by every login \u2014 measured, 654 rows as mainline_judge. It is a per-user-filtered catalogue, not a secret. N03 is a claim about the MCP transport's schema blocklist, where it passes. FALLBACK.md B2 says exactly this: reporting a pass here would invert the question's meaning."
+    },
+    {
+      "channel": "sql",
+      "qid": "N04",
+      "observed": "answered, rows=1",
+      "disposition": "wrong_transport",
+      "by_design": true,
+      "reading": "information_schema is readable over pgwire by every login \u2014 measured, 446 rows as mainline_judge \u2014 and is how any client introspects. Same reading as N03: the property belongs to the MCP transport, where it passes."
+    }
+  ],
+  "verdict": "DIVERGED \u2014 KNOWN GAP"
+}

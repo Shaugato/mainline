@@ -24,22 +24,44 @@ The fourth is the one that matters in six months. `qa/ruff-ratchet.json` is rege
 whenever the lint debt moves; if `HONESTY.md` says the debt is one number and the ratchet
 says another, this file goes red and names both.
 
+REFERENCE FAMILIES, AND THE RATCHET THAT RUNS THE OTHER WAY
+-----------------------------------------------------------
+A fifth failure appeared the moment this repository grew more than one evidence
+generator: **the document lags its own evidence.** A wave lands a new artefact, nobody
+re-bases the prose, and the page keeps quoting the world as it was. The four rules above
+cannot see that, because a stale citation to a still-existing file resolves fine.
+
+So every citable artefact is declared here as a *family* — a glob, a sentence saying what
+the family is for, and the keys a file in that family owes this document. Two rules run
+off the registry:
+
+* **an undeclared citation is refused.** A number sourced from some corner of `evidence/`
+  that nobody registered is a number with no owner.
+* **a family that exists on disk must be cited.** :func:`families_landed_but_uncited` is
+  the rule that goes red *when new evidence lands*, not when it disappears. If a worker
+  writes `evidence/chain/run-<UTC>.json` and `docs/HONESTY.md` does not mention it, this
+  file fails and names the family. That is deliberate, and it is the point: the honest
+  document is the one that cannot fall behind its own artefacts.
+
 WHAT IS NOT A QUANTITY. Digits inside a code span are **names**: `ap-southeast-2`,
 `v26.2.5`, `0121_trg_check_materialised.sql`, SQLSTATE `23514`, a date like `2026-08-10`.
 A name is not a measurement and pointing a JSON pointer at one would be theatre. So the
 extractor blanks code spans before it looks for numbers, and the document is written so
 that anything a skeptic would want to re-derive is a bare number outside backticks.
 
-PL-2, RED BEFORE GREEN. Six tests at the bottom of this file plant one of every violation
-family into a synthetic document and require the extractor to fire on each. A checker that
-has never been red asserts nothing about the document it checks.
+PL-2, RED BEFORE GREEN. The tests at the bottom of this file plant one of every violation
+family into a synthetic document and require the extractor to fire on each — including one
+per *reference* family, because a family rule that has only ever been satisfied asserts
+nothing about the families it governs. A checker that has never been red asserts nothing
+about the document it checks.
 """
 
 from __future__ import annotations
 
+import fnmatch
 import json
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -71,15 +93,165 @@ ALLOWED_ROOTS = ("qa/", "evidence/")
 #: skips to one of them learns what kind of statement they are reading before they read it.
 REQUIRED_SECTIONS = ("PROVEN", "SYNTHETIC", "NOT YET BUILT", "GEOGRAPHY AND LATENCY")
 
-#: The five tables whose consumers were written and whose producer never was. Naming them
-#: in the honesty document is not optional; they are the largest single gap in the tree.
+#: The relations whose consumers were written and whose producer never was. There are
+#: SEVEN, and the count is the lesson. A census that classified SQLSTATEs found five,
+#: because CockroachDB names only the *first* absent relation in a statement: two views
+#: named `mainline_meas.standing` before `mainline_meas.person_measure_policy`, so the
+#: second never surfaced in an error string at all. `mainline_ops.site_register_signal`
+#: blocked no migration — only a negative RLS assertion — so it was invisible to a chain
+#: census too. Naming all seven in the honesty document is not optional, and naming why
+#: two of them hid is worth more than the fix.
 UNPRODUCED_TABLES = (
     "mainline_ops.outbox",
     "mainline.identity_assignment",
     "mainline.patrol_run",
     "mainline_meas.agent_action",
     "mainline_meas.standing",
+    "mainline_meas.person_measure_policy",
+    "mainline_ops.site_register_signal",
 )
+
+#: The two that a SQLSTATE census could not have seen. The document must not merely list
+#: them; it must say why the measurement missed them.
+SHADOWED_TABLES = (
+    "mainline_meas.person_measure_policy",
+    "mainline_ops.site_register_signal",
+)
+
+# ── the reference families ───────────────────────────────────────────────────────────────
+
+
+@dataclass(frozen=True)
+class Family:
+    """One registered kind of citable artefact.
+
+    `pattern` is matched with :mod:`fnmatch` against the repo-relative POSIX path a
+    citation names. `owes` lists dotted pointers every file in the family must carry, so
+    that "cite the chain artefact" cannot degrade into "cite a file that happens to sit in
+    that directory".
+    """
+
+    name: str
+    pattern: str
+    why: str
+    owes: tuple[str, ...] = ()
+    cite_when_present: bool = True
+
+    def matches(self, path: str) -> bool:
+        return fnmatch.fnmatch(path, self.pattern)
+
+    def on_disk(self, root: Path = ROOT) -> list[Path]:
+        return sorted(p for p in root.glob(self.pattern) if p.is_file())
+
+
+FAMILIES: tuple[Family, ...] = (
+    Family(
+        name="test-census",
+        pattern="qa/test-state.json",
+        why="one pytest subprocess per distribution, twice: no cluster and one shared node",
+        owes=("totals.none.passed", "totals.cluster.errored", "packages"),
+    ),
+    Family(
+        name="ruff-ratchet",
+        pattern="qa/ruff-ratchet.json",
+        why="the frozen lint debt, which may fall and may not rise",
+        owes=("lint.total", "format.unformatted_files"),
+    ),
+    Family(
+        name="mypy-ratchet",
+        pattern="qa/mypy-ratchet.json",
+        why="the frozen type-error count and the distributions it was pointed at",
+        owes=("total_errors", "source_files_checked"),
+    ),
+    Family(
+        name="gate-refusal",
+        pattern="evidence/gate-refusal/proof-*.json",
+        why="the product's central claim: refuse, refuse under a forged projection, admit",
+        owes=("verdict", "chain.files", "refusal", "drift_refusal", "admission"),
+    ),
+    Family(
+        name="producer-census",
+        pattern="evidence/producers/producer-census-*.json",
+        why=(
+            "the producer-absent lint differenced over the tree — the observed RED that "
+            "found seven missing producers where a SQLSTATE census found five"
+        ),
+        owes=(
+            "before.files",
+            "before.absent_relations",
+            "cli_transcript.before.findings",
+            "cli_transcript.after.findings",
+        ),
+    ),
+    Family(
+        name="deploy-chain-local",
+        pattern="evidence/deploy/chain-*.json",
+        why="every migration file executed against the pinned local node, continuing past failures",
+        owes=("files", "applied", "failed"),
+    ),
+    Family(
+        name="deploy-chain-cloud",
+        pattern="evidence/deploy/cloud-chain.json",
+        why="the same chain applied to the CockroachDB Cloud cluster in Singapore",
+        owes=("files", "applied", "failed", "chain_seconds"),
+    ),
+    Family(
+        name="chain-run",
+        pattern="evidence/chain/*.json",
+        why=(
+            "the forward-only `trappoint migrate up` record run — the runner a deployment "
+            "actually uses, which halts on the first refusal instead of censusing past it"
+        ),
+        # Shape per `evidence/chain/README.md`: the runner's own counts live under
+        # `result`, and `result.complete` is the only field that means "a deployment of
+        # this tree would have succeeded" — applied == files AND nothing left dirty.
+        owes=("result.files", "result.applied", "result.complete"),
+    ),
+    Family(
+        name="conformance-census",
+        pattern="qa/conformance-census.json",
+        why="the conformance suite executed to completion, per case, with a reason per cannot-run",
+        owes=("totals",),
+    ),
+)
+
+
+#: Index by name, so a test can name the family it is exercising rather than a position.
+FAMILY_INDEX = {fam.name: index for index, fam in enumerate(FAMILIES)}
+
+
+def family_for(path: str) -> Family | None:
+    for family in FAMILIES:
+        if family.matches(path):
+            return family
+    return None
+
+
+def families_landed_but_uncited(
+    cited: set[str], root: Path = ROOT, families: tuple[Family, ...] = FAMILIES
+) -> list[str]:
+    """Families with a file on disk that the document cites nothing from.
+
+    This is the rule that fires when *new* evidence lands. Every other rule in this module
+    fires when evidence goes missing or moves; none of them can see a document that simply
+    never mentioned an artefact that now exists.
+    """
+    behind: list[str] = []
+    for fam in families:
+        if not fam.cite_when_present:
+            continue
+        present = fam.on_disk(root)
+        if not present:
+            continue
+        if any(fam.matches(path) for path in cited):
+            continue
+        names = ", ".join(p.relative_to(root).as_posix() for p in present[:3])
+        behind.append(
+            f"family {fam.name!r} has {len(present)} file(s) on disk ({names}) and "
+            f"docs/HONESTY.md cites none of them — {fam.why}"
+        )
+    return behind
+
 
 # ── the grammar ──────────────────────────────────────────────────────────────────────────
 
@@ -108,6 +280,10 @@ class Ref:
     def under_allowed_root(self) -> bool:
         return self.path.startswith(ALLOWED_ROOTS)
 
+    @property
+    def family(self) -> Family | None:
+        return family_for(self.path)
+
 
 @dataclass
 class Line:
@@ -115,8 +291,8 @@ class Line:
 
     number: int
     text: str
-    quantities: list[str]
-    refs: list[Ref]
+    quantities: list[str] = field(default_factory=list)
+    refs: list[Ref] = field(default_factory=list)
 
 
 def visible_lines(markdown: str) -> list[tuple[int, str]]:
@@ -330,10 +506,90 @@ def test_no_citation_is_decorative(lines: list[Line]) -> None:
     assert not problems, "decorative citations:\n" + "\n".join(problems)
 
 
-def test_the_five_unproduced_tables_are_named(markdown: str) -> None:
+# ── the reference-family rules ───────────────────────────────────────────────────────────
+
+
+def test_every_reference_belongs_to_a_declared_family(lines: list[Line]) -> None:
+    """A citation into an unregistered corner of `evidence/` is a number with no owner.
+
+    Declaring the family here is cheap and forces one sentence about what the artefact is
+    for. Skipping it lets a document lean on a file nobody maintains.
+    """
+    problems = [
+        f"line {line.number}: {ref.raw} matches no family in FAMILIES — declare it there, "
+        f"with the pointers the document is allowed to lean on"
+        for line in lines
+        for ref in line.refs
+        if ref.family is None
+    ]
+    assert not problems, "citations outside every declared family:\n" + "\n".join(problems)
+
+
+def test_every_declared_family_on_disk_keeps_its_shape() -> None:
+    """The contract each generator owes this document, checked against what it wrote."""
+    problems: list[str] = []
+    for fam in FAMILIES:
+        for path in fam.on_disk():
+            rel = path.relative_to(ROOT).as_posix()
+            try:
+                doc = json.loads(path.read_text(encoding="utf-8"))
+            except json.JSONDecodeError as exc:
+                problems.append(f"{rel}: not JSON ({exc})")
+                continue
+            for pointer in fam.owes:
+                try:
+                    _descend(doc, pointer, rel)
+                except KeyError:
+                    problems.append(
+                        f"{rel}: family {fam.name!r} owes {pointer!r} and the file has no such key"
+                    )
+    assert not problems, "artefacts that broke their family contract:\n" + "\n".join(problems)
+
+
+def test_the_document_does_not_lag_a_family_that_landed(lines: list[Line]) -> None:
+    """The ratchet that fires when evidence APPEARS.
+
+    Every other rule here fires when an artefact moves or vanishes. This one fires when a
+    wave writes a new artefact and nobody re-bases the prose — the failure mode that
+    turned "246 of 261 applied" into a sentence this repository quoted for a tree that
+    no longer looked like that.
+    """
+    cited = {ref.path for line in lines for ref in line.refs}
+    behind = families_landed_but_uncited(cited)
+    assert not behind, (
+        "docs/HONESTY.md is behind its own evidence:\n"
+        + "\n".join(behind)
+        + "\n\nRe-base the document on the artefact, or delete the artefact. A page that "
+        "does not mention evidence that exists is a page choosing what to look at."
+    )
+
+
+def test_the_seven_unproduced_tables_are_named(markdown: str) -> None:
     """The largest gap in the tree is named in full, not summarised as "some tables"."""
     missing = [name for name in UNPRODUCED_TABLES if name not in markdown]
     assert not missing, f"docs/HONESTY.md does not name the unproduced table(s): {missing}"
+
+
+def test_the_document_says_why_two_of_them_were_invisible(markdown: str) -> None:
+    """Five was not a smaller problem than seven; it was a smaller measurement.
+
+    CockroachDB reports the *first* absent relation in a statement, so a census built on
+    SQLSTATE strings could not have seen `person_measure_policy` behind `standing`. That
+    is a limit of the instrument, and a document that prints the corrected count without
+    the reason has recorded a fix and thrown away the lesson.
+    """
+    for name in SHADOWED_TABLES:
+        assert name in markdown, f"docs/HONESTY.md does not name the shadowed table {name!r}"
+    lowered = markdown.lower()
+    assert "first absent relation" in lowered, (
+        "docs/HONESTY.md names seven unproduced tables but never says why a SQLSTATE "
+        "census found five — the phrase 'first absent relation' is the explanation, and "
+        "without it the corrected count reads as a correction rather than as a lesson "
+        "about the limits of the measurement"
+    )
+    assert "evidence/producers/" in markdown, (
+        "docs/HONESTY.md must cite the producer census that observed the red"
+    )
 
 
 @pytest.mark.parametrize(
@@ -428,8 +684,104 @@ def test_red_a_decorative_citation_is_caught() -> None:
     )
 
 
+# ── PL-2 for the reference families ──────────────────────────────────────────────────────
+#
+# One planted violation per family the producer-completion wave introduced. A family rule
+# that has only ever been satisfied asserts nothing about the family it governs.
+
+
+def test_red_a_citation_into_an_undeclared_family_is_caught() -> None:
+    """`evidence/` is not a licence to cite anything under it."""
+    line = _lines("Rows written: 12 [src: evidence/scratch/somebodys-notes.json#rows]\n")[0]
+    assert line.refs and line.refs[0].under_allowed_root
+    assert line.refs[0].family is None, (
+        "evidence/scratch/ resolved to a declared family — the undeclared-citation rule "
+        "can no longer go red, so it is asserting nothing"
+    )
+
+
+def test_red_a_missing_chain_run_artefact_is_caught() -> None:
+    """Family `chain-run`: the forward-only `trappoint migrate up` record."""
+    line = _lines("Applied: 271 [src: evidence/chain/no-such-run.json#result.applied]\n")[0]
+    assert line.refs[0].family is not None
+    assert line.refs[0].family.name == "chain-run"
+    with pytest.raises(FileNotFoundError):
+        resolve(line.refs[0])
+
+
+def test_red_a_producer_census_pointer_that_does_not_resolve_is_caught() -> None:
+    """Family `producer-census`: the observed RED behind the seven missing producers."""
+    line = _lines(
+        "Relations with no producer: 7 "
+        "[src: evidence/producers/producer-census-before.json#before.no_such_field]\n"
+    )[0]
+    assert line.refs[0].family is not None and line.refs[0].family.name == "producer-census"
+    with pytest.raises(KeyError):
+        resolve(line.refs[0])
+
+
+def test_red_a_producer_census_number_that_disagrees_is_caught() -> None:
+    """The same family, and the failure mode that matters: a count that moved."""
+    census = ROOT / "evidence" / "producers" / "producer-census-before.json"
+    if not census.is_file():
+        pytest.skip("evidence/producers/producer-census-before.json is not on disk")
+    line = _lines(
+        "Relations with no producer: 999 "
+        "[src: evidence/producers/producer-census-before.json#before.absent_relations|len]\n"
+    )[0]
+    values = cited_values(line)
+    assert values and not any(matches(line.quantities[0], value) for _, value in values)
+
+
+def test_red_a_deploy_chain_number_that_disagrees_is_caught() -> None:
+    """Family `deploy-chain-local`: the census that says the whole tree applies."""
+    candidates = FAMILIES[FAMILY_INDEX["deploy-chain-local"]].on_disk()
+    if not candidates:
+        pytest.skip("no evidence/deploy/chain-*.json on disk")
+    rel = candidates[0].relative_to(ROOT).as_posix()
+    line = _lines(f"Applied: 999999 [src: {rel}#applied]\n")[0]
+    assert line.refs[0].family is not None and line.refs[0].family.name == "deploy-chain-local"
+    values = cited_values(line)
+    assert values and not any(matches(line.quantities[0], value) for _, value in values)
+
+
+def test_red_a_conformance_census_pointer_is_caught_whether_or_not_it_exists() -> None:
+    """Family `conformance-census`: absent today, and the rule must bite either way.
+
+    While `qa/conformance-census.json` does not exist, a citation to it must raise
+    :class:`FileNotFoundError`. Once it exists, a bogus status key must raise
+    :class:`KeyError`. Writing the test for both states means the day the artefact lands
+    is not the day this assertion silently stops meaning anything.
+    """
+    line = _lines("Cases that passed: 3 [src: qa/conformance-census.json#totals.no_such_status]\n")[
+        0
+    ]
+    assert line.refs[0].family is not None
+    assert line.refs[0].family.name == "conformance-census"
+    landed = (ROOT / "qa" / "conformance-census.json").is_file()
+    expected: type[Exception] = KeyError if landed else FileNotFoundError
+    with pytest.raises(expected):
+        resolve(line.refs[0])
+
+
+def test_red_a_document_that_ignores_a_landed_family_is_caught() -> None:
+    """The appearing-evidence ratchet, with nothing cited at all.
+
+    `families_landed_but_uncited` must name every family that has a file on disk. If this
+    returns empty against an empty citation set, the rule cannot fire and the document
+    could quietly stop mentioning any artefact it liked.
+    """
+    behind = families_landed_but_uncited(cited=set())
+    on_disk = [fam.name for fam in FAMILIES if fam.cite_when_present and fam.on_disk()]
+    assert on_disk, "no declared family has a file on disk; the ratchet governs nothing"
+    for name in on_disk:
+        assert any(name in message for message in behind), (
+            f"family {name!r} has files on disk but the uncited-family rule did not name it"
+        )
+
+
 def test_green_a_correct_line_passes_every_rule() -> None:
-    """The complement of the six above: the same machinery says yes to a true sentence.
+    """The complement of the reds above: the same machinery says yes to a true sentence.
 
     The sentence is built from the census at run time rather than frozen as a literal, so
     the green half cannot rot into a red the moment the suite is re-censused — which would
@@ -441,6 +793,7 @@ def test_green_a_correct_line_passes_every_rule() -> None:
     line = _lines(f"Passed, no cluster: {passed} [src: qa/test-state.json#totals.none.passed]\n")[0]
     assert line.quantities and line.refs
     assert line.refs[0].under_allowed_root
+    assert line.refs[0].family is not None and line.refs[0].family.name == "test-census"
     values = cited_values(line)
     assert values and all(
         any(matches(token, value) for token in line.quantities) for _, value in values
@@ -451,3 +804,15 @@ def test_code_spans_are_names_not_quantities() -> None:
     """`v26.2.5` is an identifier. If this stops holding, the rule becomes unwriteable."""
     line = _lines("The node is `CockroachDB v26.2.5` and SQLSTATE `23514` was returned.\n")[0]
     assert line.quantities == []
+
+
+def test_every_family_name_is_unique_and_every_pattern_is_reachable() -> None:
+    """A registry with a shadowed pattern silently mis-attributes citations."""
+    names = [fam.name for fam in FAMILIES]
+    assert len(names) == len(set(names)), f"duplicate family names in FAMILIES: {names}"
+    for index, fam in enumerate(FAMILIES):
+        earlier = [other for other in FAMILIES[:index] if other.matches(fam.pattern)]
+        assert not earlier, (
+            f"family {fam.name!r} is shadowed by {[o.name for o in earlier]}: "
+            "family_for() walks FAMILIES in order and would never reach it"
+        )

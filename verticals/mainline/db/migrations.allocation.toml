@@ -81,6 +81,60 @@
 # a worker who has run out of numbers suffixes their own last number.
 # ============================================================================
 
+# ============================================================================
+# PROSE EXTENSION — 2026-08-10, the producer-completion wave
+#
+# Document:  docs/leads/producers-plan.md  (decision D3)
+#
+# WHAT CHANGED, AND WHAT DELIBERATELY DID NOT
+#
+# Four `contents` strings below were restated so that they name the ten files
+# the wave adds. That is the whole of the change. No `first`, no `last`, no
+# `owner`, no `mode` moved, and no band was carved. The bands were already
+# exhaustive and disjoint over (1, "") to (9999, "z") and they still are —
+# `packages/trappoint-migrate/tests/test_allocation.py` asserts exactly that,
+# and it was not touched, so it is the check and not the changer.
+#
+# WHY PROSE IS THE RIGHT INSTRUMENT AND A NEW BAND IS NOT
+#
+# `_rule_b_allocation` in packages/trappoint-migrate/src/trappoint_migrate/
+# lint.py resolves a filename's key to a band and then compares **`mode`** —
+# `rendered` against `authored` against `unallocated`. It does NOT compare
+# `owner`, and it does not read `contents` at all. `owner` and `contents` are
+# addressed to a human reader.
+#
+# All ten new files land in bands whose `mode` is ALREADY `authored`, so lint
+# rule B admitted them as written before this comment existed:
+#
+#     0049d  mainline.identity_assignment           band 0049a-0049z  authored
+#     0089   mainline_meas.agent_action             band 0080-0089z   authored
+#     0089a  mainline_meas.person_measure_policy    band 0080-0089z   authored
+#     0089b  mainline_meas.standing                 band 0080-0089z   authored
+#     0090   mainline.patrol_run                    band 0090-0099z   authored
+#     0099   mainline_ops.outbox                    band 0090-0099z   authored
+#     0099a  mainline_ops.site_register_signal      band 0090-0099z   authored
+#     0145f  trg identity_assignment append-only    band 0145-0149z   authored
+#     0149a  trg agent_action append-only           band 0145-0149z   authored
+#     0149b  trg person_measure_policy append-only  band 0145-0149z   authored
+#
+# That the lint would have admitted them silently is exactly why this block is
+# here. A band whose description does not name the files it grants is a grant
+# nobody can audit by reading, and the incident of 2026-08-08 was an audit that
+# compared two declarations with each other and found nothing. Restating the
+# prose is a deliberate act by the wave that added the files, recorded on the
+# day it was made, and not a side effect of one.
+#
+# The numbers themselves are not this file's to choose. Four already-committed
+# artefacts fix them — the `requires:` headers of 0163/0164/0165/0166/0171/
+# 0172/0198x, `GRANTS.yaml`'s `since:` keys, ARCHITECTURE.md section 18, and
+# RLS-MATRIX.yaml. Moving one would falsify all four (D2).
+#
+# `mainline_ops.outbox` gets NO append-only weld, and its absence from the
+# 0145-0149z list is the decision D5, not an omission: it is the one TTL table
+# in `mainline_ops` (30 days), and a BEFORE DELETE refusal trigger would make
+# the row-expiry job fail forever.
+# ============================================================================
+
 # ---------------------------------------------------------------------------
 # SECTION 3 — tables and seeds (0001-0099)
 # ---------------------------------------------------------------------------
@@ -139,7 +193,7 @@ first = "0049a"
 last = "0049z"
 owner = "algorithms"
 mode = "authored"
-contents = "delta_witness (0049a) — the algorithms table annexe, granted explicitly and exclusively (MRR-5)"
+contents = "delta_witness (0049a), commutation_edge (0049b), cbm_account (0049c), identity_assignment (0049d), meas_mutation_run (0049y), meas_mutation_result (0049z) — the algorithms table annexe, granted explicitly and exclusively (MRR-5). 0049d is the producer of mainline.identity_assignment, whose consumers 0140a and 0145a were written first (producer-completion, 2026-08-10)"
 
 [[band]]
 first = "0050"
@@ -202,14 +256,14 @@ first = "0080"
 last = "0089z"
 owner = "recall"
 mode = "authored"
-contents = "mainline_meas.* recall/silence/certificate family"
+contents = "mainline_meas.* recall/silence/certificate family — recall_policy (0080), recall_run (0081), recall_candidate (0082), silence_receipt (0083), silence_ledger (0084), thymogate_certificate (0086), recall_certificate (0087), event_cue_stage (0088); and the measurement family the producer-completion wave adds, 2026-08-10: agent_action (0089), person_measure_policy (0089a), standing (0089b), where standing.policy_id is NOT NULL REFERENCES person_measure_policy so 0089a must precede 0089b"
 
 [[band]]
 first = "0090"
 last = "0099z"
 owner = "datamodel/dm-periphery"
 mode = "authored"
-contents = "fixity, fleet, governance, frontier, contradiction pair, mainline_ops.*"
+contents = "fixity, fleet, governance, frontier, contradiction pair, mainline_ops.* — and the three the producer-completion wave adds, 2026-08-10: patrol_run (0090), mainline_ops.outbox (0099), mainline_ops.site_register_signal (0099a). 0099 must sort before its consumer trigger 0121, which is where the forward-only chain halted at file 156 of 261"
 
 # ---------------------------------------------------------------------------
 # SECTION 4 — functions, triggers, views, policies (0100-0199)
@@ -283,7 +337,7 @@ first = "0145"
 last = "0149z"
 owner = "datamodel/dm-functions-triggers+algorithms"
 mode = "authored"
-contents = "vertical triggers; trg_delta_witness_guard = 0145"
+contents = "vertical triggers; trg_delta_witness_guard = 0145 — and the three append-only welds the producer-completion wave adds, 2026-08-10: trg_identity_assignment_append_only (0145f), trg_agent_action_append_only (0149a), trg_person_measure_policy_append_only (0149b). mainline_ops.outbox gets no weld and that is decision D5, not an omission: it is a TTL table and a BEFORE DELETE refusal would make row expiry fail forever"
 
 [[band]]
 first = "0150"

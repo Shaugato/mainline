@@ -1,0 +1,87 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MAINLINE · 0145f_trg_identity_assignment_append_only.sql
+-- CREATE TRIGGER append_only ON mainline.identity_assignment
+--
+-- MI: MI01, MI03
+-- I: I01, I02
+-- COUNSEL-GATED: no
+-- RATIONALE: 0049d gives the conservation law its positive terms; nothing in 0049d stops a
+--            writer editing them afterwards. `fn_cbm_account_guard` (0140a) fires BEFORE INSERT
+--            on `mainline.cbm_account` and re-derives the six counters at THAT moment, so an
+--            account written against a truthful assignment set stays balanced no matter what
+--            happens to the assignment set later. One `UPDATE mainline.identity_assignment SET
+--            relation = 'matched' WHERE relation = 'absent'` would therefore make every FUTURE
+--            account balance and leave every existing one intact — a discharge asserted after
+--            the fact, with no row saying so, and no refusal anywhere. This statement is what
+--            makes "append-only" (MI01) a property of the database rather than a sentence in a
+--            header: a correction to an identity decision is a NEW row, and if the ancestor is
+--            genuinely unplaceable the correct new row is in `identity_residue` with a
+--            disposition attached.
+--
+-- migration:  0145f_trg_identity_assignment_append_only
+-- domain:     algorithms
+-- band:       0145-0149z · datamodel/dm-functions-triggers + algorithms · AUTHORED, allocated
+--             by verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1). MR-5 band
+--             overflow of this domain's own `0145` (`trg_delta_witness_guard`);
+--             docs/leads/migration-chain-verification.md gives `0146`-`0149` to
+--             `datamodel/dm-functions-triggers`, so this domain suffixes its own last number
+--             rather than borrowing a neighbour's. `0145a`-`0145e` are taken by the CBM welds,
+--             so this is `0145f`; it sorts after `0145e_` and before `0146_`.
+-- statements: 1  (the CREATE TRIGGER, and nothing else)
+-- invariants: MI01 — evidentiary tables are append-only. The catalogue's mechanism for it is
+--                    "revoked grants + BEFORE UPDATE/DELETE trigger + RESTRICTIVE RLS"; this
+--                    is the trigger third of that, and it is the third that travels with the
+--                    schema into a restored cluster where the grants do not.
+--             MI03 — the count this table stands behind. An editable assignment makes MI03's
+--                    refusal reachable around on one statement.
+--             I01  — no UPDATE or DELETE on a ledger, obligation or certificate relation.
+--             I02  — the projected refusal that would otherwise be evadable.
+-- source:     ARCHITECTURE.md §5.11 item 9 (`fn_refuse_mutation` and the relations it is applied
+--             to) · §16 MI01 · spec/invariants/I01-append-only.md · the statement is
+--             character-for-character the pattern of `0128_trg_refuse_mutation.sql`,
+--             `0145e_trg_cbm_account_append_only.sql` and `0149y`/`0149z`.
+-- requires:   0049d mainline.identity_assignment · 0107 mainline.fn_refuse_mutation
+--             Ordering: 0049d (table) < 0107 (function) < 0145f (this). Lexicographic ordering
+--             on the whole filename stem gives exactly that and both dependencies point back.
+-- sqlstate:   P0001 — `MAINLINE: this table is append-only; write a new row` — on every UPDATE
+--             and every DELETE, for every role, forever.
+-- forward-only; no .down.sql exists at or below the protected floor (DM-14).
+--
+-- ═════════════════════════════════════════════════════════════════════════════════════════════
+-- IT REUSES THE KERNEL'S FUNCTION AND DOES NOT WRITE ITS OWN
+-- ═════════════════════════════════════════════════════════════════════════════════════════════
+-- `mainline.fn_refuse_mutation` is the substrate's, created at 0107 and welded to eleven kernel
+-- relations by 0128-0128j. `mainline.identity_assignment` is a VERTICAL table, so it is not on
+-- that list and it never will be: MR-1's object test asks whether a second TRAPPOINT vertical
+-- needs the object to pass `trappoint-conform`, and no other vertical needs MAINLINE's clause
+-- identity matcher. But the OBLIGATION is identical, and a second, near-identical
+-- `fn_identity_assignment_refuse_mutation` would be a second message for the same event and a
+-- second thing to keep in step. One function, many tables, and the message an operator sees is
+-- the same wherever they hit it. `0145e` made exactly this choice for `cbm_account`.
+--
+-- ── WHY DELETE AS WELL AS UPDATE ─────────────────────────────────────────────────────────────
+-- They are the same event from the archive's point of view, and here they are also the same
+-- ATTACK. Deleting an 'absent' row does not merely remove evidence: it removes the row whose
+-- presence made the account short, so the next generation of the account balances and the
+-- unaccounted obligation is gone with no trace. The unbalanced account was the alarm; deleting
+-- its cause silences the alarm. `BEFORE UPDATE OR DELETE`, one trigger, because both statements
+-- rewrite a history that a gate has already been conditioned on.
+--
+-- ── WHAT THIS DOES NOT CLAIM ─────────────────────────────────────────────────────────────────
+-- `ALTER TABLE mainline.identity_assignment DISABLE TRIGGER append_only` succeeds, like every
+-- trigger in this deployment, and this file does not make the table immune to `DROP TABLE`. What
+-- the custodian patrol makes impossible is removing the RECORD that it was disabled, and that
+-- claim belongs to the custody domain and is not verified by this worker. Deletes are revoked at
+-- the grant layer too; this is the structural half, and the structural half is the one that
+-- survives a restore.
+--
+-- ── D10 ──────────────────────────────────────────────────────────────────────────────────────
+-- Nothing in this domain depends on inter-trigger firing order, which CockroachDB v26.2 does not
+-- document. This is the only trigger on `mainline.identity_assignment`, so there is no order to
+-- observe; the object name carries no `z_` prefix because it is the kernel's `append_only` weld
+-- under the kernel's own name, exactly as 0128 and 0149y spell it.
+
+CREATE TRIGGER append_only BEFORE UPDATE OR DELETE ON mainline.identity_assignment
+  FOR EACH ROW EXECUTE FUNCTION mainline.fn_refuse_mutation();

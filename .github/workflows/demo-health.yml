@@ -1,0 +1,186 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# THE DEMO HEARTBEAT — the cheapest true sentence about the deployed demo, twice an hour.
+#
+# WHY THIS EXISTS INSTEAD OF A CLOUDWATCH SYNTHETICS CANARY
+# ---------------------------------------------------------
+# The deployment lead priced the alternative and refused it. One canary at five-minute
+# intervals is 8 640 runs a month at $0.0012 — **$10.37/month, roughly thirty times the
+# cost of the entire rest of the stack combined** (`docs/leads/deploy-plan.md` §2.3, and
+# the itemised bill in `docs/deploy/OBSERVABILITY.md`). This workflow costs nothing on a
+# public repository, and its failures are visible in the same place the judges are
+# already reading. Half the sampling rate, none of the bill, and a public audit trail.
+#
+# WHAT IT ASSERTS, AND WHY EACH ONE
+# ----------------------------------
+#   1. `GET /v1/health` answers **200**.
+#   2. The body parses as JSON and carries `ok: true`.
+#   3. `server_date` is **fresh** — within a bounded window of the runner's own clock.
+#
+# The third is the one that earns the job. A cached 200 is the classic false green: a CDN
+# or a stale edge object will serve a perfectly valid health body for hours after the
+# database behind it has gone. `server_date` comes from `now()` **inside the health
+# statement**, so a body older than the window is proof that nothing spoke to CockroachDB
+# recently, whatever the status line says. The endpoint is served with `no-store` for the
+# same reason; this check is what verifies that it actually is.
+#
+# The freshness window is deliberately generous (default 15 minutes). It is a staleness
+# detector, not a clock-skew detector: a GitHub runner and a CockroachDB Cloud node in
+# Singapore have no guaranteed relationship between their clocks, and a tight window would
+# turn ordinary drift into a page. Fifteen minutes catches "this body is from yesterday"
+# and ignores "these two clocks differ by nine seconds".
+#
+# IT OPENS NOTHING WHEN IT PASSES
+# --------------------------------
+# No issue, no comment, no notification, no artefact. A monitor that produces output on a
+# healthy system trains its readers to ignore its output. The only signal is the red X on
+# a scheduled run, which is exactly the signal a maintainer already watches for.
+#
+# WHAT IT DOES NOT DO
+# --------------------
+# It does not call `POST /v1/demo/gate-run`. That endpoint opens a SERIALIZABLE
+# transaction and drives four beats through the kernel; running it every thirty minutes
+# for eight days is ~380 needless transactions against a Basic cluster with a spend cap,
+# to re-establish something that does not silently change. The gate is proven by
+# `scripts/deploy/demo_acceptance.py` at deploy time and by the release proof in CI.
+# **This job answers "is the demo up", not "is the demo correct".** Conflating the two is
+# how a health check becomes a test suite nobody can afford to run.
+#
+# CONFIGURATION
+# --------------
+# `vars.DEMO_URL` — repository variable, e.g. `https://dXXXXXXXX.cloudfront.net`. A
+# variable and not a secret: it is the URL printed in the submission form, and masking a
+# public URL in the logs of a public repository would only make failures harder to read.
+# When it is unset the job **fails loudly** rather than skipping — see the first step.
+
+name: demo-health
+
+on:
+  schedule:
+    # Every 30 minutes. Cron on GitHub Actions is best-effort and a scheduled run can be
+    # delayed or dropped under load, which is one more reason the freshness window is
+    # generous rather than tight.
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "Override the demo URL for a one-off check"
+        required: false
+        type: string
+
+# Read-only. This workflow reads a repository variable and makes one outbound request; it
+# has no reason to be able to write to the repository, and a scheduled job with write
+# permissions is a standing invitation.
+permissions:
+  contents: read
+
+concurrency:
+  # A backlog of delayed health checks is noise. Only the newest one is interesting.
+  group: demo-health
+  cancel-in-progress: true
+
+jobs:
+  health:
+    name: GET /v1/health
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      DEMO_URL: ${{ inputs.url || vars.DEMO_URL }}
+      # Seconds. Generous on purpose — see the header.
+      FRESHNESS_WINDOW_SECONDS: "900"
+    steps:
+      - name: The URL must be configured
+        # A SKIP HERE WOULD BE A LIE. An unconfigured monitor that reports success is
+        # worse than no monitor: the green tick says "the demo is up" when it means
+        # "nobody told me where the demo is". Fail, and name the fix.
+        run: |
+          if [ -z "${DEMO_URL}" ]; then
+            echo "::error title=DEMO_URL is not set::Set the repository variable DEMO_URL to the CloudFront demo URL (Settings -> Secrets and variables -> Actions -> Variables). This job fails rather than skips, because a health check that passes without checking anything is the failure it exists to prevent."
+            exit 1
+          fi
+          echo "checking ${DEMO_URL}/v1/health"
+
+      - name: Fetch and assert
+        run: |
+          set -euo pipefail
+          url="${DEMO_URL%/}/v1/health"
+
+          # --fail-with-body so a non-2xx still yields the body: this API's 503 names the
+          # reason (`dsn_unset`, `unreachable`, `no_bookkeeping`) and that sentence is the
+          # whole diagnostic value of the check. `|| true` keeps the pipeline alive so the
+          # status can be reported below rather than killing the step here.
+          status=$(curl -sS --max-time 30 --retry 2 --retry-delay 5 \
+                        -o /tmp/health.json -w '%{http_code}' "$url" || true)
+
+          echo "HTTP ${status}"
+          echo "--- body ---"
+          cat /tmp/health.json || echo "(no body)"
+          echo
+          echo "------------"
+
+          if [ "$status" != "200" ]; then
+            echo "::error title=demo health is down::GET ${url} returned ${status}, expected 200"
+            exit 1
+          fi
+
+          python3 - "$FRESHNESS_WINDOW_SECONDS" <<'PY'
+          import datetime as dt
+          import json
+          import sys
+
+          window = int(sys.argv[1])
+
+          try:
+              body = json.load(open("/tmp/health.json"))
+          except Exception as exc:
+              print(f"::error title=health body is not JSON::{exc}")
+              raise SystemExit(1)
+
+          if not body.get("ok"):
+              print(
+                  "::error title=health reports ok=false::"
+                  f"{body.get('reason')} — {body.get('detail')}"
+              )
+              raise SystemExit(1)
+
+          raw = body.get("server_date")
+          if not raw:
+              # The freshness assertion is the only thing separating this from a check a
+              # stale cache can satisfy. Without the field there is nothing to assert, and
+              # passing anyway would quietly downgrade the whole job.
+              print(
+                  "::error title=no server_date::The health body carries no server_date, so "
+                  "freshness cannot be established and a cached 200 would pass this check."
+              )
+              raise SystemExit(1)
+
+          stamp = dt.datetime.fromisoformat(raw.replace("Z", "+00:00"))
+          if stamp.tzinfo is None:
+              stamp = stamp.replace(tzinfo=dt.UTC)
+          age = (dt.datetime.now(dt.UTC) - stamp).total_seconds()
+
+          # Report both directions. A NEGATIVE age is clock skew, not staleness, and
+          # calling it "stale" would send whoever is on call looking for the wrong thing.
+          if age > window:
+              print(
+                  f"::error title=health body is stale::server_date {raw} is {age:.0f}s old, "
+                  f"beyond the {window}s window. A 200 with a stale body is a cached response; "
+                  "nothing has spoken to CockroachDB recently."
+              )
+              raise SystemExit(1)
+          if age < -window:
+              print(
+                  f"::warning title=clock skew::server_date {raw} is {-age:.0f}s in the future "
+                  "relative to this runner. Not a staleness failure; the clocks disagree."
+              )
+
+          # The only output on a healthy run, and it goes to the log, not to a notification.
+          print(
+              f"OK  cluster={body.get('cluster_version', '?')[:40]!r} "
+              f"database={body.get('database')} "
+              f"fingerprint={str(body.get('schema_fingerprint'))[:16]}… "
+              f"age={age:.0f}s "
+              f"roundtrip={body.get('seconds')}s"
+          )
+          PY

@@ -123,7 +123,7 @@
         "2020H1",
         "2020H2"
       ],
-      "fitted_at": "2026-08-10T00:17:52+00:00",
+      "fitted_at": "2026-08-10T08:36:19+00:00",
       "library": "scikit-learn IsotonicRegression(increasing=True, out_of_bounds='clip')",
       "method": "isotonic_regression",
       "n_positive": 169,

@@ -201,6 +201,15 @@ def _build_parser() -> argparse.ArgumentParser:  # noqa: PLR0915 - see the note 
         help="skip the mandatory header block check (MI:/I:/COUNSEL-GATED:/RATIONALE:)",
     )
     p_lint.add_argument(
+        "--no-producers",
+        action="store_true",
+        help=(
+            "skip rule D, the whole-tree producer-existence census. On by default: a "
+            "relation with consumers and no CREATE applies clean until the first "
+            "statement that resolves it and then halts the forward-only chain"
+        ),
+    )
+    p_lint.add_argument(
         "--strict-invariants",
         action="store_true",
         help=(
@@ -529,7 +538,7 @@ def _header_findings(roots: Sequence[Path], *, strict: bool) -> list[str]:
 
 def _cmd_lint(args: argparse.Namespace, root: Path) -> int:
     roots: list[Path] = list(args.roots or _default_roots(root))
-    report = lint_paths(roots)
+    report = lint_paths(roots, producers=not args.no_producers)
     for finding in report.findings:
         print(finding.render())
 

@@ -9,7 +9,7 @@ a caveat; it is the deliverable. ``PL-2``:
     For a product whose deliverable is a refusal, a suite that has never been red
     asserts nothing.
 
-Five result states, and the distinctions between them are the whole reporting contract:
+Six result states, and the distinctions between them are the whole reporting contract:
 
 ``PASSED``
     the database refused exactly as the manifest says it must.
@@ -20,6 +20,20 @@ Five result states, and the distinctions between them are the whole reporting co
 ``SKIPPED``
     the case declares a ``requires`` capability this profile does not supply. Printed,
     counted, and never mistaken for a pass.
+``CANNOT_RUN``
+    the case *could not be attempted*, and the runner knows why. Two ways in, and they
+    are the same sentence about different objects:
+
+    * the **legal world could not be built** — a setup statement was refused, so the
+      history the case is about was never issued (:class:`SetupRefused`);
+    * a ``requires`` token was **probed against the live cluster and found absent** —
+      :mod:`trappoint_conformance.capability` names the relation, role or policy.
+
+    It is distinct from ``FAILED`` on purpose and the distinction is load-bearing. A
+    ``FAILED`` case says *the gate did not refuse what it must*. A ``CANNOT_RUN`` case
+    says *nothing was asked of the gate*. Collapsing them would let a broken fixture read
+    as a broken product, and — far worse — would let a real gate defect hide in a pile of
+    fixture noise. It never counts as green.
 ``PENDING``
     the manifest declares the case and no implementation exists yet. Counted and
     printed. It is *not* fatal today and it is *not* meant to stay that way: the
@@ -28,11 +42,18 @@ Five result states, and the distinctions between them are the whole reporting co
 ``ERROR``
     the runner itself could not run the case — no connection, unreadable manifest.
     Always fatal.
+
+``SKIPPED`` versus ``CANNOT_RUN`` for an unmet ``requires`` is decided by **whether
+anybody looked**. Without ``--autodetect-requires`` the runner has no evidence about the
+token and skips, exactly as it always has. With it, the runner has read ``pg_class`` /
+``pg_roles`` / ``pg_policies`` and can name the object that is missing — that is a
+measurement, and a measurement that says the case cannot run is reported as a cannot-run
+rather than as a shrug.
 """
 
 from __future__ import annotations
 
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
@@ -57,12 +78,36 @@ __all__ = [
     "CaseFn",
     "CaseResult",
     "RunReport",
+    "SetupRefused",
     "Status",
     "implemented_case_ids",
     "register",
     "resolve_schema",
     "run",
 ]
+
+
+class SetupRefused(AssertionError):
+    """A statement that builds a case's LEGAL world was refused.
+
+    Distinct from a conformance failure on purpose. The world is supposed to be legal; if
+    the database refuses to build it, the case never ran, and reporting that as a red gate
+    would be a lie about which thing is broken.
+
+    **It lives here, in the runner, and not in the corpus that raises it.** It used to be
+    defined in ``cases/_world.py``, which meant the runner — the only thing that can turn
+    it into a *result* — could not name the type without importing the corpus, and so it
+    did not: ``run()`` caught ``psycopg.Error`` and nothing else, one unbuildable world
+    escaped as an ``AssertionError`` through the loop, and a single broken fixture took
+    the entire suite with it. That is why the census recorded 182 errors rather than 182
+    results. The exception belongs to the result taxonomy, so it is declared beside it;
+    ``cases._world`` re-exports the name, and every ``from ._world import SetupRefused``
+    in the corpus still resolves to this class.
+
+    It remains an ``AssertionError`` subclass so that a case module which raises it under
+    a bare ``pytest.raises(AssertionError)`` keeps behaving as it did.
+    """
+
 
 # Which SQL schema a profile's objects live in. `trappoint-ref` is the reference vertical
 # shipped with the substrate (kernel plan §1.1); it is what makes K1 independent of the
@@ -114,11 +159,12 @@ def resolve_schema(profile: str, override: str | None = None) -> str:
 
 
 class Status(Enum):
-    """The five result states."""
+    """The six result states. See the module docstring for what each one claims."""
 
     PASSED = "passed"
     FAILED = "failed"
     SKIPPED = "skipped"
+    CANNOT_RUN = "cannot_run"
     PENDING = "pending"
     ERROR = "error"
 
@@ -138,6 +184,7 @@ class CaseResult:
             Status.PASSED: "PASS",
             Status.FAILED: "FAIL",
             Status.SKIPPED: "SKIP",
+            Status.CANNOT_RUN: "CANT",
             Status.PENDING: "PEND",
             Status.ERROR: "ERR ",
         }[self.status]
@@ -168,13 +215,24 @@ class RunReport:
 
     @property
     def is_green(self) -> bool:
-        """A run is green only when nothing failed and nothing errored.
+        """A run is green only when nothing failed, errored, or could not be run.
 
         PENDING does not make a run red — there is no implementation to be wrong yet —
         and it does not make it green either, which is why the summary always prints the
         count. SKIPPED never makes a run green: a skipped case is not a passed case.
+
+        **CANNOT_RUN does make it red, and that is the ratchet.** A run in which a legal
+        world would not build, or in which a required object was measured absent, has not
+        exercised the gate on those cases — so it cannot entitle anyone to the sentence a
+        green run entitles them to. Reporting it as green because "no assertion failed"
+        would be the exact failure mode ``PL-2`` exists to forbid: a suite that asserts
+        nothing and passes.
         """
-        return self.count(Status.FAILED) == 0 and self.count(Status.ERROR) == 0
+        return (
+            self.count(Status.FAILED) == 0
+            and self.count(Status.ERROR) == 0
+            and self.count(Status.CANNOT_RUN) == 0
+        )
 
     def summary(self) -> str:
         """Render the line quoted in claims of conformance: version and profile, always."""
@@ -183,7 +241,13 @@ class RunReport:
             f"spec {self.spec_version}",
             f"profile {self.profile}",
         ]
-        for status in (Status.FAILED, Status.SKIPPED, Status.PENDING, Status.ERROR):
+        for status in (
+            Status.FAILED,
+            Status.CANNOT_RUN,
+            Status.SKIPPED,
+            Status.PENDING,
+            Status.ERROR,
+        ):
             n = self.count(status)
             if n:
                 parts.append(f"{status.value} {n}")
@@ -271,12 +335,51 @@ def cf_01_merge_with_an_open_blocking_check(
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-def _requirements_met(case: Case, satisfied: Iterable[str]) -> tuple[bool, str]:
+def _requirements_met(
+    case: Case, satisfied: Iterable[str], reasons: Mapping[str, str]
+) -> tuple[bool, str, bool]:
+    """Return ``(met, why, measured)`` for one case's capability tokens.
+
+    ``measured`` is True when at least one missing token carries a probed reason — the
+    prober looked at the cluster and named the object. That is what separates a
+    ``CANNOT_RUN`` from a ``SKIPPED``, and it is decided here rather than at the call site
+    so the two statuses can never be assigned by two different rules.
+    """
     available = set(satisfied)
-    missing = [token for token in case.requires if token not in available]
-    if missing:
-        return False, "requires " + ", ".join(sorted(missing))
-    return True, ""
+    missing = sorted(token for token in case.requires if token not in available)
+    if not missing:
+        return True, "", False
+
+    explained = [token for token in missing if reasons.get(token)]
+    if not explained:
+        return False, "requires " + ", ".join(missing), False
+
+    why = "; ".join(f"{token}: {reasons[token]}" for token in explained)
+    unexplained = [token for token in missing if not reasons.get(token)]
+    if unexplained:
+        why += "; also requires " + ", ".join(unexplained)
+    return False, why, True
+
+
+def _recover(conn: psycopg.Connection[Any]) -> None:
+    """Return the connection to a usable state after a case blew up mid-flight.
+
+    Cases run in autocommit and a refused statement normally leaves nothing behind, but a
+    case that had opened a transaction — four of them open a second writer, several use
+    savepoints — can leave this one INERROR, and a poisoned connection turns the next
+    case's first statement into a failure that has nothing to do with the next case. That
+    is the same defect class as the abort this method exists beside: one broken case
+    contaminating the rest of the run.
+
+    Failures here are swallowed on purpose. If the connection is beyond recovery, the
+    cases that follow will say so in their own results, which is where a reader can act
+    on it; raising out of the recovery path would restore the very abort being removed.
+    """
+    try:
+        if conn.info.transaction_status != psycopg.pq.TransactionStatus.IDLE:
+            conn.rollback()
+    except Exception:  # noqa: BLE001, S110 — see the docstring: recovery may not raise
+        pass
 
 
 def run(
@@ -287,9 +390,22 @@ def run(
     schema: str | None = None,
     only: frozenset[str] | None = None,
     satisfied_requirements: Iterable[str] = (),
+    requirement_reasons: Mapping[str, str] | None = None,
     run_id: str | None = None,
 ) -> RunReport:
-    """Run every implemented case selected for *profile*."""
+    """Run every implemented case selected for *profile*.
+
+    *requirement_reasons* maps an unsatisfied capability token to the one-line reason a
+    probe produced for it (see :mod:`trappoint_conformance.capability`). Supplying it is
+    what turns ``SKIP  requires mainline.propagation`` into ``CANT  relation
+    "mainline.propagation" does not exist``; omitting it preserves the previous behaviour
+    exactly.
+
+    **This function does not raise on a broken case.** Every exit from an implementation
+    — a refused world, a driver error, an assertion — becomes a result, because a runner
+    that aborts on case *n* publishes nothing about cases *n+1* onward and a report of
+    182 errors is not a report.
+    """
     resolved_schema = resolve_schema(profile, schema)
     identifier = new_run_id(run_id)
     report = RunReport(
@@ -299,14 +415,21 @@ def run(
         run_id=identifier,
     )
     harness = Harness(conn)
+    reasons: Mapping[str, str] = requirement_reasons or {}
 
     for case in manifest.for_profile(profile):
         if only is not None and case.id not in only:
             continue
 
-        met, why = _requirements_met(case, satisfied_requirements)
+        met, why, measured = _requirements_met(case, satisfied_requirements, reasons)
         if not met:
-            report.results.append(CaseResult(case, Status.SKIPPED, why))
+            report.results.append(
+                CaseResult(
+                    case,
+                    Status.CANNOT_RUN if measured else Status.SKIPPED,
+                    f"CANNOT RUN — {why}" if measured else why,
+                )
+            )
             continue
 
         implementation = _REGISTRY.get(case.id)
@@ -323,7 +446,17 @@ def run(
         scope = scope_for(identifier, case.id)
         try:
             observed = implementation(harness, scope, resolved_schema)
+        except SetupRefused as refused:
+            # The world a case is illegal in must itself be legal. It was not, so the
+            # history was never issued and there is nothing to assert about the gate.
+            # One result, and the suite carries on to case n+1.
+            _recover(conn)
+            report.results.append(
+                CaseResult(case, Status.CANNOT_RUN, f"WORLD NOT BUILT — {refused}".strip())
+            )
+            continue
         except psycopg.Error as exc:
+            _recover(conn)
             report.results.append(CaseResult(case, Status.ERROR, f"driver error: {exc}".strip()))
             continue
 

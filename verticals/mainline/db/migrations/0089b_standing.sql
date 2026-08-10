@@ -1,0 +1,163 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MI: MI28
+-- I: I15
+-- COUNSEL-GATED: yes
+-- RATIONALE: M10. A derived authority level about a named human, which I15 makes representable if and only if four conditions hold. Three of them are structural and live here: `policy_id` NOT NULL REFERENCES the signed instrument (condition 2 has a target), `components` NOT NULL carries the arithmetic (condition 3 has a source), and `within_policy` refuses a score computed over data the policy did not yet cover (condition 2 is enforced rather than asserted). The fourth — the scored person can obtain their own score — is `mainline_qa.v_my_record` (0172). `policy_effective_from` is PROJECTED onto this row because a CHECK cannot subquery; that projection is the reason the constraint can exist at all, and it is also the one column here a writer could lie about, which is why 0171 and 0172 both re-derive `scored_within_policy` in the open rather than reporting that a CHECK passed.
+--
+-- migration:  0089b_standing
+-- domain:     producers (measurement zone)
+-- band:       0080-0089z · recall · AUTHORED, allocated by
+--             verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1)
+-- statements: 1
+-- invariants: MI28 — a bounded window means bounded, not merely present. `window_from`
+--                    and `policy_effective_from` sit on the same row precisely so the
+--                    boundedness is checkable by a reader and not only by the writer.
+--             I15  — the allegation firewall. This is the one table in the deployment
+--                    that stores a derived number about a named person, and every
+--                    condition I15 attaches to that permission is realised here or in
+--                    the two views that read it.
+-- source:     ARCHITECTURE.md §5.7 (verbatim, line 1561) — column names, types,
+--             nullability, the composite key and `within_policy` are transcribed, not
+--             chosen · §11.5 (SEC-3) · verticals/mainline/db/RLS-MATRIX.yaml
+--             (mainline_meas.standing: FORCE, four policies) ·
+--             verticals/mainline/db/GRANTS.yaml (agent_assay INSERT, since "0089")
+-- requires:   0002 CREATE SCHEMA mainline_meas (RENDERED; template 0001_schemas.sql.j2) ·
+--             0089a mainline_meas.person_measure_policy — THE ORDERING IS LOAD-BEARING,
+--             see below
+-- sqlstate:   23514 on `within_policy` · 23503 on a `policy_id` no instrument authorises ·
+--             23505 on a duplicate (actor_sub, hazard_class, window_from)
+-- forward-only; no .down.sql exists at or below the protected floor (DM-14). Under MR-5
+--             there is no .up.sql either.
+--
+-- COUNSEL-GATED: yes (G0) · DEFAULT: conservative · ADR: docs/adr/0001-g0-counsel.md
+--
+-- ═════════════════════════════════════════════════════════════════════════════
+-- 0089a BEFORE 0089b, AND WHY THE LETTER SUFFIX IS DOING REAL WORK
+-- ═════════════════════════════════════════════════════════════════════════════
+-- `policy_id` is `NOT NULL REFERENCES mainline_meas.person_measure_policy`. A
+-- foreign key resolves its target at CREATE TABLE time, so this file is
+-- unappliable until 0089a has run. Apply order is lexicographic over the
+-- `NNNN[a-z]_` key, so `0089a` sorts before `0089b` by construction and the
+-- dependency cannot be reordered by a future insertion between them — there is no
+-- key between `0089a` and `0089b`.
+--
+-- Both consumers already committed this number in prose before either file
+-- existed: 0171 and 0172 each carry
+-- `requires: 0089 mainline_meas.standing · 0089 mainline_meas.person_measure_policy`,
+-- and GRANTS.yaml carries `since: "0089"` on `mainline_meas.standing`. Choosing a
+-- different number would have silently falsified three committed artefacts.
+--
+-- ═════════════════════════════════════════════════════════════════════════════
+-- M10 SHIPS INERT, AND THE INERTNESS IS ITSELF A DATED OBJECT
+-- ═════════════════════════════════════════════════════════════════════════════
+-- §11.5: M10 ships INERT — W = 1.0 for every hazard class, i.e. quorum = one
+-- signature = today's behaviour — with the inertness itself a dated object. ADR
+-- 0001 executed the pre-committed conservative default for G0 and recorded that
+-- "any per-person measurement family remains opt-in behind `person_measure_policy`
+-- and is not enabled in the demo or in any default configuration".
+--
+-- So on a shipped deployment this table is EMPTY, and it cannot become non-empty
+-- by accident: `policy_id` is NOT NULL and its only legal values are rows an
+-- officer signed, dated and gave notice of. An empty table with a NOT NULL
+-- reference to an empty register is a stronger statement about what the system is
+-- not doing than any amount of documentation, because it is checkable.
+--
+-- The inertness being DATED is what distinguishes this from a feature flag. A flag
+-- flips in a config file and leaves nothing; this flips by an INSERT into 0089a
+-- that names an approving officer and two digests, and 0149b welds that row
+-- append-only so the naming cannot be revised afterwards.
+--
+-- ═════════════════════════════════════════════════════════════════════════════
+-- `policy_effective_from` IS A PROJECTION, AND THE HONEST READING OF THAT
+-- ═════════════════════════════════════════════════════════════════════════════
+-- §5.7 annotates the column "projected: CHECK cannot subquery", and that is
+-- exactly right — `CHECK (window_from >= (SELECT effective_from FROM …))` is not
+-- expressible. Carrying the policy's start date onto the scored row is what makes
+-- `within_policy` a database constraint instead of an application convention.
+--
+-- What that buys, and what it does not:
+--
+--   IT BUYS the refusal. A standing row whose window opens before its policy took
+--   effect is not insertable — 23514, naming `within_policy` — and that refusal
+--   is I15's OBSERVABLE row for this invariant.
+--
+--   IT DOES NOT BUY fidelity to 0089a by itself. A writer holding INSERT can
+--   supply a `policy_effective_from` earlier than the referenced policy's real
+--   `effective_from` and pass the CHECK. This is the same shape as P2's projected
+--   counters, and the answer is the same: DO NOT TRUST THE PROJECTION, RE-DERIVE
+--   IT. `mainline_qa.v_standing_components` (0171) joins the real instrument and
+--   publishes `scored_within_policy` computed from `base.policy_effective_from`
+--   alongside the instrument's own `effective_from` and `notice_given_at`, and
+--   `mainline_qa.v_my_record` (0172) discloses the same arithmetic to the scored
+--   person. A forged projection therefore survives the INSERT and is visible as a
+--   contradiction to both the QA function and the subject.
+--
+-- Stating this in the file is deliberate. A projected column whose limits are not
+-- written down is a column a later reader will treat as authoritative.
+--
+-- ═════════════════════════════════════════════════════════════════════════════
+-- WHY NO APPEND-ONLY TRIGGER ON THIS TABLE, WHEN 0089a GETS ONE
+-- ═════════════════════════════════════════════════════════════════════════════
+-- RLS-MATRIX.yaml already declares this table's entire write surface: FORCE row
+-- level security (0187/0187a) with exactly one write policy — `standing_assay_insert`,
+-- PERMISSIVE, FOR INSERT, TO agent_assay (0187d) — and GRANTS.yaml grants
+-- `agent_assay` INSERT and nothing else. There is no UPDATE policy and no DELETE
+-- policy, and under FORCE that is not an omission, it is the control.
+--
+-- Adding a BEFORE UPDATE OR DELETE trigger here would put a SECOND, UNDECLARED
+-- control on a table whose matrix is committed and asserted by
+-- tests/integration/schema/test_mi_rls.py. Two controls for one property is how a
+-- matrix stops describing the database. 0089a is different: it carries no RLS
+-- declaration at all, so its append-only property has no other home, and the
+-- pre-dating argument dies without it.
+--
+-- ═════════════════════════════════════════════════════════════════════════════
+-- WHAT THIS TABLE IS NOT
+-- ═════════════════════════════════════════════════════════════════════════════
+-- 1. IT IS NOT READABLE BY A SIGNER, INCLUDING THEIR OWN ROW. `standing_blind`
+--    (0187b) is RESTRICTIVE FOR SELECT TO signer USING (false) — not "your own row
+--    only", nothing at all — because M10's peer-prediction channel is defeated by
+--    a participant who can see the scoring. SEC-3 condition (4) is served by
+--    `mainline_qa.v_my_record` under `subject_access`: a different role, a
+--    different schema and a ledgered read.
+-- 2. IT IS NOT A CHARACTERISATION. I15 permits a derived authority level and
+--    forbids a derived characterisation of diligence, honesty, competence or
+--    intent. `s` is a quorum weight consumed by a state transition; the pejorative
+--    form does not exist, in this schema or in telemetry, ever.
+-- 3. IT IS NOT ON THE MCP SURFACE. No MCP service account is issued for
+--    `mainline_qa` on any tier (S14), and `mainline_auditor`'s entire write
+--    surface is `mainline_meas.external_attestation`.
+--
+-- ═════════════════════════════════════════════════════════════════════════════
+-- A NOTE ON CONSTRAINT NAMING, SO THE DEPARTURE IS DECLARED AND NOT DISCOVERED
+-- ═════════════════════════════════════════════════════════════════════════════
+-- Columns, types, nullability, the composite primary key and `within_policy` are
+-- verbatim from §5.7. The one departure is that the primary key and the foreign
+-- key are written as NAMED table-level constraints, following 0080, 0084, 0086 and
+-- 0049z, because the refusal exhibit IS the constraint name and CockroachDB's
+-- generated name for an inline constraint is not a contract.
+--
+-- `within_policy` keeps the name §5.7 gave it. Note for whoever owns the
+-- conformance corpus: spec/invariants/I15-allegation-firewall.md and
+-- spec/conformance/manifest.toml (CF-68) both name the exhibit
+-- `measure_policy_predates_data`. That is a documented divergence, not a silent
+-- one — three migration files (0171, 0187d and this one) cite `within_policy` by
+-- name, and renaming a constraint to satisfy a manifest that no MAINLINE case
+-- currently exercises would falsify them.
+
+CREATE TABLE mainline_meas.standing (
+  actor_sub             STRING      NOT NULL,
+  hazard_class          STRING      NOT NULL,
+  window_from           TIMESTAMPTZ NOT NULL,
+  policy_id             UUID        NOT NULL,
+  policy_effective_from TIMESTAMPTZ NOT NULL,   -- projected: a CHECK cannot subquery
+  s                     FLOAT8      NOT NULL,
+  components            JSONB       NOT NULL,   -- the arithmetic; SEC-3 condition (3)
+  computed_at           TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT standing_pk PRIMARY KEY (actor_sub, hazard_class, window_from),
+  CONSTRAINT within_policy CHECK (window_from >= policy_effective_from),
+  CONSTRAINT fk_policy FOREIGN KEY (policy_id)
+    REFERENCES mainline_meas.person_measure_policy (policy_id)
+);

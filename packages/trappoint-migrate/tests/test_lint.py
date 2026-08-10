@@ -13,6 +13,7 @@ the happy direction would let the rule rot into a comment.
 
 from __future__ import annotations
 
+import inspect
 from pathlib import Path
 
 import pytest
@@ -301,6 +302,58 @@ def test_a_condemned_up_sql_file_is_not_also_reported_by_rules_a_and_b(tmp_path:
     write(root, "0001_role_mainline_owner.up.sql", HEADER + "CREATE ROLE mainline_owner;\n")
     found = {f.rule for f in lint_paths([root]).findings}
     assert found == {"up-sql-suffix"}
+
+
+# ── RULE D · the producer-existence census, as `lint_paths` wires it ────────────────
+#
+# The rule itself is exercised in `test_producers.py`. What belongs here is the WIRING,
+# because rule D is the first rule in this module that is a statement about a *tree*:
+# where it runs, when it is silent, and that the switch really switches it off. Those
+# three are `lint_paths`' contract and nothing in `producers.py` can assert them.
+
+
+def test_rule_d_reports_a_relation_the_tree_names_and_never_creates(tmp_path: Path) -> None:
+    root = banded_tree(tmp_path)
+    write(root, "0020a_site.sql", HEADER + "CREATE TABLE mainline.site (id UUID);\n")
+    write(root, "0020b_trg.sql", HEADER + "CREATE TRIGGER t AFTER INSERT ON mainline_ops.outbox\n")
+    (finding,) = [f for f in lint_paths([root]).findings if f.rule == "producer-absent"]
+    assert finding.path.name == "0020b_trg.sql"
+    assert "mainline_ops.outbox" in finding.detail
+    # The remedy has to be in the message. The cheap way to make this finding go away is
+    # to delete the reference, and that is never the right fix: seven consumers were
+    # right and one CREATE TABLE was missing.
+    assert "Write the producer" in finding.detail
+
+
+def test_rule_d_is_silent_where_no_allocation_governs_the_tree(tmp_path: Path) -> None:
+    # Same gate as rule B, for the same reason. A tree that declares an allocation has
+    # asserted that it is the whole of a deployable schema; a tree that declares none —
+    # the template directory, the reference vertical's partial substrate binding — is a
+    # fragment, and measuring a fragment against a promise it did not make is noise.
+    root = tmp_path / "templates_out"
+    root.mkdir()
+    write(root, "0006_trg.sql", HEADER + "CREATE TRIGGER t AFTER INSERT ON mainline_ops.outbox\n")
+    assert lint_paths([root]).ok
+
+
+def test_no_producers_turns_rule_d_off_and_nothing_else(tmp_path: Path) -> None:
+    root = banded_tree(tmp_path)
+    write(root, "0019_x.sql", HEADER + "ALTER TABLE mainline.never_created ADD COLUMN x INT8;\n")
+    write(root, "0020_y.sql", HEADER + "CREATE TABLE t (id SERIAL);\n")
+    with_rule = {f.rule for f in lint_paths([root]).findings}
+    without = {f.rule for f in lint_paths([root], producers=False).findings}
+    assert "producer-absent" in with_rule
+    assert "producer-absent" not in without
+    # The switch is scoped: the sequence ban is untouched by it.
+    assert "banned-token:serial" in with_rule
+    assert "banned-token:serial" in without
+
+
+def test_rule_d_is_on_by_default() -> None:
+    # Stated as its own assertion because "on by default" is the whole design: a rule a
+    # caller has to opt into is a rule that is off in the one repository that needed it.
+    default = inspect.signature(lint_paths).parameters["producers"].default
+    assert default is True
 
 
 def test_the_committed_tree_carries_no_up_sql_file() -> None:

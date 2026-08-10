@@ -40,11 +40,13 @@ from typing import Any
 from psycopg import sql as pgsql
 
 from trappoint_conformance.harness import Harness, HistoryOutcome, Step
-from trappoint_conformance.site import SiteScope
+from trappoint_conformance.runner import SetupRefused
+from trappoint_conformance.site import CONFORMANCE_NAMESPACE, SiteScope
 
 from ._exhibit import normalise
 
 __all__ = [
+    "CONFORMANCE_TENANT_ID",
     "Disposition",
     "SetupRefused",
     "World",
@@ -52,6 +54,7 @@ __all__ = [
     "fail_stored",
     "long_rationale",
     "refusal",
+    "table_columns",
 ]
 
 # ``substantive CHECK (length(rationale) >= 120)``. A vertical policy with a number the
@@ -63,13 +66,57 @@ _RATIONALE = (
 )
 
 
-class SetupRefused(AssertionError):
-    """A statement that builds the legal world was refused.
+# ``SetupRefused`` is imported from :mod:`trappoint_conformance.runner` and re-exported
+# here, so every ``from ._world import SetupRefused`` in the corpus keeps working. It moved
+# because the runner is the only thing that can turn it into a *result*, and a runner that
+# could not name the type caught ``psycopg.Error`` and nothing else — one unbuildable world
+# then aborted the entire suite. The class is declared beside the result taxonomy it feeds.
 
-    Distinct from a conformance failure on purpose. The world is supposed to be legal; if
-    the database refuses to build it, the case never ran and reporting that as a red gate
-    would be a lie about which thing is broken.
+#: The deployment's tenancy. ``mainline.site.tenant_id`` is documented as CONSTANT per
+#: deployment — it is the coarse-sweep vector prefix, and a C-SPANN index is used only when
+#: every prefix column is constrained to a single value — so the whole corpus shares one,
+#: derived deterministically from the suite's own namespace rather than minted per case.
+CONFORMANCE_TENANT_ID = uuid.uuid5(CONFORMANCE_NAMESPACE, "tenant")
+
+# Probed once per (database, schema, table) and cached: `information_schema.columns` does
+# not change under a conformance run, and 71 cases asking the same question 71 times would
+# be 71 round trips to learn one fact.
+_COLUMNS: dict[tuple[str, str, str], frozenset[str]] = {}
+
+
+def table_columns(harness: Harness, schema: str, table: str) -> frozenset[str]:
+    """Return the column names ``<schema>.<table>`` actually has, or the empty set.
+
+    **The binding decides the column list, not the corpus.** ``mainline.site`` (0020a)
+    carries ``tenant_id UUID NOT NULL`` and ``taxonomy_ver INT4 NOT NULL``;
+    ``trappoint_ref.site`` (``trappoint_model.refschema``) carries neither.
+    ``trappoint_ref.clause`` carries ``site_id NOT NULL``; the builder used to write
+    ``clause_uuid`` alone, and against the reference vertical that is a ``23502``. A
+    builder that hard-codes either shape breaks the other binding, and a conformance
+    runner that only works against one binding is not a conformance runner. So the shape
+    is read from the catalogue once per run and the INSERT is composed from what is there.
+
+    The empty set means the binding declares no such relation, and the builder method that
+    asked is then a no-op — the case that needed the row fails on the missing relation it
+    actually needs, which is the honest outcome.
     """
+    try:
+        database = str(harness.conn.info.dbname)
+    except Exception:  # noqa: BLE001 — a stub connection has no `info`; cache per schema
+        database = "<unknown>"
+    key = (database, schema, table)
+    cached = _COLUMNS.get(key)
+    if cached is not None:
+        return cached
+    with harness.conn.cursor() as cur:
+        cur.execute(
+            "SELECT column_name FROM information_schema.columns "
+            "WHERE table_schema = %s AND table_name = %s",
+            (schema, table),
+        )
+        present = frozenset(str(row[0]) for row in cur.fetchall())
+    _COLUMNS[key] = present
+    return present
 
 
 def digest32(label: str) -> bytes:
@@ -202,9 +249,19 @@ class World:
 
     def run(self, label: str, text: str, params: tuple[Any, ...] = ()) -> None:
         """Execute one setup statement, or explain why the world could not be built."""
+        self.run_composed(label, self.sql(text), params)
+
+    def run_composed(
+        self, label: str, statement: pgsql.Composed | pgsql.SQL, params: tuple[Any, ...] = ()
+    ) -> None:
+        """Execute one setup statement whose *column list* had to be composed.
+
+        :meth:`site_row` is the only caller that needs this: its column list comes from the
+        catalogue, so it cannot be a literal in a format string.
+        """
         try:
             with self.harness.conn.cursor() as cur:
-                cur.execute(self.sql(text), params)
+                cur.execute(statement, params)
         except Exception as exc:
             raise SetupRefused(
                 f"{self.scope.case_id}: building the LEGAL world failed at {label!r}. "
@@ -225,6 +282,38 @@ class World:
 
     # ── the vertical's own tables, where the substrate names them ────────────
 
+    @property
+    def site_code(self) -> str:
+        """Return this case's ledger partition key: lower case, and per case.
+
+        ``mainline.site`` carries ``CONSTRAINT site_code_is_lower_case CHECK (site_code =
+        lower(site_code))``. The builder used to write ``f"CONF-{…}"``, which that CHECK
+        refuses with ``23514`` — so against MAINLINE *every* case that needed a site row
+        died in setup. The hex of a UUID is already lower case; the prefix is spelled to
+        match.
+        """
+        return f"conf-{str(self.site_id)[:8]}"
+
+    @property
+    def site_role(self) -> str:
+        """Return this case's RLS scope token: lower case, and per case.
+
+        The second defect, and it only becomes visible once the first is fixed.
+        ``mainline.site`` carries ``CONSTRAINT site_role_unique UNIQUE (site_role)``, and
+        the builder wrote the literal ``'conf_role'`` for every case under ``ON CONFLICT DO
+        NOTHING``. The first case's site row therefore inserted and *every subsequent
+        case's was silently discarded* — no error, no row, and then a dozen foreign keys
+        failing for a reason that has nothing to do with what the case is about. A silent
+        ``ON CONFLICT`` is exactly as expensive as a wrong answer and much harder to see.
+
+        ``NAME`` is what ``CURRENT_USER`` has, and ``site_role_is_lower_case`` compares
+        through the cast, so the token is lower case here too. It is not a role that
+        exists on the cluster and does not need to be: the corpus runs as an admin, and
+        the cases that assert *role* behaviour (``CF-47``, ``CF-48``, ``CF-69``) provision
+        their own through ``cases/_privilege.py``.
+        """
+        return f"conf_{str(self.site_id).replace('-', '_')[:12]}"
+
     def site_row(self) -> None:
         """Insert the vertical's ``site`` row, where the binding has one.
 
@@ -233,22 +322,63 @@ class World:
         needs one. Absent in a binding that does not declare the relation, in which case
         this is a no-op and the case that needed it fails on the missing relation, which
         is the honest outcome.
+
+        **The column list is read from the catalogue, not written here.** See
+        :func:`site_columns`: ``mainline.site`` requires ``tenant_id`` and
+        ``taxonomy_ver`` and ``trappoint_ref.site`` does not have either, so a fixed list
+        breaks one of the two bindings whichever list you pick.
         """
-        self.run(
+        # `opened_at` is deliberately not offered: MAINLINE's 0020a defaults it and its own
+        # header says the default is a fixture convenience, so supplying one would be the
+        # corpus asserting a commissioning date it does not know.
+        self.adaptive_insert(
             "site",
-            "INSERT INTO {s}.site (site_id, site_code, site_role) VALUES (%s, %s, %s) "
-            "ON CONFLICT DO NOTHING",
-            (self.site_id, f"CONF-{str(self.site_id)[:8]}", "conf_role"),
+            {
+                "site_id": self.site_id,
+                "site_code": self.site_code,
+                "site_role": self.site_role,
+                "tenant_id": CONFORMANCE_TENANT_ID,
+                "taxonomy_ver": 1,
+            },
         )
 
-    def clause_row(self, tag: str = "clause") -> uuid.UUID:
-        """Insert a ``clause`` row — the target of ``disposition.compensating_clause_uuid``."""
-        clause_uuid = self.uid(tag)
-        self.run(
-            "clause",
-            "INSERT INTO {s}.clause (clause_uuid) VALUES (%s) ON CONFLICT DO NOTHING",
-            (clause_uuid,),
+    def adaptive_insert(self, table: str, values: dict[str, Any]) -> None:
+        """INSERT the subset of *values* whose columns ``<schema>.<table>`` actually has.
+
+        Used only where the two bindings genuinely disagree about a table's shape and the
+        disagreement is in columns the corpus can supply a correct value for. It is **not**
+        a general escape hatch: a table whose required columns the corpus cannot fill
+        honestly must fail loudly in setup — as :meth:`clause_version` does against
+        MAINLINE — rather than insert a partial row and let the ``NOT NULL`` be the
+        diagnosis somebody else has to trace.
+        """
+        present = table_columns(self.harness, self.schema, table)
+        if not present:
+            return
+        names = [name for name in values if name in present]
+        if not names:
+            return
+        statement = pgsql.SQL(
+            "INSERT INTO {s}.{t} ({cols}) VALUES ({vals}) ON CONFLICT DO NOTHING"
+        ).format(
+            s=pgsql.Identifier(self.schema),
+            t=pgsql.Identifier(table),
+            cols=pgsql.SQL(", ").join(pgsql.Identifier(name) for name in names),
+            vals=pgsql.SQL(", ").join(pgsql.Placeholder() for _ in names),
         )
+        self.run_composed(table, statement, tuple(values[name] for name in names))
+
+    def clause_row(self, tag: str = "clause") -> uuid.UUID:
+        """Insert a ``clause`` row — the target of ``disposition.compensating_clause_uuid``.
+
+        ``site_id`` is written where the binding has the column. ``trappoint_ref.clause``
+        declares it ``NOT NULL`` and this builder used to omit it, so ``CF-07``, ``CF-23``
+        and ``CF-71`` — the three cases that cite a compensating clause — died in setup
+        with ``23502`` on the reference vertical, which is the binding the suite is
+        supposed to be green against.
+        """
+        clause_uuid = self.uid(tag)
+        self.adaptive_insert("clause", {"clause_uuid": clause_uuid, "site_id": self.site_id})
         return clause_uuid
 
     # ── the substrate ────────────────────────────────────────────────────────
@@ -312,7 +442,14 @@ class World:
             (
                 permit_id,
                 self.site_id,
-                "conf_role",
+                # The SAME token as the site row's. `permit.site_role` is a denormalised
+                # copy of it, and `fn_site_role` overwrites whatever a writer supplies from
+                # `site` — in a binding that welds it. In MAINLINE the function ships
+                # deliberately unwelded on the gated subjects (the trigger slot belongs to
+                # the merge gate), so the value written here is the value that stays, and
+                # writing a token that names no site row would put a forged scope token in
+                # the one column this repository has a migration about not forging.
+                self.site_role,
                 f"{self.scope.external_ref}-{tag}",
                 f"refs/permits/{self.scope.case_id.lower()}-{tag}",
                 horizon_days,
@@ -331,7 +468,7 @@ class World:
             (
                 cr_id,
                 self.site_id,
-                "conf_role",
+                self.site_role,  # same reasoning as `permit`, above
                 f"{self.scope.external_ref}-{tag}",
                 f"refs/changes/{self.scope.case_id.lower()}-{tag}",
                 "refs/heads/main",

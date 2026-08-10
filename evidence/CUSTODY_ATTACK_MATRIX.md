@@ -20,7 +20,7 @@ real, disposable CockroachDB. Regenerate with:
 
 | Environment | |
 |---|---|
-| generated_at | 2026-08-10T00:23:06Z |
+| generated_at | 2026-08-10T08:38:28Z |
 
 ## The matrix
 

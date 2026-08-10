@@ -1,0 +1,60 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MAINLINE · 0149a_trg_agent_action_append_only.sql
+-- CREATE TRIGGER append_only ON mainline_meas.agent_action — the weld MI01 already claims
+--
+-- MI: MI01
+-- I: I01, I15
+-- COUNSEL-GATED: no
+-- RATIONALE: 0164's header already cites MI01 over this table — "evidentiary tables are
+--            append-only; `agent_action` is one of them" — and that sentence was published
+--            before any trigger existed to make it true. A table whose invariant is
+--            asserted by its consumer and enforced by nothing is worse than an
+--            unconstrained table, because the assertion is what a reader trusts. This file
+--            is the enforcement half of a claim the tree has already made. It also carries
+--            I15: the allegation firewall holds because `agent_action` has no column
+--            characterising a named human, and a mutable log is one UPDATE away from
+--            acquiring one after review.
+--
+-- migration:  0149a_trg_agent_action_append_only
+-- domain:     datamodel / dm-functions-triggers
+-- band:       0145-0149z · datamodel/dm-functions-triggers+algorithms · AUTHORED, allocated
+--             by verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1). `0149a`
+--             sorts after the existing 0145a-0145e vertical triggers and before the
+--             algorithms domain's tail pair 0149y/0149z, so no existing file moves.
+-- statements: 1
+-- invariants: MI01 — evidentiary tables are append-only
+--             I01  — the substrate invariant MI01 instantiates
+--             I15  — the allegation firewall; an immutable action log cannot be edited into
+--                    a record about a person after the fact
+-- source:     ARCHITECTURE.md §5.7 (agent_action DDL) · §5.11 item 9 ·
+--             spec/invariants/I01-append-only.md · 0164_v_agent_actions.sql (the header that
+--             cites MI01 over this table)
+-- requires:   0089 mainline_meas.agent_action · 0107 mainline.fn_refuse_mutation
+-- sqlstate:   P0001 on UPDATE or DELETE, with the substrate's own message
+-- forward-only; no .down.sql and no .up.sql (MR-5).
+--
+-- REUSING THE SUBSTRATE'S FUNCTION RATHER THAN WRITING A SECOND ONE.
+-- `mainline.fn_refuse_mutation` (0107, RENDERED from `packages/trappoint-sql/templates/`)
+-- reads no relation and names no column: it raises, always, with one message. A vertical
+-- copy would be a second place for the append-only refusal to drift, and a refusal message
+-- that differs between two tables is a message an operator learns to ignore. This is the
+-- same choice 0128-0128j and 0149y/0149z made, for the same reason.
+--
+-- WHY BEFORE AND NOT INSTEAD OF. BEFORE UPDATE OR DELETE fires per row and raises, so no
+-- row is ever written and no statement half-succeeds. The function returns nothing and
+-- reads nothing, so this trigger contributes 0 to trigger depth and cannot participate in a
+-- cycle; ruling D10 holds and nothing here depends on inter-trigger firing order.
+--
+-- WHAT INSERT STILL DOES. Nothing changes on the write path: every INSERT is admitted, and
+-- the table's CHECKs (0089) are the only thing that can refuse one. Append-only means the
+-- ledger grows; it does not mean the ledger is hard to write.
+--
+-- WHAT THIS DOES NOT MAKE TRUE. `ALTER TABLE mainline_meas.agent_action DISABLE TRIGGER
+-- append_only` succeeds; an admin can remove the guard. What the custody patrol makes hard
+-- is removing the RECORD that they removed it. That is the custody domain's claim, it is
+-- not verified by this file, and it is stated here rather than implied.
+
+CREATE TRIGGER append_only BEFORE UPDATE OR DELETE ON mainline_meas.agent_action
+  FOR EACH ROW EXECUTE FUNCTION mainline.fn_refuse_mutation();

@@ -1,0 +1,730 @@
+{
+  "schema": "mainline.qa.public-readiness/1",
+  "note": "Measured, not asserted. Every row carries the command that produced it and what that command printed. Regenerate with `python scripts/submission/audit_public_readiness.py --json qa/public-readiness.json`.",
+  "generated_utc": "2026-08-10T04:34:38Z",
+  "generator": "scripts/submission/audit_public_readiness.py",
+  "repo_root": "mainline",
+  "irreversibility": "The flip from PRIVATE to PUBLIC is IRREVERSIBLE. GitHub's fork network, the GHArchive event stream, Software Heritage and search-engine caches all outlive a revert, and the flip publishes ALL 16 COMMITS, not the tree at HEAD. A value masked at HEAD but present in an earlier commit is published anyway.",
+  "verdict": "NOT READY",
+  "failed_checks": [
+    "secrets_history",
+    "repo_state"
+  ],
+  "totals": {
+    "checks": 7,
+    "passed": 4,
+    "failed": 2,
+    "informational": 1,
+    "unresolved_findings": 1,
+    "allowlisted_findings": 35
+  },
+  "families": {
+    "aws_access_key_id": "AWS access key id (AKIA/ASIA + 16)",
+    "github_token": "GitHub token (ghp_/gho_/ghu_/ghs_/ghr_/github_pat_)",
+    "slack_token": "Slack token (xoxb/xoxa/xoxp/xoxr/xoxs)",
+    "private_key_block": "PEM private key block",
+    "crdb_cloud_api_key": "CockroachDB Cloud API key (CCDB1_)",
+    "aws_account_id": "AWS 12-digit account id in account/ARN context",
+    "bearer_or_jwt": "Bearer credential or JWT",
+    "high_entropy_secret": "high-entropy token next to a secret-shaped key name"
+  },
+  "allowlist": [
+    {
+      "path": "infra/policy/custody/fixtures/README.md",
+      "family": "aws_access_key_id",
+      "verbatim": true,
+      "reason": "AKIAIOSFODNN7EXAMPLE is the access key id AWS itself prints in its public documentation. It authenticates nothing and is not derived from any real key. Present so the custody fixture README shows the shape a reviewer should expect."
+    },
+    {
+      "path": "infra/policy/custody/fixtures/plan_compliant.json",
+      "family": "aws_access_key_id",
+      "verbatim": true,
+      "reason": "Same AWS documentation placeholder, embedded in a recorded terraform plan fixture. The plan was produced against the documentation account 111122223333, not against account 0229...8246."
+    },
+    {
+      "path": "infra/policy/custody/fixtures/README.md",
+      "family": "high_entropy_secret",
+      "verbatim": true,
+      "reason": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY is AWS's published secret-access-key placeholder, the counterpart to the AKIA...EXAMPLE id on the line above it."
+    },
+    {
+      "path": "evidence/reference-ledger/keys/reference-log.NOT-SECRET.key.pem",
+      "family": "private_key_block",
+      "verbatim": false,
+      "reason": "Published on purpose. docs/HONESTY.md lines 173-174 state that every file under evidence/reference-ledger/keys/ is a private key committed deliberately, so that a third party can re-sign the reference bundle and reproduce every value in it. The filename carries NOT-SECRET. These keys sign nothing outside the reference ledger."
+    },
+    {
+      "path": "evidence/reference-ledger/keys/reference-tsa.NOT-SECRET.key.pem",
+      "family": "private_key_block",
+      "verbatim": false,
+      "reason": "Published on purpose. docs/HONESTY.md lines 173-174 state that every file under evidence/reference-ledger/keys/ is a private key committed deliberately, so that a third party can re-sign the reference bundle and reproduce every value in it. The filename carries NOT-SECRET. These keys sign nothing outside the reference ledger."
+    },
+    {
+      "path": "evidence/reference-ledger/keys/reference-tsa-root.NOT-SECRET.key.pem",
+      "family": "private_key_block",
+      "verbatim": false,
+      "reason": "Published on purpose. docs/HONESTY.md lines 173-174 state that every file under evidence/reference-ledger/keys/ is a private key committed deliberately, so that a third party can re-sign the reference bundle and reproduce every value in it. The filename carries NOT-SECRET. These keys sign nothing outside the reference ledger."
+    },
+    {
+      "path": "evidence/reference-ledger/keys/reference-webauthn.NOT-SECRET.key.pem",
+      "family": "private_key_block",
+      "verbatim": false,
+      "reason": "Published on purpose. docs/HONESTY.md lines 173-174 state that every file under evidence/reference-ledger/keys/ is a private key committed deliberately, so that a third party can re-sign the reference bundle and reproduce every value in it. The filename carries NOT-SECRET. These keys sign nothing outside the reference ledger."
+    },
+    {
+      "path": "evidence/reference-ledger/keys/reference-witness.NOT-SECRET.key.pem",
+      "family": "private_key_block",
+      "verbatim": false,
+      "reason": "Published on purpose. docs/HONESTY.md lines 173-174 state that every file under evidence/reference-ledger/keys/ is a private key committed deliberately, so that a third party can re-sign the reference bundle and reproduce every value in it. The filename carries NOT-SECRET. These keys sign nothing outside the reference ledger."
+    },
+    {
+      "path": "spec/wire/checkpoint.md",
+      "family": "private_key_block",
+      "verbatim": false,
+      "reason": "The section 7.1 worked test vector. The document states in bold that the key is published deliberately so anyone can reproduce section 7, that it signs nothing but this document's example, and that it never was a MAINLINE log key. trappoint-verify and trappoint_ledger.note both read it out of this file, so removing it would break the spec/code anti-drift property."
+    },
+    {
+      "path": "packages/trappoint-ledger/tests/test_receipt.py",
+      "family": "private_key_block",
+      "verbatim": false,
+      "reason": "No key here. The file contains the marker string only, as the index bounds used to slice the published key out of spec/wire/checkpoint.md at line 123-125."
+    },
+    {
+      "path": "packages/mainline-agentkit/tests/test_runtime.py",
+      "family": "aws_account_id",
+      "verbatim": true,
+      "reason": "FOREIGN_ACCOUNT_ARN at line 62-64 uses the twelve-nines placeholder to assert that a Bedrock inference-profile ARN belonging to a DIFFERENT account is rejected. Twelve identical digits is a synthetic constant, not an account. The sibling constants on the same lines use twelve zeroes for the same reason."
+    },
+    {
+      "path": "tests/security/injection/corpus/encoded-002-base64-exfil.json",
+      "family": "high_entropy_secret",
+      "verbatim": false,
+      "reason": "A prompt-injection attack corpus entry. The base64 decodes to an instruction asking a model to print its system prompt and api key. It is the attack this repository tests its refusal against, not a credential."
+    },
+    {
+      "path": "evidence/gate-refusal/proof-20260809T213857Z.json",
+      "family": "abs_windows_path",
+      "verbatim": false,
+      "reason": "migrations_dir records the absolute path the proof actually ran against. Leaks the founder's directory layout (D:\\CoackroachDBxAWS\\mainline), not a credential and not a username. RECORDED, NOT REPAIRED: rewriting a committed evidence artefact to look tidier is refused. The next proof run decides."
+    },
+    {
+      "path": "evidence/gate-refusal/proof-20260810T004200Z.json",
+      "family": "abs_windows_path",
+      "verbatim": false,
+      "reason": "Identical to the 20260809T213857Z proof: migrations_dir, recorded not repaired."
+    },
+    {
+      "path": "tests/eval/recall_calibration/artefacts/calibration_report.json",
+      "family": "abs_windows_path",
+      "verbatim": false,
+      "reason": "A generated calibration artefact recording the absolute fixture path it read. Same class as the gate-refusal proofs: directory layout, no username, recorded not repaired. Owned by the recall domain."
+    },
+    {
+      "path": "qa/test-state.json",
+      "family": "abs_windows_path",
+      "verbatim": false,
+      "reason": "52 occurrences of C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-*\\junit.xml — pytest temporary directories captured verbatim by the test census. This DOES disclose the founder's Windows account name. 'shaug' is a prefix of the already-public GitHub handle Shaugato, so the marginal disclosure is the local account name only. RECORDED, NOT REPAIRED - owned by the quality domain, and the next census run can emit relative paths."
+    },
+    {
+      "path": "docs/release/gate-refusal-proof.md",
+      "family": "abs_windows_path",
+      "verbatim": false,
+      "reason": "Pasted pytest failure output, including D:\\CoackroachDBxAWS\\mainline\\tests\\release\\ and a C:\\Users\\shaug\\AppData\\Local\\Temp\\pytest-of-shaug\\ tmpdir. Same disclosure class as qa/test-state.json. The captured output is the point of the document; paraphrasing it would weaken the evidence. RECORDED, NOT REPAIRED."
+    },
+    {
+      "path": "docs/STATE-OF-THE-BUILD.md",
+      "family": "abs_windows_path",
+      "verbatim": false,
+      "reason": "C:\\Users\\<name>\\Documents\\projects\\ is a documentation example with a literal <name> placeholder, used to explain the Windows MAX_PATH clone failure. Plus D:/CoackroachDBxAWS/mainline in worked commands. Layout only, no username."
+    },
+    {
+      "path": "packages/trappoint-testkit/src/trappoint_testkit/cluster.py",
+      "family": "abs_windows_path",
+      "verbatim": false,
+      "reason": "C:\\Program Files\\Docker\\docker.exe appears in a comment at line 511 explaining why the docker-binary check must not match on a Linux runner. A Docker Desktop install location is not personal data."
+    },
+    {
+      "path": "packages/trappoint-testkit/tests/test_shared_cluster_contract.py",
+      "family": "abs_windows_path",
+      "verbatim": false,
+      "reason": "The same Docker Desktop path as a test vector at line 109, asserting the binary-name extraction handles a Windows absolute path. Not personal data."
+    },
+    {
+      "path": "docs/leads/workers.json",
+      "family": "abs_windows_path",
+      "verbatim": false,
+      "reason": "Nine occurrences of D:/CoackroachDBxAWS/mainline/... inside worker briefs that quote commands. Directory layout only, no username. Owned by the lead-plan domain."
+    },
+    {
+      "path": "docs/adr/0040-custody-red-before-green.md",
+      "family": "abs_windows_path",
+      "verbatim": false,
+      "reason": "One D:/CoackroachDBxAWS/mainline/ command path. Layout only, no username."
+    },
+    {
+      "path": "qa/public-readiness.json",
+      "family": "aws_access_key_id",
+      "verbatim": true,
+      "reason": "This program's own machine output. It quotes the AWS documentation placeholder verbatim because an audit that redacts a value which is public by design tells the reader less, not more. Unresolved findings are redacted to a prefix and a length; see redact_preview()."
+    },
+    {
+      "path": "docs/submission/PUBLIC-READINESS.md",
+      "family": "aws_access_key_id",
+      "verbatim": true,
+      "reason": "Same as qa/public-readiness.json: the human-readable rendering of this audit."
+    },
+    {
+      "path": "docs/submission/PUBLIC-READINESS.md",
+      "family": "high_entropy_secret",
+      "verbatim": true,
+      "reason": "Section 2.2 of the report quotes AWS's published secret-access-key placeholder so the reader can see the exact value that was waived. Waiving a value while refusing to print it would make the waiver unreviewable."
+    },
+    {
+      "path": "docs/submission/PUBLIC-READINESS.md",
+      "family": "aws_account_id",
+      "verbatim": true,
+      "reason": "Section 2.2 quotes the twelve-nines synthetic constant from packages/mainline-agentkit/tests/test_runtime.py for the same reason. The real account id is never printed in this report: section 4.1 refers to it only as 'the twelve digits' and shows the masked form."
+    },
+    {
+      "path": "scripts/submission/audit_public_readiness.py",
+      "family": "aws_access_key_id",
+      "verbatim": true,
+      "reason": "This scanner's own allowlist reasons name AKIAIOSFODNN7EXAMPLE, because a waiver that does not say which value it waives is not a waiver. The planted self-test key is assembled from fragments at runtime and so does not appear as a literal anywhere in this file."
+    },
+    {
+      "path": "scripts/submission/audit_public_readiness.py",
+      "family": "high_entropy_secret",
+      "verbatim": true,
+      "reason": "Three hits, all synthetic: the Slack, CockroachDB-Cloud and generic-secret fixtures in planted_samples(), which exist so --self-test can prove the scanner still fires. Plus AWS's published secret-access-key placeholder quoted in a waiver reason. None of the four authenticates against anything."
+    },
+    {
+      "path": "docs/submission/PUBLIC-READINESS.md",
+      "family": "abs_windows_path",
+      "verbatim": false,
+      "reason": "This audit's own report quotes the absolute paths it found, because a row that says 'a path was found' without saying which path is not evidence."
+    },
+    {
+      "path": "scripts/submission/audit_public_readiness.py",
+      "family": "abs_windows_path",
+      "verbatim": false,
+      "reason": "This scanner's allowlist reasons quote the paths they waive, and its docstrings quote the Docker Desktop example. Quoting the finding is the point of the file."
+    }
+  ],
+  "rows": [
+    {
+      "check": "secrets_tracked",
+      "title": "Secret scan over every tracked file at HEAD",
+      "status": "PASS",
+      "command": "git ls-files -z  |  scan 8 families over each file's content",
+      "observed": "7120 tracked paths scanned; 12 hits (0 unresolved, 12 allowlisted); aws_access_key_id=2, aws_account_id=1, high_entropy_secret=2, private_key_block=7",
+      "unresolved": 0,
+      "allowlisted": 12,
+      "findings": [
+        {
+          "path": "evidence/reference-ledger/keys/reference-log.NOT-SECRET.key.pem",
+          "line": 1,
+          "family": "private_key_block",
+          "preview": "-----B...(redacted, len 27)",
+          "scope": "tracked",
+          "disposition": "ALLOWLISTED",
+          "reason": "Published on purpose. docs/HONESTY.md lines 173-174 state that every file under evidence/reference-ledger/keys/ is a private key committed deliberately, so that a third party can re-sign the reference bundle and reproduce every value in it. The filename carries NOT-SECRET. These keys sign nothing outside the reference ledger."
+        },
+        {
+          "path": "evidence/reference-ledger/keys/reference-tsa-root.NOT-SECRET.key.pem",
+          "line": 1,
+          "family": "private_key_block",
+          "preview": "-----B...(redacted, len 27)",
+          "scope": "tracked",
+          "disposition": "ALLOWLISTED",
+          "reason": "Published on purpose. docs/HONESTY.md lines 173-174 state that every file under evidence/reference-ledger/keys/ is a private key committed deliberately, so that a third party can re-sign the reference bundle and reproduce every value in it. The filename carries NOT-SECRET. These keys sign nothing outside the reference ledger."
+        },
+        {
+          "path": "evidence/reference-ledger/keys/reference-tsa.NOT-SECRET.key.pem",
+          "line": 1,
+          "family": "private_key_block",
+          "preview": "-----B...(redacted, len 27)",
+          "scope": "tracked",
+          "disposition": "ALLOWLISTED",
+          "reason": "Published on purpose. docs/HONESTY.md lines 173-174 state that every file under evidence/reference-ledger/keys/ is a private key committed deliberately, so that a third party can re-sign the reference bundle and reproduce every value in it. The filename carries NOT-SECRET. These keys sign nothing outside the reference ledger."
+        },
+        {
+          "path": "evidence/reference-ledger/keys/reference-webauthn.NOT-SECRET.key.pem",
+          "line": 1,
+          "family": "private_key_block",
+          "preview": "-----B...(redacted, len 27)",
+          "scope": "tracked",
+          "disposition": "ALLOWLISTED",
+          "reason": "Published on purpose. docs/HONESTY.md lines 173-174 state that every file under evidence/reference-ledger/keys/ is a private key committed deliberately, so that a third party can re-sign the reference bundle and reproduce every value in it. The filename carries NOT-SECRET. These keys sign nothing outside the reference ledger."
+        },
+        {
+          "path": "evidence/reference-ledger/keys/reference-witness.NOT-SECRET.key.pem",
+          "line": 1,
+          "family": "private_key_block",
+          "preview": "-----B...(redacted, len 27)",
+          "scope": "tracked",
+          "disposition": "ALLOWLISTED",
+          "reason": "Published on purpose. docs/HONESTY.md lines 173-174 state that every file under evidence/reference-ledger/keys/ is a private key committed deliberately, so that a third party can re-sign the reference bundle and reproduce every value in it. The filename carries NOT-SECRET. These keys sign nothing outside the reference ledger."
+        },
+        {
+          "path": "infra/policy/custody/fixtures/README.md",
+          "line": 53,
+          "family": "aws_access_key_id",
+          "preview": "AKIAIOSFODNN7EXAMPLE",
+          "scope": "tracked",
+          "disposition": "ALLOWLISTED",
+          "reason": "AKIAIOSFODNN7EXAMPLE is the access key id AWS itself prints in its public documentation. It authenticates nothing and is not derived from any real key. Present so the custody fixture README shows the shape a reviewer should expect."
+        },
+        {
+          "path": "infra/policy/custody/fixtures/README.md",
+          "line": 54,
+          "family": "high_entropy_secret",
+          "preview": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+          "scope": "tracked",
+          "disposition": "ALLOWLISTED",
+          "reason": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY is AWS's published secret-access-key placeholder, the counterpart to the AKIA...EXAMPLE id on the line above it."
+        },
+        {
+          "path": "infra/policy/custody/fixtures/plan_compliant.json",
+          "line": 1,
+          "family": "aws_access_key_id",
+          "preview": "AKIAIOSFODNN7EXAMPLE",
+          "scope": "tracked",
+          "disposition": "ALLOWLISTED",
+          "reason": "Same AWS documentation placeholder, embedded in a recorded terraform plan fixture. The plan was produced against the documentation account 111122223333, not against account 0229...8246."
+        },
+        {
+          "path": "packages/mainline-agentkit/tests/test_runtime.py",
+          "line": 63,
+          "family": "aws_account_id",
+          "preview": "999999999999",
+          "scope": "tracked",
+          "disposition": "ALLOWLISTED",
+          "reason": "FOREIGN_ACCOUNT_ARN at line 62-64 uses the twelve-nines placeholder to assert that a Bedrock inference-profile ARN belonging to a DIFFERENT account is rejected. Twelve identical digits is a synthetic constant, not an account. The sibling constants on the same lines use twelve zeroes for the same reason."
+        },
+        {
+          "path": "packages/trappoint-ledger/tests/test_receipt.py",
+          "line": 123,
+          "family": "private_key_block",
+          "preview": "-----B...(redacted, len 27)",
+          "scope": "tracked",
+          "disposition": "ALLOWLISTED",
+          "reason": "No key here. The file contains the marker string only, as the index bounds used to slice the published key out of spec/wire/checkpoint.md at line 123-125."
+        },
+        {
+          "path": "spec/wire/checkpoint.md",
+          "line": 288,
+          "family": "private_key_block",
+          "preview": "-----B...(redacted, len 27)",
+          "scope": "tracked",
+          "disposition": "ALLOWLISTED",
+          "reason": "The section 7.1 worked test vector. The document states in bold that the key is published deliberately so anyone can reproduce section 7, that it signs nothing but this document's example, and that it never was a MAINLINE log key. trappoint-verify and trappoint_ledger.note both read it out of this file, so removing it would break the spec/code anti-drift property."
+        },
+        {
+          "path": "tests/security/injection/corpus/encoded-002-base64-exfil.json",
+          "line": 8,
+          "family": "high_entropy_secret",
+          "preview": "cHJpbn...(redacted, len 88)",
+          "scope": "tracked",
+          "disposition": "ALLOWLISTED",
+          "reason": "A prompt-injection attack corpus entry. The base64 decodes to an instruction asking a model to print its system prompt and api key. It is the attack this repository tests its refusal against, not a credential."
+        }
+      ],
+      "detail": {
+        "tracked_paths": 7120,
+        "families": {
+          "private_key_block": 7,
+          "aws_access_key_id": 2,
+          "high_entropy_secret": 2,
+          "aws_account_id": 1
+        }
+      }
+    },
+    {
+      "check": "secrets_history",
+      "title": "Secret scan over every added line in every commit, all refs",
+      "status": "FAIL",
+      "command": "git log -p --all -U0 --no-color  |  scan 8 families over '+' lines",
+      "observed": "16 commits, 805266 added lines scanned; 13 distinct (commit,path,family) hits (1 unresolved, 12 allowlisted); aws_access_key_id=2, aws_account_id=2, high_entropy_secret=2, private_key_block=7",
+      "unresolved": 1,
+      "allowlisted": 12,
+      "findings": [
+        {
+          "path": "evidence/reference-ledger/keys/reference-log.NOT-SECRET.key.pem",
+          "line": 0,
+          "family": "private_key_block",
+          "preview": "-----B...(redacted, len 27)",
+          "scope": "history",
+          "disposition": "ALLOWLISTED",
+          "commit": "904f1b406c66",
+          "reason": "Published on purpose. docs/HONESTY.md lines 173-174 state that every file under evidence/reference-ledger/keys/ is a private key committed deliberately, so that a third party can re-sign the reference bundle and reproduce every value in it. The filename carries NOT-SECRET. These keys sign nothing outside the reference ledger."
+        },
+        {
+          "path": "evidence/reference-ledger/keys/reference-tsa-root.NOT-SECRET.key.pem",
+          "line": 0,
+          "family": "private_key_block",
+          "preview": "-----B...(redacted, len 27)",
+          "scope": "history",
+          "disposition": "ALLOWLISTED",
+          "commit": "904f1b406c66",
+          "reason": "Published on purpose. docs/HONESTY.md lines 173-174 state that every file under evidence/reference-ledger/keys/ is a private key committed deliberately, so that a third party can re-sign the reference bundle and reproduce every value in it. The filename carries NOT-SECRET. These keys sign nothing outside the reference ledger."
+        },
+        {
+          "path": "evidence/reference-ledger/keys/reference-tsa.NOT-SECRET.key.pem",
+          "line": 0,
+          "family": "private_key_block",
+          "preview": "-----B...(redacted, len 27)",
+          "scope": "history",
+          "disposition": "ALLOWLISTED",
+          "commit": "904f1b406c66",
+          "reason": "Published on purpose. docs/HONESTY.md lines 173-174 state that every file under evidence/reference-ledger/keys/ is a private key committed deliberately, so that a third party can re-sign the reference bundle and reproduce every value in it. The filename carries NOT-SECRET. These keys sign nothing outside the reference ledger."
+        },
+        {
+          "path": "evidence/reference-ledger/keys/reference-webauthn.NOT-SECRET.key.pem",
+          "line": 0,
+          "family": "private_key_block",
+          "preview": "-----B...(redacted, len 27)",
+          "scope": "history",
+          "disposition": "ALLOWLISTED",
+          "commit": "904f1b406c66",
+          "reason": "Published on purpose. docs/HONESTY.md lines 173-174 state that every file under evidence/reference-ledger/keys/ is a private key committed deliberately, so that a third party can re-sign the reference bundle and reproduce every value in it. The filename carries NOT-SECRET. These keys sign nothing outside the reference ledger."
+        },
+        {
+          "path": "evidence/reference-ledger/keys/reference-witness.NOT-SECRET.key.pem",
+          "line": 0,
+          "family": "private_key_block",
+          "preview": "-----B...(redacted, len 27)",
+          "scope": "history",
+          "disposition": "ALLOWLISTED",
+          "commit": "904f1b406c66",
+          "reason": "Published on purpose. docs/HONESTY.md lines 173-174 state that every file under evidence/reference-ledger/keys/ is a private key committed deliberately, so that a third party can re-sign the reference bundle and reproduce every value in it. The filename carries NOT-SECRET. These keys sign nothing outside the reference ledger."
+        },
+        {
+          "path": "infra/policy/custody/fixtures/README.md",
+          "line": 0,
+          "family": "aws_access_key_id",
+          "preview": "AKIAIOSFODNN7EXAMPLE",
+          "scope": "history",
+          "disposition": "ALLOWLISTED",
+          "commit": "904f1b406c66",
+          "reason": "AKIAIOSFODNN7EXAMPLE is the access key id AWS itself prints in its public documentation. It authenticates nothing and is not derived from any real key. Present so the custody fixture README shows the shape a reviewer should expect."
+        },
+        {
+          "path": "infra/policy/custody/fixtures/README.md",
+          "line": 0,
+          "family": "high_entropy_secret",
+          "preview": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+          "scope": "history",
+          "disposition": "ALLOWLISTED",
+          "commit": "904f1b406c66",
+          "reason": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY is AWS's published secret-access-key placeholder, the counterpart to the AKIA...EXAMPLE id on the line above it."
+        },
+        {
+          "path": "infra/policy/custody/fixtures/plan_compliant.json",
+          "line": 0,
+          "family": "aws_access_key_id",
+          "preview": "AKIAIOSFODNN7EXAMPLE",
+          "scope": "history",
+          "disposition": "ALLOWLISTED",
+          "commit": "904f1b406c66",
+          "reason": "Same AWS documentation placeholder, embedded in a recorded terraform plan fixture. The plan was produced against the documentation account 111122223333, not against account 0229...8246."
+        },
+        {
+          "path": "packages/mainline-agentkit/tests/test_runtime.py",
+          "line": 0,
+          "family": "aws_account_id",
+          "preview": "999999999999",
+          "scope": "history",
+          "disposition": "ALLOWLISTED",
+          "commit": "7af31b2c6808",
+          "reason": "FOREIGN_ACCOUNT_ARN at line 62-64 uses the twelve-nines placeholder to assert that a Bedrock inference-profile ARN belonging to a DIFFERENT account is rejected. Twelve identical digits is a synthetic constant, not an account. The sibling constants on the same lines use twelve zeroes for the same reason."
+        },
+        {
+          "path": "packages/trappoint-ledger/tests/test_receipt.py",
+          "line": 0,
+          "family": "private_key_block",
+          "preview": "-----B...(redacted, len 27)",
+          "scope": "history",
+          "disposition": "ALLOWLISTED",
+          "commit": "904f1b406c66",
+          "reason": "No key here. The file contains the marker string only, as the index bounds used to slice the published key out of spec/wire/checkpoint.md at line 123-125."
+        },
+        {
+          "path": "spec/wire/checkpoint.md",
+          "line": 0,
+          "family": "private_key_block",
+          "preview": "-----B...(redacted, len 27)",
+          "scope": "history",
+          "disposition": "ALLOWLISTED",
+          "commit": "e518787f3010",
+          "reason": "The section 7.1 worked test vector. The document states in bold that the key is published deliberately so anyone can reproduce section 7, that it signs nothing but this document's example, and that it never was a MAINLINE log key. trappoint-verify and trappoint_ledger.note both read it out of this file, so removing it would break the spec/code anti-drift property."
+        },
+        {
+          "path": "tests/security/injection/corpus/encoded-002-base64-exfil.json",
+          "line": 0,
+          "family": "high_entropy_secret",
+          "preview": "cHJpbn...(redacted, len 88)",
+          "scope": "history",
+          "disposition": "ALLOWLISTED",
+          "commit": "904f1b406c66",
+          "reason": "A prompt-injection attack corpus entry. The base64 decodes to an instruction asking a model to print its system prompt and api key. It is the attack this repository tests its refusal against, not a credential."
+        },
+        {
+          "path": "docs/adr/0002-g1-platform-ground-truth.md",
+          "line": 0,
+          "family": "aws_account_id",
+          "preview": "022950...(redacted, len 12)",
+          "scope": "history",
+          "disposition": "UNRESOLVED",
+          "commit": "e518787f3010"
+        }
+      ],
+      "detail": {
+        "commits": 16,
+        "added_lines": 805266,
+        "families": {
+          "private_key_block": 7,
+          "aws_access_key_id": 2,
+          "high_entropy_secret": 2,
+          "aws_account_id": 2
+        }
+      }
+    },
+    {
+      "check": "ignored_and_untracked",
+      "title": ".env and *.tfstate* are gitignored, untracked, and never were committed",
+      "status": "PASS",
+      "command": "git check-ignore -q -- .env terraform.tfstate ; git ls-files ; git log --all --diff-filter=A -- .env '*.tfstate*'",
+      "observed": "check-ignore: {'.env': True, 'terraform.tfstate': True, 'terraform.tfstate.backup': True}; tracked .env-like: none; tracked tfstate: none; history adds .env: none; history adds tfstate: none",
+      "unresolved": 0,
+      "allowlisted": 0,
+      "findings": [],
+      "detail": {
+        "ignored": {
+          ".env": true,
+          "terraform.tfstate": true,
+          "terraform.tfstate.backup": true
+        },
+        "tracked_env_like": [],
+        "tracked_tfstate": [],
+        "history_add_env": "",
+        "history_add_tfstate": ""
+      }
+    },
+    {
+      "check": "tracked_size",
+      "title": "No tracked blob exceeds 5 MiB",
+      "status": "PASS",
+      "command": "git ls-files -s -z | git cat-file --batch-check='%(objectname) %(objecttype) %(objectsize)'",
+      "observed": "7120 tracked blobs, 49075427 bytes total (46.8 MiB); largest verticals/mainline/fixtures/corpus/answer-key/clause_revision.jsonl at 1673465 bytes (1.60 MiB); 0 over the limit",
+      "unresolved": 0,
+      "allowlisted": 0,
+      "findings": [],
+      "detail": {
+        "blobs": 7120,
+        "total_bytes": 49075427,
+        "total_mib": 46.8,
+        "limit_bytes": 5242880,
+        "oversize": [],
+        "largest": [
+          {
+            "path": "verticals/mainline/fixtures/corpus/answer-key/clause_revision.jsonl",
+            "bytes": 1673465
+          },
+          {
+            "path": "verticals/mainline/fixtures/corpus/answer-key/pending.jsonl",
+            "bytes": 1160174
+          },
+          {
+            "path": "verticals/mainline/fixtures/corpus/reflow/reflow_collision.jsonl",
+            "bytes": 1016170
+          },
+          {
+            "path": "tests/fixtures/recall/goldsets/g2_codes.qrels.jsonl",
+            "bytes": 924539
+          },
+          {
+            "path": "verticals/mainline/fixtures/corpus/moc-stream/pending.jsonl",
+            "bytes": 840379
+          }
+        ]
+      }
+    },
+    {
+      "check": "committer_census",
+      "title": "Every identity the history will publish",
+      "status": "INFO",
+      "command": "git log --all --format='%an <%ae>|%cn <%ce>' | sort | uniq -c",
+      "observed": "16 commits, 1 distinct identity string(s): Shaugato Paroi <shaugato2003@gmail.com> x16",
+      "unresolved": 0,
+      "allowlisted": 0,
+      "findings": [],
+      "detail": {
+        "commits": 16,
+        "authors": {
+          "Shaugato Paroi <shaugato2003@gmail.com>": 16
+        },
+        "committers": {
+          "Shaugato Paroi <shaugato2003@gmail.com>": 16
+        },
+        "identities": [
+          "Shaugato Paroi <shaugato2003@gmail.com>"
+        ],
+        "github_noreply_identities": []
+      }
+    },
+    {
+      "check": "absolute_paths",
+      "title": "Absolute Windows paths in tracked files (drive letter + segment)",
+      "status": "PASS",
+      "command": "git ls-files -z  |  scan for (?<![A-Za-z0-9_])[A-Za-z]:\\\\?<segment>\\ and :/<segment>/",
+      "observed": "10 file(s), 76 hit(s); 0 unresolved, 11 allowlisted. Backslash form: docs/release/gate-refusal-proof.md(4), evidence/gate-refusal/proof-20260809T213857Z.json(1), evidence/gate-refusal/proof-20260810T004200Z.json(1), packages/trappoint-testkit/src/trappoint_testkit/cluster.py(1), packages/trappoint-testkit/tests/test_shared_cluster_contract.py(1), qa/test-state.json(52), tests/eval/recall_calibration/artefacts/calibration_report.json(1)",
+      "unresolved": 0,
+      "allowlisted": 11,
+      "findings": [
+        {
+          "path": "docs/STATE-OF-THE-BUILD.md",
+          "line": 433,
+          "family": "abs_windows_path",
+          "preview": "C:\\Use...(redacted, len 9)",
+          "scope": "tracked",
+          "disposition": "ALLOWLISTED",
+          "reason": "C:\\Users\\<name>\\Documents\\projects\\ is a documentation example with a literal <name> placeholder, used to explain the Windows MAX_PATH clone failure. Plus D:/CoackroachDBxAWS/mainline in worked commands. Layout only, no username."
+        },
+        {
+          "path": "docs/STATE-OF-THE-BUILD.md",
+          "line": 9,
+          "family": "abs_windows_path",
+          "preview": "D:/Coa...(redacted, len 20)",
+          "scope": "tracked",
+          "disposition": "ALLOWLISTED",
+          "reason": "C:\\Users\\<name>\\Documents\\projects\\ is a documentation example with a literal <name> placeholder, used to explain the Windows MAX_PATH clone failure. Plus D:/CoackroachDBxAWS/mainline in worked commands. Layout only, no username."
+        },
+        {
+          "path": "docs/adr/0040-custody-red-before-green.md",
+          "line": 58,
+          "family": "abs_windows_path",
+          "preview": "D:/Coa...(redacted, len 20)",
+          "scope": "tracked",
+          "disposition": "ALLOWLISTED",
+          "reason": "One D:/CoackroachDBxAWS/mainline/ command path. Layout only, no username."
+        },
+        {
+          "path": "docs/leads/workers.json",
+          "line": 4,
+          "family": "abs_windows_path",
+          "preview": "D:/Coa...(redacted, len 20)",
+          "scope": "tracked",
+          "disposition": "ALLOWLISTED",
+          "reason": "Nine occurrences of D:/CoackroachDBxAWS/mainline/... inside worker briefs that quote commands. Directory layout only, no username. Owned by the lead-plan domain."
+        },
+        {
+          "path": "docs/release/gate-refusal-proof.md",
+          "line": 129,
+          "family": "abs_windows_path",
+          "preview": "D:\\Coa...(redacted, len 20)",
+          "scope": "tracked",
+          "disposition": "ALLOWLISTED",
+          "reason": "Pasted pytest failure output, including D:\\CoackroachDBxAWS\\mainline\\tests\\release\\ and a C:\\Users\\shaug\\AppData\\Local\\Temp\\pytest-of-shaug\\ tmpdir. Same disclosure class as qa/test-state.json. The captured output is the point of the document; paraphrasing it would weaken the evidence. RECORDED, NOT REPAIRED."
+        },
+        {
+          "path": "evidence/gate-refusal/proof-20260809T213857Z.json",
+          "line": 23,
+          "family": "abs_windows_path",
+          "preview": "D:\\\\Co...(redacted, len 21)",
+          "scope": "tracked",
+          "disposition": "ALLOWLISTED",
+          "reason": "migrations_dir records the absolute path the proof actually ran against. Leaks the founder's directory layout (D:\\CoackroachDBxAWS\\mainline), not a credential and not a username. RECORDED, NOT REPAIRED: rewriting a committed evidence artefact to look tidier is refused. The next proof run decides."
+        },
+        {
+          "path": "evidence/gate-refusal/proof-20260810T004200Z.json",
+          "line": 23,
+          "family": "abs_windows_path",
+          "preview": "D:\\\\Co...(redacted, len 21)",
+          "scope": "tracked",
+          "disposition": "ALLOWLISTED",
+          "reason": "Identical to the 20260809T213857Z proof: migrations_dir, recorded not repaired."
+        },
+        {
+          "path": "packages/trappoint-testkit/src/trappoint_testkit/cluster.py",
+          "line": 511,
+          "family": "abs_windows_path",
+          "preview": "C:\\\\Pr...(redacted, len 18)",
+          "scope": "tracked",
+          "disposition": "ALLOWLISTED",
+          "reason": "C:\\Program Files\\Docker\\docker.exe appears in a comment at line 511 explaining why the docker-binary check must not match on a Linux runner. A Docker Desktop install location is not personal data."
+        },
+        {
+          "path": "packages/trappoint-testkit/tests/test_shared_cluster_contract.py",
+          "line": 109,
+          "family": "abs_windows_path",
+          "preview": "C:\\\\Pr...(redacted, len 18)",
+          "scope": "tracked",
+          "disposition": "ALLOWLISTED",
+          "reason": "The same Docker Desktop path as a test vector at line 109, asserting the binary-name extraction handles a Windows absolute path. Not personal data."
+        },
+        {
+          "path": "qa/test-state.json",
+          "line": 58,
+          "family": "abs_windows_path",
+          "preview": "C:\\\\Us...(redacted, len 10)",
+          "scope": "tracked",
+          "disposition": "ALLOWLISTED",
+          "reason": "52 occurrences of C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-*\\junit.xml — pytest temporary directories captured verbatim by the test census. This DOES disclose the founder's Windows account name. 'shaug' is a prefix of the already-public GitHub handle Shaugato, so the marginal disclosure is the local account name only. RECORDED, NOT REPAIRED - owned by the quality domain, and the next census run can emit relative paths."
+        },
+        {
+          "path": "tests/eval/recall_calibration/artefacts/calibration_report.json",
+          "line": 218,
+          "family": "abs_windows_path",
+          "preview": "D:\\\\Co...(redacted, len 21)",
+          "scope": "tracked",
+          "disposition": "ALLOWLISTED",
+          "reason": "A generated calibration artefact recording the absolute fixture path it read. Same class as the gate-refusal proofs: directory layout, no username, recorded not repaired. Owned by the recall domain."
+        }
+      ],
+      "detail": {
+        "files": 10,
+        "hits": 76,
+        "per_file": {
+          "docs/STATE-OF-THE-BUILD.md": 5,
+          "docs/adr/0040-custody-red-before-green.md": 1,
+          "docs/leads/workers.json": 9,
+          "docs/release/gate-refusal-proof.md": 4,
+          "evidence/gate-refusal/proof-20260809T213857Z.json": 1,
+          "evidence/gate-refusal/proof-20260810T004200Z.json": 1,
+          "packages/trappoint-testkit/src/trappoint_testkit/cluster.py": 1,
+          "packages/trappoint-testkit/tests/test_shared_cluster_contract.py": 1,
+          "qa/test-state.json": 52,
+          "tests/eval/recall_calibration/artefacts/calibration_report.json": 1
+        },
+        "forward_slash_files": {
+          "docs/STATE-OF-THE-BUILD.md": 4,
+          "docs/adr/0040-custody-red-before-green.md": 1,
+          "docs/leads/workers.json": 9
+        }
+      }
+    },
+    {
+      "check": "repo_state",
+      "title": "The tree that would actually be published",
+      "status": "FAIL",
+      "command": "git remote get-url origin ; git rev-parse --abbrev-ref HEAD ; git rev-list --left-right --count origin/master...HEAD ; git status --porcelain",
+      "observed": "origin=https://github.com/Shaugato/mainline.git; branch=master; HEAD=bb21962; origin/master=174b29f; behind=0 ahead=2; working tree: 59 uncommitted path(s)",
+      "unresolved": 0,
+      "allowlisted": 0,
+      "findings": [],
+      "detail": {
+        "remote": "https://github.com/Shaugato/mainline.git",
+        "branch": "master",
+        "head": "bb21962",
+        "upstream": "origin/master",
+        "upstream_head": "174b29f",
+        "behind": 0,
+        "ahead": 2,
+        "uncommitted_paths": 59,
+        "problems": [
+          "2 commit(s) on HEAD are NOT on origin/master - flipping public would publish a tree that does not contain them"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,688 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+"""The four POST transitions, against a real migrated CockroachDB node.
+
+Every refusal asserted here is the DATABASE's, produced by writing a row it will not
+accept: a merge with an open obligation, and a state transition that is not in
+``mainline.subject_transition``. Neither is provoked by a flag or a fixture that stands in
+for one — the point of a gate whose rules are constraints is that you cannot ask it to
+pretend, so these tests do not.
+
+Each test that mutates gets its own seeded history, because the transitions are real and
+irreversible: a permit is never un-merged, and ``dispositioned -> checks_materialised``
+does not come back. Sharing one subject across them would make the suite order-dependent,
+which is the failure mode that ends with someone deleting an assertion to make a run green.
+
+``w4_database`` comes from ``test_gate_run`` for the reason stated there: this worker owns
+two test files and not the conftest, and pytest's default ``prepend`` import mode puts the
+tests directory on ``sys.path``. The ``w4_`` prefix keeps these clear of the fixtures
+``w3-api-core-reads`` declares in ``tests/conftest.py`` under the names ``demo_database``
+and ``conn``.
+"""
+
+from __future__ import annotations
+
+import uuid
+from collections.abc import Iterator
+from typing import Any
+
+import psycopg
+import pytest
+from mainline_demo_api.gate_run import GATE_RUN_SCHEMA_ID
+from mainline_demo_api.transitions import (
+    INVOKE_SCHEMA_ID,
+    TRANSITION_RESOURCES,
+    handle_transition,
+)
+from psycopg.types.json import Jsonb
+from test_gate_run import w4_database  # noqa: F401 - re-exported so pytest can resolve it
+
+pytestmark = pytest.mark.requires_cluster
+
+#: `contracts/invoke.schema.json#/$defs/invoke_result` — required, and additionalProperties
+#: false. Transcribed so a member added here without a contract change fails a test rather
+#: than the console's validator, which would report it as a TAMPERED transport.
+_INVOKE_REQUIRED = (
+    "procedure",
+    "http_status",
+    "outcome",
+    "subject_kind",
+    "subject_id",
+    "gate_epoch",
+    "refusal",
+)
+_INVOKE_ALLOWED = {*_INVOKE_REQUIRED, "committed", "sql_round_trip"}
+
+_ENVELOPE_REQUIRED = ("envelope_version", "resource", "schema_id", "staged", "provenance", "data")
+
+
+def _sha(*parts: bytes | str) -> bytes:
+    import hashlib
+
+    digest = hashlib.sha256()
+    for part in parts:
+        digest.update(part.encode("utf-8") if isinstance(part, str) else part)
+    return digest.digest()
+
+
+#: The site the demo history was seeded into, and everything about it a second permit can
+#: reuse. `mainline.site` declares `CONSTRAINT site_role_unique UNIQUE (site_role)` and the
+#: repository's seeder hard-codes the role `proof_site`, so calling it twice against one
+#: database is a 23505 — measured. A fresh SITE per test is therefore not available; a
+#: fresh PERMIT inside the existing site is, and it is also the more faithful fixture,
+#: because two permits at one site is what a real deployment looks like.
+_SITE_SQL = """
+SELECT s.site_id, s.site_role::STRING, pc.clause_uuid, pc.commit_id, bc.precursor_event_id,
+       (SELECT policy_version FROM mainline_meas.recall_policy ORDER BY policy_version LIMIT 1)
+  FROM mainline.permit p
+  JOIN mainline.site s ON s.site_id = p.site_id
+  JOIN mainline.permit_clause pc ON pc.permit_id = p.permit_id
+  JOIN mainline.blocking_check bc ON bc.permit_id = p.permit_id
+ WHERE p.permit_id = %s
+ LIMIT 1
+"""
+
+
+class _History:
+    """The identifiers one seeded permit minted. Same three fields the proof's History uses."""
+
+    def __init__(self, permit_id: uuid.UUID, check_id: uuid.UUID, site_id: uuid.UUID) -> None:
+        self.permit_id = permit_id
+        self.check_id = check_id
+        self.site_id = site_id
+
+
+def _seed_permit(w4_conn: psycopg.Connection[Any], demo_permit_id: str, signer: str) -> _History:
+    """Seed one more permit into the existing site, in the state the gate is decidable in.
+
+    A permit that relies on the already-seeded clause version, a boundary certificate, a
+    recall run with its Proof of Exhausted Recall, one blocking check standing for the
+    recalled precursor, an exposure receipt that showed it, and the two events by which the
+    client CLAIMS every obligation is disposed of. It is not — and that claim is exactly
+    what the gate exists to disbelieve.
+
+    Nothing here bypasses a trigger. The counter is written by ``check_materialised``, the
+    chain digest by ``fn_permit_event_chain``, and the closure by whatever 0115 re-derives.
+    """
+    w4_conn.rollback()
+    row = w4_conn.execute(_SITE_SQL, (demo_permit_id,)).fetchone()
+    assert row is not None, "the demo history is not seeded in this database"
+    site_id, site_role, clause_uuid, commit_id, event_id, policy_version = row
+
+    permit_id, check_id = uuid.uuid4(), uuid.uuid4()
+    run_id, silence_id, receipt_id = uuid.uuid4(), uuid.uuid4(), uuid.uuid4()
+    tag = permit_id.hex[:12]
+
+    w4_conn.execute(
+        "INSERT INTO mainline.permit (permit_id, site_id, site_role, external_ref, ref_name, "
+        "horizon_at) VALUES (%s, %s, %s, %s, %s, now() + INTERVAL '30 days')",
+        (permit_id, site_id, site_role, f"PTW-W4-{tag}", f"refs/permits/w4-{tag}"),
+    )
+    w4_conn.execute(
+        "INSERT INTO mainline.permit_clause (permit_id, clause_uuid, commit_id, relation) "
+        "VALUES (%s, %s, %s, 'relies_on')",
+        (permit_id, clause_uuid, commit_id),
+    )
+    w4_conn.execute(
+        "INSERT INTO mainline.boundary_certificate (permit_id, cert_gen, asset_graph_version, "
+        "tags_declared, tags_resolved, tags_unmodelled, under_declared) "
+        "VALUES (%s, 1, 'w4-asset-graph-1', 1, 1, 0, 0)",
+        (permit_id,),
+    )
+    w4_conn.execute(
+        "INSERT INTO mainline_meas.recall_run (run_id, permit_id, site_id, corpus_commit, "
+        "policy_version, index_plan_digest, index_generation, n_candidates, n_blocking, "
+        "n_advisory, n_silenced, n_deduped) VALUES (%s, %s, %s, %s, %s, %s, 'g1', 1, 1, 0, 0, 0)",
+        (run_id, permit_id, site_id, commit_id, policy_version, _sha("plan", tag)),
+    )
+    w4_conn.execute(
+        "INSERT INTO mainline_meas.silence_receipt (silence_receipt_id, run_id, permit_id, "
+        "corpus_root, candidate_root, theta, s, n, boundary_proof, policy_version) "
+        "VALUES (%s, %s, %s, %s, %s, 0.35, 1, 1, %s, %s)",
+        (
+            silence_id,
+            run_id,
+            permit_id,
+            _sha("corpus-root"),
+            _sha("candidate-root", tag),
+            Jsonb({"leaf_s": [], "leaf_s_plus_1": []}),
+            policy_version,
+        ),
+    )
+    w4_conn.execute(
+        "INSERT INTO mainline.blocking_check (check_id, subject_kind, permit_id, site_id, "
+        "clause_uuid, commit_id, precursor_event_id, origin, severity, virulence, closure_gen, "
+        "recall_run_id, evidence_summary) "
+        "VALUES (%s, 'permit', %s, %s, %s, %s, %s, 'blame_ancestry', 0, 'routine', 0, %s, %s)",
+        (
+            check_id,
+            permit_id,
+            site_id,
+            clause_uuid,
+            commit_id,
+            event_id,
+            run_id,
+            "A recalled precursor reaches the clause this permit relies on.",
+        ),
+    )
+    w4_conn.execute(
+        "INSERT INTO mainline.exposure_receipt (receipt_id, subject_kind, permit_id, actor_sub, "
+        "issued_at, issued_hlc, expires_at, corpus_root, silence_receipt_id, policy_version, "
+        "total_tokens, receipt_digest) "
+        "VALUES (%s, 'permit', %s, %s, now() - INTERVAL '10 minutes', cluster_logical_timestamp(), "
+        "now() + INTERVAL '2 hours', %s, %s, %s, 200, %s)",
+        (
+            receipt_id,
+            permit_id,
+            signer,
+            _sha("corpus-root"),
+            silence_id,
+            policy_version,
+            _sha("receipt", tag),
+        ),
+    )
+    w4_conn.execute(
+        "INSERT INTO mainline.exposure_line (receipt_id, check_id, payload_digest, tokens) "
+        "VALUES (%s, %s, %s, 200)",
+        (receipt_id, check_id, _sha("line", tag)),
+    )
+    for seq, (frm, to) in enumerate(
+        (("draft", "checks_materialised"), ("checks_materialised", "dispositioned")), start=1
+    ):
+        w4_conn.execute(
+            "INSERT INTO mainline.permit_event (permit_id, seq, prev_seq, from_state, to_state, "
+            "subject_kind, actor_sub, payload, prev_digest) "
+            "VALUES (%s, %s, %s, %s, %s, 'permit', %s, %s, "
+            "coalesce((SELECT e.chain_digest FROM mainline.permit_event e "
+            "           WHERE e.permit_id = %s AND e.seq = %s), decode(repeat('00', 32), 'hex')))",
+            (permit_id, seq, seq - 1, frm, to, signer, Jsonb({"w4": to}), permit_id, seq - 1),
+        )
+        w4_conn.execute(
+            "UPDATE mainline.permit SET state = %s, head_seq = %s WHERE permit_id = %s",
+            (to, seq, permit_id),
+        )
+    w4_conn.commit()
+    return _History(permit_id, check_id, site_id)
+
+
+@pytest.fixture
+def w4_conn(w4_database: str) -> Iterator[psycopg.Connection[Any]]:  # noqa: F811
+    """A connection to the w4 scratch database. Named apart from the conftest's `conn`."""
+    with psycopg.connect(w4_database, autocommit=False) as connection:
+        yield connection
+
+
+@pytest.fixture
+def fresh_history(w4_database: str) -> Iterator[_History]:  # noqa: F811
+    """A brand-new permit with one open obligation. Its own subject, so tests cannot collide."""
+    import os
+
+    with psycopg.connect(w4_database, autocommit=False) as connection:
+        yield _seed_permit(
+            connection,
+            os.environ["MAINLINE_DEMO_PERMIT_ID"],
+            os.environ["MAINLINE_DEMO_SIGNER_SUB"],
+        )
+
+
+@pytest.fixture
+def bare_permit(w4_database: str) -> Iterator[uuid.UUID]:  # noqa: F811
+    """A permit and nothing else — no recall run, no obligation, state 'draft'.
+
+    The subject a precondition failure is about. Nothing here is fabricated to produce an
+    error: this is simply a permit that has not been through recall yet, which is what
+    every permit is on the day it is drafted.
+    """
+    import os
+
+    with psycopg.connect(w4_database, autocommit=True) as connection:
+        row = connection.execute(
+            "SELECT p.site_id, s.site_role::STRING FROM mainline.permit p "
+            "JOIN mainline.site s ON s.site_id = p.site_id WHERE p.permit_id = %s",
+            (os.environ["MAINLINE_DEMO_PERMIT_ID"],),
+        ).fetchone()
+        site_id, site_role = row
+        permit_id = uuid.uuid4()
+        connection.execute(
+            "INSERT INTO mainline.permit (permit_id, site_id, site_role, external_ref, ref_name, "
+            "horizon_at) VALUES (%s, %s, %s, %s, %s, now() + INTERVAL '30 days')",
+            (
+                permit_id,
+                site_id,
+                site_role,
+                f"PTW-BARE-{permit_id.hex[:8]}",
+                f"refs/permits/bare-{permit_id.hex[:8]}",
+            ),
+        )
+        yield permit_id
+
+
+def _assert_envelope(payload: dict[str, Any], resource: str, schema_id: str) -> dict[str, Any]:
+    """The response IS the envelope, not the bare `data`. See transitions.py's docstring."""
+    for key in _ENVELOPE_REQUIRED:
+        assert key in payload, f"envelope is missing {key!r}"
+    assert payload["envelope_version"] == 1
+    assert payload["resource"] == resource
+    assert payload["schema_id"] == schema_id
+    assert payload["staged"] is (payload["staged_note"] is not None)
+    for chip in payload["provenance"]:
+        assert set(chip) == {"pointer", "chip"}
+        assert chip["pointer"].startswith("/")
+    return payload["data"]
+
+
+def _assert_invoke(data: dict[str, Any], procedure: str, outcome: str, status: int) -> None:
+    assert set(data) <= _INVOKE_ALLOWED, sorted(set(data) - _INVOKE_ALLOWED)
+    for key in _INVOKE_REQUIRED:
+        assert key in data, f"invoke result is missing {key!r}"
+    assert data["procedure"] == procedure
+    assert data["outcome"] == outcome
+    assert data["http_status"] == status
+    assert data["subject_kind"] == "permit"
+    uuid.UUID(data["subject_id"])
+    assert isinstance(data["gate_epoch"], int) and data["gate_epoch"] >= 0
+    # The contract's own conditional, both directions.
+    assert (outcome == "refused") == (data["refusal"] is not None)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════
+# routing and request validation — a client error is NEVER dressed as a gate refusal
+# ═══════════════════════════════════════════════════════════════════════════════════════
+
+
+def test_the_five_declared_resources_are_exactly_these() -> None:
+    assert set(TRANSITION_RESOURCES) == {
+        "materialise_checks",
+        "sign_disposition",
+        "merge_permit",
+        "suspend_permit",
+        "demo_gate_run",
+    }
+
+
+def test_unknown_resource_is_404_and_not_an_envelope(w4_conn: psycopg.Connection[Any]) -> None:
+    status, payload = handle_transition("delete_everything", {}, {}, w4_conn)
+    assert status == 404
+    assert payload["error"] == "unknown_resource"
+    assert "envelope_version" not in payload
+
+
+def test_a_malformed_identifier_is_422_and_not_an_envelope(
+    w4_conn: psycopg.Connection[Any],
+) -> None:
+    status, payload = handle_transition(
+        "merge_permit", {"permit_id": "../etc/passwd"}, {}, w4_conn
+    )
+    assert status == 422
+    assert payload["error"] == "unprocessable_request"
+    assert "envelope_version" not in payload
+
+
+def test_a_missing_permit_is_404(w4_conn: psycopg.Connection[Any]) -> None:
+    status, payload = handle_transition(
+        "merge_permit", {"permit_id": str(uuid.uuid4())}, {}, w4_conn
+    )
+    assert status == 404
+    assert payload["error"] == "no_such_permit"
+
+
+def test_a_missing_check_is_404(w4_conn: psycopg.Connection[Any]) -> None:
+    status, payload = handle_transition(
+        "sign_disposition",
+        {"check_id": str(uuid.uuid4())},
+        {"rationale": "x" * 200},
+        w4_conn,
+    )
+    assert status == 404
+    assert payload["error"] == "no_such_check"
+
+
+def test_a_one_word_clearance_is_refused_by_the_api_not_the_gate(
+    w4_conn: psycopg.Connection[Any], fresh_history: Any
+) -> None:
+    status, payload = handle_transition(
+        "sign_disposition",
+        {"check_id": str(fresh_history.check_id)},
+        {"rationale": "fine"},
+        w4_conn,
+    )
+    assert status == 422
+    assert "rationale" in payload["detail"]
+    # Explicitly NOT a refusal: no envelope, no SQLSTATE, no exhibit. A short rationale is
+    # the caller's mistake and saying otherwise would put a fabricated exhibit in a ledger.
+    assert "envelope_version" not in payload
+
+
+def test_an_undeclared_disposition_kind_is_422(
+    w4_conn: psycopg.Connection[Any], fresh_history: Any
+) -> None:
+    status, payload = handle_transition(
+        "sign_disposition",
+        {"check_id": str(fresh_history.check_id)},
+        {"kind": "vibes", "rationale": "y" * 200},
+        w4_conn,
+    )
+    assert status == 422
+    assert "kind" in payload["detail"]
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════
+# the demo subject is write-protected
+# ═══════════════════════════════════════════════════════════════════════════════════════
+
+
+@pytest.mark.parametrize("resource", ["merge_permit", "suspend_permit", "materialise_checks"])
+def test_the_demo_subject_cannot_be_mutated_through_a_transition(
+    w4_conn: psycopg.Connection[Any], resource: str
+) -> None:
+    """One judge must not be able to brick the demo for the next."""
+    import os
+
+    permit_id = os.environ["MAINLINE_DEMO_PERMIT_ID"]
+    status, payload = handle_transition(resource, {"permit_id": permit_id}, {}, w4_conn)
+    assert status == 423
+    assert payload["error"] == "demo_subject_write_protected"
+    assert payload["use_instead"] == "POST /v1/demo/gate-run"
+    assert "envelope_version" not in payload
+
+
+def test_the_demo_subject_is_unchanged_by_the_attempt(w4_conn: psycopg.Connection[Any]) -> None:
+    import os
+
+    permit_id = os.environ["MAINLINE_DEMO_PERMIT_ID"]
+    before = w4_conn.execute(
+        "SELECT state::STRING, head_seq, open_blocking FROM mainline.permit WHERE permit_id = %s",
+        (permit_id,),
+    ).fetchone()
+    w4_conn.rollback()
+    handle_transition("merge_permit", {"permit_id": permit_id}, {}, w4_conn)
+    after = w4_conn.execute(
+        "SELECT state::STRING, head_seq, open_blocking FROM mainline.permit WHERE permit_id = %s",
+        (permit_id,),
+    ).fetchone()
+    w4_conn.rollback()
+    assert before == after
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════
+# merge_permit — the money path
+# ═══════════════════════════════════════════════════════════════════════════════════════
+
+
+def test_merge_with_an_open_obligation_is_a_refused_envelope(
+    w4_conn: psycopg.Connection[Any], fresh_history: Any
+) -> None:
+    """409, a well-formed envelope, and the exhibit the database reported."""
+    status, payload = handle_transition(
+        "merge_permit", {"permit_id": str(fresh_history.permit_id)}, {}, w4_conn
+    )
+    assert status == 409
+    data = _assert_envelope(payload, "merge_permit", INVOKE_SCHEMA_ID)
+    _assert_invoke(data, "trappoint.merge_permit", "refused", 409)
+
+    refusal = data["refusal"]
+    assert refusal["sqlstate"] == "23514"
+    assert refusal["constraint"] == "gate_closed_when_issued"
+    assert refusal["constraint_source"] == "reported"
+    assert refusal["class"] == "gate"
+    assert refusal["subject_id"] == str(fresh_history.permit_id)
+    assert refusal["diagnosis"] == "declarative"
+    assert refusal["mus"][0]["obligation_id"] == str(fresh_history.check_id)
+    assert refusal["naa"]["kind"] == "dispose_obligations"
+    assert data["committed"] is None
+
+
+def test_a_refused_merge_persists_nothing(
+    w4_conn: psycopg.Connection[Any], fresh_history: Any
+) -> None:
+    before = w4_conn.execute(
+        "SELECT state::STRING, head_seq, gate_epoch FROM mainline.permit WHERE permit_id = %s",
+        (fresh_history.permit_id,),
+    ).fetchone()
+    w4_conn.rollback()
+    status, _ = handle_transition(
+        "merge_permit", {"permit_id": str(fresh_history.permit_id)}, {}, w4_conn
+    )
+    assert status == 409
+    after = w4_conn.execute(
+        "SELECT state::STRING, head_seq, gate_epoch FROM mainline.permit WHERE permit_id = %s",
+        (fresh_history.permit_id,),
+    ).fetchone()
+    merges = w4_conn.execute(
+        "SELECT count(*) FROM mainline.merge_record WHERE subject_id = %s",
+        (fresh_history.permit_id,),
+    ).fetchone()
+    w4_conn.rollback()
+    assert before == after
+    assert merges[0] == 0
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════
+# sign_disposition, then merge — the admission, committed for real
+# ═══════════════════════════════════════════════════════════════════════════════════════
+
+
+def test_sign_disposition_then_merge_commits(
+    w4_conn: psycopg.Connection[Any], fresh_history: Any
+) -> None:
+    """The whole arc, on a subject of its own, committed rather than rolled back.
+
+    ``gate_run`` shows this arc inside a transaction that is undone. This test shows the
+    same arc as the four endpoints actually perform it — two HTTP calls, two commits — so
+    that the demo's rollback is a property of the DEMO and not something the transitions
+    quietly depend on.
+    """
+    rationale = (
+        "The recalled precursor is answered by a verified zero-energy isolation procedure "
+        "re-issued after the incident, and this permit's scope is covered by it in full. "
+        "Verification at zero is witnessed and recorded before any intrusive work begins."
+    )
+    status, payload = handle_transition(
+        "sign_disposition",
+        {"check_id": str(fresh_history.check_id)},
+        {"kind": "applied", "rationale": rationale},
+        w4_conn,
+    )
+    assert status == 200, payload
+    data = _assert_envelope(payload, "sign_disposition", INVOKE_SCHEMA_ID)
+    _assert_invoke(data, "trappoint.sign_disposition", "committed", 200)
+    # STAGED, and the envelope says why: the WebAuthn assertion is synthesised.
+    assert payload["staged"] is True
+    assert "WebAuthn" in payload["staged_note"]
+
+    closed = w4_conn.execute(
+        "SELECT open_blocking FROM mainline.permit WHERE permit_id = %s",
+        (fresh_history.permit_id,),
+    ).fetchone()
+    w4_conn.rollback()
+    assert closed[0] == 0, "the projection trigger did not close the counter"
+
+    status, payload = handle_transition(
+        "merge_permit", {"permit_id": str(fresh_history.permit_id)}, {}, w4_conn
+    )
+    assert status == 200, payload
+    data = _assert_envelope(payload, "merge_permit", INVOKE_SCHEMA_ID)
+    _assert_invoke(data, "trappoint.merge_permit", "committed", 200)
+    committed = data["committed"]
+    assert committed is not None
+    assert len(committed["clearance_digest"]) == 64
+    assert committed["merged_commit"]
+    assert committed["merged_at"]
+
+    state = w4_conn.execute(
+        "SELECT state::STRING FROM mainline.permit WHERE permit_id = %s",
+        (fresh_history.permit_id,),
+    ).fetchone()
+    w4_conn.rollback()
+    assert state[0] == "merged"
+
+
+def test_merging_an_already_merged_permit_is_refused_by_the_epoch_pin(
+    w4_conn: psycopg.Connection[Any], fresh_history: Any
+) -> None:
+    """MI09: `merge_record_pkey` refuses a second merge of the same subject."""
+    rationale = "z" * 200
+    handle_transition(
+        "sign_disposition",
+        {"check_id": str(fresh_history.check_id)},
+        {"kind": "applied", "rationale": rationale},
+        w4_conn,
+    )
+    first, _ = handle_transition(
+        "merge_permit", {"permit_id": str(fresh_history.permit_id)}, {}, w4_conn
+    )
+    assert first == 200
+    second, payload = handle_transition(
+        "merge_permit", {"permit_id": str(fresh_history.permit_id)}, {}, w4_conn
+    )
+    assert second == 409
+    data = _assert_envelope(payload, "merge_permit", INVOKE_SCHEMA_ID)
+    _assert_invoke(data, "trappoint.merge_permit", "refused", 409)
+    # The exhibit is whatever the database named. This test asserts that it named one and
+    # that it was reported rather than inferred — not which mechanism happened to fire
+    # first, because that is the schema's business and not this file's.
+    assert data["refusal"]["constraint"]
+    assert data["refusal"]["constraint_source"] in ("reported", "parsed")
+    assert data["refusal"]["sqlstate"] in ("23505", "23503", "23514", "P0001")
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════
+# suspend_permit — the state machine defending itself with data
+# ═══════════════════════════════════════════════════════════════════════════════════════
+
+
+def test_suspending_a_permit_that_never_merged_is_23503_on_legal_edge(
+    w4_conn: psycopg.Connection[Any], bare_permit: uuid.UUID
+) -> None:
+    """`draft -> suspended` is not a row in `mainline.subject_transition`, so it is 23503.
+
+    Not an ``if`` statement in Python that a later commit could delete: a foreign key
+    against a table of legal edges. Deleting THAT takes a migration.
+    """
+    status, payload = handle_transition(
+        "suspend_permit", {"permit_id": str(bare_permit)}, {"reason": "operator error"}, w4_conn
+    )
+    assert status == 409
+    data = _assert_envelope(payload, "suspend_permit", INVOKE_SCHEMA_ID)
+    _assert_invoke(data, "trappoint.suspend_permit", "refused", 409)
+    assert data["refusal"]["sqlstate"] == "23503"
+    assert data["refusal"]["constraint"] == "legal_edge"
+    assert data["refusal"]["constraint_source"] == "reported"
+
+
+def test_suspending_a_merged_permit_commits(
+    w4_conn: psycopg.Connection[Any], fresh_history: Any
+) -> None:
+    """`merged -> suspended` IS a legal edge: a merged subject is stopped, never un-merged."""
+    handle_transition(
+        "sign_disposition",
+        {"check_id": str(fresh_history.check_id)},
+        {"kind": "applied", "rationale": "q" * 200},
+        w4_conn,
+    )
+    merged, _ = handle_transition(
+        "merge_permit", {"permit_id": str(fresh_history.permit_id)}, {}, w4_conn
+    )
+    assert merged == 200
+
+    status, payload = handle_transition(
+        "suspend_permit",
+        {"permit_id": str(fresh_history.permit_id)},
+        {"reason": "a precursor arrived after issue"},
+        w4_conn,
+    )
+    assert status == 200, payload
+    data = _assert_envelope(payload, "suspend_permit", INVOKE_SCHEMA_ID)
+    _assert_invoke(data, "trappoint.suspend_permit", "committed", 200)
+
+    row = w4_conn.execute(
+        "SELECT p.state::STRING, e.from_state::STRING, e.to_state::STRING "
+        "FROM mainline.permit p JOIN mainline.permit_event e "
+        "  ON e.permit_id = p.permit_id AND e.seq = p.head_seq "
+        "WHERE p.permit_id = %s",
+        (fresh_history.permit_id,),
+    ).fetchone()
+    w4_conn.rollback()
+    assert row == ("suspended", "merged", "suspended")
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════
+# materialise_checks — the exposure receipt, and what the API refuses to fabricate
+# ═══════════════════════════════════════════════════════════════════════════════════════
+
+
+def test_materialise_checks_issues_a_receipt_and_moves_the_subject(
+    w4_conn: psycopg.Connection[Any], fresh_history: Any
+) -> None:
+    status, payload = handle_transition(
+        "materialise_checks", {"permit_id": str(fresh_history.permit_id)}, {}, w4_conn
+    )
+    assert status == 200, payload
+    data = _assert_envelope(payload, "materialise_checks", INVOKE_SCHEMA_ID)
+    _assert_invoke(data, "trappoint.materialise_checks", "committed", 200)
+
+    row = w4_conn.execute(
+        "SELECT p.state::STRING, "
+        "  (SELECT count(*) FROM mainline.exposure_receipt r WHERE r.permit_id = p.permit_id), "
+        "  (SELECT count(*) FROM mainline.exposure_line l JOIN mainline.exposure_receipt r "
+        "     ON r.receipt_id = l.receipt_id WHERE r.permit_id = p.permit_id) "
+        "FROM mainline.permit p WHERE p.permit_id = %s",
+        (fresh_history.permit_id,),
+    ).fetchone()
+    w4_conn.rollback()
+    assert row[0] == "checks_materialised"
+    assert row[1] == 2, "a second exposure receipt should have been issued"
+    assert row[2] == 2
+
+
+def test_materialise_without_a_silence_receipt_is_422_and_fabricates_nothing(
+    w4_conn: psycopg.Connection[Any], bare_permit: uuid.UUID
+) -> None:
+    """A manufactured Proof of Exhausted Recall would assert a search that never happened."""
+    status, payload = handle_transition(
+        "materialise_checks", {"permit_id": str(bare_permit)}, {}, w4_conn
+    )
+    assert status == 422
+    assert payload["error"] == "no_silence_receipt"
+    assert "does not manufacture one" in payload["detail"]
+
+    receipts = w4_conn.execute(
+        "SELECT count(*) FROM mainline.exposure_receipt WHERE permit_id = %s", (bare_permit,)
+    ).fetchone()
+    state = w4_conn.execute(
+        "SELECT state::STRING FROM mainline.permit WHERE permit_id = %s", (bare_permit,)
+    ).fetchone()
+    w4_conn.rollback()
+    assert receipts[0] == 0
+    assert state[0] == "draft"
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════
+# the demo driver, through the same entry point
+# ═══════════════════════════════════════════════════════════════════════════════════════
+
+
+def test_gate_run_is_reachable_through_handle_transition(w4_conn: psycopg.Connection[Any]) -> None:
+    status, payload = handle_transition("demo_gate_run", {}, {"run_id": "w4-selftest"}, w4_conn)
+    assert status == 200
+    data = _assert_envelope(payload, "demo_gate_run", GATE_RUN_SCHEMA_ID)
+    assert data["run_id"] == "w4-selftest"
+    assert data["verdict"] == "PROVEN", data["failures"]
+    assert data["persisted"] is False
+    assert payload["staged"] is False
+    assert [ref["object"] for ref in payload["statement_refs"]][:2] == [
+        "mainline.merge_permit",
+        "trappoint.explain_refusal",
+    ]
+
+
+def test_gate_run_leaves_the_connection_usable(w4_conn: psycopg.Connection[Any]) -> None:
+    handle_transition("demo_gate_run", {}, {}, w4_conn)
+    assert w4_conn.execute("SELECT 1").fetchone() == (1,)
+    w4_conn.rollback()
+
+
+def test_a_non_string_run_id_is_422(w4_conn: psycopg.Connection[Any]) -> None:
+    status, payload = handle_transition("demo_gate_run", {}, {"run_id": 7}, w4_conn)
+    assert status == 422
+    assert "run_id" in payload["detail"]

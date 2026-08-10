@@ -1,0 +1,37 @@
+# Cluster fingerprint — what the cluster says about itself
+--- connection ---
+database mainline_demo, user mainline-sql
+--- transaction ---
+autocommit; read-only statements
+--- statement ---
+SELECT version();
+SHOW CLUSTER SETTING version;
+SELECT current_database();
+SELECT current_user;
+SELECT crdb_internal.cluster_id();
+SELECT locality FROM crdb_internal.gossip_nodes LIMIT 1;
+--- parameters ---
+(none)
+--- outcome ---
+OK
+--- sqlstate ---
+00000
+--- constraint ---
+(none reported)
+--- message ---
+(none)
+--- detail ---
+(none)
+--- hint ---
+(none)
+--- result ---
+version = CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)
+cluster_version = 26.2
+current_database = mainline_demo
+current_user = mainline-sql
+cluster_id = (refused: 42501 Access to crdb_internal and system is restricted. HINT: These interfaces are unsupported in production. To proceed, set )
+node_locality = (refused: 42501 Access to crdb_internal and system is restricted. HINT: These interfaces are unsupported in production. To proceed, set )
+--- driver ---
+psycopg 3.3.4
+--- note ---
+This is the block manifest.cluster_fingerprint was derived from. Where a value reads '(refused: …)' the SQL user this capture ran as is not permitted to read it — recorded rather than omitted, because a missing line and a refused line are different facts.

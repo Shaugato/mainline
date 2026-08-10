@@ -1,0 +1,1249 @@
+{
+  "schema": "mainline.qa.judge-dry-run/1",
+  "generated_utc": "2026-08-10T04:32:30Z",
+  "generated_by": "scripts/submission/judge_dry_run.py",
+  "note": "A recording, not a claim. Every step below was executed inside a clone of HEAD made by this script; the argv, the exit code and the output excerpts are what the subprocess actually produced. A step that did not run says NOT RUN and never PASS. Re-derive the whole file with the command in `reproduce`.",
+  "status_vocabulary": {
+    "PASS": "executed, exit code 0",
+    "PASS (CAVEATED)": "executed, but the caveat field says why it means less",
+    "FAIL": "executed, non-zero exit code",
+    "TIMEOUT": "executed, killed at the deadline",
+    "SKIPPED": "deliberately not executed; `reason` names the switch",
+    "NOT RUN": "could not be executed; a prerequisite was missing",
+    "NOT PRESENT": "the documented file is not in the clone"
+  },
+  "host": {
+    "platform": "Windows-11-10.0.26200-SP0",
+    "os_name": "nt",
+    "python_running_this_script": {
+      "executable": "D:\\CoackroachDBxAWS\\mainline\\.venv\\Scripts\\python.exe",
+      "version": "3.13.14"
+    },
+    "git": "git version 2.50.0.windows.1",
+    "docker": "Docker version 29.3.1, build c2be9cc",
+    "windows_longpaths_enabled": false,
+    "windows_max_path_chars": 260,
+    "tools_on_path": {
+      "git": "C:\\Program Files\\Git\\mingw64\\bin\\git.EXE",
+      "docker": "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.EXE",
+      "just": null,
+      "uv": null,
+      "python": "C:\\Python314\\python.EXE",
+      "node": "C:\\Program Files\\nodejs\\node.EXE"
+    }
+  },
+  "source": {
+    "repo": "D:/CoackroachDBxAWS/mainline",
+    "head": "bb21962f188fa1c23a231463018282b3c2959bf0",
+    "head_subject": "evidence(gate): independent re-run of the refusal proof, 20260810T004200Z",
+    "head_committed_utc": "2026-08-10T10:43:53+10:00",
+    "branch": "master",
+    "remote": "https://github.com/Shaugato/mainline.git",
+    "commits_ahead_of_origin": 2,
+    "commits_behind_origin": 0,
+    "files_differing_from_origin_master": 98,
+    "origin_master_readme_has_the_documented_commands": false,
+    "working_tree_modified_or_untracked": 59,
+    "working_tree_note": "A clone gets HEAD, not this disk. Everything counted above is INVISIBLE to a judge until it is committed and pushed."
+  },
+  "operator_notes": [
+    "Recorded on the founder's Windows 11 workstation while other build workers were running their own jobs against the same single-node CockroachDB container. Every duration below is therefore an UPPER bound, not a benchmark.",
+    "The local node is the pinned cockroachdb/cockroach:v26.2.5 container named mainline-crdb, started before this run and shared with the rest of the fleet."
+  ],
+  "path_lengths": {
+    "schema": "mainline.qa.path-lengths/1",
+    "measured_utc": "2026-08-10T04:32:31Z",
+    "method": "git ls-files -z",
+    "arithmetic": "full = len(clone destination) + 1 + len(path relative to the repo root); a program without long-path support needs full <= 259",
+    "windows_max_path_chars": 260,
+    "windows_usable_path_chars": 259,
+    "ntfs_max_component_chars": 255,
+    "tracked_files": 7120,
+    "max_tracked_path_chars": 214,
+    "max_safe_clone_prefix_chars": 44,
+    "longest_paths": [
+      {
+        "chars": 214,
+        "path": "verticals/mainline/apps/console/fixtures/bundles/blk-07/frames/GET~20~2Fv1~2Fclauses~2F018f3a30-2200-7d10-9f31-0c9a4e77bb02~2Fancestry~3Fas_of~3D5f916282a2a3e5765f916282a2a3e5765f916282a2a3e5765f916282a2a3e576.json"
+      },
+      {
+        "chars": 206,
+        "path": "verticals/mainline/apps/console/fixtures/bundles/blk-07/frames/GET~20~2Fv1~2Fclauses~2F018f3a30-2200-7d10-9f31-0c9a4e77bb02~2Fversions~2F5f916282a2a3e5765f916282a2a3e5765f916282a2a3e5765f916282a2a3e576.json"
+      },
+      {
+        "chars": 152,
+        "path": "verticals/mainline/apps/console/fixtures/bundles/blk-07/frames/POST~20~2Fv1~2Fpermits~2F018f3a2f-9900-7e11-b0cc-5a1122334455~2Fchecks~3Amaterialise.json"
+      },
+      {
+        "chars": 146,
+        "path": "verticals/mainline/apps/console/fixtures/bundles/blk-07/frames/GET~20~2Fv1~2Fpermits~2F018f3a2f-1104-7c88-b3aa-77c1de40e2b1~2Fblocking-checks.json"
+      },
+      {
+        "chars": 142,
+        "path": "verticals/mainline/apps/console/fixtures/bundles/blk-07/frames/GET~20~2Fv1~2Flessons~2F018f3a34-1100-7a40-8811-e73a5b2d6091~2Fpropagation.json"
+      },
+      {
+        "chars": 142,
+        "path": "verticals/mainline/apps/console/fixtures/bundles/blk-07/frames/POST~20~2Fv1~2Fchecks~2F018f3a31-1000-7b30-9e53-2e1c60997a24~2Fdisposition.json"
+      },
+      {
+        "chars": 141,
+        "path": "skills/upstream/cockroachdb-resilience-and-disaster-recovery/verifying-a-restore-by-merkle-root/scripts/verify_restore_merkle_root.py.license"
+      },
+      {
+        "chars": 141,
+        "path": "verticals/mainline/apps/console/fixtures/bundles/blk-07/frames/GET~20~2Fv1~2Fchecks~2F018f3a31-1000-7b30-9e53-2e1c60997a24~2Fdisposition.json"
+      }
+    ],
+    "longest_component": {
+      "chars": 151,
+      "component": "GET~20~2Fv1~2Fclauses~2F018f3a30-2200-7d10-9f31-0c9a4e77bb02~2Fancestry~3Fas_of~3D5f916282a2a3e5765f916282a2a3e5765f916282a2a3e5765f916282a2a3e576.json",
+      "in_path": "verticals/mainline/apps/console/fixtures/bundles/blk-07/frames/GET~20~2Fv1~2Fclauses~2F018f3a30-2200-7d10-9f31-0c9a4e77bb02~2Fancestry~3Fas_of~3D5f916282a2a3e5765f916282a2a3e5765f916282a2a3e5765f916282a2a3e576.json",
+      "ntfs_headroom_chars": 104
+    },
+    "typical_prefix_chars": 60,
+    "files_unclonable_at_typical_prefix": 2,
+    "unclonable_at_typical_prefix": [
+      {
+        "chars": 214,
+        "path": "verticals/mainline/apps/console/fixtures/bundles/blk-07/frames/GET~20~2Fv1~2Fclauses~2F018f3a30-2200-7d10-9f31-0c9a4e77bb02~2Fancestry~3Fas_of~3D5f916282a2a3e5765f916282a2a3e5765f916282a2a3e5765f916282a2a3e576.json"
+      },
+      {
+        "chars": 206,
+        "path": "verticals/mainline/apps/console/fixtures/bundles/blk-07/frames/GET~20~2Fv1~2Fclauses~2F018f3a30-2200-7d10-9f31-0c9a4e77bb02~2Fversions~2F5f916282a2a3e5765f916282a2a3e5765f916282a2a3e5765f916282a2a3e576.json"
+      }
+    ],
+    "repo": "D:/CoackroachDBxAWS/mainline",
+    "head": "bb21962f188fa1c23a231463018282b3c2959bf0",
+    "budget": {
+      "policy": "falling-only",
+      "note": "Falling-only. Each number below was measured, never chosen. A number that falls may be lowered with --update; a number that rises names the paths that raised it and exits 1. The ceiling is not a style rule: it is the length at which `git clone` on default Windows stops producing a working tree.",
+      "set_utc": "2026-08-10T04:26:32Z",
+      "typical_prefix_chars": 60,
+      "max_tracked_path_chars": 214,
+      "files_unclonable_at_typical_prefix": 2
+    },
+    "budget_status": "OK",
+    "budget_complaints": []
+  },
+  "clone_threshold": {
+    "method": "real `git clone` into destinations of increasing length under a short probe root, binary-searched; every probe is kept below",
+    "probe_root": "D:/_mlp",
+    "longest_tracked_path": "verticals/mainline/apps/console/fixtures/bundles/blk-07/frames/GET~20~2Fv1~2Fclauses~2F018f3a30-2200-7d10-9f31-0c9a4e77bb02~2Fancestry~3Fas_of~3D5f916282a2a3e5765f916282a2a3e5765f916282a2a3e5765f916282a2a3e576.json",
+    "longest_tracked_path_chars": 214,
+    "without_longpaths": {
+      "variant": "as documented (no flags)",
+      "search_range": [
+        9,
+        140
+      ],
+      "predicates": {
+        "git_ok": "git clone exited 0 with no `Filename too long` and a clean tree",
+        "usable": "git_ok AND a plain open() can read the longest tracked file"
+      },
+      "max_working_dest_chars": 44,
+      "first_failing_dest_chars": 45,
+      "max_readable_dest_chars": 44,
+      "min_unreadable_dest_chars": 45,
+      "probes_taken": 9,
+      "probes": [
+        {
+          "dest_chars": 9,
+          "clone_exit_code": 0,
+          "filename_too_long_errors": 0,
+          "checkout_failed": false,
+          "duration_s": 3.838,
+          "git_checkout_complete": true,
+          "longest_file_readable": true,
+          "git_status_dirty_lines": 0
+        },
+        {
+          "dest_chars": 41,
+          "clone_exit_code": 0,
+          "filename_too_long_errors": 0,
+          "checkout_failed": false,
+          "duration_s": 3.929,
+          "git_checkout_complete": true,
+          "longest_file_readable": true,
+          "git_status_dirty_lines": 0
+        },
+        {
+          "dest_chars": 43,
+          "clone_exit_code": 0,
+          "filename_too_long_errors": 0,
+          "checkout_failed": false,
+          "duration_s": 3.762,
+          "git_checkout_complete": true,
+          "longest_file_readable": true,
+          "git_status_dirty_lines": 0
+        },
+        {
+          "dest_chars": 44,
+          "clone_exit_code": 0,
+          "filename_too_long_errors": 0,
+          "checkout_failed": false,
+          "duration_s": 3.541,
+          "git_checkout_complete": true,
+          "longest_file_readable": true,
+          "git_status_dirty_lines": 0
+        },
+        {
+          "dest_chars": 45,
+          "clone_exit_code": 128,
+          "filename_too_long_errors": 1,
+          "checkout_failed": true,
+          "duration_s": 3.612,
+          "git_checkout_complete": false,
+          "longest_file_readable": null,
+          "git_status_dirty_lines": null
+        },
+        {
+          "dest_chars": 49,
+          "clone_exit_code": 128,
+          "filename_too_long_errors": 1,
+          "checkout_failed": true,
+          "duration_s": 4.352,
+          "git_checkout_complete": false,
+          "longest_file_readable": null,
+          "git_status_dirty_lines": null
+        },
+        {
+          "dest_chars": 57,
+          "clone_exit_code": 128,
+          "filename_too_long_errors": 2,
+          "checkout_failed": true,
+          "duration_s": 3.951,
+          "git_checkout_complete": false,
+          "longest_file_readable": null,
+          "git_status_dirty_lines": null
+        },
+        {
+          "dest_chars": 74,
+          "clone_exit_code": 128,
+          "filename_too_long_errors": 2,
+          "checkout_failed": true,
+          "duration_s": 3.96,
+          "git_checkout_complete": false,
+          "longest_file_readable": null,
+          "git_status_dirty_lines": null
+        },
+        {
+          "dest_chars": 140,
+          "clone_exit_code": 128,
+          "filename_too_long_errors": 16,
+          "checkout_failed": true,
+          "duration_s": 4.064,
+          "git_checkout_complete": false,
+          "longest_file_readable": null,
+          "git_status_dirty_lines": null
+        }
+      ]
+    },
+    "with_longpaths": {
+      "variant": "core.longpaths=true",
+      "search_range": [
+        9,
+        140
+      ],
+      "predicates": {
+        "git_ok": "git clone exited 0 with no `Filename too long` and a clean tree",
+        "usable": "git_ok AND a plain open() can read the longest tracked file"
+      },
+      "max_working_dest_chars": 140,
+      "first_failing_dest_chars": null,
+      "no_failure_observed_up_to": 140,
+      "max_readable_dest_chars": 44,
+      "min_unreadable_dest_chars": 45,
+      "probes_taken": 9,
+      "probes": [
+        {
+          "dest_chars": 9,
+          "clone_exit_code": 0,
+          "filename_too_long_errors": 0,
+          "checkout_failed": false,
+          "duration_s": 4.078,
+          "git_checkout_complete": true,
+          "longest_file_readable": true,
+          "git_status_dirty_lines": 0
+        },
+        {
+          "dest_chars": 41,
+          "clone_exit_code": 0,
+          "filename_too_long_errors": 0,
+          "checkout_failed": false,
+          "duration_s": 4.066,
+          "git_checkout_complete": true,
+          "longest_file_readable": true,
+          "git_status_dirty_lines": 0
+        },
+        {
+          "dest_chars": 43,
+          "clone_exit_code": 0,
+          "filename_too_long_errors": 0,
+          "checkout_failed": false,
+          "duration_s": 4.109,
+          "git_checkout_complete": true,
+          "longest_file_readable": true,
+          "git_status_dirty_lines": 0
+        },
+        {
+          "dest_chars": 44,
+          "clone_exit_code": 0,
+          "filename_too_long_errors": 0,
+          "checkout_failed": false,
+          "duration_s": 4.852,
+          "git_checkout_complete": true,
+          "longest_file_readable": true,
+          "git_status_dirty_lines": 0
+        },
+        {
+          "dest_chars": 45,
+          "clone_exit_code": 0,
+          "filename_too_long_errors": 0,
+          "checkout_failed": false,
+          "duration_s": 3.98,
+          "git_checkout_complete": true,
+          "longest_file_readable": false,
+          "git_status_dirty_lines": 0
+        },
+        {
+          "dest_chars": 49,
+          "clone_exit_code": 0,
+          "filename_too_long_errors": 0,
+          "checkout_failed": false,
+          "duration_s": 4.095,
+          "git_checkout_complete": true,
+          "longest_file_readable": false,
+          "git_status_dirty_lines": 0
+        },
+        {
+          "dest_chars": 57,
+          "clone_exit_code": 0,
+          "filename_too_long_errors": 0,
+          "checkout_failed": false,
+          "duration_s": 3.97,
+          "git_checkout_complete": true,
+          "longest_file_readable": false,
+          "git_status_dirty_lines": 0
+        },
+        {
+          "dest_chars": 74,
+          "clone_exit_code": 0,
+          "filename_too_long_errors": 0,
+          "checkout_failed": false,
+          "duration_s": 4.075,
+          "git_checkout_complete": true,
+          "longest_file_readable": false,
+          "git_status_dirty_lines": 0
+        },
+        {
+          "dest_chars": 140,
+          "clone_exit_code": 0,
+          "filename_too_long_errors": 0,
+          "checkout_failed": false,
+          "duration_s": 4.64,
+          "git_checkout_complete": true,
+          "longest_file_readable": false,
+          "git_status_dirty_lines": 1
+        }
+      ]
+    }
+  },
+  "clone_attempts": [
+    {
+      "argv": [
+        "git",
+        "clone",
+        "--quiet",
+        "D:\\CoackroachDBxAWS\\mainline",
+        "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-judge-y70xidx6\\mainline"
+      ],
+      "cwd": null,
+      "status": "FAIL",
+      "exit_code": 128,
+      "duration_s": 7.437,
+      "output": {
+        "lines_total": 7,
+        "head": [
+          "error: unable to create file verticals/mainline/apps/console/fixtures/bundles/blk-07/frames/GET~20~2Fv1~2Fclauses~2F018f3a30-2200-7d10-9f31-0c9a4e77bb02~2Fancestry~3Fas_of~3D5f916282a2a3e5765f916282a2a3e5765f916282a2a3e5765f916282a2a3e576.json: Filename too long",
+          "error: unable to create file verticals/mainline/apps/console/fixtures/bundles/blk-07/frames/GET~20~2Fv1~2Fclauses~2F018f3a30-2200-7d10-9f31-0c9a4e77bb02~2Fversions~2F5f916282a2a3e5765f916282a2a3e5765f916282a2a3e5765f916282a2a3e576.json: Filename too long",
+          "fatal: unable to checkout working tree",
+          "warning: Clone succeeded, but checkout failed.",
+          "You can inspect what was checked out with 'git status'",
+          "and retry with 'git restore --source=HEAD :/'",
+          ""
+        ],
+        "tail": [],
+        "elided": 0
+      },
+      "dest": "C:/Users/shaug/AppData/Local/Temp/mainline-judge-y70xidx6/mainline",
+      "dest_chars": 66,
+      "longpaths": false,
+      "filename_too_long_errors": 2,
+      "checkout_failed": true,
+      "label": "as documented, in the system temp directory",
+      "health": {},
+      "classification": "FAIL"
+    },
+    {
+      "argv": [
+        "git",
+        "-c",
+        "core.longpaths=true",
+        "clone",
+        "--quiet",
+        "D:\\CoackroachDBxAWS\\mainline",
+        "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-judge-y70xidx6\\mainline"
+      ],
+      "cwd": null,
+      "status": "PASS",
+      "exit_code": 0,
+      "duration_s": 7.766,
+      "output": {
+        "lines_total": 0,
+        "head": [],
+        "tail": [],
+        "elided": 0
+      },
+      "dest": "C:/Users/shaug/AppData/Local/Temp/mainline-judge-y70xidx6/mainline",
+      "dest_chars": 66,
+      "longpaths": true,
+      "filename_too_long_errors": 0,
+      "checkout_failed": false,
+      "label": "core.longpaths=true, in the system temp directory",
+      "health": {
+        "git_status_dirty_lines": 0,
+        "longest_file_full_path_chars": 281,
+        "longest_file_readable_by_plain_open": false,
+        "longest_file_read_error": "FileNotFoundError: errno 2"
+      },
+      "classification": "PASS (CAVEATED)"
+    },
+    {
+      "argv": [
+        "git",
+        "clone",
+        "--quiet",
+        "D:\\CoackroachDBxAWS\\mainline",
+        "D:\\_mlp\\jdr"
+      ],
+      "cwd": null,
+      "status": "PASS",
+      "exit_code": 0,
+      "duration_s": 4.075,
+      "output": {
+        "lines_total": 0,
+        "head": [],
+        "tail": [],
+        "elided": 0
+      },
+      "dest": "D:/_mlp/jdr",
+      "dest_chars": 11,
+      "longpaths": false,
+      "filename_too_long_errors": 0,
+      "checkout_failed": false,
+      "label": "as documented, into a destination inside the safe prefix",
+      "health": {
+        "git_status_dirty_lines": 0,
+        "longest_file_full_path_chars": 226,
+        "longest_file_readable_by_plain_open": true,
+        "longest_file_read_error": null
+      },
+      "classification": "PASS"
+    }
+  ],
+  "clone_used": {
+    "label": "as documented, into a destination inside the safe prefix",
+    "dest": "D:/_mlp/jdr",
+    "dest_chars": 11,
+    "longpaths": false,
+    "classification": "PASS",
+    "health": {
+      "git_status_dirty_lines": 0,
+      "longest_file_full_path_chars": 226,
+      "longest_file_readable_by_plain_open": true,
+      "longest_file_read_error": null
+    },
+    "removed_after_the_run": true
+  },
+  "documented_commands": {
+    "readme_present_in_clone": true,
+    "quickstart_present_in_clone": true,
+    "just_on_path": null,
+    "commands": [
+      {
+        "documented": "just doctor",
+        "in_readme": true,
+        "in_quickstart": true,
+        "runnable_here": false,
+        "reason": "`just` is not on PATH on this machine",
+        "fallback_actually_run": "python scripts/qa/doctor.py"
+      },
+      {
+        "documented": "just setup",
+        "in_readme": true,
+        "in_quickstart": true,
+        "runnable_here": false,
+        "reason": "`just` is not on PATH on this machine",
+        "fallback_actually_run": "uv sync --all-packages"
+      },
+      {
+        "documented": "just up",
+        "in_readme": true,
+        "in_quickstart": true,
+        "runnable_here": false,
+        "reason": "`just` is not on PATH on this machine",
+        "fallback_actually_run": "docker compose -f compose.yaml up -d"
+      },
+      {
+        "documented": "just prove",
+        "in_readme": true,
+        "in_quickstart": true,
+        "runnable_here": false,
+        "reason": "`just` is not on PATH on this machine",
+        "fallback_actually_run": "python scripts/proof/gate_refusal.py --dsn <dsn>"
+      }
+    ]
+  },
+  "runs": [
+    {
+      "interpreter": {
+        "label": "python-on-PATH (what a judge types)",
+        "requested": "C:\\Python314\\python.EXE",
+        "resolved": "C:\\Python314\\python.EXE",
+        "usable": true,
+        "version": "3.14.3",
+        "executable": "C:\\Python314\\python.EXE",
+        "psycopg": {
+          "importable": true,
+          "origin": "C:\\Users\\shaug\\AppData\\Roaming\\Python\\Python314\\site-packages\\psycopg\\__init__.py"
+        },
+        "pytest": {
+          "importable": true,
+          "origin": "C:\\Users\\shaug\\AppData\\Roaming\\Python\\Python314\\site-packages\\pytest\\__init__.py"
+        },
+        "trappoint_core": {
+          "importable": false,
+          "error": "not found"
+        },
+        "trappoint_migrate": {
+          "importable": false,
+          "error": "not found"
+        },
+        "modules_resolved_outside_the_clone": [
+          {
+            "module": "pytest",
+            "origin": "C:\\Users\\shaug\\AppData\\Roaming\\Python\\Python314\\site-packages\\pytest\\__init__.py"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "id": "doctor",
+          "documented_as": "just doctor",
+          "typed": "python.EXE scripts/qa/doctor.py",
+          "requires": "scripts/qa/doctor.py",
+          "argv": [
+            "C:\\Python314\\python.EXE",
+            "scripts/qa/doctor.py"
+          ],
+          "timeout_s": 600,
+          "expect": "one table, and exit 0 only when everything `just prove` needs is present",
+          "nonzero_expected_because": "`uv` and `just` are not installed on this machine, so the doctor is RIGHT to exit 1. That is a finding about the host, not a defect of the clone \u2014 and it is exactly what the doctor exists to say.",
+          "status": "FAIL",
+          "exit_code": 1,
+          "duration_s": 3.087,
+          "output": {
+            "lines_total": 55,
+            "head": [
+              "MAINLINE preflight - Windows-11-10.0.26200-SP0 - 2026-08-10T04:34:43+00:00",
+              "",
+              "STATUS  CHECK                   OBSERVED",
+              "------  ----------------------  ------------------------------------------------",
+              "OK      python >= 3.13          3.14.3 at C:\\Python314\\python.EXE",
+              "OK      docker (client)         Docker version 29.3.1, build c2be9cc",
+              "OK      docker engine (API)     server 29.3.1 (linux)",
+              "FAIL    uv (python workspace)   not on PATH",
+              "FAIL    just (command surface)  not on PATH",
+              "OK      psycopg 3 (importable)  psycopg 3.3.4",
+              "WARN    workspace installed     .venv/ does not exist",
+              "OK      node >=24.0.0           v24.14.0",
+              "OK      pnpm >=11.0.0           11.5.3",
+              "OK      compose.yaml image pin  cockroachdb/cockroach:v26.2.5  (parsed by trappoint_testkit.image)",
+              "OK      pinned image present    cockroachdb/cockroach:v26.2.5 -> sha256:771325a0586b",
+              "OK      migration tree          261 .sql files in verticals/mainline/db/migrations",
+              "OK      proof script            scripts/proof/gate_refusal.py",
+              "OK      pgwire 127.0.0.1:26257  a socket accepted the connection [the local single-node default]",
+              "OK      cockroachdb version     CockroachDB CCL v26.2.5",
+              "OK      node clock vs host      -0.024s (node - host, round trip removed)",
+              "WARN    gc.ttlseconds == 4500   14400 (the permissive local default), Cloud enforces 4500",
+              "------  ----------------------  ------------------------------------------------",
+              "",
+              "NOT READY - 2 blocking checks. In order:",
+              "",
+              "  1. just (command surface): not on PATH",
+              "     QUICKSTART.md is four `just` commands. Install it:",
+              "         winget install --id Casey.Just --source winget",
+              "         or:  npm install -g rust-just        (the same binary, from the npm registry)",
+              "     Every recipe is one line of bash; `just --list` shows them all.",
+              "",
+              "  2. uv (python workspace): not on PATH",
+              "     uv resolves and installs all 27 distributions from the one lockfile.",
+              "     Install it:",
+              "         powershell -ExecutionPolicy ByPass -c \"irm https://astral.sh/uv/install.ps1 | iex\"",
+              "         or, if you would rather not pipe a script:  pipx install uv",
+              "     Then:  just setup      (which runs `uv sync --all-packages`)",
+              "",
+              "2 advisory warnings (nothing here stops the proof):",
+              "",
+              "  1. gc.ttlseconds == 4500: 14400 (the permissive local default), Cloud enforces 4500",
+              "     Local is MORE permissive than Cloud (14400s of history against 4500s), so an AS OF SYSTEM TIME query that reaches",
+              "     past Cloud's horizon passes here and fails on the nightly truth check.",
+              "     Align it:",
+              "         just gc-align",
+              "     or, equivalently:",
+              "         docker compose -f compose.yaml run --rm crdb-align",
+              "         (ALTER RANGE default CONFIGURE ZONE USING gc.ttlseconds = 4500)",
+              "     The proof itself pins its own throwaway database, so this is fidelity, not a",
+              "     blocker.",
+              "",
+              "  2. workspace installed: .venv/ does not exist",
+              "     Nothing is installed yet. One command:",
+              "         just setup        (installs uv if absent, then `uv sync --all-packages`)",
+              ""
+            ],
+            "tail": [],
+            "elided": 0
+          },
+          "expected_failure": true
+        },
+        {
+          "id": "compose-config",
+          "documented_as": "just up",
+          "typed": "docker compose -f compose.yaml config",
+          "requires": "compose.yaml",
+          "argv": [
+            "docker",
+            "compose",
+            "-f",
+            "compose.yaml",
+            "config"
+          ],
+          "timeout_s": 300,
+          "expect": "exit 0; the compose file in the clone parses and pins the image",
+          "status": "PASS",
+          "exit_code": 0,
+          "duration_s": 0.468,
+          "output": {
+            "lines_total": 56,
+            "head": [
+              "name: trappoint",
+              "services:",
+              "  crdb:",
+              "    command:",
+              "      - start-single-node",
+              "      - --insecure",
+              "      - --listen-addr=:26257",
+              "      - --http-addr=:8080",
+              "      - --cache=.25",
+              "      - --max-sql-memory=.25",
+              "    container_name: trappoint-crdb",
+              "    healthcheck:",
+              "      test:",
+              "        - CMD",
+              "        - /cockroach/cockroach",
+              "        - sql",
+              "        - --insecure",
+              "        - --host=127.0.0.1:26257",
+              "        - --execute=SELECT 1",
+              "      timeout: 10s",
+              "      interval: 5s",
+              "      retries: 30",
+              "      start_period: 15s",
+              "    image: cockroachdb/cockroach:v26.2.5",
+              "    networks:",
+              "      default: null",
+              "    ports:",
+              "      - mode: ingress",
+              "        host_ip: 127.0.0.1",
+              "        target: 26257",
+              "        published: \"26257\"",
+              "        protocol: tcp",
+              "      - mode: ingress",
+              "        host_ip: 127.0.0.1",
+              "        target: 8080",
+              "        published: \"8080\"",
+              "        protocol: tcp",
+              "    restart: \"no\"",
+              "    stop_grace_period: 1m0s",
+              "    ulimits:",
+              "      nofile:",
+              "        soft: 65536",
+              "        hard: 65536",
+              "    volumes:",
+              "      - type: volume",
+              "        source: crdb-data",
+              "        target: /cockroach/cockroach-data",
+              "        volume: {}",
+              "networks:",
+              "  default:",
+              "    name: trappoint_default",
+              "volumes:",
+              "  crdb-data:",
+              "    name: trappoint-crdb-data",
+              "x-crdb-image:",
+              "  image: cockroachdb/cockroach:v26.2.5"
+            ],
+            "tail": [],
+            "elided": 0
+          }
+        },
+        {
+          "id": "gate-refusal",
+          "documented_as": "just prove",
+          "typed": "python.EXE scripts/proof/gate_refusal.py --dsn ... --database w_s04_first_five_minutes",
+          "requires": "scripts/proof/gate_refusal.py",
+          "argv": [
+            "C:\\Python314\\python.EXE",
+            "scripts/proof/gate_refusal.py",
+            "--dsn",
+            "postgresql://root@127.0.0.1:26257/defaultdb?sslmode=disable",
+            "--database",
+            "w_s04_first_five_minutes"
+          ],
+          "timeout_s": 1800,
+          "expect": "exit 0 and VERDICT PROVEN",
+          "nonzero_expected_because": "`trappoint_migrate` is not importable by this interpreter, so the workspace has never been installed into it. `just setup` (`uv sync --all-packages`) is the second of the four documented commands; a judge who skips it lands exactly here.",
+          "status": "FAIL",
+          "exit_code": 1,
+          "duration_s": 0.944,
+          "output": {
+            "lines_total": 15,
+            "head": [
+              "Traceback (most recent call last):",
+              "  File \"D:\\_mlp\\jdr\\scripts\\proof\\gate_refusal.py\", line 1447, in <module>",
+              "    raise SystemExit(main())",
+              "                     ~~~~^^",
+              "  File \"D:\\_mlp\\jdr\\scripts\\proof\\gate_refusal.py\", line 1420, in main",
+              "    code, evidence = run(args)",
+              "                     ~~~^^^^^^",
+              "  File \"D:\\_mlp\\jdr\\scripts\\proof\\gate_refusal.py\", line 1187, in run",
+              "    chain = apply_chain(work, dsn, migrations, repo_root)",
+              "  File \"D:\\_mlp\\jdr\\scripts\\proof\\gate_refusal.py\", line 371, in apply_chain",
+              "    report.bootstrap = _bootstrap(dsn, repo_root)",
+              "                       ~~~~~~~~~~^^^^^^^^^^^^^^^^",
+              "  File \"D:\\_mlp\\jdr\\scripts\\proof\\gate_refusal.py\", line 346, in _bootstrap",
+              "    from trappoint_migrate.bootstrap import bootstrap as bootstrap_fn",
+              "ModuleNotFoundError: No module named 'trappoint_migrate'"
+            ],
+            "tail": [],
+            "elided": 0
+          },
+          "verdict_line": null,
+          "chain_line": null,
+          "refusal_lines": [],
+          "expected_failure": true
+        },
+        {
+          "id": "pytest-collect",
+          "documented_as": "just test",
+          "typed": "python.EXE -m pytest --crdb=none --collect-only -q",
+          "requires": "conftest.py",
+          "argv": [
+            "C:\\Python314\\python.EXE",
+            "-m",
+            "pytest",
+            "--crdb=none",
+            "--collect-only",
+            "-q"
+          ],
+          "timeout_s": 1800,
+          "expect": "exit 0; the suite collects with no collection errors",
+          "nonzero_expected_because": "`trappoint_migrate` is not importable by this interpreter, so the workspace has never been installed into it. `just setup` (`uv sync --all-packages`) is the second of the four documented commands; a judge who skips it lands exactly here.",
+          "status": "FAIL",
+          "exit_code": 4,
+          "duration_s": 0.663,
+          "output": {
+            "lines_total": 2,
+            "head": [
+              "ERROR: D:\\_mlp\\jdr\\pyproject.toml: 'minversion' requires pytest-9.1, actual pytest-9.0.3'",
+              ""
+            ],
+            "tail": [],
+            "elided": 0
+          },
+          "summary_line": null,
+          "expected_failure": true
+        },
+        {
+          "id": "check-reuse",
+          "documented_as": ".github/workflows/ci.yml job `checkers`",
+          "typed": "python.EXE scripts/qa/check_reuse.py",
+          "requires": "scripts/qa/check_reuse.py",
+          "argv": [
+            "C:\\Python314\\python.EXE",
+            "scripts/qa/check_reuse.py"
+          ],
+          "timeout_s": 600,
+          "expect": "present and exit 0; CI names this exact path",
+          "status": "NOT PRESENT",
+          "reason": "scripts/qa/check_reuse.py is not in the clone"
+        }
+      ]
+    },
+    {
+      "interpreter": {
+        "label": "workspace venv (the state after `just setup`)",
+        "requested": "D:\\CoackroachDBxAWS\\mainline\\.venv\\Scripts\\python.exe",
+        "resolved": "D:\\CoackroachDBxAWS\\mainline\\.venv\\Scripts\\python.exe",
+        "usable": true,
+        "version": "3.13.14",
+        "executable": "D:\\CoackroachDBxAWS\\mainline\\.venv\\Scripts\\python.exe",
+        "psycopg": {
+          "importable": true,
+          "origin": "D:\\CoackroachDBxAWS\\mainline\\.venv\\Lib\\site-packages\\psycopg\\__init__.py"
+        },
+        "pytest": {
+          "importable": true,
+          "origin": "D:\\CoackroachDBxAWS\\mainline\\.venv\\Lib\\site-packages\\pytest\\__init__.py"
+        },
+        "trappoint_core": {
+          "importable": true,
+          "origin": "D:\\CoackroachDBxAWS\\mainline\\packages\\trappoint-core\\src\\trappoint_core\\__init__.py"
+        },
+        "trappoint_migrate": {
+          "importable": true,
+          "origin": "D:\\CoackroachDBxAWS\\mainline\\packages\\trappoint-migrate\\src\\trappoint_migrate\\__init__.py"
+        },
+        "modules_resolved_outside_the_clone": [
+          {
+            "module": "trappoint_core",
+            "origin": "D:\\CoackroachDBxAWS\\mainline\\packages\\trappoint-core\\src\\trappoint_core\\__init__.py"
+          },
+          {
+            "module": "trappoint_migrate",
+            "origin": "D:\\CoackroachDBxAWS\\mainline\\packages\\trappoint-migrate\\src\\trappoint_migrate\\__init__.py"
+          },
+          {
+            "module": "pytest",
+            "origin": "D:\\CoackroachDBxAWS\\mainline\\.venv\\Lib\\site-packages\\pytest\\__init__.py"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "id": "doctor",
+          "documented_as": "just doctor",
+          "typed": "python.exe scripts/qa/doctor.py",
+          "requires": "scripts/qa/doctor.py",
+          "argv": [
+            "D:\\CoackroachDBxAWS\\mainline\\.venv\\Scripts\\python.exe",
+            "scripts/qa/doctor.py"
+          ],
+          "timeout_s": 600,
+          "expect": "one table, and exit 0 only when everything `just prove` needs is present",
+          "nonzero_expected_because": "`uv` and `just` are not installed on this machine, so the doctor is RIGHT to exit 1. That is a finding about the host, not a defect of the clone \u2014 and it is exactly what the doctor exists to say.",
+          "status": "FAIL",
+          "exit_code": 1,
+          "duration_s": 2.788,
+          "output": {
+            "lines_total": 55,
+            "head": [
+              "MAINLINE preflight - Windows-11-10.0.26200-SP0 - 2026-08-10T04:34:48+00:00",
+              "",
+              "STATUS  CHECK                   OBSERVED",
+              "------  ----------------------  ------------------------------------------------",
+              "OK      python >= 3.13          3.13.14 at D:\\CoackroachDBxAWS\\mainline\\.venv\\Scripts\\python.exe",
+              "OK      docker (client)         Docker version 29.3.1, build c2be9cc",
+              "OK      docker engine (API)     server 29.3.1 (linux)",
+              "FAIL    uv (python workspace)   not on PATH",
+              "FAIL    just (command surface)  not on PATH",
+              "OK      psycopg 3 (importable)  psycopg 3.3.4",
+              "WARN    workspace installed     .venv/ does not exist",
+              "OK      node >=24.0.0           v24.14.0",
+              "OK      pnpm >=11.0.0           11.5.3",
+              "OK      compose.yaml image pin  cockroachdb/cockroach:v26.2.5  (parsed by trappoint_testkit.image)",
+              "OK      pinned image present    cockroachdb/cockroach:v26.2.5 -> sha256:771325a0586b",
+              "OK      migration tree          261 .sql files in verticals/mainline/db/migrations",
+              "OK      proof script            scripts/proof/gate_refusal.py",
+              "OK      pgwire 127.0.0.1:26257  a socket accepted the connection [the local single-node default]",
+              "OK      cockroachdb version     CockroachDB CCL v26.2.5",
+              "OK      node clock vs host      -0.087s (node - host, round trip removed)",
+              "WARN    gc.ttlseconds == 4500   14400 (the permissive local default), Cloud enforces 4500",
+              "------  ----------------------  ------------------------------------------------",
+              "",
+              "NOT READY - 2 blocking checks. In order:",
+              "",
+              "  1. just (command surface): not on PATH",
+              "     QUICKSTART.md is four `just` commands. Install it:",
+              "         winget install --id Casey.Just --source winget",
+              "         or:  npm install -g rust-just        (the same binary, from the npm registry)",
+              "     Every recipe is one line of bash; `just --list` shows them all.",
+              "",
+              "  2. uv (python workspace): not on PATH",
+              "     uv resolves and installs all 27 distributions from the one lockfile.",
+              "     Install it:",
+              "         powershell -ExecutionPolicy ByPass -c \"irm https://astral.sh/uv/install.ps1 | iex\"",
+              "         or, if you would rather not pipe a script:  pipx install uv",
+              "     Then:  just setup      (which runs `uv sync --all-packages`)",
+              "",
+              "2 advisory warnings (nothing here stops the proof):",
+              "",
+              "  1. gc.ttlseconds == 4500: 14400 (the permissive local default), Cloud enforces 4500",
+              "     Local is MORE permissive than Cloud (14400s of history against 4500s), so an AS OF SYSTEM TIME query that reaches",
+              "     past Cloud's horizon passes here and fails on the nightly truth check.",
+              "     Align it:",
+              "         just gc-align",
+              "     or, equivalently:",
+              "         docker compose -f compose.yaml run --rm crdb-align",
+              "         (ALTER RANGE default CONFIGURE ZONE USING gc.ttlseconds = 4500)",
+              "     The proof itself pins its own throwaway database, so this is fidelity, not a",
+              "     blocker.",
+              "",
+              "  2. workspace installed: .venv/ does not exist",
+              "     Nothing is installed yet. One command:",
+              "         just setup        (installs uv if absent, then `uv sync --all-packages`)",
+              ""
+            ],
+            "tail": [],
+            "elided": 0
+          },
+          "expected_failure": true
+        },
+        {
+          "id": "compose-config",
+          "documented_as": "just up",
+          "typed": "docker compose -f compose.yaml config",
+          "requires": "compose.yaml",
+          "argv": [
+            "docker",
+            "compose",
+            "-f",
+            "compose.yaml",
+            "config"
+          ],
+          "timeout_s": 300,
+          "expect": "exit 0; the compose file in the clone parses and pins the image",
+          "status": "PASS",
+          "exit_code": 0,
+          "duration_s": 0.472,
+          "output": {
+            "lines_total": 56,
+            "head": [
+              "name: trappoint",
+              "services:",
+              "  crdb:",
+              "    command:",
+              "      - start-single-node",
+              "      - --insecure",
+              "      - --listen-addr=:26257",
+              "      - --http-addr=:8080",
+              "      - --cache=.25",
+              "      - --max-sql-memory=.25",
+              "    container_name: trappoint-crdb",
+              "    healthcheck:",
+              "      test:",
+              "        - CMD",
+              "        - /cockroach/cockroach",
+              "        - sql",
+              "        - --insecure",
+              "        - --host=127.0.0.1:26257",
+              "        - --execute=SELECT 1",
+              "      timeout: 10s",
+              "      interval: 5s",
+              "      retries: 30",
+              "      start_period: 15s",
+              "    image: cockroachdb/cockroach:v26.2.5",
+              "    networks:",
+              "      default: null",
+              "    ports:",
+              "      - mode: ingress",
+              "        host_ip: 127.0.0.1",
+              "        target: 26257",
+              "        published: \"26257\"",
+              "        protocol: tcp",
+              "      - mode: ingress",
+              "        host_ip: 127.0.0.1",
+              "        target: 8080",
+              "        published: \"8080\"",
+              "        protocol: tcp",
+              "    restart: \"no\"",
+              "    stop_grace_period: 1m0s",
+              "    ulimits:",
+              "      nofile:",
+              "        soft: 65536",
+              "        hard: 65536",
+              "    volumes:",
+              "      - type: volume",
+              "        source: crdb-data",
+              "        target: /cockroach/cockroach-data",
+              "        volume: {}",
+              "networks:",
+              "  default:",
+              "    name: trappoint_default",
+              "volumes:",
+              "  crdb-data:",
+              "    name: trappoint-crdb-data",
+              "x-crdb-image:",
+              "  image: cockroachdb/cockroach:v26.2.5"
+            ],
+            "tail": [],
+            "elided": 0
+          }
+        },
+        {
+          "id": "gate-refusal",
+          "documented_as": "just prove",
+          "typed": "python.exe scripts/proof/gate_refusal.py --dsn ... --database w_s04_first_five_minutes",
+          "requires": "scripts/proof/gate_refusal.py",
+          "argv": [
+            "D:\\CoackroachDBxAWS\\mainline\\.venv\\Scripts\\python.exe",
+            "scripts/proof/gate_refusal.py",
+            "--dsn",
+            "postgresql://root@127.0.0.1:26257/defaultdb?sslmode=disable",
+            "--database",
+            "w_s04_first_five_minutes"
+          ],
+          "timeout_s": 1800,
+          "expect": "exit 0 and VERDICT PROVEN",
+          "status": "PASS",
+          "exit_code": 0,
+          "duration_s": 70.351,
+          "output": {
+            "lines_total": 26,
+            "head": [
+              "cluster       CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)",
+              "database      w_s04_first_five_minutes",
+              "chain         246/261 applied, 15 failed, 50.996s",
+              "reached 0115  True",
+              "  - no producer 0121_trg_check_materialised [42P01] needs mainline_ops.outbox",
+              "  - no producer 0145a_trg_cbm_account_guard [42P01] needs mainline.identity_assignment",
+              "  - no producer 0163_v_fixity_coverage [42P01] needs mainline.patrol_run",
+              "  - no producer 0164_v_agent_actions [42P01] needs mainline_meas.agent_action",
+              "  - no producer 0165_v_gate_latency_daily [42P01] needs mainline_meas.agent_action",
+              "  - no producer 0166_v_txn_restart_daily [42P01] needs mainline_meas.agent_action",
+              "  - no producer 0171_v_standing_components [42P01] needs mainline_meas.standing",
+              "  - no producer 0172_v_my_record [42P01] needs mainline_meas.standing",
+              "  - no producer 0187_standing_rls_enable [42P01] needs mainline_meas.standing",
+              "  - no producer 0187a_standing_rls_force [42P01] needs mainline_meas.standing",
+              "  - no producer 0187b_policy_standing_blind [42P01] needs mainline_meas.standing",
+              "  - no producer 0187c_policy_standing_assay_read [42P01] needs mainline_meas.standing",
+              "  - no producer 0187d_policy_standing_assay_insert [42P01] needs mainline_meas.standing",
+              "  - no producer 0187e_policy_standing_view_owner_read [42P01] needs mainline_meas.standing",
+              "  - no producer 0198x_no_rls_on_cdc_sources [42P01] needs mainline_ops.outbox",
+              "REFUSAL       REFUSED [23514] gate_closed_when_issued (reported)",
+              "DRIFT         REFUSED [P0001] mainline.fn_permit_merge_gate (parsed)",
+              "ADMISSION     ADMITTED [00000]",
+              "caveat        15 of 261 migrations did not apply. Every one is listed under chain.failures_* with its file name and SQLSTATE. The five tables with no producer are named in chain.unproduced_tables_enumerated; this script does not create them, because a new table takes a number the allocation table grants and this worker owns no band.",
+              "caveat        mainline.permit.open_blocking was written by this script, not by the check_materialised trigger, because 0121_trg_check_materialised.sql could not apply (mainline_ops.outbox has no migration). The value written is the count the gate re-derives for itself, so the refusal below is still the database's.",
+              "VERDICT       PROVEN",
+              "evidence      D:\\_mlp\\jdr\\evidence\\gate-refusal\\proof-20260810T043449Z.json"
+            ],
+            "tail": [],
+            "elided": 0
+          },
+          "verdict_line": "VERDICT       PROVEN",
+          "chain_line": "chain         246/261 applied, 15 failed, 50.996s",
+          "refusal_lines": [
+            "REFUSAL       REFUSED [23514] gate_closed_when_issued (reported)",
+            "DRIFT         REFUSED [P0001] mainline.fn_permit_merge_gate (parsed)",
+            "ADMISSION     ADMITTED [00000]"
+          ]
+        },
+        {
+          "id": "pytest-collect",
+          "documented_as": "just test",
+          "typed": "python.exe -m pytest --crdb=none --collect-only -q",
+          "requires": "conftest.py",
+          "argv": [
+            "D:\\CoackroachDBxAWS\\mainline\\.venv\\Scripts\\python.exe",
+            "-m",
+            "pytest",
+            "--crdb=none",
+            "--collect-only",
+            "-q"
+          ],
+          "timeout_s": 1800,
+          "expect": "exit 0; the suite collects with no collection errors",
+          "status": "PASS",
+          "exit_code": 0,
+          "duration_s": 30.112,
+          "output": {
+            "lines_total": 8851,
+            "head": [
+              "tests/agents/recall_fleet/test_body_contract.py::test_raw_recall_body_fails_exactly_two_clauses",
+              "tests/agents/recall_fleet/test_body_contract.py::test_bound_body_passes_every_clause",
+              "tests/agents/recall_fleet/test_body_contract.py::test_audit_body_emits_every_declared_check",
+              "tests/agents/recall_fleet/test_body_contract.py::test_bound_body_keys_are_the_contract_keys",
+              "tests/agents/recall_fleet/test_body_contract.py::test_system_and_messages_pass_through_unchanged",
+              "tests/agents/recall_fleet/test_body_contract.py::test_cache_breakpoint_is_single_and_last",
+              "tests/agents/recall_fleet/test_body_contract.py::test_misplaced_cache_breakpoint_is_refused[breakpoint-not-last]",
+              "tests/agents/recall_fleet/test_body_contract.py::test_misplaced_cache_breakpoint_is_refused[no-breakpoint]",
+              "tests/agents/recall_fleet/test_body_contract.py::test_misplaced_cache_breakpoint_is_refused[empty-prefix]",
+              "tests/agents/recall_fleet/test_body_contract.py::test_sampling_parameter_in_the_request_is_refused",
+              "tests/agents/recall_fleet/test_body_contract.py::test_sampling_parameter_deep_in_a_message_is_refused",
+              "tests/agents/recall_fleet/test_body_contract.py::test_a_temperature_setpoint_inside_the_schema_is_not_a_sampling_parameter",
+              "tests/agents/recall_fleet/test_body_contract.py::test_tool_surface_in_the_request_is_refused",
+              "tests/agents/recall_fleet/test_body_contract.py::test_prompt_version_drift_is_refused",
+              "tests/agents/recall_fleet/test_body_contract.py::test_budget_drift_is_refused",
+              "tests/agents/recall_fleet/test_body_contract.py::test_conflicting_effort_is_refused_not_overridden",
+              "tests/agents/recall_fleet/test_body_contract.py::test_matching_effort_is_accepted",
+              "tests/agents/recall_fleet/test_body_contract.py::test_assert_fleet_body_rejects_a_disabled_thinking_block",
+              "tests/agents/recall_fleet/test_body_contract.py::test_missing_required_request_key_is_named",
+              "tests/agents/recall_fleet/test_register.py::test_every_leg_holds_no_tool_and_writes_no_gate_field",
+              "tests/agents/recall_fleet/test_register.py::test_no_leg_runs_as_a_gate_writing_role",
+              "tests/agents/recall_fleet/test_register.py::test_no_leg_claims_a_write_to_blocking_check",
+              "tests/agents/recall_fleet/test_register.py::test_the_whole_register_passes_its_own_audit",
+              "tests/agents/recall_fleet/test_register.py::test_audit_leg_emits_every_declared_check",
+              "tests/agents/recall_fleet/test_register.py::test_one_model_generation_across_the_recall_fleet",
+              "tests/agents/recall_fleet/test_register.py::test_effort_follows_the_a4_mapping",
+              "tests/agents/recall_fleet/test_register.py::test_register_prompt_versions_match_the_recall_package",
+              "tests/agents/recall_fleet/test_register.py::test_every_leg_declares_silence_inside_the_check_vocabularies",
+              "tests/agents/recall_fleet/test_register.py::test_an_unregistered_leg_is_refused",
+              "tests/agents/recall_fleet/test_register.py::test_identity_components_are_the_seven_in_concatenation_order",
+              "tests/agents/recall_fleet/test_register.py::test_the_matrix_groups_legs_under_their_agent",
+              "tests/agents/recall_fleet/test_register.py::test_the_yaml_fragment_is_deterministic_and_complete",
+              "tests/agents/recall_fleet/test_transport_binding.py::test_non_australian_profile_is_refused_at_construction[anthropic.claude-opus-5-20260101-v1:0]",
+              "tests/agents/recall_fleet/test_transport_binding.py::test_non_australian_profile_is_refused_at_construction[global.anthropic.claude-opus-5]",
+              "tests/agents/recall_fleet/test_transport_binding.py::test_non_australian_profile_is_refused_at_construction[apac.anthropic.claude-opus-5]",
+              "tests/agents/recall_fleet/test_transport_binding.py::test_non_australian_profile_is_refused_at_construction[]",
+              "tests/agents/recall_fleet/test_transport_binding.py::test_a_non_agentkit_provider_is_refused",
+              "tests/agents/recall_fleet/test_transport_binding.py::test_a_clean_call_returns_the_text_and_the_wire_body_conforms",
+              "tests/agents/recall_fleet/test_transport_binding.py::test_provenance_carries_the_replayability_record",
+              "tests/agents/recall_fleet/test_transport_binding.py::test_provenance_before_any_call_is_refused"
+            ],
+            "tail": [
+              "verticals/mainline/packages/mainline-sequencer/tests/test_append_unit.py::test_a_checkpoint_a_stranger_could_not_verify_is_refused_before_any_write[drand-not a beacon-drand:]",
+              "verticals/mainline/packages/mainline-sequencer/tests/test_append_unit.py::test_a_checkpoint_a_stranger_could_not_verify_is_refused_before_any_write[nist-1.0 2.3 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-nist:]",
+              "verticals/mainline/packages/mainline-sequencer/tests/test_append_unit.py::test_the_extension_lines_are_in_the_order_the_wire_format_fixes",
+              "verticals/mainline/packages/mainline-sequencer/tests/test_append_unit.py::test_the_beacon_column_is_derived_from_the_same_strings_as_the_signed_lines",
+              "verticals/mainline/packages/mainline-sequencer/tests/test_append_unit.py::test_default_algebra_names_what_is_missing_rather_than_degrading",
+              "verticals/mainline/packages/mainline-sequencer/tests/test_append_unit.py::test_fixture_names_the_same_constraints_as_the_migration[0072_ledger_intake.sql-mainline.ledger_intake]",
+              "verticals/mainline/packages/mainline-sequencer/tests/test_append_unit.py::test_fixture_names_the_same_constraints_as_the_migration[0073_ledger_leaf.sql-mainline.ledger_leaf]",
+              "verticals/mainline/packages/mainline-sequencer/tests/test_append_unit.py::test_fixture_names_the_same_constraints_as_the_migration[0074_ledger_node.sql-mainline.ledger_node]",
+              "verticals/mainline/packages/mainline-sequencer/tests/test_append_unit.py::test_fixture_names_the_same_constraints_as_the_migration[0075_ledger_checkpoint.sql-mainline.ledger_checkpoint]",
+              "verticals/mainline/packages/mainline-sequencer/tests/test_append_unit.py::test_fixture_names_the_same_constraints_as_the_migration[0079_sequencer_lease.sql-mainline_ops.sequencer_lease]",
+              "verticals/mainline/packages/mainline-sequencer/tests/test_append_unit.py::test_the_constraint_names_the_retry_predicate_uses_exist_in_the_migration",
+              "verticals/mainline/packages/mainline-sequencer/tests/test_batch_antijoin.py::test_no_update_against_any_ledger_table",
+              "verticals/mainline/packages/mainline-sequencer/tests/test_batch_antijoin.py::test_no_ledger_table_is_ever_a_mutation_target_anywhere_in_the_source",
+              "verticals/mainline/packages/mainline-sequencer/tests/test_batch_antijoin.py::test_no_banned_sequence_construct_appears_in_any_statement",
+              "verticals/mainline/packages/mainline-sequencer/tests/test_batch_antijoin.py::test_seq_is_derived_in_transaction_and_never_read_from_a_generator",
+              "verticals/mainline/packages/mainline-sequencer/tests/test_batch_antijoin.py::test_selection_is_an_anti_join_with_a_total_order",
+              "verticals/mainline/packages/mainline-sequencer/tests/test_batch_antijoin.py::test_the_projected_columns_match_the_row_in_order",
+              "verticals/mainline/packages/mainline-sequencer/tests/test_batch_antijoin.py::test_the_batch_carries_no_payload_and_no_canon_bytes",
+              "verticals/mainline/packages/mainline-sequencer/tests/test_batch_antijoin.py::test_batch_size_outside_the_permitted_range_is_refused[0]",
+              "verticals/mainline/packages/mainline-sequencer/tests/test_batch_antijoin.py::test_batch_size_outside_the_permitted_range_is_refused[-1]",
+              "verticals/mainline/packages/mainline-sequencer/tests/test_batch_antijoin.py::test_batch_size_outside_the_permitted_range_is_refused[2049]",
+              "verticals/mainline/packages/mainline-sequencer/tests/test_batch_antijoin.py::test_batch_size_outside_the_permitted_range_is_refused[100000]",
+              "verticals/mainline/packages/mainline-sequencer/tests/test_batch_antijoin.py::test_rows_are_returned_in_the_declared_shape",
+              "verticals/mainline/packages/mainline-sequencer/tests/test_lease_cas.py::test_the_epoch_fence_is_in_the_acquire_predicate",
+              "verticals/mainline/packages/mainline-sequencer/tests/test_lease_cas.py::test_lease_sql_never_touches_a_ledger_table",
+              "verticals/mainline/packages/mainline-sequencer/tests/test_lease_cas.py::test_expiry_is_decided_by_the_database_clock",
+              "verticals/mainline/packages/mainline-sequencer/tests/test_lease_cas.py::test_observe_raises_when_the_site_has_no_lease_row",
+              "verticals/mainline/packages/mainline-sequencer/tests/test_lease_cas.py::test_acquire_swaps_the_observed_epoch_plus_one",
+              "verticals/mainline/packages/mainline-sequencer/tests/test_lease_cas.py::test_acquire_returns_none_when_another_holder_wins",
+              "verticals/mainline/packages/mainline-sequencer/tests/test_lease_cas.py::test_acquire_refuses_a_lease_that_could_not_be_told_apart[-60-non-empty opaque identity]",
+              "verticals/mainline/packages/mainline-sequencer/tests/test_lease_cas.py::test_acquire_refuses_a_lease_that_could_not_be_told_apart[me-0-positive]",
+              "verticals/mainline/packages/mainline-sequencer/tests/test_lease_cas.py::test_acquire_refuses_a_lease_that_could_not_be_told_apart[me--1-positive]",
+              "verticals/mainline/packages/mainline-sequencer/tests/test_lease_cas.py::test_release_reports_whether_this_holder_still_held_it",
+              "verticals/mainline/packages/mainline-sequencer/tests/test_lease_cas.py::test_an_undecided_election_is_retried_and_a_lost_one_is_not",
+              "verticals/mainline/packages/mainline-sequencer/tests/test_lease_cas.py::test_a_lost_election_returns_none_without_retrying",
+              "verticals/mainline/packages/mainline-sequencer/tests/test_lease_cas.py::test_contend_gives_up_rather_than_looping_forever",
+              "verticals/mainline/packages/mainline-sequencer/tests/test_lease_cas.py::test_a_missing_lease_row_is_not_retried",
+              "verticals/mainline/packages/mainline-sequencer/tests/test_lease_cas.py::test_release_does_not_bump_the_epoch",
+              "",
+              "8849 tests collected in 28.24s"
+            ],
+            "elided": 8771
+          },
+          "summary_line": "8849 tests collected in 28.24s"
+        },
+        {
+          "id": "check-reuse",
+          "documented_as": ".github/workflows/ci.yml job `checkers`",
+          "typed": "python.exe scripts/qa/check_reuse.py",
+          "requires": "scripts/qa/check_reuse.py",
+          "argv": [
+            "D:\\CoackroachDBxAWS\\mainline\\.venv\\Scripts\\python.exe",
+            "scripts/qa/check_reuse.py"
+          ],
+          "timeout_s": 600,
+          "expect": "present and exit 0; CI names this exact path",
+          "status": "NOT PRESENT",
+          "reason": "scripts/qa/check_reuse.py is not in the clone"
+        }
+      ]
+    }
+  ],
+  "findings": [
+    {
+      "severity": "BLOCKING-ON-WINDOWS",
+      "headline": "a plain `git clone` fails at a destination of 45 characters",
+      "detail": "measured: 44 characters works, 45 does not. `git clone -c core.longpaths=true` showed no failure up to 140 characters. The README's copy-paste block must carry the flag."
+    },
+    {
+      "severity": "MAJOR",
+      "headline": "the clone flag makes git succeed where other programs still cannot read the tree",
+      "detail": "with core.longpaths=true a clone at 45 characters completes, but the longest fixture then exceeds 259 characters and a plain open() raises. The tree is fully readable only up to 44 characters of destination."
+    },
+    {
+      "severity": "MAJOR",
+      "headline": "59 files on the author's disk are not in the clone",
+      "detail": "everything a judge sees is HEAD. Uncommitted work does not exist for them."
+    },
+    {
+      "severity": "BLOCKING",
+      "headline": "HEAD is 2 commits ahead of origin, and 98 files differ",
+      "detail": "this dry run cloned the LOCAL repository. A judge clones the remote, which is behind it, and whose README does not contain the four documented commands. `git push` before anything measured here is quotable."
+    },
+    {
+      "severity": "CAVEAT",
+      "headline": "interpreter 'python-on-PATH (what a judge types)' imports workspace code from outside the clone",
+      "detail": "pytest <- C:\\Users\\shaug\\AppData\\Roaming\\Python\\Python314\\site-packages\\pytest\\__init__.py. The SQL and the scripts under test are the clone's; the installed Python packages are the host's editable installs."
+    },
+    {
+      "severity": "EXPECTED-FAILURE",
+      "headline": "[python-on-PATH (what a judge types)] python.EXE scripts/qa/doctor.py -> FAIL (exit 1)",
+      "detail": "`uv` and `just` are not installed on this machine, so the doctor is RIGHT to exit 1. That is a finding about the host, not a defect of the clone \u2014 and it is exactly what the doctor exists to say."
+    },
+    {
+      "severity": "EXPECTED-FAILURE",
+      "headline": "[python-on-PATH (what a judge types)] python.EXE scripts/proof/gate_refusal.py --dsn ... --database w_s04_first_five_minutes -> FAIL (exit 1)",
+      "detail": "`trappoint_migrate` is not importable by this interpreter, so the workspace has never been installed into it. `just setup` (`uv sync --all-packages`) is the second of the four documented commands; a judge who skips it lands exactly here."
+    },
+    {
+      "severity": "EXPECTED-FAILURE",
+      "headline": "[python-on-PATH (what a judge types)] python.EXE -m pytest --crdb=none --collect-only -q -> FAIL (exit 4)",
+      "detail": "`trappoint_migrate` is not importable by this interpreter, so the workspace has never been installed into it. `just setup` (`uv sync --all-packages`) is the second of the four documented commands; a judge who skips it lands exactly here."
+    },
+    {
+      "severity": "FAILURE",
+      "headline": "[python-on-PATH (what a judge types)] scripts/qa/check_reuse.py is not in the clone",
+      "detail": "a documented command has no file behind it at this commit"
+    },
+    {
+      "severity": "CAVEAT",
+      "headline": "interpreter 'workspace venv (the state after `just setup`)' imports workspace code from outside the clone",
+      "detail": "trappoint_core <- D:\\CoackroachDBxAWS\\mainline\\packages\\trappoint-core\\src\\trappoint_core\\__init__.py; trappoint_migrate <- D:\\CoackroachDBxAWS\\mainline\\packages\\trappoint-migrate\\src\\trappoint_migrate\\__init__.py; pytest <- D:\\CoackroachDBxAWS\\mainline\\.venv\\Lib\\site-packages\\pytest\\__init__.py. The SQL and the scripts under test are the clone's; the installed Python packages are the host's editable installs."
+    },
+    {
+      "severity": "EXPECTED-FAILURE",
+      "headline": "[workspace venv (the state after `just setup`)] python.exe scripts/qa/doctor.py -> FAIL (exit 1)",
+      "detail": "`uv` and `just` are not installed on this machine, so the doctor is RIGHT to exit 1. That is a finding about the host, not a defect of the clone \u2014 and it is exactly what the doctor exists to say."
+    },
+    {
+      "severity": "FAILURE",
+      "headline": "[workspace venv (the state after `just setup`)] scripts/qa/check_reuse.py is not in the clone",
+      "detail": "a documented command has no file behind it at this commit"
+    },
+    {
+      "severity": "MAJOR",
+      "headline": "`just` is not installed on this machine, so the four documented commands were not runnable as written",
+      "detail": "each one was run through the fallback recorded in documented_commands. `uv` is absent for the same reason, so `just setup` has never been executed here either."
+    }
+  ],
+  "verdict": "PROVEN_WITH_CAVEATS",
+  "reproduce": "python scripts/submission/judge_dry_run.py --dsn \"postgresql://root@127.0.0.1:26257/defaultdb?sslmode=disable\" --probe-threshold",
+  "SPDX-FileCopyrightText": "2026 MAINLINE contributors",
+  "SPDX-License-Identifier": "Apache-2.0"
+}

@@ -2,12 +2,13 @@
 # SPDX-License-Identifier: Apache-2.0
 r"""``trappoint migrate lint`` — the sequence ban, the citation rule, and the allocation.
 
-Five rules. Two of them are why this command exists at all; three of them were added by
+Six rules. Two of them are why this command exists at all; three of them were added by
 the migration reconciliation of 2026-08-08 (``docs/leads/migration-reconciliation.md``,
 ruling MR-6) after two domains implemented the same section of the migration order under
 two conventions and the pre-dispatch collision check — a literal string comparison
 between one side's number *bands* and the other side's *file paths* — reported zero
-collisions across twenty numbers.
+collisions across twenty numbers; the sixth was added by the producer-completion wave of
+2026-08-10, after seven relations were found with consumers and no ``CREATE``.
 
 **The three added rules, and what each one refuses.**
 
@@ -26,6 +27,16 @@ collisions across twenty numbers.
 * **Rule C · ``up-sql-suffix``.** ``.up.sql`` is a failure. **This rule is RED on the
   MAINLINE tree until reconciliation workers 3, 4 and 5 land their renames** — see
   ``_rule_c_up_sql``.
+* **Rule D · ``producer-absent``.** Every schema-qualified relation the tree references
+  is created by some file *in the same tree*. This is the only rule here that is a
+  statement about the **tree** rather than about a file, and that is precisely why the
+  other five could not see the defect it exists for: seven relations had their triggers,
+  views and RLS policies written and no ``CREATE TABLE``, every one of those consumer
+  files linted clean, and ``trappoint migrate up`` stopped at file 156 of 261 with
+  ``[42P01] relation "mainline_ops.outbox" does not exist``. **This rule is RED on the
+  MAINLINE tree until the producer-completion wave lands its ten files**, and the red run
+  is recorded in ``evidence/producers/producer-census-before.json`` — a lint that has
+  never been observed red asserts nothing (PL-2). See :mod:`trappoint_migrate.producers`.
 
 **And the two the command was written for.**
 
@@ -65,10 +76,12 @@ from pathlib import Path
 
 from .discovery import MIGRATION_SUFFIXES, statement_count
 from .errors import MigrationTreeInvalid
+from .producers import PRODUCER_ABSENT_RULE, ProducerCensus, absent_detail, census
 from .sqltext import header_comment, strip_sql_comments
 
 __all__ = [
     "ALLOCATION_SUFFIX",
+    "PRODUCER_ABSENT_RULE",
     "RENDERED_BANNER",
     "UP_SQL_DETAIL",
     "Allocation",
@@ -80,6 +93,7 @@ __all__ = [
     "lint_paths",
     "lint_text",
     "load_allocation",
+    "producer_findings",
 ]
 
 # Template sources are linted too: a banned token in a `.j2` becomes a banned token in
@@ -573,6 +587,52 @@ def lint_text(
     return findings
 
 
+def producer_findings(root: Path, *, report: ProducerCensus | None = None) -> list[Finding]:
+    """Rule D — every governed relation the tree names has a producer in the same tree.
+
+    One finding per **absent relation**, not per reference site. Eight files name
+    ``mainline_meas.standing``; eight findings would be eight copies of one fact and the
+    remedy is one file. The finding is located at the *first* reference in apply order —
+    which is where the forward-only chain will actually halt — and its detail enumerates
+    every other site, so the reader gets the blast radius without the repetition.
+
+    *report* is accepted so a caller that has already taken the census (the evidence
+    script does) does not walk the tree twice.
+    """
+    taken = census(root) if report is None else report
+    return [
+        Finding(
+            path=absent.first.path,
+            line=absent.first.line,
+            rule=PRODUCER_ABSENT_RULE,
+            detail=absent_detail(absent, root=root),
+        )
+        for absent in taken.absent
+    ]
+
+
+def _rule_d_producers(root: Path, allocation: Allocation | None) -> list[Finding]:
+    """Run rule D over *root*, or stay silent where the tree makes no completeness claim.
+
+    The gate is the presence of an allocation, and it is the same gate rule B already
+    uses for the same reason (see :func:`find_allocation`): a tree that declares
+    ``migrations.allocation.toml`` has asserted that every number in it has an owner and
+    that the directory is the whole of a deployable schema. A tree that declares none is
+    a *fragment* — ``packages/trappoint-sql/templates`` renders into a vertical, and
+    ``packages/trappoint-sql/refvertical/sql`` is a partial substrate binding that exists
+    for ``trappoint render --check`` and never for a deployment. Neither claims to
+    produce everything it names, so reporting them here would be measuring a tree against
+    a promise it did not make, and the noise would be paid for by every real finding.
+
+    This is a scope, not an exemption: the refvertical's own dangling references are a
+    real observation and are recorded as such rather than silently dropped — see
+    ``evidence/producers/README.md``.
+    """
+    if allocation is None or not root.is_dir():
+        return []
+    return producer_findings(root)
+
+
 def _iter_files(roots: Sequence[Path]) -> Iterable[Path]:
     for root in roots:
         if root.is_file():
@@ -585,7 +645,12 @@ def _iter_files(roots: Sequence[Path]) -> Iterable[Path]:
                 yield path
 
 
-def lint_paths(roots: Sequence[Path], *, allocation: Allocation | None = None) -> LintReport:
+def lint_paths(
+    roots: Sequence[Path],
+    *,
+    allocation: Allocation | None = None,
+    producers: bool = True,
+) -> LintReport:
     """Lint every migration and template under *roots*.
 
     An empty tree passes with zero findings and zero files checked. That is the correct
@@ -597,6 +662,12 @@ def lint_paths(roots: Sequence[Path], *, allocation: Allocation | None = None) -
     passes — each root resolves its own sibling ``<root>.allocation.toml``, so linting a
     migration tree and a template directory in one invocation applies the band rule to
     the tree and not to the templates.
+
+    *producers* runs rule D, the whole-tree producer-existence census. It is on by
+    default and ``trappoint migrate lint --no-producers`` turns it off — the switch
+    exists so a worker mid-wave can see the per-file rules without the tree-level one
+    shouting, and for nothing else. It is not an exemption list and there is no way to
+    silence a single relation: seven of them is what the last silence cost.
     """
     findings: list[Finding] = []
     checked = 0
@@ -615,4 +686,6 @@ def lint_paths(roots: Sequence[Path], *, allocation: Allocation | None = None) -
                     check_naming=not is_template,
                 )
             )
+        if producers:
+            findings.extend(_rule_d_producers(root, governing))
     return LintReport(files_checked=checked, findings=tuple(findings))

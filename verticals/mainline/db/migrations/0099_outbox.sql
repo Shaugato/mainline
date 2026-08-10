@@ -1,0 +1,205 @@
+-- SPDX-FileCopyrightText: 2026 MAINLINE contributors
+-- SPDX-License-Identifier: FSL-1.1-ALv2
+--
+-- MAINLINE · 0099_outbox.sql
+-- CREATE TABLE mainline_ops.outbox — THE ONE CDC-QUERY SOURCE in the deployment
+--
+-- MI: MI22
+-- I: I06
+-- COUNSEL-GATED: no
+-- RATIONALE: §4.1 law 11 concludes "⇒ exactly one changefeed-query source", and this is it.
+--            Every asynchronous consequence in the system — the blame-closure projector, the
+--            predicate watch, the declination revocation — is driven by a row landing here,
+--            so the table's shape is constrained by what a CockroachDB CDC query can read
+--            rather than by what is convenient to model. Single family, no row-level
+--            security, no joins at the reader, pointers and digests only. Each of those is
+--            a platform consequence with a named outage behind it, not a preference, and
+--            each is argued below rather than left for a reviewer to rediscover.
+--
+-- migration:  0099_outbox
+-- domain:     datamodel / dm-periphery
+-- band:       0090-0099z · datamodel/dm-periphery · AUTHORED, allocated by
+--             verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1), whose declared
+--             contents for this band end with "mainline_ops.*". ARCHITECTURE.md §18 places
+--             `outbox` and `site_register_signal` at 0099, GRANTS.yaml carries
+--             `since: "0099"` on three outbox rows, and 0198x's header reads
+--             `requires: 0099 mainline_ops.outbox`. The number is not this file's to choose.
+-- statements: 1
+-- invariants: MI22 — the gate fails closed on a stale or absent projection. This table is the
+--                    transport that makes the projection happen at all: a stopped feed is the
+--                    projector never running, which is the closure going stale, which is MI22
+--                    firing on every gate that reads it. Every constraint below exists to keep
+--                    the feed running.
+--             I06  — a dependency a gate consumes is COMPUTED, never declared. The outbox
+--                    carries the trigger for the computation; it never carries the conclusion.
+-- source:     hackathon-research/ARCHITECTURE.md §5.10 line 1843 — transcribed column for
+--             column, type for type, including the TTL storage parameter · §4.1 law 11 ·
+--             §8.5 (cf_outbox) · verticals/mainline/db/RLS-MATRIX.yaml `rls_forbidden` ·
+--             docs/leads/producers-plan.md D5
+-- requires:   0005 CREATE SCHEMA mainline_ops (RENDERED; template 0001_schemas.sql.j2)
+-- provides:   mainline_ops.outbox — written by mainline.fn_check_materialised (0101), welded
+--             by 0121_trg_check_materialised, commented by 0198x_no_rls_on_cdc_sources
+-- sqlstate:   none from this table. It refuses nothing: see "WHY `kind` CARRIES NO CHECK".
+-- forward-only; no .down.sql exists at or below the protected floor (DM-14). Under MR-5 there
+--             is no .up.sql either.
+--
+-- ═════════════════════════════════════════════════════════════════════════════
+-- THIS FILE IS WHY THE DEPLOYMENT RUNNER STOPPED
+-- ═════════════════════════════════════════════════════════════════════════════
+-- Measured on 2026-08-10 before this file existed:
+--
+--   trappoint migrate up …
+--   REFUSED: 0121_trg_check_materialised: [42P01] relation "mainline_ops.outbox"
+--            does not exist
+--
+-- 0121 is file 156 of 261 in apply order. Forward-only means the 105 files below
+-- it had never been executed by the runner a deployment uses. `CREATE FUNCTION`
+-- does not resolve table references inside a PL/pgSQL body on v26.2.5, so 0101
+-- applied cleanly with this table absent and the failure surfaced only when
+-- `CREATE TRIGGER` bound the function. One absent CREATE TABLE made two fifths of
+-- the schema unreachable, and no per-file lint could see it — which is the whole
+-- argument for the producer-existence rule in trappoint_migrate.producers.
+--
+-- ═════════════════════════════════════════════════════════════════════════════
+-- FOUR CONSTRAINTS ON HOW THIS TABLE IS WRITTEN, EACH WITH ITS CONSEQUENCE
+-- ═════════════════════════════════════════════════════════════════════════════
+--
+-- ── 1 · SINGLE COLUMN FAMILY ─────────────────────────────────────────────────
+-- CDC queries fail on multi-family tables. There is therefore NO `FAMILY` clause
+-- below and there must never be one: CockroachDB places every column in one
+-- family by default, and `SHOW CREATE TABLE mainline_ops.outbox` on v26.2.5
+-- returns no family clause at all, which is the single-family reading.
+--
+-- Two ways a future edit breaks this, both worth naming because neither looks
+-- like "I am splitting the families":
+--
+--   * declaring `FAMILY` on a new column to keep a hot column narrow — the exact
+--     optimisation a reviewer would suggest for a table with a wide `payload`;
+--   * letting the row get wide enough that somebody is tempted to. `payload` is
+--     POINTERS AND DIGESTS ONLY, never clause or narrative text, and that rule is
+--     load-bearing twice over: it is what keeps the row small, and it is what
+--     makes the absence of row-level security defensible rather than merely
+--     necessary. A changefeed bypasses RLS entirely, so anything written into
+--     `payload` is readable by anything that can read the feed.
+--
+-- Note also that `FAMILY` is a reserved keyword on this platform and can never be
+-- a bare column name here.
+--
+-- ── 2 · NO ROW-LEVEL SECURITY, EVER ──────────────────────────────────────────
+-- Verified against the v26.2 row-level-security reference: "CDC queries are not
+-- supported on tables using RLS, and will fail", and "CDC messages that are
+-- emitted from a table will not be filtered using RLS policies." Both halves
+-- matter and they cut in opposite directions — enabling RLS here does not degrade
+-- the feed, it STOPS it, and it stops it at the next feed creation or restart
+-- rather than at the ALTER, so the change and the outage are separated by however
+-- long the current feed happens to survive. And if a feed were somehow running,
+-- RLS would give no confidentiality anyway.
+--
+-- This is declared in RLS-MATRIX.yaml under `rls_forbidden`, commented on the
+-- table itself by 0198x_no_rls_on_cdc_sources, and asserted against the live
+-- cluster by tests/integration/schema/test_mi_rls.py's
+-- `test_the_cdc_sources_have_no_row_level_security` and by
+-- tests/integration/schema/test_ops_producer.py. Four places, because the failure
+-- mode is a reviewer who sees an unscoped table in a schema full of scoped ones
+-- and hardens it.
+--
+-- ── 3 · NO APPEND-ONLY WELD — THE WELD THAT IS RIGHT ELSEWHERE IS WRONG HERE ──
+-- `mainline_meas.agent_action`, `mainline.identity_assignment` and
+-- `mainline_meas.person_measure_policy` each get a BEFORE DELETE refusal trigger
+-- in the 0145-0149z band. This table gets none, and the reason is mechanical.
+--
+-- MEASURED on CockroachDB CCL v26.2.5, 2026-08-10, against a scratch database:
+-- a `BEFORE DELETE … RAISE` trigger on this table is accepted by the platform,
+-- and it then refuses `DELETE FROM mainline_ops.outbox` with P0001. The trap is
+-- real, not hypothetical: the row-level TTL job deletes expired rows by issuing
+-- DELETEs, so the weld would make the TTL job fail on every pass, forever, while
+-- looking exactly like the welds that are correct on the tables above.
+--
+-- The append-only discipline is not abandoned here; it is placed where it belongs.
+-- The outbox is a TRANSPORT, not a record. Class A operational data (§12), not
+-- Class B evidence. What must survive is the business fact — the `blocking_check`
+-- row, the disposition, the closure — and each of those lives in an append-only
+-- table of its own. Deleting a delivered signal after thirty days destroys no
+-- document; refusing to is what breaks the spine.
+--
+-- ── 4 · ROW-LEVEL TTL, 30 DAYS, ALLOWLIST ENTRY 1 OF 3 ───────────────────────
+-- Row-level TTL is PROHIBITED across `mainline` and everywhere outside a
+-- three-table allowlist, and the prohibition is a legal constraint rather than a
+-- preference: the Crimes (Document Destruction) Act 2006 (Vic) makes it an
+-- offence punishable by five years' imprisonment to destroy a document knowing it
+-- is reasonably likely to be required in evidence, and a background job silently
+-- deleting precursor records commits that offence at scale. This table is inside
+-- the allowlist because it carries no document — see 3 above.
+--
+-- MEASURED, because a storage parameter is exactly the kind of thing that is
+-- documented and then not supported. On CockroachDB CCL v26.2.5, 2026-08-10:
+-- `WITH (ttl_expiration_expression = 'expires_at')` APPLIED, and reading the
+-- table back with `SHOW CREATE TABLE` returns
+--
+--     ) WITH (ttl = 'on', ttl_expiration_expression = 'expires_at',
+--             schema_locked = true);
+--
+-- Three things in that line are worth recording. `ttl = 'on'` is added by the
+-- platform, not by this file — declaring the expression is what turns the feature
+-- on. `schema_locked = true` is a v26.2 default on every table in this tree, and
+-- it was verified NOT to block `COMMENT ON TABLE`, which matters because 0198x is
+-- a COMMENT on this table and would otherwise be the second file to halt the
+-- runner. And the expiry expression names a real column with a real default, so a
+-- row's lifetime is visible in the row rather than hidden in a table setting.
+
+CREATE TABLE mainline_ops.outbox (
+  signal_id     UUID        NOT NULL DEFAULT gen_random_uuid(),
+  -- NO CHECK. See "WHY `kind` CARRIES NO CHECK" below — this is not an omission.
+  kind          STRING      NOT NULL,
+  subject_id    UUID        NOT NULL,
+  -- Denormalised, deliberately: a CDC query permits no joins, so a consumer that had to
+  -- resolve the site would have to resolve it outside the feed, at which point the feed is
+  -- not the transport any more.
+  site_id       UUID        NOT NULL,
+  target_site   UUID        NULL,
+  activity_root STRING      NULL,
+  max_severity  INT2        NOT NULL DEFAULT 0,
+  score         NUMERIC     NOT NULL DEFAULT 0,
+  -- POINTERS AND DIGESTS ONLY. Never clause or narrative text. A changefeed bypasses
+  -- row-level security entirely, so every byte here is readable by anything that can read
+  -- the feed, and this table has no policy to fall back on by construction.
+  payload       JSONB       NOT NULL,
+  emitted_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  -- The TTL expiry expression reads this column. Thirty days, in the row, visible.
+  expires_at    TIMESTAMPTZ NOT NULL DEFAULT (now() + INTERVAL '30 days'),
+
+  CONSTRAINT pk_outbox PRIMARY KEY (signal_id)
+) WITH (ttl_expiration_expression = 'expires_at');
+
+-- ═════════════════════════════════════════════════════════════════════════════
+-- WHY `kind` CARRIES NO CHECK, AND THE SQLSTATE THAT PROVES IT
+-- ═════════════════════════════════════════════════════════════════════════════
+-- §5.10 lists fourteen values beside `kind` — blame_dirty, clause_committed,
+-- closure_written, lesson_published, declination_revoked, drift_finding,
+-- checkpoint_ready, silence_rollup, resolution_recalled, predicate_watch,
+-- permit_suspended, gate_refused, override_expired, cr_opened. It lists them in a
+-- COMMENT. Transcribing a comment into a CHECK is the obvious move and it is
+-- wrong, because the enumeration is already incomplete against the code in this
+-- repository: 0101_fn_check_materialised inserts
+--
+--     INSERT INTO mainline_ops.outbox (kind, subject_id, site_id, max_severity, payload)
+--          VALUES ('check_opened', (NEW).check_id, (NEW).site_id, (NEW).severity, …)
+--
+-- and `check_opened` is not in the fourteen.
+--
+-- MEASURED on CockroachDB CCL v26.2.5, 2026-08-10, against a scratch table
+-- carrying exactly that transcribed CHECK:
+--
+--     INSERT … VALUES ('check_opened')
+--     -> 23514  failed to satisfy CHECK constraint
+--               (kind IN ('blame_dirty':::STRING, 'clause_committed':::STRING, …))
+--
+-- Under 0121's AFTER INSERT weld that refusal does not stay local. It aborts the
+-- trigger, which aborts the INSERT into `mainline.blocking_check`, which means
+-- **no obligation can be raised against any permit in the deployment** — the
+-- central mechanism of the product, disabled by a constraint transcribed from a
+-- comment. The failure would present as 23514 on a table nobody was writing to.
+--
+-- The set of kinds is therefore governed where the emitters are, not here. A
+-- CHECK is added the day the enumeration is closed against every producer and a
+-- test proves it; adding it before that is a refusal aimed at ourselves.

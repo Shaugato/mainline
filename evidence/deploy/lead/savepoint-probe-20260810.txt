@@ -1,0 +1,5 @@
+start: e55ba17f-76f7-469b-a09d-41ca4ff8daaf epoch 1 open_blocking 0
+open>0         REFUSED   [23514] failed to satisfy CHECK constraint ((state != 'merged':::mainline.subject_state) OR (open_blocking = 0:::INT8)
+forged-zero    REFUSED   [23503] insert on table "permit_event" violates foreign key constraint "legal_edge"
+as-is          REFUSED   [23503] insert on table "permit_event" violates foreign key constraint "legal_edge"
+after rollback, open_blocking = 0 (unchanged proves nothing persisted)

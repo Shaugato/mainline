@@ -1,0 +1,165 @@
+{
+  "manifest_version": 1,
+  "bundle_id": "demo-cloud",
+  "captured_at": "2026-08-10T04:04:53.057Z",
+  "generator": "scripts/deploy/capture_demo_bundle.py 1.0 (frames) + capture-bundle.ts seal 1.0 (digests)",
+  "cluster_fingerprint": {
+    "source": "observed",
+    "product": "CockroachDB CCL",
+    "version": "v26.2.5",
+    "cluster_version": "26.2",
+    "tier": null,
+    "region": "aws-ap-southeast-1",
+    "evidence_ref": "Read from the cluster during this capture by scripts/deploy/capture_demo_bundle.py; the verbatim round trip is sql/cluster-fingerprint.txt in this bundle. `source: observed` means exactly that and nothing more: it is a statement about the database that answered, not about where inference runs. Residency is split in this deployment — database in aws-ap-southeast-1 (Singapore), Bedrock in ap-southeast-2 (Sydney) — so no end-to-end Australian residency claim may be made from this bundle."
+  },
+  "schema_version": "chain 271/271 applied, 0 failed; tree_fingerprint fe27b6208d2281929a9d3c554e4612ac…; applied_at 2026-08-10T02:55:13.074389+00:00",
+  "staged": true,
+  "staged_note": "Captured from a live CockroachDB cluster: every SQLSTATE, constraint name, counter and digest in this bundle was produced by the database during the capture, and nothing in it was hand-authored. It is flagged STAGED because 8 of 18 frames describe two TRANSIENT subjects — permits DEMO-PTW-0002 and DEMO-PTW-0003 — which were built inside the capture transaction as copies of the seeded permit DEMO-PTW-0001 and rolled back with it. Those rows are not in the database now. They exist because the drift beat and the admission beat each need a different world from the one the seeded permit is in, and a bundle frame is keyed by method and path, so three worlds need three permit ids. Each such frame carries its own note saying the same thing. See docs/deploy/replay-fallback.md §4.",
+  "checkpoint": null,
+  "files": [
+    {
+      "path": "frames/GET~20~2Fv1~2Faudit.json",
+      "sha256": "ad5b6636d1c152c4020f987b5ce962cb14c67da33831017b4abfd8354e0bca45",
+      "bytes": 47546,
+      "media_type": "application/json"
+    },
+    {
+      "path": "frames/GET~20~2Fv1~2Fchecks~2F04f3ad82-0345-5649-a8eb-cb23607221dd~2Fdisposition.json",
+      "sha256": "006d4e0d0e4affbc0cc0f7fc0caca79f583b8c85e10fe3c440468cd413208d49",
+      "bytes": 10298,
+      "media_type": "application/json"
+    },
+    {
+      "path": "frames/GET~20~2Fv1~2Fchecks~2Fdec0de00-0007-4000-8000-000000000001~2Fdisposition.json",
+      "sha256": "07b526dbe565bf5a375e3260d9da3c7b9183da3c70f13b99275b24b88f3e057e",
+      "bytes": 5694,
+      "media_type": "application/json"
+    },
+    {
+      "path": "frames/GET~20~2Fv1~2Fclauses~2Fdec0de00-0004-4000-8000-000000000001~2Fancestry~3Fas_of~3D9f12114dc1a94f43ffe3eaae9f95b861efa7a6a88d7a9d90b1196aa06cd49a39.json",
+      "sha256": "b7ec2e81895fb861c351432efd8341bdff602b1dd9d95baf17d550cb8aa30349",
+      "bytes": 7159,
+      "media_type": "application/json"
+    },
+    {
+      "path": "frames/GET~20~2Fv1~2Fclauses~2Fdec0de00-0004-4000-8000-000000000001~2Fversions~2F9f12114dc1a94f43ffe3eaae9f95b861efa7a6a88d7a9d90b1196aa06cd49a39.json",
+      "sha256": "b9985616825ee0560fc90308b7bbdc43deb949b99e4bd670c5296c4f0ba87f8a",
+      "bytes": 6431,
+      "media_type": "application/json"
+    },
+    {
+      "path": "frames/GET~20~2Fv1~2Fledger~3Fsite_code~3Ddec0de00-0001-4000-8000-000000000001.json",
+      "sha256": "80c14af1d00122d7a9f1d4497ad1c2113a878ed4228e28d7becd835adfd3b448",
+      "bytes": 4637,
+      "media_type": "application/json"
+    },
+    {
+      "path": "frames/GET~20~2Fv1~2Fpermits~2F98832832-cb53-54ce-a709-d0af8c0c7f8b.json",
+      "sha256": "f8d3d386696ddcaed3cc9121ba42d661607276e6279b127fc66bbfeb6e94f6db",
+      "bytes": 12372,
+      "media_type": "application/json"
+    },
+    {
+      "path": "frames/GET~20~2Fv1~2Fpermits~2F98832832-cb53-54ce-a709-d0af8c0c7f8b~2Fblocking-checks.json",
+      "sha256": "0e03d6a7907dd4e88c6247b258d803feb658b6a2d9e91c65718b0c26aa7b9137",
+      "bytes": 5915,
+      "media_type": "application/json"
+    },
+    {
+      "path": "frames/GET~20~2Fv1~2Fpermits~2Fdec0de00-0006-4000-8000-000000000001.json",
+      "sha256": "0cbff41696b611ccccf8997058eb37229ef918724864516a910f53164da77d2a",
+      "bytes": 11188,
+      "media_type": "application/json"
+    },
+    {
+      "path": "frames/GET~20~2Fv1~2Fpermits~2Fdec0de00-0006-4000-8000-000000000001~2Fblocking-checks.json",
+      "sha256": "963be4db8b8e46a4e92d75e0d5cd146bb64e4fc1256cdf9035e812e9c55eca8c",
+      "bytes": 4739,
+      "media_type": "application/json"
+    },
+    {
+      "path": "frames/GET~20~2Fv1~2Fpermits~2Fdec0de00-0006-4000-8000-000000000001~2Fsilence.json",
+      "sha256": "38510d6d8df967edda349920d16acd17ea6756372c477c757ae769681fb1c52d",
+      "bytes": 4343,
+      "media_type": "application/json"
+    },
+    {
+      "path": "frames/GET~20~2Fv1~2Fpermits~2Ff4976f47-599a-52ac-b7aa-379c80e6e849.json",
+      "sha256": "6486fc964dfd49c09b54f41ca291b17a199e6e0892ca15f6b64c9cafda9eaac9",
+      "bytes": 12280,
+      "media_type": "application/json"
+    },
+    {
+      "path": "frames/GET~20~2Fv1~2Fpermits~2Ff4976f47-599a-52ac-b7aa-379c80e6e849~2Fblocking-checks.json",
+      "sha256": "0ecf780fd37538379d6aa4d7501cdc895fc9b275a0b6b9e0de35c9e9f463ae19",
+      "bytes": 5875,
+      "media_type": "application/json"
+    },
+    {
+      "path": "frames/GET~20~2Fv1~2Frecall-runs~2Fdec0de00-0009-4000-8000-000000000001.json",
+      "sha256": "32c70a1a98e4fe315af4fe9f4ae7d3aeb3ae7f451b19f6342f078d5860e9720e",
+      "bytes": 4311,
+      "media_type": "application/json"
+    },
+    {
+      "path": "frames/GET~20~2Fv1~2Freceipts~2Fdec0de00-0008-4000-8000-000000000001.json",
+      "sha256": "294a26b6b95059426047a8373956952a9171be8b243b70edb9ac739f8c45d068",
+      "bytes": 3729,
+      "media_type": "application/json"
+    },
+    {
+      "path": "frames/POST~20~2Fv1~2Fpermits~2F98832832-cb53-54ce-a709-d0af8c0c7f8b~2Fmerge.json",
+      "sha256": "dc3ce4718efe597579b2b368b0b78186d538ffd099456bf0184416ad5b582836",
+      "bytes": 4867,
+      "media_type": "application/json"
+    },
+    {
+      "path": "frames/POST~20~2Fv1~2Fpermits~2Fdec0de00-0006-4000-8000-000000000001~2Fmerge.json",
+      "sha256": "1386d0842f25186c9ee6291c1fece10bb0d7696720209cc94dbece29a19e315e",
+      "bytes": 4388,
+      "media_type": "application/json"
+    },
+    {
+      "path": "frames/POST~20~2Fv1~2Fpermits~2Ff4976f47-599a-52ac-b7aa-379c80e6e849~2Fmerge.json",
+      "sha256": "6287b96c48ee6071033e17121dcf34debf6291e48c7d55fcb36256c59f33118d",
+      "bytes": 3811,
+      "media_type": "application/json"
+    },
+    {
+      "path": "sql/beat-2-merge-refused-23514.txt",
+      "sha256": "9ee8df008c77724007c0d2a1b6190e27c4a7949230b4eb40a8b3b8f65c7eeb0e",
+      "bytes": 1217,
+      "media_type": "text/plain; charset=utf-8"
+    },
+    {
+      "path": "sql/beat-3-merge-refused-p0001.txt",
+      "sha256": "9c3172c594781feb7756589e8a7221f56b81ad3afc91e8a01da4debe43bd3cca",
+      "bytes": 1651,
+      "media_type": "text/plain; charset=utf-8"
+    },
+    {
+      "path": "sql/beat-4-merge-admitted-00000.txt",
+      "sha256": "a9eb8f2af21b15033a25ac71b3c97356dce5e60c186da7b58e70f81af524b274",
+      "bytes": 2276,
+      "media_type": "text/plain; charset=utf-8"
+    },
+    {
+      "path": "sql/cluster-fingerprint.txt",
+      "sha256": "0642d7174e770de44be3ff4097b8bb6e95f292c04b27fda7fe0b40f57a22f227",
+      "bytes": 1348,
+      "media_type": "text/plain; charset=utf-8"
+    },
+    {
+      "path": "sql/persistence-check.txt",
+      "sha256": "b38e89d79c50c20f4a87c82e8121624d43cca79f9944b0ebaf6daadd4f7378bf",
+      "bytes": 2782,
+      "media_type": "text/plain; charset=utf-8"
+    },
+    {
+      "path": "sql/twin-construction.txt",
+      "sha256": "165698f5a4322a324e9b03e052d370b67eb3074a23a52340f133b6dae2feec68",
+      "bytes": 5097,
+      "media_type": "text/plain; charset=utf-8"
+    }
+  ]
+}

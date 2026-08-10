@@ -1,0 +1,317 @@
+{
+  "SPDX-FileCopyrightText": "2026 MAINLINE contributors",
+  "SPDX-License-Identifier": "Apache-2.0",
+  "schema": "mainline.qa.reuse-ratchet/1",
+  "$comment": "Honest counts, not aspirations. Every number below was measured by `python3 scripts/qa/check_reuse.py --write` and none was chosen. Values under `counted` are GATED: each may fall and may not rise, and regenerating this file is the only way one rises. Values under `census` are recorded and printed but not gated, because they move in both directions with the ordinary life of the tree. See docs/submission/LICENCE-CENSUS.md.",
+  "generated_utc": "2026-08-10T05:57:34Z",
+  "checker": "scripts/qa/check_reuse.py",
+  "commands": {
+    "check": "python3 scripts/qa/check_reuse.py",
+    "regenerate": "python3 scripts/qa/check_reuse.py --write",
+    "self_test": "python3 scripts/qa/check_reuse.py --self-test"
+  },
+  "method": {
+    "enumeration": "git ls-files -z",
+    "header_window_bytes": 4096,
+    "header_pattern": "SPDX-License-Identifier: <expression>, literal colon",
+    "precedence": "header -> <file>.license sidecar -> last matching REUSE.toml glob",
+    "override": "an [[annotations]] table with precedence = \"override\" wins over a header",
+    "glob": "REUSE 3.3: `*` matches anything except `/`, `**` matches anything",
+    "licence_text_alias": "an identifier is satisfied by LICENSES/<id>.txt or by LICENSES/LicenseRef-<id>.txt, and vice versa"
+  },
+  "snapshot_caveat": "Taken while ten workers were writing to this tree. Two numbers here are snapshot-shaped and will move for reasons that are not regressions. (1) `reuse_toml_patterns_matching_nothing` counts globs that matched no TRACKED file; `census.reuse_toml_patterns_matching_only_untracked` names the ones that match files which exist on disk and have not been committed yet, and each of those FALLS to zero the moment someone runs `git add`. (2) the `census` identifier counts are re-derived live on every run and go stale in this file the instant a file lands; they are recorded, never gated. Re-take once on the merge commit with `--write` and quote the result in the PR body.",
+  "policy": {
+    "exempt_paths": [
+      "REUSE.toml"
+    ],
+    "exempt_paths_why": "REUSE.toml declares `SPDX-License-Identifier` as a TOML assignment for OTHER files; it carries no header of its own and no [[annotations]] table in it matches its own path. REUSE Specification 3.3 exempts the LICENSES/ directory and `.license` files by name and does not name REUSE.toml, so this checker will not claim the spec exempts it. It is exempted here BY DECLARED POLICY, the exemption is printed on every run and recorded in census.exempt_by_policy, a declaration whose path leaves the tree is refused as [STALE-EXEMPTION], and the repair is a three-line [[annotations]] block in REUSE.toml \u2014 a file this checker's owner does not own. Cross-domain note, not a silent pass.",
+    "non_spdx_identifiers": [
+      "FSL-1.1-ALv2"
+    ],
+    "non_spdx_identifiers_why": "The Functional Source License is not on the SPDX licence list, so REUSE 3.3 requires the `LicenseRef-` form. Both spellings exist in this tree and both ship a text in LICENSES/. Ruling L-1: publish the divergence as a counted number rather than mass-edit headers across eight ownership domains."
+  },
+  "counted": {
+    "uncovered_total": 0,
+    "uncovered_by_top_level_directory": {
+      ".claude-plugin": 0,
+      ".github": 0,
+      ".hypothesis-corpus": 0,
+      "<root>": 0,
+      "LICENSES": 0,
+      "docs": 0,
+      "evidence": 0,
+      "infra": 0,
+      "mine_templates": 0,
+      "out_mainline": 0,
+      "out_trappoint_ref": 0,
+      "packages": 0,
+      "qa": 0,
+      "scripts": 0,
+      "skills": 0,
+      "spec": 0,
+      "tests": 0,
+      "verticals": 0
+    },
+    "orphan_sidecars": 0,
+    "unreadable_files": 0,
+    "identifiers_without_licence_text": 0,
+    "unreferenced_licence_texts": 0,
+    "reuse_toml_patterns_matching_nothing": 5,
+    "distinct_identifiers": 4,
+    "non_spdx_spelling": {
+      "FSL-1.1-ALv2": 1213
+    }
+  },
+  "census": {
+    "tracked_files": 7120,
+    "covered_by_header": 2250,
+    "covered_by_sidecar": 172,
+    "covered_by_reuse_toml": 4518,
+    "covered_by_reuse_toml_override": 0,
+    "exempt_licence_texts": 2,
+    "exempt_sidecar_files": 178,
+    "exempt_by_policy": 0,
+    "uncovered": 0,
+    "reuse_toml_tables": 12,
+    "reuse_toml_path_patterns": 66,
+    "reuse_toml_patterns_matching_nothing": [
+      "#0:LICENSE",
+      "#4:packages/**/*.jsonl",
+      "#6:docs/submission/**",
+      "#6:evidence/provenance/**",
+      "#6:evidence/tool-usage/**"
+    ],
+    "reuse_toml_patterns_matching_only_untracked": {
+      "#0:LICENSE": 1,
+      "#6:docs/submission/**": 6,
+      "#6:evidence/provenance/**": 2,
+      "#6:evidence/tool-usage/**": 5
+    },
+    "licence_texts_on_disk": [
+      "Apache-2.0.txt",
+      "CC-BY-4.0.txt",
+      "FSL-1.1-ALv2.txt",
+      "LicenseRef-FSL-1.1-ALv2.txt"
+    ],
+    "identifiers_resolved": {
+      "LicenseRef-FSL-1.1-ALv2": 4773,
+      "FSL-1.1-ALv2": 1213,
+      "Apache-2.0": 886,
+      "CC-BY-4.0": 68
+    },
+    "identifiers_resolved_by_mechanism": {
+      "Apache-2.0": {
+        "header": 725,
+        "sidecar": 56,
+        "reuse_toml": 105,
+        "reuse_toml_override": 0
+      },
+      "CC-BY-4.0": {
+        "header": 44,
+        "sidecar": 10,
+        "reuse_toml": 14,
+        "reuse_toml_override": 0
+      },
+      "FSL-1.1-ALv2": {
+        "header": 1143,
+        "sidecar": 70,
+        "reuse_toml": 0,
+        "reuse_toml_override": 0
+      },
+      "LicenseRef-FSL-1.1-ALv2": {
+        "header": 338,
+        "sidecar": 36,
+        "reuse_toml": 4399,
+        "reuse_toml_override": 0
+      }
+    },
+    "identifiers_in_headers": {
+      "FSL-1.1-ALv2": 1219,
+      "Apache-2.0": 781,
+      "LicenseRef-FSL-1.1-ALv2": 374,
+      "CC-BY-4.0": 54
+    },
+    "identifiers_in_headers_note": "one count per FILE: the FIRST match in the first 4096 bytes, over every tracked file including the 178 `.license` sidecars, which is why it exceeds `covered_by_header`",
+    "identifier_occurrences": {
+      "token": {
+        "FSL-1.1-ALv2": 1167,
+        "Apache-2.0": 782,
+        "LicenseRef-FSL-1.1-ALv2": 375,
+        "FSL-1.1-ALv2\",": 63,
+        "CC-BY-4.0": 49,
+        "CC-BY-4.0\",": 7,
+        "FSL-1.1-ALv2\"": 5,
+        "FSL-1.1-ALv2\\n\"": 4,
+        "Apache-2.0\"": 2,
+        "Apache-2.0\",": 2,
+        "Apache-2.0\\n\"": 2,
+        "CC-BY-4.0\"": 2
+      },
+      "line": {
+        "FSL-1.1-ALv2": 1163,
+        "Apache-2.0": 742,
+        "LicenseRef-FSL-1.1-ALv2": 375,
+        "FSL-1.1-ALv2\",": 63,
+        "CC-BY-4.0": 49,
+        "Apache-2.0 #}": 32,
+        "Apache-2.0 -->": 8,
+        "CC-BY-4.0\",": 6,
+        "FSL-1.1-ALv2 -->": 4,
+        "FSL-1.1-ALv2\\n\"": 4,
+        "Apache-2.0\",": 2,
+        "Apache-2.0\\n\"": 2
+      }
+    },
+    "identifier_occurrences_note": "one count per OCCURRENCE, whole file, from `git grep -h -o -E '<pattern>' | sed 's/.*: //' | sort | uniq -c | sort -rn`. `token` uses [^ ]* and `line` uses .*; the difference between them is headers whose line continues past the identifier, e.g. an HTML comment closing ` -->`. Top 12 buckets only. Recorded, never gated.",
+    "identifier_occurrence_commands": {
+      "token": "git grep -h -o -E \"SPDX-License-Identifier: [^ ]*\" | sed 's/.*: //' | sort | uniq -c | sort -rn",
+      "line": "git grep -h -o -E \"SPDX-License-Identifier: .*\" | sed 's/.*: //' | sort | uniq -c | sort -rn"
+    },
+    "by_top_level_directory": {
+      ".claude-plugin": {
+        "files": 2,
+        "header": 0,
+        "sidecar": 1,
+        "reuse_toml": 0,
+        "exempt": 1,
+        "uncovered": 0
+      },
+      ".github": {
+        "files": 17,
+        "header": 17,
+        "sidecar": 0,
+        "reuse_toml": 0,
+        "exempt": 0,
+        "uncovered": 0
+      },
+      ".hypothesis-corpus": {
+        "files": 2,
+        "header": 2,
+        "sidecar": 0,
+        "reuse_toml": 0,
+        "exempt": 0,
+        "uncovered": 0
+      },
+      "<root>": {
+        "files": 16,
+        "header": 10,
+        "sidecar": 1,
+        "reuse_toml": 4,
+        "exempt": 1,
+        "uncovered": 0
+      },
+      "LICENSES": {
+        "files": 2,
+        "header": 0,
+        "sidecar": 0,
+        "reuse_toml": 0,
+        "exempt": 2,
+        "uncovered": 0
+      },
+      "docs": {
+        "files": 36,
+        "header": 26,
+        "sidecar": 0,
+        "reuse_toml": 10,
+        "exempt": 0,
+        "uncovered": 0
+      },
+      "evidence": {
+        "files": 30,
+        "header": 7,
+        "sidecar": 10,
+        "reuse_toml": 3,
+        "exempt": 10,
+        "uncovered": 0
+      },
+      "infra": {
+        "files": 26,
+        "header": 11,
+        "sidecar": 0,
+        "reuse_toml": 15,
+        "exempt": 0,
+        "uncovered": 0
+      },
+      "mine_templates": {
+        "files": 1,
+        "header": 1,
+        "sidecar": 0,
+        "reuse_toml": 0,
+        "exempt": 0,
+        "uncovered": 0
+      },
+      "out_mainline": {
+        "files": 2,
+        "header": 2,
+        "sidecar": 0,
+        "reuse_toml": 0,
+        "exempt": 0,
+        "uncovered": 0
+      },
+      "out_trappoint_ref": {
+        "files": 2,
+        "header": 2,
+        "sidecar": 0,
+        "reuse_toml": 0,
+        "exempt": 0,
+        "uncovered": 0
+      },
+      "packages": {
+        "files": 643,
+        "header": 560,
+        "sidecar": 26,
+        "reuse_toml": 31,
+        "exempt": 26,
+        "uncovered": 0
+      },
+      "qa": {
+        "files": 4,
+        "header": 1,
+        "sidecar": 0,
+        "reuse_toml": 3,
+        "exempt": 0,
+        "uncovered": 0
+      },
+      "scripts": {
+        "files": 20,
+        "header": 20,
+        "sidecar": 0,
+        "reuse_toml": 0,
+        "exempt": 0,
+        "uncovered": 0
+      },
+      "skills": {
+        "files": 15,
+        "header": 11,
+        "sidecar": 2,
+        "reuse_toml": 0,
+        "exempt": 2,
+        "uncovered": 0
+      },
+      "spec": {
+        "files": 40,
+        "header": 36,
+        "sidecar": 2,
+        "reuse_toml": 0,
+        "exempt": 2,
+        "uncovered": 0
+      },
+      "tests": {
+        "files": 587,
+        "header": 446,
+        "sidecar": 29,
+        "reuse_toml": 83,
+        "exempt": 29,
+        "uncovered": 0
+      },
+      "verticals": {
+        "files": 5675,
+        "header": 1098,
+        "sidecar": 101,
+        "reuse_toml": 4369,
+        "exempt": 107,
+        "uncovered": 0
+      }
+    }
+  }
+}

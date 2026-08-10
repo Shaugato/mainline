@@ -1,0 +1,495 @@
+/*
+ * SPDX-FileCopyrightText: 2026 MAINLINE contributors
+ * SPDX-License-Identifier: FSL-1.1-ALv2
+ *
+ * THE DEMO CHROME — EVIDENCE register (docs/leads/ui.md §1.1).
+ *
+ * Two things are styled here and they are one thing: the source bar the composition root
+ * renders above every surface (LIVE / REPLAY, the switch, the replay seal), and the gate
+ * demo driver that plays the four beats. They share a stylesheet because they are one
+ * artefact on screen — the strip a judge reads top to bottom before pressing anything —
+ * and splitting them would mean two files disagreeing about one border width.
+ *
+ * The register's law, restated as things a reader can check in this file:
+ *   • no gradient, no shadow implying a light source, no blur, no transform, no filter;
+ *   • the only transition is --tp-duration-evidence (120 ms), under the 160 ms ceiling,
+ *     and it is on a focus/hover affordance rather than on anything a screenshot would
+ *     have to catch mid-flight;
+ *   • one severity accent (--tp-refuse) over one neutral ramp;
+ *   • --tp-ok is NOT used anywhere below. TOKEN_LAW reserves it for the VerificationSeal
+ *     verified state and for nothing else, ever — so an admitted beat is rendered in the
+ *     neutral ink with a strong rule, not in the console's one green;
+ *   • every colour is a token from src/design/tokens.css — no literal in this file.
+ *
+ * The print block at the end is not a nicety. An EVIDENCE surface must print to a
+ * court-legible page (D14), and the four beats are the exhibit.
+ */
+
+/* ── 1. The source bar (composition root) ────────────────────────────────── */
+
+.sourceBar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-2);
+  border: var(--tp-hairline) solid var(--tp-rule-strong);
+  border-radius: var(--tp-radius);
+  background: var(--tp-bg-sunken);
+  padding: var(--tp-space-3) var(--tp-space-4);
+  margin-bottom: var(--tp-space-4);
+  font-family: var(--tp-sans);
+  color: var(--tp-ink);
+}
+
+.sourceBar[data-mode='replay'] {
+  border-left-width: var(--tp-space-1);
+  border-left-color: var(--tp-warn);
+}
+
+.sourceHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--tp-space-3);
+}
+
+.sourceBadge {
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step-1);
+  font-weight: var(--tp-weight-strong);
+  letter-spacing: var(--tp-tracking-caps);
+  color: var(--tp-ink);
+}
+
+.sourceBadge[data-mode='replay'] {
+  color: var(--tp-warn);
+}
+
+.sourceLocation {
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step--1);
+  color: var(--tp-ink-dim);
+  word-break: break-all;
+}
+
+.sourceLabel {
+  font-size: var(--tp-step--1);
+  letter-spacing: var(--tp-tracking-caps);
+  text-transform: uppercase;
+  font-weight: var(--tp-weight-medium);
+  color: var(--tp-ink-faint);
+}
+
+.sourceWhy {
+  font-size: var(--tp-step--1);
+  line-height: var(--tp-leading-body);
+  color: var(--tp-ink-dim);
+  margin: 0;
+  max-width: 78ch;
+}
+
+.sourceSwitch {
+  font-family: var(--tp-sans);
+  font-size: var(--tp-step--1);
+  font-weight: var(--tp-weight-medium);
+  color: var(--tp-ink);
+  background: var(--tp-bg-raised);
+  border: var(--tp-hairline) solid var(--tp-rule-strong);
+  border-radius: var(--tp-radius);
+  padding: var(--tp-space-1) var(--tp-space-3);
+  cursor: pointer;
+  transition: border-color var(--tp-duration-evidence) linear;
+}
+
+.sourceSwitch:hover,
+.sourceSwitch:focus-visible {
+  border-color: var(--tp-ink);
+}
+
+.sourceSwitch:focus-visible {
+  outline: var(--tp-focus-width) solid var(--tp-focus);
+  outline-offset: var(--tp-focus-offset);
+}
+
+.sealOk,
+.sealFailed {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-2);
+  border-top: var(--tp-hairline) solid var(--tp-rule);
+  padding-top: var(--tp-space-2);
+}
+
+.sealFailed {
+  border-top-color: var(--tp-refuse);
+}
+
+.sealFailed .sourceLabel {
+  color: var(--tp-refuse);
+  font-weight: var(--tp-weight-strong);
+  font-size: var(--tp-step-1);
+}
+
+.findingList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-2);
+}
+
+/* ── 2. The driver ───────────────────────────────────────────────────────── */
+
+.driver {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-4);
+  border: var(--tp-hairline) solid var(--tp-rule-strong);
+  border-radius: var(--tp-radius);
+  background: var(--tp-bg-raised);
+  padding: var(--tp-space-4);
+  margin-bottom: var(--tp-space-5);
+  font-family: var(--tp-sans);
+  color: var(--tp-ink);
+  max-width: 120rem;
+}
+
+.driverHead {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-2);
+}
+
+.driverTitle {
+  font-size: var(--tp-step-2);
+  line-height: var(--tp-leading-tight);
+  font-weight: var(--tp-weight-strong);
+  margin: 0;
+}
+
+.driverProse {
+  font-size: var(--tp-step-0);
+  line-height: var(--tp-leading-body);
+  color: var(--tp-ink-dim);
+  margin: 0;
+  max-width: 78ch;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tp-space-3);
+}
+
+.control {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--tp-space-1);
+  min-width: 18rem;
+  flex: 1 1 18rem;
+  text-align: left;
+  font-family: var(--tp-sans);
+  background: var(--tp-bg);
+  border: var(--tp-hairline) solid var(--tp-rule-strong);
+  border-radius: var(--tp-radius);
+  padding: var(--tp-space-3);
+  cursor: pointer;
+  transition: border-color var(--tp-duration-evidence) linear;
+}
+
+.control:hover,
+.control:focus-visible {
+  border-color: var(--tp-ink);
+}
+
+.control:focus-visible {
+  outline: var(--tp-focus-width) solid var(--tp-focus);
+  outline-offset: var(--tp-focus-offset);
+}
+
+.control[aria-pressed='true'] {
+  border-color: var(--tp-ink);
+  border-left-width: var(--tp-space-1);
+}
+
+.control:disabled {
+  cursor: not-allowed;
+  color: var(--tp-ink-faint);
+  border-color: var(--tp-rule);
+}
+
+.controlLabel {
+  font-size: var(--tp-step-1);
+  font-weight: var(--tp-weight-strong);
+  letter-spacing: var(--tp-tracking-caps);
+  color: var(--tp-ink);
+}
+
+.controlExpect {
+  font-size: var(--tp-step--1);
+  line-height: var(--tp-leading-body);
+  color: var(--tp-ink-dim);
+}
+
+/* ── 3. The beats ────────────────────────────────────────────────────────── */
+
+.beatList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-4);
+}
+
+.beat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-2);
+  border: var(--tp-hairline) solid var(--tp-rule-strong);
+  border-left-width: var(--tp-space-1);
+  border-radius: var(--tp-radius);
+  background: var(--tp-bg-inset);
+  padding: var(--tp-space-3) var(--tp-space-4);
+}
+
+.beat[data-outcome='refused'] {
+  border-left-color: var(--tp-refuse);
+}
+
+.beat[data-outcome='admitted'] {
+  border-left-color: var(--tp-ink);
+}
+
+.beat[data-outcome='retry'],
+.beat[data-outcome='skipped'],
+.beat[data-outcome='error'] {
+  border-left-color: var(--tp-warn);
+}
+
+.beatHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--tp-space-3);
+}
+
+.beatOrdinal {
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step--1);
+  letter-spacing: var(--tp-tracking-caps);
+  color: var(--tp-ink-faint);
+}
+
+.beatName {
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step-0);
+  color: var(--tp-ink-dim);
+}
+
+.beatOutcome {
+  font-size: var(--tp-step-1);
+  font-weight: var(--tp-weight-strong);
+  letter-spacing: var(--tp-tracking-caps);
+  color: var(--tp-ink);
+}
+
+.beatOutcome[data-outcome='refused'] {
+  color: var(--tp-refuse);
+}
+
+.beatLabel {
+  font-size: var(--tp-step-0);
+  line-height: var(--tp-leading-body);
+  color: var(--tp-ink-dim);
+  margin: 0;
+  max-width: 78ch;
+}
+
+.exhibits {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--tp-space-3);
+}
+
+.mismatch {
+  font-size: var(--tp-step-0);
+  font-weight: var(--tp-weight-strong);
+  letter-spacing: var(--tp-tracking-caps);
+  color: var(--tp-warn);
+}
+
+.weakened {
+  font-size: var(--tp-step--1);
+  line-height: var(--tp-leading-body);
+  color: var(--tp-warn);
+  max-width: 78ch;
+}
+
+.verbatim {
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step--1);
+  line-height: var(--tp-leading-tight);
+  color: var(--tp-ink);
+  background: var(--tp-bg-inset);
+  border: var(--tp-hairline) solid var(--tp-rule);
+  border-radius: var(--tp-radius);
+  padding: var(--tp-space-2) var(--tp-space-3);
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.statement summary {
+  font-size: var(--tp-step--1);
+  color: var(--tp-ink-dim);
+  cursor: pointer;
+}
+
+.note {
+  font-size: var(--tp-step--1);
+  line-height: var(--tp-leading-body);
+  color: var(--tp-warn);
+  margin: 0;
+  max-width: 78ch;
+}
+
+/* ── 4. Observed values, the verdict and the run's own witnesses ─────────── */
+
+.meta {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--tp-space-1) var(--tp-space-3);
+  margin: 0;
+}
+
+/*
+ * A grid row that is not a box. `display: contents` lets one <div> carry the React key
+ * for a <dt>/<dd> pair without becoming a grid item itself, which is what keeps the two
+ * columns aligned across every pair.
+ */
+.metaRow {
+  display: contents;
+}
+
+.metaKey {
+  font-size: var(--tp-step--1);
+  letter-spacing: var(--tp-tracking-caps);
+  text-transform: uppercase;
+  color: var(--tp-ink-faint);
+  margin: 0;
+}
+
+.metaValue {
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step--1);
+  color: var(--tp-ink);
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.verdict {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--tp-space-3);
+  border-top: var(--tp-hairline) solid var(--tp-rule-strong);
+  padding-top: var(--tp-space-3);
+}
+
+.verdictValue {
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step-2);
+  font-weight: var(--tp-weight-strong);
+  letter-spacing: var(--tp-tracking-caps);
+  color: var(--tp-ink);
+}
+
+.verdictValue[data-verdict='NOT PROVEN'] {
+  color: var(--tp-refuse);
+}
+
+.failures {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-1);
+  font-size: var(--tp-step--1);
+  line-height: var(--tp-leading-body);
+  color: var(--tp-refuse);
+}
+
+/* ── 5. The absences, which are states like any other ────────────────────── */
+
+.absent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-2);
+  border: var(--tp-hairline) solid var(--tp-rule-strong);
+  border-left-width: var(--tp-space-1);
+  border-left-color: var(--tp-warn);
+  border-radius: var(--tp-radius);
+  background: var(--tp-bg-raised);
+  padding: var(--tp-space-4);
+  margin-bottom: var(--tp-space-5);
+  font-family: var(--tp-sans);
+  color: var(--tp-ink);
+  max-width: 120rem;
+}
+
+.absentTitle {
+  font-size: var(--tp-step--1);
+  letter-spacing: var(--tp-tracking-caps);
+  text-transform: uppercase;
+  font-weight: var(--tp-weight-strong);
+  color: var(--tp-warn);
+}
+
+.absentList {
+  list-style: decimal;
+  margin: 0;
+  padding-left: var(--tp-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-2);
+  font-size: var(--tp-step--1);
+  line-height: var(--tp-leading-body);
+  color: var(--tp-ink-dim);
+}
+
+/* ── 6. Print — the exhibit form (D14) ───────────────────────────────────── */
+
+@media print {
+  .sourceBar,
+  .driver,
+  .absent {
+    background: none;
+    border-color: currentcolor;
+    break-inside: avoid;
+  }
+
+  .sourceSwitch,
+  .control {
+    display: none;
+  }
+
+  .beat {
+    background: none;
+    border-color: currentcolor;
+    break-inside: avoid;
+  }
+
+  .verbatim {
+    background: none;
+    border-color: currentcolor;
+    white-space: pre-wrap;
+  }
+
+  .statement[open] summary {
+    color: currentcolor;
+  }
+}

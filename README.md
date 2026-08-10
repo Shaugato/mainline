@@ -11,22 +11,111 @@ Every clause of a procedure, setpoint, isolation standard and critical control c
 
 Recall is not displayed beside the decision. **Recall is a precondition of the decision.**
 
+If you are judging this, [`docs/submission/JUDGE-START.md`](docs/submission/JUDGE-START.md)
+is ninety seconds: what to look at, what to run, and what we are not claiming.
+
+**What the rules ask for, and where each one is:**
+
+| Required | Where it is |
+|---|---|
+| **Demo URL** | `UNRESOLVED` |
+| **Judge access — free and unrestricted** | `UNRESOLVED` |
+| **Video, under 3 minutes** | `UNRESOLVED` |
+| **Which CockroachDB tools and AWS services, and how** | [`docs/TOOL-USAGE.md`](docs/TOOL-USAGE.md) — every tool and every service with a file, a line number, and a verdict saying whether it has actually run |
+| **Repository and licence** | `https://github.com/Shaugato/mainline` · root [`LICENSE`](LICENSE) is Apache-2.0 |
+
+`UNRESOLVED` is a **literal token**, not a placeholder somebody forgot to replace. Those three
+rows render from `docs/submission/SUBMISSION.json`, the one file in this repository where a
+submission URL may be written, and every field in it starts life as that exact string. As of
+this commit that file has not landed and no URL has been resolved, so the rows say so. A
+submission checklist that looks finished before it is finished is the one failure mode this
+repository is built to refuse — including when the thing being described is the submission.
+
 ---
 
-## Four commands, no account, no credential
+## Clone it, then four commands — no account, no credential
 
 ```bash
-just doctor     # what is missing, and the exact command that fixes it
-just setup      # installs uv if absent, then `uv sync --all-packages`
-just up         # one CockroachDB node, pinned, aligned with Cloud's gc.ttlseconds
-just prove      # the database refuses a permit merge, and says why
+git clone -c core.longpaths=true https://github.com/Shaugato/mainline.git
 ```
 
-`just prove` bootstraps a throwaway database, applies the migration chain, and attempts
-the same merge three times. This is what it printed on the run committed under
+**The flag is there because this repository has one path Windows cannot open, and we would
+rather say so than let you find out at checkout.** The longest tracked path is
+214 characters [src: qa/judge-dry-run.json#path_lengths.max_tracked_path_chars] — a console
+replay fixture whose filename is *derived* from the HTTP request it recorded — against a
+Windows `MAX_PATH` of 260. Measured with real clones into destinations of increasing length:
+a plain `git clone` yields a working tree up to a destination of
+44 characters [src: qa/judge-dry-run.json#clone_threshold.without_longpaths.max_working_dest_chars]
+and fails at
+45 [src: qa/judge-dry-run.json#clone_threshold.without_longpaths.first_failing_dest_chars] with
+`Filename too long`; with the flag, no clone failure was seen up to
+140 [src: qa/judge-dry-run.json#clone_threshold.with_longpaths.no_failure_observed_up_to].
+
+**The flag fixes `git`, not everything else** — the half a mitigation notice usually omits.
+Past a destination of
+44 characters [src: qa/judge-dry-run.json#clone_threshold.with_longpaths.max_readable_dest_chars]
+the checkout completes and that one fixture is still longer than Windows will hand to an
+ordinary program, so a plain `open()` on it raises. Clone into something short — `D:\m`,
+`C:\src\m` — if you want every file readable by every tool. On macOS and Linux the flag is a
+no-op. The durable repair is a shorter encoding in the fixture generator, which is a change
+to the console and is not disguised as a clone flag here.
+
+### The four commands, and the same four without `just`
+
+Both columns are first-class. `just` and `uv` are **not** installed on the machine every
+number on this page was measured on [src: qa/judge-dry-run.json#host.tools_on_path], so the
+right-hand column is the one that was actually executed. The proof needs Docker and a Python
+interpreter, and nothing else.
+
+| The recipe | The same thing, plain |
+|---|---|
+| `just doctor` | `python scripts/qa/doctor.py` |
+| `just setup` | `python -m pip install -e packages/trappoint-migrate` |
+| `just up` | `docker compose -f compose.yaml up -d --wait`<br>then `docker compose -f compose.yaml run --rm crdb-align` |
+| `just prove` | `python scripts/proof/gate_refusal.py --dsn "postgresql://root@localhost:26257/defaultdb?sslmode=disable"` |
+
+Four things that column is honest about.
+
+* **`python scripts/qa/doctor.py` exits 1 on this machine, and it is right to.** The only rows
+  it fails are `uv` and `just`; it prints a numbered remedy under each and it does not block
+  the proof.
+* **The install step is not optional.** An earlier version of this page said the proof needed
+  "nothing but the interpreter". A recorded dry run falsified that: run against an
+  interpreter that never had the workspace installed, `scripts/proof/gate_refusal.py` stops at
+  `ModuleNotFoundError: No module named 'trappoint_migrate'`
+  [src: qa/judge-dry-run.json#runs] and `pytest` will not even collect. The pip line above
+  installs that one distribution and its single dependency, `psycopg`, which is all the proof
+  imports. `just setup` does the fuller job — it installs `uv` if absent, then
+  `uv sync --all-packages` across every workspace member.
+* **`crdb-align`** pins the local node's `gc.ttlseconds` to 4500, the value CockroachDB Cloud
+  Basic enforces, so a time-travel assumption that is legal on your laptop is not one that
+  fails in the cloud. The local default is the *more permissive* of the two.
+* **No committed artefact times the pip line**, so this page prints no figure for it.
+
+What each step cost when it was recorded — one clone of `HEAD`, one shared local node, other
+jobs running against the same container, so every figure is an upper bound rather than a
+benchmark [src: qa/judge-dry-run.json#operator_notes]:
+
+| Step | Exit | Seconds |
+|---|---|---|
+| `python scripts/qa/doctor.py` | 1, on `uv` and `just` only | 2.788 [src: qa/judge-dry-run.json#runs.1.steps.0.duration_s] |
+| `docker compose -f compose.yaml config` | 0 | 0.472 [src: qa/judge-dry-run.json#runs.1.steps.1.duration_s] |
+| `python scripts/proof/gate_refusal.py …` | 0, `VERDICT PROVEN` | 70.351 [src: qa/judge-dry-run.json#runs.1.steps.2.duration_s] |
+| `python -m pytest --crdb=none --collect-only -q` | 0 | 30.112 [src: qa/judge-dry-run.json#runs.1.steps.3.duration_s] |
+
+That recording names the commit it ran against
+[src: qa/judge-dry-run.json#source.head], and the migration tree has grown since, so
+expect the proof step to take **longer** than the figure above, not less. The full account —
+what a judge sees on a clean machine, and where it goes wrong — is
+[`docs/submission/FIRST-FIVE-MINUTES.md`](docs/submission/FIRST-FIVE-MINUTES.md).
+
+`just prove` bootstraps a throwaway database, applies the migration chain, and attempts the
+same merge three times. This is the run committed under
 [`evidence/gate-refusal/`](evidence/gate-refusal/):
 
 ```
+chain         271/271 applied, 0 failed, 63.094s
+PROJECTION    10/10 held · open_blocking 0->1 · gate_epoch 0->1 · outbox 'check_opened' severity 4 (client supplied 0)
 REFUSAL       REFUSED [23514] gate_closed_when_issued (reported)
 DRIFT         REFUSED [P0001] mainline.fn_permit_merge_gate (parsed)
 ADMISSION     ADMITTED [00000]
@@ -39,9 +128,18 @@ is the gate catching a *forged projection* — the counter was set to zero out o
 the merge was refused anyway, because the function re-derives the count instead of
 trusting the column. The third is the same history admitted after one signed disposition.
 
-No `just`? `python scripts/qa/doctor.py` and
-`python scripts/proof/gate_refusal.py --dsn …` need nothing but the interpreter.
-[`docs/release/QUICKSTART.md`](docs/release/QUICKSTART.md) is the long version.
+Read the `PROJECTION` line before the refusals. The script inserted one blocking check and
+touched nothing else; the database moved the counter from
+0 [src: evidence/gate-refusal/proof-20260810T054407Z.json#projection.open_blocking.before] to
+1 [src: evidence/gate-refusal/proof-20260810T054407Z.json#projection.open_blocking.after],
+bumped the gate epoch, emitted the CDC row, and projected a severity of
+4 [src: evidence/gate-refusal/proof-20260810T054407Z.json#projection.severity.projected_onto_the_check]
+onto a row the client had left at
+0 [src: evidence/gate-refusal/proof-20260810T054407Z.json#projection.severity.supplied_by_this_script].
+A counter a client writes is a client's opinion. A counter a trigger writes is the database's.
+
+[`docs/release/QUICKSTART.md`](docs/release/QUICKSTART.md) is the long version of the four
+commands.
 
 ## Read this before you believe any of it
 
@@ -51,22 +149,39 @@ file under `qa/` or `evidence/` that produced it, and
 `tests/release/test_honesty_is_checkable.py` fails the build when a number and its source
 disagree. The short version, because it should not be buried:
 
-* Five tables in the schema have **no migration at all** — their triggers, views and RLS
-  policies were written and their producer never was. The chain applies **246 of 261**
-  files; the fifteen that fail are enumerated, by file and SQLSTATE, in the evidence JSON.
-* **The conformance suite has not been demonstrated.** Against a bare node its cases
-  error rather than skip, and the census never migrated one. The case bodies exist; the
-  results do not.
+* Seven tables in the schema had **no migration at all** — their triggers, views and RLS
+  policies were written and their producer never was. The producers have since landed, and
+  the committed proof records 271 of 271
+  applied [src: evidence/gate-refusal/proof-20260810T054407Z.json#chain.applied_count] with
+  0 failures [src: evidence/gate-refusal/proof-20260810T054407Z.json#chain.failed_count].
+  Read that as a *census*, not a deployment: the applier that produced it continues past
+  every failure. The forward-only runner a deployment actually uses has been driven and
+  wrote no artefact under `qa/` or `evidence/`, so `docs/HONESTY.md` prints no figure for it
+  and neither does this page.
+* **The conformance suite had never been run to completion** for the whole of this build —
+  against a bare node its cases error rather than skip. A first census now exists,
+  [`qa/conformance-census.json`](qa/conformance-census.json), taken against a fully migrated
+  schema: of 71 declared cases it records 55 that could not run at all, 6 red and 10 that
+  held. `docs/HONESTY.md` still describes the suite as undemonstrated and has not absorbed
+  that census yet. A modest first result is a different artefact from no result, and it is
+  nowhere near a passing suite.
 * The corpus is **authored**, the model transcripts are **recorded cassettes**, and the
-  reference-ledger keys are named `NOT-SECRET` because they are.
+  reference-ledger keys are named `NOT-SECRET` because they are — published on purpose so a
+  stranger can verify the offline bundle without asking anyone for a credential.
 * The test suite is censused **per package, twice** — with no database and with one shared
   node — and every skip is published with the reason string its own fixture wrote. The
   counts, including the target that does not finish at all, are in
-  [`qa/test-state.json`](qa/test-state.json).
+  [`qa/test-state.json`](qa/test-state.json). That census **predates the producer migrations
+  and has not been retaken**, so it describes a tree that no longer exists.
+* Lint and types are **counted, not clean**: frozen ratchets that may fall and not rise, in
+  `qa/ruff-ratchet.json` and `qa/mypy-ratchet.json`. The ruff ratchet is **red today**, on a
+  wave whose total went down, because it gates per rule rather than on a headline sum.
 * Inference runs on **Bedrock in `ap-southeast-2` (Sydney)** while the database is in
-  **`aws-ap-southeast-1` (Singapore)**. There is no end-to-end Australian residency, the
-  cross-region hop is unmeasured under load, and **every timing in the demo is a local
-  timing**.
+  **`aws-ap-southeast-1` (Singapore)**, because `ap-southeast-2` is Advanced-tier only on
+  CockroachDB Cloud.
+  There is no end-to-end Australian residency; that claim is false here.
+  The cross-region hop is unmeasured under load, and **every timing in the demo is a local
+  timing** — a single-node CockroachDB in Docker on one laptop.
 
 ---
 
@@ -133,25 +248,29 @@ enforced, never trusted.**
 | `spec/` | TRAPPOINT specification, invariants `I01–I16`, SQLSTATE contract, wire formats | Apache-2.0 |
 | `packages/trappoint-*` | Substrate: SQL templates, gate runtime, offline verifier, recall prefix builder, MCP surface, conformance suite | Apache-2.0 |
 | `skills/` | CockroachDB Agent Skills, upstream-PR-shaped | Apache-2.0 |
-| `verticals/mainline/` | The product: domain lattice, gate service, recall agent, custody relay, console | FSL-1.1-ALv2 |
-| `infra/` | OpenTofu modules and environments | FSL-1.1-ALv2 |
-| `evidence/reference-ledger/` | A signed fixture any stranger can verify offline | Apache-2.0 |
-| `qa/` | The counted ratchets and the test census — every number, and the command that re-derives it | CC-BY-4.0 |
-| `docs/adr/` | Architecture decision records | CC-BY-4.0 |
+| `scripts/` | The proof, the doctor, the censuses, the ratchets | Apache-2.0 |
+| `verticals/mainline/` | The product: domain lattice, gate service, recall agent, custody relay, console | LicenseRef-FSL-1.1-ALv2 |
+| `infra/` | OpenTofu modules and environments | LicenseRef-FSL-1.1-ALv2 |
+| `evidence/` | Transcripts, captured tool evidence, and a signed reference ledger any stranger can verify offline | CC-BY-4.0 |
+| `qa/` | The counted ratchets and the censuses — every number, and the command that re-derives it | CC-BY-4.0 prose, Apache-2.0 ratchets |
+| `docs/` | Architecture decision records, honesty, submission | CC-BY-4.0 |
 
-The import boundaries are enforced by `import-linter` in CI, and they are simultaneously the **layer** boundary, the **licence** boundary, and the **liability** boundary.
+The import boundaries are enforced by `import-linter` in CI, and they are simultaneously the **layer** boundary, the **licence** boundary, and the **liability** boundary. `.importlinter` contract 1 forbids any `trappoint_*` distribution from importing any `mainline_*` module, which is what makes the Apache-2.0 half genuinely forkable rather than nominally so.
 
 ## Verifying without trusting us
 
 [`VERIFY.md`](VERIFY.md) is the three tiers, ordered by how much you have to take on
-faith. Tier 2 — clone, `just up`, `just prove` — needs no account of ours and no model
-call, and it is the one that reproduces the refusal above on your laptop.
+faith. Tier 1 is an offline bundle check with no credential and no network. Tier 2 —
+clone, bring the node up, apply, replay — needs no account of ours and no model call, and
+it is the one that reproduces the refusal above on your laptop.
 
 Two artefacts are worth opening on their own:
 
 * [`evidence/gate-refusal/`](evidence/gate-refusal/) — a transcript of what one cluster
-  did at one instant, with the SQLSTATE, the constraint name, the migration failures it
-  could not repair, and the caveats the run could not honestly avoid.
+  did at one instant, with the SQLSTATE, the constraint name, the projection readings
+  either side of a single insert, and the caveats the run could not honestly avoid. The
+  earlier runs are kept beside the current one on purpose: a document whose credibility
+  rests on showing its own movement may not quietly delete where it moved from.
 * [`qa/test-state.json`](qa/test-state.json) — passed, failed, errored and skipped per
   package, **with every skip's reason string**, taken twice: once with no database
   available and once against a live node. Rendered as
@@ -159,11 +278,19 @@ Two artefacts are worth opening on their own:
 
 ## Status
 
-Pre-alpha. Under active construction. Design corpus: `ARCHITECTURE.md` and `BUILD_PLAN.md` in the companion research repository, produced by a 40-agent design operation and hardened by an adversarial review (28 findings) plus an independent feasibility verification.
+Pre-alpha. Under active construction. Design corpus: `ARCHITECTURE.md` and `BUILD_PLAN.md` live in a companion research repository, not this one; they were produced by a 40-agent design operation and hardened by an adversarial review (28 findings) plus an independent feasibility verification.
 
 **Nothing here claims what it cannot prove**, and the claims that are not proven are
 listed by name in [`docs/HONESTY.md`](docs/HONESTY.md) rather than left out.
 
 ## Licence
 
-Multi-licensed by directory — see the table above, `LICENSES/`, and per-file REUSE headers. `TRADEMARKS.md` governs the names.
+The root [`LICENSE`](LICENSE) is **Apache-2.0** — the licence of the substrate, which is the
+part of this repository a stranger may fork unconditionally. The tree is multi-licensed by
+directory: the table above is the summary, `LICENSES/` holds every licence text, and
+[`docs/submission/LICENSING.md`](docs/submission/LICENSING.md) is the full account — including
+why `LICENSES/` carries both `FSL-1.1-ALv2.txt` and `LicenseRef-FSL-1.1-ALv2.txt` with
+byte-identical contents. The headers in the tree use the bare spelling; REUSE requires the
+`LicenseRef-` form; shipping both and publishing the split as a counted number was chosen over
+a mass edit of the files that disagree. `REUSE.toml` carries the annotations for files that
+cannot hold a header. [`TRADEMARKS.md`](TRADEMARKS.md) governs the names.
