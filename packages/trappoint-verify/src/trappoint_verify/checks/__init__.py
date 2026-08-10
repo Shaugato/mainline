@@ -20,15 +20,28 @@ ones through the same hook. A check with a row and no runner is not silently abs
 reports ``SKIP(not-implemented)``, names the module that would have implemented it, and
 appears in the ``NOT CHECKED`` banner like any other skip.
 
-The lag between the two, stated rather than hidden
---------------------------------------------------
+The lag between the two: declared, then closed
+----------------------------------------------
 ``spec/custody/checks.yaml`` was frozen with every check at ``status: deferred``, which was
 the honest state on 2026-08-07 because no verifier existed. That file has a single owner
-(the custody spec worker) and this package does not edit it. So there is a window in which
-a check is *implemented here* and still *declared deferred there*.
-:data:`SPEC_STATUS_LAG` names exactly which ids are in that window, the totality test
-asserts the set is neither larger nor smaller than reality, and ``explain-check`` prints
-the discrepancy instead of picking whichever answer looks better.
+(the custody spec worker) and this package does not edit it, so for a time nine checks were
+*implemented here* and still *declared deferred there*. :data:`SPEC_STATUS_LAG` named
+exactly which ids sat in that window, rather than letting either copy quietly imply
+something the other denied.
+
+**That window is now shut, and the tuple is empty.** The custody spec worker flipped checks
+1, 2, 3, 9, 10, 13, 14, 15 and 16 to ``implemented``; this commit flips the embedded copy to
+match and shrinks the declaration in the same breath, because a window closed on one side
+only is the same defect pointing the other way. The seven cryptographic checks read
+``deferred`` in both copies and genuinely are: their modules do not exist, they report
+``SKIP(not-implemented)``, and a run still exits ``2``.
+
+An empty tuple is not a retired one — it is the live assertion that the two registries
+agree. ``test_the_declared_status_lag_is_exactly_the_real_one`` recomputes the discrepancy
+from the YAML and the runtime registry on every run and asserts it equals this tuple, in
+both directions: implementing a check without flipping its row fails the build here, and so
+does flipping a row without shrinking this tuple. ``explain-check`` prints the discrepancy
+for any id still inside the window, which today is none of them.
 """
 
 from __future__ import annotations
@@ -85,7 +98,7 @@ SPEC_ROWS: Final[tuple[CheckSpec, ...]] = (
         offline=True,
         module="trappoint_verify.checks.structural",
         test="packages/trappoint-verify/tests/test_structural_checks.py::test_leaf_hash",
-        status="deferred",
+        status="implemented",
         target_status="implemented",
         owner="verify-core",
     ),
@@ -97,7 +110,7 @@ SPEC_ROWS: Final[tuple[CheckSpec, ...]] = (
         offline=True,
         module="trappoint_verify.checks.structural",
         test="packages/trappoint-verify/tests/test_structural_checks.py::test_inclusion",
-        status="deferred",
+        status="implemented",
         target_status="implemented",
         owner="verify-core",
     ),
@@ -112,7 +125,7 @@ SPEC_ROWS: Final[tuple[CheckSpec, ...]] = (
         offline=True,
         module="trappoint_verify.checks.structural",
         test="packages/trappoint-verify/tests/test_structural_checks.py::test_consistency",
-        status="deferred",
+        status="implemented",
         target_status="implemented",
         owner="verify-core",
     ),
@@ -196,7 +209,7 @@ SPEC_ROWS: Final[tuple[CheckSpec, ...]] = (
         offline=True,
         module="trappoint_verify.checks.structural",
         test="packages/trappoint-verify/tests/test_structural_checks.py::test_link_chain",
-        status="deferred",
+        status="implemented",
         target_status="implemented",
         owner="verify-core",
     ),
@@ -211,7 +224,7 @@ SPEC_ROWS: Final[tuple[CheckSpec, ...]] = (
         offline=True,
         module="trappoint_verify.checks.structural",
         test="packages/trappoint-verify/tests/test_structural_checks.py::test_canon_identity",
-        status="deferred",
+        status="implemented",
         target_status="implemented",
         owner="verify-core",
     ),
@@ -253,7 +266,7 @@ SPEC_ROWS: Final[tuple[CheckSpec, ...]] = (
         offline=True,
         module="trappoint_verify.checks.structural",
         test="packages/trappoint-verify/tests/test_structural_checks.py::test_no_sandbox",
-        status="deferred",
+        status="implemented",
         target_status="implemented",
         owner="verify-core",
     ),
@@ -268,7 +281,7 @@ SPEC_ROWS: Final[tuple[CheckSpec, ...]] = (
         offline=True,
         module="trappoint_verify.checks.structural",
         test="packages/trappoint-verify/tests/test_structural_checks.py::test_closure_monotone",
-        status="deferred",
+        status="implemented",
         target_status="implemented",
         owner="verify-core",
     ),
@@ -283,7 +296,7 @@ SPEC_ROWS: Final[tuple[CheckSpec, ...]] = (
         offline=True,
         module="trappoint_verify.checks.structural",
         test="packages/trappoint-verify/tests/test_structural_checks.py::test_receipt_coverage",
-        status="deferred",
+        status="implemented",
         target_status="implemented",
         owner="verify-core",
     ),
@@ -301,7 +314,7 @@ SPEC_ROWS: Final[tuple[CheckSpec, ...]] = (
         offline=True,
         module="trappoint_verify.checks.structural",
         test="packages/trappoint-verify/tests/test_checks_totality.py",
-        status="deferred",
+        status="implemented",
         target_status="implemented",
         owner="verify-core",
     ),
@@ -312,10 +325,14 @@ SPEC_ROWS: Final[tuple[CheckSpec, ...]] = (
 CHECK_IDS: Final[tuple[int, ...]] = tuple(row.id for row in SPEC_ROWS)
 
 #: Checks this build implements while ``spec/custody/checks.yaml`` still declares them
-#: ``deferred``. The registry file has one owner and this package does not edit it; the
-#: totality test asserts this tuple equals the real discrepancy, so it cannot rot in
-#: either direction.
-SPEC_STATUS_LAG: Final[tuple[int, ...]] = (1, 2, 3, 9, 10, 13, 14, 15, 16)
+#: ``deferred``. **Empty is the finished state, not an unset default.** It once held
+#: ``(1, 2, 3, 9, 10, 13, 14, 15, 16)``; those nine now read ``implemented`` in both
+#: copies, and the seven cryptographic checks read ``deferred`` in both, so no id is
+#: implemented on one side and deferred on the other. The tuple stays because it is the
+#: declaration that keeps the window shut: the totality test recomputes the real
+#: discrepancy from the YAML and the runtime registry and asserts it equals this tuple, so
+#: this cannot rot in either direction.
+SPEC_STATUS_LAG: Final[tuple[int, ...]] = ()
 
 
 def spec_for(check_id: int) -> CheckSpec:

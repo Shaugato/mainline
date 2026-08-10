@@ -20,9 +20,16 @@ The four totality rules ``checks.yaml`` states about itself, made executable:
 
 Rule 3 needs a word. ``checks.yaml`` was frozen with all sixteen ``deferred``, which was
 honest on 2026-08-07 because no verifier existed. It has one owner and this package does
-not edit other people's files, so the flip to ``implemented`` lands with that worker. The
-window between the two is real; the choice here is to **name it in code and assert its
-exact extent** rather than to let either copy quietly imply something the other denies.
+not edit other people's files, so the flip to ``implemented`` landed with that worker and
+the nine structural checks were briefly implemented here and deferred there. The choice was
+to **name that window in code and assert its exact extent** rather than let either copy
+quietly imply something the other denied.
+
+The window is now shut — ``SPEC_STATUS_LAG`` is ``()`` — and
+``test_the_declared_status_lag_is_exactly_the_real_one`` is what shut it: it failed on the
+half-landed flip and named the remedy in its own message. It is a two-way assertion, so it
+keeps earning its place while empty. Implement a check without flipping its registry row
+and it fails; flip a row without shrinking the tuple and it fails again.
 
 PyYAML is not used. This package's CI lane installs ``cryptography`` and nothing else, and
 a test that only runs when an optional parser happens to be present is a test that is
