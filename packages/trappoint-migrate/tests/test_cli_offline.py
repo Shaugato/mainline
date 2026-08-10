@@ -76,6 +76,54 @@ def test_delegated_verb_actually_delegates_when_present(
     # the real implementation. A non-existent binding is a RENDER error, and crucially
     # NOT the "not installed" message — that message reappearing here would mean
     # delegation had silently regressed to the fallback path.
+    #
+    # THE PRECONDITION, STATED 2026-08-10. It was always real and it was never written
+    # down: this test only asserts anything in an environment where `trappoint-sql` IS
+    # installed. `db-schema.yml`'s tier-0 step runs the suite under
+    # `uv run --frozen --package trappoint-migrate`, which builds an environment holding
+    # trappoint-migrate and its ONE dependency (psycopg). trappoint-sql is a sibling
+    # workspace member with no dependency edge in either direction — an edge would be an
+    # import cycle and both pyprojects say so — so it is absent THERE BY CONSTRUCTION,
+    # the fallback fires, and the assertion below fails for a reason it never meant to
+    # assert. MEASURED, run 31386723718, step "Runner semantics with no cluster (tier 0)":
+    #
+    #     AssertionError: delegation regressed to the not-installed path
+    #     1 failed, 244 passed in 1.49s
+    #
+    # That step already carries a `--deselect` for this node id and it is INERT, which is
+    # why the failure survived it. Measured on pytest 9.1.1 with the pinned interpreter:
+    # `packages/trappoint-migrate/pyproject.toml` carries `[tool.pytest.ini_options]`, so
+    # rootdir resolves to `packages/trappoint-migrate` and the collected node id is
+    # `tests/test_cli_offline.py::…`. `--deselect` matches on a nodeid PREFIX, and
+    # `packages/trappoint-migrate/tests/…` is not a prefix of `tests/…`:
+    #
+    #     $ pytest packages/trappoint-migrate/tests --collect-only -q \
+    #         --deselect packages/trappoint-migrate/tests/test_cli_offline.py::…  -> still collected
+    #     $ pytest packages/trappoint-migrate/tests --collect-only -q \
+    #         --deselect tests/test_cli_offline.py::…                             -> deselected
+    #
+    # The guard therefore lives HERE, where the precondition is, and not in a workflow
+    # flag that has to spell a rootdir-relative path correctly to work at all. It is an
+    # `importorskip` with a NAMED reason rather than a bare skip: the root `addopts`
+    # carry `-ra`, so a skipped run PRINTS the sentence below and a reader is told which
+    # environment still owes the assertion. A silent skip would be worse than the
+    # failure it replaces.
+    #
+    # The assertion is NOT weakened. `db-schema.yml`'s tier-0b step runs this exact node
+    # id under `uv run --frozen --all-packages`, where trappoint-sql IS installed, the
+    # import succeeds, and the claim is made in full on every run of that lane.
+    pytest.importorskip(
+        "trappoint_sql",
+        reason=(
+            "trappoint-sql is not installed in this environment, so `trappoint render` "
+            "CANNOT reach the real implementation and the not-installed fallback this "
+            "test forbids is the only correct output here. The delegation claim is made "
+            "in db-schema.yml's tier-0b step, which runs this node id under "
+            "`uv run --frozen --all-packages`. If you are reading this in a lane that "
+            "MEANT to have trappoint-sql, that lane's install line is the defect."
+        ),
+    )
+
     code = main(["render", "--binding", "x"])
     err = capsys.readouterr().err
     assert "uv sync --package" not in err, "delegation regressed to the not-installed path"

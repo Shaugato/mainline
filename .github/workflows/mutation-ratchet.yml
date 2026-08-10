@@ -120,6 +120,18 @@ jobs:
         # `--frozen` asserts uv.lock is authoritative. A published residual-risk
         # figure computed under a dependency graph that differs from a stranger's
         # is a figure a stranger cannot reproduce, which is PL-1's whole point.
+        #
+        # THIS STEP DOES NOT DECIDE WHAT LATER STEPS RUN AGAINST, and that was worth
+        # measuring rather than assuming. Every `uv run --package …` below re-syncs the
+        # workspace environment to that package's resolution and PRUNES what is not in
+        # it, so the "Apply the migration tree" step's
+        # `uv sync --frozen --package trappoint-migrate` replaces this environment
+        # wholesale. Run 31417446264 shows it happening: `Uninstalled 18 packages` at
+        # 18:07:58, then `Installed 9 packages in 26ms` at 18:17:53 as the measurement
+        # suite's own `uv run --package mainline-mutation` rebuilt it. A dependency
+        # floor added HERE would therefore be gone by the time pytest starts; the floor
+        # for the pytest step is declared on the pytest step, and the reason is written
+        # there.
         run: |
           uv sync --frozen \
             --package mainline-mutation \
@@ -265,8 +277,50 @@ jobs:
       - name: The measurement suite
         # These are the failures that mean the measurement did not happen. They
         # are NOT thresholds on the number.
+        #
+        # ── THE TWO ADDITIONS ON THIS LINE, AND WHY THEY ARE EXACTLY THESE TWO ──────
+        #
+        # `pytest-timeout` is the same addition boundary.yml made on 2026-08-10, and its
+        # paragraph is kept word for word because it is a measurement and a paraphrase
+        # would lose it: it widens nothing this lane measures. It is a pytest plugin,
+        # not a workspace dependency: it is invisible to the AST scan, absent from every
+        # SBOM this lane reads, and it imports no model SDK. It is here because the root
+        # `pyproject.toml` sets `addopts = [… "--strict-config" …]` together with
+        # `timeout = 120`, and `--strict-config` makes an ini key that no installed
+        # plugin claims a HARD error — measured on this exact lane, run 31417446264:
+        # `ERROR: Unknown config option: timeout`, nothing collected, exit 4. The
+        # timeout is also the thing that stops a wedged lane from burning the whole job
+        # budget in silence, so declaring it is what makes the 20-minute budget mean
+        # something.
+        #
+        # THIS IS THE THIRD INSTANCE OF THAT ONE DEFECT, NOT THE FIRST. `release-proof`
+        # (its own install line pins `pytest-timeout>=2.4`) and `boundary` (seven jobs,
+        # `./packages/mainline-boundary pytest pytest-timeout`) were both repaired for
+        # the same cause in the previous wave. The shape is invariant: any environment
+        # that runs pytest from the repository root without pytest-timeout installed
+        # refuses to start. IF A FOURTH LANE APPEARS, THIS IS THE PARAGRAPH THAT SHOULD
+        # CATCH IT IN REVIEW — grep `--strict-config` before adding a pytest invocation
+        # to a minimal environment.
+        #
+        # `PyYAML` is the second, independent cause with the same shape, measured in the
+        # same run: `ModuleNotFoundError: No module named 'yaml'` collecting
+        # `tests/unit/domain/novelty/test_novelty_manifest.py`, whose line 45 is
+        # `import yaml`. That file is one of the two test roots this step selects, so the
+        # module is a floor of the selection, not a widening of it. PyYAML is a parser
+        # for files already committed to this repository; it reaches no network, no
+        # cluster and no model SDK, and `tests/e2e/mutation/test_no_model_reach.py` still
+        # walks the package AST unaffected — it scans `mainline_mutation`, and neither
+        # addition is imported by it.
+        #
+        # `--with` rather than the sync step above, because `uv run --package` re-syncs
+        # and prunes (see that step's comment). `--with` is repeatable where `--package`
+        # is not, and it is the idiom this repository already runs green in
+        # supply-chain.yml:708. Both are floored, not pinned: the lock stays
+        # authoritative for everything it covers, and `--frozen` still holds.
         run: |
           uv run --frozen --package mainline-mutation \
+            --with "pytest-timeout>=2.4" \
+            --with "PyYAML>=6.0" \
             python -m pytest tests/e2e/mutation tests/unit/domain/novelty -q
 
       - name: Publish the dated artefacts

@@ -289,6 +289,15 @@ jobs:
         # `trappoint-core` is needed here and NOWHERE else in this workflow: the retry
         # taxonomy spy watches the real client's loop. `trappoint-model` deliberately does
         # not depend on it — see packages/trappoint-model/README.md §1.
+        #
+        # `uv sync` ACCEPTS `--package` twice and `uv run` DOES NOT. That asymmetry is
+        # measured, not assumed: in run 31408959149 this step completed and its install
+        # list names both members —
+        #   + trappoint-core==0.1.0 (from file:///…/packages/trappoint-core)
+        #   + trappoint-model==0.1.0 (from file:///…/packages/trappoint-model)
+        # — while the very next step died on `error: the argument '--package <PACKAGE>'
+        # cannot be used multiple times`. So this line is correct as written and must not
+        # be "made consistent" with the one below.
         run: uv sync --frozen --package trappoint-model --package trappoint-core
 
       - name: "N=64, plus the retry taxonomy spy"
@@ -297,9 +306,38 @@ jobs:
           # The N=64 arm is SKIPPED without this rather than scaled down: a 64-way race
           # that quietly ran 8-way would report a contention level nobody measured.
           TRAPPOINT_NIGHTLY: "1"
+        # `--no-sync`, and it is the repair for a LATENT AUTHORING BUG — not a new
+        # constraint. This line read `--package trappoint-model --package trappoint-core`
+        # from the day it was written and `uv run` has never accepted `--package` twice.
+        # It could not be observed because this workflow's `push:` trigger named `main`,
+        # a branch that does not exist in this repository; the default branch is
+        # `master`, `gh run list --branch main` is empty, and the lane had therefore
+        # never run. Retargeting it on 2026-08-10 is what made the error appear, and
+        # THIS IS THE CLEAREST SINGLE ILLUSTRATION OF THAT FINDING: the flag was wrong
+        # for as long as the file existed and CI said nothing, because CI was watching a
+        # branch nobody pushes to. Run 31408959149, job `64 parallel merges of one
+        # subject`:
+        #
+        #     error: the argument '--package <PACKAGE>' cannot be used multiple times
+        #     Process completed with exit code 2
+        #
+        # `--no-sync` runs in the environment the step above just built and CHANGES
+        # NOTHING ABOUT IT. That matters, because the two obvious alternatives both
+        # break the sentence above this step: `--all-packages` would install the whole
+        # workspace, and a single `--package trappoint-model` would re-sync and PRUNE
+        # trappoint-core — the one distribution the retry-taxonomy spy exists to watch —
+        # leaving the lane green on a suite that could no longer import the client's
+        # loop. The set installed here stays exactly {trappoint-model, trappoint-core},
+        # so `trappoint-core` is still needed HERE AND NOWHERE ELSE.
+        #
+        # The ordering dependency this creates is deliberate and is the point: the
+        # install step is now the ONE declaration of what this job runs against, instead
+        # of a declaration and a contradicting restatement. `--frozen` is kept so uv.lock
+        # stays authoritative. This job carries no `continue-on-error`, so its exit is
+        # the run's conclusion, and that must stay true.
         run: |
           set -euo pipefail
-          uv run --frozen --package trappoint-model --package trappoint-core \
+          uv run --frozen --no-sync \
             pytest tests/concurrency/test_single_merge.py \
                    tests/concurrency/test_retry_taxonomy_spy.py \
             -p no:randomly -ra -q -s --timeout=3600 \
