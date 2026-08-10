@@ -223,29 +223,171 @@ jobs:
         # asserted nowhere. That second one is the anti-vacuity half — a bundle over which
         # seven of sixteen checks did not run is not a verified bundle, and this step is
         # the sentence "a stranger verifies it offline" made executable.
+        #
+        # RULING R3 — an intentional red must name its missing artefact and its owner.
+        # This lane is RED ON PURPOSE and stays red until the seven cryptographic check
+        # modules exist. A red whose entire content is that a number was short teaches a
+        # judge nothing, so the failure now NAMES every check that did not run, the module
+        # file and the test file each one needs, the registry's own status and target, and
+        # `owner=verify-crypto`. That list is NOT written out here. It is read out of the
+        # same registry, in the same interpreter, that the run above just used — so it
+        # cannot describe a different run than the one it is explaining, and it refuses to
+        # print at all if the count it derives disagrees with the count the verifier
+        # printed. A hand-written list of seven ids would be seven more literals to go
+        # stale the moment a module lands.
+        #
+        # The verifier's exit status is CAPTURED, not swallowed. `set -e` plus `pipefail`
+        # killed this step on the verifier's own exit 2 before a single line below it ran,
+        # which is precisely why this lane has never explained itself: the two `::error`
+        # blocks it already carried were unreachable. An `if` CONDITION is exempt from
+        # `set -e` by definition — the same idiom, and the same reasoning, as the
+        # dependency-floor step below — so the status is read and acted on. Every path out
+        # of this step that is not a clean verification still exits non-zero. There is no
+        # `continue-on-error`, no `|| true`, and no check is marked implemented that is not.
         run: |
           set -euo pipefail
           cd /tmp    # nothing of ours is importable from here except what pip installed
-          /tmp/stranger/bin/trappoint-verify verify \
-            --bundle "${GITHUB_WORKSPACE}/evidence/reference-ledger/bundle.json" | tee out.txt
-          summary="$(grep -E '^[0-9]+ checks \|' out.txt)"
+          bundle="${GITHUB_WORKSPACE}/evidence/reference-ledger/bundle.json"
+          if /tmp/stranger/bin/trappoint-verify verify --bundle "${bundle}" | tee out.txt; then
+            status=0
+          else
+            status=$?
+          fi
+          echo "the verifier exited ${status}"
+
+          if ! summary="$(grep -E '^[0-9]+ checks \|' out.txt)"; then
+            echo "::error title=the verifier printed no summary line::PRINTED ONLY WHEN \
+            the run produced no '<n> checks | …' line at all — if you are reading this \
+            inside a ##[group]Run header it is source, not output. The verifier exited \
+            ${status}. Without that line this step cannot tell a clean verification from \
+            a silent one, so it refuses rather than guessing."
+            exit 1
+          fi
           echo "summary line: ${summary}"
+
           if ! printf '%s' "${summary}" | grep -q '| 0 failed |'; then
             echo "::error title=the reference bundle does not verify::PRINTED ONLY WHEN a \
             check FAILED — if you are reading this inside a ##[group]Run header it is \
             source, not output. Summary: ${summary}"
             exit 1
           fi
-          if ! printf '%s' "${summary}" | grep -q '| 0 not checked'; then
-            echo "::error title=the offline verification is not clean::PRINTED ONLY WHEN \
-            at least one check did not run — if you are reading this inside a \
-            ##[group]Run header it is source, not output. Summary: ${summary}. Every SKIP \
-            above names the module that did not register a runner and the owner the \
-            registry records for it. A verifier that passes because it did not look is \
-            worse than no verifier, so this is a failure and not a warning."
-            exit 1
+
+          if printf '%s' "${summary}" | grep -q '| 0 not checked'; then
+            if [ "${status}" -ne 0 ]; then
+              echo "::error title=a clean summary with a non-zero exit::PRINTED ONLY WHEN \
+              the summary line reports nothing failed and nothing unchecked and the \
+              verifier still exited non-zero — if you are reading this inside a \
+              ##[group]Run header it is source, not output. Exit ${status}, summary: \
+              ${summary}. One of the two is wrong and this step will not pick the \
+              flattering one."
+              exit 1
+            fi
+            echo "the bundle verifies offline: nothing failed and nothing went unchecked"
+            exit 0
           fi
-          echo "the bundle verifies offline: nothing failed and nothing went unchecked"
+
+          # Not clean. Name every check that did not run, and what each one is waiting for.
+          /tmp/stranger/bin/python - "${summary}" <<'PY'
+          import os
+          import re
+          import sys
+
+          from trappoint_verify.checks import CHECK_IDS, load_all, registered, spec_for
+
+          SOURCE_ROOT = "packages/trappoint-verify/src/"
+
+          summary = sys.argv[1]
+          load_report = load_all()
+          why = {entry.module: entry.reason for entry in load_report.missing()}
+          unchecked = [check_id for check_id in CHECK_IDS if check_id not in registered()]
+
+          # Anti-vacuity for the explanation itself: this block runs in the same process
+          # state the verifier ran in, so the count it derives and the count the verifier
+          # printed must agree. If they do not, the explanation would be about some other
+          # run, and a confident wrong list is worse than no list.
+          printed = re.search(r"\|\s*(\d+) not checked", summary)
+          if printed is None or int(printed.group(1)) != len(unchecked):
+              print(
+                  f"::error title=the explanation does not match the run::the summary line "
+                  f"reads {summary!r} but this registry reports {len(unchecked)} check(s) "
+                  f"with no runner bound. The per-check explanation is withheld rather than "
+                  f"printed about a different run."
+              )
+              raise SystemExit(1)
+
+          def source_file(dotted: str) -> str:
+              """`trappoint_verify.checks.tsa` -> the path the module has to appear at."""
+              return SOURCE_ROOT + dotted.replace(".", "/") + ".py"
+
+          owners = sorted({spec_for(check_id).owner for check_id in unchecked})
+          ids = ", ".join(str(check_id) for check_id in unchecked)
+          print(
+              f"::error title=custody: {len(unchecked)} of {len(CHECK_IDS)} checks have no "
+              f"implementation::PRINTED ONLY WHEN a check has no runner bound — if you are "
+              f"reading this inside a ##[group]Run header it is source, not output. Checks "
+              f"{ids} did not run. Owner: {'; '.join(owners)}. This lane is RED ON PURPOSE "
+              f"and stays red until the modules named in the annotations below exist. "
+              f"Nothing is skipped, excused or ratcheted to conceal it."
+          )
+
+          detail = []
+          for check_id in unchecked:
+              spec = spec_for(check_id)
+              module_file = source_file(spec.module)
+              # ImportError stringifies as "cannot import name 'tsa' from
+              # 'trappoint_verify.checks' (<abspath of the PARENT package's __init__>)".
+              # That path is the runner's temporary venv and it is the wrong file anyway,
+              # so it is dropped; `module_file` above is the artefact actually wanted.
+              reason = why.get(spec.module, "the module imported but registered no runner")
+              reason = reason.split(" (", 1)[0]
+              detail.append((check_id, spec, module_file, reason))
+              print(
+                  f"::error title=check {check_id} {spec.name} is unimplemented::NEEDS "
+                  f"{module_file} (import said: {reason}) and {spec.test}. Registry says "
+                  f"status={spec.status}, target={spec.target_status}, owner={spec.owner}. "
+                  f"It would have proved: {spec.proves}"
+              )
+
+          print("")
+          print(f"{len(unchecked)} of {len(CHECK_IDS)} custody checks did not run:")
+          print("")
+          for check_id, spec, module_file, reason in detail:
+              print(f"  check {check_id:>2}  {spec.name}")
+              print(f"            needs      {module_file}")
+              print(f"            and        {spec.test}")
+              print(
+                  f"            registry   status={spec.status}, "
+                  f"target={spec.target_status}, owner={spec.owner}"
+              )
+              print(f"            import     {reason}")
+              print(f"            proves     {spec.proves}")
+              print("")
+          print(f"Owner of every check above: {'; '.join(owners)}.")
+          print("")
+          print("The checks that DID run all held, and the exit code says exactly that:")
+          print("`exit 2` means everything that ran held and the rest did not run. Nine of")
+          print("sixteen is the honest state of the custody domain today, and it is the")
+          print("reason this lane is red. It goes green when the modules above exist — not")
+          print("when a threshold is lowered.")
+
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as handle:
+              handle.write(
+                  f"## custody: {len(unchecked)} of {len(CHECK_IDS)} checks did not run\n\n"
+              )
+              handle.write("| check | name | module it needs | test it needs | registry | owner |\n")
+              handle.write("|---|---|---|---|---|---|\n")
+              for check_id, spec, module_file, _reason in detail:
+                  handle.write(
+                      f"| {check_id} | `{spec.name}` | `{module_file}` | `{spec.test}` | "
+                      f"{spec.status} → {spec.target_status} | `{spec.owner}` |\n"
+                  )
+              handle.write(
+                  "\nRed on purpose. This table is read from the verifier's own registry at "
+                  "run time, so it cannot go stale, and the lane goes green when these "
+                  "modules exist.\n"
+              )
+          PY
+          exit 1
 
       - name: Confirm the floor is exactly one dependency
         # SC2015, reported by actionlint on 2026-08-10 against line 198 of this file as it
