@@ -57,6 +57,25 @@
 name: demo-health
 
 on:
+  # NO `push:` TRIGGER, AND THAT IS DELIBERATE — READ THIS BEFORE "FIXING" IT.
+  #
+  # On 2026-08-10 fifteen workflows here were found triggering on `push: branches:
+  # [main]` against a repository whose default branch is `master`; they were repaired.
+  # This file was not one of them and must not be swept up in that repair. What this job
+  # asserts is a property of a DEPLOYED demo, not of a commit: at the instant a push
+  # lands, the deployment is by definition older than the commit that triggered it, so a
+  # push-triggered run would report the previous deployment's health under the new
+  # commit's name. That is a measurement attributed to the wrong subject.
+  #
+  # It still reaches `master`: GitHub fires `schedule:` from the DEFAULT branch only,
+  # which is `master`, so the runs below are already master runs and already appear on
+  # the default view of the Actions tab.
+  #
+  # MEASURED 2026-08-10, and it is why this lane has no runs at all yet: `gh variable
+  # list` returns EMPTY, so `vars.DEMO_URL` is unset and the first step below will fail
+  # every scheduled run with `DEMO_URL is not set` until the demo is deployed and the
+  # variable is recorded. That failure is correct — see the header — but it is a
+  # CONFIGURATION truth, not a health truth, and it says so by name in its own error.
   schedule:
     # Every 30 minutes. Cron on GitHub Actions is best-effort and a scheduled run can be
     # delayed or dropped under load, which is one more reason the freshness window is

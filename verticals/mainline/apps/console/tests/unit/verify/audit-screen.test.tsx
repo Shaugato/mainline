@@ -49,7 +49,7 @@ const RAW = import.meta.glob<string>('/fixtures/bundles/blk-07/**/*', {
 });
 
 const BUNDLE_ROOT = '/fixtures/bundles/blk-07/';
-const AUDIT_FRAME = 'frames/GET~20~2Fv1~2Faudit.json';
+const AUDIT_FRAME = 'frames/GET-540549b3695a753c.json';
 
 function bundleFiles(): Map<string, Uint8Array> {
   const files = new Map<string, Uint8Array>();

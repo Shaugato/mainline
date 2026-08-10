@@ -13,7 +13,6 @@ import { describe, expect, it } from 'vitest';
 import {
   RESOURCES,
   RESOURCE_KEYS,
-  framePathForKey,
   resolveRequest,
   resourceOrThrow,
   urlFor,
@@ -82,7 +81,6 @@ describe('request resolution', () => {
       query: { to_seq: '5', site_code: 'BLK-07', from_seq: '0' },
     });
     expect(a.key).toBe(b.key);
-    expect(a.framePath).toBe(b.framePath);
     expect(a.key).toBe('GET /v1/ledger?from_seq=0&site_code=BLK-07&to_seq=5');
   });
 
@@ -93,8 +91,19 @@ describe('request resolution', () => {
   });
 });
 
-describe('framePathForKey is injective', () => {
-  it('maps distinct keys to distinct paths across the whole catalogue', () => {
+/**
+ * The canonical request key is the ONLY thing a replay bundle is addressed by.
+ *
+ * `framePathForKey()` used to live in `src/data/resources.ts` and spelled the request
+ * line into the frame's file name; these were its injectivity tests. The name is now a
+ * content address computed by `scripts/capture-bundle.ts` (the encoding produced
+ * 218-character paths that a default Windows install cannot check out — see
+ * `scripts/submission/check_path_lengths.py`), so the property that has to hold moved
+ * one level up with it: distinct requests must produce distinct KEYS, because a bundle
+ * indexes frames by key and two requests sharing one key would share one answer.
+ */
+describe('the canonical request key is injective', () => {
+  it('maps distinct requests to distinct keys', () => {
     const keys = [
       'GET /v1/permits/a',
       'GET /v1/permits/a?x=1',
@@ -105,19 +114,11 @@ describe('framePathForKey is injective', () => {
       'GET /v1/ledger?site_code=BLK-07',
       'GET /v1/ledger?site_code=BLK~2D07',
     ];
-    const paths = keys.map(framePathForKey);
-    expect(new Set(paths).size).toBe(keys.length);
+    expect(new Set(keys).size).toBe(keys.length);
   });
 
-  it('escapes the escape character, so ~ in a key cannot collide with an encoded byte', () => {
-    // '~' itself must not pass through, or "a~2Fb" and "a/b" would share a file.
-    expect(framePathForKey('a~b')).not.toBe(framePathForKey('a/b'));
-    expect(framePathForKey('a/b')).toBe('frames/a~2Fb.json');
-    expect(framePathForKey('a~b')).toBe('frames/a~7Eb.json');
-  });
-
-  it('produces only characters the bundle contract admits in a path', () => {
-    const pattern = /^frames\/[A-Za-z0-9._~-]+\.json$/;
+  it('gives every declared resource a distinct key for the same parameters', () => {
+    const seen = new Map<string, string>();
     for (const resource of RESOURCES.values()) {
       const path: Record<string, string> = {};
       for (const name of resource.pathParams) path[name] = PERMIT_ID;
@@ -129,7 +130,10 @@ describe('framePathForKey is injective', () => {
         query,
         ...(resource.method === 'POST' ? { body: { probe: true } } : {}),
       });
-      expect(resolved.framePath, resource.key).toMatch(pattern);
+      const rival = seen.get(resolved.key);
+      expect(rival, `${resource.key} and ${rival ?? ''} share the key ${resolved.key}`).toBeUndefined();
+      seen.set(resolved.key, resource.key);
+      expect(resolved.key, resource.key).toMatch(/^(?:GET|POST) \/v1\/[^\s]*$/);
     }
   });
 });

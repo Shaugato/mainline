@@ -6,13 +6,30 @@
 # I: SUB-PATHLEN-1 — the longest tracked path in this repository is a published number
 #    that may fall and may not rise, because it is the number that decides whether a
 #    stranger on Windows can check the repository out at all.
-# RATIONALE: `verticals/mainline/apps/console/fixtures/bundles/blk-07/frames/` holds
-#    URL-encoded replay frames whose names are DERIVED from the request by
-#    `verticals/mainline/apps/console/src/data/resources.ts:373`, so they cannot be
+# RATIONALE: this file used to record that the console's replay frames "cannot be
 #    renamed without breaking the console loader and the bundle manifest (lead ruling
-#    L-2). The judge-facing repair is a clone flag. The engineering repair is an encoder
-#    change owned by the UI domain. Between those two, the only thing this domain can do
-#    is COUNT the exposure and refuse to let it grow.
+#    L-2)", that the judge-facing repair was a clone flag, and that counting the exposure
+#    was all this domain could do. That was measured again on 2026-08-10 and it was
+#    wrong on the only point that mattered.
+#
+#    The frames were named by spelling the whole request line into the file name with a
+#    `~XX` escape, which produced a 218-character path — 40 characters of clone
+#    destination, against the 44 of `C:\Users\someone\Documents\projects\mainline`. The
+#    encoder could not be fixed by escaping less: the longest request key is 132
+#    characters BEFORE any escaping, and `132 + 5 + 67` is 204 against a budget of 198,
+#    so even an identity encoding that wrote `/` and `?` straight into a file name would
+#    have blown it. A name that does not grow with the request was therefore forced.
+#
+#    Frames are now content-addressed, `frames/<METHOD>-<sha256(key)[:16]>.json`, written
+#    by `verticals/mainline/apps/console/scripts/capture-bundle.ts`. Nothing about the
+#    bundle's meaning moved: the request line is carried verbatim in the manifest as
+#    `files[].key`, INSIDE the digest-sealed set the in-browser verifier hashes, and the
+#    console addresses frames by that field. The measurement fell 218 -> 141 and the
+#    count of paths a 60-character destination cannot check out fell 4 -> 0.
+#
+#    The standing rule is unchanged and is the reason this file exists: the budget below
+#    is falling-only, a rise names the paths that caused it and exits 1, and the repair
+#    for a rise is a shorter name — never a larger budget and never a clone flag.
 """Windows clone-path budget for the MAINLINE repository.
 
 Windows' `MAX_PATH` is 260 characters *including* the terminating NUL, so 259 characters

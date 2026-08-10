@@ -55,7 +55,7 @@ const RAW = import.meta.glob<string>('/fixtures/bundles/blk-07/**/*', {
 });
 
 const BUNDLE_ROOT = '/fixtures/bundles/blk-07/';
-const LEDGER_FRAME = 'frames/GET~20~2Fv1~2Fledger~3Fsite_code~3DBLK-07.json';
+const LEDGER_FRAME = 'frames/GET-65a138de79af333c.json';
 const vector = ledgerPayloadVector();
 
 function bundleFiles(): Map<string, Uint8Array> {

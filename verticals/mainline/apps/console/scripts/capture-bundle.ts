@@ -46,6 +46,58 @@ import { resolveRequest } from '../src/data/resources.ts';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
+// ── Frame naming ───────────────────────────────────────────────────────────
+
+/**
+ * THE FRAME NAMING SCHEME, and why it is a digest rather than the request line.
+ *
+ * A frame is named `frames/<METHOD>-<sha256(key)[:16]>.json`, where `key` is the
+ * canonical request key `src/data/resources.ts` derives from method, path and sorted
+ * query. The request line itself is NOT lost: `seal` copies it verbatim into the
+ * manifest entry's `key` field, where it is inside the sealed, digest-checked set
+ * instead of merely spelled on a directory entry that nothing verifies.
+ *
+ * The scheme this replaced spelled the whole request line into the file name with a
+ * `~XX` escape. It was reversible by eye, which was genuinely nice, and it was
+ * arithmetically unshippable. Measured on 2026-08-10:
+ *
+ *     verticals/mainline/apps/console/fixtures/bundles/demo-cloud/frames/GET~20~2Fv1~2F
+ *     clauses~2Fdec0de00-…~2Fancestry~3Fas_of~3D9f12114d…json          218 characters
+ *
+ * Windows' MAX_PATH is 260 including the NUL, so a checkout costs
+ * `len(destination) + 1 + len(path)` and 218 leaves a stranger 40 characters to clone
+ * into. `C:\Users\someone\Documents\projects\mainline` is 44. The repository was
+ * literally un-checkout-able on a default Windows install, which is what
+ * `scripts/submission/check_path_lengths.py` counts and refuses.
+ *
+ * Shortening the ESCAPE could not have fixed it. The longest request key is 132
+ * characters before any escaping at all; `132 + 5 (".json") + 67 (the frames/ prefix)`
+ * is 204, and the budget at a 60-character clone destination is `259 - 1 - 60 = 198`.
+ * Even a hypothetical identity encoding — one that wrote `/` and `?` straight into a
+ * file name, which no filesystem permits — would still have blown the budget. A name
+ * that does not grow with the request is therefore forced, not preferred.
+ *
+ * Sixteen hex characters is 64 bits. That is not collision-proof in the abstract, so it
+ * is not assumed: `seal` refuses a directory in which two frames claim one name, and
+ * `check` refuses a manifest entry whose name is not the content address of its own
+ * declared key. A collision would have to survive both to go unnoticed.
+ */
+const FRAME_DIGEST_HEX_CHARS = 16;
+
+const FRAME_DIR = 'frames/';
+
+/** The canonical bundle-relative path of the frame carrying `key`. */
+export function framePathForKey(key: string): string {
+  const space = key.indexOf(' ');
+  const method = space > 0 ? key.slice(0, space) : 'REQ';
+  const digest = createHash('sha256').update(key, 'utf8').digest('hex');
+  return `${FRAME_DIR}${method}-${digest.slice(0, FRAME_DIGEST_HEX_CHARS)}.json`;
+}
+
+function isFramePath(relPath: string): boolean {
+  return relPath.startsWith(FRAME_DIR) && relPath.endsWith('.json');
+}
+
 // ── Small utilities ────────────────────────────────────────────────────────
 
 function die(message: string): never {
@@ -116,6 +168,40 @@ interface FileEntry {
   sha256: string;
   bytes: number;
   media_type: string | null;
+  /** Frames only: the canonical request key this frame answers, verbatim. */
+  key?: string;
+}
+
+/**
+ * The request key a frame declares, or `null` when the file is not a frame.
+ *
+ * Reads the key out of the frame's own bytes rather than off its name, which is the
+ * whole point of the digest naming: the name is a content address, the frame is the
+ * content, and `seal` is where the two are made to agree.
+ */
+function frameKeyOf(relPath: string, bytes: Buffer): string {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(bytes.toString('utf8'));
+  } catch (error) {
+    die(`${relPath}: a file under frames/ must be a JSON frame, and this is not JSON (${String(error)}).`);
+  }
+  const key = (parsed as { key?: unknown }).key;
+  if (typeof key !== 'string' || key === '') {
+    die(
+      `${relPath}: a frame must carry a non-empty "key". The manifest copies that request line ` +
+        'verbatim, and a frame that will not say which exchange it is cannot be filed or served.',
+    );
+  }
+  const expected = framePathForKey(key);
+  if (relPath !== expected) {
+    die(
+      `${relPath}: this frame declares key ${JSON.stringify(key)}, whose content address is ` +
+        `${expected}. A frame filed under any other name is exactly what a hand-edited or ` +
+        'stale-scheme bundle looks like. Rename it, or re-run the producer.',
+    );
+  }
+  return key;
 }
 
 interface ManifestSeed {
@@ -131,16 +217,33 @@ interface ManifestSeed {
 
 function listContent(dir: string): FileEntry[] {
   const entries: FileEntry[] = [];
+  const keyOwner = new Map<string, string>();
   for (const full of walkFiles(dir)) {
     const relPath = bundlePath(dir, full);
     if (!isContent(relPath)) continue;
     const bytes = readFileSync(full);
-    entries.push({
+    const entry: FileEntry = {
       path: relPath,
       sha256: sha256Hex(bytes),
       bytes: bytes.byteLength,
       media_type: mediaTypeFor(relPath),
-    });
+    };
+    if (isFramePath(relPath)) {
+      const key = frameKeyOf(relPath, bytes);
+      // Two frames answering one request is a contradiction, not a duplicate: the player
+      // looks a frame up BY KEY, so a second claimant would make which answer is served
+      // depend on manifest order. Refuse here, where both file names can still be named.
+      const owner = keyOwner.get(key);
+      if (owner !== undefined) {
+        die(
+          `${relPath} and ${owner} both declare key ${JSON.stringify(key)}. One request has one ` +
+            'captured answer; a bundle offering two cannot say which one it means.',
+        );
+      }
+      keyOwner.set(key, relPath);
+      entry.key = key;
+    }
+    entries.push(entry);
   }
   // Sorted by path so two seals of the same directory are byte-identical. Evidence Act
   // 1995 (Cth) ss.146–147 need a process that "ordinarily" produces an outcome; a
@@ -222,6 +325,36 @@ function check(dir: string): void {
     const digest = sha256Hex(bytes);
     if (digest !== entry.sha256) {
       problems.push(`${relPath}: manifest says sha256 ${entry.sha256}, file hashes to ${digest}.`);
+    }
+
+    // The naming invariant, re-derived rather than trusted. `seal` established it; this
+    // is the independent re-check, and it is what stops the old request-line scheme (or
+    // any hand-rename) from creeping back into a sealed bundle unnoticed.
+    if (!isFramePath(relPath)) continue;
+    let declaredKey: unknown;
+    try {
+      declaredKey = (JSON.parse(bytes.toString('utf8')) as { key?: unknown }).key;
+    } catch {
+      problems.push(`${relPath}: present under frames/ but is not JSON.`);
+      continue;
+    }
+    if (typeof declaredKey !== 'string' || declaredKey === '') {
+      problems.push(`${relPath}: carries no "key", so nothing can address it.`);
+      continue;
+    }
+    if (entry.key !== declaredKey) {
+      problems.push(
+        `${relPath}: manifest records key ${JSON.stringify(entry.key ?? null)}, the frame declares ` +
+          `${JSON.stringify(declaredKey)}. The player serves by the manifest's key and validates ` +
+          "against the frame's; a disagreement means one of them is answering the wrong request.",
+      );
+    }
+    const address = framePathForKey(declaredKey);
+    if (address !== relPath) {
+      problems.push(
+        `${relPath}: the content address of its declared key is ${address}. A frame under any ` +
+          'other name is a stale naming scheme or a hand-edit.',
+      );
     }
   }
 
@@ -309,7 +442,7 @@ async function captureHttp(step: HttpStep, baseUrl: string, outDir: string): Pro
     if (value !== null) headers.push({ name, value });
   }
 
-  writeFrame(outDir, resolved.framePath, {
+  writeFrame(outDir, framePathForKey(resolved.key), {
     frame_version: 1,
     key: resolved.key,
     request: {
@@ -369,7 +502,7 @@ function captureSql(step: SqlStep, planDir: string, cockroach: { binary?: string
   if (failed) return;
 
   const payload = singleCsvCell(step.sql_name, run.stdout ?? '');
-  writeFrame(outDir, resolved.framePath, {
+  writeFrame(outDir, framePathForKey(resolved.key), {
     frame_version: 1,
     key: resolved.key,
     request: {
@@ -530,7 +663,7 @@ function stage(sourcesDir: string, outDir: string): void {
     const payloadBytes = readFileSync(payloadPath);
 
     const headers = [{ name: 'content-type', value: 'application/json' }];
-    writeFrame(outDir, resolved.framePath, {
+    writeFrame(outDir, framePathForKey(resolved.key), {
       frame_version: 1,
       key: resolved.key,
       request: {

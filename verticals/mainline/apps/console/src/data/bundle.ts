@@ -53,6 +53,18 @@ export interface BundleFileEntry {
   readonly sha256: string;
   readonly bytes: number;
   readonly media_type?: string | null;
+  /**
+   * Frames only: the canonical request key this frame answers, verbatim.
+   *
+   * This is how a frame is ADDRESSED. The file name is a content address
+   * (`<METHOD>-<sha256(key)[:16]>.json`, written by `scripts/capture-bundle.ts`) and is
+   * deliberately opaque here — `src/data/**` computes no digests, so it could not
+   * re-derive a name even if it wanted to. Carrying the request line in the manifest
+   * puts it inside the sealed set the verifier hashes, which is a stronger place for it
+   * than a directory entry nothing checks. The frame repeats its own key and the
+   * transport compares the two below.
+   */
+  readonly key?: string | null;
 }
 
 export interface BundleClusterFingerprint {
@@ -306,6 +318,7 @@ export class BundleTransport implements MainlineTransport {
     const manifest = parsed as BundleManifest;
 
     const byPath = new Map<string, BundleFileEntry>();
+    const byKey = new Map<string, BundleFileEntry>();
     for (const entry of manifest.files) {
       if (byPath.has(entry.path)) {
         throw new TransportError(
@@ -315,6 +328,22 @@ export class BundleTransport implements MainlineTransport {
         );
       }
       byPath.set(entry.path, entry);
+
+      // The request index. A frame is served by KEY, so two entries claiming one key
+      // would make which answer is served depend on manifest order — refuse instead of
+      // picking, and name both files while both are still in hand.
+      const key = entry.key ?? null;
+      if (key === null || key === '') continue;
+      const rival = byKey.get(key);
+      if (rival !== undefined) {
+        throw new TransportError(
+          'malformed',
+          MANIFEST_PATH,
+          `manifest files "${rival.path}" and "${entry.path}" both answer ${JSON.stringify(key)}. ` +
+            'One request has one captured answer; a bundle offering two cannot say which it means.',
+        );
+      }
+      byKey.set(key, entry);
     }
     if (byPath.has(MANIFEST_PATH)) {
       throw new TransportError(
@@ -341,7 +370,7 @@ export class BundleTransport implements MainlineTransport {
       );
     }
 
-    const openedBundle: OpenedBundle = { manifest, report, files: byPath };
+    const openedBundle: OpenedBundle = { manifest, report, files: byPath, frames: byKey };
     this.opened = openedBundle;
     return openedBundle;
   }
@@ -360,16 +389,19 @@ export class BundleTransport implements MainlineTransport {
     // failed verification throws out of `open()` rather than returning a degraded state.
     const opened = await this.open(signal);
 
-    const framePath = resolved.framePath;
-    const entry = opened.files.get(framePath);
+    // Addressed by KEY, through the manifest. The frame's file name is a content address
+    // this module cannot compute — `src/data/**` hashes nothing — so the manifest's
+    // `key` field is the index, and it is inside the set the verifier already sealed.
+    const entry = opened.frames.get(resolved.key);
     if (entry === undefined) {
       throw new TransportError(
         'missing_frame',
         resolved.key,
-        `bundle "${opened.manifest.bundle_id}" has no frame for this request (${framePath}). ` +
+        `bundle "${opened.manifest.bundle_id}" has no frame for this request. ` +
           'It captured a different set of exchanges; it is not incomplete for this one.',
       );
     }
+    const framePath = entry.path;
 
     const frameBytes = await this.readListed(framePath, opened.files, signal);
     const frameText = decodeUtf8(framePath, frameBytes);
@@ -473,6 +505,8 @@ export interface OpenedBundle {
   readonly manifest: BundleManifest;
   readonly report: BundleVerificationReport;
   readonly files: ReadonlyMap<string, BundleFileEntry>;
+  /** The frame index: canonical request key -> the manifest entry that answers it. */
+  readonly frames: ReadonlyMap<string, BundleFileEntry>;
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────

@@ -108,7 +108,7 @@ describe('the untampered fixture bundle', () => {
 describe('one byte, and no frame is served', () => {
   it('fails the digest check and names both digests', async () => {
     const files = bundleFiles();
-    const target = 'frames/GET~20~2Fv1~2Fledger~3Fsite_code~3DBLK-07.json';
+    const target = 'frames/GET-65a138de79af333c.json';
     const original = files.get(target);
     expect(original, `${target} is not in the fixture bundle`).toBeDefined();
 
@@ -131,7 +131,7 @@ describe('one byte, and no frame is served', () => {
 
   it('does not become verified by asking again', async () => {
     const files = bundleFiles();
-    const target = 'frames/GET~20~2Fv1~2Faudit.json';
+    const target = 'frames/GET-540549b3695a753c.json';
     const tampered = new Uint8Array(files.get(target) ?? new Uint8Array());
     tampered[0] = (tampered[0] ?? 0) ^ 0xff;
     files.set(target, tampered);
@@ -144,7 +144,7 @@ describe('one byte, and no frame is served', () => {
 
   it('reports the mismatch verbatim, with the path, when called directly', async () => {
     const files = bundleFiles();
-    const target = 'frames/GET~20~2Fv1~2Faudit.json';
+    const target = 'frames/GET-540549b3695a753c.json';
     const tampered = new Uint8Array(files.get(target) ?? new Uint8Array());
     tampered[5] = (tampered[5] ?? 0) ^ 0x02;
     files.set(target, tampered);
@@ -169,7 +169,7 @@ describe('one byte, and no frame is served', () => {
 
   it('fails when a listed file is missing entirely', async () => {
     const files = bundleFiles();
-    files.delete('frames/GET~20~2Fv1~2Faudit.json');
+    files.delete('frames/GET-540549b3695a753c.json');
     const { transport } = verifierFor(files);
     await expect(transport.open()).rejects.toThrow(/file-read|refused this bundle/);
   });

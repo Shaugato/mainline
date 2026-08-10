@@ -44,38 +44,268 @@ def repo_root() -> Path:
 
 MIGRATIONS_DIR = repo_root() / "verticals" / "mainline" / "db" / "migrations"
 
-#: The migration numbers this worker owns, in application order. Files outside this list are
-#: deliberately NOT applied: the suite proves that the recall band applies forward from clean on
-#: its own, which is what its ``done_when`` asks for.
-RECALL_MIGRATION_NUMBERS: tuple[int, ...] = (
-    40, 41, 42, 43, 44, 45, 46,
-    80, 81, 82, 83, 84, 85, 86, 87, 88,
-    112, 113, 114,
-    136, 137, 138, 139,
+
+# ── migration IDs, suffixes included ─────────────────────────────────────────────────────────
+#
+# A migration ID is a number and, under MR-5, an OPTIONAL lowercase band-overflow suffix:
+# `0138`, then `0138a`, then `0139`. The suffix is not a variant of the file before it and it is
+# not decoration — `0114a` and `0138a` carry the coarse cue projector and the weld that fastens
+# it, an entire mechanism `0114`/`0138` do not contain.
+#
+# The selector used to read that head with ``head.isdigit()``. `"0138a".isdigit()` is False, so
+# every MR-5 suffixed file in the tree — `0049b`, `0049c`, `0049d`, `0049y`, `0049z`, `0114a`,
+# `0138a`, `0155a`, `0180a`… — was dropped WITHOUT A WORD, and the duplicate-number guard below
+# was disabled for precisely the files most likely to collide. Both defects are one parser.
+
+_MIGRATION_ID = re.compile(r"(\d{1,4})([a-z]*)")
+
+
+def migration_id(text: str) -> tuple[int, str]:
+    """``"0138a"`` → ``(138, "a")`` — the sort key that orders ``0138 < 0138a < 0139``.
+
+    Raises ``ValueError`` rather than returning a sentinel: a name this band cannot order is a
+    thing to report, never a thing to skip.
+    """
+    match = _MIGRATION_ID.fullmatch(text)
+    if match is None:
+        raise ValueError(
+            f"{text!r} is not a migration ID: expected digits and an optional lowercase "
+            "MR-5 band-overflow suffix, e.g. `0138` or `0138a`"
+        )
+    return int(match.group(1)), match.group(2)
+
+
+def migration_id_of(path: Path) -> tuple[int, str]:
+    """The sort key of a migration FILE: ``0138a_trg_….sql`` → ``(138, "a")``."""
+    return migration_id(path.name.split("_", 1)[0])
+
+
+def format_migration_id(key: tuple[int, str]) -> str:
+    """``(138, "a")`` → ``"0138a"`` — the spelling used in every message and in the band below."""
+    number, suffix = key
+    return f"{number:04d}{suffix}"
+
+
+# ── the reserved band ────────────────────────────────────────────────────────────────────────
+#
+# THIS BAND IS NOT SELF-CONTAINED, AND SAYING SO OUT LOUD IS THE POINT.
+#
+# The comment that used to sit here claimed "the suite proves that the recall band applies
+# forward from clean on its own". That claim was FALSE, and its falseness is the whole finding
+# behind the 2026-08-10 db-schema failure. `0139_trg_candidate_project.sql` welds a trigger to
+# `mainline.fn_candidate_project()`, which is created twenty-nine files earlier by `0110` — and
+# `0110` was not in this list. A full-chain `trappoint migrate up` can NEVER expose that, because
+# the full chain always applies `0110` before `0139`; only this declared cut can. So the local
+# tree applied 271/271 while CI failed on `unknown function: mainline.fn_candidate_project()`,
+# and the divergence was never an environment difference: the two runs apply different sets.
+#
+# What this list therefore is: a DECLARED CUT through the chain, in which every producer the cut
+# consumes is named next to the consumer that needs it. `_assert_band_is_self_contained` below
+# makes that a machine check, so the next cut that forgets a producer is refused by name before a
+# single statement reaches a cluster.
+RECALL_MIGRATION_NUMBERS: tuple[str, ...] = (
+    # the cue, its two vector sidecars, the lexical tables and the bond
+    "0040", "0041", "0042", "0043", "0044", "0045", "0046",
+    # policy, run, candidate, silence, calibration, thymogate, certificate, stage
+    "0080", "0081", "0082", "0083", "0084", "0085", "0086", "0087", "0088",
+    # PRODUCER, not a recall table. `mainline.fn_candidate_project()` lives here and `0139`
+    # welds a trigger to it. Omitting it is the defect this file was repaired for: the band
+    # welded to a producer it did not carry, and the full chain hid that forever.
+    "0110",
+    # the recall function stratum. `0114a` is `0114`'s MR-5 overflow — a SECOND function
+    # (`fn_cue_coarse_project`), not a revision of the first — and `0138a` welds it.
+    "0112", "0113", "0114", "0114a",
+    # the recall trigger stratum. `0138a` is the coarse sidecar's weld and is what
+    # test_rc01b / test_rc02b address by name; `0139` is `0110`'s consumer.
+    "0136", "0137", "0138", "0138a", "0139",
 )
 
 
-def recall_migration_files() -> list[Path]:
-    """Every reserved recall migration, in numeric order. Missing files are an error."""
-    found: dict[int, Path] = {}
-    for path in MIGRATIONS_DIR.glob("*.sql"):
-        head = path.name.split("_", 1)[0]
-        if head.isdigit():
-            number = int(head)
-            if number in RECALL_MIGRATION_NUMBERS:
-                if number in found:
-                    raise RuntimeError(
-                        f"two files claim migration {number:04d}: "
-                        f"{found[number].name} and {path.name}"
-                    )
-                found[number] = path
-    missing = [n for n in RECALL_MIGRATION_NUMBERS if n not in found]
-    if missing:
-        raise RuntimeError(
-            "missing reserved recall migrations: "
-            + ", ".join(f"{n:04d}" for n in missing)
+# ── what the band creates, and what it consumes ──────────────────────────────────────────────
+
+_CREATE_FUNCTION_NAMED = re.compile(
+    r"CREATE\s+(?:OR\s+REPLACE\s+)?FUNCTION\s+([A-Za-z_][\w.]*)\s*\(", re.IGNORECASE
+)
+_CREATE_TABLE_NAMED = re.compile(
+    r"CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?([A-Za-z_][\w.]*)", re.IGNORECASE
+)
+_CREATE_TRIGGER_WELD = re.compile(
+    r"CREATE\s+TRIGGER\s+(\w+)\s+.*?\bON\s+([A-Za-z_][\w.]*)\s+.*?"
+    r"\bEXECUTE\s+FUNCTION\s+([A-Za-z_][\w.]*)\s*\(",
+    re.IGNORECASE | re.DOTALL,
+)
+_REFERENCES_TABLE = re.compile(r"\bREFERENCES\s+([A-Za-z_][\w.]*)", re.IGNORECASE)
+
+
+def _uncommented(path: Path) -> str:
+    text = path.read_text(encoding="utf-8")
+    text = re.sub(r"/\*.*?\*/", " ", text, flags=re.DOTALL)
+    return re.sub(r"--[^\n]*", " ", text)
+
+
+def _objects_created_by(path: Path) -> set[str]:
+    code = _uncommented(path)
+    created = {m.group(1).lower() for m in _CREATE_FUNCTION_NAMED.finditer(code)}
+    created |= {m.group(1).lower() for m in _CREATE_TABLE_NAMED.finditer(code)}
+    return created
+
+
+_PRODUCERS: dict[str, Path] = {}
+
+
+def producer_of(object_name: str) -> Path | None:
+    """The migration ANYWHERE in the chain that creates ``object_name``, or ``None``.
+
+    The chain, not the band, deliberately: the question this answers is always "which file does
+    the cut not carry", and answering it from inside the cut would answer "none of them".
+    """
+    if not _PRODUCERS:
+        for path in sorted(MIGRATIONS_DIR.glob("*.sql")):
+            for created in _objects_created_by(path):
+                _PRODUCERS.setdefault(created, path)
+    return _PRODUCERS.get(object_name.lower())
+
+
+def _add_it(object_name: str) -> str:
+    """The one sentence a person hitting a missing producer needs, with the file named."""
+    path = producer_of(object_name)
+    if path is None:
+        return (
+            f"  nothing in {MIGRATIONS_DIR.name}/ creates {object_name}: it is neither in the "
+            f"band nor in the chain, so this is a missing MIGRATION, not a missing declaration"
         )
-    return [found[n] for n in RECALL_MIGRATION_NUMBERS]
+    return (
+        f"  producer: {path.name}\n"
+        f"  fix:      add \"{format_migration_id(migration_id_of(path))}\" to "
+        f"RECALL_MIGRATION_NUMBERS in {Path(__file__).name}, in numeric position"
+    )
+
+
+def _assert_band_is_self_contained(files: list[Path]) -> None:
+    """Every function a band trigger executes, and every table it names, is produced IN the cut.
+
+    This is the check whose absence turned a one-line declaration defect into an
+    ``UndefinedFunction`` raised at DDL time inside a session fixture, measured 2026-08-10 as 24
+    test ERRORS and 1 failure with nothing in any of them naming `0110`. It needs no cluster, it
+    runs before anything is applied, and it names the FILE rather than only the SQLSTATE.
+    """
+    available: set[str] = set(_objects_created_by(PREREQ_DIR / "00_consumed_tables.sql"))
+    problems: list[str] = []
+    for path in files:
+        code = _uncommented(path)
+        # A file's own objects count as available TO ITSELF — a table with a self-referencing
+        # foreign key is one statement, not an ordering violation. Everything else is still
+        # judged against what the cut has applied BEFORE this file, which is the property that
+        # catches a consumer placed ahead of its producer.
+        available |= _objects_created_by(path)
+        for weld in _CREATE_TRIGGER_WELD.finditer(code):
+            trigger, table, function = weld.group(1), weld.group(2), weld.group(3)
+            if function.lower() not in available:
+                problems.append(
+                    f"{path.name} welds trigger `{trigger}` to {function}(), which the band "
+                    f"does not create.\n{_add_it(function)}"
+                )
+            if table.lower() not in available:
+                problems.append(
+                    f"{path.name} welds trigger `{trigger}` onto {table}, which the band does "
+                    f"not create.\n{_add_it(table)}"
+                )
+        for reference in _REFERENCES_TABLE.finditer(code):
+            table = reference.group(1)
+            if table.lower() not in available:
+                problems.append(
+                    f"{path.name} carries a foreign key to {table}, which the band does not "
+                    f"create.\n{_add_it(table)}"
+                )
+    if problems:
+        raise RuntimeError(
+            "the recall band is not self-contained — it consumes objects its declared cut "
+            "through the chain does not produce, so it cannot apply forward from clean:\n\n"
+            + "\n\n".join(problems)
+            + "\n\nA full-chain `trappoint migrate up` cannot reproduce this: the chain always "
+            "applies the producer first. Only this band can, which is why the check is here."
+        )
+
+
+def recall_migration_files() -> list[Path]:
+    """Every reserved recall migration, in application order.
+
+    Missing files, duplicate IDs, an out-of-order declaration, a filename this parser cannot
+    order, and a consumed object the cut does not produce are all errors, and each of them says
+    which file to look at.
+    """
+    wanted: dict[tuple[int, str], str] = {}
+    for declared in RECALL_MIGRATION_NUMBERS:
+        key = migration_id(declared)
+        if key in wanted:
+            raise RuntimeError(
+                f"RECALL_MIGRATION_NUMBERS declares {format_migration_id(key)} twice "
+                f"({wanted[key]!r} and {declared!r})"
+            )
+        wanted[key] = declared
+    if list(wanted) != sorted(wanted):
+        raise RuntimeError(
+            "RECALL_MIGRATION_NUMBERS is not in application order; the band is applied in the "
+            "order it is written, so a misplaced entry applies a consumer before its producer. "
+            f"Declared: {list(RECALL_MIGRATION_NUMBERS)}"
+        )
+
+    found: dict[tuple[int, str], Path] = {}
+    unorderable: list[str] = []
+    for path in sorted(MIGRATIONS_DIR.glob("*.sql")):
+        try:
+            key = migration_id_of(path)
+        except ValueError as exc:
+            unorderable.append(f"{path.name} — {exc}")
+            continue
+        if key not in wanted:
+            continue
+        if key in found:
+            raise RuntimeError(
+                f"two files claim migration {format_migration_id(key)}: "
+                f"{found[key].name} and {path.name}"
+            )
+        found[key] = path
+    if unorderable:
+        raise RuntimeError(
+            "these files are in the migrations directory and this selector cannot order them, "
+            "so it will not silently pretend they are absent:\n  " + "\n  ".join(unorderable)
+        )
+
+    missing = [format_migration_id(k) for k in wanted if k not in found]
+    if missing:
+        raise RuntimeError("missing reserved recall migrations: " + ", ".join(missing))
+
+    files = [found[key] for key in wanted]
+    _assert_band_is_self_contained(files)
+    return files
+
+
+# ── refusal diagnosis ────────────────────────────────────────────────────────────────────────
+
+#: CockroachDB v26.2 spells these two `42883` / `42P01` refusals exactly this way. Both mean the
+#: same thing inside this suite — the declared cut is missing a producer — and neither says so.
+_UNKNOWN_FUNCTION = re.compile(r"unknown function:\s*([A-Za-z_][\w.]*)\s*\(", re.IGNORECASE)
+_UNDEFINED_RELATION = re.compile(r'relation "([^"]+)" does not exist', re.IGNORECASE)
+
+
+def producer_hint(message: str) -> str | None:
+    """Turn an `UndefinedFunction`/`UndefinedTable` message into the file that would fix it.
+
+    A SQLSTATE tells you the object was absent. It does not tell you that the band is a cut
+    through a longer chain, nor which file of that chain produces the object — and the person
+    reading the failure should not have to diff two migration sets to find out.
+    """
+    for pattern in (_UNKNOWN_FUNCTION, _UNDEFINED_RELATION):
+        match = pattern.search(message)
+        if match is None:
+            continue
+        name = match.group(1)
+        return (
+            f"{name} does not exist in this database because the recall band applies a DECLARED "
+            f"CUT through the migration chain, not the whole chain.\n{_add_it(name)}"
+        )
+    return None
 
 
 # ── statement splitting ──────────────────────────────────────────────────────────────────────
@@ -523,6 +753,19 @@ def check_constraint_expression(
     therefore means: the message identifies the constraint either by name or by the expression
     that the catalogue says belongs to that name — and no other constraint on the table shares
     it. Both are exact; only one of them is a string the server happens to print.
+
+    MEASURED 2026-08-10, cockroachdb/cockroach:v26.2.5 — the row shape this must not be naive
+    about::
+
+        ['table_name', 'constraint_name', 'constraint_type', 'details', 'validated']
+        ('t', 'sev_range', 'CHECK', 'CHECK ((severity BETWEEN 0 AND 5))', True)
+
+    TWO columns satisfy ``"CHECK" in text.upper()`` and the useless one comes FIRST. Selecting on
+    that substring returned ``_expression_only("CHECK")`` — the empty string — for every CHECK
+    constraint in this suite, which `identifies()` then discarded as falsy. The attribution
+    silently degraded to "the message must contain the constraint NAME", which CockroachDB's
+    ``23514`` does not print, so every `assert_check_refusal` in the band failed with an empty
+    ``catalogue expr:`` line. The discriminator is a parenthesised BODY, not the word.
     """
     try:
         catalogue = conn.execute(f"SHOW CONSTRAINTS FROM {schema}.{table}").fetchall()
@@ -532,9 +775,13 @@ def check_constraint_expression(
         record = [str(value) for value in row]
         if constraint in record:
             for text in record:
-                if "CHECK" in text.upper():
+                if _CHECK_WITH_A_BODY.search(text):
                     return _expression_only(text)
     return None
+
+
+#: `CHECK ((a = b))` — the `details` column. NOT the bare `CHECK` of `constraint_type`.
+_CHECK_WITH_A_BODY = re.compile(r"CHECK\s*\(", re.IGNORECASE)
 
 
 def _expression_only(details: str) -> str:
@@ -581,9 +828,13 @@ def capture_refusal(fn, *args: Any, **kwargs: Any) -> Refusal:
         diag = getattr(exc, "diag", None)
         if diag is not None:
             constraint = getattr(diag, "constraint_name", None)
+        # A `42883`/`42P01` here is never a gate refusal — it is the band missing a producer,
+        # and `producer_hint` names the file rather than leaving a bare SQLSTATE behind.
+        hint = producer_hint(str(exc))
         assert state in GATE_REFUSALS, (
             f"the database refused with {state}, which is not a modelled gate refusal "
             f"({sorted(GATE_REFUSALS)}). Message: {exc}"
+            + (f"\n\n{hint}" if hint else "")
         )
         return Refusal(sqlstate=state, message=str(exc), constraint_name=constraint)
     raise AssertionError("the write was ACCEPTED; this history must be refused")

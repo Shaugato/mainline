@@ -91,7 +91,13 @@ export function readRenderOverride(search: string, hash: string): RenderMode | n
 export function probeCapability(host: CapabilityHost): Capability {
   const reasons: string[] = [];
 
-  let webgl2 = false;
+  // DECLARED, NOT INITIALISED. An `= false` here would be written and never read: the
+  // try assigns on the success path and the catch assigns on the failure path, so no
+  // execution reaches line 106 through the initialiser. It was also the weaker of the
+  // two statements — a default nobody chose, sitting in front of a catch block that
+  // chooses `false` deliberately and says why. TypeScript's definite-assignment
+  // analysis is what proves the remaining two writes cover every path.
+  let webgl2: boolean;
   try {
     webgl2 = host.probeWebgl2();
   } catch (error) {

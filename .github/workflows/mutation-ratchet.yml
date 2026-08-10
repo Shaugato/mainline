@@ -62,6 +62,33 @@ on:
       - "tests/e2e/mutation/**"
       - "tests/unit/domain/novelty/**"
       - ".github/workflows/mutation-ratchet.yml"
+  push:
+    # ADDED 2026-08-10, and it is an ADDITION rather than the `main`→`master` rename the
+    # other lanes needed: this workflow carried NO push trigger at all, so its result had
+    # never appeared on the default branch. MEASURED: `git branch --show-current` is
+    # `master`; `gh run list --branch main` is empty.
+    #
+    # The trigger is the SAME paths list as the `pull_request` arm above. It is written
+    # out rather than shared by a YAML anchor because GitHub Actions' workflow parser
+    # does not support anchors and aliases; an anchor here would be a fresh breakage
+    # dressed as a tidy-up.
+    #
+    # That list is the honest scope: this lane already accepts running on a PR that
+    # touches these paths, so running on the master push of the same paths costs exactly
+    # what it already agreed to cost. It stays off every other commit — this is a
+    # nightly measurement, and the header's "NEVER A GATE" is untouched, because
+    # `mainline-mutation run` exits 0 whatever the kill rate is.
+    branches: [master]
+    paths:
+      - "verticals/mainline/packages/mainline-mutation/**"
+      - "verticals/mainline/packages/mainline-domain/**"
+      - "verticals/mainline/db/migrations/0049y_meas_mutation_run.sql"
+      - "verticals/mainline/db/migrations/0049z_meas_mutation_result.sql"
+      - "verticals/mainline/db/migrations/0149y_trg_mutation_run_append_only.sql"
+      - "verticals/mainline/db/migrations/0149z_trg_mutation_result_append_only.sql"
+      - "tests/e2e/mutation/**"
+      - "tests/unit/domain/novelty/**"
+      - ".github/workflows/mutation-ratchet.yml"
 
 permissions:
   contents: read
@@ -190,13 +217,31 @@ jobs:
           echo "image=${image}" >> "$GITHUB_OUTPUT"
 
       - name: Start a single-node CockroachDB
+        # MEASURED 2026-08-10 against the pinned image — `--listen-addr` is
+        # DELIBERATELY ABSENT and must stay absent:
+        #
+        #   $ docker run … start-single-node --insecure --listen-addr=0.0.0.0:26257 …
+        #   error: hostname of listen_addr must be "127.0.0.1" or "localhost"
+        #
+        # The node refuses to start. `--advertise-addr=localhost:26257` does not rescue
+        # it; the check is on listen_addr itself. And `--listen-addr=localhost:26257`
+        # starts, but binds inside the container's loopback where a published port cannot
+        # reach it. The default binds where `-p` can forward, which is what this job needs
+        # and what the pgwire probe below actually proves. `--http-addr` is unaffected.
+        #
+        # That paragraph is db-schema.yml:162-172's, kept word for word because it
+        # records three measurements and a paraphrase would lose the two negative ones.
+        # The ONE difference is deliberate: that copy names the image literal and this
+        # one says "the pinned image" instead, because db.yml's repository census
+        # ratchets the count of restated image literals and that count is AT its ceiling
+        # of 21 today. Naming the version here would turn this fix into a different red.
         run: |
           set -euo pipefail
           docker run -d --name mutation-crdb \
             -p 127.0.0.1:26257:26257 \
             "${{ steps.image.outputs.image }}" \
             start-single-node --insecure \
-              --listen-addr=0.0.0.0:26257 --store=type=mem,size=2GiB
+              --store=type=mem,size=2GiB
           for attempt in $(seq 1 60); do
             if docker exec mutation-crdb ./cockroach sql --insecure --execute "SELECT 1" >/dev/null 2>&1; then
               echo "cluster answering SQL after ${attempt} attempt(s)"

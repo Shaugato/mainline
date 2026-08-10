@@ -189,11 +189,6 @@ _TEMPLATES: Final[dict[str, tuple[str, str]]] = {
     "suspend_permit": ("POST", "/v1/permits/{permit_id}/suspend"),
 }
 
-_UNRESERVED: Final = set(
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789._-"
-)
-
-
 def _assert_resources_agree() -> None:
     """Refuse to run if :data:`_TEMPLATES` has drifted from ``resources.ts``.
 
@@ -254,12 +249,24 @@ def resolve_key(resource: str, path: dict[str, str] | None = None,
 
 
 def frame_path_for_key(key: str) -> str:
-    """Mirror of ``framePathForKey``: unreserved bytes pass through, the rest become ~XX."""
-    out = []
-    for byte in key.encode("utf-8"):
-        char = chr(byte)
-        out.append(char if char in _UNRESERVED else f"~{byte:02X}")
-    return "frames/" + "".join(out) + ".json"
+    """Mirror of ``framePathForKey`` in the console's ``scripts/capture-bundle.ts``.
+
+    A frame is named ``frames/<METHOD>-<sha256(key)[:16]>.json``. The request line is not
+    lost: ``capture-bundle.ts seal`` copies it verbatim into the manifest entry's ``key``
+    field, and the console addresses frames by that field rather than by name.
+
+    This replaced a scheme that spelled the whole request line into the file name with a
+    ``~XX`` escape. That name grew with the request and produced a 218-character
+    repository path, past the point where ``git clone`` into an ordinary Windows
+    destination yields a working tree (``scripts/submission/check_path_lengths.py``).
+    Shortening the escape could not have fixed it — the longest request key is 132
+    characters before any escaping, and 132 + 5 + 67 already exceeds the 198-character
+    budget a 60-character clone destination leaves — so a name that does not grow with
+    the request is forced rather than preferred.
+    """
+    method = key.split(" ", 1)[0] if " " in key else "REQ"
+    digest = hashlib.sha256(key.encode("utf-8")).hexdigest()
+    return f"frames/{method}-{digest[:16]}.json"
 
 
 # ═══════════════════════════════════════════════════════════════════════════════════════

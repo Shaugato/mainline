@@ -51,7 +51,10 @@ name: db
 
 on:
   push:
-    branches: [main]
+    # `master`, not `main`. MEASURED 2026-08-10: `git branch --show-current` is `master`
+    # and `gh run list --branch main` is EMPTY — this lane had never once run on the
+    # default branch, so its green was invisible on the only page a visitor lands on.
+    branches: [master]
     paths:
       - "packages/trappoint-migrate/**"
       - "packages/trappoint-conformance/**"
@@ -316,13 +319,31 @@ jobs:
           fi
 
       - name: Start a single-node CockroachDB
+        # MEASURED 2026-08-10 against the pinned image — `--listen-addr` is
+        # DELIBERATELY ABSENT and must stay absent:
+        #
+        #   $ docker run … start-single-node --insecure --listen-addr=0.0.0.0:26257 …
+        #   error: hostname of listen_addr must be "127.0.0.1" or "localhost"
+        #
+        # The node refuses to start. `--advertise-addr=localhost:26257` does not rescue
+        # it; the check is on listen_addr itself. And `--listen-addr=localhost:26257`
+        # starts, but binds inside the container's loopback where a published port cannot
+        # reach it. The default binds where `-p` can forward, which is what this job needs
+        # and what the pgwire probe below actually proves. `--http-addr` is unaffected.
+        #
+        # That paragraph is db-schema.yml:162-172's, kept word for word because it
+        # records three measurements and a paraphrase would lose the two negative ones.
+        # The ONE difference is deliberate: that copy names the image literal and this
+        # one says "the pinned image" instead, because the `image-pin` job above fails
+        # HARD on an image literal ANYWHERE in this file — a comment included. Naming
+        # the version here would turn this fix into a different red. Do not restore it.
         run: |
           set -euo pipefail
           docker run -d --name trappoint-crdb \
             -p 127.0.0.1:26257:26257 -p 127.0.0.1:8080:8080 \
             "${CRDB_IMAGE}" \
             start-single-node --insecure \
-              --listen-addr=0.0.0.0:26257 --http-addr=0.0.0.0:8080 \
+              --http-addr=0.0.0.0:8080 \
               --store=type=mem,size=2GiB
           for attempt in $(seq 1 60); do
             if docker exec trappoint-crdb ./cockroach sql --insecure --execute "SELECT 1" >/dev/null 2>&1; then

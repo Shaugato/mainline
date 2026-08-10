@@ -245,7 +245,10 @@ class World:
         conformance runner that could be made to execute arbitrary SQL by a command-line
         flag would be a poor advertisement for a product about refusing bad writes.
         """
-        return pgsql.SQL(text).format(s=pgsql.Identifier(self.schema))  # type: ignore[arg-type]
+        # `psycopg.sql.SQL.format` is correctly typed against `Composable` kwargs, so the
+        # `[arg-type]` ignore this line used to carry suppressed nothing and was reported
+        # by `warn_unused_ignores` on 2026-08-10.
+        return pgsql.SQL(text).format(s=pgsql.Identifier(self.schema))
 
     def run(self, label: str, text: str, params: tuple[Any, ...] = ()) -> None:
         """Execute one setup statement, or explain why the world could not be built."""
@@ -726,10 +729,27 @@ class World:
         "        false, false, false, false, false, %s, NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
     )
 
+    def disposition_id_of(self, draft: Disposition) -> uuid.UUID:
+        """Return the id column 1 of ``_DISPOSITION_SQL`` will carry, as a typed value.
+
+        Stated once, here, because :meth:`sign` used to recover it by indexing position 0
+        of a ``tuple[Any, ...]``.  Indexing an ``Any`` tuple is not a narrowing — it
+        yields ``Any``, which ``warn_return_any`` reported as ``no-any-return`` while the
+        ``# type: ignore[return-value]`` on the same line suppressed a different code
+        entirely and was itself reported as unused.  Two defects, one cause: a UUID was
+        being carried through an untyped positional slot.
+
+        Both callers now derive the id from this function rather than from the tuple, so
+        they agree by construction — ``uuid.uuid5`` is a pure function of the site id and
+        the tag — and the INSERT's column order is free to change without silently
+        changing what :meth:`sign` returns to a case.
+        """
+        return draft.disposition_id or self.uid(f"disposition:{draft.check_id}:{draft.kind}")
+
     def disposition_params(self, draft: Disposition) -> tuple[Any, ...]:
         """Bind one :class:`Disposition` to the INSERT above."""
         return (
-            draft.disposition_id or self.uid(f"disposition:{draft.check_id}:{draft.kind}"),
+            self.disposition_id_of(draft),
             draft.check_id,
             draft.receipt_id,
             # subject_kind / site_id are PROJECTED from the check; a deliberately wrong
@@ -775,9 +795,8 @@ class World:
 
     def sign(self, draft: Disposition, *, label: str = "disposition") -> uuid.UUID:
         """Insert a disposition as **setup**, and return its id."""
-        params = self.disposition_params(draft)
-        self.run(label, self._DISPOSITION_SQL, params)
-        return params[0]  # type: ignore[return-value]
+        self.run(label, self._DISPOSITION_SQL, self.disposition_params(draft))
+        return self.disposition_id_of(draft)
 
     # ── a fully-cleared subject: the legal baseline several cases start from ──
 

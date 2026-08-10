@@ -28,6 +28,28 @@ has been `pip install`ed.
 PL-2, red before green: `test_the_declared_walk_catches_a_planted_dependency` and
 `test_the_source_scan_catches_a_planted_import` drive the same two functions with a
 planted reach and require them to fail. A suite that has never been red asserts nothing.
+
+---
+
+**TWO THINGS THIS MODULE LEARNED ON 2026-08-10, both from `supply-chain.yml` failing.**
+
+*One: the declared walk could not see an extra we ask for ourselves.* It read
+``psycopg[binary]`` as ``psycopg`` and threw the bracket away, so `psycopg`'s
+``psycopg-binary ; extra == "binary"`` looked like a stranger's opt-in extra and was
+recorded-but-not-traversed — while being installed in every image this service ships in.
+A model SDK arriving behind ``some-dep[aws]`` was invisible in exactly the same way.
+`requested_extras` closes that; `test_the_declared_walk_follows_an_extra_this_repository_
+requests_by_name` is its PL-2. With it closed the declared closure is FIFTEEN names, and
+they are the same fifteen ``uv export --frozen --no-dev --package mainline-gate-svc``
+resolves — two independent measurements that now agree.
+
+*Two: "no model SDK" is the weaker of the two claims available here.* A deny-list refuses
+only what somebody already thought to name, and the closure carries `numpy`, `scipy`,
+`pint` and `rapidfuzz` — four BLAS/binary-wheel distributions — into a service whose whole
+job is one SERIALIZABLE transaction and one ``CALL mainline.merge_permit``. None is a
+model SDK, so `supply-chain.yml` is silent about them by design. `EXPECTED_DECLARED_
+CLOSURE` and `NUMERIC_STACK_ENTRY_EDGES` pin the set and the edges instead, so growth is
+a diff a reviewer has to read rather than a thing that happens.
 """
 
 from __future__ import annotations
@@ -83,8 +105,78 @@ MODEL_DISTRIBUTIONS: frozenset[str] = frozenset(
 #: refuse in the enforcement it belongs to.
 REQUIRED_IN_CLOSURE: frozenset[str] = frozenset({"psycopg", "trappoint-core", "mainline-domain"})
 
+#: THE WHOLE DECLARED CLOSURE, PINNED. Measured 2026-08-10 against the installed
+#: metadata of this workspace; it is identical, name for name, to the fifteen entries
+#: `uv export --frozen --no-dev --package mainline-gate-svc` resolves (twelve third-party
+#: pins plus the three workspace members), which is the agreement that makes either
+#: measurement worth trusting.
+#:
+#: This set is pinned rather than merely inspected because "no model SDK" is a weaker
+#: property than "this exact closure". A distribution that is not on any deny-list can
+#: still be a boundary decision — see `NUMERIC_STACK` below — and a deny-list can only
+#: refuse what somebody already thought to name. Growth here fails LOUDLY and has to be
+#: argued for in a diff.
+EXPECTED_DECLARED_CLOSURE: frozenset[str] = frozenset(
+    {
+        "mainline-gate-svc",
+        "mainline-domain",
+        "trappoint-core",
+        "psycopg",
+        "psycopg-binary",
+        "psycopg-pool",
+        "numpy",
+        "scipy",
+        "pint",
+        "rapidfuzz",
+        "flexcache",
+        "flexparser",
+        "platformdirs",
+        "typing-extensions",
+        "tzdata",
+    }
+)
+
+#: Reached, and reached only through `mainline-domain`. Four BLAS/binary-wheel
+#: distributions inside a determinism-critical merge gate is a boundary question
+#: independent of model SDKs: `supply-chain.yml`'s deny-list is silent about them by
+#: design, so if they are not asserted here they are not asserted anywhere.
+#:
+#: MEASURED 2026-08-10: none of the four is imported on the gate path — importing
+#: `mainline_gate_svc`, `.cli`, `.config` and `.service` in a fresh interpreter loads 315
+#: modules and not one of them is `numpy`, `scipy`, `pint` or `rapidfuzz`. That is the
+#: same shape of reach this module refuses for model SDKs: RESOLVED but not imported.
+#: The wheels are in the image regardless.
+NUMERIC_STACK: frozenset[str] = frozenset({"numpy", "scipy", "pint", "rapidfuzz"})
+
+#: The exact non-extra-gated edges by which `NUMERIC_STACK` enters the closure. Pinning
+#: the EDGES rather than only the nodes is what makes a `mainline-domain` split visible:
+#: if the gate service ever declares one of these itself, this set changes and the test
+#: names the new edge.
+NUMERIC_STACK_ENTRY_EDGES: frozenset[tuple[str, str]] = frozenset(
+    {
+        ("mainline-domain", "numpy"),
+        ("mainline-domain", "pint"),
+        ("mainline-domain", "rapidfuzz"),
+        ("mainline-domain", "scipy"),
+        ("scipy", "numpy"),
+    }
+)
+
+#: Nodes whose absence from an installed environment is an environment marker doing its
+#: job rather than a hole in the claim. `psycopg` declares `tzdata ; sys_platform ==
+#: "win32"`; on the Linux runner it is correctly not installed, so the declared walk
+#: reaches its NAME and cannot interrogate it. Nothing else may be unresolved.
+PLATFORM_GATED: frozenset[str] = frozenset({"tzdata"})
+
+#: What `pyproject.toml` is allowed to declare directly. The shortness is the deliverable.
+EXPECTED_DIRECT_DEPENDENCIES: frozenset[str] = frozenset(
+    {"psycopg", "trappoint-core", "mainline-domain"}
+)
+
 _REQUIREMENT_NAME = re.compile(r"^\s*([A-Za-z0-9][A-Za-z0-9._-]*)")
 _EXTRA_MARKER = re.compile(r"\bextra\s*==")
+_EXTRA_NAME = re.compile(r"""\bextra\s*==\s*['"]([^'"]*)['"]""")
+_BRACKET = re.compile(r"^\s*[A-Za-z0-9][A-Za-z0-9._-]*\s*\[([^\]]*)\]")
 
 
 def normalise(name: str) -> str:
@@ -104,6 +196,20 @@ def requirement_name(specifier: str) -> str:
     return normalise(found.group(1)) if found else ""
 
 
+def extra_gate(specifier: str) -> str | None:
+    """Return the name of the extra guarding *specifier*, or ``None`` when none does.
+
+    ``'torch>=2 ; extra == "gpu"'`` -> ``'gpu'``; ``'psycopg[binary]'`` -> ``None``. A
+    marker that says ``extra ==`` in a spelling this regex cannot read returns ``''``,
+    which is a name no requirement can request — an unreadable gate stays shut.
+    """
+    _, semicolon, marker = specifier.partition(";")
+    if not semicolon or _EXTRA_MARKER.search(marker) is None:
+        return None
+    found = _EXTRA_NAME.search(marker)
+    return normalise(found.group(1)) if found and found.group(1) else ""
+
+
 def is_extra_gated(specifier: str) -> bool:
     """True when the requirement only applies under an opt-in extra.
 
@@ -112,8 +218,27 @@ def is_extra_gated(specifier: str) -> bool:
     not own: `pint` declaring `pytest-mpl` under `[test]` is not a reach by this gate
     service, and a check that said it was would be disabled within a week.
     """
-    _, semicolon, marker = specifier.partition(";")
-    return bool(semicolon) and _EXTRA_MARKER.search(marker) is not None
+    return extra_gate(specifier) is not None
+
+
+def requested_extras(specifier: str) -> frozenset[str]:
+    """Return the extras a requirement string asks its target for.
+
+    ``'psycopg[binary,pool]>=3.3.4'`` -> ``{'binary', 'pool'}``.
+
+    THIS IS THE HOLE THIS FUNCTION CLOSES. Before it existed the walk dropped the
+    bracket, so `psycopg`'s ``psycopg-binary ; extra == "binary"`` looked like a
+    stranger's opt-in extra and was recorded-but-not-followed — even though
+    `mainline-gate-svc` asks for exactly that extra, by name, in its own dependency list.
+    `psycopg-binary` and `psycopg-pool` are in every image this service ships in and were
+    invisible to the declared walk. A model SDK arriving behind ``some-dep[aws]`` would
+    have been invisible in the same way, which is the security-relevant version of the
+    same bug.
+    """
+    found = _BRACKET.match(specifier)
+    if not found:
+        return frozenset()
+    return frozenset(normalise(part) for part in found.group(1).split(",") if part.strip())
 
 
 @dataclass(frozen=True, slots=True)
@@ -132,6 +257,14 @@ class ClosureWalk:
     visited: set[str] = field(default_factory=set)
     unresolved: set[str] = field(default_factory=set)
     edges: list[Edge] = field(default_factory=list)
+    #: Per node, the union of extras some followed requirement asked it for.
+    extras_requested: dict[str, frozenset[str]] = field(default_factory=dict)
+
+    def sources_of(self, target: str) -> set[str]:
+        """Every node with a followed (non-extra-gated) edge into *target*."""
+        return {
+            edge.source for edge in self.edges if edge.target == target and not edge.extra_gated
+        }
 
     @property
     def denied(self) -> list[tuple[str, str]]:
@@ -160,39 +293,77 @@ def walk_declared_closure(
 ) -> ClosureWalk:
     """Walk declared requirements transitively from *roots*.
 
+    An extra-gated requirement is FOLLOWED when either (a) some requirement already
+    followed asked this node for that extra by name — ``psycopg[binary]`` asks `psycopg`
+    for ``binary``, and `psycopg-binary` is therefore in the image — or (b) the node is
+    named in *follow_extras_from*. Everything else is recorded as an edge and left
+    untraversed, which is what keeps a stranger's ``[test]`` extra out of our closure.
+
     Args:
-        roots: normalised distribution names to start from.
+        roots: distribution names to start from; a name may carry extras,
+            ``'psycopg[binary]'``.
         requires_of: returns the PEP 508 requirement strings a distribution declares, or
             ``None`` when the distribution is not installed and cannot be interrogated.
-        follow_extras_from: distributions whose *extra-gated* requirements are also
+        follow_extras_from: distributions ALL of whose extra-gated requirements are
             followed. The gate service's own name goes here — we own its
             ``optional-dependencies`` and an opt-in model SDK is still a model SDK we
-            declared. Third-party extras are recorded as edges but not traversed.
+            declared.
 
     Returns:
         The walk. ``unresolved`` matters as much as ``visited``: a node that could not be
         interrogated is a hole in the claim, and a claim with a hole in it must say so.
     """
-    walk = ClosureWalk()
     followed_extras = frozenset(normalise(name) for name in follow_extras_from)
-    queue = [normalise(root) for root in roots]
+    wanted: dict[str, set[str]] = {}
+    declared_by: dict[str, list[str] | None] = {}
+
+    queue: list[tuple[str, frozenset[str]]] = [
+        (requirement_name(root), requested_extras(root)) for root in roots
+    ]
     while queue:
-        current = queue.pop()
-        if current in walk.visited:
+        current, extras = queue.pop()
+        if not current:
             continue
-        walk.visited.add(current)
-        declared = requires_of(current)
+        known = wanted.setdefault(current, set())
+        fresh = extras - known
+        if current in declared_by and not fresh:
+            continue
+        # Update BEFORE reading the requirements, so the gating decision below sees the
+        # full set of extras asked of this node so far.
+        known |= extras
+        if current not in declared_by:
+            declared_by[current] = requires_of(current)
+        declared = declared_by[current]
         if declared is None:
-            walk.unresolved.add(current)
             continue
         for specifier in declared:
             child = requirement_name(specifier)
             if not child:
                 continue
-            gated = is_extra_gated(specifier) and current not in followed_extras
+            gate = extra_gate(specifier)
+            if gate is not None and gate not in known and current not in followed_extras:
+                continue
+            queue.append((child, requested_extras(specifier)))
+
+    # Edges are computed once, at the fixed point, so a node reached twice with different
+    # extras contributes each of its requirements exactly once and `denied` cannot report
+    # the same reach twice.
+    walk = ClosureWalk(
+        visited=set(wanted),
+        unresolved={name for name, declared in declared_by.items() if declared is None},
+        extras_requested={name: frozenset(extras) for name, extras in wanted.items()},
+    )
+    for current, declared in declared_by.items():
+        if declared is None:
+            continue
+        for specifier in declared:
+            child = requirement_name(specifier)
+            if not child:
+                continue
+            gate = extra_gate(specifier)
+            asked = wanted[current]
+            gated = gate is not None and gate not in asked and current not in followed_extras
             walk.edges.append(Edge(current, child, gated))
-            if not gated and child not in walk.visited:
-                queue.append(child)
     return walk
 
 
@@ -337,6 +508,128 @@ def test_the_declared_walk_is_not_vacuous() -> None:
     )
 
 
+# ---------------------------------------------------------------------------
+# The closure PINNED — not merely free of a deny-list, but exactly this shape
+# ---------------------------------------------------------------------------
+
+
+def test_the_declared_closure_is_exactly_the_pinned_set() -> None:
+    """The whole transitive declared closure, name for name.
+
+    "No model SDK" is the weaker of the two claims this file can make, because a
+    deny-list only refuses what somebody already thought to name. This assertion refuses
+    everything nobody argued for. It is the assertion that makes growth in a
+    determinism-critical service a diff a reviewer has to read.
+    """
+    walk = repository_walk()
+    arrived = sorted(walk.visited - EXPECTED_DECLARED_CLOSURE)
+    departed = sorted(EXPECTED_DECLARED_CLOSURE - walk.visited)
+    detail = []
+    for name in arrived:
+        detail.append(f"+{name} (via {sorted(walk.sources_of(name)) or 'a root'})")
+    detail.extend(f"-{name}" for name in departed)
+    assert not detail, (
+        "the declared dependency closure of the merge gate has changed: "
+        + ", ".join(detail)
+        + ". Fifteen names were measured on 2026-08-10 and they matched `uv export "
+        "--frozen --no-dev --package mainline-gate-svc` exactly. Update "
+        "EXPECTED_DECLARED_CLOSURE only together with the argument for why the gate "
+        "needs the new reach; supply-chain.yml's deny-list will not stop a distribution "
+        "nobody has thought to deny."
+    )
+
+
+def test_only_a_platform_marked_node_may_be_uninterrogable() -> None:
+    """A node the walk could not interrogate is a hole; only markers may explain one."""
+    walk = repository_walk()
+    holes = sorted(walk.unresolved - PLATFORM_GATED)
+    assert not holes, (
+        f"{holes} are in the declared closure but are not installed, so the clean result "
+        "above was measured without ever reading their metadata. Either sync them or "
+        "explain them: a closure with a hole in it must say so."
+    )
+
+
+def test_the_gate_service_declares_exactly_three_dependencies() -> None:
+    """The shortness IS the deliverable, so it is asserted rather than described."""
+    data = tomllib.loads((PACKAGE_ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    project = data.get("project", {})
+    direct = {requirement_name(item) for item in project.get("dependencies", [])}
+    assert direct == EXPECTED_DIRECT_DEPENDENCIES, (
+        f"mainline-gate-svc declares {sorted(direct)}; the claim in its own preamble is "
+        f"{sorted(EXPECTED_DIRECT_DEPENDENCIES)}"
+    )
+    assert not project.get("optional-dependencies"), (
+        "an optional dependency on a merge gate is a dependency somebody will opt into; "
+        "there is no extra that this service's one transaction needs"
+    )
+
+
+# ---------------------------------------------------------------------------
+# The numeric stack — not a model SDK, and still a boundary question
+# ---------------------------------------------------------------------------
+
+
+def test_the_numeric_stack_is_carried_by_this_service() -> None:
+    """State the uncomfortable fact as an assertion, so it cannot quietly stop being true.
+
+    A merge gate whose entire job is one SERIALIZABLE transaction and one
+    ``CALL mainline.merge_permit`` carries scipy, numpy, pint and rapidfuzz — four
+    BLAS/binary-wheel distributions. `supply-chain.yml` is silent about them because none
+    of them is a model SDK, which is exactly why they have to be asserted here: an
+    unasserted fact is one that changes without anybody noticing in either direction.
+    """
+    walk = repository_walk()
+    carried = NUMERIC_STACK & walk.visited
+    assert carried == NUMERIC_STACK, (
+        f"the numeric stack in the merge gate's closure is now {sorted(carried)}, not "
+        f"{sorted(NUMERIC_STACK)}. If a `mainline-domain` split removed one of these, "
+        "that is good news and this test is where it gets recorded — narrow "
+        "NUMERIC_STACK and NUMERIC_STACK_ENTRY_EDGES in the same commit."
+    )
+
+
+def test_the_numeric_stack_enters_only_through_mainline_domain() -> None:
+    """Pin the EDGES, because the edge is where a split would show up first."""
+    walk = repository_walk()
+    entry = {
+        (edge.source, edge.target)
+        for edge in walk.edges
+        if edge.target in NUMERIC_STACK and not edge.extra_gated
+    }
+    assert entry == set(NUMERIC_STACK_ENTRY_EDGES), (
+        f"the numeric stack now enters the closure by {sorted(entry)}, not by "
+        f"{sorted(NUMERIC_STACK_ENTRY_EDGES)}"
+    )
+    direct = {target for source, target in entry if source == normalise(DISTRIBUTION)}
+    assert not direct, (
+        f"the gate service itself now declares {sorted(direct)}; the numeric stack was a "
+        "`mainline-domain` question and has become a merge-gate one"
+    )
+
+
+def test_the_numeric_stack_is_resolved_but_never_imported_on_the_gate_path() -> None:
+    """Resolved-but-not-imported, measured — the same shape as the model-SDK reach.
+
+    This is not a green tick for the four wheels. It is the measurement that says the
+    reach is a SUPPLY-CHAIN reach and not a runtime one: the gate path never touches
+    them, and they are in the image anyway. That is the precise distinction this whole
+    module exists to make, applied to distributions no deny-list names.
+    """
+    modules = set(_fresh_interpreter_modules())
+    imported = sorted(NUMERIC_STACK & modules)
+    assert not imported, (
+        f"the merge gate now imports {imported} on its own path. That is a stronger "
+        "reach than the declared one this file otherwise records, and it puts a "
+        "BLAS-backed library inside a determinism-critical transaction."
+    )
+    walk = repository_walk()
+    assert walk.visited >= NUMERIC_STACK, (
+        "the four are absent from sys.modules AND absent from the declared closure, so "
+        "this test asserted nothing; see test_the_numeric_stack_is_carried_by_this_service"
+    )
+
+
 def test_the_declared_walk_catches_a_planted_dependency_two_levels_down() -> None:
     """PL-2. Plant an ordinary runtime reach two levels down; require it to be found."""
     planted = {
@@ -369,6 +662,91 @@ def test_the_declared_walk_catches_a_planted_reach_behind_our_own_extra() -> Non
     theirs = walk_declared_closure(["pint"], lambda name: planted.get(normalise(name)))
     assert theirs.denied == []
     assert theirs.denied_behind_an_extra == [("pint", "torch")]
+
+
+def test_the_declared_walk_follows_an_extra_this_repository_requests_by_name() -> None:
+    """PL-2 for the hole `requested_extras` closes.
+
+    Before extras were tracked this walk reported CLEAN for this graph: `helper`'s
+    ``boto3 ; extra == "aws"`` looked like a stranger's opt-in, even though the requirement
+    one level up asks for ``helper[aws]`` by name and therefore puts boto3 in the image.
+    That is the real-world shape — ``psycopg[binary]`` is exactly this — and it was
+    invisible.
+    """
+    planted = {
+        normalise(DISTRIBUTION): ["helper[aws]>=1"],
+        "helper": [
+            'boto3>=1.35 ; extra == "aws"',
+            'pytest ; extra == "test"',
+        ],
+        "boto3": [],
+    }
+    walk = walk_declared_closure([DISTRIBUTION], lambda name: planted.get(normalise(name)))
+    assert walk.denied == [("helper", "boto3")], (
+        f"the walk missed a reach behind an extra WE requested; it found {walk.denied}"
+    )
+    assert "boto3" in walk.visited
+    assert "pytest" not in walk.visited, (
+        "requesting helper[aws] must not drag in helper's unrelated [test] extra"
+    )
+    assert walk.extras_requested["helper"] == frozenset({"aws"})
+
+
+def test_an_extra_nobody_requested_is_still_not_followed() -> None:
+    """The other half of the same claim: extras tracking must not become extras-blind."""
+    planted = {
+        normalise(DISTRIBUTION): ["helper>=1"],
+        "helper": ['boto3>=1.35 ; extra == "aws"'],
+        "boto3": [],
+    }
+    walk = walk_declared_closure([DISTRIBUTION], lambda name: planted.get(normalise(name)))
+    assert walk.denied == []
+    assert walk.denied_behind_an_extra == [("helper", "boto3")]
+    assert "boto3" not in walk.visited
+
+
+def test_an_extra_marker_this_parser_cannot_read_stays_shut() -> None:
+    """An unreadable gate is a closed gate, not an open one."""
+    assert extra_gate("boto3 ; extra == ") == ""
+    planted = {
+        normalise(DISTRIBUTION): ["helper[aws]>=1"],
+        "helper": ["boto3>=1.35 ; extra == "],
+    }
+    walk = walk_declared_closure([DISTRIBUTION], lambda name: planted.get(normalise(name)))
+    assert "boto3" not in walk.visited
+    assert walk.denied_behind_an_extra == [("helper", "boto3")]
+
+
+@pytest.mark.parametrize(
+    ("specifier", "expected"),
+    [
+        ("psycopg[binary,pool]>=3.3.4", {"binary", "pool"}),
+        ("psycopg[binary]", {"binary"}),
+        ("psycopg", set()),
+        ("isort[colors]>=6.0 ; extra == 'dev'", {"colors"}),
+        ("pint[Test_All]", {"test-all"}),
+        ("helper[]", set()),
+    ],
+)
+def test_requested_extras_reads_the_bracket(specifier: str, expected: set[str]) -> None:
+    assert requested_extras(specifier) == frozenset(expected)
+
+
+@pytest.mark.parametrize(
+    ("specifier", "expected"),
+    [
+        ("boto3>=1.35", None),
+        ('boto3>=1.35 ; extra == "aws"', "aws"),
+        ("boto3>=1.35 ; extra == 'aws'", "aws"),
+        ('numpy>=1.23 ; extra == "test-all"', "test-all"),
+        ('mypy>=1.19 ; implementation_name != "pypy" and extra == "test"', "test"),
+        ('psycopg ; python_version >= "3.13"', None),
+    ],
+)
+def test_extra_gate_names_the_extra_that_guards_a_requirement(
+    specifier: str, expected: str | None
+) -> None:
+    assert extra_gate(specifier) == expected
 
 
 def test_the_declared_walk_reports_what_it_could_not_interrogate() -> None:

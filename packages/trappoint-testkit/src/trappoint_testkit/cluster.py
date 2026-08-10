@@ -41,6 +41,22 @@ fixture setup. Measured on this machine: a connect to a black-holed address retu
 ``PGCONNECT_TIMEOUT=3``. Every connect here carries an explicit timeout, and
 :class:`ProcessGuard` makes the no-cluster case a fast, reasoned skip instead of thirteen
 sequential attempts to start a container that cannot start.
+
+LAYERING — WHY ``psycopg`` IS IMPORTED INSIDE FUNCTIONS AND NOT AT THE TOP. Measured on
+2026-08-10 in GitHub Actions run 31372088311: all seven ``boundary`` jobs died before a
+single assertion executed, with ``ModuleNotFoundError: No module named 'psycopg'`` raised
+from line 60 of *this file* while pytest loaded the ``trappoint_testkit.plugin`` entry
+point. That lane installs ``./packages/mainline-boundary pytest`` and nothing else, on
+purpose: E3 asserts what a *minimal* kernel-plane environment can reach, so widening it
+would destroy the thing it measures.
+
+The defect was ours, not the lane's. Three things this module owns need no database at all
+— :data:`MODES` (four strings, which ``--crdb`` validates against), :data:`DSN_ENV_NAMES`
+(four more strings) and :class:`ProcessGuard` (``shutil`` and ``subprocess``) — and a
+module-scope ``import psycopg`` made every one of them cost a PostgreSQL driver. So the
+driver is imported by the functions that open a socket, and by nothing else. Importing this
+module is stdlib-only; :class:`DriverMissing` names the driver, the action and the fix when
+something that genuinely needs it is called without it.
 """
 
 from __future__ import annotations
@@ -55,10 +71,10 @@ import uuid
 from collections.abc import Iterator, Sequence
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 
-import psycopg
-from psycopg.conninfo import conninfo_to_dict, make_conninfo
+if TYPE_CHECKING:  # pragma: no cover - types only; never imported at runtime
+    import psycopg
 
 __all__ = [
     "CLOUD_GC_TTL_SECONDS",
@@ -66,9 +82,11 @@ __all__ = [
     "DEFAULT_DSNS",
     "DSN_ENV_NAMES",
     "Database",
+    "DriverMissing",
     "ProcessGuard",
     "SharedCluster",
     "connect",
+    "driver_error",
     "dsn_for_database",
     "ensure",
     "export_dsn",
@@ -118,6 +136,51 @@ _PORT_TAIL = re.compile(r":(?P<port>\d+)\s*$")
 _PATH_SEPARATORS = re.compile(r"[\\/]")
 
 
+# ── the driver ───────────────────────────────────────────────────────────────────────────────
+
+
+#: What to install, spelled exactly as `packages/trappoint-testkit/pyproject.toml` declares it,
+#: so a reader can paste the line rather than go looking for the version floor.
+DRIVER_REQUIREMENT = "psycopg[binary,pool]>=3.3.4"
+
+
+class DriverMissing(RuntimeError):
+    """The PostgreSQL driver is absent and the operation asked for needs a live socket.
+
+    Raised instead of letting a bare ``ModuleNotFoundError`` escape, because the two say
+    very different things to whoever reads the log. ``No module named 'psycopg'`` on line 60
+    of a module that was imported for its four-string ``MODES`` tuple is a puzzle; *this*
+    names the driver, the action that wanted it, and the command that supplies it.
+    """
+
+
+def _driver_missing(action: str, cause: ImportError) -> DriverMissing:
+    """Build the refusal for *action*, naming the fix rather than only the symptom."""
+    return DriverMissing(
+        f"trappoint-testkit cannot {action}: the PostgreSQL driver is not importable in "
+        f"this environment ({cause}). Install it with "
+        f'`python -m pip install "{DRIVER_REQUIREMENT}"`. Nothing else in this module '
+        "needs it — MODES, DSN_ENV_NAMES, ProcessGuard and the image pin are stdlib-only "
+        "and import without a driver, which is what lets a minimal lane load this plugin "
+        "at all."
+    )
+
+
+def driver_error() -> str | None:
+    """``None`` when the driver imports; otherwise the one-line reason it does not.
+
+    A question, not an assertion: a caller that has no use for a cluster — the boundary
+    lanes, which install ``mainline-boundary`` and ``pytest`` and nothing else — asks this
+    once and reports "no cluster, and here is why" instead of spending two minutes starting
+    a container whose readiness it could never observe.
+    """
+    try:
+        import psycopg  # noqa: F401 - imported for the side effect of finding out
+    except ImportError as exc:
+        return str(exc)
+    return None
+
+
 # ── the cluster ──────────────────────────────────────────────────────────────────────────────
 
 
@@ -152,18 +215,31 @@ def connect(dsn: str, *, timeout: float = PROBE_TIMEOUT_S) -> psycopg.Connection
     Autocommit because DDL on CockroachDB is a background job and a multi-statement DDL
     transaction is a different animal from a sequence of schema changes. Explicit timeout
     because the default is 130 seconds of silence, measured.
+
+    Raises:
+        DriverMissing: psycopg is not importable here. See the module's LAYERING note.
     """
+    try:
+        import psycopg
+    except ImportError as exc:
+        raise _driver_missing("open a connection", exc) from exc
     return psycopg.connect(dsn, autocommit=True, connect_timeout=int(max(1, round(timeout))))
 
 
 def probe(dsn: str, *, timeout: float = PROBE_TIMEOUT_S) -> str | None:
     """``version()`` if something answers SQL on *dsn*, otherwise ``None``.
 
-    Never raises. "Is there a cluster there" must not be able to fail the run.
+    Never raises *for a connection failure*: "is there a cluster there" must not be able to
+    fail the run. :class:`DriverMissing` is deliberately NOT swallowed, because it is not an
+    answer to that question — it is this process being unable to ask it, and reporting
+    "nothing answered" when nobody was able to speak is the kind of quiet lie that later
+    shows up as a container nobody can explain.
     """
     try:
         with connect(dsn, timeout=timeout) as conn:
             row = conn.execute("SELECT version()").fetchone()
+    except DriverMissing:
+        raise
     except Exception:  # noqa: BLE001 - any failure at all means "nothing is there"
         return None
     return None if row is None else str(row[0])
@@ -353,11 +429,25 @@ def ensure(
     * ``none``  — do not look. Always ``None``.
 
     Never raises for an absent cluster: "no cluster" is a result, not an error.
+
+    Raises:
+        ValueError: *mode* is not one of :data:`MODES`.
+        DriverMissing: every mode but ``none`` needs a driver, and a missing driver is a
+            missing prerequisite rather than an absent cluster. Refusing here is what stops
+            ``auto`` from doing the measured-worst thing: ``docker run`` a node, then wait
+            the full :data:`READY_TIMEOUT_S` for a readiness probe that cannot succeed
+            because nothing in this process can speak pgwire, then delete the node. Callers
+            that have no use for a cluster ask :func:`driver_error` first and skip with a
+            reason instead — see :mod:`trappoint_testkit.plugin`.
     """
     if mode not in MODES:
         raise ValueError(f"unknown crdb mode {mode!r}; expected one of {', '.join(MODES)}")
     if mode == "none":
         return None
+    try:
+        import psycopg  # noqa: F401 - imported for the side effect of finding out
+    except ImportError as exc:
+        raise _driver_missing(f"obtain a cluster under --crdb={mode}", exc) from exc
     if mode in ("auto", "reuse"):
         found = reuse(env=env)
         if found is not None or mode == "reuse":
@@ -388,7 +478,16 @@ def dsn_for_database(dsn: str, database: str) -> str:
 
     An environment-supplied DSN may carry ``options=--cluster=``, an ``sslrootcert`` path, or
     no path component at all, and none of those survive a naive ``rsplit('/')``.
+
+    Raises:
+        DriverMissing: psycopg is not importable here. The parser this needs lives in the
+            driver, and re-implementing libpq's conninfo grammar to avoid it would be a
+            second, quieter version of the bug this function exists to prevent.
     """
+    try:
+        from psycopg.conninfo import conninfo_to_dict, make_conninfo
+    except ImportError as exc:
+        raise _driver_missing("re-point a DSN at another database", exc) from exc
     parts = conninfo_to_dict(dsn)
     parts["dbname"] = database
     # `conninfo_to_dict` types its values as `str | int | None` (a port is an int), while
@@ -406,9 +505,19 @@ def pin_gc_ttl(
     borrowing. Without it, the node's **default range** is reconfigured, which is only
     appropriate for a node this package started.
 
-    Never raises: a cluster that refuses the zone change is still a usable cluster, and the
-    caller needs to be told rather than stopped.
+    Never raises *for a database that says no*: a cluster that refuses the zone change is
+    still a usable cluster, and the caller needs to be told rather than stopped.
+
+    Raises:
+        DriverMissing: psycopg is not importable here. A caller holding a
+            :class:`SharedCluster` has already connected once, so reaching this without a
+            driver means something changed underneath the session and saying so beats
+            reporting it as a cluster that declined.
     """
+    try:
+        import psycopg
+    except ImportError as exc:
+        raise _driver_missing("pin gc.ttlseconds", exc) from exc
     target = f"DATABASE {database}" if database else "RANGE default"
     try:
         with connect(dsn) as conn:
@@ -431,7 +540,14 @@ def fresh_database(cluster: SharedCluster, label: str) -> Iterator[Database]:
     seconds and asserting against a schema built by *this* module costs nothing extra. Per
     test would be honest and unusably slow; per session would let one module's leftovers
     explain another module's pass.
+
+    Raises:
+        DriverMissing: psycopg is not importable here. See the module's LAYERING note.
     """
+    try:
+        import psycopg
+    except ImportError as exc:
+        raise _driver_missing("create a database for this module", exc) from exc
     name = _database_name(label)
     with connect(cluster.dsn) as admin:
         admin.execute(f"CREATE DATABASE {name}")

@@ -40,7 +40,6 @@ import {
   type BundleVerifier,
 } from '../../../src/data/bundle';
 import { contractRegistry } from '../../../src/data/contracts';
-import { framePathForKey } from '../../../src/data/resources';
 import type { MainlineTransport } from '../../../src/data/transport';
 import type { PropagationResponse } from '../../../src/data/types.generated';
 
@@ -98,8 +97,26 @@ export function lessonId(): string {
   return sourcePropagation().data.lesson.lesson_id;
 }
 
+/**
+ * The bundle path of the frame answering a canonical request key.
+ *
+ * Read out of the SEALED manifest rather than computed: frame names are content
+ * addresses written by `scripts/capture-bundle.ts`, and `src/**` computes no digests,
+ * so `manifest.files[].key` is the index — here as it is for the transport itself.
+ */
+function frameAddress(requestKey: string): string {
+  const manifestBytes = bundleFiles().get('manifest.json');
+  if (manifestBytes === undefined) throw new Error('the fixture bundle has no manifest.json.');
+  const manifest = JSON.parse(decoder.decode(manifestBytes)) as BundleManifest;
+  const entry = manifest.files.find((file) => file.key === requestKey);
+  if (entry === undefined) {
+    throw new Error(`the sealed blk-07 manifest lists no frame answering "${requestKey}".`);
+  }
+  return entry.path;
+}
+
 export function propagationFramePath(): string {
-  return framePathForKey(`GET /v1/lessons/${lessonId()}/propagation`);
+  return frameAddress(`GET /v1/lessons/${lessonId()}/propagation`);
 }
 
 // ── Frames ─────────────────────────────────────────────────────────────────
@@ -174,7 +191,16 @@ export async function resealBundle(
   if (manifestBytes === undefined) throw new Error('the fixture bundle has no manifest.json.');
   const manifest = JSON.parse(decoder.decode(manifestBytes)) as BundleManifest;
 
-  const sealed: { path: string; sha256: string; bytes: number; media_type?: string | null }[] = [];
+  // `key` is carried through verbatim. It is not derived from the bytes, so a reseal
+  // must preserve it: dropping it would leave every frame digest-valid and every
+  // frame unreachable, because the transport addresses frames by key.
+  const sealed: {
+    path: string;
+    sha256: string;
+    bytes: number;
+    media_type?: string | null;
+    key?: string | null;
+  }[] = [];
   for (const entry of manifest.files) {
     const bytes = files.get(entry.path);
     if (bytes === undefined) throw new Error(`manifest lists ${entry.path}, which is absent.`);
@@ -183,6 +209,7 @@ export async function resealBundle(
       sha256: await sha256Hex(bytes),
       bytes: bytes.byteLength,
       ...(entry.media_type === undefined ? {} : { media_type: entry.media_type }),
+      ...(entry.key === undefined ? {} : { key: entry.key }),
     });
   }
 

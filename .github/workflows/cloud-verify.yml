@@ -50,6 +50,20 @@
 name: cloud-verify
 
 on:
+  # NO `push:` TRIGGER, AND THAT IS DELIBERATE — READ THIS BEFORE "FIXING" IT.
+  #
+  # On 2026-08-10 every other workflow in this repository was found triggering on
+  # `push: branches: [main]` against a repository whose default branch is `master`, so
+  # fifteen lanes had never run on the branch the Actions tab opens on. This file was
+  # NOT part of that defect and must not be swept up in its repair: it holds the one
+  # credential this repository has (`secrets.CRDB_CLOUD_DSN`), and a lane that reaches a
+  # live CockroachDB Cloud cluster on every commit is a lane that bills a shared
+  # resource for every typo. PL-1 also says a proof needing a credential of ours is
+  # evidence about us, not about the product — so this is nightly by design.
+  #
+  # It still reaches `master`: GitHub fires `schedule:` from the DEFAULT branch only,
+  # which is `master`, so the scheduled runs below are already master runs and are
+  # already visible on the default view of the Actions tab.
   schedule:
     # 17:00 UTC daily = 01:00 Singapore, 03:00 Sydney. Off-peak for the cluster region
     # and for the inference region, and comfortably clear of the working day in which

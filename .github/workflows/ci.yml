@@ -45,12 +45,40 @@
 #    `--crdb=none` makes every cluster-backed test skip with the reason its own fixture
 #    writes. Measured here: `pytest packages/trappoint-testkit/tests --crdb=none` ->
 #    26 passed, 2 skipped, 3.62 s, with the skip reason printed.
+#
+# 5. THE HERMETIC TEST LANE IS TWO JOBS, NOT ONE — added 2026-08-10.
+#
+#    Run 31372088432 measured `47 failed, 8182 passed, 833 skipped` in a single job.
+#    Roughly a third of those 47 are RED ON PURPOSE and say so in their own assertion
+#    text: five `[FAIL] <gate>` lines from `tests/eval/recall/test_g4alpha_gates.py`
+#    (whose `g4alpha` marker is registered in `pyproject.toml` as "observed RED by
+#    design until K4"), `test_mi_ratchet.py::test_red_every_invariant_is_enforced`
+#    ("28 of 30 MAINLINE invariants are still pending … This is PL-2's red case"), and
+#    the `PL-2 RED, as intended.` cases across the `test_mi_*` suites.
+#
+#    One job that mixes those with genuine regressions has two failure modes and no way
+#    to tell them apart: a reader cannot see a new break inside a wall of intended
+#    breaks, and — worse — the day a declared red goes GREEN, which is the event the
+#    whole PL-2 discipline exists to notice, the count simply falls and nobody is told.
+#
+#    So `hermetic-tests` DESELECTS the declared-red markers and `red-by-design` runs
+#    exactly those and INVERTS the verdict: it fails if any of them PASSES. This is the
+#    shape `db-schema.yml`'s `mi-red` job already uses. Nothing is skipped, nothing is
+#    `xfail`-swallowed, no `continue-on-error` and no `|| true`: both jobs are `needs:`
+#    of `summary`, both keep their exit codes, and the reds simply stop being
+#    indistinguishable from regressions.
 
 name: ci
 
 on:
   push:
-    branches: [main]
+    # `master`, not `main`. MEASURED 2026-08-10: `gh repo view --json defaultBranchRef`
+    # -> `master`; `gh run list --branch main` -> empty. The branch `main` does not
+    # exist in this repository, so this trigger had NEVER FIRED ONCE — every push run
+    # of this workflow in its whole history is a `pull_request` run on somebody's
+    # branch. The Actions tab opens on the default branch, which means this lane's
+    # green was invisible on the only page a first-time reader looks at.
+    branches: [master]
   pull_request:
   workflow_dispatch:
 
@@ -64,6 +92,24 @@ concurrency:
 env:
   PYTHON_VERSION: "3.13"
   FORCE_COLOR: "1"
+  # THE BY-DESIGN-RED SET, DECLARED ONCE.
+  #
+  # `hermetic-tests` runs `not (RED_SELECTOR)` and `red-by-design` runs `RED_SELECTOR`,
+  # so the two jobs are the exact complement of each other over the same collection and
+  # there is no third place a test can hide. Measured locally 2026-08-10 with the pinned
+  # interpreter: `-m "not (g4alpha or pl2_red)"` -> 1093 collected, 5 deselected;
+  # `-m "g4alpha or pl2_red"` -> 5 collected, 1093 deselected; 1093 + 5 = 1098, the
+  # whole collection. Writing the two expressions by hand in two jobs is how a gap gets
+  # in, so they are derived from this one string instead.
+  #
+  # `g4alpha` is registered in `pyproject.toml` ("observed RED by design until K4").
+  # `pl2_red` is the marker for the `PL-2 RED, as intended.` cases; it is registered and
+  # applied by the MI-catalogue worker. `--strict-markers` governs markers APPLIED to
+  # tests, not names used in a `-m` expression, so this selector is already valid and
+  # already correct while that marker is still landing — it simply selects the g4alpha
+  # five today and the full set the moment `pl2_red` appears on a test. Nothing here
+  # edits a test to make that happen.
+  RED_SELECTOR: "g4alpha or pl2_red"
 
 jobs:
   # ---------------------------------------------------------------------------------
@@ -388,13 +434,57 @@ jobs:
         # into its own legible failure instead of a wall of noise inside a test run.
         run: uv run --frozen --all-packages pytest --crdb=none --collect-only -q
 
+      - name: Name every test this job hands to `red-by-design`
+        # A DESELECTION MUST NOT BE A DISAPPEARANCE. This file has always argued —
+        # correctly, in the step below — that a marker filter is dangerous because the
+        # deselected test vanishes from the report and cannot be told from a deleted
+        # one. The step below therefore still refuses `-m "not requires_cluster"`.
+        #
+        # The one deselection this lane does make is answered two ways: the deselected
+        # tests are printed BY NAME here, and they are RUN, in full, with their verdict
+        # inverted, by the `red-by-design` job in this same workflow. Both jobs are
+        # `needs:` of `summary`. So the census below is a hand-off, and it names its
+        # counterpart.
+        run: |
+          set -euo pipefail
+          code=0
+          uv run --frozen --all-packages pytest --crdb=none \
+            -m "${RED_SELECTOR}" --collect-only -q > handed-off.txt || code=$?
+          # 0 = tests collected, 5 = nothing matched. Anything else is a broken
+          # collection and must not be reported as an empty hand-off.
+          if [ "${code}" -ne 0 ] && [ "${code}" -ne 5 ]; then
+            echo "::error::collection for the hand-off census exited ${code}; the count below cannot be trusted"
+            cat handed-off.txt
+            exit 1
+          fi
+          count=0
+          if grep -q '::' handed-off.txt; then
+            count=$(grep -c '::' handed-off.txt)
+          fi
+          echo "::notice::${count} test(s) deselected here and run by the 'red-by-design' job"
+          echo "handed to red-by-design (-m '${RED_SELECTOR}'):"
+          if [ "${count}" -eq 0 ]; then
+            echo "  (none)"
+          else
+            grep '::' handed-off.txt | sed 's/^/  /'
+          fi
+
       - name: The suite, with every cluster test SKIPPED FOR A NAMED REASON
         # NOT `-m "not requires_cluster"`. A marker filter DESELECTS, which means the
         # test disappears from the report and nobody can tell a test that was skipped
         # from a test that was deleted. `--crdb=none` makes the fixture skip and PRINT
         # the reason it skipped, so `-ra` renders a census of exactly what this lane did
         # not prove. That census is the honest half of a green tick.
-        run: uv run --frozen --all-packages pytest --crdb=none -q --durations=10
+        #
+        # The single exception is `not (RED_SELECTOR)`, and it is an exception on the
+        # exact ground the paragraph above states: those tests do not disappear, because
+        # the step above names each one and the `red-by-design` job runs every one of
+        # them. What this job asserts after the split is the thing it could never assert
+        # before — that a failure HERE is a REGRESSION, with no by-design red in the
+        # count to hide it.
+        run: |
+          uv run --frozen --all-packages pytest --crdb=none \
+            -m "not (${RED_SELECTOR})" -q --durations=10
 
       - name: The conformance suite lists without a database
         # `--list` is a documentation act and must not need a driver connection. It is
@@ -419,6 +509,252 @@ jobs:
               "trappoint-ref profile — and that number is the K1 exit string"
           )
           print(f"{len(m.cases)} cases · {len(ref)} on trappoint-ref · spec {m.spec_version}")
+          PY
+
+  # ---------------------------------------------------------------------------------
+  # RED BY DESIGN, AND IT MUST STAY RED.
+  #
+  # The complement of `hermetic-tests`. It runs exactly the tests that job deselects,
+  # and it INVERTS the verdict: a test in this set that FAILS is the expected state and
+  # this job stays green; a test in this set that PASSES fails this job by name.
+  #
+  # Why inversion rather than `xfail`, `continue-on-error` or deletion. All three of
+  # those make a by-design red SILENT, and silence loses the one event that matters:
+  # PL-2 says a mechanism is not delivered until an assertion that was observed red is
+  # observed green, so the transition is the deliverable. An `xfail` reports XPASS and
+  # exits 0 by default; `continue-on-error` paints a green tick over any outcome
+  # whatever; deletion loses the claim entirely. Only an inverted assertion turns "a
+  # declared red went green" into a red X with the node id in it.
+  #
+  # THREE GUARDS AGAINST A VACUOUS PASS, because "the assertion held over the empty set"
+  # is the exact way an instrument stops measuring without anybody noticing:
+  #
+  #   * a FLOOR — the selected set must contain at least RED_FLOOR failures, so the
+  #     selector silently collapsing to nothing fails instead of passing;
+  #   * a REGISTRY — every test the marker reaches must live in a file declared below
+  #     with the reason it is allowed to be red, so the marker cannot become a place to
+  #     put an inconvenient regression;
+  #   * a SKIP CENSUS — `--crdb=none` cannot measure a cluster-backed test, and a test
+  #     that was not measured is not evidence of anything, so skips are counted, named
+  #     and never allowed to satisfy the floor.
+  # ---------------------------------------------------------------------------------
+  red-by-design:
+    name: "RED BY DESIGN, and it must stay red"
+    runs-on: ubuntu-24.04
+    needs: [checkers]
+    timeout-minutes: 12
+    env:
+      # Measured in run 31372088432 (`ci`, 2026-08-10): the `g4alpha` marker alone
+      # contributes five failures, and it is registered and applied today. The floor is
+      # therefore five even before `pl2_red` lands on the `PL-2 RED, as intended.`
+      # cases, and it is a floor on FAILURES, never on collected tests — a set that
+      # collects fifteen and fails none is exactly what this job exists to catch.
+      RED_FLOOR: "5"
+    steps:
+      - name: Deny egress except to the package indexes
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            objects.githubusercontent.com:443
+            raw.githubusercontent.com:443
+            pypi.org:443
+            files.pythonhosted.org:443
+            astral.sh:443
+
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-workspace
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Run the declared set — the exit code is NOT the verdict
+        # Deliberately not the verdict. pytest exits 1 for "some test failed", which is
+        # the state this job WANTS, and 0 for "everything passed", which is the state it
+        # must refuse. Reading the code directly would therefore invert the meaning of
+        # every other exit code too, so the run is recorded to a JUnit report and the
+        # verdict is computed per test in the step below. Only the codes that mean the
+        # run did not happen — 2 interrupted, 3 internal error, 4 usage error, 5 nothing
+        # collected — are fatal here, and each is named.
+        run: |
+          set -euo pipefail
+          code=0
+          uv run --frozen --all-packages pytest --crdb=none \
+            -m "${RED_SELECTOR}" -rA --durations=10 \
+            -o junit_family=xunit1 --junitxml=red-by-design.xml || code=$?
+          echo "pytest exited ${code}"
+          case "${code}" in
+            0|1)
+              ;;
+            5)
+              echo "::error::'-m ${RED_SELECTOR}' collected NO tests, so this job would have"
+              echo "reported 'every declared red is still red' over the empty set. Either the"
+              echo "markers were removed from the suites, or the selector in ci.yml's env block"
+              echo "no longer names them. A vacuous pass here is worse than a red."
+              exit 1
+              ;;
+            2)
+              echo "::error::pytest was INTERRUPTED (exit 2). Nothing was measured."
+              exit 1
+              ;;
+            3)
+              echo "::error::pytest hit an INTERNAL ERROR (exit 3). Nothing was measured."
+              exit 1
+              ;;
+            4)
+              echo "::error::pytest refused its own command line (exit 4) — a usage or config"
+              echo "error, not a test result. Nothing was measured."
+              exit 1
+              ;;
+            *)
+              echo "::error::pytest exited ${code}, which this job does not know how to read."
+              exit 1
+              ;;
+          esac
+
+      - name: The verdict — every declared red is still red, and nothing else hid here
+        # No `if: always()`. The step above already fails, by name, for every exit code
+        # that means the run did not happen; re-reporting "no JUnit report" underneath
+        # one of those would bury the real message. This step runs exactly when there is
+        # a report to read.
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import os
+          import pathlib
+          import sys
+          import xml.etree.ElementTree as ET
+
+          # path -> the truth this file's by-design-RED cases report. A file is allowed
+          # to carry the marker only if it is named here WITH its reason, so the set is
+          # reviewable in one place instead of being wherever somebody put a decorator.
+          # Source: docs/leads/ci-green-plan.md §4 and §6, measured in run 31372088432.
+          REGISTRY = {
+              "tests/eval/recall/test_g4alpha_gates.py":
+                  "the five G4-alpha recall gates are not met; RED until K4 by declaration",
+              "tests/integration/schema/test_mi_ratchet.py":
+                  "PL-2's red case — 28 of 30 MI invariants are not yet enforced",
+              "tests/integration/schema/test_mi_blame.py":
+                  "the monotone guard and the closure projection do not exist yet",
+              "tests/integration/schema/test_mi_boundary_override.py":
+                  "fn_boundary_project, the carried-use projection and two append-only "
+                  "triggers do not exist yet",
+              "tests/integration/schema/test_mi_event_severity.py":
+                  "severity-revision provenance is not yet projected",
+              "tests/integration/schema/test_mi_spine.py":
+                  "MI15's BEFORE INSERT monotone guard does not exist",
+          }
+
+          floor = int(os.environ["RED_FLOOR"])
+          report = pathlib.Path("red-by-design.xml")
+          if not report.exists():
+              print("::error::no JUnit report was written, so this job measured nothing")
+              sys.exit(1)
+
+          def where_of(case: ET.Element) -> str:
+              """The file a testcase came from, repository-relative, POSIX separators.
+
+              MEASURED 2026-08-10 on pytest 9.1.1: the `file` attribute is emitted ONLY
+              by the `xunit1` JUnit family. The default `xunit2` writes `classname`,
+              `name` and `time` and nothing else — so a reader of the default report
+              cannot tell which file a test came from, and the registry check below
+              would call every test undeclared. The run step therefore asks for
+              `xunit1` explicitly.
+
+              `xunit1` is deprecated, so this does not depend on it: when `file` is
+              absent the path is recovered from `classname`, walking components off the
+              end until one names a real file — `a.b.test_c` and `a.b.test_c.TestD`
+              both resolve to `a/b/test_c.py`. If neither route works the raw classname
+              is returned, which no REGISTRY key can equal, so an unresolvable test
+              fails CLOSED as undeclared rather than passing as declared.
+              """
+              raw = case.get("file")
+              if raw:
+                  return raw.replace("\\", "/")
+              parts = [p for p in (case.get("classname") or "").split(".") if p]
+              while parts:
+                  candidate = pathlib.Path(*parts).with_suffix(".py")
+                  if candidate.is_file():
+                      return candidate.as_posix()
+                  parts.pop()
+              return case.get("classname") or "<unresolvable>"
+
+          red: list[str] = []
+          green: list[str] = []
+          skipped: list[str] = []
+          stray: list[str] = []
+
+          for case in ET.parse(report).getroot().iter("testcase"):
+              where = where_of(case)
+              node = f"{where}::{case.get('name')}"
+              if where not in REGISTRY:
+                  stray.append(node)
+              if case.find("failure") is not None or case.find("error") is not None:
+                  red.append(node)
+              elif case.find("skipped") is not None:
+                  skipped.append(node)
+              else:
+                  green.append(node)
+
+          print(f"selected {len(red) + len(green) + len(skipped)} test(s) "
+                f"-> {len(red)} red · {len(green)} green · {len(skipped)} not measured")
+
+          failures = 0
+
+          for node in green:
+              print(f"::error::A BY-DESIGN RED WENT GREEN: {node}")
+              print(f"  {node} passed. That is the PL-2 transition and it is good news,")
+              print("  but it must be recorded, not absorbed: drop its by-design-RED marker")
+              print("  in the same commit, and promote the invariant it stands for in")
+              print("  verticals/mainline/db/invariants/mi_catalogue.yaml if it names one.")
+              print("  Until that lands, this job is the only thing saying the claim moved.")
+              failures += 1
+
+          for node in sorted(set(stray)):
+              print(f"::error::UNDECLARED by-design red: {node}")
+              print(f"  {node.split('::')[0]} carries a by-design-RED marker and is not in")
+              print("  this job's REGISTRY. Either add it there with the truth it reports, or")
+              print("  take the marker off — the marker must never become somewhere to put a")
+              print("  regression where neither pytest job will report it.")
+              failures += 1
+
+          if len(red) < floor:
+              print(f"::error::only {len(red)} declared red(s) actually failed; the floor is {floor}")
+              print("  This job asserts that a declared set is STILL RED. Below the floor it")
+              print("  would be asserting that over almost nothing, which is the vacuous pass")
+              print("  the floor exists to refuse. If the floor is genuinely too high because")
+              print("  reds were promoted, lower RED_FLOOR in ci.yml in the promoting commit.")
+              failures += 1
+
+          for node in sorted(skipped):
+              print(f"::warning::not measured (no cluster in this lane): {node}")
+
+          if skipped and not red:
+              print("::error::every selected test SKIPPED, so nothing was measured at all")
+              failures += 1
+
+          summary = pathlib.Path(os.environ["GITHUB_STEP_SUMMARY"])
+          with summary.open("a", encoding="utf-8") as handle:
+              handle.write("## RED BY DESIGN\n\n")
+              handle.write("These assertions fail on purpose. This job fails if one of them "
+                           "PASSES.\n\n")
+              handle.write("| file | still red | not measured | went GREEN | what its red reports |\n")
+              handle.write("|---|---|---|---|---|\n")
+              for path, why in sorted(REGISTRY.items()):
+                  prefix = f"{path}::"
+                  handle.write(
+                      f"| `{path}` "
+                      f"| {sum(1 for n in red if n.startswith(prefix))} "
+                      f"| {sum(1 for n in skipped if n.startswith(prefix))} "
+                      f"| {sum(1 for n in green if n.startswith(prefix))} "
+                      f"| {why} |\n"
+                  )
+              handle.write(f"\nFloor: at least {floor} of these must be failing. "
+                           f"Measured: {len(red)}.\n")
+
+          sys.exit(1 if failures else 0)
           PY
 
   # ---------------------------------------------------------------------------------
@@ -551,8 +887,18 @@ jobs:
         # PL-2 is satisfied by a job that WAS OBSERVED RED, not by an intention to write
         # tests first. The evidence is a run URL. Until the repository has pushed CI
         # history there is no URL to record, so this warns on pull_request and
-        # workflow_dispatch and FAILS on a push to main — which means the first push to
-        # main after the db lane runs is the commit that has to record it.
+        # workflow_dispatch and FAILS on a push to the default branch — which means the
+        # first push to it after the db lane runs is the commit that has to record it.
+        #
+        # `refs/heads/master`, not `refs/heads/main`, and the correction matters more
+        # here than anywhere else in this file. This repository's default branch is
+        # `master` and `main` does not exist (measured 2026-08-10), so the condition
+        # below could never be true: an honesty ratchet that cannot fire is a ratchet
+        # that has been removed without anybody deciding to remove it. Restoring the
+        # branch name arms it. It is expected to be RED on the next push to `master`,
+        # because `docs/adr/0005-red-before-green.md:118` still reads
+        # `run_url: UNRECORDED` — that red is the assertion working, and it goes green
+        # when somebody pastes the db lane's red run URL into that line.
         env:
           EVENT_NAME: ${{ github.event_name }}
           REF: ${{ github.ref }}
@@ -561,12 +907,12 @@ jobs:
           adr="docs/adr/0005-red-before-green.md"
           test -f "$adr"
           if grep -q 'run_url: *UNRECORDED' "$adr"; then
-            if [ "${EVENT_NAME}" = "push" ] && [ "${REF}" = "refs/heads/main" ]; then
+            if [ "${EVENT_NAME}" = "push" ] && [ "${REF}" = "refs/heads/master" ]; then
               echo "::error file=${adr}::PL-2: the db lane's red run URL is still UNRECORDED."
               echo "Open the db workflow run, copy its URL into the ADR's run_url field, and commit."
               exit 1
             fi
-            echo "::warning file=${adr}::the red run URL is UNRECORDED; a push to main will fail until it is filled"
+            echo "::warning file=${adr}::the red run URL is UNRECORDED; a push to master will fail until it is filled"
           else
             echo "red run recorded:"
             grep 'run_url:' "$adr"
@@ -584,6 +930,7 @@ jobs:
       - imports
       - reuse
       - hermetic-tests
+      - red-by-design
       - sql-lint
       - workflows
       - adr-red-recorded
@@ -599,6 +946,7 @@ jobs:
           R_IMPORTS: ${{ needs.imports.result }}
           R_REUSE: ${{ needs.reuse.result }}
           R_TESTS: ${{ needs.hermetic-tests.result }}
+          R_RED: ${{ needs.red-by-design.result }}
           R_SQL: ${{ needs.sql-lint.result }}
           R_WORKFLOWS: ${{ needs.workflows.result }}
           R_ADR: ${{ needs.adr-red-recorded.result }}
@@ -615,10 +963,19 @@ jobs:
             echo "| mypy · coverage | types check, and no package is unchecked | ${R_TYPES} |"
             echo "| import contracts · registry | no forbidden import; no unlinted package | ${R_IMPORTS} |"
             echo "| REUSE | every file names its licence | ${R_REUSE} |"
-            echo "| pytest --crdb=none | the hermetic suite; cluster tests SKIP with a reason | ${R_TESTS} |"
+            echo "| pytest --crdb=none | the hermetic suite MINUS the declared reds; a failure here is a REGRESSION | ${R_TESTS} |"
+            echo "| RED BY DESIGN | the declared reds are still red; fails if one PASSES | ${R_RED} |"
             echo "| sequence ban | no sequence anywhere in any migration tree | ${R_SQL} |"
             echo "| actionlint | every workflow and the composite action parse | ${R_WORKFLOWS} |"
             echo "| PL-2 | the first red run has a recorded URL | ${R_ADR} |"
+            echo ""
+            echo "**Two pytest rows, on purpose.** The hermetic suite is split in two so the"
+            echo "colours mean different things. \`pytest --crdb=none\` runs everything EXCEPT"
+            echo "the assertions this repository declares red-by-design, so a red there is a"
+            echo "regression and nothing else. \`RED BY DESIGN\` runs exactly those and inverts"
+            echo "the verdict: it is green while they fail, and it goes RED the day one of them"
+            echo "PASSES — which is the PL-2 transition, and the one event a suppressed red"
+            echo "would have thrown away. Nothing is skipped, xfailed or excused."
             echo ""
             echo "**What this lane does NOT prove.** Nothing here touches a database, so no"
             echo "claim about refusal, fingerprint stability or time travel is tested by it."
@@ -633,7 +990,7 @@ jobs:
           failed=0
           for result in \
             "${R_CHECKERS}" "${R_LOCKFILE}" "${R_FORMAT}" "${R_TYPES}" "${R_IMPORTS}" \
-            "${R_REUSE}" "${R_TESTS}" "${R_SQL}" "${R_WORKFLOWS}" "${R_ADR}" ; do
+            "${R_REUSE}" "${R_TESTS}" "${R_RED}" "${R_SQL}" "${R_WORKFLOWS}" "${R_ADR}" ; do
             if [ "${result}" != "success" ]; then
               echo "a lane reported '${result}'"
               failed=$((failed + 1))

@@ -35,6 +35,21 @@ Order matters, and it is why two things happen at **import** time rather than in
 The DSN cannot be published this early: the session has to find or start the cluster first,
 and that belongs in ``pytest_configure``, which
 :mod:`trappoint_testkit.plugin` provides. See ``pytest --crdb=auto|reuse|spawn|none``.
+
+**The testkit imports without a database driver, and that is a property this file relies on.**
+Measured on 2026-08-10, run 31372088311: all seven ``boundary`` jobs died here, before a
+single assertion, with ``ModuleNotFoundError: No module named 'psycopg'`` raised while pytest
+imported the plugin named below. Those lanes install ``mainline-boundary`` and ``pytest`` and
+nothing else, deliberately — E3 measures what a *minimal* kernel-plane environment can reach.
+``trappoint_testkit`` now imports the driver inside the functions that open a socket, so
+registering ``--crdb`` and reading the image pin cost nothing, and a lane with no driver gets
+a header line saying so rather than a traceback.
+
+The corollary, and the reason ``_report`` below exists: if the plugin ever again becomes
+unimportable, that must arrive as **one sentence naming the cause**, followed by pytest's own
+hard error. Not as a silent ``except ImportError: return``, which is what this file used to
+do — a session that quietly declines to publish the image pin runs against the FLOATING tag
+``cockroachdb/cockroach:latest-v26.2`` and is measuring a version nobody chose.
 """
 
 from __future__ import annotations
@@ -47,6 +62,25 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 _TESTKIT_SRC = ROOT / "packages" / "trappoint-testkit" / "src"
 _PLUGIN = "trappoint_testkit.plugin"
+
+#: Prefixed so the line is greppable in a CI log that is mostly pytest's own output.
+_TAG = "conftest[trappoint-testkit]:"
+
+
+def _report(message: str) -> None:
+    """Write one diagnostic line to stderr, flushed, so it survives a hard exit after it.
+
+    stderr rather than ``warnings.warn``: ``pyproject.toml`` sets
+    ``filterwarnings = ["error", …]``, and a warning raised at conftest *import* time — before
+    pytest has installed its filters — is a different thing on every pytest version. A line on
+    stderr is the same thing everywhere, and it is what a judge reading the Actions log sees.
+
+    ``sys.stderr.write`` rather than ``print``: every branch that calls this is a branch that
+    precedes a possible hard failure, and the explicit flush is the whole value of the line.
+    """
+    sys.stderr.write(f"{_TAG} {message}\n")
+    sys.stderr.flush()
+
 
 # The workspace is not always installed — `uv.lock` describes a seven-member workspace against
 # 27 distributions on disk, so a fresh checkout may have none of them importable. The testkit
@@ -80,22 +114,77 @@ DEFAULT_PGCONNECT_TIMEOUT = "5"
 
 
 def _prepare_environment() -> None:
-    """Publish the connect timeout and the image pin before anything is collected."""
+    """Publish the connect timeout and the image pin before anything is collected.
+
+    Nothing here raises. A conftest that raises during import turns a diagnosable problem
+    into an uncollectable repository, and the repository is the thing being demonstrated.
+    Nothing here is silent either: every branch that gives up says on stderr what it gave up
+    on, what the consequence is, and what would fix it.
+    """
     if not os.environ.get("PGCONNECT_TIMEOUT"):
         os.environ["PGCONNECT_TIMEOUT"] = DEFAULT_PGCONNECT_TIMEOUT
     try:
         from trappoint_testkit import image
-    except ImportError:
-        # A checkout with no psycopg cannot run a cluster test anyway; the plugin will say so
-        # in the header. Refusing to collect at all would be a worse failure than that.
+    except ImportError as exc:
+        # `trappoint_testkit.image` is one regex over `compose.yaml` and has no third-party
+        # dependency of any kind, so reaching here means the package is not on the path at
+        # all — not that some driver is missing. Say which path was tried; the answer is
+        # almost always that `packages/trappoint-testkit/src` is absent from the checkout.
+        _report(
+            f"cannot import trappoint_testkit.image ({exc}). The CockroachDB image pin was "
+            f"NOT published, so any fixture that reads $MAINLINE_CRDB_IMAGE falls back to "
+            f"the FLOATING tag cockroachdb/cockroach:latest-v26.2 and this session is not "
+            f"measuring the version compose.yaml pins. Looked for the package on sys.path "
+            f"and at {_TESTKIT_SRC}."
+        )
         return
     try:
         image.export_pin(start=ROOT)
-    except image.PinNotFound:
-        # compose.yaml is the single source of the version constant. If it has moved, say
-        # nothing here and let the plugin's header report it — a conftest that raises during
-        # import turns a diagnosable problem into an uncollectable repository.
+    except image.PinNotFound as exc:
+        # compose.yaml is the single source of the version constant. If it has moved, the
+        # session can still run — but every cluster fixture is now on the floating tag, and
+        # that is exactly the dev/CI skew the schema fingerprint exists to catch.
+        _report(
+            f"the CockroachDB version constant could not be read ({exc}). Fixtures will use "
+            f"the FLOATING tag cockroachdb/cockroach:latest-v26.2. Restore the "
+            f"'trappoint:crdb-image-pin' marker above the crdb service's image: key in "
+            f"compose.yaml."
+        )
         return
 
 
+def _check_the_plugin_can_load() -> None:
+    """Say in one sentence why the plugin will not import, *before* pytest says it in forty.
+
+    This does not swallow anything: the module is named in ``pytest_plugins`` either way, so
+    an unimportable plugin still fails the session hard, with pytest's own traceback. What
+    this adds is the sentence that traceback does not contain — which of the two loading
+    routes was in play, and what the missing name means for the run. Run 31372088311 is the
+    case in point: forty lines of ``importlib`` frames whose operative content was one
+    module name.
+
+    ``find_spec`` rather than ``import``: importing the plugin here would put it in
+    ``sys.modules`` and make the ``pytest_plugins`` guard above go quiet, and the plugin
+    would then be loaded by nobody and the ``--crdb`` option would not exist.
+    """
+    try:
+        found = importlib.util.find_spec(_PLUGIN)
+    except Exception as exc:  # noqa: BLE001 - a broken parent package raises anything at all
+        _report(
+            f"{_PLUGIN} cannot even be located: importing its parent package raised "
+            f"{type(exc).__name__}: {exc}. pytest is about to fail this session while "
+            f"loading it. Note that trappoint_testkit is stdlib-only to import by design — "
+            f"a third-party ModuleNotFoundError here means a module-scope import has been "
+            f"reintroduced into trappoint_testkit/cluster.py or __init__.py."
+        )
+        return
+    if found is None:
+        _report(
+            f"{_PLUGIN} is not importable from this environment and is not on "
+            f"{_TESTKIT_SRC}; pytest will refuse the session in a moment. Install the "
+            f"workspace, or run from a checkout that carries packages/trappoint-testkit."
+        )
+
+
+_check_the_plugin_can_load()
 _prepare_environment()

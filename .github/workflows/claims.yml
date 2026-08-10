@@ -25,7 +25,13 @@ name: claims
 
 on:
   push:
-    branches: [main]
+    # `master`, not `main`. MEASURED 2026-08-10: `gh repo view --json defaultBranchRef`
+    # -> `master`; `gh run list --branch main` -> empty; the branch `main` does not
+    # exist in this repository. A lane triggered on a branch nobody pushes is a lane
+    # that has never run, and the Actions tab opens on the DEFAULT branch — so every
+    # green this workflow earns was invisible to a reader for as long as this word was
+    # wrong.
+    branches: [master]
     paths:
       - "README.md"
       - "VERIFY.md"

@@ -70,8 +70,8 @@ What makes this not a mock is one mechanism, stated as a mechanism rather than a
 ├── manifest.json              REQUIRED — the only file whose digest is not inside itself
 ├── manifest.seed.json         producer input; NOT part of the bundle, NOT listed, never served
 ├── frames/                    REQUIRED — one file per captured exchange
-│   ├── GET~20~2Fv1~2Fpermits~2F018f3a2f-….json
-│   └── POST~20~2Fv1~2Fpermits~2F018f3a2f-…~2Fmerge.json
+│   ├── GET-5b21f21f5a511b18.json     <METHOD>-<sha256(key)[:16]>.json
+│   └── POST-0bcac5ccad78d129.json    the request line lives in manifest.files[].key
 ├── ledger/                    OPTIONAL
 │   ├── bundle.json            a spec/wire/evidence-bundle.md v1.0 artefact, verbatim
 │   └── checkpoint-000005.note a C2SP signed note, verbatim
@@ -205,17 +205,33 @@ resource, which in replay would silently address a different frame.
 
 ### 4.2 Key → file name
 
-`framePathForKey()` maps the key to `frames/<encoded>.json`. Unreserved characters
-(`A–Z a–z 0–9 . _ -`) pass through; every other byte becomes `~XX` with its uppercase hex. `~` is
-itself escaped, so the mapping stays **injective** — two different requests can never name the
-same frame.
+`framePathForKey()` in `scripts/capture-bundle.ts` maps the key to
+`frames/<METHOD>-<sha256(key)[:16]>.json`.
 
 ```
 key   GET /v1/ledger?site_code=BLK-07
-file  frames/GET~20~2Fv1~2Fledger~3Fsite_code~3DBLK-07.json
+file  frames/GET-65a138de79af333c.json
 ```
 
-A bundle therefore needs **no index**. An index would be a second place for the truth to live.
+**The request line is carried in `manifest.files[].key`, verbatim**, and that field — not the file
+name — is how a player addresses a frame. The frame repeats its own key inside its bytes and
+`BundleTransport` compares the two on every exchange, so the index cannot silently disagree with
+what it indexes.
+
+This replaced a scheme that spelled the whole request line into the file name with a `~XX` escape.
+That name was reversible by eye, and it grew with the request: the longest one measured **218
+characters** of repository path, leaving a stranger 40 characters to clone into on a default
+Windows install — where a `Documents\projects\mainline` destination is 44. Escaping less could not
+have saved it: the longest request key is 132 characters *before* any escaping, and `132 + 5 + 67`
+exceeds the 198-character budget a 60-character destination leaves, so even an identity encoding
+would have blown it. A name that does not grow with the request was forced, not preferred. See
+`scripts/submission/check_path_lengths.py`.
+
+What that costs, stated plainly: a bundle now needs an **index**, where before it needed none. The
+index is the manifest — already the digest-sealed file every reader must verify first — so the
+request line moved *into* the checked set rather than out of it. Two producer-side guards keep it
+honest: `capture-bundle.ts seal` refuses to seal a directory in which any frame is not filed under
+the content address of its own declared key, and `check` re-derives the same thing independently.
 
 ### 4.3 Frame format
 

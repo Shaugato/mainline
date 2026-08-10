@@ -1,5 +1,5 @@
 {
-  "$comment": "SPDX-FileCopyrightText: 2026 MAINLINE contributors / SPDX-License-Identifier: FSL-1.1-ALv2. The capture plan for the Phase-1 demo bundle — the EvidenceBundle the demo URL serves when there is no live API behind it. Prose: docs/deploy/replay-fallback.md. Executed by scripts/deploy/capture_demo_bundle.py; sealed and checked by scripts/capture-bundle.ts.",
+  "$comment": "The capture plan for the Phase-1 demo bundle — the EvidenceBundle the demo URL serves when there is no live API behind it. Prose: docs/deploy/replay-fallback.md. Executed by scripts/deploy/capture_demo_bundle.py; sealed and checked by scripts/capture-bundle.ts. Licensing: capture-plan.demo.json.license (REUSE sidecar), as for every other JSON file in this directory — a licence tag inside a JSON string cannot be terminated unambiguously, and the sentence that used to follow this one donated its full stop to the identifier.",
   "plan_version": 1,
   "plan_id": "demo-cloud",
   "owner": "deploy / w9-evidence-bundle",

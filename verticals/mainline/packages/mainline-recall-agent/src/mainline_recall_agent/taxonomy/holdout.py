@@ -42,13 +42,24 @@ from .models import LEVEL_FILE, LEVEL_FONDS, LEVEL_SERIES, TaxonomySnapshot
 
 if TYPE_CHECKING:  # pragma: no cover - typing only
     # `trappoint-recall` is the Apache-2.0 substrate package that owns Measurement and the
-    # Wilson interval. It is not in this distribution's `dependencies` because that list
-    # lives in a pyproject.toml owned by another worker; the dependency declaration is
-    # raised as a cross-domain note. Until it lands, mypy cannot see the package and the
-    # ignore below says so rather than the type being widened to Any.
-    from trappoint_recall.eval.measurement import (  # type: ignore[import-not-found]
-        Measurement,
-    )
+    # Wilson interval.
+    #
+    # There is NO `type: ignore` here any more, and its absence is the measurement. The
+    # ignore that used to sit on this line said "mypy cannot see this package"; on
+    # 2026-08-10 `mypy --config-file mypy.ini` over the derived target list reported it as
+    # an UNUSED ignore, because `packages/trappoint-recall/src` is on `mypy_path` and
+    # `trappoint_recall/eval/measurement.py` ships beside a `py.typed`. The import
+    # resolves, `Measurement` is a real type here, and re-adding the ignore would put back
+    # the claim that it is not.
+    #
+    # STILL TRUE, and raised as a cross-domain note rather than fixed here:
+    # `trappoint-recall` is absent from this distribution's runtime `dependencies`
+    # (`mainline-recall-agent/pyproject.toml` declares anthropic, boto3, numpy, pydantic).
+    # The workspace sync is what makes the import resolve today. Because the import is
+    # under `TYPE_CHECKING` it can never fail at runtime, so this is a declaration defect,
+    # not a breakage — but a stranger installing the wheel alone would type-check it
+    # differently than CI does, and that is exactly the property PL-1 asks for.
+    from trappoint_recall.eval.measurement import Measurement
 
     from .classifier import TaxonomyClassifier
 

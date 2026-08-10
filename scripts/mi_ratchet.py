@@ -10,6 +10,7 @@
     python scripts/mi_ratchet.py green               # the enforced law (mi-green CI job)
     python scripts/mi_ratchet.py nodeids --status pending
     python scripts/mi_ratchet.py demote-check --base <old.yaml> --message "<commit body>"
+    python scripts/mi_ratchet.py pl2-red             # the by-design-RED suites, by file
     python scripts/mi_ratchet.py selftest            # prove both laws bite
 
 Why this file exists
@@ -36,6 +37,26 @@ exists to prevent, so `green` refuses to certify on a skip.
 Promotion is therefore a pull request that shows up in blame, and `demote-check` makes
 the ratchet one-way: going back from `enforced` to `pending` needs an `ADR-` reference in
 the commit body. This is MAINLINE's own O-Ring Ratchet turned on MAINLINE's test suite.
+
+That refusal is an *instruction to review*, never an instruction to obey. A test may carry
+``@pytest.mark.mi("MI22")`` — the author claiming to prove MI22 — and still assert nothing
+that MI22's mechanism produces; promoting on it would record `enforced` against evidence
+that would survive the mechanism being dropped, which is the false green this whole file
+exists to forbid. So the refusal prints, beside the passing tests, **the enforcing object
+the invariant's `mechanism` field names and where in the migration tree it was located** —
+or that it is absent from all of them. A reviewer can then answer the only question that
+matters: *would one of these tests still pass if that object were deleted?*
+
+Two states the tree distinguishes, and they call for opposite actions:
+
+*the object is absent* — `MI21`'s `CHECK undetermined_never_blocks` is in no migration in
+the tree, so its passing witnesses cannot be exercising it. The catalogue is right and the
+**marker** is misplaced; promotion would be a lie.
+
+*the object is present but unexercised* — `MI22`'s merge-gate trigger is welded to
+`mainline.permit`, but its ten witnesses assert file shape and the absence of RLS on the
+CDC sources. The mechanism is real; the *witness* is not one. The fix is a test that makes
+the gate refuse, not a status flip.
 
 The projection discipline, applied to the build system
 ------------------------------------------------------
@@ -77,6 +98,29 @@ Discovery is static (an :mod:`ast` walk, not a pytest collection) so it keeps wo
 a suite cannot be collected at all — which, at the time of writing, is the state of
 ``tests/integration/schema/`` (see "Known repository defect" below).
 
+*unwitnessed* — an invariant with neither. This is the normal state at S0 and it is
+**reported, not fatal** (``red --require-witness`` makes it fatal, intended from K3). A
+bare list of fourteen identifiers reads as fourteen things nobody is doing, which is the
+opposite of true, so each one is printed with the refusal a witness would have to observe,
+the selector the catalogue already reserves for it, and the band owner — read from
+``verticals/mainline/db/migrations.allocation.toml``, the allocation authority — who is
+building the mechanism it would observe.
+
+The by-design-RED vocabulary
+----------------------------
+:data:`PL2_RED_MARKER` (``pl2_red``) is the registered name for a suite that is **red on
+purpose**: `tests/integration/schema/test_mi_boundary_override.py`'s
+``test_pl2_red_fn_boundary_project_does_not_exist_yet`` asserts that a mechanism does *not*
+exist yet and fails until it does. Such a suite must not be deselected, `xfail`-swallowed
+or run in the same lane as the ordinary suite, where a contributor cannot tell a designed
+red from a regression. It belongs in an inverted job that fails when the red goes green —
+the pattern `db-schema.yml`'s `mi-red` already uses.
+
+The name is registered here rather than in `pyproject.toml` because this file is what
+decides what "red on purpose" means in this repository; ``mi_ratchet.py pl2-red`` lists
+every file that holds such a case, which is the list of files that should carry the marker.
+Applying it is the owning suite's edit, not this script's.
+
 Exit codes
 ----------
 =====  ============================================================================
@@ -107,6 +151,7 @@ import fnmatch
 import json
 import re
 import sys
+import tomllib
 from collections.abc import Iterable, Iterator, Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -123,6 +168,7 @@ CATALOGUE_RELPATH: Final[str] = "verticals/mainline/db/invariants/mi_catalogue.y
 RENDERED_RELPATH: Final[str] = "verticals/mainline/db/invariants/MI-CATALOGUE.md"
 LOCK_RELPATH: Final[str] = "verticals/mainline/db/migrations.lock.json"
 MIGRATIONS_RELPATH: Final[str] = "verticals/mainline/db/migrations"
+ALLOCATION_RELPATH: Final[str] = "verticals/mainline/db/migrations.allocation.toml"
 RED_SUITE_RELPATH: Final[str] = "tests/integration/schema/test_mi_ratchet.py"
 TEST_ROOT_RELPATH: Final[str] = "tests"
 
@@ -157,6 +203,42 @@ MIGRATION_NUMBER_RE: Final[re.Pattern[str]] = re.compile(r"^(?P<number>\d{4}[a-z
 ADR_REFERENCE_RE: Final[re.Pattern[str]] = re.compile(r"\bADR-\d{4}\b")
 MI_IN_TESTNAME_RE: Final[re.Pattern[str]] = re.compile(r"(?:^|_)mi(\d\d)(?:_|$)")
 RED_CASE_PREFIX: Final[str] = "test_red_"
+
+# ── The by-design-RED vocabulary ──────────────────────────────────────────────────────
+#
+# Registered here, and nowhere else, because this file is what decides what "red on
+# purpose" means in this repository. `ci.yml`'s pytest lane runs the ordinary suite and
+# these suites together, so a designed red and a regression arrive in one number and a
+# contributor cannot tell them apart. The marker is the selector that lets the two lanes
+# separate — the by-design set into an INVERTED job that fails when the red goes green,
+# which is the pattern `db-schema.yml`'s `mi-red` job already uses.
+
+#: The pytest marker name. Registered in this vocabulary; applied by the owning suites.
+PL2_RED_MARKER: Final[str] = "pl2_red"
+
+#: The one-line registration `pyproject.toml`'s `markers` list needs, verbatim, so that
+#: the description a contributor reads and the description this file means are one string.
+PL2_RED_MARKER_DESCRIPTION: Final[str] = (
+    'pl2_red: RED BY DESIGN (PL-2). This case asserts that a mechanism does NOT exist yet '
+    'and fails until it lands. It is not a regression and it is never xfailed: it belongs '
+    'in an inverted job that fails when it goes GREEN. Registered in scripts/mi_ratchet.py; '
+    'list the files that hold such cases with `mi_ratchet.py pl2-red`.'
+)
+
+#: The naming convention the tree already uses for such a case, e.g.
+#: `test_pl2_red_fn_boundary_project_does_not_exist_yet`.
+PL2_RED_NAME_PREFIX: Final[str] = "test_pl2_red_"
+
+#: Phrases a by-design-RED case states in its own assertion text or docstring. Discovery
+#: is by *self-description*: a case that says "RED BY DESIGN" in its failure message has
+#: already told the reader what it is, and that sentence is the authority — not a list of
+#: file names kept somewhere else, which is a second place to forget.
+PL2_RED_SELF_DESCRIPTIONS: Final[tuple[str, ...]] = (
+    "RED BY DESIGN",
+    "PL-2 RED",
+    "PL2 RED",
+    "red by design",
+)
 
 REQUIRED_KEYS: Final[frozenset[str]] = frozenset(
     {
@@ -216,6 +298,7 @@ class Paths:
     rendered: Path
     lock: Path
     migrations: Path
+    allocation: Path
     red_suite: Path
     test_root: Path
 
@@ -228,6 +311,7 @@ class Paths:
             rendered=root / RENDERED_RELPATH,
             lock=root / LOCK_RELPATH,
             migrations=root / MIGRATIONS_RELPATH,
+            allocation=root / ALLOCATION_RELPATH,
             red_suite=root / RED_SUITE_RELPATH,
             test_root=root / TEST_ROOT_RELPATH,
         )
@@ -239,6 +323,7 @@ class Paths:
         rendered: Path | None = None,
         lock: Path | None = None,
         migrations: Path | None = None,
+        allocation: Path | None = None,
         red_suite: Path | None = None,
         test_root: Path | None = None,
     ) -> Paths:
@@ -248,6 +333,7 @@ class Paths:
             rendered=rendered or self.rendered,
             lock=lock or self.lock,
             migrations=migrations or self.migrations,
+            allocation=allocation or self.allocation,
             red_suite=red_suite or self.red_suite,
             test_root=test_root or self.test_root,
         )
@@ -719,6 +805,259 @@ def _flow_seq(values: Sequence[str]) -> str:
     return "[" + ", ".join(f'"{v}"' for v in values) + "]"
 
 
+# ── Where the mechanism actually is ───────────────────────────────────────────────────
+#
+# The red law can say "these tests pass". It cannot, on its own, say whether they pass
+# *because the mechanism works* or merely alongside it. Nothing static can answer that
+# question outright — but the cheap half of it is answerable, and answering the cheap half
+# is what turns "promote it" from an instruction into something a reviewer can check:
+#
+#   does the object the invariant's own `mechanism` field names exist in the tree at all?
+#
+# A `no` settles it — a passing test cannot be exercising a constraint that is in none of
+# the 271 migrations, so the promotion is unjustified and the *marker* is what is wrong.
+# A `yes` does not settle it, and the message says so rather than implying otherwise.
+
+
+def strip_sql_comments(text: str) -> str:
+    """Remove `--` and `/* */` comments, leaving string literals intact.
+
+    Load-bearing, not hygiene. `fn_boundary_project` is named four times in the migration
+    tree and defined nowhere: every one of those four is a `--` line in a header block
+    explaining what the function *will* do when band 0140-0149z lands. A locator that
+    searched raw text would report it PRESENT and the promotion it licensed would be false.
+
+    Single-quoted literals are tracked so `'a--b'` survives; `''` self-escaping falls out
+    of the state machine. Dollar-quoted bodies are not tracked as a unit because `--`
+    inside a PL/pgSQL body is a comment there too — the one construct this would misread
+    is an odd number of apostrophes inside such a body, which the tree does not contain
+    (asserted by :func:`_selftest_locator`).
+    """
+    out: list[str] = []
+    i, n = 0, len(text)
+    in_string = False
+    while i < n:
+        ch = text[i]
+        if in_string:
+            out.append(ch)
+            if ch == "'":
+                in_string = False
+            i += 1
+            continue
+        if ch == "'":
+            in_string = True
+            out.append(ch)
+            i += 1
+            continue
+        if ch == "-" and text.startswith("--", i):
+            end = text.find("\n", i)
+            i = n if end == -1 else end
+            continue
+        if ch == "/" and text.startswith("/*", i):
+            end = text.find("*/", i + 2)
+            i = n if end == -1 else end + 2
+            out.append(" ")
+            continue
+        out.append(ch)
+        i += 1
+    return "".join(out)
+
+
+#: A SQL identifier as this schema writes them: lower snake_case, at least one underscore.
+#: `mechanism` is prose with backticks in it, and one underscore is what reliably separates
+#: `gate_closed_when_issued` from "trigger", "grants" and "RESTRICTIVE RLS".
+MECHANISM_IDENTIFIER_RE: Final[re.Pattern[str]] = re.compile(
+    r"\b[a-z][a-z0-9]*(?:_[a-z0-9]+)+\b"
+)
+
+#: The states a named object can be in, worst first. `ABSENT` is the one that decides a
+#: review; `NAMED` covers a column or an identifier that appears in executable SQL without
+#: a `CREATE`/`CONSTRAINT` of its own, which is a true and unalarming answer.
+OBJECT_ABSENT: Final = "absent"
+OBJECT_NAMED: Final = "named"
+OBJECT_DEFINED: Final = "defined"
+
+
+def _definition_patterns(name: str) -> tuple[re.Pattern[str], ...]:
+    """The ways this tree spells "here is the object called `name`"."""
+    ident = re.escape(name)
+    qualified = r"(?:[a-z_][a-z0-9_]*\s*\.\s*)?"
+    return tuple(
+        re.compile(pattern, re.IGNORECASE)
+        for pattern in (
+            rf"\bCONSTRAINT\s+{ident}\b",
+            rf"\bCREATE\s+(?:OR\s+REPLACE\s+)?(?:FUNCTION|PROCEDURE)\s+{qualified}{ident}\s*\(",
+            rf"\bCREATE\s+(?:OR\s+REPLACE\s+)?TRIGGER\s+{ident}\b",
+            rf"\bCREATE\s+(?:UNIQUE\s+)?(?:INVERTED\s+)?INDEX\s+(?:IF\s+NOT\s+EXISTS\s+)?{ident}\b",
+            (
+                rf"\bCREATE\s+(?:TABLE|VIEW|TYPE|ROLE|SEQUENCE|MATERIALIZED\s+VIEW)"
+                rf"\s+(?:IF\s+NOT\s+EXISTS\s+)?{qualified}{ident}\b"
+            ),
+            rf"\bADD\s+CONSTRAINT\s+{ident}\b",
+        )
+    )
+
+
+@dataclass(frozen=True, slots=True)
+class MechanismObject:
+    """One identifier out of an invariant's `mechanism`, and where the tree puts it."""
+
+    mi_id: str
+    name: str
+    state: str
+    #: migrations that DEFINE it (state `defined`), else that merely name it in SQL.
+    files: tuple[str, ...]
+    #: how many migration files were searched, so `absent` is a measured quantifier.
+    searched: int
+
+    def __str__(self) -> str:
+        if self.state == OBJECT_DEFINED:
+            where = ", ".join(self.files[:3])
+            more = f" (+{len(self.files) - 3} more)" if len(self.files) > 3 else ""
+            return f"`{self.name}` — DEFINED by {where}{more}"
+        if self.state == OBJECT_NAMED:
+            where = ", ".join(self.files[:3])
+            more = f" (+{len(self.files) - 3} more)" if len(self.files) > 3 else ""
+            return (
+                f"`{self.name}` — named in executable SQL by {where}{more}, but no "
+                f"CREATE/CONSTRAINT defines an object of that name (a column, or a name "
+                f"used only in a RAISE)"
+            )
+        return (
+            f"`{self.name}` — **ABSENT** from all {self.searched} migrations. A passing "
+            f"test cannot be exercising it."
+        )
+
+
+def mechanism_identifiers(mechanism: str) -> tuple[str, ...]:
+    """The SQL identifiers an invariant's `mechanism` names, in order, deduplicated.
+
+    §16's mechanism column is prose: "revoked grants + `BEFORE UPDATE/DELETE` trigger +
+    RESTRICTIVE RLS" names three real things and no identifier. That is not a failure of
+    this function — it is the honest answer, and the caller says so rather than inventing
+    a name to search for.
+    """
+    seen: dict[str, None] = {}
+    for match in MECHANISM_IDENTIFIER_RE.finditer(mechanism):
+        seen.setdefault(match.group(0), None)
+    return tuple(seen)
+
+
+def read_migration_bodies(migrations_dir: Path) -> dict[str, str]:
+    """Every migration's executable SQL, comment-stripped, keyed by filename."""
+    if not migrations_dir.exists():
+        raise SourceMissing(
+            f"the migration tree is absent: {migrations_dir}. The enforcing object a "
+            f"promotion would be recorded against is located in it."
+        )
+    bodies = {
+        path.name: strip_sql_comments(path.read_text(encoding="utf-8"))
+        for path in sorted(migrations_dir.glob("*.sql"))
+    }
+    if not bodies:
+        raise SourceMissing(f"{migrations_dir} holds no migrations")
+    return bodies
+
+
+def locate_mechanisms(
+    catalogue: Catalogue, bodies: Mapping[str, str]
+) -> dict[str, tuple[MechanismObject, ...]]:
+    """MI id → where the tree puts each object its `mechanism` names."""
+    searched = len(bodies)
+    located: dict[str, tuple[MechanismObject, ...]] = {}
+    for inv in catalogue:
+        found: list[MechanismObject] = []
+        for name in mechanism_identifiers(inv.mechanism):
+            patterns = _definition_patterns(name)
+            word = re.compile(rf"\b{re.escape(name)}\b", re.IGNORECASE)
+            defining = [f for f, body in bodies.items() if any(p.search(body) for p in patterns)]
+            naming = [f for f, body in bodies.items() if word.search(body)]
+            if defining:
+                state, files = OBJECT_DEFINED, defining
+            elif naming:
+                state, files = OBJECT_NAMED, naming
+            else:
+                state, files = OBJECT_ABSENT, []
+            found.append(
+                MechanismObject(
+                    mi_id=inv.mi_id,
+                    name=name,
+                    state=state,
+                    files=tuple(sorted(files)),
+                    searched=searched,
+                )
+            )
+        located[inv.mi_id] = tuple(found)
+    return located
+
+
+# ── Bands: who is building the thing a witness would have to observe ──────────────────
+
+
+@dataclass(frozen=True, slots=True)
+class Band:
+    """One row of `migrations.allocation.toml` — the number-allocation authority."""
+
+    first: str
+    last: str
+    owner: str
+
+    @property
+    def span(self) -> str:
+        return f"{self.first}-{self.last}"
+
+
+def _allocation_key(prefix: str) -> tuple[int, str]:
+    """`0049a` → `(49, "a")`. The empty suffix sorts before `a`, as the file specifies."""
+    digits = prefix[:4]
+    return (int(digits), prefix[4:5].lower())
+
+
+def load_bands(path: Path) -> tuple[Band, ...]:
+    """The band table, or `()` when the authority is not there.
+
+    Not a :class:`SourceMissing`: bands decorate an advisory line. A ratchet that refused
+    to evaluate the red law because a *reporting* input was missing would be conflating
+    "I could not measure the law" with "I could not annotate the output", and exit 2 is
+    reserved for the first.
+    """
+    if not path.exists():
+        return ()
+    raw = tomllib.loads(path.read_text(encoding="utf-8"))
+    entries = raw.get("band")
+    if not isinstance(entries, list):
+        return ()
+    bands: list[Band] = []
+    for entry in entries:
+        if not isinstance(entry, Mapping):
+            continue
+        first, last, owner = entry.get("first"), entry.get("last"), entry.get("owner")
+        if isinstance(first, str) and isinstance(last, str) and isinstance(owner, str):
+            bands.append(Band(first=first, last=last, owner=owner))
+    return tuple(bands)
+
+
+def band_for(number: str, bands: Sequence[Band]) -> Band | None:
+    """The band owning a migration number, or `None` when nothing claims it."""
+    if len(number) < 4 or not number[:4].isdigit():
+        return None
+    key = _allocation_key(number)
+    for band in bands:
+        if _allocation_key(band.first) <= key <= _allocation_key(band.last):
+            return band
+    return None
+
+
+def owners_of(numbers: Sequence[str], bands: Sequence[Band]) -> tuple[str, ...]:
+    """The distinct band owners building a set of migrations, in first-seen order."""
+    seen: dict[str, None] = {}
+    for number in numbers:
+        band = band_for(number, bands)
+        if band is not None:
+            seen.setdefault(f"{band.owner} ({band.span})", None)
+    return tuple(seen)
+
+
 # ── The collected-test universe, read statically ──────────────────────────────────────
 
 
@@ -740,6 +1079,10 @@ class TestFn:
     name: str
     marked: tuple[str, ...]
     mentioned: tuple[str, ...] = ()
+    #: this case is RED BY DESIGN — it asserts a mechanism does *not* exist yet. Detected
+    #: from the `pl2_red` marker, the `test_pl2_red_` name prefix, or the case saying so
+    #: in its own assertion text. Never a witness of anything; see :data:`PL2_RED_MARKER`.
+    pl2_red: bool = False
 
     @property
     def nodeid(self) -> str:
@@ -758,6 +1101,23 @@ def _marked_invariants(node: ast.FunctionDef | ast.AsyncFunctionDef) -> tuple[st
 def _mentioned_invariants(node: ast.FunctionDef | ast.AsyncFunctionDef) -> tuple[str, ...]:
     """The invariants a test's *name* refers to. Advisory only — never a witness."""
     return tuple(sorted({f"MI{suffix}" for suffix in MI_IN_TESTNAME_RE.findall(node.name)}))
+
+
+def _is_pl2_red(node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
+    """Is this case red on purpose? Three signals, any one of which is the author saying so.
+
+    The marker is the one w1's `ci.yml` split selects on; the other two exist because the
+    tree already holds such cases and they were written before the marker was registered.
+    Detecting all three is what makes `pl2-red` a complete list rather than a list of the
+    files somebody remembered to annotate.
+    """
+    for decorator in node.decorator_list:
+        if re.search(rf"mark\.{PL2_RED_MARKER}\b", ast.unparse(decorator)):
+            return True
+    if node.name.startswith(PL2_RED_NAME_PREFIX):
+        return True
+    body = ast.unparse(node)
+    return any(phrase in body for phrase in PL2_RED_SELF_DESCRIPTIONS)
 
 
 def _functions_in(tree: ast.Module) -> Iterator[ast.FunctionDef | ast.AsyncFunctionDef]:
@@ -794,9 +1154,19 @@ def collect_universe(test_root: Path, repo_root: Path) -> tuple[TestFn, ...]:
                         name=node.name,
                         marked=_marked_invariants(node),
                         mentioned=_mentioned_invariants(node),
+                        pl2_red=_is_pl2_red(node),
                     )
                 )
     return tuple(found)
+
+
+def pl2_red_cases(universe: Sequence[TestFn]) -> dict[str, tuple[str, ...]]:
+    """Test file → the by-design-RED cases in it. The files that should carry the marker."""
+    found: dict[str, list[str]] = {}
+    for fn in universe:
+        if fn.pl2_red:
+            found.setdefault(fn.relpath, []).append(fn.name)
+    return {relpath: tuple(sorted(names)) for relpath, names in sorted(found.items())}
 
 
 def mentions(catalogue: Catalogue, universe: Sequence[TestFn]) -> dict[str, tuple[str, ...]]:
@@ -1023,23 +1393,86 @@ def outcomes_for(witnesses: Witnesses, outcomes: Mapping[str, str]) -> dict[str,
 # ── The two laws ──────────────────────────────────────────────────────────────────────
 
 
+#: The prefix of the red law's refusal. Held as a constant because it is asserted verbatim
+#: by `tests/integration/schema/test_mi_ratchet.py` and quoted in `MI-CATALOGUE.md`: the
+#: sentence is part of the contract, and only what follows it is free to get better.
+RED_VIOLATION_PREFIX: Final[str] = "is pending but its tests pass — promote it in mi_catalogue.yaml"
+
+
+def _mechanism_report(
+    inv: Invariant, objects: Sequence[MechanismObject] | None
+) -> list[str]:
+    """The enforcing object, as the migration tree has it: the mechanism line, then one
+    line per identifier §16 names — or one line saying why no identifier could be read."""
+    lines = [f'    mechanism (§16): "{inv.mechanism}" — refuses {"/".join(inv.sqlstate)}']
+    if objects is None:
+        lines.append(
+            "    enforcing object: NOT LOCATED — the migration tree was not read on this run, "
+            "so this promotion has no object beside it. Re-run where "
+            "verticals/mainline/db/migrations is present."
+        )
+        return lines
+    if not objects:
+        claimed = len(inv.owning_migrations)
+        cited = ", ".join(inv.owning_migrations[:6]) or "none"
+        more = f" (+{claimed - 6} more)" if claimed > 6 else ""
+        lines.append(
+            f"    enforcing object: the mechanism names no SQL identifier, so it cannot be "
+            f"located by name. Its only locator is the `-- MI:` citation: "
+            f"{len(inv.owning_migrations)} migrations claim it ({cited}{more})."
+        )
+        return lines
+    lines.append("    enforcing object(s), located in verticals/mainline/db/migrations:")
+    lines.extend(f"      {obj}" for obj in objects)
+    return lines
+
+
+def _review_note(objects: Sequence[MechanismObject] | None) -> str:
+    """What the reviewer is being asked to decide, stated as the decision it is."""
+    if objects and any(obj.state == OBJECT_ABSENT for obj in objects):
+        return (
+            "    REVIEW: at least one object above is ABSENT from the tree, so no test can be "
+            "exercising it and this promotion would be false. The defect is the witness, not "
+            "the status — either the `@pytest.mark.mi` marker is on the wrong tests, or the "
+            "mechanism is owed by the band that builds it."
+        )
+    return (
+        "    REVIEW: promote only if one of the tests above makes an object above REFUSE. A "
+        "test that would still pass with that object dropped witnesses nothing, and an "
+        "`enforced` row recorded on it is the false green PL-2 exists to forbid."
+    )
+
+
 def red_violations(
     catalogue: Catalogue,
     resolution: Mapping[str, Witnesses],
     outcomes: Mapping[str, str],
+    *,
+    objects: Mapping[str, tuple[MechanismObject, ...]] | None = None,
 ) -> list[str]:
-    """A pending invariant whose owning tests all pass is a promotion nobody made."""
+    """A pending invariant whose owning tests all pass is a promotion nobody made.
+
+    `objects` is optional and *only* enriches the message: the law is unchanged, its
+    threshold is unchanged, and the same set of invariants refuses with it or without it.
+    What it buys is that the refusal stops being a bare instruction to flip a status and
+    becomes a reviewable claim — the passing tests on one side, the object the invariant
+    says does the refusing on the other, and the question between them.
+    """
     violations: list[str] = []
     for inv in catalogue.with_status("pending"):
         witnesses = resolution[inv.mi_id]
         if witnesses.is_unwitnessed:
             continue
         observed = outcomes_for(witnesses, outcomes)
-        if all(outcome in GREEN_OUTCOMES for outcome in observed.values()):
-            violations.append(
-                f"{inv.mi_id} is pending but its tests pass — promote it in mi_catalogue.yaml "
-                f"({', '.join(sorted(observed))})"
-            )
+        if not all(outcome in GREEN_OUTCOMES for outcome in observed.values()):
+            continue
+        found = None if objects is None else objects.get(inv.mi_id, ())
+        lines = [f"{inv.mi_id} {RED_VIOLATION_PREFIX}"]
+        lines.extend(_mechanism_report(inv, found))
+        lines.append(f"    passing owning tests ({len(observed)}):")
+        lines.extend(f"      {nodeid}" for nodeid in sorted(observed))
+        lines.append(_review_note(found))
+        violations.append("\n".join(lines))
     return violations
 
 
@@ -1049,6 +1482,70 @@ def unwitnessed(
     return [
         inv.mi_id for inv in catalogue.with_status(status) if resolution[inv.mi_id].is_unwitnessed
     ]
+
+
+def describe_unwitnessed(
+    catalogue: Catalogue,
+    resolution: Mapping[str, Witnesses],
+    status: str,
+    *,
+    objects: Mapping[str, tuple[MechanismObject, ...]] | None = None,
+    bands: Sequence[Band] = (),
+) -> list[str]:
+    """Say, per invariant, what a witness would have to be and who is building it.
+
+    `unwitnessed (14): MI03, MI04, …` is fourteen identifiers and no information, and it
+    reads — wrongly — as fourteen things nobody is doing. Every one of them has a mechanism
+    named in §16, a selector this catalogue already reserves for it, and a band owner of
+    record. Printing those three turns a list of gaps into a list of assignments.
+    """
+    lines: list[str] = []
+    for mi_id in unwitnessed(catalogue, resolution, status):
+        inv = catalogue.by_id(mi_id)
+        found = () if objects is None else objects.get(mi_id, ())
+        absent = [obj.name for obj in found if obj.state == OBJECT_ABSENT]
+        present = [obj for obj in found if obj.state != OBJECT_ABSENT]
+        lines.append(
+            f"  {mi_id}  wanted: a test observing {'/'.join(inv.sqlstate)} from "
+            f"{inv.mechanism} — {inv.statement}"
+        )
+        if absent and not present:
+            lines.append(
+                f"        in the tree: NOTHING — {', '.join(absent)} is in none of the "
+                f"{found[0].searched} migrations, so such a test would be RED on arrival, "
+                f"which is exactly the state PL-2 wants it written in"
+            )
+        elif absent:
+            lines.append(
+                f"        in the tree: {', '.join(o.name for o in present)} — but "
+                f"{', '.join(absent)} is ABSENT, so the mechanism is only half built"
+            )
+        elif present:
+            first = present[0]
+            where = ", ".join(first.files[:2])
+            more = f" +{len(first.files) - 2} more" if len(first.files) > 2 else ""
+            names = ", ".join(o.name for o in present)
+            lines.append(f"        in the tree: {names} — {where}{more}")
+        reserved = ", ".join(resolution[mi_id].unresolved)
+        lines.append(
+            f"        reserved:    {reserved} (unwritten)"
+            if reserved
+            else "        reserved:    nothing — the catalogue names no test for it at all"
+        )
+        owners = owners_of(inv.owning_migrations, bands)
+        if owners:
+            shown = "; ".join(owners[:3])
+            more = f"; +{len(owners) - 3} more" if len(owners) > 3 else ""
+            lines.append(
+                f"        owned by:    {shown}{more} "
+                f"({len(inv.owning_migrations)} migrations cite it)"
+            )
+        elif not inv.owning_migrations:
+            lines.append(
+                "        owned by:    nobody — no migration cites it on a `-- MI:` line, so "
+                "this one is unowned as well as unwitnessed"
+            )
+    return lines
 
 
 def green_violations(
@@ -1510,6 +2007,23 @@ def _undetermined(
     return reasons
 
 
+def _locate_for_report(
+    catalogue: Catalogue, paths: Paths
+) -> tuple[dict[str, tuple[MechanismObject, ...]] | None, tuple[Band, ...], str | None]:
+    """Read the tree for the *message*, and never let that reading break the *law*.
+
+    Locating the enforcing object is reporting, not measurement. If the tree cannot be
+    read the law is still evaluable and must still be evaluated — so the failure is
+    returned as a sentence to print, not raised. Exit 2 stays reserved for "the colour of
+    the suite could not be measured", which is a different thing entirely.
+    """
+    try:
+        objects = locate_mechanisms(catalogue, read_migration_bodies(paths.migrations))
+    except (SourceMissing, OSError) as exc:
+        return None, load_bands(paths.allocation), str(exc)
+    return objects, load_bands(paths.allocation), None
+
+
 def _law_command(args: argparse.Namespace, status: str) -> int:
     paths = _paths_from_args(args)
     catalogue = load_catalogue(paths.catalogue)
@@ -1528,11 +2042,29 @@ def _law_command(args: argparse.Namespace, status: str) -> int:
             "Pass --on-collect-error-red only if an uncollectable suite should count as red."
         )
         return EXIT_CANNOT_DETERMINE
-    law = red_violations if status == "pending" else green_violations
-    violations = law(catalogue, resolution, collector.outcomes)
+    objects: dict[str, tuple[MechanismObject, ...]] | None = None
+    bands: tuple[Band, ...] = ()
+    if status != "pending":
+        # The green law needs no locator: an enforced invariant's owning tests are either
+        # green or they are not, and where the object lives changes neither answer.
+        violations = green_violations(catalogue, resolution, collector.outcomes)
+    else:
+        objects, bands, locator_note = _locate_for_report(catalogue, paths)
+        if locator_note is not None:
+            print(f"NOTICE: the enforcing objects could not be located — {locator_note}")
+        violations = red_violations(catalogue, resolution, collector.outcomes, objects=objects)
     silent = unwitnessed(catalogue, resolution, status)
     if status == "pending" and silent:
-        print(f"unwitnessed ({len(silent)}): {', '.join(silent)}")
+        print(
+            f"unwitnessed ({len(silent)}): {', '.join(silent)} — pending, with no owning test "
+            f"resolved. Not fatal at S0 (`--require-witness` makes it fatal, intended from K3). "
+            f"Each one below names the refusal a witness must observe, the selector this "
+            f"catalogue already reserves for it, and the band owner building the mechanism."
+        )
+        for line in describe_unwitnessed(
+            catalogue, resolution, status, objects=objects, bands=bands
+        ):
+            print(line)
         if args.require_witness:
             violations.extend(f"{mi_id} is pending and no test witnesses it" for mi_id in silent)
     for violation in violations:
@@ -1549,6 +2081,36 @@ def cmd_red(args: argparse.Namespace) -> int:
 
 def cmd_green(args: argparse.Namespace) -> int:
     return _law_command(args, "enforced")
+
+
+def cmd_pl2_red(args: argparse.Namespace) -> int:
+    """List every by-design-RED case, by file. The files that should carry the marker.
+
+    Printed rather than applied: the marker goes on a test, and a test belongs to the suite
+    that owns it. A script that reached into another worker's file to annotate it would be
+    making that worker's decision and hiding it in a diff nobody reviewed.
+    """
+    paths = _paths_from_args(args)
+    universe = collect_universe(paths.test_root, paths.repo_root)
+    cases = pl2_red_cases(universe)
+    total = sum(len(names) for names in cases.values())
+    print(f"marker: {PL2_RED_MARKER}")
+    print(f"register in pyproject.toml `markers` as:\n  {PL2_RED_MARKER_DESCRIPTION}")
+    print("")
+    print(f"{total} by-design-RED case(s) in {len(cases)} file(s) — these files should carry it:")
+    for relpath, names in cases.items():
+        print(f"  {relpath}  ({len(names)})")
+        if args.verbose:
+            for name in names:
+                print(f"      {name}")
+    print("")
+    print(
+        "A case is by-design RED when it carries the marker, is named "
+        f"`{PL2_RED_NAME_PREFIX}*`, or says so in its own assertion text "
+        f"({' / '.join(PL2_RED_SELF_DESCRIPTIONS[:3])}). Such a case must never be "
+        "deselected or xfailed: put it in an inverted job that fails when it goes GREEN."
+    )
+    return EXIT_OK
 
 
 def cmd_demote_check(args: argparse.Namespace) -> int:
@@ -1581,6 +2143,105 @@ def _selftest_catalogue(statuses: Mapping[str, str]) -> Catalogue:
         for n in range(1, 31)
     )
     return Catalogue(schema_version=1, source="selftest", invariants=invariants)
+
+
+def _selftest_locator() -> list[tuple[str, bool]]:
+    """Prove the locator tells `defined` from `named in a comment` from `absent`.
+
+    The first distinction is the one a promotion rests on: `fn_boundary_project` is named
+    four times in the real tree and defined nowhere, every mention being a `--` line in a
+    header explaining what the function will do when its band lands. A locator that read
+    raw text would report it present, and the promotion it licensed would be false.
+    """
+    bodies = {
+        "0027_doc.sql": strip_sql_comments(
+            "-- MI: MI19\n"
+            "-- the CHECK fn_boundary_project WILL project onto this table one day\n"
+            "CREATE TABLE mainline.doc (\n"
+            "  doc_id UUID PRIMARY KEY,\n"
+            "  CONSTRAINT no_orphan_controls CHECK (state <> 'superseded' OR n = 0)\n"
+            ");"
+        ),
+        "0115_fn_permit_merge_gate.sql": strip_sql_comments(
+            "-- MI: MI22\n"
+            "CREATE OR REPLACE FUNCTION mainline.fn_permit_merge_gate() RETURNS TRIGGER AS $$\n"
+            "BEGIN RAISE EXCEPTION 'no_orphan_controls is not why'; END; $$ LANGUAGE plpgsql;"
+        ),
+    }
+    def _probe(mi_id: str, mechanism: str, number: str) -> Invariant:
+        return Invariant(
+            mi_id=mi_id,
+            statement="a selftest statement",
+            instantiates="I02",
+            mechanism=mechanism,
+            sqlstate=("23514",),
+            headline=False,
+            owning_migrations=(number,),
+            owning_tests=(),
+            status="pending",
+            adr=None,
+        )
+
+    located = locate_mechanisms(
+        Catalogue(
+            schema_version=1,
+            source="selftest",
+            invariants=(
+                _probe("MI19", "`CHECK no_orphan_controls`", "0027"),
+                _probe("MI06", "`fn_boundary_project` and `fn_permit_merge_gate`", "0115"),
+            ),
+        ),
+        bodies,
+    )
+    by_name = {obj.name: obj for objs in located.values() for obj in objs}
+    return [
+        (
+            "a CONSTRAINT in executable SQL is located as DEFINED",
+            by_name["no_orphan_controls"].state == OBJECT_DEFINED,
+        ),
+        (
+            "an object named ONLY in a `--` comment is ABSENT, not present",
+            by_name["fn_boundary_project"].state == OBJECT_ABSENT,
+        ),
+        (
+            "a CREATE FUNCTION is located as DEFINED even when another file only names it",
+            by_name["fn_permit_merge_gate"].state == OBJECT_DEFINED,
+        ),
+        (
+            "a `--` inside a string literal is not treated as a comment",
+            "'a--b'" in strip_sql_comments("SELECT 'a--b' -- gone\n"),
+        ),
+        (
+            "the mechanism identifier reader ignores prose and reads identifiers",
+            mechanism_identifiers("revoked grants + `BEFORE UPDATE/DELETE` trigger") == ()
+            and mechanism_identifiers("`CHECK gate_closed_when_issued` + counter trigger")
+            == ("gate_closed_when_issued",),
+        ),
+        (
+            "band lookup orders 0049 before 0049a and finds each one's owner",
+            _allocation_key("0049") < _allocation_key("0049a")
+            and owners_of(
+                ("0049", "0049c"),
+                (
+                    Band(first="0047", last="0049", owner="datamodel/dm-spine"),
+                    Band(first="0049a", last="0049z", owner="algorithms"),
+                ),
+            )
+            == ("datamodel/dm-spine (0047-0049)", "algorithms (0049a-0049z)"),
+        ),
+        (
+            "a by-design-RED case is recognised by name, by marker and by its own text",
+            all(
+                _is_pl2_red(ast.parse(src).body[0])  # type: ignore[arg-type]
+                for src in (
+                    "def test_pl2_red_a_thing_does_not_exist_yet(): assert False",
+                    f"@pytest.mark.{PL2_RED_MARKER}\ndef test_a(): assert False",
+                    "def test_b(): assert x, 'RED BY DESIGN (PL-2). Owner: dm-functions'",
+                )
+            )
+            and not _is_pl2_red(ast.parse("def test_ordinary(): assert 1").body[0]),  # type: ignore[arg-type]
+        ),
+    ]
 
 
 def cmd_selftest(_args: argparse.Namespace) -> int:
@@ -1647,6 +2308,42 @@ def cmd_selftest(_args: argparse.Namespace) -> int:
             )
             == [],
         ),
+        (
+            "the red law's refusal still opens with the sentence the contract fixes",
+            red_violations(catalogue, resolution, {node: PASSED})[0].startswith(
+                f"MI01 {RED_VIOLATION_PREFIX}"
+            ),
+        ),
+        (
+            "the refusal names the passing tests it was measured over",
+            node in red_violations(catalogue, resolution, {node: PASSED})[0],
+        ),
+        (
+            "the refusal names an ABSENT object and says the promotion would be false",
+            "ABSENT"
+            in red_violations(
+                catalogue,
+                resolution,
+                {node: PASSED},
+                objects={
+                    "MI01": (
+                        MechanismObject(
+                            mi_id="MI01",
+                            name="a_constraint_that_is_not_there",
+                            state=OBJECT_ABSENT,
+                            files=(),
+                            searched=271,
+                        ),
+                    )
+                },
+            )[0],
+        ),
+        (
+            "enriching the refusal changes no verdict: the same invariants refuse either way",
+            len(red_violations(catalogue, resolution, {node: PASSED}))
+            == len(red_violations(catalogue, resolution, {node: PASSED}, objects={})),
+        ),
+        *_selftest_locator(),
     ]
     failures = [name for name, held in checks if not held]
     for name, held in checks:
@@ -1722,6 +2419,11 @@ def build_parser() -> argparse.ArgumentParser:
     _add_common(green)
     _add_law_args(green)
     green.set_defaults(handler=cmd_green)
+
+    pl2_red = sub.add_parser("pl2-red", help="the by-design-RED suites, by file")
+    _add_common(pl2_red)
+    pl2_red.add_argument("--verbose", action="store_true", help="name every case, not just files")
+    pl2_red.set_defaults(handler=cmd_pl2_red)
 
     demote = sub.add_parser("demote-check", help="refuse an unexplained enforced → pending")
     _add_common(demote)

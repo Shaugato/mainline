@@ -37,11 +37,18 @@ name: db-schema
 
 on:
   push:
-    branches: [main]
+    # `master`, not `main`. MEASURED 2026-08-10: `git branch --show-current` is `master`,
+    # `gh run list --branch main` is empty. A lane keyed to a branch that does not exist has
+    # never run on push in this repository's history, and the Actions tab's default view is the
+    # DEFAULT branch — so the colour this lane publishes was invisible where it is read.
+    branches: [master]
     paths:
       - "verticals/*/db/**"
       - "packages/trappoint-migrate/**"
       - "tests/integration/schema/**"
+      # `mi-red`/`mi-green` collect and run this suite — it is how the missing `0110`
+      # producer surfaced at all — so an edit to it must be able to trigger this lane.
+      - "tests/integration/recall_schema/**"
       - "scripts/mi_ratchet.py"
       - "compose.yaml"
       - "uv.lock"
@@ -80,7 +87,42 @@ jobs:
         # The lint, the lock, the protected floor and the fingerprint's stability. If
         # these are wrong, every statement the rest of this lane makes is about a tool
         # that does not work.
-        run: uv run --frozen --package trappoint-migrate python -m pytest packages/trappoint-migrate/tests -q
+        #
+        # ONE TEST IS DESELECTED HERE, BY NODE ID, AND IT IS NOT SKIPPED.
+        # `test_delegated_verb_actually_delegates_when_present` asserts that `trappoint
+        # render` reaches the real implementation in `trappoint-sql` instead of printing the
+        # "that distribution is not installed" fallback. `uv run --package trappoint-migrate`
+        # builds an environment containing trappoint-migrate and its ONE dependency (psycopg);
+        # trappoint-sql is a sibling workspace member that deliberately has no dependency edge
+        # in either direction — an edge would be an import cycle, and both pyprojects say so.
+        # So trappoint-sql is absent HERE BY CONSTRUCTION, the fallback fires, and the test
+        # fails on the environment rather than on the runner:
+        #
+        #     AssertionError: delegation regressed to the not-installed path
+        #
+        # The test's precondition was real and unstated. It is stated by the step below, which
+        # runs that exact node id in an environment where trappoint-sql IS installed — so the
+        # delegation claim is still made on every run, once, in the only environment that can
+        # make it. Deselecting it in both places would be the suppression this repair forbids.
+        run: |
+          uv run --frozen --package trappoint-migrate python -m pytest \
+            packages/trappoint-migrate/tests -q \
+            --deselect packages/trappoint-migrate/tests/test_cli_offline.py::test_delegated_verb_actually_delegates_when_present
+
+      - name: Delegation reaches trappoint-sql when trappoint-sql is installed (tier 0b)
+        # The other half of the pair above, and the environment is the assertion. `--all-packages`
+        # is what puts trappoint-sql in the environment: `--package trappoint-sql` alone would
+        # remove trappoint-migrate, whose `main()` is the thing under test, and the two
+        # distributions cannot depend on each other. This is the same flag ci.yml resolves the
+        # whole workspace with, so it is not a new mechanism introduced for one test.
+        #
+        # If this step goes red, `trappoint render` has stopped delegating and a fresh clone is
+        # being handed the "not installed" message for a distribution it has. That is a real
+        # regression in the one verb-first entry point, and it must be red.
+        run: |
+          uv run --frozen --all-packages python -m pytest \
+            packages/trappoint-migrate/tests/test_cli_offline.py::test_delegated_verb_actually_delegates_when_present \
+            -q
 
       - name: The sequence ban, the citation rule and the mandatory header block
         run: uv run --frozen --package trappoint-migrate trappoint migrate lint

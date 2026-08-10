@@ -34,7 +34,10 @@ name: console
 
 on:
   push:
-    branches: [main]
+    # `master`, not `main` — the default branch of this repository, measured
+    # 2026-08-10 with `gh repo view --json defaultBranchRef`. `main` does not exist,
+    # so this trigger had never fired once. See claims.yml for the full note.
+    branches: [master]
     paths:
       - "verticals/mainline/apps/console/**"
       - ".github/workflows/console.yml"

@@ -131,9 +131,21 @@ packages = ["mainline_corpus"]
 # MEASURED: `mypy --strict -p mainline_corpus` over 95 source files reports exactly
 # ONE error, and it is this import — the optional third-party parse in
 # `docx/verify.py` that is already wrapped in `try: … except ImportError:` and
-# already reports itself as skipped. The override is scoped to that one module name.
+# already reports itself as skipped. `python-docx` is not in `uv.lock` on purpose: the
+# stage exists to have a THIRD-PARTY reader open our output, so a copy we installed
+# ourselves would prove nothing. The override is scoped to that one module name.
 # There is no blanket `ignore_missing_imports` in this file, because the whole point
 # of `py.typed` here is that the other 94 modules are checked.
+#
+# THIS BLOCK IS NOT WHAT CI READS, and on 2026-08-10 that was a live defect rather
+# than a footnote. The repository check runs `mypy --config-file mypy.ini` over the
+# targets `scripts/qa/mypy_targets.py` derives, and an explicit `--config-file` reads
+# that file and no other — so this override was invisible to it and `verify.py:448`
+# failed the `ci → mypy` lane with `[import-not-found]`. The admission now also exists
+# as `[mypy-docx.*]` in the repository's `mypy.ini`, in the THIRD-PARTY GAPS block,
+# with the same reasoning written out there. Mirrored rather than moved, so
+# `mypy --strict -p mainline_corpus` run from inside this package keeps working — the
+# same arrangement the `boto3` block below already uses. Change one, change both.
 [[tool.mypy.overrides]]
 module = ["docx", "docx.*"]
 ignore_missing_imports = true

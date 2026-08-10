@@ -27,12 +27,22 @@
 # No AWS account and no CockroachDB Cloud organisation is used anywhere in this file. Every
 # cluster it touches is a container it started and will delete. That is PL-1, and it is why
 # a stranger can reproduce this lane on a laptop.
+#
+# READING THIS LANE'S LOGS — a trap that cost a real misdiagnosis on 2026-08-10.
+# GitHub echoes each `run:` block's ENTIRE SOURCE into the log under its `##[group]Run`
+# header, before executing a single line of it. So every `::error …` string written inside
+# a conditional branch below appears in the log of a run in which that branch never
+# executed. Run 31372088425 was read that way and reported as
+# "check_chain_fn_matches_spec.py absent"; the script is tracked, it ran, and it found a
+# genuine spec drift. Every such message in this file now begins "PRINTED ONLY WHEN …" so
+# that source and output cannot be confused again. `##[group]Run` = source. Everything
+# after the group header = output.
 
 name: custody-chain
 
 on:
   push:
-    branches: [main]
+    branches: [master]
     paths:
       - "packages/trappoint-jcs/**"
       - "packages/trappoint-ledger/**"
@@ -45,6 +55,14 @@ on:
       - "scripts/custody/**"
       - "tests/integration/custody/**"
       - "infra/policy/custody/**"
+      # CU-9's A1 diffs 0105/0106 and A2 diffs 0125/0126 against spec/custody, and
+      # `policy-and-spec` now applies the whole chain to a disposable node so that A3/A4
+      # can read a live catalogue. A migration edit that this lane did not see is exactly
+      # the drift the lane exists to catch, so the whole tree is a trigger, and so is the
+      # runner that applies it and the file the image pin is read out of.
+      - "verticals/mainline/db/migrations/**"
+      - "packages/trappoint-migrate/**"
+      - "compose.yaml"
       - "uv.lock"
       - ".github/workflows/custody-chain.yml"
   pull_request:
@@ -100,9 +118,11 @@ jobs:
           if [ -d packages/trappoint-verify ]; then
             uv run pytest packages/trappoint-verify -q
           else
-            echo "::error title=trappoint-verify absent::packages/trappoint-verify has not \
-            landed. Checks 1-16 are unimplemented and the reference bundle has no verifier. \
-            This step is RED on purpose: a lane that passed here would be green by absence."
+            echo "::error title=trappoint-verify absent::PRINTED ONLY WHEN \
+            packages/trappoint-verify is missing from the checkout — if you are reading \
+            this inside a ##[group]Run header it is source, not output. The package has \
+            not landed, so checks 1-16 are unimplemented and the reference bundle has no \
+            verifier. RED on purpose: a lane that passed here would be green by absence."
             exit 1
           fi
 
@@ -178,28 +198,103 @@ jobs:
         run: |
           set -euo pipefail
           if [ ! -d packages/trappoint-verify ]; then
-            echo "::error title=Tier 1 cannot be tested::packages/trappoint-verify has not \
-            landed, so 'a stranger verifies the bundle offline with no credential' is \
-            UNPROVEN by this run. Reported as a failure rather than a skip, because this is \
-            the deliverable sentence of the custody domain."
+            echo "::error title=Tier 1 cannot be tested::PRINTED ONLY WHEN \
+            packages/trappoint-verify is missing from the checkout — if you are reading \
+            this inside a ##[group]Run header it is source, not output. Without it, 'a \
+            stranger verifies the bundle offline with no credential' is UNPROVEN by this \
+            run. Reported as a failure rather than a skip, because this is the deliverable \
+            sentence of the custody domain."
             exit 1
           fi
           /tmp/stranger/bin/pip install --quiet --no-deps ./packages/trappoint-verify
 
       - name: Verify the committed bundle, offline
+        # `grep -q "0 findings"` used to be the assertion here and it was DEAD TEXT. Measured
+        # 2026-08-10, run 31372088425: the verifier's summary line is
+        # `16 checks | 9 passed | 0 failed | 7 not checked`, followed by
+        # `exit 2: everything that ran held, and 7 check(s) did not run.` It has never
+        # printed the string "0 findings". Today that is invisible, because `pipefail`
+        # makes the verifier's exit 2 kill the step before the grep runs — but the moment
+        # checks 4-8/11/12 land and the verifier exits 0, this step would have gone red on
+        # a string that does not exist, and the red would have been read as custody's.
+        #
+        # The replacement asserts what the verifier actually prints, and asserts MORE than
+        # the old line did: `0 failed` was implied by the exit code, `0 not checked` was
+        # asserted nowhere. That second one is the anti-vacuity half — a bundle over which
+        # seven of sixteen checks did not run is not a verified bundle, and this step is
+        # the sentence "a stranger verifies it offline" made executable.
         run: |
           set -euo pipefail
           cd /tmp    # nothing of ours is importable from here except what pip installed
           /tmp/stranger/bin/trappoint-verify verify \
             --bundle "${GITHUB_WORKSPACE}/evidence/reference-ledger/bundle.json" | tee out.txt
-          grep -q "0 findings" out.txt
+          summary="$(grep -E '^[0-9]+ checks \|' out.txt)"
+          echo "summary line: ${summary}"
+          if ! printf '%s' "${summary}" | grep -q '| 0 failed |'; then
+            echo "::error title=the reference bundle does not verify::PRINTED ONLY WHEN a \
+            check FAILED — if you are reading this inside a ##[group]Run header it is \
+            source, not output. Summary: ${summary}"
+            exit 1
+          fi
+          if ! printf '%s' "${summary}" | grep -q '| 0 not checked'; then
+            echo "::error title=the offline verification is not clean::PRINTED ONLY WHEN \
+            at least one check did not run — if you are reading this inside a \
+            ##[group]Run header it is source, not output. Summary: ${summary}. Every SKIP \
+            above names the module that did not register a runner and the owner the \
+            registry records for it. A verifier that passes because it did not look is \
+            worse than no verifier, so this is a failure and not a warning."
+            exit 1
+          fi
+          echo "the bundle verifies offline: nothing failed and nothing went unchecked"
 
       - name: Confirm the floor is exactly one dependency
+        # SC2015, reported by actionlint on 2026-08-10 against line 198 of this file as it
+        # stood before this commit. The old spelling was
+        #
+        #     pip list … | grep -viE '…' && { echo "::error::…"; exit 1; } || true
+        #
+        # `grep -v` exits 1 when it matches NOTHING, which here is the SUCCESS case, so
+        # under `set -euo pipefail` the pipeline had to be made non-fatal. `|| true` did
+        # that by making the WHOLE construct non-fatal, and shellcheck's note is the least
+        # of it. MEASURED 2026-08-10 by running the old line against three stub `pip`s:
+        #
+        #   * pip exits 2 without listing anything -> pipefail yields grep's 1, `&&` short
+        #     circuits, `|| true` yields 0, and the step prints "dependency floor holds"
+        #     and passes. NOTHING WAS CHECKED and the log said the floor held;
+        #   * `pipdeptree` installed -> the pattern was a bare prefix, `^(pip|…` matched
+        #     `pipdeptree`, and a real extra distribution was admitted, green.
+        #
+        # Both now refuse. So this was never only a lint finding: it was a control that
+        # reported a property it had not measured, which is the one thing this repository
+        # says it will not ship.
+        #
+        # An `if` CONDITION is exempt from `set -e` by definition, so the explicit form
+        # below needs no swallowing at all. The only `|| true` left in this file is the one
+        # quoted in this comment block, which is YAML that no shell ever sees. The pip
+        # invocation is hoisted out of the condition so that a pip failure is fatal rather
+        # than being read as "grep found nothing": with `pipefail`, a pip that exits 2 and a
+        # grep that exits 1 yield a pipeline status of 1, which the `if` would have read as
+        # a clean floor.
         run: |
           set -euo pipefail
-          /tmp/stranger/bin/pip list --format=freeze | grep -viE '^(pip|setuptools|wheel|cffi|pycparser|cryptography|trappoint-verify)' \
-            && { echo "::error::the verifier pulled in a dependency beyond cryptography"; exit 1; } || true
-          echo "dependency floor holds"
+          # `pip list --format=freeze` prints `name==version`, or `name @ file:///…` for a
+          # distribution installed from a path. The boundary group after the alternation is
+          # what stops `pip` from also matching a hypothetical `pipdeptree`: the old
+          # pattern was a bare prefix match and would have let one through.
+          floor='^(pip|setuptools|wheel|cffi|pycparser|cryptography|trappoint-verify)([=@ ]|$)'
+          installed="$(/tmp/stranger/bin/pip list --format=freeze)"
+          echo "--- installed distributions ---"
+          printf '%s\n' "${installed}"
+          if extra="$(printf '%s\n' "${installed}" | grep -viE "${floor}")"; then
+            echo "::error title=dependency floor broken::PRINTED ONLY WHEN a distribution \
+            outside the allowed set is installed — if you are reading this inside a \
+            ##[group]Run header it is source, not output. CU-7 promises a stranger needs \
+            Python and cryptography; each name below is one more thing they would have to \
+            install, and the promise is false until it is gone."
+            printf '%s\n' "${extra}"
+            exit 1
+          fi
+          echo "dependency floor holds: nothing outside the allowed set is installed"
 
   # =====================================================================================
   # 4 · THE SEQUENCER'S CONCURRENCY PROOF, AGAINST A REAL CLUSTER
@@ -238,10 +333,22 @@ jobs:
           set -euo pipefail
           docker run -d --name crdb -p 26257:26257 "${{ steps.image.outputs.image }}" \
             start-single-node --insecure --store=type=mem,size=2GiB
-          for _ in $(seq 1 60); do
-            docker exec crdb ./cockroach sql --insecure -e "SELECT 1" >/dev/null 2>&1 && break
+          # The `… && break` this replaces fell out of the loop on the 60th failure exactly
+          # as it did on the first success, and the step went green either way. pytest then
+          # failed on a connection refusal, which reads like a test defect and is not one.
+          for attempt in $(seq 1 60); do
+            if docker exec crdb ./cockroach sql --insecure -e "SELECT 1" >/dev/null 2>&1; then
+              echo "cluster answering SQL after ${attempt} attempt(s)"
+              exit 0
+            fi
             sleep 2
           done
+          echo "::error title=the cluster never answered SQL::PRINTED ONLY WHEN the node \
+          did not answer pgwire within 120 seconds — if you are reading this inside a \
+          ##[group]Run header it is source, not output. The append-density proof needs a \
+          real cluster and there is nothing to run it against."
+          docker logs crdb | tail -50
+          exit 1
 
       - name: The append is dense and fork-free under contention
         env:
@@ -286,10 +393,23 @@ jobs:
           set -euo pipefail
           docker run -d --name nemesis-crdb -p 26257:26257 "${{ steps.image.outputs.image }}" \
             start-single-node --insecure --store=type=mem,size=2GiB
-          for _ in $(seq 1 60); do
-            docker exec nemesis-crdb ./cockroach sql --insecure -e "SELECT 1" >/dev/null 2>&1 && break
+          # See the same loop in `sequencer-concurrency`: falling out of the retries used to
+          # look exactly like succeeding on the first one. An attack suite that cannot reach
+          # a database detects nothing, and ATTACK-DEPTH would then fail for the wrong
+          # reason — "zero detectors" when the truth is "zero attacks were executed".
+          for attempt in $(seq 1 60); do
+            if docker exec nemesis-crdb ./cockroach sql --insecure -e "SELECT 1" >/dev/null 2>&1; then
+              echo "cluster answering SQL after ${attempt} attempt(s)"
+              exit 0
+            fi
             sleep 2
           done
+          echo "::error title=the cluster never answered SQL::PRINTED ONLY WHEN the node \
+          did not answer pgwire within 120 seconds — if you are reading this inside a \
+          ##[group]Run header it is source, not output. The fifteen attacks have nothing \
+          to attack."
+          docker logs nemesis-crdb | tail -50
+          exit 1
 
       # The conftest refuses any DSN whose host is not localhost/127.0.0.1 before opening a
       # socket. This step proves the guard is armed rather than assuming it: a nemesis suite
@@ -353,7 +473,13 @@ jobs:
   policy-and-spec:
     name: Object Lock policy-as-code · the chain function matches its spec
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    # 10 -> 25: this job now applies the mainline migration chain, because CU-9's A3 and A4
+    # read the LIVE catalogue and a job with no schema can only ever SKIP them.
+    timeout-minutes: 25
+    env:
+      # `LOCAL_DSN` is one of the five names check_chain_fn_matches_spec.py reads, and the
+      # one `trappoint migrate` reads, so the two tools below need no second spelling.
+      LOCAL_DSN: postgresql://root@127.0.0.1:26257/defaultdb?sslmode=disable
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
@@ -371,27 +497,143 @@ jobs:
           if [ -f scripts/custody/check_evidence_plan.py ]; then
             uv run python scripts/custody/check_evidence_plan.py
           else
-            echo "::error title=check_evidence_plan.py absent::CU-10's plan-JSON assertion \
-            has not landed (owner: custody worker 8, anchor-and-evidence-infra). GT-18 is a \
-            one-shot and this is the only thing standing between us and getting it wrong \
-            once, permanently."
+            echo "::error title=check_evidence_plan.py absent::PRINTED ONLY WHEN the file \
+            is missing from the checkout — if you are reading this inside a ##[group]Run \
+            header it is source, not output. CU-10's plan-JSON assertion has not landed \
+            (owner: custody worker 8, anchor-and-evidence-infra). GT-18 is a one-shot and \
+            this is the only thing standing between us and getting it wrong once, \
+            permanently."
             exit 1
           fi
 
+      # ── The live half of CU-9 ──────────────────────────────────────────────────────
+      # Until 2026-08-10 this job ran the chain-function check with no cluster, so of its
+      # eight assertions only four could execute and the run ended
+      # `4 passed, 0 failed, 1 skipped · NOT CHECKED`. The skipped line was A3/A4 — the two
+      # that read what the DATABASE is running, which is the half of CU-9 that a text diff
+      # against a migration file cannot substitute for: a migration is what somebody wrote,
+      # `pg_get_functiondef` is what the engine will execute. The three steps below exist so
+      # that the skip has no cause left, and `--strict` below makes any future skip a
+      # failure rather than a quieter green.
+      - name: Read the ONE image pin out of compose.yaml
+        id: image
+        run: |
+          set -euo pipefail
+          image="$(python3 - <<'PY'
+          import pathlib, re
+          lines = pathlib.Path("compose.yaml").read_text(encoding="utf-8").splitlines()
+          for i, line in enumerate(lines):
+              if "trappoint:crdb-image-pin" in line:
+                  for candidate in lines[i + 1 : i + 4]:
+                      m = re.match(r"^\s*image:\s*(\S+)\s*$", candidate)
+                      if m:
+                          print(m.group(1)); raise SystemExit(0)
+          raise SystemExit("compose.yaml carries no marked image pin")
+          PY
+          )"
+          echo "image=${image}" >> "$GITHUB_OUTPUT"
+
+      - name: Start the disposable node A3/A4 read
+        # `--listen-addr` is DELIBERATELY ABSENT and must stay absent. Measured 2026-08-10
+        # on cockroachdb/cockroach:v26.2.5: `--listen-addr=0.0.0.0:26257` makes the node
+        # refuse to start with `hostname of listen_addr must be "127.0.0.1" or "localhost"`,
+        # and `--listen-addr=localhost:26257` binds inside the container's loopback where a
+        # published port cannot reach it. The default binds where `-p` can forward.
+        run: |
+          set -euo pipefail
+          docker run -d --name custody-spec-crdb \
+            -p 127.0.0.1:26257:26257 \
+            "${{ steps.image.outputs.image }}" \
+            start-single-node --insecure --store=type=mem,size=2GiB
+          for attempt in $(seq 1 60); do
+            if docker exec custody-spec-crdb ./cockroach sql --insecure -e "SELECT 1" >/dev/null 2>&1; then
+              echo "cluster answering SQL after ${attempt} attempt(s)"
+              docker exec custody-spec-crdb ./cockroach sql --insecure -e "SELECT version()"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::error title=the cluster never answered SQL::PRINTED ONLY WHEN the node \
+          did not answer pgwire within 120 seconds — if you are reading this inside a \
+          ##[group]Run header it is source, not output. A3/A4 of CU-9 read the live \
+          catalogue and have nothing to read without it."
+          docker logs custody-spec-crdb | tail -50
+          exit 1
+
+      - name: Apply the mainline chain, so A3/A4 have a schema to read
+        # Ruling D6: `bootstrap` creates the `trappoint` bookkeeping schema outside the
+        # numbered sequence, and applying the numbered files without it fails on the first
+        # migration that reaches for `trappoint`. `--package trappoint-migrate` is the same
+        # environment db.yml uses; the runner's only dependency is psycopg.
+        #
+        # `--attest final` IS LOAD-BEARING AND IS NOT THE DEFAULT. `--attest each`
+        # recomputes `stable_fingerprint()` after every one of the 271 files — it takes the
+        # fingerprint twice and refuses if the two disagree. Measured 2026-08-10 on
+        # cockroachdb/cockroach:v26.2.5, this exact chain, `--attest each`:
+        #
+        #   trappoint migrate: REFUSED: the schema fingerprint is not stable across two
+        #   consecutive computations (37e2c7fdf45c2d72… then 76e2775328bede0c…).
+        #
+        # It halted at `0120_trg_check_project`, the first trigger migration, leaving that
+        # version DIRTY. `scripts/chain/apply_chain.py` records the counterpart measurement
+        # in its own budget note — `--attest final` applied all 271 files — and this lane
+        # wants the SCHEMA, not a per-file attestation ledger. The record run with
+        # `--attest each` belongs to that script and to the kernel domain, not here.
+        # The instability itself is a finding against
+        # packages/trappoint-migrate/src/trappoint_migrate/attest.py, owner: kernel.
+        run: |
+          set -euo pipefail
+          uv run --frozen --package trappoint-migrate trappoint migrate bootstrap \
+            --dsn "$LOCAL_DSN"
+          # Captured rather than streamed so that a refusal can be CLASSIFIED before the
+          # step dies. The step still dies — the exit code is the runner's and nothing is
+          # swallowed — but a reader is told whether custody broke the chain or inherited
+          # a break, which is the difference between a fix and a bug report.
+          if ! uv run --frozen --package trappoint-migrate trappoint migrate up \
+                 --dsn "$LOCAL_DSN" \
+                 --tree mainline \
+                 --migrations verticals/mainline/db/migrations \
+                 --attest final > up.log 2>&1; then
+            cat up.log
+            if grep -q 'fingerprint is not stable' up.log; then
+              echo "::error title=migrate refused on fingerprint instability::PRINTED ONLY \
+              WHEN the runner refuses with the stable-fingerprint message — if you are \
+              reading this inside a ##[group]Run header it is source, not output. This is \
+              NOT a custody defect and not a spec drift: stable_fingerprint() in \
+              packages/trappoint-migrate/src/trappoint_migrate/attest.py computes the \
+              schema fingerprint twice and refuses when the two disagree, and it was \
+              measured disagreeing on this tree on 2026-08-10. Owner: kernel. CU-9's A3 \
+              and A4 are UNCHECKED for this run."
+            else
+              echo "::error title=the mainline chain did not apply::PRINTED ONLY WHEN the \
+              migration runner exits non-zero — if you are reading this inside a \
+              ##[group]Run header it is source, not output. The runner's own output is \
+              printed above and names the file it halted on. CU-9's A3 and A4 are \
+              UNCHECKED for this run."
+            fi
+            exit 1
+          fi
+          tail -20 up.log
+
       # CU-9. Migrations have exactly one owner, so custody SPECIFIES fn_permit_event_chain
       # and FALSIFIES it; the datamodel lead implements it. This is the falsification.
+      #
+      # The `if [ -f … ]` guard that used to wrap this line is GONE, and its removal is the
+      # point rather than a tidy-up: the script is tracked in git, so the branch was dead,
+      # and its `::error title=… absent` text — echoed into every log by the ##[group]Run
+      # header — was read on 2026-08-10 as if the script were missing. It was not. It ran,
+      # and it found `0105`/`0106` had drifted from spec/custody/chain-verification.md §2.
+      # A missing file now fails with the interpreter's own unambiguous message.
+      #
+      # `--strict` promotes SKIP to failure. The three skips this check can emit are
+      # enumerated in spec/custody/chain-verification.md §3.2, and the two steps above are
+      # what remove their causes; the third (a role that cannot CREATE SCHEMA) cannot arise
+      # for `root` on a node this job started itself. Expect `8 passed, 0 failed, 0 skipped`.
       - name: The live chain function still matches its normative spec
         run: |
           set -euo pipefail
-          if [ -f scripts/custody/check_chain_fn_matches_spec.py ]; then
-            uv run python scripts/custody/check_chain_fn_matches_spec.py
-          else
-            echo "::error title=check_chain_fn_matches_spec.py absent::CU-9's \
-            pg_get_functiondef diff has not landed (owner: custody worker 1, \
-            custody-spec-and-red). Without it spec/custody/chain-verification.md is prose \
-            that nothing compares against anything."
-            exit 1
-          fi
+          uv run python scripts/custody/check_chain_fn_matches_spec.py \
+            --dsn "$LOCAL_DSN" --strict
 
       # CU-12. Evidence Act 1995 (Cth) s.69(3) and s.147(3) exclude representations prepared
       # in contemplation of a proceeding. A ledger built to be evidence is not a business
@@ -402,8 +644,27 @@ jobs:
           uv run pytest tests/integration/custody/test_k2_exit.py::test_no_litigation_vocabulary -q
           if grep -rniE "split[- ]view resistan" README.md docs/ --include="*.md" \
                | grep -viE "not claim|never claim|is not|MUST NOT|until a genuinely adverse"; then
-            echo "::error::split-view resistance is claimed somewhere it must not be. \
-            Quorum is q=1 over our own infrastructure, which is not adverse in the legal sense."
+            echo "::error title=split-view resistance is claimed::PRINTED ONLY WHEN the \
+            phrase appears unqualified in README.md or docs/ — if you are reading this \
+            inside a ##[group]Run header it is source, not output. Quorum is q=1 over our \
+            own infrastructure, which is not adverse in the legal sense."
             exit 1
           fi
           echo "vocabulary holds"
+
+      # The file header claims every cluster this lane touches is a container it started and
+      # will delete. The runner is ephemeral, so that was true by accident; here it is true
+      # on purpose. Guarded rather than `docker rm -f` unguarded, because `rm -f` on a
+      # container that was never created still prints `Error response from daemon: No such
+      # container` to the log, and an error-shaped line in a green job is the exact defect
+      # the note at the head of this file exists to stop.
+      - name: Delete the disposable node
+        if: always()
+        run: |
+          set -euo pipefail
+          if [ -n "$(docker ps -aq --filter 'name=^custody-spec-crdb$')" ]; then
+            docker rm -f custody-spec-crdb
+            echo "custody-spec-crdb deleted"
+          else
+            echo "no custody-spec-crdb container exists; nothing to delete"
+          fi

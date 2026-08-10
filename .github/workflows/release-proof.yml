@@ -24,7 +24,10 @@ name: release-proof
 
 on:
   push:
-    branches: [main]
+    # `master` is this repository's default branch. It read `main` until
+    # 2026-08-10, so this lane — the one that proves the product's central claim —
+    # had never run on the branch the Actions tab opens on.
+    branches: [master]
     paths:
       - "verticals/mainline/db/migrations/**"
       - "scripts/proof/**"
@@ -132,7 +135,18 @@ jobs:
           python -m pip install --upgrade pip
           # The floor packages/trappoint-migrate/pyproject.toml declares, spelled out here
           # because `--no-deps` below is what keeps this job independent of uv.lock.
-          python -m pip install "psycopg[binary,pool]>=3.3.4" pytest
+          #
+          # `pytest-timeout` is not decoration and not a convenience. The root
+          # `pyproject.toml` sets `addopts = [… "--strict-config" …]` alongside
+          # `timeout = 120`, and `--strict-config` makes an ini key that no installed
+          # plugin claims a HARD error. Measured on this exact step in run 31372088271:
+          # `ERROR: Unknown config option: timeout` → `no tests ran in 0.04s` → exit 4.
+          # The lane had started a cluster, applied the chain and written the evidence
+          # file, and then failed on a missing pytest plugin — a green proof reported as
+          # a red job, which is the one direction of wrongness this repository cannot
+          # afford. It is declared in the root `dev` group; this job pins its own floor
+          # rather than depending on uv.lock, exactly as the two lines above do.
+          python -m pip install "psycopg[binary,pool]>=3.3.4" pytest "pytest-timeout>=2.4"
           python -m pip install --no-deps -e packages/trappoint-migrate
           python -c "import psycopg, trappoint_migrate; print(psycopg.__version__)"
           python -m trappoint_migrate --help > /dev/null

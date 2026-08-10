@@ -38,7 +38,13 @@ on:
       - ".github/workflows/schema.yml"
       - "compose.yaml"
   push:
-    branches: [main]
+    # `master`, not `main` — the default branch of this repository, measured
+    # 2026-08-10 with `gh repo view --json defaultBranchRef`. `main` does not exist,
+    # so this trigger had never fired once. See claims.yml for the full note. The
+    # `schedule:` below was already reaching `master`, because GitHub fires cron
+    # triggers from the DEFAULT branch only — which is why this lane had scheduled
+    # runs and no push runs.
+    branches: [master]
   schedule:
     # Nightly, because the full matrix is the long form: CI runs it on every PR that
     # touches the schema, and this catches the case where nothing touched the schema and

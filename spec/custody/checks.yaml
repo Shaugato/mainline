@@ -32,11 +32,43 @@
 #   3. a check with status `deferred` MUST NOT be reachable as PASS at runtime;
 #   4. a status change MUST cite an ADR in the commit body.
 #
-# At the moment of freezing (K2 entry, 2026-08-07) every check is `deferred`, because no
-# verifier code exists yet. That is the honest state and it is recorded rather than
+# At the moment of freezing (K2 entry, 2026-08-07) every check was `deferred`, because no
+# verifier code existed yet. That was the honest state and it was recorded rather than
 # anticipated. `target_status` records what each check is expected to become, so the
 # registry is a contract now and a report later. Workers 6 and 7 flip `status` in the same
 # commit that lands the module and the test; flipping it without both fails rule 2.
+#
+# 2026-08-10 — worker 6's flip, and what was measured before it
+# -------------------------------------------------------------
+# `trappoint_verify.checks.structural` has landed. Checks 1, 2, 3, 9, 10, 13, 14, 15 and 16
+# are therefore flipped from `deferred` to `implemented` here. The flip is made under
+# docs/adr/0040-custody-red-before-green.md, which rule 4 requires the commit body to cite.
+#
+# Rule 3 is why this is a correction and not a promotion. A `deferred` check is defined
+# above as one that ALWAYS reports SKIP(not-implemented); all nine of these were reachable
+# as PASS at runtime while this file still said `deferred`, so the row was the thing that
+# was wrong. Measured before flipping, against a real cluster and the committed bundle:
+#
+#   * `python -m pytest tests/integration/custody/nemesis` — 14 of 15 attacks executed as
+#     real SQL against a disposable single-node CockroachDB v26.2.5. A10
+#     (closure_mass_rewrite) was detected by check 14 in 251 ms, and the verdict came from
+#     this module, not from the harness's local fallback. A12 was detected by check 13.
+#     The transcript is evidence/CUSTODY_ATTACK_MATRIX.md, generated from that run.
+#   * `trappoint-verify` over evidence/reference-ledger/bundle.json — checks 1, 2, 3, 9,
+#     10, 13, 14, 15 and 16 all PASS; 4, 5, 6, 7, 8, 11 and 12 report
+#     SKIP(not-implemented) and the report carries its NOT CHECKED banner.
+#
+# The seven cryptographic checks stay `deferred`, because they are: their modules do not
+# exist and every one of them reports SKIP(not-implemented) today. A run therefore still
+# exits 2 (NOT CHECKED) rather than 0, and that exit code is the honest one.
+#
+# The wheel carries its own copy of these rows in
+# packages/trappoint-verify/src/trappoint_verify/checks/__init__.py, so that
+# `uvx trappoint-verify explain-check 14` works on a machine that has never seen this
+# repository. That copy is compared to this file row by row by
+# packages/trappoint-verify/tests/test_checks_totality.py, and its `SPEC_STATUS_LAG` names
+# the ids implemented-here-but-deferred-there. Both must move in the same commit as this
+# flip; that test failing is what a stale copy looks like, and it is not silenced.
 #
 # `offline: true` means the check requires NO access to the MAINLINE database and NO
 # cooperation from us. The set of such checks IS the product claim, and it is computed from
@@ -54,7 +86,7 @@ checks:
     offline: true
     module: trappoint_verify.checks.structural
     test: packages/trappoint-verify/tests/test_structural_checks.py::test_leaf_hash
-    status: deferred
+    status: implemented
     target_status: implemented
     owner: verify-core
     notes: >-
@@ -69,7 +101,7 @@ checks:
     offline: true
     module: trappoint_verify.checks.structural
     test: packages/trappoint-verify/tests/test_structural_checks.py::test_inclusion
-    status: deferred
+    status: implemented
     target_status: implemented
     owner: verify-core
 
@@ -80,7 +112,7 @@ checks:
     offline: true
     module: trappoint_verify.checks.structural
     test: packages/trappoint-verify/tests/test_structural_checks.py::test_consistency
-    status: deferred
+    status: implemented
     target_status: implemented
     owner: verify-core
     notes: >-
@@ -187,7 +219,7 @@ checks:
     offline: true
     module: trappoint_verify.checks.structural
     test: packages/trappoint-verify/tests/test_structural_checks.py::test_link_chain
-    status: deferred
+    status: implemented
     target_status: implemented
     owner: verify-core
     notes: >-
@@ -203,7 +235,7 @@ checks:
     offline: true
     module: trappoint_verify.checks.structural
     test: packages/trappoint-verify/tests/test_structural_checks.py::test_canon_identity
-    status: deferred
+    status: implemented
     target_status: implemented
     owner: verify-core
     notes: >-
@@ -253,7 +285,7 @@ checks:
     offline: true
     module: trappoint_verify.checks.structural
     test: packages/trappoint-verify/tests/test_structural_checks.py::test_no_sandbox
-    status: deferred
+    status: implemented
     target_status: implemented
     owner: verify-core
 
@@ -264,7 +296,7 @@ checks:
     offline: true
     module: trappoint_verify.checks.structural
     test: packages/trappoint-verify/tests/test_structural_checks.py::test_closure_monotone
-    status: deferred
+    status: implemented
     target_status: implemented
     owner: verify-core
     notes: >-
@@ -281,7 +313,7 @@ checks:
     offline: true
     module: trappoint_verify.checks.structural
     test: packages/trappoint-verify/tests/test_structural_checks.py::test_receipt_coverage
-    status: deferred
+    status: implemented
     target_status: implemented
     owner: verify-core
     notes: >-
@@ -303,7 +335,7 @@ checks:
     offline: true
     module: trappoint_verify.checks.structural
     test: packages/trappoint-verify/tests/test_checks_totality.py
-    status: deferred
+    status: implemented
     target_status: implemented
     owner: verify-core
     notes: >-

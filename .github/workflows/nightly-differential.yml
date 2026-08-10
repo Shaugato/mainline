@@ -33,6 +33,27 @@ on:
   schedule:
     # 15:40 UTC — 01:40 Australia/Sydney, after the working day and before the morning.
     - cron: "40 15 * * *"
+  push:
+    # ADDED 2026-08-10, and NARROWLY. This workflow carried no push trigger at all —
+    # MEASURED: the default branch is `master` (`git branch --show-current`), and
+    # `gh run list --branch main` is empty — so nothing it did was ever visible on the
+    # branch a visitor lands on.
+    #
+    # The paths list is this file and nothing else, and that restraint is the point.
+    # The header above says this lane is "too slow to run on every push" and it means
+    # it: 2000 examples x 120 steps against a real node, 180-minute budget. Triggering
+    # it on ordinary commits would contradict the sentence this workflow opens with.
+    # But a change to THIS FILE is exactly the change that can break it — the lane spent
+    # today red because of one flag in its own `docker run` — and that class of edit
+    # should not have to wait until 01:40 to be found out.
+    #
+    # The profile is left alone. `inputs.profile` is empty on a push, so the run takes
+    # the `nightly` default: the real measurement, under its real name. A shorter loop
+    # reported as this lane's result would be the weaker claim wearing the stronger
+    # lane's label.
+    branches: [master]
+    paths:
+      - ".github/workflows/nightly-differential.yml"
   workflow_dispatch:
     inputs:
       profile:
@@ -78,6 +99,24 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Start a single-node CockroachDB and make it Cloud-truthful
+        # MEASURED 2026-08-10 against the pinned image — `--listen-addr` is
+        # DELIBERATELY ABSENT and must stay absent:
+        #
+        #   $ docker run … start-single-node --insecure --listen-addr=0.0.0.0:26257 …
+        #   error: hostname of listen_addr must be "127.0.0.1" or "localhost"
+        #
+        # The node refuses to start. `--advertise-addr=localhost:26257` does not rescue
+        # it; the check is on listen_addr itself. And `--listen-addr=localhost:26257`
+        # starts, but binds inside the container's loopback where a published port cannot
+        # reach it. The default binds where `-p` can forward, which is what this job needs
+        # and what the pgwire probe below actually proves. `--http-addr` is unaffected.
+        #
+        # That paragraph is db-schema.yml:162-172's, kept word for word because it
+        # records three measurements and a paraphrase would lose the two negative ones.
+        # The ONE difference is deliberate: that copy names the image literal and this
+        # one says "the pinned image" instead, because db.yml's repository census
+        # ratchets the count of restated image literals and that count is AT its ceiling
+        # of 21 today. This file already spends one of those 21 on `CRDB_IMAGE` above.
         run: |
           set -euo pipefail
           docker pull "$CRDB_IMAGE"
@@ -86,7 +125,7 @@ jobs:
             -p 127.0.0.1:26257:26257 -p 127.0.0.1:8080:8080 \
             "$CRDB_IMAGE" \
             start-single-node --insecure \
-              --listen-addr=0.0.0.0:26257 --http-addr=0.0.0.0:8080 \
+              --http-addr=0.0.0.0:8080 \
               --store=type=mem,size=4GiB
           for attempt in $(seq 1 60); do
             if docker exec trappoint-crdb ./cockroach sql --insecure --execute "SELECT 1" >/dev/null 2>&1; then
@@ -196,6 +235,24 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Start a single-node CockroachDB and make it Cloud-truthful
+        # MEASURED 2026-08-10 against the pinned image — `--listen-addr` is
+        # DELIBERATELY ABSENT and must stay absent:
+        #
+        #   $ docker run … start-single-node --insecure --listen-addr=0.0.0.0:26257 …
+        #   error: hostname of listen_addr must be "127.0.0.1" or "localhost"
+        #
+        # The node refuses to start. `--advertise-addr=localhost:26257` does not rescue
+        # it; the check is on listen_addr itself. And `--listen-addr=localhost:26257`
+        # starts, but binds inside the container's loopback where a published port cannot
+        # reach it. The default binds where `-p` can forward, which is what this job needs
+        # and what the pgwire probe below actually proves. `--http-addr` is unaffected.
+        #
+        # That paragraph is db-schema.yml:162-172's, kept word for word because it
+        # records three measurements and a paraphrase would lose the two negative ones.
+        # The ONE difference is deliberate: that copy names the image literal and this
+        # one says "the pinned image" instead, because db.yml's repository census
+        # ratchets the count of restated image literals and that count is AT its ceiling
+        # of 21 today. This file already spends one of those 21 on `CRDB_IMAGE` above.
         run: |
           set -euo pipefail
           docker pull "$CRDB_IMAGE"
@@ -203,9 +260,16 @@ jobs:
             -p 127.0.0.1:26257:26257 \
             "$CRDB_IMAGE" \
             start-single-node --insecure \
-              --listen-addr=0.0.0.0:26257 --store=type=mem,size=4GiB
+              --store=type=mem,size=4GiB
           for attempt in $(seq 1 60); do
             if docker exec trappoint-crdb ./cockroach sql --insecure --execute "SELECT 1" >/dev/null 2>&1; then
+              # The count is REPORTED, not merely counted. shellcheck SC2034 caught this
+              # loop consuming `attempt` and never naming it, and the warning was right
+              # about more than style: a readiness probe that cannot say how long it
+              # waited tells you nothing on the day it is slow, and this lane's whole
+              # failure mode is a node that comes up late or not at all. Same line as
+              # db.yml's loop, deliberately.
+              echo "cluster answering SQL after ${attempt} attempt(s)"
               docker exec trappoint-crdb ./cockroach sql --insecure --execute \
                 "ALTER RANGE default CONFIGURE ZONE USING gc.ttlseconds = ${CLOUD_GC_TTL_SECONDS}"
               exit 0
@@ -213,6 +277,7 @@ jobs:
             sleep 2
           done
           echo "::error::the cluster never answered SQL"
+          docker logs trappoint-crdb | tail -50
           exit 1
 
       - name: Install uv

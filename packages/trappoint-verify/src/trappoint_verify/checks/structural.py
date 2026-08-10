@@ -8,6 +8,16 @@ exists to support: *non-alteration* (1), *non-omission* (2, 3, 9) and *provenanc
 process* (10). The fourth — existence at a bracketed time — needs a signature, a timestamp
 token and a beacon, and lives in worker 7's modules.
 
+Checks 13 and 14 answer a fifth question the other seven cannot
+---------------------------------------------------------------
+1, 2, 3, 9 and 10 all ask *is this tree the tree you committed to?* — and a tree can be
+impeccable while the rows underneath it are not the rows the gate read. **Check 13** asks
+whether an evidentiary tree has a demo write in it (attack **A12**); **check 14** asks
+whether the blame closure the ancestry gate consults was rewritten underneath it (attack
+**A10**, adversarial finding S2). Both are pure arithmetic over what the bundle carries, so
+the person checking never has to be given access to the cluster the rows came from — which
+is the whole point, since the cluster is the thing in dispute.
+
 RFC 6962 is reimplemented here, deliberately
 --------------------------------------------
 :func:`verify_inclusion` and :func:`verify_consistency` are written from RFC 6962-bis
@@ -84,6 +94,13 @@ _HEX_LEN: Final[int] = 64
 _FIRST_CLOSURE_GENERATION: Final[int] = 1
 _MIN_PAIR_CHECKPOINTS: Final[int] = 2
 _TOTALITY_CHECK_ID: Final[int] = 16
+
+#: Check 14's three machine tokens. A mass closure rewrite has to leave one of exactly
+#: these three marks, and they are kept apart because they accuse different acts: a row
+#: was added beside another, a row was removed, or a row's severity was written down.
+_CODE_CLOSURE_DUPLICATE: Final[str] = "closure-generation-duplicate"
+_CODE_CLOSURE_GAP: Final[str] = "closure-generation-gap"
+_CODE_CLOSURE_DECREASED: Final[str] = "closure-severity-decreased"
 
 
 # --------------------------------------------------------------------------------------
@@ -581,20 +598,34 @@ def check_canon_identity(context: CheckContext) -> Outcome:
 
 @register(13)
 def check_no_sandbox(context: CheckContext) -> Outcome:
-    """Refuse a bundle that mixes sandbox leaves into an evidentiary tree (attack A12)."""
+    """Refuse a bundle that mixes sandbox leaves into an evidentiary tree (attack A12).
+
+    ``is_sandbox`` is carried on the leaf rather than inferred from the origin, so this is
+    a total scan of what the bundle itself says about each row. Every offending leaf is
+    named — seq, entry_id and the actor that wrote it — because "one of your leaves is a
+    demo write" is a sentence somebody has to be able to act on, and a count is not.
+    """
     bundle = context.bundle
     name = _name(13)
     if not bundle.leaves:
         return skipped(13, name, "no-leaves", "the bundle carries no leaves to classify")
-    offending = [leaf.seq for leaf in bundle.leaves if leaf.is_sandbox]
+    offending = [leaf for leaf in bundle.leaves if leaf.is_sandbox]
     if offending:
         return failed(
             13,
             name,
             "sandbox-leaf-present",
-            f"{len(offending)} leaf/leaves carry is_sandbox = true",
+            f"{_count(len(offending), 'leaf', 'leaves')} of "
+            f"{_count(len(bundle.leaves), 'leaf', 'leaves')} carry is_sandbox = true",
             detail=(
-                f"seq {offending}",
+                *(
+                    (
+                        f"leaf {leaf.seq}: entry_id {leaf.entry_id or '<absent>'}, written by "
+                        f"{leaf.actor or '<anonymous>'} "
+                        f"({leaf.actor_kind or 'unknown actor kind'})"
+                    )
+                    for leaf in offending
+                ),
                 (
                     "An anonymous demo write inside an evidentiary tree is attack A12: it makes "
                     "every other leaf in the tree arguable."
@@ -621,20 +652,126 @@ def _group_closures(
     for row in rows:
         grouped.setdefault((row.clause_uuid, row.as_of_commit), []).append(row)
     for rows_for_key in grouped.values():
-        rows_for_key.sort(key=lambda row: row.closure_gen)
+        rows_for_key.sort(key=lambda row: (row.closure_gen, row.max_severity))
     return grouped
+
+
+def _severities_by_generation(rows: list[ClosureGeneration]) -> dict[int, list[int]]:
+    """``closure_gen -> every max_severity carried at that generation``, ascending."""
+    by_generation: dict[int, list[int]] = {}
+    for row in rows:
+        by_generation.setdefault(row.closure_gen, []).append(row.max_severity)
+    for severities in by_generation.values():
+        severities.sort()
+    return by_generation
+
+
+def _duplicate_findings(label: str, by_generation: dict[int, list[int]]) -> list[tuple[str, str]]:
+    """Report any generation written twice. Two rows at one generation means two writers.
+
+    Separated from the gap check because the two are different accusations. A gap says a
+    row was *removed*; a duplicate says a row was *added beside* one that already existed,
+    and a reader that silently took either would be choosing which history to believe.
+    Dense-from-1 arithmetic alone cannot tell them apart — ``[1, 1, 2]`` and ``[1, 3]`` are
+    both "not dense" — so a duplicate reported as a gap would name the wrong act.
+    """
+    findings: list[tuple[str, str]] = []
+    for generation, severities in sorted(by_generation.items()):
+        if len(severities) == 1:
+            continue
+        findings.append(
+            (
+                _CODE_CLOSURE_DUPLICATE,
+                (
+                    f"{label}: generation {generation} appears {len(severities)} times, "
+                    f"carrying max_severity {severities}. A generation is written once, by an "
+                    "append-only insert; a second row at the same generation is a second "
+                    "writer, and whichever one a reader took would be a choice about which "
+                    "history to believe (attack A10)."
+                ),
+            )
+        )
+    return findings
+
+
+def _gap_findings(label: str, by_generation: dict[int, list[int]]) -> list[tuple[str, str]]:
+    """Report generations that are not dense from 1. A missing one is a deleted row."""
+    present = sorted(by_generation)
+    dense = list(range(_FIRST_CLOSURE_GENERATION, max(present) + 1))
+    if present == dense:
+        return []
+    missing = sorted(set(dense) - set(present))
+    return [
+        (
+            _CODE_CLOSURE_GAP,
+            (
+                f"{label}: the generations present are {present}; dense from "
+                f"{_FIRST_CLOSURE_GENERATION} they would be {dense}, so generation(s) "
+                f"{missing} are absent. A closure is built one generation at a time and no "
+                "generation is ever deleted, so a gap is a row somebody removed — which is "
+                "the other shape a mass rewrite leaves behind (attack A10)."
+            ),
+        )
+    ]
+
+
+#: The second half of every check-14 monotonicity finding. Held apart from the sentence
+#: that carries the numbers because it quotes the statement attack A10 actually runs, and a
+#: linter reading an interpolated string with ``UPDATE … SET`` in it is right to ask
+#: whether a query is being assembled. Nothing here builds a query: this module never opens
+#: a connection, and the whole point of the check is that it runs where the cluster is not.
+_A10_EXPLANATION: Final[str] = (
+    "A closure gains severity as ancestry is walked and never loses it, so one statement of "
+    "the form `UPDATE ... SET max_severity = 0` from a Lambda execution role is exactly this "
+    "arithmetic (attack A10) — and every coverage view would still report full coverage."
+)
+
+
+def _monotonicity_findings(
+    label: str, by_generation: dict[int, list[int]]
+) -> list[tuple[str, str]]:
+    """Report a ``max_severity`` that falls. It may rise as ancestry is walked, never fall.
+
+    Each severity is compared against the highest severity seen at any *earlier*
+    generation, not merely against its immediate predecessor. A rewrite that zeroes one
+    generation and then restores a smaller value at the next would satisfy a
+    predecessor-only comparison at the second step while leaving the closure permanently
+    below where the ancestry walk had already put it.
+    """
+    findings: list[tuple[str, str]] = []
+    highest: int | None = None
+    highest_generation: int | None = None
+    for generation, severities in sorted(by_generation.items()):
+        for severity in severities:
+            if highest is not None and highest_generation is not None and severity < highest:
+                findings.append(
+                    (
+                        _CODE_CLOSURE_DECREASED,
+                        (
+                            f"{label}: max_severity is {severity} at generation {generation}, "
+                            f"below the {highest} already reached at generation "
+                            f"{highest_generation}. " + _A10_EXPLANATION
+                        ),
+                    )
+                )
+        generation_highest = max(severities)
+        if highest is None or generation_highest > highest:
+            highest, highest_generation = generation_highest, generation
+    return findings
 
 
 @register(14)
 def check_closure_monotone(context: CheckContext) -> Outcome:
-    """Assert generations are dense from 1 and ``max_severity`` never falls — the S2 detector.
+    """Assert generations are dense from 1, written once, and ``max_severity`` never falls.
 
-    The blame closure sits under *every* ancestry gate. One ``UPDATE … SET max_severity =
-    0`` from a Lambda execution role — the least-protected identity in the architecture —
-    would evaporate every weakening gate while every dashboard reported full coverage. A
-    mass rewrite downward (attack **A10**) either breaks monotonicity or leaves a
-    generation gap, and either way it is visible to someone who has never touched the
-    cluster.
+    The S2 detector. The blame closure sits under *every* ancestry gate. One ``UPDATE …
+    SET max_severity = 0`` from a Lambda execution role — the least-protected identity in
+    the architecture — would evaporate every weakening gate while every dashboard reported
+    full coverage. A mass rewrite (attack **A10**) has to leave one of exactly three marks
+    on ``(clause_uuid, as_of_commit)``: a generation that fell in severity, a generation
+    that was deleted, or a generation written twice. All three are visible to somebody who
+    has never touched the cluster, and each is reported as the act it is rather than folded
+    into one message.
     """
     bundle = context.bundle
     name = _name(14)
@@ -656,40 +793,34 @@ def check_closure_monotone(context: CheckContext) -> Outcome:
             14, name, "no-closure-rows", "the closure_generations section is present but empty"
         )
 
-    findings: list[str] = []
+    findings: list[tuple[str, str]] = []
     grouped = _group_closures(bundle.closure_generations)
     for (clause_uuid, as_of_commit), rows in sorted(grouped.items()):
-        expected = _FIRST_CLOSURE_GENERATION
-        highest = None
-        for row in rows:
-            if row.closure_gen != expected:
-                findings.append(
-                    f"({clause_uuid}, {as_of_commit}): generation {expected} is missing — "
-                    f"the next row present is {row.closure_gen}"
-                )
-                break
-            if highest is not None and row.max_severity < highest:
-                findings.append(
-                    f"({clause_uuid}, {as_of_commit}): max_severity fell from {highest} to "
-                    f"{row.max_severity} at generation {row.closure_gen} — a closure may "
-                    "gain severity as ancestry is walked, never lose it (attack A10)"
-                )
-            highest = row.max_severity if highest is None else max(highest, row.max_severity)
-            expected += 1
+        label = f"({clause_uuid}, {as_of_commit})"
+        by_generation = _severities_by_generation(rows)
+        # Order matters and is the report's, not an accident: a duplicated or deleted row
+        # is a statement about which rows exist, and that has to be read before any
+        # statement about the order they are in.
+        findings.extend(_duplicate_findings(label, by_generation))
+        findings.extend(_gap_findings(label, by_generation))
+        findings.extend(_monotonicity_findings(label, by_generation))
 
     if findings:
-        code = (
-            "closure-generation-gap"
-            if "is missing" in findings[0]
-            else "closure-severity-decreased"
+        return failed(
+            14,
+            name,
+            findings[0][0],
+            f"{len(findings)} closure finding(s) over "
+            f"{_count(len(grouped), '(clause, commit) pair')}",
+            detail=tuple(sentence for _, sentence in findings),
         )
-        return failed(14, name, code, f"{len(findings)} closure finding(s)", detail=tuple(findings))
     return passed(
         14,
         name,
         "closure-monotone",
         f"{_count(len(bundle.closure_generations), 'row')} over "
-        f"{_count(len(grouped), '(clause, commit) pair')}: dense from 1, severity non-decreasing",
+        f"{_count(len(grouped), '(clause, commit) pair')}: dense from "
+        f"{_FIRST_CLOSURE_GENERATION}, each generation written once, severity non-decreasing",
     )
 
 

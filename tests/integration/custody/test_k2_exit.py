@@ -34,8 +34,22 @@ asserts the existence and shape of the evidence that the criterion was met, and 
 suite is what produces that evidence from a real run against a real cluster.
 
 Auxiliary tests in this file (the ones the evidentiary map and the check registry name)
-**skip loudly** when their dependency is absent, because they are not exit criteria. Only
-the six below are permitted to fail today, and there must be exactly six.
+**skip loudly** when their dependency is absent, because they are not exit criteria.
+
+Where the six stand, measured 2026-08-10
+----------------------------------------
+Three are met. K2.1 and K2.2 became green when ``evidence/CUSTODY_ATTACK_MATRIX.md`` was
+regenerated from a nemesis run that executed 14 of the 15 attacks as real SQL against a
+disposable CockroachDB v26.2.5 — A1 caught by check 3, A10 caught by check 14 in 251 ms —
+and when ``spec/custody/checks.yaml`` was corrected to record the nine structural checks as
+``implemented``, which is what they had already been for days. K2.3 was green already.
+
+Three are not met, and each of the three is blocked on **an artefact that does not exist,
+owned by somebody outside custody**. Their assertions below name that artefact by path and
+name its owner, because "K2.4 NOT MET" tells a reader nothing they can act on. The
+thresholds are untouched: no sample count was lowered, no field was made optional, and no
+criterion was rewritten to describe what happens to exist. A criterion that cannot be met
+today fails today, and it says whose desk it is on.
 """
 
 from __future__ import annotations
@@ -192,22 +206,39 @@ def test_k2_4_checkpoint_cadence_measured_and_deadman_defined() -> None:
     """
     measurement = EVIDENCE / "k2-checkpoint-cadence.json"
     assert measurement.is_file(), (
-        "K2.4 NOT MET: evidence/k2-checkpoint-cadence.json does not exist. Checkpoint "
-        "cadence has not been measured, so the ~60 s window is an assumption."
+        "K2.4 NOT MET — MISSING ARTEFACT: evidence/k2-checkpoint-cadence.json\n"
+        "  owner: the `sequencer` worker (measurement), cloud lead (deadman) — "
+        "docs/adr/0040-custody-red-before-green.md\n"
+        "  what would make it green: a file at that path carrying keys 'samples' (>= 30), "
+        "'p50_seconds', 'p95_seconds', 'max_seconds' and 'measured_at', written by observing "
+        "consecutive checkpoint publications against a running sequencer. Nothing in the "
+        "repository writes that file today: no producer names the path.\n"
+        "  why it is not faked here: the ~60 s window of undetectable mutation is the single "
+        "honest number the whole custody argument turns on. A number this test invented would "
+        "be a number nobody measured."
     )
     data = json.loads(measurement.read_text(encoding="utf-8"))
     for field in ("samples", "p50_seconds", "p95_seconds", "max_seconds", "measured_at"):
-        assert field in data, f"K2.4 NOT MET: cadence measurement is missing {field!r}"
+        assert field in data, (
+            f"K2.4 NOT MET: evidence/k2-checkpoint-cadence.json exists but is missing "
+            f"{field!r}. Owner: the `sequencer` worker."
+        )
     assert data["samples"] >= 30, (
-        f"K2.4 NOT MET: {data['samples']} cadence samples is not a measurement."
+        f"K2.4 NOT MET: evidence/k2-checkpoint-cadence.json records {data['samples']} "
+        "cadence samples; 30 is the floor and it is not negotiable downward — a handful of "
+        "samples cannot carry a p95. Owner: the `sequencer` worker."
     )
     assert "checkpoint_age_seconds" in _read("spec/custody/checks.yaml") or any(
         "checkpoint_age_seconds" in p.read_text(encoding="utf-8", errors="ignore")
         for p in (REPO_ROOT / "infra").rglob("*.tf")
     ), (
-        "K2.4 NOT MET: the checkpoint_age_seconds deadman is not defined anywhere. It fires "
-        "from K6 but it is defined in K2, because an alarm invented after the incident is "
-        "not an alarm."
+        "K2.4 NOT MET — MISSING DEFINITION: the `checkpoint_age_seconds` deadman is defined "
+        "in no file under infra/ (searched infra/**/*.tf) and in no row of "
+        "spec/custody/checks.yaml.\n"
+        "  owner: cloud lead — docs/adr/0040-custody-red-before-green.md\n"
+        "  what would make it green: a CloudWatch metric alarm named checkpoint_age_seconds "
+        "declared in infra/modules or infra/envs. It FIRES from K6; it is DEFINED in K2, "
+        "because an alarm invented after the incident is not an alarm."
     )
 
 
@@ -228,10 +259,15 @@ def test_k2_5_checkpoint_wire_format_tagged_v1_0_with_changelog_entry() -> None:
         changelog,
     )
     assert entry, (
-        "K2.5 NOT MET: spec/CHANGELOG.md carries no entry naming wire/checkpoint.md at "
-        "v1.0. spec/CHANGELOG.md is owned by the kernel lead; custody supplies the text and "
-        "the entry lands there. Until it does, the freeze is documented only for people who "
-        "already knew the file exists — which is everyone except the third-party "
+        "K2.5 NOT MET — MISSING ENTRY: spec/CHANGELOG.md carries no line naming "
+        "`wire/checkpoint.md` at v1.0.\n"
+        "  owner: kernel lead, who owns spec/CHANGELOG.md — "
+        "docs/adr/0040-custody-red-before-green.md\n"
+        "  the other half is already green: spec/wire/checkpoint.md declares itself frozen "
+        "at `v1.0`, so this criterion is blocked on one line in a file custody does not own. "
+        "Custody supplies the text and the entry lands there.\n"
+        "  why it matters: until the entry exists, the freeze is documented only for people "
+        "who already knew the file exists — which is everyone except the third-party "
         "implementer the format was frozen for."
     )
 
@@ -245,27 +281,41 @@ def test_k2_6_migration_attestation_chained_with_a_stable_fingerprint() -> None:
     fingerprint: it produces alarm fatigue and then gets switched off.
     """
     assert _module_available("mainline_custody_patrol"), (
-        "K2.6 NOT MET: mainline_custody_patrol is not importable, so no schema fingerprint "
-        "is computed and no migration attestation is chained into the ledger."
+        "K2.6 NOT MET — MISSING MODULE: mainline_custody_patrol is not importable, so no "
+        "schema fingerprint is computed and no migration attestation is chained into the "
+        "ledger. Expected at verticals/mainline/packages/mainline-custody-patrol/src/. "
+        "Owner: the `witness-and-custodian` worker."
     )
     attestation = EVIDENCE / "k2-migration-attestation.json"
     assert attestation.is_file(), (
-        "K2.6 NOT MET: evidence/k2-migration-attestation.json does not exist. The migration "
-        "attestation chain has never been computed."
+        "K2.6 NOT MET — MISSING ARTEFACT: evidence/k2-migration-attestation.json\n"
+        "  owner: the `witness-and-custodian` worker — "
+        "docs/adr/0040-custody-red-before-green.md\n"
+        "  the computation already exists and is unwired, which is the whole of the gap: "
+        "mainline_custody_patrol.fingerprint.stable_schema_fingerprint() is present and "
+        "tested, and nothing calls it against a migrated cluster twice and writes the "
+        "result. What would make this green is a file at that path carrying "
+        "'fingerprint_run_1', 'fingerprint_run_2' and 'chained_leaf_seq'.\n"
+        "  why the last key is not optional: a fingerprint that lives outside the tree is a "
+        "file we could edit, so an unchained attestation attests to nothing."
     )
     data = json.loads(attestation.read_text(encoding="utf-8"))
     first, second = data.get("fingerprint_run_1"), data.get("fingerprint_run_2")
     assert first and second, (
-        "K2.6 NOT MET: the attestation records fewer than two consecutive fingerprint "
-        "computations, so stability was asserted rather than observed."
+        "K2.6 NOT MET: evidence/k2-migration-attestation.json records fewer than two "
+        "consecutive fingerprint computations, so stability was asserted rather than "
+        "observed. Owner: the `witness-and-custodian` worker."
     )
     assert first == second, (
         "K2.6 NOT MET: the schema fingerprint is not stable across two consecutive "
-        f"computations ({first} != {second}). Normalise before hashing."
+        f"computations ({first} != {second}). SHOW CREATE ALL TABLES does not guarantee "
+        "intra-category ordering; normalise before hashing rather than relaxing this "
+        "assertion. Owner: the `witness-and-custodian` worker."
     )
     assert data.get("chained_leaf_seq") is not None, (
-        "K2.6 NOT MET: the attestation is not chained into the ledger; a fingerprint that "
-        "lives outside the tree is a file we could edit."
+        "K2.6 NOT MET: evidence/k2-migration-attestation.json carries no 'chained_leaf_seq', "
+        "so the attestation is not chained into the ledger; a fingerprint that lives outside "
+        "the tree is a file we could edit. Owner: the `witness-and-custodian` worker."
     )
 
 
@@ -437,7 +487,100 @@ def test_no_ttl_on_ledger() -> None:
 
 
 def test_verifier_determinism() -> None:
-    """Evidence Act ss.146-147 — the device/process presumption needs an 'ordinarily'."""
+    """Evidence Act ss.146-147 — the device/process presumption needs an 'ordinarily'.
+
+    ss.146 and 147 let a court presume that a device or process produced the outcome it
+    ordinarily produces. *Ordinarily* is the load-bearing word, and it is a claim about
+    repetition rather than about correctness: a verifier whose report varied between two
+    runs over identical bytes would forfeit the presumption even if every individual verdict
+    were right, because there would be no "ordinarily" to point at.
+
+    So this runs the shipped verifier twice over the committed reference bundle, from a
+    fresh parse each time, and requires the exit code, the rendered text and the JSON to be
+    identical **byte for byte**. Dict iteration order, set iteration order, an unsorted
+    ``json.dumps``, a timestamp in the header, a path rendered as ``PosixPath(...)`` — every
+    one of those is a real way for this to fail, and each of them is the presumption gone.
+
+    The two anti-vacuity guards below matter as much as the comparison. Two runs of a
+    verifier that checked nothing are also identical, so the run has to be shown to have
+    done work: at least the nine structural checks must have produced a verdict, and the
+    report has to be substantial rather than an empty shell.
+    """
     if not _module_available("trappoint_verify"):
-        pytest.skip("SKIP(not-implemented): trappoint_verify does not exist yet")
-    pytest.fail("wire the determinism assertion when trappoint_verify lands")
+        pytest.skip(
+            "SKIP(not-importable): trappoint_verify is not on the path. It ships in "
+            "packages/trappoint-verify and this file bootstraps that src/ directory, so "
+            "this skip means the package is absent from the checkout, not merely uninstalled."
+        )
+
+    bundle_path = EVIDENCE / "reference-ledger" / "bundle.json"
+    assert bundle_path.is_file(), (
+        "evidence/reference-ledger/bundle.json does not exist, so there is nothing to run "
+        "the verifier over twice. K2.3 covers its absence as an exit criterion."
+    )
+
+    import trappoint_verify
+    from trappoint_verify.bundle import load_bundle
+    from trappoint_verify.checks import VerifyOptions, load_all, registered, run_all
+    from trappoint_verify.report import Verdict
+
+    load_all()
+    bound = set(registered())
+    structural = {1, 2, 3, 9, 10, 13, 14, 15, 16}
+    assert structural <= bound, (
+        f"only checks {sorted(bound)} have a runner bound, so a determinism comparison over "
+        f"this run would be a comparison over almost nothing. Missing: "
+        f"{sorted(structural - bound)}."
+    )
+
+    def one_run() -> tuple[int, str, str]:
+        """Load and verify from scratch. A shared parsed bundle would test less than this."""
+        bundle = load_bundle(bundle_path)
+        report = run_all(bundle, VerifyOptions(), tool_version=trappoint_verify.__version__)
+        verdicts = {outcome.check_id for outcome in report.outcomes}
+        assert structural <= verdicts, (
+            f"the run produced no verdict for checks {sorted(structural - verdicts)}; a "
+            "determinism assertion over a run that skipped the work is vacuous"
+        )
+        wrong = [
+            f"check {outcome.check_id} {outcome.verdict.value} {outcome.code}"
+            for outcome in report.outcomes
+            if outcome.check_id in structural and outcome.verdict is not Verdict.PASS
+        ]
+        unclean = (
+            "the committed reference bundle does not pass its own structural checks, so a "
+            f"determinism comparison would compare two identical failures: {'; '.join(wrong)}"
+        )
+        assert not wrong, unclean
+        return report.exit_code, report.render(colour=False), report.as_json_text()
+
+    first_exit, first_text, first_json = one_run()
+    second_exit, second_text, second_json = one_run()
+
+    assert first_exit == second_exit, (
+        f"two runs over identical bytes exited {first_exit} and {second_exit}. The device/"
+        "process presumption under Evidence Act ss.146-147 is a claim about what the process "
+        "ordinarily does, and a verifier with two answers has no 'ordinarily'."
+    )
+    assert first_text == second_text, (
+        "two runs over identical bytes rendered different reports. First divergence: "
+        + _first_divergence(first_text, second_text)
+    )
+    assert first_json == second_json, (
+        "two runs over identical bytes serialised different JSON, so the machine-readable "
+        "form is not reproducible even though the text form is. First divergence: "
+        + _first_divergence(first_json, second_json)
+    )
+    assert len(first_text.splitlines()) > len(structural), (
+        f"the report is {len(first_text.splitlines())} lines long, which is fewer lines than "
+        "there are structural checks. Two identical empty reports are identical."
+    )
+
+
+def _first_divergence(left: str, right: str) -> str:
+    """Name the first line at which two reports differ, for a message worth reading."""
+    left_lines, right_lines = left.splitlines(), right.splitlines()
+    for number, (one, other) in enumerate(zip(left_lines, right_lines, strict=False), start=1):
+        if one != other:
+            return f"line {number}: {one!r} vs {other!r}"
+    return f"line counts {len(left_lines)} vs {len(right_lines)}"

@@ -49,6 +49,47 @@ classifiers = [
 # AND walks `importlib.metadata.requires` transitively over this list, because a
 # runtime absence with a declared dependency is still a supply-chain reach. Adding one
 # name to the list below turns that test red; that is the mechanism.
+#
+# ---------------------------------------------------------------------------------
+# THE THREE NAMES BELOW ARE NOT THE CLOSURE. MEASURED 2026-08-10.
+# ---------------------------------------------------------------------------------
+#
+# `uv export --frozen --no-dev --package mainline-gate-svc` resolves FIFTEEN
+# distributions, and the transitive `importlib.metadata.requires` walk in
+# `tests/test_no_model_in_closure.py` reaches the same fifteen — two independent
+# measurements that agree, which is the only reason either is worth quoting:
+#
+#   workspace (3)   mainline-gate-svc, trappoint-core, mainline-domain
+#   the wire (3)    psycopg, psycopg-binary, psycopg-pool
+#   numeric (4)     numpy, scipy, pint, rapidfuzz
+#   pint's own (4)  flexcache, flexparser, platformdirs, typing-extensions
+#   platform (1)    tzdata  (sys_platform == "win32"; absent on the Linux runner)
+#
+# The middle two rows are a boundary question, and it is NOT the model-SDK question.
+# `numpy`, `scipy`, `pint` and `rapidfuzz` are four BLAS-backed binary-wheel
+# distributions inside a service whose entire job is one SERIALIZABLE transaction and
+# one `CALL mainline.merge_permit`. `.github/workflows/supply-chain.yml` is silent
+# about them by design — its deny-list names model SDKs, and a deny-list can only
+# refuse what somebody already thought to name.
+#
+# WHERE THEY COME FROM: exactly one edge. `mainline-domain` declares all four; this
+# file declares none of them. `test_the_numeric_stack_enters_only_through_mainline_
+# domain` pins that edge set, so if the gate service ever acquires one directly the
+# test names it.
+#
+# WHETHER THEY RUN: no. Importing `mainline_gate_svc`, `.cli`, `.config` and
+# `.service` in a fresh interpreter loads 315 modules and not one of them is `numpy`,
+# `scipy`, `pint` or `rapidfuzz` (`test_the_numeric_stack_is_resolved_but_never_
+# imported_on_the_gate_path`). That is the SAME SHAPE of reach this package refuses
+# for model SDKs — resolved but not imported — and recording it as a fact rather than
+# quietly enjoying the green is the point. The wheels are in the image either way.
+#
+# The honest conclusion is that the dependency list below is short and the CLOSURE is
+# not, and that `mainline-domain` is where that is decided. Splitting the deterministic
+# vocabulary the gate actually uses out of the quantity/similarity machinery it does
+# not would take the closure to seven; that is a `mainline-domain` change and it is not
+# made here. Until it is, `EXPECTED_DECLARED_CLOSURE` in the test module pins all
+# fifteen names, so the set cannot grow without a reviewer reading the argument for it.
 dependencies = [
   "psycopg[binary]>=3.3.4",
   "trappoint-core",

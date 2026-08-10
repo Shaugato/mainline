@@ -45,6 +45,8 @@ import {
   OpaqueMemorySource,
   bundleFiles,
   deleteFile,
+  dropFrameKey,
+  frameAddressOf,
   editManifest,
   flipDeclaredDigest,
   renameFrame,
@@ -80,7 +82,7 @@ async function auditOpaque(files: Map<string, Uint8Array>): Promise<BundleAudit>
   });
 }
 
-const PERMIT_FRAME = `frames/GET~20~2Fv1~2Fpermits~2F${FIXTURE_PERMIT_ID}.json`;
+const PERMIT_FRAME = frameAddressOf(`GET /v1/permits/${FIXTURE_PERMIT_ID}`);
 
 describe('the committed bundle, intact', () => {
   it('verifies, with every listed file hashed and no finding', async () => {
@@ -201,28 +203,27 @@ describe('files and names the producer would never have written', () => {
   });
 
   it('reports a frame filed under a non-canonical name', async () => {
-    // `~47` decodes to `G`, so this name decodes to a perfectly good request key — but
-    // the encoder never escapes an unreserved character, so it is not a name the
-    // producer could have written. That is the whole reason the round trip is checked
-    // rather than the decode alone: a decoder that "works" accepts many spellings.
-    const files = renameFrame(bundleFiles(), PERMIT_FRAME, 'frames/~47ET~20~2Fv1~2Fpermits.json');
+    // The retired request-line encoding. It is a perfectly readable name and it is not
+    // one the producer could write any more, which is the point: a bundle carrying it
+    // has been hand-edited or built by a stale tool, and the audit says so by name.
+    const files = renameFrame(bundleFiles(), PERMIT_FRAME, 'frames/GET~20~2Fv1~2Fpermits.json');
     const result = audited(await auditOpaque(files));
     const finding = result.findings.find(
       (candidate) => candidate.check === 'frame-name-non-canonical',
     );
     expect(
       finding,
-      'a frame whose name is not the canonical encoding of the key it decodes to went unreported',
+      'a frame whose name is not a content address went unreported',
     ).toBeDefined();
     expect(finding?.detail).toContain('GET /v1/permits');
   });
 
-  it('reports a frame whose name decodes to nothing at all', async () => {
-    const files = renameFrame(bundleFiles(), PERMIT_FRAME, 'frames/~zz.json');
+  it('reports a frame the manifest records no request key for', async () => {
+    const files = dropFrameKey(bundleFiles(), PERMIT_FRAME);
     const result = audited(await auditOpaque(files));
     expect(
       result.findings.map((finding) => finding.check),
-    ).toContain('frame-name-undecodable');
+    ).toContain('frame-without-key');
   });
 });
 

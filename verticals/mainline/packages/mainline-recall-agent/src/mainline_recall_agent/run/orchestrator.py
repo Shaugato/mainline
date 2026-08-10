@@ -883,7 +883,12 @@ class RecallOrchestrator:
                     clause_uuid=clause_uuid,
                     commit_id=commit_id,
                     origin=row.origin,  # type: ignore[arg-type]
-                    channels=tuple(row.features.get("channels", ["C"])),  # type: ignore[arg-type]
+                    # No ignore on `channels`: mypy resolves this call fine, and
+                    # `warn_unused_ignores` reported the one that used to sit here. The two
+                    # that remain are load-bearing — `row.origin` and `row.outcome` are
+                    # `str` on the row and `Literal[...]` on `Candidate`, and the database
+                    # CHECK is what narrows them, not the type system.
+                    channels=tuple(row.features.get("channels", ["C"])),
                     outcome=row.outcome,  # type: ignore[arg-type]
                     rank=row.rank,
                     severity=row.severity,

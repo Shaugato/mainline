@@ -36,7 +36,6 @@ import {
   type BundleVerificationReport,
   type BundleVerifier,
 } from '../../../src/data/bundle';
-import { framePathForKey } from '../../../src/data/resources';
 import type { MainlineTransport } from '../../../src/data/transport';
 
 // ── Bundle bytes ───────────────────────────────────────────────────────────
@@ -110,9 +109,26 @@ export interface Frame {
   readonly captured_at: string;
 }
 
-/** The bundle path of the frame answering a canonical request key. */
+/**
+ * The bundle path of the frame answering a canonical request key.
+ *
+ * Read out of the SEALED manifest rather than computed. Frame names are content
+ * addresses (`<METHOD>-<sha256(key)[:16]>.json`) written by `scripts/capture-bundle.ts`,
+ * and `src/**` computes no digests, so the manifest's `key` field is the index — here as
+ * it is for the transport itself.
+ */
 export function framePath(requestKey: string): string {
-  return framePathForKey(requestKey);
+  const manifestBytes = bundleFiles().get('manifest.json');
+  if (manifestBytes === undefined) throw new Error('the fixture bundle has no manifest.json.');
+  const manifest = JSON.parse(decoder.decode(manifestBytes)) as BundleManifest;
+  const entry = manifest.files.find((file) => file.key === requestKey);
+  if (entry === undefined) {
+    throw new Error(
+      `the sealed blk-07 manifest lists no frame answering "${requestKey}". Re-run ` +
+        '`node scripts/capture-bundle.ts stage --sources fixtures/sources/blk-07 --out fixtures/bundles/blk-07`.',
+    );
+  }
+  return entry.path;
 }
 
 function toBase64(bytes: Uint8Array): string {
@@ -183,7 +199,16 @@ export async function resealBundle(
   if (manifestBytes === undefined) throw new Error('the fixture bundle has no manifest.json.');
   const manifest = JSON.parse(decoder.decode(manifestBytes)) as BundleManifest;
 
-  const sealed: { path: string; sha256: string; bytes: number; media_type?: string | null }[] = [];
+  // `key` is carried through verbatim. It is not derived from the bytes, so a reseal
+  // must preserve it: dropping it would leave every frame digest-valid and every
+  // frame unreachable, because the transport addresses frames by key.
+  const sealed: {
+    path: string;
+    sha256: string;
+    bytes: number;
+    media_type?: string | null;
+    key?: string | null;
+  }[] = [];
   for (const entry of manifest.files) {
     const bytes = files.get(entry.path);
     if (bytes === undefined) throw new Error(`manifest lists ${entry.path}, which is absent.`);
@@ -192,6 +217,7 @@ export async function resealBundle(
       sha256: await sha256Hex(bytes),
       bytes: bytes.byteLength,
       ...(entry.media_type === undefined ? {} : { media_type: entry.media_type }),
+      ...(entry.key === undefined ? {} : { key: entry.key }),
     });
   }
 
@@ -277,5 +303,5 @@ export function permitId(): string {
 }
 
 export function mergeFramePath(): string {
-  return framePathForKey(`POST /v1/permits/${permitId()}/merge`);
+  return framePath(`POST /v1/permits/${permitId()}/merge`);
 }

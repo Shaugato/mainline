@@ -4,21 +4,30 @@
 /**
  * The evidence view's model — pure arithmetic, asserted against the committed bundle.
  *
- * The load-bearing test in this file is the ROUND TRIP: `resources.ts` documents its
- * frame-name encoding as injective, and every frame in the committed bundle is decoded
- * here and re-encoded, so the claim is checked against real file names rather than
- * against three hand-written examples that happen to work.
+ * The load-bearing test in this file is the ROUND TRIP, and it has moved rather than
+ * gone. Frames used to be named by their request line under a `~XX` escape, and this
+ * file decoded every committed name and re-encoded it. Names are now content addresses,
+ * `<METHOD>-<sha256(key)[:16]>.json`, because the old scheme produced 218-character
+ * repository paths that a default Windows install cannot check out (see
+ * `scripts/submission/check_path_lengths.py`).
+ *
+ * `src/**` computes no digests, so the model can no longer re-derive a name — and this
+ * file is the tree that is allowed to hash. It re-hashes every committed frame's
+ * declared key with WebCrypto and asserts the committed file name matches, which is the
+ * same round trip against the same real file names, checked from the one side that can
+ * still check it.
  */
 
 import { describe, expect, it } from 'vitest';
 
 import type { BundleManifest } from '../../../src/data/bundle';
-import { RESOURCES, framePathForKey } from '../../../src/data/resources';
+import { RESOURCES } from '../../../src/data/resources';
 import {
   LIMITS,
   buildInventory,
   classifyBundlePath,
-  keyFromFramePath,
+  isFrameAddress,
+  keyFromManifestEntry,
   parseRequestKey,
   resourceForRequestKey,
   resourcesWithoutFrame,
@@ -37,7 +46,7 @@ function manifest(): BundleManifest {
 
 describe('classifyBundlePath', () => {
   it('names the four kinds by directory, and nothing else', () => {
-    expect(classifyBundlePath('frames/GET~20~2Fv1~2Faudit.json')).toBe('frame');
+    expect(classifyBundlePath('frames/GET-540549b3695a753c.json')).toBe('frame');
     expect(classifyBundlePath('ledger/bundle.json')).toBe('ledger');
     expect(classifyBundlePath('sql/merge-refused-23514.txt')).toBe('sql');
     expect(classifyBundlePath('manifest.json')).toBe('other');
@@ -45,36 +54,47 @@ describe('classifyBundlePath', () => {
   });
 });
 
-describe('keyFromFramePath — the inverse of the frame-name encoding', () => {
-  it('round-trips EVERY frame in the committed bundle', () => {
+/** The content address `scripts/capture-bundle.ts` writes, recomputed independently. */
+async function contentAddressOf(key: string): Promise<string> {
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(key));
+  const hex = [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
+  const method = key.slice(0, key.indexOf(' '));
+  return `frames/${method}-${hex.slice(0, 16)}.json`;
+}
+
+describe('every committed frame is filed under the content address of its own key', () => {
+  it('re-hashes EVERY frame in the committed bundle', async () => {
     const frames = manifest().files.filter((entry) => entry.path.startsWith('frames/'));
     expect(frames.length, 'the fixture carries no frames, so this assertion is vacuous').toBe(15);
 
     for (const entry of frames) {
-      const key = keyFromFramePath(entry.path);
-      expect(key, `${entry.path} did not decode to a request key`).not.toBeNull();
-      expect(framePathForKey(key ?? ''), `${entry.path} is not the canonical encoding of ${key}`).toBe(
-        entry.path,
-      );
+      const key = keyFromManifestEntry(entry);
+      expect(key, `${entry.path} declares no request key in the manifest`).not.toBeNull();
+      expect(
+        await contentAddressOf(key ?? ''),
+        `${entry.path} is not the content address of ${key}`,
+      ).toBe(entry.path);
     }
   });
 
-  it('refuses a name that is not a frame, a truncated escape and a bad escape', () => {
-    expect(keyFromFramePath('ledger/bundle.json')).toBeNull();
-    expect(keyFromFramePath('frames/GET.txt')).toBeNull();
-    expect(keyFromFramePath('frames/.json')).toBeNull();
-    // `~2` is a truncated escape; `~zz` is not hex; a lowercase escape is not the
-    // encoding resources.ts produces, so accepting it would make the map non-injective.
-    expect(keyFromFramePath('frames/GET~2.json')).toBeNull();
-    expect(keyFromFramePath('frames/GET~zz.json')).toBeNull();
-    expect(keyFromFramePath('frames/GET~2f.json')).toBeNull();
-    // A raw character outside the unreserved set can never appear in a produced name.
-    expect(keyFromFramePath('frames/GET /v1/audit.json')).toBeNull();
+  it('every committed frame name has the address SHAPE, and foreign names do not', () => {
+    for (const entry of manifest().files.filter((e) => e.path.startsWith('frames/'))) {
+      expect(isFrameAddress(entry.path), entry.path).toBe(true);
+    }
+    // The retired scheme, a wrong digest width, a wrong case and a non-frame.
+    expect(isFrameAddress('frames/GET~20~2Fv1~2Faudit.json')).toBe(false);
+    expect(isFrameAddress('frames/GET-540549b3695a75.json')).toBe(false);
+    expect(isFrameAddress('frames/GET-540549B3695A753C.json')).toBe(false);
+    expect(isFrameAddress('frames/PATCH-540549b3695a753c.json')).toBe(false);
+    expect(isFrameAddress('ledger/bundle.json')).toBe(false);
   });
 
-  it('decodes multi-byte UTF-8 that the encoder would have escaped byte-wise', () => {
-    const key = 'GET /v1/permits/café';
-    expect(keyFromFramePath(framePathForKey(key))).toBe(key);
+  it('reports a missing or empty key as null rather than guessing one from the name', () => {
+    const base = { path: 'frames/GET-540549b3695a753c.json', sha256: 'a'.repeat(64), bytes: 1 };
+    expect(keyFromManifestEntry(base)).toBeNull();
+    expect(keyFromManifestEntry({ ...base, key: null })).toBeNull();
+    expect(keyFromManifestEntry({ ...base, key: '' })).toBeNull();
+    expect(keyFromManifestEntry({ ...base, key: 'GET /v1/audit' })).toBe('GET /v1/audit');
   });
 });
 
@@ -153,7 +173,7 @@ describe('buildInventory', () => {
     expect(ledger?.frame).toBeNull();
 
     const permit = rows.find((row) =>
-      row.path.startsWith('frames/GET~20~2Fv1~2Fpermits~2F018f3a2f-1104-7c88-b3aa-77c1de40e2b1.'),
+      row.frame?.requestKey === 'GET /v1/permits/018f3a2f-1104-7c88-b3aa-77c1de40e2b1',
     );
     expect(permit?.frame?.resourceKey).toBe('permit');
     expect(permit?.frame?.canonical).toBe(true);

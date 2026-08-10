@@ -173,19 +173,22 @@ export async function auditFiles(input: AuditFilesInput): Promise<AuditFilesResu
       if (row.frame === null) {
         findings.push({
           subject: row.path,
-          check: 'frame-name-undecodable',
+          check: 'frame-without-key',
           detail:
-            'this file is under frames/ but its name is not a valid ~XX encoding of a request ' +
-            'key, so no request can address it. It is a file no screen can ever read.',
+            'this file is under frames/ but the manifest records no request key for it, so no ' +
+            'request can address it. It is a file no screen can ever read. A frame is looked up ' +
+            'by manifest.files[].key; a name alone addresses nothing.',
         });
       } else if (!row.frame.canonical) {
         findings.push({
           subject: row.path,
           check: 'frame-name-non-canonical',
           detail:
-            `the name decodes to "${row.frame.requestKey}", but the canonical encoding of that ` +
-            'key is a different file name. A frame filed under a non-canonical name is what a ' +
-            'hand-edited bundle looks like.',
+            `this frame answers "${row.frame.requestKey}", but its name is not the shape a ` +
+            'content address takes (<METHOD>-<16 hex>.json, written by capture-bundle.ts). A ' +
+            'frame filed under a name the producer could not have written is what a hand-edited ' +
+            'bundle looks like. Whether the address is the RIGHT one for this key needs a ' +
+            'SHA-256, which this tree does not compute: capture-bundle.ts check re-derives it.',
         });
       }
     }

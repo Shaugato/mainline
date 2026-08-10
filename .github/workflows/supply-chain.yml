@@ -30,7 +30,12 @@ name: supply-chain
 
 on:
   push:
-    branches: [main]
+    # `master`, not `main`. Measured 2026-08-10: `git branch --show-current` is `master`
+    # and `gh run list --branch main` is empty, so every push-triggered run this file
+    # ever declared has been declared against a branch that does not exist. The Actions
+    # tab defaults to the default branch; a lane that never runs there is invisible
+    # whatever colour it would have been.
+    branches: [master]
     paths:
       - "**/pyproject.toml"
       - "uv.lock"
@@ -350,6 +355,62 @@ jobs:
           packages: "mainline-gate-svc"
           cache-suffix: "gate-svc"
 
+      # ---------------------------------------------------------------------------
+      # TWO WITNESSES, because one of them could not see the graph it was asked about.
+      #
+      # Measured on runs 31372088231, 31372058080, 31371945797, 31371788606,
+      # 31371718663 and 31371705079 (2026-08-10): this job failed on its own anti-
+      # vacuity guard every time — `the resolved set did not contain ['mainline-domain',
+      # 'trappoint-core']` — and the SECURITY-CLAIM-BROKEN branch was never once taken.
+      # The boundary was not observably broken; the INSTRUMENT could not see the graph.
+      #
+      # Why. `uv export --format requirements-txt` emits third-party distributions as
+      # `name==version` and workspace members as EDITABLE PATH entries:
+      #
+      #     -e ./packages/trappoint-core
+      #     -e ./verticals/mainline/packages/mainline-domain
+      #
+      # and the old parser skipped every line starting with `-`. So
+      # `REQUIRED = {"psycopg", "trappoint-core", "mainline-domain"}` was unsatisfiable
+      # by construction: the guard could never have passed non-vacuously with that
+      # command, which means it also could never have reported a real breach.
+      #
+      # The repair is two independent witnesses, and BOTH must name the workspace
+      # members and BOTH must be free of the deny-list:
+      #
+      #   witness one  `uv export` — the pinned resolution, versions and hashes. Its
+      #                editable path entries are now resolved to distribution names by
+      #                reading the `pyproject.toml` they point at, which is the honest
+      #                reading: the export DOES name the workspace members, as paths.
+      #   witness two  `uv tree` — the workspace graph, which names `trappoint-core`
+      #                and `mainline-domain` as nodes and cannot be satisfied by a
+      #                resolution that dropped them.
+      #
+      # The guard is strictly stronger than it was: it now fires if EITHER witness
+      # loses a workspace member, and the model deny-list is checked against both.
+      # ---------------------------------------------------------------------------
+      - name: Witness one — the pinned resolution (uv export)
+        run: |
+          set -euo pipefail
+          uv export --frozen --no-dev --package mainline-gate-svc \
+            --format requirements-txt --output-file gate-svc.requirements.txt
+          echo "--- uv export --frozen --no-dev --package mainline-gate-svc ---"
+          cat gate-svc.requirements.txt
+          echo "--- end of witness one ---"
+
+      - name: Witness two — the workspace graph (uv tree)
+        # `uv tree` reads the same `uv.lock` under `--frozen`, so this adds a reading of
+        # the graph, not a second resolution. It is the witness that can see a workspace
+        # edge; the export is the witness that can see a pin. Neither alone is enough.
+        run: |
+          set -euo pipefail
+          uv tree --frozen --no-dev --package mainline-gate-svc \
+            > gate-svc.tree.txt
+          echo "--- uv tree --frozen --no-dev --package mainline-gate-svc ---"
+          cat gate-svc.tree.txt
+          echo "--- end of witness two ---"
+          test -s gate-svc.tree.txt
+
       - name: THE ASSERTION — over the RESOLVED SET, not over the source
         # This is the surface the in-repository checks cannot see. `.importlinter`
         # contract 5 checks the IMPORT graph. `mainline_boundary.astscan` checks the
@@ -365,15 +426,12 @@ jobs:
         # this job still fails.
         run: |
           set -euo pipefail
-          uv export --frozen --no-dev --package mainline-gate-svc \
-            --format requirements-txt --output-file gate-svc.requirements.txt
-          echo "--- resolved set ---"
-          grep -E '^[A-Za-z0-9]' gate-svc.requirements.txt || true
-          echo "--------------------"
           python3 - <<'PY'
+          import os
           import pathlib
           import re
           import sys
+          import tomllib
 
           MODEL_DISTRIBUTIONS = {
               "anthropic", "anthropic-bedrock",
@@ -394,67 +452,180 @@ jobs:
           }
           # Without these the closure could be reported clean because it was empty,
           # which is the exact failure mode this job exists to refuse in the code it
-          # guards. A vacuous pass is the most dangerous kind.
+          # guards. A vacuous pass is the most dangerous kind. Both witnesses must
+          # satisfy this set independently.
           REQUIRED = {"psycopg", "trappoint-core", "mainline-domain"}
 
-          PINNED = re.compile(r"^([A-Za-z0-9][A-Za-z0-9._-]*)(?:\[[^\]]*\])?==")
+          PINNED = re.compile(r"^([A-Za-z0-9][A-Za-z0-9._-]*)(?:\[[^\]]*\])?==\s*([^\s;]+)")
+          EDITABLE = re.compile(r"^(?:-e|--editable)\s+(\S+)")
+          DIRECT = re.compile(r"^([A-Za-z0-9][A-Za-z0-9._-]*)(?:\[[^\]]*\])?\s*@\s*(\S+)")
+          # `uv tree` draws with U+2502 U+251C U+2514 U+2500 and prints `name vVERSION`.
+          # ASCII fallbacks and the trailing `(*)` de-duplication marker are tolerated.
+          TREE_NODE = re.compile(
+              r"^[\s│├└─|+\\-]*"
+              r"([A-Za-z0-9][A-Za-z0-9._-]*)(?:\[[^\]]*\])?\s+v[0-9]"
+          )
 
           def normalise(name: str) -> str:
               return re.sub(r"[-_.]+", "-", name).lower()
 
-          resolved = set()
-          for line in pathlib.Path("gate-svc.requirements.txt").read_text(encoding="utf-8").splitlines():
+          def workspace_name(reference: str) -> str | None:
+              """Resolve `-e ./packages/trappoint-core` to the name it declares.
+
+              This is the line the old parser threw away, and throwing it away is what
+              made REQUIRED unsatisfiable. A path entry is not "not a distribution"; it
+              is a distribution named by its directory, and the directory says its name.
+              """
+              text = reference
+              if "file://" in text:
+                  text = text.split("file://", 1)[1]
+              pyproject = pathlib.Path(text) / "pyproject.toml"
+              if not pyproject.is_file():
+                  return None
+              declared = tomllib.loads(pyproject.read_text(encoding="utf-8"))
+              name = declared.get("project", {}).get("name")
+              return normalise(name) if name else None
+
+          export_path = pathlib.Path("gate-svc.requirements.txt")
+          tree_path = pathlib.Path("gate-svc.tree.txt")
+
+          export_names: set[str] = set()
+          pins: list[tuple[str, str]] = []
+          workspace: list[tuple[str, str]] = []
+          unreadable: list[str] = []
+          for line in export_path.read_text(encoding="utf-8").splitlines():
               text = line.strip()
-              if not text or text.startswith(("#", "-", "--")):
+              if not text or text.startswith("#") or text.startswith("--hash"):
                   continue
-              match = PINNED.match(text)
-              if match:
-                  resolved.add(normalise(match.group(1)))
-              elif "file://" in text or "@" in text:
-                  # A workspace member emitted as a direct reference. Take the head.
-                  head = text.split("@")[0].strip()
-                  if head:
-                      resolved.add(normalise(head))
+              pin = PINNED.match(text)
+              if pin:
+                  export_names.add(normalise(pin.group(1)))
+                  marker = text.partition(";")[2].rstrip("\\").strip()
+                  pins.append((f"{normalise(pin.group(1))}=={pin.group(2)}", marker))
+                  continue
+              editable = EDITABLE.match(text)
+              if editable:
+                  found = workspace_name(editable.group(1))
+                  if found is None:
+                      unreadable.append(text)
+                  else:
+                      export_names.add(found)
+                      workspace.append((found, editable.group(1)))
+                  continue
+              direct = DIRECT.match(text)
+              if direct:
+                  export_names.add(normalise(direct.group(1)))
+                  workspace.append((normalise(direct.group(1)), direct.group(2)))
 
-          denied = sorted(resolved & {normalise(name) for name in MODEL_DISTRIBUTIONS})
-          missing = sorted(REQUIRED - resolved)
+          tree_names: set[str] = set()
+          for line in tree_path.read_text(encoding="utf-8").splitlines():
+              node = TREE_NODE.match(line.rstrip())
+              if node:
+                  tree_names.add(normalise(node.group(1)))
 
-          print(f"resolved distributions: {len(resolved)}")
+          witnesses = (
+              ("uv export (the pinned resolution)", export_names),
+              ("uv tree (the workspace graph)", tree_names),
+          )
+          denied_names = {normalise(name) for name in MODEL_DISTRIBUTIONS}
 
-          if missing:
-              print("::error title=vacuous assertion::the resolved set did not contain "
-                    f"{missing}, so the clean result below was measured over the wrong set")
-              print(f"what was actually resolved: {sorted(resolved)}")
+          for label, names in witnesses:
+              print(f"{label}: {len(names)} distribution(s)")
+              for name in sorted(names):
+                  print(f"    {name}")
+
+          # ---- the job summary, written BEFORE any exit so a red run shows it too ----
+          summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+          if summary_path:
+              versions = dict(pin.split("==", 1) for pin, _ in pins)
+              markers = {pin.split("==", 1)[0]: marker for pin, marker in pins}
+              with pathlib.Path(summary_path).open("a", encoding="utf-8") as handle:
+                  handle.write("## mainline-gate-svc — the whole dependency closure\n\n")
+                  handle.write(
+                      f"{len(export_names)} distribution(s): "
+                      f"{len(workspace)} workspace member(s) and {len(versions)} "
+                      "third-party distribution(s). Listed in full, because a clean "
+                      "result and an EMPTY result look identical when only the verdict "
+                      "is printed — and this job spent six runs reporting the second "
+                      "while appearing to report the first.\n\n"
+                  )
+                  handle.write("| distribution | version | kind | note |\n|---|---|---|---|\n")
+                  for name, reference in sorted(workspace):
+                      handle.write(f"| `{name}` | — | workspace | `{reference}` |\n")
+                  for name in sorted(versions):
+                      marker = markers.get(name, "")
+                      cell = f"marker: `{marker}`" if marker else ""
+                      handle.write(f"| `{name}` | `{versions[name]}` | third-party | {cell} |\n")
+                  handle.write("\n")
+                  only_export = sorted(export_names - tree_names)
+                  only_tree = sorted(tree_names - export_names)
+                  handle.write(
+                      "Two witnesses: `uv export` (pins) and `uv tree` (workspace edges). "
+                      f"Named only by the export: {only_export or 'nothing'}. "
+                      f"Named only by the tree: {only_tree or 'nothing'}. "
+                      "The export is universal and carries platform-marked entries; the "
+                      "tree is resolved for this platform, so a marked entry appearing in "
+                      "one and not the other is expected and is not a disagreement about "
+                      "the graph.\n"
+                  )
+
+          refused = False
+
+          if unreadable:
+              print("::error title=vacuous assertion::the export named a local entry whose "
+                    f"pyproject.toml could not be read: {unreadable}")
+              print("An unresolvable path entry is a hole in the closure, not an absence.")
+              refused = True
+
+          for label, names in witnesses:
+              missing = sorted(REQUIRED - names)
+              if missing:
+                  print(f"::error title=vacuous assertion::{label} did not name {missing}, "
+                        "so a clean result from it would have been measured over the wrong "
+                        "set")
+                  print(f"  what it did name: {sorted(names)}")
+                  print("  This guard is not a formality: it is the reason six earlier runs "
+                        "of this job were red rather than falsely green.")
+                  refused = True
+
+          for label, names in witnesses:
+              denied = sorted(names & denied_names)
+              if denied:
+                  print("::error title=SECURITY CLAIM BROKEN::mainline-gate-svc now resolves "
+                        f"model SDK distribution(s) {denied}, seen by {label}")
+                  print("")
+                  print("ARCHITECTURE.md §8.2 states that no model can reach the merge gate.")
+                  print("That sentence is now FALSE, and it is false in the documentation, the")
+                  print("README and the judge pack, not merely in a lint rule. The wheel is in")
+                  print("the image the gate runs from; a single `import` away from being live,")
+                  print("with no dependency review between here and there.")
+                  print("")
+                  print("This job is the assertion that claim rests on. Do not silence it.")
+                  print("Remove the dependency, or withdraw the claim everywhere it is made.")
+                  refused = True
+
+          if refused:
               sys.exit(1)
 
-          if denied:
-              print("::error title=SECURITY CLAIM BROKEN::mainline-gate-svc now resolves "
-                    f"model SDK distribution(s): {denied}")
-              print("")
-              print("ARCHITECTURE.md §8.2 states that no model can reach the merge gate.")
-              print("That sentence is now FALSE, and it is false in the documentation, the")
-              print("README and the judge pack, not merely in a lint rule. The wheel is in")
-              print("the image the gate runs from; a single `import` away from being live,")
-              print("with no dependency review between here and there.")
-              print("")
-              print("This job is the assertion that claim rests on. Do not silence it.")
-              print("Remove the dependency, or withdraw the claim everywhere it is made.")
-              sys.exit(1)
-
+          print("")
+          print(f"both witnesses name {sorted(REQUIRED)}; neither names any of the "
+                f"{len(denied_names)} denied model distributions")
           print("no model SDK in the resolved set; the §8.2 claim holds on this surface")
           PY
 
-      - name: The other three surfaces, as the gate service itself asserts them
-        # Runtime `sys.modules`, declared `importlib.metadata` walked transitively,
-        # source AST, and the environment check that refuses to start holding an AWS
-        # credential — plus the planted-reach tests that make all of them red on demand
-        # (PL-2). Measured locally on 2026-08-10: 40 passed in 1.65 s.
+      - name: The other surfaces, as the gate service itself asserts them
+        # Runtime `sys.modules`, declared `importlib.metadata` walked transitively with
+        # requested extras followed, source AST, and the environment check that refuses
+        # to start holding an AWS credential — plus the planted-reach tests that make all
+        # of them red on demand (PL-2), and the pinned fifteen-name closure that refuses
+        # growth no deny-list would catch. Measured locally on 2026-08-10: 61 passed in
+        # 2.57 s (was 40 before this wave).
         run: |
           uv run --frozen --package mainline-gate-svc pytest \
             verticals/mainline/packages/mainline-gate-svc/tests/test_no_model_in_closure.py \
             -q --no-header
 
-      - name: Record the claim and its four surfaces
+      - name: Record the claim and every surface that asserts it
         if: always()
         run: |
           {
@@ -465,11 +636,27 @@ jobs:
             echo "| import graph | forbidden-module contract | \`.importlinter\` contract 5, run by \`ci.yml\` |"
             echo "| source | AST scan for a model import | \`test_no_model_in_closure.py\` |"
             echo "| runtime | \`sys.modules\` after a fresh import | \`test_no_model_in_closure.py\` |"
-            echo "| **resolved set** | **the locked install, read from \`uv.lock\`** | **this job** |"
+            echo "| declared | \`importlib.metadata.requires\`, transitively, extras followed | \`test_no_model_in_closure.py\` |"
+            echo "| **resolved set** | **the locked install: \`uv export\` AND \`uv tree\`** | **this job** |"
             echo ""
-            echo "The fourth is the one the other three cannot see: a dependency that is"
-            echo "RESOLVED but not yet imported is absent from the import graph, absent from"
-            echo "the AST, and absent from \`sys.modules\` — and present in the image."
+            echo "The last is the one the others cannot see: a dependency that is RESOLVED"
+            echo "but not yet imported is absent from the import graph, absent from the AST,"
+            echo "and absent from \`sys.modules\` — and present in the image."
+            echo ""
+            echo "It is asserted with TWO witnesses. \`uv export\` emits workspace members as"
+            echo "editable PATH entries rather than as \`name==version\` pins, so a parser that"
+            echo "reads only pins cannot satisfy the anti-vacuity requirement and the check"
+            echo "can never be non-vacuous. \`uv tree\` names workspace edges directly. Both"
+            echo "must name \`trappoint-core\` and \`mainline-domain\`; both must be free of the"
+            echo "deny-list. Losing either witness fails this job."
+            echo ""
+            echo "**A boundary question this job does not answer.** The closure carries"
+            echo "\`numpy\`, \`scipy\`, \`pint\` and \`rapidfuzz\` — four BLAS/binary-wheel"
+            echo "distributions — into a service whose whole job is one SERIALIZABLE"
+            echo "transaction and one \`CALL mainline.merge_permit\`. None of them is a model"
+            echo "SDK, so this job is silent about them by design. They enter through exactly"
+            echo "one edge, \`mainline-domain\`, and that edge set is pinned by"
+            echo "\`test_the_numeric_stack_enters_only_through_mainline_domain\`."
           } >> "$GITHUB_STEP_SUMMARY"
 
   # ---------------------------------------------------------------------------------

@@ -591,6 +591,37 @@ def test_no_sandbox_refuses_a_smuggled_demo_write():
     assert outcome.code == "sandbox-leaf-present"
 
 
+def test_no_sandbox_names_every_offending_leaf_and_who_wrote_it():
+    """NEGATIVE: a count is not actionable. The finding names seq, entry_id and the actor.
+
+    A12 is smuggled in from the *guest* surface, so the actor is the evidence of how it got
+    there. A report that said "1 leaf is a sandbox leaf" would leave the reader to go and
+    ask us which one, which is precisely the cooperation this verifier exists to not need.
+    """
+    payload = copy.deepcopy(spec_bundle_dict())
+    payload["leaves"][1]["is_sandbox"] = True
+    payload["leaves"][1]["actor"] = "anonymous-guest"
+    payload["leaves"][3]["is_sandbox"] = True
+    outcome = S.check_no_sandbox(context_for(payload))
+    assert outcome.verdict is Verdict.FAIL
+    assert outcome.code == "sandbox-leaf-present"
+    detail = " ".join(outcome.detail)
+    assert "leaf 1" in detail and "leaf 3" in detail
+    assert ENTRY_IDS[1] in detail and ENTRY_IDS[3] in detail
+    assert "anonymous-guest" in detail
+    assert "2 leaves of 5 leaves" in outcome.headline
+
+
+def test_no_sandbox_skips_loudly_when_there_are_no_leaves_to_classify():
+    """A bundle with no leaves has nothing to classify, and says so rather than passing."""
+    payload = copy.deepcopy(spec_bundle_dict())
+    payload["leaves"] = []
+    payload["inclusion_proofs"] = []
+    outcome = S.check_no_sandbox(context_for(payload))
+    assert outcome.verdict is Verdict.SKIP
+    assert outcome.reason == "no-leaves"
+
+
 # --------------------------------------------------------------------------------------
 # Check 14 — closure_generation_monotone
 # --------------------------------------------------------------------------------------
@@ -612,6 +643,24 @@ def test_closure_monotone_refuses_a_mass_rewrite_downward():
     assert outcome.code == "closure-severity-decreased"
 
 
+def test_closure_monotone_names_the_clause_the_generation_and_both_severities():
+    """NEGATIVE: the finding has to be readable by somebody with no access to the cluster.
+
+    "check 14 failed" is not evidence of anything. The sentence must carry the clause, the
+    generation the severity was written down at, the value it was written to, and the value
+    the ancestry walk had already reached — which together are the whole of the accusation.
+    """
+    payload = copy.deepcopy(spec_bundle_dict())
+    payload["closure_generations"][1]["max_severity"] = 0
+    outcome = S.check_closure_monotone(context_for(payload))
+    assert outcome.verdict is Verdict.FAIL
+    detail = " ".join(outcome.detail)
+    assert CLAUSE_UUID in detail and AS_OF_COMMIT in detail
+    assert "max_severity is 0 at generation 2" in detail
+    assert "below the 3 already reached at generation 1" in detail
+    assert "A10" in detail
+
+
 def test_closure_monotone_refuses_a_generation_gap():
     """NEGATIVE: the other shape a mass rewrite leaves behind."""
     payload = copy.deepcopy(spec_bundle_dict())
@@ -620,6 +669,106 @@ def test_closure_monotone_refuses_a_generation_gap():
     outcome = S.check_closure_monotone(context_for(payload))
     assert outcome.verdict is Verdict.FAIL
     assert outcome.code == "closure-generation-gap"
+    detail = " ".join(outcome.detail)
+    assert "the generations present are [2, 3]" in detail
+    assert "generation(s) [1] are absent" in detail
+
+
+def test_closure_monotone_refuses_a_duplicated_generation_as_a_duplicate_not_a_gap():
+    """NEGATIVE: two rows at one generation is a second writer, and must not read as a gap.
+
+    ``[1, 1, 2]`` and ``[1, 3]`` are both "not dense from 1", so density arithmetic alone
+    reports the same sentence for a row that was *added* and a row that was *removed*.
+    Those are different accusations against different acts, and a verifier that could not
+    tell them apart would hand a reader the wrong one.
+    """
+    payload = copy.deepcopy(spec_bundle_dict())
+    payload["closure_generations"].insert(
+        1,
+        {
+            "clause_uuid": CLAUSE_UUID,
+            "as_of_commit": AS_OF_COMMIT,
+            "closure_gen": 1,
+            "max_severity": 3,
+            "ancestor_count": 11,
+            "truncated": False,
+            "leaf_seq": 2,
+        },
+    )
+    outcome = S.check_closure_monotone(context_for(payload))
+    assert outcome.verdict is Verdict.FAIL
+    assert outcome.code == "closure-generation-duplicate"
+    detail = " ".join(outcome.detail)
+    assert "generation 1 appears 2 times" in detail
+    assert "a second writer" in detail
+    assert "are absent" not in detail, "a duplicate must not also be reported as a gap"
+
+
+def test_closure_monotone_catches_a_partial_restore_below_the_walk_already_reached():
+    """NEGATIVE: zero one generation, restore a smaller value at the next.
+
+    A predecessor-only comparison passes at generation 3 here, because 1 > 0. The closure
+    is nonetheless permanently below the 5 the ancestry walk had already established, which
+    is exactly the state a partially reverted mass rewrite leaves behind.
+    """
+    payload = copy.deepcopy(spec_bundle_dict())
+    payload["closure_generations"][0]["max_severity"] = 5
+    payload["closure_generations"][1]["max_severity"] = 0
+    payload["closure_generations"].append(
+        {
+            "clause_uuid": CLAUSE_UUID,
+            "as_of_commit": AS_OF_COMMIT,
+            "closure_gen": 3,
+            "max_severity": 1,
+            "ancestor_count": 33,
+            "truncated": False,
+            "leaf_seq": 2,
+        }
+    )
+    outcome = S.check_closure_monotone(context_for(payload))
+    assert outcome.verdict is Verdict.FAIL
+    assert outcome.code == "closure-severity-decreased"
+    detail = " ".join(outcome.detail)
+    assert "max_severity is 0 at generation 2" in detail
+    assert "max_severity is 1 at generation 3" in detail
+    assert "below the 5 already reached at generation 1" in detail
+
+
+def test_closure_monotone_judges_each_clause_and_commit_pair_on_its_own():
+    """POSITIVE-ish: a second (clause, commit) pair is a separate closure, densely its own.
+
+    Grouping is the whole subtlety of this check. Every pair restarts at generation 1, so a
+    verifier that walked the section as one sequence would report a spurious duplicate for
+    every clause after the first — and, worse, would let a real rewrite inside one clause be
+    masked by a higher severity carried by another.
+    """
+    payload = copy.deepcopy(spec_bundle_dict())
+    other_clause = "018f3a30-2200-7d10-9f31-0c9a4e77bb99"
+    payload["closure_generations"] += [
+        {
+            "clause_uuid": other_clause,
+            "as_of_commit": AS_OF_COMMIT,
+            "closure_gen": generation,
+            "max_severity": severity,
+            "ancestor_count": 7 * generation,
+            "truncated": False,
+            "leaf_seq": 2,
+        }
+        for generation, severity in ((1, 1), (2, 1), (3, 4))
+    ]
+    outcome = S.check_closure_monotone(context_for(payload))
+    assert outcome.verdict is Verdict.PASS, outcome.detail
+    assert outcome.code == "closure-monotone"
+    assert "2 (clause, commit) pairs" in outcome.headline
+
+    payload["closure_generations"][-1]["max_severity"] = 0
+    broken = S.check_closure_monotone(context_for(payload))
+    assert broken.verdict is Verdict.FAIL
+    assert broken.code == "closure-severity-decreased"
+    assert other_clause in " ".join(broken.detail)
+    assert CLAUSE_UUID not in " ".join(broken.detail), (
+        "the untouched clause must not be implicated by its neighbour's rewrite"
+    )
 
 
 def test_closure_monotone_skips_loudly_when_the_section_is_absent():
@@ -629,6 +778,16 @@ def test_closure_monotone_skips_loudly_when_the_section_is_absent():
     outcome = S.check_closure_monotone(context_for(payload))
     assert outcome.verdict is Verdict.SKIP
     assert outcome.reason == "no-closure-rows"
+
+
+def test_closure_monotone_separates_an_empty_section_from_an_absent_one():
+    """An empty section is still a SKIP — a check that passed on nothing looked at nothing."""
+    payload = copy.deepcopy(spec_bundle_dict())
+    payload["closure_generations"] = []
+    outcome = S.check_closure_monotone(context_for(payload))
+    assert outcome.verdict is Verdict.SKIP
+    assert outcome.reason == "no-closure-rows"
+    assert "present but empty" in outcome.headline
 
 
 # --------------------------------------------------------------------------------------

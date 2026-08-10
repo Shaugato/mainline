@@ -428,16 +428,23 @@ def run_probabilistic(  # noqa: PLR0912, PLR0915
                     reranked.confidence,
                     reranked.justification,
                 )
-            for record in verdict.silence_records:
+            # `abstention`, NOT `record`. The degraded branch above binds `record` to the
+            # `dict[str, Any]` payloads `DegradedRerank.silence_records()` BUILDS; this
+            # branch reads the `Mapping[str, Any]` payloads `RerankVerdict.silence_records`
+            # OWNS. Python scopes both to the function, so one name asserted the two were
+            # the same type, and they are not — the healthy verdict's records are read-only
+            # by design (a caller that mutated one would be editing the judge's own answer
+            # after the fact). Two payload shapes, two names.
+            for abstention in verdict.silence_records:
                 silence.append(
                     SilenceRow(
                         subject_kind="event",
-                        subject_id=UUID(str(record["subject_id"])),
-                        reason=str(record.get("reason", "abstained")),
-                        severity=int(record.get("severity", 0)),
+                        subject_id=UUID(str(abstention["subject_id"])),
+                        reason=str(abstention.get("reason", "abstained")),
+                        severity=int(abstention.get("severity", 0)),
                         score=None,
                         threshold=None,
-                        arithmetic=dict(record.get("arithmetic", {})) or dict(record),
+                        arithmetic=dict(abstention.get("arithmetic", {})) or dict(abstention),
                     )
                 )
 

@@ -25,7 +25,7 @@ import type { MainlineTransport } from '../../../src/data/transport';
 import { HttpTransport, TransportError } from '../../../src/data/transport';
 import { resolveRequest } from '../../../src/data/resources';
 
-import { bundleFiles, manifestIntegrityVerifier, stagePlan } from './_support';
+import { bundleFiles, frameAddressOf, manifestIntegrityVerifier, stagePlan } from './_support';
 
 const registry = createContractRegistry();
 const decoder = new TextDecoder();
@@ -238,7 +238,8 @@ describe('the parity suite exercises the whole captured surface', () => {
         ...(step.query === undefined ? {} : { query: step.query }),
         ...(step.body === undefined ? {} : { body: step.body }),
       });
-      expect(bundleFiles().has(resolved.framePath), `${step.resource} → ${resolved.framePath}`).toBe(true);
+      const framePath = frameAddressOf(resolved.key);
+      expect(bundleFiles().has(framePath), `${step.resource} → ${framePath}`).toBe(true);
     }
   });
 });

@@ -14,18 +14,41 @@
  * caller renders can be recomputed by a reader with the same two inputs — which is the
  * whole point of putting it in a separate module from the screen.
  *
- * ── THE INVERSE ENCODING, AND WHY IT IS CHECKED RATHER THAN TRUSTED ──────────────
+ * ── WHERE A FRAME'S REQUEST LINE COMES FROM, AND WHAT THAT COSTS ─────────────────
  *
- * `resources.ts` maps a canonical request key to a frame file name with a `~XX`
- * escape, and documents the mapping as injective. `keyFromFramePath()` inverts it, and
- * `buildInventory()` then re-applies `framePathForKey()` to the decoded key and
- * compares. A frame whose file name is not the canonical encoding of the key it
- * decodes to is exactly what a hand-edited bundle looks like, and the round trip is
- * one line, so there is no reason to take the encoding's word for it.
+ * It comes from `manifest.files[].key`, and it used to come from the file name.
+ *
+ * Frame file names were once the request line itself under a `~XX` escape, so this
+ * module could decode a name and re-encode it to prove the file was filed where its
+ * producer would have filed it. That scheme is gone: it produced 218-character paths
+ * that a default Windows install cannot check out (see
+ * `scripts/submission/check_path_lengths.py`), and names are now content addresses,
+ * `<METHOD>-<sha256(key)[:16]>.json`.
+ *
+ * The honest consequence, stated rather than papered over: **this module can no longer
+ * re-derive a frame's name and can no longer, by itself, tell you the name is right.**
+ * `src/**` computes no digests, so it cannot hash the key. What replaces the round trip
+ * is not nothing, and it is not weaker — it is somewhere else:
+ *
+ *   * `scripts/capture-bundle.ts seal` REFUSES to seal a directory in which any frame
+ *     is not filed under the content address of its own declared key, and `check`
+ *     re-derives the same thing independently. A misfiled frame never reaches a
+ *     manifest.
+ *   * `tests/unit/evidence/model.test.ts` re-hashes every fixture frame's key with
+ *     WebCrypto and asserts the committed names match — the round trip, moved to the
+ *     one tree that is allowed to hash.
+ *   * `BundleTransport` still compares the manifest's `key` against the key inside the
+ *     frame's own bytes on every exchange, so the two copies cannot drift apart
+ *     unnoticed at serve time.
+ *
+ * What this module checks is what it can check from the manifest alone: that a frame
+ * declares a key at all, and that the key parses as a request a declared resource could
+ * have produced. `framesWithoutKey` counts the ones that do not, and the screen shows
+ * it, because a frame nothing can address is invisible rather than wrong.
  */
 
 import type { BundleFileEntry, BundleManifest } from '../../data/bundle';
-import { RESOURCES, framePathForKey, type ResourceDescriptor } from '../../data/resources';
+import { RESOURCES, type ResourceDescriptor } from '../../data/resources';
 
 // ── Classification ─────────────────────────────────────────────────────────
 
@@ -39,39 +62,31 @@ export function classifyBundlePath(path: string): FileKind {
   return 'other';
 }
 
+/** The content-address shape `scripts/capture-bundle.ts` writes. */
+const FRAME_NAME = /^frames\/(?:GET|POST|REQ)-[0-9a-f]{16}\.json$/;
+
 /**
- * The inverse of `framePathForKey()`.
+ * Whether a path is a well-formed frame content address.
  *
- * Returns `null` — never a partial guess — when the name is not a frame path, when an
- * escape is truncated or non-hexadecimal, or when the decoded bytes are not UTF-8. A
- * decoder that recovers "most" of a request key would let a malformed file name be
- * displayed as a well-formed request.
+ * This is a SHAPE check, not an integrity check: it says the name looks like something
+ * the producer writes, not that it is the address of the key the entry declares —
+ * confirming that needs a SHA-256 this tree does not compute. It is reported as its own
+ * count so the difference is visible on the screen rather than implied.
  */
-export function keyFromFramePath(path: string): string | null {
-  if (!path.startsWith('frames/') || !path.endsWith('.json')) return null;
-  const encoded = path.slice('frames/'.length, -'.json'.length);
-  if (encoded === '') return null;
+export function isFrameAddress(path: string): boolean {
+  return FRAME_NAME.test(path);
+}
 
-  const bytes: number[] = [];
-  for (let index = 0; index < encoded.length; index += 1) {
-    const char = encoded[index];
-    if (char === undefined) return null;
-    if (char !== '~') {
-      if (!/[A-Za-z0-9._-]/.test(char)) return null;
-      bytes.push(char.charCodeAt(0));
-      continue;
-    }
-    const hex = encoded.slice(index + 1, index + 3);
-    if (!/^[0-9A-F]{2}$/.test(hex)) return null;
-    bytes.push(Number.parseInt(hex, 16));
-    index += 2;
-  }
-
-  try {
-    return new TextDecoder('utf-8', { fatal: true }).decode(new Uint8Array(bytes));
-  } catch {
-    return null;
-  }
+/**
+ * The request key a manifest entry declares, or `null`.
+ *
+ * `null` is a real answer and is rendered as one: a frame carrying no key cannot be
+ * addressed by any screen, which is worth seeing rather than hiding behind a guess
+ * reconstructed from a file name.
+ */
+export function keyFromManifestEntry(entry: BundleFileEntry): string | null {
+  const key = entry.key ?? null;
+  return typeof key === 'string' && key !== '' ? key : null;
 }
 
 /** `GET /v1/permits/018f…?as_of=…` split into its three canonical parts. */
@@ -131,13 +146,14 @@ export function resourceForRequestKey(key: string): ResourceDescriptor | null {
 
 // ── The inventory ──────────────────────────────────────────────────────────
 
-/** What a frame file turned out to be, once its name was decoded. */
+/** What a frame turned out to be, once the manifest was read. */
 export interface FrameFacts {
-  /** The canonical request key the file name decodes to. */
+  /** The canonical request key the manifest declares for this frame. */
   readonly requestKey: string;
   /**
-   * Whether re-encoding that key reproduces this file name. False means the file is
-   * filed under a name the producer would never have written.
+   * Whether the file name has the shape of a content address. False means the file is
+   * filed under a name the producer would never have written. It does NOT establish
+   * that the address is the one this key hashes to — see the module note.
    */
   readonly canonical: boolean;
   /** The declared resource it answers, or null when no declaration matches. */
@@ -165,13 +181,13 @@ export interface InventoryRow {
   readonly detail: string | null;
 }
 
-function frameFactsFor(path: string): FrameFacts | null {
-  const requestKey = keyFromFramePath(path);
+function frameFactsFor(entry: BundleFileEntry): FrameFacts | null {
+  const requestKey = keyFromManifestEntry(entry);
   if (requestKey === null) return null;
   const resource = resourceForRequestKey(requestKey);
   return {
     requestKey,
-    canonical: framePathForKey(requestKey) === path,
+    canonical: isFrameAddress(entry.path),
     resourceKey: resource?.key ?? null,
     owner: resource?.owner ?? null,
     purpose: resource?.purpose ?? null,
@@ -188,7 +204,7 @@ export function buildInventory(manifest: BundleManifest): readonly InventoryRow[
       declaredDigest: entry.sha256,
       declaredBytes: entry.bytes,
       mediaType: entry.media_type ?? null,
-      frame: kind === 'frame' ? frameFactsFor(entry.path) : null,
+      frame: kind === 'frame' ? frameFactsFor(entry) : null,
       state: 'unchecked' as const,
       actualDigest: null,
       actualBytes: null,

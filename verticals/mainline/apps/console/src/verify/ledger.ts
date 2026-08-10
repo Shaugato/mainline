@@ -704,7 +704,12 @@ function checkCanonIdentity(payload: LedgerPayload, config: VerifierConfig): Che
   let unpinned = false;
 
   for (const checkpoint of payload.checkpoints) {
-    let noteCanon: string | null = null;
+    // Declared without an initialiser, for the same reason as `capability.ts`'s webgl2
+    // probe: both arms below assign, so an `= null` here is written and never read.
+    // The `null` that matters is the one the catch chooses — "the note did not parse,
+    // therefore this checkpoint names no canonicaliser" — and check 10's whole job is
+    // to report that. A silent default in front of it made the two indistinguishable.
+    let noteCanon: string | null;
     try {
       noteCanon = parseNote(checkpoint.note).extensions.get('canon') ?? null;
     } catch {

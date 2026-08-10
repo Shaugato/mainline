@@ -26,6 +26,7 @@ import { resolveDigestOracle, type DigestOracle } from '../../../src/features/ev
 
 import {
   FIXTURE_MANIFEST_SHA256,
+  frameAddressOf,
   FIXTURE_PERMIT_ID,
   OpaqueMemorySource,
   bundleFiles,
@@ -40,7 +41,7 @@ const ORACLE: DigestOracle = (() => {
 })();
 
 const CLOCK = (): string => '2026-08-04T00:00:00.000Z';
-const PERMIT_FRAME = `frames/GET~20~2Fv1~2Fpermits~2F${FIXTURE_PERMIT_ID}.json`;
+const PERMIT_FRAME = frameAddressOf(`GET /v1/permits/${FIXTURE_PERMIT_ID}`);
 
 function mount(node: ReactNode): ReturnType<typeof render> {
   return render(<HonestyProvider>{node}</HonestyProvider>);

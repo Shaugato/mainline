@@ -62,9 +62,14 @@ def _load_corpus() -> frozenset[str]:
         CorpusUnimportable: the corpus package is not installed, or a case module raised.
     """
     try:
-        # `cases` ships no `py.typed` — it is the corpus, not a library anyone type-checks
-        # against — so mypy is told the import is untyped rather than left to guess.
-        import cases  # type: ignore[import-untyped]
+        # No `type: ignore` here. It used to carry `[import-untyped]` on the grounds that
+        # `cases` ships no `py.typed`; that stopped being true of the repository check the
+        # moment `packages/trappoint-conformance/cases` became one of the targets
+        # `scripts/qa/mypy_targets.py` emits. mypy reads the corpus from source, so the
+        # import is typed, and `warn_unused_ignores` reported the stale suppression on
+        # 2026-08-10. Silencing an import that resolves is how a real `AttributeError` on
+        # `cases.load_all` would have reached a judge instead of a type checker.
+        import cases
     except ImportError as exc:
         raise CorpusUnimportable(
             f"cannot import the conformance corpus: {exc}. The `cases` package ships with "

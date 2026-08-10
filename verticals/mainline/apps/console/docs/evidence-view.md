@@ -207,11 +207,12 @@ changed state when the directory was added.
 
 Two further invariants are held by tests rather than by care:
 
-- **The frame-name round trip.** `resources.ts` documents its `~XX` encoding as injective.
-  `model.test.ts` decodes **every** frame in the committed bundle and re-encodes it, so the claim
-  is checked against 15 real file names rather than three convenient examples. `~47ET~20…`
-  decodes to a perfectly good request key and is still refused, because the encoder never escapes
-  an unreserved character.
+- **The frame-name round trip.** Frames are named `<METHOD>-<sha256(key)[:16]>.json` and the
+  request line lives in `manifest.files[].key`. `src/**` computes no digests, so the model can no
+  longer re-derive a name; `model.test.ts` re-hashes **every** frame's declared key with WebCrypto
+  and asserts the committed name matches, so the claim is still checked against 15 real file names
+  rather than three convenient examples — from the one tree that is allowed to hash. The retired
+  `~XX` spelling is refused by name here, and by `capture-bundle.ts seal`/`check` at the producer.
 - **The conservation law.** `filesDeclared = matched + mismatched + unreadable + unchecked`, shown
   on the coverage panel. `summarise()` has *no* `else` branch: a row carrying a `DigestState` this
   summary has never heard of is counted in no bucket, so the equation goes unbalanced and the

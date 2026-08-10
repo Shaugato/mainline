@@ -13,12 +13,41 @@
 # OpenTofu plan JSON. The live `iam simulate-principal-policy` leg is behind
 # MAINLINE_BOUNDARY_LIVE_AWS=1 and is deliberately NOT set here (PL-3: an
 # unproven capability does not go on a dated path).
+#
+# ── WHAT EVERY LANE INSTALLS, AND WHY IT IS EXACTLY THAT ─────────────────────
+#
+# `./packages/mainline-boundary pytest pytest-timeout`. Not `uv sync --frozen`,
+# not the workspace, not a requirements file. E3 asserts what a MINIMAL
+# kernel-plane environment can reach, so the environment it runs in is part of
+# what it measures: install the workspace here and E3's finding becomes a
+# statement about uv.lock rather than about the kernel.
+#
+# `pytest-timeout` is the one addition, made 2026-08-10, and it widens nothing
+# E3 cares about. It is a pytest plugin, not a workspace dependency: it is
+# invisible to the AST scan, absent from every SBOM this lane reads, and it
+# imports no model SDK. It is here because the root `pyproject.toml` sets
+# `addopts = [… "--strict-config" …]` together with `timeout = 120`, and
+# `--strict-config` makes an ini key that no installed plugin claims a HARD
+# error — measured on this exact lane: `ERROR: Unknown config option: timeout`,
+# 16 tests collected, none run, exit 4. The timeout is also the thing that stops
+# a wedged lane from burning the whole job budget in silence, so declaring it is
+# what makes the 12-minute budget mean something.
+#
+# Measured before the fix, run 31372088311 (and the scheduled master run
+# 31332657063): all seven jobs died in pytest's plugin loader with
+# `ModuleNotFoundError: No module named 'psycopg'`, zero assertions executed.
+# The cause was ours — `trappoint_testkit` imported a PostgreSQL driver at
+# module scope to register a command-line option — and it is fixed in the
+# package, not worked around here.
 
 name: boundary
 
 on:
   push:
-    branches: [main]
+    # `master` is this repository's default branch. It read `main` until
+    # 2026-08-10, so every lane below had never once run on the branch the
+    # Actions tab opens on.
+    branches: [master]
     paths:
       - "packages/mainline-boundary/**"
       - "tests/boundary/**"
@@ -62,12 +91,20 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: Install the boundary package
-        run: python -m pip install --disable-pip-version-check ./packages/mainline-boundary pytest
+        run: |
+          python -m pip install --disable-pip-version-check \
+            ./packages/mainline-boundary pytest pytest-timeout
       - name: Assert the kernel task role cannot reach Bedrock
         run: python -m pytest tests/boundary/test_e1_iam.py -v --no-header -rs
+      # `|| true` was removed here on 2026-08-10. A report step that cannot fail
+      # is a report nobody reads: the CLI's exit codes ARE its contract (0 clean,
+      # 1 violations, 3 VACUOUS — examined nothing and gave no reason, 4 skipped
+      # with a reason), and swallowing them turned "E1 examined nothing" into a
+      # green tick. Measured today, `e1 --json` exits 0 against this tree, so
+      # this step is green on its own merits and not by suppression.
       - name: Report
         if: always()
-        run: python -m mainline_boundary.cli e1 --json || true
+        run: python -m mainline_boundary.cli e1 --json
 
   e2-network:
     name: E2 — no model network path
@@ -78,7 +115,9 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: Install the boundary package
-        run: python -m pip install --disable-pip-version-check ./packages/mainline-boundary pytest
+        run: |
+          python -m pip install --disable-pip-version-check \
+            ./packages/mainline-boundary pytest pytest-timeout
       - name: Install conftest
         # E2 is the enforcement a security reviewer believes precisely because it
         # does not depend on our code being correct, so the Rego leg is not
@@ -110,15 +149,26 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: Install the boundary package
-        run: python -m pip install --disable-pip-version-check ./packages/mainline-boundary pytest
+        run: |
+          python -m pip install --disable-pip-version-check \
+            ./packages/mainline-boundary pytest pytest-timeout
       - name: Assert no kernel-plane package can reach a model SDK
         run: python -m pytest tests/boundary/test_e3_code.py -v --no-header -rs
       - name: Surface the skips
-        # E3 skips-with-reason while verticals/mainline/packages/mainline-gate-svc
-        # does not exist. That skip must be VISIBLE in the log, because a silent
-        # skip and a pass look identical to everyone who is not reading closely.
+        # E3 skips-with-reason where a leg cannot stand on its own. That skip
+        # must be VISIBLE in the log, because a silent skip and a pass look
+        # identical to everyone who is not reading closely.
+        #
+        # `|| true` was removed here on 2026-08-10, and removing it is what makes
+        # the sentence above true: with it, exit 3 (VACUOUS — the scan examined
+        # NOTHING and gave no reason) was indistinguishable from exit 0, which is
+        # precisely the confusion the CLI's exit codes were designed to prevent.
+        # Measured today: `e3` exits 0 with examined=327, violations=0, skips=1
+        # (no SBOM is committed for the current kernel image, so that leg does
+        # not stand; the AST scan does). If the scan ever examines nothing, this
+        # step now says so by failing.
         if: always()
-        run: python -m mainline_boundary.cli e3 || true
+        run: python -m mainline_boundary.cli e3
 
   e4-egress:
     name: E4 — no model prompt path
@@ -129,7 +179,9 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: Install the boundary package
-        run: python -m pip install --disable-pip-version-check ./packages/mainline-boundary pytest
+        run: |
+          python -m pip install --disable-pip-version-check \
+            ./packages/mainline-boundary pytest pytest-timeout
       - name: Assert the kernel speaks exactly pgwire plus in-VPC HTTPS
         run: python -m pytest tests/boundary/test_e4_egress.py -v --no-header -rs
       - name: Restate the FIS blackhole status in the log
@@ -152,7 +204,9 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: Install the boundary package
-        run: python -m pip install --disable-pip-version-check ./packages/mainline-boundary pytest
+        run: |
+          python -m pip install --disable-pip-version-check \
+            ./packages/mainline-boundary pytest pytest-timeout
       - name: Assert every agent's declared capabilities
         run: python -m pytest tests/boundary/test_fleet_matrix.py -v --no-header -rs
 
@@ -165,7 +219,9 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: Install the boundary package
-        run: python -m pip install --disable-pip-version-check ./packages/mainline-boundary pytest
+        run: |
+          python -m pip install --disable-pip-version-check \
+            ./packages/mainline-boundary pytest pytest-timeout
       - name: No retry helper, no sampling parameter, no per-signer label, no forbidden claim
         run: python -m pytest tests/boundary/test_ci_greps.py -v --no-header -rs
       - name: Repository-wide grep report
@@ -183,7 +239,7 @@ jobs:
       - name: Install the boundary package
         run: |
           python -m pip install --disable-pip-version-check \
-            ./packages/mainline-boundary pytest ruff mypy types-PyYAML
+            ./packages/mainline-boundary pytest pytest-timeout ruff mypy types-PyYAML
       - name: Unit tests
         run: python -m pytest packages/mainline-boundary/tests -q --no-header
       - name: ruff

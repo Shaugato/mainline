@@ -87,7 +87,7 @@
       "required": ["path", "sha256", "bytes"],
       "properties": {
         "path": {
-          "description": "Relative, forward-slashed, no '..' and no leading '/'. `~` is admitted because it is the escape character in the frame-name encoding (src/data/resources.ts): a request key's reserved bytes become ~XX, which keeps the mapping from request to file name injective without inventing a second index.",
+          "description": "Relative, forward-slashed, no '..' and no leading '/'. Frames are named `frames/<METHOD>-<sha256(key)[:16]>.json` by scripts/capture-bundle.ts. `~` remains admitted for non-frame content only; it was the escape character of the retired request-line naming scheme, which produced 218-character repository paths that a default Windows install cannot check out (scripts/submission/check_path_lengths.py).",
           "type": "string",
           "minLength": 1,
           "maxLength": 512,
@@ -99,7 +99,13 @@
           "type": "integer",
           "minimum": 0
         },
-        "media_type": { "type": ["string", "null"], "maxLength": 128 }
+        "media_type": { "type": ["string", "null"], "maxLength": 128 },
+        "key": {
+          "description": "Frames only: the canonical request key this frame answers, verbatim, and the ONLY way a player addresses it. The file name is a content address and carries no request information, so this field is where the request line lives — inside the sealed set the verifier hashes, rather than on a directory entry nothing checks. The frame repeats its own key and the transport compares the two on every exchange, so the manifest is an index that cannot silently disagree with what it indexes.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        }
       }
     },
     "cluster_fingerprint": {
@@ -155,7 +161,7 @@
       "properties": {
         "frame_version": { "const": 1 },
         "key": {
-          "description": "The canonical request key, derived by src/data/resources.ts from method, path and sorted query. It is also how the frame's file name is derived, so a player can find a frame without an index — an index is a second place for the truth to live.",
+          "description": "The canonical request key, derived by src/data/resources.ts from method, path and sorted query. The file name is the SHA-256 content address of this string, so the frame and its name cannot drift apart without `capture-bundle.ts check` saying so; the manifest carries the same string as the player's index.",
           "type": "string",
           "minLength": 1,
           "maxLength": 512

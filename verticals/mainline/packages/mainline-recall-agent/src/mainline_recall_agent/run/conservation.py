@@ -180,18 +180,24 @@ def enforce_conservation(
         )
 
     by_id = {row.event_id: row for row in rows}
+    # `bonded_row`, NOT `row`. The loops above bind `row` to a `CandidateRow` over the
+    # whole function scope, so reusing the name here declared "this is always present"
+    # while the very next statement handles its absence — the two statements contradicted
+    # each other and mypy reported the contradiction. A missing id IS possible and IS the
+    # defect MI16 exists to catch (a fatality lost between retrieval and accounting), so
+    # `.get()` and the `is None` arm are both correct; only the name was wrong.
     for bonded in bonded_event_ids:
-        row = by_id.get(bonded)
-        if row is None:
+        bonded_row = by_id.get(bonded)
+        if bonded_row is None:
             raise ConservationViolated(
                 f"channel B found bonded severity-5 event {bonded} and it is absent from the "
                 "candidate rows. MI16 (bonded_fatalities_all_blocking) exists because a "
                 "fatality never decays; losing one between retrieval and accounting is the "
                 "exact defect the invariant is written against."
             )
-        if row.outcome != "blocking":
+        if bonded_row.outcome != "blocking":
             raise ConservationViolated(
-                f"bonded severity-5 event {bonded} was recorded as {row.outcome!r}. "
+                f"bonded severity-5 event {bonded} was recorded as {bonded_row.outcome!r}. "
                 "Channel B is admitted unconditionally: no threshold, no cap, no rerank."
             )
 

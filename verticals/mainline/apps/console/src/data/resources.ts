@@ -279,10 +279,11 @@ export interface ResolvedRequest {
   readonly path: string;
   /** Query pairs, sorted by name then value — the canonical order. */
   readonly query: readonly (readonly [string, string])[];
-  /** `${method} ${path}` plus the sorted query. Stable across transports. */
+  /**
+   * `${method} ${path}` plus the sorted query. Stable across transports, and the only
+   * thing a replay bundle is addressed by — see the note above `urlFor`.
+   */
   readonly key: string;
-  /** Frame file name inside a bundle, derived from `key`. */
-  readonly framePath: string;
   readonly body: unknown;
 }
 
@@ -349,29 +350,30 @@ export function resolveRequest(request: ResourceRequest): ResolvedRequest {
     path,
     query: Object.freeze(queryEntries),
     key,
-    framePath: framePathForKey(key),
     body: request.body,
   };
 }
 
 /**
- * Maps a canonical request key to a bundle-relative file path.
+ * THE FRAME ADDRESS IS NOT DERIVED HERE, AND THAT IS DELIBERATE.
  *
- * The encoding is reversible-by-eye and file-system safe on every platform we ship to:
- * unreserved characters pass through, everything else becomes `~XX` with the byte's
- * uppercase hex. `~` itself is escaped first so the mapping stays injective — two
- * different requests must never be able to name the same frame.
+ * This module used to export `framePathForKey()`, which spelled the whole request line
+ * into a file name with a `~XX` escape. That name grew with the request, and on
+ * 2026-08-10 the longest one measured 218 characters of repository-relative path —
+ * past the point where `git clone` into an ordinary `C:\Users\…\projects\mainline`
+ * produces a working tree at all on a default Windows install. No escape could have
+ * fixed it: the longest request key is 132 characters BEFORE escaping, and
+ * `132 + 5 + 67` already exceeds the 198-character budget a 60-character clone
+ * destination leaves. See `scripts/submission/check_path_lengths.py`.
+ *
+ * Frames are therefore named by content address — `<METHOD>-<sha256(key)[:16]>.json` —
+ * which `scripts/capture-bundle.ts` computes when it writes them. This module cannot
+ * reproduce that name and does not try: `src/data/**` computes no digests, by the same
+ * rule that keeps the bundle verifier injected rather than inlined. A frame is looked up
+ * BY KEY instead, through `manifest.files[].key` (see `bundle.ts`), which puts the
+ * request line inside the sealed set the verifier hashes rather than on a directory
+ * entry nothing checks.
  */
-export function framePathForKey(key: string): string {
-  const bytes = new TextEncoder().encode(key);
-  let out = '';
-  for (const byte of bytes) {
-    const char = String.fromCharCode(byte);
-    if (/[A-Za-z0-9._-]/.test(char)) out += char;
-    else out += `~${byte.toString(16).toUpperCase().padStart(2, '0')}`;
-  }
-  return `frames/${out}.json`;
-}
 
 /** Builds the URL a live transport requests, relative to a base. */
 export function urlFor(resolved: ResolvedRequest, baseUrl: string): string {

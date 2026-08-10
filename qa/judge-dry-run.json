@@ -52,76 +52,67 @@
   ],
   "path_lengths": {
     "schema": "mainline.qa.path-lengths/1",
-    "measured_utc": "2026-08-10T04:32:31Z",
+    "measured_utc": "2026-08-10T10:57:01Z",
     "method": "git ls-files -z",
     "arithmetic": "full = len(clone destination) + 1 + len(path relative to the repo root); a program without long-path support needs full <= 259",
     "windows_max_path_chars": 260,
     "windows_usable_path_chars": 259,
     "ntfs_max_component_chars": 255,
-    "tracked_files": 7120,
-    "max_tracked_path_chars": 214,
-    "max_safe_clone_prefix_chars": 44,
+    "tracked_files": 7305,
+    "max_tracked_path_chars": 141,
+    "max_safe_clone_prefix_chars": 117,
     "longest_paths": [
-      {
-        "chars": 214,
-        "path": "verticals/mainline/apps/console/fixtures/bundles/blk-07/frames/GET~20~2Fv1~2Fclauses~2F018f3a30-2200-7d10-9f31-0c9a4e77bb02~2Fancestry~3Fas_of~3D5f916282a2a3e5765f916282a2a3e5765f916282a2a3e5765f916282a2a3e576.json"
-      },
-      {
-        "chars": 206,
-        "path": "verticals/mainline/apps/console/fixtures/bundles/blk-07/frames/GET~20~2Fv1~2Fclauses~2F018f3a30-2200-7d10-9f31-0c9a4e77bb02~2Fversions~2F5f916282a2a3e5765f916282a2a3e5765f916282a2a3e5765f916282a2a3e576.json"
-      },
-      {
-        "chars": 152,
-        "path": "verticals/mainline/apps/console/fixtures/bundles/blk-07/frames/POST~20~2Fv1~2Fpermits~2F018f3a2f-9900-7e11-b0cc-5a1122334455~2Fchecks~3Amaterialise.json"
-      },
-      {
-        "chars": 146,
-        "path": "verticals/mainline/apps/console/fixtures/bundles/blk-07/frames/GET~20~2Fv1~2Fpermits~2F018f3a2f-1104-7c88-b3aa-77c1de40e2b1~2Fblocking-checks.json"
-      },
-      {
-        "chars": 142,
-        "path": "verticals/mainline/apps/console/fixtures/bundles/blk-07/frames/GET~20~2Fv1~2Flessons~2F018f3a34-1100-7a40-8811-e73a5b2d6091~2Fpropagation.json"
-      },
-      {
-        "chars": 142,
-        "path": "verticals/mainline/apps/console/fixtures/bundles/blk-07/frames/POST~20~2Fv1~2Fchecks~2F018f3a31-1000-7b30-9e53-2e1c60997a24~2Fdisposition.json"
-      },
       {
         "chars": 141,
         "path": "skills/upstream/cockroachdb-resilience-and-disaster-recovery/verifying-a-restore-by-merkle-root/scripts/verify_restore_merkle_root.py.license"
       },
       {
-        "chars": 141,
-        "path": "verticals/mainline/apps/console/fixtures/bundles/blk-07/frames/GET~20~2Fv1~2Fchecks~2F018f3a31-1000-7b30-9e53-2e1c60997a24~2Fdisposition.json"
+        "chars": 133,
+        "path": "skills/upstream/cockroachdb-resilience-and-disaster-recovery/verifying-a-restore-by-merkle-root/scripts/verify_restore_merkle_root.py"
+      },
+      {
+        "chars": 123,
+        "path": "verticals/mainline/packages/mainline-recall-agent/src/mainline_recall_agent/providers/data/bge_large_en_v1_5.coarse256.json"
+      },
+      {
+        "chars": 113,
+        "path": "verticals/mainline/fixtures/corpus/cache/00/0011c52775baf290ca09fcf3252c1c8590da8435557afea6c14edcedfed74508.json"
+      },
+      {
+        "chars": 113,
+        "path": "verticals/mainline/fixtures/corpus/cache/00/003c1cb508b99fd466c1b0519fccea982ee0af3af9c3d5a369ef62af678f0e01.json"
+      },
+      {
+        "chars": 113,
+        "path": "verticals/mainline/fixtures/corpus/cache/00/0054ebfc18bd4ec7b9d42339ca761d71549f19310d526a589761699f22755209.json"
+      },
+      {
+        "chars": 113,
+        "path": "verticals/mainline/fixtures/corpus/cache/00/0059d02edbd743792b9b9e78c6334b2a479b363733f156c96cbe131e5b7ec356.json"
+      },
+      {
+        "chars": 113,
+        "path": "verticals/mainline/fixtures/corpus/cache/00/006a05bfafdb7c1e78481331c4c8f209610ab50d8e838f93d7103b5f232f4897.json"
       }
     ],
     "longest_component": {
-      "chars": 151,
-      "component": "GET~20~2Fv1~2Fclauses~2F018f3a30-2200-7d10-9f31-0c9a4e77bb02~2Fancestry~3Fas_of~3D5f916282a2a3e5765f916282a2a3e5765f916282a2a3e5765f916282a2a3e576.json",
-      "in_path": "verticals/mainline/apps/console/fixtures/bundles/blk-07/frames/GET~20~2Fv1~2Fclauses~2F018f3a30-2200-7d10-9f31-0c9a4e77bb02~2Fancestry~3Fas_of~3D5f916282a2a3e5765f916282a2a3e5765f916282a2a3e5765f916282a2a3e576.json",
-      "ntfs_headroom_chars": 104
+      "chars": 69,
+      "component": "0a8382e7db7933fc72279a8032601ae1c4097f5148bdc4dcdb6e82f3d373e6f9.json",
+      "in_path": "packages/mainline-agentkit/tests/cassettes/0a8382e7db7933fc72279a8032601ae1c4097f5148bdc4dcdb6e82f3d373e6f9.json",
+      "ntfs_headroom_chars": 186
     },
     "typical_prefix_chars": 60,
-    "files_unclonable_at_typical_prefix": 2,
-    "unclonable_at_typical_prefix": [
-      {
-        "chars": 214,
-        "path": "verticals/mainline/apps/console/fixtures/bundles/blk-07/frames/GET~20~2Fv1~2Fclauses~2F018f3a30-2200-7d10-9f31-0c9a4e77bb02~2Fancestry~3Fas_of~3D5f916282a2a3e5765f916282a2a3e5765f916282a2a3e5765f916282a2a3e576.json"
-      },
-      {
-        "chars": 206,
-        "path": "verticals/mainline/apps/console/fixtures/bundles/blk-07/frames/GET~20~2Fv1~2Fclauses~2F018f3a30-2200-7d10-9f31-0c9a4e77bb02~2Fversions~2F5f916282a2a3e5765f916282a2a3e5765f916282a2a3e5765f916282a2a3e576.json"
-      }
-    ],
+    "files_unclonable_at_typical_prefix": 0,
+    "unclonable_at_typical_prefix": [],
     "repo": "D:/CoackroachDBxAWS/mainline",
-    "head": "bb21962f188fa1c23a231463018282b3c2959bf0",
+    "head": "5ddaa3a79a5c83b17655089fbb04d0746f89f1b6",
     "budget": {
       "policy": "falling-only",
       "note": "Falling-only. Each number below was measured, never chosen. A number that falls may be lowered with --update; a number that rises names the paths that raised it and exits 1. The ceiling is not a style rule: it is the length at which `git clone` on default Windows stops producing a working tree.",
-      "set_utc": "2026-08-10T04:26:32Z",
+      "set_utc": "2026-08-10T10:57:01Z",
       "typical_prefix_chars": 60,
-      "max_tracked_path_chars": 214,
-      "files_unclonable_at_typical_prefix": 2
+      "max_tracked_path_chars": 141,
+      "files_unclonable_at_typical_prefix": 0
     },
     "budget_status": "OK",
     "budget_complaints": []
@@ -1244,6 +1235,32 @@
   ],
   "verdict": "PROVEN_WITH_CAVEATS",
   "reproduce": "python scripts/submission/judge_dry_run.py --dsn \"postgresql://root@127.0.0.1:26257/defaultdb?sslmode=disable\" --probe-threshold",
+  "superseded_observations": {
+    "why": "This file is a RECORDING of a real dry run, and part of that recording has been overtaken by a repair. It is flagged here rather than edited: rewriting a measured observation to match a later tree would turn a recording into a claim, and the note at the top of this file promises it is not one. Nothing below was deleted.",
+    "superseded_utc": "2026-08-10T10:57:01Z",
+    "superseded_by": "scripts/submission/check_path_lengths.py --update, re-measured over the renamed console replay frames",
+    "keys": [
+      "clone_threshold",
+      "clone_attempts",
+      "findings[0]",
+      "findings[1]"
+    ],
+    "what_changed": "Console replay-bundle frames were named by spelling the request line into the file name with a ~XX escape, which produced a 214-character path in blk-07 and 218 in demo-cloud. They are now content-addressed, frames/<METHOD>-<sha256(key)[:16]>.json, and the request line is carried verbatim in the bundle manifest as files[].key. The two paths named in clone_attempts[0].output.head no longer exist in the tree.",
+    "measured_then": {
+      "longest_tracked_path_chars": 214,
+      "files_unclonable_at_typical_prefix": 2,
+      "max_working_dest_chars_without_longpaths": 44,
+      "first_failing_dest_chars": 45
+    },
+    "measured_now": {
+      "longest_tracked_path_chars": 141,
+      "longest_tracked_path": "skills/upstream/cockroachdb-resilience-and-disaster-recovery/verifying-a-restore-by-merkle-root/scripts/verify_restore_merkle_root.py.license",
+      "files_unclonable_at_typical_prefix": 0,
+      "max_safe_clone_prefix_chars": 117,
+      "method": "arithmetic over `git ls-files -z`, not a re-run of the clone probe"
+    },
+    "still_owed": "The clone probe itself has NOT been re-run, so `max_working_dest_chars` is not re-measured and is not restated here. The arithmetic says a 117-character destination now fits where 44 did; only a re-run of `reproduce` may record that as an observation. Re-derive this whole file once the CI repair wave has landed."
+  },
   "SPDX-FileCopyrightText": "2026 MAINLINE contributors",
   "SPDX-License-Identifier": "Apache-2.0"
 }

@@ -21,19 +21,38 @@ fixture. Every one of them already prefers an environment DSN, so publishing one
 The only patching it performs is :class:`~trappoint_testkit.cluster.ProcessGuard`, and only
 when there is no cluster at all — which is the one case where those fixtures' own fallback
 path is the thing that wedges the machine.
+
+WHAT IT COSTS TO LOAD, AND WHY THAT IS AN ASSERTION RATHER THAN A DETAIL. pytest imports
+this module — via the ``pytest11`` entry point, or via the repository-root ``conftest.py``
+— **before it parses a single argument**, in every lane, including lanes that will never
+touch a database. Measured on 2026-08-10, run 31372088311: all seven ``boundary`` jobs died
+here with ``ModuleNotFoundError: No module named 'psycopg'``, because this module imported
+:mod:`~trappoint_testkit.cluster` at module scope and that module imported the driver at
+module scope. Seven jobs, zero assertions executed, and the enforcement they exist to make
+was neither green nor red — it was absent.
+
+So: **nothing from** :mod:`~trappoint_testkit.cluster` **is imported at module scope here.**
+:func:`pytest_addoption` and the marker declaration in :func:`pytest_configure` — the two
+things that run in every lane — reach for it only when they run, and
+:mod:`~trappoint_testkit.image` (one regex, no third-party dependency) is the only import
+this file makes from its own package. A lane with no PostgreSQL driver now gets its
+``--crdb`` option, its marker, and a header line saying in one sentence why there is no
+cluster.
 """
 
 from __future__ import annotations
 
 import os
 from collections.abc import Iterator
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pytest
 
-from . import cluster as _cluster
 from . import image as _image
-from .cluster import Database, ProcessGuard, SharedCluster
+
+if TYPE_CHECKING:  # pragma: no cover - types only; `from __future__ import annotations`
+    # means every annotation below is a string, so these names are never needed at runtime.
+    from .cluster import Database, ProcessGuard, SharedCluster
 
 __all__ = ["State", "pytest_addoption", "pytest_configure"]
 
@@ -56,6 +75,11 @@ class State:
         self.cluster: SharedCluster | None = None
         self.image: str | None = None
         self.image_error: str | None = None
+        #: The one-line reason ``psycopg`` did not import, or ``None``. Recorded separately
+        #: from :attr:`skip_reason` because "there is no driver" and "there is no cluster"
+        #: are different facts and a lane that reports the second when the first is true has
+        #: told a judge something that is not so.
+        self.driver_error: str | None = None
         self.gc_ttl_note: str | None = None
         self.skip_reason: str | None = None
         self.guard: ProcessGuard | None = None
@@ -91,12 +115,20 @@ STATE_KEY: pytest.StashKey[State] = pytest.StashKey()
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:
-    """Declare ``--crdb``. Must run before argument parsing, so the plugin loads early."""
+    """Declare ``--crdb``. Must run before argument parsing, so the plugin loads early.
+
+    The import is local and it is the whole point of this file's layering note: registering
+    an option must cost four strings, not a PostgreSQL driver. ``cluster`` is stdlib-only to
+    import, so this is a cheap read of :data:`~trappoint_testkit.cluster.MODES` and nothing
+    more.
+    """
+    from .cluster import MODES
+
     parser.addoption(
         "--crdb",
         action="store",
         default=os.environ.get(_MODE_ENV, "auto"),
-        choices=list(_cluster.MODES),
+        choices=list(MODES),
         help=(
             "how this session obtains its ONE CockroachDB: auto (reuse, else start one), "
             "reuse (never start), spawn (always this package's container), none (do not "
@@ -106,7 +138,13 @@ def pytest_addoption(parser: pytest.Parser) -> None:
 
 
 def pytest_configure(config: pytest.Config) -> None:
-    """Resolve the mode and obtain the session's one cluster, BEFORE collection begins."""
+    """Resolve the mode and obtain the session's one cluster, BEFORE collection begins.
+
+    The marker is declared first and unconditionally: a lane that has no driver, no Docker
+    and no intention of touching a database still collects tests that carry
+    ``@pytest.mark.requires_cluster``, and ``--strict-markers`` would refuse the whole run
+    over a marker this plugin is the declared owner of.
+    """
     config.addinivalue_line(
         "markers",
         "requires_cluster: needs a live CockroachDB; skips with a reason when none is shared",
@@ -139,6 +177,29 @@ def pytest_configure(config: pytest.Config) -> None:
         _no_cluster(state)
         return
 
+    # 4. Everything past this point wants a cluster, so this is the first and only place
+    #    the plugin touches `.cluster` — see the module docstring for why that ordering is
+    #    an assertion rather than a style. The import itself is stdlib-only.
+    from . import cluster as _cluster
+
+    # 5. No driver, no cluster — and say so in one sentence instead of proving it the
+    #    expensive way. Asked BEFORE `ensure`, because under `--crdb=auto` on a runner that
+    #    has Docker, `ensure` would otherwise start a node, wait the full READY_TIMEOUT_S
+    #    for a readiness probe that cannot succeed in a process with no pgwire, and then
+    #    delete it: two wasted minutes per job to reach the answer this line gives for free.
+    #    This suppresses nothing — the boundary lanes assert nothing about a database, and
+    #    every test that does need one still skips with this reason attached to it.
+    state.driver_error = _cluster.driver_error()
+    if state.driver_error is not None:
+        state.skip_reason = (
+            f"no PostgreSQL driver in this environment ({state.driver_error}), so nothing "
+            "here can speak to a CockroachDB and starting one would prove nothing. Every "
+            "test that needs a cluster skips with this reason. Install the driver with "
+            f'`python -m pip install "{_cluster.DRIVER_REQUIREMENT}"`.'
+        )
+        _no_cluster(state)
+        return
+
     found = _cluster.ensure(state.mode, image=state.image)
     if found is None:
         state.skip_reason = _unavailable_reason(state)
@@ -164,7 +225,9 @@ def pytest_configure(config: pytest.Config) -> None:
 
 def _no_cluster(state: State) -> None:
     """Publish "there is none" honestly: clear stale DSNs, then stop anything from spawning."""
-    for name in _cluster.DSN_ENV_NAMES:
+    from .cluster import DSN_ENV_NAMES, ProcessGuard
+
+    for name in DSN_ENV_NAMES:
         state.set_env(name, None)
     state.guard = ProcessGuard(state.skip_reason or "no cluster for this session")
     state.guard.install()
@@ -219,7 +282,9 @@ def pytest_unconfigure(config: pytest.Config) -> None:
         and state.cluster.container is not None
         and os.environ.get(_TEARDOWN_ENV) == "1"
     ):
-        _cluster.remove_container(state.cluster.container)
+        from .cluster import remove_container
+
+        remove_container(state.cluster.container)
     state.restore_env()
 
 
@@ -248,8 +313,10 @@ def crdb_database(
     shared_cluster: SharedCluster, request: pytest.FixtureRequest
 ) -> Iterator[Database]:
     """Yield a database of this module's own, pinned to the Cloud GC TTL, dropped after."""
+    from .cluster import fresh_database
+
     label = request.module.__name__.rsplit(".", 1)[-1] if request.module else "module"
-    with _cluster.fresh_database(shared_cluster, label) as database:
+    with fresh_database(shared_cluster, label) as database:
         yield database
 
 
@@ -266,7 +333,9 @@ def crdb_conn(crdb_dsn: str) -> Iterator[Any]:
     Autocommit rather than a rolled-back transaction: a refused statement must not be able to
     hide behind a rollback that also erases the rows the test wrote before it.
     """
-    conn = _cluster.connect(crdb_dsn)
+    from .cluster import connect
+
+    conn = connect(crdb_dsn)
     try:
         yield conn
     finally:

@@ -59,10 +59,32 @@ export function bundleFiles(): Map<string, Uint8Array> {
 
 /** SHA-256 of `fixtures/bundles/blk-07/manifest.json`, verified with `sha256sum`. */
 export const FIXTURE_MANIFEST_SHA256 =
-  '4ab2e066046ec03abc79dccbd023dc4b0d4c2786142d302c24023faec8e228b8';
+  '4e639c85e0f46f5d3deddfc63bda969c81de599821cb54ece462883c003eb5f3';
 
 /** The permit frame the transport-integration test asks for. */
 export const FIXTURE_PERMIT_ID = '018f3a2f-1104-7c88-b3aa-77c1de40e2b1';
+
+/**
+ * The bundle path of the frame answering a canonical request key.
+ *
+ * Read out of the SEALED manifest rather than computed. Frame names are content
+ * addresses (`<METHOD>-<sha256(key)[:16]>.json`) written by `scripts/capture-bundle.ts`,
+ * and `src/**` computes no digests, so `manifest.files[].key` is the index — for a test
+ * as for the transport. Spelling a name here would put a second, unchecked copy of the
+ * naming scheme in the test tree, which is exactly what the old encoding did.
+ */
+export function frameAddressOf(requestKey: string): string {
+  const manifestBytes = bundleFiles().get('manifest.json');
+  if (manifestBytes === undefined) throw new Error('the fixture bundle has no manifest.json.');
+  const manifest = JSON.parse(decoder.decode(manifestBytes)) as {
+    files: { path: string; key?: string | null }[];
+  };
+  const entry = manifest.files.find((file) => file.key === requestKey);
+  if (entry === undefined) {
+    throw new Error(`the sealed blk-07 manifest lists no frame answering "${requestKey}".`);
+  }
+  return entry.path;
+}
 
 // ── Sources ────────────────────────────────────────────────────────────────
 
@@ -134,6 +156,7 @@ interface ManifestEntry {
   sha256: string;
   bytes: number;
   media_type?: string | null;
+  key?: string | null;
 }
 
 function entriesOf(manifest: Record<string, unknown>): ManifestEntry[] {
@@ -179,6 +202,21 @@ export function smuggleFile(
 ): Map<string, Uint8Array> {
   writeText(files, path, content);
   return files;
+}
+
+/**
+ * Removes a frame's request key from the manifest, leaving the file in place.
+ *
+ * The bundle still verifies — every digest is untouched — and the frame becomes
+ * unreachable, because a frame is addressed by `manifest.files[].key` and this one no
+ * longer has one. That is the failure the evidence view has to SEE rather than skip.
+ */
+export function dropFrameKey(files: Map<string, Uint8Array>, path: string): Map<string, Uint8Array> {
+  return editManifest(files, (manifest) => {
+    const entry = entriesOf(manifest).find((candidate) => candidate.path === path);
+    if (entry === undefined) throw new Error(`manifest does not list ${path}`);
+    delete entry.key;
+  });
 }
 
 /** Renames a frame file (and its manifest entry) to a non-canonical name. */

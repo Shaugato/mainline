@@ -63,6 +63,31 @@ export function bundleFiles(): Map<string, Uint8Array> {
   return files;
 }
 
+/**
+ * The bundle path of the frame answering a canonical request key.
+ *
+ * Read out of the SEALED manifest rather than computed. Frame file names are content
+ * addresses — `<METHOD>-<sha256(key)[:16]>.json`, written by
+ * `scripts/capture-bundle.ts` — and `src/**` computes no digests, so `manifest.files[].key`
+ * is the index the transport uses and the index a test must use too. Deriving the name
+ * here would put a second, unchecked copy of the naming scheme in the test tree.
+ */
+export function frameAddressOf(requestKey: string): string {
+  const manifestBytes = bundleFiles().get('manifest.json');
+  if (manifestBytes === undefined) throw new Error('the fixture bundle has no manifest.json.');
+  const manifest = JSON.parse(new TextDecoder().decode(manifestBytes)) as {
+    files: { path: string; key?: string | null }[];
+  };
+  const entry = manifest.files.find((file) => file.key === requestKey);
+  if (entry === undefined) {
+    throw new Error(
+      `the sealed blk-07 manifest lists no frame answering "${requestKey}". Re-run ` +
+        '`node scripts/capture-bundle.ts stage --sources fixtures/sources/blk-07 --out fixtures/bundles/blk-07`.',
+    );
+  }
+  return entry.path;
+}
+
 /** The raw source payloads, keyed by file name — used to check them against contracts. */
 const RAW_SOURCES = import.meta.glob<string>('/fixtures/sources/blk-07/payloads/*.json', {
   query: '?raw',

@@ -95,7 +95,18 @@ export function createContractRegistry(): SchemaRegistry {
     try {
       parsed = JSON.parse(source);
     } catch (error) {
-      throw new Error(`contracts/${name} is not valid JSON: ${String(error)}`);
+      // `cause` is not decoration here, and it is not interchangeable with the
+      // interpolation beside it. `String(error)` stringifies a SyntaxError down to one
+      // line and throws away the object: the stack that names the parse site, and
+      // whatever a future JSON parser attaches (V8 already carries a byte offset that
+      // `String()` renders only as prose). This throw happens once, at startup, before
+      // any surface exists to report it — so the browser's uncaught-error handler and
+      // the devtools `[cause]` chain are the ONLY places the original failure can still
+      // be read. Dropping it turned "ledger.schema.json broke at line 412" into
+      // "something in the registry is not JSON", which is the symptom, not the fault.
+      throw new Error(`contracts/${name} is not valid JSON: ${String(error)}`, {
+        cause: error,
+      });
     }
     registry.add(parsed as SchemaDocument);
   }

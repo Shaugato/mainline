@@ -18,7 +18,7 @@ import { createContractRegistry } from '../../../src/data/contracts';
 import { formatErrors } from '../../../src/data/schema';
 import { resolveRequest, resourceOrThrow } from '../../../src/data/resources';
 
-import { bundleFiles, sourcePayloads, stagePlan } from './_support';
+import { bundleFiles, frameAddressOf, sourcePayloads, stagePlan } from './_support';
 
 const registry = createContractRegistry();
 
@@ -217,11 +217,12 @@ describe('the sealed bundle carries the source payloads byte for byte', () => {
         ...(step.query === undefined ? {} : { query: step.query }),
       });
 
-      const frameBytes = files.get(resolved.framePath);
-      expect(frameBytes, `${resolved.framePath} is missing from the sealed bundle`).toBeDefined();
+      const framePath = frameAddressOf(resolved.key);
+      const frameBytes = files.get(framePath);
+      expect(frameBytes, `${framePath} is missing from the sealed bundle`).toBeDefined();
 
       const frame = JSON.parse(decoder.decode(frameBytes)) as { response: { body_b64: string } };
-      const served = decodeBase64ToText(resolved.framePath, frame.response.body_b64);
+      const served = decodeBase64ToText(framePath, frame.response.body_b64);
 
       const source = sourcePayloads().get(step.payload.split('/').slice(-1)[0] ?? step.payload);
       expect(source, `${step.payload} is missing from fixtures/sources`).toBeDefined();

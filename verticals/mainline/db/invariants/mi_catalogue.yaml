@@ -68,11 +68,51 @@
 #   status             pending | enforced.
 #   adr                the ADR that authorised a demotion, or null. Set only by a demotion.
 #
-# WHY EVERY ENTRY READS `pending` TODAY
+# WHY SO MANY ENTRIES STILL READ `pending`  (9 enforced / 21 pending as of 2026-08-10)
 #   Strata S1–S7 are inert tables; nothing refuses anything until S8 lands the functions and
 #   triggers (docs/leads/datamodel.md §1.1). Most MI tests are therefore red from S1 to S8, and
 #   DR-4 accepts that explicitly: "this is the intended state, and DM-8 makes it visible rather
 #   than silent". A catalogue that shipped green would be a catalogue that lied.
+#
+# WHAT A PROMOTION HAS TO SHOW  (the standard the 2026-08-10 review applied, and recorded)
+#   `mi_ratchet red` refuses when a pending invariant's owning tests all pass, and that refusal
+#   names the invariant. It is an instruction to REVIEW, never an instruction to obey: the
+#   ratchet can see that the tests are green and cannot see whether they are green BECAUSE the
+#   mechanism works. So a promotion in this file must be able to answer three questions, and
+#   the entry has to answer them in writing where the next reader will find them:
+#
+#     1. Does the enforcing object exist?      Measured — `pg_constraint` / `pg_proc` /
+#                                              `pg_trigger` on a CockroachDB v26.2.5 node with
+#                                              the whole chain applied, cross-checked against
+#                                              the migration tree with comments stripped.
+#     2. Does a passing test make it ACT?      A test that would still pass with the object
+#                                              dropped witnesses nothing. Reading data the
+#                                              mechanism consumes is not the mechanism acting.
+#     3. What is still unwitnessed?            Named in the entry, not left to be discovered.
+#
+#   Question 1 is asked of THIS FILE's `mechanism` column, which is the promise `enforced`
+#   certifies — not of everything a reader might reasonably want the invariant to imply.
+#   MI19's column names one CHECK, that CHECK exists and a test observes it refusing, so
+#   MI19 is promotable even though its counter is not yet projected (a P2 gap its own
+#   migration writes down, and this entry repeats). MI06's column names `fn_boundary_project`
+#   as well as a CHECK, that function is in none of the 271 migrations, so MI06 is not.
+#   The difference is not severity; it is what the catalogue undertook to be true.
+#
+#   On 2026-08-10 the ratchet demanded ten promotions, then two more (MI16, MI18) when the
+#   recall band's missing producer was repaired mid-review and their witnesses stopped
+#   ERRORing. Seven were made — MI01, MI02, MI11, MI16, MI18, MI19, MI28 — and five were
+#   REFUSED after review, each with its reason recorded in its own entry:
+#     MI06, MI21   the object §16 names is ABSENT from all 271 migrations. `fn_boundary_
+#                  project` and `undetermined_never_blocks` do not exist, so no passing test
+#                  can be exercising them. The defect is a misplaced marker, not a stale
+#                  status, and promoting would have been a lie.
+#     MI10, MI22,  the object IS present and armed — the FKs to `subject_transition`, the
+#     MI27         `permit_merge_gate` weld, the `disposition_project` weld — but every
+#                  passing witness reads data the mechanism consumes rather than making the
+#                  mechanism refuse. Each would still pass with its object dropped.
+#   The ratchet will go on demanding those five, and the demand is it working correctly with
+#   the evidence it can see. Nothing was suppressed, no threshold was moved, and no
+#   assertion was deleted to gain a green.
 
 schema_version: 1
 source: "ARCHITECTURE.md §16 — The MAINLINE invariant catalogue MI01–MI30"
@@ -88,12 +128,39 @@ invariants:
     mechanism: revoked grants + `BEFORE UPDATE/DELETE` trigger + RESTRICTIVE RLS
     sqlstate: ["P0001"]
     headline: false
-    owning_migrations: ["0001a", "0003", "0006a", "0006b", "0006g", "0006h", "0007a", "0007b", "0007c", "0007d", "0007e", "0008a", "0008b", "0008c", "0008d", "0008e", "0009a", "0009c", "0009e", "0009f", "0019", "0020", "0020a", "0024", "0025", "0026", "0027", "0028", "0029", "0030", "0031", "0032", "0047", "0048", "0049", "0049b", "0049y", "0049z", "0057", "0065b", "0070", "0071c", "0071d", "0072", "0073", "0074", "0075", "0076", "0077", "0078", "0084", "0100", "0104", "0105", "0106", "0107", "0108", "0109", "0119b", "0124", "0125", "0126", "0127", "0128", "0128a", "0128b", "0128c", "0128d", "0128e", "0128f", "0128g", "0128h", "0128i", "0128j", "0133", "0149y", "0149z", "0164", "0180", "0180a", "0180b", "0180c", "0180d", "0180e", "0180f", "0180g", "0180h", "0181h", "0183h", "0185g", "0185h"]
+    owning_migrations: ["0001a", "0003", "0006a", "0006b", "0006g", "0006h", "0007a", "0007b", "0007c", "0007d", "0007e", "0008a", "0008b", "0008c", "0008d", "0008e", "0009a", "0009c", "0009e", "0009f", "0019", "0020", "0020a", "0024", "0025", "0026", "0027", "0028", "0029", "0030", "0031", "0032", "0047", "0048", "0049", "0049b", "0049y", "0049z", "0057", "0065b", "0070", "0071c", "0071d", "0072", "0073", "0074", "0075", "0076", "0077", "0078", "0084", "0089", "0089a", "0100", "0104", "0105", "0106", "0107", "0108", "0109", "0119b", "0124", "0125", "0126", "0127", "0128", "0128a", "0128b", "0128c", "0128d", "0128e", "0128f", "0128g", "0128h", "0128i", "0128j", "0133", "0145f", "0149a", "0149b", "0149y", "0149z", "0164", "0180", "0180a", "0180b", "0180c", "0180d", "0180e", "0180f", "0180g", "0180h", "0181h", "0183h", "0185g", "0185h"]
     owning_tests:
       - tests/integration/schema/test_mi_foundation.py::test_privilege_probe_refuses_ungranted_writes
       - tests/integration/schema/test_mi_triggers.py::test_mi01_*
       - tests/integration/schema/test_mi_rls.py::test_mi01_*
-    status: pending
+    # PROMOTED 2026-08-10 by `w7`, on `mi_ratchet red`'s demand and on evidence measured
+    # against a CockroachDB v26.2.5 node built for this review — bootstrapped empty and
+    # brought up by `trappoint migrate up`, 271/271 applied, 39 non-internal triggers.
+    #   ENFORCING OBJECTS (measured, `pg_trigger` × `pg_proc` on that node):
+    #     17 `append_only` triggers executing `mainline.fn_refuse_mutation`, welded to
+    #     blocking_check, clause_blame_closure, clause_version, cr_event, exposure_line,
+    #     exposure_receipt, identity_assignment, merge_record, override_ledger,
+    #     permit_event, person, signing_credential, and in `mainline_meas`:
+    #     agent_action, mutation_run, mutation_result, person_measure_policy;
+    #     plus `trg_refusal_ledger_append_only` (`fn_refusal_ledger_guard`) and
+    #     `z_cbm_account_append_only`; plus the revoked grants of band 0006*.
+    #     The witnesses below write `mainline_meas.agent_action`, which is in that list.
+    #   WITNESSES (17 resolved, all passing on that node):
+    #     the trigger leg — test_agent_action_producer.py::test_a_delete_is_refused_with_p0001
+    #     and ::test_an_update_is_refused_with_p0001 observe P0001 from the weld AND read the
+    #     row back unchanged, so a refusal that did not actually protect the row would fail;
+    #     ::test_insert_is_still_admitted_under_the_weld is the positive control.
+    #     test_standing_producer.py::test_the_authorising_instrument_is_append_only observes
+    #     P0001 and asserts the message says "append-only".
+    #     the grant leg — test_mi_foundation.py::test_privilege_probe_refuses_ungranted_writes,
+    #     ::test_public_holds_nothing_on_the_mainline_zones, ::test_no_application_role_holds_ddl,
+    #     ::test_mainline_auditor_cannot_read_the_business_record and
+    #     ::test_mainline_owner_is_unassumable_and_owns_every_zone.
+    #   NOT YET WITNESSED, and named here rather than left to be discovered: the RESTRICTIVE
+    #     RLS leg. `test_mi_rls.py` proves it against the cluster, but no case there carries
+    #     `@pytest.mark.mi("MI01")`, so this promotion does not rest on it. `enforced` here
+    #     certifies the trigger and the grants; the third selector above stays reserved.
+    status: enforced
     adr: null
 
   - id: MI02
@@ -106,7 +173,24 @@ invariants:
     owning_tests:
       - tests/integration/schema/test_mi_gate.py::test_mi02_*
       - tests/integration/schema/test_mi_projection.py::test_mi02_*
-    status: pending
+    # PROMOTED 2026-08-10 by `w7`.
+    #   ENFORCING OBJECTS (measured on an applied v26.2.5 node):
+    #     `CONSTRAINT gate_closed_when_issued CHECK (state <> 'merged' OR open_blocking = 0)`
+    #     on `mainline.permit`, defined by 0050_permit.sql; and the counter weld of 0121 that
+    #     writes `open_blocking` and `gate_epoch` — the projection the CHECK reads.
+    #   WITNESS (1 resolved, passing):
+    #     test_ops_producer.py::test_one_blocking_check_projects_the_counter_bumps_the_epoch_
+    #     and_emits_one_outbox_row. One INSERT into `mainline.blocking_check`; the test reads
+    #     the permit before (draft, 0, 0) and after (draft, 1, 1), so it observes the TRIGGER
+    #     doing the projection, not a value anyone supplied. It also observes the emitted
+    #     `check_opened` signal carrying max_severity 4 where the inserter wrote 0 — the
+    #     projection overwriting a client input, which is the half of MI02 that can be got
+    #     wrong silently. A CHECK over a client-written counter would certify nothing.
+    #   NOT YET WITNESSED BY A MARKED TEST: the 23514 itself. It is measured — the release
+    #     gate-refusal proof records `REFUSED [23514] gate_closed_when_issued` — but that is
+    #     an artefact assertion, not an owning test, so it does not carry this promotion. The
+    #     reserved selector `test_mi_gate.py::test_mi02_*` is where that case belongs.
+    status: enforced
     adr: null
 
   - id: MI03
@@ -115,7 +199,7 @@ invariants:
     mechanism: "`CHECK identity_conserved_when_issued`"
     sqlstate: ["23514"]
     headline: false
-    owning_migrations: ["0028", "0030", "0049", "0049c", "0050", "0051", "0140a", "0140b", "0140c", "0140d", "0145a", "0145b", "0145c", "0145d", "0145e", "0151"]
+    owning_migrations: ["0028", "0030", "0049", "0049c", "0049d", "0050", "0051", "0140a", "0140b", "0140c", "0140d", "0145a", "0145b", "0145c", "0145d", "0145e", "0145f", "0151"]
     owning_tests:
       - tests/integration/schema/test_mi_gate.py::test_mi03_*
     status: pending
@@ -157,6 +241,28 @@ invariants:
       - tests/integration/schema/test_mi_boundary_override.py::test_mi06_*
       - tests/integration/schema/test_mi_gate.py::test_mi06_*
       - tests/integration/schema/test_mi_projection.py::test_mi06_*
+    # NOT PROMOTED 2026-08-10 by `w7`, and `mi_ratchet red` asked for it by name.
+    # Reviewed and REFUSED, because the promotion would be false:
+    #   `fn_boundary_project` is ABSENT from all 271 migrations. It is named four times in
+    #   the tree — 0054 and 0057, every one of them a `--` header line saying what the
+    #   function WILL do — and defined nowhere. Measured twice: by the ratchet's own locator
+    #   over comment-stripped SQL, and by `pg_proc` on a node with the whole chain applied.
+    #   The consequence is the fail-open direction, not a paperwork gap. 0050 declares
+    #   `unmodelled_asset_count INT8 NOT NULL DEFAULT 0` and
+    #   `CONSTRAINT boundary_certified_when_issued CHECK (state <> 'merged' OR
+    #   unmodelled_asset_count = 0)`. `boundary_certificate` computes `unmodelled_total` in
+    #   the server (0057). Nothing moves the second onto the first, so the number the CHECK
+    #   reads is whatever the writer left there, and a permit with no certificate at all
+    #   presents a clean zero. "Unmodelled assets block" is not true today.
+    #   The two passing witnesses do not reach it either: ::test_mi06_the_certificate_
+    #   refuses_a_negative_under_declared_count observes 23514 on `counts_sane` (a different
+    #   constraint, on `boundary_certificate`), and ::test_mi06_an_unmodelled_tag_can_be_
+    #   declared_because_counting_it_is_what_blocks is a positive control that deliberately
+    #   asserts an unmodelled tag is WRITEABLE. Both would pass with the CHECK dropped.
+    #   The tree already says so in its own voice: test_mi_boundary_override.py::
+    #   test_pl2_red_fn_boundary_project_does_not_exist_yet is RED on purpose and names the
+    #   owner — `dm-functions-triggers`, band 0140-0149z. This entry stays `pending` until
+    #   that function lands and a test observes the 23514.
     status: pending
     adr: null
 
@@ -207,6 +313,21 @@ invariants:
     owning_tests:
       - tests/integration/schema/test_mi_foundation.py::test_subject_transition_edges_are_identical_for_both_subjects
       - tests/integration/schema/test_mi_gate.py::test_mi10_*
+    # NOT PROMOTED 2026-08-10 by `w7`, and `mi_ratchet red` asked for it by name.
+    # Reviewed and HELD. Unlike MI06 the mechanism is there — measured on an applied node:
+    #   `mainline.permit_event.legal_edge FOREIGN KEY (subject_kind, from_state, to_state)
+    #    REFERENCES mainline.subject_transition(...) ON DELETE RESTRICT ON UPDATE RESTRICT`
+    #   and its twin `mainline.cr_event.cr_legal_edge`. What is missing is a WITNESS.
+    #   Both passing tests read `mainline.subject_transition` and pin its contents — 18 edges,
+    #   `merged` reachable only from `dispositioned`, nothing returning to `draft`. That is
+    #   half of what makes the FK mean something (the refusal set is the complement of that
+    #   table) and it is worth having. It is not the other half: drop `legal_edge` and both
+    #   tests still pass, so `enforced` recorded on them would certify a table's contents
+    #   while claiming a foreign key.
+    #   The catalogue already reserves the missing case: `test_mi_gate.py::test_mi10_*` —
+    #   an illegal transition INSERT observing 23503 naming `legal_edge`. `mi_ratchet red`
+    #   will go on demanding this promotion until that case exists; the demand is the
+    #   ratchet doing its job with the evidence it can see, and this note is the answer.
     status: pending
     adr: null
 
@@ -221,7 +342,23 @@ invariants:
       - tests/integration/schema/test_mi_foundation.py::test_clearance_lattice_is_complete_apart_from_those_three
       - tests/integration/schema/test_mi_boundary_override.py::test_mi11_*
       - tests/integration/schema/test_mi_disposition.py::test_mi11_*
-    status: pending
+    # PROMOTED 2026-08-10 by `w7`.
+    #   ENFORCING OBJECTS (measured on an applied v26.2.5 node):
+    #     `mainline.carried_disposition.fk_carried_clearance FOREIGN KEY (virulence, kind)
+    #      REFERENCES mainline.clearance_legal(virulence, kind) ON DELETE RESTRICT
+    #      ON UPDATE RESTRICT` and `mainline.disposition.fk_clearance`, the composite pair;
+    #     `mainline.clearance_legal` itself is defined by 0018a and seeded with 21 of the 24
+    #     cells, the three absent ones being the fatality-written controls no kind dismisses.
+    #   WITNESSES (4 resolved, all passing):
+    #     the refusal — test_mi_boundary_override.py::test_mi11_a_carried_disposition_may_
+    #     not_dismiss_a_fatality_written_control observes 23503 naming `fk_carried_clearance`
+    #     on a live node. That is the mechanism refusing, not a table being read.
+    #     the lattice the FK resolves against — test_mi_foundation.py::
+    #     test_clearance_lattice_is_complete_apart_from_those_three, ::test_clearance_lattice_
+    #     escalates_and_bounds and ::test_clearance_lattice_absent_cells_return_no_row. An FK
+    #     admits exactly the complement of its referenced table, so these pin what it admits.
+    #     Both halves — the object refusing and the set it refuses over — are witnessed here.
+    status: enforced
     adr: null
 
   - id: MI12
@@ -296,7 +433,27 @@ invariants:
     owning_tests:
       - tests/integration/schema/test_mi_recall_tables.py::test_mi16_*
       - tests/integration/recall_schema/test_unweld.py::test_uw01_mi16_*
-    status: pending
+    # PROMOTED 2026-08-10 by `w7`. Not one of the ten `mi_ratchet red` named that morning:
+    # MI16's witness was ERRORing on the recall band's missing producer, and it turned green
+    # mid-review when that band was repaired. The ratchet demanded the promotion the moment
+    # it could measure the test, which is the ratchet working on a moving tree.
+    #   ENFORCING OBJECTS (measured on a node built for this review, 271/271 applied):
+    #     `CONSTRAINT bonded_fatalities_all_blocking CHECK (n_bonded_sev5_blocking =
+    #      n_bonded_sev5)` on `mainline_meas.recall_run`, defined by 0081_recall_run.sql;
+    #     `mainline.fn_bonded_sev5` (0113), welded as AFTER INSERT trigger `bonded_sev5`
+    #     on `mainline.blocking_check`. §16 names both, and both are there.
+    #   WITNESS (1 resolved, passing) — and it is the strongest in the catalogue:
+    #     test_unweld.py::test_uw01_mi16_survives_the_loss_of_its_counter_trigger DROPS the
+    #     `bonded_sev5` trigger, then writes a `recall_run` row claiming n_bonded_sev5=1
+    #     with n_bonded_sev5_blocking=0, and asserts 23514 naming
+    #     `bonded_fatalities_all_blocking`. It does not merely observe the mechanism act —
+    #     it measures the DEPTH at which it acts, and proves the headline invariant survives
+    #     losing the trigger that maintains its arithmetic. A test cannot pass that with the
+    #     constraint dropped, which is the whole question a promotion has to answer.
+    #   THIS PROMOTION DEPENDS ON w6's recall-band repair (`tests/integration/recall_schema/
+    #     _schema_support.py`) landing in the same wave. Without it the witness ERRORs, and
+    #     `mi-green` will say so by name — loudly, and pointing at the right lane.
+    status: enforced
     adr: null
 
   - id: MI17
@@ -322,7 +479,25 @@ invariants:
     owning_tests:
       - tests/integration/schema/test_mi_triggers.py::test_mi18_*
       - tests/integration/recall_schema/test_unweld.py::test_uw03_mi18_*
-    status: pending
+    # PROMOTED 2026-08-10 by `w7`, on the same demand and the same repair as MI16.
+    #   ENFORCING OBJECT (measured on a node built for this review, 271/271 applied):
+    #     `mainline.fn_recall_policy_anchored` (0112), welded as BEFORE INSERT trigger
+    #     `recall_policy_anchored` on `mainline_meas.recall_run`. That function is the whole
+    #     of what §16's `mechanism` column promises, and it cannot be a CHECK: the condition
+    #     is a join across three tables and no CHECK expression may hold a subquery.
+    #   WITNESS (1 resolved, passing):
+    #     test_unweld.py::test_uw03_mi18_depth_is_one_but_the_foreign_key_is_structural
+    #     re-welds the trigger and inserts a run citing an unanchored policy version,
+    #     observing P0001 with "is not anchored" in the message. That is the mechanism
+    #     refusing, by its own words.
+    #   AND IT MEASURES THE DEPTH HONESTLY, which is why the promotion is trustworthy: with
+    #     the trigger dropped the unanchored run is ADMITTED, and the test asserts that too
+    #     — "MI18 held without its trigger — the depth claim must be upgraded". What
+    #     survives unwelding is only `recall_run.policy_version`'s foreign key (23503 on a
+    #     policy that does not exist at all). `enforced` here means the trigger is present
+    #     and refusing, not that the invariant is structurally redundant. It is not.
+    #   THIS PROMOTION DEPENDS ON w6's recall-band repair, exactly as MI16's does.
+    status: enforced
     adr: null
 
   - id: MI19
@@ -334,7 +509,31 @@ invariants:
     owning_migrations: ["0027", "0047", "0048"]
     owning_tests:
       - tests/integration/schema/test_mi_spine.py::test_mi19_*
-    status: pending
+    # PROMOTED 2026-08-10 by `w7`. One constraint, one refusal, two positive controls, and
+    # every one of them declared rather than discovered.
+    #   ENFORCING OBJECT (measured on an applied v26.2.5 node):
+    #     `CONSTRAINT no_orphan_controls CHECK (state != 'superseded' OR
+    #      open_token_count = 0)` on `mainline.doc`, defined by 0027_doc.sql.
+    #     This is the whole of what §16's `mechanism` column promises for MI19, which is
+    #     why this promotion is admissible where MI06's — whose mechanism column names
+    #     `fn_boundary_project`, and that function does not exist — is not.
+    #   WITNESSES (3 resolved, all passing):
+    #     ::test_mi19_a_document_carrying_a_control_cannot_be_superseded observes 23514
+    #     naming `no_orphan_controls` on the UPDATE, then reads the row back and asserts the
+    #     state is still `live` — a refusal that did not hold the row would fail here.
+    #     ::test_mi19_supersession_is_allowed_once_the_last_carriage_closes proves the
+    #     constraint is satisfiable, so it is a gate and not a wall.
+    #     ::test_mi19_does_not_constrain_withdrawal proves it does not overreach: emergency
+    #     withdrawal of a dangerous document stays possible, which is the availability
+    #     property that keeps controls from being disabled by the people they protect.
+    #   WHAT `enforced` DOES NOT MEAN HERE, in 0027_doc.sql's own words: "UNTIL BAND
+    #     0130-0199 LANDS, `open_token_count` IS CLIENT-SUPPLIED AND MI19 IS THEREFORE ONLY
+    #     HALF ARMED. The REFUSE half works today ... The PROJECT half does not exist yet,
+    #     so a writer can set the counter to 0 and supersede freely." That is a P2 gap owned
+    #     by `dm-functions-triggers` and tracked as MI25's projection discipline, not as a
+    #     defect in `no_orphan_controls`; `test_mi_projection.py` closes it. `enforced` here
+    #     certifies the refusal §16 names and claims nothing about the counter's provenance.
+    status: enforced
     adr: null
 
   - id: MI20
@@ -355,9 +554,29 @@ invariants:
     mechanism: "`CHECK undetermined_never_blocks`"
     sqlstate: ["23514"]
     headline: false
-    owning_migrations: ["0163"]
+    owning_migrations: ["0090", "0163"]
     owning_tests:
       - tests/integration/schema/test_mi_periphery.py::test_mi21_*
+    # NOT PROMOTED 2026-08-10 by `w7`, and `mi_ratchet red` asked for it by name.
+    # Reviewed and REFUSED. `CHECK undetermined_never_blocks` does not exist:
+    #   ABSENT from all 271 migrations, measured by the ratchet's locator over
+    #   comment-stripped SQL, and ABSENT from `pg_constraint` on a node with the whole chain
+    #   applied. There is no constraint of that name anywhere, in any spelling.
+    #   `owning_migrations` projects to 0090 and 0163: a TABLE (`patrol_run`) and a VIEW
+    #   (`v_fixity_coverage`). Both headers cite MI21 as their RATIONALE — 0090 for keeping
+    #   a record of an inspection that did or did not happen, 0163 for keeping NULL distinct
+    #   from 0.0 in a coverage ratio. Both are good reasons to write those objects. Neither
+    #   is a mechanism that refuses, and MI21's row says its SQLSTATE is 23514.
+    #   The four passing tests carrying `@pytest.mark.mi("MI21")` live in
+    #   test_ops_producer.py and assert: that 0090_patrol_run.sql declares no row-level TTL
+    #   (a text scan of a file); that a patrol may not account for more than it declared in
+    #   scope; that the occurrence key absorbs an at-least-once redelivery; and that
+    #   `v_fixity_coverage` reports a scopeless class as NULL rather than 0. Every one is
+    #   true, useful, and about the neighbourhood of MI21 rather than about MI21. None can
+    #   be exercising a constraint that is in no migration.
+    #   So this is not a stale catalogue entry — it is a misplaced marker, and the honest
+    #   repair is on the tests, not here. Recorded in `w7`'s cross_domain_notes for the
+    #   owner of test_ops_producer.py. This entry stays `pending`, which is the truth.
     status: pending
     adr: null
 
@@ -367,10 +586,30 @@ invariants:
     mechanism: merge-gate trigger
     sqlstate: ["P0001"]
     headline: false
-    owning_migrations: ["0005", "0038", "0039", "0049a", "0115", "0116", "0140", "0140b", "0140c", "0140d", "0145", "0145b", "0145c", "0145d", "0150", "0152", "0155", "0155a", "0163", "0164", "0165", "0166", "0167", "0168", "0181d", "0181e", "0181g", "0183d", "0183e", "0183g", "0198x"]
+    owning_migrations: ["0005", "0038", "0039", "0049a", "0090", "0099", "0099a", "0115", "0116", "0140", "0140b", "0140c", "0140d", "0145", "0145b", "0145c", "0145d", "0150", "0152", "0155", "0155a", "0163", "0164", "0165", "0166", "0167", "0168", "0181d", "0181e", "0181g", "0183d", "0183e", "0183g", "0198x"]
     owning_tests:
       - tests/integration/schema/test_mi_triggers.py::test_mi22_*
       - tests/integration/schema/test_mi_projection.py::test_mi22_*
+    # NOT PROMOTED 2026-08-10 by `w7`, and `mi_ratchet red` asked for it by name — with the
+    # largest witness list of the ten, which is exactly why it needed reading rather than
+    # counting. Reviewed and HELD.
+    #   The mechanism IS there. Measured on an applied v26.2.5 node: trigger
+    #   `permit_merge_gate` on `mainline.permit` executing `mainline.fn_permit_merge_gate`
+    #   (0115 defines the function, 0130 welds it), and the release gate-refusal proof
+    #   records it refusing with P0001 against a counter forced to zero out of band.
+    #   The ten witnesses do not touch it. All ten are in test_ops_producer.py and assert
+    #   the shape of the event spine's plumbing: that each producer file carries exactly one
+    #   statement; that `mainline_ops.outbox` declares no column family and does declare the
+    #   30-day TTL expression; that no CHECK constrains `outbox.kind`; that neither CDC
+    #   source carries row-level security (once against the tree, once against `pg_class`);
+    #   that nothing welds a DELETE refusal to the outbox; and that the band applies.
+    #   The author's reasoning is sound — a changefeed that stops is a stopped projector,
+    #   and a stopped projector is MI22 on every gate — but reasoning is not a witness.
+    #   Drop `fn_permit_merge_gate` and all ten still pass.
+    #   Both reserved selectors — `test_mi_triggers.py::test_mi22_*` and
+    #   `test_mi_projection.py::test_mi22_*` — are unwritten, and one of them is where the
+    #   real case belongs: merge a permit whose blame projection is stale or absent, and
+    #   observe P0001 from `mainline.fn_permit_merge_gate`. Until then, `pending`.
     status: pending
     adr: null
 
@@ -404,7 +643,7 @@ invariants:
     mechanism: "`fn_check_project`, raising on a missing closure"
     sqlstate: ["P0001"]
     headline: true
-    owning_migrations: ["0006e", "0009x", "0013", "0020a", "0031", "0038", "0039", "0041", "0042", "0049c", "0058", "0082", "0088", "0100", "0110", "0114", "0114a", "0120", "0138", "0138a", "0139", "0140a", "0140b", "0140c", "0145a", "0145b", "0145c", "0145e", "0151", "0158", "0159"]
+    owning_migrations: ["0006e", "0009x", "0013", "0020a", "0031", "0038", "0039", "0041", "0042", "0049c", "0049d", "0058", "0082", "0088", "0100", "0110", "0114", "0114a", "0120", "0138", "0138a", "0139", "0140a", "0140b", "0140c", "0145a", "0145b", "0145c", "0145e", "0151", "0158", "0159"]
     owning_tests:
       - tests/integration/schema/test_mi_projection.py::test_mi25_*
       - tests/integration/schema/test_mi_gate.py::test_mi25_*
@@ -434,6 +673,24 @@ invariants:
     owning_tests:
       - tests/integration/schema/test_mi_foundation.py::test_person_is_a_temporal_series_not_a_mutable_row
       - tests/integration/schema/test_mi_projection.py::test_mi27_*
+    # NOT PROMOTED 2026-08-10 by `w7`, and `mi_ratchet red` asked for it by name.
+    # Reviewed and HELD, on the same reasoning as MI10: object present, witness absent.
+    #   Measured on an applied v26.2.5 node: `mainline.fn_disposition_project` exists
+    #   (0102 defines it) and trigger `disposition_project` is welded to
+    #   `mainline.disposition` (0122). The mechanism is real and it is armed.
+    #   The two passing witnesses stop one step short of it.
+    #   test_mi_foundation.py::test_person_is_a_temporal_series_not_a_mutable_row asserts
+    #   that `mainline.person`'s `PRIMARY KEY (signer_sub, effective_from DESC)` yields the
+    #   most recent row first — which is precisely the index the projection reads, so this
+    #   is the right neighbourhood — and then observes 23514 on `person_rank_range`. That is
+    #   `person`'s own constraint, not the projection's P0001.
+    #   test_standing_producer.py::test_the_subject_reads_their_own_record_and_only_their_own
+    #   is an RLS read on the standing tables and reaches MI27 not at all.
+    #   The statement's headline clause — "a missing person row REFUSES" — has no witness:
+    #   nothing inserts a disposition whose signer has no `person` row and observes the
+    #   P0001. That case is what `test_mi_projection.py::test_mi27_*` is reserved for. A
+    #   projection certified by a test of the table it projects FROM is the trusted-writer
+    #   failure P2 exists to prevent, one level up. `pending` until the case exists.
     status: pending
     adr: null
 
@@ -443,12 +700,33 @@ invariants:
     mechanism: "`ttl_enforced`, `bounded`"
     sqlstate: ["23514"]
     headline: true
-    owning_migrations: ["0065", "0065a", "0065b", "0066", "0069", "0070", "0070a", "0102", "0122", "0171", "0172", "0187", "0187a", "0187b", "0187c", "0187d", "0187e"]
+    owning_migrations: ["0065", "0065a", "0065b", "0066", "0069", "0070", "0070a", "0089b", "0102", "0122", "0171", "0172", "0187", "0187a", "0187b", "0187c", "0187d", "0187e"]
     owning_tests:
       - tests/integration/schema/test_mi_boundary_override.py::test_mi28_*
       - tests/integration/schema/test_mi_disposition.py::test_mi28_*
       - tests/integration/schema/test_mi_periphery.py::test_mi28_*
-    status: pending
+    # PROMOTED 2026-08-10 by `w7`.
+    #   ENFORCING OBJECTS (measured on an applied v26.2.5 node) — `bounded` is a family, and
+    #   the tree spells it once per table:
+    #     `carried_bounded` on `mainline.carried_disposition`
+    #        CHECK (expires_at > issued_at AND expires_at <= issued_at + max_ttl_hours * '1h')
+    #     `predicate_bounded`, `non_trivial` and `watch_set_nonempty` on
+    #        `mainline.mechanism_predicate`
+    #     `ttl_enforced` on `mainline.disposition`, defined by 0066_disposition.sql
+    #   WITNESSES (10 resolved, all passing; four of them are live refusals naming the
+    #   constraint they provoked, which is what makes this promotion evidence rather than
+    #   arithmetic):
+    #     ::test_mi28_a_carried_window_is_bounded_by_its_own_ttl        23514 carried_bounded
+    #     ::test_mi28_the_horizon_is_bounded_not_merely_present         23514 predicate_bounded
+    #     ::test_mi28_a_lease_with_no_terms_is_the_constant_true_...    23514 non_trivial
+    #     ::test_mi28_a_lease_with_an_empty_watch_set_is_refused        23514 watch_set_nonempty
+    #   The last two are the "not merely present" half stated exactly: a predicate with no
+    #   terms is the constant TRUE and an empty watch set watches nothing, so both would
+    #   satisfy a NOT NULL and neither bounds anything.
+    #   NOT YET WITNESSED BY A MARKED TEST: `ttl_enforced` on `mainline.disposition` itself.
+    #     Two of the statement's three tables are witnessed by refusals; the third is not,
+    #     and `test_mi_disposition.py::test_mi28_*` stays reserved for it.
+    status: enforced
     adr: null
 
   - id: MI29
