@@ -41,7 +41,7 @@ trappoint-conform = "trappoint_conformance.cli:main"
 dev = ["pytest>=8.2", "mypy>=1.11", "ruff>=0.6"]
 
 [build-system]
-requires = ["hatchling>=1.27"]
+requires = ["hatchling>=1.31.0"]
 build-backend = "hatchling.build"
 
 # TWO PACKAGES, AND THE SECOND ONE IS THE CORPUS.
