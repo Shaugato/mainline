@@ -207,41 +207,53 @@ jobs:
           cache: pnpm
           cache-dependency-path: verticals/mainline/apps/console/pnpm-lock.yaml
 
-      - name: A scratch copy of the console, outside the checkout
-        # The SOURCE is copied and `node_modules` is REBUILT rather than copied. Copying
-        # it would mean copying the symlink farm pnpm lays down under `node_modules/.pnpm`
-        # — several hundred megabytes of links whose survival is a property of the copy
-        # tool, not of this repository, and a broken link there would show up as a lint
-        # error that looks exactly like a planted one. `pnpm install` in the copy rebuilds
-        # the farm from the warm store by hard link, which is both faster and honest.
+      - name: A scratch copy of the console, at the same depth as the console
+        # WHERE THE COPY GOES IS NOT ARBITRARY, and the first run of this job is what
+        # established that. `$RUNNER_TEMP` was the obvious home and it is the wrong one:
+        # `tests/unit/data/_support.ts` sets `REPO_ROOT = '../../../../'` and
+        # `vite.config.ts` resolves `../../../../evidence/attestations/…`, so four
+        # directories of relative path reach OUT of the console and into the repository.
+        # MEASURED on run 31441299984, in the GREEN CONTROL step, before a single violation
+        # had been planted:
         #
-        # `dist/`, `coverage/` and the Playwright outputs are excluded: `vite build` writes
-        # `dist/`, and a stale one would let the budget check measure a bundle this run did
-        # not produce.
+        #     AssertionError: ../../../../spec/wire/refusal.schema.json must be readable
+        #     from the console workspace: expected false to be true
+        #
+        # That is the green control doing exactly its job — refusing to let a red be
+        # attributed to a plant when the copy itself was broken. The repair is to put the
+        # copy at the SAME DEPTH, as a sibling of `console/`, so every relative path out of
+        # it resolves to the same file it resolves to from the console. It is untracked, it
+        # is deleted at the end of the job, and the step that asserts no TRACKED file moved
+        # also asserts the copy is gone.
+        #
+        # `node_modules` is REBUILT rather than copied. Copying it would mean copying the
+        # symlink farm pnpm lays down under `node_modules/.pnpm` — several hundred
+        # megabytes of links whose survival is a property of the copy tool, and a broken
+        # one would show up as an error that looks exactly like a planted one.
         run: |
           set -euo pipefail
           src="verticals/mainline/apps/console"
-          work="$RUNNER_TEMP/console-mutant"
+          work="verticals/mainline/apps/console-mutant"
           rm -rf "$work"
           mkdir -p "$work"
           tar -C "$src" \
             --exclude=./node_modules --exclude=./dist --exclude=./coverage \
             --exclude=./test-results --exclude=./playwright-report \
             -cf - . | tar -C "$work" -xf -
-          echo "scratch copy: $work"
+          echo "scratch copy: $work — same depth as $src, so ../../../../ still reaches the repository root"
           ls -1 "$work"
 
       - name: pnpm install --frozen-lockfile, in the scratch copy
-        working-directory: ${{ runner.temp }}/console-mutant
+        working-directory: verticals/mainline/apps/console-mutant
         run: pnpm install --frozen-lockfile
 
       - name: GREEN CONTROL — the unmutated copy passes, so every red below is attributable
-        working-directory: ${{ runner.temp }}/console-mutant
+        working-directory: verticals/mainline/apps/console-mutant
         run: pnpm run ci
 
       - name: RED — one planted violation per promise, and the COMPOSITE must name each
         env:
-          WORK: ${{ runner.temp }}/console-mutant
+          WORK: verticals/mainline/apps/console-mutant
         run: |
           set -euo pipefail
           python3 - <<'PY'
@@ -251,7 +263,7 @@ jobs:
           import shutil
           import subprocess
 
-          WORK = pathlib.Path(os.environ["WORK"])
+          WORK = pathlib.Path(os.environ["WORK"]).resolve()
           SRC = pathlib.Path("verticals/mainline/apps/console").resolve()
           failures: list[str] = []
 
@@ -387,16 +399,24 @@ jobs:
                 "`pnpm run ci` chain and naming its family in the log.")
           PY
 
-      - name: The tracked tree was never mutated
+      - name: No tracked file moved, and the scratch copy is gone
+        if: always()
         run: |
           set -euo pipefail
+          rm -rf verticals/mainline/apps/console-mutant
+          stray="$(git status --porcelain --untracked-files=all -- verticals/mainline/apps)"
+          if [ -n "${stray}" ]; then
+            echo "::error::the scratch copy or one of its plants survived the job."
+            echo "${stray}"
+            exit 1
+          fi
           dirty="$(git status --porcelain --untracked-files=no)"
           if [ -n "${dirty}" ]; then
             echo "::error::this job mutated the checkout. Every plant belongs in a scratch copy."
             echo "${dirty}"
             exit 1
           fi
-          echo "working tree clean — every planted violation lived under \$RUNNER_TEMP"
+          echo "no tracked file moved, and the scratch copy has been removed"
 
       - name: What the red half proved
         if: always()
