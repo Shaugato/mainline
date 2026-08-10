@@ -324,17 +324,40 @@ jobs:
 
           def reset():
               """Restore every file a plant can touch, from the checkout, before each family."""
-              for relative in ("package.json", "budgets.json", "pnpm-lock.yaml"):
+              for relative in ("package.json", "budgets.json", "pnpm-lock.yaml",
+                               "src/perf/budgets.ts"):
                   shutil.copyfile(SRC / relative, WORK / relative)
               for planted in sorted(WORK.joinpath("src").rglob("planted_*.ts")):
                   planted.unlink()
               for planted in sorted(WORK.joinpath("tests/unit").glob("planted_*.test.ts")):
                   planted.unlink()
+              # And put the installed tree back where the restored lockfile says it is, so
+              # a dependency planted by the previous family cannot survive into the next
+              # one. `--frozen-lockfile` is the assertion that the restore was complete.
+              restored = subprocess.run(
+                  ["pnpm", "install", "--frozen-lockfile"],
+                  capture_output=True, text=True, cwd=str(WORK), check=False,
+              )
+              if restored.returncode != 0:
+                  raise SystemExit(
+                      "::error::the scratch copy could not be restored to the committed "
+                      "dependency set between families, so the next family would measure a "
+                      "tree carrying the previous family's plant:\n"
+                      + (restored.stdout + restored.stderr)[-1200:]
+                  )
 
 
           def plant(files):
               for relative, body in files.items():
                   if relative == "__budget__":
+                      # TWO files, and the second one is the finding from run 31441667191.
+                      # `src/perf/budgets.ts` MIRRORS `budgets.json`, and
+                      # `tests/unit/perf/budgets.test.ts` asserts the two agree — so a
+                      # one-file plant failed the composite at `vitest`, with the message
+                      # "budgets.json is authoritative … correct the mirror", never reaching
+                      # `check:budgets` at all. A budget change in this repository is a
+                      # two-file change, and the plant has to be one too or it is planting a
+                      # DIFFERENT violation than the one it claims.
                       budgets = json.loads((WORK / "budgets.json").read_text("utf-8"))
                       for budget in budgets["budgets"]:
                           if budget["id"] == "evidentiary-shell":
@@ -342,20 +365,48 @@ jobs:
                               budget["max_gzip_human"] = "1 KB"
                       (WORK / "budgets.json").write_text(
                           json.dumps(budgets, indent=2) + "\n", encoding="utf-8")
+                      mirror = WORK / "src/perf/budgets.ts"
+                      text = mirror.read_text("utf-8")
+                      if "limit: 225280," not in text:
+                          raise SystemExit(
+                              "::error::the budget mirror no longer carries `limit: 225280,`; "
+                              "the bundle-over-budget plant would be a no-op, which is how an "
+                              "anti-vacuity job silently stops being one"
+                          )
+                      mirror.write_text(
+                          text.replace("limit: 225280,", "limit: 1024,", 1), encoding="utf-8")
                   elif relative == "__dependency__":
                       # A DECLARED dependency, not a hand-built directory under
                       # `node_modules/`. MEASURED 2026-08-10 with pnpm 11.5.3: `pnpm run`
                       # verifies the installed tree against `package.json` before it runs
                       # anything, so a package that is only on disk is moved aside to
                       # `node_modules/.ignored` and a package that is only declared is
-                      # fetched. Both plants therefore name real, resolvable versions and
-                      # let pnpm install them — which is also what a real regression would
-                      # look like.
+                      # fetched. Both plants therefore name real, resolvable versions.
+                      #
+                      # The install is done HERE rather than left to `pnpm run ci`, and that
+                      # too is a finding from run 31441667191: on a runner `CI=true` makes
+                      # `--frozen-lockfile` the default, so the implicit install refused the
+                      # out-of-date lockfile and the composite died inside pnpm with a stack
+                      # trace instead of reaching `check:licences`. Resolving the lockfile
+                      # is part of PLANTING the violation — a real regression arrives with
+                      # its lockfile updated — and it must not be mistaken for the lane
+                      # exercising it.
                       name, _, version = body.partition("==")
                       manifest = json.loads((WORK / "package.json").read_text("utf-8"))
                       manifest["dependencies"][name] = version
                       (WORK / "package.json").write_text(
                           json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+                      resolved = subprocess.run(
+                          ["pnpm", "install", "--no-frozen-lockfile"],
+                          capture_output=True, text=True, cwd=str(WORK), check=False,
+                      )
+                      if resolved.returncode != 0:
+                          raise SystemExit(
+                              f"::error::planting {name}=={version} could not be resolved, so "
+                              "the violation was never installed and the family below would "
+                              "have measured nothing:\n"
+                              + (resolved.stdout + resolved.stderr)[-1200:]
+                          )
                   else:
                       target = WORK / relative
                       target.parent.mkdir(parents=True, exist_ok=True)

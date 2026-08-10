@@ -36,7 +36,7 @@ as long as the lane exists, and the job is the artefact a judge can read.
 |---|---|---|---|
 | `claims` | `claim hygiene (red half, then green half)` · **and** `the red half is red for the reason it claims` | scanner `--self-test` plants **4** of 21 rules; the committed fixture `claim-hygiene-red.md` fires all **21**; the meta-job asserts the union covers every declared rule, that each fixture sentence is refused **alone**, and that a copy with the plants removed exits **0** | no — `$RUNNER_TEMP` only, asserted |
 | `judge-pack` | `the validator fires on every planted violation` · `a run with no cluster exits 3, never 0` · **and** `the red half is red for the reason it claims` | 9 pack mutations (renamed column, negative gone green, unbounded claim, envelope loosened, index hint dropped, prefix widened, decorative completeness column, dangling `defined_in`, prompt dropped) + claim-hygiene + bound-length; the meta-job asserts each mutation **changes the document**, each is **caught**, and **none** of the nine checks fails on the unmutated pack | no — in-memory copies, asserted |
-| `console` | `RED — pnpm run ci fails on every planted violation family` | `eslint-register-boundary`, `typescript-type-error`, `vitest-failing-case`, `bundle-over-budget`, `denied-dependency-by-name`, `non-permissive-licence-in-the-runtime-closure` — **each driven through the whole `pnpm run ci` chain**, not through its own sub-command | no — `$RUNNER_TEMP` copy, asserted |
+| `console` | `RED — pnpm run ci fails on every planted violation family` | `eslint-register-boundary`, `typescript-type-error`, `vitest-failing-case`, `bundle-over-budget`, `denied-dependency-by-name`, `non-permissive-licence-in-the-runtime-closure` — **each driven through the whole `pnpm run ci` chain**, not through its own sub-command | no — an untracked sibling copy at the same depth (§5.2), removed and asserted gone |
 | `release-proof` | `RED — the proof reports NOT PROVEN when the gate is removed` · **and** the `RED — the gate refuses a run where nothing was proved` step inside `the database refuses the merge` | `gate-disabled` (the CHECK weakened to a tautology in a scratch copy of `0050_permit.sql`), `expected-sqlstate` (`fn_permit_merge_gate` raising `22000`, in a copy of `0115`), `nothing-was-proved` (the release suite with no reachable cluster) | no — `$RUNNER_TEMP` migration copies + step-scoped `env:`, asserted |
 | `skills` | `spec conformance (red half, then green half)` · **and** the pre-existing `RED BEFORE GREEN` step in `every shipped script proves it can fail` | spec: `missing-required-field`, `malformed-name`, `dangling-link`, `out-of-spec-field`, `empty-body`; marketplace: `dangling-skill-path`, `upstream-staging-shipped`, `plugin-without-source`, `missing-top-level-key`; plus the unwelded-schema gate assertion that must exit 1 | no — `$RUNNER_TEMP` copies, asserted |
 | `supply-chain` | `SECURITY CLAIM — mainline-gate-svc's dependency closure contains no model SDK`, step `RED — four planted violations, each refused BY NAME` | `model-sdk-in-the-export` (`boto3`), `model-sdk-in-the-tree` (`anthropic`), `workspace-member-lost` (the anti-vacuity guard), `unreadable-path-entry` | no — `$RUNNER_TEMP` copies of the two witnesses, asserted |
@@ -253,31 +253,110 @@ files. The CI job runs the same file against the real `uv export` and `uv tree` 
 
 ---
 
-## 5. Run URLs
+## 5. Run URLs — the controls, observed in CI
 
-Filled in from `gh run view <id> --json jobs` once each lane has run on `master` with
-these jobs present. A row with no URL is a row whose control has been executed locally and
-not yet observed in CI, and it says so rather than implying otherwise.
+Read with `gh run view <id> --json jobs`, on `master`, at commit `9d02cee`
+(`console` re-run at `7e7cd04`).
 
-| workflow | run URL | conclusion |
-|---|---|---|
-| `claims` | *(see §6)* | |
-| `judge-pack` | *(see §6)* | |
-| `console` | *(see §6)* | |
-| `release-proof` | *(see §6)* | |
-| `skills` | *(see §6)* | |
-| `supply-chain` | *(see §6)* | |
-| `cloud-verify` | *(see §6)* | |
+| workflow | run | the negative-control job | conclusion |
+|---|---|---|---|
+| `claims` | [31441300036](https://github.com/Shaugato/mainline/actions/runs/31441300036) | `the red half is red for the reason it claims` | **success** |
+| `judge-pack` | [31441299981](https://github.com/Shaugato/mainline/actions/runs/31441299981) | `the red half is red for the reason it claims` | **success** |
+| `skills` | [31441300043](https://github.com/Shaugato/mainline/actions/runs/31441300043) | `spec conformance (red half, then green half)` | **success** |
+| `supply-chain` | [31441300007](https://github.com/Shaugato/mainline/actions/runs/31441300007) | `SECURITY CLAIM …`, step `RED — four planted violations` | **success** |
+| `release-proof` | [31441299987](https://github.com/Shaugato/mainline/actions/runs/31441299987) | `RED — the proof reports NOT PROVEN when the gate is removed` | **success** |
+| `cloud-verify` | [31441340234](https://github.com/Shaugato/mainline/actions/runs/31441340234) | `a real 40001 RETRY_SERIALIZABLE …` · `is there a Cloud cluster … (and can it say no?)` | **success** |
+| `console` | [31441299984](https://github.com/Shaugato/mainline/actions/runs/31441299984) → [31441667191](https://github.com/Shaugato/mainline/actions/runs/31441667191) | `RED — pnpm run ci fails on every planted violation family` | see §5.2 |
 
-## 6. What is not yet observed in CI
+### 5.1 What CI added that the workstation could not
 
-This section exists so the page never has to be read as a claim about runs that have not
-happened. It is the honest complement of §5, and it shrinks as the runs land.
+* **`supply-chain`** ran the four planted violations against the **real** `uv export` and
+  `uv tree` output rather than the synthesised fixtures §4 used, because `uv` is not
+  installed on the workstation:
 
-* `cloud-verify` has **no `push:` trigger by design** (it holds the only credential this
+  ```
+  unmutated copies exit: 0
+    REFUSED  model-sdk-in-the-export: SECURITY CLAIM BROKEN / boto3
+    REFUSED  model-sdk-in-the-tree: SECURITY CLAIM BROKEN / anthropic
+    REFUSED  workspace-member-lost: vacuous assertion / mainline-domain
+    REFUSED  unreadable-path-entry: vacuous assertion / could not be read
+  4 planted violations, every one refused by name. The SECURITY-CLAIM-BROKEN branch is now
+  executed on every run of this lane, which it had never been before 2026-08-10.
+  ```
+
+* **`cloud-verify`** produced a real serialization restart on a GitHub runner:
+
+  ```
+  observed sqlstate : 40001
+  observed message  : restart transaction: TransactionRetryWithProtoRefreshError:
+                      TransactionRetryError: retry txn (RETRY_SERIALIZABLE): "sql txn"
+                      meta={id=f8f7c852 key=/Table/106/1/2/0 iso=Serializable …}
+  run_gate attempts : 2  retries: [(0, '40001', 0.006704260871989327)]
+  max_attempts=1    : RetryBudgetExhausted: 40001 after 1 attempt(s) in 1.007s:
+                      the transaction is undecided, not refused
+  ```
+
+* **`release-proof`** confirmed §2.1 on a GitHub runner rather than only on the
+  workstation, and then confirmed the repair in the same job:
+
+  ```
+  the BARE pytest invocation exited 0 with nothing to prove against
+  release suite: 15 test(s), 15 skipped, 0 failed
+  CONFIRMED: bare pytest exits 0 on an all-skipped run, and the gate refuses it by name.
+  …
+  release suite: 15 test(s), 0 skipped, 0 failed
+  every release assertion ran, none of them skipped
+  ```
+
+  and in `can-fail`, against two mutated copies of the 271-file migration tree:
+
+  ```
+    REPORTED FAILURE  gate-disabled -> CF-01: the merge was ADMITTED with an open obligation
+    REPORTED FAILURE  expected-sqlstate -> CF-03: expected SQLSTATE P0001, observed 22000
+  2 planted schema violations, each turning VERDICT PROVEN into VERDICT NOT PROVEN with
+  the failing clause named in the report.
+  ```
+
+* **A fact the same `cloud-verify` run established, and it belongs on this page rather
+  than in a footnote:** `verify` was **skipped** and `SKIPPED — no Cloud cluster secret` **ran**. The
+  repository secret `CRDB_CLOUD_DSN` is **not set**, so nothing in this repository has ever
+  spoken to CockroachDB Cloud, and `cloud-verify`'s green is the green of a lane that
+  correctly reported having asserted nothing. That is the behaviour its header promises,
+  and the new preflight job is what now proves the promise is kept rather than merely
+  written. The four claims listed in the `skipped-loudly` summary remain unconfirmed
+  against Cloud.
+
+### 5.2 `console` — the green control earned its place on the first run
+
+Run `31441299984` failed, and it failed **before any violation had been planted**:
+
+```
+GREEN CONTROL — the unmutated copy passes, so every red below is attributable
+AssertionError: ../../../../spec/wire/refusal.schema.json must be readable from the
+console workspace: expected false to be true
+```
+
+`tests/unit/data/_support.ts` sets `REPO_ROOT = '../../../../'`, and `vite.config.ts`
+resolves `../../../../evidence/attestations/g1-attestation.json`. Four directories of
+relative path reach out of the console and into the repository, so a copy under
+`$RUNNER_TEMP` cannot see them — and every red after that point would have been an
+artefact of the copying rather than evidence about a plant. The copy is now a **sibling of
+`console/` at the same depth**, and the job's last step asserts both that no tracked file
+moved and that nothing survived under `verticals/mainline/apps`.
+
+Recorded here rather than quietly fixed, because it is the strongest single argument for
+the shape this page describes: **the green control is not ceremony.** It caught a broken
+control on its first execution, before the control could report a meaningless success.
+
+## 6. What is still not observed, and where
+
+* `cloud-verify` has **no `push:` trigger by design** — it holds the only credential this
   repository has, and a lane that reaches a live cluster on every commit bills a shared
-  resource for every typo). Its two new jobs are therefore reachable only by
-  `workflow_dispatch` and by the 17:00 UTC schedule.
-* Where a lane's control was executed locally rather than in CI, §4 quotes the local
-  command and its output, and names the interpreter, the toolchain versions and the
-  cluster it ran against.
+  resource for every typo. Its jobs are reachable by `workflow_dispatch` and by the 17:00
+  UTC schedule; run `31441340234` above is a dispatch.
+* `cloud-verify`'s `verify` job has still never executed, because `CRDB_CLOUD_DSN` is not
+  set. Its negative control runs regardless, which is the point of putting the control in
+  `preflight` rather than in `verify`.
+* Eight of the eighteen workflows have no negative control at all. §1 names them.
+* `submission`'s `the submission gate can say no` pre-dates this wave and was not
+  re-examined; the row says so.
