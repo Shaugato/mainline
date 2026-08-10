@@ -535,7 +535,8 @@ jobs:
 
       - name: Start the disposable node A3/A4 read
         # `--listen-addr` is DELIBERATELY ABSENT and must stay absent. Measured 2026-08-10
-        # on cockroachdb/cockroach:v26.2.5: `--listen-addr=0.0.0.0:26257` makes the node
+        # on CockroachDB v26.2.5 — the pin `compose.yaml` names and the `image` step above
+        # resolves, not a coordinate restated here: `--listen-addr=0.0.0.0:26257` makes the node
         # refuse to start with `hostname of listen_addr must be "127.0.0.1" or "localhost"`,
         # and `--listen-addr=localhost:26257` binds inside the container's loopback where a
         # published port cannot reach it. The default binds where `-p` can forward.
@@ -569,7 +570,8 @@ jobs:
         # `--attest final` IS LOAD-BEARING AND IS NOT THE DEFAULT. `--attest each`
         # recomputes `stable_fingerprint()` after every one of the 271 files — it takes the
         # fingerprint twice and refuses if the two disagree. Measured 2026-08-10 on
-        # cockroachdb/cockroach:v26.2.5, this exact chain, `--attest each`:
+        # CockroachDB v26.2.5 — the same pin the `image` step resolves — over this exact
+        # chain, with `--attest each`:
         #
         #   trappoint migrate: REFUSED: the schema fingerprint is not stable across two
         #   consecutive computations (37e2c7fdf45c2d72… then 76e2775328bede0c…).

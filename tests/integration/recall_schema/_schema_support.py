@@ -754,8 +754,8 @@ def check_constraint_expression(
     that the catalogue says belongs to that name — and no other constraint on the table shares
     it. Both are exact; only one of them is a string the server happens to print.
 
-    MEASURED 2026-08-10, cockroachdb/cockroach:v26.2.5 — the row shape this must not be naive
-    about::
+    MEASURED 2026-08-10 on CockroachDB v26.2.5, the pin ``compose.yaml`` names — the row shape
+    this must not be naive about::
 
         ['table_name', 'constraint_name', 'constraint_type', 'details', 'validated']
         ('t', 'sev_range', 'CHECK', 'CHECK ((severity BETWEEN 0 AND 5))', True)

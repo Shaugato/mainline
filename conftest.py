@@ -48,8 +48,9 @@ a header line saying so rather than a traceback.
 The corollary, and the reason ``_report`` below exists: if the plugin ever again becomes
 unimportable, that must arrive as **one sentence naming the cause**, followed by pytest's own
 hard error. Not as a silent ``except ImportError: return``, which is what this file used to
-do — a session that quietly declines to publish the image pin runs against the FLOATING tag
-``cockroachdb/cockroach:latest-v26.2`` and is measuring a version nobody chose.
+do — a session that quietly declines to publish the image pin runs against the FLOATING
+``latest-v26.2`` tag the testkit exists to refuse, rather than the v26.2.5 ``compose.yaml``
+pins, and is measuring a version nobody chose.
 """
 
 from __future__ import annotations
@@ -133,8 +134,8 @@ def _prepare_environment() -> None:
         _report(
             f"cannot import trappoint_testkit.image ({exc}). The CockroachDB image pin was "
             f"NOT published, so any fixture that reads $MAINLINE_CRDB_IMAGE falls back to "
-            f"the FLOATING tag cockroachdb/cockroach:latest-v26.2 and this session is not "
-            f"measuring the version compose.yaml pins. Looked for the package on sys.path "
+            f"its own FLOATING latest-v26.2 default and this session is not measuring the "
+            f"v26.2.5 that compose.yaml pins. Looked for the package on sys.path "
             f"and at {_TESTKIT_SRC}."
         )
         return
@@ -146,9 +147,9 @@ def _prepare_environment() -> None:
         # that is exactly the dev/CI skew the schema fingerprint exists to catch.
         _report(
             f"the CockroachDB version constant could not be read ({exc}). Fixtures will use "
-            f"the FLOATING tag cockroachdb/cockroach:latest-v26.2. Restore the "
-            f"'trappoint:crdb-image-pin' marker above the crdb service's image: key in "
-            f"compose.yaml."
+            f"their FLOATING latest-v26.2 default instead of the v26.2.5 compose.yaml "
+            f"pins. Restore the 'trappoint:crdb-image-pin' marker above the crdb service's "
+            f"image: key in compose.yaml."
         )
         return
 
