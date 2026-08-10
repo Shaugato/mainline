@@ -105,7 +105,7 @@ runs:
         python-version: ${{ inputs.python-version }}
 
     - name: uv, with the cache keyed on uv.lock
-      uses: astral-sh/setup-uv@v5
+      uses: astral-sh/setup-uv@v7
       # `@v5` and not a 40-character commit SHA, on purpose and with a date attached.
       # A SHA pin is stronger, and it is only stronger if the SHA is one somebody
       # RESOLVED. This wave's author could not reach the network to resolve one, and a
