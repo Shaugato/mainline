@@ -36,7 +36,7 @@ as long as the lane exists, and the job is the artefact a judge can read.
 |---|---|---|---|
 | `claims` | `claim hygiene (red half, then green half)` · **and** `the red half is red for the reason it claims` | scanner `--self-test` plants **4** of 21 rules; the committed fixture `claim-hygiene-red.md` fires all **21**; the meta-job asserts the union covers every declared rule, that each fixture sentence is refused **alone**, and that a copy with the plants removed exits **0** | no — `$RUNNER_TEMP` only, asserted |
 | `judge-pack` | `the validator fires on every planted violation` · `a run with no cluster exits 3, never 0` · **and** `the red half is red for the reason it claims` | 9 pack mutations (renamed column, negative gone green, unbounded claim, envelope loosened, index hint dropped, prefix widened, decorative completeness column, dangling `defined_in`, prompt dropped) + claim-hygiene + bound-length; the meta-job asserts each mutation **changes the document**, each is **caught**, and **none** of the nine checks fails on the unmutated pack | no — in-memory copies, asserted |
-| `console` | `RED — pnpm run ci fails on every planted violation family` | `eslint-register-boundary`, `typescript-type-error`, `vitest-failing-case`, `bundle-over-budget`, `denied-dependency-by-name`, `non-permissive-licence-in-the-runtime-closure` — **each driven through the whole `pnpm run ci` chain**, not through its own sub-command | no — an untracked sibling copy at the same depth (§5.2), removed and asserted gone |
+| `console` | `RED — pnpm run ci fails on every planted violation family` | `eslint-register-boundary`, `typescript-type-error`, `vitest-failing-case`, `bundle-over-budget`, `lazy-boundary-broken`, `denied-dependency-by-name`, `non-permissive-licence-in-the-runtime-closure` — **each driven through the whole `pnpm run ci` chain**, not through its own sub-command | no — an untracked sibling copy at the same depth (§5.2), removed and asserted gone |
 | `release-proof` | `RED — the proof reports NOT PROVEN when the gate is removed` · **and** the `RED — the gate refuses a run where nothing was proved` step inside `the database refuses the merge` | `gate-disabled` (the CHECK weakened to a tautology in a scratch copy of `0050_permit.sql`), `expected-sqlstate` (`fn_permit_merge_gate` raising `22000`, in a copy of `0115`), `nothing-was-proved` (the release suite with no reachable cluster) | no — `$RUNNER_TEMP` migration copies + step-scoped `env:`, asserted |
 | `skills` | `spec conformance (red half, then green half)` · **and** the pre-existing `RED BEFORE GREEN` step in `every shipped script proves it can fail` | spec: `missing-required-field`, `malformed-name`, `dangling-link`, `out-of-spec-field`, `empty-body`; marketplace: `dangling-skill-path`, `upstream-staging-shipped`, `plugin-without-source`, `missing-top-level-key`; plus the unwelded-schema gate assertion that must exit 1 | no — `$RUNNER_TEMP` copies, asserted |
 | `supply-chain` | `SECURITY CLAIM — mainline-gate-svc's dependency closure contains no model SDK`, step `RED — four planted violations, each refused BY NAME` | `model-sdk-in-the-export` (`boto3`), `model-sdk-in-the-tree` (`anthropic`), `workspace-member-lost` (the anti-vacuity guard), `unreadable-path-entry` | no — `$RUNNER_TEMP` copies of the two witnesses, asserted |
@@ -266,7 +266,7 @@ Read with `gh run view <id> --json jobs`, on `master`, at commit `9d02cee`
 | `supply-chain` | [31441300007](https://github.com/Shaugato/mainline/actions/runs/31441300007) | `SECURITY CLAIM …`, step `RED — four planted violations` | **success** |
 | `release-proof` | [31441299987](https://github.com/Shaugato/mainline/actions/runs/31441299987) | `RED — the proof reports NOT PROVEN when the gate is removed` | **success** |
 | `cloud-verify` | [31441340234](https://github.com/Shaugato/mainline/actions/runs/31441340234) | `a real 40001 RETRY_SERIALIZABLE …` · `is there a Cloud cluster … (and can it say no?)` | **success** |
-| `console` | [31441299984](https://github.com/Shaugato/mainline/actions/runs/31441299984) → [31441667191](https://github.com/Shaugato/mainline/actions/runs/31441667191) | `RED — pnpm run ci fails on every planted violation family` | see §5.2 |
+| `console` | [31443340130](https://github.com/Shaugato/mainline/actions/runs/31443340130) — after [31441299984](https://github.com/Shaugato/mainline/actions/runs/31441299984), [31441667191](https://github.com/Shaugato/mainline/actions/runs/31441667191) and [31442295913](https://github.com/Shaugato/mainline/actions/runs/31442295913), all red and all quoted in §5.2 | `RED — pnpm run ci fails on every planted violation family` | **success** |
 
 ### 5.1 What CI added that the workstation could not
 
@@ -347,6 +347,65 @@ moved and that nothing survived under `verticals/mainline/apps`.
 Recorded here rather than quietly fixed, because it is the strongest single argument for
 the shape this page describes: **the green control is not ceremony.** It caught a broken
 control on its first execution, before the control could report a meaningless success.
+
+Run `31441667191`, with the copy at the right depth, then caught three plants that were
+breaking a **different** promise from the one they named — and it caught all three only
+because the control asserts the message rather than the exit code:
+
+```
+  REFUSED  eslint-register-boundary  (exit 1)  -> EVIDENCE register: no GPU rendering, no-restricted-imports
+  REFUSED  typescript-type-error     (exit 2)  -> TS2322, planted_type_error
+  REFUSED  vitest-failing-case       (exit 1)  -> PLANTED-VITEST-FAILURE
+##[error]PLANTED FAMILY bundle-over-budget: `pnpm run ci` exited 1, but its output never
+         names ['[evidentiary-shell]', 'exceeds'].
+##[error]PLANTED FAMILY denied-dependency-by-name: … never names ['DENIED'].
+##[error]PLANTED FAMILY non-permissive-licence-in-the-runtime-closure: … never names
+         ['NOT ALLOWED', 'MPL-2.0', 'runtime'].
+```
+
+* The two licence plants died **inside pnpm**, at `runDepsStatusCheck`: on a runner
+  `CI=true` makes `--frozen-lockfile` the default, so pnpm's pre-run dependency check
+  refused the out-of-date lockfile and the composite never reached `check:licences`.
+  Resolving the lockfile is now part of *planting* the violation — a real regression
+  arrives with its lockfile updated — and a failure to resolve is reported as a broken
+  control, never as an exercised lane. Both refused by name on run `31442295913`:
+  `DENIED, gsap` and `NOT ALLOWED, MPL-2.0, runtime`.
+* The budget plant died at **`vitest`**, with `budgets.json is authoritative — it is what
+  scripts/check-budgets.ts reads after the build. Correct the mirror, not the original.`
+  The threshold `225280` lives in four places — `budgets.json`, `src/perf/budgets.ts`,
+  `tests/unit/perf/budgets.test.ts` (`'220 KB'`) and `docs/performance-budgets.md`,
+  rendered from the mirror — three of which are checks. **A budget cannot be breached by
+  lowering it here**; it is breached by a bundle that is too big. The plant is now ~300 KB
+  of incompressible base64 assigned onto `globalThis` from `src/main.tsx`, statically
+  reachable from the entry: no new file (a dozen suites enumerate `src/**`), no export
+  (`react-refresh/only-export-components` is a warning, and `--max-warnings 0` makes a
+  warning an error). A sixth family was added for the other half of `check:budgets`, the
+  one its own docstring calls out — `react` added to `forbidden_in_entry`, which nothing
+  mirrors — and it must produce `[lazy-boundary]`.
+
+Run [31443340130](https://github.com/Shaugato/mainline/actions/runs/31443340130) is the
+first green one, and it is green with **seven** families rather than six:
+
+```
+  REFUSED  eslint-register-boundary   (exit 1)  -> EVIDENCE register: no GPU rendering, no-restricted-imports
+  REFUSED  typescript-type-error      (exit 2)  -> TS2322, planted_type_error
+  REFUSED  vitest-failing-case        (exit 1)  -> PLANTED-VITEST-FAILURE
+  REFUSED  bundle-over-budget         (exit 1)  -> [evidentiary-shell], exceeds
+  REFUSED  lazy-boundary-broken       (exit 1)  -> [lazy-boundary], react
+  REFUSED  denied-dependency-by-name  (exit 1)  -> DENIED, gsap
+  REFUSED  non-permissive-licence-in-the-runtime-closure (exit 1) -> NOT ALLOWED, MPL-2.0, runtime
+7 planted violations, every one of them failing the WHOLE `pnpm run ci` chain and naming
+its family in the log.
+no tracked file moved, and the scratch copy has been removed
+```
+
+**Three red runs to get seven families each breaking the promise it names.** That is the
+cost of the rule this page opens with, and not one of the three failures would have been
+visible to a control that checked only the exit code: every one of them exited non-zero.
+A control that asserted `returncode != 0` would have been green on the first run, on the
+second, and on the third — and it would have been measuring the mirror test, pnpm's
+lockfile verification, and a broken scratch copy, in a job whose name says it measures
+the console's six promises.
 
 ## 6. What is still not observed, and where
 
