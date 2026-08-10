@@ -6,10 +6,15 @@
   "mypy_version": "mypy 2.3.0 (compiled: yes)",
   "mypy_version_floor": ">=1.11",
   "python_version": "3.13",
-  "source_files_checked": 477,
-  "total_errors": 12,
+  "source_files_checked": 660,
+  "total_errors": 0,
   "unused_sections": [],
   "distributions": {
+    "cases": {
+      "dir": "packages/trappoint-conformance",
+      "tier": "strict",
+      "errors": 0
+    },
     "mainline_agentkit": {
       "dir": "packages/mainline-agentkit",
       "tier": "normal",
@@ -40,6 +45,11 @@
       "tier": "normal",
       "errors": 0
     },
+    "mainline_corpus": {
+      "dir": "verticals/mainline/packages/mainline-corpus",
+      "tier": "normal",
+      "errors": 0
+    },
     "mainline_custody_patrol": {
       "dir": "verticals/mainline/packages/mainline-custody-patrol",
       "tier": "normal",
@@ -47,6 +57,11 @@
     },
     "mainline_delta_oracle": {
       "dir": "verticals/mainline/packages/mainline-delta-oracle",
+      "tier": "normal",
+      "errors": 0
+    },
+    "mainline_demo_api": {
+      "dir": "verticals/mainline/apps/demo-api",
       "tier": "normal",
       "errors": 0
     },
@@ -83,7 +98,7 @@
     "mainline_recall_agent": {
       "dir": "verticals/mainline/packages/mainline-recall-agent",
       "tier": "normal",
-      "errors": 4
+      "errors": 0
     },
     "mainline_recall_fleet": {
       "dir": "verticals/mainline/packages/mainline-recall-fleet",
@@ -148,7 +163,7 @@
     "trappoint_testkit": {
       "dir": "packages/trappoint-testkit",
       "tier": "strict",
-      "errors": 8
+      "errors": 0
     },
     "trappoint_verify": {
       "dir": "packages/trappoint-verify",

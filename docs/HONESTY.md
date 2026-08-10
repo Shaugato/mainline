@@ -136,14 +136,53 @@ exist`, left the version DIRTY, and every file below the halt was never executed
 runner a deployment uses at all. The census had been quietly answering a question nobody
 asked.
 
-**No artefact under `qa/` or `evidence/` records that halt, or the completed forward-only
-run that has since replaced it, so this page prints no figure for either.** Both
-transcripts — the halt, and a run driven today that applied the whole tree with nothing
-left dirty — are in [`docs/STATE-OF-THE-BUILD.md`](STATE-OF-THE-BUILD.md), which is a
-prose document and not a source a number may be drawn from here. The deployment number is
-therefore *unrecorded in both directions*, and that absence is listed under NOT YET BUILT
-rather than rounded away. It is the sharpest thing this page can say about its own
-evidence: the measurement everyone quotes is not the measurement a deployment performs.
+**That sentence used to continue: "no artefact under `qa/` or `evidence/` records that
+halt, or the completed forward-only run that has since replaced it, so this page prints
+no figure for either." It is no longer true, and this is the correction.** The artefact
+landed as
+[`evidence/chain/chain-20260810T062542Z.json`](../evidence/chain/chain-20260810T062542Z.json),
+written by `scripts/chain/apply_chain.py` against a database the run created for itself.
+The paragraph is kept rather than replaced because the shape of the admission is the
+point: this page said the number was unrecorded for as long as it was, and printed it the
+day it was not.
+
+The halt itself remains unrecorded in a citable artefact, and the numbers below are the
+*completed* run only. The earlier transcript is in
+[`docs/STATE-OF-THE-BUILD.md`](STATE-OF-THE-BUILD.md), which is a prose document and not a
+source a number may be drawn from here.
+
+| The runner a deployment uses: `trappoint migrate up`, forward-only, `--attest each` | |
+|---|---|
+| Migration files the runner was given | 271 [src: evidence/chain/chain-20260810T062542Z.json#result.files] |
+| Applied, halting on the first refusal — there was none | 271 [src: evidence/chain/chain-20260810T062542Z.json#result.applied] |
+| Failed | 0 [src: evidence/chain/chain-20260810T062542Z.json#result.failed] |
+| Left DIRTY | `false` [src: evidence/chain/chain-20260810T062542Z.json#result.dirty] |
+| A deployment of this tree would have succeeded | `true` [src: evidence/chain/chain-20260810T062542Z.json#result.complete] |
+| Versions forced past a failure | 0 [src: evidence/chain/chain-20260810T062542Z.json#operation.forced_versions] |
+| Schema-attestation head ordinal | 271 [src: evidence/chain/chain-20260810T062542Z.json#attestation.head.ordinal] |
+| Attestation rows, genesis included | 272 [src: evidence/chain/chain-20260810T062542Z.json#attestation.rows] |
+| `migrate up` alone, seconds | 1931.459 [src: evidence/chain/chain-20260810T062542Z.json#steps.1.seconds] |
+| Bootstrap, runner and grants together, seconds | 2724.962 [src: evidence/chain/chain-20260810T062542Z.json#wall_clock_seconds] |
+
+**Read the last two rows against the census.** The same
+271 [src: evidence/chain/chain-20260810T062542Z.json#result.files] files take
+2724.962 [src: evidence/chain/chain-20260810T062542Z.json#wall_clock_seconds] seconds
+through the runner and
+46.35 [src: evidence/deploy/chain-261.json#wall_clock_seconds] seconds through the
+continue-on-error applier, on the same local node. Nearly all of that difference is the
+`--attest each` fingerprint, recomputed twice and compared after every statement. A
+deployment that wants the attestation chain pays for it, and this page would rather print
+the expensive number than the flattering one.
+
+**The bookkeeping half, which a census cannot reach at all.** The runner also asserted the
+grants matrix: 112 [src: evidence/chain/chain-20260810T062542Z.json#grants.statements_asserted]
+statements applied and
+11 [src: evidence/chain/chain-20260810T062542Z.json#grants.statements_skipped] skipped
+because the object they grant on does not exist. Those eleven are named in the artefact —
+`mainline.propagation`, `mainline.merge_conflict`, `mainline.observed_assertion` and eight
+more — and they are **reported, not authored**: no migration in the tree references any of
+them, so none of them blocks anything. A relation that only a grant matrix names is a
+smaller kind of gap than a relation a trigger reads, and the two are not summed here.
 
 **What is recorded, after the seven missing producers landed.** Three independent appliers
 have since run the whole tree, on two clusters, and all three report zero failures. Every
@@ -186,9 +225,13 @@ and it is measured, not modelled.
 271 [src: evidence/gate-refusal/proof-20260810T054407Z.json#chain.applied_count], which is
 the good news and the easy news. The other movement is that this page discovered it had
 been quoting a survey where a reader would reasonably have heard a deployment, and the
-deployment figure was *lower, and unrecorded, and is unrecorded still* — including now
-that a forward-only run has been driven successfully. Which of those two a reader takes
-away is the test of whether this page is doing its job.
+deployment figure was *lower, and unrecorded*. **That second half has now closed too**:
+the deployment figure is
+271 [src: evidence/chain/chain-20260810T062542Z.json#result.applied], recorded, and equal
+to the census — which it is only because the seven producers landed. Which of those two
+movements a reader takes away is still the test of whether this page is doing its job, and
+the harder one to keep in view is that for a day the two numbers were different and only
+one of them was printed.
 
 ### The offline custody bundle
 
@@ -262,11 +305,25 @@ Nothing here is "clean". The numbers are frozen, published, and may fall but not
 |---|---|
 | `ruff check .` findings | 847 [src: qa/ruff-ratchet.json#lint.total] |
 | Files `ruff format` would rewrite | 245 [src: qa/ruff-ratchet.json#format.unformatted_files] |
-| `mypy` errors across the workspace | 12 [src: qa/mypy-ratchet.json#total_errors] |
-| Source files mypy actually checked | 477 [src: qa/mypy-ratchet.json#source_files_checked] |
+| `mypy` errors across the workspace | 0 [src: qa/mypy-ratchet.json#total_errors] |
+| Source files mypy actually checked | 660 [src: qa/mypy-ratchet.json#source_files_checked] |
+
+Distributions that one run covered: 32 [src: qa/mypy-ratchet.json#distributions|len].
 
 A truthful large number that cannot grow beats a fabricated zero. `qa/README.md` gives the
 one command that re-derives each of them.
+
+**The mypy zero is the one number on this page that has to defend itself, and here is the
+defence.** A zero is what a checker that ran nothing also prints, so the row above is
+worth nothing without the row beneath it and the count beside it: one invocation, over
+every distribution the workspace publishes, and the file count is not smaller than the
+`.py` files those targets hold. `tests/release/test_mypy_covers_workspace.py` asserts all
+three, and it asserts them the hard way — one of its cases plants a broken plugin so mypy
+dies with no completion line, and requires `--write-ratchet` to REFUSE rather than bank
+`0 errors over 0 files`. Before that guard existed, a clean run recorded
+`source_files_checked` as zero, because the expression that read the count matched only
+mypy's failure line. The published pair would therefore have read *no type errors, in
+nothing*, and nothing anywhere would have objected.
 
 **And the ratchet is red today, on a wave whose total went down.** `scripts/qa/ruff_ratchet.py`
 refuses the working tree. The findings total is now *below* the frozen
@@ -280,13 +337,25 @@ per-rule output is in [`docs/STATE-OF-THE-BUILD.md`](STATE-OF-THE-BUILD.md); no 
 artefact holds the *measured* figures, because re-baselining is how a ratchet is defeated
 and nobody in this wave owned that file. **Discovered, not fixed.**
 
-**And the mypy pair is already one distribution stale.** The ratchet records
-29 [src: qa/mypy-ratchet.json#distributions|len] distributions; the workspace has since
-gained one more — `mainline-corpus`, which had source on disk and no `pyproject.toml` until
-this wave — and `mypy.ini` has no section for it. Two tests under `tests/release/` are red
-about exactly that, by name, right now. The correct reading of the two mypy rows above is
-*"what the checker said about the distributions it was pointed at"*, not *"what the
-workspace type-checks like"*.
+**"And the mypy pair is already one distribution stale." That paragraph said the ratchet
+recorded twenty-nine distributions, that the workspace had gained `mainline-corpus`, that
+`mypy.ini` had no section for it, and that two tests under `tests/release/` were red about
+exactly that. Every clause of it was true, and the last one is why the rest are no longer.**
+The red held. Three distributions were unregistered, not one — `mainline_corpus`,
+`mainline_demo_api`, and `cases`, the conformance corpus, whose module name does not begin
+with `trappoint_` and whose *distribution* does, so its tier was an accident nobody had
+decided. All three now carry a section, a tier and a measured count, and the ratchet
+records 32 [src: qa/mypy-ratchet.json#distributions|len].
+
+Two things about that repair are worth keeping. The first is that the CI job named
+`mypy · and the target list is complete` was **green throughout** — it runs `--check`,
+which asks whether every distribution has a section, and never `--ratchet`, which asks
+whether the published number describes this tree. Two gates, two definitions of complete,
+and the weaker one was the one wired to the board. The second is that the corrected
+reading of the mypy rows is now the strong one — *what the workspace type-checks like* —
+and it is only strong because the count of distributions is printed beside it. Drop that
+number and the pair goes back to being a statement about whatever the checker happened to
+be pointed at.
 
 ---
 
@@ -387,33 +456,41 @@ The rule that found them is now part of the migration lint, so the eighth instan
 defect class fails at lint time rather than at deployment time. That is the durable half
 of this repair; the seven files are the perishable half.
 
-### The forward-only deployment runner has been driven, and wrote no artefact
+### The forward-only deployment runner wrote no artefact — RESOLVED, and here is the receipt
 
-Every number this page prints about the chain comes from a continue-on-error applier. The
-runner a deployment uses — `trappoint migrate up`, forward-only, halting on the first
-refusal, writing an attestation row per file — **has now been driven over the whole tree
-and completed**, with nothing left dirty and an attestation head whose ordinal equals the
-file count. The bookkeeping half is no longer untested.
+**This heading used to read "has been driven, and wrote no artefact", and the section
+below it said "it still wrote no artefact under `qa/` or `evidence/`, so this page prints
+no figure for it." Both sentences were true when written and are false now.** They are
+corrected here rather than deleted, because the sequence is the evidence that the
+mechanism works: the page refused to print a good result it could not cite, the artefact
+was written, the checker went red on its own accord, and the prose moved.
 
-**It still wrote no artefact under `qa/` or `evidence/`, so this page prints no figure for
-it.** `evidence/chain/` exists and holds a README and no run. The full transcript —
-command, the runner's own output, the `schema_migration` state, the attestation count and
-the `migrate attest` verdict — is in
-[`docs/STATE-OF-THE-BUILD.md`](STATE-OF-THE-BUILD.md), which is a prose document and not a
-source a number may be drawn from here.
+The run is [`evidence/chain/chain-20260810T062542Z.json`](../evidence/chain/chain-20260810T062542Z.json)
+and its numbers are in PROVEN above, where a completed deployment belongs. What remains
+genuinely unrecorded is the **halt**: the earlier forward-only run that stopped at
+`0121_trg_check_materialised` wrote no artefact and never will, so the *before* side of
+this repair is prose in [`docs/STATE-OF-THE-BUILD.md`](STATE-OF-THE-BUILD.md) and no
+figure for it is printed here.
 
-That is a deliberately awkward position to leave a document in, and it is the correct one.
-The rule that makes this page worth reading is that a quantity resolves to a machine-readable
-file; suspending it for a good result would be exactly the move it exists to prevent. **A
-measurement I cannot cite is a measurement this page does not print, even when it is the
-best news in the wave.**
+The rule that made the awkward position correct is unchanged, and it is restated here
+verbatim because it is the thing that just paid: *that is a deliberately awkward position
+to leave a document in, and it is the correct one. The rule that makes this page worth
+reading is that a quantity resolves to a machine-readable file; suspending it for a good
+result would be exactly the move it exists to prevent.* **A measurement I cannot cite is a
+measurement this page does not print, even when it is the best news in the wave.**
 
-> **When it does exist, this page breaks on purpose.** `evidence/chain/` is a declared
-> reference family in `tests/release/test_honesty_is_checkable.py`, and the moment a
-> `chain-<UTC>.json` appears there, `test_the_document_does_not_lag_a_family_that_landed`
-> fails and names it. The fix is to rewrite this section around the artefact's
-> `result.applied`, `result.failed`, `result.dirty` and `result.complete`. A red build is
-> the correct response to evidence arriving that the prose has not absorbed.
+And the sentence that made the distinction worth drawing in the first place is still the
+sharpest thing on this page, now that both numbers exist and agree: *the measurement
+everyone quotes is not the measurement a deployment performs.* They coincide today. They
+did not last week, and nothing guarantees they will next week.
+
+> **This is what the deliberate breakage looked like from the inside.** `evidence/chain/`
+> is a declared reference family in `tests/release/test_honesty_is_checkable.py`. The
+> moment `chain-20260810T062542Z.json` appeared,
+> `test_the_document_does_not_lag_a_family_that_landed` failed and named it — before any
+> human noticed the artefact existed. The build was red because evidence had arrived that
+> the prose had not absorbed, which is the correct colour for that condition. The same
+> trap is still armed for every future run in that directory.
 
 ### The conformance suite has still not been demonstrated
 
@@ -431,23 +508,63 @@ instead of aborting the run, and the world builder writes the columns `mainline.
 actually declares. A capability probe now resolves each case's `requires` token against
 the live catalogue instead of waiting for a human to pass a flag.
 
-**And no census has been taken.** `qa/conformance-census.json` does not exist. Nobody has
-run the repaired suite to completion against a migrated cluster and published pass, fail
-and cannot-run per case with the missing object named for every cannot-run. Until that
-file exists, the conformance case list is a *plan* with a working runner attached, which
-is better than a plan and is not a result. **This remains the single largest gap between
-what this repository contains and what it has shown.**
+**"And no census has been taken. `qa/conformance-census.json` does not exist." That was
+this page's sentence, and it is now false.** The census exists, it was taken against a
+cluster with the whole tree applied, and it is
+[`qa/conformance-census.json`](../qa/conformance-census.json). The result is worse reading
+than the sentence it replaces, which is the reason to print it in full rather than to
+summarise it.
+
+| The conformance suite, run to completion, `v26.2.5` | |
+|---|---|
+| Cases the manifest declares | 71 [src: qa/conformance-census.json#run.manifest_declared_case_count] |
+| Cases selected and attempted | 71 [src: qa/conformance-census.json#selected] |
+| **PASSED** | 10 [src: qa/conformance-census.json#totals.passed] |
+| **FAILED** — the gate answered, and answered wrongly | 6 [src: qa/conformance-census.json#totals.failed] |
+| **CANNOT RUN** — nothing was ever asked of the gate | 55 [src: qa/conformance-census.json#totals.cannot_run] |
+| ERRORED | 0 [src: qa/conformance-census.json#totals.error] |
+| Left PENDING, i.e. never reached | 0 [src: qa/conformance-census.json#totals.pending] |
+| Migrations applied to the cluster it ran against | 271 [src: qa/conformance-census.json#schema_state.applied] |
+
+Cases that ended anywhere but PASSED and carry no reason naming an object:
+0 [src: qa/conformance-census.json#completeness.cases_without_a_reason_naming_an_object|len].
+A cannot-run without a named object is a shrug, and the census refuses to record one.
+
+**Ten of seventy-one is the number, and it is not a pass rate about the gate.** Read the
+middle three rows together. Only sixteen cases — the passes and the failures — put a
+question to the database at all; the rest never got that far. The single largest cause is one
+column: 46 [src: qa/conformance-census.json#systemic_causes.0.n] of the cannot-runs are
+the legal world failing to build at `clause_version` because `body_sha256` does not exist,
+and the census says so in those words, per case. That is one setup defect wearing
+forty-six case identifiers, and counting it as forty-six failures would be as misleading
+in this direction as counting it as zero.
+
+The six FAILED are the interesting ones and none of them is a gate that let a write
+through unnoticed by the suite: two are histories that COMPLETED where a refusal was
+expected, one is a `23502` where a trigger should have projected the strictest legal value,
+one is a `P0001` from a different function than the case named, one is a schema object the
+migration that owns it has not created, and one is a syntax error in a case's own setup.
+Each is quoted verbatim in the artefact. **A suite that reports six wrong answers is worth
+more than a suite that reports none because it never ran.**
 
 Six of the capability tokens name relations this repository has deliberately not authored
 — `propagation`, `observed_assertion`, `merge_conflict`, `frontier_move`,
-`discordance_warrant`, `coverage_certificate`. Those cases cannot pass and are expected to
-report cannot-run with the object named. A demonstrated suite at a modest pass rate is a
-categorically different artefact from an undemonstrated one; this repository still has the
-second kind.
+`discordance_warrant`, `coverage_certificate`. Those cases cannot pass and report
+cannot-run with the object named, which is the designed outcome and not a defect.
 
-> **Same deliberate breakage as above.** `qa/conformance-census.json` is a declared
-> reference family. The moment it exists, the checker fails until this section is replaced
-> by its per-status totals with a named reason on every cannot-run.
+**What this changes about the ranking.** This section used to end "this remains the single
+largest gap between what this repository contains and what it has shown", and that
+sentence was retired by the census rather than by an argument: the suite has now been
+demonstrated, at a modest pass rate, against a migrated cluster. A demonstrated suite is a
+categorically different artefact from an undemonstrated one, and this repository now has
+the first kind. The largest remaining gap is the one the census itself names — the setup
+path that costs forty-six cases — and it is a fixture defect, not a claim about the gate.
+
+> **Same deliberate breakage as above, and it fired.** `qa/conformance-census.json` is a
+> declared reference family; the moment the file appeared,
+> `test_the_document_does_not_lag_a_family_that_landed` refused the build until this
+> section was rewritten around its per-status totals. It will refuse again on the next
+> census, and the totals above are the ones in the committed JSON.
 
 ### One target could not be measured at all
 
@@ -460,21 +577,35 @@ a live database is, today, unknown. Without a database the same target reports i
 in about a minute, which is the shape of a suite whose cluster path is doing far more work
 than anyone has budgeted for.
 
-### Ratchets that do not exist yet
+### The licence count exists now, and this page still does not print it
 
-`qa/ruff-ratchet.json` and `qa/mypy-ratchet.json` are on disk and quoted above.
-**`qa/reuse-ratchet.json` is not.** Licence-header compliance is therefore an *uncounted*
-number in this document. The quality lead's own census found thousands of files carrying
-neither an SPDX header nor a `.license` sidecar, and two spellings in use for the same
-forked identifier — `FSL-1.1-ALv2`, which is not an SPDX-registered id, against the
-`LicenseRef-` form REUSE requires. `REUSE.toml` now exists and `LICENSES/` now holds four
-licence texts, which is progress and is not a count. No committed artefact re-derives the
-header census, so this page refuses to print a figure for it.
+**"`qa/reuse-ratchet.json` is not [on disk]." That was this section's claim and it is
+false: the file is on disk.** So is `scripts/qa/check_reuse.py`, which the next paragraph
+used to say was missing. Both sentences are corrected here rather than removed, because
+what they were describing — a lane that could not start — is a different condition from
+the one that holds now, and a reader who only saw the new text would not know the page had
+been wrong.
 
-Worse, and unchanged: `.github/workflows/ci.yml` has a `checkers` job that asserts five
-named programs exist, **`scripts/qa/check_reuse.py` is not one of the files on disk**, and
-every substantive job declares `needs: [checkers]`. The pipeline still cannot start, so
-every CI number in this repository is a number about a lane that has not run.
+**The figure is still not printed, and the reason has changed.** It is no longer "no
+artefact re-derives it"; it is that the licence-spelling migration is *in flight*. Two
+spellings are in use for the same forked identifier — `FSL-1.1-ALv2`, which is not an
+SPDX-registered id, against the `LicenseRef-` form REUSE requires — and `LICENSES/` holds
+both texts, so the tree is mid-migration rather than a fixed number of files short of
+compliant. A count taken now would be a count of a half-finished rewrite, and freezing one
+as a baseline is how a ratchet stops meaning anything. `qa/reuse-ratchet.json` is
+deliberately not a declared reference family in
+`tests/release/test_honesty_is_checkable.py` while that is true, which means this page is
+*not* obliged to cite it and is not pretending to. When the migration completes, the
+honest baseline is zero as a hard gate, and the family declaration and the figure land
+together.
+
+**The pipeline does start.** The sentence "the pipeline still cannot start, so every CI
+number in this repository is a number about a lane that has not run" was true while
+`scripts/qa/check_reuse.py` was absent and every substantive job declared
+`needs: [checkers]`. The program exists, the `checkers` job passes, and lanes now run and
+publish colours — several of them red, several green. This page prints no tally of that
+because the tally lives in [`docs/CI-STATE.md`](CI-STATE.md), a prose document and not a
+source a number may be drawn from here.
 
 ### Other things this document will not pretend about
 

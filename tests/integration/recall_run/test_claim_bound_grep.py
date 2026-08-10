@@ -103,10 +103,44 @@ _TEXT_SUFFIXES = frozenset(
 _EMPHASIS = re.compile(r"[*_`\\]+")
 _WHITESPACE = re.compile(r"\s+")
 
+#: What a medium puts at the START of a wrapped line and a reader never hears: `--` in
+#: SQL, `//` in the C family, `#` in shell and Python, `>` in a markdown blockquote, `;`
+#: in an ini file, `*` in a javadoc block. Anchored to a line start with ``(?m)``, so it
+#: can only ever remove a continuation marker — never a word, never a comma, never the
+#: `not` whose loss is the whole point of this file.
+_LINE_LEAD = re.compile(r"(?m)^[ \t]*(?:--+|//+|;+|#+|>+|\*+)[ \t]*")
+
+#: The seam a source language leaves when one sentence is split across two string
+#: literals: ``'… of the ' +`` / ``+ 'retrieval …'``. The quotes and the operator belong
+#: to TypeScript, JavaScript or Python; they are not part of the claim.
+_CONCAT_SEAM = re.compile(r"['\"]\s*\+\s*['\"]")
+
 
 def normalise(fragment: str) -> str:
-    """Fold away case, whitespace and markdown emphasis, keeping the words and the commas."""
-    return _WHITESPACE.sub(" ", _EMPHASIS.sub("", fragment)).casefold().strip()
+    """Fold away case, whitespace, emphasis and line scaffolding — never a word.
+
+    WHY THE SCAFFOLDING IS FOLDED, AND WHY THAT IS NOT A WIDENING. On 2026-08-10 this
+    ring reported four offenders, and all four made the sanctioned claim exactly:
+
+        0160_v_silence_summary.sql   `… of the retrieval\\n--    that ran, not of the corpus`
+        console/src/verify/ledger.ts `… of the ' +\\n  'retrieval that ran, not of the corpus.'`
+        …/verify/silenceroot.ts      `… of the RETRIEVAL THAT RAN, ' +\\n 'not of the corpus.'`
+        console/docs/in-browser-….md `… of the\\n> retrieval that ran, not of the corpus.**`
+
+    The claim had not drifted. The *instrument* was folding wrapping only for media
+    where wrapping is free, so a claim reproduced faithfully in SQL, TypeScript or a
+    blockquote was reported as a rewrite. That is the worst failure a checker of this
+    kind can have: four false accusations teach a reader that its accusations are noise,
+    and the fifth one — a real rewrite — is then read as more noise.
+
+    Nothing here relaxes the claim. The folds are strictly punctuation a language emits
+    at a line boundary; every word, every comma and the ordering are still required
+    verbatim by the caller, and `test_red_*` below plants the rewrites that matter in
+    each of these media and requires this function to keep catching them.
+    """
+    without_seams = _CONCAT_SEAM.sub("", fragment)
+    without_leads = _LINE_LEAD.sub("", without_seams)
+    return _WHITESPACE.sub(" ", _EMPHASIS.sub("", without_leads)).casefold().strip()
 
 
 def _text_files() -> list[Path]:
@@ -237,23 +271,112 @@ def test_the_strict_ring_carries_the_sentence_byte_for_byte() -> None:
     )
 
 
+def claim_holds(fragment: str) -> bool:
+    """Whether one ``proves exhaustion …`` fragment makes the sanctioned claim.
+
+    One definition, used by the wide ring and by every planted rewrite below, so that a
+    relaxation of the ring is necessarily a relaxation the reds see too.
+    """
+    tail = fragment.casefold().split(_ANCHOR, 1)[1]
+    return normalise(tail).startswith(normalise(_CLAIM_TAIL))
+
+
 def test_the_wide_ring_holds_the_claim_unchanged() -> None:
     """Everywhere else: emphasis and wrapping may differ, the claim may not."""
-    expected = normalise(_CLAIM_TAIL)
     offenders: list[str] = []
     for path in _text_files():
         text = _read(path)
         if text is None:
             continue
         for fragment in _occurrences(text):
-            claim = normalise(fragment.casefold().split(_ANCHOR, 1)[1])
-            if not claim.startswith(expected):
+            if not claim_holds(fragment):
                 offenders.append(f"{path.relative_to(REPO_ROOT)}: {fragment.strip()!r}")
     assert not offenders, (
         "every statement built on 'proves exhaustion' must make the sanctioned claim. These "
         "make a different one, which is the failure mode that matters — nobody deletes the "
         "caveat, somebody rewrites it:\n" + "\n".join(offenders)
     )
+
+
+# ── PL-2 for the normaliser: the folds must not have bought the green ────────────────────
+#
+# `normalise` was widened on 2026-08-10 to fold line-continuation scaffolding, because four
+# faithful renderings were being reported as rewrites. A fold is exactly the move that could
+# also let a real rewrite through, so each medium now carries both halves: the true claim as
+# that medium actually writes it, and the rewrite that matters written the same way.
+
+#: The four renderings that were reported as offenders and are not. Quoted from the files.
+FAITHFUL_RENDERINGS: tuple[tuple[str, str], ...] = (
+    (
+        "SQL comment continuation",
+        "proves exhaustion of the retrieval\n--    that ran, not of the corpus",
+    ),
+    (
+        "TypeScript string concatenation",
+        "proves exhaustion of the ' +\n  'retrieval that ran, not of the corpus.'",
+    ),
+    (
+        "TypeScript, shouting the emphasis",
+        "proves exhaustion of the RETRIEVAL THAT RAN, ' +\n        'not of the corpus.',",
+    ),
+    (
+        "markdown blockquote",
+        "proves exhaustion of the\n> retrieval that ran, not of the corpus.**",
+    ),
+)
+
+#: The rewrite that matters, in each medium that the folds above now reach. Every one of
+#: these still says "proves exhaustion" and every one makes a claim the receipt cannot
+#: support. If a fold ever swallowed one of these, the fold would have bought a green.
+REWRITES_THAT_MUST_STILL_BE_CAUGHT: tuple[tuple[str, str], ...] = (
+    ("the corpus, plainly", "proves exhaustion of the corpus."),
+    ("the `not` dropped", "proves exhaustion of the retrieval that ran, of the corpus."),
+    ("both, joined", "proves exhaustion of the retrieval that ran, and of the corpus."),
+    ("the subject slid", "proves exhaustion of the fonds that ran, not of the corpus."),
+    ("hidden behind a SQL wrap", "proves exhaustion of the\n--    corpus."),
+    ("hidden behind a TypeScript seam", "proves exhaustion of the ' +\n  'corpus.'"),
+    ("hidden behind a blockquote", "proves exhaustion of the\n> corpus."),
+    (
+        "hidden behind a `//` wrap",
+        "proves exhaustion of the retrieval that ran,\n// and of the corpus.",
+    ),
+)
+
+
+@pytest.mark.parametrize(("medium", "fragment"), FAITHFUL_RENDERINGS, ids=lambda v: v[:40])
+def test_green_a_faithful_rendering_in_another_medium_is_accepted(
+    medium: str, fragment: str
+) -> None:
+    """The complement of the reds: the ring says yes to the claim as other domains write it."""
+    assert claim_holds(fragment), (
+        f"{medium}: this reproduces the sanctioned claim and the ring rejected it. A checker "
+        f"that cries wolf four times teaches its reader to ignore the fifth."
+    )
+
+
+@pytest.mark.parametrize(
+    ("label", "fragment"), REWRITES_THAT_MUST_STILL_BE_CAUGHT, ids=lambda v: v[:40]
+)
+def test_red_a_rewritten_claim_is_caught_in_every_medium_the_folds_reach(
+    label: str, fragment: str
+) -> None:
+    """Red first. Folding scaffolding may not fold the difference between two claims."""
+    assert not claim_holds(fragment), (
+        f"{label}: the ring accepted a statement that claims exhaustion of the CORPUS. "
+        f"A proof that overclaims is worse than none, and a normaliser that cannot tell "
+        f"these apart has stopped asserting anything: {fragment!r}"
+    )
+
+
+def test_the_folds_remove_punctuation_and_never_a_letter() -> None:
+    """The structural guarantee behind the folds, asserted rather than asserted-in-prose."""
+    for _medium, fragment in FAITHFUL_RENDERINGS + REWRITES_THAT_MUST_STILL_BE_CAUGHT:
+        before = re.sub(r"[^a-z]", "", fragment.casefold())
+        after = re.sub(r"[^a-z]", "", normalise(fragment))
+        assert before == after, (
+            f"normalise() changed the letters of {fragment!r}: {before!r} -> {after!r}. "
+            "It may fold case, whitespace, emphasis and line scaffolding, and nothing else."
+        )
 
 
 @pytest.mark.parametrize(("label", "target"), DOWNSTREAM_CLAIMANTS, ids=str)

@@ -344,7 +344,19 @@ def build_inventory(root: Path, dists: list[Distribution], policy: Policy) -> di
 
 RATCHET_RELPATH = "qa/mypy-ratchet.json"
 _ERROR_LINE = re.compile(r"^(?P<path>.+?):\d+(?::\d+)?: error: ")
-_CHECKED = re.compile(r"checked (\d+) source files?")
+
+#: How big the run was. mypy prints this in ONE of two lines and never both:
+#:
+#:     Found 12 errors in 5 files (checked 477 source files)
+#:     Success: no issues found in 659 source files
+#:
+#: MEASURED 2026-08-10: matching only the first spelling is a defect that gets worse as
+#: the tree gets better. A clean run recorded `source_files_checked: 0`, and a ratchet
+#: reading "0 errors over 0 files" is indistinguishable from a run that never happened —
+#: which is precisely the vacuous green this script exists to make impossible. The same
+#: single-spelling assumption is why `test_one_run_covers_the_workspace_...` asserted
+#: `"checked" in output` and therefore could only pass while mypy was FAILING.
+_CHECKED = re.compile(r"(?:checked|no issues found in) (\d+) source files?")
 _UNUSED = re.compile(r"unused section\(s\): (?P<sections>.+)$")
 
 
@@ -476,22 +488,15 @@ def build_ratchet(
     }
 
 
-def ratchet_command(
-    root: Path, config_path: Path, dists: list[Distribution], policy: Policy, *, write: bool
-) -> int:
-    counts, unused, checked, output = run_mypy(root, config_path, dists)
-    entries = ratchet_entries(dists, policy, counts)
-    fresh = build_ratchet(root, entries, counts, checked, unused)
-    path = root / RATCHET_RELPATH
-    if write:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps(fresh, indent=2) + "\n", encoding="utf-8")
-        print(f"wrote {RATCHET_RELPATH}: {fresh['total_errors']} error(s) over {checked} files")
-        return 0
-    if not path.is_file():
-        print(f"{RATCHET_RELPATH} does not exist; run --write-ratchet", file=sys.stderr)
-        return 1
-    recorded = json.loads(path.read_text(encoding="utf-8"))["distributions"]
+def compare_to_recorded(
+    entries: dict[str, dict[str, object]], recorded: dict[str, dict[str, object]]
+) -> tuple[list[str], list[str]]:
+    """This run against the banked one: what went up, and what came down.
+
+    A distribution the ratchet has never seen is a REGRESSION, not a novelty: the whole
+    mechanism is that a package cannot join the tree and acquire a published number
+    without somebody re-taking it and saying so.
+    """
     regressions: list[str] = []
     improvements: list[str] = []
     for module, entry in entries.items():
@@ -510,6 +515,40 @@ def ratchet_command(
             regressions.append(f"{module}: {was} -> {now}")
         elif now < was:
             improvements.append(f"{module}: {was} -> {now}")
+    return regressions, improvements
+
+
+def ratchet_command(
+    root: Path, config_path: Path, dists: list[Distribution], policy: Policy, *, write: bool
+) -> int:
+    counts, unused, checked, output = run_mypy(root, config_path, dists)
+    targets = [d.package for d in dists if d.exists]
+    if targets and not checked:
+        # Anti-vacuity, and it guards BOTH modes. mypy always prints how many source
+        # files it looked at; a run that reports none against a non-empty target list
+        # did not happen — a crash, a config error, an unparsed completion line. Banking
+        # that as a ratchet would freeze "0 errors" as the published number for a tree
+        # nobody type-checked, and freezing zero is worse than freezing a large truth.
+        print(
+            f"REFUSED: mypy reported no source-file count over {len(targets)} target(s). "
+            "A ratchet taken from a run that checked nothing certifies nothing.",
+            file=sys.stderr,
+        )
+        sys.stderr.write(output)
+        return 1
+    entries = ratchet_entries(dists, policy, counts)
+    fresh = build_ratchet(root, entries, counts, checked, unused)
+    path = root / RATCHET_RELPATH
+    if write:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(fresh, indent=2) + "\n", encoding="utf-8")
+        print(f"wrote {RATCHET_RELPATH}: {fresh['total_errors']} error(s) over {checked} files")
+        return 0
+    if not path.is_file():
+        print(f"{RATCHET_RELPATH} does not exist; run --write-ratchet", file=sys.stderr)
+        return 1
+    recorded = json.loads(path.read_text(encoding="utf-8"))["distributions"]
+    regressions, improvements = compare_to_recorded(entries, recorded)
     for line in improvements:
         print(f"IMPROVED {line}  (run --write-ratchet to bank it)")
     for line in regressions:

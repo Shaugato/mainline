@@ -250,9 +250,220 @@ jobs:
         # "cannot determine". That is the right reading HERE and only here: a suite that
         # will not collect certainly has no passing tests, so the pending law is
         # satisfied — vacuously, and the collection error is printed either way.
+        #
+        # THE OUTPUT IS CAPTURED, AND THE EXIT STATUS IS NOT. `tee` is in the pipeline so
+        # the step after this one can name the held invariants without re-running a
+        # three-minute suite; `PIPESTATUS[0]` is then re-raised verbatim. This is not a
+        # `|| true` in disguise — nothing is swallowed, the status the ratchet returned is
+        # the status this step exits with, and `set -o pipefail` would abort before the
+        # capture could be used, which is why it is spelled out instead.
         env:
           TRAPPOINT_DSN: ${{ env.LOCAL_DSN }}
-        run: uv run --frozen python scripts/mi_ratchet.py red --on-collect-error-red
+        run: |
+          set -uo pipefail
+          uv run --frozen python scripts/mi_ratchet.py red --on-collect-error-red 2>&1 \
+            | tee mi-red.log
+          status="${PIPESTATUS[0]}"
+          echo "scripts/mi_ratchet.py red exited ${status} (0 held, 1 law broken, 2 cannot determine)"
+          exit "${status}"
+
+      - name: The invariants this lane is HOLDING, and why none may be promoted
+        # R3: an intentional red must name its missing artefact and its owner, in the log.
+        #
+        # `mi_ratchet.py red` already prints the mechanism, the located object and the
+        # passing tests. What it cannot print from inside the red law is the BAND OWNER —
+        # `owners_of()` is only wired into the unwitnessed report — and what no message
+        # yet says is the ruling: that these are held deliberately, that the equation
+        # "the owning tests pass" == "the invariant is enforced" is false for each of
+        # them, and that the fix is to STRENGTHEN the owning tests until they fail.
+        #
+        # Everything below is DERIVED. The held ids come from the ratchet's own refusal
+        # line (`RED_VIOLATION_PREFIX`, a constant this reads rather than restates), the
+        # objects from `locate_mechanisms` over the real migration tree, the owners from
+        # `migrations.allocation.toml`. Nothing about MI06/MI10/MI21/MI22/MI27 is written
+        # into this file: a hand-listed set of five would be a lie the day a sixth joins.
+        if: failure()
+        run: |
+          set -euo pipefail
+          cat > mi-held-ledger.py <<'PY'
+          """Name every held invariant: the absent object, the too-weak test, the owner."""
+
+          from __future__ import annotations
+
+          import ast
+          import re
+          import sys
+          from pathlib import Path
+
+          sys.path.insert(0, "scripts")
+          import mi_ratchet as mi
+
+          for stream in (sys.stdout, sys.stderr):
+              if hasattr(stream, "reconfigure"):
+                  stream.reconfigure(encoding="utf-8", errors="replace")
+
+          ANSI = re.compile(r"\x1b\[[0-9;]*m")
+          HELD = re.compile(r"^REFUSED: (MI\d\d) " + re.escape(mi.RED_VIOLATION_PREFIX) + r"\s*$")
+          NODEID = re.compile(r"^\s{6}(tests/\S+::\S+)\s*$")
+
+          transcript = Path(sys.argv[1])
+          if not transcript.is_file():
+              print(f"no mi-red transcript at {transcript}: an earlier step failed first.")
+              raise SystemExit(0)
+
+          held: dict[str, list[str]] = {}
+          current: str | None = None
+          for raw in ANSI.sub("", transcript.read_text(encoding="utf-8", errors="replace")).splitlines():
+              found = HELD.match(raw)
+              if found:
+                  current = found.group(1)
+                  held[current] = []
+                  continue
+              if current is None:
+                  continue
+              node = NODEID.match(raw)
+              if node:
+                  held[current].append(node.group(1))
+              elif raw.startswith("REFUSED:") or (raw and not raw.startswith(" ")):
+                  current = None
+
+          if not held:
+              print("mi-red named no held invariant in this transcript; the red is elsewhere.")
+              raise SystemExit(0)
+
+          root = mi.REPO_ROOT
+          catalogue = mi.load_catalogue(root / mi.CATALOGUE_RELPATH)
+          bodies = mi.read_migration_bodies(root / mi.MIGRATIONS_RELPATH)
+          objects = mi.locate_mechanisms(catalogue, bodies)
+          bands = mi.load_bands(root / mi.ALLOCATION_RELPATH)
+          sources: dict[str, str] = {}
+
+
+          def function_text(nodeid: str) -> str:
+              """The source of one test FUNCTION, never of its module.
+
+              Module scope flatters: a sibling test in the same file often names the
+              SQLSTATE, and a module-wide grep would report ten witnesses where there
+              may be none.
+              """
+              rel, _, name = nodeid.partition("::")
+              name = name.rsplit("::", 1)[-1]
+              if rel not in sources:
+                  path = root / rel
+                  sources[rel] = path.read_text(encoding="utf-8", errors="replace") if path.is_file() else ""
+              text = sources[rel]
+              if not text:
+                  return ""
+              try:
+                  tree = ast.parse(text)
+              except SyntaxError:
+                  return text
+              for node in ast.walk(tree):
+                  if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name == name:
+                      return ast.get_source_segment(text, node) or ""
+              return ""
+
+
+          names = ", ".join(sorted(held))
+          print(
+              f"::error title=db-schema is red on purpose::{len(held)} invariant(s) HELD "
+              f"pending — {names}. None may be promoted; the ledger names the absent "
+              f"object, the too-weak owning test and the owner for each."
+          )
+          print("## db-schema — RED ON PURPOSE. Every invariant it is holding, and why.")
+          print("")
+          print(
+              f"`mi_ratchet.py red` asked for {len(held)} promotion(s): {names}. Not one of "
+              "them may be made. The ratchet's law is *the owning tests all pass*; the "
+              "catalogue's claim is *the invariant is enforced*; and those are the same "
+              "sentence only when a passing test would FAIL if the mechanism were dropped. "
+              "For these, they are not."
+          )
+          print("")
+          print("| invariant | object §16 names | in the tree? | passing owning tests | owner |")
+          print("|---|---|---|---|---|")
+          for mi_id in sorted(held):
+              inv = catalogue.by_id(mi_id)
+              found = objects.get(mi_id, ())
+              absent = [o.name for o in found if o.state == mi.OBJECT_ABSENT]
+              shown = ", ".join(f"`{o.name}`" for o in found) or "*names no SQL identifier*"
+              verdict = (
+                  f"**ABSENT: {', '.join(absent)}**"
+                  if absent
+                  else ("present" if found else "not locatable by name")
+              )
+              owners = mi.owners_of(inv.owning_migrations, bands) or ("unallocated",)
+              print(f"| {mi_id} | {shown} | {verdict} | {len(held[mi_id])} | {'; '.join(owners)} |")
+          print("")
+
+          for mi_id in sorted(held):
+              inv = catalogue.by_id(mi_id)
+              found = objects.get(mi_id, ())
+              absent = [o for o in found if o.state == mi.OBJECT_ABSENT]
+              present = [o for o in found if o.state != mi.OBJECT_ABSENT]
+              codes = tuple(inv.sqlstate)
+              passing = held[mi_id]
+              blind = [n for n in passing if not any(c in function_text(n) for c in codes)]
+              owners = mi.owners_of(inv.owning_migrations, bands) or ("unallocated — no band claims these",)
+              print(f"### {mi_id} — HELD pending. Promoting it would record a claim nobody measured.")
+              print("")
+              print(f"* **statement** — {inv.statement}")
+              print(f'* **mechanism (§16)** — "{inv.mechanism}", refuses {"/".join(codes)}')
+              for obj in absent:
+                  print(
+                      f"* **the object that does not exist** — `{obj.name}` is in none of the "
+                      f"{obj.searched} files under `{mi.MIGRATIONS_RELPATH}`. Every mention of "
+                      f"it is a `--` comment. No test can be exercising it, so `enforced` would "
+                      f"be a statement about an object the database has never had."
+                  )
+              for obj in present:
+                  where = ", ".join(obj.files[:3]) or "—"
+                  more = f" (+{len(obj.files) - 3} more)" if len(obj.files) > 3 else ""
+                  print(f"* **present** — `{obj.name}` ({obj.state}) in {where}{more}")
+              if not found:
+                  print(
+                      f"* **the object that does not exist** — cannot be answered by name: §16's "
+                      f"mechanism column for {mi_id} names no SQL identifier, so there is nothing "
+                      f"to look for. Its only locator is the `-- MI:` citation on "
+                      f"{len(inv.owning_migrations)} migrations. An invariant whose enforcing "
+                      f"object cannot even be named is not one to promote on a green test run."
+                  )
+              print(f"* **the owning tests that are too weak to notice** — {len(passing)} passing:")
+              for node in passing:
+                  mark = (
+                      f"its body never names {'/'.join(codes)}"
+                      if node in blind
+                      else f"its body names {'/'.join(codes)}"
+                  )
+                  if absent:
+                      mark += f"; either way it cannot exercise `{absent[0].name}`, which is absent"
+                  print(f"  * `{node}` — {mark}")
+              if blind:
+                  print(
+                      f"  * measured: {len(blind)} of {len(passing)} passing owning test(s) do "
+                      f"not contain {' or '.join(codes)} anywhere in the FUNCTION body. A "
+                      f"witness for {mi_id} has to observe that refusal; a body that never "
+                      f"names it cannot have observed it."
+                  )
+              print(f"* **owner** — {'; '.join(owners)}")
+              print(
+                  f"* **the fix, and it is not a promotion** — strengthen {mi_id}'s owning "
+                  f"tests until at least one of them FAILS: a test that makes "
+                  f"{'/'.join(codes)} the assertion and would go red if the mechanism were "
+                  f"dropped. `mi-red` then holds because the law is satisfied, and the "
+                  f"promotion that follows is a measurement rather than a bookkeeping entry."
+              )
+              print("")
+
+          print(
+              "**This job stays red.** No `continue-on-error`, no `|| true`, no threshold "
+              "moved, no status flipped. The red is the true statement: "
+              f"{len(held)} invariant(s) are pending, their owning tests pass, and those two "
+              "facts do not contradict each other because the tests are too weak to tell."
+          )
+          PY
+          uv run --frozen python mi-held-ledger.py mi-red.log | tee mi-held.md
+          cat mi-held.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: mi-green — every enforced invariant's owning tests must pass
         # The cluster above is why this job is not hermetic. `green` refuses to certify
@@ -280,7 +491,14 @@ jobs:
 
       - name: Record the ratchet's position in the job summary
         if: always()
+        # `|| true` used to sit on the `report` call below and it is gone. A suppression
+        # in a summary step is still a suppression: it turns "the catalogue could not be
+        # read" into an empty code fence, and an empty fence in a summary reads as "there
+        # was nothing to say". `report` is hermetic — it reads the catalogue, the
+        # migration headers and the allocation table, none of which depend on the cluster
+        # — so if it cannot answer, that is a finding and this step is entitled to fail.
         run: |
+          set -euo pipefail
           {
             echo "## db-schema — the MI ratchet"
             echo ""
@@ -290,7 +508,7 @@ jobs:
             echo "| digest | \`${{ steps.digest.outputs.digest }}\` |"
             echo ""
             echo '```'
-            uv run --frozen python scripts/mi_ratchet.py report 2>&1 | tail -8 || true
+            uv run --frozen python scripts/mi_ratchet.py report 2>&1 | tail -8
             echo '```'
             echo ""
             echo "**PL-2.** \`pending\` does not mean unwritten — it means no owning test has"
@@ -305,4 +523,15 @@ jobs:
 
       - name: Tear down
         if: always()
-        run: docker rm -f trappoint-schema-crdb || true
+        # A conditional, not a suppression. `|| true` here would also hide a `docker rm`
+        # that failed for a reason worth knowing — a daemon that has stopped answering,
+        # a container wedged in `Removal In Progress`. The only expected non-failure is
+        # "the container was never created", because an earlier step failed before
+        # `docker run`, and that case is tested for by name rather than swallowed.
+        run: |
+          set -euo pipefail
+          if [ -n "$(docker ps -aq --filter 'name=^trappoint-schema-crdb$')" ]; then
+            docker rm -f trappoint-schema-crdb
+          else
+            echo "no container named trappoint-schema-crdb exists; nothing to tear down"
+          fi
