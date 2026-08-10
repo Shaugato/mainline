@@ -98,6 +98,153 @@ jobs:
       - name: GREEN — the published surface carries no forbidden claim
         run: python scripts/demo/claim_hygiene.py
 
+  # ── 1b · AND THE RED HALF ITSELF IS CHECKED FOR VACUITY ─────────────────────────────
+  #
+  # An anti-vacuity job can be vacuous. Three ways, all of them silent:
+  #
+  #   * a rule is added to `RULES` and no planted violation is added anywhere, so the
+  #     lane has never once demonstrated that it can catch that family;
+  #   * the fixture exits non-zero for a reason that is not its planted claims — a parse
+  #     error, a missing file, a scanner that crashes — and `--check` returning 1 is read
+  #     as "the scanner fired" when it means "the scanner fell over";
+  #   * a sentence in the fixture is only ever refused *in company*, so removing every
+  #     other sentence would make it pass and it plants nothing.
+  #
+  # MEASURED 2026-08-10 on the pinned interpreter, and it is the reason this job is not
+  # decorative: `claim_hygiene.py --self-test` plants **4** families
+  # (`SELF_TEST_EXPECTED`), and `RULES` declares **21**. The remaining seventeen are
+  # covered by `scripts/demo/fixtures/claim-hygiene-red.md`, which fires all twenty-one.
+  # The union is therefore complete today — and this job is what keeps it complete: add a
+  # twenty-second rule without a planted sentence and this lane goes red naming it.
+  anti-vacuity:
+    name: the red half is red for the reason it claims
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install the one dependency
+        run: python -m pip install --disable-pip-version-check "PyYAML>=6"
+
+      - name: Every declared rule is reached by a planted violation, and the plants are load-bearing
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import importlib.util
+          import subprocess
+          import sys
+          import tempfile
+          from pathlib import Path
+
+          ROOT = Path.cwd().resolve()
+          SCANNER = ROOT / "scripts" / "demo" / "claim_hygiene.py"
+          FIXTURE = ROOT / "scripts" / "demo" / "fixtures" / "claim-hygiene-red.md"
+
+          spec = importlib.util.spec_from_file_location("claim_hygiene", SCANNER)
+          module = importlib.util.module_from_spec(spec)
+          sys.modules["claim_hygiene"] = module
+          spec.loader.exec_module(module)
+
+          DECLARED = {rule.rule_id for rule in module.RULES} | {
+              "HYG-bare-invariant",
+              "HYG-sha-literal",
+          }
+          PLANTED_IN_SELF_TEST = set(module.SELF_TEST_EXPECTED)
+          failures: list[str] = []
+
+
+          def run(paths):
+              done = subprocess.run(
+                  [sys.executable, str(SCANNER), "--check", *[str(p) for p in paths]],
+                  capture_output=True, text=True, cwd=str(ROOT), check=False,
+              )
+              return done.returncode, done.stdout + done.stderr
+
+
+          def fired(output):
+              return {rule for rule in DECLARED if f"[{rule}]" in output}
+
+          # ── 1 · every declared rule has a planted violation somewhere ────────────────
+          code, output = run([FIXTURE])
+          by_fixture = fired(output)
+          covered = PLANTED_IN_SELF_TEST | by_fixture
+          print(f"declared rules           : {len(DECLARED)}")
+          print(f"planted by --self-test   : {len(PLANTED_IN_SELF_TEST)}")
+          print(f"fired by the red fixture : {len(by_fixture)}")
+          print(f"reached by some plant    : {len(covered)}")
+          if code == 0:
+              failures.append(
+                  "FAMILY fixture-not-refused: the committed non-compliant fixture exited 0. "
+                  "The lane's red half proves nothing."
+              )
+          for rule_id in sorted(DECLARED - covered):
+              failures.append(
+                  f"UNPLANTED FAMILY {rule_id}: no planted violation anywhere makes this rule "
+                  "fire, so this lane has never demonstrated that it can catch it. Add a "
+                  "sentence to scripts/demo/fixtures/claim-hygiene-red.md or to "
+                  "SELF_TEST_FIXTURE in scripts/demo/claim_hygiene.py."
+              )
+
+          # ── 2 · each planted sentence, ALONE, is refused and names a rule ────────────
+          lines = FIXTURE.read_text(encoding="utf-8").splitlines()
+          body = lines[lines.index("# A page that must not pass") + 1:]
+          claims = [line for line in body if line.strip()]
+          print(f"sentences in the fixture : {len(claims)}")
+          with tempfile.TemporaryDirectory() as tmp:
+              scratch = Path(tmp)
+              for index, line in enumerate(claims):
+                  single = scratch / f"single-{index:02d}.md"
+                  single.write_text(f"# planted\n\n{line}\n", encoding="utf-8")
+                  one_code, one_output = run([single])
+                  if one_code == 0 or not fired(one_output):
+                      failures.append(
+                          "FAMILY sentence-not-refused: this fixture sentence is refused only "
+                          "in company and never on its own, so it plants nothing: "
+                          f"{line.strip()[:110]}"
+                      )
+
+              # ── 3 · with every violation removed the SAME scanner exits 0 ────────────
+              stripped = scratch / "stripped.md"
+              stripped.write_text(
+                  "# A page with the plants removed\n\nNothing here claims anything.\n",
+                  encoding="utf-8",
+              )
+              zero_code, zero_output = run([stripped])
+              print(f"stripped copy exit       : {zero_code}")
+              if zero_code != 0:
+                  failures.append(
+                      "FAMILY red-for-the-wrong-reason: a copy of the fixture with every "
+                      f"planted claim removed STILL exits {zero_code}, so the red half's "
+                      "non-zero exit is not caused by its planted violations:\n"
+                      + zero_output.strip()[:400]
+                  )
+
+          for failure in failures:
+              print(f"::error title=claim-hygiene red half is vacuous::{failure}")
+          if failures:
+              raise SystemExit(1)
+          print("")
+          print(
+              f"{len(DECLARED)} declared rules, every one reached by a planted violation; "
+              f"{len(claims)} fixture sentences, each refused on its own; and the same "
+              "scanner exits 0 once the plants are removed."
+          )
+          PY
+
+      - name: The tracked tree was never mutated
+        run: |
+          set -euo pipefail
+          dirty="$(git status --porcelain --untracked-files=no)"
+          if [ -n "${dirty}" ]; then
+            echo "::error::this job mutated the checkout. Every plant belongs in a scratch copy."
+            echo "${dirty}"
+            exit 1
+          fi
+          echo "working tree clean — every planted violation lived in a temporary directory"
+
   # ── 2 · the video is eligible, and it is eligible by arithmetic ─────────────────────
   schedule:
     name: shot lists, budget and voice-over
@@ -160,10 +307,23 @@ jobs:
         # A card with an untraceable value cannot be produced — `fact()` raises instead —
         # so this asserts the ledger is non-trivial and that every entry names a source.
         run: |
-          python verticals/mainline/demo/honesty/gen_card.py --json --allow-fixtures > /tmp/facts.json || true
+          set -euo pipefail
+          # `|| true` is banned in this repository, and it was masking a real distinction
+          # here: `gen_card.py --json` exits 3 when at least one value came from a fixture,
+          # which is expected today, and any other non-zero exit is a broken generator whose
+          # output the block below would then parse as an empty file.
+          set +e
+          python verticals/mainline/demo/honesty/gen_card.py --json --allow-fixtures \
+            > "$RUNNER_TEMP/facts.json"
+          status=$?
+          set -e
+          case "$status" in
+            0|3) ;;
+            *) echo "::error::gen_card.py --json exited $status; there is no ledger to trace"; exit "$status" ;;
+          esac
           python - <<'PY'
-          import json, sys, pathlib
-          data = json.loads(pathlib.Path("/tmp/facts.json").read_text(encoding="utf-8"))
+          import json, os, sys, pathlib
+          data = json.loads(pathlib.Path(os.environ["RUNNER_TEMP"], "facts.json").read_text(encoding="utf-8"))
           facts = data["facts"]
           if len(facts) < 30:
               sys.exit(f"only {len(facts)} traced values on the card; expected the full set")

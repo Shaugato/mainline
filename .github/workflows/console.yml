@@ -131,6 +131,8 @@ jobs:
 
       - name: What this lane proved
         if: always()
+        # See the `can-fail` job below: this table is a list of promises, and until
+        # 2026-08-10 not one of them had been shown to be breakable.
         run: |
           {
             echo "## console"
@@ -152,4 +154,266 @@ jobs:
             echo "cluster; the surface's promise that it re-derives every claim it shows is"
             echo "asserted by the Playwright suite (\`pnpm run test:browser\`), which is not run"
             echo "here because it needs a live backend. See \`docs/release/ci-map.md\`."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # ─────────────────────────────────────────────────────────────────────────────────────
+  # `pnpm run ci` IS ONE SHELL COMMAND CHAINED WITH `&&`, AND THAT IS AN ASSUMPTION.
+  #
+  # The job above delegates the whole lane to `pnpm run ci`, on the correct argument that
+  # a developer and the runner must be executing the same thing. The cost of that
+  # delegation is that the lane's six promises are held by a string in `package.json`
+  # rather than by six steps GitHub can see. If one sub-command stops propagating its exit
+  # status — an `||`, a script that catches and reports, a `pnpm` flag change, a tool that
+  # starts warning where it used to fail — the lane goes on printing six green ticks over
+  # a check that no longer runs, and nothing else in this repository would notice.
+  #
+  # So this job plants ONE violation per promise into a scratch copy of the console and
+  # requires the COMPOSITE command to fail on each, naming the family. Not the sub-command
+  # in isolation: `eslint` returning 1 proves nothing about whether `pnpm run ci` returns
+  # 1, and it is the composite this lane reports on.
+  #
+  # NOTHING IN THE CHECKOUT IS MUTATED. Every plant is written into `$RUNNER_TEMP`, and
+  # the last step asserts `git status --porcelain --untracked-files=no` is empty. The
+  # scratch copy is run GREEN before the first mutation, so a red below is attributable to
+  # its plant rather than to the copying.
+  # ─────────────────────────────────────────────────────────────────────────────────────
+  can-fail:
+    name: RED — pnpm run ci fails on every planted violation family
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Deny egress except to the npm registry
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            objects.githubusercontent.com:443
+            registry.npmjs.org:443
+            nodejs.org:443
+
+      - uses: actions/checkout@v4
+
+      - name: pnpm, at the version package.json names
+        uses: pnpm/action-setup@v4
+        with:
+          package_json_file: verticals/mainline/apps/console/package.json
+
+      - name: Node, with the pnpm store cached
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: pnpm
+          cache-dependency-path: verticals/mainline/apps/console/pnpm-lock.yaml
+
+      - name: A scratch copy of the console, outside the checkout
+        # The SOURCE is copied and `node_modules` is REBUILT rather than copied. Copying
+        # it would mean copying the symlink farm pnpm lays down under `node_modules/.pnpm`
+        # — several hundred megabytes of links whose survival is a property of the copy
+        # tool, not of this repository, and a broken link there would show up as a lint
+        # error that looks exactly like a planted one. `pnpm install` in the copy rebuilds
+        # the farm from the warm store by hard link, which is both faster and honest.
+        #
+        # `dist/`, `coverage/` and the Playwright outputs are excluded: `vite build` writes
+        # `dist/`, and a stale one would let the budget check measure a bundle this run did
+        # not produce.
+        run: |
+          set -euo pipefail
+          src="verticals/mainline/apps/console"
+          work="$RUNNER_TEMP/console-mutant"
+          rm -rf "$work"
+          mkdir -p "$work"
+          tar -C "$src" \
+            --exclude=./node_modules --exclude=./dist --exclude=./coverage \
+            --exclude=./test-results --exclude=./playwright-report \
+            -cf - . | tar -C "$work" -xf -
+          echo "scratch copy: $work"
+          ls -1 "$work"
+
+      - name: pnpm install --frozen-lockfile, in the scratch copy
+        working-directory: ${{ runner.temp }}/console-mutant
+        run: pnpm install --frozen-lockfile
+
+      - name: GREEN CONTROL — the unmutated copy passes, so every red below is attributable
+        working-directory: ${{ runner.temp }}/console-mutant
+        run: pnpm run ci
+
+      - name: RED — one planted violation per promise, and the COMPOSITE must name each
+        env:
+          WORK: ${{ runner.temp }}/console-mutant
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import os
+          import pathlib
+          import shutil
+          import subprocess
+
+          WORK = pathlib.Path(os.environ["WORK"])
+          SRC = pathlib.Path("verticals/mainline/apps/console").resolve()
+          failures: list[str] = []
+
+          # (family, the promise it breaks, what to plant, substrings the log must carry)
+          FAMILIES = (
+              (
+                  "eslint-register-boundary",
+                  "`eslint . --max-warnings 0` — no lint finding, not even a warning",
+                  {"src/app/planted_register_violation.ts":
+                   "import 'three';\n\nexport const plantedRegisterViolation = true;\n"},
+                  ("EVIDENCE register: no GPU rendering", "no-restricted-imports"),
+              ),
+              (
+                  "typescript-type-error",
+                  "`tsc -p tsconfig.json --noEmit` — the app type-checks",
+                  {"src/app/planted_type_error.ts":
+                   "export const plantedTypeError: number = 'not a number';\n"},
+                  ("TS2322", "planted_type_error"),
+              ),
+              (
+                  "vitest-failing-case",
+                  "`vitest run` — the unit suite passes under jsdom",
+                  {"tests/unit/planted_failing.test.ts":
+                   "import { describe, expect, it } from 'vitest';\n\n"
+                   "describe('planted anti-vacuity violation', () => {\n"
+                   "  it('PLANTED-VITEST-FAILURE - an assertion that must fail', () => {\n"
+                   "    expect(1).toBe(2);\n"
+                   "  });\n"
+                   "});\n"},
+                  ("PLANTED-VITEST-FAILURE",),
+              ),
+              (
+                  "bundle-over-budget",
+                  "`check:budgets` — D13, bundle budgets are tests and they held",
+                  {"__budget__": ""},
+                  ("[evidentiary-shell]", "exceeds"),
+              ),
+              (
+                  "denied-dependency-by-name",
+                  "`check:licences` — every shipped dependency is permissive and named",
+                  {"__dependency__": "gsap==3.13.0"},
+                  ("DENIED", "gsap"),
+              ),
+              (
+                  "non-permissive-licence-in-the-runtime-closure",
+                  "`check:licences` — no copyleft in the RUNTIME closure",
+                  # `axe-core` is MPL-2.0 and is already in this tree, reached through
+                  # `@axe-core/playwright` in the DEV closure where MPL-2.0 is an itemised,
+                  # defensible exception. Promoting it to `dependencies` moves it into the
+                  # RUNTIME closure, where it is not allowed — which is the scope
+                  # distinction that carries the whole point of the file, and the one a
+                  # synthetic package with a made-up licence would not exercise.
+                  {"__dependency__": "axe-core==4.12.1"},
+                  ("NOT ALLOWED", "MPL-2.0", "runtime"),
+              ),
+          )
+
+
+          def reset():
+              """Restore every file a plant can touch, from the checkout, before each family."""
+              for relative in ("package.json", "budgets.json", "pnpm-lock.yaml"):
+                  shutil.copyfile(SRC / relative, WORK / relative)
+              for planted in sorted(WORK.joinpath("src").rglob("planted_*.ts")):
+                  planted.unlink()
+              for planted in sorted(WORK.joinpath("tests/unit").glob("planted_*.test.ts")):
+                  planted.unlink()
+
+
+          def plant(files):
+              for relative, body in files.items():
+                  if relative == "__budget__":
+                      budgets = json.loads((WORK / "budgets.json").read_text("utf-8"))
+                      for budget in budgets["budgets"]:
+                          if budget["id"] == "evidentiary-shell":
+                              budget["max_gzip_bytes"] = 1024
+                              budget["max_gzip_human"] = "1 KB"
+                      (WORK / "budgets.json").write_text(
+                          json.dumps(budgets, indent=2) + "\n", encoding="utf-8")
+                  elif relative == "__dependency__":
+                      # A DECLARED dependency, not a hand-built directory under
+                      # `node_modules/`. MEASURED 2026-08-10 with pnpm 11.5.3: `pnpm run`
+                      # verifies the installed tree against `package.json` before it runs
+                      # anything, so a package that is only on disk is moved aside to
+                      # `node_modules/.ignored` and a package that is only declared is
+                      # fetched. Both plants therefore name real, resolvable versions and
+                      # let pnpm install them — which is also what a real regression would
+                      # look like.
+                      name, _, version = body.partition("==")
+                      manifest = json.loads((WORK / "package.json").read_text("utf-8"))
+                      manifest["dependencies"][name] = version
+                      (WORK / "package.json").write_text(
+                          json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+                  else:
+                      target = WORK / relative
+                      target.parent.mkdir(parents=True, exist_ok=True)
+                      target.write_text(body, encoding="utf-8")
+
+
+          for family, promise, files, needles in FAMILIES:
+              reset()
+              plant(files)
+              done = subprocess.run(
+                  ["pnpm", "run", "ci"],
+                  capture_output=True, text=True, cwd=str(WORK), check=False,
+              )
+              log = done.stdout + done.stderr
+              if done.returncode == 0:
+                  failures.append(
+                      f"PLANTED FAMILY {family}: `pnpm run ci` EXITED 0 with this violation "
+                      f"planted. The promise it breaks is: {promise}. A composite command "
+                      "whose sub-steps swallow failures prints six green ticks over a check "
+                      "that no longer runs."
+                  )
+                  continue
+              absent = [needle for needle in needles if needle not in log]
+              if absent:
+                  failures.append(
+                      f"PLANTED FAMILY {family}: `pnpm run ci` exited {done.returncode}, but "
+                      f"its output never names {absent}. An assertion that a program failed, "
+                      "without checking WHY, passes when the program fails to start, so this "
+                      f"is not evidence that the promise holds.\n{log[-1500:]}"
+                  )
+                  continue
+              print(f"  REFUSED  {family}  (exit {done.returncode})  -> {', '.join(needles)}")
+
+          reset()
+          for failure in failures:
+              print(f"::error title=console lane is vacuous::{failure}")
+          if failures:
+              raise SystemExit(1)
+          print("")
+          print(f"{len(FAMILIES)} planted violations, every one of them failing the WHOLE "
+                "`pnpm run ci` chain and naming its family in the log.")
+          PY
+
+      - name: The tracked tree was never mutated
+        run: |
+          set -euo pipefail
+          dirty="$(git status --porcelain --untracked-files=no)"
+          if [ -n "${dirty}" ]; then
+            echo "::error::this job mutated the checkout. Every plant belongs in a scratch copy."
+            echo "${dirty}"
+            exit 1
+          fi
+          echo "working tree clean — every planted violation lived under \$RUNNER_TEMP"
+
+      - name: What the red half proved
+        if: always()
+        run: |
+          {
+            echo "## console — the lane can say no"
+            echo ""
+            echo "| planted violation | promise it breaks | the log must name |"
+            echo "|---|---|---|"
+            echo "| a 3D import in an EVIDENCE-register file | \`eslint --max-warnings 0\` | \`EVIDENCE register: no GPU rendering\` |"
+            echo "| \`const x: number = 'a string'\` | \`tsc --noEmit\` | \`TS2322\` |"
+            echo "| \`expect(1).toBe(2)\` | \`vitest run\` | \`PLANTED-VITEST-FAILURE\` |"
+            echo "| the entry budget lowered to 1 KB | \`check:budgets\` | \`[evidentiary-shell] … exceeds\` |"
+            echo "| \`gsap\` declared as a dependency | \`check:licences\` | \`DENIED  gsap\` |"
+            echo "| \`axe-core\` (MPL-2.0) promoted to runtime | \`check:licences\` | \`NOT ALLOWED … (runtime) is \"MPL-2.0\"\` |"
+            echo ""
+            echo "Each one is driven through the WHOLE \`pnpm run ci\` chain rather than through"
+            echo "its own sub-command. \`eslint\` exiting 1 is not evidence that \`pnpm run ci\`"
+            echo "exits 1, and the composite is what this lane reports on."
           } >> "$GITHUB_STEP_SUMMARY"

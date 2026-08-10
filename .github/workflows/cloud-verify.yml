@@ -102,7 +102,7 @@ jobs:
   # prints the secret and never puts it in an output — only whether it is non-empty.
   # ---------------------------------------------------------------------------------
   preflight:
-    name: is there a Cloud cluster to verify against?
+    name: is there a Cloud cluster to verify against? (and can it say no?)
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     outputs:
@@ -116,23 +116,131 @@ jobs:
             api.github.com:443
             github.com:443
 
-      - name: Is CRDB_CLOUD_DSN set?
+      - uses: actions/checkout@v4
+
+      # ---------------------------------------------------------------------------
+      # THE NEGATIVE CONTROL THIS LANE COULD NOT HAVE, AND NOW DOES.
+      #
+      # `skipped-loudly` is the complement of `verify`, so on a run where the secret
+      # IS set — every run since it was set — the skip path executes zero times. The
+      # honesty this whole file is built on was therefore asserted by nothing but the
+      # text of an `if:` expression. A lane whose failure path never runs has a
+      # failure path nobody has tested.
+      #
+      # So the probe is a FILE, and it is exercised four times before it is trusted
+      # once: with no secret, with a loopback DSN, with a `.local` DSN, and finally
+      # with the real one. The three red cases run on every scheduled run, whether or
+      # not the credential is present, and none of them can see its value.
+      # ---------------------------------------------------------------------------
+      - name: The probe, written once so its red half cannot drift from its green half
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/anti-vacuity"
+          cat > "$RUNNER_TEMP/anti-vacuity/probe.py" <<'PY'
+          """Decide whether there is a CockroachDB Cloud cluster to verify against.
+
+          Reads $CLOUD_DSN. Prints `has-cluster=true` or `has-cluster=false` and a reason.
+          Exits 1 — never `false` — when the DSN is present but points somewhere that is
+          not Cloud, because "the secret is set to localhost" is a misconfiguration and
+          reporting it as "no cluster" would hide it behind a legitimate-looking skip.
+
+          The VALUE is never printed. On refusal the HOST is, because a DSN that has
+          fallen back to a loopback address has no secret left in the part being named.
+          """
+          import os
+          import sys
+          from urllib.parse import urlsplit
+
+          dsn = os.environ.get("CLOUD_DSN", "")
+          if not dsn:
+              print("has-cluster=false")
+              print("REASON: the repository secret CRDB_CLOUD_DSN is not set, so no "
+                    "CockroachDB Cloud cluster can be contacted")
+              raise SystemExit(0)
+
+          host = (urlsplit(dsn).hostname or "").lower()
+          if host in {"localhost", "127.0.0.1", "::1", ""} or host.endswith(".local"):
+              print(f"::error title=CRDB_CLOUD_DSN is not Cloud::the secret resolves to "
+                    f"{host!r} — that is not CockroachDB Cloud, and every assertion in "
+                    "this lane would pass against it while proving nothing about the "
+                    "managed platform it claims to measure")
+              raise SystemExit(1)
+
+          print("has-cluster=true")
+          # Presence only. Not the value, and not its length either: a length is a fact
+          # about a credential, and facts about credentials belong in no log.
+          print("REASON: CRDB_CLOUD_DSN is present and does not resolve to a loopback host")
+          PY
+          echo "wrote $RUNNER_TEMP/anti-vacuity/probe.py"
+
+      - name: RED — with no secret the probe says false, and says why
+        env:
+          CLOUD_DSN: ""
+        run: |
+          set -euo pipefail
+          out="$(python3 "$RUNNER_TEMP/anti-vacuity/probe.py")"
+          echo "${out}"
+          case "${out}" in
+            *"has-cluster=false"*) ;;
+            *) echo "::error title=cloud-verify can be vacuous::with no secret the probe did not report has-cluster=false. The verify job is gated on that string, so this lane would run its assertions against nothing, or skip in silence."; exit 1 ;;
+          esac
+          case "${out}" in
+            *"CRDB_CLOUD_DSN is not set"*) echo "and it names the missing secret, as it must" ;;
+            *) echo "::error title=cloud-verify can be vacuous::the probe reported false without naming CRDB_CLOUD_DSN. A skip that does not say what is missing is a skip nobody will act on."; exit 1 ;;
+          esac
+
+      - name: RED — a DSN that is not Cloud is a FAILURE, never a quiet false
+        run: |
+          set -euo pipefail
+          for host in "127.0.0.1:26257" "localhost:26257" "crdb.local:26257"; do
+            set +e
+            out="$(CLOUD_DSN="postgresql://root@${host}/defaultdb?sslmode=disable" \
+              python3 "$RUNNER_TEMP/anti-vacuity/probe.py" 2>&1)"
+            code=$?
+            set -e
+            echo "${host} -> exit ${code}"
+            if [ "${code}" -eq 0 ]; then
+              echo "::error title=cloud-verify can be vacuous::the probe ACCEPTED ${host}. A DSN that has silently fallen back to a local node makes every assertion in this lane pass while proving nothing about CockroachDB Cloud — which is precisely what this workflow exists to refuse."
+              exit 1
+            fi
+            case "${out}" in
+              *"is not CockroachDB Cloud"*) echo "  refused, and the message names the family" ;;
+              *) echo "::error title=cloud-verify can be vacuous::exit ${code} for ${host} but the message does not name the family: ${out}"; exit 1 ;;
+            esac
+          done
+
+      - name: RED — the gate and its complement are both still declared
+        # The three checks above prove the probe can say no. This one proves the answer
+        # is still WIRED to anything: `verify` must be gated on the boolean, and
+        # `skipped-loudly` must run in exactly the complement, or this workflow can
+        # report a green tick for an assertion it never made.
+        run: |
+          set -euo pipefail
+          file=".github/workflows/cloud-verify.yml"
+          missing=0
+          grep -qF "if: needs.preflight.outputs.has-cluster == 'true'" "${file}" || {
+            echo "::error file=${file}::the verify job is no longer gated on has-cluster == 'true'. Without that gate this lane runs its Cloud assertions with no Cloud credential, or reports success for assertions it never made."
+            missing=1
+          }
+          grep -qF "if: needs.preflight.outputs.has-cluster != 'true'" "${file}" || {
+            echo "::error file=${file}::the skipped-loudly job no longer runs in the complement of the verify gate. The workflow can then say NOTHING about a run with no credential, which is the exact silence its header forbids."
+            missing=1
+          }
+          [ "${missing}" -eq 0 ]
+          echo "both halves of the gate are declared: verify on 'true', skipped-loudly on its complement"
+
+      - name: GREEN — is CRDB_CLOUD_DSN set?
         id: probe
         env:
-          # Quoted into a variable and tested for emptiness. The value is never echoed,
-          # never written to an output, and never interpolated into a `run:` body.
+          # Quoted into a variable and tested by the same file the three red cases above
+          # ran. The value is never echoed, never written to an output, and never
+          # interpolated into a `run:` body.
           CLOUD_DSN: ${{ secrets.CRDB_CLOUD_DSN }}
         run: |
           set -euo pipefail
-          if [ -n "${CLOUD_DSN}" ]; then
-            echo "has-cluster=true" >> "$GITHUB_OUTPUT"
-            # Presence only. Not the value, and not its length either: a length is a
-            # fact about a credential, and facts about credentials belong in no log.
-            echo "CRDB_CLOUD_DSN is present; the verify job will run"
-          else
-            echo "has-cluster=false" >> "$GITHUB_OUTPUT"
-            echo "CRDB_CLOUD_DSN is absent; the verify job will be skipped, loudly"
-          fi
+          out="$(python3 "$RUNNER_TEMP/anti-vacuity/probe.py")"
+          echo "${out}"
+          echo "${out}" | grep -E '^has-cluster=(true|false)$' >> "$GITHUB_OUTPUT"
 
   # ---------------------------------------------------------------------------------
   verify:
@@ -356,3 +464,291 @@ jobs:
             echo "Inference: ${INFERENCE_REGION}. The two halves are in different countries."
           } >> "$GITHUB_STEP_SUMMARY"
           echo "${reason}"
+
+  # ---------------------------------------------------------------------------------
+  # THE RETRY CONTRACT, EXERCISED RATHER THAN ASSUMED.
+  #
+  # The header of this file lists `40001` as one of three things the lane exists to catch,
+  # and the `skipped-loudly` table says "`40001` is rare on a laptop and ordinary on a
+  # shared cluster". Both sentences were true and neither was a test: no run of this
+  # repository had ever produced a serialization restart, so the retry loop that the whole
+  # gate service is built on — `trappoint_core.retry.run_gate` — had never met the error
+  # it exists for outside a unit test with a fake exception.
+  #
+  # "Rare on a laptop" is a statement about ACCIDENTAL contention. A CONSTRUCTED read-write
+  # cycle produces `RETRY_SERIALIZABLE` on a single node, deterministically, and this job
+  # does exactly that: transaction A reads key 1 and writes key 2, transaction B reads key
+  # 2 and writes key 1, and neither can be ordered before the other. MEASURED 2026-08-10
+  # against CockroachDB v26.2.5 on the pinned image:
+  #
+  #     observed sqlstate : 40001
+  #     observed message  : restart transaction: TransactionRetryWithProtoRefreshError:
+  #                         TransactionRetryError: retry txn (RETRY_SERIALIZABLE) …
+  #     run_gate attempts : 2  retries recorded: [(0, '40001', 0.0166)]
+  #     max_attempts=1    : RetryBudgetExhausted: 40001 after 1 attempt(s) in 1.013s:
+  #                         the transaction is undecided, not refused
+  #
+  # THREE FAMILIES, and the first of them is the anti-vacuity one:
+  #
+  #   not-exercised            no 40001 was produced at all. The contract would then be
+  #                            ASSUMED, and this job reports that as a failure rather than
+  #                            printing "no contention observed" and going green.
+  #   retry-never-taken        a 40001 arrived and `run_gate` did not record a retry, so
+  #                            the ladder was never walked.
+  #   budget-swallows-40001    with `max_attempts=1` the conflicting transaction reported
+  #                            SUCCESS, or surfaced as a refusal. An undecided transaction
+  #                            reported as decided is the worst outcome available here, and
+  #                            it is the one `spec/errors.md` §4 is written against.
+  #
+  # NO CREDENTIAL. This runs on the pinned local image, so it holds whether or not
+  # `CRDB_CLOUD_DSN` is set — which is the point: the lane's most load-bearing platform
+  # claim stops depending on a secret only the maintainer has.
+  # ---------------------------------------------------------------------------------
+  retry-contract:
+    name: a real 40001 RETRY_SERIALIZABLE, and the loop that must not swallow it
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      RETRY_DSN: "postgresql://root@127.0.0.1:26257/defaultdb?sslmode=disable"
+      RETRY_DATABASE: "ci_retry_contract"
+      PGCONNECT_TIMEOUT: "10"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Assert the image pin agrees with compose.yaml
+        id: image
+        run: |
+          set -euo pipefail
+          pinned="cockroachdb/cockroach:v26.2.5"
+          found="$(sed -n 's|.*\(cockroachdb/cockroach:v[0-9]\{1,\}\.[0-9]\{1,\}\.[0-9]\{1,\}\).*|\1|p' compose.yaml | head -n1)"
+          if [ -n "$found" ] && [ "$found" != "$pinned" ]; then
+            echo "::error::compose.yaml pins $found but this workflow pins $pinned."
+            exit 1
+          fi
+          echo "image=$pinned" >> "$GITHUB_OUTPUT"
+
+      - name: Start the single-node cluster
+        run: |
+          set -euo pipefail
+          docker run -d --name mainline-crdb-retry \
+            -p 26257:26257 \
+            --health-cmd="curl -fsS http://127.0.0.1:8080/health?ready=1 || exit 1" \
+            --health-interval=3s --health-retries=40 --health-start-period=5s \
+            "${{ steps.image.outputs.image }}" \
+            start-single-node --insecure --store=type=mem,size=2GiB \
+            --cache=.25 --max-sql-memory=.25
+          for _ in $(seq 1 60); do
+            state="$(docker inspect -f '{{.State.Health.Status}}' mainline-crdb-retry)"
+            [ "$state" = "healthy" ] && break
+            sleep 2
+          done
+          docker exec mainline-crdb-retry ./cockroach sql --insecure -e "SELECT version();"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install the retry loop and a driver, and nothing else
+        # `--no-deps -e packages/trappoint-core` for the same reason `release-proof.yml`
+        # does it: this assertion must not become un-runnable because the workspace
+        # lockfile is behind.
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          python -m pip install "psycopg[binary,pool]>=3.3.4"
+          python -m pip install --no-deps -e packages/trappoint-core
+          python -c "from trappoint_core.retry import run_gate; print('run_gate imported')"
+
+      - name: EXERCISE — construct a real 40001 and drive it through run_gate
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import os
+          import threading
+          import time
+
+          import psycopg
+
+          from trappoint_core.errors import RETRYABLE_SQLSTATE, RetryBudgetExhausted
+          from trappoint_core.retry import RecordingObserver, RetryPolicy, run_gate
+
+          DSN = os.environ["RETRY_DSN"]
+          DATABASE = os.environ["RETRY_DATABASE"]
+          failures: list[str] = []
+
+          head, _, tail = DSN.rpartition("/")
+          query = "?" + tail.split("?", 1)[1] if "?" in tail else ""
+          with psycopg.connect(DSN, autocommit=True, connect_timeout=20) as admin:
+              admin.execute(f"DROP DATABASE IF EXISTS {DATABASE} CASCADE")
+              admin.execute(f"CREATE DATABASE {DATABASE}")
+          WORK = f"{head}/{DATABASE}{query}"
+          with psycopg.connect(WORK, autocommit=True, connect_timeout=20) as conn:
+              conn.execute("CREATE TABLE contended (id INT8 PRIMARY KEY, v INT8 NOT NULL)")
+              conn.execute("INSERT INTO contended (id, v) VALUES (1, 0), (2, 0)")
+
+          # ── 1 · a real 40001, observed, with RETRY_SERIALIZABLE in its text ──────────
+          a = psycopg.connect(WORK, connect_timeout=20)
+          b = psycopg.connect(WORK, connect_timeout=20)
+          seen: dict[str, tuple[str | None, str]] = {}
+          try:
+              ca, cb = a.cursor(), b.cursor()
+              ca.execute("SELECT v FROM contended WHERE id = 1")
+              cb.execute("SELECT v FROM contended WHERE id = 2")
+              ca.execute("UPDATE contended SET v = v + 1 WHERE id = 2")
+
+              def partner():
+                  try:
+                      cb.execute("UPDATE contended SET v = v + 1 WHERE id = 1")
+                      b.commit()
+                  except psycopg.Error as exc:
+                      seen["b"] = (exc.diag.sqlstate if exc.diag else None,
+                                   str(exc).splitlines()[0])
+
+              thread = threading.Thread(target=partner, daemon=True)
+              thread.start()
+              time.sleep(1.0)
+              try:
+                  a.commit()
+                  seen["a"] = (None, "committed with no retry error")
+              except psycopg.Error as exc:
+                  seen["a"] = (exc.diag.sqlstate if exc.diag else None,
+                               str(exc).splitlines()[0])
+              thread.join(timeout=30)
+          finally:
+              a.close()
+              b.close()
+
+          state, message = None, ""
+          for who in ("a", "b"):
+              got, text = seen.get(who, (None, "committed"))
+              if got == RETRYABLE_SQLSTATE:
+                  state, message = got, text
+                  break
+          print(f"observed sqlstate : {state}")
+          print(f"observed message  : {message[:220]}")
+          if state != RETRYABLE_SQLSTATE:
+              failures.append(
+                  "PLANTED FAMILY not-exercised: the constructed read-write cycle produced "
+                  f"no 40001 (saw {sorted((k, v[0]) for k, v in seen.items())}). The retry "
+                  "contract would be ASSUMED rather than exercised, and this lane may not "
+                  "report success for it."
+              )
+          elif "RETRY_SERIALIZABLE" not in message:
+              failures.append(
+                  "PLANTED FAMILY wrong-retry-reason: a 40001 arrived but its text does not "
+                  f"say RETRY_SERIALIZABLE: {message[:200]}"
+              )
+
+          # ── 2 · run_gate RETRIES it, and records the retry rather than inferring it ──
+          attempts = {"n": 0}
+
+          def operation() -> int:
+              attempts["n"] += 1
+              conn = psycopg.connect(WORK, connect_timeout=20)
+              try:
+                  cur = conn.cursor()
+                  cur.execute("SELECT v FROM contended WHERE id = 1")
+                  if attempts["n"] == 1:
+                      rival = psycopg.connect(WORK, connect_timeout=20)
+                      rc = rival.cursor()
+                      rc.execute("SELECT v FROM contended WHERE id = 2")
+                      cur.execute("UPDATE contended SET v = v + 1 WHERE id = 2")
+
+                      def write_and_commit():
+                          try:
+                              rc.execute("UPDATE contended SET v = v + 1 WHERE id = 1")
+                              rival.commit()
+                          except psycopg.Error:
+                              pass
+                          finally:
+                              rival.close()
+
+                      rival_thread = threading.Thread(target=write_and_commit, daemon=True)
+                      rival_thread.start()
+                      time.sleep(1.0)
+                  else:
+                      cur.execute("UPDATE contended SET v = v + 1 WHERE id = 2")
+                  conn.commit()
+                  return attempts["n"]
+              finally:
+                  conn.close()
+
+          observer = RecordingObserver()
+          converged = True
+          try:
+              run_gate(operation, observer=observer, policy=RetryPolicy(max_attempts=5))
+          except Exception as exc:  # noqa: BLE001 - reported, never swallowed
+              converged = False
+              print(f"run_gate raised {type(exc).__name__}: {exc}")
+          print(f"run_gate attempts : {attempts['n']}  retries: {observer.retries}")
+          if not [r for r in observer.retries if r[1] == RETRYABLE_SQLSTATE]:
+              failures.append(
+                  "PLANTED FAMILY retry-never-taken: run_gate recorded no 40001 retry, so "
+                  "the backoff ladder was never walked and the contract is untested."
+              )
+          if not converged:
+              failures.append(
+                  "PLANTED FAMILY retry-does-not-converge: run_gate did not complete after "
+                  "retrying a 40001. A retry loop that cannot converge is not a retry loop."
+              )
+
+          # ── 3 · with no budget the 40001 SURFACES; it is never reported as success ───
+          attempts["n"] = 0
+          surfaced = None
+          try:
+              run_gate(operation, observer=RecordingObserver(),
+                       policy=RetryPolicy(max_attempts=1))
+          except RetryBudgetExhausted as exc:
+              surfaced = f"RetryBudgetExhausted: {exc}"
+          except Exception as exc:  # noqa: BLE001
+              surfaced = f"{type(exc).__name__}: {exc}"
+          print(f"max_attempts=1    : {surfaced}")
+          if surfaced is None:
+              failures.append(
+                  "PLANTED FAMILY budget-swallows-40001: with max_attempts=1 the conflicting "
+                  "transaction reported SUCCESS. A retry loop that reports success for an "
+                  "undecided transaction is the worst outcome available here."
+              )
+          elif "RetryBudgetExhausted" not in surfaced:
+              failures.append(
+                  "PLANTED FAMILY budget-misclassifies-40001: with max_attempts=1 the 40001 "
+                  f"surfaced as {surfaced[:160]} rather than RetryBudgetExhausted. An "
+                  "undecided transaction reported as a refusal is a false refusal, and "
+                  "spec/errors.md §4 says a refusal is attempted exactly once, ever."
+              )
+
+          for failure in failures:
+              print(f"::error title=the 40001 contract is assumed, not exercised::{failure}")
+          if failures:
+              raise SystemExit(1)
+          print("")
+          print("the 40001 retry contract was EXERCISED against a live cluster: a real "
+                "RETRY_SERIALIZABLE was produced, run_gate retried it and converged, and "
+                "with no budget it surfaced as RetryBudgetExhausted rather than success.")
+          PY
+
+      - name: What this job proved
+        if: always()
+        run: |
+          {
+            echo "## the 40001 retry contract"
+            echo ""
+            echo "| family | what a failure would mean |"
+            echo "|---|---|"
+            echo "| \`not-exercised\` | no serialization restart was produced at all, so the contract is assumed |"
+            echo "| \`wrong-retry-reason\` | a 40001 arrived that is not a \`RETRY_SERIALIZABLE\` |"
+            echo "| \`retry-never-taken\` | \`run_gate\` met the error and did not walk its ladder |"
+            echo "| \`retry-does-not-converge\` | the loop retries and never finishes |"
+            echo "| \`budget-swallows-40001\` | an UNDECIDED transaction reported as success |"
+            echo "| \`budget-misclassifies-40001\` | an undecided transaction reported as a refusal |"
+            echo ""
+            echo "\`40001\` is rare on a single node **by accident** and ordinary under a"
+            echo "constructed read-write cycle. This job constructs one, so the claim that the"
+            echo "retry contract holds stops being a sentence in a header and starts being a"
+            echo "run. It needs **no credential**, so it holds on every run of this lane"
+            echo "whether or not \`CRDB_CLOUD_DSN\` is set."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Stop the cluster
+        if: always()
+        run: docker rm -f mainline-crdb-retry || echo "(no container to remove)"

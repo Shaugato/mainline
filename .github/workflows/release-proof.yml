@@ -80,7 +80,10 @@ jobs:
         run: |
           set -euo pipefail
           pinned="cockroachdb/cockroach:v26.2.5"
-          found="$(grep -oE 'cockroachdb/cockroach:v[0-9]+\.[0-9]+\.[0-9]+' compose.yaml | head -n1 || true)"
+          # `sed -n …p` prints nothing and exits 0 when compose.yaml names no image, so
+          # the empty case is handled by the `if` below rather than by `|| true`, which
+          # this repository bans because it is how a real failure becomes a silence.
+          found="$(sed -n 's|.*\(cockroachdb/cockroach:v[0-9]\{1,\}\.[0-9]\{1,\}\.[0-9]\{1,\}\).*|\1|p' compose.yaml | head -n1)"
           if [ -n "$found" ] && [ "$found" != "$pinned" ]; then
             echo "::error::compose.yaml pins $found but this workflow pins $pinned."
             echo "The image pin is one constant. Two copies is two things to forget."
@@ -174,10 +177,114 @@ jobs:
           if-no-files-found: error
           retention-days: 90
 
-      - name: Assert the proof from the release suite
+      - name: The release-suite gate, written once so its red half cannot drift from it
+        # MEASURED 2026-08-10, and it is why this gate exists at all.
+        # `tests/release/test_gate_refusal_proof.py` SKIPS when the proof cannot reach a
+        # cluster — correctly, because "there was no database" is not evidence that the
+        # gate admitted anything. But **pytest exits 0 when every test skips**:
+        #
+        #     $ MAINLINE_TEST_DSN=…:26299 python -m pytest tests/release/… -q --crdb=none
+        #     15 skipped in 21.47s
+        #     EXITCODE=0
+        #
+        # so the bare invocation this step used to carry reported the product's central
+        # claim as held on a run where nothing was proved. The junit report closes it: a
+        # count is a number, and a summary line is a sentence.
+        #
+        # It is a FILE because the next two steps use it twice — once against a run with
+        # nothing to prove against, which it must refuse, and once against the real run,
+        # which it must accept. A gate and its negative control that are two copies of the
+        # same text are two things to keep in step, and the one that drifts is the one
+        # nobody is watching.
         run: |
           set -euo pipefail
-          python -m pytest tests/release/test_gate_refusal_proof.py -q --no-header -p no:cacheprovider
+          mkdir -p "$RUNNER_TEMP/anti-vacuity"
+          cat > "$RUNNER_TEMP/anti-vacuity/assert_release_suite.py" <<'PY'
+          """Refuse a release-suite run that skipped, collected too little, or failed."""
+          import sys
+          import xml.etree.ElementTree as ET
+
+          root = ET.parse(sys.argv[1]).getroot()
+          suite = root if root.tag == "testsuite" else root.find("testsuite")
+          if suite is None:
+              sys.exit("::error::pytest wrote no testsuite element; nothing was collected")
+          tests = int(suite.get("tests", "0"))
+          skipped = int(suite.get("skipped", "0"))
+          failed = int(suite.get("failures", "0")) + int(suite.get("errors", "0"))
+          print(f"release suite: {tests} test(s), {skipped} skipped, {failed} failed")
+          if tests < 15:
+              sys.exit(
+                  f"::error::only {tests} release assertion(s) ran; this module carried 15 on "
+                  "2026-08-10, and an assertion deleted rather than fixed is a claim quietly "
+                  "withdrawn"
+              )
+          if skipped:
+              sys.exit(
+                  f"::error::{skipped} of {tests} release assertions were SKIPPED. A skip here "
+                  "means the proof could not reach a cluster, and pytest exits 0 on an "
+                  "all-skipped run — so without this line the step would report the product's "
+                  "central claim as held on a run where NOTHING WAS PROVED."
+              )
+          if failed:
+              sys.exit(f"::error::{failed} release assertion(s) failed")
+          print("every release assertion ran, none of them skipped")
+          PY
+          echo "wrote $RUNNER_TEMP/anti-vacuity/assert_release_suite.py"
+
+      - name: RED — the gate refuses a run where nothing was proved
+        # Every DSN spelling points at a closed port and `--crdb=none` stops the testkit
+        # from starting a container of its own, so the proof exits 2, every assertion
+        # skips, and pytest exits 0. This step asserts BOTH halves of the defect: that the
+        # bare run really does exit 0, and that the gate above refuses it by name.
+        #
+        # The mutation is four environment variables scoped to this step. It cannot reach
+        # the green half below, which runs under the workflow's own DSNs against the
+        # cluster this job started.
+        env:
+          PGCONNECT_TIMEOUT: "3"
+          MAINLINE_TEST_DSN: "postgresql://root@127.0.0.1:26299/defaultdb?sslmode=disable"
+          TRAPPOINT_DSN: "postgresql://root@127.0.0.1:26299/defaultdb?sslmode=disable"
+          COCKROACH_URL: "postgresql://root@127.0.0.1:26299/defaultdb?sslmode=disable"
+          CRDB_URL: "postgresql://root@127.0.0.1:26299/defaultdb?sslmode=disable"
+          LOCAL_DSN: "postgresql://root@127.0.0.1:26299/defaultdb?sslmode=disable"
+        run: |
+          set -euo pipefail
+          report="$RUNNER_TEMP/nothing-proved.junit.xml"
+          set +e
+          python -m pytest tests/release/test_gate_refusal_proof.py \
+            -q --no-header -p no:cacheprovider --crdb=none --junit-xml="$report" > "$RUNNER_TEMP/bare.log" 2>&1
+          bare=$?
+          set -e
+          tail -n 5 "$RUNNER_TEMP/bare.log"
+          echo "the BARE pytest invocation exited ${bare} with nothing to prove against"
+          if [ "${bare}" -ne 0 ]; then
+            echo "::error title=release-suite control did not reach its state::the bare run exited ${bare}, not 0. This control describes an ALL-SKIPPED run that pytest reports as success; something answered on the closed port, or the module stopped skipping, or --crdb=none was not accepted."
+            exit 1
+          fi
+          set +e
+          out="$(python "$RUNNER_TEMP/anti-vacuity/assert_release_suite.py" "$report" 2>&1)"
+          gated=$?
+          set -e
+          echo "${out}"
+          if [ "${gated}" -eq 0 ]; then
+            echo "::error title=release suite is vacuous::the gate ACCEPTED a run in which every assertion skipped. The step below would report the product's central claim as held on a run where nothing was proved."
+            exit 1
+          fi
+          case "${out}" in
+            *"were SKIPPED"*)
+              echo "CONFIRMED: bare pytest exits 0 on an all-skipped run, and the gate refuses it by name." ;;
+            *)
+              echo "::error title=release suite is vacuous::the gate exited ${gated} but its message does not name the skips. An assertion that a program failed, without checking WHY, passes when the program fails to start."
+              exit 1 ;;
+          esac
+
+      - name: GREEN — assert the proof from the release suite
+        run: |
+          set -euo pipefail
+          report="$RUNNER_TEMP/release-proof.junit.xml"
+          python -m pytest tests/release/test_gate_refusal_proof.py \
+            -q --no-header -p no:cacheprovider --junit-xml="$report"
+          python "$RUNNER_TEMP/anti-vacuity/assert_release_suite.py" "$report"
 
       - name: Summarise
         if: always()
@@ -225,8 +332,217 @@ jobs:
 
       - name: Cluster logs on failure
         if: failure()
-        run: docker logs mainline-crdb --tail 200 || true
+        run: docker logs mainline-crdb --tail 200 || echo "(no container logs — it never started)"
 
       - name: Stop the cluster
         if: always()
-        run: docker rm -f mainline-crdb || true
+        run: docker rm -f mainline-crdb || echo "(no container to remove)"
+
+  # ─────────────────────────────────────────────────────────────────────────────────────
+  # THE MOST IMPORTANT NEGATIVE CONTROL IN THIS REPOSITORY.
+  #
+  # The job above proves the product's central claim: the database refuses the merge. A
+  # lane that can only ever say PROVEN says nothing. Two schema families are planted here,
+  # each into a SCRATCH COPY of the migration tree under `$RUNNER_TEMP` — the checkout is
+  # never touched, and `--migrations` is an option `gate_refusal.py` already carries, so
+  # this runs the lane's own checker against a mutated copy of the lane's own input.
+  #
+  #   gate-disabled       `gate_closed_when_issued` weakened to a tautology in a copy of
+  #                       `0050_permit.sql`. MEASURED 2026-08-10 against CockroachDB
+  #                       v26.2.5: chain 271/271 applied, `REFUSAL ADMITTED [00000]`,
+  #                       `! CF-01: the merge was ADMITTED with an open obligation`,
+  #                       `VERDICT NOT PROVEN`, exit 1.
+  #   expected-sqlstate   `fn_permit_merge_gate` raising `22000` instead of `P0001` in a
+  #                       copy of `0115_fn_permit_merge_gate.sql`. MEASURED the same day:
+  #                       `DRIFT REFUSED [22000]`, `! CF-03: expected SQLSTATE P0001,
+  #                       observed 22000`, `VERDICT NOT PROVEN`, exit 1. A refusal for the
+  #                       wrong reason is the failure mode a bare "did it raise?" check
+  #                       cannot see, and it is why this family is planted separately.
+  #
+  # Both plants are asserted to have an ANCHOR first. A `str.replace` whose anchor has
+  # been renamed away plants nothing and raises nothing, and the control then passes over
+  # an unmutated tree — which is how an anti-vacuity job silently stops being one.
+  #
+  # The third family, "a run where nothing was proved", lives in the `prove` job above,
+  # beside the gate it is the control for.
+  # ─────────────────────────────────────────────────────────────────────────────────────
+  can-fail:
+    name: RED — the proof reports NOT PROVEN when the gate is removed
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Assert the image pin agrees with compose.yaml
+        id: image
+        run: |
+          set -euo pipefail
+          pinned="cockroachdb/cockroach:v26.2.5"
+          # `sed -n …p` prints nothing and exits 0 when compose.yaml names no image, so
+          # the empty case is handled by the `if` below rather than by `|| true`, which
+          # this repository bans because it is how a real failure becomes a silence.
+          found="$(sed -n 's|.*\(cockroachdb/cockroach:v[0-9]\{1,\}\.[0-9]\{1,\}\.[0-9]\{1,\}\).*|\1|p' compose.yaml | head -n1)"
+          if [ -n "$found" ] && [ "$found" != "$pinned" ]; then
+            echo "::error::compose.yaml pins $found but this workflow pins $pinned."
+            exit 1
+          fi
+          echo "image=$pinned" >> "$GITHUB_OUTPUT"
+
+      - name: Start the single-node cluster
+        run: |
+          set -euo pipefail
+          docker run -d --name mainline-crdb-red \
+            -p 26257:26257 \
+            --health-cmd="curl -fsS http://127.0.0.1:8080/health?ready=1 || exit 1" \
+            --health-interval=3s --health-retries=40 --health-start-period=5s \
+            "${{ steps.image.outputs.image }}" \
+            start-single-node --insecure --store=type=mem,size=2GiB \
+            --cache=.25 --max-sql-memory=.25
+          for _ in $(seq 1 60); do
+            state="$(docker inspect -f '{{.State.Health.Status}}' mainline-crdb-red)"
+            [ "$state" = "healthy" ] && break
+            sleep 2
+          done
+          docker exec mainline-crdb-red ./cockroach sql --insecure -e "SELECT version();"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install exactly what the proof needs
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          python -m pip install "psycopg[binary,pool]>=3.3.4" pytest "pytest-timeout>=2.4"
+          python -m pip install --no-deps -e packages/trappoint-migrate
+
+      - name: RED — the proof reports a named FAILURE for every planted family
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import os
+          import pathlib
+          import shutil
+          import subprocess
+          import sys
+
+          ROOT = pathlib.Path.cwd().resolve()
+          PROOF = ROOT / "scripts" / "proof" / "gate_refusal.py"
+          MIGRATIONS = ROOT / "verticals" / "mainline" / "db" / "migrations"
+          TEMP = pathlib.Path(os.environ["RUNNER_TEMP"])
+          DSN = os.environ["LOCAL_DSN"]
+          failures: list[str] = []
+
+          FAMILIES = (
+              (
+                  "gate-disabled",
+                  "0050_permit.sql",
+                  "CHECK (state <> 'merged' OR open_blocking = 0)",
+                  "CHECK (state <> 'merged' OR open_blocking >= 0)",
+                  ("CF-01: the merge was ADMITTED with an open obligation", "NOT PROVEN"),
+              ),
+              (
+                  "expected-sqlstate",
+                  "0115_fn_permit_merge_gate.sql",
+                  "ERRCODE = 'P0001'",
+                  "ERRCODE = '22000'",
+                  ("CF-03: expected SQLSTATE P0001, observed 22000", "NOT PROVEN"),
+              ),
+          )
+
+          for family, filename, anchor, replacement, needles in FAMILIES:
+              work = TEMP / f"migrations-{family}"
+              if work.exists():
+                  shutil.rmtree(work)
+              shutil.copytree(MIGRATIONS, work)
+              target = work / filename
+              text = target.read_text(encoding="utf-8")
+              if anchor not in text:
+                  failures.append(
+                      f"PLANTED FAMILY {family}: the anchor {anchor!r} is no longer present "
+                      f"in {filename}, so NOTHING was planted and this control is vacuous. "
+                      "A no-op mutation is how an anti-vacuity job silently stops being one."
+                  )
+                  continue
+              target.write_text(text.replace(anchor, replacement), encoding="utf-8")
+
+              done = subprocess.run(
+                  [
+                      sys.executable, str(PROOF),
+                      "--dsn", DSN,
+                      "--database", "ci_red_" + family.replace("-", "_"),
+                      "--migrations", str(work),
+                      "--out", str(TEMP / ("proof-" + family + ".json")),
+                  ],
+                  capture_output=True, text=True, cwd=str(ROOT), check=False,
+              )
+              log = done.stdout + done.stderr
+              print(f"--- {family}: exit {done.returncode} ---")
+              print(log[-2000:])
+              if done.returncode == 0:
+                  failures.append(
+                      f"PLANTED FAMILY {family}: `gate_refusal.py` exited 0 against a schema "
+                      "carrying this violation. The proof cannot tell a gate that refuses "
+                      "from a gate that does not, and the central claim of this repository "
+                      "rests on it being able to."
+                  )
+                  continue
+              if done.returncode == 2:
+                  failures.append(
+                      f"PLANTED FAMILY {family}: exit 2 means the proof could not reach the "
+                      "cluster. That is not a statement about the gate, so this control did "
+                      f"not run:\n{log[-800:]}"
+                  )
+                  continue
+              absent = [needle for needle in needles if needle not in log]
+              if absent:
+                  failures.append(
+                      f"PLANTED FAMILY {family}: exit {done.returncode}, but the report never "
+                      f"names {absent}. An assertion that a program failed, without checking "
+                      "WHY, passes when the program fails to start."
+                  )
+                  continue
+              print(f"  REPORTED FAILURE  {family} -> {needles[0]}")
+
+          for failure in failures:
+              print(f"::error title=the proof cannot say NOT PROVEN::{failure}")
+          if failures:
+              raise SystemExit(1)
+          print("")
+          print(f"{len(FAMILIES)} planted schema violations, each turning VERDICT PROVEN into "
+                "VERDICT NOT PROVEN with the failing clause named in the report.")
+          PY
+
+      - name: The tracked tree was never mutated
+        run: |
+          set -euo pipefail
+          dirty="$(git status --porcelain --untracked-files=no)"
+          if [ -n "${dirty}" ]; then
+            echo "::error::this job mutated the checkout. Every plant belongs in a scratch copy."
+            echo "${dirty}"
+            exit 1
+          fi
+          echo "working tree clean — every planted violation lived under \$RUNNER_TEMP"
+
+      - name: What the red half proved
+        if: always()
+        run: |
+          {
+            echo "## release-proof — the lane can say NOT PROVEN"
+            echo ""
+            echo "| planted violation | where | the report must say |"
+            echo "|---|---|---|"
+            echo "| \`gate_closed_when_issued\` weakened to a tautology | scratch copy of \`0050_permit.sql\` | \`CF-01: the merge was ADMITTED with an open obligation\` |"
+            echo "| \`fn_permit_merge_gate\` raising \`22000\` | scratch copy of \`0115_fn_permit_merge_gate.sql\` | \`CF-03: expected SQLSTATE P0001, observed 22000\` |"
+            echo "| no cluster to prove anything against | the \`prove\` job's environment | the release-suite gate must refuse, not skip to green |"
+            echo ""
+            echo "The third one was a LIVE DEFECT until this wave. \`pytest\` exits **0** when"
+            echo "every test skips, and \`test_gate_refusal_proof.py\` skips when the proof cannot"
+            echo "reach a cluster — so \`Assert the proof from the release suite\` reported the"
+            echo "product's central claim as held on a run where nothing was proved. It is"
+            echo "asserted in the \`prove\` job, beside the gate that now closes it."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Stop the cluster
+        if: always()
+        run: docker rm -f mainline-crdb-red || echo "(no container to remove)"

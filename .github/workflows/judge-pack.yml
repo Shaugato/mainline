@@ -78,12 +78,133 @@ jobs:
       - name: RED — one planted violation per family, all of them caught
         run: python verticals/mainline/demo/judge/cli.py self-test
 
+  # ── 1b · the red half's own red half ───────────────────────────────────────────────
+  #
+  # `self-test` mutates a copy of the pack and asks whether the validator noticed. Two
+  # things make that question answerable "yes" while proving nothing, and both are silent:
+  #
+  #   * THE MUTATION DID NOTHING. Six of the nine mutations are `str.replace` against an
+  #     anchor in the shipped SQL (`"site_id, state,"`, `"@cue_scoped_idx"`,
+  #     `"c.tenant_id = $1"`). Rename the column, drop the hint from the pack, and
+  #     `replace` becomes a no-op that raises nothing — the document is unmutated and the
+  #     family reports itself caught.
+  #   * THE FINDING WAS ALREADY THERE. `_fired` asks only whether a `fail` finding with
+  #     that `check` exists. If the REAL pack already fails that check, the family is
+  #     reported caught no matter what the mutation did.
+  #
+  # So this job asserts, against the real pack: every mutation changes the document, every
+  # mutation is caught, and NONE of the nine checks fails on the unmutated pack. Measured
+  # 2026-08-10 on the pinned interpreter: baseline fail-findings `(none)`, nine mutations,
+  # nine document changes, nine catches.
+  anti-vacuity:
+    name: the red half is red for the reason it claims
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install the one dependency
+        run: python -m pip install --disable-pip-version-check "PyYAML>=6"
+
+      - name: Each planted mutation changes the pack, is caught, and is absent without it
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import copy
+          import sys
+          from pathlib import Path
+
+          ROOT = Path.cwd().resolve()
+          JUDGE_DIR = ROOT / "verticals" / "mainline" / "demo" / "judge"
+          sys.path.insert(0, str(JUDGE_DIR.parent))
+
+          from judge import drift as drift_mod
+          from judge.pack import load_pack, parse_pack, validate_pack
+          from judge.selftest import PLANTED
+
+          SOURCE = JUDGE_DIR / "QUESTIONS.yaml"
+          failures: list[str] = []
+          raw = load_pack(SOURCE).raw
+
+
+          def check(document):
+              pack = parse_pack(document, source=SOURCE)
+              findings = validate_pack(pack, repo_root=ROOT)
+              findings.extend(drift_mod.check_drift(pack, repo_root=ROOT, judge_dir=JUDGE_DIR))
+              return findings
+
+          # ── 1 · the UNMUTATED pack fails none of the checks the self-test plants ─────
+          baseline = {f.check for f in check(copy.deepcopy(dict(raw))) if f.severity == "fail"}
+          print(f"fail-findings on the real pack: {sorted(baseline) or '(none)'}")
+          for planted, _ in PLANTED:
+              if planted.check in baseline:
+                  failures.append(
+                      f"VACUOUS FAMILY {planted.check}: the real pack already produces a "
+                      f"`fail` for this check WITHOUT the planted `{planted.name}` violation, "
+                      "so `self-test` would report it caught even if the mutation did nothing."
+                  )
+
+          # ── 2 · every planted mutation actually changes the document ─────────────────
+          for planted, mutate in PLANTED:
+              before = copy.deepcopy(dict(raw))
+              after = copy.deepcopy(dict(raw))
+              mutate(after)
+              if before == after:
+                  failures.append(
+                      f"NO-OP MUTATION {planted.check}: `{planted.name}` left the pack "
+                      "byte-identical. A `str.replace` whose anchor has been renamed away "
+                      "plants nothing and raises nothing, and the self-test then passes "
+                      "over an unmutated document."
+                  )
+                  continue
+              print(f"  mutation changes the pack: {planted.check} ({planted.name})")
+
+          # ── 3 · and each one, present, is reported by the validator ──────────────────
+          for planted, mutate in PLANTED:
+              mutated = copy.deepcopy(dict(raw))
+              mutate(mutated)
+              if not any(
+                  f.check == planted.check and f.severity == "fail" for f in check(mutated)
+              ):
+                  failures.append(
+                      f"UNCAUGHT FAMILY {planted.check}: the planted `{planted.name}` "
+                      "violation was not reported by the validator."
+                  )
+
+          for failure in failures:
+              print(f"::error title=judge-pack self-test is vacuous::{failure}")
+          if failures:
+              raise SystemExit(1)
+          print("")
+          print(
+              f"{len(PLANTED)} planted families: each mutation changes the pack, each is "
+              "caught, and none of them is reported on the unmutated pack."
+          )
+          PY
+
+      - name: The tracked tree was never mutated
+        run: |
+          set -euo pipefail
+          dirty="$(git status --porcelain --untracked-files=no)"
+          if [ -n "${dirty}" ]; then
+            echo "::error::this job mutated the checkout. Every plant belongs in a scratch copy."
+            echo "${dirty}"
+            exit 1
+          fi
+          echo "working tree clean — every mutation lived in an in-memory copy"
+
   # ── 2 · the pack is legal, and it still agrees with the repository ─────────────────
   green:
     name: envelope, negatives, and agreement with the migrations
     runs-on: ubuntu-24.04
     timeout-minutes: 6
-    needs: red
+    # Both red halves first. `red` proves the validator fires; `anti-vacuity` proves it
+    # fires *because* of the plant. A green that runs before either is a green nobody
+    # has established the meaning of.
+    needs: [red, anti-vacuity]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

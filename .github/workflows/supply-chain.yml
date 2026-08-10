@@ -411,7 +411,7 @@ jobs:
           echo "--- end of witness two ---"
           test -s gate-svc.tree.txt
 
-      - name: THE ASSERTION — over the RESOLVED SET, not over the source
+      - name: THE ASSERTION, written to a file so the red half and the green half are one
         # This is the surface the in-repository checks cannot see. `.importlinter`
         # contract 5 checks the IMPORT graph. `mainline_boundary.astscan` checks the
         # SOURCE. `test_no_model_in_closure.py` checks `sys.modules` and
@@ -424,9 +424,21 @@ jobs:
         # that repetition is deliberate: a check and the thing it checks must not share
         # a failure mode. If someone edits the list in the test to make the test pass,
         # this job still fails.
+        #
+        # WHY IT IS A FILE NOW. Until this wave the assertion had never been shown to
+        # REFUSE anything. The anti-vacuity guard below fired six times and the
+        # SECURITY-CLAIM-BROKEN branch had never once been taken, so the branch that the
+        # §8.2 claim actually rests on was untested code. The next two steps run this same
+        # file against mutated copies of the two witnesses and require it to refuse; the
+        # step after that runs it against the real ones. One definition, three uses.
         run: |
           set -euo pipefail
-          python3 - <<'PY'
+          mkdir -p "$RUNNER_TEMP/anti-vacuity"
+          cat > "$RUNNER_TEMP/anti-vacuity/assert_resolved_set.py" <<'PY'
+          """Refuse a model SDK anywhere in mainline-gate-svc's RESOLVED set.
+
+              python assert_resolved_set.py EXPORT_FILE TREE_FILE [--no-summary]
+          """
           import os
           import pathlib
           import re
@@ -486,8 +498,9 @@ jobs:
               name = declared.get("project", {}).get("name")
               return normalise(name) if name else None
 
-          export_path = pathlib.Path("gate-svc.requirements.txt")
-          tree_path = pathlib.Path("gate-svc.tree.txt")
+          export_path = pathlib.Path(sys.argv[1])
+          tree_path = pathlib.Path(sys.argv[2])
+          want_summary = "--no-summary" not in sys.argv[3:]
 
           export_names: set[str] = set()
           pins: list[tuple[str, str]] = []
@@ -535,7 +548,7 @@ jobs:
                   print(f"    {name}")
 
           # ---- the job summary, written BEFORE any exit so a red run shows it too ----
-          summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+          summary_path = os.environ.get("GITHUB_STEP_SUMMARY") if want_summary else None
           if summary_path:
               versions = dict(pin.split("==", 1) for pin, _ in pins)
               markers = {pin.split("==", 1)[0]: marker for pin, marker in pins}
@@ -612,6 +625,129 @@ jobs:
                 f"{len(denied_names)} denied model distributions")
           print("no model SDK in the resolved set; the §8.2 claim holds on this surface")
           PY
+          echo "wrote $RUNNER_TEMP/anti-vacuity/assert_resolved_set.py"
+
+      - name: RED — four planted violations, each refused BY NAME
+        # The witnesses are copied to $RUNNER_TEMP and mutated there. The tracked tree is
+        # never touched, and the step after this one runs the same file against the REAL
+        # witnesses — so a mutation cannot leak into the green half, because the green half
+        # reads different paths.
+        #
+        # `--no-summary` on the red runs: the summary block describes the closure of
+        # `mainline-gate-svc`, and writing a *planted* closure into the job summary would
+        # put a fabricated dependency table next to the real one under the same heading.
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import os
+          import pathlib
+          import shutil
+          import subprocess
+          import sys
+
+          TEMP = pathlib.Path(os.environ["RUNNER_TEMP"])
+          CHECKER = TEMP / "anti-vacuity" / "assert_resolved_set.py"
+          WORK = TEMP / "resolved-set-mutant"
+          WORK.mkdir(parents=True, exist_ok=True)
+          EXPORT = pathlib.Path("gate-svc.requirements.txt")
+          TREE = pathlib.Path("gate-svc.tree.txt")
+          failures: list[str] = []
+
+
+          def run(export, tree):
+              done = subprocess.run(
+                  [sys.executable, str(CHECKER), str(export), str(tree), "--no-summary"],
+                  capture_output=True, text=True, check=False,
+              )
+              return done.returncode, done.stdout + done.stderr
+
+
+          def fresh(family):
+              export = WORK / f"{family}.requirements.txt"
+              tree = WORK / f"{family}.tree.txt"
+              shutil.copyfile(EXPORT, export)
+              shutil.copyfile(TREE, tree)
+              return export, tree
+
+          # The untouched copies first. Without this, "it exited 1" below could be an
+          # artefact of copying rather than of the plant.
+          clean_export, clean_tree = fresh("clean")
+          code, output = run(clean_export, clean_tree)
+          print(f"unmutated copies exit: {code}")
+          if code != 0:
+              failures.append(
+                  "COPIES ARE NOT CLEAN: byte copies of the two witnesses are already "
+                  f"refused, so no refusal below is attributable to a plant:\n{output[-800:]}"
+              )
+
+          FAMILIES = (
+              ("model-sdk-in-the-export", "SECURITY CLAIM BROKEN", "boto3"),
+              ("model-sdk-in-the-tree", "SECURITY CLAIM BROKEN", "anthropic"),
+              ("workspace-member-lost", "vacuous assertion", "mainline-domain"),
+              ("unreadable-path-entry", "vacuous assertion", "could not be read"),
+          )
+
+          for family, title, needle in FAMILIES:
+              export, tree = fresh(family)
+              if family == "model-sdk-in-the-export":
+                  with export.open("a", encoding="utf-8") as handle:
+                      handle.write("boto3==1.40.71\n")
+              elif family == "model-sdk-in-the-tree":
+                  with tree.open("a", encoding="utf-8") as handle:
+                      handle.write("    └── anthropic v0.75.0\n")
+              elif family == "workspace-member-lost":
+                  kept = [
+                      line for line in export.read_text(encoding="utf-8").splitlines()
+                      if "mainline-domain" not in line
+                  ]
+                  export.write_text("\n".join(kept) + "\n", encoding="utf-8")
+              elif family == "unreadable-path-entry":
+                  with export.open("a", encoding="utf-8") as handle:
+                      handle.write("-e ./packages/there-is-no-such-distribution\n")
+
+              code, output = run(export, tree)
+              if code == 0:
+                  failures.append(
+                      f"PLANTED FAMILY {family}: the assertion ACCEPTED it. The §8.2 claim "
+                      "rests on this branch and this branch does not fire."
+                  )
+              elif title not in output or needle not in output:
+                  failures.append(
+                      f"PLANTED FAMILY {family}: exit {code}, but the message does not carry "
+                      f"both {title!r} and {needle!r}. An assertion that a program failed, "
+                      "without checking WHY, passes when the program fails to start.\n"
+                      + output[-800:]
+                  )
+              else:
+                  print(f"  REFUSED  {family}: {title} / {needle}")
+
+          for failure in failures:
+              print(f"::error title=resolved-set assertion is vacuous::{failure}")
+          if failures:
+              raise SystemExit(1)
+          print("")
+          print(f"{len(FAMILIES)} planted violations, every one refused by name. The "
+                "SECURITY-CLAIM-BROKEN branch is now executed on every run of this lane, "
+                "which it had never been before 2026-08-10.")
+          PY
+
+      - name: GREEN — the assertion, over the REAL resolved set
+        # The same file, the tracked witnesses, and the job summary written for real.
+        run: |
+          set -euo pipefail
+          python3 "$RUNNER_TEMP/anti-vacuity/assert_resolved_set.py" \
+            gate-svc.requirements.txt gate-svc.tree.txt
+
+      - name: The tracked tree was never mutated
+        run: |
+          set -euo pipefail
+          dirty="$(git status --porcelain --untracked-files=no)"
+          if [ -n "${dirty}" ]; then
+            echo "::error::this job mutated the checkout. Every plant belongs in a scratch copy."
+            echo "${dirty}"
+            exit 1
+          fi
+          echo "working tree clean — every planted violation lived under \$RUNNER_TEMP"
 
       - name: The other surfaces, as the gate service itself asserts them
         # Runtime `sys.modules`, declared `importlib.metadata` walked transitively with
