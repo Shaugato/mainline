@@ -120,7 +120,13 @@ RESULT_COLUMNS: Final[tuple[str, ...]] = (
     "kind",
     "class_id",
     "fixture_id",
-    "family",
+    # NOT "family". `FAMILY` is a reserved keyword in CockroachDB (column families), and a
+    # bare `family` in this column list is `42601` at the INSERT — quoting the DDL alone
+    # would have moved the failure from migration time to run time. The DDL column is
+    # `mutation_family`; the Python attribute below is still `result.family`, because that
+    # one is a dataclass field and never a SQL identifier. This tuple is the only place the
+    # two vocabularies meet, so it is the only place the mapping is written.
+    "mutation_family",
     "outcome",
     "success",
     "outcome_reason",
@@ -231,7 +237,7 @@ def result_params(output: RunOutput, *, run_id: uuid.UUID) -> list[tuple[Any, ..
                 result.kind,
                 result.class_id,
                 result.fixture_id,
-                result.family,
+                result.family,  # -> the `mutation_family` column; see RESULT_COLUMNS
                 result.outcome,
                 result.success,
                 result.outcome_reason,

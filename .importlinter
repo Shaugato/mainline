@@ -1,40 +1,97 @@
 ; SPDX-FileCopyrightText: 2026 MAINLINE contributors
 ; SPDX-License-Identifier: Apache-2.0
 ;
-; FOUR CONTRACTS. Not three, not five. BUILD_PLAN.md §3 K1 names them, and each one
-; exists because a claim made elsewhere in the repository is false without it:
+; SEVEN CONTRACTS, and TWENTY-NINE ROOT PACKAGES. Both numbers moved on 2026-08-10 and
+; each move closed a measured hole rather than adding a rule.
 ;
-;   1. licence-boundary  — "the substrate is Apache-2.0 and forkable" is a lie the
-;                          moment an Apache distribution imports an FSL one, because
-;                          the fork cannot then be built.
+; THE HOLE IN `root_packages`. This file used to name FIVE root packages against
+; TWENTY-SEVEN distributions on disk. Import-linter builds a real import graph over its
+; roots and over nothing else, so the other twenty-two packages were not being linted by
+; ANY contract — including `trappoint-core`, which holds the retry loop contract 4 exists
+; to protect. The registry mechanism described below is what was supposed to prevent
+; that; it is now implemented, in `scripts/qa/check_import_registry.py`, and it refuses a
+; build when a distribution appears in neither `root_packages` nor a contract's
+; `forbidden_modules`.
+;
+; WHY EACH CONTRACT EXISTS. Each one exists because a claim made elsewhere in this
+; repository is false without it:
+;
+;   1. licence-boundary   — "the substrate is Apache-2.0 and forkable" is a lie the
+;                           moment an Apache distribution imports an FSL one, because
+;                           the fork cannot then be built.
 ;   2. no-model-in-kernel — ARCHITECTURE.md §8.2 draws the deterministic boundary and
-;                          `mainline-boundary`'s E3 enforcement asserts it over the
-;                          dependency graph. This contract asserts the same thing over
-;                          the IMPORT graph, which is the surface E3 cannot see.
+;                           `mainline-boundary`'s E3 enforcement asserts it over the
+;                           dependency graph. This contract asserts the same thing over
+;                           the IMPORT graph, which is the surface E3 cannot see.
 ;   3. verifier-minimal   — `trappoint-verify`'s whole value is that an opposing expert
-;                          can run it with one dependency. Every import added to the
-;                          canonicalisation path is a dependency their Rust
-;                          re-implementation would have to reproduce.
+;                           can run it with one dependency. Every import added to the
+;                           canonicalisation path is a dependency their Rust
+;                           re-implementation would have to reproduce.
 ;   4. no-blanket-retry   — spec/errors.md §4: a refusal is attempted exactly once,
-;                          ever. `tenacity`/`backoff`/`retrying` make the retry policy
-;                          a decorator argument nobody reads, and a retried `23514`
-;                          turns the refusal ledger's count into a count of nothing.
+;                           ever. `tenacity`/`backoff`/`retrying` make the retry policy
+;                           a decorator argument nobody reads, and a retried `23514`
+;                           turns the refusal ledger's count into a count of nothing.
+;   5. gate-service-model-free — the loudest security claim in the product ("no model can
+;                           reach the merge gate") was, until 2026-08-10, a contract
+;                           forbidding the import of a package nobody had written. The
+;                           package exists now, so the claim is falsifiable.
+;   6. testkit-forkable   — the substrate testkit must survive a fork that keeps
+;                           `packages/` and deletes `verticals/`. Contract 1 forbids the
+;                           FSL vertical; this one also forbids the Apache-but-MAINLINE
+;                           packages, which contract 1 cannot reach because they are not
+;                           FSL.
+;   7. verifier-offline   — contract 3 makes the promise about `trappoint-jcs`. This one
+;                           makes it about `trappoint-verify`, which is the artefact the
+;                           promise is actually about: the offline verifier a court's
+;                           expert runs on a machine with no cluster and no network.
 ;
 ; HOW A NEW PACKAGE JOINS. `root_packages` must name packages that are importable at
-; lint time — import-linter builds a real graph, not a guess — so a package that does
-; not exist yet cannot be listed. The mechanism that stops that from becoming a hole is
-; the `import-linter-registry` job in `.github/workflows/ci.yml`: it fails when a
-; workspace distribution appears in neither `root_packages` nor a contract's
-; `forbidden_modules`. A new package is therefore registered by CI refusing the build,
-; not by anyone remembering.
+; lint time — import-linter builds a real graph, not a guess, and a name that resolves to
+; nothing fails the whole run with `Could not find package '…' in your Python path`
+; (measured). So a package that does not exist yet cannot be listed. The mechanism that
+; stops that from becoming a hole is `scripts/qa/check_import_registry.py`, run by the
+; `import-linter-registry` job in `.github/workflows/ci.yml`: it fails when a workspace
+; distribution appears in neither `root_packages` (its imports are checked) nor a
+; contract's `forbidden_modules` (importing it is checked). A new package is registered
+; by CI refusing the build, not by anyone remembering.
+;
+; `mainline_corpus` is deliberately NOT a root package: `verticals/mainline/packages/
+; mainline-corpus/` has source but no `pyproject.toml`, so it is not an installable
+; distribution and not importable at lint time. It is registered through contract 1's
+; `forbidden_modules`, and it joins `root_packages` in the same commit that gives it a
+; `pyproject.toml`.
 
 [importlinter]
 root_packages =
-    trappoint_migrate
-    trappoint_conformance
-    trappoint_jcs
-    trappoint_recall
+    mainline_agentkit
+    mainline_anchor
+    mainline_archivist
     mainline_boundary
+    mainline_cartographer
+    mainline_cherrypick
+    mainline_custody_patrol
+    mainline_delta_oracle
+    mainline_domain
+    mainline_fixity
+    mainline_gate_svc
+    mainline_mcp
+    mainline_mutation
+    mainline_quarantine
+    mainline_recall_agent
+    mainline_recall_fleet
+    mainline_sequencer
+    mainline_steward
+    trappoint_conformance
+    trappoint_core
+    trappoint_diagnose
+    trappoint_jcs
+    trappoint_ledger
+    trappoint_migrate
+    trappoint_model
+    trappoint_recall
+    trappoint_sql
+    trappoint_testkit
+    trappoint_verify
 include_external_packages = True
 exclude_type_checking_imports = False
 
@@ -48,24 +105,50 @@ exclude_type_checking_imports = False
 ; Forbidden entries that do not exist yet are skipped by import-linter rather than
 ; erroring, so this list is written for the whole vertical up front and the contract
 ; starts enforcing each package the day it lands.
+;
+; 2026-08-10: `source_modules` was FIVE names against fourteen Apache distributions, so
+; the sentence in this heading was true of a third of the substrate. It now names every
+; distribution under `packages/`. Measured before widening — no `packages/*/src` file
+; imports any `mainline_*` vertical module, directly or indirectly — so this is a
+; widening of the assertion, not a change to the code.
 [importlinter:contract:licence-boundary]
 name = 1. The Apache substrate never imports the FSL vertical
 type = forbidden
 source_modules =
-    trappoint_migrate
-    trappoint_conformance
-    trappoint_jcs
-    trappoint_recall
+    mainline_agentkit
     mainline_boundary
+    mainline_mcp
+    trappoint_conformance
+    trappoint_core
+    trappoint_diagnose
+    trappoint_jcs
+    trappoint_ledger
+    trappoint_migrate
+    trappoint_model
+    trappoint_recall
+    trappoint_sql
+    trappoint_testkit
+    trappoint_verify
 forbidden_modules =
-    mainline_domain
-    mainline_corpus
-    mainline_recall_agent
-    mainline_gate_svc
+    mainline_anchor
+    mainline_archivist
+    mainline_cartographer
+    mainline_cherrypick
     mainline_console_api
+    mainline_corpus
+    mainline_custody_patrol
     mainline_custody_relay
-    mainline_provisioner
+    mainline_delta_oracle
+    mainline_domain
+    mainline_fixity
+    mainline_gate_svc
     mainline_ingest
+    mainline_mutation
+    mainline_provisioner
+    mainline_quarantine
+    mainline_recall_agent
+    mainline_recall_fleet
+    mainline_sequencer
     mainline_steward
 allow_indirect_imports = False
 unmatched_ignore_imports_alerting = error
@@ -80,12 +163,29 @@ unmatched_ignore_imports_alerting = error
 ; `allow_indirect_imports = False` is the point: a transitive reach through a helper
 ; module is the shape this actually takes in practice, never a direct `import boto3`
 ; at the top of `runner.py`.
+;
+; 2026-08-10: widened from `trappoint_migrate` + `trappoint_conformance` to every
+; `packages/trappoint-*` distribution, which is the root set ARCHITECTURE.md §8.2 E3
+; actually names (`mainline_boundary.astscan.DEFAULT_KERNEL_ROOTS`). `trappoint_core`
+; holds the gate transaction itself and was not covered by this contract until today.
+; `mainline_boundary` and `mainline_agentkit` are deliberately NOT sources: both import
+; `boto3` on purpose — the first to interrogate IAM, the second because it IS the model
+; client — and both live outside the kernel plane for exactly that reason.
 [importlinter:contract:no-model-in-kernel]
-name = 2. No model code path in the kernel (migrate + conformance)
+name = 2. No model code path in the kernel (every packages/trappoint-*)
 type = forbidden
 source_modules =
-    trappoint_migrate
     trappoint_conformance
+    trappoint_core
+    trappoint_diagnose
+    trappoint_jcs
+    trappoint_ledger
+    trappoint_migrate
+    trappoint_model
+    trappoint_recall
+    trappoint_sql
+    trappoint_testkit
+    trappoint_verify
 forbidden_modules =
     boto3
     botocore
@@ -100,11 +200,12 @@ forbidden_modules =
     transformers
     sentence_transformers
     torch
+    mainline_agentkit
 allow_indirect_imports = False
 unmatched_ignore_imports_alerting = error
 
 ; ─────────────────────────────────────────────────────────────────────────────
-; CONTRACT 3 — the offline verifier stays dependency-minimal.
+; CONTRACT 3 — the offline verifier's canonicaliser stays dependency-minimal.
 ; ─────────────────────────────────────────────────────────────────────────────
 ; `trappoint-jcs` is the canonicaliser the offline verifier vendors, and its
 ; `pyproject.toml` declares zero runtime dependencies. That declaration is a promise
@@ -112,10 +213,11 @@ unmatched_ignore_imports_alerting = error
 ; that breaks first — a single `import numpy` inside a canonicalisation helper survives
 ; a dependency-list review and then appears in the verifier's install footprint.
 ;
-; `trappoint_verify` joins `source_modules` in the same commit that creates it; the
-; registry job in ci.yml refuses the build until it does.
+; `trappoint_verify` now exists, and it gets its OWN contract (7) rather than joining
+; this one: the two artefacts fail differently and a merged contract would report one
+; line where an auditor needs two.
 [importlinter:contract:verifier-minimal]
-name = 3. The offline verifier stays dependency-minimal
+name = 3. The offline verifier's canonicaliser stays dependency-minimal
 type = forbidden
 source_modules =
     trappoint_jcs
@@ -147,15 +249,44 @@ unmatched_ignore_imports_alerting = error
 ; hand-written, bounded, jittered and readable in one screen. A decorator that retries
 ; "on exception" cannot distinguish an undecided transaction from a decided refusal, and
 ; the difference between those two is the product.
+;
+; 2026-08-10: "anywhere" now means anywhere. `source_modules` was five names; it is now
+; every root package. Measured before widening — no `src` file in any distribution
+; imports `tenacity`, `backoff`, `retrying`, `stamina` or a relative — so this widening
+; records a property the repository already had and refuses its loss.
 [importlinter:contract:no-blanket-retry]
 name = 4. No blanket-retry helper exists anywhere
 type = forbidden
 source_modules =
-    trappoint_migrate
-    trappoint_conformance
-    trappoint_jcs
-    trappoint_recall
+    mainline_agentkit
+    mainline_anchor
+    mainline_archivist
     mainline_boundary
+    mainline_cartographer
+    mainline_cherrypick
+    mainline_custody_patrol
+    mainline_delta_oracle
+    mainline_domain
+    mainline_fixity
+    mainline_gate_svc
+    mainline_mcp
+    mainline_mutation
+    mainline_quarantine
+    mainline_recall_agent
+    mainline_recall_fleet
+    mainline_sequencer
+    mainline_steward
+    trappoint_conformance
+    trappoint_core
+    trappoint_diagnose
+    trappoint_jcs
+    trappoint_ledger
+    trappoint_migrate
+    trappoint_model
+    trappoint_recall
+    trappoint_sql
+    trappoint_testkit
+    trappoint_verify
 forbidden_modules =
     tenacity
     backoff
@@ -164,5 +295,147 @@ forbidden_modules =
     retry2
     stamina
     aiohttp_retry
+allow_indirect_imports = False
+unmatched_ignore_imports_alerting = error
+
+; ─────────────────────────────────────────────────────────────────────────────
+; CONTRACT 5 — the gate service cannot reach a model. This is THE claim.
+; ─────────────────────────────────────────────────────────────────────────────
+; `mainline-gate-svc` is the only process that calls `mainline.merge_permit`. Everything
+; the product says about determinism reduces to a statement about this one distribution's
+; closure, and until 2026-08-10 that statement was unfalsifiable: contract 1 forbade
+; importing `mainline_gate_svc`, `boundary.yml` triggered on its path, and E3 scanned it
+; — and the package did not exist. A scan over an absent path finds nothing, and
+; `mainline_boundary.astscan` was honest enough to record `E3-ROOT-ABSENT` as a skip
+; rather than print that nothing as green.
+;
+; The package exists now. Its three runtime dependencies are `psycopg[binary]`,
+; `trappoint-core` and `mainline-domain`; its own suite walks `sys.modules` after import
+; AND walks `importlib.metadata.requires` transitively, because a runtime absence with a
+; declared dependency is still a supply-chain reach.
+;
+; This contract is the third independent surface, over the IMPORT GRAPH, and it does not
+; share a failure mode with either of the other two: deleting the test does not delete
+; this, and deleting this does not delete the test.
+;
+; `allow_indirect_imports = False` is not decoration. The realistic shape of this failure
+; is `mainline_gate_svc.report` importing a vertical helper that imports
+; `mainline_agentkit` for one convenience function.
+[importlinter:contract:gate-service-model-free]
+name = 5. The merge-gate service can reach no model SDK, directly or transitively
+type = forbidden
+source_modules =
+    mainline_gate_svc
+forbidden_modules =
+    boto3
+    botocore
+    anthropic
+    anthropic_bedrock
+    claude_agent_sdk
+    strands
+    strands_agents
+    strands_tools
+    openai
+    langchain
+    langchain_aws
+    langchain_core
+    langgraph
+    litellm
+    llama_index
+    transformers
+    sentence_transformers
+    torch
+    instructor
+    mainline_agentkit
+    mainline_delta_oracle
+allow_indirect_imports = False
+unmatched_ignore_imports_alerting = error
+
+; ─────────────────────────────────────────────────────────────────────────────
+; CONTRACT 6 — the testkit is substrate, and substrate must survive a fork.
+; ─────────────────────────────────────────────────────────────────────────────
+; `trappoint-testkit` is the harness a second vertical inherits: one cluster fixture,
+; four DSN spellings, and the container discipline that stopped this repository's suite
+; from starting thirteen CockroachDB nodes at once (quality-repair.md §1.4). A fork keeps
+; `packages/` and deletes `verticals/`; a testkit that imports anything MAINLINE-shaped
+; does not survive that deletion, and the fork's first `pytest` fails on an import error
+; in the harness itself — the least diagnosable failure a stranger can meet.
+;
+; This is NOT contract 1 with a different name. Contract 1 forbids the FSL vertical.
+; `mainline_boundary`, `mainline_agentkit` and `mainline_mcp` are Apache-2.0 and live
+; under `packages/`, so contract 1 permits them — and every one of them is MAINLINE
+; domain knowledge that a second vertical does not have and does not want.
+[importlinter:contract:testkit-forkable]
+name = 6. The substrate testkit imports nothing MAINLINE-shaped
+type = forbidden
+source_modules =
+    trappoint_testkit
+forbidden_modules =
+    mainline_agentkit
+    mainline_anchor
+    mainline_archivist
+    mainline_boundary
+    mainline_cartographer
+    mainline_cherrypick
+    mainline_console_api
+    mainline_corpus
+    mainline_custody_patrol
+    mainline_custody_relay
+    mainline_delta_oracle
+    mainline_domain
+    mainline_fixity
+    mainline_gate_svc
+    mainline_ingest
+    mainline_mcp
+    mainline_mutation
+    mainline_provisioner
+    mainline_quarantine
+    mainline_recall_agent
+    mainline_recall_fleet
+    mainline_sequencer
+    mainline_steward
+allow_indirect_imports = False
+unmatched_ignore_imports_alerting = error
+
+; ─────────────────────────────────────────────────────────────────────────────
+; CONTRACT 7 — the offline verifier runs with no cluster and no network.
+; ─────────────────────────────────────────────────────────────────────────────
+; `trappoint-verify` is the artefact VERIFY.md hands to an opposing expert: given an
+; exported ledger segment and a signed root, it recomputes the tree and says yes or no,
+; on a laptop, with no credential of ours and no machine of ours. That promise dies the
+; instant the verifier needs a database driver or an HTTP client — not because the import
+; is slow, but because it means the verification is no longer independent of the system
+; being verified, and an independent verification that phones home has verified nothing.
+;
+; Measured 2026-08-10: `packages/trappoint-verify/src` imports `argparse`, `base64`,
+; `binascii`, `contextlib`, `hashlib`, `json`, `math`, `os`, `sys` and the stdlib typing
+; modules, and nothing else. This contract is what keeps that true.
+;
+; `psycopg` heads the list on purpose: it is the ONE dependency the rest of this
+; repository takes for granted, which makes it the one that arrives here by accident.
+[importlinter:contract:verifier-offline]
+name = 7. The offline verifier imports no driver and no network client
+type = forbidden
+source_modules =
+    trappoint_verify
+forbidden_modules =
+    psycopg
+    psycopg_pool
+    psycopg2
+    asyncpg
+    sqlalchemy
+    requests
+    httpx
+    httpcore
+    urllib3
+    aiohttp
+    websockets
+    boto3
+    botocore
+    anthropic
+    openai
+    pydantic
+    numpy
+    pandas
 allow_indirect_imports = False
 unmatched_ignore_imports_alerting = error

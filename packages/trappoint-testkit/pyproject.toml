@@ -1,0 +1,69 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: Apache-2.0
+
+[project]
+name = "trappoint-testkit"
+version = "0.1.0"
+description = "One CockroachDB for the whole test session: the compose image pin published under every spelling a fixture reads, a shared node reused or started exactly once with a fresh database per test module, and a pytest plugin whose --crdb=none turns a wedged machine into a skip with a reason."
+readme = "README.md"
+requires-python = ">=3.13"
+license = "Apache-2.0"
+authors = [{ name = "MAINLINE contributors" }]
+keywords = ["pytest", "cockroachdb", "test-fixtures", "hermetic", "docker"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Framework :: Pytest",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Database",
+  "Topic :: Software Development :: Testing",
+  "Typing :: Typed",
+]
+
+# ONE runtime dependency, and the absences are the point.
+#
+# No `docker` SDK: the daemon is reached through the CLI that is already on every machine
+# that can run this suite, and a Python client that must be installed before the suite can
+# decide it has no Docker is a dependency in the wrong order.
+#
+# No YAML parser: `image.py` finds the version constant by its marker comment, which is one
+# regex, and is the same decision `trappoint_migrate.crdb.pinned_image` already made.
+#
+# No `pytest`: the plugin is imported by pytest, never the other way round, and declaring a
+# hard dependency on the runner would make this package uninstallable in a lane that only
+# wants `pinned_image`.
+dependencies = [
+  "psycopg[binary]>=3.3.4",
+]
+
+[project.urls]
+Homepage = "https://github.com/Shaugato/mainline"
+
+# Registered as a plugin so that `pip install trappoint-testkit` is enough in a lane that has
+# no repository-root conftest. The root `conftest.py` ALSO names it in `pytest_plugins`, which
+# is deliberate belt-and-braces: this repository's workspace is not always installed, and the
+# conftest adds `src/` to `sys.path` so the plugin loads from a bare checkout too. Loading it
+# twice is a no-op — pytest registers a plugin module once.
+[project.entry-points.pytest11]
+trappoint_testkit = "trappoint_testkit.plugin"
+
+[dependency-groups]
+dev = ["pytest>=8.2", "pytest-timeout>=2.3", "mypy>=1.11", "ruff>=0.6"]
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/trappoint_testkit"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "tests", "README.md"]
+
+[tool.pytest.ini_options]
+minversion = "8.2"
+testpaths = ["tests"]
+addopts = ["--strict-markers", "-ra"]
+markers = [
+  "requires_cluster: needs a live CockroachDB; skips with a reason when none is shared",
+]

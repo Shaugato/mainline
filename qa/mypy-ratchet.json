@@ -1,0 +1,159 @@
+{
+  "SPDX-FileCopyrightText": "2026 MAINLINE contributors",
+  "SPDX-License-Identifier": "Apache-2.0",
+  "$comment": "The honest per-distribution mypy count, taken by one whole-workspace run. A count may go DOWN. An increase fails `mypy_targets.py --ratchet`. Regenerate with `--write-ratchet` and say in the commit why a number moved.",
+  "command": "mypy --config-file mypy.ini $(python scripts/qa/mypy_targets.py)",
+  "mypy_version": "mypy 2.3.0 (compiled: yes)",
+  "mypy_version_floor": ">=1.11",
+  "python_version": "3.13",
+  "source_files_checked": 477,
+  "total_errors": 12,
+  "unused_sections": [],
+  "distributions": {
+    "mainline_agentkit": {
+      "dir": "packages/mainline-agentkit",
+      "tier": "normal",
+      "errors": 0
+    },
+    "mainline_anchor": {
+      "dir": "verticals/mainline/packages/mainline-anchor",
+      "tier": "normal",
+      "errors": 0
+    },
+    "mainline_archivist": {
+      "dir": "verticals/mainline/packages/mainline-archivist",
+      "tier": "normal",
+      "errors": 0
+    },
+    "mainline_boundary": {
+      "dir": "packages/mainline-boundary",
+      "tier": "normal",
+      "errors": 0
+    },
+    "mainline_cartographer": {
+      "dir": "verticals/mainline/packages/mainline-cartographer",
+      "tier": "normal",
+      "errors": 0
+    },
+    "mainline_cherrypick": {
+      "dir": "verticals/mainline/packages/mainline-cherrypick",
+      "tier": "normal",
+      "errors": 0
+    },
+    "mainline_custody_patrol": {
+      "dir": "verticals/mainline/packages/mainline-custody-patrol",
+      "tier": "normal",
+      "errors": 0
+    },
+    "mainline_delta_oracle": {
+      "dir": "verticals/mainline/packages/mainline-delta-oracle",
+      "tier": "normal",
+      "errors": 0
+    },
+    "mainline_domain": {
+      "dir": "verticals/mainline/packages/mainline-domain",
+      "tier": "normal",
+      "errors": 0
+    },
+    "mainline_fixity": {
+      "dir": "verticals/mainline/packages/mainline-fixity",
+      "tier": "normal",
+      "errors": 0
+    },
+    "mainline_gate_svc": {
+      "dir": "verticals/mainline/packages/mainline-gate-svc",
+      "tier": "strict",
+      "errors": 0
+    },
+    "mainline_mcp": {
+      "dir": "packages/mainline-mcp",
+      "tier": "normal",
+      "errors": 0
+    },
+    "mainline_mutation": {
+      "dir": "verticals/mainline/packages/mainline-mutation",
+      "tier": "normal",
+      "errors": 0
+    },
+    "mainline_quarantine": {
+      "dir": "verticals/mainline/packages/mainline-quarantine",
+      "tier": "normal",
+      "errors": 0
+    },
+    "mainline_recall_agent": {
+      "dir": "verticals/mainline/packages/mainline-recall-agent",
+      "tier": "normal",
+      "errors": 4
+    },
+    "mainline_recall_fleet": {
+      "dir": "verticals/mainline/packages/mainline-recall-fleet",
+      "tier": "normal",
+      "errors": 0
+    },
+    "mainline_sequencer": {
+      "dir": "verticals/mainline/packages/mainline-sequencer",
+      "tier": "normal",
+      "errors": 0
+    },
+    "mainline_steward": {
+      "dir": "verticals/mainline/packages/mainline-steward",
+      "tier": "normal",
+      "errors": 0
+    },
+    "trappoint_conformance": {
+      "dir": "packages/trappoint-conformance",
+      "tier": "strict",
+      "errors": 0
+    },
+    "trappoint_core": {
+      "dir": "packages/trappoint-core",
+      "tier": "strict",
+      "errors": 0
+    },
+    "trappoint_diagnose": {
+      "dir": "packages/trappoint-diagnose",
+      "tier": "strict",
+      "errors": 0
+    },
+    "trappoint_jcs": {
+      "dir": "packages/trappoint-jcs",
+      "tier": "strict",
+      "errors": 0
+    },
+    "trappoint_ledger": {
+      "dir": "packages/trappoint-ledger",
+      "tier": "strict",
+      "errors": 0
+    },
+    "trappoint_migrate": {
+      "dir": "packages/trappoint-migrate",
+      "tier": "strict",
+      "errors": 0
+    },
+    "trappoint_model": {
+      "dir": "packages/trappoint-model",
+      "tier": "strict",
+      "errors": 0
+    },
+    "trappoint_recall": {
+      "dir": "packages/trappoint-recall",
+      "tier": "strict",
+      "errors": 0
+    },
+    "trappoint_sql": {
+      "dir": "packages/trappoint-sql",
+      "tier": "strict",
+      "errors": 0
+    },
+    "trappoint_testkit": {
+      "dir": "packages/trappoint-testkit",
+      "tier": "strict",
+      "errors": 8
+    },
+    "trappoint_verify": {
+      "dir": "packages/trappoint-verify",
+      "tier": "strict",
+      "errors": 0
+    }
+  }
+}

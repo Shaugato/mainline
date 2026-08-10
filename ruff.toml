@@ -23,6 +23,26 @@
 #   * `DTZ` — a naive datetime in an evidentiary payload is an unanswerable question in
 #     cross-examination.
 #   * `TRY300` / `RET` — control flow that hides which branch produced a refusal.
+#
+# ENFORCEMENT. The three paragraphs above used to be prose only: the `select` list was
+# flat, so a docstring on a test helper and a blanket `except` in the substrate were the
+# same colour of red, and 896 findings meant nothing anyone could act on. The gradient is
+# now mechanical, in two halves:
+#
+#   1. `[lint.per-file-ignores]` below RELAXES the cosmetic families where they buy
+#      nothing — the docstring family under `verticals/**` and `**/tests/**`, plus
+#      `PLR2004` and `PT018`. Each entry carries its one-line reason.
+#   2. `qa/ruff-ratchet.json` + `scripts/qa/ruff_ratchet.py` FREEZE everything that is
+#      left, per rule per tree, at today's honest count. A count may fall; it may not
+#      rise. Rules recorded at 0 are hard gates. The load-bearing families are recorded
+#      at 0 for `packages/trappoint-*` and are hard-gated there.
+#
+# NOTHING IN THIS FILE MAY RELAX A LOAD-BEARING FAMILY (`BLE`, `E722`, `T20`, `S`,
+# `DTZ`, `TRY300`, `RET`) FOR `packages/trappoint-*/src/**`. The two carve-outs below
+# that touch those families are scoped to `**/tests/**` (assert IS the test) and to
+# `cli.py` / `__main__.py` / `report.py` (stdout IS the interface). Widening either to
+# cover substrate library code turns the ratchet's 0 into a lie; the ratchet will catch
+# the resulting findings, but the review should catch the config change first.
 
 line-length = 100
 target-version = "py313"
@@ -87,29 +107,49 @@ ignore = [
 ]
 
 [lint.per-file-ignores]
-# CLI entry points are exactly where stdout is the interface.
+# CLI entry points are exactly where stdout is the interface. Scoped to three basenames
+# on purpose: this is the ONLY place `T20` is relaxed for substrate library code, and
+# widening it is how diagnostic output stops reaching a ledger.
 "**/cli.py" = ["T20"]
 "**/__main__.py" = ["T20"]
 "**/report.py" = ["T20"]
-"scripts/**" = ["T20", "S603", "S607", "D", "ANN", "PLR2004"]
+# `scripts/**` is operator tooling: stdout is the report, `subprocess` is the job, and a
+# docstring on a 12-line provisioning helper is not what stands between a fork and a
+# wrong refusal.
+"scripts/**" = ["T20", "S603", "S607", "D", "ANN", "PLR2004", "PT018"]
 
 # Tests assert, parametrise, seed generators deterministically, and read fixtures off
 # disk. `S311` is allowed because a *seeded* PRNG is the point — a test of jittered
 # backoff that used a cryptographic generator could not be reproduced.
+#
+# `D` — a test's name is its docstring; requiring both duplicates the sentence.
+# `PLR2004` — a test that compares against a named constant is testing the constant,
+#   not the behaviour. The literal `409` in an assertion IS the specification.
+# `PT018` — `assert a and b` in a test whose failure is read off a captured SQLSTATE is
+#   one fact, not two; splitting it makes the report longer and no clearer.
 "**/tests/**" = [
     "S101", "S105", "S311", "S603", "S607",
-    "D", "ANN", "PLR2004", "PLR0915", "T20", "SLF001",
+    "D", "ANN", "PLR2004", "PLR0915", "PT018", "T20", "SLF001",
 ]
 "tests/**" = [
     "S101", "S105", "S311", "S603", "S607",
-    "D", "ANN", "PLR2004", "PLR0915", "T20", "SLF001",
+    "D", "ANN", "PLR2004", "PLR0915", "PT018", "T20", "SLF001",
 ]
 
 # THE GRADIENT. Docstring and annotation completeness is required of the Apache
 # substrate and not of the FSL vertical, for the same reason mypy is strict on one and
 # not the other: `packages/trappoint-*` is what a second vertical, a fork, or an
 # opposing expert reads without us in the room.
-"verticals/**" = ["D100", "D101", "D102", "D103", "D104", "D105", "D107", "ANN"]
+#
+# `D1` (the whole D100–D107 "missing docstring" family, previously enumerated one code
+#   at a time and silently missing `D106`) — the vertical is read with us in the room.
+#   Note this relaxes only the MISSING-docstring family: `D2xx`/`D3xx`/`D4xx` still
+#   apply here, so a docstring that exists must still be well formed.
+# `ANN` — same gradient, same reason.
+# `PLR2004` — the vertical's magic values are DDL widths, SQLSTATEs and band numbers
+#   that are already named in `migrations.allocation.toml`; a second name is drift.
+# `PT018` — see `**/tests/**`.
+"verticals/**" = ["D1", "ANN", "PLR2004", "PT018"]
 "packages/mainline-boundary/**" = ["D100", "D101", "D102", "D103", "D104", "D105", "D107"]
 
 [lint.isort]

@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import pytest
 
-from _support import (
+from _schema_support import (
     assert_trigger_refusal,
     capture_refusal,
     insert_activity_node,

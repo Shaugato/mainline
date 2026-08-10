@@ -1,0 +1,194 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# WHY THIS FILE EXISTS, AND IT IS NOT "GOOD PRACTICE".
+#
+# `.github/actions/setup-workspace/action.yml` names `astral-sh/setup-uv@v5` and not a
+# forty-character commit SHA. A SHA pin is strictly stronger — a tag can be moved, a SHA
+# cannot — and it is only stronger if the SHA is one somebody RESOLVED. The author of
+# this wave could not reach the network to resolve one, and a plausible-looking hex
+# string typed from memory is not a pin: it is a lie that breaks CI on its first run and
+# then gets deleted, taking the practice with it.
+#
+# This file is the mechanism that closes that gap honestly. Dependabot resolves the
+# digests, opens a pull request containing them, and from that commit onward every
+# action in this repository is SHA-pinned by something that verified the hash. Until
+# then the repository says plainly which pin it has and which it does not.
+#
+# THREE ECOSYSTEMS, because this repository has three dependency graphs that share
+# nothing: GitHub Actions, a uv workspace of thirty Python distributions with one
+# lockfile, and a pnpm workspace for the console with its own. They are grouped
+# aggressively — a security update alone, everything else in one weekly PR per
+# ecosystem — because twenty separate dependency PRs a week is a review queue nobody
+# reads, and an unread PR queue is how a compromised release lands.
+
+version: 2
+
+updates:
+  # -------------------------------------------------------------------------------
+  # 1. The actions used by the workflows themselves.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Etc/UTC"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "ci"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    groups:
+      # Everything that is not a security fix arrives as ONE pull request. The five
+      # workflows in this wave share a composite action, so an action bump touches one
+      # file and the diff is readable in a single sitting.
+      actions:
+        applies-to: version-updates
+        patterns:
+          - "*"
+      actions-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+
+  # -------------------------------------------------------------------------------
+  # 2. The composite action. `github-actions` at "/" covers `.github/workflows/` and
+  #    NOT `.github/actions/*/action.yml`, so the one file whose whole purpose is to
+  #    hold the pins would be the one file Dependabot never looked at.
+  - package-ecosystem: "github-actions"
+    directory: "/.github/actions/setup-workspace"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Etc/UTC"
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "ci"
+    labels:
+      - "dependencies"
+      - "github-actions"
+
+  # -------------------------------------------------------------------------------
+  # 3. The Python workspace. ONE lockfile for thirty distributions, which is a plan
+  #    invariant and not a preference: PL-1 says a stranger must resolve what CI
+  #    resolved, and that sentence is only true while `uv.lock` is the single
+  #    resolution. Dependabot must therefore update the LOCKFILE, not the individual
+  #    pyproject floors — which is exactly what the `uv` ecosystem does.
+  - package-ecosystem: "uv"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:30"
+      timezone: "Etc/UTC"
+    open-pull-requests-limit: 5
+    versioning-strategy: "increase-if-necessary"
+    commit-message:
+      prefix: "deps"
+    labels:
+      - "dependencies"
+      - "python"
+    groups:
+      python-dev-tooling:
+        applies-to: version-updates
+        patterns:
+          - "ruff"
+          - "mypy"
+          - "pytest*"
+          - "hypothesis"
+          - "import-linter"
+      python-runtime:
+        applies-to: version-updates
+        exclude-patterns:
+          - "ruff"
+          - "mypy"
+          - "pytest*"
+          - "hypothesis"
+          - "import-linter"
+        patterns:
+          - "*"
+      python-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+    ignore:
+      # `mainline-gate-svc` declares three runtime dependencies and the SHORTNESS is the
+      # deliverable — `supply-chain.yml`'s `gate-svc-has-no-model-sdk` job asserts that
+      # no model SDK is anywhere in its resolved set. Dependabot cannot ADD a dependency,
+      # so it cannot break that claim; this entry exists to say so out loud, so nobody
+      # reviewing a bot PR against that package wonders whether it can.
+      #
+      # Major bumps of the driver are held back because the retry contract in
+      # spec/errors.md §4 is written against psycopg 3 semantics: a refusal is attempted
+      # exactly once, ever, and a major version that changes when `40001` surfaces would
+      # change what "once" means without changing a line of our code.
+      - dependency-name: "psycopg"
+        update-types: ["version-update:semver-major"]
+
+  # -------------------------------------------------------------------------------
+  # 4. The console. A separate lockfile, a separate licence (FSL, not Apache), and a
+  #    separate CI lane — `console.yml`, which runs `pnpm run ci` with
+  #    `--frozen-lockfile`, so every one of these PRs is verified by a full eslint,
+  #    tsc, vitest, build, budget and licence pass before it can be merged.
+  - package-ecosystem: "npm"
+    directory: "/verticals/mainline/apps/console"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "07:00"
+      timezone: "Etc/UTC"
+    open-pull-requests-limit: 5
+    versioning-strategy: "increase"
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps-dev"
+    labels:
+      - "dependencies"
+      - "console"
+    groups:
+      console-types-and-tooling:
+        applies-to: version-updates
+        patterns:
+          - "@types/*"
+          - "eslint*"
+          - "typescript*"
+          - "@typescript-eslint/*"
+          - "vite"
+          - "vitest"
+          - "@vitest/*"
+          - "@vitejs/*"
+      console-runtime:
+        applies-to: version-updates
+        exclude-patterns:
+          - "@types/*"
+          - "eslint*"
+          - "typescript*"
+          - "@typescript-eslint/*"
+          - "vite"
+          - "vitest"
+          - "@vitest/*"
+          - "@vitejs/*"
+        patterns:
+          - "*"
+      console-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+    ignore:
+      # React 19 and the three.js/react-three stack are pinned exactly in package.json
+      # and the bundle budgets in `scripts/check-budgets.ts` are measured against them
+      # (entry chunk 218.76 kB / 69.44 kB gzip, measured 2026-08-10). A major bump is a
+      # deliberate act with a budget re-measurement attached, not a bot PR.
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "three"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@react-three/fiber"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@react-three/drei"
+        update-types: ["version-update:semver-major"]

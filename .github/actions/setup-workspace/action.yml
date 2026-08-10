@@ -1,0 +1,182 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# ONE PLACE WHERE THE WORKSPACE IS SET UP.
+#
+# Before this file existed, five workflows each carried their own four-line incantation
+# — `astral-sh/setup-uv@v5`, `enable-cache: true`, then some spelling of `uv sync`. Five
+# copies is five things to forget, and the specific thing that was forgotten is measured
+# in docs/leads/quality-repair.md §1.1: `ci.yml` job 1 ran `uv lock --check` while job 2
+# ran `uv sync --frozen --all-packages` against a lockfile whose `[manifest] members`
+# listed SEVEN of the twenty-seven distributions on disk. Both jobs cannot pass at once,
+# so every green tick either job showed was a tick against a workspace that had stopped
+# describing this repository. A shared setup does not by itself prevent that; it makes
+# the ONE fix land in ONE place, which is the precondition for the assertion in
+# `ci.yml`'s `lockfile` job meaning anything.
+#
+# WHAT THIS ACTION DELIBERATELY DOES NOT DO.
+#
+# It does not run `actions/checkout`. The caller checks out, because a composite action
+# that checks out for you is one that silently decides your `fetch-depth`, and the
+# custody lanes need history that the static lanes do not.
+#
+# It does not run `step-security/harden-runner`. Harden-runner must be the FIRST step of
+# a job — before checkout — and its `allowed-endpoints` list is a per-job security
+# decision, not boilerplate. The `console` job needs `registry.npmjs.org`; the
+# `actionlint` job needs neither an index nor a Python. Folding that list in here would
+# turn five deliberate, readable deny-lists into one union that permits everything any
+# job ever needed. This repository's loudest claim is that no model can reach the merge
+# gate; the egress list is where that claim is enforced in CI, so it stays visible at
+# the call site.
+
+name: "Set up the MAINLINE Python workspace"
+description: >-
+  Install CPython and uv, restore the uv cache keyed on uv.lock, and resolve the
+  workspace with `uv sync --frozen` — all of it once, in one file.
+
+inputs:
+  python-version:
+    description: >-
+      The CPython the workspace resolves against. 3.13 is what quality-repair.md §1
+      measured every number in this wave with (`.venv/Scripts/python.exe` reported
+      3.13.14), and every distribution declares `requires-python = ">=3.13"`.
+    required: false
+    default: "3.13"
+
+  uv-version:
+    description: >-
+      The uv release to install. `latest` is the default and it is an honest one: the
+      resolution this repository depends on is pinned by `uv.lock` plus `--frozen`, not
+      by the resolver binary, and root `pyproject.toml` constrains the tool itself with
+      `required-version = ">=0.5.0"`. Set an exact version here to pin harder.
+    required: false
+    default: "latest"
+
+  packages:
+    description: >-
+      Space-separated distribution names to sync. EMPTY MEANS `--all-packages`, which is
+      what the import-linter and mypy jobs need: import-linter builds a real import
+      graph and mypy follows real imports, so a partially-synced workspace makes both of
+      them assert less than they appear to. Name packages only when the job genuinely
+      needs a subset (the kernel lanes do — a two-package sync is much faster than
+      twenty-seven and the kernel is what those lanes are about).
+    required: false
+    default: ""
+
+  groups:
+    description: >-
+      Space-separated dependency groups to add beyond the default set, e.g. `dev`.
+    required: false
+    default: ""
+
+  sync:
+    description: >-
+      `false` for jobs that need the uv binary but must NOT resolve the workspace —
+      `uv lock --check` is exactly that job, and syncing before checking it would be
+      checking the lockfile against an environment the lockfile just produced.
+    required: false
+    default: "true"
+
+  cache-suffix:
+    description: >-
+      Extra segment for the uv cache key. Use it when two jobs sync different package
+      subsets and would otherwise thrash one shared cache entry.
+    required: false
+    default: ""
+
+outputs:
+  uv-version:
+    description: "The uv version actually installed, as `uv --version` reported it."
+    value: ${{ steps.record.outputs.uv-version }}
+  python-path:
+    description: "Absolute path to the interpreter uv was pinned to."
+    value: ${{ steps.python.outputs.python-path }}
+  synced:
+    description: "`true` when this action resolved the workspace, `false` when it did not."
+    value: ${{ inputs.sync }}
+
+runs:
+  using: composite
+  steps:
+    - name: CPython ${{ inputs.python-version }}
+      id: python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: uv, with the cache keyed on uv.lock
+      uses: astral-sh/setup-uv@v5
+      # `@v5` and not a 40-character commit SHA, on purpose and with a date attached.
+      # A SHA pin is stronger, and it is only stronger if the SHA is one somebody
+      # RESOLVED. This wave's author could not reach the network to resolve one, and a
+      # forty-hex string typed from memory is not a pin — it is a plausible-looking
+      # lie that breaks CI on the first run and gets deleted. `.github/dependabot.yml`
+      # (this wave, same author) watches `github-actions` weekly; its first PR against
+      # this file is the one that carries real digests.
+      with:
+        version: ${{ inputs.uv-version }}
+        enable-cache: true
+        # The lockfile is the only input to the resolution, so it is the whole cache
+        # key. `pyproject.toml` deliberately is NOT in this glob: a pyproject edit that
+        # does not change `uv.lock` cannot change what gets installed, and if it did,
+        # `uv lock --check` is the job that says so.
+        cache-dependency-glob: "uv.lock"
+        cache-suffix: ${{ inputs.cache-suffix }}
+
+    - name: Pin uv to the interpreter that was just installed
+      shell: bash
+      env:
+        RESOLVED_PYTHON: ${{ steps.python.outputs.python-path }}
+      run: |
+        set -euo pipefail
+        # Without this, `uv sync` may DOWNLOAD a second CPython of its own choosing and
+        # resolve against that one, while every `python` in the job's PATH is the one
+        # actions/setup-python installed. Two interpreters in a job is how a green lane
+        # comes to be measured on a different environment than the one it reports.
+        echo "UV_PYTHON=${RESOLVED_PYTHON}" >> "$GITHUB_ENV"
+        echo "using interpreter: ${RESOLVED_PYTHON}"
+        "${RESOLVED_PYTHON}" --version
+
+    - name: Record the toolchain
+      id: record
+      shell: bash
+      run: |
+        set -euo pipefail
+        version="$(uv --version)"
+        echo "uv-version=${version}" >> "$GITHUB_OUTPUT"
+        echo "${version}"
+
+    - name: uv sync --frozen
+      if: inputs.sync == 'true'
+      shell: bash
+      env:
+        SYNC_PACKAGES: ${{ inputs.packages }}
+        SYNC_GROUPS: ${{ inputs.groups }}
+      run: |
+        set -euo pipefail
+
+        # `--frozen` is the load-bearing flag, not `--all-packages`. It refuses to
+        # re-resolve: CI installs exactly what `uv.lock` records, which is exactly what
+        # a stranger's `uv sync` installs. PL-1 says a proof must run on a stranger's
+        # machine; a CI lane that quietly re-resolved would be proving something about
+        # the resolver's mood on the day it ran.
+        args=(sync --frozen)
+
+        read -ra requested <<<"${SYNC_PACKAGES}"
+        if [ "${#requested[@]}" -eq 0 ]; then
+          args+=(--all-packages)
+        else
+          for package in "${requested[@]}"; do
+            args+=(--package "${package}")
+          done
+        fi
+
+        read -ra groups <<<"${SYNC_GROUPS}"
+        for group in "${groups[@]}"; do
+          args+=(--group "${group}")
+        done
+
+        printf 'uv'
+        printf ' %s' "${args[@]}"
+        printf '\n'
+        uv "${args[@]}"

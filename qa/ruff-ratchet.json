@@ -1,0 +1,388 @@
+{
+  "schema": "mainline.qa.ruff-ratchet/1",
+  "note": "Honest counts, not aspirations. Every number below was measured, not chosen. A count may fall and may not rise; see qa/README.md for how to re-derive all of it in one command.",
+  "generated_utc": "2026-08-09T21:06:32Z",
+  "ruff_version": "0.16.1",
+  "ruff_config": "ruff.toml",
+  "commands": {
+    "lint": "ruff check . --output-format json",
+    "format": "ruff format --check --output-format json ."
+  },
+  "trees": [
+    "packages/trappoint-*",
+    "packages/mainline-*",
+    "verticals/",
+    "tests/",
+    "scripts/",
+    "other/"
+  ],
+  "policy": {
+    "why_a_ratchet_and_not_a_fix": "The live totals are in `lint.total` and `format.unformatted_files` below; they are the only numbers in this file that should be quoted as current. Running `ruff format .` or `ruff check --fix .` would rewrite ~240 files this worker does not own, across ten workers and eight domain leads, and make the wave unmergeable; a reformat is also indistinguishable from a semantic edit in review. Deleting the rules that fire would be a lie. So: freeze the real number per rule per tree, publish it, refuse an increase.",
+    "snapshot_caveat": "Taken while ten workers were writing to the same tree. The count moved 793 -> 820 in about twelve minutes on 2026-08-10 as packages/trappoint-testkit/ landed. Re-take once on the merge commit with --rebaseline and quote the result in the PR body; after that this is a gate rather than a snapshot. See qa/README.md.",
+    "hard_gate": "A (rule, tree) pair recorded at 0 is a hard gate: the first finding fails the build. A pair absent from `lint.rules` also defaults to 0, so a rule that has never fired in a tree is gated there too.",
+    "zero_tolerance": {
+      "tree": "packages/trappoint-*",
+      "families": [
+        "BLE",
+        "E722",
+        "T20",
+        "S",
+        "DTZ",
+        "TRY300",
+        "RET"
+      ],
+      "why": "ruff.toml's preamble calls these load-bearing for the Apache substrate: a blanket except is how a refusal becomes a silence; print() outside a CLI is diagnostic output no ledger will contain; bandit findings reach the provisioning and conformance paths; a naive datetime in an evidentiary payload is an unanswerable question under cross-examination; TRY300/RET hide which branch produced a refusal.",
+      "at_zero_today": [
+        "BLE001",
+        "E722",
+        "DTZ001",
+        "DTZ003",
+        "DTZ005",
+        "DTZ006",
+        "DTZ007",
+        "TRY300",
+        "RET501",
+        "RET502",
+        "RET503",
+        "RET504",
+        "RET505",
+        "S101",
+        "S105",
+        "S106",
+        "S107",
+        "S310",
+        "S311",
+        "S603",
+        "S607"
+      ],
+      "declared_debt": {
+        "T201": "8 findings in packages/trappoint-recall/src/trappoint_recall/lexical/digest.py (lines 142-159). NOT waived and NOT relaxed in ruff.toml: recorded at its true count and capped there. This worker does not own that file. It must reach 0.",
+        "S608": "4 findings in packages/trappoint-recall/src/trappoint_recall/arms/{sql,tuple_in}.py. Same status: capped, not waived, not this worker's file. Must reach 0 or carry a per-site noqa with a reviewed justification."
+      },
+      "honesty": "The policy is zero tolerance. The tree is not at zero. Both statements are in this file on purpose. Anyone who reads `zero_tolerance` and stops before `declared_debt` has been misled by their own reading, not by this document."
+    },
+    "relaxations_made_in_ruff_toml_this_wave": {
+      "**/tests/** and tests/**": "added PT018 (pytest-composite-assertion). -64 findings.",
+      "verticals/**": "D100..D107 enumeration replaced by the D1 family (it was silently missing D106), and PLR2004 + PT018 added. -47 findings.",
+      "scripts/**": "added PT018 for symmetry. 0 findings moved.",
+      "net": "896 -> 786 findings, measured before and after the ruff.toml edit against an identical tree state on 2026-08-10. One finding was ADDED by the change and is recorded below: RUF100 in verticals/mainline/packages/mainline-anchor/src/mainline_anchor/tsa_client.py:154, whose `# noqa: PLR2004` became unused the moment PLR2004 stopped being enabled there. It is not this worker's file; `ruff check --fix` on that one file clears it.",
+      "not_relaxed": "No load-bearing family (BLE, E722, T20, S, DTZ, TRY300, RET) was relaxed anywhere by this change, and the only per-file-ignores that touch those families remain the pre-existing ones scoped to **/tests/** (assert IS the test) and to cli.py / __main__.py / report.py (stdout IS the interface)."
+    }
+  },
+  "lint": {
+    "total": 847,
+    "total_by_tree": {
+      "packages/trappoint-*": 410,
+      "verticals/": 159,
+      "tests/": 229,
+      "scripts/": 24,
+      "other/": 25
+    },
+    "rules": {
+      "D102": {
+        "packages/trappoint-*": 160,
+        "other/": 4
+      },
+      "D401": {
+        "packages/trappoint-*": 52,
+        "verticals/": 69
+      },
+      "RUF100": {
+        "packages/trappoint-*": 4,
+        "verticals/": 11,
+        "tests/": 53,
+        "scripts/": 5
+      },
+      "E501": {
+        "packages/trappoint-*": 19,
+        "verticals/": 16,
+        "tests/": 21,
+        "scripts/": 9
+      },
+      "I001": {
+        "packages/trappoint-*": 6,
+        "verticals/": 2,
+        "tests/": 57
+      },
+      "PLR2004": {
+        "packages/trappoint-*": 55
+      },
+      "D105": {
+        "packages/trappoint-*": 42
+      },
+      "RUF001": {
+        "verticals/": 19,
+        "tests/": 9,
+        "scripts/": 1
+      },
+      "PLR0912": {
+        "packages/trappoint-*": 2,
+        "verticals/": 13,
+        "tests/": 1,
+        "scripts/": 3,
+        "other/": 1
+      },
+      "T201": {
+        "packages/trappoint-*": 8,
+        "other/": 10
+      },
+      "S608": {
+        "packages/trappoint-*": 4,
+        "tests/": 11
+      },
+      "ARG001": {
+        "packages/trappoint-*": 1,
+        "tests/": 11
+      },
+      "ISC004": {
+        "packages/trappoint-*": 2,
+        "tests/": 9,
+        "scripts/": 1
+      },
+      "PLR0915": {
+        "packages/trappoint-*": 2,
+        "verticals/": 8,
+        "scripts/": 1
+      },
+      "RUF002": {
+        "packages/trappoint-*": 8,
+        "tests/": 2
+      },
+      "D103": {
+        "packages/trappoint-*": 8,
+        "other/": 1
+      },
+      "PT001": {
+        "packages/trappoint-*": 1,
+        "tests/": 6
+      },
+      "TRY300": {
+        "packages/trappoint-*": 0,
+        "tests/": 6,
+        "scripts/": 1
+      },
+      "D107": {
+        "packages/trappoint-*": 6
+      },
+      "D301": {
+        "packages/trappoint-*": 4,
+        "verticals/": 2
+      },
+      "C420": {
+        "packages/trappoint-*": 3,
+        "verticals/": 1,
+        "tests/": 1
+      },
+      "PT011": {
+        "tests/": 5
+      },
+      "SIM300": {
+        "tests/": 5
+      },
+      "UP047": {
+        "packages/trappoint-*": 1,
+        "verticals/": 4
+      },
+      "ANN001": {
+        "packages/trappoint-*": 1,
+        "other/": 3
+      },
+      "UP017": {
+        "verticals/": 1,
+        "tests/": 3
+      },
+      "ANN002": {
+        "packages/trappoint-*": 3
+      },
+      "ANN003": {
+        "packages/trappoint-*": 3
+      },
+      "ANN201": {
+        "other/": 3
+      },
+      "D205": {
+        "packages/trappoint-*": 1,
+        "verticals/": 2
+      },
+      "PLE2515": {
+        "verticals/": 1,
+        "tests/": 2
+      },
+      "PLR0402": {
+        "tests/": 3
+      },
+      "PLR0911": {
+        "packages/trappoint-*": 2,
+        "verticals/": 1
+      },
+      "UP042": {
+        "packages/trappoint-*": 3
+      },
+      "ANN202": {
+        "packages/trappoint-*": 2
+      },
+      "B905": {
+        "tests/": 2
+      },
+      "BLE001": {
+        "packages/trappoint-*": 0,
+        "verticals/": 1,
+        "tests/": 1
+      },
+      "C416": {
+        "verticals/": 1,
+        "tests/": 1
+      },
+      "D101": {
+        "packages/trappoint-*": 1,
+        "other/": 1
+      },
+      "D400": {
+        "verticals/": 2
+      },
+      "PTH119": {
+        "packages/trappoint-*": 2
+      },
+      "PTH123": {
+        "other/": 2
+      },
+      "RET504": {
+        "packages/trappoint-*": 0,
+        "verticals/": 1,
+        "tests/": 1
+      },
+      "RUF005": {
+        "tests/": 2
+      },
+      "RUF007": {
+        "tests/": 2
+      },
+      "RUF022": {
+        "packages/trappoint-*": 1,
+        "verticals/": 1
+      },
+      "RUF043": {
+        "tests/": 2
+      },
+      "RUF046": {
+        "tests/": 2
+      },
+      "SIM105": {
+        "tests/": 1,
+        "scripts/": 1
+      },
+      "ANN204": {
+        "packages/trappoint-*": 1
+      },
+      "ARG002": {
+        "tests/": 1
+      },
+      "B017": {
+        "tests/": 1
+      },
+      "D209": {
+        "verticals/": 1
+      },
+      "E402": {
+        "tests/": 1
+      },
+      "F401": {
+        "packages/trappoint-*": 1
+      },
+      "N802": {
+        "tests/": 1
+      },
+      "PIE810": {
+        "tests/": 1
+      },
+      "PLR5501": {
+        "packages/trappoint-*": 1
+      },
+      "PLW0108": {
+        "tests/": 1
+      },
+      "PLW0603": {
+        "verticals/": 1
+      },
+      "PT017": {
+        "tests/": 1
+      },
+      "PT021": {
+        "tests/": 1
+      },
+      "RUF059": {
+        "tests/": 1
+      },
+      "S101": {
+        "packages/trappoint-*": 0,
+        "verticals/": 1
+      },
+      "S105": {
+        "packages/trappoint-*": 0,
+        "scripts/": 1
+      },
+      "S310": {
+        "packages/trappoint-*": 0,
+        "scripts/": 1
+      },
+      "SIM905": {
+        "tests/": 1
+      },
+      "DTZ001": {
+        "packages/trappoint-*": 0
+      },
+      "DTZ003": {
+        "packages/trappoint-*": 0
+      },
+      "DTZ005": {
+        "packages/trappoint-*": 0
+      },
+      "DTZ006": {
+        "packages/trappoint-*": 0
+      },
+      "DTZ007": {
+        "packages/trappoint-*": 0
+      },
+      "E722": {
+        "packages/trappoint-*": 0
+      },
+      "RET501": {
+        "packages/trappoint-*": 0
+      },
+      "RET502": {
+        "packages/trappoint-*": 0
+      },
+      "RET503": {
+        "packages/trappoint-*": 0
+      },
+      "RET505": {
+        "packages/trappoint-*": 0
+      },
+      "S106": {
+        "packages/trappoint-*": 0
+      },
+      "S107": {
+        "packages/trappoint-*": 0
+      },
+      "S311": {
+        "packages/trappoint-*": 0
+      },
+      "S603": {
+        "packages/trappoint-*": 0
+      },
+      "S607": {
+        "packages/trappoint-*": 0
+      }
+    }
+  },
+  "format": {
+    "unformatted_files": 245,
+    "unformatted_by_tree": {
+      "packages/trappoint-*": 51,
+      "packages/mainline-*": 10,
+      "verticals/": 80,
+      "tests/": 99,
+      "scripts/": 5
+    }
+  }
+}

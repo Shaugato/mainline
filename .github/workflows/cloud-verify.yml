@@ -1,0 +1,344 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# THE ONLY LANE THAT HAS EVER SPOKEN TO COCKROACHDB CLOUD.
+#
+# Before this file existed, nothing in this repository ran against CockroachDB Cloud —
+# docs/leads/quality-repair.md §1.7, measured. Every green tick the project had was a
+# tick from a single-node container started by `docker run`, and the product's platform
+# claims are claims about a managed, multi-region, Serverless-tier database. Those are
+# not the same system, and the differences are not cosmetic.
+#
+# THREE THINGS THIS LANE EXISTS TO CATCH, all of them measured platform facts:
+#
+#   * gc.ttlseconds. Local defaults to 14400. Cloud Basic is 4500. LOCAL IS MORE
+#     PERMISSIVE. `db.yml` now pins 4500 on its throwaway node so the local lane stops
+#     being the easier exam, but a pinned local node is a simulation of Cloud, not
+#     Cloud. Only this lane reads the real number.
+#   * The vector index. Prefix-constrained ANN uses the index ONLY when explicitly
+#     hinted (`FROM t@idx`) with every prefix column equal to a single value. A plan
+#     that silently degrades to a full scan is a latency regression, not an error, and
+#     a local node with five thousand rows will never show it.
+#   * Serializable retries. Cloud's contention profile is not a laptop's. `40001` is
+#     the error the whole retry contract is written against, and this lane is where a
+#     real one is likely to appear.
+#
+# THE HONESTY REQUIREMENT, AND IT IS THE POINT OF THE FILE.
+#
+# When the cluster secret is absent this workflow DOES NOT PASS. It reports `skipped`
+# with a named reason, writes that reason into the job summary, and emits it as a
+# `::warning`. A lane that quietly returns success when its credential is missing is
+# worse than no lane at all: it manufactures a green tick for an assertion that was
+# never evaluated, and the whole moat of this project is that its greens mean something.
+# The `verify` job is therefore gated on a boolean computed from the secret, and the
+# `skipped-loudly` job runs in the exact complement of that condition — so the workflow
+# always says which of the two happened, and never says nothing.
+#
+# PL-1 IS NOT VIOLATED BY THIS FILE. PL-1 says every milestone's PROOF must run on a
+# stranger's machine with no credential of ours. This lane is not a proof; it is a
+# TRUTH CHECK on the platform assumptions the proofs are written against. That is why
+# it is nightly and not on `pull_request`, why nothing in `ci.yml`, `db.yml` or
+# `release-proof.yml` needs it, and why its absence degrades the repository to "the
+# local proofs, unconfirmed against Cloud" rather than to "unproven".
+#
+# GEOGRAPHY, and it is recorded in the step summary on every run because it is the kind
+# of fact that gets forgotten and then explains a latency number nobody can account for:
+# the DATABASE is CockroachDB Cloud Basic in SINGAPORE, and INFERENCE runs in AWS
+# ap-southeast-2, SYDNEY. Every embedding call in a recall path crosses that gap.
+# Bedrock Rerank is not available in ap-southeast-2 at all.
+
+name: cloud-verify
+
+on:
+  schedule:
+    # 17:00 UTC daily = 01:00 Singapore, 03:00 Sydney. Off-peak for the cluster region
+    # and for the inference region, and comfortably clear of the working day in which
+    # somebody might be running the same suite by hand against the same cluster.
+    - cron: "0 17 * * *"
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: "conformance profile to run against Cloud"
+        required: false
+        default: "trappoint-ref"
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  # NOT `cancel-in-progress`. There is one Cloud cluster and a half-finished
+  # conformance run leaves rows in it; letting a new run cancel an old one mid-history
+  # is how the next run inherits state it did not create and reports a refusal that is
+  # an artefact of the cancellation.
+  group: cloud-verify
+  cancel-in-progress: false
+
+env:
+  PYTHON_VERSION: "3.13"
+  FORCE_COLOR: "1"
+  # Recorded, not used to authenticate. See the geography note in the header.
+  DATABASE_REGION: "CockroachDB Cloud Basic — Singapore (ap-southeast-1)"
+  INFERENCE_REGION: "AWS Bedrock — Sydney (ap-southeast-2)"
+
+jobs:
+  # ---------------------------------------------------------------------------------
+  # `secrets` cannot be read in a job-level `if:`, so the boolean has to be computed in
+  # a step and published as an output. This job exists for that one reason. It never
+  # prints the secret and never puts it in an output — only whether it is non-empty.
+  # ---------------------------------------------------------------------------------
+  preflight:
+    name: is there a Cloud cluster to verify against?
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      has-cluster: ${{ steps.probe.outputs.has-cluster }}
+    steps:
+      - name: Deny all egress
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+
+      - name: Is CRDB_CLOUD_DSN set?
+        id: probe
+        env:
+          # Quoted into a variable and tested for emptiness. The value is never echoed,
+          # never written to an output, and never interpolated into a `run:` body.
+          CLOUD_DSN: ${{ secrets.CRDB_CLOUD_DSN }}
+        run: |
+          set -euo pipefail
+          if [ -n "${CLOUD_DSN}" ]; then
+            echo "has-cluster=true" >> "$GITHUB_OUTPUT"
+            # Presence only. Not the value, and not its length either: a length is a
+            # fact about a credential, and facts about credentials belong in no log.
+            echo "CRDB_CLOUD_DSN is present; the verify job will run"
+          else
+            echo "has-cluster=false" >> "$GITHUB_OUTPUT"
+            echo "CRDB_CLOUD_DSN is absent; the verify job will be skipped, loudly"
+          fi
+
+  # ---------------------------------------------------------------------------------
+  verify:
+    name: conformance + fingerprint attestation, against Cloud
+    runs-on: ubuntu-24.04
+    needs: [preflight]
+    if: needs.preflight.outputs.has-cluster == 'true'
+    timeout-minutes: 30
+    env:
+      CONFORM_PROFILE: ${{ inputs.profile || 'trappoint-ref' }}
+    steps:
+      - name: Deny egress except to the indexes and the cluster
+        uses: step-security/harden-runner@v2
+        with:
+          # `cockroachlabs.cloud` is the control plane; the pgwire host is a subdomain
+          # of it and resolves per-cluster, so the wildcard-free list below is the
+          # honest minimum. `block` still applies to everything else — this job holds a
+          # database credential and must not be able to post it anywhere.
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            objects.githubusercontent.com:443
+            raw.githubusercontent.com:443
+            pypi.org:443
+            files.pythonhosted.org:443
+            astral.sh:443
+            cockroachlabs.cloud:443
+            cockroachlabs.cloud:26257
+
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-workspace
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          packages: "trappoint-migrate trappoint-conformance"
+          cache-suffix: "cloud"
+
+      - name: The cluster answers, and it is NOT a local node
+        # A DSN that has silently fallen back to localhost would make every step below
+        # pass and would prove nothing about Cloud, which is precisely the failure this
+        # workflow exists to refuse. So the first thing asserted is that the host is not
+        # a loopback address.
+        env:
+          CRDB_CLOUD_DSN: ${{ secrets.CRDB_CLOUD_DSN }}
+        run: |
+          set -euo pipefail
+          uv run --frozen --package trappoint-migrate python - <<'PY'
+          import os
+          import sys
+          from urllib.parse import urlsplit
+
+          dsn = os.environ["CRDB_CLOUD_DSN"]
+          host = (urlsplit(dsn).hostname or "").lower()
+          if host in {"localhost", "127.0.0.1", "::1", ""} or host.endswith(".local"):
+              print(f"::error::CRDB_CLOUD_DSN points at {host!r} — that is not CockroachDB Cloud")
+              sys.exit(1)
+          print(f"cluster host: {host}")
+          PY
+
+      - name: Read Cloud's real gc.ttlseconds
+        # Not asserted, RECORDED. The number is the platform fact `db.yml` pins its
+        # throwaway node to, and the day Cloud changes it is the day a pile of local
+        # time-travel assertions quietly stop corresponding to anything. Measured
+        # expectation, 2026-08-10: 4500 on Basic, against 14400 on a fresh local node.
+        env:
+          CRDB_CLOUD_DSN: ${{ secrets.CRDB_CLOUD_DSN }}
+        run: |
+          set -euo pipefail
+          uv run --frozen --package trappoint-migrate python - <<'PY'
+          import os
+          import pathlib
+          import re
+
+          import psycopg
+
+          with psycopg.connect(os.environ["CRDB_CLOUD_DSN"], connect_timeout=20) as conn:
+              version = conn.execute("SELECT version()").fetchone()[0]
+              try:
+                  rows = conn.execute("SHOW ZONE CONFIGURATION FOR RANGE default").fetchall()
+              except psycopg.Error as exc:
+                  # Basic/Serverless tiers may refuse zone introspection to a non-admin
+                  # role. That is a fact worth recording, not a reason to fail a lane
+                  # whose job is to REPORT this number. Saying "unavailable, and here is
+                  # the SQLSTATE" is honest; guessing 4500 would not be.
+                  rows = []
+                  version += f"  [zone config unreadable: {exc.diag.sqlstate if exc.diag else '?'}]"
+
+          raw = " ".join(str(cell) for row in rows for cell in row).replace("\n", " ")
+          found = re.search(r"gc\.ttlseconds\s*=\s*(\d+)", raw)
+          ttl = found.group(1) if found else "unavailable"
+
+          print(f"version       : {version}")
+          print(f"gc.ttlseconds : {ttl}")
+          summary = pathlib.Path(os.environ["GITHUB_STEP_SUMMARY"])
+          with summary.open("a", encoding="utf-8") as handle:
+              handle.write("## the cluster this ran against\n\n")
+              handle.write("| item | value |\n|---|---|\n")
+              handle.write(f"| version | `{version}` |\n")
+              handle.write(f"| gc.ttlseconds (RANGE default) | `{ttl}` |\n")
+              handle.write("| local equivalent | `14400` on a fresh single-node container |\n\n")
+          PY
+
+      - name: Bootstrap and apply the reference vertical
+        env:
+          CRDB_CLOUD_DSN: ${{ secrets.CRDB_CLOUD_DSN }}
+        run: |
+          set -euo pipefail
+          uv run --frozen --package trappoint-migrate trappoint migrate bootstrap --dsn "$CRDB_CLOUD_DSN"
+          uv run --frozen --package trappoint-migrate trappoint migrate up \
+            --dsn "$CRDB_CLOUD_DSN" \
+            --tree trappoint-ref \
+            --migrations packages/trappoint-sql/refvertical/sql
+
+      - name: FINGERPRINT ATTESTATION — the same schema, in a different place
+        # This is the assertion with the most value in the whole workflow. The schema
+        # fingerprint is computed from the live catalogue. If Cloud and a local node
+        # produce the SAME digest for the same migrations, the fingerprint is a property
+        # of the schema. If they differ, the fingerprint is a property of the
+        # ENVIRONMENT, and every claim built on "the digest did not move" has to be
+        # withdrawn. There is no third possibility and no way to learn which without a
+        # second environment — this one.
+        env:
+          CRDB_CLOUD_DSN: ${{ secrets.CRDB_CLOUD_DSN }}
+        run: uv run --frozen --package trappoint-migrate trappoint migrate attest --dsn "$CRDB_CLOUD_DSN"
+
+      - name: Status
+        env:
+          CRDB_CLOUD_DSN: ${{ secrets.CRDB_CLOUD_DSN }}
+        run: |
+          uv run --frozen --package trappoint-migrate trappoint migrate status \
+            --dsn "$CRDB_CLOUD_DSN" \
+            --tree trappoint-ref \
+            --migrations packages/trappoint-sql/refvertical/sql
+
+      - name: CONFORMANCE, against Cloud
+        env:
+          CRDB_CLOUD_DSN: ${{ secrets.CRDB_CLOUD_DSN }}
+        run: |
+          uv run --frozen --package trappoint-conformance trappoint-conform \
+            --dsn "$CRDB_CLOUD_DSN" \
+            --profile "$CONFORM_PROFILE" \
+            --json
+
+      - name: Record what ran, and where the two halves of it live
+        if: always()
+        run: |
+          {
+            echo "## cloud-verify"
+            echo ""
+            echo "| item | value |"
+            echo "|---|---|"
+            echo "| database | ${DATABASE_REGION} |"
+            echo "| inference | ${INFERENCE_REGION} |"
+            echo "| profile | \`${CONFORM_PROFILE}\` |"
+            echo ""
+            echo "**The two halves of this product are in different countries.** The database is"
+            echo "CockroachDB Cloud Basic in **Singapore**; model inference runs on AWS Bedrock in"
+            echo "**ap-southeast-2, Sydney**. Every embedding call on a recall path crosses that"
+            echo "gap, and a latency number measured on a laptop where both are localhost is not"
+            echo "a number about this system. Bedrock Rerank is **not available** in"
+            echo "ap-southeast-2 at all, which is why no read path depends on it."
+            echo ""
+            echo "**What this lane proves.** That the reference vertical applies to a managed"
+            echo "multi-node cluster, that the schema fingerprint is a property of the SCHEMA and"
+            echo "not of the environment, and that the conformance suite's illegal histories are"
+            echo "refused there too."
+            echo ""
+            echo "**What it does NOT prove.** Nothing about the MAINLINE merge gate"
+            echo "(\`release-proof.yml\`), nothing about the console, and nothing about inference:"
+            echo "no model is called anywhere in this workflow."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # ---------------------------------------------------------------------------------
+  # The complement. This job runs in exactly the case `verify` does not, and it is the
+  # reason this workflow can never report a green tick for an assertion it did not make.
+  # ---------------------------------------------------------------------------------
+  skipped-loudly:
+    name: SKIPPED — no Cloud cluster secret
+    runs-on: ubuntu-24.04
+    needs: [preflight]
+    if: needs.preflight.outputs.has-cluster != 'true'
+    timeout-minutes: 5
+    steps:
+      - name: Deny all egress
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+
+      - name: Say what was not verified, and name the thing that is missing
+        run: |
+          set -euo pipefail
+          reason="the repository secret CRDB_CLOUD_DSN is not set, so no CockroachDB Cloud cluster was contacted"
+          echo "::warning title=cloud-verify skipped::${reason}"
+          {
+            echo "## cloud-verify — SKIPPED"
+            echo ""
+            echo "**Reason.** ${reason}"
+            echo ""
+            echo "This workflow did not fail and it did not pass. It ran and asserted **nothing**,"
+            echo "and it says so here rather than reporting a green tick, because a lane that"
+            echo "returns success when its credential is missing manufactures evidence for a"
+            echo "check that was never evaluated."
+            echo ""
+            echo "**What is consequently unconfirmed until this secret is set:**"
+            echo ""
+            echo "| claim | where it is asserted today | why local is not enough |"
+            echo "|---|---|---|"
+            echo "| the schema fingerprint is a property of the schema | \`db.yml\`, one node | a digest reproduced in ONE environment cannot be distinguished from a digest OF that environment |"
+            echo "| time-travel assertions hold at Cloud's GC horizon | \`db.yml\`, pinned to 4500 | a pinned local node simulates Cloud; it is not Cloud |"
+            echo "| prefix-constrained ANN uses the vector index | local, ~5 000 rows | an unhinted plan degrades to a scan silently, and a small table hides it |"
+            echo "| the retry contract survives real contention | local, single node | \`40001\` is rare on a laptop and ordinary on a shared cluster |"
+            echo ""
+            echo "**To enable it:** set the repository secret \`CRDB_CLOUD_DSN\` to the cluster's"
+            echo "pgwire DSN. The lane runs nightly at 17:00 UTC and on \`workflow_dispatch\`."
+            echo ""
+            echo "**Geography, for when it is enabled.** Database: ${DATABASE_REGION}."
+            echo "Inference: ${INFERENCE_REGION}. The two halves are in different countries."
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "${reason}"

@@ -332,7 +332,7 @@ def live_simulation_available() -> LiveAvailability:
     try:  # pragma: no cover - depends on the optional extra
         # Lazy and optional by design: this package must be runnable, and every
         # plan-time enforcement must pass, with no AWS SDK installed at all.
-        import boto3  # type: ignore[import-untyped]
+        import boto3
     except ImportError:
         return LiveAvailability(
             False, "boto3 is not installed (install the 'aws' extra of mainline-boundary)"

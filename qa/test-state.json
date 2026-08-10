@@ -1,0 +1,2583 @@
+{
+  "schema": "mainline.qa.test-state/1",
+  "SPDX-FileCopyrightText": "2026 MAINLINE contributors",
+  "SPDX-License-Identifier": "Apache-2.0",
+  "generated_utc": "2026-08-09T22:44:59Z",
+  "generated_by": "scripts/qa/report_test_state.py",
+  "note": "A census, not a scoreboard. Every count below came out of a JUnit XML file written by a pytest subprocess this script started; nothing is estimated and nothing is rounded. A skip is only counted as a skip when the reason string is carried with it, because a skip with no reason is indistinguishable from a test that was quietly deleted.",
+  "tool": {
+    "python": "3.13.14",
+    "python_executable_is_venv": true,
+    "platform": "win32",
+    "pytest": "pytest 9.1.1"
+  },
+  "passes": {
+    "none": {
+      "crdb": "none",
+      "means": "no CockroachDB is obtained and trappoint-testkit's ProcessGuard prevents any fixture from starting one; every cluster-backed test skips with the reason its own fixture writes"
+    },
+    "cluster": {
+      "crdb": "reuse",
+      "means": "the session reuses ONE already-running node published under all four DSN spellings; reuse mode never starts a container, so a missing node is a skip with a reason rather than thirteen private clusters"
+    }
+  },
+  "passes_run": [
+    "none",
+    "cluster"
+  ],
+  "per_target_timeout_seconds": 600,
+  "wall_clock_seconds": 2414.6,
+  "cluster": {
+    "dsn": "<dsn>",
+    "reachable": true,
+    "version": "CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)",
+    "gc_ttlseconds": 14400
+  },
+  "caveats": [
+    "Each target is a separate pytest process. Cross-target interference (module basename collisions, shared temp state) is therefore NOT measured here; a single whole-repository invocation may collect differently.",
+    "`totals` is the sum over targets, not the number a single `pytest` prints. Root `testpaths` is ['tests', 'packages'], so verticals/*/packages/*/tests are counted here and are not counted by a bare `pytest`.",
+    "A target that timed out contributes whatever its JUnit XML contained at the moment it was killed, which is usually nothing. Its row carries `timed_out: true` and its counts are a floor, not a measurement."
+  ],
+  "packages": {
+    "packages/mainline-agentkit": {
+      "path": "packages/mainline-agentkit/tests",
+      "kind": "distribution",
+      "distribution": "mainline-agentkit",
+      "runs": {
+        "none": {
+          "argv": [
+            "-m",
+            "pytest",
+            "packages/mainline-agentkit/tests",
+            "--crdb=none",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-x9vnyqsg\\junit.xml"
+          ],
+          "exit_code": 0,
+          "exit_meaning": "all collected tests passed",
+          "duration_seconds": 2.91,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 129,
+          "passed": 129,
+          "failed": 0,
+          "errored": 0,
+          "skipped": 0,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [],
+          "failed_tests": [],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        },
+        "cluster": {
+          "argv": [
+            "-m",
+            "pytest",
+            "packages/mainline-agentkit/tests",
+            "--crdb=reuse",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-mmdmfvlm\\junit.xml"
+          ],
+          "exit_code": 0,
+          "exit_meaning": "all collected tests passed",
+          "duration_seconds": 6.16,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 129,
+          "passed": 129,
+          "failed": 0,
+          "errored": 0,
+          "skipped": 0,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [],
+          "failed_tests": [],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        }
+      }
+    },
+    "packages/mainline-boundary": {
+      "path": "packages/mainline-boundary/tests",
+      "kind": "distribution",
+      "distribution": "mainline-boundary",
+      "runs": {
+        "none": {
+          "argv": [
+            "-m",
+            "pytest",
+            "packages/mainline-boundary/tests",
+            "--crdb=none",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-tx5tylk3\\junit.xml"
+          ],
+          "exit_code": 1,
+          "exit_meaning": "tests were collected and at least one failed",
+          "duration_seconds": 28.18,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 55,
+          "passed": 54,
+          "failed": 1,
+          "errored": 0,
+          "skipped": 0,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [],
+          "failed_tests": [
+            "packages.mainline-boundary.tests.test_cli::test_greps_pass_over_the_repository"
+          ],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        },
+        "cluster": {
+          "argv": [
+            "-m",
+            "pytest",
+            "packages/mainline-boundary/tests",
+            "--crdb=reuse",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-gxg4zl5t\\junit.xml"
+          ],
+          "exit_code": 1,
+          "exit_meaning": "tests were collected and at least one failed",
+          "duration_seconds": 40.36,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 55,
+          "passed": 54,
+          "failed": 1,
+          "errored": 0,
+          "skipped": 0,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [],
+          "failed_tests": [
+            "packages.mainline-boundary.tests.test_cli::test_greps_pass_over_the_repository"
+          ],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        }
+      }
+    },
+    "packages/mainline-mcp": {
+      "path": "packages/mainline-mcp/tests",
+      "kind": "distribution",
+      "distribution": "mainline-mcp",
+      "runs": {
+        "none": {
+          "argv": [
+            "-m",
+            "pytest",
+            "packages/mainline-mcp/tests",
+            "--crdb=none",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-gy9ttyks\\junit.xml"
+          ],
+          "exit_code": 0,
+          "exit_meaning": "all collected tests passed",
+          "duration_seconds": 2.19,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 147,
+          "passed": 147,
+          "failed": 0,
+          "errored": 0,
+          "skipped": 0,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [],
+          "failed_tests": [],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        },
+        "cluster": {
+          "argv": [
+            "-m",
+            "pytest",
+            "packages/mainline-mcp/tests",
+            "--crdb=reuse",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-47u6sp5k\\junit.xml"
+          ],
+          "exit_code": 0,
+          "exit_meaning": "all collected tests passed",
+          "duration_seconds": 5.15,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 147,
+          "passed": 147,
+          "failed": 0,
+          "errored": 0,
+          "skipped": 0,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [],
+          "failed_tests": [],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        }
+      }
+    },
+    "packages/trappoint-conformance": {
+      "path": "packages/trappoint-conformance/tests",
+      "kind": "distribution",
+      "distribution": "trappoint-conformance",
+      "runs": {
+        "none": {
+          "argv": [
+            "-m",
+            "pytest",
+            "packages/trappoint-conformance/tests",
+            "--crdb=none",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-flw1hfzb\\junit.xml"
+          ],
+          "exit_code": 0,
+          "exit_meaning": "all collected tests passed",
+          "duration_seconds": 2.24,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 207,
+          "passed": 24,
+          "failed": 0,
+          "errored": 0,
+          "skipped": 183,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [
+            {
+              "reason": "SKIP WITH REASON: no TRAPPOINT_DSN or LOCAL_DSN. These assertions are about what a database does; without one there is nothing to assert and pretending otherwise would be a suite that passes by absence. `just up && just migrate`.",
+              "count": 183
+            }
+          ],
+          "failed_tests": [],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        },
+        "cluster": {
+          "argv": [
+            "-m",
+            "pytest",
+            "packages/trappoint-conformance/tests",
+            "--crdb=reuse",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-cd50ivq2\\junit.xml"
+          ],
+          "exit_code": 1,
+          "exit_meaning": "tests were collected and at least one failed",
+          "duration_seconds": 20.4,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 207,
+          "passed": 24,
+          "failed": 0,
+          "errored": 182,
+          "skipped": 1,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [
+            {
+              "reason": "SKIP WITH REASON: the cluster holds none of the gate's objects, so there is no source text to attest. Run `just migrate` first.",
+              "count": 1
+            }
+          ],
+          "failed_tests": [],
+          "errored_tests": [
+            "packages.trappoint-conformance.tests.test_conformance_cases::test_case_outcome_class[CF-01]",
+            "packages.trappoint-conformance.tests.test_conformance_cases::test_case_outcome_class[CF-02]",
+            "packages.trappoint-conformance.tests.test_conformance_cases::test_case_outcome_class[CF-03]",
+            "packages.trappoint-conformance.tests.test_conformance_cases::test_case_outcome_class[CF-04]",
+            "packages.trappoint-conformance.tests.test_conformance_cases::test_case_outcome_class[CF-05]",
+            "packages.trappoint-conformance.tests.test_conformance_cases::test_case_outcome_class[CF-06]",
+            "packages.trappoint-conformance.tests.test_conformance_cases::test_case_outcome_class[CF-07]",
+            "packages.trappoint-conformance.tests.test_conformance_cases::test_case_outcome_class[CF-08]",
+            "packages.trappoint-conformance.tests.test_conformance_cases::test_case_outcome_class[CF-09]",
+            "packages.trappoint-conformance.tests.test_conformance_cases::test_case_outcome_class[CF-10]",
+            "packages.trappoint-conformance.tests.test_conformance_cases::test_case_outcome_class[CF-11]",
+            "packages.trappoint-conformance.tests.test_conformance_cases::test_case_outcome_class[CF-12]",
+            "packages.trappoint-conformance.tests.test_conformance_cases::test_case_outcome_class[CF-13]",
+            "packages.trappoint-conformance.tests.test_conformance_cases::test_case_outcome_class[CF-14]",
+            "packages.trappoint-conformance.tests.test_conformance_cases::test_case_outcome_class[CF-15]",
+            "packages.trappoint-conformance.tests.test_conformance_cases::test_case_outcome_class[CF-16]",
+            "packages.trappoint-conformance.tests.test_conformance_cases::test_case_outcome_class[CF-17]",
+            "packages.trappoint-conformance.tests.test_conformance_cases::test_case_outcome_class[CF-18]",
+            "packages.trappoint-conformance.tests.test_conformance_cases::test_case_outcome_class[CF-19]",
+            "packages.trappoint-conformance.tests.test_conformance_cases::test_case_outcome_class[CF-20]",
+            "packages.trappoint-conformance.tests.test_conformance_cases::test_case_outcome_class[CF-21]",
+            "packages.trappoint-conformance.tests.test_conformance_cases::test_case_outcome_class[CF-23]",
+            "packages.trappoint-conformance.tests.test_conformance_cases::test_case_outcome_class[CF-25]",
+            "packages.trappoint-conformance.tests.test_conformance_cases::test_case_outcome_class[CF-26]",
+            "packages.trappoint-conformance.tests.test_conformance_cases::test_case_outcome_class[CF-27]",
+            "packages.trappoint-conformance.tests.test_conformance_cases::test_case_outcome_class[CF-28]",
+            "packages.trappoint-conformance.tests.test_conformance_cases::test_case_outcome_class[CF-29]",
+            "packages.trappoint-conformance.tests.test_conformance_cases::test_case_outcome_class[CF-30]",
+            "packages.trappoint-conformance.tests.test_conformance_cases::test_case_outcome_class[CF-31]",
+            "packages.trappoint-conformance.tests.test_conformance_cases::test_case_outcome_class[CF-32]",
+            "packages.trappoint-conformance.tests.test_conformance_cases::test_case_outcome_class[CF-33]",
+            "packages.trappoint-conformance.tests.test_conformance_cases::test_case_outcome_class[CF-34]",
+            "packages.trappoint-conformance.tests.test_conformance_cases::test_case_outcome_class[CF-36]",
+            "packages.trappoint-conformance.tests.test_conformance_cases::test_case_outcome_class[CF-37]",
+            "packages.trappoint-conformance.tests.test_conformance_cases::test_case_outcome_class[CF-38]",
+            "packages.trappoint-conformance.tests.test_conformance_cases::test_case_outcome_class[CF-39]",
+            "packages.trappoint-conformance.tests.test_conformance_cases::test_case_outcome_class[CF-40]",
+            "packages.trappoint-conformance.tests.test_conformance_cases::test_case_outcome_class[CF-41]",
+            "packages.trappoint-conformance.tests.test_conformance_cases::test_case_outcome_class[CF-42]",
+            "packages.trappoint-conformance.tests.test_conformance_cases::test_case_outcome_class[CF-43]"
+          ],
+          "names_truncated": true,
+          "stderr_tail": ""
+        }
+      }
+    },
+    "packages/trappoint-core": {
+      "path": "packages/trappoint-core/tests",
+      "kind": "distribution",
+      "distribution": "trappoint-core",
+      "runs": {
+        "none": {
+          "argv": [
+            "-m",
+            "pytest",
+            "packages/trappoint-core/tests",
+            "--crdb=none",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-g2m0nf2v\\junit.xml"
+          ],
+          "exit_code": 0,
+          "exit_meaning": "all collected tests passed",
+          "duration_seconds": 1.52,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 56,
+          "passed": 56,
+          "failed": 0,
+          "errored": 0,
+          "skipped": 0,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [],
+          "failed_tests": [],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        },
+        "cluster": {
+          "argv": [
+            "-m",
+            "pytest",
+            "packages/trappoint-core/tests",
+            "--crdb=reuse",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-z3u9adsr\\junit.xml"
+          ],
+          "exit_code": 0,
+          "exit_meaning": "all collected tests passed",
+          "duration_seconds": 4.71,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 56,
+          "passed": 56,
+          "failed": 0,
+          "errored": 0,
+          "skipped": 0,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [],
+          "failed_tests": [],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        }
+      }
+    },
+    "packages/trappoint-diagnose": {
+      "path": "packages/trappoint-diagnose/tests",
+      "kind": "distribution",
+      "distribution": "trappoint-diagnose",
+      "runs": {
+        "none": {
+          "argv": [
+            "-m",
+            "pytest",
+            "packages/trappoint-diagnose/tests",
+            "--crdb=none",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-zpkooehm\\junit.xml"
+          ],
+          "exit_code": 0,
+          "exit_meaning": "all collected tests passed",
+          "duration_seconds": 1.79,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 143,
+          "passed": 126,
+          "failed": 0,
+          "errored": 0,
+          "skipped": 17,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [
+            {
+              "reason": "TRAPPOINT_DSN is unset; this case needs a migrated cluster",
+              "count": 14
+            },
+            {
+              "reason": "TRAPPOINT_DSN is unset; this case needs a migrated cluster and a refused permit",
+              "count": 3
+            }
+          ],
+          "failed_tests": [],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        },
+        "cluster": {
+          "argv": [
+            "-m",
+            "pytest",
+            "packages/trappoint-diagnose/tests",
+            "--crdb=reuse",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-6x29idi6\\junit.xml"
+          ],
+          "exit_code": 1,
+          "exit_meaning": "tests were collected and at least one failed",
+          "duration_seconds": 76.41,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 143,
+          "passed": 126,
+          "failed": 14,
+          "errored": 0,
+          "skipped": 3,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [
+            {
+              "reason": "TRAPPOINT_REFUSED_PERMIT is unset; this case needs a migrated cluster and a refused permit",
+              "count": 3
+            }
+          ],
+          "failed_tests": [
+            "tests.test_live_ledger::test_a_refusal_can_be_recorded",
+            "tests.test_live_ledger::test_the_ledger_is_append_only[UPDATE]",
+            "tests.test_live_ledger::test_the_ledger_is_append_only[DELETE]",
+            "tests.test_live_ledger::test_a_reason_set_that_is_not_an_array_is_refused",
+            "tests.test_live_ledger::test_an_atom_key_outside_the_closed_vocabulary_is_refused",
+            "tests.test_live_ledger::test_an_atom_naming_no_modelled_fact_family_is_refused",
+            "tests.test_live_ledger::test_a_row_that_disagrees_with_its_own_payload_is_refused[mutate0-refusal_payload_names_the_exhibit]",
+            "tests.test_live_ledger::test_a_row_that_disagrees_with_its_own_payload_is_refused[mutate1-refusal_payload_names_the_code]",
+            "tests.test_live_ledger::test_a_row_that_disagrees_with_its_own_payload_is_refused[mutate2-refusal_payload_names_the_diagnosis]",
+            "tests.test_live_ledger::test_a_row_that_disagrees_with_its_own_payload_is_refused[mutate3-refusal_mus_agrees]",
+            "tests.test_live_ledger::test_a_row_that_disagrees_with_its_own_payload_is_refused[mutate4-refusal_payload_names_the_alternative]",
+            "tests.test_live_ledger::test_a_declarative_diagnosis_that_probed_is_refused_by_the_table_too",
+            "tests.test_live_ledger::test_a_payload_carrying_a_person_metric_is_refused_by_a_plain_column_check",
+            "tests.test_live_ledger::test_a_p0001_refusal_recorded_as_reported_is_refused"
+          ],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        }
+      }
+    },
+    "packages/trappoint-jcs": {
+      "path": "packages/trappoint-jcs/tests",
+      "kind": "distribution",
+      "distribution": "trappoint-jcs",
+      "runs": {
+        "none": {
+          "argv": [
+            "-m",
+            "pytest",
+            "packages/trappoint-jcs/tests",
+            "--crdb=none",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-yrn5d_0l\\junit.xml"
+          ],
+          "exit_code": 0,
+          "exit_meaning": "all collected tests passed",
+          "duration_seconds": 15.94,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 82,
+          "passed": 82,
+          "failed": 0,
+          "errored": 0,
+          "skipped": 0,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [],
+          "failed_tests": [],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        },
+        "cluster": {
+          "argv": [
+            "-m",
+            "pytest",
+            "packages/trappoint-jcs/tests",
+            "--crdb=reuse",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-0jdok2p9\\junit.xml"
+          ],
+          "exit_code": 0,
+          "exit_meaning": "all collected tests passed",
+          "duration_seconds": 15.03,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 82,
+          "passed": 82,
+          "failed": 0,
+          "errored": 0,
+          "skipped": 0,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [],
+          "failed_tests": [],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        }
+      }
+    },
+    "packages/trappoint-ledger": {
+      "path": "packages/trappoint-ledger/tests",
+      "kind": "distribution",
+      "distribution": "trappoint-ledger",
+      "runs": {
+        "none": {
+          "argv": [
+            "-m",
+            "pytest",
+            "packages/trappoint-ledger/tests",
+            "--crdb=none",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-44ytcn7z\\junit.xml"
+          ],
+          "exit_code": 0,
+          "exit_meaning": "all collected tests passed",
+          "duration_seconds": 3.74,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 285,
+          "passed": 285,
+          "failed": 0,
+          "errored": 0,
+          "skipped": 0,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [],
+          "failed_tests": [],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        },
+        "cluster": {
+          "argv": [
+            "-m",
+            "pytest",
+            "packages/trappoint-ledger/tests",
+            "--crdb=reuse",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-5q8rn_t6\\junit.xml"
+          ],
+          "exit_code": 0,
+          "exit_meaning": "all collected tests passed",
+          "duration_seconds": 6.29,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 285,
+          "passed": 285,
+          "failed": 0,
+          "errored": 0,
+          "skipped": 0,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [],
+          "failed_tests": [],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        }
+      }
+    },
+    "packages/trappoint-migrate": {
+      "path": "packages/trappoint-migrate/tests",
+      "kind": "distribution",
+      "distribution": "trappoint-migrate",
+      "runs": {
+        "none": {
+          "argv": [
+            "-m",
+            "pytest",
+            "packages/trappoint-migrate/tests",
+            "--crdb=none",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-xkppsiit\\junit.xml"
+          ],
+          "exit_code": 1,
+          "exit_meaning": "tests were collected and at least one failed",
+          "duration_seconds": 7.6,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 217,
+          "passed": 216,
+          "failed": 1,
+          "errored": 0,
+          "skipped": 0,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [],
+          "failed_tests": [
+            "tests.test_lockfile::test_the_committed_manifest_is_current"
+          ],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        },
+        "cluster": {
+          "argv": [
+            "-m",
+            "pytest",
+            "packages/trappoint-migrate/tests",
+            "--crdb=reuse",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-n6dg1zw7\\junit.xml"
+          ],
+          "exit_code": 1,
+          "exit_meaning": "tests were collected and at least one failed",
+          "duration_seconds": 9.62,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 217,
+          "passed": 216,
+          "failed": 1,
+          "errored": 0,
+          "skipped": 0,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [],
+          "failed_tests": [
+            "tests.test_lockfile::test_the_committed_manifest_is_current"
+          ],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        }
+      }
+    },
+    "packages/trappoint-model": {
+      "path": "packages/trappoint-model/tests",
+      "kind": "distribution",
+      "distribution": "trappoint-model",
+      "runs": {
+        "none": {
+          "argv": [
+            "-m",
+            "pytest",
+            "packages/trappoint-model/tests",
+            "--crdb=none",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-scwf511z\\junit.xml"
+          ],
+          "exit_code": 0,
+          "exit_meaning": "all collected tests passed",
+          "duration_seconds": 2.08,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 33,
+          "passed": 22,
+          "failed": 0,
+          "errored": 0,
+          "skipped": 11,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [
+            {
+              "reason": "no CockroachDB v26.2 reachable: set TRAPPOINT_DSN, or put `cockroach` on PATH, or start the Docker daemon so the lane can run `docker run cockroachdb/cockroach:v26.2.5 start-single-node --insecure`. A SKIPPED RUN IS NOT EVIDENCE: the gate is a database mechanism and nothing in this package can stand in for it.",
+              "count": 11
+            }
+          ],
+          "failed_tests": [],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        },
+        "cluster": {
+          "argv": [
+            "-m",
+            "pytest",
+            "packages/trappoint-model/tests",
+            "--crdb=reuse",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-sezwt31y\\junit.xml"
+          ],
+          "exit_code": 0,
+          "exit_meaning": "all collected tests passed",
+          "duration_seconds": 294.35,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 33,
+          "passed": 33,
+          "failed": 0,
+          "errored": 0,
+          "skipped": 0,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [],
+          "failed_tests": [],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        }
+      }
+    },
+    "packages/trappoint-sql": {
+      "path": "packages/trappoint-sql/tests",
+      "kind": "distribution",
+      "distribution": "trappoint-sql",
+      "runs": {
+        "none": {
+          "argv": [
+            "-m",
+            "pytest",
+            "packages/trappoint-sql/tests",
+            "--crdb=none",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-816arg7d\\junit.xml"
+          ],
+          "exit_code": 0,
+          "exit_meaning": "all collected tests passed",
+          "duration_seconds": 17.89,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 131,
+          "passed": 131,
+          "failed": 0,
+          "errored": 0,
+          "skipped": 0,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [],
+          "failed_tests": [],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        },
+        "cluster": {
+          "argv": [
+            "-m",
+            "pytest",
+            "packages/trappoint-sql/tests",
+            "--crdb=reuse",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-75w1z50g\\junit.xml"
+          ],
+          "exit_code": 0,
+          "exit_meaning": "all collected tests passed",
+          "duration_seconds": 18.33,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 131,
+          "passed": 131,
+          "failed": 0,
+          "errored": 0,
+          "skipped": 0,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [],
+          "failed_tests": [],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        }
+      }
+    },
+    "packages/trappoint-testkit": {
+      "path": "packages/trappoint-testkit/tests",
+      "kind": "distribution",
+      "distribution": "trappoint-testkit",
+      "runs": {
+        "none": {
+          "argv": [
+            "-m",
+            "pytest",
+            "packages/trappoint-testkit/tests",
+            "--crdb=none",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-symcvxfs\\junit.xml"
+          ],
+          "exit_code": 0,
+          "exit_meaning": "all collected tests passed",
+          "duration_seconds": 4.95,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 28,
+          "passed": 26,
+          "failed": 0,
+          "errored": 0,
+          "skipped": 2,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [
+            {
+              "reason": "--crdb=none: this session declined to obtain a CockroachDB, so every test that needs one is skipped rather than allowed to start a private container",
+              "count": 2
+            }
+          ],
+          "failed_tests": [],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        },
+        "cluster": {
+          "argv": [
+            "-m",
+            "pytest",
+            "packages/trappoint-testkit/tests",
+            "--crdb=reuse",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-g19d1_9b\\junit.xml"
+          ],
+          "exit_code": 0,
+          "exit_meaning": "all collected tests passed",
+          "duration_seconds": 23.49,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 28,
+          "passed": 28,
+          "failed": 0,
+          "errored": 0,
+          "skipped": 0,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [],
+          "failed_tests": [],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        }
+      }
+    },
+    "packages/trappoint-verify": {
+      "path": "packages/trappoint-verify/tests",
+      "kind": "distribution",
+      "distribution": "trappoint-verify",
+      "runs": {
+        "none": {
+          "argv": [
+            "-m",
+            "pytest",
+            "packages/trappoint-verify/tests",
+            "--crdb=none",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-y65torow\\junit.xml"
+          ],
+          "exit_code": 0,
+          "exit_meaning": "all collected tests passed",
+          "duration_seconds": 2.34,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 88,
+          "passed": 88,
+          "failed": 0,
+          "errored": 0,
+          "skipped": 0,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [],
+          "failed_tests": [],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        },
+        "cluster": {
+          "argv": [
+            "-m",
+            "pytest",
+            "packages/trappoint-verify/tests",
+            "--crdb=reuse",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-3ymkhm3e\\junit.xml"
+          ],
+          "exit_code": 0,
+          "exit_meaning": "all collected tests passed",
+          "duration_seconds": 5.44,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 88,
+          "passed": 88,
+          "failed": 0,
+          "errored": 0,
+          "skipped": 0,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [],
+          "failed_tests": [],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        }
+      }
+    },
+    "verticals/mainline/packages/mainline-anchor": {
+      "path": "verticals/mainline/packages/mainline-anchor/tests",
+      "kind": "distribution",
+      "distribution": "mainline-anchor",
+      "runs": {
+        "none": {
+          "argv": [
+            "-m",
+            "pytest",
+            "verticals/mainline/packages/mainline-anchor/tests",
+            "--crdb=none",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-xmqezdqi\\junit.xml"
+          ],
+          "exit_code": 0,
+          "exit_meaning": "all collected tests passed",
+          "duration_seconds": 1.68,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 59,
+          "passed": 59,
+          "failed": 0,
+          "errored": 0,
+          "skipped": 0,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [],
+          "failed_tests": [],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        },
+        "cluster": {
+          "argv": [
+            "-m",
+            "pytest",
+            "verticals/mainline/packages/mainline-anchor/tests",
+            "--crdb=reuse",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-z6vp57p7\\junit.xml"
+          ],
+          "exit_code": 0,
+          "exit_meaning": "all collected tests passed",
+          "duration_seconds": 4.76,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 59,
+          "passed": 59,
+          "failed": 0,
+          "errored": 0,
+          "skipped": 0,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [],
+          "failed_tests": [],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        }
+      }
+    },
+    "verticals/mainline/packages/mainline-custody-patrol": {
+      "path": "verticals/mainline/packages/mainline-custody-patrol/tests",
+      "kind": "distribution",
+      "distribution": "mainline-custody-patrol",
+      "runs": {
+        "none": {
+          "argv": [
+            "-m",
+            "pytest",
+            "verticals/mainline/packages/mainline-custody-patrol/tests",
+            "--crdb=none",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-rnmrsodm\\junit.xml"
+          ],
+          "exit_code": 0,
+          "exit_meaning": "all collected tests passed",
+          "duration_seconds": 1.62,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 28,
+          "passed": 28,
+          "failed": 0,
+          "errored": 0,
+          "skipped": 0,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [],
+          "failed_tests": [],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        },
+        "cluster": {
+          "argv": [
+            "-m",
+            "pytest",
+            "verticals/mainline/packages/mainline-custody-patrol/tests",
+            "--crdb=reuse",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-oosfaskg\\junit.xml"
+          ],
+          "exit_code": 0,
+          "exit_meaning": "all collected tests passed",
+          "duration_seconds": 4.68,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 28,
+          "passed": 28,
+          "failed": 0,
+          "errored": 0,
+          "skipped": 0,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [],
+          "failed_tests": [],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        }
+      }
+    },
+    "verticals/mainline/packages/mainline-gate-svc": {
+      "path": "verticals/mainline/packages/mainline-gate-svc/tests",
+      "kind": "distribution",
+      "distribution": "mainline-gate-svc",
+      "runs": {
+        "none": {
+          "argv": [
+            "-m",
+            "pytest",
+            "verticals/mainline/packages/mainline-gate-svc/tests",
+            "--crdb=none",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-ghipe0f9\\junit.xml"
+          ],
+          "exit_code": 0,
+          "exit_meaning": "all collected tests passed",
+          "duration_seconds": 5.37,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 61,
+          "passed": 61,
+          "failed": 0,
+          "errored": 0,
+          "skipped": 0,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [],
+          "failed_tests": [],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        },
+        "cluster": {
+          "argv": [
+            "-m",
+            "pytest",
+            "verticals/mainline/packages/mainline-gate-svc/tests",
+            "--crdb=reuse",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-yqaut606\\junit.xml"
+          ],
+          "exit_code": 0,
+          "exit_meaning": "all collected tests passed",
+          "duration_seconds": 7.88,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 61,
+          "passed": 61,
+          "failed": 0,
+          "errored": 0,
+          "skipped": 0,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [],
+          "failed_tests": [],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        }
+      }
+    },
+    "verticals/mainline/packages/mainline-sequencer": {
+      "path": "verticals/mainline/packages/mainline-sequencer/tests",
+      "kind": "distribution",
+      "distribution": "mainline-sequencer",
+      "runs": {
+        "none": {
+          "argv": [
+            "-m",
+            "pytest",
+            "verticals/mainline/packages/mainline-sequencer/tests",
+            "--crdb=none",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-5_k_xlri\\junit.xml"
+          ],
+          "exit_code": 0,
+          "exit_meaning": "all collected tests passed",
+          "duration_seconds": 1.56,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 59,
+          "passed": 59,
+          "failed": 0,
+          "errored": 0,
+          "skipped": 0,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [],
+          "failed_tests": [],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        },
+        "cluster": {
+          "argv": [
+            "-m",
+            "pytest",
+            "verticals/mainline/packages/mainline-sequencer/tests",
+            "--crdb=reuse",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-wlck2hct\\junit.xml"
+          ],
+          "exit_code": 0,
+          "exit_meaning": "all collected tests passed",
+          "duration_seconds": 4.77,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 59,
+          "passed": 59,
+          "failed": 0,
+          "errored": 0,
+          "skipped": 0,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [],
+          "failed_tests": [],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        }
+      }
+    },
+    "tests/agents": {
+      "path": "tests/agents",
+      "kind": "test-root",
+      "distribution": null,
+      "runs": {
+        "none": {
+          "argv": [
+            "-m",
+            "pytest",
+            "tests/agents",
+            "--crdb=none",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-yz2ksfoy\\junit.xml"
+          ],
+          "exit_code": 0,
+          "exit_meaning": "all collected tests passed",
+          "duration_seconds": 2.36,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 54,
+          "passed": 54,
+          "failed": 0,
+          "errored": 0,
+          "skipped": 0,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [],
+          "failed_tests": [],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        },
+        "cluster": {
+          "argv": [
+            "-m",
+            "pytest",
+            "tests/agents",
+            "--crdb=reuse",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-x4q3m3xj\\junit.xml"
+          ],
+          "exit_code": 0,
+          "exit_meaning": "all collected tests passed",
+          "duration_seconds": 5.73,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 54,
+          "passed": 54,
+          "failed": 0,
+          "errored": 0,
+          "skipped": 0,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [],
+          "failed_tests": [],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        }
+      }
+    },
+    "tests/boundary": {
+      "path": "tests/boundary",
+      "kind": "test-root",
+      "distribution": null,
+      "runs": {
+        "none": {
+          "argv": [
+            "-m",
+            "pytest",
+            "tests/boundary",
+            "--crdb=none",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-ffb3q_g0\\junit.xml"
+          ],
+          "exit_code": 1,
+          "exit_meaning": "tests were collected and at least one failed",
+          "duration_seconds": 84.21,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 122,
+          "passed": 115,
+          "failed": 1,
+          "errored": 0,
+          "skipped": 6,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [
+            {
+              "reason": "neither `conftest` nor `opa` is on PATH, so the Rego re-statement of E1/E2/E4 was not evaluated. The Python assertions in this suite still stand; the independent second opinion does not. CI installs conftest, so this skip cannot occur there.",
+              "count": 2
+            },
+            {
+              "reason": "live IAM simulation not attempted: MAINLINE_BOUNDARY_LIVE_AWS is not set to 1. The plan-time assertions in this module still hold; this one does not, and is not counted as a pass.",
+              "count": 1
+            },
+            {
+              "reason": "live IAM simulation unavailable: MAINLINE_BOUNDARY_LIVE_AWS is not set to 1",
+              "count": 1
+            },
+            {
+              "reason": "no kernel-image SBOM is committed at evidence/sbom/kernel/current.cdx.json, so the image contents are unproven. NOT A PASS. Reason: no SBOM for the current kernel image is committed, so the image contents are unproven. The AST scan still stands on its own; this leg does not.",
+              "count": 1
+            },
+            {
+              "reason": "spec/agents/fleet.yaml does not exist yet (owned by the agent-contracts-red worker), so the matrix below is asserted against the reference register at packages/mainline-boundary/tests/fixtures/fleet_reference.yaml. NOT A PASS for the shipped fleet.",
+              "count": 1
+            }
+          ],
+          "failed_tests": [
+            "tests.boundary.test_ci_greps::test_no_request_builder_sets_a_sampling_parameter"
+          ],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        },
+        "cluster": {
+          "argv": [
+            "-m",
+            "pytest",
+            "tests/boundary",
+            "--crdb=reuse",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-7s4locgi\\junit.xml"
+          ],
+          "exit_code": 1,
+          "exit_meaning": "tests were collected and at least one failed",
+          "duration_seconds": 81.48,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 122,
+          "passed": 115,
+          "failed": 1,
+          "errored": 0,
+          "skipped": 6,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [
+            {
+              "reason": "neither `conftest` nor `opa` is on PATH, so the Rego re-statement of E1/E2/E4 was not evaluated. The Python assertions in this suite still stand; the independent second opinion does not. CI installs conftest, so this skip cannot occur there.",
+              "count": 2
+            },
+            {
+              "reason": "live IAM simulation not attempted: MAINLINE_BOUNDARY_LIVE_AWS is not set to 1. The plan-time assertions in this module still hold; this one does not, and is not counted as a pass.",
+              "count": 1
+            },
+            {
+              "reason": "live IAM simulation unavailable: MAINLINE_BOUNDARY_LIVE_AWS is not set to 1",
+              "count": 1
+            },
+            {
+              "reason": "no kernel-image SBOM is committed at evidence/sbom/kernel/current.cdx.json, so the image contents are unproven. NOT A PASS. Reason: no SBOM for the current kernel image is committed, so the image contents are unproven. The AST scan still stands on its own; this leg does not.",
+              "count": 1
+            },
+            {
+              "reason": "spec/agents/fleet.yaml does not exist yet (owned by the agent-contracts-red worker), so the matrix below is asserted against the reference register at packages/mainline-boundary/tests/fixtures/fleet_reference.yaml. NOT A PASS for the shipped fleet.",
+              "count": 1
+            }
+          ],
+          "failed_tests": [
+            "tests.boundary.test_ci_greps::test_no_request_builder_sets_a_sampling_parameter"
+          ],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        }
+      }
+    },
+    "tests/concurrency": {
+      "path": "tests/concurrency",
+      "kind": "test-root",
+      "distribution": null,
+      "runs": {
+        "none": {
+          "argv": [
+            "-m",
+            "pytest",
+            "tests/concurrency",
+            "--crdb=none",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-75xa3fdk\\junit.xml"
+          ],
+          "exit_code": 0,
+          "exit_meaning": "all collected tests passed",
+          "duration_seconds": 2.43,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 36,
+          "passed": 20,
+          "failed": 0,
+          "errored": 0,
+          "skipped": 16,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [
+            {
+              "reason": "no CockroachDB v26.2 reachable: set MAINLINE_TEST_DSN, or put `cockroach` on PATH, or start the Docker daemon so the lane can run `docker run cockroachdb/cockroach:v26.2.5 start-single-node --insecure`. THE EPOCH PIN IS NOT VERIFIED BY A SKIPPED RUN \u2014 the agent-side tests in this file still ran, and they assert the client contract only.",
+              "count": 7
+            },
+            {
+              "reason": "SKIP(no-cluster): no CockroachDB v26.2 reachable. Set MAINLINE_TEST_DSN to a LOCAL cluster, or put `cockroach` on PATH, or start the Docker daemon so the lane can run `docker run cockroachdb/cockroach:v26.2.5 start-single-node --insecure`. DENSITY AND FORK-FREEDOM ARE NOT VERIFIED BY A SKIPPED RUN \u2014 they are properties of two database constraints under real concurrency.",
+              "count": 4
+            },
+            {
+              "reason": "no CockroachDB v26.2 reachable: set TRAPPOINT_DSN, or put `cockroach` on PATH, or start the Docker daemon so the lane can run `docker run cockroachdb/cockroach:v26.2.5 start-single-node --insecure`. A SKIPPED RUN IS NOT EVIDENCE: the gate is a database mechanism and nothing in this package can stand in for it.",
+              "count": 4
+            },
+            {
+              "reason": "N=64 is the nightly arm: set TRAPPOINT_NIGHTLY=1. It is skipped rather than scaled down because a 64-way race that quietly ran 8-way would report a contention level nobody measured.",
+              "count": 1
+            }
+          ],
+          "failed_tests": [],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        },
+        "cluster": {
+          "argv": [
+            "-m",
+            "pytest",
+            "tests/concurrency",
+            "--crdb=reuse",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-y_6skwme\\junit.xml"
+          ],
+          "exit_code": 0,
+          "exit_meaning": "all collected tests passed",
+          "duration_seconds": 250.02,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 36,
+          "passed": 35,
+          "failed": 0,
+          "errored": 0,
+          "skipped": 1,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [
+            {
+              "reason": "N=64 is the nightly arm: set TRAPPOINT_NIGHTLY=1. It is skipped rather than scaled down because a 64-way race that quietly ran 8-way would report a contention level nobody measured.",
+              "count": 1
+            }
+          ],
+          "failed_tests": [],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        }
+      }
+    },
+    "tests/e2e": {
+      "path": "tests/e2e",
+      "kind": "test-root",
+      "distribution": null,
+      "runs": {
+        "none": {
+          "argv": [
+            "-m",
+            "pytest",
+            "tests/e2e",
+            "--crdb=none",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-874f5xj_\\junit.xml"
+          ],
+          "exit_code": 0,
+          "exit_meaning": "all collected tests passed",
+          "duration_seconds": 60.76,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 967,
+          "passed": 967,
+          "failed": 0,
+          "errored": 0,
+          "skipped": 0,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [],
+          "failed_tests": [],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        },
+        "cluster": {
+          "argv": [
+            "-m",
+            "pytest",
+            "tests/e2e",
+            "--crdb=reuse",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-ontygdmo\\junit.xml"
+          ],
+          "exit_code": 0,
+          "exit_meaning": "all collected tests passed",
+          "duration_seconds": 60.67,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 967,
+          "passed": 967,
+          "failed": 0,
+          "errored": 0,
+          "skipped": 0,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [],
+          "failed_tests": [],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        }
+      }
+    },
+    "tests/eval": {
+      "path": "tests/eval",
+      "kind": "test-root",
+      "distribution": null,
+      "runs": {
+        "none": {
+          "argv": [
+            "-m",
+            "pytest",
+            "tests/eval",
+            "--crdb=none",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-87am71fk\\junit.xml"
+          ],
+          "exit_code": 1,
+          "exit_meaning": "tests were collected and at least one failed",
+          "duration_seconds": 11.15,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 171,
+          "passed": 166,
+          "failed": 5,
+          "errored": 0,
+          "skipped": 0,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [],
+          "failed_tests": [
+            "tests.eval.recall.test_g4alpha_gates::test_retro_recall_at_3_on_severity_5",
+            "tests.eval.recall.test_g4alpha_gates::test_precision_at_block",
+            "tests.eval.recall.test_g4alpha_gates::test_nuisance_rate",
+            "tests.eval.recall.test_g4alpha_gates::test_mean_blocking_checks_per_permit",
+            "tests.eval.recall.test_g4alpha_gates::test_silence_conservation_law"
+          ],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        },
+        "cluster": {
+          "argv": [
+            "-m",
+            "pytest",
+            "tests/eval",
+            "--crdb=reuse",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-jlmw706x\\junit.xml"
+          ],
+          "exit_code": 1,
+          "exit_meaning": "tests were collected and at least one failed",
+          "duration_seconds": 15.3,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 171,
+          "passed": 166,
+          "failed": 5,
+          "errored": 0,
+          "skipped": 0,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [],
+          "failed_tests": [
+            "tests.eval.recall.test_g4alpha_gates::test_retro_recall_at_3_on_severity_5",
+            "tests.eval.recall.test_g4alpha_gates::test_precision_at_block",
+            "tests.eval.recall.test_g4alpha_gates::test_nuisance_rate",
+            "tests.eval.recall.test_g4alpha_gates::test_mean_blocking_checks_per_permit",
+            "tests.eval.recall.test_g4alpha_gates::test_silence_conservation_law"
+          ],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        }
+      }
+    },
+    "tests/integration": {
+      "path": "tests/integration",
+      "kind": "test-root",
+      "distribution": null,
+      "runs": {
+        "cluster": {
+          "argv": [
+            "-m",
+            "pytest",
+            "tests/integration",
+            "--crdb=reuse",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-l37u80so\\junit.xml"
+          ],
+          "exit_code": null,
+          "exit_meaning": "the target did not finish within 2400s of wall clock and was killed by report_test_state.py; nothing below it was measured",
+          "duration_seconds": 2400.02,
+          "timed_out": true,
+          "junit_written": false,
+          "tests": 0,
+          "passed": 0,
+          "failed": 0,
+          "errored": 0,
+          "skipped": 0,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [],
+          "failed_tests": [],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        },
+        "none": {
+          "argv": [
+            "-m",
+            "pytest",
+            "tests/integration",
+            "--crdb=none",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-y4ru4jhq\\junit.xml"
+          ],
+          "exit_code": 1,
+          "exit_meaning": "tests were collected and at least one failed",
+          "duration_seconds": 58.4,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 1658,
+          "passed": 1141,
+          "failed": 29,
+          "errored": 0,
+          "skipped": 488,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [
+            {
+              "reason": "no cluster: set TRAPPOINT_DSN (or LOCAL_DSN). For a local single-node node \u2014 `docker compose up -d crdb` then TRAPPOINT_DSN=<dsn>",
+              "count": 211
+            },
+            {
+              "reason": "no CockroachDB v26.2 reachable: set MAINLINE_TEST_DSN, or put `cockroach` on PATH, or start the Docker daemon so the suite can run `docker run cockroachdb/cockroach:v26.2.5 start-single-node --insecure`. Decision D8 is NOT verified by a skipped run.",
+              "count": 36
+            },
+            {
+              "reason": "no CockroachDB v26.2 reachable: set MAINLINE_TEST_DSN, or put `cockroach` on PATH, or start the Docker daemon so the suite can run `docker run cockroachdb/cockroach:v26.2.5 start-single-node --insecure`. CONSERVATION OF BLAME MASS is NOT verified by a skipped run.",
+              "count": 31
+            },
+            {
+              "reason": "no live CockroachDB: none of MAINLINE_TEST_DSN, COCKROACH_URL, CRDB_URL is set and no `cockroach` binary is on PATH. The offline half of this suite still ran; the plan and SQL-equivalence claims are UNVERIFIED.",
+              "count": 26
+            },
+            {
+              "reason": "no CockroachDB v26.2 reachable: set MAINLINE_TEST_DSN, or put `cockroach` on PATH, or start the Docker daemon so the suite can run `docker run cockroachdb/cockroach:v26.2.5 start-single-node --insecure`. The recall band is NOT verified by a skipped run.",
+              "count": 24
+            },
+            {
+              "reason": "no CockroachDB v26.2 reachable. Provide $MAINLINE_TEST_DSN, a `cockroach` binary on PATH, or a running Docker daemon for `docker run cockroachdb/cockroach:v26.2.5`. Migrations 0037-0039 and queries/closure_write.sql are NOT verified by a skipped run.",
+              "count": 19
+            },
+            {
+              "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes \u2014 a negative suite that goes green without ever trying asserts the opposite of what it claims.",
+              "count": 19
+            },
+            {
+              "reason": "no CockroachDB v26.2 reachable: set MAINLINE_TEST_DSN, or put `cockroach` on PATH, or start the Docker daemon so the suite can run `docker run cockroachdb/cockroach:v26.2.5 start-single-node --insecure`. ORIGINDIFF's view is NOT verified by a skipped run.",
+              "count": 18
+            },
+            {
+              "reason": "SKIP(no-cluster): no CockroachDB v26.2 reachable. Set MAINLINE_TEST_DSN to a LOCAL cluster, or put `cockroach` on PATH, or start the Docker daemon so the lane can run `docker run cockroachdb/cockroach:v26.2.5 start-single-node --insecure`. NO ATTACK WAS EXECUTED AND NO DETECTION WAS OBSERVED BY A SKIPPED RUN \u2014 the matrix such a run could produce would be spec/custody/attacks.yaml with a different layout, which is a list of expectations, not a record.",
+              "count": 15
+            },
+            {
+              "reason": "no CockroachDB v26.2 reachable: set MAINLINE_TEST_DSN, or put `cockroach` on PATH, or start the Docker daemon so the suite can run `docker run cockroachdb/cockroach:v26.2.5 start-single-node --insecure`. The claim that the vector index is used is NOT proven by a skipped run.",
+              "count": 15
+            },
+            {
+              "reason": "no CockroachDB v26.2 reachable. Provide $MAINLINE_TEST_DSN, a `cockroach` binary on PATH, or a running Docker daemon for `docker run cockroachdb/cockroach:v26.2.5`. Migrations 0032-0036 are NOT verified by a skipped run.",
+              "count": 14
+            },
+            {
+              "reason": "no CockroachDB v26.2 reachable: set MAINLINE_TEST_DSN, or put `cockroach` on PATH, or start the Docker daemon so the suite can run `docker run cockroachdb/cockroach:v26.2.5 start-single-node --insecure`. Migration 0207 is NOT verified by a skipped run.",
+              "count": 12
+            },
+            {
+              "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes, because a green audit-surface run with nothing to talk to would assert nothing.",
+              "count": 11
+            },
+            {
+              "reason": "no CockroachDB v26.2 reachable: set MAINLINE_TEST_DSN, or put `cockroach` on PATH, or start the Docker daemon. SQLite cannot stand in here \u2014 its planner is not CockroachDB's, so a green SQLite run would say nothing about whether the optimiser constrained the scan. Channel D's PLAN is NOT verified by this skipped run.",
+              "count": 10
+            },
+            {
+              "reason": "SKIP(no-cluster): no CockroachDB v26.2 reachable. Set MAINLINE_TEST_DSN to a LOCAL cluster, or put `cockroach` on PATH, or start the Docker daemon so the lane can run `docker run cockroachdb/cockroach:v26.2.5 start-single-node --insecure`. IDEMPOTENCE AND ledger_linear ARE NOT VERIFIED BY A SKIPPED RUN \u2014 both are database refusals and nothing in process can stand in for them.",
+              "count": 9
+            },
+            {
+              "reason": "no cluster: set one of MAINLINE_TEST_DSN, COCKROACH_URL, CRDB_URL, TRAPPOINT_DSN. AWS credentials are not valid on this build machine, so a local `cockroach` binary or a container is the intended path",
+              "count": 7
+            },
+            {
+              "reason": "no cluster: set one of MAINLINE_TEST_DSN, TRAPPOINT_DSN, COCKROACH_URL, CRDB_URL. For a local single-node node \u2014 `cockroach start-single-node --insecure` \u2014 that is TRAPPOINT_DSN=<dsn> This is a SKIP and not a pass: the schema fingerprint's stability against a REAL `SHOW CREATE ALL \u2026` is K2 exit criterion 6, and a fake cannot prove it.",
+              "count": 3
+            },
+            {
+              "reason": "SKIP(no-cluster): reads the live schema for row-level TTL on any ledger_* table.",
+              "count": 1
+            },
+            {
+              "reason": "SKIP(no-cluster): requires a disposable single-node CockroachDB. Green from K2 onward via tests/integration/custody/nemesis/test_gate_attacks.py.",
+              "count": 1
+            },
+            {
+              "reason": "insert_rows is a real append to a real evidentiary table; set MAINLINE_MCP_ALLOW_WRITE=1 to exercise it, and only against mainline-verify",
+              "count": 1
+            },
+            {
+              "reason": "no Managed-MCP credential: set CC_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID. This SKIPS rather than passing, because a green attest run with nothing to talk to would assert nothing about the one write path this package has.",
+              "count": 1
+            },
+            {
+              "reason": "no Managed-MCP credential: set CC_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID. This SKIPS rather than passing, because a green attest run with nothing to talk to would assert nothing about the one write path this package has. The write additionally requires MAINLINE_STEWARD_SEND=1, because insert_rows is a real append to a real evidentiary table and a test run is not a reason to add a row to one.",
+              "count": 1
+            },
+            {
+              "reason": "pyproject.toml does not declare 'trappoint-recall-verify-per'. It is one line in a file owned by recall-eval-harness: trappoint-recall-verify-per = \"trappoint_recall.per.cli:main\" under [project.scripts]. Reported rather than assumed; the reference invocation 'python -m trappoint_recall.per' is asserted by the tests above and works today.",
+              "count": 1
+            },
+            {
+              "reason": "the repository README makes no Proof-of-Exhausted-Recall claim yet, so it owes no bound. The grep starts biting the moment it does.",
+              "count": 1
+            },
+            {
+              "reason": "unattended `ccloud` auth is undocumented (\u00a79.3: --no-redirect exists for headless login; no API-key flag or environment variable is published), and this build has no CockroachDB Cloud organisation. Set MAINLINE_STEWARD_CCLOUD_LIVE=1 with a logged-in ccloud to exercise it. This SKIPS rather than passing, because a green live lane with nothing to talk to would assert nothing.",
+              "count": 1
+            }
+          ],
+          "failed_tests": [
+            "tests.integration.algorithms.registry.test_0207_shape::test_the_migration_is_exactly_one_statement",
+            "tests.integration.algorithms.registry.test_0207_shape::test_the_header_declares_what_the_band_requires",
+            "tests.integration.algorithms.registry.test_0207_shape::test_the_algorithms_band_holds_only_this_worker_s_file_at_0207",
+            "tests.integration.algorithms.registry.test_0207_shape::test_the_view_name_and_schema_are_the_reserved_ones",
+            "tests.integration.algorithms.registry.test_0207_shape::test_the_sql_labels_match_the_python_grammar",
+            "tests.integration.algorithms.registry.test_0207_shape::test_every_ratifiable_direction_is_named_in_the_answers_predicate",
+            "tests.integration.algorithms.registry.test_0207_shape::test_the_migration_says_out_loud_that_it_is_not_what_the_gate_reads",
+            "tests.integration.algorithms.registry.test_0207_shape::test_the_migration_claims_no_refusal_it_does_not_implement",
+            "tests.integration.custody.nemesis.test_ledger_attacks::test_fixture_names_the_same_constraints_as_the_migrations",
+            "tests.integration.custody.test_k2_exit::test_k2_1_tamper_is_caught_by_a_consistency_proof",
+            "tests.integration.custody.test_k2_exit::test_k2_2_closure_rewrite_is_caught_by_check_14",
+            "tests.integration.custody.test_k2_exit::test_k2_4_checkpoint_cadence_measured_and_deadman_defined",
+            "tests.integration.custody.test_k2_exit::test_k2_5_checkpoint_wire_format_tagged_v1_0_with_changelog_entry",
+            "tests.integration.custody.test_k2_exit::test_k2_6_migration_attestation_chained_with_a_stable_fingerprint",
+            "tests.integration.custody.test_k2_exit::test_verifier_determinism",
+            "tests.integration.recall_run.test_claim_bound_grep::test_the_wide_ring_holds_the_claim_unchanged",
+            "tests.integration.recall_schema.test_rc00_migration_shape::test_rc00g_a_trigger_function_only_names_columns_its_own_table_has",
+            "tests.integration.schema.test_mi_blame::test_dm9_the_closure_is_read_only_through_the_view",
+            "tests.integration.schema.test_mi_blame::test_pl2_red_sev_max_is_never_projected_from_the_closure",
+            "tests.integration.schema.test_mi_blame::test_mi26_red_the_monotone_guard_accepts_an_unrelated_severity_revision",
+            "tests.integration.schema.test_mi_boundary_override::test_pl2_red_fn_boundary_project_does_not_exist_yet",
+            "tests.integration.schema.test_mi_boundary_override::test_pl2_red_the_carried_use_projection_does_not_exist_yet",
+            "tests.integration.schema.test_mi_boundary_override::test_pl2_red_the_two_new_evidentiary_tables_have_no_append_only_trigger",
+            "tests.integration.schema.test_mi_boundary_override::test_pl2_red_nothing_yet_requires_a_cited_predicate_to_still_be_holding",
+            "tests.integration.schema.test_mi_disposition_gated::test_every_counsel_gated_object_declares_it[mainline_meas.silence_ledger]",
+            "tests.integration.schema.test_mi_event_severity::test_pl2_red_severity_revision_provenance_is_not_yet_projected",
+            "tests.integration.schema.test_mi_ratchet::test_red_every_invariant_is_enforced",
+            "tests.integration.schema.test_mi_spine::test_band_is_exactly_the_declared_files",
+            "tests.integration.schema.test_mi_spine::test_no_filename_in_the_tree_defeats_the_runners_version_regex"
+          ],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        }
+      }
+    },
+    "tests/release": {
+      "path": "tests/release",
+      "kind": "test-root",
+      "distribution": null,
+      "runs": {
+        "none": {
+          "argv": [
+            "-m",
+            "pytest",
+            "tests/release",
+            "--crdb=none",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-d7le5s31\\junit.xml"
+          ],
+          "exit_code": 1,
+          "exit_meaning": "tests were collected and at least one failed",
+          "duration_seconds": 20.69,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 131,
+          "passed": 119,
+          "failed": 4,
+          "errored": 0,
+          "skipped": 8,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [
+            {
+              "reason": "no cluster DSN. Set one of MAINLINE_TEST_DSN, TRAPPOINT_DSN, COCKROACH_URL, CRDB_URL, LOCAL_DSN to run the release proof.",
+              "count": 8
+            }
+          ],
+          "failed_tests": [
+            "tests.release.test_honesty_is_checkable::test_every_quantity_equals_the_value_it_cites",
+            "tests.release.test_honesty_is_checkable::test_no_citation_is_decorative",
+            "tests.release.test_mypy_covers_workspace::test_check_passes_on_the_real_tree",
+            "tests.release.test_mypy_covers_workspace::test_ratchet_records_every_distribution_and_the_mypy_version"
+          ],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        },
+        "cluster": {
+          "argv": [
+            "-m",
+            "pytest",
+            "tests/release",
+            "--crdb=reuse",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-njpoj711\\junit.xml"
+          ],
+          "exit_code": 1,
+          "exit_meaning": "tests were collected and at least one failed",
+          "duration_seconds": 134.92,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 131,
+          "passed": 127,
+          "failed": 4,
+          "errored": 0,
+          "skipped": 0,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [],
+          "failed_tests": [
+            "tests.release.test_honesty_is_checkable::test_every_quantity_equals_the_value_it_cites",
+            "tests.release.test_honesty_is_checkable::test_no_citation_is_decorative",
+            "tests.release.test_mypy_covers_workspace::test_check_passes_on_the_real_tree",
+            "tests.release.test_mypy_covers_workspace::test_ratchet_records_every_distribution_and_the_mypy_version"
+          ],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        }
+      }
+    },
+    "tests/security": {
+      "path": "tests/security",
+      "kind": "test-root",
+      "distribution": null,
+      "runs": {
+        "none": {
+          "argv": [
+            "-m",
+            "pytest",
+            "tests/security",
+            "--crdb=none",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-mjyh5pdy\\junit.xml"
+          ],
+          "exit_code": 1,
+          "exit_meaning": "tests were collected and at least one failed",
+          "duration_seconds": 6.4,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 461,
+          "passed": 458,
+          "failed": 1,
+          "errored": 0,
+          "skipped": 2,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [
+            {
+              "reason": "refused before the pipeline runs; covered by test_layers.py",
+              "count": 2
+            }
+          ],
+          "failed_tests": [
+            "tests.security.injection.test_layers::test_scanner_is_green_on_the_real_tree"
+          ],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        },
+        "cluster": {
+          "argv": [
+            "-m",
+            "pytest",
+            "tests/security",
+            "--crdb=reuse",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-6mp3dnsx\\junit.xml"
+          ],
+          "exit_code": 1,
+          "exit_meaning": "tests were collected and at least one failed",
+          "duration_seconds": 9.5,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 461,
+          "passed": 458,
+          "failed": 1,
+          "errored": 0,
+          "skipped": 2,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [
+            {
+              "reason": "refused before the pipeline runs; covered by test_layers.py",
+              "count": 2
+            }
+          ],
+          "failed_tests": [
+            "tests.security.injection.test_layers::test_scanner_is_green_on_the_real_tree"
+          ],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        }
+      }
+    },
+    "tests/unit": {
+      "path": "tests/unit",
+      "kind": "test-root",
+      "distribution": null,
+      "runs": {
+        "none": {
+          "argv": [
+            "-m",
+            "pytest",
+            "tests/unit",
+            "--crdb=none",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-k1lfzkn2\\junit.xml"
+          ],
+          "exit_code": 1,
+          "exit_meaning": "tests were collected and at least one failed",
+          "duration_seconds": 167.41,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 3437,
+          "passed": 3432,
+          "failed": 2,
+          "errored": 0,
+          "skipped": 3,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [
+            {
+              "reason": "TAXONOMY INTEGRATION LANE OWED: migrations ['0032_activity_node.sql', '0033_event.sql'] have landed, so mainline.activity_node and mainline.event now exist and the LMB/bond writers can be exercised against a real cluster. This lane must be built against them (apply the migrations, insert a fonds / series / file chain and an event, run LevelMaterialisedBondWriter and BondWriter, assert the row counts and the unique-constraint behaviour). Until then the writers are proven only by the unit suite.",
+              "count": 1
+            },
+            {
+              "reason": "mainline-delta-oracle is installed in this environment; the AST checks still prove the lattice does not import it, but the stronger 'it is not even here' claim is not available from this run",
+              "count": 1
+            },
+            {
+              "reason": "sentence-transformers is the 'local-embed' extra and the bge-large weights are a network fetch; neither is available offline. Install the extra, warm the cache, then run with MAINLINE_BGE_REVISION set.",
+              "count": 1
+            }
+          ],
+          "failed_tests": [
+            "tests.unit.domain.novelty.test_novelty_manifest::test_every_cited_test_path_exists[deltalattice]",
+            "tests.unit.domain.novelty.test_novelty_manifest::test_every_implementation_path_exists[directrix]"
+          ],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        },
+        "cluster": {
+          "argv": [
+            "-m",
+            "pytest",
+            "tests/unit",
+            "--crdb=reuse",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-dks2vrk8\\junit.xml"
+          ],
+          "exit_code": 1,
+          "exit_meaning": "tests were collected and at least one failed",
+          "duration_seconds": 170.86,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 3437,
+          "passed": 3432,
+          "failed": 2,
+          "errored": 0,
+          "skipped": 3,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [
+            {
+              "reason": "TAXONOMY INTEGRATION LANE OWED: migrations ['0032_activity_node.sql', '0033_event.sql'] have landed, so mainline.activity_node and mainline.event now exist and the LMB/bond writers can be exercised against a real cluster. This lane must be built against them (apply the migrations, insert a fonds / series / file chain and an event, run LevelMaterialisedBondWriter and BondWriter, assert the row counts and the unique-constraint behaviour). Until then the writers are proven only by the unit suite.",
+              "count": 1
+            },
+            {
+              "reason": "mainline-delta-oracle is installed in this environment; the AST checks still prove the lattice does not import it, but the stronger 'it is not even here' claim is not available from this run",
+              "count": 1
+            },
+            {
+              "reason": "sentence-transformers is the 'local-embed' extra and the bge-large weights are a network fetch; neither is available offline. Install the extra, warm the cache, then run with MAINLINE_BGE_REVISION set.",
+              "count": 1
+            }
+          ],
+          "failed_tests": [
+            "tests.unit.domain.novelty.test_novelty_manifest::test_every_cited_test_path_exists[deltalattice]",
+            "tests.unit.domain.novelty.test_novelty_manifest::test_every_implementation_path_exists[directrix]"
+          ],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        }
+      }
+    }
+  },
+  "totals": {
+    "none": {
+      "targets": 26,
+      "tests": 8845,
+      "passed": 8065,
+      "failed": 44,
+      "errored": 0,
+      "skipped": 736,
+      "xfailed": 0,
+      "timed_out_targets": 0,
+      "unmeasured_targets": 0
+    },
+    "cluster": {
+      "targets": 26,
+      "tests": 7187,
+      "passed": 6960,
+      "failed": 29,
+      "errored": 182,
+      "skipped": 16,
+      "xfailed": 0,
+      "timed_out_targets": 1,
+      "unmeasured_targets": 1
+    }
+  },
+  "skip_reasons": {
+    "none": [
+      {
+        "reason": "no cluster: set TRAPPOINT_DSN (or LOCAL_DSN). For a local single-node node \u2014 `docker compose up -d crdb` then TRAPPOINT_DSN=<dsn>",
+        "count": 211
+      },
+      {
+        "reason": "SKIP WITH REASON: no TRAPPOINT_DSN or LOCAL_DSN. These assertions are about what a database does; without one there is nothing to assert and pretending otherwise would be a suite that passes by absence. `just up && just migrate`.",
+        "count": 183
+      },
+      {
+        "reason": "no CockroachDB v26.2 reachable: set MAINLINE_TEST_DSN, or put `cockroach` on PATH, or start the Docker daemon so the suite can run `docker run cockroachdb/cockroach:v26.2.5 start-single-node --insecure`. Decision D8 is NOT verified by a skipped run.",
+        "count": 36
+      },
+      {
+        "reason": "no CockroachDB v26.2 reachable: set MAINLINE_TEST_DSN, or put `cockroach` on PATH, or start the Docker daemon so the suite can run `docker run cockroachdb/cockroach:v26.2.5 start-single-node --insecure`. CONSERVATION OF BLAME MASS is NOT verified by a skipped run.",
+        "count": 31
+      },
+      {
+        "reason": "no live CockroachDB: none of MAINLINE_TEST_DSN, COCKROACH_URL, CRDB_URL is set and no `cockroach` binary is on PATH. The offline half of this suite still ran; the plan and SQL-equivalence claims are UNVERIFIED.",
+        "count": 26
+      },
+      {
+        "reason": "no CockroachDB v26.2 reachable: set MAINLINE_TEST_DSN, or put `cockroach` on PATH, or start the Docker daemon so the suite can run `docker run cockroachdb/cockroach:v26.2.5 start-single-node --insecure`. The recall band is NOT verified by a skipped run.",
+        "count": 24
+      },
+      {
+        "reason": "no CockroachDB v26.2 reachable. Provide $MAINLINE_TEST_DSN, a `cockroach` binary on PATH, or a running Docker daemon for `docker run cockroachdb/cockroach:v26.2.5`. Migrations 0037-0039 and queries/closure_write.sql are NOT verified by a skipped run.",
+        "count": 19
+      },
+      {
+        "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes \u2014 a negative suite that goes green without ever trying asserts the opposite of what it claims.",
+        "count": 19
+      },
+      {
+        "reason": "no CockroachDB v26.2 reachable: set MAINLINE_TEST_DSN, or put `cockroach` on PATH, or start the Docker daemon so the suite can run `docker run cockroachdb/cockroach:v26.2.5 start-single-node --insecure`. ORIGINDIFF's view is NOT verified by a skipped run.",
+        "count": 18
+      },
+      {
+        "reason": "SKIP(no-cluster): no CockroachDB v26.2 reachable. Set MAINLINE_TEST_DSN to a LOCAL cluster, or put `cockroach` on PATH, or start the Docker daemon so the lane can run `docker run cockroachdb/cockroach:v26.2.5 start-single-node --insecure`. NO ATTACK WAS EXECUTED AND NO DETECTION WAS OBSERVED BY A SKIPPED RUN \u2014 the matrix such a run could produce would be spec/custody/attacks.yaml with a different layout, which is a list of expectations, not a record.",
+        "count": 15
+      },
+      {
+        "reason": "no CockroachDB v26.2 reachable: set MAINLINE_TEST_DSN, or put `cockroach` on PATH, or start the Docker daemon so the suite can run `docker run cockroachdb/cockroach:v26.2.5 start-single-node --insecure`. The claim that the vector index is used is NOT proven by a skipped run.",
+        "count": 15
+      },
+      {
+        "reason": "no CockroachDB v26.2 reachable: set TRAPPOINT_DSN, or put `cockroach` on PATH, or start the Docker daemon so the lane can run `docker run cockroachdb/cockroach:v26.2.5 start-single-node --insecure`. A SKIPPED RUN IS NOT EVIDENCE: the gate is a database mechanism and nothing in this package can stand in for it.",
+        "count": 15
+      },
+      {
+        "reason": "TRAPPOINT_DSN is unset; this case needs a migrated cluster",
+        "count": 14
+      },
+      {
+        "reason": "no CockroachDB v26.2 reachable. Provide $MAINLINE_TEST_DSN, a `cockroach` binary on PATH, or a running Docker daemon for `docker run cockroachdb/cockroach:v26.2.5`. Migrations 0032-0036 are NOT verified by a skipped run.",
+        "count": 14
+      },
+      {
+        "reason": "no CockroachDB v26.2 reachable: set MAINLINE_TEST_DSN, or put `cockroach` on PATH, or start the Docker daemon so the suite can run `docker run cockroachdb/cockroach:v26.2.5 start-single-node --insecure`. Migration 0207 is NOT verified by a skipped run.",
+        "count": 12
+      },
+      {
+        "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes, because a green audit-surface run with nothing to talk to would assert nothing.",
+        "count": 11
+      },
+      {
+        "reason": "no CockroachDB v26.2 reachable: set MAINLINE_TEST_DSN, or put `cockroach` on PATH, or start the Docker daemon. SQLite cannot stand in here \u2014 its planner is not CockroachDB's, so a green SQLite run would say nothing about whether the optimiser constrained the scan. Channel D's PLAN is NOT verified by this skipped run.",
+        "count": 10
+      },
+      {
+        "reason": "SKIP(no-cluster): no CockroachDB v26.2 reachable. Set MAINLINE_TEST_DSN to a LOCAL cluster, or put `cockroach` on PATH, or start the Docker daemon so the lane can run `docker run cockroachdb/cockroach:v26.2.5 start-single-node --insecure`. IDEMPOTENCE AND ledger_linear ARE NOT VERIFIED BY A SKIPPED RUN \u2014 both are database refusals and nothing in process can stand in for them.",
+        "count": 9
+      },
+      {
+        "reason": "no cluster DSN. Set one of MAINLINE_TEST_DSN, TRAPPOINT_DSN, COCKROACH_URL, CRDB_URL, LOCAL_DSN to run the release proof.",
+        "count": 8
+      },
+      {
+        "reason": "no CockroachDB v26.2 reachable: set MAINLINE_TEST_DSN, or put `cockroach` on PATH, or start the Docker daemon so the lane can run `docker run cockroachdb/cockroach:v26.2.5 start-single-node --insecure`. THE EPOCH PIN IS NOT VERIFIED BY A SKIPPED RUN \u2014 the agent-side tests in this file still ran, and they assert the client contract only.",
+        "count": 7
+      },
+      {
+        "reason": "no cluster: set one of MAINLINE_TEST_DSN, COCKROACH_URL, CRDB_URL, TRAPPOINT_DSN. AWS credentials are not valid on this build machine, so a local `cockroach` binary or a container is the intended path",
+        "count": 7
+      },
+      {
+        "reason": "SKIP(no-cluster): no CockroachDB v26.2 reachable. Set MAINLINE_TEST_DSN to a LOCAL cluster, or put `cockroach` on PATH, or start the Docker daemon so the lane can run `docker run cockroachdb/cockroach:v26.2.5 start-single-node --insecure`. DENSITY AND FORK-FREEDOM ARE NOT VERIFIED BY A SKIPPED RUN \u2014 they are properties of two database constraints under real concurrency.",
+        "count": 4
+      },
+      {
+        "reason": "TRAPPOINT_DSN is unset; this case needs a migrated cluster and a refused permit",
+        "count": 3
+      },
+      {
+        "reason": "no cluster: set one of MAINLINE_TEST_DSN, TRAPPOINT_DSN, COCKROACH_URL, CRDB_URL. For a local single-node node \u2014 `cockroach start-single-node --insecure` \u2014 that is TRAPPOINT_DSN=<dsn> This is a SKIP and not a pass: the schema fingerprint's stability against a REAL `SHOW CREATE ALL \u2026` is K2 exit criterion 6, and a fake cannot prove it.",
+        "count": 3
+      },
+      {
+        "reason": "--crdb=none: this session declined to obtain a CockroachDB, so every test that needs one is skipped rather than allowed to start a private container",
+        "count": 2
+      },
+      {
+        "reason": "neither `conftest` nor `opa` is on PATH, so the Rego re-statement of E1/E2/E4 was not evaluated. The Python assertions in this suite still stand; the independent second opinion does not. CI installs conftest, so this skip cannot occur there.",
+        "count": 2
+      },
+      {
+        "reason": "refused before the pipeline runs; covered by test_layers.py",
+        "count": 2
+      },
+      {
+        "reason": "N=64 is the nightly arm: set TRAPPOINT_NIGHTLY=1. It is skipped rather than scaled down because a 64-way race that quietly ran 8-way would report a contention level nobody measured.",
+        "count": 1
+      },
+      {
+        "reason": "SKIP(no-cluster): reads the live schema for row-level TTL on any ledger_* table.",
+        "count": 1
+      },
+      {
+        "reason": "SKIP(no-cluster): requires a disposable single-node CockroachDB. Green from K2 onward via tests/integration/custody/nemesis/test_gate_attacks.py.",
+        "count": 1
+      },
+      {
+        "reason": "TAXONOMY INTEGRATION LANE OWED: migrations ['0032_activity_node.sql', '0033_event.sql'] have landed, so mainline.activity_node and mainline.event now exist and the LMB/bond writers can be exercised against a real cluster. This lane must be built against them (apply the migrations, insert a fonds / series / file chain and an event, run LevelMaterialisedBondWriter and BondWriter, assert the row counts and the unique-constraint behaviour). Until then the writers are proven only by the unit suite.",
+        "count": 1
+      },
+      {
+        "reason": "insert_rows is a real append to a real evidentiary table; set MAINLINE_MCP_ALLOW_WRITE=1 to exercise it, and only against mainline-verify",
+        "count": 1
+      },
+      {
+        "reason": "live IAM simulation not attempted: MAINLINE_BOUNDARY_LIVE_AWS is not set to 1. The plan-time assertions in this module still hold; this one does not, and is not counted as a pass.",
+        "count": 1
+      },
+      {
+        "reason": "live IAM simulation unavailable: MAINLINE_BOUNDARY_LIVE_AWS is not set to 1",
+        "count": 1
+      },
+      {
+        "reason": "mainline-delta-oracle is installed in this environment; the AST checks still prove the lattice does not import it, but the stronger 'it is not even here' claim is not available from this run",
+        "count": 1
+      },
+      {
+        "reason": "no Managed-MCP credential: set CC_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID. This SKIPS rather than passing, because a green attest run with nothing to talk to would assert nothing about the one write path this package has.",
+        "count": 1
+      },
+      {
+        "reason": "no Managed-MCP credential: set CC_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID. This SKIPS rather than passing, because a green attest run with nothing to talk to would assert nothing about the one write path this package has. The write additionally requires MAINLINE_STEWARD_SEND=1, because insert_rows is a real append to a real evidentiary table and a test run is not a reason to add a row to one.",
+        "count": 1
+      },
+      {
+        "reason": "no kernel-image SBOM is committed at evidence/sbom/kernel/current.cdx.json, so the image contents are unproven. NOT A PASS. Reason: no SBOM for the current kernel image is committed, so the image contents are unproven. The AST scan still stands on its own; this leg does not.",
+        "count": 1
+      },
+      {
+        "reason": "pyproject.toml does not declare 'trappoint-recall-verify-per'. It is one line in a file owned by recall-eval-harness: trappoint-recall-verify-per = \"trappoint_recall.per.cli:main\" under [project.scripts]. Reported rather than assumed; the reference invocation 'python -m trappoint_recall.per' is asserted by the tests above and works today.",
+        "count": 1
+      },
+      {
+        "reason": "sentence-transformers is the 'local-embed' extra and the bge-large weights are a network fetch; neither is available offline. Install the extra, warm the cache, then run with MAINLINE_BGE_REVISION set.",
+        "count": 1
+      },
+      {
+        "reason": "spec/agents/fleet.yaml does not exist yet (owned by the agent-contracts-red worker), so the matrix below is asserted against the reference register at packages/mainline-boundary/tests/fixtures/fleet_reference.yaml. NOT A PASS for the shipped fleet.",
+        "count": 1
+      },
+      {
+        "reason": "the repository README makes no Proof-of-Exhausted-Recall claim yet, so it owes no bound. The grep starts biting the moment it does.",
+        "count": 1
+      },
+      {
+        "reason": "unattended `ccloud` auth is undocumented (\u00a79.3: --no-redirect exists for headless login; no API-key flag or environment variable is published), and this build has no CockroachDB Cloud organisation. Set MAINLINE_STEWARD_CCLOUD_LIVE=1 with a logged-in ccloud to exercise it. This SKIPS rather than passing, because a green live lane with nothing to talk to would assert nothing.",
+        "count": 1
+      }
+    ],
+    "cluster": [
+      {
+        "reason": "TRAPPOINT_REFUSED_PERMIT is unset; this case needs a migrated cluster and a refused permit",
+        "count": 3
+      },
+      {
+        "reason": "neither `conftest` nor `opa` is on PATH, so the Rego re-statement of E1/E2/E4 was not evaluated. The Python assertions in this suite still stand; the independent second opinion does not. CI installs conftest, so this skip cannot occur there.",
+        "count": 2
+      },
+      {
+        "reason": "refused before the pipeline runs; covered by test_layers.py",
+        "count": 2
+      },
+      {
+        "reason": "N=64 is the nightly arm: set TRAPPOINT_NIGHTLY=1. It is skipped rather than scaled down because a 64-way race that quietly ran 8-way would report a contention level nobody measured.",
+        "count": 1
+      },
+      {
+        "reason": "SKIP WITH REASON: the cluster holds none of the gate's objects, so there is no source text to attest. Run `just migrate` first.",
+        "count": 1
+      },
+      {
+        "reason": "TAXONOMY INTEGRATION LANE OWED: migrations ['0032_activity_node.sql', '0033_event.sql'] have landed, so mainline.activity_node and mainline.event now exist and the LMB/bond writers can be exercised against a real cluster. This lane must be built against them (apply the migrations, insert a fonds / series / file chain and an event, run LevelMaterialisedBondWriter and BondWriter, assert the row counts and the unique-constraint behaviour). Until then the writers are proven only by the unit suite.",
+        "count": 1
+      },
+      {
+        "reason": "live IAM simulation not attempted: MAINLINE_BOUNDARY_LIVE_AWS is not set to 1. The plan-time assertions in this module still hold; this one does not, and is not counted as a pass.",
+        "count": 1
+      },
+      {
+        "reason": "live IAM simulation unavailable: MAINLINE_BOUNDARY_LIVE_AWS is not set to 1",
+        "count": 1
+      },
+      {
+        "reason": "mainline-delta-oracle is installed in this environment; the AST checks still prove the lattice does not import it, but the stronger 'it is not even here' claim is not available from this run",
+        "count": 1
+      },
+      {
+        "reason": "no kernel-image SBOM is committed at evidence/sbom/kernel/current.cdx.json, so the image contents are unproven. NOT A PASS. Reason: no SBOM for the current kernel image is committed, so the image contents are unproven. The AST scan still stands on its own; this leg does not.",
+        "count": 1
+      },
+      {
+        "reason": "sentence-transformers is the 'local-embed' extra and the bge-large weights are a network fetch; neither is available offline. Install the extra, warm the cache, then run with MAINLINE_BGE_REVISION set.",
+        "count": 1
+      },
+      {
+        "reason": "spec/agents/fleet.yaml does not exist yet (owned by the agent-contracts-red worker), so the matrix below is asserted against the reference register at packages/mainline-boundary/tests/fixtures/fleet_reference.yaml. NOT A PASS for the shipped fleet.",
+        "count": 1
+      }
+    ]
+  },
+  "merges": [
+    {
+      "merged_utc": "2026-08-09T23:27:46Z",
+      "targets": [
+        "tests/integration"
+      ],
+      "passes": [
+        "cluster"
+      ],
+      "per_target_timeout_seconds": 2400,
+      "why": "these rows were re-measured and replaced; totals and skip_reasons were recomputed from every row present, never carried forward"
+    },
+    {
+      "merged_utc": "2026-08-09T23:35:43Z",
+      "targets": [
+        "tests/integration"
+      ],
+      "passes": [
+        "none"
+      ],
+      "per_target_timeout_seconds": 600,
+      "why": "these rows were re-measured and replaced; totals and skip_reasons were recomputed from every row present, never carried forward"
+    },
+    {
+      "merged_utc": "2026-08-09T23:38:55Z",
+      "targets": [
+        "tests/release"
+      ],
+      "passes": [
+        "none",
+        "cluster"
+      ],
+      "per_target_timeout_seconds": 600,
+      "why": "these rows were re-measured and replaced; totals and skip_reasons were recomputed from every row present, never carried forward"
+    }
+  ],
+  "platform": {
+    "note": "Context for reading every duration in this file. The census runs against a LOCAL single-node CockroachDB; no timing here is a Cloud timing, and none of them is a statement about the deployed system.",
+    "measured_utc": "2026-08-09T23:33:29Z",
+    "regions": {
+      "measured_here": false,
+      "recorded_by": "docs/adr/0002-g1-platform-ground-truth.md",
+      "inference": "ap-southeast-2 (Sydney) \u2014 8 au.* Claude inference profiles",
+      "database_cloud": "aws-ap-southeast-1 (Singapore), Basic tier",
+      "why_the_split": "ap-southeast-2 is Advanced-tier only on CockroachDB Cloud and is absent from the Basic and Standard region lists, so the development database cannot be co-located with the inference that reads it",
+      "cross_region_hop": "real, and not measured under load anywhere in this repository",
+      "bedrock_rerank_available_in_ap_southeast_2": false,
+      "end_to_end_australian_residency": false
+    },
+    "kernel_lead_local_reference": {
+      "measured_here": false,
+      "recorded_by": "docs/leads/kernel.md line 311",
+      "seconds": 2.4,
+      "operation": "DDL + 5,000 vector inserts, local node",
+      "why_it_differs_from_local_benchmark": "a different shape measured on a different day: this census's benchmark also builds a vector INDEX before inserting, and neither run recorded the other's dimensionality or batch size. Quote the census's own number for the census's own shape; the two are the same order of magnitude and are not the same measurement"
+    },
+    "cloud_basic_comparison": {
+      "measured_here": false,
+      "recorded_by": "docs/leads/kernel.md line 311",
+      "seconds": 120,
+      "seconds_is_a_floor": true,
+      "operation": "9 DDL statements on CockroachDB Cloud Basic (Singapore)",
+      "why_not_re_measured": "this census holds no Cloud credential and takes none; re-measuring it is cloud-verify.yml's job, nightly, not a laptop's"
+    },
+    "local_benchmark": {
+      "measured_here": true,
+      "shape": "CREATE DATABASE/TABLE with a VECTOR(256) column and a prefix-constrained vector index, then 5000 inserts in batches of 500",
+      "rows": 5000,
+      "dimensions": 256,
+      "database": "w_qr_readme_honesty",
+      "ddl_seconds": 5.319,
+      "insert_seconds": 6.483,
+      "seconds": 11.802,
+      "rows_committed": 5000
+    }
+  },
+  "external_checks": {
+    "custody_bundle_verification": {
+      "what": "trappoint-verify, offline, over the committed reference ledger \u2014 the Tier-1 verification in VERIFY.md, the one that needs no credential at all",
+      "command": "python -m trappoint_verify.cli verify --bundle evidence/reference-ledger/bundle.json --json",
+      "exit_code_meaning": {
+        "0": "every check ran and held",
+        "2": "everything that ran held, and at least one check did not run",
+        "1": "at least one check failed"
+      },
+      "exit_code": 2,
+      "counts": {
+        "failed": 0,
+        "not_checked": 7,
+        "passed": 9,
+        "total": 16
+      },
+      "tool": "trappoint-verify 0.1.0",
+      "not_checked": [
+        {
+          "check_id": 4,
+          "name": "log_signature"
+        },
+        {
+          "check_id": 5,
+          "name": "rfc3161_upper_bound"
+        },
+        {
+          "check_id": 6,
+          "name": "beacon_lower_bound"
+        },
+        {
+          "check_id": 7,
+          "name": "witness_quorum"
+        },
+        {
+          "check_id": 8,
+          "name": "archive_object_lock"
+        },
+        {
+          "check_id": 11,
+          "name": "gate_self_attestation"
+        },
+        {
+          "check_id": 12,
+          "name": "webauthn_reverification"
+        }
+      ],
+      "failed": []
+    }
+  }
+}

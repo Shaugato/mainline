@@ -134,6 +134,68 @@ def test_the_insert_statements_are_well_formed():
     assert "mainline_meas.mutation_result" in INSERT_RESULT
 
 
+#: CockroachDB v26.2.5 reserved words that this repository's migrations plausibly reach for
+#: as column names. `FAMILY` is the one that actually bit (0049z, 42601); the rest are here
+#: because the cost of listing them is one tuple and the cost of missing one is a migration
+#: chain that stops before the merge gate.
+RESERVED_COLUMN_NAMES = (
+    "family",
+    "index",
+    "constraint",
+    "table",
+    "column",
+    "order",
+    "limit",
+    "offset",
+    "primary",
+    "default",
+    "user",
+    "grant",
+    "window",
+    "range",
+)
+
+
+@pytest.mark.parametrize("path", [RUN_SQL, RESULT_SQL])
+def test_no_column_is_spelled_with_a_reserved_keyword(path):
+    """The 42601 that stood between this repository and its central claim.
+
+    ``0049z`` declared ``family STRING NOT NULL``. ``FAMILY`` is reserved in CockroachDB —
+    it introduces a column family, as ``0024_commit_obj.sql`` and ``0029_clause_version.sql``
+    both use it — so the parser read the column name as the keyword and the file returned
+    ``42601``. Its allocation key ``(49, "z")`` sorts before ``(50, "")``, so a forward-only
+    runner never reached ``0050_permit.sql``, let alone ``0115_fn_permit_merge_gate.sql``.
+
+    Quoting is NOT the repair and this test does not accept it. Measured on the live node:
+    ``"family"`` survives the DDL and a quoted read, while ``INSERT INTO t (id, family)``,
+    ``SELECT id, family`` and ``UPDATE t SET family = …`` all still return ``42601``. Since
+    :data:`~mainline_mutation.sql.RESULT_COLUMNS` is interpolated into a column list
+    unquoted, a quoted DDL would only have moved the failure from migration time to run
+    time. The column is ``mutation_family``, and this assertion is what keeps it that way.
+    """
+    declared = _declared_columns(path)
+    offenders = sorted(declared & set(RESERVED_COLUMN_NAMES))
+    assert not offenders, (
+        f"{path.name} declares column(s) whose bare name is a reserved keyword in "
+        f"CockroachDB: {offenders}. Quoting the DDL is not enough — every unquoted "
+        f"reference still returns 42601. Rename the column."
+    )
+
+
+def test_the_result_table_names_the_family_column_mutation_family():
+    """The rename, asserted from both sides at once.
+
+    ``RESULT_COLUMNS`` is what ``sql.py`` interpolates into the INSERT, so this is the
+    single place where the Python vocabulary and the SQL vocabulary have to agree about
+    the spelling. The Python attribute is still ``MutantResult.family``; that one is a
+    dataclass field and never a SQL identifier.
+    """
+    assert "mutation_family" in RESULT_COLUMNS
+    assert "family" not in RESULT_COLUMNS
+    assert "mutation_family" in _declared_columns(RESULT_SQL)
+    assert " family " not in INSERT_RESULT.replace(",", " ").replace("(", " ").replace(")", " ")
+
+
 def test_the_outcome_vocabulary_matches_the_check():
     body = _body(RESULT_SQL)
     for outcome in OUTCOMES:

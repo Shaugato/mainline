@@ -1,0 +1,146 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
+#
+# THE DISTRIBUTION THAT NINETY-FOUR MODULES HAD BEEN DOING WITHOUT.
+#
+# Measured 2026-08-10: `verticals/mainline/packages/mainline-corpus/` held nine
+# stage subpackages under `src/mainline_corpus/` and NO `pyproject.toml`, so the
+# uv workspace globs — which admit `verticals/*/packages/*` automatically — did
+# not admit it, `uv sync` never installed it, and four consumers imported it
+# anyway on a `PYTHONPATH` somebody had set by hand. This file is that omission
+# closed. Nothing under `src/` is edited to close it; the code was always a
+# package, it just had no distribution.
+
+[project]
+name = "mainline-corpus"
+version = "0.1.0"
+description = "THE SYNTHETIC CORPUS: the seeded, model-free, network-free body of documents every recall and blame claim in this repository is measured against."
+readme = "README.md"
+requires-python = ">=3.13"
+# FSL-1.1-ALv2 per the repository licence map (verticals/mainline/* is FSL), in
+# the `LicenseRef-` form REUSE requires — FSL-1.1-ALv2 is not an SPDX-registered
+# identifier. The licence TEXT lives in the repo-root LICENSES/ tree, outside this
+# project directory, and therefore cannot be referenced by `license-files`.
+license = "LicenseRef-FSL-1.1-ALv2"
+authors = [{ name = "MAINLINE contributors" }]
+keywords = ["corpus", "synthetic-data", "deterministic", "ground-truth", "blame"]
+classifiers = [
+  "Programming Language :: Python :: 3.13",
+  "Typing :: Typed",
+  "Private :: Do Not Upload",
+]
+
+# THREE DEPENDENCIES, EACH ONE READ OUT OF THE SOURCE RATHER THAN GUESSED.
+# Derived by extracting every `import`/`from` in all 94 modules and separating the
+# unconditional top-level ones from the guarded, function-local ones.
+#
+#   pyyaml           FOUR unconditional top-level imports: `gazetteer/__init__.py`,
+#                    `prompts/__init__.py`, `render/authored.py`, `skeleton/emit.py`.
+#                    The gazetteer IS eleven YAML files; without this the package
+#                    does not import. Floor matches `mainline-boundary`,
+#                    `mainline-mcp` and `mainline-steward`, which already say >=6.0.
+#
+#   jinja2           ONE unconditional top-level import, `docx/template.py`, a
+#                    `StrictUndefined` environment for the OOXML templates. Floor
+#                    matches `trappoint-sql`, the only other Jinja2 consumer.
+#
+#   mainline-domain  `skeleton/build.py::_verify_citations` re-checks every citation
+#                    in the gazetteer against the SHIPPED `REGULATORY_CITATION`
+#                    extractor, and records `skipped: mainline_domain not importable`
+#                    in `index.json` when the import fails — never `ok`. The guard
+#                    is honest, and it was also load-bearing while this directory had
+#                    no distribution and no way to declare a sibling. Declaring the
+#                    dependency is what converts that skip into a check that RUNS.
+#                    `mainline_domain` does not import `mainline_corpus` (grepped:
+#                    zero hits), so this is not a cycle.
+#
+# DELIBERATELY ABSENT, and each absence is load-bearing:
+#
+#   python-docx      `docx/verify.py::opens_with_python_docx` uses it as a genuinely
+#                    THIRD-PARTY parse of documents we wrote, and its own docstring
+#                    says "python-docx is not in `uv.lock` and this build does not
+#                    require it (ADR 0034)". It returns `skipped=True` when absent.
+#                    Declaring it — even as an extra — would put it in `uv.lock` and
+#                    make that sentence false, so it is declared nowhere.
+#
+#   boto3            An EXTRA, below, not a dependency. See `[project.optional-dependencies]`.
+#
+#   pytest /         at runtime. This is a generator and a set of `python -m` stages;
+#   hypothesis       the corpus must be producible by `just` and by a workflow that
+#                    has no test session.
+dependencies = [
+  "pyyaml>=6.0",
+  "jinja2>=3.1",
+  "mainline-domain",
+]
+
+[project.optional-dependencies]
+# The `bedrock` render tier: Claude on an `au.*` inference profile, strict tool use,
+# T=0. `render/bedrock.py` imports boto3 LAZILY, inside `_ensure_client`, behind
+# `--allow-live`, and its own header states the tier "has never been executed against
+# the service from this repository" — every dated path is served from the committed
+# content-addressed cache (D2, PL-3). An extra rather than a dependency is therefore
+# the honest shape, and it matches `mainline-quarantine` and `mainline-archivist`,
+# which make the same call for the same reason.
+bedrock = ["boto3>=1.35"]
+
+# NO `[project.scripts]`, and that is a decision rather than an omission. Six stages
+# ship a `__main__.py` (`blame`, `docx`, `moc_stream`, `reflow`, `render`, `skeleton`)
+# and every invocation written down in this repository — the sources, and
+# `docs/leads/corpus-demo.md` — spells them `python -m mainline_corpus.<stage>`.
+# Minting seven console-script names that nothing calls would add seven entry points
+# CI does not exercise.
+
+[dependency-groups]
+dev = [
+  "pytest>=8.3",
+  "mypy>=1.11",
+  # The gazetteer and prompt loaders are strict-typed against PyYAML's stubs;
+  # `yaml` ships none of its own.
+  "types-PyYAML>=6.0",
+]
+
+[tool.uv.sources]
+mainline-domain = { workspace = true }
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+# The DIRECTORY, not its `*.py`. `gazetteer/__init__.py` and `prompts/__init__.py`
+# resolve their data with `Path(__file__).resolve().parent`, so eleven YAML files and
+# four Markdown prompt texts must land beside the modules in the installed tree. A
+# wheel that carried only Python would import cleanly and then fail at first use,
+# which is the worst of the available failures. `tests/release/test_workspace_members.py`
+# drives `gazetteer.checksum()` and `prompts.load_all()` against the INSTALLED package
+# unconditionally, and additionally builds the wheel and looks inside it when `uv` is
+# available — 117 entries, 19 of them not Python, measured 2026-08-10.
+packages = ["src/mainline_corpus"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "README.md"]
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+warn_unreachable = true
+mypy_path = "src"
+packages = ["mainline_corpus"]
+
+# MEASURED: `mypy --strict -p mainline_corpus` over 95 source files reports exactly
+# ONE error, and it is this import — the optional third-party parse in
+# `docx/verify.py` that is already wrapped in `try: … except ImportError:` and
+# already reports itself as skipped. The override is scoped to that one module name.
+# There is no blanket `ignore_missing_imports` in this file, because the whole point
+# of `py.typed` here is that the other 94 modules are checked.
+[[tool.mypy.overrides]]
+module = ["docx", "docx.*"]
+ignore_missing_imports = true
+
+# `boto3` is an extra, so it is legitimately absent from the environment a strict
+# check runs in, and it ships no py.typed — its stubs are a very large separate
+# package. Mirrors the repo-level `[mypy-boto3.*]` section rather than adding one.
+[[tool.mypy.overrides]]
+module = ["boto3", "boto3.*", "botocore.*"]
+ignore_missing_imports = true

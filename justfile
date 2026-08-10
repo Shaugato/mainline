@@ -6,8 +6,13 @@
 #
 #     just up && just bootstrap && just conform
 #
-# is the entire K1 proof. If a recipe needs an AWS account or a CockroachDB Cloud
-# organisation, it does not belong in this file.
+# is the entire K1 proof, and
+#
+#     just up && just doctor && just prove
+#
+# is the whole product claim: a real refusal, out of a real database, on a laptop.
+# If a recipe needs an AWS account or a CockroachDB Cloud organisation, it does not
+# belong in this file.
 #
 # Bash on every platform, including Windows, where Git Bash ships with Git. `just`'s
 # default Windows shell is cmd.exe, and a repository whose proof command differs by
@@ -18,10 +23,29 @@
 # member, which would make `just image` fail because some unrelated distribution three
 # directories away is mid-edit. In a repository built by many hands at once that is not
 # a hypothetical; it is Tuesday.
+#
+# FOUR RECIPES MAY NOT MENTION `uv`, AND THAT IS LOAD-BEARING. Measured on 2026-08-10:
+# `uv` was not installed on the machine this repository is built on, and every recipe in
+# this file began with `uv run`. A stranger's first command therefore answered
+# `uv: command not found` from a file whose own header promised it ran on a stranger's
+# laptop. `doctor`, `setup`, `up` and `pin` run BEFORE uv exists, so none of them may
+# reach it — not directly, and not one hop away either, which is how `up` used to break:
+# it called `just image`, and `image` is `uv run`. `doctor` says what is missing, `setup`
+# installs it. Everything after them may — and does — assume the workspace.
+# `tests/release/test_one_command_loop.py` walks the reachable set and enforces this.
 
 set shell := ["bash", "-euo", "pipefail", "-c"]
 set windows-shell := ["bash", "-euo", "pipefail", "-c"]
 set dotenv-load := false
+
+# The interpreter that runs `doctor`, and $PYTHON always wins.
+#
+# The probe RUNS the candidate rather than looking it up, and that is not pedantry.
+# Measured here: `command -v python3` succeeds on this Windows machine and points at
+# `…/WindowsApps/python3`, the Microsoft Store execution alias, which exits 49 with
+# "Python was not found; run without arguments to install from the Microsoft Store".
+# A PATH lookup would have chosen it. `python3 -c "import sys"` does not.
+PYTHON := env_var_or_default("PYTHON", `python3 -c "import sys" >/dev/null 2>&1 && echo python3 || echo python`)
 
 # The local single-node DSN. `--insecure` means no password: this cluster is bound to
 # loopback in compose.yaml and is not a place to put anything real.
@@ -35,12 +59,65 @@ MAINLINE_MIGRATIONS := "verticals/mainline/db/migrations"
 _default:
     @just --list --unsorted
 
+# ── The four commands ────────────────────────────────────────────────────────
+#
+# docs/release/QUICKSTART.md is these and nothing else.
+
+# Preflight. Says what is missing, and the command that fixes it, before anything fails.
+doctor:
+    @{{PYTHON}} scripts/qa/doctor.py
+
+# Install uv if it is absent, then resolve and install every workspace member.
+setup:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if command -v uv >/dev/null 2>&1 ; then
+        echo "uv already present: $(uv --version)"
+    else
+        echo "uv is not installed. Installing it — this is the one bootstrap step."
+        if [ "${OS:-}" = "Windows_NT" ] ; then
+            powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+            export PATH="$HOME/.local/bin:$PATH"
+        else
+            curl -LsSf https://astral.sh/uv/install.sh | sh
+            export PATH="$HOME/.local/bin:$PATH"
+        fi
+        command -v uv >/dev/null 2>&1 || {
+            echo ""
+            echo "uv installed but is not on PATH in this shell. Open a new terminal, or:"
+            echo '    export PATH="$HOME/.local/bin:$PATH"'
+            exit 1
+        }
+    fi
+    uv sync --all-packages
+    echo ""
+    echo "workspace installed. Next:  just up && just doctor && just prove"
+
+# Bootstraps, applies the whole migration chain into a throwaway database, attempts the
+# merge three times, and prints the refusal the database actually issued — SQLSTATE,
+# constraint name and all. Exit 0 means proven; exit 1 means NOT proven and the evidence
+# file says which half failed. Publish either one.
+#
+# THE recipe: a real refusal, out of a real database, on a laptop, in one command.
+prove:
+    uv run --package trappoint-migrate python scripts/proof/gate_refusal.py --dsn '{{LOCAL_DSN}}'
+
 # ── The cluster ──────────────────────────────────────────────────────────────
 
-# Start the local single-node CockroachDB and wait for it to answer SQL.
+# Start the local single-node CockroachDB, wait for it to answer SQL, align it with Cloud.
 up:
     docker compose -f compose.yaml up -d --wait
-    @echo "cluster up · $(just image) · DSN: {{LOCAL_DSN}}"
+    @just gc-align
+    @echo "cluster up · $({{PYTHON}} scripts/qa/doctor.py --print-pin) · DSN: {{LOCAL_DSN}}"
+
+# Local defaults to gc.ttlseconds 14400 — four hours of MVCC history against Cloud
+# Basic's seventy-five minutes — so local is the MORE permissive of the two, and a
+# time-travel assumption that is legal here is refused on the nightly Cloud run.
+# Idempotent; `just up` runs it for you.
+#
+# Pin local `gc.ttlseconds` to 4500, the value CockroachDB Cloud Basic enforces.
+gc-align:
+    @docker compose -f compose.yaml run --rm crdb-align
 
 # Stop the cluster, keeping the data volume.
 down:
@@ -53,6 +130,10 @@ nuke:
 # Print the pinned CockroachDB image. One constant, read out of compose.yaml.
 image:
     @uv run --package trappoint-migrate trappoint migrate image
+
+# The same constant, read without uv — because `up` runs before `setup` has installed it.
+pin:
+    @{{PYTHON}} scripts/qa/doctor.py --print-pin
 
 # Print the local DSN, for `export LOCAL_DSN="$(just dsn)"`.
 dsn:
@@ -131,9 +212,27 @@ fmt:
     uv run --only-group dev ruff format .
     uv run --only-group dev ruff check --fix .
 
-# Hermetic tests only: nothing here needs a cluster, a credential or a network.
+# ── The tests ────────────────────────────────────────────────────────────────
+#
+# `--crdb` is trappoint-testkit's, and it is the difference between a suite and a
+# machine on fire. Measured on 2026-08-10: an unqualified full-suite run started
+# THIRTEEN private single-node CockroachDB containers concurrently, all thirteen exited
+# 7 or 8, they took the real node down with them, and the Docker engine API began
+# answering HTTP 500. `--crdb=none` starts none and skips every cluster test with the
+# reason its own fixture writes; `--crdb=reuse` uses the ONE container `just up` started
+# and will never start a second.
+
+# The hermetic suite: no cluster, no credential, no network. This is what CI runs first.
 test:
-    uv run --package trappoint-migrate pytest packages/trappoint-migrate/tests -q
+    uv run --all-packages pytest --crdb=none
+
+# The same suite with the cluster tests live, against the one container `up` started.
+test-cluster: up
+    uv run --all-packages pytest --crdb=reuse
+
+# The console's own gate: eslint, tsc twice, vitest, vite build, budgets, licences.
+console:
+    cd verticals/mainline/apps/console && pnpm install --frozen-lockfile && pnpm run ci
 
 # Re-resolve uv.lock after a package adds a dependency. Never hand-edit the lockfile.
 lock:

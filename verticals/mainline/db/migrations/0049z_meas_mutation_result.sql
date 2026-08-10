@@ -63,6 +63,38 @@
 -- The CHECK below holds the array to that vocabulary so that a stand-in residue derivation
 -- cannot quietly invent a sixth reason and have it counted.
 --
+-- ── THE COLUMN IS NAMED mutation_family, AND QUOTING WOULD NOT HAVE BEEN ENOUGH ──────────────
+-- It was `family`, and `FAMILY` is a RESERVED KEYWORD in CockroachDB — the column-family
+-- syntax `CREATE TABLE … FAMILY f_hot (…)` is used two files away in 0024_commit_obj.sql and
+-- 0029_clause_version.sql, so the parser reads the bare word as the keyword and this file
+-- returned `42601` at the column list. Its allocation key (49,"z") sorts BEFORE (50,""), so a
+-- forward-only runner that stops on first error never reached 0050_permit.sql and the merge
+-- gate at 0115 was unreachable: one parse error stood between this repository and its central
+-- claim.
+--
+-- The obvious repair — quote it — was MEASURED against the live node (v26.2.5) and is not
+-- sufficient. `"family"` is legal in the DDL, and it is legal in a quoted read; every
+-- UNQUOTED reference still returns 42601:
+--
+--   CREATE TABLE t (id INT PRIMARY KEY, family STRING NOT NULL)     -> 42601
+--   CREATE TABLE t (id INT PRIMARY KEY, "family" STRING NOT NULL)   -> OK
+--   INSERT INTO t (id, family)  VALUES (1,'x')                      -> 42601
+--   SELECT id, family FROM t                                        -> 42601
+--   UPDATE t SET family = 'z' WHERE id = 1                          -> 42601
+--
+-- `mainline_mutation.sql` builds its INSERT from a frozen column tuple and would have emitted
+-- the bare name into the column list, so quoting here would have moved the failure from
+-- migration time to run time — a strictly worse place for it. Renaming is the repair that
+-- holds in every position, and `tests/e2e/mutation/test_sql_shape.py` now refuses the reserved
+-- spelling directly so the rename cannot be undone by a well-meaning revert.
+--
+-- The Python attribute is still `MutantResult.family`: it is a dataclass field in a package,
+-- never a SQL identifier, and renaming it would change a module this file does not own for no
+-- gain. `RESULT_COLUMNS` is where the two vocabularies meet, and that is where the mapping is.
+--
+-- A tree-wide scan for the same defect class over all 261 migrations returns exactly this one
+-- file. This was one bug, not a class of bug.
+--
 -- ── WHAT THIS TABLE DELIBERATELY DOES NOT DO ─────────────────────────────────────────────────
 -- It carries no foreign key to `mainline.clause` or `mainline.clause_version`. The fixtures are
 -- authored revisions in a Python package, not rows in the commit DAG, and a FK to a clause that
@@ -76,7 +108,8 @@ CREATE TABLE mainline_meas.mutation_result (
   kind              STRING NOT NULL,          -- 'KILL' | 'SURVIVE'
   class_id          STRING NOT NULL,
   fixture_id        STRING NOT NULL,
-  family            STRING NOT NULL,
+  -- NOT `family`. See "THE COLUMN IS NAMED mutation_family" above: FAMILY is reserved.
+  mutation_family   STRING NOT NULL,
   outcome           STRING NOT NULL,
   success           BOOL   NOT NULL,
   outcome_reason    STRING NOT NULL,          -- the sentence, never empty

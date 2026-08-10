@@ -11,11 +11,23 @@
 # proof must run on a stranger's machine with no credential of ours; a stranger
 # who resolves a different dependency graph than CI did has not reproduced
 # anything. `uv lock --check` in ci.yml is what makes that sentence true.
+#
+# ── 2026-08-10, AND THE REASON THAT PARAGRAPH WAS NOT YET TRUE ─────────────────
+# `uv.lock`'s `[manifest] members` listed SEVEN distributions against TWENTY-NINE
+# `pyproject.toml` files on disk (thirty once `mainline-corpus` got the one it had
+# always been missing). `uv lock --check` and `uv sync --frozen --all-packages` —
+# ci.yml jobs 1 and 2 — could not pass, and had not been passing against anything
+# resembling this repository. The globs below were never the problem; they are
+# additive and correct. The lock was twenty-two distributions stale, and the fix
+# is to regenerate it, which this commit does.
 
 [tool.uv.workspace]
 # Every distribution in the repository is a member. The globs are stable and
 # additive: a new package appears in the workspace the moment its
-# `pyproject.toml` lands, with no edit here.
+# `pyproject.toml` lands, with no edit here. `scripts/qa/check_workspace_members.py`
+# is what makes "the moment its pyproject.toml lands" true rather than aspirational
+# — it refuses a build in which the tree and the lock disagree about the member set,
+# in either direction.
 #
 # `verticals/*/apps/*` is deliberately ABSENT. The console is a pnpm workspace
 # with its own lockfile; mixing a TypeScript SPA into the Python resolution
@@ -37,21 +49,44 @@ required-version = ">=0.5.0"
 # Workspace-wide developer tooling. These are the tools CI runs, pinned by lower
 # bound here and by exact resolution in `uv.lock`, so `just lint` on a laptop and
 # `ci.yml` on a runner disagree only when someone edits the lockfile.
+#
+# THE FLOORS ARE THE MEASURED VERSIONS, NOT HISTORICAL ONES. On 2026-08-10 the
+# floors read `pytest>=8.2`, `mypy>=1.11`, `ruff>=0.6` while `.venv` resolved
+# pytest 9.1.1, mypy 2.3.0 and ruff 0.16.1 — one, one and *ten* minor series ahead,
+# across three major boundaries. A floor that far below the installed version is
+# not a constraint, it is a comment: every ratchet in `qa/` (W4's ruff counts, W5's
+# mypy targets) is a census taken with a specific analyser, and a floor that admits
+# ruff 0.6 admits a tool that would produce a different census and still satisfy
+# the declaration. The floors below are what CI and this laptop actually run.
 dev = [
-    "pytest>=8.2",
-    "pytest-timeout>=2.3",
-    "hypothesis>=6.100",
-    "ruff>=0.6",
-    "mypy>=1.11",
-    "import-linter>=2.1",
+    "pytest>=9.1",
+    "pytest-timeout>=2.4",
+    "hypothesis>=6.165",
+    "ruff>=0.16.1",
+    "mypy>=2.3",
+    "import-linter>=2.13",
 ]
 
 [tool.pytest.ini_options]
-minversion = "8.2"
-# Only the trees that exist as test roots today. Each domain's tests are added by
-# the worker that owns them; a missing path here is a visible omission rather
-# than a silent one, because `--strict-markers` makes an unregistered marker fail.
-testpaths = ["tests", "packages"]
+minversion = "9.1"
+# THREE TEST ROOTS, AND THE THIRD IS NEW.
+#
+# Until 2026-08-10 this said `["tests", "packages"]`. `verticals/*/packages/*/tests`
+# — 146 collected tests across `mainline-anchor`, `mainline-custody-patrol` and
+# `mainline-sequencer` — had therefore NEVER run in a default `pytest` invocation.
+# Not "run and passed"; not run. A vertical's tests being invisible to the command
+# every contributor types is the same defect class as the seven-member lockfile
+# above: the tree grew and the declaration did not.
+#
+# A glob, not the bare directory `verticals`: `verticals/mainline/apps/console` is a
+# pnpm workspace with `node_modules/`, and pointing pytest at its parent would make
+# collection walk a JavaScript dependency tree. `testpaths` has accepted shell-style
+# wildcards since pytest 7, and this file already requires 9.1.
+testpaths = [
+    "tests",
+    "packages",
+    "verticals/*/packages/*/tests",
+]
 addopts = [
     "--strict-markers",
     "--strict-config",
@@ -62,10 +97,40 @@ markers = [
     "requires_aws: needs live AWS credentials; skips with a reason (PL-3: not on a dated path)",
     "g4alpha: the recall domain's G4-alpha gate; observed RED by design until K4",
     "slow: takes more than a second",
+    # ── Registered here because `--strict-markers` and the third test root above
+    # meet each other. Each of these was in use on 2026-08-10 and registered only
+    # by a `pytest_configure` hook in one directory's conftest — which works while
+    # the marked test lives under that conftest and fails the instant a sibling
+    # suite, or a new test root, uses the same word. The census that produced this
+    # list is `grep -rhoE '@pytest\.mark\.[a-z_]+' tests packages verticals scripts`,
+    # so it is what the tree uses, not what anyone remembered.
+    "schema: exercises DDL against a real cluster",
+    "shape: static assertions over the migration band; needs no cluster",
+    "mi: names the migration invariant (MI01-MI30) a test stands for",
+    "db: needs a database connection; the conformance suite's cluster tier",
+    "anomaly: names the conformance anomaly (A1-A9) a test stands for",
+    "frozen: asserts a frozen artefact — a change here is a deliberate re-baseline",
+    "artefact: writes or asserts a published evidence artefact under evidence/",
+    "integration: crosses a process or a wire; not a unit test",
 ]
 # A test that hangs is a test that has stopped asserting. The 12-minute CI budget
 # is a wall-clock budget for the whole job, so no single test may own it.
 timeout = 120
+# `thread` rather than the POSIX default `signal`, for two independent reasons, and
+# the first one alone is decisive: **this repository is developed on Windows**, where
+# `SIGALRM` does not exist and pytest-timeout's signal method is unavailable, so the
+# timeout above silently did nothing on the machine where the suite was written.
+# Second, twenty-three source files start CockroachDB containers and the fixtures
+# connect without `connect_timeout`; the signal method cannot interrupt a blocking
+# C-level socket read inside psycopg, and the thread method's `dump + os._exit` at
+# least ends the run with a stack that names the fixture.
+#
+# HONESTY NOTE, measured by the quality lead on 2026-08-10 and not fixed by this
+# setting: pytest-timeout does NOT interrupt a hang that occurs in *session-scoped
+# fixture setup*, under either method. A suite that hangs waiting for a cluster it
+# started itself will still hang. That is W2's `conftest.py` seam to close, not this
+# file's.
+timeout_method = "thread"
 # A warning nobody reads is a defect nobody fixes, so warnings are errors — with three
 # named exemptions for the categories third-party packages emit about themselves and
 # that no change of ours can silence. Any OTHER warning fails the run, on purpose.

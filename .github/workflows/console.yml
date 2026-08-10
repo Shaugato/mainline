@@ -1,0 +1,152 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+#
+# THE CONSOLE LANE. Before 2026-08-10 there was no such thing.
+#
+# `verticals/mainline/apps/console` holds **278 TypeScript files**, a committed
+# `pnpm-lock.yaml`, `packageManager: pnpm@11.5.3`, and a complete `pnpm run ci` —
+# eslint with `--max-warnings 0`, `tsc` twice (app and node configs), `vitest run`,
+# a production `vite build`, a bundle-budget check and a dependency-licence check.
+# Every one of those existed and **not one of them had ever run in CI**
+# (docs/leads/quality-repair.md §1.7).
+#
+# That is a worse state than having no checks. A `pnpm run ci` script that nobody runs
+# is a promise the repository makes and does not keep, and the first person to run it
+# inherits every regression accumulated since it was written. This file is nine lines
+# of substance whose value is entirely in the fact that it now happens on every push
+# that touches the directory.
+#
+# MEASURED BEFORE COMMITTING THIS FILE. `pnpm run ci` was executed against the checkout
+# on 2026-08-10 with Node v24.14.0 and pnpm 11.5.3 — the versions this workflow pins —
+# and exited **0**. It linted, type-checked twice, ran vitest, built (18 chunks, entry
+# 218.76 kB / 69.44 kB gzip), held all bundle budgets, and audited 372 packages across
+# 12 licences with no copyleft in the runtime closure. So this lane is committed GREEN
+# and known-green, which means the first red it ever shows will be a real regression
+# rather than a backlog.
+#
+# THE PIN IS READ, NOT RESTATED. `pnpm/action-setup` takes its version from the
+# `packageManager` field of `package.json` when no `version:` input is given — the same
+# discipline `db.yml` applies to the CockroachDB image. The step after it asserts that
+# the pnpm which actually ended up on PATH is the one `package.json` names, because a
+# pin that is never read back is a wish.
+
+name: console
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "verticals/mainline/apps/console/**"
+      - ".github/workflows/console.yml"
+  pull_request:
+    paths:
+      - "verticals/mainline/apps/console/**"
+      - ".github/workflows/console.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: console-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CONSOLE_DIR: verticals/mainline/apps/console
+  # The console never talks to a model and never talks to a database. `vitest` runs
+  # against jsdom and `vite build` is a pure transform, so a network call from this
+  # lane after `pnpm install` would be a finding, not a dependency.
+  CI: "true"
+
+jobs:
+  ci:
+    name: eslint · tsc ×2 · vitest · vite build · budgets · licences
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: verticals/mainline/apps/console
+    steps:
+      - name: Deny egress except to the npm registry
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            objects.githubusercontent.com:443
+            registry.npmjs.org:443
+            nodejs.org:443
+
+      - uses: actions/checkout@v4
+
+      - name: pnpm, at the version package.json names
+        # No `version:` input on purpose. The action reads `packageManager` out of
+        # `package.json`, which makes that field the single place the version lives —
+        # the same rule `compose.yaml` holds for the CockroachDB image.
+        uses: pnpm/action-setup@v4
+        with:
+          package_json_file: verticals/mainline/apps/console/package.json
+
+      - name: Node, with the pnpm store cached
+        uses: actions/setup-node@v4
+        with:
+          # `engines.node` says ">=24.0.0"; 24 is the LTS line the lockfile was resolved
+          # against and the version `pnpm run ci` was measured green on.
+          node-version: "24"
+          cache: pnpm
+          cache-dependency-path: verticals/mainline/apps/console/pnpm-lock.yaml
+
+      - name: The pin that was requested is the pin that arrived
+        run: |
+          set -euo pipefail
+          declared="$(node -p "require('./package.json').packageManager")"
+          expected="${declared#pnpm@}"
+          actual="$(pnpm --version)"
+          echo "package.json packageManager : ${declared}"
+          echo "pnpm on PATH                : ${actual}"
+          if [ "${expected}" != "${actual}" ]; then
+            echo "::error file=${CONSOLE_DIR}/package.json::package.json names pnpm ${expected} but pnpm ${actual} is on PATH"
+            exit 1
+          fi
+          node --version
+
+      - name: pnpm install --frozen-lockfile
+        # `--frozen-lockfile` refuses to update `pnpm-lock.yaml`. A CI that silently
+        # re-resolves is a CI that tested a dependency graph nobody reviewed, and it is
+        # the TypeScript half of the same defect `uv lock --check` exists to catch on the
+        # Python side.
+        run: pnpm install --frozen-lockfile
+
+      - name: pnpm run ci
+        # Deliberately the project's OWN script, invoked whole, rather than six steps
+        # restating its six commands. A developer running `pnpm run ci` on a laptop must
+        # be running exactly what the runner runs; splitting it here would create two
+        # definitions of "the console is green" that drift apart on the first edit to
+        # `package.json`.
+        run: pnpm run ci
+
+      - name: What this lane proved
+        if: always()
+        run: |
+          {
+            echo "## console"
+            echo ""
+            echo "\`pnpm run ci\` in \`${CONSOLE_DIR}\`, which is:"
+            echo ""
+            echo "| step | what it proves |"
+            echo "|---|---|"
+            echo "| \`eslint . --max-warnings 0\` | no lint finding, not even a warning |"
+            echo "| \`tsc -p tsconfig.json --noEmit\` | the app type-checks |"
+            echo "| \`tsc -p tsconfig.node.json --noEmit\` | the build scripts type-check too |"
+            echo "| \`vitest run\` | the unit suite passes under jsdom |"
+            echo "| \`vite build\` | a production bundle actually builds |"
+            echo "| \`check:budgets\` | D13 — bundle budgets are tests, and they held |"
+            echo "| \`check:licences\` | every shipped dependency is permissive and named |"
+            echo ""
+            echo "**What this lane does NOT prove.** Nothing about the database, the merge"
+            echo "gate, or any claim the console DISPLAYS. \`vitest\` runs against jsdom with no"
+            echo "cluster; the surface's promise that it re-derives every claim it shows is"
+            echo "asserted by the Playwright suite (\`pnpm run test:browser\`), which is not run"
+            echo "here because it needs a live backend. See \`docs/release/ci-map.md\`."
+          } >> "$GITHUB_STEP_SUMMARY"

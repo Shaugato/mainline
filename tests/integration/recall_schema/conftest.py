@@ -32,7 +32,7 @@ psycopg = pytest.importorskip(
     reason="psycopg 3 is required to talk to CockroachDB; `uv sync` installs it",
 )
 
-from _support import (  # noqa: E402  (import after importorskip, deliberately)
+from _schema_support import (  # noqa: E402  (import after importorskip, deliberately)
     PREREQ_DIR,
     recall_migration_files,
     split_statements,
@@ -208,8 +208,9 @@ def _apply(conn, path: Path) -> int:
 
     Not whole-file: on an autocommit connection a multi-statement send is one implicit
     transaction, and a DDL transaction is not the same thing as a sequence of schema changes on
-    CockroachDB. `_support.split_statements` is dollar-quote aware so a `$$` body is never cut in
-    half; `test_rc00_migration_shape.py` proves that on every file in the band, with no cluster.
+    CockroachDB. `_schema_support.split_statements` is dollar-quote aware so a `$$` body is
+    never cut in half; `test_rc00_migration_shape.py` proves that on every file in the band,
+    with no cluster.
     """
     statements = split_statements(path.read_text(encoding="utf-8"))
     if not statements:

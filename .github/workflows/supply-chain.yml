@@ -1,0 +1,522 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# THE SUPPLY CHAIN, and one job in it that the loudest claim in this product rests on.
+#
+# ARCHITECTURE.md §8.2 says: no model can reach the merge gate. That sentence is
+# asserted on four surfaces, and three of them are inside the repository looking at
+# itself — an import-linter contract, an AST scan, a `sys.modules` walk after import.
+# All three can be true of a build whose LOCKFILE nevertheless resolves `boto3` into the
+# image, because a runtime absence with a declared dependency is still a supply-chain
+# reach: the wheel is in the image, the transitive resolution pins it, and one future
+# `import` turns it on with no dependency review at all.
+#
+# `gate-svc-has-no-model-sdk`, below, is the fourth surface. It reads the RESOLVED SET —
+# what `uv.lock` actually installs — and refuses a model SDK anywhere in it. It is a
+# named job with a named failure message for exactly one reason: when it goes red, the
+# person reading the run must understand immediately that a security claim in the
+# product documentation has become false, not that a lint rule fired.
+#
+# WHY THIS FILE DID NOT EXIST UNTIL 2026-08-10. It did not. Neither did `evidence/sbom/`
+# — although `boundary.yml` has been gating on that path for days, which means it has
+# been gating on nothing. Measured in docs/leads/quality-repair.md §1.7.
+#
+# NO NETWORK BEYOND THE INDEX. The SBOM is generated from `uv.lock` by reading it; the
+# emitter below is forty lines of `json` and needs nothing installed. `pip-audit` is the
+# one step that must reach out, to PyPI, for the advisory database — and it is the last
+# step, in its own job, so that a PyPI outage cannot make the SBOM lane look broken.
+
+name: supply-chain
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "**/pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/supply-chain.yml"
+      - ".github/actions/setup-workspace/**"
+  pull_request:
+  schedule:
+    # Weekly. A dependency does not have to change for a NEW advisory to be published
+    # against the version already locked, which is the whole reason an audit is a
+    # scheduled job and not only a push job.
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: supply-chain-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.13"
+  FORCE_COLOR: "1"
+
+jobs:
+  # ---------------------------------------------------------------------------------
+  lock-fresh:
+    name: uv.lock is fresh and describes this commit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Deny egress except to the package indexes
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            objects.githubusercontent.com:443
+            raw.githubusercontent.com:443
+            pypi.org:443
+            files.pythonhosted.org:443
+            astral.sh:443
+
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-workspace
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          sync: "false"
+
+      - name: uv lock --check
+        run: uv lock --check
+
+      - name: Re-locking must not change the file
+        # `uv lock --check` and "a re-lock is a no-op" are not the same assertion, and
+        # the difference is the one that bit this repository: the lockfile's `[manifest]
+        # members` listed SEVEN distributions against twenty-seven on disk. A check that
+        # only validates internal consistency can pass over a lockfile that has stopped
+        # describing the workspace. Running the resolver and diffing the result is the
+        # assertion that cannot be satisfied by a stale file.
+        run: |
+          set -euo pipefail
+          cp uv.lock uv.lock.before
+          uv lock
+          if ! diff -u uv.lock.before uv.lock; then
+            echo "::error file=uv.lock::re-locking changed uv.lock — the committed lockfile is stale"
+            echo "Run \`uv lock\` locally and commit the result."
+            exit 1
+          fi
+          echo "uv.lock is byte-identical after a re-lock"
+          rm -f uv.lock.before
+
+  # ---------------------------------------------------------------------------------
+  sbom:
+    name: an SBOM for every distribution
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Deny egress except to the package indexes
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            objects.githubusercontent.com:443
+            raw.githubusercontent.com:443
+            pypi.org:443
+            files.pythonhosted.org:443
+            astral.sh:443
+
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-workspace
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          sync: "false"
+
+      - name: Export the resolved set for each distribution
+        # `uv export` reads `uv.lock` and resolves nothing, so this step needs no
+        # network at all. `--frozen` makes that explicit: if the lockfile cannot answer,
+        # the step fails rather than quietly reaching for an index.
+        run: |
+          set -euo pipefail
+          mkdir -p build/sbom-input
+          python3 - <<'PY' > build/sbom-input/distributions.txt
+          import pathlib
+          import tomllib
+
+          roots = sorted(pathlib.Path(".").glob("packages/*/pyproject.toml"))
+          roots += sorted(pathlib.Path(".").glob("verticals/*/packages/*/pyproject.toml"))
+          for pyproject in roots:
+              data = tomllib.loads(pyproject.read_text(encoding="utf-8"))
+              name = data.get("project", {}).get("name")
+              if name:
+                  print(f"{name}\t{data['project'].get('version', '0.0.0')}\t{pyproject.parent.as_posix()}")
+          PY
+          count=0
+          while IFS=$'\t' read -r name version directory; do
+            [ -n "${name}" ] || continue
+            echo "  ${name} ${version}  (${directory})"
+            uv export --frozen --no-dev --package "${name}" \
+              --format requirements-txt \
+              --output-file "build/sbom-input/${name}.requirements.txt"
+            count=$((count + 1))
+          done < build/sbom-input/distributions.txt
+          echo "exported ${count} distribution(s)"
+          test "${count}" -gt 0
+
+      - name: Emit CycloneDX 1.6
+        # Written here rather than pulled from an emitter package, for two reasons that
+        # are not "not-invented-here". (1) An SBOM produced by a tool that is itself an
+        # unaudited dependency is an odd artefact to offer as supply-chain evidence.
+        # (2) The timestamp is taken from the COMMIT, not from the clock, so two runs of
+        # the same commit produce byte-identical SBOMs — which is what makes a diff
+        # between two commits mean something.
+        run: |
+          set -euo pipefail
+          mkdir -p evidence/sbom
+          COMMIT_EPOCH="$(git log -1 --pretty=%ct)" \
+          COMMIT_SHA="$(git rev-parse HEAD)" \
+          python3 - <<'PY'
+          import datetime
+          import hashlib
+          import json
+          import os
+          import pathlib
+          import re
+          import uuid
+
+          OUT = pathlib.Path("evidence/sbom")
+          SRC = pathlib.Path("build/sbom-input")
+          stamp = datetime.datetime.fromtimestamp(
+              int(os.environ["COMMIT_EPOCH"]), tz=datetime.timezone.utc
+          ).isoformat().replace("+00:00", "Z")
+          commit = os.environ["COMMIT_SHA"]
+          lock_digest = hashlib.sha256(pathlib.Path("uv.lock").read_bytes()).hexdigest()
+          # A stable namespace so `serialNumber` is a function of (lockfile, package)
+          # rather than of the moment the run happened.
+          NAMESPACE = uuid.uuid5(uuid.NAMESPACE_URL, "https://github.com/Shaugato/mainline")
+
+          # `name==version` with optional extras and an optional environment marker,
+          # which is the entire grammar `uv export` emits for a fully-pinned set.
+          PINNED = re.compile(r"^([A-Za-z0-9][A-Za-z0-9._-]*)(?:\[[^\]]*\])?==([^\s;]+)")
+          HASH = re.compile(r"--hash=sha256:([0-9a-f]{64})")
+
+          written = []
+          for line in pathlib.Path(SRC / "distributions.txt").read_text(encoding="utf-8").splitlines():
+              if not line.strip():
+                  continue
+              name, version, directory = line.split("\t")
+              requirements = SRC / f"{name}.requirements.txt"
+              components = []
+              seen = set()
+              current = None
+              for raw in requirements.read_text(encoding="utf-8").splitlines():
+                  text = raw.strip()
+                  # Local/editable entries are the workspace itself, not third-party
+                  # supply. They are recorded in `metadata.component`, not as parts.
+                  if not text or text.startswith("#") or text.startswith("-e ") or "file://" in text:
+                      current = None
+                      continue
+                  match = PINNED.match(text)
+                  if match:
+                      dep_name, dep_version = match.group(1), match.group(2)
+                      key = (dep_name.lower(), dep_version)
+                      if key in seen:
+                          current = None
+                          continue
+                      seen.add(key)
+                      purl = f"pkg:pypi/{dep_name.lower()}@{dep_version}"
+                      current = {
+                          "type": "library",
+                          "bom-ref": purl,
+                          "name": dep_name,
+                          "version": dep_version,
+                          "purl": purl,
+                          "hashes": [],
+                      }
+                      components.append(current)
+                      continue
+                  found = HASH.search(text)
+                  if found and current is not None:
+                      current["hashes"].append({"alg": "SHA-256", "content": found.group(1)})
+
+              for component in components:
+                  if not component["hashes"]:
+                      del component["hashes"]
+
+              root_purl = f"pkg:pypi/{name}@{version}"
+              document = {
+                  "bomFormat": "CycloneDX",
+                  "specVersion": "1.6",
+                  "serialNumber": f"urn:uuid:{uuid.uuid5(NAMESPACE, f'{lock_digest}:{name}')}",
+                  "version": 1,
+                  "metadata": {
+                      "timestamp": stamp,
+                      "component": {
+                          "type": "library",
+                          "bom-ref": root_purl,
+                          "name": name,
+                          "version": version,
+                          "purl": root_purl,
+                      },
+                      "properties": [
+                          {"name": "mainline:commit", "value": commit},
+                          {"name": "mainline:uv-lock-sha256", "value": lock_digest},
+                          {"name": "mainline:source-directory", "value": directory},
+                          {"name": "mainline:resolved-from", "value": "uv.lock (uv export --frozen --no-dev)"},
+                      ],
+                  },
+                  "components": sorted(components, key=lambda c: (c["name"].lower(), c["version"])),
+              }
+              target = OUT / f"{name}.cdx.json"
+              target.write_text(json.dumps(document, indent=2, sort_keys=False) + "\n", encoding="utf-8")
+              written.append((name, len(components)))
+
+          print(f"{len(written)} SBOM(s) written to {OUT}/")
+          for name, count in sorted(written):
+              print(f"  {count:4d} component(s)  {name}")
+
+          summary = pathlib.Path(os.environ["GITHUB_STEP_SUMMARY"])
+          with summary.open("a", encoding="utf-8") as handle:
+              handle.write("## SBOM\n\n")
+              handle.write(f"CycloneDX 1.6, {len(written)} distribution(s), resolved from `uv.lock`\n")
+              handle.write(f"(sha256 `{lock_digest[:16]}…`) at commit `{commit[:12]}`.\n\n")
+              handle.write("| distribution | third-party components |\n|---|---:|\n")
+              for name, count in sorted(written):
+                  handle.write(f"| `{name}` | {count} |\n")
+          PY
+
+      - name: REUSE needs a licence for generated evidence too
+        # `evidence/sbom/*.json` cannot carry a comment header, so REUSE resolves it
+        # through a `.license` sidecar. Writing it here rather than committing one keeps
+        # the generated tree self-describing whether or not it is checked in.
+        run: |
+          set -euo pipefail
+          for sbom in evidence/sbom/*.cdx.json; do
+            {
+              echo "SPDX-FileCopyrightText: 2026 MAINLINE contributors"
+              echo "SPDX-License-Identifier: Apache-2.0"
+            } > "${sbom}.license"
+          done
+          ls -1 evidence/sbom/
+
+      - name: Upload the SBOM tree
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-cyclonedx
+          path: evidence/sbom/
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Note whether the committed tree matches
+        # `boundary.yml` gates on `evidence/sbom/**`, and until this workflow existed
+        # that path did not exist either — so the gate was a gate on nothing. This step
+        # does not FAIL on an uncommitted tree, because committing generated artefacts
+        # is a policy decision this workflow does not own; it makes the state visible so
+        # the decision is made deliberately rather than by omission.
+        if: always()
+        run: |
+          set -euo pipefail
+          if git ls-files --error-unmatch evidence/sbom >/dev/null 2>&1; then
+            echo "evidence/sbom/ is tracked; comparing with what this run generated"
+            git status --porcelain evidence/sbom/
+          else
+            echo "::notice::evidence/sbom/ is NOT tracked in git. boundary.yml gates on that path, so the gate is currently a gate on nothing. The SBOMs for this commit are attached as the 'sbom-cyclonedx' artifact."
+          fi
+
+  # ---------------------------------------------------------------------------------
+  # THE NAMED JOB. Read its failure message before changing anything about it.
+  # ---------------------------------------------------------------------------------
+  gate-svc-has-no-model-sdk:
+    name: SECURITY CLAIM — mainline-gate-svc's dependency closure contains no model SDK
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Deny egress except to the package indexes
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            objects.githubusercontent.com:443
+            raw.githubusercontent.com:443
+            pypi.org:443
+            files.pythonhosted.org:443
+            astral.sh:443
+
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-workspace
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          packages: "mainline-gate-svc"
+          cache-suffix: "gate-svc"
+
+      - name: THE ASSERTION — over the RESOLVED SET, not over the source
+        # This is the surface the in-repository checks cannot see. `.importlinter`
+        # contract 5 checks the IMPORT graph. `mainline_boundary.astscan` checks the
+        # SOURCE. `test_no_model_in_closure.py` checks `sys.modules` and
+        # `importlib.metadata`. All four can be green while `uv.lock` still resolves a
+        # model SDK into the image that runs the gate — which is a reach, because the
+        # wheel is present, the SBOM shows it, and a single future import activates it
+        # with no review.
+        #
+        # The deny-list is repeated here rather than imported from the test module, and
+        # that repetition is deliberate: a check and the thing it checks must not share
+        # a failure mode. If someone edits the list in the test to make the test pass,
+        # this job still fails.
+        run: |
+          set -euo pipefail
+          uv export --frozen --no-dev --package mainline-gate-svc \
+            --format requirements-txt --output-file gate-svc.requirements.txt
+          echo "--- resolved set ---"
+          grep -E '^[A-Za-z0-9]' gate-svc.requirements.txt || true
+          echo "--------------------"
+          python3 - <<'PY'
+          import pathlib
+          import re
+          import sys
+
+          MODEL_DISTRIBUTIONS = {
+              "anthropic", "anthropic-bedrock",
+              "boto3", "boto3-stubs", "botocore",
+              "cohere",
+              "google-generativeai",
+              "huggingface-hub",
+              "langchain", "langchain-community", "langchain-core",
+              "llama-index", "llama-index-core",
+              "mistralai",
+              "ollama",
+              "openai",
+              "sentence-transformers",
+              "strands", "strands-agents",
+              "tokenizers",
+              "torch",
+              "transformers",
+          }
+          # Without these the closure could be reported clean because it was empty,
+          # which is the exact failure mode this job exists to refuse in the code it
+          # guards. A vacuous pass is the most dangerous kind.
+          REQUIRED = {"psycopg", "trappoint-core", "mainline-domain"}
+
+          PINNED = re.compile(r"^([A-Za-z0-9][A-Za-z0-9._-]*)(?:\[[^\]]*\])?==")
+
+          def normalise(name: str) -> str:
+              return re.sub(r"[-_.]+", "-", name).lower()
+
+          resolved = set()
+          for line in pathlib.Path("gate-svc.requirements.txt").read_text(encoding="utf-8").splitlines():
+              text = line.strip()
+              if not text or text.startswith(("#", "-", "--")):
+                  continue
+              match = PINNED.match(text)
+              if match:
+                  resolved.add(normalise(match.group(1)))
+              elif "file://" in text or "@" in text:
+                  # A workspace member emitted as a direct reference. Take the head.
+                  head = text.split("@")[0].strip()
+                  if head:
+                      resolved.add(normalise(head))
+
+          denied = sorted(resolved & {normalise(name) for name in MODEL_DISTRIBUTIONS})
+          missing = sorted(REQUIRED - resolved)
+
+          print(f"resolved distributions: {len(resolved)}")
+
+          if missing:
+              print("::error title=vacuous assertion::the resolved set did not contain "
+                    f"{missing}, so the clean result below was measured over the wrong set")
+              print(f"what was actually resolved: {sorted(resolved)}")
+              sys.exit(1)
+
+          if denied:
+              print("::error title=SECURITY CLAIM BROKEN::mainline-gate-svc now resolves "
+                    f"model SDK distribution(s): {denied}")
+              print("")
+              print("ARCHITECTURE.md §8.2 states that no model can reach the merge gate.")
+              print("That sentence is now FALSE, and it is false in the documentation, the")
+              print("README and the judge pack, not merely in a lint rule. The wheel is in")
+              print("the image the gate runs from; a single `import` away from being live,")
+              print("with no dependency review between here and there.")
+              print("")
+              print("This job is the assertion that claim rests on. Do not silence it.")
+              print("Remove the dependency, or withdraw the claim everywhere it is made.")
+              sys.exit(1)
+
+          print("no model SDK in the resolved set; the §8.2 claim holds on this surface")
+          PY
+
+      - name: The other three surfaces, as the gate service itself asserts them
+        # Runtime `sys.modules`, declared `importlib.metadata` walked transitively,
+        # source AST, and the environment check that refuses to start holding an AWS
+        # credential — plus the planted-reach tests that make all of them red on demand
+        # (PL-2). Measured locally on 2026-08-10: 40 passed in 1.65 s.
+        run: |
+          uv run --frozen --package mainline-gate-svc pytest \
+            verticals/mainline/packages/mainline-gate-svc/tests/test_no_model_in_closure.py \
+            -q --no-header
+
+      - name: Record the claim and its four surfaces
+        if: always()
+        run: |
+          {
+            echo "## the §8.2 claim: no model can reach the merge gate"
+            echo ""
+            echo "| surface | mechanism | where |"
+            echo "|---|---|---|"
+            echo "| import graph | forbidden-module contract | \`.importlinter\` contract 5, run by \`ci.yml\` |"
+            echo "| source | AST scan for a model import | \`test_no_model_in_closure.py\` |"
+            echo "| runtime | \`sys.modules\` after a fresh import | \`test_no_model_in_closure.py\` |"
+            echo "| **resolved set** | **the locked install, read from \`uv.lock\`** | **this job** |"
+            echo ""
+            echo "The fourth is the one the other three cannot see: a dependency that is"
+            echo "RESOLVED but not yet imported is absent from the import graph, absent from"
+            echo "the AST, and absent from \`sys.modules\` — and present in the image."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # ---------------------------------------------------------------------------------
+  audit:
+    name: pip-audit over the locked set
+    runs-on: ubuntu-24.04
+    needs: [lock-fresh]
+    timeout-minutes: 20
+    steps:
+      - name: Deny egress except to the package indexes
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            objects.githubusercontent.com:443
+            raw.githubusercontent.com:443
+            pypi.org:443
+            files.pythonhosted.org:443
+            astral.sh:443
+
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-workspace
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          sync: "false"
+
+      - name: Audit what uv.lock actually installs
+        # The whole workspace's resolved set, deduplicated, with local path entries
+        # dropped — auditing our own unpublished distributions against PyPI's advisory
+        # database is a lookup that can only ever produce a false negative.
+        run: |
+          set -euo pipefail
+          uv export --frozen --no-dev --all-packages --no-hashes \
+            --format requirements-txt --output-file audit.requirements.txt
+          grep -vE '^\s*(#|-e |--)' audit.requirements.txt \
+            | grep -v 'file://' \
+            | grep -E '^[A-Za-z0-9]' \
+            | sort -u > audit.pinned.txt
+          echo "auditing $(wc -l < audit.pinned.txt) pinned distribution(s)"
+          # `--no-project`: pip-audit is a tool, not a workspace dependency, and adding
+          # it to the workspace would put an auditing library inside the graph it
+          # audits. `--no-deps`: the list is already fully pinned by uv.lock, so any
+          # resolution pip-audit performed would be a SECOND resolution, and a finding
+          # against a version this repository does not install is a false positive that
+          # teaches people to ignore the job.
+          uv run --no-project --with pip-audit \
+            pip-audit --requirement audit.pinned.txt --no-deps --progress-spinner off

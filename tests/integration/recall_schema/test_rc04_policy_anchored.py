@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import pytest
 
-from _support import (
+from _schema_support import (
     INSERT_RUN_SQL,
     assert_trigger_refusal,
     capture_refusal,

@@ -1,24 +1,50 @@
 # SPDX-FileCopyrightText: 2026 MAINLINE contributors
 # SPDX-License-Identifier: Apache-2.0
 #
-# THE STATIC LANE. Everything that can be decided without a cluster, a credential or a
-# network round trip: format, lint, types, the four import-linter contracts, workflow
-# syntax, the hermetic unit tests, and the two guards that keep this file's own claims
-# from rotting.
+# THE STATIC LANE. Everything decidable without a cluster, a credential or a network
+# round trip: the lockfile, the workspace membership, format, the lint ratchet, types,
+# the import contracts, licence headers, workflow syntax, and the hermetic tests.
 #
-# Three properties are deliberate.
+# WHAT CHANGED ON 2026-08-10, AND WHY.
 #
-# 1. TWELVE-MINUTE WALL-CLOCK BUDGET, enforced per job with `timeout-minutes` and
-#    summarised at the end. A guard lane that takes half an hour is a guard lane people
-#    learn to merge past.
+# This file used to run `uv lock --check` in one job and `uv sync --frozen
+# --all-packages` in another. docs/leads/quality-repair.md §1.1 measured the lockfile:
+# `[manifest] members` listed SEVEN distributions against TWENTY-SEVEN `pyproject.toml`
+# files on disk. Those two jobs cannot both pass against that lockfile — so every green
+# tick this workflow has ever shown for them was a tick against a workspace that had
+# stopped describing this repository twenty distributions ago. The lockfile is repaired
+# by a sibling worker in this wave; the job of THIS file is to make the repair stay
+# repaired, which is a different and more durable thing than fixing it once.
 #
-# 2. NETWORK EGRESS DENY-LIST. Every job blocks outbound traffic except to an explicit
-#    endpoint list. This repository's central claim is that no model can reach the merge
-#    gate; a CI lane that may call anything is a lane that could quietly acquire one.
-#    The policy is `block`, never `audit`.
+# The second change is that this lane now invokes CHECKERS rather than restating their
+# logic. Five of them were written in this wave — workspace membership, the ruff
+# ratchet, the mypy target inventory, the import registry, REUSE compliance — and each
+# one is a program a developer can run on a laptop and get the same answer CI gets. A
+# guard that exists only inside a YAML `run:` block is a guard nobody can reproduce
+# locally, which means it is a guard people learn to merge past.
+#
+# Four properties are deliberate.
+#
+# 1. TWELVE-MINUTE WALL-CLOCK BUDGET, per job. A guard lane that takes half an hour is
+#    a guard lane people learn to merge past.
+#
+# 2. NETWORK EGRESS DENY-LIST, per job, policy `block`, never `audit`. This
+#    repository's central claim is that no model can reach the merge gate; a CI lane
+#    that may call anything is a lane that could quietly acquire one.
 #
 # 3. NOTHING HERE NEEDS AWS OR COCKROACHDB CLOUD. PL-1: a proof that needs a credential
-#    of ours is evidence about us, not about the product.
+#    of ours is evidence about us, not about the product. The Cloud lane is
+#    `cloud-verify.yml`, it is nightly, and it skips loudly rather than passing when its
+#    secret is absent.
+#
+# 4. THE HERMETIC TEST JOB PASSES `--crdb=none`. Measured on 2026-08-10: a full-suite
+#    run started THIRTEEN private single-node CockroachDB containers concurrently, all
+#    thirteen exited 7 or 8, they took the real node down with them, and the run did not
+#    fail — it WEDGED, because fixtures connect with no `connect_timeout` and
+#    pytest-timeout cannot interrupt a hang inside session-scoped fixture setup.
+#    `--crdb=none` makes every cluster-backed test skip with the reason its own fixture
+#    writes. Measured here: `pytest packages/trappoint-testkit/tests --crdb=none` ->
+#    26 passed, 2 skipped, 3.62 s, with the skip reason printed.
 
 name: ci
 
@@ -40,9 +66,63 @@ env:
   FORCE_COLOR: "1"
 
 jobs:
-  static:
-    name: format · lint · types
+  # ---------------------------------------------------------------------------------
+  # Gate zero. Every other job in this file calls a program by path. When one of those
+  # programs is missing, six jobs fail with six copies of the same opaque "No such file
+  # or directory" and the reader has to diff the tree to learn which single file is
+  # absent. This job says it once, by name, with the plan section that promised it.
+  # ---------------------------------------------------------------------------------
+  checkers:
+    name: every checker this lane invokes exists
     runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Deny all egress
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            objects.githubusercontent.com:443
+
+      - uses: actions/checkout@v4
+
+      - name: The checker registry
+        run: |
+          set -euo pipefail
+          missing=0
+          # path <TAB> what it asserts
+          while IFS='|' read -r path claim; do
+            [ -n "${path}" ] || continue
+            if [ -f "${path}" ]; then
+              printf '  ok      %-42s %s\n' "${path}" "${claim}"
+            else
+              printf '  MISSING %-42s %s\n' "${path}" "${claim}"
+              echo "::error file=${path}::${path} is invoked by a named job in ci.yml and is not on disk (${claim})"
+              missing=$((missing + 1))
+            fi
+          done <<'REGISTRY'
+          scripts/qa/check_workspace_members.py|every pyproject.toml on disk is a uv.lock member
+          scripts/qa/ruff_ratchet.py|no ruff rule count may rise
+          scripts/qa/mypy_targets.py|every distribution has a mypy.ini section
+          scripts/qa/check_import_registry.py|no distribution is linted by zero contracts
+          scripts/qa/check_reuse.py|every file carries an SPDX identifier or a sidecar
+          REGISTRY
+          if [ "${missing}" -ne 0 ]; then
+            echo ""
+            echo "${missing} checker(s) absent. ci.yml asserts what these programs assert and"
+            echo "nothing else, so a missing one is a claim this lane silently stopped making."
+            exit 1
+          fi
+          echo ""
+          echo "all five checkers present"
+
+  # ---------------------------------------------------------------------------------
+  lockfile:
+    name: the lockfile is authoritative · workspace membership
+    runs-on: ubuntu-24.04
+    needs: [checkers]
     timeout-minutes: 12
     steps:
       - name: Deny egress except to the package indexes
@@ -53,40 +133,53 @@ jobs:
             api.github.com:443
             github.com:443
             objects.githubusercontent.com:443
+            raw.githubusercontent.com:443
             pypi.org:443
             files.pythonhosted.org:443
             astral.sh:443
 
       - uses: actions/checkout@v4
 
-      - uses: astral-sh/setup-uv@v5
+      - name: Set up the workspace (uv only — do NOT sync)
+        # `sync: false` matters. `uv sync` can rewrite `uv.lock`; checking the lockfile
+        # after syncing would be checking it against an environment it had just been
+        # allowed to produce.
+        uses: ./.github/actions/setup-workspace
         with:
-          enable-cache: true
+          python-version: ${{ env.PYTHON_VERSION }}
+          sync: "false"
 
-      - name: The lockfile is authoritative
-        # `--check` fails when uv.lock does not match what the pyproject files imply. A
-        # stranger who resolves a different graph than CI did has not reproduced PL-1's
-        # proof; they have run a different program.
+      - name: uv lock --check
+        # Fails when uv.lock does not match what the pyproject files imply. A stranger
+        # who resolves a different graph than CI did has not reproduced PL-1's proof;
+        # they have run a different program.
         run: uv lock --check
 
-      - name: ruff format
-        run: uv run --frozen --only-group dev ruff format --check .
+      - name: Every distribution on disk is a member of the locked workspace
+        # `uv lock --check` answers "is this lockfile consistent with the pyprojects the
+        # WORKSPACE GLOBS matched". It does not answer "did a distribution land in a
+        # directory no glob covers", and it does not answer "is there a src/ tree with
+        # no pyproject.toml at all" — which is exactly what was found:
+        # `verticals/mainline/packages/mainline-corpus/` held 60+ modules, was imported
+        # by four test trees, and had no `pyproject.toml`, so it was in no lockfile, no
+        # workspace and no contract. That is the hole this checker closes.
+        # Plain `python3`, not `uv run`: this job deliberately has no synced
+        # environment (see the step above), and the checker is stdlib-only precisely so
+        # it can answer "is the workspace coherent" without first requiring a coherent
+        # workspace to run in.
+        run: python3 scripts/qa/check_workspace_members.py
 
-      - name: ruff check
-        run: uv run --frozen --only-group dev ruff check .
+      - name: uv sync --frozen --all-packages actually resolves
+        # The other half of the 2026-08-10 finding. `uv lock --check` and this command
+        # were in two different jobs and could not both pass; running them adjacently,
+        # in this order, is what makes the pair meaningful.
+        run: uv sync --frozen --all-packages
 
-      - name: mypy — strict on the Apache substrate
-        # `--strict` is a command-line flag; mypy.ini spells out the same flag set
-        # per-module so a future relaxation is a visible line in a diff rather than a
-        # dropped word in a CI command.
-        run: |
-          uv run --frozen --only-group dev mypy --config-file mypy.ini \
-            packages/trappoint-migrate/src/trappoint_migrate \
-            packages/trappoint-conformance/src/trappoint_conformance
-
-  imports:
-    name: import-linter — four contracts
+  # ---------------------------------------------------------------------------------
+  format:
+    name: ruff format · the counted lint ratchet
     runs-on: ubuntu-24.04
+    needs: [checkers]
     timeout-minutes: 12
     steps:
       - name: Deny egress except to the package indexes
@@ -97,64 +190,138 @@ jobs:
             api.github.com:443
             github.com:443
             objects.githubusercontent.com:443
+            raw.githubusercontent.com:443
             pypi.org:443
             files.pythonhosted.org:443
             astral.sh:443
 
       - uses: actions/checkout@v4
 
-      - uses: astral-sh/setup-uv@v5
+      - uses: ./.github/actions/setup-workspace
         with:
-          enable-cache: true
+          python-version: ${{ env.PYTHON_VERSION }}
+          sync: "false"
+          cache-suffix: "lint"
 
-      - name: Install every workspace member
+      - name: ruff format --check
+        run: uv run --frozen --only-group dev ruff format --check .
+
+      - name: The ratchet — a count may fall, it may not rise
+        # Ruling D4. `ruff check .` reported 896 findings on 2026-08-10 and `ruff format`
+        # would rewrite 237 files owned by nine other workers. Reformatting the tree
+        # mid-wave is a merge catastrophe that buys a zero nobody can audit; a counted
+        # ratchet publishes today's honest number per rule per tree and refuses an
+        # increase. A truthful 896 that cannot grow beats a fabricated 0. Raising a
+        # count is allowed — `--rebaseline`. Raising it silently is not.
+        run: uv run --frozen --only-group dev python scripts/qa/ruff_ratchet.py
+
+  # ---------------------------------------------------------------------------------
+  types:
+    name: mypy · and the target list is complete
+    runs-on: ubuntu-24.04
+    needs: [checkers]
+    timeout-minutes: 12
+    steps:
+      - name: Deny egress except to the package indexes
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            objects.githubusercontent.com:443
+            raw.githubusercontent.com:443
+            pypi.org:443
+            files.pythonhosted.org:443
+            astral.sh:443
+
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-workspace
+        # `--all-packages`: mypy follows real imports across distributions. A partial
+        # sync makes it report "module has no attribute" for things that are simply not
+        # installed, and a reader learns to ignore the output.
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: The target list, emitted rather than restated
+        # `mypy.ini` used to be invoked with two hand-written package paths, which is why
+        # "129 files, 1 error" was news: no single invocation type-checked the substrate,
+        # and mypy itself was printing `unused section(s):` in both directions. The
+        # target list is now DERIVED from the distributions on disk. A hand-maintained
+        # list in a `run:` block is a list that goes stale the first time somebody adds
+        # a package and does not think about CI.
+        id: targets
+        run: |
+          set -euo pipefail
+          uv run --frozen --all-packages python scripts/qa/mypy_targets.py > mypy-targets.txt
+          read -ra targets < mypy-targets.txt
+          if [ "${#targets[@]}" -eq 0 ]; then
+            echo "::error::mypy_targets.py emitted no targets; mypy would have checked nothing and passed"
+            exit 1
+          fi
+          echo "count=${#targets[@]}" >> "$GITHUB_OUTPUT"
+          echo "${#targets[@]} target(s)"
+
+      - name: mypy
+        run: |
+          set -euo pipefail
+          read -ra targets < mypy-targets.txt
+          uv run --frozen --all-packages mypy --config-file mypy.ini "${targets[@]}"
+
+      - name: Every distribution has a section — no package is silently unchecked
+        # The complement of the step above, and the one that catches the real failure
+        # mode: a distribution with no `[mypy-<name>.*]` section and no `mypy_path`
+        # entry is not type-checked at all, and mypy reports that as SUCCESS.
+        run: uv run --frozen --all-packages python scripts/qa/mypy_targets.py --check
+
+  # ---------------------------------------------------------------------------------
+  imports:
+    name: import-linter contracts · and no package outside them
+    runs-on: ubuntu-24.04
+    needs: [checkers]
+    timeout-minutes: 12
+    steps:
+      - name: Deny egress except to the package indexes
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            objects.githubusercontent.com:443
+            raw.githubusercontent.com:443
+            pypi.org:443
+            files.pythonhosted.org:443
+            astral.sh:443
+
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-workspace
         # import-linter builds a REAL import graph, so every root package must be
         # importable. `--all-packages` is what makes the contracts assert anything.
-        run: uv sync --frozen --all-packages
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: The four contracts
+      - name: The contracts
         run: uv run --frozen --all-packages lint-imports --config .importlinter
 
       - name: Registry guard — a new distribution cannot be silently unlinted
         # `root_packages` can only name packages that exist at lint time, so a package
-        # created after this file was written would sit outside every contract and
-        # nobody would be told. This step is the mechanism that tells them: a workspace
-        # distribution must appear either in `root_packages` (its imports are checked)
-        # or in some contract's `forbidden_modules` (importing it is checked). Neither
-        # is a failure; being in neither is.
-        run: |
-          python3 - <<'PY'
-          import pathlib, re, sys
+        # created after the config was written sits outside every contract and nobody is
+        # told. Measured on 2026-08-10: FIVE root packages against TWENTY-SEVEN
+        # distributions — twenty-two packages linted by nothing, including
+        # `trappoint-core`, which holds the retry-loop contract. A distribution must
+        # appear either in `root_packages` (its imports are checked) or in some
+        # contract's `forbidden_modules` (importing it is checked). Neither is a
+        # failure; being in neither is.
+        run: uv run --frozen --all-packages python scripts/qa/check_import_registry.py
 
-          config = pathlib.Path(".importlinter").read_text(encoding="utf-8")
-          declared = set(re.findall(r"^\s{4}([a-z_][a-z0-9_]*)\s*$", config, re.MULTILINE))
-
-          unregistered = []
-          for pyproject in sorted(pathlib.Path(".").glob("packages/*/pyproject.toml")) + sorted(
-              pathlib.Path(".").glob("verticals/*/packages/*/pyproject.toml")
-          ):
-              src = pyproject.parent / "src"
-              if not src.is_dir():
-                  continue
-              for package in sorted(p.name for p in src.iterdir() if p.is_dir()):
-                  if package not in declared:
-                      unregistered.append(f"{package}  ({pyproject.parent})")
-
-          if unregistered:
-              print("::error::these distributions appear in no .importlinter contract:")
-              for line in unregistered:
-                  print(f"  {line}")
-              print(
-                  "Add each to `root_packages` (to check what IT imports) or to a "
-                  "contract's `forbidden_modules` (to check who imports IT)."
-              )
-              sys.exit(1)
-          print(f"every workspace distribution is accounted for ({len(declared)} names declared)")
-          PY
-
-  hermetic-tests:
-    name: hermetic unit tests
+  # ---------------------------------------------------------------------------------
+  reuse:
+    name: REUSE — every file names its licence
     runs-on: ubuntu-24.04
+    needs: [checkers]
     timeout-minutes: 12
     steps:
       - name: Deny egress except to the package indexes
@@ -165,35 +332,81 @@ jobs:
             api.github.com:443
             github.com:443
             objects.githubusercontent.com:443
+            raw.githubusercontent.com:443
             pypi.org:443
             files.pythonhosted.org:443
             astral.sh:443
 
       - uses: actions/checkout@v4
 
-      - uses: astral-sh/setup-uv@v5
+      - uses: ./.github/actions/setup-workspace
         with:
-          enable-cache: true
+          python-version: ${{ env.PYTHON_VERSION }}
+          sync: "false"
 
-      - name: Install the kernel toolchain
-        run: |
-          uv sync --frozen \
-            --package trappoint-migrate \
-            --package trappoint-conformance
+      - name: The licence map is complete and the identifier is one identifier
+        # Two measured defects, both of which this checker owns. (1) `LICENSES/` was
+        # EMPTY, so REUSE could not resolve a single identifier the tree declares.
+        # (2) The same licence is spelled two ways — `FSL-1.1-ALv2` in 1 027 files and
+        # `LicenseRef-FSL-1.1-ALv2` in 324 — and only the second is legal, because
+        # FSL-1.1-ALv2 is not an SPDX-registered identifier. A repository that cannot
+        # state its own licence unambiguously has not published anything a stranger can
+        # safely fork, and "the substrate is Apache-2.0 and forkable" is the claim
+        # `.importlinter` contract 1 exists to protect.
+        run: python3 scripts/qa/check_reuse.py
 
-      - name: trappoint-migrate — no cluster, no credential, no network
-        run: uv run --frozen --package trappoint-migrate pytest packages/trappoint-migrate/tests -q --no-header
+  # ---------------------------------------------------------------------------------
+  hermetic-tests:
+    name: pytest --crdb=none (no cluster, no credential, no network)
+    runs-on: ubuntu-24.04
+    needs: [checkers]
+    timeout-minutes: 12
+    steps:
+      - name: Deny egress except to the package indexes
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            objects.githubusercontent.com:443
+            raw.githubusercontent.com:443
+            pypi.org:443
+            files.pythonhosted.org:443
+            astral.sh:443
 
-      - name: The suite lists without a database
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-workspace
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Collection must cost a second, not a container
+        # `--collect-only` starts no cluster by construction (the testkit plugin returns
+        # early when `collectonly` is set). Running it first turns a collection ERROR —
+        # the module-basename collisions that were the residual 3 of the original 14 —
+        # into its own legible failure instead of a wall of noise inside a test run.
+        run: uv run --frozen --all-packages pytest --crdb=none --collect-only -q
+
+      - name: The suite, with every cluster test SKIPPED FOR A NAMED REASON
+        # NOT `-m "not requires_cluster"`. A marker filter DESELECTS, which means the
+        # test disappears from the report and nobody can tell a test that was skipped
+        # from a test that was deleted. `--crdb=none` makes the fixture skip and PRINT
+        # the reason it skipped, so `-ra` renders a census of exactly what this lane did
+        # not prove. That census is the honest half of a green tick.
+        run: uv run --frozen --all-packages pytest --crdb=none -q --durations=10
+
+      - name: The conformance suite lists without a database
         # `--list` is a documentation act and must not need a driver connection. It is
         # also the cheapest possible check that spec/conformance/manifest.toml still
         # parses and that every case carries a non-empty exhibit.
-        run: uv run --frozen --package trappoint-conformance trappoint-conform --profile trappoint-ref --list
+        run: uv run --frozen --all-packages trappoint-conform --profile trappoint-ref --list
 
       - name: The manifest's declared counts are the counts
         run: |
-          uv run --frozen --package trappoint-conformance python - <<'PY'
+          uv run --frozen --all-packages python - <<'PY'
           from trappoint_conformance.manifest import load_manifest
+
           m = load_manifest()
           assert len(m.cases) == m.declared_case_count, (
               f"[manifest].case_count says {m.declared_case_count}, "
@@ -208,9 +421,11 @@ jobs:
           print(f"{len(m.cases)} cases · {len(ref)} on trappoint-ref · spec {m.spec_version}")
           PY
 
+  # ---------------------------------------------------------------------------------
   sql-lint:
     name: the sequence ban, repository-wide
     runs-on: ubuntu-24.04
+    needs: [checkers]
     timeout-minutes: 12
     steps:
       - name: Deny egress except to the package indexes
@@ -221,30 +436,31 @@ jobs:
             api.github.com:443
             github.com:443
             objects.githubusercontent.com:443
+            raw.githubusercontent.com:443
             pypi.org:443
             files.pythonhosted.org:443
             astral.sh:443
 
       - uses: actions/checkout@v4
 
-      - uses: astral-sh/setup-uv@v5
+      - uses: ./.github/actions/setup-workspace
         with:
-          enable-cache: true
-
-      - name: Install the migration runner
-        run: uv sync --frozen --package trappoint-migrate
+          python-version: ${{ env.PYTHON_VERSION }}
+          packages: "trappoint-migrate"
+          cache-suffix: "kernel"
 
       - name: No sequence anywhere, and every migration cites an invariant
         # Ruling D10 and ARCHITECTURE.md §18, over EVERY migration tree and every
-        # template in the repository. This is a whole-repository guard and it lives here
-        # rather than in db.yml on purpose: the db lane's failure must mean "the
-        # conformance case is red" and nothing else.
+        # template in the repository. A whole-repository guard, and it lives here rather
+        # than in db.yml on purpose: the db lane's failure must mean "the conformance
+        # case is red" and nothing else.
         #
         # The claim it protects: the event ledger is gap-free by compare-and-swap, so a
         # gap MEANS tampering. One reintroduced sequence anywhere and that sentence has
         # to be withdrawn.
         run: uv run --frozen --package trappoint-migrate trappoint migrate lint
 
+  # ---------------------------------------------------------------------------------
   workflows:
     name: actionlint
     runs-on: ubuntu-24.04
@@ -278,6 +494,44 @@ jobs:
         # make the red lane fail for the wrong reason.
         run: actionlint -color
 
+      - name: The composite action, which actionlint does not cover
+        # actionlint reads `.github/workflows/*.yml` and nothing else, so the file every
+        # job in this workflow depends on is the one file it does not check. These are
+        # the three properties whose absence produces an unhelpful runtime error rather
+        # than a parse error: `runs.using` must be `composite`, every `run:` step in a
+        # composite action must declare a `shell:`, and every declared output must have
+        # a `value:`.
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import pathlib
+          import sys
+
+          import yaml
+
+          failures = []
+          for path in sorted(pathlib.Path(".github/actions").glob("*/action.yml")):
+              doc = yaml.safe_load(path.read_text(encoding="utf-8"))
+              runs = doc.get("runs", {})
+              if runs.get("using") != "composite":
+                  failures.append(f"{path}: runs.using is {runs.get('using')!r}, expected 'composite'")
+              for index, step in enumerate(runs.get("steps", [])):
+                  if "run" in step and not step.get("shell"):
+                      name = step.get("name", f"step {index}")
+                      failures.append(f"{path}: step {name!r} has `run:` and no `shell:`")
+                  if "run" in step and "uses" in step:
+                      failures.append(f"{path}: step {index} has both `run:` and `uses:`")
+              for name, spec in (doc.get("outputs") or {}).items():
+                  if "value" not in spec:
+                      failures.append(f"{path}: output {name!r} declares no `value:`")
+              print(f"checked {path}")
+
+          for line in failures:
+              print(f"::error::{line}")
+          sys.exit(1 if failures else 0)
+          PY
+
+  # ---------------------------------------------------------------------------------
   adr-red-recorded:
     name: PL-2 — the red run is recorded
     runs-on: ubuntu-24.04
@@ -299,12 +553,15 @@ jobs:
         # history there is no URL to record, so this warns on pull_request and
         # workflow_dispatch and FAILS on a push to main — which means the first push to
         # main after the db lane runs is the commit that has to record it.
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF: ${{ github.ref }}
         run: |
           set -euo pipefail
           adr="docs/adr/0005-red-before-green.md"
           test -f "$adr"
           if grep -q 'run_url: *UNRECORDED' "$adr"; then
-            if [ "${{ github.event_name }}" = "push" ] && [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            if [ "${EVENT_NAME}" = "push" ] && [ "${REF}" = "refs/heads/main" ]; then
               echo "::error file=${adr}::PL-2: the db lane's red run URL is still UNRECORDED."
               echo "Open the db workflow run, copy its URL into the ADR's run_url field, and commit."
               exit 1
@@ -315,40 +572,74 @@ jobs:
             grep 'run_url:' "$adr"
           fi
 
+  # ---------------------------------------------------------------------------------
   summary:
     name: CI summary
     runs-on: ubuntu-24.04
-    needs: [static, imports, hermetic-tests, sql-lint, workflows, adr-red-recorded]
+    needs:
+      - checkers
+      - lockfile
+      - format
+      - types
+      - imports
+      - reuse
+      - hermetic-tests
+      - sql-lint
+      - workflows
+      - adr-red-recorded
     if: always()
     timeout-minutes: 5
     steps:
       - name: Fail if any lane did not pass
+        env:
+          R_CHECKERS: ${{ needs.checkers.result }}
+          R_LOCKFILE: ${{ needs.lockfile.result }}
+          R_FORMAT: ${{ needs.format.result }}
+          R_TYPES: ${{ needs.types.result }}
+          R_IMPORTS: ${{ needs.imports.result }}
+          R_REUSE: ${{ needs.reuse.result }}
+          R_TESTS: ${{ needs.hermetic-tests.result }}
+          R_SQL: ${{ needs.sql-lint.result }}
+          R_WORKFLOWS: ${{ needs.workflows.result }}
+          R_ADR: ${{ needs.adr-red-recorded.result }}
         run: |
           set -euo pipefail
           {
             echo "## ci"
             echo ""
-            echo "| lane | result |"
-            echo "|---|---|"
-            echo "| format · lint · types | ${{ needs.static.result }} |"
-            echo "| import-linter (4 contracts) | ${{ needs.imports.result }} |"
-            echo "| hermetic unit tests | ${{ needs.hermetic-tests.result }} |"
-            echo "| sequence ban (repo-wide) | ${{ needs.sql-lint.result }} |"
-            echo "| actionlint | ${{ needs.workflows.result }} |"
-            echo "| PL-2 red run recorded | ${{ needs.adr-red-recorded.result }} |"
+            echo "| lane | what it proves | result |"
+            echo "|---|---|---|"
+            echo "| checker registry | the five checkers below are on disk | ${R_CHECKERS} |"
+            echo "| lockfile · members | uv.lock describes every distribution on disk | ${R_LOCKFILE} |"
+            echo "| ruff format · ratchet | formatting is clean; no lint count rose | ${R_FORMAT} |"
+            echo "| mypy · coverage | types check, and no package is unchecked | ${R_TYPES} |"
+            echo "| import contracts · registry | no forbidden import; no unlinted package | ${R_IMPORTS} |"
+            echo "| REUSE | every file names its licence | ${R_REUSE} |"
+            echo "| pytest --crdb=none | the hermetic suite; cluster tests SKIP with a reason | ${R_TESTS} |"
+            echo "| sequence ban | no sequence anywhere in any migration tree | ${R_SQL} |"
+            echo "| actionlint | every workflow and the composite action parse | ${R_WORKFLOWS} |"
+            echo "| PL-2 | the first red run has a recorded URL | ${R_ADR} |"
+            echo ""
+            echo "**What this lane does NOT prove.** Nothing here touches a database, so no"
+            echo "claim about refusal, fingerprint stability or time travel is tested by it."
+            echo "\`db.yml\` is the cluster lane, \`release-proof.yml\` is the merge-gate"
+            echo "refusal, \`cloud-verify.yml\` is the only lane that has ever spoken to"
+            echo "CockroachDB Cloud, and \`console.yml\` is the only lane that compiles a line"
+            echo "of TypeScript. See \`docs/release/ci-map.md\`."
             echo ""
             echo "Nothing in this workflow contacts AWS or CockroachDB Cloud. Egress is"
             echo "denied by default in every job (PL-1, and the determinism boundary)."
           } >> "$GITHUB_STEP_SUMMARY"
+          failed=0
           for result in \
-            "${{ needs.static.result }}" \
-            "${{ needs.imports.result }}" \
-            "${{ needs.hermetic-tests.result }}" \
-            "${{ needs.sql-lint.result }}" \
-            "${{ needs.workflows.result }}" \
-            "${{ needs.adr-red-recorded.result }}" ; do
-            if [ "$result" != "success" ]; then
-              echo "a lane reported '$result'"
-              exit 1
+            "${R_CHECKERS}" "${R_LOCKFILE}" "${R_FORMAT}" "${R_TYPES}" "${R_IMPORTS}" \
+            "${R_REUSE}" "${R_TESTS}" "${R_SQL}" "${R_WORKFLOWS}" "${R_ADR}" ; do
+            if [ "${result}" != "success" ]; then
+              echo "a lane reported '${result}'"
+              failed=$((failed + 1))
             fi
           done
+          if [ "${failed}" -ne 0 ]; then
+            echo "${failed} lane(s) did not pass"
+            exit 1
+          fi

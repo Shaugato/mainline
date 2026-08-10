@@ -1,20 +1,48 @@
 # SPDX-FileCopyrightText: 2026 MAINLINE contributors
 # SPDX-License-Identifier: Apache-2.0
 #
-# THE RED LANE.
+# THE CLUSTER LANE, and the lane that owns the version constant.
 #
 # BUILD_PLAN.md §0.2 PL-2: "A milestone begins with the failing test its exit criterion
 # asserts, not with implementation. db.yml runs a CockroachDB service container and ONE
 # FAILING CONFORMANCE CASE BEFORE ANY SCHEMA EXISTS. For a product whose deliverable is
 # a refusal, a suite that has never been red asserts nothing."
 #
-# So this workflow is EXPECTED TO FAIL today, and the failure is the artefact. The
-# `conform` step is not marked `continue-on-error` and never will be: a red lane that
-# reports green is worse than no lane, and the whole reason PL-2 exists is that a solo
-# founder building with coding agents accumulates confidently-written tests that assert
-# nothing faster than anyone else.
+# The `conform` step is not marked `continue-on-error` and never will be: a red lane
+# that reports green is worse than no lane. The run URL of the first red run is recorded
+# in docs/adr/0005-red-before-green.md.
 #
-# The run URL of the first red run is recorded in docs/adr/0005-red-before-green.md.
+# TWO THINGS WERE ADDED ON 2026-08-10, BOTH FROM MEASUREMENT.
+#
+# (1) `gc.ttlseconds`. A single-node CockroachDB started by `docker run` defaults to
+#     **14400**. Measured against the live local node on 2026-08-10:
+#
+#         SHOW ZONE CONFIGURATION FOR RANGE default  ->  gc.ttlseconds = 14400
+#
+#     CockroachDB Cloud Basic — where `cloud-verify.yml` runs — is **4500**. Local is
+#     therefore MORE PERMISSIVE than the environment the product ships to, and a
+#     time-travel test that passes against 14400 has proven nothing about 4500: it may
+#     simply have read a version Cloud would already have garbage-collected. Platform
+#     finding F6. So this lane pins 4500 BEFORE any test runs, and then READS IT BACK
+#     and asserts it. Pinning without reading back is a wish.
+#
+# (2) The version constant is now ASSERTED rather than restated. `compose.yaml` claims
+#     "THE VERSION CONSTANT LIVES HERE AND ONLY HERE". It does not. Measured on
+#     2026-08-10 over `*.py` + `.github/workflows/*.yml` + `justfile`, excluding
+#     `compose.yaml` itself and `packages/trappoint-testkit/` (which owns the pin and
+#     whose tests must name both spellings to assert the difference between them):
+#
+#         34 occurrences of the FLOATING tag `…:latest-v26.2`  in 20 files
+#         21 occurrences of the version literal restated        in 12 files
+#
+#     A floating tag is precisely the dev/CI skew the schema fingerprint exists to
+#     catch, introduced by the harness that is supposed to prevent it. The `image-pin`
+#     job below ratchets both counts — they may fall, they may not rise — and asserts
+#     HARD that no workflow in the set this wave owns contains an image literal at all.
+#     A ratchet rather than a hard zero because the twenty files are owned by other
+#     workers mid-wave; ruling D4 says a truthful 34 that cannot grow beats a fabricated
+#     0, and a repository-wide reformat of files nine other people are editing is a
+#     merge catastrophe that buys a number nobody can audit.
 #
 # No AWS account. No CockroachDB Cloud organisation. No credential of ours. That is
 # PL-1, and it is the reason this lane can be reproduced by a judge on a laptop.
@@ -28,12 +56,14 @@ on:
       - "packages/trappoint-migrate/**"
       - "packages/trappoint-conformance/**"
       - "packages/trappoint-sql/**"
+      - "packages/trappoint-testkit/**"
       - "verticals/*/db/migrations/**"
       - "verticals/*/vertical.toml"
       - "spec/conformance/**"
       - "spec/errors.md"
       - "compose.yaml"
       - "uv.lock"
+      - ".github/actions/setup-workspace/**"
       - ".github/workflows/db.yml"
   pull_request:
   workflow_dispatch:
@@ -50,44 +80,217 @@ env:
   # The DSN for the local single-node cluster. `--insecure` means no password; the node
   # is created and destroyed inside this job and is reachable from nothing else.
   LOCAL_DSN: "postgresql://root@127.0.0.1:26257/defaultdb?sslmode=disable"
+  # CockroachDB Cloud Basic's value, and the whole point of pinning it here. See the
+  # header, finding (1).
+  GC_TTLSECONDS: "4500"
   FORCE_COLOR: "1"
 
 jobs:
-  kernel:
-    name: migrate + conform (RED until the kernel DDL lands)
+  # ---------------------------------------------------------------------------------
+  # No cluster, no Docker, ~40 seconds. It runs first so that a lane which is going to
+  # fail over a version string fails before it has spent two minutes pulling an image.
+  # ---------------------------------------------------------------------------------
+  image-pin:
+    name: one version constant, and it lives in compose.yaml
     runs-on: ubuntu-24.04
-    # The whole K1 proof budget. A schema-change job that hangs must fail the lane
-    # rather than occupy a runner.
-    timeout-minutes: 12
-
+    timeout-minutes: 8
+    outputs:
+      image: ${{ steps.image.outputs.image }}
     steps:
+      - name: Deny egress except to the package indexes
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            objects.githubusercontent.com:443
+            raw.githubusercontent.com:443
+            pypi.org:443
+            files.pythonhosted.org:443
+            astral.sh:443
+
       - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-workspace
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          packages: "trappoint-migrate"
+          cache-suffix: "kernel"
 
       - name: Read the ONE version constant out of compose.yaml
         id: image
-        # `services:` in GitHub Actions cannot pass a command to a container, and
-        # `start-single-node` IS a command — so the cluster is started with `docker run`
-        # rather than declared as a service. The version still comes from compose.yaml
-        # and nowhere else: a second copy of a version string is a second thing to
-        # forget, and a dev/CI skew that changes DDL behaviour is exactly the drift the
-        # schema fingerprint exists to catch.
+        # READ, not restate. `trappoint migrate image` parses the line tagged
+        # `trappoint:crdb-image-pin` in compose.yaml — the same code path `just image`
+        # uses, so the laptop and the runner cannot disagree about which node they
+        # tested. Measured on 2026-08-10 against the live checkout: it printed the
+        # v26.2.5 tag that compose.yaml carries. The version is NOT written out here —
+        # the step below refuses exactly that, including in a comment, because a comment
+        # that names a version is a comment that goes stale and then misleads.
         run: |
           set -euo pipefail
-          image="$(python3 - <<'PY'
-          import pathlib, re
-          lines = pathlib.Path("compose.yaml").read_text(encoding="utf-8").splitlines()
-          for i, line in enumerate(lines):
-              if "trappoint:crdb-image-pin" in line:
-                  for candidate in lines[i + 1 : i + 4]:
-                      m = re.match(r"^\s*image:\s*(\S+)\s*$", candidate)
-                      if m:
-                          print(m.group(1))
-                          raise SystemExit(0)
-          raise SystemExit("compose.yaml carries no marked image pin")
-          PY
-          )"
+          image="$(uv run --frozen --package trappoint-migrate trappoint migrate image)"
+          if [ -z "${image}" ]; then
+            echo "::error file=compose.yaml::compose.yaml carries no marked image pin"
+            exit 1
+          fi
           echo "image=${image}" >> "$GITHUB_OUTPUT"
           echo "CockroachDB image: ${image}"
+
+      - name: The harness must not restate the pin
+        # HARD, not ratcheted, and scoped to the files this wave owns. Every one of them
+        # obtains the image by reading compose.yaml. If any of them ever contains an
+        # image literal, the "one version constant" sentence has become false in the
+        # very files whose job is to make it true.
+        #
+        # The pattern is assembled from fragments so that this workflow does not match
+        # itself. An exclusion list would work too and would be worse: an exclusion list
+        # is a place to hide a real regression.
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import pathlib
+          import sys
+
+          NEEDLE = "cockroachdb/" + "cockroach:"
+          OWNED = [
+              ".github/workflows/ci.yml",
+              ".github/workflows/db.yml",
+              ".github/workflows/cloud-verify.yml",
+              ".github/workflows/supply-chain.yml",
+              ".github/workflows/console.yml",
+              ".github/actions/setup-workspace/action.yml",
+          ]
+
+          offences = []
+          for name in OWNED:
+              path = pathlib.Path(name)
+              if not path.is_file():
+                  offences.append(f"{name}: missing — this lane asserts over a file that is not there")
+                  continue
+              for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+                  if NEEDLE in line:
+                      offences.append(f"{name}:{number}: restates the image instead of reading compose.yaml")
+
+          for line in offences:
+              print(f"::error::{line}")
+          if offences:
+              print("")
+              print("Read the pin with `trappoint migrate image` (it parses the line tagged")
+              print("`trappoint:crdb-image-pin` in compose.yaml) and pass it through a step output.")
+              sys.exit(1)
+          print(f"{len(OWNED)} harness file(s) checked; none restates the image")
+          PY
+
+      - name: Repository census — the floating tag may fall, it may not rise
+        # Ruling D4's ratchet, applied to the image rather than to lint. Ceilings are the
+        # numbers measured on 2026-08-10 and recorded in this workflow's header. When a
+        # worker converts a file to the shared testkit fixture the count falls, this step
+        # says so, and the ceiling should be lowered in the same commit.
+        env:
+          FLOATING_CEILING: "34"
+          RESTATED_CEILING: "21"
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import os
+          import pathlib
+          import sys
+
+          IMAGE = "cockroachdb/" + "cockroach:"
+          FLOATING = IMAGE + "latest-"
+          SKIP_DIRS = {
+              ".git", ".venv", "node_modules", "__pycache__",
+              "dist", ".pytest_cache", ".ruff_cache", ".mypy_cache",
+          }
+          # `compose.yaml` is the constant itself. `packages/trappoint-testkit/` OWNS the
+          # pin: its `image.py` parses compose.yaml and its `test_image_pin.py` must name
+          # both spellings in order to assert that they differ. Counting the guard as an
+          # offence is how a guard gets deleted.
+          EXEMPT_PREFIX = "packages/trappoint-testkit/"
+          EXEMPT_EXACT = {"compose.yaml"}
+
+          def in_scope(path: pathlib.Path) -> bool:
+              posix = path.as_posix()
+              if any(part in SKIP_DIRS for part in path.parts):
+                  return False
+              if posix in EXEMPT_EXACT or posix.startswith(EXEMPT_PREFIX):
+                  return False
+              return (
+                  path.suffix == ".py"
+                  or posix.startswith(".github/workflows/")
+                  or path.name == "justfile"
+              )
+
+          floating: list[str] = []
+          restated: list[str] = []
+          for path in sorted(pathlib.Path(".").rglob("*")):
+              if not path.is_file() or not in_scope(path):
+                  continue
+              try:
+                  text = path.read_text(encoding="utf-8")
+              except (UnicodeDecodeError, OSError):
+                  continue
+              for number, line in enumerate(text.splitlines(), 1):
+                  if FLOATING in line:
+                      floating.append(f"{path.as_posix()}:{number}")
+                  elif IMAGE + "v" in line:
+                      restated.append(f"{path.as_posix()}:{number}")
+
+          summary = pathlib.Path(os.environ["GITHUB_STEP_SUMMARY"])
+          rows = [
+              ("floating tag", len(floating), int(os.environ["FLOATING_CEILING"])),
+              ("restated literal", len(restated), int(os.environ["RESTATED_CEILING"])),
+          ]
+          with summary.open("a", encoding="utf-8") as handle:
+              handle.write("## the version constant\n\n")
+              handle.write("| kind | occurrences | ceiling | verdict |\n|---|---|---|---|\n")
+              for label, count, ceiling in rows:
+                  verdict = "RISEN" if count > ceiling else ("fallen" if count < ceiling else "held")
+                  handle.write(f"| {label} | {count} | {ceiling} | {verdict} |\n")
+
+          risen = False
+          for label, count, ceiling in rows:
+              print(f"{label}: {count} (ceiling {ceiling})")
+              if count > ceiling:
+                  risen = True
+                  print(f"::error::{label} rose from {ceiling} to {count}")
+              elif count < ceiling:
+                  print(f"::notice::{label} fell from {ceiling} to {count} — lower the ceiling in db.yml")
+
+          if risen:
+              print("")
+              print("New occurrences (the full list, so the diff is obvious):")
+              for line in floating + restated:
+                  print(f"  {line}")
+              print("")
+              print("Obtain the image from `trappoint_testkit.image.export_pin()` or from")
+              print("`trappoint migrate image`. A floating tag is the dev/CI skew the schema")
+              print("fingerprint exists to catch; introducing it in the harness is not a shortcut.")
+              sys.exit(1)
+          PY
+
+  # ---------------------------------------------------------------------------------
+  kernel:
+    name: migrate + conform, on a node pinned to Cloud's gc.ttlseconds
+    runs-on: ubuntu-24.04
+    needs: [image-pin]
+    # The whole K1 proof budget. A schema-change job that hangs must fail the lane
+    # rather than occupy a runner.
+    timeout-minutes: 12
+    env:
+      CRDB_IMAGE: ${{ needs.image-pin.outputs.image }}
+
+    steps:
+      # NO `harden-runner` ON THIS JOB, and the omission is deliberate and stated rather
+      # than silent. This job's first act is `docker pull`, which reaches
+      # registry-1.docker.io, auth.docker.io and a Cloudflare CDN host whose name is not
+      # stable. An `allowed-endpoints` list written from memory would either be wrong —
+      # breaking the lane for a reason that has nothing to do with the schema — or so
+      # broad that it permits everything and asserts nothing. The static lane (`ci.yml`)
+      # is where the egress claim is enforced, on every job, with policy `block`. This
+      # lane's claim is about the database.
+      - uses: actions/checkout@v4
 
       - name: Pull the image and record its digest
         id: digest
@@ -96,18 +299,19 @@ jobs:
         # CRDB_IMAGE_DIGEST is set, it is ASSERTED. An invented digest committed today
         # would be a lie in the repository; an assertion that activates the moment
         # somebody records the real one is the honest version of the same control.
+        env:
+          EXPECTED: ${{ vars.CRDB_IMAGE_DIGEST }}
         run: |
           set -euo pipefail
-          docker pull "${{ steps.image.outputs.image }}"
-          digest="$(docker image inspect --format '{{index .RepoDigests 0}}' "${{ steps.image.outputs.image }}")"
+          docker pull "${CRDB_IMAGE}"
+          digest="$(docker image inspect --format '{{index .RepoDigests 0}}' "${CRDB_IMAGE}")"
           echo "digest=${digest}" >> "$GITHUB_OUTPUT"
           echo "resolved: ${digest}"
-          expected="${{ vars.CRDB_IMAGE_DIGEST }}"
-          if [ -n "${expected}" ] && [ "${expected}" != "${digest}" ]; then
-            echo "::error::image digest ${digest} does not match the pinned ${expected}"
+          if [ -n "${EXPECTED}" ] && [ "${EXPECTED}" != "${digest}" ]; then
+            echo "::error::image digest ${digest} does not match the pinned ${EXPECTED}"
             exit 1
           fi
-          if [ -z "${expected}" ]; then
+          if [ -z "${EXPECTED}" ]; then
             echo "::notice::CRDB_IMAGE_DIGEST is unset; the digest is recorded but not asserted"
           fi
 
@@ -116,7 +320,7 @@ jobs:
           set -euo pipefail
           docker run -d --name trappoint-crdb \
             -p 127.0.0.1:26257:26257 -p 127.0.0.1:8080:8080 \
-            "${{ steps.image.outputs.image }}" \
+            "${CRDB_IMAGE}" \
             start-single-node --insecure \
               --listen-addr=0.0.0.0:26257 --http-addr=0.0.0.0:8080 \
               --store=type=mem,size=2GiB
@@ -132,19 +336,57 @@ jobs:
           docker logs trappoint-crdb | tail -50
           exit 1
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
-        with:
-          enable-cache: true
-
-      - name: Install the kernel toolchain
-        # `--frozen` asserts uv.lock is authoritative: CI must resolve exactly what a
-        # stranger's `uv sync` resolves, or PL-1's "runs on a stranger's machine" is a
-        # claim about our machine.
+      - name: INIT — make this node no more permissive than CockroachDB Cloud
+        # Platform finding F6, and the reason it is a step rather than a sentence in a
+        # README: a fresh single-node cluster is MORE PERMISSIVE than the environment the
+        # product ships to, so every assertion made against its defaults is weaker than
+        # it looks. Measured 2026-08-10 on the live local node:
+        #
+        #   SHOW ZONE CONFIGURATION FOR RANGE default   ->  gc.ttlseconds = 14400
+        #   ALTER … CONFIGURE ZONE USING gc.ttlseconds = 4500 ; then re-read  ->  4500
+        #
+        # Cloud Basic is 4500. A time-travel test — AS OF SYSTEM TIME, the fixity
+        # patrol, the unwelding proof — that passes at 14400 may simply have read a
+        # version Cloud would already have collected. It proves nothing about Cloud.
+        #
+        # Automatic statistics are disabled for a second, unrelated reason: this is a
+        # 2 GiB in-memory node with a twelve-minute budget, and a background stats job
+        # that reshapes a query plan halfway through a fingerprint comparison turns a
+        # deterministic lane into a flaky one.
         run: |
-          uv sync --frozen \
-            --package trappoint-migrate \
-            --package trappoint-conformance
+          set -euo pipefail
+          docker exec trappoint-crdb ./cockroach sql --insecure \
+            --execute "SET CLUSTER SETTING sql.stats.automatic_collection.enabled = false;" \
+            --execute "ALTER RANGE default CONFIGURE ZONE USING gc.ttlseconds = ${GC_TTLSECONDS};" \
+            --execute "ALTER DATABASE defaultdb CONFIGURE ZONE USING gc.ttlseconds = ${GC_TTLSECONDS};"
+
+          # READ IT BACK. Setting a zone config and trusting it is a wish; the whole
+          # point of F6 is that the number differs from the default, so the number has
+          # to be observed, not requested.
+          for target in "RANGE default" "DATABASE defaultdb"; do
+            raw="$(docker exec trappoint-crdb ./cockroach sql --insecure --format=csv \
+              --execute "SELECT raw_config_sql FROM [SHOW ZONE CONFIGURATION FOR ${target}]" | tr -d '\n')"
+            case "${raw}" in
+              *"gc.ttlseconds = ${GC_TTLSECONDS}"*)
+                echo "  ok   ${target}: gc.ttlseconds = ${GC_TTLSECONDS}"
+                ;;
+              *)
+                echo "::error::${target} did not take gc.ttlseconds = ${GC_TTLSECONDS}"
+                echo "${raw}"
+                exit 1
+                ;;
+            esac
+          done
+          echo "this node is pinned to CockroachDB Cloud Basic's GC horizon"
+
+      - uses: ./.github/actions/setup-workspace
+        # `--frozen` (inside the action) asserts uv.lock is authoritative: CI must
+        # resolve exactly what a stranger's `uv sync` resolves, or PL-1's "runs on a
+        # stranger's machine" is a claim about our machine.
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          packages: "trappoint-migrate trappoint-conformance"
+          cache-suffix: "kernel"
 
       - name: The sequence ban and the invariant-citation rule (kernel trees)
         # Scoped to the trees THIS lane applies. Placed before the schema work so that a
@@ -155,12 +397,18 @@ jobs:
         # fail because a migration in a domain three directories away has two statements
         # in it, the PL-2 artefact would stop being legible.
         run: |
-          uv run --frozen --package trappoint-migrate trappoint migrate lint             --root packages/trappoint-sql/refvertical/sql             --root packages/trappoint-sql/templates
+          uv run --frozen --package trappoint-migrate trappoint migrate lint \
+            --root packages/trappoint-sql/refvertical/sql \
+            --root packages/trappoint-sql/templates
 
       - name: Bootstrap the `trappoint` schema
+        # Ruling D6, and the answer to a Class-C "failure" that is not one: applying the
+        # numbered migrations as raw files skips this, so `0119a_fn_explain_refusal.sql`
+        # fails on a missing `trappoint` schema. The runner is the entry point; bootstrap
+        # is part of it, and it is deliberately outside the numbered sequence.
         run: uv run --frozen --package trappoint-migrate trappoint migrate bootstrap --dsn "$LOCAL_DSN"
 
-      - name: Apply the reference vertical (a no-op until the DDL lands)
+      - name: Apply the reference vertical
         run: |
           uv run --frozen --package trappoint-migrate trappoint migrate up \
             --dsn "$LOCAL_DSN" \
@@ -180,28 +428,35 @@ jobs:
       - name: List the suite the manifest declares
         run: uv run --frozen --package trappoint-conformance trappoint-conform --profile trappoint-ref --list
 
-      - name: CONFORMANCE — expected RED until the kernel DDL lands
+      - name: CONFORMANCE
         # NOT continue-on-error. This step failing IS the PL-2 proof artefact, and the
         # commit that makes it pass is the commit that has to earn it.
-        run: |
-          uv run --frozen --package trappoint-conformance trappoint-conform --dsn "$LOCAL_DSN" --profile trappoint-ref
+        run: uv run --frozen --package trappoint-conformance trappoint-conform --dsn "$LOCAL_DSN" --profile trappoint-ref
 
       - name: Record the outcome in the job summary
         if: always()
+        env:
+          DIGEST: ${{ steps.digest.outputs.digest }}
         run: |
           {
             echo "## db lane"
             echo ""
             echo "| item | value |"
             echo "|---|---|"
-            echo "| image | \`${{ steps.image.outputs.image }}\` |"
-            echo "| digest | \`${{ steps.digest.outputs.digest }}\` |"
+            echo "| image | \`${CRDB_IMAGE}\` |"
+            echo "| image source | \`compose.yaml\`, read by \`trappoint migrate image\` |"
+            echo "| digest | \`${DIGEST}\` |"
+            echo "| gc.ttlseconds | \`${GC_TTLSECONDS}\` (CockroachDB Cloud Basic's value, asserted by read-back) |"
             echo "| profile | \`trappoint-ref\` |"
             echo ""
-            echo "**PL-2.** This lane is expected to be RED until the migration that owns"
-            echo "\`CF-01\` lands. A conformance suite that has never failed for the right"
-            echo "reason has not been observed to assert anything. The run URL of the first"
-            echo "red run is recorded in \`docs/adr/0005-red-before-green.md\`."
+            echo "**What this lane proves.** The reference vertical applies to a fresh node, the"
+            echo "schema fingerprint is stable across two attestations, and the conformance suite's"
+            echo "illegal histories are refused with the SQLSTATEs the specification names — on a"
+            echo "node whose GC horizon is no more permissive than Cloud's."
+            echo ""
+            echo "**What it does NOT prove.** Nothing about CockroachDB Cloud itself (that is"
+            echo "\`cloud-verify.yml\`), nothing about the MAINLINE merge gate (that is"
+            echo "\`release-proof.yml\`), and nothing about multi-node behaviour: this is one node."
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Cluster logs on failure

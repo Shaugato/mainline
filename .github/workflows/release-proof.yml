@@ -1,0 +1,218 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# THE PROOF LANE.
+#
+# One job, one question: does the database refuse a permit merge when a recalled
+# precursor carries no signed disposition — and does it admit the same merge once a
+# disposition is signed?
+#
+# Both halves are asserted. A lane that only checked the refusal would stay green
+# against a schema in which nothing can ever merge, and "nothing merges" is a broken
+# gate wearing a safe gate's colours.
+#
+# The evidence JSON is uploaded whether the job passes or fails. That is deliberate:
+# BUILD_PLAN.md §0.2 PL-2 says a suite that has never been red asserts nothing, and the
+# corollary is that a red run's artefact is worth more than a green run's, not less.
+# `docs/release/gate-refusal-proof.md` carries the first red and the first green
+# verbatim.
+#
+# No AWS account, no CockroachDB Cloud organisation, no credential of ours (PL-1). A
+# judge reproduces this lane with Docker and a checkout.
+
+name: release-proof
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "verticals/mainline/db/migrations/**"
+      - "scripts/proof/**"
+      - "tests/release/test_gate_refusal_proof.py"
+      - "packages/trappoint-migrate/**"
+      - "spec/conformance/manifest.toml"
+      - "spec/errors.md"
+      - "compose.yaml"
+      - ".github/workflows/release-proof.yml"
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-proof-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.13"
+  # The node is created and destroyed inside this job and is reachable from nothing
+  # else, so `--insecure` costs nothing and buys a DSN with no secret in it.
+  LOCAL_DSN: "postgresql://root@127.0.0.1:26257/defaultdb?sslmode=disable"
+  # Every cluster fixture in this repository checks these four names before reaching for
+  # Docker (docs/leads/quality-repair.md §1.4). Exporting all four is what stops this job
+  # from starting a second cluster beside the one it just started.
+  MAINLINE_TEST_DSN: "postgresql://root@127.0.0.1:26257/defaultdb?sslmode=disable"
+  TRAPPOINT_DSN: "postgresql://root@127.0.0.1:26257/defaultdb?sslmode=disable"
+  COCKROACH_URL: "postgresql://root@127.0.0.1:26257/defaultdb?sslmode=disable"
+  CRDB_URL: "postgresql://root@127.0.0.1:26257/defaultdb?sslmode=disable"
+  FORCE_COLOR: "1"
+
+jobs:
+  prove:
+    name: the database refuses the merge
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    # There is no `services:` block, and that is not an oversight. GitHub Actions cannot
+    # pass a command to a service container, and `start-single-node` IS a command — so
+    # the node is started with `docker run` below. The image pin is exact: `latest-v26.2`
+    # is a floating tag, and dev/CI schema skew is the drift the schema fingerprint
+    # exists to catch, not to introduce.
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Assert the image pin agrees with compose.yaml
+        id: image
+        run: |
+          set -euo pipefail
+          pinned="cockroachdb/cockroach:v26.2.5"
+          found="$(grep -oE 'cockroachdb/cockroach:v[0-9]+\.[0-9]+\.[0-9]+' compose.yaml | head -n1 || true)"
+          if [ -n "$found" ] && [ "$found" != "$pinned" ]; then
+            echo "::error::compose.yaml pins $found but this workflow pins $pinned."
+            echo "The image pin is one constant. Two copies is two things to forget."
+            exit 1
+          fi
+          echo "image=$pinned" >> "$GITHUB_OUTPUT"
+          echo "using $pinned"
+
+      - name: Start the single-node cluster
+        run: |
+          set -euo pipefail
+          docker run -d --name mainline-crdb \
+            -p 26257:26257 \
+            --health-cmd="curl -fsS http://127.0.0.1:8080/health?ready=1 || exit 1" \
+            --health-interval=3s --health-retries=40 --health-start-period=5s \
+            "${{ steps.image.outputs.image }}" \
+            start-single-node --insecure --store=type=mem,size=2GiB \
+            --cache=.25 --max-sql-memory=.25
+          for _ in $(seq 1 60); do
+            state="$(docker inspect -f '{{.State.Health.Status}}' mainline-crdb)"
+            [ "$state" = "healthy" ] && break
+            sleep 2
+          done
+          docker exec mainline-crdb ./cockroach sql --insecure -e "SELECT version();"
+
+      # gc.ttlseconds is 4500 on CockroachDB Cloud Basic and 14400 by default locally.
+      # Local is MORE permissive, so a time-travel assumption that survives a laptop can
+      # still fail on Cloud. Pinning the cluster default here means this lane is testing
+      # under the tighter of the two, which is the only direction worth being wrong in.
+      - name: Pin gc.ttlseconds to the value CockroachDB Cloud enforces
+        run: |
+          set -euo pipefail
+          docker exec mainline-crdb ./cockroach sql --insecure -e "
+            ALTER RANGE default CONFIGURE ZONE USING gc.ttlseconds = 4500;
+            ALTER DATABASE defaultdb CONFIGURE ZONE USING gc.ttlseconds = 4500;
+          "
+          docker exec mainline-crdb ./cockroach sql --insecure -e \
+            "SHOW ZONE CONFIGURATION FOR RANGE default;"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      # Deliberately not `uv sync`. The proof needs psycopg and trappoint-migrate and
+      # nothing else, and `docs/leads/quality-repair.md` §1.1 records that the workspace
+      # lockfile still describes seven of twenty-seven distributions. Depending on it here
+      # would make the product's central claim un-provable for a reason that has nothing
+      # to do with the product.
+      - name: Install exactly what the proof needs
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          # The floor packages/trappoint-migrate/pyproject.toml declares, spelled out here
+          # because `--no-deps` below is what keeps this job independent of uv.lock.
+          python -m pip install "psycopg[binary,pool]>=3.3.4" pytest
+          python -m pip install --no-deps -e packages/trappoint-migrate
+          python -c "import psycopg, trappoint_migrate; print(psycopg.__version__)"
+          python -m trappoint_migrate --help > /dev/null
+
+      - name: Prove it
+        id: prove
+        run: |
+          set -euo pipefail
+          python scripts/proof/gate_refusal.py \
+            --dsn "$LOCAL_DSN" \
+            --database ci_gate_refusal_proof \
+            --out evidence/gate-refusal/proof-ci-${{ github.run_id }}.json
+
+      # Runs even when the proof failed. A red proof's evidence file is the artefact that
+      # says WHICH half failed and with what SQLSTATE, and throwing it away because the
+      # step before it was red is how a lane becomes unfalsifiable.
+      - name: Upload the evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gate-refusal-evidence-${{ github.run_id }}
+          path: |
+            evidence/gate-refusal/proof-ci-${{ github.run_id }}.json
+            evidence/gate-refusal/proof-ci-${{ github.run_id }}.json.license
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Assert the proof from the release suite
+        run: |
+          set -euo pipefail
+          python -m pytest tests/release/test_gate_refusal_proof.py -q --no-header -p no:cacheprovider
+
+      - name: Summarise
+        if: always()
+        env:
+          EVIDENCE: evidence/gate-refusal/proof-ci-${{ github.run_id }}.json
+        run: |
+          set -euo pipefail
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          import os
+          import pathlib
+
+          print("## Gate-refusal proof\n")
+          path = pathlib.Path(os.environ["EVIDENCE"])
+          if not path.is_file():
+              print("No evidence file was written, so the proof did not get far enough to say anything.")
+              raise SystemExit(0)
+
+          evidence = json.loads(path.read_text(encoding="utf-8"))
+          chain = evidence.get("chain", {})
+          print(f"**Verdict: {evidence.get('verdict')}**\n")
+          print(f"- cluster `{evidence['cluster']['version']}`")
+          print(
+              f"- chain {chain.get('applied_count')}/{chain.get('files')} applied, "
+              f"{chain.get('failed_count')} failed, reached 0115: "
+              f"{chain.get('reached_0115_fn_permit_merge_gate')}"
+          )
+          for key, label in (("refusal", "CF-01"), ("drift_refusal", "CF-03")):
+              section = evidence.get(key) or {}
+              print(
+                  f"- {label} {section.get('outcome')} `[{section.get('sqlstate')}]` "
+                  f"`{section.get('constraint')}` ({section.get('constraint_source')})"
+              )
+          admission = evidence.get("admission") or {}
+          print(f"- admission {admission.get('outcome')} `[{admission.get('sqlstate')}]`")
+          for entry in chain.get("failures_unexplained", []):
+              print(f"- **UNEXPLAINED** `{entry['version']}` `[{entry['sqlstate']}]`")
+          for entry in chain.get("failures_attributable_to_an_unproduced_table", []):
+              print(f"- no producer: `{entry['version']}` needs `{entry['unproduced_table']}`")
+          for caveat in evidence.get("caveats", []):
+              print(f"- caveat: {caveat}")
+          for failure in evidence.get("failures", []):
+              print(f"- **FAILURE**: {failure}")
+          PY
+
+      - name: Cluster logs on failure
+        if: failure()
+        run: docker logs mainline-crdb --tail 200 || true
+
+      - name: Stop the cluster
+        if: always()
+        run: docker rm -f mainline-crdb || true

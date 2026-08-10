@@ -1,0 +1,92 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: FSL-1.1-ALv2
+
+[project]
+name = "mainline-gate-svc"
+version = "0.1.0"
+description = "The deterministic merge-gate caller for the MAINLINE binding: one explicit SERIALIZABLE transaction, one CALL mainline.merge_permit, and a dependency closure that provably contains no model."
+readme = "README.md"
+requires-python = ">=3.13"
+# FSL-1.1-ALv2 per the repository licence map (verticals/mainline/* is FSL). The
+# licence TEXT lives in the repo-root LICENSES/ tree, which is outside this project
+# directory and therefore cannot be referenced by `license-files`.
+license = "LicenseRef-FSL-1.1-ALv2"
+authors = [{ name = "MAINLINE contributors" }]
+keywords = ["cockroachdb", "serializable", "merge-gate", "refusal", "deterministic"]
+classifiers = [
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Database",
+  "Typing :: Typed",
+  "Private :: Do Not Upload",
+]
+
+# THE DEPENDENCY LIST IS THE CLAIM.
+#
+# ARCHITECTURE.md §8.2 asserts "no model can reach the merge gate" four ways, and E3
+# — the code-path enforcement — scans exactly two roots: `packages/trappoint-*` and
+# THIS directory (`mainline_boundary.astscan.DEFAULT_KERNEL_ROOTS`). Until this file
+# existed, E3 recorded `E3-ROOT-ABSENT` as a skip-with-reason and the loudest security
+# claim in the product was asserted over an empty set. It is now asserted over code.
+#
+# Three runtime dependencies, and the SHORTNESS is the deliverable:
+#
+#   psycopg[binary]  the wire. `binary`, not `pool`: this service opens one connection
+#                    per gate transaction (see `service.DirectConnection`) because the
+#                    retry unit is the WHOLE transaction and a pooled connection that
+#                    survives an aborted attempt is a `25P02` waiting to be reported as
+#                    a client bug (spec/errors.md §1.1).
+#   trappoint-core   the gate client itself: `MergeRequest`, `run_gate`, `GateRefused`,
+#                    `ISOLATION_STATEMENT`. Apache-2.0 substrate imported by an FSL
+#                    vertical — the permitted direction, `.importlinter` contract 1.
+#   mainline-domain  the MAINLINE binding's deterministic vocabulary and version stamp.
+#                    Its own preamble refuses boto3/anthropic/strands for the same
+#                    reason this file does, so the closure stays clean one level down.
+#
+# WHAT IS ABSENT, AND THE ABSENCE IS ENFORCED, NOT DOCUMENTED. No `boto3`, no
+# `botocore`, no `anthropic`, no `strands`, no `httpx`, no `pydantic-ai`, no
+# `mainline-agentkit` — nothing that could hold a model or open a socket to one.
+# `tests/test_no_model_in_closure.py` walks `sys.modules` after importing this package
+# AND walks `importlib.metadata.requires` transitively over this list, because a
+# runtime absence with a declared dependency is still a supply-chain reach. Adding one
+# name to the list below turns that test red; that is the mechanism.
+dependencies = [
+  "psycopg[binary]>=3.3.4",
+  "trappoint-core",
+  "mainline-domain",
+]
+
+[project.scripts]
+mainline-gate = "mainline_gate_svc.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/Shaugato/mainline"
+
+[tool.uv.sources]
+trappoint-core = { workspace = true }
+mainline-domain = { workspace = true }
+
+[dependency-groups]
+dev = [
+  "pytest>=8.3",
+  "mypy>=1.11",
+]
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mainline_gate_svc"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "tests", "README.md"]
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+warn_unreachable = true
+files = ["src/mainline_gate_svc"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["--strict-markers", "-ra"]

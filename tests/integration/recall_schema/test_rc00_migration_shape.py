@@ -33,7 +33,7 @@ from pathlib import Path
 
 import pytest
 
-from _support import (
+from _schema_support import (
     PREREQ_DIR,
     RECALL_MIGRATION_NUMBERS,
     recall_migration_files,

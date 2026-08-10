@@ -11,22 +11,49 @@
 # `trappoint:crdb-image-pin` below. A second copy of a version string is a second thing
 # to forget, and a dev/CI version skew that changes DDL behaviour is precisely the drift
 # the schema fingerprint exists to catch — so it must not be introduced by the harness.
+#
+# There are now TWO services that need that image, and the constant is still written
+# once: the marked block below is a YAML anchor, and both services merge it. The marker
+# line and the `image:` line under it are byte-for-byte what they have always been,
+# adjacent and in that order, because seven things outside this file parse them —
+# `trappoint_migrate.crdb.pinned_image`, `trappoint_testkit.image.read_pin`,
+# `packages/trappoint-conformance/unweld/container.py`, and the inline parsers in
+# `db.yml`, `db-schema.yml`, `schema.yml`, `custody-chain.yml` and
+# `mutation-ratchet.yml`, one of which is a `grep -A1`. Anchoring the mapping rather
+# than the scalar is what keeps those bytes untouched: `image: &anchor value` would put
+# two tokens on the line and every one of those parsers expects exactly one.
 
 name: trappoint
 
-services:
-  crdb:
+# The one version constant, and the only place it is written.
+x-crdb-image: &crdb-image
     # trappoint:crdb-image-pin
     image: cockroachdb/cockroach:v26.2.5
+
+services:
+  crdb:
+    <<: *crdb-image
     container_name: trappoint-crdb
     # `services:` in GitHub Actions cannot pass a command, and `start-single-node` IS a
     # command, which is why db.yml runs `docker run` instead of declaring a service.
     # Here Compose can express it directly.
+    # `--listen-addr=:26257`, NOT `--listen-addr=0.0.0.0:26257`. Measured against the
+    # pinned image on 2026-08-10: `start-single-node --insecure
+    # --listen-addr=0.0.0.0:26257` exits 1 with
+    #
+    #     error: hostname of listen_addr must be "127.0.0.1" or "localhost"
+    #
+    # because CockroachDB refuses to bind an unauthenticated node to a named
+    # non-loopback host. An EMPTY hostname is accepted and still binds every interface,
+    # which is what the published port mapping needs — a node listening only on the
+    # container's loopback cannot be reached through `-p 127.0.0.1:26257:26257`.
+    # The same rule applies to `--http-addr`. This file could not start a node before
+    # that change; `just up` had never run to completion with this pin.
     command:
       - start-single-node
       - --insecure
-      - --listen-addr=0.0.0.0:26257
-      - --http-addr=0.0.0.0:8080
+      - --listen-addr=:26257
+      - --http-addr=:8080
       - --cache=.25
       - --max-sql-memory=.25
     ports:
@@ -56,6 +83,42 @@ services:
         soft: 65536
         hard: 65536
     stop_grace_period: 60s
+    restart: "no"
+
+  # ── the Cloud alignment step ──────────────────────────────────────────────────────
+  #
+  # A local single node defaults to `gc.ttlseconds = 14400`. CockroachDB Cloud Basic —
+  # the nightly truth check — enforces 4500. Local is therefore the MORE permissive of
+  # the two: four hours of MVCC history against seventy-five minutes. That is the exact
+  # shape of a bug that passes on a laptop and fails in the cloud, because an
+  # `AS OF SYSTEM TIME` query reaching back two hours is legal here and refused there.
+  # Measured on this machine on 2026-08-10: `SHOW ZONE CONFIGURATION FOR RANGE default`
+  # returned `gc.ttlseconds = 14400`.
+  #
+  # It is a SEPARATE service under a profile rather than an unconditional one, and that
+  # is measured too: `docker compose up -d --wait` exits **1** when any service it
+  # started has exited, even with status 0 — so a plain one-shot init service would make
+  # `just up` fail every time it succeeded. Under `profiles:` the service is not started
+  # by `up` at all, and is run explicitly:
+  #
+  #     just gc-align
+  #     docker compose -f compose.yaml run --rm crdb-align     # the same thing
+  #
+  # `just up` runs it for you. It is idempotent; run it as often as you like.
+  crdb-align:
+    <<: *crdb-image
+    profiles: ["align"]
+    depends_on:
+      crdb:
+        condition: service_healthy
+    # `--host=crdb` is the compose service name on the project network, not the
+    # published loopback port, so this works whether or not 26257 is free on the host.
+    entrypoint:
+      - /cockroach/cockroach
+      - sql
+      - --insecure
+      - --host=crdb:26257
+      - --execute=ALTER RANGE default CONFIGURE ZONE USING gc.ttlseconds = 4500
     restart: "no"
 
 volumes:

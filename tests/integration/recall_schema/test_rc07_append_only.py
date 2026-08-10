@@ -21,7 +21,7 @@ import json
 
 import pytest
 
-from _support import capture_refusal, new_uuid, rows, trigger_names
+from _schema_support import capture_refusal, new_uuid, rows, trigger_names
 
 pytestmark = pytest.mark.schema
 
