@@ -1,0 +1,291 @@
+{
+  "artefact": "MAINLINE gate-refusal proof",
+  "claim": "The database refuses a permit merge when a recalled precursor carries no signed disposition, and admits the same merge once a disposition is signed.",
+  "generated_at_utc": "2026-08-10T00:42:10Z",
+  "generated_by": "scripts/proof/gate_refusal.py",
+  "conformance_cases": {
+    "refusal": "CF-01 (23514 gate_closed_when_issued)",
+    "drift_refusal": "CF-03 (P0001 mainline.fn_permit_merge_gate)",
+    "admission": "the same history, after one signed disposition"
+  },
+  "cluster": {
+    "version": "CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)",
+    "database": "w_qr_gate_refusal_proof",
+    "zone": {
+      "gc_ttlseconds": 4500
+    }
+  },
+  "caveats": [
+    "15 of 261 migrations did not apply. Every one is listed under chain.failures_* with its file name and SQLSTATE. The five tables with no producer are named in chain.unproduced_tables_enumerated; this script does not create them, because a new table takes a number the allocation table grants and this worker owns no band.",
+    "mainline.permit.open_blocking was written by this script, not by the check_materialised trigger, because 0121_trg_check_materialised.sql could not apply (mainline_ops.outbox has no migration). The value written is the count the gate re-derives for itself, so the refusal below is still the database's."
+  ],
+  "chain": {
+    "migrations_dir": "D:\\CoackroachDBxAWS\\mainline\\verticals\\mainline\\db\\migrations",
+    "files": 261,
+    "applied_count": 246,
+    "failed_count": 15,
+    "seconds": 46.93,
+    "bootstrap": {
+      "how": "trappoint migrate bootstrap (subprocess)",
+      "argv": [
+        "python",
+        "-m",
+        "trappoint_migrate",
+        "bootstrap",
+        "--dsn",
+        "<dsn>"
+      ],
+      "stdout": "bootstrapped: schema, schema_migration, schema_lock, schema_attestation, genesis attestation",
+      "ok": true
+    },
+    "reached_0115_fn_permit_merge_gate": true,
+    "unproduced_tables_enumerated": [
+      "mainline_ops.outbox",
+      "mainline.identity_assignment",
+      "mainline.patrol_run",
+      "mainline_meas.agent_action",
+      "mainline_meas.standing"
+    ],
+    "failures_attributable_to_an_unproduced_table": [
+      {
+        "version": "0121_trg_check_materialised",
+        "sqlstate": "42P01",
+        "message": "relation \"mainline_ops.outbox\" does not exist",
+        "classification": "unproduced_dependency",
+        "unproduced_table": "mainline_ops.outbox"
+      },
+      {
+        "version": "0145a_trg_cbm_account_guard",
+        "sqlstate": "42P01",
+        "message": "relation \"mainline.identity_assignment\" does not exist",
+        "classification": "unproduced_dependency",
+        "unproduced_table": "mainline.identity_assignment"
+      },
+      {
+        "version": "0163_v_fixity_coverage",
+        "sqlstate": "42P01",
+        "message": "relation \"mainline.patrol_run\" does not exist",
+        "classification": "unproduced_dependency",
+        "unproduced_table": "mainline.patrol_run"
+      },
+      {
+        "version": "0164_v_agent_actions",
+        "sqlstate": "42P01",
+        "message": "relation \"mainline_meas.agent_action\" does not exist",
+        "classification": "unproduced_dependency",
+        "unproduced_table": "mainline_meas.agent_action"
+      },
+      {
+        "version": "0165_v_gate_latency_daily",
+        "sqlstate": "42P01",
+        "message": "relation \"mainline_meas.agent_action\" does not exist",
+        "classification": "unproduced_dependency",
+        "unproduced_table": "mainline_meas.agent_action"
+      },
+      {
+        "version": "0166_v_txn_restart_daily",
+        "sqlstate": "42P01",
+        "message": "relation \"mainline_meas.agent_action\" does not exist",
+        "classification": "unproduced_dependency",
+        "unproduced_table": "mainline_meas.agent_action"
+      },
+      {
+        "version": "0171_v_standing_components",
+        "sqlstate": "42P01",
+        "message": "relation \"mainline_meas.standing\" does not exist",
+        "classification": "unproduced_dependency",
+        "unproduced_table": "mainline_meas.standing"
+      },
+      {
+        "version": "0172_v_my_record",
+        "sqlstate": "42P01",
+        "message": "relation \"mainline_meas.standing\" does not exist",
+        "classification": "unproduced_dependency",
+        "unproduced_table": "mainline_meas.standing"
+      },
+      {
+        "version": "0187_standing_rls_enable",
+        "sqlstate": "42P01",
+        "message": "relation \"mainline_meas.standing\" does not exist",
+        "classification": "unproduced_dependency",
+        "unproduced_table": "mainline_meas.standing"
+      },
+      {
+        "version": "0187a_standing_rls_force",
+        "sqlstate": "42P01",
+        "message": "relation \"mainline_meas.standing\" does not exist",
+        "classification": "unproduced_dependency",
+        "unproduced_table": "mainline_meas.standing"
+      },
+      {
+        "version": "0187b_policy_standing_blind",
+        "sqlstate": "42P01",
+        "message": "relation \"mainline_meas.standing\" does not exist",
+        "classification": "unproduced_dependency",
+        "unproduced_table": "mainline_meas.standing"
+      },
+      {
+        "version": "0187c_policy_standing_assay_read",
+        "sqlstate": "42P01",
+        "message": "relation \"mainline_meas.standing\" does not exist",
+        "classification": "unproduced_dependency",
+        "unproduced_table": "mainline_meas.standing"
+      },
+      {
+        "version": "0187d_policy_standing_assay_insert",
+        "sqlstate": "42P01",
+        "message": "relation \"mainline_meas.standing\" does not exist",
+        "classification": "unproduced_dependency",
+        "unproduced_table": "mainline_meas.standing"
+      },
+      {
+        "version": "0187e_policy_standing_view_owner_read",
+        "sqlstate": "42P01",
+        "message": "relation \"mainline_meas.standing\" does not exist",
+        "classification": "unproduced_dependency",
+        "unproduced_table": "mainline_meas.standing"
+      },
+      {
+        "version": "0198x_no_rls_on_cdc_sources",
+        "sqlstate": "42P01",
+        "message": "relation \"mainline_ops.outbox\" does not exist",
+        "classification": "unproduced_dependency",
+        "unproduced_table": "mainline_ops.outbox"
+      }
+    ],
+    "failures_unexplained": []
+  },
+  "gate_objects": {
+    "table:mainline.permit": true,
+    "table:mainline.blocking_check": true,
+    "table:mainline.disposition": true,
+    "table:mainline.merge_record": true,
+    "table:mainline.refusal_ledger": true,
+    "routine:mainline.fn_permit_merge_gate": true,
+    "routine:mainline.merge_permit": true,
+    "trigger:mainline.permit:permit_merge_gate": true
+  },
+  "history": {
+    "seeded": true,
+    "site_id": "88fd306f-bb70-4fb0-82e3-4bef7ff111f0",
+    "site_code": "88fd306f-bb70-4fb0-82e3-4bef7ff111f0",
+    "signer_sub": "proof.signer",
+    "countersigner_sub": "proof.countersigner",
+    "clause_version_commit": "a92e16e2a33e26f5dbfd15fb26d3ebf02e4a7626b2d4fedaab14a0ccdabca19b",
+    "clause_uuid": "d351109a-4b56-49f6-891e-2d9786c8e4e9",
+    "precursor_event_id": "0e2f0557-7a0b-432b-adb5-00766fc522d1",
+    "permit_id": "d25b4c81-6af7-45e5-a455-c906af55e137",
+    "blocking_check_id": "e81b0ee8-9316-4551-a53c-135678b46002",
+    "exposure_receipt_id": "9f03c9f1-4779-4d02-a06e-ec1be9a086bf",
+    "recall_run_id": "39e2ca96-e585-4275-b1d0-55c7240a4e3f",
+    "merged_commit": "93bb35d778549a7d35b210b04612e80a9ecc88c84630a6b32e7340eda97a04ae",
+    "open_blocking_counter_written_by": "scripts/proof/gate_refusal.py \u2014 trigger check_materialised is ABSENT because 0121_trg_check_materialised.sql could not apply (mainline_ops.outbox has no migration). The value written is the count the gate re-derives from mainline.blocking_check LEFT JOIN mainline.disposition.",
+    "projection_trigger_check_materialised_present": false
+  },
+  "refusal": {
+    "outcome": "REFUSED",
+    "sqlstate": "23514",
+    "constraint": "gate_closed_when_issued",
+    "constraint_source": "reported",
+    "message": "failed to satisfy CHECK constraint ((state != 'merged':::mainline.subject_state) OR (open_blocking = 0:::INT8))",
+    "case": "CF-01",
+    "history": "one open blocking check, no signed disposition",
+    "expected_sqlstate": "23514",
+    "expected_constraint": "gate_closed_when_issued",
+    "refusal_ledger": {
+      "written": true,
+      "read_back": true,
+      "refusal_id": "9da61428-d135-4410-a3d3-3ef74cac8cac",
+      "observed_at": "2026-08-10T00:43:08.156727+00:00",
+      "sqlstate": "23514",
+      "constraint_name": "gate_closed_when_issued",
+      "constraint_source": "reported",
+      "subject_kind": "permit",
+      "subject_id": "d25b4c81-6af7-45e5-a455-c906af55e137",
+      "gate_epoch": 1,
+      "diagnosis": "declarative",
+      "mus_cardinality": 1,
+      "naa_kind": "dispose_obligations",
+      "recorded_by": "scripts/proof/gate_refusal.py"
+    }
+  },
+  "drift_refusal": {
+    "outcome": "REFUSED",
+    "sqlstate": "P0001",
+    "constraint": "mainline.fn_permit_merge_gate",
+    "constraint_source": "parsed",
+    "message": "MAINLINE: merge refused by mainline.fn_permit_merge_gate \u2014 re-derived open obligation count is 1 while the projected counter reads zero",
+    "case": "CF-03",
+    "history": "open_blocking forced to zero out of band; the obligation is still open",
+    "expected_sqlstate": "P0001",
+    "expected_constraint": "mainline.fn_permit_merge_gate",
+    "refusal_ledger": {
+      "written": true,
+      "read_back": true,
+      "refusal_id": "f705d21a-133c-46c2-b3c3-a3a165e8b611",
+      "observed_at": "2026-08-10T00:43:08.327332+00:00",
+      "sqlstate": "P0001",
+      "constraint_name": "mainline.fn_permit_merge_gate",
+      "constraint_source": "parsed",
+      "subject_kind": "permit",
+      "subject_id": "d25b4c81-6af7-45e5-a455-c906af55e137",
+      "gate_epoch": 1,
+      "diagnosis": "declarative",
+      "mus_cardinality": 1,
+      "naa_kind": "dispose_obligations",
+      "recorded_by": "scripts/proof/gate_refusal.py"
+    }
+  },
+  "disposition": {
+    "signed": true,
+    "disposition_id": "b581bd3f-67de-4e2f-b9f9-a039d1fdd9ca",
+    "kind": "applied",
+    "virulence_projected": "blood_major",
+    "signer_rank_projected": 5,
+    "reading_floor_met_projected": true,
+    "deliberation_seconds_projected": 601,
+    "permit_open_blocking_after": 0,
+    "permit_unmet_floor_count_after": 0,
+    "permit_countersigned_count_after": 1
+  },
+  "admission": {
+    "outcome": "ADMITTED",
+    "sqlstate": "00000",
+    "case": "admission",
+    "expected_sqlstate": "00000",
+    "merge_record": {
+      "present": true,
+      "subject_kind": "permit",
+      "subject_id": "d25b4c81-6af7-45e5-a455-c906af55e137",
+      "gate_epoch": 1,
+      "merged_by": "proof.signer",
+      "merged_commit": "93bb35d778549a7d35b210b04612e80a9ecc88c84630a6b32e7340eda97a04ae",
+      "clearance_digest": "ef4aa432649db46a8daae5d1071f5a5cfa0215a785d6fb37f28384749e4e0a7e",
+      "merged_at": "2026-08-10T00:43:08.495563+00:00",
+      "permit_state": "merged",
+      "permit_open_blocking": 0,
+      "event_chain": [
+        {
+          "seq": 1,
+          "from": "draft",
+          "to": "checks_materialised",
+          "chain_digest": "ff92e5760fb0eb9666be2eb4b2ad754bbdd0915dca238a7208711ae88e150f94"
+        },
+        {
+          "seq": 2,
+          "from": "checks_materialised",
+          "to": "dispositioned",
+          "chain_digest": "03c06e3786664420db075da1cdb5d283a7a4a4ed3dc382f5723fffe8d828e485"
+        },
+        {
+          "seq": 3,
+          "from": "dispositioned",
+          "to": "merged",
+          "chain_digest": "3c9c9e6d73cbd6e30586ae468533c07e51a066d1f114a02e438d0804d96f3d0e"
+        }
+      ]
+    }
+  },
+  "failures": [],
+  "verdict": "PROVEN"
+}
