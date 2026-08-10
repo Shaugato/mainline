@@ -16,13 +16,21 @@ too many for the thing CI fails on. So the marker is *applied* at collection fro
 ``manifest.toml``, which means the coverage report is still generated from collected markers
 exactly as asked, and the mapping still has one owner. A statically decorated test keeps its
 own marker as well; both are collected.
+
+**Nothing here may be reached by importing this file under the name ``conftest``.** pytest
+imports every conftest in the repository under that one bare top-level name, so the last
+one loaded wins ``sys.modules["conftest"]``: run 31388699452 measured
+``test_anomaly_coverage.py``'s ``from conftest import _case_id_of`` resolving to
+``packages/trappoint-sql/tests/conftest.py``. The collection hook's id recovery is
+therefore handed to tests through the ``case_id_of`` **fixture** below, which is pytest's
+own mechanism for exactly this and cannot bind to another directory's file.
 """
 
 from __future__ import annotations
 
 import os
 import sys
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from pathlib import Path
 from typing import Any
 
@@ -76,6 +84,19 @@ def _case_id_of(item: pytest.Item) -> str | None:
         return None
     tail = name[start : start + 5]
     return tail if len(tail) == 5 and tail[3:].isdigit() else None
+
+
+@pytest.fixture(scope="session")
+def case_id_of() -> Callable[[pytest.Item], str | None]:
+    """Hand :func:`_case_id_of` — the collection hook's own recovery — to a test.
+
+    ``test_anomaly_coverage.py`` asserts that the hook above recovers the right case id
+    from a parametrised node name, because otherwise the coverage report would be
+    generated from markers attached to the wrong cases. It has to reach the *same*
+    function the hook calls, not a copy of it, and a fixture is the only way to hand it
+    over that survives the collision on the module name ``conftest``.
+    """
+    return _case_id_of
 
 
 @pytest.fixture(scope="session")

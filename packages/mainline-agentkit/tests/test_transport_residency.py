@@ -13,6 +13,9 @@ Australian residency is FALSE for that deployment and is never claimed.
 
 from __future__ import annotations
 
+import json
+import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -147,15 +150,233 @@ def test_replaying_a_missing_store_says_so(tmp_path: Path):
         )
 
 
-def test_the_offline_path_imports_no_aws_sdk():
-    # PL-1: every proof runs on a machine with no credential of ours. `boto3` is
-    # imported inside two functions, both of which are on the live path only, so a
-    # completed offline run must never have pulled the SDK into memory.
-    assert "boto3" not in sys.modules, (
-        "boto3 was imported during an offline test run: the lazy import that keeps the "
-        "AWS SDK off the cassette path has been moved to module scope"
+# ── the offline path reaches no AWS SDK, measured in a process of its own ───────────
+#
+# WHY THIS IS A SUBPROCESS, AND WHAT THE OLD IN-PROCESS ASSERTION ACTUALLY MEASURED.
+#
+# This test used to be two lines: `assert "boto3" not in sys.modules`. That is not a
+# statement about `mainline_agentkit`. It is a statement about every test that has run
+# in the same interpreter before it, and on 2026-08-10 it started failing for a reason
+# that has nothing to do with this package. Measured, with a `sys.meta_path` tracer over
+# the full `pytest --crdb=none tests` run:
+#
+#   tests/unit/recall_providers/test_offline_guarantee.py:62
+#     test_a_live_judge_reports_unreachable_rather_than_guessing -> get_judge_provider()
+#   verticals/.../mainline_recall_agent/providers/registry.py:135 -> resolve_inference_profile()
+#   verticals/.../mainline_recall_agent/providers/resolve.py:184  -> import boto3
+#
+# That is a DIFFERENT package's live path, lazily imported exactly as it should be, and
+# driven on purpose by a test proving it reports `unreachable` rather than guessing. It
+# leaves `boto3` in `sys.modules` for the remaining ~2 000 tests, and `packages/` sorts
+# after `tests/`, so this file was told the SDK had leaked and blamed itself. Grepping
+# every module-scope import in the tree finds none: the accusation was false and the
+# instrument produced it.
+#
+# So the claim is measured where the claim lives — in a fresh interpreter that imports
+# `mainline_agentkit`, drives the cassette path end to end, and reports what it pulled
+# in. It cannot be polluted by a sibling suite, it cannot pass because nothing ran, and
+# when it fails it NAMES THE FILE AND LINE that asked for the SDK. This is the shape
+# `packages/trappoint-ledger/tests/test_signer.py` already uses for the same claim.
+
+_OFFLINE_PROBE = r'''
+import importlib
+import importlib.abc
+import json
+import sys
+import traceback
+
+AWS_ROOTS = ("boto3", "botocore")
+OFFENCES = []
+
+
+def _asked_for_it():
+    """The first frame outside the import machinery — i.e. the file that did it."""
+    for frame in reversed(traceback.extract_stack()[:-2]):
+        name = frame.filename.replace("\\", "/")
+        if name.startswith("<frozen importlib") or "/importlib/" in name:
+            continue
+        return {
+            "file": frame.filename,
+            "line": frame.lineno,
+            "function": frame.name,
+            "source": (frame.line or "").strip(),
+        }
+    return {"file": "<unknown>", "line": 0, "function": "<unknown>", "source": ""}
+
+
+class Tripwire(importlib.abc.MetaPathFinder):
+    """Refuse the AWS SDK, and record who asked.
+
+    Refusing rather than merely observing matters twice over. A module-scope import
+    fails loudly with a traceback instead of silently succeeding, and an import wrapped
+    in `try: ... except ImportError:` — which would defeat a check that only looked at
+    `sys.modules` afterwards — is still recorded here.
+    """
+
+    def find_spec(self, fullname, path=None, target=None):
+        if fullname.split(".")[0] not in AWS_ROOTS:
+            return None
+        OFFENCES.append({"module": fullname, "importer": _asked_for_it()})
+        raise ImportError(
+            fullname + " is refused on the offline path by the MAINLINE residency probe"
+        )
+
+
+sys.meta_path.insert(0, Tripwire())
+for _name in [n for n in sys.modules if n.split(".")[0] in AWS_ROOTS]:
+    del sys.modules[_name]
+
+steps = []
+died = None
+
+
+def drive_the_offline_path():
+    """Everything a cassette run touches, in the order a caller touches it."""
+    import mainline_agentkit as kit
+    steps.append("import mainline_agentkit (and every module it re-exports)")
+
+    import make_cassettes as recipes
+    steps.append("import the committed cassette recipes")
+
+    settings = kit.AgentkitSettings.from_env({})
+    assert settings.provider == "cassette", settings.provider
+    steps.append("AgentkitSettings.from_env({}) -> provider=" + settings.provider)
+
+    offline = kit.AgentkitSettings(
+        provider="cassette", cassette_dir=recipes.CASSETTE_DIR, cassette_mode="replay"
     )
-    assert "botocore" not in sys.modules
+    transport = kit.select_transport(offline)
+    steps.append("select_transport -> " + type(transport).__name__)
+
+    result = kit.quarantined_call(
+        kit.TRIAGE,
+        recipes.DOC_PROCEDURE,
+        recipes.CTX_SITE,
+        transport=transport,
+        model_id=recipes.MODEL_ID,
+        sentinel=recipes.SENTINEL,
+    )
+    assert result.attempts == 1, result.attempts
+    steps.append("quarantined_call replayed a cassette in " + str(result.attempts) + " attempt")
+
+    kit.boot_runtime(settings=offline, inference_profile_arn=recipes.MODEL_ID)
+    steps.append("boot_runtime -> serving=" + str(kit.is_serving()))
+    kit.shutdown_runtime()
+    steps.append("shutdown_runtime -> serving=" + str(kit.is_serving()))
+
+
+# The tripwire RAISES, so a module-scope `import boto3` anywhere on this chain kills the
+# run here. The verdict is still printed — a probe that died without saying why would
+# tell the next reader nothing, and OFFENCES already holds the file that did it.
+try:
+    drive_the_offline_path()
+except Exception:
+    died = traceback.format_exc()
+
+leaked = sorted(n for n in sys.modules if n.split(".")[0] in AWS_ROOTS)
+offences = list(OFFENCES)
+
+# ANTI-VACUITY, in the same process and on every run: prove the tripwire is armed by
+# tripping it deliberately. Without this the whole probe could report a clean offline
+# path because the finder was never consulted.
+OFFENCES.clear()
+try:
+    importlib.import_module("boto3")
+    self_test = {"tripped": False, "importer": None}
+except ImportError:
+    self_test = {
+        "tripped": bool(OFFENCES),
+        "importer": OFFENCES[0]["importer"] if OFFENCES else None,
+    }
+
+print(
+    "MAINLINE-RESIDENCY-VERDICT "
+    + json.dumps(
+        {
+            "steps": steps,
+            "leaked": leaked,
+            "offences": offences,
+            "self_test": self_test,
+            "died": died,
+        }
+    )
+)
+'''
+
+
+def _run_offline_probe() -> dict:
+    """Drive the offline path in a fresh interpreter and return its verdict."""
+    tests_dir = Path(__file__).resolve().parent
+    env = dict(os.environ)
+    env["PYTHONPATH"] = os.pathsep.join(
+        [str(tests_dir.parent / "src"), str(tests_dir), *[entry for entry in sys.path if entry]]
+    )
+    # A fixed interpreter and an in-repo script constant: no shell, no user input.
+    completed = subprocess.run(
+        [sys.executable, "-c", _OFFLINE_PROBE],
+        capture_output=True,
+        text=True,
+        env=env,
+        timeout=90,
+        check=False,
+    )
+    marker = "MAINLINE-RESIDENCY-VERDICT "
+    for line in completed.stdout.splitlines():
+        if line.startswith(marker):
+            return json.loads(line[len(marker) :])
+    raise AssertionError(
+        "the offline residency probe produced no verdict, which means it died before it "
+        "finished driving the cassette path. If the traceback below ends in an ImportError "
+        "for boto3 or botocore, the file named in it is the one that moved the AWS SDK onto "
+        f"the offline path.\n--- exit {completed.returncode} ---\n"
+        f"--- stdout ---\n{completed.stdout}\n--- stderr ---\n{completed.stderr}"
+    )
+
+
+def test_the_offline_path_imports_no_aws_sdk():
+    """PL-1: a completed offline run must never have pulled the AWS SDK into memory.
+
+    ``boto3`` is imported inside two functions in ``transport.py``, both on the live path
+    only. ``mainline-boundary``'s E3 SBOM scan reads this import graph and the submission
+    is about to lean on it, so the claim is measured rather than asserted about.
+    """
+    verdict = _run_offline_probe()
+
+    # ORDER MATTERS. The offence report names the file; every other assertion here is a
+    # weaker statement about the same run, so a planted module-scope import must be read
+    # out as "this file did it" and never as "the probe completed no steps".
+    assert verdict["self_test"]["tripped"] is True, (
+        "the probe's own tripwire did not fire when it deliberately imported boto3, so "
+        "this run measured nothing at all: "
+        f"{json.dumps(verdict['self_test'], indent=2)}"
+    )
+
+    offenders = "\n".join(
+        f"  {entry['module']} <- {entry['importer']['file']}:{entry['importer']['line']} "
+        f"in {entry['importer']['function']} | {entry['importer']['source']}"
+        for entry in verdict["offences"]
+    )
+    assert not verdict["offences"], (
+        "the AWS SDK was requested while driving MAINLINE's offline path. The lazy import "
+        "that keeps it off the cassette path has been moved to module scope, or a new "
+        "module-scope import has been added. THE FILE THAT ASKED FOR IT:\n"
+        f"{offenders}\n"
+        f"offline steps completed before the request: {verdict['steps']}\n"
+        f"{verdict['died'] or ''}"
+    )
+    assert not verdict["leaked"], (
+        "the offline path finished with the AWS SDK resident in sys.modules: "
+        f"{verdict['leaked']}. The tripwire recorded no request, so it arrived by some "
+        "route other than an import statement."
+    )
+    assert verdict["died"] is None, (
+        "the offline path did not complete, so this run proved nothing about the AWS SDK. "
+        f"steps completed: {verdict['steps']}\n{verdict['died']}"
+    )
+    assert len(verdict["steps"]) == 7, (
+        "the probe finished without driving the whole offline path, so a clean verdict "
+        f"would be vacuous. steps: {verdict['steps']}"
+    )
 
 
 def test_settings_default_to_the_offline_provider():

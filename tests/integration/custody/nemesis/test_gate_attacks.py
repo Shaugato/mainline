@@ -22,7 +22,7 @@ from __future__ import annotations
 
 import attacks
 import pytest
-from conftest import NemesisContext, OutcomeRecorder
+from nemesis_harness import NemesisContext, OutcomeRecorder
 
 #: Standing up a fresh database, applying the reduced schema and seeding 72 leaves
 #: costs a few seconds per attack, and the repository's default 120 s per-test budget

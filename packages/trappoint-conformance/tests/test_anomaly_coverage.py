@@ -93,28 +93,35 @@ def test_no_case_declares_an_unknown_anomaly(manifest: Manifest) -> None:
     )
 
 
-def test_markers_are_attached_to_the_case_tests() -> None:
+def test_markers_are_attached_to_the_case_tests(case_id_of) -> None:
     """The conftest hook really does attach the anomaly marker.
 
     Without this, the generator below would be reading the manifest twice and calling it
     marker coverage. The hook is what makes the two agree.
+
+    ``case_id_of`` is the *fixture* ``tests/conftest.py`` publishes, holding the very
+    function its ``pytest_collection_modifyitems`` hook calls. This test used to write
+    ``from conftest import _case_id_of``, and run 31388699452 measured what that means:
+    pytest gives every conftest in the repository the same bare top-level name, so the
+    import resolved to ``packages/trappoint-sql/tests/conftest.py`` and raised. The
+    import raising is the lucky outcome — had that file exported a ``_case_id_of`` of its
+    own, this test would have gone on passing against a stranger's function.
     """
     from trappoint_conformance.manifest import load_manifest
 
     manifest = load_manifest()
     with_anomaly = {case.id for case in manifest.cases if case.anomaly != "none"}
     assert with_anomaly, "the manifest assigns no anomalies at all"
+
     # The hook keys on a `CF-NN` substring in the node id, so every such case id must be
     # recoverable from the parametrised node name the case suite generates.
-    from conftest import _case_id_of  # type: ignore[import-not-found]  # the hook itself
-
     class _Node:
         def __init__(self, name: str) -> None:
             self.name = name
 
     for case_id in sorted(with_anomaly):
         node = _Node(f"test_case_exhibit[{case_id}]")
-        recovered = _case_id_of(node)  # type: ignore[arg-type]
+        recovered = case_id_of(node)
         assert recovered == case_id, (
             f"the collection hook recovers {recovered!r} from {node.name!r}, not "
             f"{case_id!r}; the marker would be attached to the wrong case, and the "

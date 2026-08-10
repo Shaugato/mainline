@@ -18,7 +18,7 @@ from pathlib import Path
 
 import attacks
 import pytest
-from conftest import NemesisContext, OutcomeRecorder
+from nemesis_harness import FIXTURE_DDL, NemesisContext, OutcomeRecorder
 
 #: Standing up a fresh database, applying the reduced schema and seeding 72 leaves
 #: costs a few seconds per attack, and the repository's default 120 s per-test budget
@@ -37,7 +37,7 @@ def _record(recorder: OutcomeRecorder, ctx: NemesisContext, outcome: attacks.Att
         "cryptography",
         "available" if attacks.CRYPTOGRAPHY_AVAILABLE else "ABSENT — checks 4 and 12 SKIP",
     )
-    recorder.environment.setdefault("schema", "reduced nemesis fixture (see conftest.py)")
+    recorder.environment.setdefault("schema", "reduced nemesis fixture (see nemesis_harness.py)")
     recorder.record(outcome)
 
 
@@ -63,9 +63,13 @@ def test_fixture_names_the_same_constraints_as_the_migrations() -> None:
     time. A fixture that renamed one would let this suite pass against names the database
     does not use, which is the failure mode a reduced fixture exists to avoid and the reason
     this guard reads BOTH files rather than trusting a comment.
-    """
-    from conftest import FIXTURE_DDL
 
+    ``FIXTURE_DDL`` is imported at module scope from ``nemesis_harness``. It used to be
+    imported here, from ``conftest``, and that is how run 31388699452 turned this
+    cross-check into an ``ImportError``: ``conftest`` is a name every conftest file in the
+    repository claims, so by the time this function ran the name had been rebound to
+    ``packages/trappoint-sql/tests/conftest.py``.
+    """
     for migration, expected in (
         (
             "0073_ledger_leaf.sql",
