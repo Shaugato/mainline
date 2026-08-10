@@ -298,8 +298,14 @@ jobs:
               (
                   "bundle-over-budget",
                   "`check:budgets` — D13, bundle budgets are tests and they held",
-                  {"__budget__": ""},
+                  {"__ballast__": ""},
                   ("[evidentiary-shell]", "exceeds"),
+              ),
+              (
+                  "lazy-boundary-broken",
+                  "`check:budgets` — no MEMORY-register library reaches the entry chunk",
+                  {"__forbidden__": ""},
+                  ("[lazy-boundary]", "react"),
               ),
               (
                   "denied-dependency-by-name",
@@ -325,7 +331,7 @@ jobs:
           def reset():
               """Restore every file a plant can touch, from the checkout, before each family."""
               for relative in ("package.json", "budgets.json", "pnpm-lock.yaml",
-                               "src/perf/budgets.ts"):
+                               "src/main.tsx"):
                   shutil.copyfile(SRC / relative, WORK / relative)
               for planted in sorted(WORK.joinpath("src").rglob("planted_*.ts")):
                   planted.unlink()
@@ -349,32 +355,50 @@ jobs:
 
           def plant(files):
               for relative, body in files.items():
-                  if relative == "__budget__":
-                      # TWO files, and the second one is the finding from run 31441667191.
-                      # `src/perf/budgets.ts` MIRRORS `budgets.json`, and
-                      # `tests/unit/perf/budgets.test.ts` asserts the two agree — so a
-                      # one-file plant failed the composite at `vitest`, with the message
-                      # "budgets.json is authoritative … correct the mirror", never reaching
-                      # `check:budgets` at all. A budget change in this repository is a
-                      # two-file change, and the plant has to be one too or it is planting a
-                      # DIFFERENT violation than the one it claims.
+                  if relative == "__ballast__":
+                      # THE BUNDLE GROWS; THE BUDGET DOES NOT MOVE. Run 31441667191 tried
+                      # the other way round — lowering `max_gzip_bytes` — and the composite
+                      # died at `vitest` with "budgets.json is authoritative … correct the
+                      # mirror, not the original", because `src/perf/budgets.ts` mirrors the
+                      # number, `tests/unit/perf/budgets.test.ts` asserts the two agree, and
+                      # `docs/performance-budgets.md` is rendered from the mirror. The
+                      # threshold is guarded in four places, three of which are checks — so
+                      # lowering it plants a DIFFERENT violation from the one this family
+                      # claims, and the message assertion said so.
+                      #
+                      # A budget is exceeded by a bundle that is too big. ~300 KB of
+                      # incompressible base64, assigned onto `globalThis` so Rollup cannot
+                      # tree-shake it, statically reachable from the entry. No new file (a
+                      # dozen suites enumerate `src/**` and would see one), no export (the
+                      # config makes `react-refresh/only-export-components` a warning and
+                      # `--max-warnings 0` makes a warning an error), and no edit to any
+                      # number the repository treats as authoritative.
+                      import base64
+                      import os as _os
+
+                      ballast = base64.b64encode(_os.urandom(300_000)).decode("ascii")
+                      entry = WORK / "src/main.tsx"
+                      entry.write_text(
+                          entry.read_text("utf-8")
+                          + "\n// planted anti-vacuity ballast — see .github/workflows/console.yml\n"
+                          + f"Object.assign(globalThis, {{ __plantedBallast: '{ballast}' }});\n",
+                          encoding="utf-8",
+                      )
+                  elif relative == "__forbidden__":
+                      # The other half of `check:budgets`, and the one the script's own
+                      # docstring calls out: a MEMORY-register library that has become
+                      # statically reachable from the entry chunk FAILS even when the total
+                      # is under budget. `react` genuinely is in the entry closure, so
+                      # naming it here is a true statement about this build; nothing mirrors
+                      # `forbidden_in_entry`, so the plant reaches the checker it is aimed at.
                       budgets = json.loads((WORK / "budgets.json").read_text("utf-8"))
-                      for budget in budgets["budgets"]:
-                          if budget["id"] == "evidentiary-shell":
-                              budget["max_gzip_bytes"] = 1024
-                              budget["max_gzip_human"] = "1 KB"
+                      budgets["forbidden_in_entry"].append({
+                          "match": "react",
+                          "why": "planted by the anti-vacuity job; react IS in the entry closure, "
+                               "so this must be refused",
+                      })
                       (WORK / "budgets.json").write_text(
                           json.dumps(budgets, indent=2) + "\n", encoding="utf-8")
-                      mirror = WORK / "src/perf/budgets.ts"
-                      text = mirror.read_text("utf-8")
-                      if "limit: 225280," not in text:
-                          raise SystemExit(
-                              "::error::the budget mirror no longer carries `limit: 225280,`; "
-                              "the bundle-over-budget plant would be a no-op, which is how an "
-                              "anti-vacuity job silently stops being one"
-                          )
-                      mirror.write_text(
-                          text.replace("limit: 225280,", "limit: 1024,", 1), encoding="utf-8")
                   elif relative == "__dependency__":
                       # A DECLARED dependency, not a hand-built directory under
                       # `node_modules/`. MEASURED 2026-08-10 with pnpm 11.5.3: `pnpm run`
@@ -480,7 +504,8 @@ jobs:
             echo "| a 3D import in an EVIDENCE-register file | \`eslint --max-warnings 0\` | \`EVIDENCE register: no GPU rendering\` |"
             echo "| \`const x: number = 'a string'\` | \`tsc --noEmit\` | \`TS2322\` |"
             echo "| \`expect(1).toBe(2)\` | \`vitest run\` | \`PLANTED-VITEST-FAILURE\` |"
-            echo "| the entry budget lowered to 1 KB | \`check:budgets\` | \`[evidentiary-shell] … exceeds\` |"
+            echo "| ~300 KB of incompressible ballast in the entry chunk | \`check:budgets\` | \`[evidentiary-shell] … exceeds\` |"
+            echo "| \`react\` added to \`forbidden_in_entry\` | \`check:budgets\` | \`[lazy-boundary] "react" is bundled INTO …\` |"
             echo "| \`gsap\` declared as a dependency | \`check:licences\` | \`DENIED  gsap\` |"
             echo "| \`axe-core\` (MPL-2.0) promoted to runtime | \`check:licences\` | \`NOT ALLOWED … (runtime) is \"MPL-2.0\"\` |"
             echo ""
