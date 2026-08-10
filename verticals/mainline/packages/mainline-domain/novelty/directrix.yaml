@@ -30,8 +30,9 @@ enforcement:
 # Stated at its true depth, which today is ZERO, and the honesty here matters more
 # than the number.
 #
-# This worker's only SQL is migration 0207, and 0207 creates a VIEW.  A view has
-# no CHECK, no trigger and no SQLSTATE; it refuses nothing, and its own header
+# This worker's only SQL is migration 0150 (written as 0207 and RELOCATED — see
+# `implemented_by:` below), and it creates a VIEW.  A view has no CHECK, no
+# trigger and no SQLSTATE; it refuses nothing, and its own header
 # says so.  What this package produces is a `ControlDelta.weaken` plus the
 # arithmetic behind it (`SetpointRuling`), which worker W4 turns into a
 # delta_witness set and a lattice verdict, which the kernel lead's
@@ -178,7 +179,19 @@ implemented_by:
   - "verticals/mainline/packages/mainline-domain/src/mainline_domain/registry/sql.py"
   - "verticals/mainline/packages/mainline-domain/src/mainline_domain/data/units/mainline_units.txt"
   - "verticals/mainline/packages/mainline-domain/src/mainline_domain/data/registry/safe-direction-seed.toml"
-  - "verticals/mainline/db/migrations/0207_v_safe_direction_current.sql"
+  # RELOCATED, not missing.  This fragment cited
+  # `verticals/mainline/db/migrations/0207_v_safe_direction_current.sql` until
+  # 2026-08-10, and that path has never existed on disk.  The algorithms lead
+  # allocated itself the band 0200-0219; MR-7 revoked the whole 0200+ space
+  # (`verticals/mainline/db/migrations.allocation.toml` declares 0200-9999z
+  # `owner = "UNALLOCATED"`), and the file moved to 0150 — the head of the
+  # 0150-0154z business-view band that same TOML grants to `algorithms` with
+  # `contents = "mainline.* business views; v_safe_direction_current = 0150"`.
+  # The relocation is recorded in docs/leads/migration-reconciliation.md §5.4
+  # and in the file's own header ("WHY THIS FILE IS 0150 AND NOT 0207"), which
+  # also records that the SQL body is byte-for-byte what was verified at 0207.
+  # The citation was pointing at an address, and the address was reallocated.
+  - "verticals/mainline/db/migrations/0150_v_safe_direction_current.sql"
 
 tests:
   - "tests/unit/domain/quantity/test_gauge_refusal.py::test_the_mistake_this_package_refuses_is_reachable_and_wrong"
@@ -233,17 +246,26 @@ unverified:
     23514 is, until an integration test observes it, an unproven claim and is deliberately absent
     from `claim:`.
   - >-
-    MIGRATION 0207 HAS NOT BEEN RUN AGAINST A LIVE CLUSTER.  No `cockroach` binary and no Docker
-    daemon were available on the build machine and CockroachDB Cloud credentials were not assumed;
-    the integration suite skips with that reason rather than passing.  What HAS run everywhere is
-    `test_0207_shape.py`, which is static: it holds the migration to one statement, cross-checks the
-    `split_part` literals against the Python clause grammar, and asserts the header's disclaimers
-    are present.  The view's SQL — `split_part` with a multi-character delimiter, the four-way join,
-    the boolean `answers` expression — is shaped against ARCHITECTURE.md §5.2/§5.3 and has NOT been
-    executed by CockroachDB.  The suite additionally applies a STAND-IN spine DDL, because the
-    migrations that create `commit_obj`/`commit_edge`/`doc`/`clause`/`clause_version` belong to the
-    schema lead and had not landed; a green run against the stand-in is a weaker claim than one
-    against the deployed schema, and the suite prints which one happened.
+    THE VIEW HAS BEEN CREATED BY COCKROACHDB AND HAS NEVER BEEN QUERIED, and the difference is the
+    whole of this entry.  CORRECTED 2026-08-10: this fragment previously said "MIGRATION 0207 HAS
+    NOT BEEN RUN AGAINST A LIVE CLUSTER", and that is no longer true of the file it meant.
+    `evidence/chain/chain-20260810T062542Z.json` records `0150_v_safe_direction_current` in
+    `applied_versions` of a `trappoint migrate up --tree mainline --attest each` run against
+    CockroachDB CCL v26.2.5 — 271 files, 271 applied, 0 failed, runner exit 0, fingerprint
+    7749748562a77f98a84c7f6d5cf25ead9453494f413044133e1a4e3484cbad28.  Because `CREATE VIEW`
+    resolves its FROM list at creation time, that apply also proves the DEPLOYED spine was
+    underneath it — `mainline.clause`, `clause_version`, `doc` and `commit_obj` (0024/0027/0028/
+    0029), not the stand-in DDL the offline suite falls back to.  What remains unproven is
+    everything about the view's ANSWERS: no committed artefact records a SELECT against it, so the
+    `split_part` extraction with a multi-character delimiter, the four-way join and the boolean
+    `answers` expression have never been observed returning a row.
+    `tests/integration/algorithms/registry/test_0207_view.py` is the suite that would prove it and
+    it SKIPS with a stated reason wherever no CockroachDB v26.2 is reachable; a skipped run
+    verifies nothing.  What runs everywhere is
+    `tests/integration/algorithms/registry/test_0207_shape.py`, which is static: it resolves the
+    producer by the object it creates rather than by a migration number, holds the file to one
+    statement, cross-checks the `split_part` literals against the Python clause grammar, and
+    asserts the header's disclaimers are present.
   - >-
     DIRECTRIX COVERAGE IS A BOOTSTRAP AND ITS ADEQUACY IS UNMEASURED (risk R-A4).  The seed carries
     74 parameters chosen from mining and process-safety practice; a real site's blame-bearing

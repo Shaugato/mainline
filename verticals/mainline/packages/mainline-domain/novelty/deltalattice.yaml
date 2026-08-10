@@ -201,10 +201,20 @@ implemented_by:
   - "verticals/mainline/db/migrations/0145_trg_delta_witness_guard.sql"
 
 tests:
-  # PL-2: the two that were red before one line of the lattice existed.
-  - "tests/unit/domain/lattice/test_red_first.py::test_must_to_should_is_one_witness_and_it_is_r1"
-  - "tests/unit/domain/lattice/test_red_first.py::test_a_witnessless_lattice_weaken_cannot_be_built"
-  - "tests/unit/domain/lattice/test_red_first.py::test_the_raw_dataclass_is_not_the_gate"
+  # PL-2: the three that were red before one line of the lattice existed.
+  #
+  # CORRECTED 2026-08-10.  These three cited `tests/unit/domain/lattice/test_red_first.py`,
+  # a path that has never existed on disk.  The suite ships as `test_lattice_red_first.py`,
+  # and the domain prefix is not decoration: `tests/e2e/mutation/test_red_first.py` already
+  # holds the bare basename, no directory under `tests/` carries an `__init__.py`, and this
+  # repository sets no pytest import mode — so under the default `prepend` mode two modules
+  # named `test_red_first` collide with "import file mismatch" and one of the two suites
+  # never runs.  All three functions are present in `test_lattice_red_first.py` and always
+  # were; the citation named a module nobody wrote, which is exactly the failure mode this
+  # manifest's own validator exists to catch, caught by it, on this fragment.
+  - "tests/unit/domain/lattice/test_lattice_red_first.py::test_must_to_should_is_one_witness_and_it_is_r1"
+  - "tests/unit/domain/lattice/test_lattice_red_first.py::test_a_witnessless_lattice_weaken_cannot_be_built"
+  - "tests/unit/domain/lattice/test_lattice_red_first.py::test_the_raw_dataclass_is_not_the_gate"
   # The nine rules, positive and negative.
   - "tests/unit/domain/lattice/test_rules_r1_r3.py"
   - "tests/unit/domain/lattice/test_rules_r4_r9.py"

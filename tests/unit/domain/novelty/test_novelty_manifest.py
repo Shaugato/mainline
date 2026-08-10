@@ -23,8 +23,13 @@ is checkable only while four things stay true, and this module is the four:
    the one entry allowed an empty list, and it is allowed it precisely because
    its claim says "measures; never gates" — so the rule is not "refuses must be
    non-empty", it is "the two must agree".
-4. **Every cited test path exists.**  A fragment whose evidence points at a file
-   nobody wrote is the most expensive kind of wrong: it reads as proof.
+4. **Every cited test exists — the file AND the function.**  A fragment whose
+   evidence points at a file nobody wrote is the most expensive kind of wrong: it
+   reads as proof.  Checking only the path leaves the cheaper half of the same
+   mistake open, because ``real_module.py::test_that_was_renamed`` passes a
+   path check and cites nothing.  Both halves are checked here, and both failures
+   name the distribution that ships the fragment, because "this citation is
+   wrong" without "and it is yours" is a finding nobody owns.
 
 THE MANIFEST IS A SET OF FILES, NOT A DIRECTORY
 ------------------------------------------------
@@ -182,6 +187,40 @@ def _test_file(citation: str) -> Path:
     return REPO_ROOT / citation.split("::", 1)[0]
 
 
+def _test_function(citation: str) -> str:
+    """The bare function name a citation names, or ``""`` if it names only a file.
+
+    ``mod.py::test_x[case]`` cites ``test_x``: a parametrised id is a case of one
+    function, and the function is what has to exist.
+    """
+    node = citation.partition("::")[2]
+    return node.split("[", 1)[0].strip() if node else ""
+
+
+def _defines(path: Path, function: str) -> bool:
+    pattern = rf"^\s*(?:async\s+)?def\s+{re.escape(function)}\s*\("
+    return bool(re.search(pattern, path.read_text(encoding="utf-8", errors="ignore"), re.MULTILINE))
+
+
+def _owner_of(path: Path) -> str:
+    """The distribution that ships a fragment, and the rule that governs it.
+
+    R3 of ``docs/leads/ci-finish-final.md``: a failure must name the artefact AND
+    the desk it is on.  A novelty fragment lives inside the distribution whose
+    algorithm it describes — that is the whole point of :data:`NOVELTY_ROOTS` —
+    so the owner is derivable from the path rather than from a table that would
+    have to be maintained alongside it.
+    """
+    try:
+        distribution = path.resolve().parents[1].relative_to(REPO_ROOT).as_posix()
+    except ValueError:  # a fragment outside the repository: report what we were given
+        distribution = path.parent.as_posix()
+    return (
+        f"owner: {distribution} (the distribution that ships this fragment) — "
+        "the rule is docs/leads/algorithms.md §6"
+    )
+
+
 # --------------------------------------------------------------------------- #
 # The tests                                                                    #
 # --------------------------------------------------------------------------- #
@@ -216,7 +255,34 @@ def test_every_cited_test_path_exists(path):
     ]
     assert not missing, (
         f"{path.name} cites tests that do not exist: {missing}. A fragment whose evidence points "
-        "at a file nobody wrote is the most expensive kind of wrong, because it reads as proof"
+        "at a file nobody wrote is the most expensive kind of wrong, because it reads as proof.\n"
+        f"  {_owner_of(path)}\n"
+        "  before writing the file: check whether the suite ships under a different name. A "
+        "citation is an address, and addresses get renamed"
+    )
+
+
+@pytest.mark.parametrize("path", FRAGMENTS, ids=lambda p: p.stem)
+def test_every_cited_test_function_exists(path):
+    """The other half of the same rule: the file is real, the function is not.
+
+    ``test_every_cited_test_path_exists`` passes on
+    ``a_real_module.py::test_that_was_renamed_last_week``, and that citation is
+    the same lie in a cheaper disguise — a reader following it lands in a real
+    file and finds nothing, which reads as their mistake rather than ours.
+    """
+    document = _load(path)
+    dangling = [
+        citation
+        for citation in map(str, document["tests"])
+        if _test_function(citation)
+        and _test_file(citation).exists()
+        and not _defines(_test_file(citation), _test_function(citation))
+    ]
+    assert not dangling, (
+        f"{path.name} cites test functions that their own file does not define: {dangling}. The "
+        "file is real, so a path check passes and the citation still points at nothing.\n"
+        f"  {_owner_of(path)}"
     )
 
 
@@ -227,7 +293,13 @@ def test_every_implementation_path_exists(path):
         cited for cited in document["implemented_by"] if not (REPO_ROOT / str(cited)).exists()
     ]
     assert not missing, (
-        f"{path.name} claims to be implemented by files that do not exist: {missing}"
+        f"{path.name} claims to be implemented by files that do not exist: {missing}.\n"
+        f"  {_owner_of(path)}\n"
+        "  a missing implementation path is one of two things and they need different fixes: a "
+        "PRODUCER NOBODY WROTE, which stays red until the owning domain writes it and must never "
+        "be silenced with an empty stub file; or an ADDRESS THAT MOVED, in which case the file "
+        "exists under another name and this list is what is stale. Check the second before "
+        "declaring the first"
     )
 
 
@@ -324,3 +396,19 @@ def test_a_measurement_fragment_may_have_no_refusals():
 
 def test_a_nonexistent_test_path_is_caught():
     assert not _test_file("tests/e2e/mutation/test_that_was_never_written.py").exists()
+
+
+def test_a_real_file_citing_a_function_it_does_not_define_is_caught():
+    """The function check's red half, on this module itself.
+
+    Two identical greens are also identical, so the function check has to be
+    shown refusing something. This file is the fixture: it defines
+    ``test_a_nonexistent_test_path_is_caught`` and does not define
+    ``test_a_name_this_module_does_not_define``, and a checker that cannot tell
+    those apart would pass every citation ever written.
+    """
+    this_file = Path(__file__)
+    assert _defines(this_file, "test_a_nonexistent_test_path_is_caught")
+    assert not _defines(this_file, "test_a_name_this_module_does_not_define")
+    assert _test_function("a/b.py::test_x[case-3]") == "test_x"
+    assert _test_function("a/b.py") == ""

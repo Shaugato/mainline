@@ -44,12 +44,29 @@ disposable CockroachDB v26.2.5 — A1 caught by check 3, A10 caught by check 14 
 and when ``spec/custody/checks.yaml`` was corrected to record the nine structural checks as
 ``implemented``, which is what they had already been for days. K2.3 was green already.
 
-Three are not met, and each of the three is blocked on **an artefact that does not exist,
-owned by somebody outside custody**. Their assertions below name that artefact by path and
-name its owner, because "K2.4 NOT MET" tells a reader nothing they can act on. The
-thresholds are untouched: no sample count was lowered, no field was made optional, and no
-criterion was rewritten to describe what happens to exist. A criterion that cannot be met
-today fails today, and it says whose desk it is on.
+Three are not met, and each of the three is blocked on **an artefact that does not exist**.
+Their assertions below name that artefact by path and name its owner: the **domain**, the
+lead document that domain publishes, and where one exists the roster worker inside it —
+because "K2.4 NOT MET" tells a reader nothing they can act on, and "owner: the `sequencer`
+worker" tells a reader who has not read `docs/leads/roster.json` almost nothing either. The
+owners, resolved from `docs/leads/roster.json` and
+`docs/adr/0040-custody-red-before-green.md`:
+
+===============  ==============================================================
+K2.4 measurement custody — `docs/leads/custody.md`, worker `sequencer`
+K2.4 deadman     deployment/cloud — `docs/leads/deploy-plan.md`, which owns `infra/`
+K2.5 entry       kernel — `docs/leads/kernel.md`, which owns `spec/CHANGELOG.md`
+K2.6 attestation custody — `docs/leads/custody.md`, worker `witness-and-custodian`
+===============  ==============================================================
+
+Two of the four are outside custody, which is the point: a cross-domain dependency should
+fail in somebody's build rather than live in a spreadsheet.
+
+The thresholds are untouched: no sample count was lowered, no field was made optional, and
+no criterion was rewritten to describe what happens to exist. **Nothing here is made green
+by writing an empty artefact at the named path** — every one of the three checks the
+CONTENT it would have to carry, so a stub file moves the failure one line down rather than
+removing it. A criterion that cannot be met today fails today, and it says whose desk it is on.
 """
 
 from __future__ import annotations
@@ -207,8 +224,10 @@ def test_k2_4_checkpoint_cadence_measured_and_deadman_defined() -> None:
     measurement = EVIDENCE / "k2-checkpoint-cadence.json"
     assert measurement.is_file(), (
         "K2.4 NOT MET — MISSING ARTEFACT: evidence/k2-checkpoint-cadence.json\n"
-        "  owner: the `sequencer` worker (measurement), cloud lead (deadman) — "
-        "docs/adr/0040-custody-red-before-green.md\n"
+        "  owner: CUSTODY domain — docs/leads/custody.md, worker `sequencer` "
+        "(docs/leads/roster.json). The deadman half of this criterion is the "
+        "DEPLOYMENT/CLOUD domain — docs/leads/deploy-plan.md, which owns infra/. "
+        "Both rows: docs/adr/0040-custody-red-before-green.md\n"
         "  what would make it green: a file at that path carrying keys 'samples' (>= 30), "
         "'p50_seconds', 'p95_seconds', 'max_seconds' and 'measured_at', written by observing "
         "consecutive checkpoint publications against a running sequencer. Nothing in the "
@@ -221,12 +240,15 @@ def test_k2_4_checkpoint_cadence_measured_and_deadman_defined() -> None:
     for field in ("samples", "p50_seconds", "p95_seconds", "max_seconds", "measured_at"):
         assert field in data, (
             f"K2.4 NOT MET: evidence/k2-checkpoint-cadence.json exists but is missing "
-            f"{field!r}. Owner: the `sequencer` worker."
+            f"{field!r}. A file at the path without the keys is the artefact's shape and not "
+            "its content, and the criterion is the content. Owner: CUSTODY domain — "
+            "docs/leads/custody.md, worker `sequencer`."
         )
     assert data["samples"] >= 30, (
         f"K2.4 NOT MET: evidence/k2-checkpoint-cadence.json records {data['samples']} "
         "cadence samples; 30 is the floor and it is not negotiable downward — a handful of "
-        "samples cannot carry a p95. Owner: the `sequencer` worker."
+        "samples cannot carry a p95. Owner: CUSTODY domain — docs/leads/custody.md, worker "
+        "`sequencer`."
     )
     assert "checkpoint_age_seconds" in _read("spec/custody/checks.yaml") or any(
         "checkpoint_age_seconds" in p.read_text(encoding="utf-8", errors="ignore")
@@ -235,7 +257,8 @@ def test_k2_4_checkpoint_cadence_measured_and_deadman_defined() -> None:
         "K2.4 NOT MET — MISSING DEFINITION: the `checkpoint_age_seconds` deadman is defined "
         "in no file under infra/ (searched infra/**/*.tf) and in no row of "
         "spec/custody/checks.yaml.\n"
-        "  owner: cloud lead — docs/adr/0040-custody-red-before-green.md\n"
+        "  owner: DEPLOYMENT/CLOUD domain — docs/leads/deploy-plan.md, which owns infra/; "
+        "row recorded in docs/adr/0040-custody-red-before-green.md as `cloud lead`\n"
         "  what would make it green: a CloudWatch metric alarm named checkpoint_age_seconds "
         "declared in infra/modules or infra/envs. It FIRES from K6; it is DEFINED in K2, "
         "because an alarm invented after the incident is not an alarm."
@@ -261,8 +284,8 @@ def test_k2_5_checkpoint_wire_format_tagged_v1_0_with_changelog_entry() -> None:
     assert entry, (
         "K2.5 NOT MET — MISSING ENTRY: spec/CHANGELOG.md carries no line naming "
         "`wire/checkpoint.md` at v1.0.\n"
-        "  owner: kernel lead, who owns spec/CHANGELOG.md — "
-        "docs/adr/0040-custody-red-before-green.md\n"
+        "  owner: KERNEL domain — docs/leads/kernel.md, which owns spec/CHANGELOG.md; row "
+        "recorded in docs/adr/0040-custody-red-before-green.md\n"
         "  the other half is already green: spec/wire/checkpoint.md declares itself frozen "
         "at `v1.0`, so this criterion is blocked on one line in a file custody does not own. "
         "Custody supplies the text and the entry lands there.\n"
@@ -284,12 +307,13 @@ def test_k2_6_migration_attestation_chained_with_a_stable_fingerprint() -> None:
         "K2.6 NOT MET — MISSING MODULE: mainline_custody_patrol is not importable, so no "
         "schema fingerprint is computed and no migration attestation is chained into the "
         "ledger. Expected at verticals/mainline/packages/mainline-custody-patrol/src/. "
-        "Owner: the `witness-and-custodian` worker."
+        "Owner: CUSTODY domain — docs/leads/custody.md, worker `witness-and-custodian`."
     )
     attestation = EVIDENCE / "k2-migration-attestation.json"
     assert attestation.is_file(), (
         "K2.6 NOT MET — MISSING ARTEFACT: evidence/k2-migration-attestation.json\n"
-        "  owner: the `witness-and-custodian` worker — "
+        "  owner: CUSTODY domain — docs/leads/custody.md, worker `witness-and-custodian` "
+        "(docs/leads/roster.json); row recorded in "
         "docs/adr/0040-custody-red-before-green.md\n"
         "  the computation already exists and is unwired, which is the whole of the gap: "
         "mainline_custody_patrol.fingerprint.stable_schema_fingerprint() is present and "
@@ -304,18 +328,21 @@ def test_k2_6_migration_attestation_chained_with_a_stable_fingerprint() -> None:
     assert first and second, (
         "K2.6 NOT MET: evidence/k2-migration-attestation.json records fewer than two "
         "consecutive fingerprint computations, so stability was asserted rather than "
-        "observed. Owner: the `witness-and-custodian` worker."
+        "observed. Owner: CUSTODY domain — docs/leads/custody.md, worker "
+        "`witness-and-custodian`."
     )
     assert first == second, (
         "K2.6 NOT MET: the schema fingerprint is not stable across two consecutive "
         f"computations ({first} != {second}). SHOW CREATE ALL TABLES does not guarantee "
         "intra-category ordering; normalise before hashing rather than relaxing this "
-        "assertion. Owner: the `witness-and-custodian` worker."
+        "assertion. Owner: CUSTODY domain — docs/leads/custody.md, worker "
+        "`witness-and-custodian`."
     )
     assert data.get("chained_leaf_seq") is not None, (
         "K2.6 NOT MET: evidence/k2-migration-attestation.json carries no 'chained_leaf_seq', "
         "so the attestation is not chained into the ledger; a fingerprint that lives outside "
-        "the tree is a file we could edit. Owner: the `witness-and-custodian` worker."
+        "the tree is a file we could edit. Owner: CUSTODY domain — docs/leads/custody.md, "
+        "worker `witness-and-custodian`."
     )
 
 

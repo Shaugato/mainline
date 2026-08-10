@@ -24,6 +24,30 @@
 #   version string is a second thing to forget, and a dev/CI skew that changes DDL
 #   behaviour is precisely the drift the schema fingerprint exists to catch — so the
 #   harness must not introduce one.
+#
+# ─────────────────────────────────────────────────────────────────────────────────────────
+# THIS LANE IS RED ON PURPOSE, AND SINCE 2026-08-10 IT SAYS WHY IN ONE SENTENCE
+# ─────────────────────────────────────────────────────────────────────────────────────────
+# The reference vertical references two tables that no file in it creates. Until
+# 2026-08-10 the only thing this lane printed about that was
+#
+#     trappoint migrate: REFUSED: 0058_blocking_check: [42P01] relation "trappoint_ref.event"
+#     does not exist
+#
+# — a true sentence that names neither the missing artefact as an artefact, nor the domain
+# that owes it, nor the second missing producer sitting behind the first. A migration run
+# stops at its first refusal, so a reader fixing `event` would have discovered `clause` on
+# the next run and nowhere else.
+#
+# The `producers` job below states the whole finding, hermetically, in about ten seconds,
+# and it is the first thing a reader sees. The two container jobs still run and still
+# refuse against a real CockroachDB — the database is the authority and a static check is
+# only a reading of it — but they now classify their own refusal instead of leaving a raw
+# SQLSTATE.
+#
+# NOTHING HERE IS ALLOWED TO GO GREEN BY BEING QUIETER. No `continue-on-error`, no
+# `|| true`, no job that is skipped so its absence reads as a pass. The lane stays red
+# until somebody in the KERNEL domain writes the two producers.
 
 name: schema
 
@@ -66,6 +90,115 @@ env:
   PYTHONIOENCODING: utf-8
 
 jobs:
+  producers:
+    name: every object the reference vertical references has a producer
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Every REFERENCES target in the reference vertical must be created by it
+        # Hermetic: no container, no uv, no network. Reads the same .sql files the runner
+        # applies and answers the question the runner can only answer one refusal at a
+        # time, because `trappoint migrate up` stops at its first REFUSED.
+        #
+        # Deliberately narrow. It matches `REFERENCES trappoint_ref.<table>` and nothing
+        # else — not FROM, not JOIN, not a function body — because a foreign key is the one
+        # construct whose target must exist at APPLY time and whose absence is therefore
+        # exactly the 42P01 the lane already gets. A wider scan would be a different check
+        # with different false positives, and this one has to be trustworthy enough that
+        # its message can be read as a work item.
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import pathlib, re, sys
+
+          SQL = pathlib.Path("packages/trappoint-sql/refvertical/sql")
+          MAINLINE_TWIN = {
+              "event": "verticals/mainline/db/migrations/0033_event.sql",
+              "clause": "verticals/mainline/db/migrations/0028_clause.sql",
+          }
+
+          create = re.compile(
+              r"CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?trappoint_ref\.([a-z_][a-z0-9_]*)",
+              re.IGNORECASE,
+          )
+          reference = re.compile(
+              r"REFERENCES\s+trappoint_ref\.([a-z_][a-z0-9_]*)", re.IGNORECASE
+          )
+
+          produced: dict[str, str] = {}
+          consumed: dict[str, list[str]] = {}
+          for path in sorted(SQL.glob("*.sql")):
+              text = path.read_text(encoding="utf-8", errors="ignore")
+              body = "\n".join(
+                  line for line in text.splitlines() if not line.lstrip().startswith("--")
+              )
+              for table in create.findall(body):
+                  produced.setdefault(table.lower(), path.stem)
+              for table in reference.findall(body):
+                  consumed.setdefault(table.lower(), []).append(path.stem)
+
+          missing = {t: c for t, c in sorted(consumed.items()) if t not in produced}
+          print(f"reference vertical: {len(produced)} tables created, "
+                f"{len(consumed)} referenced, {len(missing)} with no producer")
+
+          if not missing:
+              print("every REFERENCES target has a producer")
+              sys.exit(0)
+
+          print("::error title=MISSING PRODUCER in the reference vertical::"
+                f"{len(missing)} object(s) referenced by "
+                "packages/trappoint-sql/refvertical/sql and created by nothing: "
+                + ", ".join(f"trappoint_ref.{t}" for t in missing))
+
+          for table, consumers in missing.items():
+              twin = MAINLINE_TWIN.get(table, "(no MAINLINE twin identified)")
+              print("::error::"
+                    f"MISSING PRODUCER: trappoint_ref.{table} -- "
+                    f"consumed by {', '.join(consumers)} (FOREIGN KEY target) -- "
+                    "expected: a CREATE TABLE migration in "
+                    "packages/trappoint-sql/refvertical/sql/ -- "
+                    f"MAINLINE twin that already exists: {twin} -- "
+                    "owner: KERNEL domain, docs/leads/kernel.md 1.1 "
+                    "(the reference vertical ships inside packages/trappoint-sql/refvertical/)")
+
+          print()
+          print("=" * 88)
+          print("THE SCHEMA LANE IS RED BECAUSE THE PRODUCT IS INCOMPLETE, NOT BECAUSE CI IS BROKEN")
+          print("=" * 88)
+          for table, consumers in missing.items():
+              cited = ", ".join(consumers)
+              twin = MAINLINE_TWIN.get(table, "(none identified)")
+              for line in (
+                  "",
+                  f"  MISSING PRODUCER : trappoint_ref.{table}",
+                  f"  consumed by      : {cited}  (REFERENCES trappoint_ref.{table})",
+                  f"  expected at      : packages/trappoint-sql/refvertical/sql/<nnnn>_{table}.sql",
+                  f"  MAINLINE twin    : {twin}",
+                  "  template         : none. packages/trappoint-sql/templates/ carries",
+                  "                     0059_subject_event.sql.j2 (the per-subject event tables)",
+                  "                     and 0052_subject_clause.sql.j2 (the per-subject clause",
+                  "                     link tables). Neither renders the base table, so a",
+                  "                     producer needs a new template or a hand-authored file.",
+                  "  owner            : KERNEL domain - docs/leads/kernel.md 1.1, which decides",
+                  "                     that the kernel ships a reference vertical alongside the",
+                  "                     MAINLINE binding from day one, inside",
+                  "                     packages/trappoint-sql/refvertical/.",
+                  "  what it is NOT   : a CI defect. It must not be closed by narrowing the",
+                  "                     matrix, skipping the job or dropping the foreign key.",
+                  "                     Two bindings that both render is the entire substrate",
+                  "                     claim; one binding is a template engine with an",
+                  "                     audience of one.",
+              ):
+                  print(line)
+          print()
+          print("The container jobs below reach only the FIRST of these, because "
+                "`trappoint migrate up` stops at its first REFUSED. That is why this job "
+                "exists: the run log otherwise names one missing producer at a time.")
+          sys.exit(1)
+          PY
+
   unweld:
     name: unwelding matrix (serial, disposable cluster)
     runs-on: ubuntu-latest
@@ -119,12 +252,57 @@ jobs:
       - name: Apply the reference vertical
         env:
           TRAPPOINT_UNWELD_DSN: postgresql://root@127.0.0.1:26399/defaultdb?sslmode=disable
+        # The database is the authority: this is the step that observes CockroachDB
+        # refusing, and the `producers` job above is only a reading of the same files. What
+        # changed on 2026-08-10 is that a refusal is now CLASSIFIED here rather than left as
+        # a raw SQLSTATE for a reader to interpret. The step still exits non-zero, always.
         run: |
+          set -euo pipefail
           uv run --package trappoint-migrate trappoint migrate bootstrap \
             --dsn "$TRAPPOINT_UNWELD_DSN"
-          uv run --package trappoint-migrate trappoint migrate up \
-            --dsn "$TRAPPOINT_UNWELD_DSN" --tree trappoint-ref \
-            --migrations packages/trappoint-sql/refvertical/sql
+
+          log="$RUNNER_TEMP/refvertical-migrate.log"
+          if uv run --package trappoint-migrate trappoint migrate up \
+               --dsn "$TRAPPOINT_UNWELD_DSN" --tree trappoint-ref \
+               --migrations packages/trappoint-sql/refvertical/sql 2>&1 | tee "$log"; then
+            echo "the reference vertical applied clean"
+            exit 0
+          fi
+
+          object="$(sed -n 's/.*relation "\(trappoint_ref\.[a-z_][a-z0-9_]*\)" does not exist.*/\1/p' "$log" | head -n1)"
+          consumer="$(sed -n 's/.*REFUSED: \([0-9a-zA-Z_]*\):.*/\1/p' "$log" | head -n1)"
+
+          if [ -n "$object" ]; then
+            echo "::error title=MISSING PRODUCER in the reference vertical::${object} is referenced by ${consumer} and created by no file in packages/trappoint-sql/refvertical/sql. Owner: KERNEL domain, docs/leads/kernel.md 1.1"
+            cat <<EOF
+
+          ========================================================================================
+          MISSING PRODUCER -- the reference vertical, not MAINLINE
+          ========================================================================================
+            object     : ${object}
+            consumer   : ${consumer}  (FOREIGN KEY target, so it must exist at APPLY time)
+            tree       : packages/trappoint-sql/refvertical/sql   (--tree trappoint-ref)
+            expected   : a CREATE TABLE migration in that directory. The MAINLINE binding's
+                         twins already exist -- verticals/mainline/db/migrations/0033_event.sql
+                         and 0028_clause.sql -- and there is no template in
+                         packages/trappoint-sql/templates/ that renders either base table.
+            owner      : KERNEL domain -- docs/leads/kernel.md 1.1, which ships the reference
+                         vertical "alongside the MAINLINE binding, from day one, inside
+                         packages/trappoint-sql/refvertical/".
+            status     : RED ON PURPOSE. This is product incompleteness. It is not closed by
+                         continue-on-error, by dropping the foreign key, or by removing the
+                         reference vertical from this lane. See the 'producers' job in this
+                         workflow for the FULL list -- migrate stops at its first refusal and
+                         there is more than one.
+          ========================================================================================
+          EOF
+          else
+            echo "::error title=the reference vertical refused, unclassified::trappoint migrate up failed for a reason this step does not recognise. The log is below; classify it here rather than leaving the next reader with a bare exit code."
+            echo "---- trappoint migrate up ----"
+            cat "$log"
+            echo "------------------------------"
+          fi
+          exit 1
 
       - name: Unwelding matrix
         env:
@@ -162,7 +340,17 @@ jobs:
 
       - name: Destroy the cluster
         if: always()
-        run: docker rm -f trappoint-unweld-ci || true
+        # `|| true` is banned repository-wide and a teardown is not the exception: it is
+        # where the token is least visible and most costly, because a container that will
+        # not die is a runner that leaks and a `|| true` is how nobody finds out. Ask
+        # whether it exists; let a removal that genuinely fails, fail.
+        run: |
+          set -euo pipefail
+          if docker ps -a --format '{{.Names}}' | grep -qx trappoint-unweld-ci; then
+            docker rm -f trappoint-unweld-ci
+          else
+            echo "no container named trappoint-unweld-ci; nothing to destroy"
+          fi
 
   gate-source:
     name: the self-attesting gate
@@ -205,11 +393,52 @@ jobs:
       - name: Apply the reference vertical
         env:
           LOCAL_DSN: postgresql://root@127.0.0.1:26401/defaultdb?sslmode=disable
+        # Same classification as the `unweld` job. Duplicated rather than factored out
+        # because GitHub Actions has no YAML anchors and a shared script under scripts/
+        # would be a second place to look for the sentence a reader needs in the log.
         run: |
+          set -euo pipefail
           uv run --package trappoint-migrate trappoint migrate bootstrap --dsn "$LOCAL_DSN"
-          uv run --package trappoint-migrate trappoint migrate up \
-            --dsn "$LOCAL_DSN" --tree trappoint-ref \
-            --migrations packages/trappoint-sql/refvertical/sql
+
+          log="$RUNNER_TEMP/refvertical-migrate.log"
+          if uv run --package trappoint-migrate trappoint migrate up \
+               --dsn "$LOCAL_DSN" --tree trappoint-ref \
+               --migrations packages/trappoint-sql/refvertical/sql 2>&1 | tee "$log"; then
+            echo "the reference vertical applied clean"
+            exit 0
+          fi
+
+          object="$(sed -n 's/.*relation "\(trappoint_ref\.[a-z_][a-z0-9_]*\)" does not exist.*/\1/p' "$log" | head -n1)"
+          consumer="$(sed -n 's/.*REFUSED: \([0-9a-zA-Z_]*\):.*/\1/p' "$log" | head -n1)"
+
+          if [ -n "$object" ]; then
+            echo "::error title=MISSING PRODUCER in the reference vertical::${object} is referenced by ${consumer} and created by no file in packages/trappoint-sql/refvertical/sql. Owner: KERNEL domain, docs/leads/kernel.md 1.1"
+            cat <<EOF
+
+          ========================================================================================
+          MISSING PRODUCER -- the reference vertical, not MAINLINE
+          ========================================================================================
+            object     : ${object}
+            consumer   : ${consumer}  (FOREIGN KEY target, so it must exist at APPLY time)
+            tree       : packages/trappoint-sql/refvertical/sql   (--tree trappoint-ref)
+            expected   : a CREATE TABLE migration in that directory. The MAINLINE binding's
+                         twins already exist -- verticals/mainline/db/migrations/0033_event.sql
+                         and 0028_clause.sql -- and there is no template in
+                         packages/trappoint-sql/templates/ that renders either base table.
+            owner      : KERNEL domain -- docs/leads/kernel.md 1.1, which ships the reference
+                         vertical "alongside the MAINLINE binding, from day one, inside
+                         packages/trappoint-sql/refvertical/".
+            status     : RED ON PURPOSE. The self-attesting gate cannot compare a snapshot of a
+                         gate that was never created. See the 'producers' job for the full list.
+          ========================================================================================
+          EOF
+          else
+            echo "::error title=the reference vertical refused, unclassified::trappoint migrate up failed for a reason this step does not recognise. The log is below; classify it here rather than leaving the next reader with a bare exit code."
+            echo "---- trappoint migrate up ----"
+            cat "$log"
+            echo "------------------------------"
+          fi
+          exit 1
 
       - name: The gate's own source must match the committed snapshot
         env:
@@ -223,7 +452,14 @@ jobs:
 
       - name: Destroy the cluster
         if: always()
-        run: docker rm -f trappoint-gatesrc-ci || true
+        # See the note on the same step in `unweld`: no `|| true` in a teardown either.
+        run: |
+          set -euo pipefail
+          if docker ps -a --format '{{.Names}}' | grep -qx trappoint-gatesrc-ci; then
+            docker rm -f trappoint-gatesrc-ci
+          else
+            echo "no container named trappoint-gatesrc-ci; nothing to destroy"
+          fi
 
   coverage-artefacts:
     name: anomaly coverage and manifest totality (hermetic)
