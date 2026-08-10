@@ -60,18 +60,41 @@ Three checks, none of which is sufficient alone.
 
 EXEMPTIONS
 ----------
-Exactly one file is exempt, by exact path, never by pattern:
-``packages/mainline-agentkit/src/mainline_agentkit/fallback_toolform.py``. It is AR-1's
-pre-committed format fallback - forced single-turn tool use if ``output_config`` is ever
-rejected on an ``au.*`` profile - and its own docstring specifies this exemption and the
-marker string that must be present. Three things are checked about it, and any of them
-failing is a finding:
+Two files are exempt, each by exact path, never by pattern, each **scoped to the keys it
+is exempt for**, and each carrying a CONDITION that CI re-proves on every run. An
+exemption whose ground is a docstring is a promise; an exemption whose ground is checked
+is a control. Three things are checked about every entry, and any of them failing is a
+finding:
 
 * the file exists (a stale exemption is dead config, and dead config in a security scan
   is worse than no scan because it looks like coverage);
 * it carries its marker;
-* **nothing imports it.** A fallback that is never imported cannot become the default by
-  accident, which is the whole basis on which the exemption was granted.
+* its condition still holds.
+
+``packages/mainline-agentkit/src/mainline_agentkit/fallback_toolform.py`` - AR-1's
+pre-committed format fallback, forced single-turn tool use if ``output_config`` is ever
+rejected on an ``au.*`` profile. Condition: **nothing imports it.** A fallback that is
+never imported cannot become the default by accident, which is the whole basis on which
+the exemption was granted.
+
+``verticals/mainline/packages/mainline-corpus/src/mainline_corpus/render/bedrock.py`` -
+added 2026-08-10, after this scanner reported it three times and the report was read
+rather than suppressed. The finding was REAL as a detection: it named
+``bedrock.py:126 [dict_literal] dict literal key 'tools'``, line 126 was ``"tools": [``
+opening a ``toolSpec`` list, and that is a tool surface by any reading. It is exempt
+because the sentence the finding cites does not describe this file. ARCHITECTURE.md 8.4
+layer 1 is about the *extraction call* - the turn that reads an untrusted document. This
+module is the corpus GENERATOR: its input is ``RenderNode.facts``, built by
+``mainline_corpus.render.nodes`` out of stage-1 world data that this repository authored,
+and no document reaches it. Nothing is removed from bedrock.py, because removing the tool
+surface would force a free-text fallback parser - which its own docstring, constraint 3,
+names as the way malformed output becomes plausible output. The AR-1 doctrine already
+written into this file applies unchanged: **one tool, forced by name, no implementation,
+no tool result, one turn** is a FORMAT mechanism, not a capability. The condition
+``forced_single_turn_format_tool`` checks exactly those four properties, so the day any
+one of them stops being true the scan is red again. The exemption covers ``tools``,
+``toolChoice`` and ``toolConfig`` in that one file and nothing else: an ``mcp_servers``
+key added there is still a finding.
 
 USAGE
 -----
@@ -131,7 +154,18 @@ EXCLUDED_PACKAGES: Final[dict[str, str]] = {
     ),
 }
 
-#: Exact repo-relative path -> (reason, required marker string).
+#: Tool-surface keys, plus the response-side keys that would turn a one-turn format
+#: call into a tool LOOP. A ``toolResult`` block is the model's output being fed back
+#: as a new turn, which is the exact difference between a format mechanism and a
+#: capability, so the condition below refuses one.
+TOOL_RESULT_KEYS: Final[frozenset[str]] = frozenset({"toolResult", "tool_result"})
+
+#: Method names that put a turn on the wire. Used only to assert that the exempt
+#: renderer's single call is not inside a loop.
+_TRANSPORT_METHODS: Final[frozenset[str]] = frozenset(
+    {"converse", "converse_stream", "invoke_model", "invoke_model_with_response_stream"}
+)
+
 _AR1_REASON: Final[str] = (
     "AR-1's pre-committed format fallback: forced single-turn tool use if "
     "output_config is rejected on an au.* profile ARN. tool_choice is forced, the "
@@ -140,10 +174,55 @@ _AR1_REASON: Final[str] = (
     "while nothing imports it."
 )
 
-FILE_EXEMPTIONS: Final[dict[str, tuple[str, str]]] = {
-    "packages/mainline-agentkit/src/mainline_agentkit/fallback_toolform.py": (
-        _AR1_REASON,
-        "mainline-scan-exemption: ar1-toolform-fallback",
+_CORPUS_RENDER_REASON: Final[str] = (
+    "the corpus GENERATOR's bedrock tier. The scanner's detection is correct: it "
+    "reported `bedrock.py:126 [dict_literal] dict literal key 'tools'` and line 126 "
+    'really was `"tools": [` opening a toolSpec list (line 157 today, after this '
+    "exemption's argument was written into that module's docstring). But "
+    "ARCHITECTURE.md 8.4 layer 1 is a statement about the EXTRACTION call, the "
+    "turn that reads an untrusted "
+    "document, and no document reaches this module: its input is RenderNode.facts, "
+    "built by mainline_corpus.render.nodes from stage-1 world data this repository "
+    "authored. The surface it builds is the AR-1 shape exactly - one tool, forced by "
+    "name via toolChoice, no implementation, no toolResult ever returned, one turn - "
+    "which is a FORMAT mechanism and not a capability. Removing it would force a "
+    "free-text fallback parser, which bedrock.py's own constraint 3 names as the way "
+    "malformed output becomes plausible output; the honest repair was to prove the "
+    "four properties rather than to delete the safer shape. Scoped to tools / "
+    "toolChoice / toolConfig in this one file: an mcp_servers key here is still a "
+    "finding."
+)
+
+
+@dataclass(frozen=True, slots=True)
+class FileExemption:
+    """One exempt file: why, the marker it must carry, its scope, and its condition."""
+
+    #: The argument. Printed in every report, so it is arguable rather than invisible.
+    reason: str
+    #: The string the exempt file must contain: the file's own consent to being exempt.
+    marker: str
+    #: The banned keys this exemption covers. Every other banned key still fires.
+    keys: frozenset[str]
+    #: Key into :data:`EXEMPTION_CONDITIONS`. Re-proved on every run.
+    condition: str
+
+
+#: Exact repo-relative path -> exemption. Never a pattern, never a directory.
+FILE_EXEMPTIONS: Final[dict[str, FileExemption]] = {
+    "packages/mainline-agentkit/src/mainline_agentkit/fallback_toolform.py": FileExemption(
+        reason=_AR1_REASON,
+        marker="mainline-scan-exemption: ar1-toolform-fallback",
+        keys=BANNED_KEYS,
+        condition="nothing_imports_it",
+    ),
+    "verticals/mainline/packages/mainline-corpus/src/mainline_corpus/render/bedrock.py": (
+        FileExemption(
+            reason=_CORPUS_RENDER_REASON,
+            marker="mainline-scan-exemption: corpus-render-format-tool",
+            keys=frozenset({"tools", "toolChoice", "toolConfig"}),
+            condition="forced_single_turn_format_tool",
+        )
     ),
 }
 
@@ -374,10 +453,204 @@ def _module_imports(tree: ast.Module) -> list[tuple[str, int]]:
     return out
 
 
-def check_exemptions(repo_root: Path, scanned: list[Path]) -> list[Finding]:
-    """Verify every exemption is live, marked, and unimported."""
+def _condition_nothing_imports_it(
+    repo_root: Path, _relative: str, target: Path, scanned: list[Path]
+) -> list[Finding]:
+    """A fallback that can be reached is a fallback that can become the default."""
     findings: list[Finding] = []
-    for relative, (reason, marker) in FILE_EXEMPTIONS.items():
+    module_name = target.stem
+    for path in scanned:
+        if path == target:
+            continue
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        except (OSError, UnicodeDecodeError, SyntaxError):
+            continue
+        for imported, line in _module_imports(tree):
+            if imported == module_name or imported.endswith(f".{module_name}"):
+                rel = path.relative_to(repo_root).as_posix()
+                findings.append(
+                    Finding(
+                        rel,
+                        line,
+                        0,
+                        "exempt_module_imported",
+                        module_name,
+                        f"{rel} imports the exempt module {module_name!r}. The "
+                        f"exemption holds only while nothing imports it: a fallback "
+                        f"that can be reached is a fallback that can become the "
+                        f"default without review.",
+                    )
+                )
+    return findings
+
+
+def _dict_entries(tree: ast.AST, key: str) -> list[tuple[ast.expr, int]]:
+    """Every ``(value, line)`` a dict literal binds to the string key ``key``."""
+    out: list[tuple[ast.expr, int]] = []
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Dict):
+            continue
+        for entry, value in zip(node.keys, node.values, strict=True):
+            if isinstance(entry, ast.Constant) and entry.value == key:
+                out.append((value, getattr(entry, "lineno", 0)))
+    return out
+
+
+def _names_a_specific_tool(value: ast.expr) -> bool:
+    """``{"tool": {"name": X}}`` or ``{"type": "tool", "name": X}`` - never ``any``/``auto``."""
+    if not isinstance(value, ast.Dict):
+        return False
+    literal_keys = {
+        k.value for k in value.keys if isinstance(k, ast.Constant) and isinstance(k.value, str)
+    }
+    if literal_keys & {"any", "auto"}:
+        return False
+    literal_values = {
+        v.value for v in ast.walk(value) if isinstance(v, ast.Constant) and isinstance(v.value, str)
+    }
+    if literal_values & {"any", "auto"}:
+        return False
+    if "tool" in literal_keys:
+        inner = next(
+            (
+                v
+                for k, v in zip(value.keys, value.values, strict=True)
+                if isinstance(k, ast.Constant) and k.value == "tool"
+            ),
+            None,
+        )
+        return isinstance(inner, ast.Dict) and any(
+            isinstance(k, ast.Constant) and k.value == "name" for k in inner.keys
+        )
+    return literal_keys >= {"type", "name"}
+
+
+def _exactly_one_tool(tree: ast.AST) -> list[tuple[int, str]]:
+    """Property 1: one tool. A single forced tool is a format; a menu is a capability."""
+    out: list[tuple[int, str]] = []
+    tool_lists = _dict_entries(tree, "tools")
+    if len(tool_lists) != 1:
+        out.append(
+            (
+                tool_lists[0][1] if tool_lists else 0,
+                (
+                    f"expected exactly one 'tools' surface, found {len(tool_lists)}. Zero "
+                    "means the exemption is no longer earned and must be deleted; more than "
+                    "one means the file grew a second surface that nobody argued for."
+                ),
+            )
+        )
+    out.extend(
+        (
+            line,
+            (
+                "the 'tools' surface is not a literal list of exactly one tool. A single "
+                "forced tool is a format mechanism; a menu is a capability."
+            ),
+        )
+        for value, line in tool_lists
+        if not isinstance(value, ast.List) or len(value.elts) != 1
+    )
+    return out
+
+
+def _forced_by_name(tree: ast.AST) -> list[tuple[int, str]]:
+    """Property 2: the one tool is forced BY NAME, so the model cannot choose or decline."""
+    choices = _dict_entries(tree, "toolChoice") + _dict_entries(tree, "tool_choice")
+    if not choices:
+        return [(0, "the tool surface has no toolChoice, so the model may decline to call it.")]
+    return [
+        (
+            line,
+            (
+                "toolChoice does not force one NAMED tool. 'any' and 'auto' let the model "
+                "choose, which is the difference between a format and a capability."
+            ),
+        )
+        for value, line in choices
+        if not _names_a_specific_tool(value)
+    ]
+
+
+def _no_tool_result(tree: ast.AST) -> list[tuple[int, str]]:
+    """Property 3: no result is fed back, so there is no second turn to act in."""
+    return [
+        (
+            line,
+            (
+                f"constructs a {key!r} block. Feeding a tool result back is a second turn, "
+                "and a second turn is a tool loop rather than a schema-bound answer."
+            ),
+        )
+        for key in sorted(TOOL_RESULT_KEYS)
+        for _value, line in _dict_entries(tree, key)
+    ]
+
+
+def _not_in_a_loop(tree: ast.AST) -> list[tuple[int, str]]:
+    """Property 4: 'the loop terminates at one turn', asserted rather than promised."""
+    out: list[tuple[int, str]] = []
+    for node in ast.walk(tree):
+        if not isinstance(node, (ast.For, ast.AsyncFor, ast.While)):
+            continue
+        out.extend(
+            (
+                getattr(inner, "lineno", 0),
+                (
+                    f"the transport call {inner.func.attr!r} is inside a loop. 'The loop "
+                    "terminates at one turn' is the exemption's load-bearing sentence."
+                ),
+            )
+            for inner in ast.walk(node)
+            if isinstance(inner, ast.Call)
+            and isinstance(inner.func, ast.Attribute)
+            and inner.func.attr in _TRANSPORT_METHODS
+        )
+    return out
+
+
+def _condition_forced_single_turn_format_tool(
+    _repo_root: Path, relative: str, target: Path, _scanned: list[Path]
+) -> list[Finding]:
+    """The four properties that make a tool surface a FORMAT mechanism, re-proved.
+
+    One tool, forced by name, no ``toolResult`` fed back, and the transport call not
+    inside a loop. This is the AR-1 doctrine turned into a check: while all four hold,
+    the model cannot select a tool, cannot decline to call one, cannot call anything
+    else, and cannot be handed a result to act on. The day one stops holding, the
+    exemption stops holding with it.
+    """
+    try:
+        tree = ast.parse(target.read_text(encoding="utf-8"), filename=str(target))
+    except (OSError, UnicodeDecodeError, SyntaxError) as exc:
+        detail = f"the exempt file could not be parsed, so its condition was not proved: {exc}"
+        return [Finding(relative, 0, 0, "exemption_condition_failed", "tools", detail)]
+
+    failures = (
+        _exactly_one_tool(tree)
+        + _forced_by_name(tree)
+        + _no_tool_result(tree)
+        + _not_in_a_loop(tree)
+    )
+    return [
+        Finding(relative, line, 0, "exemption_condition_failed", "tools", detail)
+        for line, detail in failures
+    ]
+
+
+#: Condition name -> the check that re-proves it. A condition that is not in this map
+#: is itself a finding: an exemption may not name a check that does not exist.
+EXEMPTION_CONDITIONS: Final[dict[str, Any]] = {
+    "nothing_imports_it": _condition_nothing_imports_it,
+    "forced_single_turn_format_tool": _condition_forced_single_turn_format_tool,
+}
+
+
+def check_exemptions(repo_root: Path, scanned: list[Path]) -> list[Finding]:
+    """Verify every exemption is live, marked, and that its condition still holds."""
+    findings: list[Finding] = []
+    for relative, exemption in FILE_EXEMPTIONS.items():
         target = repo_root / relative
         if not target.is_file():
             findings.append(
@@ -388,12 +661,13 @@ def check_exemptions(repo_root: Path, scanned: list[Path]) -> list[Finding]:
                     "stale_exemption",
                     "",
                     f"exempt file does not exist. Delete the exemption: dead config in a "
-                    f"security scan looks like coverage. Reason it carried: {reason}",
+                    f"security scan looks like coverage. Reason it carried: "
+                    f"{exemption.reason}",
                 )
             )
             continue
         source = target.read_text(encoding="utf-8")
-        if marker not in source:
+        if exemption.marker not in source:
             findings.append(
                 Finding(
                     relative,
@@ -401,35 +675,27 @@ def check_exemptions(repo_root: Path, scanned: list[Path]) -> list[Finding]:
                     0,
                     "unmarked_exemption",
                     "",
-                    f"exempt file does not carry its marker {marker!r}. The marker is the "
-                    f"exemption's consent: without it the file is just a module that "
-                    f"builds a tool surface.",
+                    f"exempt file does not carry its marker {exemption.marker!r}. The "
+                    f"marker is the exemption's consent: without it the file is just a "
+                    f"module that builds a tool surface.",
                 )
             )
-        module_name = target.stem
-        for path in scanned:
-            if path == target:
-                continue
-            try:
-                tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
-            except (OSError, UnicodeDecodeError, SyntaxError):
-                continue
-            for imported, line in _module_imports(tree):
-                if imported == module_name or imported.endswith(f".{module_name}"):
-                    rel = path.relative_to(repo_root).as_posix()
-                    findings.append(
-                        Finding(
-                            rel,
-                            line,
-                            0,
-                            "exempt_module_imported",
-                            module_name,
-                            f"{rel} imports the exempt module {module_name!r}. The "
-                            f"exemption holds only while nothing imports it: a fallback "
-                            f"that can be reached is a fallback that can become the "
-                            f"default without review.",
-                        )
-                    )
+        check = EXEMPTION_CONDITIONS.get(exemption.condition)
+        if check is None:
+            findings.append(
+                Finding(
+                    relative,
+                    0,
+                    0,
+                    "unknown_exemption_condition",
+                    "",
+                    f"names the condition {exemption.condition!r}, which this scanner does "
+                    f"not implement. An exemption whose condition cannot be evaluated has "
+                    f"no condition at all.",
+                )
+            )
+            continue
+        findings.extend(check(repo_root, relative, target, scanned))
     return findings
 
 
@@ -441,7 +707,12 @@ def run(
 ) -> tuple[list[Finding], list[Path]]:
     """Scan and return ``(findings, files scanned)``."""
     scan_roots = roots if roots is not None else discover_roots(repo_root)
-    exempt = {(repo_root / relative).resolve() for relative in FILE_EXEMPTIONS}
+    #: Path -> the keys that path is exempt FOR. Key-scoped rather than file-scoped, so
+    #: an exemption granted for `tools` does not silently cover `mcp_servers` too.
+    exempt: dict[Path, frozenset[str]] = {
+        (repo_root / relative).resolve(): exemption.keys
+        for relative, exemption in FILE_EXEMPTIONS.items()
+    }
 
     files: list[Path] = []
     for root in scan_roots:
@@ -449,9 +720,10 @@ def run(
 
     findings: list[Finding] = []
     for path in files:
-        if path.resolve() in exempt:
-            continue
-        findings.extend(scan_file(path, repo_root))
+        excused = exempt.get(path.resolve(), frozenset())
+        findings.extend(
+            finding for finding in scan_file(path, repo_root) if finding.key not in excused
+        )
     if check_exempt:
         findings.extend(check_exemptions(repo_root, files))
     return findings, files
@@ -465,7 +737,14 @@ def _report(findings: list[Finding], files: list[Path], roots: list[Path], as_js
                     "roots": [root.as_posix() for root in roots],
                     "files_scanned": len(files),
                     "excluded_packages": EXCLUDED_PACKAGES,
-                    "file_exemptions": {k: v[0] for k, v in FILE_EXEMPTIONS.items()},
+                    "file_exemptions": {
+                        relative: {
+                            "reason": exemption.reason,
+                            "keys": sorted(exemption.keys),
+                            "condition": exemption.condition,
+                        }
+                        for relative, exemption in FILE_EXEMPTIONS.items()
+                    },
                     "findings": [asdict(finding) for finding in findings],
                 },
                 indent=2,
@@ -475,8 +754,12 @@ def _report(findings: list[Finding], files: list[Path], roots: list[Path], as_js
     print(f"assert_no_tool_construction: {len(files)} file(s) across {len(roots)} root(s)")
     for name, reason in EXCLUDED_PACKAGES.items():
         print(f"  excluded package: {name} - {reason}")
-    for relative, (reason, _marker) in FILE_EXEMPTIONS.items():
-        print(f"  exempt file: {relative} - {reason}")
+    for relative, exemption in FILE_EXEMPTIONS.items():
+        keys = ", ".join(sorted(exemption.keys))
+        print(f"  exempt file: {relative}")
+        print(f"    keys: {keys}")
+        print(f"    condition (re-proved every run): {exemption.condition}")
+        print(f"    reason: {exemption.reason}")
     if not findings:
         print("OK: no ingest-reachable package constructs a tool surface.")
         return

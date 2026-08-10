@@ -38,7 +38,51 @@ def test_json_output_is_machine_readable(capsys: pytest.CaptureFixture[str]) -> 
 
 def test_greps_pass_over_the_repository(capsys: pytest.CaptureFixture[str]) -> None:
     code = main(["greps", "--repo-root", str(REPO_ROOT)])
-    assert code == EXIT_OK, capsys.readouterr().out
+    out = capsys.readouterr().out
+    assert code == EXIT_OK, out
+    # The number this job exists to publish, asserted rather than eyeballed.
+    assert "violations=0" in out, out
+
+
+#: A physical-dimension table and a model request builder, in one module. Before
+#: the 2026-08-10 narrowing the rule reported the table and would have reported
+#: the builder for the same reason, which is to say for no reason at all.
+_MIXED_MODULE = (
+    "from typing import Final\n\n"
+    'DIMENSION_SYMBOL: Final[dict[str, str]] = {"pressure": "pa", "temperature": "k"}\n\n'
+    "def render(client, node, model_id):\n"
+    "    return client.converse(\n"
+    "        modelId=model_id,\n"
+    '        messages=[{"role": "user", "content": [{"text": node.text}]}],\n'
+    "        temperature=0.0,\n"
+    "    )\n"
+)
+
+
+def test_greps_still_refuse_a_planted_sampling_parameter(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """PL-2 for the narrowed A6 rule: a rule that cannot refuse is not a rule.
+
+    The planted ``temperature=`` sits on a real ``converse`` call, in the same
+    module as a copy of the dimension table that used to be reported. The CLI must
+    exit ``EXIT_VIOLATIONS``, must name the builder's line, and must not name the
+    table's.
+    """
+    package = tmp_path / "packages" / "trappoint-recall" / "src" / "trappoint_recall"
+    package.mkdir(parents=True)
+    (package / "units.py").write_text(_MIXED_MODULE, encoding="utf-8")
+    (tmp_path / "README.md").write_text("# scratch\n", encoding="utf-8")
+    (tmp_path / "VERIFY.md").write_text("# scratch\n", encoding="utf-8")
+
+    code = main(["greps", "--repo-root", str(tmp_path)])
+    out = capsys.readouterr().out
+    assert code == EXIT_VIOLATIONS, out
+    sampling = [line for line in out.splitlines() if "[GREP/GREP-SAMPLING-PARAM]" in line]
+    assert len(sampling) == 1, out
+    assert "units.py:9" in sampling[0], out
+    assert "which is a model transport" in sampling[0], out
+    assert "units.py:3" not in out, out
 
 
 def test_a_vacuous_run_does_not_exit_zero(

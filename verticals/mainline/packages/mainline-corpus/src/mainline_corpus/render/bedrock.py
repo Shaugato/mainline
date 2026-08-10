@@ -38,6 +38,37 @@ Five constraints, each from a specific finding
 Temperature 0 and ``topP`` 1 are asked for because they are the right ask.  They do **not**
 make the service deterministic — batching and hardware can still move a token — which is
 exactly why the response is cached the first time and never re-derived.
+
+------------------------------------------------------------------------------------------
+Scan exemption — read this before deleting the tool surface below
+------------------------------------------------------------------------------------------
+``scripts/agents/assert_no_tool_construction.py`` reported this module three times, and the
+detection was correct: :meth:`BedrockRenderer._tool_config` really does build
+``"tools": [{"toolSpec": …}]``, and that is a tool surface by any reading.  What did **not**
+apply was the sentence the finding cited.  ARCHITECTURE.md 8.4 layer 1 says *document text
+never enters a turn belonging to a tool-holding agent; the extraction call has zero tools*,
+and this module is not the extraction call.  It is the corpus **generator**: its input is
+:attr:`RenderNode.facts`, assembled by :mod:`mainline_corpus.render.nodes` out of stage-1
+world data this repository authored, and no untrusted document reaches it.  The extraction
+call is :func:`mainline_agentkit.call.quarantined_call`, which has no ``tools`` parameter at
+all — a property a test asserts by signature, not by convention.
+
+So the exemption is granted here, by exact path, scoped to ``tools`` / ``toolChoice`` /
+``toolConfig`` only — an ``mcp_servers`` key added to this file is still a finding — and it
+rests on the same doctrine as AR-1's in
+:mod:`mainline_agentkit.fallback_toolform`: **one tool, forced by name, no implementation,
+no ``toolResult`` ever returned, one turn.**  That is a *format* mechanism, not a
+capability: the model cannot select a tool, cannot decline to call it, cannot call anything
+else, and is never handed a result to act on.  Those four properties are no longer a
+promise in this docstring — the scanner's ``forced_single_turn_format_tool`` condition
+re-proves all four on every run, and the day one of them stops holding the scan is red
+again.
+
+Deleting the surface was the other candidate repair and it is the worse one: without a
+schema-bound tool call this tier would have to parse free text, which constraint 3 above
+names as how malformed output becomes plausible output.  Marker for the scan:
+
+    mainline-scan-exemption: corpus-render-format-tool
 """
 
 from __future__ import annotations

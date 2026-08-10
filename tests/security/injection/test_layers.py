@@ -78,8 +78,15 @@ from mainline_quarantine.sentinel import (
 _SCAN = load_script("scripts/agents/assert_no_tool_construction.py", "_mainline_tool_scan")
 BANNED_KEYS = _SCAN.BANNED_KEYS
 FILE_EXEMPTIONS = _SCAN.FILE_EXEMPTIONS
+EXEMPTION_CONDITIONS = _SCAN.EXEMPTION_CONDITIONS
 check_exemptions = _SCAN.check_exemptions
 run = _SCAN.run
+
+_REPO_ROOT = Path(__file__).resolve().parents[3]
+_AR1_PATH = "packages/mainline-agentkit/src/mainline_agentkit/fallback_toolform.py"
+_CORPUS_RENDER_PATH = (
+    "verticals/mainline/packages/mainline-corpus/src/mainline_corpus/render/bedrock.py"
+)
 
 QUARANTINE_SRC = (
     Path(__file__).resolve().parents[3]
@@ -137,15 +144,15 @@ def test_a_stale_exemption_is_a_finding(tmp_path):
     findings = check_exemptions(tmp_path, [])
     assert findings, "a missing exempt file was not reported"
     assert all(finding.kind == "stale_exemption" for finding in findings)
+    assert len(findings) == len(FILE_EXEMPTIONS), [finding.path for finding in findings]
 
 
 def test_importing_the_exempt_module_is_a_finding(tmp_path):
     """The AR-1 fallback is exempt only while nothing imports it."""
-    relative = next(iter(FILE_EXEMPTIONS))
-    reason, marker = FILE_EXEMPTIONS[relative]
-    exempt = tmp_path / relative
+    exemption = FILE_EXEMPTIONS[_AR1_PATH]
+    exempt = tmp_path / _AR1_PATH
     exempt.parent.mkdir(parents=True, exist_ok=True)
-    exempt.write_text(f'"""{marker}"""\n', encoding="utf-8")
+    exempt.write_text(f'"""{exemption.marker}"""\n', encoding="utf-8")
 
     importer = exempt.parent / "sneaky.py"
     importer.write_text("from .fallback_toolform import call_with_tool_form\n", encoding="utf-8")
@@ -153,17 +160,123 @@ def test_importing_the_exempt_module_is_a_finding(tmp_path):
     findings = check_exemptions(tmp_path, [exempt, importer])
     kinds = {finding.kind for finding in findings}
     assert "exempt_module_imported" in kinds, [finding.detail for finding in findings]
-    assert reason  # the exemption still carries its justification
+    assert exemption.reason  # the exemption still carries its justification
 
 
 def test_an_unmarked_exemption_is_a_finding(tmp_path):
     """The marker is the exempt file's own consent to being exempt."""
-    relative = next(iter(FILE_EXEMPTIONS))
-    exempt = tmp_path / relative
+    exempt = tmp_path / _AR1_PATH
     exempt.parent.mkdir(parents=True, exist_ok=True)
     exempt.write_text('"""No marker here."""\n', encoding="utf-8")
     findings = check_exemptions(tmp_path, [exempt])
     assert any(finding.kind == "unmarked_exemption" for finding in findings)
+
+
+def test_every_exemption_names_a_condition_this_scanner_implements(repo_root):
+    """An exemption whose condition cannot be evaluated has no condition at all."""
+    assert FILE_EXEMPTIONS, "the exemption table is empty; this test would pass vacuously"
+    for relative, exemption in FILE_EXEMPTIONS.items():
+        assert exemption.condition in EXEMPTION_CONDITIONS, relative
+        assert exemption.keys <= BANNED_KEYS, relative
+        assert exemption.reason.strip(), relative
+        assert (repo_root / relative).is_file(), relative
+
+
+# --- the corpus renderer's tool surface: real finding, argued exemption ------
+#
+# `test_scanner_is_green_on_the_real_tree` reported this three times:
+#
+#   verticals/mainline/packages/mainline-corpus/src/mainline_corpus/render/bedrock.py:126
+#   [dict_literal] dict literal key 'tools' constructs a tool surface.
+#
+# The detection was right and the citation was not. That module is the corpus
+# GENERATOR - its input is RenderNode.facts, built from stage-1 world data this
+# repository authored - so no document reaches it, and 8.4 layer 1 is about the
+# turn that reads a document. The surface stays (deleting it would force a
+# free-text fallback parser) and CI now re-proves the four properties that make
+# it a format mechanism instead of a capability. These three tests are that
+# claim, asserted in the only way that counts: by breaking each property and
+# watching the scan go red.
+
+
+def _corpus_render_source():
+    """The committed bedrock.py, read once so the mutations below cannot drift from it."""
+    return (_REPO_ROOT / _CORPUS_RENDER_PATH).read_text(encoding="utf-8")
+
+
+def _corpus_render_copy(tmp_path, *, transform=lambda text: text):
+    """The real bedrock.py, at its real relative path, under a scratch root."""
+    source = _corpus_render_source()
+    target = tmp_path / _CORPUS_RENDER_PATH
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(transform(source), encoding="utf-8")
+    return target
+
+
+def test_the_corpus_renderer_exemption_holds_on_the_real_file(repo_root):
+    """All four properties, on the file as committed."""
+    exemption = FILE_EXEMPTIONS[_CORPUS_RENDER_PATH]
+    assert exemption.condition == "forced_single_turn_format_tool"
+    assert exemption.keys == {"tools", "toolChoice", "toolConfig"}
+    assert "mcp_servers" not in exemption.keys and "mcpServers" not in exemption.keys
+    target = repo_root / _CORPUS_RENDER_PATH
+    assert exemption.marker in target.read_text(encoding="utf-8")
+    check = EXEMPTION_CONDITIONS[exemption.condition]
+    assert check(repo_root, _CORPUS_RENDER_PATH, target, []) == []
+
+
+@pytest.mark.parametrize(
+    ("substitution", "replacement", "expected"),
+    [
+        pytest.param(
+            '"toolChoice": {"tool": {"name": prompt.tool_name}},',
+            '"toolChoice": {"any": {}},',
+            "does not force one NAMED tool",
+            id="unforced-choice",
+        ),
+        pytest.param(
+            '\n            "tools": [\n',
+            '\n            "tools": [\n                {"toolSpec": {"name": "merge_permit"}},\n',
+            "exactly one tool",
+            id="a-second-tool",
+        ),
+        pytest.param(
+            '"toolConfig": self._tool_config(prompt),',
+            '"toolConfig": self._tool_config(prompt),\n            "toolResult": {"x": 1},',
+            "second turn",
+            id="tool-result-fed-back",
+        ),
+    ],
+)
+def test_breaking_a_format_only_property_breaks_the_exemption(
+    tmp_path, substitution, replacement, expected
+):
+    """PL-2 for the exemption itself: each property, removed, turns the scan red."""
+    target = _corpus_render_copy(
+        tmp_path, transform=lambda text: text.replace(substitution, replacement, 1)
+    )
+    assert target.read_text(encoding="utf-8") != _corpus_render_source(), (
+        "the mutation did not apply; the source moved and this test is asserting nothing"
+    )
+    check = EXEMPTION_CONDITIONS["forced_single_turn_format_tool"]
+    findings = check(tmp_path, _CORPUS_RENDER_PATH, target, [])
+    assert findings, "the mutated renderer kept its exemption"
+    assert all(finding.kind == "exemption_condition_failed" for finding in findings)
+    assert any(expected in finding.detail for finding in findings), [
+        finding.detail for finding in findings
+    ]
+
+
+def test_the_corpus_renderer_exemption_does_not_cover_an_mcp_surface(tmp_path):
+    """Key-scoped, not file-scoped: the excused keys are three, and mcp_servers is not one."""
+    _corpus_render_copy(
+        tmp_path,
+        transform=lambda text: text + '\n\nMCP = {"mcp_servers": [{"url": "https://x"}]}\n',
+    )
+    findings, files = run(tmp_path, check_exempt=False)
+    assert files, "the scratch tree was not discovered"
+    keys = {finding.key for finding in findings}
+    assert keys == {"mcp_servers"}, [finding.detail for finding in findings]
 
 
 def test_quarantined_call_has_no_tools_parameter():

@@ -39,6 +39,42 @@
 # The cause was ours — `trappoint_testkit` imported a PostgreSQL driver at
 # module scope to register a command-line option — and it is fixed in the
 # package, not worked around here.
+#
+# ── 2026-08-10 — THE A6 SAMPLING GREP WAS CRYING WOLF, AND WAS NARROWED ──────
+#
+# Run 31427116607 failed two of the three jobs below on one cause. Measured, in
+# that run's log:
+#
+#   GREP: examined=3203 violations=2 skips=0 exemptions=20
+#     packages/trappoint-recall/.../lexical/units.py:67
+#     verticals/mainline/.../mainline_domain/quantity/units.py:262
+#
+# Both were read at source. Neither is a model request builder: the first is
+# `DIMENSION_SYMBOL = {…, "temperature": "k", …}` and the second is
+# `_LABEL_REPRESENTATIVES = {…, "temperature": "kelvin", …}` — physical-dimension
+# tables in an industrial-safety domain that also carries pressure, lel and uel.
+# `greps.py`'s own docstring had predicted this failure mode word for word.
+#
+# The INSTRUMENT was repaired, not the finding. `ast.walk` sees the node and not
+# the context, and `{"temperature": "k"}` and `{"temperature": 0.0}` beside
+# `"modelId"` are the same node and opposite findings. The rule now carries
+# context down the tree and fires only in a REQUEST-BUILDER CONTEXT: a keyword
+# on a model-transport call, a key standing beside one of 28 wire-protocol
+# markers, or a write into a name bound to a request body. Measured after, on
+# this tree with the pinned interpreter:
+#
+#   GREP: examined=3215 violations=0 skips=0 exemptions=20
+#
+# NEITHER units.py ACQUIRED AN EXEMPTION — the count of exempt prefixes is still
+# one, and `tests/boundary/test_ci_greps.py` asserts that by path. The one
+# exemption that exists (the corpus renderer) now also reports what it withholds:
+# `Withheld here: temperature:157, topP:158` in bedrock.py, which is the narrowed
+# rule demonstrating on the real tree that it still fires on a real builder.
+#
+# A narrowing nobody has watched refuse is indistinguishable from a deletion, so
+# `ci-greps` carries a standing RED step below that plants a genuine
+# `temperature=` on a genuine `converse` call, in the same module as a copy of the
+# table that used to trip the rule, and fails if the scan comes back clean.
 
 name: boundary
 
@@ -224,6 +260,51 @@ jobs:
             ./packages/mainline-boundary pytest pytest-timeout
       - name: No retry helper, no sampling parameter, no per-signer label, no forbidden claim
         run: python -m pytest tests/boundary/test_ci_greps.py -v --no-header -rs
+      - name: RED — the narrowed A6 rule still fires on a real request builder
+        # PL-2 for the 2026-08-10 narrowing, as a STANDING job rather than a
+        # one-off: a rule that was narrowed on the day it cried wolf must be
+        # watched refusing on every run thereafter, or the narrowing and a
+        # deletion look identical from the outside. The planted module holds both
+        # shapes — the dimension table that used to be reported, and a genuine
+        # `temperature=` on a genuine `converse` call — and this step fails
+        # unless the scan separates them.
+        run: |
+          python - <<'PY'
+          import pathlib
+          import tempfile
+
+          from mainline_boundary.greps import scan_sampling_params
+
+          SOURCE = (
+              'DIMENSION_SYMBOL = {"pressure": "pa", "temperature": "k", "lel": "lel"}\n'
+              "\n"
+              "def render(client, node, model_id):\n"
+              "    return client.converse(\n"
+              "        modelId=model_id,\n"
+              '        messages=[{"role": "user", "content": [{"text": node.text}]}],\n'
+              "        temperature=0.0,\n"
+              "    )\n"
+          )
+          numbered = list(enumerate(SOURCE.splitlines(), start=1))
+          builder = {n for n, line in numbered if "temperature=0.0" in line}
+          table = {n for n, line in numbered if '"temperature": "k"' in line}
+
+          root = pathlib.Path(tempfile.mkdtemp())
+          package = root / "packages" / "trappoint-recall" / "src" / "trappoint_recall"
+          package.mkdir(parents=True)
+          (package / "units.py").write_text(SOURCE, encoding="utf-8")
+
+          report = scan_sampling_params(root)
+          print(report.summary())
+          reported = {int(v.subject.rsplit(":", 1)[1]) for v in report.violations}
+          assert reported == builder, f"expected the builder at {builder}, got {reported}"
+          assert not (reported & table), "the dimension table was reported again"
+          print(
+              f"RED as required: line {sorted(builder)[0]} refused, "
+              f"line {sorted(table)[0]} cleared, and neither units.py in the real tree "
+              "carries an exemption."
+          )
+          PY
       - name: Repository-wide grep report
         if: always()
         run: python -m mainline_boundary.cli greps
@@ -242,6 +323,12 @@ jobs:
             ./packages/mainline-boundary pytest pytest-timeout ruff mypy types-PyYAML
       - name: Unit tests
         run: python -m pytest packages/mainline-boundary/tests -q --no-header
+      - name: Repository-wide grep report — this job's headline number
+        # `test_greps_pass_over_the_repository` asserts `violations=0`, but under
+        # `-q` the number it asserted is not in the log. This step puts it there:
+        # the job that owns the assertion should also publish the measurement.
+        if: always()
+        run: python -m mainline_boundary.cli greps
       - name: ruff
         run: ruff check packages/mainline-boundary tests/boundary
       - name: mypy (strict)
