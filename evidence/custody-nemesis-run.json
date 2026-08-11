@@ -8,7 +8,7 @@
         10,
         16
       ],
-      "detection_latency_ms": 209,
+      "detection_latency_ms": 252,
       "findings": [
         "check 2: 72 of 72 leaves unproven [inclusion-proof-failed]",
         "check 3: 3 of 7 consecutive pairs unproven [consistency-proof-failed]",
@@ -41,7 +41,7 @@
         10,
         16
       ],
-      "detection_latency_ms": 216,
+      "detection_latency_ms": 198,
       "findings": [
         "check 2: 72 of 72 leaves unproven [inclusion-proof-failed]",
         "check 3: 4 of 7 consecutive pairs unproven [consistency-proof-failed]",
@@ -72,7 +72,7 @@
         1,
         10
       ],
-      "detection_latency_ms": 235,
+      "detection_latency_ms": 276,
       "findings": [
         "check 1: 1 leaf finding(s) [payload-disagrees-with-canon-bytes]",
         "check 10: 9 canonicaliser finding(s) [canon-source-mismatch]"
@@ -102,7 +102,7 @@
         10,
         15
       ],
-      "detection_latency_ms": 235,
+      "detection_latency_ms": 223,
       "findings": [
         "check 2: 73 of 73 leaves unproven [inclusion-proof-failed]",
         "check 3: 5 of 7 consecutive pairs unproven [consistency-proof-failed]",
@@ -133,7 +133,7 @@
         10,
         16
       ],
-      "detection_latency_ms": 288,
+      "detection_latency_ms": 259,
       "findings": [
         "check 1: payload_ver [2] is not a canonicaliser this verifier holds [unknown-payload-ver]",
         "check 10: 9 canonicaliser finding(s) [canon-source-mismatch]",
@@ -168,7 +168,7 @@
         10,
         16
       ],
-      "detection_latency_ms": 256,
+      "detection_latency_ms": 216,
       "findings": [
         "check 2: 1 of 74 leaves unproven [inclusion-proof-missing]",
         "check 9: 1 chain finding(s) [link-chain-broken]",
@@ -199,7 +199,7 @@
         5,
         10
       ],
-      "detection_latency_ms": 250,
+      "detection_latency_ms": 213,
       "findings": [
         "check 3: 2 of 7 consecutive pairs unproven [consistency-proof-failed]",
         "check 5: size 50: the RFC 3161 messageImprint is not SHA-256(note text) \u2014 the note travelling with this token is not the note that was timestamped",
@@ -230,7 +230,7 @@
         10,
         16
       ],
-      "detection_latency_ms": 252,
+      "detection_latency_ms": 227,
       "findings": [
         "check 3: 1 of 8 consecutive pairs unproven [consistency-proof-missing]",
         "check 5: size 97: the RFC 3161 messageImprint is not SHA-256(note text) \u2014 the note travelling with this token is not the note that was timestamped",
@@ -262,7 +262,7 @@
         6,
         10
       ],
-      "detection_latency_ms": 218,
+      "detection_latency_ms": 228,
       "findings": [
         "check 5: size 34: the RFC 3161 messageImprint is not SHA-256(note text) \u2014 the note travelling with this token is not the note that was timestamped",
         "check 6: size 34: the checkpoint quotes drand round 31288322, issued at 1786668330, which is AFTER the RFC 3161 genTime 1786068332 \u2014 it quotes a round that did not yet exist",
@@ -293,7 +293,7 @@
         11,
         14
       ],
-      "detection_latency_ms": 284,
+      "detection_latency_ms": 253,
       "findings": [
         "check 10: 9 canonicaliser finding(s) [canon-source-mismatch]",
         "check 11: mainline.clause_blame_closure.append_only: the mechanism attested at migration 0128j_trg_refuse_mutation_clause_blame_closure is not present and enabled in the live catalogue. The exhibit can no longer show the source of the mechanism that refused",
@@ -323,7 +323,7 @@
         10,
         11
       ],
-      "detection_latency_ms": 301,
+      "detection_latency_ms": 239,
       "findings": [
         "check 10: 9 canonicaliser finding(s) [canon-source-mismatch]",
         "check 11: mainline.permit_event.permit_event_chain: the mechanism attested at migration 0125_trg_permit_event_chain is not present and enabled in the live catalogue. The exhibit can no longer show the source of the mechanism that refused"
@@ -352,7 +352,7 @@
         13,
         16
       ],
-      "detection_latency_ms": 234,
+      "detection_latency_ms": 264,
       "findings": [
         "check 2: 1 of 74 leaves unproven [inclusion-proof-missing]",
         "check 10: 9 canonicaliser finding(s) [canon-source-mismatch]",
@@ -411,7 +411,7 @@
         10,
         15
       ],
-      "detection_latency_ms": 263,
+      "detection_latency_ms": 267,
       "findings": [
         "check 10: 9 canonicaliser finding(s) [canon-source-mismatch]",
         "check 15: 1 of 17 receipts are not covered [receipt-orphaned]"
