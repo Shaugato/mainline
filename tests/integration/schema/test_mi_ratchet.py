@@ -564,11 +564,59 @@ def test_naming_an_invariant_is_a_mention_and_never_a_witness() -> None:
 def test_the_repositorys_own_fixity_unit_test_is_a_mention_not_a_witness(
     catalogue, universe
 ) -> None:
-    # The concrete case this rule exists for: a pure-Python fixity unit test whose name
-    # refers to the invariant it reasons about, and which never touches the database.
+    """The concrete case the mention/witness rule exists for, asserted on the real tree.
+
+    `tests/unit/fixity/test_emit.py::test_undetermined_forces_advisory_because_mi21_would_
+    refuse_otherwise` is a pure-Python unit test. Its NAME refers to MI21; it never opens a
+    connection and it carries no `@pytest.mark.mi`. It must therefore never be counted among
+    MI21's witnesses, because promoting MI21 on the strength of it would be promoting a
+    database invariant on the strength of a test that has never met a database.
+
+    REPAIRED 2026-08-10, and the repair is the point of the case. This test used to close
+    with `assert resolve(catalogue, universe)["MI21"].is_unwitnessed` — a statement about
+    the WHOLE of MI21 standing in for a statement about ONE node. The proxy held only while
+    nothing else witnessed MI21, and it broke the day four genuine `@pytest.mark.mi("MI21")`
+    cases landed in `tests/integration/schema/test_ops_producer.py`. Measured at that
+    moment:
+
+        declared   ()
+        discovered ('tests/integration/schema/test_ops_producer.py::test_a_patrol_may_not_
+                     account_for_more_than_it_declared_in_scope', + 3 more)
+        unresolved ('tests/integration/schema/test_mi_periphery.py::test_mi21_*',)
+
+    Those four are exactly the promotion the ratchet exists to enable, so the tree was
+    right and the instrument was wrong: it measured a global property and called it a local
+    rule. The rule itself never moved — the mention still witnesses nothing — so the
+    assertion now names the mention and asserts of THAT node what the rule actually says.
+    It is true before the promotion and after it, and it fails if the mention is ever
+    silently upgraded into a witness.
+
+    The general mechanism (a `mentioned` id never enters `resolve`) is proved against a
+    synthetic universe by `test_naming_an_invariant_is_a_mention_and_never_a_witness`
+    above; what is asserted here is that the real tree still contains the case. Note that
+    "no mention is ever a witness" is NOT true repository-wide and must not be asserted:
+    measured today, ten invariants have a node that both mentions the id in its name and is
+    `declared` by a catalogue selector such as `test_mi15_*`. That is the catalogue naming
+    the test deliberately, which is a witness by declaration, not a name being mistaken for
+    one.
+    """
     mentioned = mi.mentions(catalogue, universe)
-    assert any("test_emit.py" in node for node in mentioned["MI21"])
-    assert mi.resolve(catalogue, universe)["MI21"].is_unwitnessed
+    fixity = [node for node in mentioned["MI21"] if "test_emit.py" in node]
+    assert fixity, (
+        "no test in tests/unit/fixity/test_emit.py mentions MI21 in its name any more, so "
+        f"the concrete case this rule was written for has left the tree. MI21's mentions "
+        f"are {list(mentioned['MI21'])}. Re-point this test at another real mention — do "
+        f"not delete the rule, which is the only thing standing between a green unit test "
+        f"and a promoted database invariant."
+    )
+    witnesses = mi.resolve(catalogue, universe)["MI21"]
+    for node in fixity:
+        assert node not in witnesses.nodeids, (
+            f"{node} names MI21 and never touches a database, yet it is counted among "
+            f"MI21's witnesses {list(witnesses.nodeids)}. A mention is not a witness: only "
+            f"@pytest.mark.mi, or an owning_tests selector in "
+            f"verticals/mainline/db/invariants/mi_catalogue.yaml, may witness an invariant."
+        )
 
 
 def test_a_selector_matching_nothing_is_reported_as_unresolved(catalogue, universe) -> None:
@@ -690,6 +738,7 @@ def test_the_lock_is_a_cross_check_and_not_the_authority(citations) -> None:
 # ── PL-2 · THE ONE RED CASE ───────────────────────────────────────────────────────────
 
 
+@pytest.mark.pl2_red
 def test_red_every_invariant_is_enforced(catalogue) -> None:
     """RED BY DESIGN. The data-model domain is done when this passes, and not before.
 

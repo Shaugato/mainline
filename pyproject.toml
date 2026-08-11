@@ -96,6 +96,20 @@ markers = [
     "requires_cluster: needs a live CockroachDB; skips with a reason when TRAPPOINT_DSN is unset",
     "requires_aws: needs live AWS credentials; skips with a reason (PL-3: not on a dated path)",
     "g4alpha: the recall domain's G4-alpha gate; observed RED by design until K4",
+    # ── The second half of `ci.yml`'s `RED_SELECTOR: "g4alpha or pl2_red"`, which was
+    # half-connected until 2026-08-10: the selector named `pl2_red`, no test carried it,
+    # and `-m "g4alpha or pl2_red"` therefore deselected FIVE tests in run 31388699452
+    # while eight cases that print `PL-2 RED, as intended.` failed inside the general
+    # regression lane, indistinguishable from a regression. `--strict-markers` is on
+    # (line 91), so applying the marker without this line is a hard collection error;
+    # this line is what lets the two lanes be exact complements of each other.
+    #
+    # The text is `scripts/mi_ratchet.py`'s `PL2_RED_MARKER_DESCRIPTION` verbatim —
+    # that module is where "red on purpose" is defined for this repository, and
+    # `python scripts/mi_ratchet.py pl2-red` prints this string under the heading
+    # "register in pyproject.toml `markers` as:". One meaning, one wording, two files
+    # that cannot drift apart without the drift being visible in a diff.
+    "pl2_red: RED BY DESIGN (PL-2). This case asserts that a mechanism does NOT exist yet and fails until it lands. It is not a regression and it is never xfailed: it belongs in an inverted job that fails when it goes GREEN. Registered in scripts/mi_ratchet.py; list the files that hold such cases with `mi_ratchet.py pl2-red`.",
     "slow: takes more than a second",
     # ── Registered here because `--strict-markers` and the third test root above
     # meet each other. Each of these was in use on 2026-08-10 and registered only

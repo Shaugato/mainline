@@ -53,7 +53,7 @@
 #    text: five `[FAIL] <gate>` lines from `tests/eval/recall/test_g4alpha_gates.py`
 #    (whose `g4alpha` marker is registered in `pyproject.toml` as "observed RED by
 #    design until K4"), `test_mi_ratchet.py::test_red_every_invariant_is_enforced`
-#    ("28 of 30 MAINLINE invariants are still pending … This is PL-2's red case"), and
+#    ("21 of 30 MAINLINE invariants are still pending … This is PL-2's red case"), and
 #    the `PL-2 RED, as intended.` cases across the `test_mi_*` suites.
 #
 #    One job that mixes those with genuine regressions has two failure modes and no way
@@ -67,6 +67,24 @@
 #    `xfail`-swallowed, no `continue-on-error` and no `|| true`: both jobs are `needs:`
 #    of `summary`, both keep their exit codes, and the reds simply stop being
 #    indistinguishable from regressions.
+#
+#    THE SPLIT WAS HALF-CONNECTED UNTIL 2026-08-10 AND IS NOW WHOLE. `RED_SELECTOR`
+#    named `pl2_red`; no test carried it and `pyproject.toml` did not register it, so
+#    run 31388699452 read `41 failed, 8224 passed, 833 skipped, 5 deselected` — five,
+#    the g4alpha five — while eight cases that print `PL-2 RED, as intended.` failed
+#    inside `hermetic-tests`, where nothing distinguishes them from a regression. The
+#    marker is now registered (`pyproject.toml`, next to `g4alpha`) and applied to those
+#    eight and to nothing else, and `RED_FLOOR` has risen 5 -> 13 to match.
+#
+#    THE ADMISSION TEST FOR THE MARKER IS THE FAILURE MESSAGE, NOT THE FILE. Every one
+#    of the eight prints `PL-2 RED, as intended.` or the ratchet's "N of 30 … PL-2's red
+#    case" today, measured on the pinned interpreter before the marker was applied. Two
+#    further cases the tree NAMES `test_pl2_red_*` — `test_mi_spine.py::test_pl2_red_
+#    mi15_bloodline_guard_does_not_exist_yet` and `test_mi_foundation.py::test_pl2_red_
+#    site_projection_is_not_yet_enforced` — were measured GREEN on 2026-08-10 and are
+#    deliberately NOT marked: marking a passing test would file it under "red by design"
+#    and hide the transition this job exists to announce. They are reported upward
+#    instead, to the suites that own them.
 
 name: ci
 
@@ -96,19 +114,31 @@ env:
   #
   # `hermetic-tests` runs `not (RED_SELECTOR)` and `red-by-design` runs `RED_SELECTOR`,
   # so the two jobs are the exact complement of each other over the same collection and
-  # there is no third place a test can hide. Measured locally 2026-08-10 with the pinned
-  # interpreter: `-m "not (g4alpha or pl2_red)"` -> 1093 collected, 5 deselected;
-  # `-m "g4alpha or pl2_red"` -> 5 collected, 1093 deselected; 1093 + 5 = 1098, the
-  # whole collection. Writing the two expressions by hand in two jobs is how a gap gets
-  # in, so they are derived from this one string instead.
+  # there is no third place a test can hide. Writing the two expressions by hand in two
+  # jobs is how a gap gets in, so they are derived from this one string instead.
+  #
+  # MEASURED 2026-08-10 on the pinned interpreter
+  # (`.venv/Scripts/python.exe -m pytest --crdb=none --collect-only -q`), with BOTH
+  # markers registered and applied:
+  #
+  #   -m "g4alpha or pl2_red"        ->    13 collected, 9240 deselected
+  #   -m "not (g4alpha or pl2_red)"  ->  9240 collected,   13 deselected
+  #                                      ----   9253, the whole collection
+  #
+  # and the selected 13 run `13 failed, 0 passed, 0 skipped` — which is why `RED_FLOOR`
+  # below is 13. The previous numbers recorded here (1093 / 5 / 1098) were taken while
+  # `pl2_red` was registered nowhere and applied to nothing; they described a selector
+  # that reached only the g4alpha five. Superseded, not corrected in place, because the
+  # difference between them IS the defect this pair of jobs was built to end.
   #
   # `g4alpha` is registered in `pyproject.toml` ("observed RED by design until K4").
-  # `pl2_red` is the marker for the `PL-2 RED, as intended.` cases; it is registered and
-  # applied by the MI-catalogue worker. `--strict-markers` governs markers APPLIED to
-  # tests, not names used in a `-m` expression, so this selector is already valid and
-  # already correct while that marker is still landing — it simply selects the g4alpha
-  # five today and the full set the moment `pl2_red` appears on a test. Nothing here
-  # edits a test to make that happen.
+  # `pl2_red` is the marker for the `PL-2 RED, as intended.` cases — registered in
+  # `pyproject.toml` beside it, with `scripts/mi_ratchet.py`'s own wording, and applied
+  # to the eight cases named in the `red-by-design` REGISTRY below. `--strict-markers`
+  # governs markers APPLIED to tests, not names used in a `-m` expression, which is why
+  # this selector was syntactically valid throughout the period it was selecting five
+  # tests instead of thirteen: a `-m` name that no test carries fails silently and green.
+  # `RED_FLOOR` is the guard against that state ever returning unnoticed.
   RED_SELECTOR: "g4alpha or pl2_red"
 
 jobs:
@@ -544,12 +574,25 @@ jobs:
     needs: [checkers]
     timeout-minutes: 12
     env:
-      # Measured in run 31372088432 (`ci`, 2026-08-10): the `g4alpha` marker alone
-      # contributes five failures, and it is registered and applied today. The floor is
-      # therefore five even before `pl2_red` lands on the `PL-2 RED, as intended.`
-      # cases, and it is a floor on FAILURES, never on collected tests — a set that
-      # collects fifteen and fails none is exactly what this job exists to catch.
-      RED_FLOOR: "5"
+      # A floor on FAILURES, never on collected tests — a set that collects fifteen and
+      # fails none is exactly what this job exists to catch.
+      #
+      # 5 -> 13 on 2026-08-10, in the commit that registered and applied `pl2_red`.
+      # MEASURED on the pinned interpreter immediately before this line was written:
+      #
+      #   .venv/Scripts/python.exe -m pytest --crdb=none -m "g4alpha or pl2_red" -q
+      #   ->  13 failed, 9240 deselected in 14.83s   (0 passed, 0 skipped)
+      #
+      #   5 · tests/eval/recall/test_g4alpha_gates.py   — the G4-alpha gates
+      #   2 · tests/integration/schema/test_mi_blame.py
+      #   4 · tests/integration/schema/test_mi_boundary_override.py
+      #   1 · tests/integration/schema/test_mi_event_severity.py
+      #   1 · tests/integration/schema/test_mi_ratchet.py
+      #
+      # The floor rises WITH the marker, in the same commit, because a floor left at 5
+      # would let eight of the thirteen be silently un-marked again and still pass here.
+      # It may be lowered only by a commit that promotes a red to green and says which.
+      RED_FLOOR: "13"
     steps:
       - name: Deny egress except to the package indexes
         uses: step-security/harden-runner@v2
@@ -630,21 +673,48 @@ jobs:
           # path -> the truth this file's by-design-RED cases report. A file is allowed
           # to carry the marker only if it is named here WITH its reason, so the set is
           # reviewable in one place instead of being wherever somebody put a decorator.
-          # Source: docs/leads/ci-green-plan.md §4 and §6, measured in run 31372088432.
+          #
+          # RE-MEASURED 2026-08-10, when `pl2_red` was registered in pyproject.toml and
+          # applied for the first time. Every reason below is the assertion text the case
+          # actually printed on the pinned interpreter that day, not a remembered one:
+          #
+          #   .venv/Scripts/python.exe -m pytest --crdb=none -m "g4alpha or pl2_red" -q
+          #
+          # The MI-ratchet line said "28 of 30" and the run says 21 — nine invariants had
+          # been promoted since it was written. An intentional red seven invariants out of
+          # date is an intentional red losing its precision, so the count and the names are
+          # both here and both come from the failure message.
+          #
+          # `tests/integration/schema/test_mi_spine.py` was in this registry and is not any
+          # more, because no case in it carries the marker: its `test_pl2_red_mi15_bloodline
+          # _guard_does_not_exist_yet` was measured PASSING on 2026-08-10 (a function
+          # reading sev_max/blood_size and RAISEing now exists in the band), and its
+          # cluster-tier counterpart `test_mi15_a_version_may_not_shrink_its_ancestry` is
+          # `requires_cluster` and cannot be measured in this lane at all. A registry entry
+          # with no marked case behind it prints a row of zeroes under a claim in the job
+          # summary, which is a claim with no evidence. Reported to the spine suite's owner
+          # instead. The same holds for `test_mi_foundation.py::test_pl2_red_site_
+          # projection_is_not_yet_enforced`, also measured passing.
           REGISTRY = {
               "tests/eval/recall/test_g4alpha_gates.py":
                   "the five G4-alpha recall gates are not met; RED until K4 by declaration",
               "tests/integration/schema/test_mi_ratchet.py":
-                  "PL-2's red case — 28 of 30 MI invariants are not yet enforced",
+                  "PL-2's red case — 21 of 30 MAINLINE invariants are still pending "
+                  "(MI03, MI04, MI05, MI06, MI07, MI08, MI09, MI10, MI12, MI15, MI17, "
+                  "MI20, MI21, MI22, MI23, MI24, MI25, MI26, MI27, MI29, MI30); promote "
+                  "in verticals/mainline/db/invariants/mi_catalogue.yaml",
               "tests/integration/schema/test_mi_blame.py":
-                  "the monotone guard and the closure projection do not exist yet",
+                  "clause_version.sev_max is never projected from the closure, and "
+                  "fn_closure_guard's monotone branch accepts an unrelated severity "
+                  "revision; owner dm-functions-triggers / kernel projection-triggers",
               "tests/integration/schema/test_mi_boundary_override.py":
-                  "fn_boundary_project, the carried-use projection and two append-only "
-                  "triggers do not exist yet",
+                  "fn_boundary_project, the carried-use projection, an append-only trigger "
+                  "on predicate_revocation and carried_disposition_use, and any requirement "
+                  "that a cited predicate still hold, none of them exist yet; owner "
+                  "dm-functions-triggers, band 0140-0149z",
               "tests/integration/schema/test_mi_event_severity.py":
-                  "severity-revision provenance is not yet projected",
-              "tests/integration/schema/test_mi_spine.py":
-                  "MI15's BEFORE INSERT monotone guard does not exist",
+                  "severity-revision provenance is not yet projected; owner "
+                  "dm-functions-triggers, band 0130-0199",
           }
 
           floor = int(os.environ["RED_FLOOR"])
@@ -895,10 +965,32 @@ jobs:
         # `master` and `main` does not exist (measured 2026-08-10), so the condition
         # below could never be true: an honesty ratchet that cannot fire is a ratchet
         # that has been removed without anybody deciding to remove it. Restoring the
-        # branch name arms it. It is expected to be RED on the next push to `master`,
-        # because `docs/adr/0005-red-before-green.md:118` still reads
-        # `run_url: UNRECORDED` — that red is the assertion working, and it goes green
-        # when somebody pastes the db lane's red run URL into that line.
+        # branch name arms it.
+        #
+        # THIS JOB IS RED ON `master` TODAY, AND THE MESSAGE NOW NAMES WHY (R3 of
+        # docs/leads/ci-finish-final.md: an intentional red must name the artefact that
+        # does not exist and the domain that owes it). Measured 2026-08-10:
+        #
+        #   gh api …/actions/runs/31440847412/jobs
+        #     success  one version constant, and it lives in compose.yaml
+        #     failure  migrate + conform, on a node pinned to Cloud's gc.ttlseconds
+        #       failure  Apply the reference vertical
+        #       skipped  CONFORMANCE
+        #
+        # The image-pin census that used to skip the kernel job is fixed, so the kernel
+        # job runs — and stops one step BEFORE the conform step, on
+        # `0058_blocking_check: [42P01] relation "trappoint_ref.event" does not exist`.
+        # No `db` run in this repository's history has executed `CONFORMANCE`, so there
+        # is no red conform run to link. Recording run 31440847412 anyway — it IS a red
+        # `db` run — would put a URL in a field that asks for a different observation,
+        # which is the precise failure the field was created to prevent. It stays
+        # UNRECORDED and this job stays red until the producer lands.
+        #
+        # The `else` branch is not a rubber stamp: a `run_url` that is not an Actions run
+        # URL of this repository is refused. That is a SHAPE check and is described as
+        # one — this job has no token and blocks egress, so it cannot ask GitHub whether
+        # the run exists or what colour it was. It closes the cheap failure (a note, a
+        # bare word, a link to something else) and does not pretend to close the others.
         env:
           EVENT_NAME: ${{ github.event_name }}
           REF: ${{ github.ref }}
@@ -908,14 +1000,43 @@ jobs:
           test -f "$adr"
           if grep -q 'run_url: *UNRECORDED' "$adr"; then
             if [ "${EVENT_NAME}" = "push" ] && [ "${REF}" = "refs/heads/master" ]; then
-              echo "::error file=${adr}::PL-2: the db lane's red run URL is still UNRECORDED."
-              echo "Open the db workflow run, copy its URL into the ADR's run_url field, and commit."
+              echo "::error file=${adr}::PL-2: the db lane's red conform run URL is still UNRECORDED."
+              echo "MISSING ARTEFACT: a producer for 'trappoint_ref.event' in"
+              echo "  packages/trappoint-sql/refvertical/sql/ — 0058_blocking_check.sql:75 declares"
+              echo "  'precursor_event_id UUID NULL REFERENCES trappoint_ref.event (event_id)' and no"
+              echo "  file in that tree creates the table."
+              echo "OWNER: the reference-vertical / schema domain (docs/CI-STATE.md §3.6)."
+              echo "CONSEQUENCE: db.yml's 'Apply the reference vertical' step fails, so its"
+              echo "  'CONFORMANCE' step is SKIPPED and has never run — measured across every db run"
+              echo "  on master: 31386723687, 31435379718, 31440847412."
+              echo "WHAT FILLS THIS FIELD: the producer lands, the next db run on master reaches"
+              echo "  CONFORMANCE, that step is red, and THAT run's URL goes into the ADR."
+              echo "WHAT DOES NOT: any other red db run. The field names one observation, not a colour."
               exit 1
             fi
             echo "::warning file=${adr}::the red run URL is UNRECORDED; a push to master will fail until it is filled"
           else
-            echo "red run recorded:"
-            grep 'run_url:' "$adr"
+            recorded=""
+            if line="$(grep -m1 'run_url:' "$adr")"; then
+              recorded="$(printf '%s' "${line}" | sed 's/.*run_url: *//; s/[[:space:]]*$//')"
+            fi
+            if [ -z "${recorded}" ]; then
+              echo "::error file=${adr}::the ADR carries no 'run_url:' line at all. The field was"
+              echo "not filled in — it was deleted, which removes the claim instead of recording it."
+              echo "Restore the line, with either an Actions run URL or the word UNRECORDED."
+              exit 1
+            fi
+            expected='^https://github\.com/Shaugato/mainline/actions/runs/[0-9]+$'
+            if ! printf '%s' "${recorded}" | grep -Eq "${expected}"; then
+              echo "::error file=${adr}::run_url is filled in but is not an Actions run URL of this"
+              echo "repository: '${recorded}'. Expected ${expected}."
+              echo "The field records ONE observation — the run in which db.yml's CONFORMANCE step"
+              echo "was red — and a value that cannot even be opened records nothing. This is a"
+              echo "shape check only: this job has no token and blocks egress, so it cannot ask"
+              echo "GitHub whether that run exists or what colour it was."
+              exit 1
+            fi
+            echo "red run recorded: ${recorded}"
           fi
 
   # ---------------------------------------------------------------------------------

@@ -652,6 +652,7 @@ def _functions_matching(*needles: str) -> list[str]:
     return hits
 
 
+@pytest.mark.pl2_red
 def test_pl2_red_fn_boundary_project_does_not_exist_yet() -> None:
     """RED BY DESIGN (PL-2). Owner of the fix: ``dm-functions-triggers``, band 0140-0149z.
 
@@ -674,6 +675,7 @@ def test_pl2_red_fn_boundary_project_does_not_exist_yet() -> None:
     )
 
 
+@pytest.mark.pl2_red
 def test_pl2_red_the_carried_use_projection_does_not_exist_yet() -> None:
     """RED BY DESIGN (PL-2). Owner of the fix: ``dm-functions-triggers``, band 0140-0149z.
 
@@ -695,6 +697,7 @@ def test_pl2_red_the_carried_use_projection_does_not_exist_yet() -> None:
     )
 
 
+@pytest.mark.pl2_red
 def test_pl2_red_the_two_new_evidentiary_tables_have_no_append_only_trigger() -> None:
     """RED BY DESIGN (PL-2). Owner of the fix: ``dm-functions-triggers``, band 0140-0149z.
 
@@ -722,6 +725,7 @@ def test_pl2_red_the_two_new_evidentiary_tables_have_no_append_only_trigger() ->
     )
 
 
+@pytest.mark.pl2_red
 def test_pl2_red_nothing_yet_requires_a_cited_predicate_to_still_be_holding() -> None:
     """RED BY DESIGN (PL-2). Owner of the fix: kernel ``obligation-and-clearance`` + 0140-0149z.
 

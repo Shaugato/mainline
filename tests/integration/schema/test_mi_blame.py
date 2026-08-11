@@ -744,6 +744,7 @@ def test_the_two_welds_exist_and_name_this_relation() -> None:
 # ── PL-2: the deliberately RED cases ──────────────────────────────────────────────────────────
 
 
+@pytest.mark.pl2_red
 def test_pl2_red_sev_max_is_never_projected_from_the_closure() -> None:
     """RED BY DESIGN (PL-2). Owner of the fix: ``dm-functions-triggers``, band 0140-0149.
 
@@ -800,6 +801,7 @@ def test_pl2_red_sev_max_is_never_projected_from_the_closure() -> None:
     )
 
 
+@pytest.mark.pl2_red
 def test_mi26_red_the_monotone_guard_accepts_an_unrelated_severity_revision() -> None:
     """RED BY DESIGN (PL-2). Owner of the fix: ``kernel/projection-triggers``.
 

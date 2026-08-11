@@ -614,6 +614,7 @@ def test_the_taxonomy_gazetteer_satisfies_l1_frozen() -> None:
 # ── PL-2: the deliberately RED case ───────────────────────────────────────────────────────────
 
 
+@pytest.mark.pl2_red
 def test_pl2_red_severity_revision_provenance_is_not_yet_projected() -> None:
     """RED BY DESIGN (PL-2). Owner of the fix: ``dm-functions-triggers``, band 0130-0199.
 

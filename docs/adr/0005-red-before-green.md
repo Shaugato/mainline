@@ -118,12 +118,89 @@ rewrite).
 run_url: UNRECORDED
 ```
 
-The repository has no pushed CI history as of 2026-08-07, so there is no run URL to
-record and inventing one would defeat the purpose of the field. This is enforced rather
-than left to memory: the `adr-red-recorded` job in `.github/workflows/ci.yml` **warns**
-on a pull request and **fails on a push to `main`** while `run_url` still reads
-`UNRECORDED`. The first push to `main` after the `db` lane runs is therefore the commit
-that has to fill it in.
+**Still unrecorded on 2026-08-10, and for a different reason than on 2026-08-07. The
+reason is recorded here because a field that stays empty without an account of why
+decays into a field nobody expects to be filled.**
+
+The field asks for the run in which **`trappoint-conform` was observed red**. That is the
+artefact this ADR is about: one failing case whose message names a missing relation. It
+is not satisfied by *any* red `db` run — a lane can be red for a dozen reasons and only
+one of them is the PL-2 proof.
+
+What has changed since 2026-08-07, measured with
+`gh run list --workflow db.yml --branch master` and
+`gh api repos/Shaugato/mainline/actions/runs/<id>/jobs`:
+
+| run | census job `one version constant` | kernel job `migrate + conform` | step `CONFORMANCE` |
+|---|---|---|---|
+| [31386723687](https://github.com/Shaugato/mainline/actions/runs/31386723687) | failure | **skipped** | never reached |
+| [31435379718](https://github.com/Shaugato/mainline/actions/runs/31435379718) | success | failure | **skipped** |
+| [31440847412](https://github.com/Shaugato/mainline/actions/runs/31440847412) | success | failure | **skipped** |
+
+The image-pin census that used to skip the kernel job outright is fixed, so the kernel
+job now runs. It stops one step earlier than `CONFORMANCE`:
+
+```
+Apply the reference vertical  ->  failure
+trappoint migrate: REFUSED: 0058_blocking_check: [42P01] relation "trappoint_ref.event" does not exist
+```
+
+`CONFORMANCE` is therefore `skipped`, and **no run in this repository's history has ever
+executed it.** There is consequently no red conform run to link, and writing any URL into
+the field above — including the URL of run 31440847412, which is a red `db` run — would
+record a claim the run does not support. The paragraph at the top of this section is the
+whole reason the field exists; filling it with the nearest available number is the exact
+failure it was written to prevent.
+
+**The blocker, reproduced locally on 2026-08-10** against the pinned local node
+(`postgresql://root@localhost:26257/w_w4?sslmode=disable`, CockroachDB CCL v26.2.5), with
+the same commands `db.yml` runs:
+
+```
+$ trappoint migrate bootstrap --dsn "$DSN"
+bootstrapped: schema, schema_migration, schema_lock, schema_attestation, genesis attestation
+
+$ trappoint migrate up --dsn "$DSN" --tree trappoint-ref \
+    --migrations packages/trappoint-sql/refvertical/sql
+trappoint migrate: REFUSED: 0058_blocking_check: [42P01] relation "trappoint_ref.event" does not exist
+exit 1
+```
+
+`packages/trappoint-sql/refvertical/sql/0058_blocking_check.sql:75` declares
+`precursor_event_id UUID NULL REFERENCES trappoint_ref.event (event_id)`, and no file in
+that 109-file tree creates `trappoint_ref.event`; the tree creates `trappoint_ref.cr_event`
+and `trappoint_ref.permit_event` and nothing else with `event` in the name. This is the
+same missing producer that keeps the `schema` lane red — `docs/CI-STATE.md` §3.6, and
+`docs/leads/ci-finish-final.md` §2.2, which classify it as genuine product incompleteness
+in the **reference** vertical, deliberately out of scope for the CI-completion wave.
+
+**What the conform step would report if it were reached** was measured against that same
+partially-migrated scratch database, because "the field is blocked" is worth more when the
+thing behind the block is known to still behave as this ADR describes:
+
+```
+$ trappoint-conform --dsn "$DSN" --profile trappoint-ref
+CANT  CF-46  … WORLD NOT BUILT — building the LEGAL event chain failed at 'genesis':
+             relation "trappoint_ref.permit_event" does not exist
+0/45 · spec 1.0.0-rc.1 · profile trappoint-ref · failed 6 · cannot_run 38 · error 1
+exit 1
+```
+
+Red, classified, naming the absent relation, and not a stack trace — the behaviour §"A
+red case and a broken runner must not look alike" promises.
+
+**The one condition that fills this field.** A producer for `trappoint_ref.event` lands in
+`packages/trappoint-sql/refvertical/sql`; the next `db` run on `master` gets past `Apply
+the reference vertical`; its `CONFORMANCE` step runs and is red; that run's URL is pasted
+above, in the commit that observes it.
+
+This is enforced rather than left to memory: the `adr-red-recorded` job in
+`.github/workflows/ci.yml` **warns** on a pull request and **fails on a push to `master`**
+while `run_url` still reads `UNRECORDED`. (`master`, not `main` — the branch name was
+corrected in that workflow on 2026-08-10 after it was measured that `main` does not exist
+in this repository, which meant the condition could never fire and the ratchet had been
+silently disarmed since it was written.) That job is red on `master` today. It is red for
+a true reason, it names the reason, and it stays red.
 
 ## Consequences
 
