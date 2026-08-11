@@ -95,7 +95,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Every REFERENCES target in the reference vertical must be created by it
         # Hermetic: no container, no uv, no network. Reads the same .sql files the runner
@@ -204,7 +204,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Read the pinned CockroachDB image out of compose.yaml
         id: image
@@ -242,7 +242,7 @@ jobs:
           docker exec trappoint-unweld-ci ./cockroach sql --insecure --host=127.0.0.1:26257 \
             --execute="ALTER RANGE default CONFIGURE ZONE USING gc.ttlseconds = 4500"
 
-      - uses: astral-sh/setup-uv@v5
+      - uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
 
@@ -332,7 +332,7 @@ jobs:
 
       - name: Publish the matrix
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: refusal-depth-matrix
           path: packages/trappoint-conformance/REFUSAL_DEPTH.md
@@ -357,7 +357,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Read the pinned CockroachDB image out of compose.yaml
         id: image
@@ -383,7 +383,7 @@ jobs:
           done
           echo "the cluster never answered SQL"; exit 1
 
-      - uses: astral-sh/setup-uv@v5
+      - uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
 
@@ -466,9 +466,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: astral-sh/setup-uv@v5
+      - uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
 

@@ -113,7 +113,7 @@ jobs:
             files.pythonhosted.org:443
             astral.sh:443
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: ./.github/actions/setup-workspace
         with:
@@ -293,7 +293,7 @@ jobs:
       # broad that it permits everything and asserts nothing. The static lane (`ci.yml`)
       # is where the egress claim is enforced, on every job, with policy `block`. This
       # lane's claim is about the database.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Pull the image and record its digest
         id: digest

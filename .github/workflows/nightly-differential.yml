@@ -96,7 +96,7 @@ jobs:
             selector: "packages/trappoint-model/tests/test_read_committed.py"
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Start a single-node CockroachDB and make it Cloud-truthful
         # MEASURED 2026-08-10 against the pinned image — `--listen-addr` is
@@ -142,7 +142,7 @@ jobs:
           exit 1
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
 
@@ -196,7 +196,7 @@ jobs:
         # already written the shrunk counterexample into `.hypothesis-corpus/<hash>/` by
         # the time the job goes red, so the artefact is the reproduction.
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: hypothesis-corpus-${{ matrix.isolation }}
           path: .hypothesis-corpus/
@@ -232,7 +232,7 @@ jobs:
     timeout-minutes: 60
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Start a single-node CockroachDB and make it Cloud-truthful
         # MEASURED 2026-08-10 against the pinned image — `--listen-addr` is
@@ -281,7 +281,7 @@ jobs:
           exit 1
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
 

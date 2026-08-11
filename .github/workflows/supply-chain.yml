@@ -80,7 +80,7 @@ jobs:
             files.pythonhosted.org:443
             astral.sh:443
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: ./.github/actions/setup-workspace
         with:
@@ -128,7 +128,7 @@ jobs:
             files.pythonhosted.org:443
             astral.sh:443
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: ./.github/actions/setup-workspace
         with:
@@ -303,7 +303,7 @@ jobs:
           ls -1 evidence/sbom/
 
       - name: Upload the SBOM tree
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: sbom-cyclonedx
           path: evidence/sbom/
@@ -347,7 +347,7 @@ jobs:
             files.pythonhosted.org:443
             astral.sh:443
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: ./.github/actions/setup-workspace
         with:
@@ -815,7 +815,7 @@ jobs:
             files.pythonhosted.org:443
             astral.sh:443
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: ./.github/actions/setup-workspace
         with:

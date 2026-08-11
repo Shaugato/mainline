@@ -116,7 +116,7 @@ jobs:
             api.github.com:443
             github.com:443
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # ---------------------------------------------------------------------------
       # THE NEGATIVE CONTROL THIS LANE COULD NOT HAVE, AND NOW DOES.
@@ -271,7 +271,7 @@ jobs:
             cockroachlabs.cloud:443
             cockroachlabs.cloud:26257
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: ./.github/actions/setup-workspace
         with:
@@ -513,7 +513,7 @@ jobs:
       RETRY_DATABASE: "ci_retry_contract"
       PGCONNECT_TIMEOUT: "10"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Assert the image pin agrees with compose.yaml
         id: image
@@ -544,7 +544,7 @@ jobs:
           done
           docker exec mainline-crdb-retry ./cockroach sql --insecure -e "SELECT version();"
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
