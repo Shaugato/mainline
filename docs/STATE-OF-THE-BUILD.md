@@ -344,7 +344,7 @@ code and configuration on disk, no recorded end-to-end run.
 
 `packages/trappoint-conformance/cases/_world.py:394` inserts:
 
-```python
+```text
 "INSERT INTO {s}.clause_version "
 "(clause_uuid, commit_id, site_id, control_delta, body_sha256) "
 "VALUES (%s, %s, %s, %s, %s)",
