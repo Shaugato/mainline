@@ -1,0 +1,119 @@
+{
+  "artefact": "evidence/aws/load/retry-40001.json",
+  "caveats": [
+    "an induced conflict proves the loop recovers from a serialization failure; it does not predict how often Cloud produces one under real load",
+    "the local single-node cluster also produces 40001 for a deliberate write-after-read conflict, so this probe is not by itself evidence of anything Cloud-specific"
+  ],
+  "generated_at": "2026-08-11T02:40:10Z",
+  "generated_by": "scripts/aws/load_vectors.py",
+  "kind": "retry-40001-evidence",
+  "payload": {
+    "honest_note": "the bulk load wrote disjoint primary keys, one transaction per batch, and observed 0 serialization failure(s) across 20 batch(es). A zero there is the expected result of an uncontended load, and on its own it is indistinguishable from a loop that does not work — which is why the induced probe exists and is reported separately. The two numbers are never added: one measures the workload, the other measures the loop.",
+    "induced_probes": {
+      "cloud": {
+        "attempts_allowed": 8,
+        "attempts_made": 2,
+        "committed": true,
+        "database": "w_cloud_load",
+        "elapsed_s": 2.572,
+        "label": "cloud/induced-write-after-read",
+        "loop_fired": true,
+        "method": "transaction A reads k=1; transaction B commits an update to k=1; transaction A then writes k=1 and commits — a write-after-read conflict, which CockroachDB refuses under SERIALIZABLE with SQLSTATE 40001",
+        "retries_40001": 1,
+        "table": "public.retry_probe",
+        "value_read_on_final_attempt": 100
+      },
+      "local": {
+        "attempts_allowed": 8,
+        "attempts_made": 2,
+        "committed": true,
+        "database": "w_cloud_load",
+        "elapsed_s": 0.065,
+        "label": "local/induced-write-after-read",
+        "loop_fired": true,
+        "method": "transaction A reads k=1; transaction B commits an update to k=1; transaction A then writes k=1 and commits — a write-after-read conflict, which CockroachDB refuses under SERIALIZABLE with SQLSTATE 40001",
+        "retries_40001": 1,
+        "table": "public.retry_probe",
+        "value_read_on_final_attempt": 100
+      }
+    },
+    "loop": {
+      "attempts": 8,
+      "backoff": "full jitter over a linearly growing window: sleep(min(2.0, 0.05 * retry) * (0.5 + random()))",
+      "backoff_schedule_seconds": [
+        {
+          "retry": 1,
+          "sleep_range": [
+            0.025,
+            0.075
+          ],
+          "window": 0.05
+        },
+        {
+          "retry": 2,
+          "sleep_range": [
+            0.05,
+            0.15
+          ],
+          "window": 0.1
+        },
+        {
+          "retry": 3,
+          "sleep_range": [
+            0.075,
+            0.225
+          ],
+          "window": 0.15
+        },
+        {
+          "retry": 4,
+          "sleep_range": [
+            0.1,
+            0.3
+          ],
+          "window": 0.2
+        },
+        {
+          "retry": 5,
+          "sleep_range": [
+            0.125,
+            0.375
+          ],
+          "window": 0.25
+        },
+        {
+          "retry": 6,
+          "sleep_range": [
+            0.15,
+            0.45
+          ],
+          "window": 0.3
+        },
+        {
+          "retry": 7,
+          "sleep_range": [
+            0.175,
+            0.525
+          ],
+          "window": 0.35
+        }
+      ],
+      "implementation": "scripts/aws/_common.py::with_retry",
+      "non_retryable": "every other SQLSTATE is re-raised unchanged; a gate refusal (23514, P0001) is a result in this system and retrying it would be a way of asking the same forbidden question eight times",
+      "retryable_sqlstate": "40001"
+    },
+    "observed_during_load": {
+      "cloud": {
+        "batches": 10,
+        "retries_40001": 0
+      },
+      "local": {
+        "batches": 10,
+        "retries_40001": 0
+      }
+    },
+    "observed_total": 0
+  },
+  "region": "ap-southeast-2",
+  "synthetic": false
+}

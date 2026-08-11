@@ -1,0 +1,970 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# ═══════════════════════════════════════════════════════════════════════════════════
+# DISCLOSURE-DECISIONS — every value this repository publishes on purpose
+# ═══════════════════════════════════════════════════════════════════════════════════
+#
+# Decision D2, docs/leads/ship-final.md §1.6.
+#
+# `scripts/submission/audit_public_readiness.py` has three dispositions:
+#
+#   UNRESOLVED   gating, red, the default for every hit.
+#   ALLOWLISTED  non-gating; granted by the ALLOWLIST *in the scanner's source*.
+#   DISCLOSED    non-gating; granted ONLY by an entry in THIS FILE naming the exact
+#                path, with a family, a class, a date, a decider and a reason.
+#
+# An occurrence in a file this register does not name stays UNRESOLVED and stays red.
+# That is the whole point. This file is not an allowlist, and it is not permitted to
+# behave like one:
+#
+#   * A grant is keyed by EXACT PATH plus FAMILY. There are no globs, no prefixes and
+#     no wildcards, because the reader is the point and a glob is not readable.
+#   * A grant covers only the SCOPES it declares. `scopes: [history]` means the value
+#     is accepted in a commit that is already on origin/master and is NOT accepted if
+#     it reappears at HEAD.
+#   * A grant that matches nothing on a run is a FAILURE (check 8, `stale_entries`).
+#     An entry cannot sit here as standing permission for a hit nobody has looked at.
+#   * A grant CANNOT ask for a value to be printed verbatim. Disclosed previews are
+#     redacted to a six-character prefix and a length, exactly like unresolved ones.
+#   * `class` comes from a fixed vocabulary in the scanner. `class: fine` is a parse
+#     error, not a decision.
+#
+# The scanner reads this file with a strict minimal YAML reader written into it, not
+# with PyYAML, so `python -I -S scripts/submission/audit_public_readiness.py` still
+# runs with site-packages disabled. The self-test cross-checks that reader against
+# PyYAML where PyYAML happens to be importable, and asserts that eight malformed
+# registers are all refused.
+#
+# WHAT IS NOT IN HERE, and never will be: a real credential. Nothing in this register
+# authenticates against anything. The rotated `mainline_judge` password is the case
+# this rule was written for, and it is checked separately and positively:
+#
+#     printf '%s' "$PASSWORD" | python scripts/submission/audit_public_readiness.py \
+#         --assert-absent
+#
+# ───────────────────────────────────────────────────────────────────────────────────
+#
+# 56 entries in seven classes. `entries` is the count of grants written here; `grants`
+# is the number of findings each one actually disposed of on the run that produced
+# qa/public-readiness.json — one entry covering both the tracked and the history scope
+# disposes of two. Both numbers are re-derived by the scanner on every run and appear
+# in that JSON under `totals.disclosed_by_class`; if they disagree with this comment,
+# the JSON is right and this comment is stale.
+#
+#   class                          entries  grants
+#   abs-path-layout                     25      27   D:/CoackroachDBxAWS/mainline and
+#                                                    similar — layout, no account name
+#   history-already-pushed              14      14   values in commits that are already
+#                                                    on origin/master; masking HEAD
+#                                                    does not retract them
+#   recorded-evidence-account-id         6      22   the AWS account id inside a quoted
+#                                                    command, a refusal transcript or a
+#                                                    committed plan
+#   abs-path-username                    5       7   paths that DO disclose the
+#                                                    founder's Windows account name
+#   synthetic-test-fixture               3       7   credential-shaped literals in
+#                                                    another program's self-test
+#   detector-context-artefact            2       6   the pattern is right and the intent
+#                                                    is not: the matched token is a
+#                                                    hostname or a file path
+#   aws-documentation-placeholder        1       2   AKIAIOSFODNN7EXAMPLE, published by
+#                                                    AWS itself
+#
+# ═══════════════════════════════════════════════════════════════════════════════════
+
+schema: mainline.submission.disclosure-decisions/1
+
+note: >-
+  Every entry below is a decision somebody made on a date, not a suppression. A reader
+  who disagrees with one can delete it and re-run the audit; the finding comes back red
+  and the flip is blocked until it is settled again. That is the only property this
+  file needs to have.
+
+generated_by: w9-public-readiness
+
+decisions:
+
+  # ═══════════════════════════════════════════════════════════════════════════════
+  # 1 · THE AWS ACCOUNT ID, AT HEAD — recorded evidence
+  # ═══════════════════════════════════════════════════════════════════════════════
+  #
+  # D2 splits the twelve digits by role. Where the id was an EXECUTABLE DEFAULT — an
+  # EXPECTED_ACCOUNT in deploy.sh, a variables.tf default, a backend-config example —
+  # it is removed and derived at run time from `aws sts get-caller-identity`. W3, W4,
+  # W5, W6 and W7 did that in their own files, and it is measurable: at HEAD there is
+  # no occurrence left in infra/envs/demo/*.tf, infra/modules/*/*.tf, deploy.sh,
+  # deploy.ps1, teardown.sh or bootstrap_state.sh. docs/deploy/RUNBOOK.md §3 records
+  # `grep -c` over the four deploy scripts returning 0.
+  #
+  # What remains is RECORDED EVIDENCE: transcripts of commands that were actually run,
+  # against an account that actually exists, quoted so a reader can tell the difference
+  # between a design and a run. Redacting those is the move docs/HONESTY.md refuses —
+  # "a redacted transcript is not a transcript". So they are published, and named here.
+  #
+  # The exposure, stated plainly rather than waved at: an AWS account id is not a
+  # credential. It appears in every ARN a partner is handed and grants nothing without
+  # a principal and a policy. The realistic cost is cross-account enumeration and more
+  # targeted phishing against the founder. That is a real cost and it is smaller than
+  # the cost of a submission whose evidence cannot be checked.
+
+  - path: docs/STATE-OF-THE-BUILD.md
+    family: aws_account_id
+    class: recorded-evidence-account-id
+    scopes: [tracked, history]
+    date: 2026-08-11
+    decided_by: w9-public-readiness; ratified by the founder at PUBLIC-FLIP-CHECKLIST.md item 8
+    reason: >-
+      Five occurrences, all inside quoted command output. Lines 403 and 412 are the
+      Bedrock correction: the page quotes the old
+      `authorizationStatus: NOT_AUTHORIZED` finding naming the account, then quotes
+      `aws sts get-caller-identity --profile mainline-dev` returning
+      `arn:aws:iam::<account>:user/mainline-dev` to prove the setting changed. The
+      correction only teaches anything because both transcripts name the same account;
+      paraphrasing one of them would leave a reader unable to tell whether their own
+      account is in the before state or the after state. Lines 497, 499 and 681 are the
+      same shape. Publication is the point of the record.
+
+  - path: docs/deploy/RUNBOOK.md
+    family: aws_account_id
+    class: recorded-evidence-account-id
+    scopes: [tracked, history]
+    date: 2026-08-11
+    decided_by: w9-public-readiness; ratified by the founder at PUBLIC-FLIP-CHECKLIST.md item 8
+    reason: >-
+      A runbook whose §3 opens by stating that no account id is written in any of the
+      four deploy scripts and showing the `grep -c` that returns 0 — so the file itself
+      draws the line D2 draws. The real-account occurrences are the quoted
+      `aws sts get-caller-identity` output that the scripts' run-time derivation is
+      checked against, and the ARNs in the recorded CloudFront `AccessDenied` refusal of
+      2026-08-10; a refusal transcript with the account elided cannot be matched against
+      an AWS support case. Lines 528 and 530 are a different value entirely — the
+      twelve-nines synthetic constant, in a transcript of
+      `teardown.sh --dry-run --expect-account <twelve nines>` demonstrating that the
+      teardown REFUSES when the named account is not the live one. Twelve identical
+      digits is not an account; the scanner's code ALLOWLIST accepts the same constant
+      in packages/mainline-agentkit/tests/test_runtime.py for the same reason.
+
+  - path: infra/modules/demo-api/README.md
+    family: aws_account_id
+    class: recorded-evidence-account-id
+    scopes: [tracked, history]
+    date: 2026-08-11
+    decided_by: w9-public-readiness; ratified by the founder at PUBLIC-FLIP-CHECKLIST.md item 8
+    reason: >-
+      Three occurrences, all in quoted output. Line 403 introduces a measured
+      `aws kms list-aliases` block whose value is the ABSENT `TargetKeyId` — proof that
+      the AWS-managed SSM key did not exist yet — and the alias ARN carries the account.
+      Line 428 is the `kms:EncryptionContext:PARAMETER_ARN` condition in a policy
+      document that is quoted so a reviewer can check the scoping is tight. The module's
+      Terraform carries no account id: it is a variable with no default.
+
+  - path: infra/modules/demo-site/README.md
+    family: aws_account_id
+    class: recorded-evidence-account-id
+    scopes: [tracked, history]
+    date: 2026-08-11
+    decided_by: w9-public-readiness; ratified by the founder at PUBLIC-FLIP-CHECKLIST.md item 8
+    reason: >-
+      One occurrence, inside a recorded `terraform plan` excerpt, as part of the bucket
+      name `mainline-demo-siteroot-<account>` that the module's own naming scheme
+      derives. The plan is committed as evidence that the site module is optional under
+      decision D1 and that `enable_cloudfront` defaults false. A plan with the resource
+      names rewritten is not a plan.
+
+  - path: docs/leads/deploy-plan.md
+    family: aws_account_id
+    class: recorded-evidence-account-id
+    scopes: [tracked, history]
+    date: 2026-08-11
+    decided_by: w9-public-readiness; ratified by the founder at PUBLIC-FLIP-CHECKLIST.md item 8
+    reason: >-
+      One occurrence, in the deploy lead's measured verification block recording which
+      identity the plan was produced as. A lead plan whose ground-truth section cannot
+      be tied to the account it was measured against is an assertion, and this
+      repository's whole claim is that it does not make those.
+
+  - path: docs/leads/submission-plan.md
+    family: aws_account_id
+    class: recorded-evidence-account-id
+    scopes: [tracked, history]
+    date: 2026-08-11
+    decided_by: w9-public-readiness; ratified by the founder at PUBLIC-FLIP-CHECKLIST.md item 8
+    reason: >-
+      One occurrence at line 143, in the submission lead's measured block, same shape
+      and same reason as docs/leads/deploy-plan.md. Recorded evidence of which account
+      the submission's AWS claims were measured against.
+
+  # ═══════════════════════════════════════════════════════════════════════════════
+  # 2 · THE SAME VALUES, IN COMMITS ALREADY ON origin/master
+  # ═══════════════════════════════════════════════════════════════════════════════
+  #
+  # This block is the honest half of D2 and the reason `secrets_history` exists at all.
+  #
+  # Commit 5ddaa3a introduced the account id across eighteen files. Five workers have
+  # since removed it from every executable default at HEAD. That changes what a visitor
+  # reads; it changes NOTHING about `git log -p`, the GitHub blame view, or any clone.
+  # 5ddaa3a is on origin/master. So is e518787, which put the id in ADR 0002 before it
+  # was masked. Flipping visibility publishes both.
+  #
+  # There were exactly two honest ways to clear this, and the founder chose the first:
+  #
+  #   Option A — accept it in writing. Taken. These entries ARE the writing.
+  #   Option B — `git filter-repo --replace-text` and a force-push, rewriting every
+  #              commit hash from e518787 forward. Refused: rewriting shared history to
+  #              hide a value that is not a credential is a worse trade than disclosing
+  #              it, and it would invalidate every commit SHA this repository's own
+  #              evidence artefacts cite.
+  #
+  # Every entry below is `scopes: [history]` ONLY. If any of these values reappears at
+  # HEAD, the tracked scan goes red again and the flip is blocked. Acceptance of the
+  # past is not permission for the future.
+  #
+  # SIX PATHS ARE NOT REPEATED HERE. docs/STATE-OF-THE-BUILD.md, docs/deploy/RUNBOOK.md,
+  # docs/leads/deploy-plan.md, docs/leads/submission-plan.md,
+  # infra/modules/demo-api/README.md and infra/modules/demo-site/README.md still carry
+  # the account id at HEAD as recorded evidence, so their §1 entries already declare
+  # `scopes: [tracked, history]` and cover both. A grant is keyed by (path, family) and
+  # may be written EXACTLY ONCE: the first draft of this file listed those six twice,
+  # and the scanner refused the whole register with
+  # `duplicate (path, family)` rather than half-open the gate. That refusal is the
+  # behaviour, not a defect — a register with two entries for one key has two reasons
+  # for one decision, and a reader cannot tell which one was meant.
+
+  - path: docs/adr/0002-g1-platform-ground-truth.md
+    family: aws_account_id
+    class: history-already-pushed
+    scopes: [history]
+    date: 2026-08-11
+    decided_by: w9-public-readiness; ratified by the founder at PUBLIC-FLIP-CHECKLIST.md item 8
+    reason: >-
+      Introduced by commit e518787 ("docs(adr): 0002 G1 platform ground truth"), which
+      `git branch -r --contains e518787` confirms is on origin/master. Masked at HEAD so
+      it is not the first thing a reader sees; history deliberately not rewritten. This
+      is the finding the previous revision of PUBLIC-READINESS.md §4.1 left open as
+      "Option A or Option B, the founder's choice". Option A, recorded here, dated, with
+      a name on it.
+
+
+
+
+
+  - path: infra/envs/demo/README.md
+    family: aws_account_id
+    class: history-already-pushed
+    scopes: [history]
+    date: 2026-08-11
+    decided_by: w9-public-readiness; ratified by the founder at PUBLIC-FLIP-CHECKLIST.md item 8
+    reason: >-
+      Commit 5ddaa3a, already on origin/master. REMOVED at HEAD by the infrastructure
+      workers under D2 — the tracked scan is clean for this path, and this grant is
+      history-only, so a reintroduction goes red immediately.
+
+  - path: infra/envs/demo/backend.tf
+    family: aws_account_id
+    class: history-already-pushed
+    scopes: [history]
+    date: 2026-08-11
+    decided_by: w9-public-readiness; ratified by the founder at PUBLIC-FLIP-CHECKLIST.md item 8
+    reason: >-
+      Commit 5ddaa3a put the account id in the S3 backend-config example. Already on
+      origin/master. REMOVED at HEAD: the bucket is now supplied by `bootstrap_state.sh`
+      from `aws sts get-caller-identity`. History-only grant.
+
+  - path: infra/envs/demo/outputs.tf
+    family: aws_account_id
+    class: history-already-pushed
+    scopes: [history]
+    date: 2026-08-11
+    decided_by: w9-public-readiness; ratified by the founder at PUBLIC-FLIP-CHECKLIST.md item 8
+    reason: >-
+      Commit 5ddaa3a, already on origin/master. REMOVED at HEAD by the infrastructure
+      workers under D2. History-only grant; a reintroduction at HEAD goes red.
+
+  - path: infra/envs/demo/terraform.tfvars.example
+    family: aws_account_id
+    class: history-already-pushed
+    scopes: [history]
+    date: 2026-08-11
+    decided_by: w9-public-readiness; ratified by the founder at PUBLIC-FLIP-CHECKLIST.md item 8
+    reason: >-
+      Commit 5ddaa3a shipped an example tfvars carrying the real account id — the exact
+      shape of executable default D2 exists to remove, since an example is copied. Already
+      on origin/master. REMOVED at HEAD. History-only grant.
+
+  - path: infra/envs/demo/variables.tf
+    family: aws_account_id
+    class: history-already-pushed
+    scopes: [history]
+    date: 2026-08-11
+    decided_by: w9-public-readiness; ratified by the founder at PUBLIC-FLIP-CHECKLIST.md item 8
+    reason: >-
+      Commit 5ddaa3a set the account id as a Terraform variable DEFAULT, so an apply
+      with no tfvars would have targeted it. Already on origin/master. REMOVED at HEAD;
+      the variable now has no default and the value is derived at run time.
+
+
+  - path: infra/modules/demo-api/variables.tf
+    family: aws_account_id
+    class: history-already-pushed
+    scopes: [history]
+    date: 2026-08-11
+    decided_by: w9-public-readiness; ratified by the founder at PUBLIC-FLIP-CHECKLIST.md item 8
+    reason: >-
+      Commit 5ddaa3a set an account id as a variable default in the API module. Already
+      on origin/master. REMOVED at HEAD under D2 — the variable now has no default.
+      History-only grant.
+
+
+  - path: infra/modules/demo-site/main.tf
+    family: aws_account_id
+    class: history-already-pushed
+    scopes: [history]
+    date: 2026-08-11
+    decided_by: w9-public-readiness; ratified by the founder at PUBLIC-FLIP-CHECKLIST.md item 8
+    reason: >-
+      Commit 5ddaa3a interpolated the literal account id into an S3 bucket name in the
+      site module. Already on origin/master. REMOVED at HEAD; the name is now built from
+      `data.aws_caller_identity.current`. History-only grant.
+
+  - path: infra/modules/demo-site/variables.tf
+    family: aws_account_id
+    class: history-already-pushed
+    scopes: [history]
+    date: 2026-08-11
+    decided_by: w9-public-readiness; ratified by the founder at PUBLIC-FLIP-CHECKLIST.md item 8
+    reason: >-
+      Commit 5ddaa3a set an account id as a variable default in the site module.
+      Already on origin/master. REMOVED at HEAD under D2. History-only grant.
+
+  - path: scripts/deploy/bootstrap_state.sh
+    family: aws_account_id
+    class: history-already-pushed
+    scopes: [history]
+    date: 2026-08-11
+    decided_by: w9-public-readiness; ratified by the founder at PUBLIC-FLIP-CHECKLIST.md item 8
+    reason: >-
+      Commit 5ddaa3a hard-coded the state-bucket account. Already on origin/master.
+      REMOVED at HEAD: `docs/deploy/RUNBOOK.md` §3 records `grep -c` over this script
+      and the other three returning 0, and the value is read from
+      `aws sts get-caller-identity`. History-only grant.
+
+  - path: scripts/deploy/deploy.sh
+    family: aws_account_id
+    class: history-already-pushed
+    scopes: [history]
+    date: 2026-08-11
+    decided_by: w9-public-readiness; ratified by the founder at PUBLIC-FLIP-CHECKLIST.md item 8
+    reason: >-
+      Commit 5ddaa3a hard-coded EXPECTED_ACCOUNT here — the canonical executable
+      default. Already on origin/master. REMOVED at HEAD and derived at run time.
+      History-only grant, so a reintroduction is caught by the tracked scan.
+
+  - path: scripts/deploy/deploy.ps1
+    family: aws_account_id
+    class: history-already-pushed
+    scopes: [history]
+    date: 2026-08-11
+    decided_by: w9-public-readiness; ratified by the founder at PUBLIC-FLIP-CHECKLIST.md item 8
+    reason: >-
+      Commit 5ddaa3a, the PowerShell twin of deploy.sh, same hard-coded expected
+      account. Already on origin/master. REMOVED at HEAD. History-only grant.
+
+  - path: scripts/deploy/teardown.sh
+    family: aws_account_id
+    class: history-already-pushed
+    scopes: [history]
+    date: 2026-08-11
+    decided_by: w9-public-readiness; ratified by the founder at PUBLIC-FLIP-CHECKLIST.md item 8
+    reason: >-
+      Commit 5ddaa3a, same hard-coded expected account as its deploy counterpart — and
+      a teardown script pointed at a hard-coded account is the worst place for one.
+      Already on origin/master. REMOVED at HEAD. History-only grant.
+
+  - path: docs/deploy/cloud-database.md
+    family: high_entropy_secret
+    class: history-already-pushed
+    scopes: [history]
+    date: 2026-08-11
+    decided_by: w9-public-readiness; ratified by the founder at PUBLIC-FLIP-CHECKLIST.md item 8
+    reason: >-
+      Commit 5ddaa3a. The matched token is the CockroachDB Cloud cluster HOSTNAME
+      the 61-character CockroachDB Cloud cluster hostname, which the detector picked up
+      because the surrounding DSN line contains the word
+      `<PASSWORD...>` as a literal placeholder. No password was ever in this file. The
+      hostname is published deliberately in docs/deploy/JUDGE-PACK.md so a judge can
+      connect. Already on origin/master; no longer present at HEAD.
+
+  # ═══════════════════════════════════════════════════════════════════════════════
+  # 3 · DETECTOR CONTEXT ARTEFACTS — the pattern is right, the intent is not
+  # ═══════════════════════════════════════════════════════════════════════════════
+  #
+  # `high_entropy_secret` fires on a token of 24+ characters with Shannon entropy at or
+  # above 4.2 bits/char that sits within 60 characters after a secret-shaped key name.
+  # That narrowing takes a bare entropy scan from 1,021 hits to a handful. The two hits
+  # below are inside the narrowing and outside the intent: the key name that triggered
+  # them is the literal string `<PASSWORD-FROM-THE-SUBMISSION-FORM>` or the word
+  # "password" in a docstring, and the high-entropy token is a hostname or a file path.
+  #
+  # The correct response is NOT to widen the exclusion — a rule saying "ignore tokens
+  # that look like hostnames" would blind the detector to a credential that happens to
+  # contain dots. The detector is left exactly as it is, and the two known hits are
+  # named here so a NEW one still turns the check red.
+
+  - path: docs/deploy/JUDGE-PACK.md
+    family: high_entropy_secret
+    class: detector-context-artefact
+    scopes: [tracked, history]
+    date: 2026-08-11
+    decided_by: w9-public-readiness
+    reason: >-
+      Two hits, lines 72 and 204. The matched 61-character token is the cluster
+      hostname of the CockroachDB Cloud cluster, and the
+      secret-shaped key name that armed the detector is the placeholder
+      `<PASSWORD-FROM-THE-SUBMISSION-FORM>` inside the psql DSN. The page states in bold
+      that the password is not in this repository; it is issued out of band and shown
+      once by `scripts/deploy/judge_access.py attest`. The hostname is published on
+      purpose — a judge cannot connect without it. Independently checked by
+      `--assert-absent` against the rotated password, which found zero occurrences.
+
+  - path: scripts/deploy/judge_access.py
+    family: high_entropy_secret
+    class: detector-context-artefact
+    scopes: [tracked, history]
+    date: 2026-08-11
+    decided_by: w9-public-readiness
+    reason: >-
+      Two hits, lines 16 and 1831. In both, the matched 25-character token is the judge
+      pack's own repository-relative filename — a path, not a value — and the detector
+      armed on the ordinary English words in the surrounding docstring and print
+      statement. Line 1831 is the program emitting the credential block, whose password
+      field says only that the value is issued out of band and points the reader at the
+      judge pack; that block is the one deliberately NOT containing a credential. A file
+      path is not a secret. (This reason names no literal, because a reason that
+      reproduces the token it explains puts the token in qa/public-readiness.json, where
+      the next run finds it again.)
+
+  # ═══════════════════════════════════════════════════════════════════════════════
+  # 4 · SYNTHETIC TEST FIXTURES IN ANOTHER PROGRAM'S SELF-TEST
+  # ═══════════════════════════════════════════════════════════════════════════════
+  #
+  # `scripts/submission/check_submission_ready.py` carries the same discipline this
+  # scanner does: it plants one credential of each family and asserts its own detector
+  # fires. Its fixtures are literals rather than runtime-assembled fragments, so this
+  # scanner sees them. Refusing to publish them would mean deleting the self-test that
+  # keeps the submission checker honest, which is a strictly worse repository.
+
+  - path: scripts/submission/check_submission_ready.py
+    family: aws_access_key_id
+    class: synthetic-test-fixture
+    scopes: [tracked, history]
+    date: 2026-08-11
+    decided_by: w9-public-readiness
+    reason: >-
+      Two hits, lines 1459 and 1663, both the string `AKIAIOSFODNN7EXAMPLE` — the access
+      key id AWS prints in its own public documentation. Line 1459 plants it so
+      `scan_for_credentials` can be asserted to fire; line 1663 plants it in a
+      `credentials_location` field to assert that a credential-shaped value beats a
+      resolved field and forces a FAIL. It authenticates nothing and is not derived from
+      any real key. The scanner's ALLOWLIST already waives the identical value in
+      infra/policy/custody/fixtures/.
+
+  - path: scripts/submission/check_submission_ready.py
+    family: private_key_block
+    class: synthetic-test-fixture
+    scopes: [tracked, history]
+    date: 2026-08-11
+    decided_by: w9-public-readiness
+    reason: >-
+      Line 1461. The BEGIN marker line only, with no key material after it, planted so
+      the private-key family in that program's own scanner can be asserted to fire.
+      Structurally identical to the ALLOWLIST waiver for
+      packages/trappoint-ledger/tests/test_receipt.py, which holds the same marker for
+      the same reason.
+
+  - path: scripts/submission/check_submission_ready.py
+    family: bearer_or_jwt
+    class: synthetic-test-fixture
+    scopes: [tracked, history]
+    date: 2026-08-11
+    decided_by: w9-public-readiness
+    reason: >-
+      Line 1463. The canonical HS256 example JWT from RFC 7519 and jwt.io, signed with
+      the published key `secret`, planted so the JWT family can be asserted to fire. It
+      carries `sub: 1` and authorises nothing anywhere.
+
+  - path: docs/leads/submission-plan.md
+    family: aws_access_key_id
+    class: aws-documentation-placeholder
+    scopes: [tracked, history]
+    date: 2026-08-11
+    decided_by: w9-public-readiness
+    reason: >-
+      Line 141. `AKIAIOSFODNN7EXAMPLE`, quoted in the submission lead's plan while
+      explaining which values the readiness scanner waives and why. A plan that
+      described the waiver without naming the value it waives would be unreviewable —
+      the same argument the scanner's own ALLOWLIST makes about itself.
+
+  # ═══════════════════════════════════════════════════════════════════════════════
+  # 5 · ABSOLUTE WINDOWS PATHS — LAYOUT CLASS
+  # ═══════════════════════════════════════════════════════════════════════════════
+  #
+  # These disclose a directory layout and nothing else: `D:\CoackroachDBxAWS\mainline`,
+  # `C:\Program Files\Docker`, `C:\Windows\System32`, `C:\Python314`, and placeholder
+  # profiles such as `C:\Users\someone`. No account name. The exposure is that a reader
+  # learns the project lives on a D: drive in a directory whose name has a typo in it.
+  #
+  # They are split from the username class deliberately and the scanner enforces the
+  # split: `path_disclosure_class()` re-derives the class from the file's own bytes,
+  # and check 8 FAILS if any entry below turns out to name a real profile directory.
+  # This block cannot be used to smuggle a username disclosure past a reviewer.
+  #
+  # Two dispositions inside this class, per the brief:
+  #   RECOMMEND REGENERATION — the producer can emit a relative path; the owning domain
+  #     should make it do so on the next run. Named per entry.
+  #   RECORD, NOT REPAIR — the artefact's value is that it was captured verbatim.
+  #     Editing it to look tidier is the move docs/HONESTY.md refuses.
+
+  - path: README.md
+    family: abs_windows_path
+    class: abs-path-layout
+    scopes: [tracked]
+    date: 2026-08-11
+    decided_by: w9-public-readiness
+    reason: >-
+      One hit, line 59: `C:\src\` in the documented Windows clone instruction, which
+      exists because a deep checkout under a long profile path hits MAX_PATH. It is
+      advice to the reader about the reader's own machine, not a fact about the
+      founder's. Safe as written; no repair wanted.
+
+  - path: docs/ci/anti-vacuity.md
+    family: abs_windows_path
+    class: abs-path-layout
+    scopes: [tracked]
+    date: 2026-08-11
+    decided_by: w9-public-readiness
+    reason: >-
+      One hit, line 132: `D:/CoackroachDBxAWS/` inside a worked command showing how the
+      anti-vacuity sweep was run locally. Layout only. RECORD, NOT REPAIR — the command
+      is quoted so a reader can re-run it, and a doctored command line is not evidence.
+
+  - path: docs/deploy/RUNBOOK.md
+    family: abs_windows_path
+    class: abs-path-layout
+    scopes: [tracked]
+    date: 2026-08-11
+    decided_by: w9-public-readiness
+    reason: >-
+      Five hits, all system locations rather than user locations: `C:\Program Files\`,
+      `C:\WINDOWS\` and `C:\Windows\` in the PATH-ordering note explaining why the
+      Windows `aws.exe` must be invoked explicitly. These are the same on every Windows
+      machine and disclose nothing about this one.
+
+  - path: docs/leads/submission-plan.md
+    family: abs_windows_path
+    class: abs-path-layout
+    scopes: [tracked]
+    date: 2026-08-11
+    decided_by: w9-public-readiness
+    reason: >-
+      Two hits, lines 8 and 145: the repository root in both slash spellings, in the
+      lead plan's header and a quoted command. Layout only. RECORD, NOT REPAIR — a lead
+      plan states where it was measured.
+
+  - path: docs/release/chain-268.md
+    family: abs_windows_path
+    class: abs-path-layout
+    scopes: [tracked]
+    date: 2026-08-11
+    decided_by: w9-public-readiness
+    reason: >-
+      Two hits, line 80: `D:\CoackroachDBxAWS\` inside pasted migration-chain output.
+      Layout only. RECORD, NOT REPAIR — the paste is the evidence that the chain ran,
+      and this repository refuses to tidy captured output.
+
+  - path: docs/release/conformance-census.md
+    family: abs_windows_path
+    class: abs-path-layout
+    scopes: [tracked]
+    date: 2026-08-11
+    decided_by: w9-public-readiness
+    reason: >-
+      One hit, line 15: the repository root in the census header recording where the
+      census ran. Layout only. RECORD, NOT REPAIR.
+
+  - path: docs/submission/DISCLOSURE.md
+    family: abs_windows_path
+    class: abs-path-layout
+    scopes: [tracked]
+    date: 2026-08-11
+    decided_by: w9-public-readiness
+    reason: >-
+      One hit, line 14: the repository root in the disclosure page's own "measured at"
+      header. Layout only, and a disclosure page that hides where it was measured would
+      be a poor one. RECORD, NOT REPAIR.
+
+  - path: docs/submission/FIRST-FIVE-MINUTES.md
+    family: abs_windows_path
+    class: abs-path-layout
+    scopes: [tracked]
+    date: 2026-08-11
+    decided_by: w9-public-readiness
+    reason: >-
+      Two hits, line 184: `C:\Python314\` and `D:\CoackroachDBxAWS\` in a quoted
+      terminal transcript showing a judge exactly what the first five minutes look like.
+      An interpreter install path and a project root; no account name. RECORD, NOT
+      REPAIR — a doctored transcript defeats the purpose of the page.
+
+  - path: docs/submission/LICENCE-CENSUS.md
+    family: abs_windows_path
+    class: abs-path-layout
+    scopes: [tracked]
+    date: 2026-08-11
+    decided_by: w9-public-readiness
+    reason: >-
+      One hit, line 9: the repository root in the census's "measured at" header. Layout
+      only. RECORD, NOT REPAIR.
+
+  - path: docs/submission/LICENSING.md
+    family: abs_windows_path
+    class: abs-path-layout
+    scopes: [tracked]
+    date: 2026-08-11
+    decided_by: w9-public-readiness
+    reason: >-
+      One hit, line 8: the repository root in the licensing page's "measured at"
+      header. Layout only. RECORD, NOT REPAIR.
+
+  - path: docs/submission/RUNBOOK.md
+    family: abs_windows_path
+    class: abs-path-layout
+    scopes: [tracked]
+    date: 2026-08-11
+    decided_by: w9-public-readiness
+    reason: >-
+      One hit, line 15: the repository root in the runbook's "measured at" header.
+      Layout only. RECORD, NOT REPAIR.
+
+  - path: docs/submission/VIDEO-KIT.md
+    family: abs_windows_path
+    class: abs-path-layout
+    scopes: [tracked]
+    date: 2026-08-11
+    decided_by: w9-public-readiness
+    reason: >-
+      Seven hits, lines 40 and 237 among them: the repository root in both slash
+      spellings, inside the exact commands the founder types on camera. The kit's whole
+      value is that the commands are the ones that will actually run on the recording
+      machine. RECORD, NOT REPAIR.
+
+  - path: evidence/chain/chain-20260810T062542Z.json
+    family: abs_windows_path
+    class: abs-path-layout
+    scopes: [tracked]
+    date: 2026-08-11
+    decided_by: w9-public-readiness
+    reason: >-
+      Seven hits: `migrations_dir` and per-file paths recording where the 271-file
+      migration chain actually ran, JSON-escaped as `D:\\CoackroachDBxAWS\\`. Layout
+      only, no account name. RECORD, NOT REPAIR — this is a signed evidence artefact and
+      rewriting one to look tidier is the move docs/HONESTY.md exists to refuse.
+      RECOMMEND REGENERATION to the release domain, which owns the producer: emitting a
+      path relative to the repository root would clear this on the next run without
+      touching anything already captured.
+
+  - path: evidence/deploy/chain-261.json
+    family: abs_windows_path
+    class: abs-path-layout
+    scopes: [tracked]
+    date: 2026-08-11
+    decided_by: w9-public-readiness
+    reason: >-
+      One hit, line 30: `migrations_dir` in a recorded cloud-chain artefact. Layout
+      only. RECORD, NOT REPAIR. RECOMMEND REGENERATION to the deploy domain, which owns
+      `scripts/deploy/cloud_chain.py`.
+
+  - path: evidence/deploy/lead/cloud_chain_probe.py
+    family: abs_windows_path
+    class: abs-path-layout
+    scopes: [tracked]
+    date: 2026-08-11
+    decided_by: w9-public-readiness
+    reason: >-
+      One hit, line 20: the repository root in the throwaway probe script the deploy
+      lead ran against CockroachDB Cloud, committed verbatim so the measurement in
+      docs/leads/ship-final.md §1.1 can be re-run rather than believed. Layout only.
+      RECORD, NOT REPAIR — the point of committing the probe is that it is the probe.
+
+  - path: evidence/gate-refusal/proof-20260810T054407Z.json
+    family: abs_windows_path
+    class: abs-path-layout
+    scopes: [tracked]
+    date: 2026-08-11
+    decided_by: w9-public-readiness
+    reason: >-
+      One hit, line 21: `migrations_dir`, recording the absolute path the gate-refusal
+      proof ran against. Layout only, no account name. RECORD, NOT REPAIR — identical in
+      kind to the two 20260809/20260810T0042 proofs the scanner's code ALLOWLIST already
+      waives; these four are simply later runs of the same proof.
+
+  - path: evidence/gate-refusal/proof-20260810T074816Z.json
+    family: abs_windows_path
+    class: abs-path-layout
+    scopes: [tracked]
+    date: 2026-08-11
+    decided_by: w9-public-readiness
+    reason: >-
+      One hit, line 21: `migrations_dir`. Identical in kind and reason to
+      proof-20260810T054407Z.json — a later re-run of the same gate-refusal proof.
+      RECORD, NOT REPAIR.
+
+  - path: evidence/gate-refusal/proof-20260810T075418Z.json
+    family: abs_windows_path
+    class: abs-path-layout
+    scopes: [tracked]
+    date: 2026-08-11
+    decided_by: w9-public-readiness
+    reason: >-
+      One hit, line 21: `migrations_dir`. Identical in kind and reason to
+      proof-20260810T054407Z.json — a later re-run of the same gate-refusal proof.
+      RECORD, NOT REPAIR.
+
+  - path: evidence/gate-refusal/proof-20260810T084732Z.json
+    family: abs_windows_path
+    class: abs-path-layout
+    scopes: [tracked]
+    date: 2026-08-11
+    decided_by: w9-public-readiness
+    reason: >-
+      One hit, line 21: `migrations_dir`. Identical in kind and reason to
+      proof-20260810T054407Z.json — a later re-run of the same gate-refusal proof.
+      RECORD, NOT REPAIR.
+
+  - path: infra/modules/demo-api/README.md
+    family: abs_windows_path
+    class: abs-path-layout
+    scopes: [tracked]
+    date: 2026-08-11
+    decided_by: w9-public-readiness
+    reason: >-
+      One hit, line 475: the repository root inside a quoted `terraform -chdir=...`
+      command showing how the module's plan was produced. Layout only. RECORD, NOT
+      REPAIR — the command is quoted so a reviewer can reproduce the plan.
+
+  - path: qa/conformance-census.json
+    family: abs_windows_path
+    class: abs-path-layout
+    scopes: [tracked]
+    date: 2026-08-11
+    decided_by: w9-public-readiness
+    reason: >-
+      Three hits, from line 4: the repository root recorded as the census's root path,
+      JSON-escaped. Layout only, no account name. RECOMMEND REGENERATION to the quality
+      domain, which owns the producer: a census that records a path relative to the
+      repository root is both cleaner and more portable across machines.
+
+  - path: scripts/deploy/deploy.ps1
+    family: abs_windows_path
+    class: abs-path-layout
+    scopes: [tracked]
+    date: 2026-08-11
+    decided_by: w9-public-readiness
+    reason: >-
+      Eight hits, all system locations: `C:\Windows\`, `C:\WINDOWS\`, `C:\Program
+      Files\` and `C:\Program Files (x86)\` in the PATH-probing logic that finds the
+      real `aws.exe` rather than a shim. These are the same on every Windows machine.
+      Load-bearing code, not evidence; nothing to repair.
+
+  - path: scripts/submission/check_path_lengths.py
+    family: abs_windows_path
+    class: abs-path-layout
+    scopes: [tracked]
+    date: 2026-08-11
+    decided_by: w9-public-readiness
+    reason: >-
+      Two hits, lines 17 and 82: `C:\Users\someone\` — a literal placeholder profile
+      name, used to explain the Windows MAX_PATH budget this checker enforces. The
+      scanner's own `path_disclosure_class()` classifies `someone` as a placeholder and
+      would refuse this entry if it named a real profile.
+
+  - path: verticals/mainline/apps/console/scripts/capture-bundle.ts
+    family: abs_windows_path
+    class: abs-path-layout
+    scopes: [tracked]
+    date: 2026-08-11
+    decided_by: w9-public-readiness
+    reason: >-
+      One hit, line 69: `C:\Users\someone\` — the same literal placeholder, in a comment
+      explaining the path-length constraint on the bundle capture step. No account name.
+
+  - path: verticals/mainline/apps/console/src/data/resources.ts
+    family: abs_windows_path
+    class: abs-path-layout
+    scopes: [tracked]
+    date: 2026-08-11
+    decided_by: w9-public-readiness
+    reason: >-
+      One hit, line 363: the bare prefix `C:\Users\` with no profile name after it, in
+      a string illustrating a path shape to the console. Nothing identifying follows the
+      separator.
+
+  # ═══════════════════════════════════════════════════════════════════════════════
+  # 6 · ABSOLUTE WINDOWS PATHS — USERNAME CLASS
+  # ═══════════════════════════════════════════════════════════════════════════════
+  #
+  # A STRICTLY LARGER DISCLOSURE, kept in its own class so it can never be lost inside
+  # the layout total. These five files contain `C:\Users\shaug\...` or `C:/Users/shaug`
+  # and therefore publish the founder's local Windows account name.
+  #
+  # The marginal cost, stated honestly: `shaug` is a prefix of the GitHub handle
+  # `Shaugato`, which is already in the repository URL, in REUSE.toml, in three
+  # pyproject.toml files, in two workflow files and in the author line of all 38 commits
+  # on master. What is newly disclosed is that the local Windows account is `shaug`
+  # rather than `Shaugato` or something else. That is a small increment on top of a
+  # disclosure that is unavoidable for a public repository with a named author.
+  #
+  # It is not zero, and it is not being dressed up as zero. It is five files, listed.
+  # The scanner's code ALLOWLIST already accepts the two largest instances of the same
+  # class (`qa/test-state.json`, 52 occurrences, and `docs/release/gate-refusal-proof.md`).
+
+  - path: evidence/deploy/acceptance.json
+    family: abs_windows_path
+    class: abs-path-username
+    scopes: [tracked]
+    date: 2026-08-11
+    decided_by: w9-public-readiness; ratified by the founder at PUBLIC-FLIP-CHECKLIST.md item 8
+    reason: >-
+      One hit, line 604: a `C:\\Users\\shaug\\...` temporary path captured verbatim in
+      the demo acceptance artefact. Discloses the Windows account name once. RECORD, NOT
+      REPAIR for the committed artefact; RECOMMEND REGENERATION to the deploy domain,
+      which owns `scripts/deploy/demo_acceptance.py` — the next acceptance run can emit
+      a path relative to the repository root and this entry then goes stale, which check
+      8 will report as a failure until it is deleted.
+
+  - path: qa/judge-dry-run.json
+    family: abs_windows_path
+    class: abs-path-username
+    scopes: [tracked]
+    date: 2026-08-11
+    decided_by: w9-public-readiness; ratified by the founder at PUBLIC-FLIP-CHECKLIST.md item 8
+    reason: >-
+      Fifty-four hits, eight of which name `shaug`; the rest are `C:\Program Files\` and
+      `C:\Python314\` system locations. Generated by the judge-access dry run. RECORD,
+      NOT REPAIR for what is committed; RECOMMEND REGENERATION to the deploy domain,
+      which owns `scripts/deploy/judge_access.py` — the environment block it records
+      could hold the interpreter version rather than the interpreter path.
+
+  - path: qa/public-readiness.json
+    family: abs_windows_path
+    class: abs-path-username
+    scopes: [tracked]
+    date: 2026-08-11
+    decided_by: w9-public-readiness; ratified by the founder at PUBLIC-FLIP-CHECKLIST.md item 8
+    reason: >-
+      This audit's own machine output. It contains the account name because the ALLOWLIST
+      reason for `qa/test-state.json` quotes the path it waives, and a waiver that will
+      not say what it waives is not reviewable. Structurally identical to the code
+      ALLOWLIST entry the scanner already carries for
+      `docs/submission/PUBLIC-READINESS.md`, the human-readable rendering of the same
+      rows. Self-referential and unavoidable while the underlying files stand.
+
+  - path: scripts/deploy/deploy.sh
+    family: abs_windows_path
+    class: abs-path-username
+    scopes: [tracked]
+    date: 2026-08-11
+    decided_by: w9-public-readiness; ratified by the founder at PUBLIC-FLIP-CHECKLIST.md item 8
+    reason: >-
+      One hit, line 199, inside a comment: the verbatim `cygpath -m` transcript showing
+      that Git-Bash `/tmp/probe.json` becomes `C:/Users/shaug/AppData/Local/Temp/...`,
+      which is the path the native `aws.exe` can actually open. The conversion is
+      load-bearing — stage 2 passes the DSN as a `file://` paramfile precisely so the
+      secret never enters an argument vector — and the transcript is what makes that
+      believable. RECORD, NOT REPAIR: paraphrasing the transcript to `C:/Users/<you>/`
+      would remove the only evidence that the two paths differ on a real machine.
+
+  - path: scripts/deploy/teardown.sh
+    family: abs_windows_path
+    class: abs-path-username
+    scopes: [tracked]
+    date: 2026-08-11
+    decided_by: w9-public-readiness; ratified by the founder at PUBLIC-FLIP-CHECKLIST.md item 8
+    reason: >-
+      One hit, line 117: the same verbatim `cygpath -m` transcript as
+      scripts/deploy/deploy.sh, in the teardown script's copy of the same comment,
+      explaining the same load-bearing conversion for the same reason. RECORD, NOT
+      REPAIR.
+
+  # ═══════════════════════════════════════════════════════════════════════════════
+  # 7 · THE AUDIT REPORTING ON ITSELF
+  # ═══════════════════════════════════════════════════════════════════════════════
+  #
+  # The scanner reads every TRACKED file, and this register and the JSON it produces
+  # are tracked files. So the audit finds its own reasons. That is correct behaviour and
+  # not a nuisance: a report that leaks while reporting a leak is still a leak, and the
+  # code ALLOWLIST already carries five entries of exactly this shape for
+  # docs/submission/PUBLIC-READINESS.md, qa/public-readiness.json and the scanner
+  # source. These three extend the same reasoning to the two files decision D2 added.
+  #
+  # The rule this ran into, learned the hard way and worth writing down: A REASON MUST
+  # IDENTIFY A VALUE, NOT REPUBLISH IT. The first draft of §2 and §3 quoted the cluster
+  # hostname and the twelve-nines constant verbatim; the audit then found them in its
+  # own JSON on the next run, and the run after that, converging only because the
+  # quotes were removed. What is left below is what genuinely cannot be paraphrased.
+
+  - path: docs/submission/PUBLIC-FLIP-CHECKLIST.md
+    family: abs_windows_path
+    class: abs-path-layout
+    scopes: [tracked]
+    date: 2026-08-11
+    decided_by: w9-public-readiness
+    reason: >-
+      One hit, in checklist item 8.4, which asks the founder to tick a box accepting that
+      this project's directory layout becomes permanently public. Naming the exact string
+      is the whole content of that item: a ratification box that will not say what is
+      being ratified is a box nobody can honestly tick. Layout only, no account name —
+      and the scanner re-derives that from this file's own bytes, so the entry cannot be
+      wrong about it.
+
+  - path: docs/submission/DISCLOSURE-DECISIONS.yaml
+    family: aws_access_key_id
+    class: aws-documentation-placeholder
+    scopes: [tracked]
+    date: 2026-08-11
+    decided_by: w9-public-readiness
+    reason: >-
+      Three hits, in this file's own header and in two reasons: `AKIAIOSFODNN7EXAMPLE`,
+      the access key id AWS prints in its own public documentation. It is named rather
+      than described because a register whose entries will not say WHICH value they
+      grant is not reviewable — the identical argument the scanner's code ALLOWLIST
+      makes about its own source, and about docs/submission/PUBLIC-READINESS.md. The
+      value authenticates nothing.
+
+  - path: docs/submission/DISCLOSURE-DECISIONS.yaml
+    family: abs_windows_path
+    class: abs-path-username
+    scopes: [tracked]
+    date: 2026-08-11
+    decided_by: w9-public-readiness; ratified by the founder at PUBLIC-FLIP-CHECKLIST.md item 8
+    reason: >-
+      Two hits: the project root in the abs-path-layout section header, and the
+      `C:/Users/shaug/AppData/...` transcript quoted in the reasons for
+      scripts/deploy/deploy.sh and scripts/deploy/teardown.sh. Filed under the LARGER
+      class, abs-path-username, because it names the account — and the scanner enforces
+      that: `path_disclosure_class()` re-derives the class from this file's own bytes
+      and check 8 fails the whole register if this entry ever claimed to be mere layout.
+      Naming the path is what makes those two grants checkable.
+
+  # A THIRD ENTRY WAS HERE AND HAS BEEN DELETED, which is the best evidence in this file
+  # that check 8 does what it says.
+  #
+  # `qa/public-readiness.json :: high_entropy_secret` was granted while the reasons in §3
+  # still quoted the judge pack's filename immediately after the word "password" — in
+  # YAML those sit on different wrapped lines and the detector never arms, but serialised
+  # into JSON each reason becomes ONE line and the two land inside the 60-character
+  # window. Rewriting the §3 reason to describe the token instead of reproducing it
+  # removed the hits at the source. The grant then covered nothing, the scanner reported
+  # `granted nothing this run`, and the audit stayed red until the entry was deleted.
+  #
+  # A permission that outlives its finding is how an allowlist stops meaning anything.
+  # This one lasted about four minutes.

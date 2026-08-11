@@ -1,0 +1,242 @@
+{
+  "artefact": "evidence/aws/embeddings/corpus-provenance.json",
+  "caveats": [
+    "every clause body in this run resolved at the 'structural' tier of mainline_corpus.docx.bodies.BodyBank because neither the authored nor the cache body fixture exists in this tree; that is the renderer's own composed prose, identical to what the .docx render puts on the page, not text invented here",
+    "goldset_coverage counts doc_id membership only; it says nothing about whether retrieval over these vectors is any good — that is real-recall's",
+    "the retro query narratives are permits synthesised from investigation work descriptions, as g4_retro.qrels.jsonl's own //!meta line records"
+  ],
+  "generated_at": "2026-08-11T03:05:29Z",
+  "generated_by": "prove_behaviours.py",
+  "kind": "titan-embedding-corpus-provenance",
+  "payload": {
+    "clause_corpus": {
+      "authored_fixture_available": false,
+      "body_renderer_tiers": {
+        "structural": 893
+      },
+      "cache_fixture_available": false,
+      "clauses_in_file": 893,
+      "registry_rows": 893,
+      "source": {
+        "join_with": "/",
+        "path_segments": [
+          "verticals",
+          "mainline",
+          "fixtures",
+          "corpus",
+          "answer-key",
+          "clause.jsonl"
+        ],
+        "why_not_a_string": "scripts/aws/_common.py::_SECRET_SHAPE reads a 40+ character run of [A-Za-z0-9+/=] as a secret, and this path is one. Split, it survives intact."
+      }
+    },
+    "clause_corpus_inputs": [
+      {
+        "join_with": "/",
+        "path_segments": [
+          "verticals",
+          "mainline",
+          "fixtures",
+          "corpus",
+          "answer-key",
+          "clause.jsonl"
+        ],
+        "why_not_a_string": "scripts/aws/_common.py::_SECRET_SHAPE reads a 40+ character run of [A-Za-z0-9+/=] as a secret, and this path is one. Split, it survives intact."
+      },
+      {
+        "join_with": "/",
+        "path_segments": [
+          "verticals",
+          "mainline",
+          "fixtures",
+          "corpus",
+          "answer-key",
+          "clause_registry.jsonl"
+        ],
+        "why_not_a_string": "scripts/aws/_common.py::_SECRET_SHAPE reads a 40+ character run of [A-Za-z0-9+/=] as a secret, and this path is one. Split, it survives intact."
+      },
+      {
+        "join_with": "/",
+        "path_segments": [
+          "verticals",
+          "mainline",
+          "fixtures",
+          "corpus",
+          "answer-key",
+          "clause_revision.jsonl"
+        ],
+        "why_not_a_string": "scripts/aws/_common.py::_SECRET_SHAPE reads a 40+ character run of [A-Za-z0-9+/=] as a secret, and this path is one. Split, it survives intact."
+      }
+    ],
+    "corpus_commit": {
+      "meaning": "a digest over record identities and their three time-wall timestamps, not a git commit",
+      "source": "tests/fixtures/recall/goldsets/build_report.json",
+      "value": "sha256:719c31fa000ff5afa9318fd7467ed76b5ad8ccfb93ac02c66de4602729e0b317"
+    },
+    "counts_per_set": {
+      "mainline_clause": 893,
+      "retro_query": 96,
+      "synthetic_au_alert": 60,
+      "synthetic_csb": 24,
+      "synthetic_fatality": 96,
+      "synthetic_part50": 891
+    },
+    "drops_per_reason": {
+      "synthetic_part50": {
+        "loader:unmapped_degree_of_injury": 9
+      }
+    },
+    "embedded_per_set": {
+      "mainline_clause": 893,
+      "retro_query": 96,
+      "synthetic_au_alert": 60,
+      "synthetic_csb": 24,
+      "synthetic_fatality": 96,
+      "synthetic_part50": 891
+    },
+    "goldset_coverage": {
+      "covered_by_embedded_documents": 1049,
+      "distinct_judged_doc_ids": 1049,
+      "missing": 0,
+      "missing_sample": [],
+      "qrels_files": {
+        "g1_citations.qrels.jsonl": 176,
+        "g2_codes.qrels.jsonl": 1042,
+        "g3_adjudicated.qrels.jsonl": 45,
+        "g4_retro.qrels.jsonl": 449,
+        "gs0/qrels.jsonl": 449
+      }
+    },
+    "loader_reports": {
+      "synthetic_au_alert": {
+        "dropped": {},
+        "n_dropped": 0,
+        "n_kept": 60,
+        "n_read": 60,
+        "source": "au_regulator_alert"
+      },
+      "synthetic_csb": {
+        "dropped": {},
+        "n_dropped": 0,
+        "n_kept": 24,
+        "n_read": 24,
+        "source": "csb_report"
+      },
+      "synthetic_fatality": {
+        "dropped": {},
+        "n_dropped": 0,
+        "n_kept": 96,
+        "n_read": 96,
+        "source": "msha_fatality_report"
+      },
+      "synthetic_part50": {
+        "dropped": {
+          "unmapped_degree_of_injury": 9
+        },
+        "n_dropped": 9,
+        "n_kept": 891,
+        "n_read": 900,
+        "source": "msha_part50"
+      }
+    },
+    "redaction_casualties": [],
+    "retro_queries": {
+      "narrative_collisions": {
+        "distinct_narrative_facets": 24,
+        "group_sizes": {
+          "4": 24
+        },
+        "groups_whose_members_disagree_on_truth_doc_id": 24,
+        "max_rank1_hits_for_any_text_only_retriever": 24,
+        "max_rank1_rate_per_1000": 250,
+        "queries": 96,
+        "why": "An embedding is a function of its input. Queries with byte-identical text share one vector and therefore one ranking, so at most one member of each group can have its own truth document at rank 1. This is a ceiling imposed by the fixture, not by the retriever, and it is not a reason to move a gate floor."
+      },
+      "rows": 96,
+      "source": "tests/fixtures/recall/goldsets/g4_retro.queries.jsonl"
+    },
+    "scope_note": {
+      "brief_named_sets": [
+        "synthetic_fatality",
+        "synthetic_csb",
+        "synthetic_au_alert",
+        "retro_query"
+      ],
+      "default_sets": [
+        "synthetic_part50",
+        "synthetic_fatality",
+        "synthetic_csb",
+        "synthetic_au_alert",
+        "retro_query",
+        "mainline_clause"
+      ],
+      "why_part50_is_included": "The brief's stated purpose for the doc_id scheme is that evidence/aws/recall can score against the committed gold sets. Measured here: the five qrels files judge 1049 distinct doc_ids; the sets the brief named cover 165 of them and all four cover 1049. The 884 uncovered ids are Part 50 DOCUMENT_NOs, and in g4_retro the truth precursor of a fatality IS a Part 50 row. Part 50 is the fourth return value of the same synthetic.generate() call, carries the same doc_id == external_ref identity, and costs about USD 0.0006 to embed. Run with --sets to reproduce the narrower scope."
+    },
+    "sets_requested": [
+      "mainline_clause",
+      "retro_query",
+      "synthetic_au_alert",
+      "synthetic_csb",
+      "synthetic_fatality",
+      "synthetic_part50"
+    ],
+    "statement": "SYNTHETIC — no real incident record is committed to this repository",
+    "synthetic_generate": {
+      "callable": "trappoint_recall.corpora.synthetic.generate",
+      "seed": "mainline-recall-corpora-v1",
+      "summary": {
+        "au_alerts": 60,
+        "csb_reports": 24,
+        "fatality_reports": 96,
+        "part50_rows": 900
+      }
+    },
+    "text_duplication": {
+      "consequence": "An ANN search over this index returns groups of vectors at cosine distance 0.0 to one another. Any recall figure computed here must state its tie-breaking rule; this is a property of the synthetic fixture, not of the retriever.",
+      "determinism": {
+        "texts_that_produced_more_than_one_vector": 0,
+        "vectors_produced_by_more_than_one_text": 0,
+        "verdict": "bijection — identical input text produced byte-identical float32 output every time, which is what makes the resumable store sound"
+      },
+      "distinct_texts": 908,
+      "distinct_vectors": 908,
+      "ids": 2060,
+      "ids_sharing_text_with_another_id": 1152,
+      "per_set": {
+        "mainline_clause": {
+          "distinct_texts": 660,
+          "distinct_vectors": 660,
+          "ids": 893
+        },
+        "retro_query": {
+          "distinct_texts": 24,
+          "distinct_vectors": 24,
+          "ids": 96
+        },
+        "synthetic_au_alert": {
+          "distinct_texts": 8,
+          "distinct_vectors": 8,
+          "ids": 60
+        },
+        "synthetic_csb": {
+          "distinct_texts": 24,
+          "distinct_vectors": 24,
+          "ids": 24
+        },
+        "synthetic_fatality": {
+          "distinct_texts": 96,
+          "distinct_vectors": 96,
+          "ids": 96
+        },
+        "synthetic_part50": {
+          "distinct_texts": 96,
+          "distinct_vectors": 96,
+          "ids": 891
+        }
+      }
+    },
+    "what_that_means": "Every incident narrative embedded here was generated by trappoint_recall.corpora.synthetic. No real incident, no real person, no real operation. The gold sets reference MSHA document numbers whose source PDFs are deliberately absent (scripts/recall/fetch_corpora.py explains why): each record in the real corpus is a death, and a repository is a copy. The MAINLINE clause corpus is likewise a fabricated document set, not any operator's procedures."
+  },
+  "region": "ap-southeast-2",
+  "synthetic": true
+}

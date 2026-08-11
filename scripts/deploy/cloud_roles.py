@@ -618,7 +618,23 @@ def api_expectations() -> list[tuple[str, str, str]]:
 
 
 def judge_expectations() -> list[tuple[str, str, str]]:
-    return [
+    """What the judge login must and must not reach, at deploy time.
+
+    THE NEGATIVES ARE NOT WRITTEN OUT HERE. They are derived from
+    ``judge_access.NEGATIVE_PROBES``, which is the authority on what the published credential
+    claims, so that adding an assertion there extends this deploy-time check automatically. Two
+    hand-maintained copies of a security surface is the failure this module already refuses for
+    ``AUDIT_VIEWS``, and the reason is the same: the copy that drifts is the one nobody re-reads.
+
+    ``destructive`` probes — ``CREATE TABLE`` and ``DROP VIEW`` — are FILTERED OUT here and are
+    proved by ``judge_access.py attest`` instead. That is not a gap being tolerated; it is where
+    the guard lives. On CockroachDB a rolled-back transaction does not undo a schema change
+    (measured, v26.2.5), so a ``DROP VIEW`` probe is only safe when an admin connection is holding
+    the view's ``SHOW CREATE`` ready to rebuild it. ``run()`` below has no such connection open at
+    probe time, and a destructive probe issued without a repair in hand is a worse deployment
+    check than no probe at all.
+    """
+    positives = [
         (
             "read the audit surface",
             "SELECT count(*) FROM mainline_audit.v_open_gate_summary",
@@ -630,20 +646,32 @@ def judge_expectations() -> list[tuple[str, str, str]]:
             "00000",
         ),
         ("read the conservation law", "SELECT count(*) FROM mainline_audit.v_cbm_ledger", "00000"),
-        ("the base tables are unreachable", "SELECT count(*) FROM mainline.permit", REFUSED),
         ("the corpus is unreachable", "SELECT count(*) FROM mainline.clause_version", REFUSED),
         ("mainline_meas is unreachable", "SELECT count(*) FROM mainline_meas.recall_run", REFUSED),
-        (
-            "mainline_qa is unreachable (S14)",
-            "SELECT count(*) FROM mainline_qa.v_disposition_profile",
-            REFUSED,
-        ),
-        (
-            "no write path exists",
-            "INSERT INTO mainline.refusal_ledger (spec_version) VALUES ('x')",
-            REFUSED,
-        ),
     ]
+    try:
+        from scripts.deploy.judge_access import NEGATIVE_PROBES
+    except ImportError:  # pragma: no cover - judge_access absent; the local list still applies
+        return [
+            *positives,
+            ("the base tables are unreachable", "SELECT count(*) FROM mainline.permit", REFUSED),
+            (
+                "mainline_qa is unreachable (S14)",
+                "SELECT count(*) FROM mainline_qa.v_disposition_profile",
+                REFUSED,
+            ),
+            (
+                "no write path exists",
+                "INSERT INTO mainline.refusal_ledger (spec_version) VALUES ('x')",
+                REFUSED,
+            ),
+        ]
+    derived = [
+        (f"{probe['category']}: {probe['target']}", str(probe["sql"]), REFUSED)
+        for probe in NEGATIVE_PROBES
+        if probe["category"] != "create_table" and probe["category"] != "drop_view"
+    ]
+    return [*positives, *derived]
 
 
 # One branch per PRINCIPAL and per OUTCOME. This function's whole output is a report a human

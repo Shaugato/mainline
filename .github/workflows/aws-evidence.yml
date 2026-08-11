@@ -1,0 +1,207 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# THE AWS EVIDENCE LANE — everything under `evidence/aws/`, checked by a stranger.
+#
+# WHY THIS LANE EXISTS AND WHY IT IS HERMETIC. The AWS half of this submission is a pile
+# of JSON written by programs that held live credentials. A judge does not have those
+# credentials. The obvious way to check "did Bedrock really run" is to call Bedrock — and
+# that check is worth nothing to a stranger, because passing it only proves the checker
+# had an account. So every assertion below is a function of committed bytes: the artefacts
+# must carry their envelope, their cross-references must resolve, nothing under
+# `evidence/` may leak an account id or a password, and every EXERCISED verdict in
+# `evidence/tool-usage/aws-services.json` must name a file that exists. `--list` prints the
+# whole invariant table into the log, so a red build is readable without opening the source.
+#
+# NO CREDENTIAL, NO NETWORK, NO CLUSTER, NO `pip install`. `scripts/aws/verify_evidence.py`
+# is standard library only. This lane runs it on a fresh checkout with no secrets
+# configured, and job 3 proves that is true rather than asserting it: it fails the build if
+# the verifier ever grows a third-party import, and it runs the verifier with every AWS
+# environment variable cleared and `~/.aws` removed.
+#
+# THE RED HALF IS THE POINT (PL-2). A verifier that has never gone red is decoration.
+# Job 2 copies `evidence/` into a temporary directory, plants one defect per family —
+# a stripped envelope, a switched model id, a broken reconciliation, a leaked account id,
+# a bent census tally, a dangling EXERCISED citation, a README that stopped covering the
+# tree — and requires the MATCHING invariant to fire for each. It also verifies the
+# UNMUTATED copy first, so a red is never mistaken for the checker falling over, and it
+# fails on any declared invariant that has neither a plant nor a written exemption.
+#
+# `continue-on-error` and `|| true` are banned in this repository and appear nowhere below.
+# If the verifier fails, this lane is RED and the log names the invariant that broke.
+#
+# WHAT THIS LANE DELIBERATELY DOES NOT DO. It does not run
+# `scripts/submission/capture_tool_evidence.py --check`. That command compares the whole
+# census against a fresh walk of the tree, and `file_count` moves whenever anyone commits a
+# file containing the word "bedrock" — so a lane wired to it would go red for reasons that
+# have nothing to do with the evidence, and a lane that is red for unrelated reasons is a
+# lane people learn to ignore. The half that does NOT move on its own — the verdicts, their
+# bases, their anchors and the artefacts they cite — is pinned here instead, by
+# `CEN-VERDICT-SOURCE`, `CEN-BASIS-FIGURES`, `CEN-ANCHORS` and `CEN-EXERCISED-PATHS`.
+# Full staleness remains one documented command away, in `docs/TOOL-USAGE.md` Part 5.
+
+name: aws-evidence
+
+on:
+  push:
+    # `master`, not `main`. MEASURED 2026-08-10: `gh repo view --json defaultBranchRef`
+    # -> `master`, and the branch `main` does not exist in this repository. Fifteen of
+    # seventeen workflows here once triggered on a branch nobody pushes and had therefore
+    # never run once.
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: aws-evidence-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.13"
+  FORCE_COLOR: "1"
+
+jobs:
+  # ── 1 · the evidence agrees with itself, and with the census ────────────────────────
+  verify:
+    name: evidence/aws is internally coherent and leaks nothing
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: The invariant table, printed into the log
+        # So a reviewer reading a red build can see WHICH rule is being enforced without
+        # opening the source.
+        run: python scripts/aws/verify_evidence.py --list
+
+      - name: Every invariant holds
+        # Exit 1 here means a named invariant broke and the message says which one.
+        run: python scripts/aws/verify_evidence.py
+
+      - name: The machine-readable result, for anyone parsing this lane
+        run: python scripts/aws/verify_evidence.py --json
+
+  # ── 2 · and the verifier can go RED, for the reason it claims ───────────────────────
+  anti-vacuity:
+    name: the red half is red for the reason it claims
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: One planted defect per family, each required to fire its own invariant
+        run: python scripts/aws/verify_evidence.py --self-test
+
+      - name: The tracked tree was never mutated
+        # Every plant belongs in a temporary directory. A self-test that edits the
+        # checkout would be indistinguishable from a self-test that passed.
+        run: |
+          set -euo pipefail
+          dirty="$(git status --porcelain --untracked-files=no)"
+          if [ -n "${dirty}" ]; then
+            echo "::error::the self-test mutated the checkout; every plant belongs in a scratch copy"
+            echo "${dirty}"
+            exit 1
+          fi
+          echo "working tree clean — every planted defect lived in a temporary directory"
+
+  # ── 3 · and "hermetic" is proved, not asserted ──────────────────────────────────────
+  hermetic:
+    name: no third-party import, no credential, no ~/.aws
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: The verifier imports nothing outside the standard library
+        # Checked by parsing the source rather than by trying it, because an accidental
+        # `import boto3` inside a function would pass a smoke test on a machine that
+        # happens to have boto3 and fail on a judge's.
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import ast
+          import pathlib
+          import sys
+
+          source = pathlib.Path("scripts/aws/verify_evidence.py")
+          tree = ast.parse(source.read_text(encoding="utf-8"), filename=str(source))
+          modules: set[str] = set()
+          for node in ast.walk(tree):
+              if isinstance(node, ast.Import):
+                  modules.update(alias.name.split(".")[0] for alias in node.names)
+              elif isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
+                  modules.add(node.module.split(".")[0])
+
+          foreign = sorted(m for m in modules if m not in sys.stdlib_module_names)
+          print("imports:", ", ".join(sorted(modules)))
+          if foreign:
+              print(
+                  "::error title=aws-evidence is no longer hermetic::"
+                  f"verify_evidence.py imports {', '.join(foreign)}, which is not in the "
+                  "standard library. A judge with a bare CPython and a clone must be able "
+                  "to run this with no `pip install` between the claim and its check."
+              )
+              raise SystemExit(1)
+          print(f"{len(modules)} imports, every one standard library")
+          PY
+
+      - name: It passes with every AWS credential path removed
+        # Not decoration: `scripts/aws/_common.py::session` falls back to ambient
+        # credentials when a profile is missing, so "it worked on the laptop" proves
+        # nothing about a machine with no account. This is that machine.
+        run: |
+          set -euo pipefail
+          rm -rf "$HOME/.aws"
+          test ! -e "$HOME/.aws"
+          env -u AWS_PROFILE -u AWS_ACCESS_KEY_ID -u AWS_SECRET_ACCESS_KEY \
+              -u AWS_SESSION_TOKEN -u AWS_ROLE_ARN -u AWS_REGION -u AWS_DEFAULT_REGION \
+              -u COCKROACH_DSN -u CC_API_KEY \
+              python scripts/aws/verify_evidence.py
+          echo "verified with no ~/.aws, no AWS_* variable and no database DSN in the environment"
+
+      - name: And it never opens a socket
+        # The strongest available statement of "no network" that does not need a sandbox:
+        # socket.socket is replaced with a raising stub for the duration of the run. If
+        # any code path reached out, this job goes red naming the call.
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import runpy
+          import socket
+          import sys
+
+
+          class NoNetwork(RuntimeError):
+              pass
+
+
+          def refuse(*args, **kwargs):
+              raise NoNetwork(
+                  "scripts/aws/verify_evidence.py attempted to open a socket. This lane's "
+                  "whole value is that a judge can run it with no account and no egress."
+              )
+
+          socket.socket = refuse
+          socket.create_connection = refuse
+          sys.argv = ["scripts/aws/verify_evidence.py"]
+          try:
+              runpy.run_path("scripts/aws/verify_evidence.py", run_name="__main__")
+          except SystemExit as exit_code:
+              if exit_code.code not in (0, None):
+                  print(f"::error::the verifier exited {exit_code.code} under the socket ban")
+                  raise
+          print("completed with socket.socket replaced by a raising stub")
+          PY

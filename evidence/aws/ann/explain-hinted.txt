@@ -1,0 +1,130 @@
+SPDX-FileCopyrightText: 2026 MAINLINE contributors
+SPDX-License-Identifier: CC-BY-4.0
+
+========================================================================================
+EXPLAIN — prefix-constrained ANN, INDEX PINNED  (the claim)
+========================================================================================
+
+This is the plan the whole submission rests on. It must contain a `vector search`
+node whose table line reads `clause_embedding@ce_ann`, with a non-empty
+`prefix spans` binding BOTH prefix columns to one value each. A vector search node
+is the C-SPANN partition tree being descended; `prefix spans` names which tree.
+
+Read this file together with explain-unhinted.txt. On its own it cannot tell you
+whether the hint did anything — that is what the control is for.
+
+----------------------------------------------------------------------------------------
+CONTEXT
+----------------------------------------------------------------------------------------
+  database                     mainline_ann_evidence
+  cluster                      mainline-dev (aws-ap-southeast-1)
+  server_version               CockroachDB CCL v26.2.5
+  rows in the table            1534
+  rows under this site_id      1080
+  distinct activity_root       3
+  embed_model (searched)       amazon.titan-embed-text-v2:0
+  index_gen (searched)         titan-v2-1024-8b510425ae1d
+  vector dimensions            1024
+  beam size                    32
+  rerank multiplier            50
+  query id                     Q-G4-FAI-2011-142
+  site_id bound to             5b144fe2-c64e-54a4-8b7c-2e3eb31497b6
+  activity_root bound to       /mill
+  LIMIT                        10
+  captured at                  2026-08-11T04:07:47Z
+
+----------------------------------------------------------------------------------------
+STATEMENT (bound values are the ones named above; the full 1024-float vector is
+inlined in evidence/aws/ann/the-one-query.sql)
+----------------------------------------------------------------------------------------
+
+SELECT clause_uuid, commit_id, embedding <=> %(vec)s AS dist
+  FROM mainline.clause_embedding@ce_ann
+ WHERE site_id = %(site)s AND activity_root = %(root)s
+ ORDER BY embedding <=> %(vec)s LIMIT %(k)s
+
+----------------------------------------------------------------------------------------
+EXPLAIN
+----------------------------------------------------------------------------------------
+
+distribution: local
+
+• top-k
+│ estimated row count: 9
+│ order: +dist
+│ k: 10
+│
+└── • render
+    │
+    └── • lookup join
+        │ table: clause_embedding@clause_embedding_pk
+        │ equality: (clause_uuid, commit_id) = (clause_uuid, commit_id)
+        │ equality cols are key
+        │
+        └── • vector search
+              table: clause_embedding@ce_ann
+              target count: 10
+              prefix spans: [/'5b144fe2-c64e-54a4-8b7c-2e3eb31497b6'/'/mill' - /'5b144fe2-c64e-54a4-8b7c-2e3eb31497b6'/'/mill']
+
+----------------------------------------------------------------------------------------
+EXPLAIN ANALYZE  (the same statement, executed)
+----------------------------------------------------------------------------------------
+
+planning time: 1ms
+execution time: 7ms
+distribution: local
+plan type: generic, re-optimized
+rows decoded from KV: 34 (145 KiB, 68 KVs, 1 gRPC calls)
+regions: aws-ap-southeast-1
+estimated RUs consumed: 12.2525998116215
+
+• top-k
+│ sql nodes: n1
+│ regions: aws-ap-southeast-1
+│ execution time: 41µs
+│ sql cpu time: 41µs
+│ actual row count: 10
+│ estimated row count: 9
+│ order: +dist
+│ k: 10
+│
+└── • render
+    │ execution time: 143µs
+    │ sql cpu time: 143µs
+    │ actual row count: 34
+    │
+    └── • lookup join
+        │ sql nodes: n1
+        │ kv nodes: n36
+        │ regions: aws-ap-southeast-1
+        │ KV time: 3ms
+        │ KV rows decoded: 34
+        │ execution time: 3ms
+        │ sql cpu time: 213µs
+        │ actual row count: 34
+        │ table: clause_embedding@clause_embedding_pk
+        │ equality: (clause_uuid, commit_id) = (clause_uuid, commit_id)
+        │ equality cols are key
+        │
+        └── • vector search
+              sql nodes: n1
+              regions: aws-ap-southeast-1
+              execution time: 3ms
+              sql cpu time: 560µs
+              actual row count: 34
+              table: clause_embedding@ce_ann
+              target count: 10
+              prefix spans: [/'5b144fe2-c64e-54a4-8b7c-2e3eb31497b6'/'/mill' - /'5b144fe2-c64e-54a4-8b7c-2e3eb31497b6'/'/mill']
+
+----------------------------------------------------------------------------------------
+MACHINE-CHECKABLE FACTS ABOUT THE PLAN ABOVE
+----------------------------------------------------------------------------------------
+  has_vector_search_node               True
+  names_clause_embedding_at_ce_ann     True
+  traverses_ce_ann                     True
+  has_prefix_spans                     True
+  has_full_scan_node                   False
+  has_filter_node                      False
+  digest_sha256                        7272b7a728cf146fca73e0330ef5a08c1f4645158be4815a0fcb82b0d84d106a
+  lines                                18
+

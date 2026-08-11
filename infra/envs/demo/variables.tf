@@ -1,13 +1,29 @@
 # SPDX-FileCopyrightText: 2026 MAINLINE contributors
 # SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
 #
-# Every variable here has a default that works on this account, so that
+# Every variable here has a default that works on the account the deploy runs in, so that
 # `terraform apply` with no `-var` at all is a valid thing to do. The defaults are not
 # placeholders: they are the values `scripts/deploy/deploy.sh` uses.
 #
 # The one exception is `lambda_package_path`, which has a default but whose default is a
 # *build output* — the file does not exist in a clean checkout, and `terraform plan` will
 # say so plainly rather than pretend. That is why `var.enable_api` exists.
+#
+# ── NO ACCOUNT ID IS SPELLED IN THIS FILE, AND THAT IS DECISION D2 ─────────────────────
+#
+# An earlier revision wrote the twelve-digit account number into three descriptions and
+# into the derived bucket-name example. An account id is not a credential, but an
+# *executable default* carrying one is a default that is wrong on every machine except the
+# one it was written on, and `docs/leads/ship-final.md` §1.6 (decision D2) removes it from
+# every executable position in the repository. Where the id is needed it is DERIVED, at
+# run time, from `data.aws_caller_identity.current.account_id` — see `main.tf`'s
+# `local.site_bucket_name` — or, outside Terraform, from:
+#
+#     aws sts get-caller-identity --query Account --output text
+#
+# Where it appears as *recorded evidence* — a quoted apply refusal, a committed plan — it
+# stays, because scrubbing a measurement is the one thing `docs/HONESTY.md` will not do.
+# `<account-id>` below is a placeholder, never a value to copy.
 
 variable "aws_region" {
   description = <<-EOT
@@ -36,9 +52,9 @@ variable "name_prefix" {
   description = <<-EOT
     The prefix carried by the NAME of every resource this root creates.
 
-    This is a safety control, not a cosmetic one. The AWS account 022950218246 holds four
-    unrelated live projects. `scripts/deploy/teardown.sh` refuses to delete anything whose
-    name does not start with this prefix AND which does not carry the tag
+    This is a safety control, not a cosmetic one. The AWS account this deploys into holds
+    four unrelated live projects. `scripts/deploy/teardown.sh` refuses to delete anything
+    whose name does not start with this prefix AND which does not carry the tag
     `project=mainline`. Changing this value without changing teardown's default makes
     teardown refuse to clean up — which is the failure direction we want.
   EOT
@@ -51,16 +67,70 @@ variable "name_prefix" {
   }
 }
 
+# ── THE ARCHITECTURAL SWITCH ──────────────────────────────────────────────────────────
+
+variable "enable_cloudfront" {
+  description = <<-EOT
+    Whether to create the CloudFront distribution, the site bucket and the Origin Access
+    Controls — i.e. whether `module.site` exists at all.
+
+    THE DEFAULT IS `false` AND IT IS A MEASUREMENT, NOT A PREFERENCE. A real
+    `terraform apply` of this root on 2026-08-10 created seven resources and was then
+    refused the eighth by AWS:
+
+        Error: creating CloudFront Distribution: operation error CloudFront:
+        CreateDistributionWithTags, https response error StatusCode: 403,
+        RequestID: 3e63e30d-8c5b-441b-a01b-b70085eba504, AccessDenied:
+        Your account must be verified before you can add new CloudFront resources.
+        To verify your account, please contact AWS Support and include this error message.
+
+    The identical refusal, with the same message, comes from a bare
+    `aws cloudfront create-distribution` carrying a minimal three-field config and no
+    Terraform anywhere, issued by an identity holding `AdministratorAccess`. It is an AWS
+    **account-level verification hold on new CloudFront resources**, liftable only by AWS
+    Support. It is not an IAM problem, not a module defect, and not something a retry
+    fixes. The transcript is `docs/deploy/RUNBOOK.md` line 26; the decision that follows
+    from it is D1, `docs/leads/ship-final.md` §1.4.
+
+    WHAT EACH SETTING PRODUCES
+
+      false (default)   `module.site` is `count = 0`: no bucket, no OACs, no distribution.
+                        `module.api`'s Lambda Function URL is created with
+                        `authorization_type = "NONE"` and IS the demo hostname —
+                        `https://<id>.lambda-url.<region>.on.aws`, HTTPS on an AWS-issued
+                        certificate, no ACM, no hosted zone, no account verification. One
+                        origin serves the console SPA, `/bundle/*` and `/v1/*`, so there
+                        is no CORS and one URL goes in the submission form.
+
+      true              `module.site` is created and owns the hostname; the Function URL
+                        reverts to `authorization_type = "AWS_IAM"` and is reachable only
+                        through the distribution's Origin Access Control. This is the
+                        pre-D1 shape. It will not apply on an account under the hold
+                        above; it plans cleanly, which is what makes it a one-variable
+                        upgrade the day Support lifts it.
+
+    `output.demo_url` follows this variable, so flipping it is the whole architectural
+    switch and no other input has to change with it.
+  EOT
+  type        = bool
+  default     = false
+}
+
 variable "site_bucket_name" {
   description = <<-EOT
     The S3 bucket holding the console build and the EvidenceBundle.
 
-    Empty (the default) means "derive it": `<name_prefix>-site-<account id>`, which on
-    this account is `mainline-demo-site-022950218246`. S3 bucket names are globally
-    unique across all AWS customers, so a hard-coded constant in a public repository is a
-    name somebody else has already taken; deriving from the account id makes it unique
-    without asking the operator to invent anything, and keeps the `mainline-demo-` prefix
-    teardown keys on.
+    ONLY READ WHEN `enable_cloudfront = true`. With the default `false` there is no site
+    module and therefore no bucket; the console is served out of the Lambda package by the
+    same origin as the API.
+
+    Empty (the default) means "derive it": `<name_prefix>-site-<account-id>`, where the
+    account id comes from `data.aws_caller_identity.current.account_id` at plan time — it
+    is not written down anywhere in this configuration (decision D2). S3 bucket names are
+    globally unique across all AWS customers, so a hard-coded constant in a public
+    repository is a name somebody else has already taken; deriving from the account id
+    makes it unique without asking the operator to invent anything, and keeps the
+    `mainline-demo-` prefix teardown keys on.
 
     The bucket is PRIVATE. It has no website configuration and no public policy — reads
     arrive only through CloudFront Origin Access Control.
@@ -71,17 +141,27 @@ variable "site_bucket_name" {
 
 variable "enable_api" {
   description = <<-EOT
-    Whether to create the Lambda, its Function URL, its IAM role, its log group, its
-    alarms, and the CloudFront behaviour that routes `/v1/*` at it.
+    Whether to create the Lambda, its Function URL, its IAM role, its log group and its
+    alarms — and, when `enable_cloudfront` is also true, the `/v1/*` behaviour that routes
+    at it.
 
-    `false` is THE PHASE-1 CUT LINE (`docs/leads/deploy-plan.md` § 4). It produces a
-    complete, working, HTTPS demo URL serving the console over the verified
-    EvidenceBundle with a `REPLAY` badge, and no backend at all. Nothing about that path
-    can be broken by a Lambda that is not ready.
+    UNDER D1 THIS IS THE VARIABLE THAT OWNS THE HOSTNAME, and its meaning inverted. It
+    used to be the Phase-1 cut line, on the reading that the distribution produced the URL
+    and the Lambda was the optional half. AWS refuses to create a distribution on this
+    account (see `enable_cloudfront`), so the halves swapped: with the default
+    `enable_cloudfront = false`, `enable_api = false` produces a root that creates
+    **nothing at all** and has no demo URL to emit. `output.demo_url` carries a
+    precondition that says exactly that rather than returning an empty string.
 
-    `scripts/deploy/deploy.sh --phase1` sets this. Flipping it back to `true` and
-    re-applying adds the API to the SAME distribution and the SAME URL; the judge's link
-    never changes.
+    The two configurations that make sense are therefore:
+
+      enable_api = true,  enable_cloudfront = false   the shipping shape (D1)
+      enable_api = true,  enable_cloudfront = true    the pre-D1 shape, blocked by AWS
+
+    `scripts/deploy/deploy.sh` sets this. Flipping `enable_cloudfront` later puts a CDN in
+    front of the SAME function; the Function URL is preserved, the public hostname changes
+    and the submission form has to be updated with it — which is why the default ships the
+    hostname that does not depend on an AWS support queue.
   EOT
   type        = bool
   default     = true
@@ -154,6 +234,9 @@ variable "dsn_parameter_name" {
 variable "cloudfront_price_class" {
   description = <<-EOT
     `PriceClass_All`, `PriceClass_200` or `PriceClass_100`.
+
+    ONLY READ WHEN `enable_cloudfront = true`. With the default `false` there is no
+    distribution and this value reaches no resource.
 
     `PriceClass_All` is the default and it costs nothing extra here, because the whole
     demo sits inside CloudFront's perpetual free tier (1 TB egress, 10 M requests a

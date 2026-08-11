@@ -42,8 +42,11 @@ key                          asserts
  4   demo_url                ``demo_url`` resolved (and HTTP 200 under --check-urls)
  5   video_url               ``video_url`` resolved
  6   devpost_description     ``docs/submission/DEVPOST.md`` exists and is non-trivial
- 7   tool_usage              ``docs/TOOL-USAGE.md`` names >=2 CRDB tools and >=1 AWS
- 8   judge_access            ``judge_access`` resolved, and no credential in the file
+ 7   tool_usage              ``docs/TOOL-USAGE.md`` names >=2 CRDB tools and >=1 AWS,
+                             at least one AWS row EXERCISED/EXECUTED, and at least one
+                             cited ``evidence/...`` artefact that exists on disk
+ 8   judge_access            ``judge_access`` answered with substance - a boolean, a
+                             sentence and a pointer - and no credential in the file
  9   disclosure              ``DISCLOSURE.md`` exists; every commit inside the window
 10   deadline                time remaining to 2026-08-18 17:00 EDT
 ===  ======================  =========================================================
@@ -130,6 +133,52 @@ DEVPOST_MIN_LINES = 20
 #: are wrong. `XXX` is absent for the opposite reason: it collides with identifier
 #: conventions and fires on prose that is finished.
 PLACEHOLDER_TOKENS = ("TODO", "TBD", "FIXME", "PLACEHOLDER")
+
+#: Floors for the two `judge_access` sentences. Measured against the shipped values on
+#: 2026-08-11: `how` is 421 characters and `credentials_location` is 315, so the floors are
+#: not tuned to what happens to be written today - they are the width below which a value
+#: cannot carry a path, a command and a verb, which is what a judge needs from it.
+#:
+#: They exist because "not UNRESOLVED" was the whole test until now, and `"how": "x"`
+#: satisfied it. A gate that accepts one character has not asked a question.
+JUDGE_HOW_MIN_CHARS = 48
+JUDGE_POINTER_MIN_CHARS = 24
+JUDGE_POINTER_MIN_CHARS_WHEN_FREE = 12
+
+#: Strings that occupy a field without answering it. Compared after lowercasing and
+#: stripping surrounding punctuation, so `"None."` and `"n/a"` are both caught.
+#: `none - no credential is required` is NOT here: it is a sentence, and when
+#: `required` is `false` it is the correct answer.
+NON_ANSWERS = frozenset(
+    {
+        "",
+        "-",
+        "--",
+        "n/a",
+        "na",
+        "none",
+        "nil",
+        "null",
+        "tbc",
+        "unknown",
+        "ask us",
+        "see above",
+        "see below",
+        "as above",
+        "same as above",
+    }
+)
+
+#: A verdict word that asserts a service RAN, as opposed to being configured for. The
+#: tool-usage row requires at least one AWS service to carry one of these on the same
+#: line as its own name, because the rules ask for services *used*, and a table in which
+#: every AWS row reads DESIGNED documents an intention.
+EXECUTED_VERDICT = re.compile(r"\b(EXERCISED|EXECUTED)\b")
+
+#: A citation of a committed artefact, as `docs/TOOL-USAGE.md` writes them. Bounded to
+#: the extensions this repository's evidence actually uses so that prose like
+#: "everything under `evidence/`" is not mistaken for a citation.
+EVIDENCE_CITATION = re.compile(r"\bevidence/[A-Za-z0-9_.\-/]+\.(?:json|txt|md|sql|yaml|yml)\b")
 
 #: The four CockroachDB tools the rules count. The requirement is ">= 2 CockroachDB
 #: tools", and a tool is a product, not a SQL feature - `docs/TOOL-USAGE.md` names these
@@ -491,6 +540,208 @@ def count_named_tools(text: str | None) -> tuple[list[str], list[str]]:
     return crdb, aws
 
 
+def is_a_non_answer(value: str) -> bool:
+    """True when a string fills a field without answering it: ``none``, ``n/a``, ``-``."""
+    return value.strip().strip(".,;:!").casefold() in NON_ANSWERS
+
+
+def carries_a_placeholder(value: str) -> list[str]:
+    """Return the placeholder tokens present in *value*, as whole words."""
+    upper = value.upper()
+    return [token for token in PLACEHOLDER_TOKENS if re.search(rf"\b{token}\b", upper)]
+
+
+def assess_judge_access(access: Any) -> tuple[bool, str, dict[str, Any]]:  # noqa: PLR0911
+    """Is ``judge_access`` answered *with substance*? Return ``(ok, reason, detail)``.
+
+    Resolving a field and answering it are different things, and until 2026-08-11 this
+    gate only checked the first: any string that was not the literal ``UNRESOLVED``
+    passed, so ``"how": "x"`` resolved requirement 6. The checks below are the smallest
+    set that a judge could act on:
+
+    * ``required`` is a real JSON boolean - not the sentinel, and not the string
+      ``"false"``, which is truthy in most languages that will read this file;
+    * ``how`` is a sentence, not a token, and carries no unfinished-sentence marker;
+    * ``credentials_location`` says *where*, and when a credential IS required it may
+      not answer ``none`` - that combination is a contradiction a judge discovers at
+      the moment they try to log in.
+
+    The credential-shape scan is deliberately NOT here: it runs over the whole document
+    in :func:`scan_for_credentials`, because a credential in any other key is just as
+    published as one in this object.
+    """
+    detail: dict[str, Any] = {}
+    if not isinstance(access, dict):
+        return False, f"judge_access is {type(access).__name__}, not an object", detail
+
+    missing = [name for name in ("required", "how", "credentials_location") if name not in access]
+    if missing:
+        return False, "judge_access is missing " + ", ".join(missing), {"missing": missing}
+
+    unresolved = sorted(
+        f"judge_access.{name}"
+        for name, value in access.items()
+        if isinstance(value, str) and value.strip() == UNRESOLVED
+    )
+    if unresolved:
+        return (
+            False,
+            f"{len(unresolved)} unresolved: " + ", ".join(unresolved),
+            {"unresolved": unresolved},
+        )
+
+    required = access["required"]
+    if not isinstance(required, bool):
+        return False, f"judge_access.required is {required!r}, not a boolean", detail
+    detail["required"] = required
+
+    how = access["how"]
+    if not isinstance(how, str):
+        return False, f"judge_access.how is {type(how).__name__}, not a string", detail
+    how = how.strip()
+    detail["how_chars"] = len(how)
+    if is_a_non_answer(how):
+        return False, f"judge_access.how is {how!r}, which answers nothing", detail
+    if len(how) < JUDGE_HOW_MIN_CHARS:
+        return (
+            False,
+            (
+                f"judge_access.how is {len(how)} characters, under the "
+                f"{JUDGE_HOW_MIN_CHARS}-character floor for a sentence a judge can act on"
+            ),
+            detail,
+        )
+    planted = carries_a_placeholder(how)
+    if planted:
+        return False, "judge_access.how carries " + ", ".join(planted), detail
+
+    pointer = access["credentials_location"]
+    if not isinstance(pointer, str):
+        return (
+            False,
+            f"judge_access.credentials_location is {type(pointer).__name__}, not a string",
+            detail,
+        )
+    pointer = pointer.strip()
+    detail["credentials_location_chars"] = len(pointer)
+    planted = carries_a_placeholder(pointer)
+    if planted:
+        return False, "judge_access.credentials_location carries " + ", ".join(planted), detail
+
+    floor = JUDGE_POINTER_MIN_CHARS if required else JUDGE_POINTER_MIN_CHARS_WHEN_FREE
+    if required and is_a_non_answer(pointer):
+        return (
+            False,
+            (
+                f"judge_access.required is true but credentials_location is {pointer!r} - "
+                "a judge who needs a credential is not told where it is"
+            ),
+            detail,
+        )
+    if len(pointer) < floor:
+        return (
+            False,
+            (
+                f"judge_access.credentials_location is {len(pointer)} characters, under the "
+                f"{floor}-character floor"
+            ),
+            detail,
+        )
+
+    shape = "credential required" if required else "no credential required"
+    return (
+        True,
+        (
+            f"resolved - {shape}; how {len(how)} chars, credentials_location "
+            f"{len(pointer)} chars, and no credential value in the file"
+        ),
+        detail,
+    )
+
+
+def assess_tool_usage(
+    text: str | None, artefact_exists: Any = None
+) -> tuple[bool, str, dict[str, Any]]:
+    """Does the tool-usage document meet requirement 5? Return ``(ok, reason, detail)``.
+
+    Four questions, and the last two are new on 2026-08-11. Counting names was the whole
+    test, and a document that named twelve AWS services without ever having called one
+    passed it - which is exactly the document this repository shipped until Bedrock was
+    invoked. The rules ask which services were *used*, and how.
+
+    1. at least two CockroachDB tools are named;
+    2. at least one AWS service is named;
+    3. at least one AWS service is named **on a line that also carries an executed-family
+       verdict** (`EXERCISED` or `EXECUTED`), so a table of pure intent cannot pass;
+    4. at least one cited ``evidence/...`` artefact **exists on disk**, so the citation is
+       a file a reader can open rather than a path somebody typed.
+
+    *artefact_exists* is injected so the self-test can exercise every branch without
+    planting files. It defaults to asking the filesystem, relative to the repository root
+    inferred from this module's location.
+    """
+    if artefact_exists is None:
+
+        def artefact_exists(relative: str) -> bool:
+            return (REPO_ROOT_DEFAULT / relative).is_file()
+
+    crdb, aws = count_named_tools(text)
+    detail: dict[str, Any] = {"crdb_tools": crdb, "aws_services": aws}
+    if not text:
+        return False, "the document is absent or empty", detail
+
+    executed: list[str] = []
+    for line in text.splitlines():
+        if not EXECUTED_VERDICT.search(line):
+            continue
+        lowered = line.lower()
+        for name, pattern in AWS_SERVICES:
+            if re.search(pattern, lowered) and name not in executed:
+                executed.append(name)
+    detail["aws_services_executed"] = executed
+
+    cited = sorted({match.group(0) for match in EVIDENCE_CITATION.finditer(text)})
+    present = [path for path in cited if artefact_exists(path)]
+    detail["evidence_cited"] = len(cited)
+    detail["evidence_present"] = present[:8]
+    detail["evidence_present_count"] = len(present)
+
+    if len(crdb) < 2 or len(aws) < 1:
+        return (
+            False,
+            (
+                f"{len(crdb)} CockroachDB tool(s), {len(aws)} AWS service(s) named; "
+                "the floor is 2 and 1"
+            ),
+            detail,
+        )
+    if not executed:
+        return (
+            False,
+            (
+                f"{len(aws)} AWS service(s) named and none carries EXERCISED or EXECUTED - "
+                "the rules ask which services were used, not which were planned"
+            ),
+            detail,
+        )
+    if not present:
+        missing = f"; {len(cited)} cited path(s), none on disk" if cited else "; none cited"
+        return (
+            False,
+            f"{', '.join(executed)} marked as having run, with no committed artefact{missing}",
+            detail,
+        )
+    return (
+        True,
+        (
+            f"{len(crdb)} CockroachDB tools, {len(aws)} AWS services; "
+            f"{len(executed)} AWS service(s) marked as having run ({', '.join(executed)}); "
+            f"{len(present)} of {len(cited)} cited artefacts present on disk"
+        ),
+        detail,
+    )
+
+
 def parse_commit_log(stdout: str) -> list[dict[str, str]]:
     """Parse ``git log --format=%H%x1f%aI%x1f%cI%x1f%s`` into dictionaries."""
     commits: list[dict[str, str]] = []
@@ -735,20 +986,29 @@ def read_visibility(root: Path) -> tuple[str | None, str]:
 
 
 def row_repo_public(root: Path, submission: dict[str, Any] | None) -> Row:
-    """Requirement 1c - the repository a judge opens is public, and its URL is recorded."""
+    """Requirement 1c - the repository a judge opens is public, and its URL is recorded.
+
+    Two independent facts share one row because the requirement is one requirement, but
+    the observed column names BOTH of them on every path. Reporting only the fact that
+    failed first hides the other: on 2026-08-10 this row said `visibility is PRIVATE` and
+    never mentioned that `repo_url` was also unwritten, so resolving the URL changed
+    nothing on screen and looked like it had not landed.
+    """
     requirement = "1 - public repo with an open-source LICENSE file"
     title = "repository is public"
     flip = [
         "Flipping visibility is IRREVERSIBLE in practice - forks, clones and caches",
-        "outlive the flip. Run the readiness audit to exit 0 FIRST:",
-        f"    python {READINESS_AUDIT.as_posix()}",
+        "outlive the flip. Drive the readiness audit to exit 0 FIRST, then flip:",
+        f"    python {READINESS_AUDIT.as_posix()} --json qa/public-readiness.json",
         (
             f"    gh repo edit {GITHUB_SLUG} --visibility public"
             " --accept-visibility-change-consequences"
         ),
+        f"    gh repo view {GITHUB_SLUG} --json visibility    # expect: PUBLIC",
     ]
 
     url_ok, url_reason = classify_url((submission or {}).get("repo_url"))
+    url_note = f"repo_url {url_reason}" if url_ok else f"repo_url is {url_reason}"
     visibility, source = read_visibility(root)
 
     if visibility is None:
@@ -757,7 +1017,7 @@ def row_repo_public(root: Path, submission: dict[str, Any] | None) -> Row:
             title=title,
             requirement=requirement,
             status=STATUS_NOTRUN,
-            observed=f"NOT CHECKED - {source}",
+            observed=f"NOT CHECKED - {source}; {url_note}",
             remedy=[
                 "Nothing answered, so nothing is asserted. Ask GitHub directly:",
                 f"    gh repo view {GITHUB_SLUG} --json visibility",
@@ -766,13 +1026,25 @@ def row_repo_public(root: Path, submission: dict[str, Any] | None) -> Row:
             detail={"visibility": None, "source": source, "repo_url": url_reason},
         )
     if visibility != "PUBLIC":
+        missing = "the flip" if url_ok else "the flip AND repo_url"
         return Row(
             key="repo_public",
             title=title,
             requirement=requirement,
             status=STATUS_FAIL,
-            observed=f"visibility is {visibility} [{source}]",
-            remedy=flip,
+            observed=(
+                f"visibility is {visibility} [{source}]; {url_note}; "
+                f"a judge opening it today gets 404. Missing: {missing}"
+            ),
+            remedy=(
+                flip
+                if url_ok
+                else [
+                    f"Write the URL a judge will open into {SUBMISSION_JSON.as_posix()}:",
+                    f'    "repo_url": "https://github.com/{GITHUB_SLUG}"',
+                    *flip,
+                ]
+            ),
             detail={"visibility": visibility, "source": source, "repo_url": url_reason},
         )
     if not url_ok:
@@ -830,10 +1102,17 @@ def row_demo_url(submission: dict[str, Any] | None, check_urls: bool) -> Row:
     requirement = "2 - a URL to a functional demo app"
     title = "demo URL"
     remedy = [
-        f"There is exactly one place to write it - {SUBMISSION_JSON.as_posix()}:",
-        '    "demo_url": "https://<the deployed console>"',
+        "Nothing is deployed: the value cannot be written until an apply creates the",
+        "origin. The plan that creates it is committed at",
+        "    evidence/deploy/terraform-plan-furl.txt",
+        "and the apply is one command, gated on an explicit approval:",
+        "    MAINLINE_APPLY_APPROVED=1 scripts/deploy/deploy.sh --expect-account <id>",
+        "It prints a https://<id>.lambda-url.ap-southeast-1.on.aws hostname. That string,",
+        f"and nothing invented, is the value - {SUBMISSION_JSON.as_posix()}:",
+        '    "demo_url": "https://<id>.lambda-url.ap-southeast-1.on.aws"',
         "Then prove it answers, from a machine that is not the one that deployed it:",
         "    python scripts/submission/check_submission_ready.py --check-urls",
+        "    python scripts/deploy/demo_acceptance.py --url <the URL>",
     ]
     if submission is None:
         return Row(
@@ -895,9 +1174,13 @@ def row_video_url(submission: dict[str, Any] | None, check_urls: bool) -> Row:
     title = "video URL"
     remedy = [
         "The script, the shot list and the seeded state are in the tree and CI-validated;",
-        "the film is the founder's to record. Upload it UNLISTED, then:",
+        "the film is the founder's to record. Nothing in this repository can resolve it.",
+        "    docs/submission/VIDEO-KIT.md                          the VO and the timings",
+        "    verticals/mainline/demo/script/SHOT-LIST.yaml         the shots, budget-checked",
+        "    python scripts/submission/seed_demo_state.py          the state on camera",
+        "Record it, upload it UNLISTED to YouTube or Vimeo, and paste the URL it is given:",
         f'    edit {SUBMISSION_JSON.as_posix()}: "video_url": "https://youtu.be/<id>"',
-        "    (see docs/submission/VIDEO-KIT.md for the shot list and the VO)",
+        "    python scripts/submission/check_submission_ready.py --check-urls",
     ]
     if submission is None:
         return Row(
@@ -996,11 +1279,19 @@ def row_devpost(root: Path) -> Row:
 
 
 def row_tool_usage(root: Path) -> Row:
-    """Requirement 5 - which CockroachDB and AWS services, and how."""
-    requirement = "5 - documented CockroachDB and AWS usage (>=2 CRDB tools, >=1 AWS)"
+    """Requirement 5 - which CockroachDB and AWS services, and how.
+
+    The floor is two CockroachDB tools and one AWS service, and since 2026-08-11 the row
+    additionally requires that at least one AWS service is marked as having RUN and that
+    at least one artefact the document cites is a file that exists. A census of services
+    a project intends to use is not documentation of services it used.
+    """
+    requirement = "5 - documented CockroachDB and AWS usage (>=2 CRDB tools, >=1 AWS, >=1 run)"
     text = read_text(root / TOOL_USAGE_MD)
-    crdb, aws = count_named_tools(text)
-    detail = {"crdb_tools": crdb, "aws_services": aws}
+
+    def artefact_exists(relative: str) -> bool:
+        return (root / relative).is_file()
+
     if text is None:
         return Row(
             key="tool_usage",
@@ -1012,18 +1303,24 @@ def row_tool_usage(root: Path) -> Row:
                 "Write the document the rules ask for, naming each tool and what it does here:",
                 f"    {TOOL_USAGE_MD.as_posix()}",
             ],
-            detail=detail,
+            detail={"crdb_tools": [], "aws_services": []},
         )
-    if len(crdb) < 2 or len(aws) < 1:
+
+    ok, reason, detail = assess_tool_usage(text, artefact_exists)
+    if not ok:
         return Row(
             key="tool_usage",
             title="tool usage documented",
             requirement=requirement,
             status=STATUS_FAIL,
-            observed=f"{len(crdb)} CockroachDB tool(s), {len(aws)} AWS service(s) named",
+            observed=reason,
             remedy=[
                 "The rules require at least two CockroachDB tools and at least one AWS",
-                f"service, named and explained. Extend {TOOL_USAGE_MD.as_posix()}, then:",
+                "service, named, explained, and distinguished from what was merely designed.",
+                f"Extend {TOOL_USAGE_MD.as_posix()} so that at least one AWS row carries",
+                "EXERCISED or EXECUTED beside an `evidence/...` artefact that exists, then:",
+                "    python scripts/deploy/aws_live_probe.py    # evidence/deploy/aws-live.json",
+                "    python scripts/submission/capture_tool_evidence.py --check",
                 "    python scripts/submission/check_submission_ready.py",
             ],
             detail=detail,
@@ -1033,24 +1330,28 @@ def row_tool_usage(root: Path) -> Row:
         title="tool usage documented",
         requirement=requirement,
         status=STATUS_PASS,
-        observed=f"{len(crdb)} CockroachDB tools, {len(aws)} AWS services named",
+        observed=reason,
         detail=detail,
     )
 
 
-def row_judge_access(submission: dict[str, Any] | None) -> Row:  # noqa: PLR0911
+def row_judge_access(submission: dict[str, Any] | None) -> Row:
     """Requirement 6 - free, unrestricted judge access, and no credential in this file."""
     requirement = "6 - free, unrestricted access for judges"
     title = "judge access"
     remedy = [
-        f"Resolve all three members in {SUBMISSION_JSON.as_posix()}:",
+        f"Answer all three members in {SUBMISSION_JSON.as_posix()} with substance:",
         '    "judge_access": {',
-        '      "required": false,',
-        '      "how": "<one sentence: what a judge does to get in>",',
-        '      "credentials_location": "<where a credential lives, never the credential>"',
+        '      "required": true,',
+        '      "how": "<one sentence naming the path and the artefact that proves it works>",',
+        '      "credentials_location": "<where the credential lives, never the credential>"',
         "    }",
+        f"`how` must be at least {JUDGE_HOW_MIN_CHARS} characters and `credentials_location`",
+        f"at least {JUDGE_POINTER_MIN_CHARS}: a token is not an answer a judge can act on.",
         "If access needs no credential, set required to false and say so in `how`;",
         '`credentials_location` then reads "none - no credential is required".',
+        "Re-derive after editing:",
+        "    python scripts/submission/check_submission_ready.py --json",
     ]
     if submission is None:
         return Row(
@@ -1074,59 +1375,30 @@ def row_judge_access(submission: dict[str, Any] | None) -> Row:  # noqa: PLR0911
                 "This file goes public with the repository. Remove the value and leave a",
                 "pointer in its place, then rotate whatever was written here:",
                 *[f"    {leak}" for leak in leaks],
+                "The judge login rotates with:",
+                "    python scripts/deploy/judge_access.py provision --rotate --show-password",
             ],
             detail={"credential_findings": leaks},
         )
 
-    unresolved = find_unresolved(submission, only=("judge_access",))
-    access = submission.get("judge_access")
-    if not isinstance(access, dict):
+    ok, reason, detail = assess_judge_access(submission.get("judge_access"))
+    if not ok:
         return Row(
             key="judge_access",
             title=title,
             requirement=requirement,
             status=STATUS_FAIL,
-            observed="judge_access is not an object",
+            observed=reason,
             remedy=remedy,
+            detail=detail,
         )
-    missing = [name for name in ("required", "how", "credentials_location") if name not in access]
-    if missing:
-        return Row(
-            key="judge_access",
-            title=title,
-            requirement=requirement,
-            status=STATUS_FAIL,
-            observed="judge_access is missing " + ", ".join(missing),
-            remedy=remedy,
-            detail={"missing": missing},
-        )
-    if unresolved:
-        return Row(
-            key="judge_access",
-            title=title,
-            requirement=requirement,
-            status=STATUS_FAIL,
-            observed=f"{len(unresolved)} unresolved: " + ", ".join(unresolved),
-            remedy=remedy,
-            detail={"unresolved": unresolved},
-        )
-    if not isinstance(access.get("required"), bool):
-        return Row(
-            key="judge_access",
-            title=title,
-            requirement=requirement,
-            status=STATUS_FAIL,
-            observed=f"judge_access.required is {access.get('required')!r}, not a boolean",
-            remedy=remedy,
-        )
-    shape = "credential required" if access["required"] else "no credential required"
     return Row(
         key="judge_access",
         title=title,
         requirement=requirement,
         status=STATUS_PASS,
-        observed=f"resolved - {shape}; no credential value in the file",
-        detail={"required": access["required"]},
+        observed=reason,
+        detail=detail,
     )
 
 
@@ -1372,6 +1644,18 @@ def render_remedies(rows: list[Row], stream: Any) -> int:
             print(f"advisory: {row.title}: {row.observed}", file=stream)
         print("", file=stream)
 
+    # The NOTRUN census is printed even when it is zero. A reader who is told how many
+    # questions went unasked can weigh the verdict; a reader who is told nothing assumes
+    # the answer was no. This line is the difference between the two.
+    not_run = [row for row in rows if row.status == STATUS_NOTRUN]
+    if not_run:
+        print(
+            f"{len(not_run)} row(s) were NOT CHECKED and are counted as unresolved: "
+            + ", ".join(row.title for row in not_run),
+            file=stream,
+        )
+    else:
+        print("0 rows were NOT CHECKED: every question above was asked and answered.", file=stream)
     print(
         "NOTRUN means NOT CHECKED. It is never a pass: a question nobody could answer is "
         "an unresolved row.",
@@ -1581,6 +1865,47 @@ def _self_test() -> int:  # noqa: PLR0915 - a flat list of assertions reads bett
     check("zero AWS services is zero", len(aws) == 0, str(aws))
     check("an empty document names nothing", count_named_tools(None) == ([], []))
 
+    # 8b - requirement 5 asks which services were USED. A table of pure intent, and a
+    # citation of a file that is not there, are the two ways to pass 8 and still be
+    # documenting nothing. Both are planted here and both must fire.
+    named_only = (
+        "CockroachDB v26.2.5 and the CockroachDB Managed MCP Server.\n"
+        "| Bedrock | DESIGNED | evidence/aws/probe/bedrock-probe.json |\n"
+    )
+    ok, reason, _ = assess_tool_usage(named_only, lambda _p: True)
+    check("a table with no EXERCISED row fails", ok is False and "EXERCISED" in reason, reason)
+    executed_no_file = (
+        "CockroachDB v26.2.5 and the CockroachDB Managed MCP Server.\n"
+        "| Bedrock | EXERCISED | evidence/aws/probe/bedrock-probe.json |\n"
+    )
+    ok, reason, _ = assess_tool_usage(executed_no_file, lambda _p: False)
+    check(
+        "an EXERCISED row whose artefact is absent fails",
+        ok is False and "no committed artefact" in reason,
+        reason,
+    )
+    ok, reason, detail = assess_tool_usage(executed_no_file, lambda _p: True)
+    check("an EXERCISED row with a present artefact passes", ok is True, reason)
+    check(
+        "the executed service is named back",
+        detail["aws_services_executed"] == ["Amazon Bedrock"],
+        str(detail),
+    )
+    ok, reason, _ = assess_tool_usage(
+        "| Bedrock | EXECUTED | evidence/deploy/aws-live.json |\n", lambda _p: True
+    )
+    check("one CRDB tool still fails the floor", ok is False and "floor is 2" in reason, reason)
+    ok, reason, _ = assess_tool_usage(None, lambda _p: True)
+    check("an absent document fails", ok is False, reason)
+    check(
+        "EXECUTED counts as well as EXERCISED",
+        bool(EXECUTED_VERDICT.search("| Bedrock | **EXECUTED** |")),
+    )
+    check(
+        "a citation with no extension is not a citation",
+        EVIDENCE_CITATION.search("everything under evidence/aws/") is None,
+    )
+
     # 9 - the commit window, including the rebase case.
     def commit(author: str, committer: str) -> list[dict[str, str]]:
         return [{"hash": "a" * 40, "author": author, "committer": committer, "subject": "x"}]
@@ -1629,6 +1954,18 @@ def _self_test() -> int:  # noqa: PLR0915 - a flat list of assertions reads bett
     blocking = render_remedies(rows, buffer)
     check("one blocking row is counted", blocking == 1, str(blocking))
     check("the legend says NOTRUN is not a pass", "never a pass" in buffer.getvalue())
+    check(
+        "the NOTRUN census counts the row that did not run",
+        "1 row(s) were NOT CHECKED" in buffer.getvalue(),
+        buffer.getvalue()[-200:],
+    )
+    all_answered = io.StringIO()
+    render_remedies([passed, row_deadline(before)], all_answered)
+    check(
+        "the NOTRUN census is printed even when it is zero",
+        "0 rows were NOT CHECKED" in all_answered.getvalue(),
+        all_answered.getvalue()[-200:],
+    )
     report = as_report(rows, Path(), before)
     check("the report refuses", report["ready"] is False)
     check("the report names the unresolved row", report["unresolved_rows"] == ["k"], str(report))
@@ -1643,11 +1980,74 @@ def _self_test() -> int:  # noqa: PLR0915 - a flat list of assertions reads bett
         "demo_url": "https://example.com",
         "judge_access": {
             "required": False,
-            "how": "The demo is public and needs no sign-in.",
+            "how": (
+                "The demo is public, needs no sign-in, and every read a judge makes is "
+                "the read the console makes."
+            ),
             "credentials_location": "none - no credential is required",
         },
     }
     check("a resolved judge_access passes", row_judge_access(resolved_access).status == STATUS_PASS)
+
+    # 13b - resolved is not the same as answered. Until 2026-08-11 any non-sentinel
+    # string passed this row, so `"how": "x"` satisfied requirement 6. Each planting
+    # below is a document that would have passed then and must fail now.
+    def with_access(**overrides: Any) -> dict[str, Any]:
+        access = dict(resolved_access["judge_access"])  # type: ignore[arg-type]
+        access.update(overrides)
+        return access
+
+    ok, reason, _ = assess_judge_access(with_access(how="x"))
+    check("a one-character how is refused", ok is False and "floor" in reason, reason)
+    ok, reason, _ = assess_judge_access(with_access(how="none"))
+    check("a non-answer how is refused", ok is False and "answers nothing" in reason, reason)
+    ok, reason, _ = assess_judge_access(
+        with_access(how="TODO: write the sentence a judge acts on, once the demo exists.")
+    )
+    check("a placeholder in how is refused", ok is False and "TODO" in reason, reason)
+    ok, reason, _ = assess_judge_access(
+        with_access(
+            required=True,
+            credentials_location="none",
+        )
+    )
+    check(
+        "required=true with credentials_location 'none' is a contradiction and is refused",
+        ok is False and "not told where it is" in reason,
+        reason,
+    )
+    ok, reason, _ = assess_judge_access(with_access(required=True, credentials_location="the form"))
+    check(
+        "a pointer under the floor is refused when a credential is required",
+        ok is False and "floor" in reason,
+        reason,
+    )
+    ok, reason, _ = assess_judge_access(
+        with_access(
+            required=True,
+            credentials_location=(
+                "The submission form's judge-credentials field; the value is printed once "
+                "by scripts/deploy/judge_access.py and lands in no file here."
+            ),
+        )
+    )
+    check("a real pointer with required=true passes", ok is True, reason)
+    ok, reason, _ = assess_judge_access(with_access(required=UNRESOLVED))
+    check("the sentinel is still refused", ok is False and "unresolved" in reason, reason)
+    ok, reason, _ = assess_judge_access({"required": True, "how": "x"})
+    check(
+        "a missing member is named",
+        ok is False and "credentials_location" in reason,
+        reason,
+    )
+    ok, reason, _ = assess_judge_access("no")
+    check("a non-object is refused", ok is False and "not an object" in reason, reason)
+    check("'None.' is a non-answer", is_a_non_answer("None.") is True)
+    check("'n/a' is a non-answer", is_a_non_answer(" N/A ") is True)
+    check(
+        "a sentence saying none is required is NOT a non-answer",
+        is_a_non_answer("none - no credential is required") is False,
+    )
     stringly = json.loads(json.dumps(resolved_access))
     stringly["judge_access"]["required"] = "false"
     row = row_judge_access(stringly)

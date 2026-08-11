@@ -15,9 +15,25 @@ would double the RPM cost on the leg that ARCHITECTURE §13.1 identifies as RPM-
 would give a 256-d vector that is not a prefix of the stored 1024-d one — so the coarse
 sweep and the graded arms would disagree about where a cue sits.
 
-Unverified on this machine: AWS credentials are not valid here, so the request/response
-shapes below are written from the Bedrock InvokeModel contract and exercised only through
-cassettes.  ``GT-RC-01`` (day-1 checks) is what turns them from designed into observed.
+**Verified live, in region.**  The request and response shapes below are no longer written
+from the InvokeModel contract alone.  ``scripts/aws/probe_bedrock.py`` issued exactly the
+body :meth:`request_body` builds — ``inputText`` with ``dimensions`` 1024 and ``normalize``
+true — against ``amazon.titan-embed-text-v2:0`` in ``ap-southeast-2`` and recorded HTTP 200
+with an ``embedding`` array of 1024 floats and Bedrock's own ``inputTextTokenCount``.  The
+full request and the full response are committed at
+``evidence/aws/probe/raw-titan-invoke.json``.
+
+That file settles two things this docstring previously only asserted.  The returned width is
+the width both ``EMBED_DIM`` and the DDL declare.  And the vector arrives with an L2 norm of
+1.00000006, so ``normalize: true`` is honoured to about 1e-7: the renormalisation in
+:meth:`_vector_from_payload` is *not* what makes the stored vectors unit — Bedrock already
+did — it corrects a rounding-scale residue.  It stays anyway, because the invariant that
+every stored vector is unit is ours to hold rather than the vendor's to promise, and a
+measurement of one response is not a guarantee about the next one.
+
+What remains unexercised is this *class*: no test in this package calls Bedrock, and every
+provider test still runs through cassettes.  ``GT-RC-01`` (day-1 checks) is what turns the
+class itself from designed into observed.
 """
 
 from __future__ import annotations

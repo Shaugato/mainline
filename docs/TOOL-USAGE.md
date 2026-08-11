@@ -47,19 +47,38 @@ depends on one. Part 5 gives the commands.
 
 Counted across both censuses: EXERCISED
 11 [src: evidence/tool-usage/crdb-features.json#totals.by_verdict.EXERCISED]
-+ 0 [src: evidence/tool-usage/aws-services.json#totals.by_verdict.EXERCISED],
++ 3 [src: evidence/tool-usage/aws-services.json#totals.by_verdict.EXERCISED],
 DESIGNED 3 [src: evidence/tool-usage/crdb-features.json#totals.by_verdict.DESIGNED]
-+ 11 [src: evidence/tool-usage/aws-services.json#totals.by_verdict.DESIGNED],
++ 8 [src: evidence/tool-usage/aws-services.json#totals.by_verdict.DESIGNED],
 NOT-AVAILABLE 1 [src: evidence/tool-usage/aws-services.json#totals.by_verdict.NOT-AVAILABLE].
 
-**Read that asymmetry rather than skipping it.** The CockroachDB half has run. The AWS
-half has **nothing** in the EXERCISED column: the account is live and the models are
-enabled, but every code path to them is a recorded cassette and every Terraform module is
-unapplied. A submission document that flattened both halves into "used" would be lying
-about the more important one. See [`docs/HONESTY.md`](HONESTY.md).
+**Read that asymmetry rather than skipping it.** The CockroachDB half has run. On the AWS
+side exactly three rows have run — **Bedrock inference, Bedrock embeddings and
+CloudWatch** — and every one of them is an API call against a service AWS already
+operates. **Nothing is deployed.** No bucket, no KMS key, no trail, no function, no
+distribution, no rule, no parameter: eight rows are DESIGNED, which here means *the
+configuration is complete and on disk and nothing recorded has run it end to end*. An
+earlier version of this document said the EXERCISED column was empty, and it was; the
+column filled on 2026-08-11 for those three rows and for no others. A submission document
+that flattened "we called a model" and "we deployed an evidence store" into "used" would be
+lying about the more important one. See [`docs/HONESTY.md`](HONESTY.md).
+
+Everything the three EXERCISED rows rest on is under
+[`evidence/aws/`](../evidence/aws/README.md), and it is checkable without our credentials:
+
+```bash
+python scripts/aws/verify_evidence.py    # stdlib only · no credential · no network
+```
+
+Every invariant it enforces is printed by `--list`: envelopes, cross-references between
+artefacts, secret shapes anywhere under `evidence/`, the citations on this page, and — the
+one that matters — *every EXERCISED verdict's cited artefact must exist*. It runs in CI as
+[`.github/workflows/aws-evidence.yml`](../.github/workflows/aws-evidence.yml) on a fresh
+checkout with no secrets configured, alongside a red half that plants one defect per family
+and requires the matching invariant to fire.
 
 **Scan set for every count below**: a filesystem walk of
-7233 [src: evidence/tool-usage/crdb-features.json#scan.files_scanned] text files, caches
+7352 [src: evidence/tool-usage/crdb-features.json#scan.files_scanned] text files, caches
 and build output pruned, of which
 271 [src: evidence/tool-usage/crdb-features.json#scan.files_by_category.migration] are
 migrations and 25 [src: evidence/tool-usage/crdb-features.json#scan.files_by_category.terraform]
@@ -376,17 +395,36 @@ unbacked claim.
 
 ---
 
-## Tool 3 · CockroachDB Managed MCP Server — DESIGNED
+## Tool 3 · CockroachDB Managed MCP Server — DESIGNED in the census, and a live session has since been captured
 
 **Endpoint** `https://cockroachlabs.cloud/mcp`, MCP **Streamable HTTP**, `Authorization:
 Bearer <service-account key>`, and an `mcp-cluster-id` header pinning exactly one cluster —
 a tool call naming a different cluster fails. All three constants are code, not prose:
 `packages/mainline-mcp/src/mainline_mcp/limits.py:45` and `:48`.
 
-**Verdict: DESIGNED.** The transport and the limit model are implemented and their offline
-tests pass; **no live session against the managed endpoint is captured under `evidence/`**,
-and `tests/integration/mcp` *skips with a reason* when no key is present rather than
-passing vacuously. A green audit-surface run with nothing to talk to asserts nothing, and a
+**Verdict: DESIGNED, per the census — and the census's basis for it expired on
+2026-08-11.** `evidence/tool-usage/crdb-features.json#rows.crdb_managed_mcp.verdict_basis`
+reads *"no live session against the managed endpoint is captured in evidence/"*. One now
+is. [`evidence/deploy/judge-run.json`](../evidence/deploy/judge-run.json) records an MCP
+`initialize` against `https://cockroachlabs.cloud/mcp` returning HTTP `200` and a session
+id, `tools/list` returning `12` tools, and the whole `16`-question judge pack executed over
+that channel against the live Basic cluster `7cfc9ee9-f9b4-413d-bcad-d81fca2c6c7e`:
+`15` PASS and `1` FAIL, the failure being a **real gap** recorded as such
+(`N01` — the `managed-mcp` identity can read `mainline_qa.v_disposition_profile`, which the
+pack's envelope asserted it could not). It also settles a question `FALLBACK.md` had left
+open pessimistically: the endpoint runs as the SQL user `managed-mcp`, not `root` and not
+the database owner.
+
+**This document does not rewrite the verdict, and that is deliberate.** The verdict column
+is generated by `scripts/submission/capture_tool_evidence.py`, which is not this document's
+file; a prose verdict edited out from under its own census is exactly the kind of unbacked
+claim the census exists to prevent. `python scripts/submission/capture_tool_evidence.py`
+regenerates it and `--check` reports it stale today. Until that lands, read this section
+and the artefact, not the table cell.
+
+The transport and the limit model are implemented and their offline tests pass, and
+`tests/integration/mcp` *skips with a reason* when no key is present rather than passing
+vacuously. A green audit-surface run with nothing to talk to asserts nothing, and a
 green *negative* run with nothing to talk to asserts the opposite of what it claims. The
 MCP-facing surface — the client plus the `mainline_audit` schema it reads — appears in
 160 [src: evidence/tool-usage/crdb-features.json#rows.crdb_managed_mcp.file_count] files.
@@ -470,72 +508,165 @@ and `skills/designing-diachronic-gates/scripts/assert_gate_refuses.py:57` is the
 
 # Part 2 · AWS — twelve services
 
-Account `0229…8246` (masked deliberately; not a credential, but an account number enables
-cross-account enumeration and there is no reason to publish one). Profile `mainline-dev`,
+**The account number is not published here, and an earlier version of this line was wrong
+to publish eight of its twelve digits.** An account id is not a credential, but it enables
+cross-account enumeration, and a partial mask that leaks two thirds of the digits is a
+smaller version of the same mistake rather than a different one. Every artefact under
+`evidence/` passes through `scripts/aws/_common.py::redact`, which strips the account field
+of an ARN structurally, and `scripts/aws/verify_evidence.py` re-scans the whole of
+`evidence/` for the shape on every CI run. The IAM principal is published instead as a
+SHA-256 of its unique id, so two artefacts can be shown to share an author without naming
+one. Profile `mainline-dev`,
 region **`ap-southeast-2`** for Bedrock and **`ap-southeast-1`** for the demo stack beside
 the database.
 
-| service | verdict | files | anchor |
-|---|---|---|---|
-| Bedrock — Claude inference | DESIGNED | 245 [src: evidence/tool-usage/aws-services.json#rows.aws_bedrock_runtime.file_count] | `packages/mainline-agentkit/src/mainline_agentkit/transport.py:273` |
-| Bedrock — embeddings | DESIGNED | 25 [src: evidence/tool-usage/aws-services.json#rows.aws_bedrock_embeddings.file_count] | `verticals/mainline/packages/mainline-recall-agent/src/mainline_recall_agent/providers/bedrock_titan.py:39` |
-| **Bedrock Rerank** | **NOT-AVAILABLE** | 18 [src: evidence/tool-usage/aws-services.json#rows.aws_bedrock_rerank.file_count] | `docs/HONESTY.md:276` |
-| S3 + Object Lock | DESIGNED | 117 [src: evidence/tool-usage/aws-services.json#rows.aws_s3_object_lock.file_count] | `infra/modules/evidence-store/main.tf:100` |
-| KMS | DESIGNED | 41 [src: evidence/tool-usage/aws-services.json#rows.aws_kms.file_count] | `packages/trappoint-ledger/src/trappoint_ledger/signer.py:63` |
-| CloudTrail | DESIGNED | 27 [src: evidence/tool-usage/aws-services.json#rows.aws_cloudtrail.file_count] | `infra/envs/evidence/main.tf:114` |
-| Lambda | DESIGNED | 8 [src: evidence/tool-usage/aws-services.json#rows.aws_lambda.file_count] | `infra/modules/demo-api/main.tf:257` |
-| CloudFront + OAC | DESIGNED | 32 [src: evidence/tool-usage/aws-services.json#rows.aws_cloudfront.file_count] | `infra/modules/demo-site/main.tf:263` |
-| CloudWatch | DESIGNED | 21 [src: evidence/tool-usage/aws-services.json#rows.aws_cloudwatch.file_count] | `infra/modules/demo-api/main.tf:391` |
-| IAM | DESIGNED | 16 [src: evidence/tool-usage/aws-services.json#rows.aws_iam.file_count] | `infra/modules/evidence-store/main.tf:145` |
-| SSM Parameter Store | DESIGNED | 8 [src: evidence/tool-usage/aws-services.json#rows.aws_ssm_parameter_store.file_count] | `infra/modules/demo-api/main.tf:146` |
-| EventBridge | DESIGNED | 24 [src: evidence/tool-usage/aws-services.json#rows.aws_eventbridge.file_count] | `verticals/mainline/apps/steward/schedules.yaml:14` |
+Three rows are EXERCISED and the evidence for each is named in its own row. Eight are
+DESIGNED because **nothing is deployed**. One is NOT-AVAILABLE because it does not exist in
+this region and we checked. The `mechanism` column is the file and line that *does the
+thing*; the `evidence` column is what a reader opens to check that it did.
 
-## Amazon Bedrock — inference
+| service | verdict | files | mechanism (`file:line`) | evidence |
+|---|---|---|---|---|
+| Bedrock — Claude inference | **EXERCISED** | 309 [src: evidence/tool-usage/aws-services.json#rows.aws_bedrock_runtime.file_count] | `packages/mainline-agentkit/src/mainline_agentkit/transport.py:273` | [`evidence/aws/probe/raw-haiku-converse.json`](../evidence/aws/probe/raw-haiku-converse.json), [`evidence/aws/agent/live-run.json`](../evidence/aws/agent/live-run.json), [`evidence/deploy/aws-live.json`](../evidence/deploy/aws-live.json) |
+| Bedrock — embeddings | **EXERCISED** | 72 [src: evidence/tool-usage/aws-services.json#rows.aws_bedrock_embeddings.file_count] | `verticals/mainline/packages/mainline-recall-agent/src/mainline_recall_agent/providers/bedrock_titan.py:55` | [`evidence/aws/embeddings/manifest.json`](../evidence/aws/embeddings/manifest.json), [`evidence/aws/ann/ann-proof.json`](../evidence/aws/ann/ann-proof.json), [`evidence/deploy/aws-live.json`](../evidence/deploy/aws-live.json) |
+| CloudWatch | **EXERCISED** (read-only) | 48 [src: evidence/tool-usage/aws-services.json#rows.aws_cloudwatch.file_count] | `scripts/aws/cloudwatch_evidence.py:248` | [`evidence/aws/cloudwatch/bedrock-metrics.json`](../evidence/aws/cloudwatch/bedrock-metrics.json), [`evidence/aws/cloudwatch/reconciliation.json`](../evidence/aws/cloudwatch/reconciliation.json) |
+| **Bedrock Rerank** | **NOT-AVAILABLE** | 19 [src: evidence/tool-usage/aws-services.json#rows.aws_bedrock_rerank.file_count] | `docs/HONESTY.md:276` | absent in `ap-southeast-2`; no dependency taken |
+| S3 + Object Lock | DESIGNED | 121 [src: evidence/tool-usage/aws-services.json#rows.aws_s3_object_lock.file_count] | `infra/modules/evidence-store/main.tf:100` | none — not applied; the live check is one of the seven that did not run |
+| KMS | DESIGNED | 42 [src: evidence/tool-usage/aws-services.json#rows.aws_kms.file_count] | `packages/trappoint-ledger/src/trappoint_ledger/signer.py:63` | none — unit-tested against an injected client only |
+| CloudTrail | DESIGNED | 33 [src: evidence/tool-usage/aws-services.json#rows.aws_cloudtrail.file_count] | `infra/envs/evidence/main.tf:114` | none — no trail exists in the account |
+| Lambda | DESIGNED | 9 [src: evidence/tool-usage/aws-services.json#rows.aws_lambda.file_count] | `infra/modules/demo-api/main.tf:257` | none — nothing deployed |
+| CloudFront + OAC | DESIGNED | 43 [src: evidence/tool-usage/aws-services.json#rows.aws_cloudfront.file_count] | `infra/modules/demo-site/main.tf:263` | none — nothing deployed |
+| IAM | DESIGNED | 16 [src: evidence/tool-usage/aws-services.json#rows.aws_iam.file_count] | `infra/modules/evidence-store/main.tf:145` | none — Rego asserts the denials against plan fixtures, offline |
+| SSM Parameter Store | DESIGNED | 8 [src: evidence/tool-usage/aws-services.json#rows.aws_ssm_parameter_store.file_count] | `infra/modules/demo-api/main.tf:146` | none — granted in an unapplied role |
+| EventBridge | DESIGNED | 30 [src: evidence/tool-usage/aws-services.json#rows.aws_eventbridge.file_count] | `verticals/mainline/apps/steward/schedules.yaml:14` | none — and there is no `aws_cloudwatch_event_*` resource anywhere under `infra/` |
 
-**Live in the account.** Region `ap-southeast-2` (Sydney) carries `8` `au.*` Claude
-inference profiles — including `au.anthropic.claude-opus-5` and
-`au.anthropic.claude-sonnet-5` — plus `amazon.titan-embed-text-v2:0` and
-`cohere.embed-v4:0`. That enumeration is recorded at
-`docs/adr/0002-g1-platform-ground-truth.md:65` from a live `ListInferenceProfiles` call;
-**this document did not re-verify it**, because doing so needs the credential a reader of
-this document does not have.
+Each row's full `verdict_basis` — the sentence that has to be re-derivable from a committed
+artefact — is at `evidence/tool-usage/aws-services.json#rows.<key>.verdict_basis`, and for
+the three EXERCISED rows those sentences quote their figures in the form
+`artefact#/json/pointer = number`, which `scripts/aws/verify_evidence.py` resolves and
+compares on every CI run. A number here that has drifted from the JSON behind it is a red
+build, not a footnote.
 
-**How.** `bedrock-runtime` `InvokeModel` with the Anthropic native body. The `modelId` is
-an `au.*` inference-profile ARN **resolved at start-up** from `ListInferenceProfiles` and
-pinned into the run record — never hard-coded, so that if a Claude generation ships without
-an `au.*` profile the system fails loudly instead of silently reaching another region.
+## Amazon Bedrock — inference · **EXERCISED**
+
+**Live in the account, and now measured rather than enumerated.** Region `ap-southeast-2`
+(Sydney) carries `8` `au.*` Claude inference profiles plus `amazon.titan-embed-text-v2:0`
+and `cohere.embed-v4:0`; that census is re-taken from a live `ListInferenceProfiles` in
+[`evidence/aws/probe/model-availability.json`](../evidence/aws/probe/model-availability.json).
+
+**How.** `bedrock-runtime` `Converse` / `InvokeModel` with the Anthropic native body. The
+`modelId` is an `au.*` inference-profile identifier **resolved at start-up** rather than
+hard-coded, so a Claude generation shipping without an `au.*` profile fails loudly instead
+of silently reaching another region.
 `packages/mainline-agentkit/src/mainline_agentkit/transport.py:273` refuses any identifier
 lacking the `au.` prefix as a residency violation, and
 `tests/unit/recall_providers/test_no_hardcoded_model_ids.py` fails the build on a
-hard-coded model id anywhere.
+hard-coded model id anywhere. No sampling parameter is sent on any generation (A6); the
+probe records `sampling_parameters_sent: []` on the wire.
 
 One model generation across the whole fleet, differentiated by **effort** rather than by
 model — low for triage and extraction, high for adjudication, xhigh for listwise reranking.
 One model id means one profile ARN in the endpoint policy means one `403` path instead of
 two.
 
-**Verdict: DESIGNED, not EXERCISED, and this is the honest half.** Every agent test in this
-repository replays a **recorded cassette**. A green agent test proves the code handles that
-recorded exchange; it proves nothing about a live model's behaviour today. Where a live
-call is genuinely required, the test skips with a reason and the reason is in the census.
-No live-inference transcript is committed under `evidence/`. See
-[`docs/HONESTY.md`](HONESTY.md) § SYNTHETIC.
+**Verdict: EXERCISED — and read the three limits with it.** A live `Converse` against
+`au.anthropic.claude-haiku-4-5-20251001-v1:0` returned `HTTP 200` with an AWS request id
+and `stopReason end_turn`
+[src: evidence/aws/probe/raw-haiku-converse.json#payload.response.metadata.http_status],
+and the **shipped orchestrator** then ran seven live legs through the same profile
+[src: evidence/aws/agent/live-run.json#payload.leg_count], each recorded as a cassette that
+replays to a byte-identical decision hash
+[`evidence/aws/agent/determinism.json`](../evidence/aws/agent/determinism.json). AWS's own
+metric series corroborates the calls from outside this repository. The limits:
 
-## Amazon Bedrock — embeddings
+* the live legs ran on **Haiku 4.5**, while the shipping request builders target the pinned
+  Opus generation — four builder fields are refused on the wire by Haiku, projected at the
+  wire field by field and never written back into a builder;
+* **no live leg refused** [src: evidence/aws/agent/live-run.json#payload.refusal_behaviour.live_refusals_observed],
+  so "a refusal degrades the run and the gate still holds" was exercised against a
+  *constructed* refusing transport, not against a model that said no;
+* everything else in the agent suite still replays a **recorded cassette**, and a green
+  cassette test proves the code handles that recorded exchange and nothing about a live
+  model's behaviour today.
+
+**A second, independent transcript, taken on a different day by a different program.**
+[`evidence/deploy/aws-live.json`](../evidence/deploy/aws-live.json) is a four-call probe
+written by `scripts/deploy/aws_live_probe.py` on `2026-08-11T01:11:53Z`, profile
+`mainline-dev`, region `ap-southeast-2`, `boto3` `1.43.66`. It exists because a single
+artefact is a single point of failure for a claim, and because this one records the whole
+round trip — the identity, the model list, and both invocations — in one file a reader can
+open in ten seconds:
+
+| call | what came back |
+|---|---|
+| `sts:GetCallerIdentity` | HTTP `200`, request id `04018eca-8928-459e-92a6-edffe73e34df`, principal `arn:aws:iam::<account>:user/mainline-dev` — the account field is stripped structurally, and its SHA-256 is recorded instead so two artefacts can be shown to name one account without publishing it |
+| `bedrock:ListFoundationModels` | HTTP `200`, `64` models offered in region; both requested ids present, Titan as `ON_DEMAND` and Haiku 4.5 as `INFERENCE_PROFILE` |
+| `bedrock-runtime:InvokeModel` on `amazon.titan-embed-text-v2:0` | HTTP `200`, request id `b4d826e9-03ba-4368-9687-f00cc28a98ef`, `1024`-dimension embedding, L2 norm `1.0`, `13` input-text tokens, `286.5` ms |
+| `bedrock-runtime:Converse` on `au.anthropic.claude-haiku-4-5-20251001-v1:0` | HTTP `200`, request id `3c7a283c-9f67-4d98-aa8f-26490d54d32d`, reply `"MAINLINE gate online"`, `stopReason end_turn`, usage `{inputTokens 16, outputTokens 8, totalTokens 24}` |
+
+`calls_attempted` `4`, `calls_failed` `[]`, `total_seconds` `1.75`. The token counts are
+Bedrock's own, taken from the response rather than counted here. The full embedding vector
+is deliberately **not** stored — dimension, first eight components, L2 norm and the
+SHA-256 of the whole array identify it again at three orders of magnitude less bulk.
+
+Re-derive it, with a credential of your own:
+
+```bash
+AWS_PROFILE=mainline-dev python scripts/deploy/aws_live_probe.py
+```
+
+**This file supersedes an earlier finding in this repository, and the correction is worth
+reading.** `docs/STATE-OF-THE-BUILD.md` §3.3 recorded, on 2026-08-10, that every Bedrock
+call returned `ValidationException: Operation not allowed` and that
+`get-foundation-model-availability` answered `authorizationStatus: NOT_AUTHORIZED`. That
+was true when it was measured. Model access was enabled in the account on 2026-08-11 and
+the calls above are what the same code now returns. The old finding is quoted rather than
+deleted, in §3.3 and here, because what changed was an account setting and not a line of
+code — and a reader whose own account is in the earlier state needs to be able to
+recognise it.
+
+See [`docs/HONESTY.md`](HONESTY.md) § SYNTHETIC.
+
+## Amazon Bedrock — embeddings · **EXERCISED**
 
 `amazon.titan-embed-text-v2:0` at
-`verticals/mainline/packages/mainline-recall-agent/src/mainline_recall_agent/providers/bedrock_titan.py:39`,
-with `cohere.embed-v4:0` as the second available model. Embeddings are written into the
+`verticals/mainline/packages/mainline-recall-agent/src/mainline_recall_agent/providers/bedrock_titan.py:55`,
+with `cohere.embed-english-v3` as the in-region alternative. Embeddings are written into the
 C-SPANN sidecar tables described above, and **every embedding row stores its `embed_model`
 and `index_gen`** — `verticals/mainline/db/migrations/0031_clause_embedding.sql` carries
 `CONSTRAINT embed_model_stated` and `CONSTRAINT index_gen_stated` — because a vector whose
 model is unknown cannot honestly be compared with anything.
 
-**Verdict: DESIGNED.** The committed embeddings are fixtures, which is exactly why Tier-2
-verification in `VERIFY.md` — clone, `just up`, `just migrate`, `just conform` — needs **no
-model call and no cloud account at all**. The refusal reproduces on a stranger's laptop.
+**Verdict: EXERCISED.**
+2060 [src: evidence/aws/embeddings/manifest.json#payload.totals.vectors] vectors of width
+1024 [src: evidence/aws/embeddings/manifest.json#payload.dimensions] were produced by Titan
+v2 in `ap-southeast-2` for
+177345 [src: evidence/aws/embeddings/manifest.json#payload.totals.input_tokens] input
+tokens, enumerated one per row with a text digest, a vector digest and a token count; and
+1080 [src: evidence/aws/ann/ann-proof.json#payload.vectors.rows_searched] of them were
+searched through CockroachDB's `ce_ann` index with both prefix columns bound. **The corpus
+is SYNTHETIC** and the vector blobs live under the gitignored `out/`, so the manifest's
+per-vector SHA-256 is the checkable part.
 
-## Amazon Bedrock Rerank — NOT-AVAILABLE
+A single `InvokeModel` of the same model is recorded end to end in
+[`evidence/deploy/aws-live.json`](../evidence/deploy/aws-live.json) — HTTP `200`, request
+id `b4d826e9-03ba-4368-9687-f00cc28a98ef`, `1024` dimensions against an expected `1024`,
+L2 norm `1.0`, `13` input-text tokens — for a reader who wants one call rather than a
+corpus. The manifest above is the corpus; that file is the round trip.
+
+**And the residency finding this produced, which matters more than the benchmark.** On this
+account the only Bedrock identifier that serves `cohere.embed-v4` is
+`global.cohere.embed-v4:0` — a **cross-region** routing profile, the exact opposite of what
+`providers/bedrock_titan.py::REQUIRED_REGION` promises. At v4 the choice is residency *or*
+that model
+[`evidence/aws/bench/residency-finding.json`](../evidence/aws/bench/residency-finding.json).
+Titan v2 was kept and no provider code changed.
+
+Tier-2 verification in `VERIFY.md` — clone, `just up`, `just migrate`, `just conform` —
+still needs **no model call and no cloud account at all**, because the committed fixtures
+are unchanged. The refusal still reproduces on a stranger's laptop.
+
+## Amazon Bedrock Rerank — **NOT-AVAILABLE**
 
 **Not offered in `ap-southeast-2`, and no dependency was taken on it**
 (`docs/HONESTY.md:276`). It is listed here rather than omitted because a services list that
@@ -545,7 +676,7 @@ own `vector_search_rerank_multiplier` session variable (observed at `50`, with
 `vector_search_beam_size` at `32`) governs ANN candidate expansion. The design assumed
 Rerank's absence *before* it was checked, and the check agreed.
 
-## S3 + Object Lock — the evidence store
+## S3 + Object Lock — the evidence store · **DESIGNED**
 
 `infra/modules/evidence-store/main.tf` — `aws_s3_bucket:74`, `versioning:89`,
 `object_lock_configuration:100`, `public_access_block:113`, `bucket_policy:335`.
@@ -579,7 +710,7 @@ so that nobody reads its nine passes
 [src: qa/test-state.json#external_checks.custody_bundle_verification.counts.passed] as a
 verified ledger.
 
-## AWS KMS — the checkpoint signing key
+## AWS KMS — the checkpoint signing key · **DESIGNED**
 
 `packages/trappoint-ledger/src/trappoint_ledger/signer.py:63` and the key resources at
 `infra/modules/evidence-store/main.tf:477` / `:501`.
@@ -603,7 +734,7 @@ arbitrary SQL has no path to `kms:Sign`.
 **Verdict: DESIGNED.** Unit-tested against an injected client; the live signature check is
 another of the seven that did not run.
 
-## AWS CloudTrail — custody of the custodian
+## AWS CloudTrail — custody of the custodian · **DESIGNED**
 
 `infra/envs/evidence/main.tf:114`, multi-region, with `enable_log_file_validation`.
 
@@ -620,7 +751,45 @@ expensive on a busy bucket and trivial on this one at `1440` objects a day.
 input source on the Basic tier regardless of CloudTrail, because the Cloud audit-log
 endpoints `404`.
 
-## AWS Lambda, CloudFront + OAC, CloudWatch, IAM, SSM Parameter Store — the demo stack
+## Amazon CloudWatch — **EXERCISED**, read-only, and the distinction is the point
+
+`scripts/aws/cloudwatch_evidence.py:248` is a `before-call` guard that raises for any
+operation outside a six-item read-only allow-list **before the request is signed**. That is
+what makes the verdict phrase *"metrics read, nothing provisioned"* mechanical rather than a
+promise.
+
+**How, and why it is the most valuable AWS evidence in this repository.** `AWS/Bedrock`
+publishes `Invocations`, `InputTokenCount`, `OutputTokenCount`, `InvocationThrottles` and
+error counts per `ModelId`, for free, with **nothing provisioned**. Reading them is an
+attestation **written by AWS** that this repository's code ran — the one witness in the tree
+we did not author. Each `Sum` is taken at `Period` `300` *and* `3600` and required to agree,
+because a `Sum` is resolution-invariant and a disagreement would mean a clipped bucket and
+two untrustworthy numbers.
+
+110 [src: evidence/aws/cloudwatch/bedrock-metrics.json#payload.api_call_summary.GetMetricStatistics]
+read-only `GetMetricStatistics` calls produced the series. **The per-model totals are
+deliberately not retyped into this page.** They are sums over a window whose end moves with
+every run of the reader, so a figure copied here would go stale silently; instead
+`evidence/tool-usage/aws-services.json#rows.aws_cloudwatch.verdict_basis` quotes them in the
+`artefact#/json/pointer = number` form that `scripts/aws/verify_evidence.py` resolves and
+compares on every CI run, and the artefact itself is one click away. A number that cannot be
+kept true is better left where it is generated.
+
+**And the deltas are published rather than smoothed.**
+[`evidence/aws/cloudwatch/reconciliation.json`](../evidence/aws/cloudwatch/reconciliation.json)
+subtracts this repository's own token ledgers from AWS's counters and **names every
+non-zero difference**: probes made before the fleet's first artefact existed, SDK-internal
+retries that are separate HTTP requests AWS served and counted, and an unattributed residual
+from iterations run while these programs were being written — calls **no artefact in this
+repository records, so no artefact in this repository may claim them.**
+
+**What is still DESIGNED.** The log group with finite retention, the four metric alarms and
+the dashboard in `infra/modules/demo-api/main.tf:391` are **written and unapplied**. No log
+group, alarm, dashboard, metric filter or IAM role was created by any program in this fleet,
+and `bedrock-metrics.json`'s `prohibitions` block asserts each of those false and reads the
+account state back to check.
+
+## AWS Lambda, CloudFront + OAC, IAM, SSM Parameter Store — the demo stack · **all DESIGNED**
 
 ```
 judge's browser ──► CloudFront ──/v1/*──► Lambda Function URL (AWS_IAM, OAC-signed)
@@ -640,10 +809,6 @@ judge's browser ──► CloudFront ──/v1/*──► Lambda Function URL (A
   static console and the Lambda Function URL, so the judge sees one origin and the bucket
   is never public. OAC (not the legacy OAI) signs both origins, which is what lets the
   Function URL keep `AWS_IAM` instead of `NONE`.
-* **CloudWatch** — a log group with **finite** retention
-  (`infra/modules/demo-api/main.tf:105`), four metric alarms, and one dashboard
-  (`infra/modules/demo-api/main.tf:391`). Unbounded retention on a demo account is a cost
-  bug, not a safety feature.
 * **IAM** — the interesting IAM here is what is **denied**:
   `infra/modules/evidence-store/main.tf:145` is the policy document that denies the
   checkpoint writer `s3:DeleteObjectVersion` and denies `PutObjectRetention` without a
@@ -654,7 +819,7 @@ judge's browser ──► CloudFront ──/v1/*──► Lambda Function URL (A
   connection string never appears in the function configuration that anyone holding
   `lambda:GetFunction` can read.
 
-**Verdict on all five: DESIGNED.** Nothing is deployed; the submission's demo URL is
+**Verdict on all four: DESIGNED.** Nothing is deployed; the submission's demo URL is
 unresolved as of this document. `docs/submission/SUBMISSION.json` is the single place a
 resolved URL is written.
 
@@ -709,18 +874,41 @@ Collected here so a judge does not have to hunt for it. Every line is also in
 * **The S3 object-lock check did not run** — one of the
   7 [src: qa/test-state.json#external_checks.custody_bundle_verification.counts.not_checked]
   cryptographic checks registered, named, and reported as *not checked* rather than passed.
-* **No live Bedrock inference transcript is committed.** Agent tests replay cassettes.
+* **No live Bedrock *refusal* was observed.** Seven live agent legs all returned
+  `end_turn`, so the "a refusal degrades the run and the gate still holds" path was
+  exercised against a **constructed** refusing transport. The claim about refusal handling
+  rests on a fabricated refusal, and that is stated in the artefact that makes it.
+* **No live run on the shipping model generation.** The live legs are Haiku 4.5; the request
+  builders target the pinned Opus generation, and the four fields Haiku rejects on the wire
+  are listed field by field rather than smoothed over.
+* **Neither cassette loader hashes the response.** Both live stores ship an `INDEX.json`
+  carrying `response_sha256` and a test that recomputes it, because changing a replay path's
+  behaviour belongs in its own reviewed commit rather than in an evidence run.
 * **Nothing has ever run against CockroachDB Cloud in CI.** The nightly truth check is
   designed, not scheduled.
-* **No live MCP session against the managed endpoint is captured.** The suites skip with a
-  reason rather than pass empty.
+* ~~**No live MCP session against the managed endpoint is captured.**~~ **Retired
+  2026-08-11**: `evidence/deploy/judge-run.json` captures one, `15` of `16` pack questions
+  PASS over the managed endpoint against the live Basic cluster. The *suites* still skip
+  with a reason rather than pass empty when no key is present, which is a different and
+  still-true statement; and `evidence/tool-usage/crdb-features.json` has not been
+  regenerated, so its `crdb_managed_mcp` row still reads DESIGNED. See Tool 3.
 * **The conformance suite has never been demonstrated.** Against a bare node its cases
   *error* rather than skip; `just migrate && just conform` is the invocation that would run
   them. This is the single largest gap between what the repository contains and what it has
   shown.
-* **Nothing is deployed.** Every AWS row in Part 2 except the model access is DESIGNED, and
-  the submission's demo URL is `UNRESOLVED` in `docs/submission/SUBMISSION.json` as this
-  document is written.
+* **Nothing is deployed.** The three EXERCISED AWS rows are all *API calls against services
+  AWS already operates* — model inference and read-only metrics. Every row that would
+  require `terraform apply` is DESIGNED: no bucket, no KMS key, no trail, no function, no
+  distribution, no rule, no parameter. The submission's demo URL is `UNRESOLVED` in
+  `docs/submission/SUBMISSION.json` as this document is written.
+* **The AWS corpus is SYNTHETIC.** Every document embedded and searched was generated by
+  `trappoint_recall.corpora.synthetic`, because every source record in this domain is a real
+  death and a repository is a copy. The Bedrock calls, the vectors, the CockroachDB writes
+  and the index traversal are real; the subject matter is not.
+* **The ANN evidence database's parent table is a stub.** `mainline_ann_evidence` copies
+  `0031_clause_embedding.sql` verbatim but its `clause_version` parent carries none of the
+  production triggers, so **nothing there demonstrates the gate**. The production table is
+  exercised separately, with exactly one row.
 
 ---
 
@@ -740,11 +928,26 @@ python scripts/proof/gate_refusal.py --dsn postgresql://root@localhost:26257/def
 
 # the test and check census the honesty numbers come from
 python scripts/qa/report_test_state.py
+
+# every AWS number in Part 2, checked without our credentials
+python scripts/aws/verify_evidence.py             # 39 invariants, stdlib only, no network
+python scripts/aws/verify_evidence.py --list      # the invariant table
+python scripts/aws/verify_evidence.py --self-test # plant one defect per family; each must fire
+
+# the four-call live probe behind evidence/deploy/aws-live.json — needs YOUR credential
+AWS_PROFILE=mainline-dev python scripts/deploy/aws_live_probe.py
 ```
 
 Reference format: `[src: path#json.path.to.value]`, resolved against
-`evidence/tool-usage/*.json`, `evidence/gate-refusal/*.json` and `qa/test-state.json`. A
-number in this document with no reference beside it is a defect; report it.
+`evidence/tool-usage/*.json`, `evidence/aws/**/*.json`, `evidence/gate-refusal/*.json` and
+`qa/test-state.json`. A number in this document with no reference beside it is a defect;
+report it.
+
+**The `evidence/aws/**` references are the newest, and they are the ones a sceptic should
+pull on first.** Everything they point at was written by a program holding credentials you
+do not have. `scripts/aws/verify_evidence.py` is the answer to that: it checks the
+artefacts against each other and against this census, needs no account, and refuses to pass
+if any EXERCISED verdict cites a file that is not there.
 
 Related reading: [`VERIFY.md`](../VERIFY.md) — three ways to check the claim without
 trusting us. [`docs/HONESTY.md`](HONESTY.md) — everything this build gets wrong, counted.

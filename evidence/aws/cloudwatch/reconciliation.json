@@ -1,0 +1,1583 @@
+{
+  "artefact": "evidence/aws/cloudwatch/reconciliation.json",
+  "caveats": [
+    "the repo-claimed column is the sum of ledger rows in the three reconciled artefacts only. A model those three do not mention shows repo_claimed null, which is 'not claimed here', not 'zero spend'.",
+    "unattributed_residual is published rather than absorbed. It is real spend AWS observed that no artefact in this repository accounts for, and the honest reading is that the fleet's own development iterations produced it.",
+    "AWS/Bedrock is account-wide and region-wide. If anything else on this account called Bedrock in ap-southeast-2 during the window, it is in the AWS column."
+  ],
+  "generated_at": "2026-08-11T05:05:29Z",
+  "generated_by": "scripts/aws/cloudwatch_evidence.py",
+  "kind": "cloudwatch-reconciliation",
+  "payload": {
+    "answer": "no, and the differences are the evidence. AWS counts HTTP requests it served; the repository's ledgers count corpus units they priced. Every non-zero delta below is named, quantified where an artefact states the number, and left as an explicit residual where none does.",
+    "aws_hourly_utc": {
+      "amazon.titan-embed-text-v2:0": [
+        {
+          "InputTokenCount": 177.0,
+          "InvocationClientErrors": 0.0,
+          "InvocationServerErrors": 0.0,
+          "InvocationThrottles": 0.0,
+          "Invocations": 9.0,
+          "OutputTokenCount": 0.0,
+          "hour_utc": "2026-08-10T21:00:00Z"
+        },
+        {
+          "InputTokenCount": 36.0,
+          "InvocationClientErrors": 0.0,
+          "InvocationServerErrors": 0.0,
+          "InvocationThrottles": 0.0,
+          "Invocations": 1.0,
+          "OutputTokenCount": 0.0,
+          "hour_utc": "2026-08-10T22:00:00Z"
+        },
+        {
+          "InputTokenCount": 26.0,
+          "InvocationClientErrors": 0.0,
+          "InvocationServerErrors": 0.0,
+          "InvocationThrottles": 0.0,
+          "Invocations": 2.0,
+          "OutputTokenCount": 0.0,
+          "hour_utc": "2026-08-11T00:00:00Z"
+        },
+        {
+          "InputTokenCount": 160957.0,
+          "InvocationClientErrors": 0.0,
+          "InvocationServerErrors": 0.0,
+          "InvocationThrottles": 7460.0,
+          "Invocations": 1166.0,
+          "OutputTokenCount": 0.0,
+          "hour_utc": "2026-08-11T01:00:00Z"
+        },
+        {
+          "InputTokenCount": 408315.0,
+          "InvocationClientErrors": 0.0,
+          "InvocationServerErrors": 1.0,
+          "InvocationThrottles": 44403.0,
+          "Invocations": 3601.0,
+          "OutputTokenCount": 0.0,
+          "hour_utc": "2026-08-11T02:00:00Z"
+        },
+        {
+          "InputTokenCount": 456657.0,
+          "InvocationClientErrors": 4.0,
+          "InvocationServerErrors": 0.0,
+          "InvocationThrottles": 9689.0,
+          "Invocations": 2762.0,
+          "OutputTokenCount": 0.0,
+          "hour_utc": "2026-08-11T03:00:00Z"
+        },
+        {
+          "InputTokenCount": 7.0,
+          "InvocationClientErrors": 0.0,
+          "InvocationServerErrors": 0.0,
+          "InvocationThrottles": 0.0,
+          "Invocations": 1.0,
+          "OutputTokenCount": 0.0,
+          "hour_utc": "2026-08-11T04:00:00Z"
+        }
+      ],
+      "apac.anthropic.claude-3-5-sonnet-20241022-v2:0": [
+        {
+          "InputTokenCount": 0.0,
+          "InvocationClientErrors": 1.0,
+          "InvocationServerErrors": 0.0,
+          "InvocationThrottles": 0.0,
+          "Invocations": 1.0,
+          "OutputTokenCount": 0.0,
+          "hour_utc": "2026-08-10T21:00:00Z"
+        }
+      ],
+      "au.anthropic.claude-haiku-4-5-20251001-v1:0": [
+        {
+          "InputTokenCount": 151.0,
+          "InvocationClientErrors": 0.0,
+          "InvocationServerErrors": 0.0,
+          "InvocationThrottles": 0.0,
+          "Invocations": 8.0,
+          "OutputTokenCount": 63.0,
+          "hour_utc": "2026-08-10T21:00:00Z"
+        },
+        {
+          "InputTokenCount": 22.0,
+          "InvocationClientErrors": 0.0,
+          "InvocationServerErrors": 0.0,
+          "InvocationThrottles": 0.0,
+          "Invocations": 1.0,
+          "OutputTokenCount": 8.0,
+          "hour_utc": "2026-08-10T22:00:00Z"
+        },
+        {
+          "InputTokenCount": 32.0,
+          "InvocationClientErrors": 0.0,
+          "InvocationServerErrors": 0.0,
+          "InvocationThrottles": 0.0,
+          "Invocations": 2.0,
+          "OutputTokenCount": 16.0,
+          "hour_utc": "2026-08-11T00:00:00Z"
+        },
+        {
+          "InputTokenCount": 16.0,
+          "InvocationClientErrors": 0.0,
+          "InvocationServerErrors": 0.0,
+          "InvocationThrottles": 0.0,
+          "Invocations": 1.0,
+          "OutputTokenCount": 8.0,
+          "hour_utc": "2026-08-11T01:00:00Z"
+        },
+        {
+          "InputTokenCount": 33314.0,
+          "InvocationClientErrors": 7.0,
+          "InvocationServerErrors": 0.0,
+          "InvocationThrottles": 0.0,
+          "Invocations": 21.0,
+          "OutputTokenCount": 7762.0,
+          "hour_utc": "2026-08-11T04:00:00Z"
+        }
+      ],
+      "au.anthropic.claude-sonnet-4-5-20250929-v1:0": [
+        {
+          "InputTokenCount": 15.0,
+          "InvocationClientErrors": 0.0,
+          "InvocationServerErrors": 0.0,
+          "InvocationThrottles": 0.0,
+          "Invocations": 1.0,
+          "OutputTokenCount": 7.0,
+          "hour_utc": "2026-08-10T21:00:00Z"
+        }
+      ],
+      "cohere.embed-english-v3": [
+        {
+          "InputTokenCount": 7.0,
+          "InvocationClientErrors": 0.0,
+          "InvocationServerErrors": 0.0,
+          "InvocationThrottles": 0.0,
+          "Invocations": 1.0,
+          "OutputTokenCount": 0.0,
+          "hour_utc": "2026-08-10T21:00:00Z"
+        },
+        {
+          "InputTokenCount": 3955.0,
+          "InvocationClientErrors": 3.0,
+          "InvocationServerErrors": 0.0,
+          "InvocationThrottles": 0.0,
+          "Invocations": 35.0,
+          "OutputTokenCount": 0.0,
+          "hour_utc": "2026-08-11T01:00:00Z"
+        },
+        {
+          "InputTokenCount": 43190.0,
+          "InvocationClientErrors": 0.0,
+          "InvocationServerErrors": 0.0,
+          "InvocationThrottles": 0.0,
+          "Invocations": 192.0,
+          "OutputTokenCount": 0.0,
+          "hour_utc": "2026-08-11T02:00:00Z"
+        },
+        {
+          "InputTokenCount": 12193.0,
+          "InvocationClientErrors": 2.0,
+          "InvocationServerErrors": 0.0,
+          "InvocationThrottles": 0.0,
+          "Invocations": 103.0,
+          "OutputTokenCount": 0.0,
+          "hour_utc": "2026-08-11T03:00:00Z"
+        }
+      ],
+      "cohere.embed-v4:0": [
+        {
+          "InputTokenCount": 0.0,
+          "InvocationClientErrors": 5.0,
+          "InvocationServerErrors": 0.0,
+          "InvocationThrottles": 0.0,
+          "Invocations": 5.0,
+          "OutputTokenCount": 0.0,
+          "hour_utc": "2026-08-10T21:00:00Z"
+        },
+        {
+          "InputTokenCount": 0.0,
+          "InvocationClientErrors": 1.0,
+          "InvocationServerErrors": 0.0,
+          "InvocationThrottles": 0.0,
+          "Invocations": 1.0,
+          "OutputTokenCount": 0.0,
+          "hour_utc": "2026-08-10T22:00:00Z"
+        },
+        {
+          "InputTokenCount": 0.0,
+          "InvocationClientErrors": 2.0,
+          "InvocationServerErrors": 0.0,
+          "InvocationThrottles": 0.0,
+          "Invocations": 2.0,
+          "OutputTokenCount": 0.0,
+          "hour_utc": "2026-08-11T01:00:00Z"
+        },
+        {
+          "InputTokenCount": 0.0,
+          "InvocationClientErrors": 2.0,
+          "InvocationServerErrors": 0.0,
+          "InvocationThrottles": 0.0,
+          "Invocations": 2.0,
+          "OutputTokenCount": 0.0,
+          "hour_utc": "2026-08-11T03:00:00Z"
+        }
+      ],
+      "global.cohere.embed-v4:0": [
+        {
+          "InputTokenCount": 7.0,
+          "InvocationClientErrors": 0.0,
+          "InvocationServerErrors": 0.0,
+          "InvocationThrottles": 0.0,
+          "Invocations": 1.0,
+          "OutputTokenCount": 0.0,
+          "hour_utc": "2026-08-10T21:00:00Z"
+        },
+        {
+          "InputTokenCount": 5826.0,
+          "InvocationClientErrors": 0.0,
+          "InvocationServerErrors": 0.0,
+          "InvocationThrottles": 0.0,
+          "Invocations": 34.0,
+          "OutputTokenCount": 0.0,
+          "hour_utc": "2026-08-11T01:00:00Z"
+        },
+        {
+          "InputTokenCount": 68873.0,
+          "InvocationClientErrors": 0.0,
+          "InvocationServerErrors": 0.0,
+          "InvocationThrottles": 52.0,
+          "Invocations": 192.0,
+          "OutputTokenCount": 0.0,
+          "hour_utc": "2026-08-11T02:00:00Z"
+        },
+        {
+          "InputTokenCount": 17383.0,
+          "InvocationClientErrors": 0.0,
+          "InvocationServerErrors": 0.0,
+          "InvocationThrottles": 41.0,
+          "Invocations": 103.0,
+          "OutputTokenCount": 0.0,
+          "hour_utc": "2026-08-11T03:00:00Z"
+        }
+      ]
+    },
+    "first_fleet_artefact_generated_at": "2026-08-10T22:00:59Z",
+    "how_to_read_the_hourly_table": "put it beside the generated_at of each artefact in repo_sources. The hour containing 2026-08-10T22:00:59Z is the fleet's own probe and matches evidence/aws/probe/bedrock-probe.json token for token; hours before it belong to the orchestrator and the AWS-execution lead.",
+    "pricing_from_aws_counts": {
+      "instrument": {
+        "arithmetic": "110 / 1000 * 0.01 = 0.00110000",
+        "get_metric_statistics_calls": 110,
+        "note": "the cost of reading the evidence, priced so that the instrument is not silently free. ListMetrics, DescribeAlarms, ListDashboards and GetModelInvocationLoggingConfiguration are not billed per request.",
+        "usd_per_1k_requests": 0.01,
+        "usd_total": 0.0011
+      },
+      "price_basis": "published on-demand list price for ap-southeast-2, recorded 2026-08-11; declared, not measured — no bill or Price List API response backs this number",
+      "rows": [
+        {
+          "arithmetic": "1,026,175 / 1000 * 0.00002 = 0.02052350  (embedding model: input billed only)",
+          "aws_input_tokens": 1026175.0,
+          "aws_invocations": 7542.0,
+          "aws_output_tokens": 0.0,
+          "model_id": "amazon.titan-embed-text-v2:0",
+          "priced": true,
+          "usd_input": 0.0205235,
+          "usd_output": 0.0,
+          "usd_per_1k_input": 2e-05,
+          "usd_per_1k_output": 0.0,
+          "usd_total": 0.0205235
+        },
+        {
+          "aws_input_tokens": 0.0,
+          "aws_output_tokens": 0.0,
+          "model_id": "apac.anthropic.claude-3-5-sonnet-20241022-v2:0",
+          "priced": false,
+          "usd_total": null,
+          "why": "no entry in scripts/aws/_common.py::USD_PER_1K_TOKENS"
+        },
+        {
+          "arithmetic": "33,535 / 1000 * 0.001 = 0.03353500  +  7,857 / 1000 * 0.005 = 0.03928500",
+          "aws_input_tokens": 33535.0,
+          "aws_invocations": 33.0,
+          "aws_output_tokens": 7857.0,
+          "model_id": "au.anthropic.claude-haiku-4-5-20251001-v1:0",
+          "priced": true,
+          "usd_input": 0.033535,
+          "usd_output": 0.039285,
+          "usd_per_1k_input": 0.001,
+          "usd_per_1k_output": 0.005,
+          "usd_total": 0.07282
+        },
+        {
+          "arithmetic": "15 / 1000 * 0.003 = 0.00004500  +  7 / 1000 * 0.015 = 0.00010500",
+          "aws_input_tokens": 15.0,
+          "aws_invocations": 1.0,
+          "aws_output_tokens": 7.0,
+          "model_id": "au.anthropic.claude-sonnet-4-5-20250929-v1:0",
+          "priced": true,
+          "usd_input": 4.5e-05,
+          "usd_output": 0.000105,
+          "usd_per_1k_input": 0.003,
+          "usd_per_1k_output": 0.015,
+          "usd_total": 0.00015
+        },
+        {
+          "arithmetic": "59,345 / 1000 * 0.0001 = 0.00593450  (embedding model: input billed only)",
+          "aws_input_tokens": 59345.0,
+          "aws_invocations": 331.0,
+          "aws_output_tokens": 0.0,
+          "model_id": "cohere.embed-english-v3",
+          "priced": true,
+          "usd_input": 0.0059345,
+          "usd_output": 0.0,
+          "usd_per_1k_input": 0.0001,
+          "usd_per_1k_output": 0.0,
+          "usd_total": 0.0059345
+        },
+        {
+          "arithmetic": "0 / 1000 * 0.00012 = 0.00000000  (embedding model: input billed only)",
+          "aws_input_tokens": 0.0,
+          "aws_invocations": 10.0,
+          "aws_output_tokens": 0.0,
+          "model_id": "cohere.embed-v4:0",
+          "priced": true,
+          "usd_input": 0.0,
+          "usd_output": 0.0,
+          "usd_per_1k_input": 0.00012,
+          "usd_per_1k_output": 0.0,
+          "usd_total": 0.0
+        },
+        {
+          "arithmetic": "92,089 / 1000 * 0.00012 = 0.01105068  (embedding model: input billed only)",
+          "aws_input_tokens": 92089.0,
+          "aws_invocations": 330.0,
+          "aws_output_tokens": 0.0,
+          "model_id": "global.cohere.embed-v4:0",
+          "priced": true,
+          "usd_input": 0.01105068,
+          "usd_output": 0.0,
+          "usd_per_1k_input": 0.00012,
+          "usd_per_1k_output": 0.0,
+          "usd_total": 0.01105068
+        }
+      ],
+      "unpriced_models": [
+        "apac.anthropic.claude-3-5-sonnet-20241022-v2:0"
+      ],
+      "usd_grand_total": 0.11157868,
+      "usd_models_total": 0.11047868
+    },
+    "question": "does what this repository says it spent match what AWS says it observed, and if not, why not?",
+    "reconciliation": {
+      "complete": true,
+      "context_sources": {
+        "ann_proof": {
+          "generated_at": "2026-08-11T04:07:47Z",
+          "path": "evidence/aws/ann/ann-proof.json",
+          "status": "read"
+        },
+        "probe": {
+          "generated_at": "2026-08-10T22:00:59Z",
+          "path": "evidence/aws/probe/bedrock-probe.json",
+          "status": "read"
+        },
+        "recall_real": {
+          "generated_at": "2026-08-11T02:52:11Z",
+          "path": "evidence/aws/recall/run-manifest.json",
+          "status": "read"
+        }
+      },
+      "reconciled_sources": {
+        "agent_live": {
+          "generated_at": "2026-08-11T04:39:28Z",
+          "ledger_rows_found": 1,
+          "path": "evidence/aws/agent/live-run.json",
+          "status": "read"
+        },
+        "cohere_bench": {
+          "generated_at": "2026-08-11T03:25:58Z",
+          "ledger_rows_found": 3,
+          "path": "evidence/aws/bench/cohere-vs-titan.json",
+          "status": "read"
+        },
+        "titan_embed": {
+          "generated_at": "2026-08-11T03:05:28Z",
+          "ledger_rows_found": 2,
+          "path": "evidence/aws/embeddings/token-ledger.json",
+          "status": "read"
+        }
+      },
+      "rows": [
+        {
+          "activity_before_the_fleet_existed": {
+            "boundary_utc": "2026-08-10T22:00:59Z",
+            "note": "strictly_before counts only buckets that had closed before the boundary. The straddling bucket contains the boundary itself and is reported separately rather than assigned to either side; CloudWatch cannot resolve it further.",
+            "resolution_seconds": 300,
+            "straddling_bucket": {
+              "InputTokenCount": 36.0,
+              "InvocationClientErrors": 0.0,
+              "InvocationServerErrors": 0.0,
+              "InvocationThrottles": 0.0,
+              "Invocations": 1.0,
+              "OutputTokenCount": 0.0
+            },
+            "straddling_bucket_utc": "2026-08-10T22:00:00Z",
+            "strictly_before": {
+              "InputTokenCount": 177.0,
+              "InvocationClientErrors": 0.0,
+              "InvocationServerErrors": 0.0,
+              "InvocationThrottles": 0.0,
+              "Invocations": 9.0,
+              "OutputTokenCount": 0.0
+            }
+          },
+          "also_claimed_by_context_artefacts": {
+            "calls": 1053,
+            "input_tokens": 145744,
+            "output_tokens": 0
+          },
+          "attribution": {
+            "a_negative_residual_means": "the repository claimed MORE than AWS observed by that much beyond what the named causes account for. It is an over-claim, and the correct response is to price from AWS's number — which evidence/aws/COST.md does — not to adjust AWS's.",
+            "causes_with_no_token_figure": [
+              "the recall harness's embedding cache, filled by a pass that wrote no ledger",
+              "the benchmark prices corpus units; AWS counts HTTP requests"
+            ],
+            "named_and_quantified_input_tokens": 145885.0,
+            "named_and_quantified_invocations": 695.0,
+            "unattributed_residual_input_tokens": 581792.0,
+            "unattributed_residual_invocations": 3620.0,
+            "what_the_residual_most_likely_is": "iterations run while the fleet's programs were being written and debugged — partial embedding passes killed by throttling, benchmark attempts abandoned mid-sweep, and smoke tests. AWS counted every one of them. No artefact in this repository records them, so no artefact in this repository may claim them, and this number is left standing rather than distributed across the causes above until it vanishes.",
+            "why_the_token_residual_is_larger_than_it_looks": "several named causes are quantified in invocations but not in tokens, because no committed artefact states their token share. Those causes are listed in causes_with_no_token_figure and their tokens are inside the token residual, which is therefore an UPPER bound on what is genuinely unaccounted for, not a claim that this many tokens have no explanation."
+          },
+          "aws_observed": {
+            "client_errors": 4.0,
+            "input_tokens": 1026175.0,
+            "invocations": 7542.0,
+            "output_tokens": 0.0,
+            "server_errors": 1.0,
+            "throttles": 61552.0
+          },
+          "delta": {
+            "input_tokens": 727677.0,
+            "invocations": 4315.0,
+            "output_tokens": 0.0,
+            "sign_convention": "aws_observed minus repo_claimed; positive means AWS saw more"
+          },
+          "model_id": "amazon.titan-embed-text-v2:0",
+          "named_causes_of_the_delta": [
+            {
+              "cause": "probes made before any program in this fleet existed",
+              "evidence": "AWS 300-second buckets that had closed before 2026-08-10T22:00:59Z, the generated_at of the fleet's first artefact (evidence/aws/probe/bedrock-probe.json). These are the orchestrator's and the AWS-execution lead's own probes, recorded in docs/leads/aws-exec-final.md §1.1 and §1.2 and in no token ledger. The bucket at 2026-08-10T22:00:00Z straddles the boundary and carries 1 invocations / 36 input tokens; it is excluded from this figure and assigned to neither side, because it contains the fleet's own probe and CloudWatch cannot split it.",
+              "in_aws_numbers": true,
+              "in_repo_ledgers": false,
+              "input_tokens": 177.0,
+              "invocations": 9.0
+            },
+            {
+              "cause": "this program's own calls",
+              "evidence": "scripts/aws/cloudwatch_evidence.py invokes no model. Its allowlist (READ_ONLY_OPERATIONS) contains no bedrock-runtime operation and _guard raises before signing anything else, so its contribution to Invocations and to both token counters is exactly zero and cannot be otherwise.",
+              "in_aws_numbers": true,
+              "in_repo_ledgers": false,
+              "input_tokens": 0.0,
+              "invocations": 0.0
+            },
+            {
+              "cause": "requests AWS answered with a client error after this fleet began",
+              "evidence": "this artefact's own InvocationClientErrors sum is 4, of which 0 fall in or before the bucket containing 2026-08-10T22:00:59Z. A refused request is counted in Invocations, returns no usable response, and is therefore never written into a token ledger by any program in this fleet. The zero input_tokens is AWS's own accounting: a request rejected before inference bills nothing.",
+              "in_aws_numbers": true,
+              "in_repo_ledgers": false,
+              "input_tokens": 0.0,
+              "invocations": 4.0,
+              "source": "CloudWatch, not a repository artefact"
+            },
+            {
+              "cause": "requests AWS answered with a server error after this fleet began",
+              "evidence": "this artefact's own InvocationServerErrors sum is 1, of which 0 fall in or before the bucket containing 2026-08-10T22:00:59Z. A refused request is counted in Invocations, returns no usable response, and is therefore never written into a token ledger by any program in this fleet. The zero input_tokens is AWS's own accounting: a request rejected before inference bills nothing.",
+              "in_aws_numbers": true,
+              "in_repo_ledgers": false,
+              "input_tokens": 0.0,
+              "invocations": 1.0,
+              "source": "CloudWatch, not a repository artefact"
+            },
+            {
+              "cause": "retries, by botocore and by this fleet, after a ThrottlingException",
+              "considered_and_measured_to_be_zero": true,
+              "evidence": "evidence/aws/embeddings/token-ledger.json/payload/index_cumulative/build_history_totals/botocore_internal_retry_attempts = 150; evidence/aws/embeddings/token-ledger.json/payload/index_cumulative/build_history_totals/transient_retries = 1; evidence/aws/bench/cohere-vs-titan.json/payload/arms/titan_v2/cost_and_latency/calls_retried_by_botocore = 20; evidence/aws/bench/cohere-vs-titan.json/payload/arms/titan_v2/cost_and_latency/throttle_retries_total = 96. Every one of these is a real HTTP request AWS received, so the natural guess is that it adds to Invocations. It does not: a throttled request is counted under InvocationThrottles and NOT under Invocations, which this dataset proves arithmetically (see what_counts_as_an_invocation). Counting them here would have shrunk this fleet's unexplained residual on a guess, so they are carried at zero with the reasoning attached rather than dropped silently.",
+              "in_aws_numbers": true,
+              "in_repo_ledgers": false,
+              "input_tokens": 0.0,
+              "invocations": 0.0
+            },
+            {
+              "cause": "the embedding pass's 70 recorded failures",
+              "considered_and_measured_to_be_zero": true,
+              "evidence": "evidence/aws/embeddings/token-ledger.json/payload/index_cumulative/build_history_totals/failures = 70, but AWS's own error counters for this model total only 5 across the whole window. The two numbers cannot both describe requests inside Invocations, so those failures were throttle exhaustions rather than error responses — which is corroborated by the same artefact reporting 23545 observed throttles, and by the next run re-embedding exactly those 70 texts. They are therefore in InvocationThrottles, not in Invocations, and contribute nothing to this delta. Read as a finding about the embedding worker: its failures were quota events, not defects.",
+              "in_aws_numbers": true,
+              "in_repo_ledgers": false,
+              "input_tokens": 0.0,
+              "invocations": 0.0
+            },
+            {
+              "cause": "the ANN proof's embedding pass, which wrote no token ledger of its own",
+              "corroborated_by_local_cache": 1052,
+              "evidence": "evidence/aws/ann/ann-proof.json/payload/bedrock reports invoke_model_calls = 0 for the pass that wrote the file and 1176 cache hits, while pricing 1052 distinct texts and 145708 input tokens. Some earlier pass paid for those calls, AWS counted them, and none of the three reconciled ledgers claims them. This is a SEPARATE cache from the embedding index's — out/aws/ann/titan-vectors.jsonl against out/aws/titan-vectors.npz — so it is additional spend, not the same spend counted twice.",
+              "in_aws_numbers": true,
+              "in_repo_ledgers": false,
+              "input_tokens": 145708.0,
+              "invocations": 1052.0
+            },
+            {
+              "cause": "the recall harness's embedding cache, filled by a pass that wrote no ledger",
+              "corroborated_by_local_cache": 574,
+              "evidence": "evidence/aws/recall/run-manifest.json/payload/bedrock reports calls = 0, cache entries = 548, hits = 1863, misses = 0. Zero misses means the harness invoked nothing; the entries were bought earlier.",
+              "in_aws_numbers": true,
+              "in_repo_ledgers": false,
+              "input_tokens": null,
+              "input_tokens_not_measured_because": "the recall manifest publishes cache entries but no per-entry token count, and this file will not multiply a mean by a count and call the product a measurement",
+              "invocations": 548.0
+            },
+            {
+              "cause": "the benchmark prices corpus units; AWS counts HTTP requests",
+              "corroborated_by_local_cache": 248,
+              "evidence": "evidence/aws/bench/cohere-vs-titan.json prices 1167 corpus units for this arm (/payload/token_ledger/entries) but its journal holds 248 distinct texts (/payload/sweep/calls_reused_from_journal/titan_v2) and /payload/sweep/calls_made_this_run reports 0 for the run that wrote the file. Byte-identical texts share one call and are priced once by AWS and many times by a corpus-priced ledger, so this contribution is NEGATIVE: the repository over-claims here.",
+              "in_aws_numbers": true,
+              "in_repo_ledgers": true,
+              "input_tokens": null,
+              "input_tokens_not_measured_because": "the per-text token counts live in the gitignored journal, so the token share of this cause cannot be recovered from a committed artefact. Multiplying the ledger's mean tokens-per-unit by the duplicate count would give a number that does not reconcile — the duplicated texts are not average-length — and a wrong estimate presented as an explanation is worse than an honest gap.",
+              "invocations": -919.0
+            }
+          ],
+          "repo_claimed": {
+            "calls": 3227,
+            "input_tokens": 298498,
+            "output_tokens": 0
+          },
+          "residual_shape_analysis": {
+            "inference": "AWS's mean is close to the ANN corpus's mean and well above the embedding index's, which is what repeated ANN-shaped passes would look like. The ANN proof re-runs its whole corpus whenever its cache is cold, and the fleet ran it more than once while it was being written.",
+            "mean_input_tokens_per_invocation": {
+              "ann_corpus": 138.506,
+              "aws_observed": 136.061,
+              "embedding_index": 86.09
+            },
+            "status": "INFERENCE, not measurement. It is offered as the shape of the residual, not as an accounting of it; the residual above is published in full and is not reduced by this paragraph."
+          },
+          "sources_claiming_it": [
+            "cohere_bench",
+            "titan_embed"
+          ]
+        },
+        {
+          "activity_before_the_fleet_existed": {
+            "boundary_utc": "2026-08-10T22:00:59Z",
+            "note": "strictly_before counts only buckets that had closed before the boundary. The straddling bucket contains the boundary itself and is reported separately rather than assigned to either side; CloudWatch cannot resolve it further.",
+            "resolution_seconds": 300,
+            "straddling_bucket": {
+              "InputTokenCount": 0.0,
+              "InvocationClientErrors": 0.0,
+              "InvocationServerErrors": 0.0,
+              "InvocationThrottles": 0.0,
+              "Invocations": 0.0,
+              "OutputTokenCount": 0.0
+            },
+            "straddling_bucket_utc": null,
+            "strictly_before": {
+              "InputTokenCount": 0.0,
+              "InvocationClientErrors": 1.0,
+              "InvocationServerErrors": 0.0,
+              "InvocationThrottles": 0.0,
+              "Invocations": 1.0,
+              "OutputTokenCount": 0.0
+            }
+          },
+          "also_claimed_by_context_artefacts": {
+            "calls": null,
+            "note": "not claimed by the probe, the ANN proof or the recall manifest either. This column is NOT part of the three-way reconciliation; it is here so that a model AWS saw and the reconciled ledgers do not name can still be traced to an artefact."
+          },
+          "aws_observed": {
+            "client_errors": 1.0,
+            "input_tokens": 0.0,
+            "invocations": 1.0,
+            "output_tokens": 0.0,
+            "server_errors": 0.0,
+            "throttles": 0.0
+          },
+          "delta": {
+            "input_tokens": null,
+            "invocations": null,
+            "output_tokens": null,
+            "why_null": "one side of this row is missing: either no reconciled ledger claims this model, or AWS published no metric for it in the window"
+          },
+          "model_id": "apac.anthropic.claude-3-5-sonnet-20241022-v2:0",
+          "named_causes_of_the_delta": [
+            {
+              "cause": "probes made before any program in this fleet existed",
+              "evidence": "AWS 300-second buckets that had closed before 2026-08-10T22:00:59Z, the generated_at of the fleet's first artefact (evidence/aws/probe/bedrock-probe.json). These are the orchestrator's and the AWS-execution lead's own probes, recorded in docs/leads/aws-exec-final.md §1.1 and §1.2 and in no token ledger. The bucket at None straddles the boundary and carries 0 invocations / 0 input tokens; it is excluded from this figure and assigned to neither side, because it contains the fleet's own probe and CloudWatch cannot split it.",
+              "in_aws_numbers": true,
+              "in_repo_ledgers": false,
+              "input_tokens": 0.0,
+              "invocations": 1.0
+            },
+            {
+              "cause": "this program's own calls",
+              "evidence": "scripts/aws/cloudwatch_evidence.py invokes no model. Its allowlist (READ_ONLY_OPERATIONS) contains no bedrock-runtime operation and _guard raises before signing anything else, so its contribution to Invocations and to both token counters is exactly zero and cannot be otherwise.",
+              "in_aws_numbers": true,
+              "in_repo_ledgers": false,
+              "input_tokens": 0.0,
+              "invocations": 0.0
+            }
+          ],
+          "repo_claimed": {
+            "calls": null,
+            "input_tokens": null,
+            "note": "no ledger in the three reconciled sources mentions this model",
+            "output_tokens": null
+          },
+          "sources_claiming_it": []
+        },
+        {
+          "activity_before_the_fleet_existed": {
+            "boundary_utc": "2026-08-10T22:00:59Z",
+            "note": "strictly_before counts only buckets that had closed before the boundary. The straddling bucket contains the boundary itself and is reported separately rather than assigned to either side; CloudWatch cannot resolve it further.",
+            "resolution_seconds": 300,
+            "straddling_bucket": {
+              "InputTokenCount": 22.0,
+              "InvocationClientErrors": 0.0,
+              "InvocationServerErrors": 0.0,
+              "InvocationThrottles": 0.0,
+              "Invocations": 1.0,
+              "OutputTokenCount": 8.0
+            },
+            "straddling_bucket_utc": "2026-08-10T22:00:00Z",
+            "strictly_before": {
+              "InputTokenCount": 151.0,
+              "InvocationClientErrors": 0.0,
+              "InvocationServerErrors": 0.0,
+              "InvocationThrottles": 0.0,
+              "Invocations": 8.0,
+              "OutputTokenCount": 63.0
+            }
+          },
+          "also_claimed_by_context_artefacts": {
+            "calls": 1,
+            "input_tokens": 22,
+            "output_tokens": 8
+          },
+          "attribution": {
+            "a_negative_residual_means": "the repository claimed MORE than AWS observed by that much beyond what the named causes account for. It is an over-claim, and the correct response is to price from AWS's number — which evidence/aws/COST.md does — not to adjust AWS's.",
+            "causes_with_no_token_figure": [],
+            "named_and_quantified_input_tokens": 151.0,
+            "named_and_quantified_invocations": 15.0,
+            "unattributed_residual_input_tokens": 15955.0,
+            "unattributed_residual_invocations": 11.0,
+            "what_the_residual_most_likely_is": "iterations run while the fleet's programs were being written and debugged — partial embedding passes killed by throttling, benchmark attempts abandoned mid-sweep, and smoke tests. AWS counted every one of them. No artefact in this repository records them, so no artefact in this repository may claim them, and this number is left standing rather than distributed across the causes above until it vanishes.",
+            "why_the_token_residual_is_larger_than_it_looks": "every named cause carries a token figure; the residual is what it says"
+          },
+          "aws_observed": {
+            "client_errors": 7.0,
+            "input_tokens": 33535.0,
+            "invocations": 33.0,
+            "output_tokens": 7857.0,
+            "server_errors": 0.0,
+            "throttles": 0.0
+          },
+          "delta": {
+            "input_tokens": 16106.0,
+            "invocations": 26.0,
+            "output_tokens": 2578.0,
+            "sign_convention": "aws_observed minus repo_claimed; positive means AWS saw more"
+          },
+          "model_id": "au.anthropic.claude-haiku-4-5-20251001-v1:0",
+          "named_causes_of_the_delta": [
+            {
+              "cause": "probes made before any program in this fleet existed",
+              "evidence": "AWS 300-second buckets that had closed before 2026-08-10T22:00:59Z, the generated_at of the fleet's first artefact (evidence/aws/probe/bedrock-probe.json). These are the orchestrator's and the AWS-execution lead's own probes, recorded in docs/leads/aws-exec-final.md §1.1 and §1.2 and in no token ledger. The bucket at 2026-08-10T22:00:00Z straddles the boundary and carries 1 invocations / 22 input tokens; it is excluded from this figure and assigned to neither side, because it contains the fleet's own probe and CloudWatch cannot split it.",
+              "in_aws_numbers": true,
+              "in_repo_ledgers": false,
+              "input_tokens": 151.0,
+              "invocations": 8.0
+            },
+            {
+              "cause": "this program's own calls",
+              "evidence": "scripts/aws/cloudwatch_evidence.py invokes no model. Its allowlist (READ_ONLY_OPERATIONS) contains no bedrock-runtime operation and _guard raises before signing anything else, so its contribution to Invocations and to both token counters is exactly zero and cannot be otherwise.",
+              "in_aws_numbers": true,
+              "in_repo_ledgers": false,
+              "input_tokens": 0.0,
+              "invocations": 0.0
+            },
+            {
+              "cause": "requests AWS answered with a client error after this fleet began",
+              "evidence": "this artefact's own InvocationClientErrors sum is 7, of which 0 fall in or before the bucket containing 2026-08-10T22:00:59Z. A refused request is counted in Invocations, returns no usable response, and is therefore never written into a token ledger by any program in this fleet. The zero input_tokens is AWS's own accounting: a request rejected before inference bills nothing.",
+              "in_aws_numbers": true,
+              "in_repo_ledgers": false,
+              "input_tokens": 0.0,
+              "invocations": 7.0,
+              "source": "CloudWatch, not a repository artefact"
+            }
+          ],
+          "repo_claimed": {
+            "calls": 7,
+            "input_tokens": 17429,
+            "output_tokens": 5279
+          },
+          "sources_claiming_it": [
+            "agent_live"
+          ]
+        },
+        {
+          "activity_before_the_fleet_existed": {
+            "boundary_utc": "2026-08-10T22:00:59Z",
+            "note": "strictly_before counts only buckets that had closed before the boundary. The straddling bucket contains the boundary itself and is reported separately rather than assigned to either side; CloudWatch cannot resolve it further.",
+            "resolution_seconds": 300,
+            "straddling_bucket": {
+              "InputTokenCount": 0.0,
+              "InvocationClientErrors": 0.0,
+              "InvocationServerErrors": 0.0,
+              "InvocationThrottles": 0.0,
+              "Invocations": 0.0,
+              "OutputTokenCount": 0.0
+            },
+            "straddling_bucket_utc": null,
+            "strictly_before": {
+              "InputTokenCount": 15.0,
+              "InvocationClientErrors": 0.0,
+              "InvocationServerErrors": 0.0,
+              "InvocationThrottles": 0.0,
+              "Invocations": 1.0,
+              "OutputTokenCount": 7.0
+            }
+          },
+          "also_claimed_by_context_artefacts": {
+            "calls": null,
+            "note": "not claimed by the probe, the ANN proof or the recall manifest either. This column is NOT part of the three-way reconciliation; it is here so that a model AWS saw and the reconciled ledgers do not name can still be traced to an artefact."
+          },
+          "aws_observed": {
+            "client_errors": 0.0,
+            "input_tokens": 15.0,
+            "invocations": 1.0,
+            "output_tokens": 7.0,
+            "server_errors": 0.0,
+            "throttles": 0.0
+          },
+          "delta": {
+            "input_tokens": null,
+            "invocations": null,
+            "output_tokens": null,
+            "why_null": "one side of this row is missing: either no reconciled ledger claims this model, or AWS published no metric for it in the window"
+          },
+          "model_id": "au.anthropic.claude-sonnet-4-5-20250929-v1:0",
+          "named_causes_of_the_delta": [
+            {
+              "cause": "probes made before any program in this fleet existed",
+              "evidence": "AWS 300-second buckets that had closed before 2026-08-10T22:00:59Z, the generated_at of the fleet's first artefact (evidence/aws/probe/bedrock-probe.json). These are the orchestrator's and the AWS-execution lead's own probes, recorded in docs/leads/aws-exec-final.md §1.1 and §1.2 and in no token ledger. The bucket at None straddles the boundary and carries 0 invocations / 0 input tokens; it is excluded from this figure and assigned to neither side, because it contains the fleet's own probe and CloudWatch cannot split it.",
+              "in_aws_numbers": true,
+              "in_repo_ledgers": false,
+              "input_tokens": 15.0,
+              "invocations": 1.0
+            },
+            {
+              "cause": "this program's own calls",
+              "evidence": "scripts/aws/cloudwatch_evidence.py invokes no model. Its allowlist (READ_ONLY_OPERATIONS) contains no bedrock-runtime operation and _guard raises before signing anything else, so its contribution to Invocations and to both token counters is exactly zero and cannot be otherwise.",
+              "in_aws_numbers": true,
+              "in_repo_ledgers": false,
+              "input_tokens": 0.0,
+              "invocations": 0.0
+            }
+          ],
+          "repo_claimed": {
+            "calls": null,
+            "input_tokens": null,
+            "note": "no ledger in the three reconciled sources mentions this model",
+            "output_tokens": null
+          },
+          "sources_claiming_it": []
+        },
+        {
+          "activity_before_the_fleet_existed": {
+            "boundary_utc": "2026-08-10T22:00:59Z",
+            "note": "strictly_before counts only buckets that had closed before the boundary. The straddling bucket contains the boundary itself and is reported separately rather than assigned to either side; CloudWatch cannot resolve it further.",
+            "resolution_seconds": 300,
+            "straddling_bucket": {
+              "InputTokenCount": 0.0,
+              "InvocationClientErrors": 0.0,
+              "InvocationServerErrors": 0.0,
+              "InvocationThrottles": 0.0,
+              "Invocations": 0.0,
+              "OutputTokenCount": 0.0
+            },
+            "straddling_bucket_utc": null,
+            "strictly_before": {
+              "InputTokenCount": 7.0,
+              "InvocationClientErrors": 0.0,
+              "InvocationServerErrors": 0.0,
+              "InvocationThrottles": 0.0,
+              "Invocations": 1.0,
+              "OutputTokenCount": 0.0
+            }
+          },
+          "also_claimed_by_context_artefacts": {
+            "calls": null,
+            "note": "not claimed by the probe, the ANN proof or the recall manifest either. This column is NOT part of the three-way reconciliation; it is here so that a model AWS saw and the reconciled ledgers do not name can still be traced to an artefact."
+          },
+          "attribution": {
+            "a_negative_residual_means": "the repository claimed MORE than AWS observed by that much beyond what the named causes account for. It is an over-claim, and the correct response is to price from AWS's number — which evidence/aws/COST.md does — not to adjust AWS's.",
+            "causes_with_no_token_figure": [
+              "the benchmark prices corpus units; AWS counts HTTP requests"
+            ],
+            "named_and_quantified_input_tokens": 7.0,
+            "named_and_quantified_invocations": -913.0,
+            "unattributed_residual_input_tokens": -35296.0,
+            "unattributed_residual_invocations": 77.0,
+            "what_the_residual_most_likely_is": "iterations run while the fleet's programs were being written and debugged — partial embedding passes killed by throttling, benchmark attempts abandoned mid-sweep, and smoke tests. AWS counted every one of them. No artefact in this repository records them, so no artefact in this repository may claim them, and this number is left standing rather than distributed across the causes above until it vanishes.",
+            "why_the_token_residual_is_larger_than_it_looks": "several named causes are quantified in invocations but not in tokens, because no committed artefact states their token share. Those causes are listed in causes_with_no_token_figure and their tokens are inside the token residual, which is therefore an UPPER bound on what is genuinely unaccounted for, not a claim that this many tokens have no explanation."
+          },
+          "aws_observed": {
+            "client_errors": 5.0,
+            "input_tokens": 59345.0,
+            "invocations": 331.0,
+            "output_tokens": 0.0,
+            "server_errors": 0.0,
+            "throttles": 0.0
+          },
+          "delta": {
+            "input_tokens": -35289.0,
+            "invocations": -836.0,
+            "output_tokens": 0.0,
+            "sign_convention": "aws_observed minus repo_claimed; positive means AWS saw more"
+          },
+          "model_id": "cohere.embed-english-v3",
+          "named_causes_of_the_delta": [
+            {
+              "cause": "probes made before any program in this fleet existed",
+              "evidence": "AWS 300-second buckets that had closed before 2026-08-10T22:00:59Z, the generated_at of the fleet's first artefact (evidence/aws/probe/bedrock-probe.json). These are the orchestrator's and the AWS-execution lead's own probes, recorded in docs/leads/aws-exec-final.md §1.1 and §1.2 and in no token ledger. The bucket at None straddles the boundary and carries 0 invocations / 0 input tokens; it is excluded from this figure and assigned to neither side, because it contains the fleet's own probe and CloudWatch cannot split it.",
+              "in_aws_numbers": true,
+              "in_repo_ledgers": false,
+              "input_tokens": 7.0,
+              "invocations": 1.0
+            },
+            {
+              "cause": "this program's own calls",
+              "evidence": "scripts/aws/cloudwatch_evidence.py invokes no model. Its allowlist (READ_ONLY_OPERATIONS) contains no bedrock-runtime operation and _guard raises before signing anything else, so its contribution to Invocations and to both token counters is exactly zero and cannot be otherwise.",
+              "in_aws_numbers": true,
+              "in_repo_ledgers": false,
+              "input_tokens": 0.0,
+              "invocations": 0.0
+            },
+            {
+              "cause": "requests AWS answered with a client error after this fleet began",
+              "evidence": "this artefact's own InvocationClientErrors sum is 5, of which 0 fall in or before the bucket containing 2026-08-10T22:00:59Z. A refused request is counted in Invocations, returns no usable response, and is therefore never written into a token ledger by any program in this fleet. The zero input_tokens is AWS's own accounting: a request rejected before inference bills nothing.",
+              "in_aws_numbers": true,
+              "in_repo_ledgers": false,
+              "input_tokens": 0.0,
+              "invocations": 5.0,
+              "source": "CloudWatch, not a repository artefact"
+            },
+            {
+              "cause": "the benchmark prices corpus units; AWS counts HTTP requests",
+              "corroborated_by_local_cache": 248,
+              "evidence": "evidence/aws/bench/cohere-vs-titan.json prices 1167 corpus units for this arm (/payload/token_ledger/entries) but its journal holds 248 distinct texts (/payload/sweep/calls_reused_from_journal/cohere_v3) and /payload/sweep/calls_made_this_run reports 0 for the run that wrote the file. Byte-identical texts share one call and are priced once by AWS and many times by a corpus-priced ledger, so this contribution is NEGATIVE: the repository over-claims here.",
+              "in_aws_numbers": true,
+              "in_repo_ledgers": true,
+              "input_tokens": null,
+              "input_tokens_not_measured_because": "the per-text token counts live in the gitignored journal, so the token share of this cause cannot be recovered from a committed artefact. Multiplying the ledger's mean tokens-per-unit by the duplicate count would give a number that does not reconcile — the duplicated texts are not average-length — and a wrong estimate presented as an explanation is worse than an honest gap.",
+              "invocations": -919.0
+            }
+          ],
+          "repo_claimed": {
+            "calls": 1167,
+            "input_tokens": 94634,
+            "output_tokens": 0
+          },
+          "sources_claiming_it": [
+            "cohere_bench"
+          ]
+        },
+        {
+          "activity_before_the_fleet_existed": {
+            "boundary_utc": "2026-08-10T22:00:59Z",
+            "note": "strictly_before counts only buckets that had closed before the boundary. The straddling bucket contains the boundary itself and is reported separately rather than assigned to either side; CloudWatch cannot resolve it further.",
+            "resolution_seconds": 300,
+            "straddling_bucket": {
+              "InputTokenCount": 0.0,
+              "InvocationClientErrors": 1.0,
+              "InvocationServerErrors": 0.0,
+              "InvocationThrottles": 0.0,
+              "Invocations": 1.0,
+              "OutputTokenCount": 0.0
+            },
+            "straddling_bucket_utc": "2026-08-10T22:00:00Z",
+            "strictly_before": {
+              "InputTokenCount": 0.0,
+              "InvocationClientErrors": 5.0,
+              "InvocationServerErrors": 0.0,
+              "InvocationThrottles": 0.0,
+              "Invocations": 5.0,
+              "OutputTokenCount": 0.0
+            }
+          },
+          "also_claimed_by_context_artefacts": {
+            "calls": 1,
+            "input_tokens": 0,
+            "output_tokens": 0
+          },
+          "aws_observed": {
+            "client_errors": 10.0,
+            "input_tokens": 0.0,
+            "invocations": 10.0,
+            "output_tokens": 0.0,
+            "server_errors": 0.0,
+            "throttles": 0.0
+          },
+          "delta": {
+            "input_tokens": null,
+            "invocations": null,
+            "output_tokens": null,
+            "why_null": "one side of this row is missing: either no reconciled ledger claims this model, or AWS published no metric for it in the window"
+          },
+          "model_id": "cohere.embed-v4:0",
+          "named_causes_of_the_delta": [
+            {
+              "cause": "probes made before any program in this fleet existed",
+              "evidence": "AWS 300-second buckets that had closed before 2026-08-10T22:00:59Z, the generated_at of the fleet's first artefact (evidence/aws/probe/bedrock-probe.json). These are the orchestrator's and the AWS-execution lead's own probes, recorded in docs/leads/aws-exec-final.md §1.1 and §1.2 and in no token ledger. The bucket at 2026-08-10T22:00:00Z straddles the boundary and carries 1 invocations / 0 input tokens; it is excluded from this figure and assigned to neither side, because it contains the fleet's own probe and CloudWatch cannot split it.",
+              "in_aws_numbers": true,
+              "in_repo_ledgers": false,
+              "input_tokens": 0.0,
+              "invocations": 5.0
+            },
+            {
+              "cause": "this program's own calls",
+              "evidence": "scripts/aws/cloudwatch_evidence.py invokes no model. Its allowlist (READ_ONLY_OPERATIONS) contains no bedrock-runtime operation and _guard raises before signing anything else, so its contribution to Invocations and to both token counters is exactly zero and cannot be otherwise.",
+              "in_aws_numbers": true,
+              "in_repo_ledgers": false,
+              "input_tokens": 0.0,
+              "invocations": 0.0
+            },
+            {
+              "cause": "requests AWS answered with a client error after this fleet began",
+              "evidence": "this artefact's own InvocationClientErrors sum is 10, of which 6 fall in or before the bucket containing 2026-08-10T22:00:59Z. A refused request is counted in Invocations, returns no usable response, and is therefore never written into a token ledger by any program in this fleet. The zero input_tokens is AWS's own accounting: a request rejected before inference bills nothing.",
+              "in_aws_numbers": true,
+              "in_repo_ledgers": false,
+              "input_tokens": 0.0,
+              "invocations": 4.0,
+              "source": "CloudWatch, not a repository artefact"
+            }
+          ],
+          "repo_claimed": {
+            "calls": null,
+            "input_tokens": null,
+            "note": "no ledger in the three reconciled sources mentions this model",
+            "output_tokens": null
+          },
+          "sources_claiming_it": []
+        },
+        {
+          "activity_before_the_fleet_existed": {
+            "boundary_utc": "2026-08-10T22:00:59Z",
+            "note": "strictly_before counts only buckets that had closed before the boundary. The straddling bucket contains the boundary itself and is reported separately rather than assigned to either side; CloudWatch cannot resolve it further.",
+            "resolution_seconds": 300,
+            "straddling_bucket": {
+              "InputTokenCount": 0.0,
+              "InvocationClientErrors": 0.0,
+              "InvocationServerErrors": 0.0,
+              "InvocationThrottles": 0.0,
+              "Invocations": 0.0,
+              "OutputTokenCount": 0.0
+            },
+            "straddling_bucket_utc": null,
+            "strictly_before": {
+              "InputTokenCount": 7.0,
+              "InvocationClientErrors": 0.0,
+              "InvocationServerErrors": 0.0,
+              "InvocationThrottles": 0.0,
+              "Invocations": 1.0,
+              "OutputTokenCount": 0.0
+            }
+          },
+          "also_claimed_by_context_artefacts": {
+            "calls": null,
+            "note": "not claimed by the probe, the ANN proof or the recall manifest either. This column is NOT part of the three-way reconciliation; it is here so that a model AWS saw and the reconciled ledgers do not name can still be traced to an artefact."
+          },
+          "attribution": {
+            "a_negative_residual_means": "the repository claimed MORE than AWS observed by that much beyond what the named causes account for. It is an over-claim, and the correct response is to price from AWS's number — which evidence/aws/COST.md does — not to adjust AWS's.",
+            "causes_with_no_token_figure": [
+              "the benchmark prices corpus units; AWS counts HTTP requests"
+            ],
+            "named_and_quantified_input_tokens": 7.0,
+            "named_and_quantified_invocations": -918.0,
+            "unattributed_residual_input_tokens": -29872.0,
+            "unattributed_residual_invocations": 81.0,
+            "what_the_residual_most_likely_is": "iterations run while the fleet's programs were being written and debugged — partial embedding passes killed by throttling, benchmark attempts abandoned mid-sweep, and smoke tests. AWS counted every one of them. No artefact in this repository records them, so no artefact in this repository may claim them, and this number is left standing rather than distributed across the causes above until it vanishes.",
+            "why_the_token_residual_is_larger_than_it_looks": "several named causes are quantified in invocations but not in tokens, because no committed artefact states their token share. Those causes are listed in causes_with_no_token_figure and their tokens are inside the token residual, which is therefore an UPPER bound on what is genuinely unaccounted for, not a claim that this many tokens have no explanation."
+          },
+          "aws_observed": {
+            "client_errors": 0.0,
+            "input_tokens": 92089.0,
+            "invocations": 330.0,
+            "output_tokens": 0.0,
+            "server_errors": 0.0,
+            "throttles": 93.0
+          },
+          "delta": {
+            "input_tokens": -29865.0,
+            "invocations": -837.0,
+            "output_tokens": 0.0,
+            "sign_convention": "aws_observed minus repo_claimed; positive means AWS saw more"
+          },
+          "model_id": "global.cohere.embed-v4:0",
+          "named_causes_of_the_delta": [
+            {
+              "cause": "probes made before any program in this fleet existed",
+              "evidence": "AWS 300-second buckets that had closed before 2026-08-10T22:00:59Z, the generated_at of the fleet's first artefact (evidence/aws/probe/bedrock-probe.json). These are the orchestrator's and the AWS-execution lead's own probes, recorded in docs/leads/aws-exec-final.md §1.1 and §1.2 and in no token ledger. The bucket at None straddles the boundary and carries 0 invocations / 0 input tokens; it is excluded from this figure and assigned to neither side, because it contains the fleet's own probe and CloudWatch cannot split it.",
+              "in_aws_numbers": true,
+              "in_repo_ledgers": false,
+              "input_tokens": 7.0,
+              "invocations": 1.0
+            },
+            {
+              "cause": "this program's own calls",
+              "evidence": "scripts/aws/cloudwatch_evidence.py invokes no model. Its allowlist (READ_ONLY_OPERATIONS) contains no bedrock-runtime operation and _guard raises before signing anything else, so its contribution to Invocations and to both token counters is exactly zero and cannot be otherwise.",
+              "in_aws_numbers": true,
+              "in_repo_ledgers": false,
+              "input_tokens": 0.0,
+              "invocations": 0.0
+            },
+            {
+              "cause": "retries, by botocore and by this fleet, after a ThrottlingException",
+              "considered_and_measured_to_be_zero": true,
+              "evidence": "evidence/aws/bench/cohere-vs-titan.json/payload/arms/cohere_v4_global/cost_and_latency/calls_retried_by_botocore = 116; evidence/aws/bench/cohere-vs-titan.json/payload/arms/cohere_v4_global/cost_and_latency/throttle_retries_total = 146. Every one of these is a real HTTP request AWS received, so the natural guess is that it adds to Invocations. It does not: a throttled request is counted under InvocationThrottles and NOT under Invocations, which this dataset proves arithmetically (see what_counts_as_an_invocation). Counting them here would have shrunk this fleet's unexplained residual on a guess, so they are carried at zero with the reasoning attached rather than dropped silently.",
+              "in_aws_numbers": true,
+              "in_repo_ledgers": false,
+              "input_tokens": 0.0,
+              "invocations": 0.0
+            },
+            {
+              "cause": "the benchmark prices corpus units; AWS counts HTTP requests",
+              "corroborated_by_local_cache": 248,
+              "evidence": "evidence/aws/bench/cohere-vs-titan.json prices 1167 corpus units for this arm (/payload/token_ledger/entries) but its journal holds 248 distinct texts (/payload/sweep/calls_reused_from_journal/cohere_v4_global) and /payload/sweep/calls_made_this_run reports 0 for the run that wrote the file. Byte-identical texts share one call and are priced once by AWS and many times by a corpus-priced ledger, so this contribution is NEGATIVE: the repository over-claims here.",
+              "in_aws_numbers": true,
+              "in_repo_ledgers": true,
+              "input_tokens": null,
+              "input_tokens_not_measured_because": "the per-text token counts live in the gitignored journal, so the token share of this cause cannot be recovered from a committed artefact. Multiplying the ledger's mean tokens-per-unit by the duplicate count would give a number that does not reconcile — the duplicated texts are not average-length — and a wrong estimate presented as an explanation is worse than an honest gap.",
+              "invocations": -919.0
+            }
+          ],
+          "repo_claimed": {
+            "calls": 1167,
+            "input_tokens": 121954,
+            "output_tokens": 0
+          },
+          "sources_claiming_it": [
+            "cohere_bench"
+          ]
+        }
+      ],
+      "sign_convention": "aws_observed minus repo_claimed; positive means AWS saw more",
+      "snapshot_freshness": {
+        "latest_reconciled_or_context_artefact": "2026-08-11T04:39:28Z",
+        "meaning": "this file is a snapshot. AWS's counters keep moving, so any Bedrock call made after the window end above is not in it, and any artefact written after the timestamp above will not have been read. Re-running scripts/aws/cloudwatch_evidence.py overwrites all three artefacts in place with a fresh window and costs nothing but a handful of metric reads."
+      },
+      "sources_missing": []
+    },
+    "repo_sources": {
+      "_local_caches": {
+        "ann_proof": {
+          "lines": 1052,
+          "path": "out/aws/ann/titan-vectors.jsonl",
+          "status": "read"
+        },
+        "bench_cohere_v3": {
+          "lines": 248,
+          "path": "out/aws/bench/cohere_v3.calls.jsonl",
+          "status": "read"
+        },
+        "bench_cohere_v4_global": {
+          "lines": 248,
+          "path": "out/aws/bench/cohere_v4_global.calls.jsonl",
+          "status": "read"
+        },
+        "bench_titan": {
+          "lines": 248,
+          "path": "out/aws/bench/titan_v2.calls.jsonl",
+          "status": "read"
+        },
+        "embed_corpus_index": {
+          "bytes": 990564,
+          "path": "out/aws/titan-vectors-index.json",
+          "status": "read"
+        },
+        "recall_real": {
+          "lines": 574,
+          "path": "out/aws/recall/titan-embeddings.jsonl",
+          "status": "read"
+        },
+        "status_of_this_evidence": "out/ is gitignored, so these counts are reproducible on the machine that ran the fleet and NOT by a judge reading the repository. They are published as corroboration of the committed artefacts' own numbers, never as the citation for one."
+      },
+      "agent_live": {
+        "claim_basis": "every ledger-shaped row found by a recursive scan of the payload, de-duplicated on (model_id, calls, input_tokens, output_tokens); this artefact nominates no authoritative subset",
+        "claim_rows": [
+          {
+            "also_at": [],
+            "calls": 7,
+            "input_tokens": 17429,
+            "json_pointer": "/token_ledger/0",
+            "model_id": "au.anthropic.claude-haiku-4-5-20251001-v1:0",
+            "output_tokens": 5279,
+            "usd_total": 0.043824
+          }
+        ],
+        "generated_at": "2026-08-11T04:39:28Z",
+        "generated_by": "scripts/aws/agent_live.py",
+        "ledger_entries": [
+          {
+            "also_at": [],
+            "calls": 7,
+            "input_tokens": 17429,
+            "json_pointer": "/token_ledger/0",
+            "model_id": "au.anthropic.claude-haiku-4-5-20251001-v1:0",
+            "output_tokens": 5279,
+            "usd_total": 0.043824
+          }
+        ],
+        "path": "evidence/aws/agent/live-run.json",
+        "reconciled": true,
+        "status": "read"
+      },
+      "ann_proof": {
+        "claim_basis": "every ledger-shaped row found by a recursive scan of the payload, de-duplicated on (model_id, calls, input_tokens, output_tokens); this artefact nominates no authoritative subset",
+        "claim_rows": [
+          {
+            "also_at": [],
+            "calls": 1052,
+            "input_tokens": 145708,
+            "json_pointer": "/token_ledger/0",
+            "model_id": "amazon.titan-embed-text-v2:0",
+            "output_tokens": 0,
+            "usd_total": 0.00291416
+          }
+        ],
+        "generated_at": "2026-08-11T04:07:47Z",
+        "generated_by": "scripts/aws/ann_proof.py",
+        "ledger_entries": [
+          {
+            "also_at": [],
+            "calls": 1052,
+            "input_tokens": 145708,
+            "json_pointer": "/token_ledger/0",
+            "model_id": "amazon.titan-embed-text-v2:0",
+            "output_tokens": 0,
+            "usd_total": 0.00291416
+          }
+        ],
+        "pass_facts": {
+          "cache_hits": 1176,
+          "corpus_distinct_texts": 1052,
+          "corpus_input_tokens": 145708,
+          "input_tokens_this_pass": 0,
+          "invoke_model_calls_this_pass": 0,
+          "json_pointer": "/payload/bedrock"
+        },
+        "path": "evidence/aws/ann/ann-proof.json",
+        "reconciled": false,
+        "status": "read"
+      },
+      "cohere_bench": {
+        "claim_basis": "the artefact's own /payload/token_ledger/entries, one row per arm; the same rows appear again inside /payload/arms/*/cost_and_latency and are not counted twice",
+        "claim_rows": [
+          {
+            "calls": 1167,
+            "input_tokens": 121153,
+            "model_id": "amazon.titan-embed-text-v2:0",
+            "output_tokens": 0,
+            "usd_total": 0.00242306
+          },
+          {
+            "calls": 1167,
+            "input_tokens": 94634,
+            "model_id": "cohere.embed-english-v3",
+            "output_tokens": 0,
+            "usd_total": 0.0094634
+          },
+          {
+            "calls": 1167,
+            "input_tokens": 121954,
+            "model_id": "global.cohere.embed-v4:0",
+            "output_tokens": 0,
+            "usd_total": 0.01463448
+          }
+        ],
+        "generated_at": "2026-08-11T03:25:58Z",
+        "generated_by": "scripts/aws/bench_cohere.py",
+        "ledger_entries": [
+          {
+            "also_at": [
+              "/token_ledger/entries/1"
+            ],
+            "calls": 1167,
+            "input_tokens": 94634,
+            "json_pointer": "/arms/cohere_v3/cost_and_latency/token_ledger_entry",
+            "model_id": "cohere.embed-english-v3",
+            "output_tokens": 0,
+            "usd_total": 0.0094634
+          },
+          {
+            "also_at": [
+              "/token_ledger/entries/2"
+            ],
+            "calls": 1167,
+            "input_tokens": 121954,
+            "json_pointer": "/arms/cohere_v4_global/cost_and_latency/token_ledger_entry",
+            "model_id": "global.cohere.embed-v4:0",
+            "output_tokens": 0,
+            "usd_total": 0.01463448
+          },
+          {
+            "also_at": [
+              "/token_ledger/entries/0"
+            ],
+            "calls": 1167,
+            "input_tokens": 121153,
+            "json_pointer": "/arms/titan_v2/cost_and_latency/token_ledger_entry",
+            "model_id": "amazon.titan-embed-text-v2:0",
+            "output_tokens": 0,
+            "usd_total": 0.00242306
+          }
+        ],
+        "nominated_entries": {
+          "json_pointer": "/payload/token_ledger/entries",
+          "rows": [
+            {
+              "calls": 1167,
+              "input_tokens": 121153,
+              "model_id": "amazon.titan-embed-text-v2:0",
+              "output_tokens": 0,
+              "usd_total": 0.00242306
+            },
+            {
+              "calls": 1167,
+              "input_tokens": 94634,
+              "model_id": "cohere.embed-english-v3",
+              "output_tokens": 0,
+              "usd_total": 0.0094634
+            },
+            {
+              "calls": 1167,
+              "input_tokens": 121954,
+              "model_id": "global.cohere.embed-v4:0",
+              "output_tokens": 0,
+              "usd_total": 0.01463448
+            }
+          ]
+        },
+        "path": "evidence/aws/bench/cohere-vs-titan.json",
+        "reconciled": true,
+        "retry_facts_by_arm": {
+          "cohere_v3": {
+            "calls_retried_by_botocore": 0,
+            "json_pointer": "/payload/arms/cohere_v3/cost_and_latency",
+            "model_id": "cohere.embed-english-v3",
+            "throttle_retries_total": 0
+          },
+          "cohere_v4_global": {
+            "calls_retried_by_botocore": 116,
+            "json_pointer": "/payload/arms/cohere_v4_global/cost_and_latency",
+            "model_id": "global.cohere.embed-v4:0",
+            "throttle_retries_total": 146
+          },
+          "titan_v2": {
+            "calls_retried_by_botocore": 20,
+            "json_pointer": "/payload/arms/titan_v2/cost_and_latency",
+            "model_id": "amazon.titan-embed-text-v2:0",
+            "throttle_retries_total": 96
+          }
+        },
+        "status": "read",
+        "sweep": {
+          "calls_made_this_run": {
+            "cohere_v3": 0,
+            "cohere_v4_global": 0,
+            "titan_v2": 0
+          },
+          "calls_reused_from_journal": {
+            "cohere_v3": 248,
+            "cohere_v4_global": 248,
+            "titan_v2": 248
+          },
+          "json_pointer": "/payload/sweep",
+          "mode": "rescore-only: every vector and every timing replayed from the on-disk journal, no model invoked"
+        }
+      },
+      "probe": {
+        "claim_basis": "every ledger-shaped row found by a recursive scan of the payload, de-duplicated on (model_id, calls, input_tokens, output_tokens); this artefact nominates no authoritative subset",
+        "claim_rows": [
+          {
+            "also_at": [],
+            "calls": 1,
+            "input_tokens": 36,
+            "json_pointer": "/token_ledger/0",
+            "model_id": "amazon.titan-embed-text-v2:0",
+            "output_tokens": 0,
+            "usd_total": 7.2e-07
+          },
+          {
+            "also_at": [],
+            "calls": 1,
+            "input_tokens": 22,
+            "json_pointer": "/token_ledger/1",
+            "model_id": "au.anthropic.claude-haiku-4-5-20251001-v1:0",
+            "output_tokens": 8,
+            "usd_total": 6.2e-05
+          },
+          {
+            "also_at": [],
+            "calls": 1,
+            "input_tokens": 0,
+            "json_pointer": "/token_ledger/2",
+            "model_id": "cohere.embed-v4:0",
+            "output_tokens": 0,
+            "usd_total": 0.0
+          }
+        ],
+        "generated_at": "2026-08-10T22:00:59Z",
+        "generated_by": "scripts/aws/probe_bedrock.py",
+        "ledger_entries": [
+          {
+            "also_at": [],
+            "calls": 1,
+            "input_tokens": 36,
+            "json_pointer": "/token_ledger/0",
+            "model_id": "amazon.titan-embed-text-v2:0",
+            "output_tokens": 0,
+            "usd_total": 7.2e-07
+          },
+          {
+            "also_at": [],
+            "calls": 1,
+            "input_tokens": 22,
+            "json_pointer": "/token_ledger/1",
+            "model_id": "au.anthropic.claude-haiku-4-5-20251001-v1:0",
+            "output_tokens": 8,
+            "usd_total": 6.2e-05
+          },
+          {
+            "also_at": [],
+            "calls": 1,
+            "input_tokens": 0,
+            "json_pointer": "/token_ledger/2",
+            "model_id": "cohere.embed-v4:0",
+            "output_tokens": 0,
+            "usd_total": 0.0
+          }
+        ],
+        "path": "evidence/aws/probe/bedrock-probe.json",
+        "reconciled": false,
+        "status": "read"
+      },
+      "recall_real": {
+        "claim_basis": "every ledger-shaped row found by a recursive scan of the payload, de-duplicated on (model_id, calls, input_tokens, output_tokens); this artefact nominates no authoritative subset",
+        "claim_rows": [
+          {
+            "also_at": [
+              "/retrieval/embedding",
+              "/token_ledger/entries/0"
+            ],
+            "calls": 0,
+            "input_tokens": 0,
+            "json_pointer": "/bedrock",
+            "model_id": "amazon.titan-embed-text-v2:0",
+            "output_tokens": 0,
+            "usd_total": null
+          }
+        ],
+        "generated_at": "2026-08-11T02:52:11Z",
+        "generated_by": "scripts/aws/recall_real.py",
+        "ledger_entries": [
+          {
+            "also_at": [
+              "/retrieval/embedding",
+              "/token_ledger/entries/0"
+            ],
+            "calls": 0,
+            "input_tokens": 0,
+            "json_pointer": "/bedrock",
+            "model_id": "amazon.titan-embed-text-v2:0",
+            "output_tokens": 0,
+            "usd_total": null
+          }
+        ],
+        "pass_facts": {
+          "cache_entries": 548,
+          "cache_hits": 1863,
+          "cache_misses": 0,
+          "calls_this_pass": 0,
+          "input_tokens_this_pass": 0,
+          "json_pointer": "/payload/bedrock"
+        },
+        "path": "evidence/aws/recall/run-manifest.json",
+        "reconciled": false,
+        "status": "read"
+      },
+      "titan_embed": {
+        "claim_basis": "the artefact's own /payload/index_cumulative/ledger_entry, which already contains this run's calls; summing the scanned rows as well would double-count",
+        "claim_rows": [
+          {
+            "calls": 2060,
+            "input_tokens": 177345,
+            "json_pointer": "/payload/index_cumulative/ledger_entry",
+            "model_id": "amazon.titan-embed-text-v2:0",
+            "output_tokens": 0,
+            "usd_total": 0.0035469
+          }
+        ],
+        "generated_at": "2026-08-11T03:05:28Z",
+        "generated_by": "prove_behaviours.py",
+        "ledger_entries": [
+          {
+            "also_at": [],
+            "calls": 2060,
+            "input_tokens": 177345,
+            "json_pointer": "/index_cumulative/ledger_entry",
+            "model_id": "amazon.titan-embed-text-v2:0",
+            "output_tokens": 0,
+            "usd_total": 0.0035469
+          },
+          {
+            "also_at": [],
+            "calls": 0,
+            "input_tokens": 0,
+            "json_pointer": "/this_run/ledger_entry",
+            "model_id": "amazon.titan-embed-text-v2:0",
+            "output_tokens": 0,
+            "usd_total": 0.0
+          }
+        ],
+        "nominated_entry": {
+          "calls": 2060,
+          "input_tokens": 177345,
+          "json_pointer": "/payload/index_cumulative/ledger_entry",
+          "model_id": "amazon.titan-embed-text-v2:0",
+          "output_tokens": 0,
+          "usd_total": 0.0035469
+        },
+        "path": "evidence/aws/embeddings/token-ledger.json",
+        "reconciled": true,
+        "retry_and_failure_facts": {
+          "botocore_internal_retry_attempts": 150,
+          "failures": 70,
+          "json_pointer": "/payload/index_cumulative/build_history_totals",
+          "successful_calls_in_build_history": 1986,
+          "throttles_observed": 23545,
+          "transient_retries": 1,
+          "vectors_in_index": 2060,
+          "vectors_older_than_build_history": 74
+        },
+        "status": "read"
+      }
+    },
+    "the_one_place_the_two_sides_must_agree_exactly": {
+      "bucket_resolution_seconds": 300,
+      "checked": true,
+      "rows": [
+        {
+          "aws_cloudwatch_says": {
+            "client_errors": 0.0,
+            "input_tokens": 36.0,
+            "invocations": 1.0,
+            "output_tokens": 0.0
+          },
+          "bucket_utc": "2026-08-10T22:00:00Z",
+          "model_id": "amazon.titan-embed-text-v2:0",
+          "probe_artefact_says": {
+            "input_tokens": 36.0,
+            "invocations": 1.0,
+            "json_pointer": "/payload/titan",
+            "output_tokens": 0.0
+          },
+          "verdict": "MATCH"
+        },
+        {
+          "aws_cloudwatch_says": {
+            "client_errors": 0.0,
+            "input_tokens": 22.0,
+            "invocations": 1.0,
+            "output_tokens": 8.0
+          },
+          "bucket_utc": "2026-08-10T22:00:00Z",
+          "model_id": "au.anthropic.claude-haiku-4-5-20251001-v1:0",
+          "probe_artefact_says": {
+            "input_tokens": 22.0,
+            "invocations": 1.0,
+            "json_pointer": "/payload/haiku/usage",
+            "output_tokens": 8.0
+          },
+          "verdict": "MATCH"
+        },
+        {
+          "aws_cloudwatch_says": {
+            "client_errors": 1.0,
+            "input_tokens": 0.0,
+            "invocations": 1.0,
+            "output_tokens": 0.0
+          },
+          "bucket_utc": "2026-08-10T22:00:00Z",
+          "model_id": "cohere.embed-v4:0",
+          "probe_artefact_says": {
+            "client_errors": 1.0,
+            "input_tokens": 0.0,
+            "invocations": 1.0,
+            "json_pointer": "/payload/cohere",
+            "note": "a refusal: AWS served the request, billed no token, and counted a client error",
+            "output_tokens": 0.0
+          },
+          "verdict": "MATCH"
+        }
+      ],
+      "verdict": "ALL MATCH",
+      "why_this_one_must_match": "the probe made three calls in one second with nothing else running, so the CloudWatch bucket containing that second and the probe's own artefact are measuring the same three requests. Elsewhere in this file the two sides measure different quantities and are expected to differ; here they do not, and AWS confirms a committed artefact of this repository token for token."
+    },
+    "what_counts_as_an_invocation": {
+      "rule_1": {
+        "consequence": "the repository's retry and throttle counts must NOT be added to its call counts when comparing against Invocations. They are carried in the reconciliation as named causes with a measured contribution of ZERO, rather than dropped, so that a reader can see the candidate cause was considered and settled.",
+        "proof_from_this_window": [
+          {
+            "invocations": 7542.0,
+            "model_id": "amazon.titan-embed-text-v2:0",
+            "throttles": 61552.0
+          }
+        ],
+        "statement": "a THROTTLED request is counted under InvocationThrottles and NOT under Invocations",
+        "why_it_is_a_proof": "for the models listed, InvocationThrottles exceeds Invocations. If a throttled request were also an invocation, Invocations would be at least as large as InvocationThrottles. It is not, so it is not."
+      },
+      "rule_2": {
+        "consequence": "refused requests inflate Invocations and no ledger row exists for them, so they are a genuine named cause of the delta — quantified from CloudWatch's own error counters, because no repository artefact records them.",
+        "proof_from_this_window": [
+          {
+            "client_errors": 1.0,
+            "input_tokens": 0.0,
+            "invocations": 1.0,
+            "model_id": "apac.anthropic.claude-3-5-sonnet-20241022-v2:0"
+          },
+          {
+            "client_errors": 10.0,
+            "input_tokens": 0.0,
+            "invocations": 10.0,
+            "model_id": "cohere.embed-v4:0"
+          }
+        ],
+        "statement": "a REFUSED request — one AWS answered with a client error — IS counted under Invocations, and bills no token",
+        "why_it_is_a_proof": "for the models listed, InvocationClientErrors equals Invocations exactly while InputTokenCount is zero. Every request to those models was refused, every refusal was still counted as an invocation, and none of them consumed a token."
+      },
+      "why_this_block_exists": "the naive reconciliation adds every retry and every failure to the repository's call count, which would have 'explained' several hundred more invocations than these rules permit and shrunk the unexplained residual accordingly. The rules are established here so that the shrinking does not happen quietly."
+    },
+    "window": {
+      "clipping_check": {
+        "invocations_found_before_the_requested_start": {},
+        "swept_from_utc": "2026-08-04T00:00:00Z",
+        "swept_to_utc": "2026-08-10T00:00:00Z",
+        "verdict": "nothing before the requested start; the window brackets every Bedrock call this account made"
+      },
+      "end_utc": "2026-08-11T05:10:22Z",
+      "seconds": 105022,
+      "start_utc": "2026-08-10T00:00:00Z",
+      "widened_from": null
+    }
+  },
+  "region": "ap-southeast-2",
+  "synthetic": false
+}

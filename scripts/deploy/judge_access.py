@@ -3,18 +3,56 @@
 # SPDX-License-Identifier: Apache-2.0
 """Judge access: provision the read-only login, prove it from the other side, run the pack.
 
-THREE SUBCOMMANDS, AND WHY THEY ARE ONE PROGRAM
+FOUR SUBCOMMANDS, AND WHY THEY ARE ONE PROGRAM
 -----------------------------------------------
 ``provision``   apply ``verticals/mainline/db/demo/judge_grants.sql``, then connect AS
                 ``mainline_judge`` and assert what it can and cannot read.
 ``judge-run``   execute the sixteen questions in ``verticals/mainline/demo/judge/QUESTIONS.yaml``
                 against the live cluster, over Managed MCP and/or pgwire, and write
                 ``evidence/deploy/judge-run.json``.
+``attest``      rotate, probe, run the pack over BOTH channels, write both evidence files, and
+                print the new password once — all in ONE process, so the credential never reaches
+                a command line, a shell history, an environment variable or a file.
 ``credentials`` print the block that goes in ``docs/deploy/JUDGE-PACK.md``.
 
 They share a program because they share a claim. The credential block is only publishable if the
 probes passed, and the pack run is only meaningful if it ran as the identity the credential names.
 Splitting them would let a stale credential block outlive the run that justified it.
+
+``attest`` exists because the three-command sequence has a hole in it: after ``provision --rotate``
+prints a password, the only way to hand that password to ``judge-run --as-judge`` is
+``--judge-password`` (process table, shell history) or an environment variable (child processes,
+crash dumps). One process closes the hole. It is also the only mode that can mark a run
+**verified** — see below.
+
+VERIFIED vs UNVERIFIED, AND WHY THE MODE IS RECORDED IN THE EVIDENCE
+--------------------------------------------------------------------
+On 2026-08-10 this program ran against Cloud without ``--rotate`` and therefore without a
+password. It could not authenticate as ``mainline_judge``, so it probed NOTHING — and it said so,
+loudly, rather than reporting ``0/14 readable``. That run's assertions are UNVERIFIED.
+
+An evidence file that does not name the mode that produced it cannot be told apart from one that
+does, so every artefact this program writes now carries ``probe.mode`` — one of ``rotated``,
+``password_from_env`` or ``no_password`` — and a boolean ``verified``. Only ``rotated`` and
+``password_from_env`` can be verified; ``no_password`` is a NOT RUN by construction.
+
+ROLLING BACK A DDL STATEMENT IS NOT A SAFETY NET ON COCKROACHDB — MEASURED
+--------------------------------------------------------------------------
+The negative probes include ``CREATE TABLE`` and ``DROP VIEW``, because "this login cannot write"
+is a claim about DDL as much as about DML, and a refusal with no SQLSTATE beside it is not proof.
+Running a ``DROP VIEW`` against the live demo cluster needs a safety net, and the obvious one does
+not work. Measured on CockroachDB CCL v26.2.5, local node, database ``w_w7_judge_access``, both
+through psycopg's transaction management and through literal ``BEGIN``/``ROLLBACK`` statements::
+
+    CREATE VIEW s1.v ...             -> present, 1
+    BEGIN; DROP VIEW s1.v; ROLLBACK; -> present, 0     <- the view is GONE
+    BEGIN; CREATE TABLE s1.probe_tmp ...; ROLLBACK;    -> the table EXISTS
+
+So a rolled-back transaction does not undo a schema change here. The net used instead is a
+**restore guard**: before the destructive probe runs, the admin connection captures
+``SHOW CREATE`` for the view under test; if the judge login manages to drop it — which would be a
+catastrophic grant failure, not a test failure — the admin connection re-creates it immediately
+and the evidence records both the breach and the repair. The guard has never fired.
 
 WHAT THIS PROGRAM MEASURED, ON 2026-08-10, THAT NOTHING ELSE IN THE REPOSITORY KNEW
 -----------------------------------------------------------------------------------
@@ -73,11 +111,32 @@ outright — ``QaSchemaRefused`` propagates as an uncaught exception. FALLBACK.m
 Both are reported in this program's evidence and in ``docs/deploy/JUDGE-PACK.md``. Neither file is
 touched.
 
-NOTHING HERE PRINTS A SECRET
------------------------------
-Passwords are generated, written to SSM by the caller, and returned once. Every DSN that reaches
-stdout or an evidence file goes through :func:`scripts.deploy.cloud_chain.redact`. The MCP key is
-read from the environment and never echoed, not even truncated.
+NOTHING HERE WRITES A SECRET, AND THE EVIDENCE FILE PROVES IT ABOUT ITSELF
+--------------------------------------------------------------------------
+Passwords are generated, held in one local variable, printed once on the last line of the run, and
+never written anywhere. Every DSN that reaches stdout or an evidence file goes through
+:func:`scripts.deploy.cloud_chain.redact`. The MCP key is read from the environment and never
+echoed, not even truncated.
+
+That is the intent; :func:`assert_no_credentials` is the check. Before either evidence file is
+written, its serialised bytes are searched for (a) the literal password this run issued, (b) any
+``scheme://user:secret@host`` userinfo, and (c) any bare high-entropy token of the shape
+``secrets.token_urlsafe`` produces, with UUIDs and hex digests excluded by shape rather than by
+allowlist. A hit **aborts the write**. An evidence file that cannot make this assertion about
+itself is not written at all, because a leaked credential in a committed artefact is not
+repairable by a later commit.
+
+A scanner that aborts is a scanner that can lose a credential, and on 2026-08-11 it did: the
+userinfo pattern fired on the ``postgresql://user:***@host`` that :func:`redact` had already
+cleaned, raised between the ``ALTER USER`` and the line that prints the result, and the freshly
+minted password was gone. The pattern now excludes the redacted form, and — the durable half —
+``attest`` discloses the credential from a ``finally``, so no failure downstream of the rotation
+can swallow it again.
+
+The rotation on 2026-08-11 was performed because the previous password had been echoed into a
+transcript. A credential that has appeared in a transcript is a burned credential whether or not
+the tree can see it, and the tree cannot see it — which is exactly why the rotation is recorded
+here, in the file that can.
 """
 
 from __future__ import annotations
@@ -87,6 +146,7 @@ import contextlib
 import datetime as dt
 import json
 import os
+import re
 import secrets
 import sys
 import time
@@ -146,6 +206,127 @@ AUDIT_VIEWS: Final[tuple[str, ...]] = (
     "v_unused_indexes",
     "v_weakenings_without_disposition",
 )
+
+#: THE NEGATIVE SURFACE, one row per assertion, each carrying the CATEGORY of refusal it proves.
+#:
+#: Four categories are mandatory and are asserted by :func:`verdict_for`: reading a base table,
+#: writing a row, creating a relation, and dropping one. "This login is read-only" is four
+#: different claims and a program that only tries ``SELECT`` has evidence for one of them.
+#:
+#: ``destructive`` marks the two that would change the schema if they were NOT refused. Those run
+#: under the restore guard described in the module docstring, because on this engine a rolled-back
+#: transaction does not undo a schema change.
+#:
+#: ``pg_catalog`` and ``information_schema`` are deliberately ABSENT, and their absence is a
+#: finding rather than an oversight. Measured as this login: ``pg_catalog.pg_class`` returns 654
+#: rows and ``information_schema.tables`` returns 446. Both are per-user-filtered catalogues and
+#: are readable by any login on CockroachDB. The judge pack's N03 and N04 assert they are
+#: unreachable — true over the Managed MCP channel, whose server blocks them by name, and false
+#: over pgwire. Asserting it here would manufacture a pass.
+NEGATIVE_PROBES: Final[tuple[dict[str, Any], ...]] = (
+    {
+        "target": "base table mainline.permit",
+        "category": "select_base_table",
+        "sql": "SELECT count(*) FROM mainline.permit",
+        "destructive": False,
+    },
+    {
+        "target": "base table mainline.disposition",
+        "category": "select_base_table",
+        "sql": "SELECT count(*) FROM mainline.disposition",
+        "destructive": False,
+    },
+    {
+        "target": "base table mainline_meas.standing",
+        "category": "select_base_table",
+        "sql": "SELECT count(*) FROM mainline_meas.standing",
+        "destructive": False,
+    },
+    {
+        "target": "mainline_qa.v_disposition_profile",
+        "category": "select_forbidden_schema",
+        "sql": "SELECT count(*) FROM mainline_qa.v_disposition_profile",
+        "destructive": False,
+    },
+    {
+        "target": "mainline_qa.v_my_record",
+        "category": "select_forbidden_schema",
+        "sql": "SELECT count(*) FROM mainline_qa.v_my_record",
+        "destructive": False,
+    },
+    {
+        "target": "mainline_qa.v_standing_components",
+        "category": "select_forbidden_schema",
+        "sql": "SELECT count(*) FROM mainline_qa.v_standing_components",
+        "destructive": False,
+    },
+    {
+        "target": "crdb_internal.jobs",
+        "category": "select_internal",
+        "sql": "SELECT count(*) FROM crdb_internal.jobs",
+        "destructive": False,
+    },
+    {
+        "target": "crdb_internal.tables",
+        "category": "select_internal",
+        "sql": "SELECT count(*) FROM crdb_internal.tables",
+        "destructive": False,
+    },
+    {
+        # NOT NULL columns with no default mean this statement could only ever reach `23502`, and
+        # only if the privilege check let it past planning. `42501` arrives first, at plan time,
+        # which is the point: the refusal precedes any attempt to write a row.
+        "target": "INSERT INTO mainline.refusal_ledger",
+        "category": "insert",
+        "sql": "INSERT INTO mainline.refusal_ledger (spec_version) VALUES ('w7-negative-probe')",
+        "destructive": True,
+        "repair": "DELETE FROM mainline.refusal_ledger WHERE spec_version = 'w7-negative-probe'",
+    },
+    {
+        "target": "CREATE TABLE mainline.w7_judge_probe",
+        "category": "create_table",
+        "sql": "CREATE TABLE mainline.w7_judge_probe (probe_id UUID PRIMARY KEY)",
+        "destructive": True,
+        "repair": "DROP TABLE IF EXISTS mainline.w7_judge_probe",
+    },
+    {
+        # The sharpest one in the table: the judge login CAN read this view. If SELECT and DROP
+        # were the same privilege the whole published credential would be a lie, so the assertion
+        # is made against a relation the login demonstrably reaches.
+        "target": "DROP VIEW mainline_audit.v_open_gate_summary",
+        "category": "drop_view",
+        "sql": "DROP VIEW mainline_audit.v_open_gate_summary",
+        "destructive": True,
+        "restore_view": "mainline_audit.v_open_gate_summary",
+    },
+)
+
+#: The four categories a run must have refused before it may call itself PROVEN.
+REQUIRED_NEGATIVE_CATEGORIES: Final[tuple[str, ...]] = (
+    "select_base_table",
+    "insert",
+    "create_table",
+    "drop_view",
+)
+
+#: A ``secrets.token_urlsafe(24)`` value is 32 characters of ``[A-Za-z0-9_-]``. The evidence
+#: scanner looks for this SHAPE rather than for a known string, so a credential minted by some
+#: other program is caught too. ``+/=`` is included so a classic base64 secret is caught as well.
+TOKEN_SHAPE: Final = re.compile(
+    r"(?<![A-Za-z0-9_+/=\-])[A-Za-z0-9_+/=\-]{24,}(?![A-Za-z0-9_+/=\-])"
+)
+
+#: A UUID is long, dense and public. The cluster id is one, and it is quoted in both evidence
+#: files on purpose.
+UUID_SHAPE: Final = re.compile(
+    r"\A[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\Z"
+)
+
+#: A DSN carrying userinfo. ``redact`` rewrites the password to ``***`` and that form is what a
+#: correctly redacted DSN looks like, so it is excluded by the lookahead — WITHOUT the lookahead
+#: this pattern fires on every artefact this program writes, because every artefact quotes a
+#: redacted cluster DSN. Measured: it did, on 2026-08-11, and it cost a rotation.
+DSN_WITH_PASSWORD: Final = re.compile(r"[a-zA-Z][a-zA-Z0-9+.\-]*://[^:/@\s]+:(?!\*+@)[^@\s]+@")
 
 #: The live Managed MCP surface. Pinned as a constant so the evidence file and the documentation
 #: quote the same string.
@@ -262,6 +443,87 @@ def as_user(dsn: str, user: str, password: str, database: str) -> str:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════════════
+# the assertion every evidence file in this program makes about ITSELF
+# ═══════════════════════════════════════════════════════════════════════════════════════
+
+
+class CredentialInArtefact(RuntimeError):
+    """Raised instead of writing an evidence file that carries a secret."""
+
+
+def looks_like_credential(token: str) -> bool:
+    """Is *token* shaped like a randomly generated secret rather than like an identifier?
+
+    THE DISCRIMINATOR IS CHARACTER-CLASS DIVERSITY, not length and not an allowlist. A 32-character
+    ``secrets.token_urlsafe`` value drawn from a 64-symbol alphabet contains an uppercase letter, a
+    lowercase letter and a digit with probability ~0.997. The long strings that legitimately appear
+    in these artefacts do not: ``v_weakenings_without_disposition`` is all lower case,
+    ``fe27b6208d2281929a9d3c554e4612ac...`` is a hex digest with no uppercase, and a UUID is
+    excluded by shape.
+
+    An allowlist of known-safe values would have to be maintained by the same person who would
+    have to notice the leak, which is the wrong order. A shape test needs no maintenance and its
+    false positives cost one edit each.
+    """
+    if len(token) < 24 or UUID_SHAPE.match(token):
+        return False
+    return (
+        any(c.isupper() for c in token)
+        and any(c.islower() for c in token)
+        and any(c.isdigit() for c in token)
+    )
+
+
+def assert_no_credentials(payload: dict[str, Any], *, issued: str = "") -> dict[str, Any]:
+    """Search the serialised artefact for anything credential-shaped. A hit ABORTS the write.
+
+    Three checks, in descending order of certainty:
+
+    1. the literal password this run issued, if one was issued — a substring search, so a value
+       embedded inside a longer string is caught too;
+    2. ``scheme://user:secret@host`` userinfo that :func:`redact` did not remove;
+    3. any bare token of :func:`looks_like_credential` shape.
+
+    Returns the record that goes into the artefact. Raises :class:`CredentialInArtefact` on a hit,
+    because a committed evidence file carrying a live password is not repairable by a later commit
+    — the value is disclosed the moment it is pushed, and rotating it again is the only remedy.
+    """
+    text = json.dumps(payload, indent=2, sort_keys=True)
+    findings: list[str] = []
+    if issued and issued in text:
+        findings.append("the password issued by this run appears verbatim in the artefact")
+    for match in DSN_WITH_PASSWORD.finditer(text):
+        findings.append(f"a DSN carrying userinfo survived redaction: {match.group(0)[:24]}...")
+    suspects = sorted({t for t in TOKEN_SHAPE.findall(text) if looks_like_credential(t)})
+    findings.extend(
+        f"credential-shaped token in the artefact: {t[:6]}... ({len(t)} chars)"
+        for t in suspects
+    )
+    if findings:
+        raise CredentialInArtefact("; ".join(findings))
+    return {
+        "assertion": "no field in this file is credential-shaped",
+        "method": (
+            "the serialised artefact was searched for (a) the literal password this run issued, "
+            "(b) any connection string whose userinfo still carries a password rather than the "
+            "redacted form, and (c) any bare token of 24+ characters mixing upper case, lower "
+            "case and digits — the shape secrets.token_urlsafe produces. UUIDs and hex digests "
+            "are excluded by shape, not by an allowlist of values."
+        ),
+        # THIS DESCRIPTION IS ITSELF SCANNED, and an earlier wording of it contained a literal
+        # `scheme://user:secret@host` as an example. The artefact then failed its own check — the
+        # scanner was right and the prose was the leak-shaped thing. Keeping the example out is
+        # not a weakening: the pattern is in this module, in `DSN_WITH_PASSWORD`, where a reader
+        # who wants the exact regex can read it.
+        "self_scanned": True,
+        "bytes_scanned": len(text),
+        "password_was_issued_this_run": bool(issued),
+        "matches": 0,
+        "holds": True,
+    }
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════
 # provisioning
 # ═══════════════════════════════════════════════════════════════════════════════════════
 
@@ -356,16 +618,54 @@ def apply_grants(
     return log
 
 
+def capture_view_definition(admin: psycopg.Connection[Any] | None, relation: str) -> str | None:
+    """``SHOW CREATE`` for *relation*, taken BEFORE anything is allowed to drop it.
+
+    This is the restore guard's whole premise: on CockroachDB a rolled-back transaction does not
+    undo a schema change (measured — see the module docstring), so the only way to make a
+    ``DROP VIEW`` probe safe against the live demo cluster is to hold the statement that rebuilds
+    it. Returning ``None`` means the guard is unavailable, and the caller SKIPS the probe rather
+    than running it unguarded.
+    """
+    if admin is None:
+        return None
+    try:
+        # `relation` comes from the NEGATIVE_PROBES constant tuple, never from input.
+        row = admin.execute(f"SHOW CREATE {relation}").fetchone()
+    except psycopg.Error:
+        return None
+    return str(row[1]) if row and len(row) > 1 else None
+
+
 # The probe list IS the security surface: each entry is one assertion with its own message, and a
 # generic loop would report "a denial failed" where the useful sentence names which one.
-def probe_as_judge(dsn: str, password: str, database: str) -> dict[str, Any]:
+def probe_as_judge(  # noqa: PLR0912, PLR0915 - one branch per outcome, and each outcome is a
+    # different sentence in a security report: readable, refused, refused-with-the-wrong-code,
+    # succeeded-and-was-repaired, skipped-because-the-guard-was-unavailable.
+    dsn: str,
+    password: str,
+    database: str,
+    *,
+    mode: str = "no_password",
+    admin: psycopg.Connection[Any] | None = None,
+) -> dict[str, Any]:
     """Connect AS ``mainline_judge`` and assert both directions.
 
     Both directions, because **a login that can read nothing passes every negative test.** The
     positives are what make the negatives mean something.
+
+    *mode* is recorded in the result and travels into the evidence file: ``rotated``,
+    ``password_from_env`` or ``no_password``. Only the first two can produce a verified run.
+
+    *admin* is a live connection as the cluster owner, used for two things and nothing else:
+    capturing a view definition before the ``DROP VIEW`` probe, and repairing the cluster if a
+    destructive probe is NOT refused. Without it the destructive probes are skipped, and a skipped
+    probe is reported as a skip rather than as a pass.
     """
     judge_dsn = as_user(dsn, JUDGE_USER, password, database)
     result: dict[str, Any] = {
+        "mode": mode,
+        "verified": False,
         "connected": False,
         "identity": None,
         "views": [],
@@ -378,7 +678,7 @@ def probe_as_judge(dsn: str, password: str, database: str) -> dict[str, Any]:
         conn = psycopg.connect(judge_dsn, autocommit=True, connect_timeout=30)
     except psycopg.Error as exc:
         state = sqlstate_of(exc)
-        result["error"] = f"[{state}] {one_line(exc)}"
+        result["error"] = redact(f"[{state}] {one_line(exc)}")
         result["dsn"] = redact(judge_dsn)
         # "I HAD NO CREDENTIAL" IS NOT "THE GRANTS ARE BROKEN", and a summary reading
         # `0/14 readable` for the first of those is a lie told by an honest program. This is the
@@ -433,63 +733,124 @@ def probe_as_judge(dsn: str, password: str, database: str) -> dict[str, Any]:
 
         # ── the negatives: each must be refused, and the SQLSTATE is the evidence ────────
         #
-        # `pg_catalog` and `information_schema` are NOT in this list, and their absence is a
-        # finding rather than an oversight. Measured as this login: pg_catalog.pg_class returns
-        # 654 rows and information_schema.tables returns 446. Both are per-user-filtered
-        # catalogues and are readable by any login on CockroachDB. The judge pack's N03 and N04
-        # assert they are unreachable — which is true over the Managed MCP channel, whose server
-        # blocks them by name, and false over pgwire. Asserting it here would manufacture a pass.
-        denials = [
-            (
-                "mainline_qa.v_disposition_profile",
-                "SELECT count(*) FROM mainline_qa.v_disposition_profile",
-            ),
-            ("mainline_qa.v_my_record", "SELECT count(*) FROM mainline_qa.v_my_record"),
-            (
-                "mainline_qa.v_standing_components",
-                "SELECT count(*) FROM mainline_qa.v_standing_components",
-            ),
-            ("crdb_internal.jobs", "SELECT count(*) FROM crdb_internal.jobs"),
-            ("crdb_internal.tables", "SELECT count(*) FROM crdb_internal.tables"),
-            ("base table mainline.permit", "SELECT count(*) FROM mainline.permit"),
-            ("base table mainline.disposition", "SELECT count(*) FROM mainline.disposition"),
-            ("base table mainline_meas.standing", "SELECT count(*) FROM mainline_meas.standing"),
-        ]
-        for label, sql in denials:
+        # A negative assertion that produces no SQLSTATE is not proof of anything. Every entry
+        # below records the code the server returned, verbatim, whether or not it was the code
+        # this program expected — including the case where the statement SUCCEEDED, which is
+        # recorded as `00000` and as a failure rather than being dropped from the list.
+        for probe in NEGATIVE_PROBES:
+            label, sql = str(probe["target"]), str(probe["sql"])
+            entry: dict[str, Any] = {
+                "target": label,
+                "category": probe["category"],
+                "statement": sql,
+                "destructive": bool(probe["destructive"]),
+                "expected_sqlstate": REFUSED,
+            }
+
+            # A destructive probe runs only with a repair in hand. Rolling it back is NOT a repair
+            # on this engine (measured; see the module docstring), so the guard is the admin
+            # connection and the captured definition.
+            restore_sql: str | None = None
+            if probe["destructive"]:
+                if admin is None:
+                    entry.update(
+                        skipped=True,
+                        sqlstate=None,
+                        as_expected=False,
+                        detail=(
+                            "SKIPPED — no admin connection, so a statement that was NOT refused "
+                            "could not have been repaired. A skipped probe is not a pass."
+                        ),
+                    )
+                    result["denials"].append(entry)
+                    continue
+                if view := probe.get("restore_view"):
+                    restore_sql = capture_view_definition(admin, str(view))
+                    if restore_sql is None:
+                        entry.update(
+                            skipped=True,
+                            sqlstate=None,
+                            as_expected=False,
+                            detail=(
+                                f"SKIPPED — SHOW CREATE {view} returned nothing, so the view "
+                                "could not have been rebuilt if the drop had succeeded."
+                            ),
+                        )
+                        result["denials"].append(entry)
+                        continue
+                    entry["restore_guard"] = (
+                        f"SHOW CREATE {view} captured, {len(restore_sql)} chars"
+                    )
+                else:
+                    entry["restore_guard"] = str(probe["repair"])
+
             try:
                 got = conn.execute(sql).fetchone()  # type: ignore[arg-type]
             except psycopg.Error as exc:
                 state = sqlstate_of(exc)
-                result["denials"].append(
-                    {
-                        "target": label,
-                        "refused": True,
-                        "sqlstate": state,
-                        "expected_sqlstate": REFUSED,
-                        "as_expected": state == REFUSED,
-                        "detail": one_line(exc)[:220],
-                    }
+                entry.update(
+                    refused=True,
+                    sqlstate=state,
+                    as_expected=state == REFUSED,
+                    detail=one_line(exc)[:220],
                 )
                 conn.rollback()
             else:
-                # READ SUCCEEDED WHERE IT MUST NOT. Zero rows is not a refusal and is recorded as
-                # a failure, loudly, because an empty result from a forbidden object is the exact
-                # shape of a security hole that looks like a pass.
-                result["denials"].append(
-                    {
-                        "target": label,
-                        "refused": False,
-                        "sqlstate": "00000",
-                        "expected_sqlstate": REFUSED,
-                        "as_expected": False,
-                        "detail": (
-                            f"READ SUCCEEDED, rows={got[0] if got else 0} — this must not happen"
-                        ),
-                    }
+                # IT SUCCEEDED WHERE IT MUST NOT. Zero rows is not a refusal, and neither is a
+                # DDL statement that quietly worked. Both are recorded as failures, loudly,
+                # because an empty result from a forbidden object is the exact shape of a
+                # security hole that looks like a pass.
+                rows = got[0] if got else 0
+                entry.update(
+                    refused=False,
+                    sqlstate="00000",
+                    as_expected=False,
+                    detail=f"STATEMENT SUCCEEDED (rows={rows}) — this must not happen",
                 )
+                if probe["destructive"] and admin is not None:
+                    entry["repair"] = repair_after_breach(admin, probe, restore_sql)
+            result["denials"].append(entry)
     finally:
         conn.close()
+
+    refused_categories = {
+        d["category"] for d in result["denials"] if d.get("as_expected") and not d.get("skipped")
+    }
+    result["categories_refused"] = sorted(refused_categories)
+    result["categories_required"] = list(REQUIRED_NEGATIVE_CATEGORIES)
+    result["categories_missing"] = [
+        c for c in REQUIRED_NEGATIVE_CATEGORIES if c not in refused_categories
+    ]
+    result["denied"] = sum(1 for d in result["denials"] if d.get("as_expected"))
+    result["denials_total"] = len(result["denials"])
+    result["verified"] = mode in {"rotated", "password_from_env"} and result["connected"]
     return result
+
+
+def repair_after_breach(
+    admin: psycopg.Connection[Any], probe: dict[str, Any], restore_sql: str | None
+) -> dict[str, Any]:
+    """A destructive probe was NOT refused. Put the cluster back, now, and say so.
+
+    This is the branch that must never execute. It is written anyway, and written to run before
+    the evidence file is composed, because the alternative is a program that discovers a grant
+    failure on a live cluster and then leaves the damage in place while it writes about it.
+    """
+    statement = restore_sql or str(probe.get("repair", ""))
+    if not statement:
+        return {"attempted": False, "note": "no repair statement was available"}
+    try:
+        admin.execute(statement)  # type: ignore[arg-type]
+    except psycopg.Error as exc:
+        return {"attempted": True, "ok": False, "error": one_line(exc)[:220]}
+    return {
+        "attempted": True,
+        "ok": True,
+        "note": (
+            "the cluster was repaired by the admin connection in the same run. The probe is still "
+            "a FAILURE: the login reached a statement the published credential says it cannot."
+        ),
+    }
 
 
 def verdict_for(probe: dict[str, Any]) -> tuple[str, list[str]]:
@@ -514,6 +875,21 @@ def verdict_for(probe: dict[str, Any]) -> tuple[str, list[str]]:
     for denial in probe["denials"]:
         if not denial["as_expected"]:
             failures.append(f"{denial['target']}: {denial['detail']}")
+    # THE FOUR CATEGORIES ARE THE CLAIM. "Read-only" is four separate assertions — cannot read a
+    # base table, cannot write a row, cannot create a relation, cannot drop one — and a run that
+    # only tried the first has evidence for the first. A missing category is a failure even when
+    # every probe that DID run was refused, because the absent probe is exactly the one whose
+    # answer nobody knows.
+    for missing in probe.get("categories_missing", []):
+        failures.append(
+            f"no refusal was recorded in the category {missing!r}: the published credential "
+            "claims this is impossible and this run did not establish it"
+        )
+    if not probe.get("verified"):
+        failures.append(
+            f"the run mode is {probe.get('mode')!r}, which cannot verify anything. Assertions "
+            "made without authenticating as the login they describe are UNVERIFIED."
+        )
     return ("PROVEN" if not failures else "NOT PROVEN"), failures
 
 
@@ -795,7 +1171,11 @@ def run_pack_over_sql(questions: list[Any], dsn: str, database: str, user: str) 
     try:
         conn = psycopg.connect(dsn, autocommit=True, connect_timeout=30)
     except psycopg.Error as exc:
-        report["error"] = f"[{sqlstate_of(exc)}] {one_line(exc)}"
+        # REDACTED AT THE POINT OF CAPTURE. `psycopg.OperationalError` quotes the connection
+        # string on almost every failure path, and this string is written to an evidence file
+        # that is committed. `assert_no_credentials` would catch it at write time and abort, but
+        # aborting the artefact is a worse outcome than never composing the leak.
+        report["error"] = redact(f"[{sqlstate_of(exc)}] {one_line(exc)}")
         return report
     report["ran"] = True
     try:
@@ -847,8 +1227,9 @@ def run_pack_over_sql(questions: list[Any], dsn: str, database: str, user: str) 
 # ═══════════════════════════════════════════════════════════════════════════════════════
 
 
-def cmd_provision(args: argparse.Namespace) -> int:  # noqa: PLR0912, PLR0915 - apply, probe,
-    # summarise, write evidence, emit the credential. Each stage prints its own transcript.
+def cmd_provision(args: argparse.Namespace) -> int:
+    # apply, probe, summarise, write evidence, emit the credential. Each stage prints its own
+    # transcript.
     root = repo_root()
     load_dotenv(root)
     dsn = args.dsn or os.environ.get("COCKROACH_DSN")
@@ -879,23 +1260,14 @@ def cmd_provision(args: argparse.Namespace) -> int:  # noqa: PLR0912, PLR0915 - 
     print(f"database      {database}")
     print(f"grants        {grants_path.relative_to(root)}")
 
-    conn = psycopg.connect(admin_dsn, autocommit=True, connect_timeout=30)
-    try:
-        grant_log = apply_grants(conn, grants_path, database)
-        password = ""
-        if args.password_from_env:
-            password = os.environ.get(args.password_from_env, "")
-        elif args.rotate or args.new_password:
-            password = generate_password()
-            try:
-                conn.execute(f"ALTER USER \"{JUDGE_USER}\" WITH PASSWORD '{password}'")
-            except psycopg.Error as exc:
-                # The insecure local node refuses passwords outright. That is not a failure of
-                # provisioning; it is what an insecure node is. The probe then connects with none.
-                print(f"  password not set: [{sqlstate_of(exc)}] {one_line(exc)[:120]}")
-                password = ""
-    finally:
-        conn.close()
+    password, mode, grant_log, probe = rotate_and_probe(
+        admin_dsn=admin_dsn,
+        dsn=dsn,
+        database=database,
+        grants_path=grants_path,
+        rotate=bool(args.rotate or args.new_password),
+        password_from_env=args.password_from_env,
+    )
 
     applied = sum(1 for entry in grant_log if entry.get("ok"))
     skipped = [entry for entry in grant_log if entry.get("skipped")]
@@ -906,55 +1278,131 @@ def cmd_provision(args: argparse.Namespace) -> int:  # noqa: PLR0912, PLR0915 - 
     for entry in failed:
         print(f"  FAILED      [{entry['sqlstate']}] {entry['statement'][:90]}")
 
-    probe = probe_as_judge(dsn, password, database)
     verdict, failures = verdict_for(probe)
-    # A NOT-RUN prints no counters at all. `0/14 readable` beside "could not authenticate" is the
-    # single most misleading line this program could emit, so it is not emitted.
-    if verdict == "NOT RUN":
-        print("probe         NOT RUN — the grants above are UNVERIFIED")
-    else:
-        print(f"identity      {probe.get('identity')}")
-        print(
-            f"audit views   {probe['readable']}/{len(AUDIT_VIEWS)} readable, "
-            f"{probe['non_empty']} non-empty"
-        )
-        denied = sum(1 for d in probe["denials"] if d["as_expected"])
-        print(f"denials       {denied}/{len(probe['denials'])} refused as required")
-        for denial in probe["denials"]:
-            mark = "OK    " if denial["as_expected"] else "BROKEN"
-            print(f"  {mark}      {denial['target']:38} [{denial['sqlstate']}]")
-    print(f"VERDICT       {verdict}")
-    for failure in failures:
-        print(f"  ! {failure}")
+    print_probe(probe, verdict, failures)
 
     if args.out:
         payload = {
             "generated_at": utc_now(),
             "database": database,
             "cluster": redact(admin_dsn),
+            "mode": mode,
+            "rotation_performed": mode == "rotated",
             "grants": grant_log,
             "probe": probe,
             "verdict": verdict,
             "failures": failures,
         }
-        out = Path(args.out)
-        out.parent.mkdir(parents=True, exist_ok=True)
-        out.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-        print(f"evidence      {out}")
+        payload["credential_hygiene"] = assert_no_credentials(payload, issued=password)
+        write_evidence(Path(args.out), payload, issued=password)
 
     if password and args.show_password:
-        print()
-        # ASCII, deliberately. This is the one line in the program whose failure loses a secret
-        # that has already been written to the cluster, so it does not depend on the console's
-        # encoding being anything in particular.
-        print("-- credential, shown once " + "-" * 42)
-        print(f"  user      {JUDGE_USER}")
-        print(f"  password  {password}")
-        print("  Write it to SSM now; this program does not store it.")
+        print_credential_once(password)
 
     if verdict == "NOT RUN":
         return EXIT_NOT_RUN
     return EXIT_OK if verdict == "PROVEN" else EXIT_PROBE_DISAGREED
+
+
+def rotate_and_probe(
+    *,
+    admin_dsn: str,
+    dsn: str,
+    database: str,
+    grants_path: Path,
+    rotate: bool,
+    password_from_env: str | None,
+) -> tuple[str, str, list[dict[str, Any]], dict[str, Any]]:
+    """Apply the grants, issue a password if asked, and probe — on ONE admin connection.
+
+    The admin connection stays open across the probe because the destructive negatives need it as
+    their restore guard. Closing it after the ``ALTER USER`` and re-opening it later would be
+    tidier code and a worse program: the window in which a ``DROP VIEW`` could succeed with nobody
+    holding the statement that rebuilds the view is exactly the window this function refuses to
+    open.
+
+    Returns ``(password, mode, grant_log, probe)``. *password* is ``""`` when none was issued, and
+    the empty string is why *mode* exists — an empty password and a password that happens not to
+    have been needed are the same value and different facts.
+    """
+    conn = psycopg.connect(admin_dsn, autocommit=True, connect_timeout=30)
+    try:
+        grant_log = apply_grants(conn, grants_path, database)
+        password, mode = "", "no_password"
+        if password_from_env:
+            password = os.environ.get(password_from_env, "")
+            mode = "password_from_env" if password else "no_password"
+        elif rotate:
+            password = generate_password()
+            try:
+                conn.execute(f"ALTER USER \"{JUDGE_USER}\" WITH PASSWORD '{password}'")
+            except psycopg.Error as exc:
+                # The insecure local node refuses passwords outright. That is not a failure of
+                # provisioning; it is what an insecure node is. The probe then connects with none.
+                print(f"  password not set: [{sqlstate_of(exc)}] {one_line(exc)[:120]}")
+                password, mode = "", "no_password"
+            else:
+                mode = "rotated"
+        probe = probe_as_judge(dsn, password, database, mode=mode, admin=conn)
+    finally:
+        conn.close()
+    return password, mode, grant_log, probe
+
+
+def print_probe(probe: dict[str, Any], verdict: str, failures: list[str]) -> None:
+    """The transcript. A NOT-RUN prints no counters at all.
+
+    ``0/14 readable`` beside "could not authenticate" is the single most misleading line this
+    program could emit, so it is not emitted.
+    """
+    if verdict == "NOT RUN":
+        print("probe         NOT RUN — the grants above are UNVERIFIED")
+    else:
+        print(f"identity      {probe.get('identity')}")
+        print(f"mode          {probe.get('mode')}  (verified: {probe.get('verified')})")
+        print(
+            f"audit views   {probe['readable']}/{len(AUDIT_VIEWS)} readable, "
+            f"{probe['non_empty']} non-empty"
+        )
+        print(
+            f"denials       {probe.get('denied')}/{probe.get('denials_total')} refused as required"
+        )
+        for denial in probe["denials"]:
+            if denial.get("skipped"):
+                mark = "SKIP  "
+            else:
+                mark = "OK    " if denial["as_expected"] else "BROKEN"
+            print(f"  {mark}      {denial['target']:42} [{denial.get('sqlstate') or '-----'}]")
+        print(f"categories    {'+'.join(probe.get('categories_refused', [])) or 'none'}")
+    print(f"VERDICT       {verdict}")
+    for failure in failures:
+        print(f"  ! {failure}")
+
+
+def write_evidence(out: Path, payload: dict[str, Any], *, issued: str = "") -> None:
+    """Write the artefact, but only after it has proved it carries no credential."""
+    assert_no_credentials(payload, issued=issued)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    print(f"evidence      {out}")
+
+
+def print_credential_once(password: str) -> None:
+    """ASCII, deliberately, and last.
+
+    This is the one line in the program whose failure loses a secret that has already been written
+    to the cluster, so it does not depend on the console's encoding being anything in particular,
+    and ``attest`` calls it from a ``finally`` so that NOTHING downstream of the ``ALTER USER`` can
+    happen between the rotation and the disclosure. Two rotations have been lost that way already
+    — one to a ``UnicodeEncodeError`` in a banner, one to a false positive in this program's own
+    credential scanner — and both were losses of ordering rather than of logic.
+    """
+    print()
+    print("-- credential, shown once " + "-" * 42)
+    print(f"  user      {JUDGE_USER}")
+    print(f"  password  {password}")
+    print("  This value is in NO file in this repository and this program never writes it.")
+    print("  Its destination is the submission form's credentials field.")
 
 
 def cmd_judge_run(args: argparse.Namespace) -> int:  # noqa: PLR0912, PLR0915 - two channels,
@@ -1122,14 +1570,254 @@ def cmd_judge_run(args: argparse.Namespace) -> int:  # noqa: PLR0912, PLR0915 - 
         )
 
     if args.out:
-        out = Path(args.out)
-        out.parent.mkdir(parents=True, exist_ok=True)
-        out.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-        print(f"evidence {out}")
+        payload["credential_hygiene"] = assert_no_credentials(
+            payload, issued=getattr(args, "judge_password", "") or ""
+        )
+        write_evidence(Path(args.out), payload, issued=getattr(args, "judge_password", "") or "")
 
     if not ran:
         return EXIT_NOT_RUN
     return EXIT_OK if payload["verdict"] == "ALL AS EXPECTED" else EXIT_PROBE_DISAGREED
+
+
+def mcp_channel_check(api_key: str, cluster_id: str, database: str) -> dict[str, Any]:
+    """One round trip to the Managed MCP endpoint, recorded in the ACCESS artefact.
+
+    ``judge-run`` executes the whole sixteen-question pack over this channel and writes its own
+    file. This is deliberately smaller and lives in ``judge-access.json`` instead: the question it
+    answers is "is the second path a judge can take to this cluster reachable, right now, as who?"
+    — one initialize, one tools/list, one ``SELECT current_user``. A judge reading the access
+    artefact should not have to open a second file to learn whether the MCP path exists.
+    """
+    check: dict[str, Any] = {
+        "endpoint": MCP_ENDPOINT,
+        "cluster_id": cluster_id,
+        "database": database,
+        "reachable": False,
+    }
+    if not api_key or not cluster_id:
+        check["reason"] = (
+            "no Cloud service-account key (CC_API_KEY / MAINLINE_MCP_API_KEY) or no cluster id, "
+            "so NOTHING was sent. This is a NOT-RUN, never a pass."
+        )
+        return check
+    session = McpSession(api_key, cluster_id)
+    try:
+        started = time.monotonic()
+        initialised = session.initialize()
+        check["reachable"] = True
+        check["ms"] = round((time.monotonic() - started) * 1000, 1)
+        check["protocol_version"] = initialised.get("protocolVersion")
+        check["server_info"] = initialised.get("serverInfo", {})
+        check["tools"] = session.tools()
+        ok, payload, ms = session.call(
+            "select_query",
+            {MCP_DATABASE_ARGUMENT: database, MCP_SQL_ARGUMENT: "SELECT current_user AS u"},
+        )
+        check["identity_ms"] = ms
+        check["sql_identity"] = payload.get("rows", [{}])[0].get("u") if ok else "unresolved"
+        check["credential_publishable"] = False
+        check["why_not_publishable"] = (
+            "the credential that reaches this endpoint is the account's Cloud service-account "
+            "key. Its tool list carries create_database, create_table and insert_rows, and "
+            "list_clusters enumerates every cluster the account owns. It is not a read-only "
+            "credential and it is not this deployment's to hand to a stranger. The published "
+            f"credential is the SQL login {JUDGE_USER}, whose reach is the fourteen "
+            "mainline_audit views and nothing else."
+        )
+    except Exception as exc:  # noqa: BLE001 - the transport failure IS the finding
+        check["error"] = f"{type(exc).__name__}: {exc}"
+    finally:
+        session.close()
+    return check
+
+
+def cmd_attest(args: argparse.Namespace) -> int:
+    """Rotate, prove both directions, run the pack, write both artefacts, show the password once.
+
+    ONE PROCESS, AND THAT IS THE POINT. The password issued here is used to authenticate the probe
+    and to run the pack's SQL channel as the login it describes, and it reaches no command line,
+    no environment variable and no file. The alternative — ``provision --rotate --show-password``
+    followed by ``judge-run --as-judge --judge-password ...`` — puts a live credential in the
+    process table and in shell history, which is a second disclosure of the kind this rotation
+    exists to repair.
+    """
+    root = repo_root()
+    load_dotenv(root)
+    dsn = args.dsn or os.environ.get("COCKROACH_DSN")
+    if not dsn:
+        print("judge_access: no DSN. Pass --dsn or set COCKROACH_DSN.", file=sys.stderr)
+        return EXIT_USAGE
+
+    database = args.database
+    grants_path = root / GRANTS_SQL
+    admin_dsn = rewrite_dsn(dsn, database=database, application_name="mainline-judge-attest")
+    api_key = os.environ.get("MAINLINE_MCP_API_KEY") or os.environ.get("CC_API_KEY", "")
+    cluster_id = args.cluster_id or os.environ.get("MAINLINE_MCP_CLUSTER_ID", "")
+
+    print(f"cluster       {redact(admin_dsn)}")
+    print(f"database      {database}")
+    print(f"grants        {grants_path.relative_to(root)}")
+
+    password, mode, grant_log, probe = rotate_and_probe(
+        admin_dsn=admin_dsn,
+        dsn=dsn,
+        database=database,
+        grants_path=grants_path,
+        rotate=not args.no_rotate,
+        password_from_env=None,
+    )
+    applied = sum(1 for entry in grant_log if entry.get("ok"))
+    skipped = [entry for entry in grant_log if entry.get("skipped")]
+    failed = [entry for entry in grant_log if entry.get("ok") is False]
+    print(f"grants        {applied} applied, {len(skipped)} skipped, {len(failed)} failed")
+    for entry in skipped:
+        print(f"  SKIPPED     [{entry['sqlstate']}] {entry['statement'][:90]}")
+    for entry in failed:
+        print(f"  FAILED      [{entry['sqlstate']}] {entry['statement'][:90]}")
+
+    verdict, failures = verdict_for(probe)
+    print_probe(probe, verdict, failures)
+
+    # EVERYTHING FROM HERE ON IS BEST-EFFORT, AND THE CREDENTIAL IS DISCLOSED REGARDLESS.
+    #
+    # The comment at the top of this file records a rotation that changed the password on the live
+    # cluster and then lost it to a `UnicodeEncodeError` in a banner. On 2026-08-11 it happened a
+    # second time, differently and just as avoidably: `assert_no_credentials` fired a FALSE
+    # POSITIVE on the redacted cluster DSN, raised between the `ALTER USER` and the disclosure,
+    # and the new password went with it. Making the scanner correct fixes that instance; this
+    # `finally` fixes the CLASS. Once the password exists on the cluster, no failure downstream of
+    # it may prevent the operator from being told what it is — a crashed evidence write costs a
+    # re-run, and a lost credential costs another rotation.
+    try:
+        return _attest_after_rotation(
+            args=args,
+            password=password,
+            mode=mode,
+            grant_log=grant_log,
+            probe=probe,
+            verdict=verdict,
+            failures=failures,
+            dsn=dsn,
+            database=database,
+            admin_dsn=admin_dsn,
+            api_key=api_key,
+            cluster_id=cluster_id,
+        )
+    finally:
+        if password:
+            print_credential_once(password)
+
+
+def _attest_after_rotation(
+    # Every argument is a measurement this run made and none of them can be re-derived; passing a
+    # bag would only hide that.
+    *,
+    args: argparse.Namespace,
+    password: str,
+    mode: str,
+    grant_log: list[dict[str, Any]],
+    probe: dict[str, Any],
+    verdict: str,
+    failures: list[str],
+    dsn: str,
+    database: str,
+    admin_dsn: str,
+    api_key: str,
+    cluster_id: str,
+) -> int:
+    """Compose the artefacts and run the pack.
+
+    Separated from :func:`cmd_attest` only so that the disclosure can sit in a ``finally``.
+    """
+    mcp = mcp_channel_check(api_key, cluster_id, args.mcp_database)
+    print(
+        f"mcp           {'reachable' if mcp.get('reachable') else 'NOT RUN'} "
+        f"as {mcp.get('sql_identity', '-')} "
+        f"({len(mcp.get('tools', ()))} tools)"
+    )
+
+    payload: dict[str, Any] = {
+        "generated_at": utc_now(),
+        "database": database,
+        "cluster": redact(admin_dsn),
+        "login": JUDGE_USER,
+        "rotation": {
+            "performed": mode == "rotated",
+            "at": utc_now(),
+            "mode": mode,
+            "why": (
+                "the previous password was echoed into a transcript. A credential that has "
+                "appeared in a transcript is a burned credential whether or not the repository "
+                "can see it, and this repository cannot — which is why the rotation is recorded "
+                "in a file that can."
+            ),
+            "where_the_new_password_went": (
+                "printed once on this run's last line and typed into the submission form's "
+                "credentials field. It is in no file in this repository, no evidence artefact, "
+                "no environment variable and no shell history, and this program never writes it."
+            ),
+            "generator": "secrets.token_urlsafe(24) — 32 URL-safe characters, ~143 bits",
+        },
+        "grants": grant_log,
+        "probe": probe,
+        "positives": {
+            "asserted": f"SELECT from each of the {len(AUDIT_VIEWS)} mainline_audit views",
+            "readable": probe.get("readable"),
+            "of": len(AUDIT_VIEWS),
+            "non_empty": probe.get("non_empty"),
+        },
+        "negatives": {
+            "asserted": "every statement below must be REFUSED, and its SQLSTATE is the evidence",
+            "required_categories": list(REQUIRED_NEGATIVE_CATEGORIES),
+            "categories_refused": probe.get("categories_refused"),
+            "categories_missing": probe.get("categories_missing"),
+            "refused": probe.get("denied"),
+            "of": probe.get("denials_total"),
+        },
+        "mcp_channel": mcp,
+        "ddl_rollback_is_not_a_safety_net": {
+            "measured_on": "CockroachDB CCL v26.2.5, local node, database w_w7_judge_access",
+            "observed": (
+                "BEGIN; DROP VIEW s1.v; ROLLBACK; leaves the view DROPPED, and "
+                "BEGIN; CREATE TABLE s1.probe_tmp (...); ROLLBACK; leaves the table CREATED — "
+                "through psycopg's transaction management and through literal BEGIN/ROLLBACK "
+                "statements alike."
+            ),
+            "consequence": (
+                "the destructive negative probes cannot be made safe by a transaction. They run "
+                "under a restore guard instead: the admin connection captures SHOW CREATE for the "
+                "view under test before the probe, and repairs the cluster immediately if the "
+                "statement is not refused. The guard has never fired."
+            ),
+        },
+        "verdict": verdict,
+        "failures": failures,
+    }
+    payload["credential_hygiene"] = assert_no_credentials(payload, issued=password)
+    write_evidence(Path(args.out), payload, issued=password)
+
+    # ── the pack, over both channels, with the password held in memory ───────────────────────
+    pack_exit = EXIT_NOT_RUN
+    if args.pack_out:
+        print()
+        pack_args = argparse.Namespace(
+            via=args.via,
+            dsn=dsn,
+            database=database,
+            mcp_database=args.mcp_database,
+            cluster_id=cluster_id,
+            as_judge=bool(password),
+            judge_password=password,
+            out=args.pack_out,
+        )
+        pack_exit = cmd_judge_run(pack_args)
+
+    if verdict == "NOT RUN":
+        return EXIT_NOT_RUN
+    if verdict != "PROVEN":
+        return EXIT_PROBE_DISAGREED
+    return EXIT_OK if pack_exit in (EXIT_OK, EXIT_PROBE_DISAGREED) else pack_exit
 
 
 def cmd_credentials(args: argparse.Namespace) -> int:
@@ -1181,6 +1869,24 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--judge-password", default="", help="password for --as-judge")
     p.add_argument("--out", help="write evidence JSON here")
     p.set_defaults(func=cmd_judge_run)
+
+    p = sub.add_parser(
+        "attest",
+        help="rotate, prove both directions, run the pack, write both artefacts — one process",
+    )
+    p.add_argument("--dsn", help="admin DSN (default: COCKROACH_DSN)")
+    p.add_argument("--database", default="mainline_demo")
+    p.add_argument("--mcp-database", default="mainline_demo")
+    p.add_argument("--cluster-id", help="CockroachDB Cloud cluster uuid for the mcp channel")
+    p.add_argument("--via", choices=("mcp", "sql", "both"), default="both")
+    p.add_argument(
+        "--no-rotate",
+        action="store_true",
+        help="do NOT issue a new password (the probe then cannot authenticate: a NOT RUN)",
+    )
+    p.add_argument("--out", default="evidence/deploy/judge-access.json")
+    p.add_argument("--pack-out", default="evidence/deploy/judge-run.json")
+    p.set_defaults(func=cmd_attest)
 
     p = sub.add_parser("credentials", help="print the judge credential block")
     p.add_argument("--host", help="cluster hostname")

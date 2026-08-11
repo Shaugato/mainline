@@ -638,6 +638,8 @@ Australian data residency, and any claim of it would be false.**
 | | |
 |---|---|
 | Bedrock inference | `ap-southeast-2` (Sydney), `au.*` Claude inference profiles |
+| Bedrock inference and Titan embeddings | **EXERCISED.** `invoke_model` on `amazon.titan-embed-text-v2:0` and `converse` on `au.anthropic.claude-haiku-4-5-20251001-v1:0` returned HTTP `200` with request ids, and the vectors were searched through a C-SPANN index. Transcripts: `evidence/aws/probe/bedrock-probe.json`; vectors and plan: `evidence/aws/ann/ann-proof.json` |
+| What that verdict does **not** cover | S3, KMS, CloudTrail, Lambda, CloudFront, IAM roles, SSM Parameter Store, EventBridge — and CloudWatch as provisioned infrastructure rather than as metrics read back. All still DESIGNED; `terraform apply` has never been run |
 | CockroachDB Cloud cluster | `aws-ap-southeast-1` (Singapore), Basic tier |
 | Why they are apart | `ap-southeast-2` is Advanced-tier only on CockroachDB Cloud — absent from the Basic and Standard region lists |
 | Bedrock Rerank in `ap-southeast-2` | **not available.** No dependency was taken on it |

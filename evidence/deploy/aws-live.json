@@ -1,0 +1,118 @@
+{
+  "artefact": "MAINLINE AWS live probe",
+  "spdx_file_copyright_text": "SPDX-FileCopyrightText: 2026 MAINLINE contributors",
+  "spdx_license_identifier": "SPDX-License-Identifier: CC-BY-4.0",
+  "generated_at_utc": "2026-08-11T01:11:53Z",
+  "generated_by": "scripts/deploy/aws_live_probe.py",
+  "what_this_proves": "That AWS Bedrock EXECUTES for this project, in this region, today - not that it is designed for. Four calls were made against the live AWS APIs and every response below is what came back.",
+  "supersedes": "docs/STATE-OF-THE-BUILD.md 3.3 recorded 'ValidationException: Operation not allowed' for every Bedrock call and concluded that no AWS service had ever executed. That finding is stale as of this file's timestamp. Correcting the page is W10's task; this file is the evidence it cites.",
+  "no_credentials_recorded": "No access key, session token or password appears in this file. The account id is masked and its SHA-256 recorded instead.",
+  "target": {
+    "profile": "mainline-dev",
+    "region": "ap-southeast-2",
+    "botocore_version": "1.43.66",
+    "boto3_version": "1.43.66"
+  },
+  "calls": [
+    {
+      "api": "sts:GetCallerIdentity",
+      "ok": true,
+      "http_status": 200,
+      "request_id": "04018eca-8928-459e-92a6-edffe73e34df",
+      "arn": "arn:aws:iam::<account>:user/mainline-dev",
+      "user_id_prefix": "AIDA",
+      "account_id_sha256": "c381363ff6dfdc77cc98e246bf33365a93034bbc2b044d1bc0c2fbf0dafdf188",
+      "account_id_note": "The account id is NOT written here in the clear. Its SHA-256 is, so that two artefacts can be shown to name the same account without publishing it. See docs/leads/ship-final.md DECISION D2.",
+      "latency_ms": 339.3
+    },
+    {
+      "api": "bedrock:ListFoundationModels",
+      "ok": true,
+      "http_status": 200,
+      "request_id": "d8c940e8-6fa9-44d7-970d-73a5d1e6b792",
+      "models_offered_in_region": 64,
+      "models": [
+        {
+          "requested": "amazon.titan-embed-text-v2:0",
+          "listed_as": "amazon.titan-embed-text-v2:0",
+          "present": true,
+          "provider": "Amazon",
+          "input_modalities": [
+            "TEXT"
+          ],
+          "output_modalities": [
+            "EMBEDDING"
+          ],
+          "inference_types": [
+            "ON_DEMAND"
+          ]
+        },
+        {
+          "requested": "au.anthropic.claude-haiku-4-5-20251001-v1:0",
+          "listed_as": "anthropic.claude-haiku-4-5-20251001-v1:0",
+          "present": true,
+          "provider": "Anthropic",
+          "input_modalities": [
+            "TEXT",
+            "IMAGE"
+          ],
+          "output_modalities": [
+            "TEXT"
+          ],
+          "inference_types": [
+            "INFERENCE_PROFILE"
+          ]
+        }
+      ],
+      "latency_ms": 271.7
+    },
+    {
+      "api": "bedrock-runtime:InvokeModel",
+      "ok": true,
+      "model_id": "amazon.titan-embed-text-v2:0",
+      "http_status": 200,
+      "request_id": "b4d826e9-03ba-4368-9687-f00cc28a98ef",
+      "input_text": "MAINLINE permit gate: an open obligation blocks the merge.",
+      "input_text_tokens": 13,
+      "embedding_dimension": 1024,
+      "expected_dimension": 1024,
+      "embedding_first_eight": [
+        -0.007764,
+        0.001223,
+        0.010354,
+        -0.00921,
+        -0.037945,
+        0.02394,
+        0.02624,
+        0.037372
+      ],
+      "embedding_l2_norm": 1.0,
+      "embedding_sha256": "488b14f5c25501acd6c441b3ecc801e6af6550aebaa5fc80f589ac4171653852",
+      "embedding_note": "The full vector is NOT stored: dimension, first eight components, L2 norm and the SHA-256 of the whole array are enough to recognise it again and are three orders of magnitude smaller.",
+      "latency_ms": 286.5
+    },
+    {
+      "api": "bedrock-runtime:Converse",
+      "ok": true,
+      "model_id": "au.anthropic.claude-haiku-4-5-20251001-v1:0",
+      "http_status": 200,
+      "request_id": "3c7a283c-9f67-4d98-aa8f-26490d54d32d",
+      "prompt": "Reply with exactly: MAINLINE gate online",
+      "reply": "MAINLINE gate online",
+      "stop_reason": "end_turn",
+      "usage": {
+        "input_tokens": 16,
+        "output_tokens": 8,
+        "total_tokens": 24
+      },
+      "usage_note": "token counts are the Bedrock API's own, not counted here",
+      "latency_ms_reported_by_bedrock": 550,
+      "latency_ms": 650.7
+    }
+  ],
+  "total_seconds": 1.75,
+  "calls_attempted": 4,
+  "calls_failed": [],
+  "cost": "Two billable inference calls. Titan Text Embeddings V2 is charged per input token and this probe sends a single short sentence; Claude Haiku 4.5 charged 16 in / 8 out. Well under USD 0.01 per run.",
+  "verdict": "AWS BEDROCK EXECUTED"
+}

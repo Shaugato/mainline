@@ -17,7 +17,7 @@ variable "bucket_prefix" {
   description = <<-EOT
     Prefix for the site bucket's name. The caller passes `mainline-demo-`.
 
-    This is not cosmetic. `aws s3api list-buckets` on account 022950218246 returns seven
+    This is not cosmetic. `aws s3api list-buckets` on the deploy account returns seven
     buckets belonging to four unrelated live projects, and the teardown script identifies
     what it may delete by this prefix and by the `project = mainline` tag. A bucket that
     carries neither is a bucket teardown must refuse to touch.

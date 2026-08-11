@@ -615,11 +615,36 @@ AWS_ROWS: Final[tuple[Row, ...]] = (
         kind="service",
         pattern=r"bedrock",
         case_sensitive=False,
-        verdict="DESIGNED",
+        verdict="EXERCISED",
         verdict_basis=(
-            "eight au.* Claude inference profiles are listed live in region ap-southeast-2, "
-            "but every agent test in this repository replays a recorded cassette; no live "
-            "model call is captured under evidence/, and docs/HONESTY.md says so"
+            "a live bedrock-runtime:Converse against the Australia-only inference profile "
+            "au.anthropic.claude-haiku-4-5-20251001-v1:0 in ap-southeast-2 returned "
+            "evidence/aws/probe/raw-haiku-converse.json#/payload/response/metadata/"
+            "http_status = 200 with an AWS request id, stopReason end_turn, "
+            "evidence/aws/probe/raw-haiku-converse.json#/payload/response/usage/inputTokens "
+            "= 22 and evidence/aws/probe/raw-haiku-converse.json#/payload/response/usage/"
+            "outputTokens = 8; the summary that checks it is "
+            "evidence/aws/probe/bedrock-probe.json (payload.checks."
+            "haiku_http_200_with_request_id). The PRODUCT's own agent layer then ran on it: "
+            "evidence/aws/agent/live-run.json#/payload/leg_count = 7 live InvokeModel legs "
+            "through that same au.* profile, each with an AWS request id and each recorded "
+            "as a cassette, carrying "
+            "evidence/aws/agent/live-run.json#/payload/token_ledger/0/input_tokens = 17429 "
+            "input tokens (the output count is deliberately NOT quoted here: generation is "
+            "not reproducible, and this repository claims replayability of recorded calls "
+            "and never reproducibility of generation); evidence/aws/agent/determinism.json "
+            "replays those cassettes twice "
+            "to a byte-identical decision hash and refuses to load a tampered one. "
+            "Corroborated from OUTSIDE this repository by AWS's own metric series for that "
+            "ModelId in evidence/aws/cloudwatch/bedrock-metrics.json. WHAT THIS DOES NOT "
+            "SAY: the live legs ran on claude-haiku-4-5 while the shipping request builders "
+            "target the pinned claude-opus-5 generation, and four builder fields are refused "
+            "on the wire by haiku — projected at the wire, named field by field, in "
+            "evidence/aws/agent/live-run.json#/payload/measured_wire_refusals, never written "
+            "back into a builder. And no live leg REFUSED "
+            "(payload.refusal_behaviour.live_refusals_observed 0), so the "
+            "refusal-degrades-the-run path was exercised against a CONSTRUCTED refusing "
+            "transport rather than a model that said no"
         ),
         how=(
             "bedrock-runtime InvokeModel with the Anthropic native body. The modelId is an "
@@ -636,11 +661,21 @@ AWS_ROWS: Final[tuple[Row, ...]] = (
         kind="service",
         pattern=r"titan-embed-text-v2|cohere\.embed-v4|titan_embed|BedrockTitan",
         case_sensitive=False,
-        verdict="DESIGNED",
+        verdict="EXERCISED",
         verdict_basis=(
-            "amazon.titan-embed-text-v2:0 and cohere.embed-v4:0 are both available in "
-            "ap-southeast-2 and the provider is implemented; the committed embeddings are "
-            "fixtures, so Tier-2 verification needs no model call at all"
+            "amazon.titan-embed-text-v2:0 produced "
+            "evidence/aws/embeddings/manifest.json#/payload/totals/vectors = 2060 vectors of "
+            "width evidence/aws/embeddings/manifest.json#/payload/dimensions = 1024 in "
+            "ap-southeast-2, for "
+            "evidence/aws/embeddings/manifest.json#/payload/totals/input_tokens = 177345 "
+            "input tokens, enumerated one per row with a text digest, a vector digest and a "
+            "token count; evidence/aws/ann/ann-proof.json then searched "
+            "evidence/aws/ann/ann-proof.json#/payload/vectors/rows_searched = 1080 of them "
+            "through CockroachDB's ce_ann index and names the same model at "
+            "payload.vectors.embed_model_expected. WHAT THIS DOES NOT SAY: the corpus is "
+            "SYNTHETIC, the vector blobs live under the gitignored out/ so the manifest's "
+            "per-vector sha256 is the checkable part, and Tier-2 verification in VERIFY.md "
+            "still needs no model call because the committed fixtures are unchanged"
         ),
         how=(
             "The embedding provider writes into the C-SPANN sidecar tables. Model ids are "
@@ -649,9 +684,14 @@ AWS_ROWS: Final[tuple[Row, ...]] = (
             "its embed_model and index_gen, because a vector whose model is unknown cannot "
             "be compared to anything."
         ),
+        # Retargeted 2026-08-11. This anchor used to name line 39, which was inside the
+        # module docstring until that docstring's stale "credentials are not valid here"
+        # sentence was corrected; line 39 is now `from __future__ import annotations`. A
+        # citation that has silently slid onto an import is the exact rot `resolve_anchor`
+        # quotes line text to expose, and 55 is the constant the row is actually about.
         anchor=(
             "verticals/mainline/packages/mainline-recall-agent/src/"
-            "mainline_recall_agent/providers/bedrock_titan.py:39"
+            "mainline_recall_agent/providers/bedrock_titan.py:55"
         ),
     ),
     Row(
@@ -791,14 +831,39 @@ AWS_ROWS: Final[tuple[Row, ...]] = (
         kind="service",
         pattern=r"aws_cloudwatch|CloudWatch",
         case_sensitive=False,
-        verdict="DESIGNED",
-        verdict_basis="written in infra/modules/demo-api; nothing deployed, so no metric exists",
+        verdict="EXERCISED",
+        verdict_basis=(
+            "METRICS READ, NOTHING PROVISIONED — and the second half of that sentence is "
+            "the load-bearing half. "
+            "evidence/aws/cloudwatch/bedrock-metrics.json#/payload/api_call_summary/"
+            "GetMetricStatistics = 110 read-only calls against the AWS/Bedrock namespace in "
+            "ap-southeast-2 recorded, for amazon.titan-embed-text-v2:0, "
+            "evidence/aws/cloudwatch/bedrock-metrics.json#/payload/models/"
+            "amazon.titan-embed-text-v2:0/sums/Invocations/value = 7542 and "
+            "evidence/aws/cloudwatch/bedrock-metrics.json#/payload/models/"
+            "amazon.titan-embed-text-v2:0/sums/InputTokenCount/value = 1026175 — each Sum "
+            "taken at Period 300 and at 3600 and required to agree, because a Sum is "
+            "resolution-invariant and a disagreement would mean a clipped bucket. "
+            "evidence/aws/cloudwatch/reconciliation.json subtracts this repository's own "
+            "token ledgers from AWS's counters and names every non-zero delta. NOTHING WAS "
+            "PROVISIONED: no log group, alarm, dashboard, metric filter, IAM role or "
+            "terraform apply, and the reader invoked no model — bedrock-metrics.json's "
+            "prohibitions block asserts each of those false and cloudwatch_evidence.py's "
+            "before-call guard raises for any operation outside its six-item read-only "
+            "allow-list before the request is signed. The alarms and dashboard WRITTEN in "
+            "infra/modules/demo-api remain unapplied and unexercised"
+        ),
         how=(
             "A log group with a finite retention — an unbounded retention on a demo account is "
             "a cost bug, not a safety feature — plus four metric alarms and a dashboard that "
             "makes the demo's latency and error rate visible to a judge who wants to look."
         ),
-        anchor="infra/modules/demo-api/main.tf:391",
+        # Retargeted 2026-08-11 with the verdict. An EXERCISED row whose anchor points at
+        # unapplied Terraform sends a judge to the half that did NOT run. `_guard` is the
+        # line that makes "metrics read, nothing provisioned" mechanical rather than a
+        # promise: it raises before an out-of-list request is signed. The alarms and the
+        # dashboard at infra/modules/demo-api/main.tf:391 are still described in `how`.
+        anchor="scripts/aws/cloudwatch_evidence.py:248",
     ),
     Row(
         key="aws_iam",

@@ -1,0 +1,63 @@
+{
+  "artefact": "evidence/aws/load/demo-row.json",
+  "caveats": [
+    "this is ONE row against the one clause_version that already existed; it proves the production sidecar accepts a Bedrock vector under its FK and CHECK constraints, and it proves nothing about loading a corpus through clause_version's three triggers",
+    "clause_embedding carries no triggers on this cluster today, so site_id and activity_root were client-supplied — as migration 0031's own header says they are until band 0130-0199 lands",
+    "the clause text is SYNTHETIC: it describes no real incident"
+  ],
+  "generated_at": "2026-08-11T02:34:51Z",
+  "generated_by": "scripts/aws/load_vectors.py",
+  "kind": "production-clause-embedding-row",
+  "payload": {
+    "count_after": 1,
+    "count_before": 1,
+    "count_sequence": [
+      1,
+      0,
+      1
+    ],
+    "count_sequence_note": "before -> (after the delete, read inside the same transaction, only on a re-run) -> after. The last transition is always an INSERT that the production table's FK, CHECK constraints and vector index accepted during THIS run.",
+    "database": "mainline_demo",
+    "embed_model": "amazon.titan-embed-text-v2:0",
+    "embedding_dim": 1024,
+    "embedding_l2_norm": 1.000000046,
+    "embedding_sha256": "57d4d0f11224d80a338762da8df5e03f0efc6b47e96e330ccc3bfde2a9a64c54",
+    "identifier_note": "every UUID is published twice: dashed, and as its 32 hex characters. The fleet redactor scrubs bare 12-digit runs and a UUID's final group is one, so the dashed form of this particular clause comes back partly redacted. See scripts/aws/load_vectors.py::undashed. The _hex32 fields are authoritative.",
+    "index_gen": "titan2-1",
+    "input_tokens": 28,
+    "insert_elapsed_s": 1.177,
+    "parent": {
+      "activity_root": "demo/isolation",
+      "canon_sha256": "9b15260145501b966ab79c97430953ed827db157725609b79323284a2ec50e7b",
+      "canon_text_chars": 122,
+      "canon_text_sha256": "9b15260145501b966ab79c97430953ed827db157725609b79323284a2ec50e7b",
+      "clause_uuid": "dec0de00-0004-4000-8000-<redacted>",
+      "clause_uuid_hex32": "dec0de00000440008000000000000001",
+      "commit_id_hex": "9f12114dc1a94f43ffe3eaae9f95b861efa7a6a88d7a9d90b1196aa06cd49a39",
+      "gen": 1,
+      "site_id": "dec0de00-0001-4000-8000-<redacted>",
+      "site_id_hex32": "dec0de00000140008000000000000001",
+      "triggers_on_parent": [
+        "append_only",
+        "z_delta_witness_required",
+        "clause_version_guard"
+      ]
+    },
+    "pre_existing_row": true,
+    "retries_40001": 0,
+    "show_create": "CREATE TABLE mainline.clause_embedding (\n\tclause_uuid UUID NOT NULL,\n\tcommit_id BYTES NOT NULL,\n\tsite_id UUID NOT NULL,\n\tactivity_root STRING NOT NULL,\n\tembed_model STRING NOT NULL,\n\tindex_gen STRING NOT NULL,\n\tembedding VECTOR(1024) NOT NULL,\n\tCONSTRAINT clause_embedding_pk PRIMARY KEY (clause_uuid ASC, commit_id ASC),\n\tCONSTRAINT fk_version FOREIGN KEY (clause_uuid, commit_id) REFERENCES mainline.clause_version(clause_uuid, commit_id),\n\tVECTOR INDEX ce_ann (site_id, activity_root, embedding vector_cosine_ops),\n\tFAMILY f_meta (clause_uuid, commit_id, site_id, activity_root, embed_model, index_gen),\n\tFAMILY f_vec (embedding),\n\tCONSTRAINT embed_model_stated CHECK (embed_model != '':::STRING),\n\tCONSTRAINT index_gen_stated CHECK (index_gen != '':::STRING)\n) WITH (schema_locked = true) LOCALITY REGIONAL BY TABLE IN PRIMARY REGION;",
+    "stored_row": {
+      "activity_root": "demo/isolation",
+      "embed_model": "amazon.titan-embed-text-v2:0",
+      "index_gen": "titan2-1",
+      "site_id": "dec0de00-0001-4000-8000-<redacted>",
+      "site_id_hex32": "dec0de00000140008000000000000001",
+      "vector_dims": 1024
+    },
+    "table": "mainline.clause_embedding",
+    "triggers_on_clause_embedding": 0,
+    "vector_source": "live InvokeModel against amazon.titan-embed-text-v2:0 in ap-southeast-2"
+  },
+  "region": "ap-southeast-2",
+  "synthetic": true
+}

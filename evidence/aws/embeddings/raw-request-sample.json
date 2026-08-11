@@ -1,0 +1,32 @@
+{
+  "artefact": "evidence/aws/embeddings/raw-request-sample.json",
+  "caveats": [
+    "one request out of the whole corpus, chosen as the lexicographically first id embedded in the run that wrote this file, so it is reproducible rather than cherry-picked",
+    "the inputText is a fabricated narrative; its sha256 appears against the same id in manifest.json, which ties this request to its vector"
+  ],
+  "generated_at": "2026-08-11T02:57:08Z",
+  "generated_by": "scripts/aws/embed_corpus.py",
+  "kind": "titan-raw-request-sample",
+  "payload": {
+    "id": "clause:0281b2fa-e5cb-57c8-bb24-32604bcbcfb2",
+    "redaction_casualties": [],
+    "request": {
+      "accept": "application/json",
+      "batch_form": "none — Titan v2 accepts exactly one inputText per InvokeModel",
+      "body": {
+        "dimensions": 1024,
+        "inputText": "No person shall commence the task until the continuous atmospheric monitoring during occupancy has been completed and confirmed by the person in charge of the work. In this revision the control is administered under the site's gas testing arrangements. Evidence of compliance shall be recorded at the time of the check, and shall name the person who made it.",
+        "normalize": true
+      },
+      "body_sha256": "684e1c32bf6232a1a3883fccf2609e5bc2074c906d0feb687923f81ceb5c132b",
+      "contentType": "application/json",
+      "input_text_chars": 358,
+      "input_text_sha256": "ca9317c5b63e22173dad7df731b74067dcedd23e3da89d3614f657b10c7bf95b",
+      "modelId": "amazon.titan-embed-text-v2:0",
+      "operation": "bedrock-runtime:InvokeModel"
+    },
+    "set": "mainline_clause"
+  },
+  "region": "ap-southeast-2",
+  "synthetic": true
+}

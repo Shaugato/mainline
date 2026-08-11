@@ -1,0 +1,987 @@
+{
+  "artefact": "evidence/aws/bench/cohere-vs-titan.json",
+  "caveats": [
+    "THE CORPUS IS SYNTHETIC. Every document is invented by trappoint_recall.corpora.synthetic and carries corpus_class='synthetic_replica'. These scores describe how three embedders behave on that generator's prose. They are not a claim about retrieval quality on real incident data, and ADR 0040 says so before it says anything else.",
+    "the judgements are distant supervision — the truth precursor is the prior incident the synthetic investigation cites — not human adjudication",
+    "ranking is exhaustive cosine, not ANN; these are the ceiling an indexed arm is measured against, and an indexed arm will score at or below them",
+    "n = 96 queries. With 96 trials the Wilson intervals are wide and small differences between arms are not resolvable; the paired sign test is reported for that reason",
+    "the cross-region arm's numbers are measurements of a configuration this system refuses to adopt; they exist so the cost of refusing it is known, not to recommend it",
+    "USD figures are computed from published list prices recorded in _common.USD_PER_1K_TOKENS; no bill and no Price List API response backs them"
+  ],
+  "generated_at": "2026-08-11T03:25:58Z",
+  "generated_by": "scripts/aws/bench_cohere.py",
+  "kind": "embedding-benchmark",
+  "payload": {
+    "arms": {
+      "cohere_v3": {
+        "cost_and_latency": {
+          "calls": 1167,
+          "calls_excluded_from_latency": 0,
+          "calls_retried_by_botocore": 0,
+          "client_latency_ms": {
+            "confidence": 0.95,
+            "interval": [
+              102.750921,
+              107.067675
+            ],
+            "interval_method": "bootstrap_percentile",
+            "mean": 104.832517,
+            "n": 1167,
+            "p50": 98.5427,
+            "p95": 135.5047,
+            "resamples": 10000
+          },
+          "input_tokens_documents_only": 84354,
+          "input_tokens_total": 94634,
+          "latency_basis": "calls that neither botocore nor this program retried; a retried call's wall clock is the account's request quota, not the model's response time",
+          "mean_input_tokens_per_document": 78.7619,
+          "one_text_per_call": true,
+          "server_reported_latency_ms": {
+            "confidence": 0.95,
+            "interval": [
+              66.318745,
+              67.95632
+            ],
+            "interval_method": "bootstrap_percentile",
+            "mean": 67.134533,
+            "n": 1167,
+            "p50": 66.0,
+            "p95": 90.0,
+            "resamples": 10000
+          },
+          "throttle_retries_total": 0,
+          "token_ledger_entry": {
+            "calls": 1167,
+            "input_tokens": 94634,
+            "model_id": "cohere.embed-english-v3",
+            "output_tokens": 0,
+            "over_ceiling": false,
+            "price_basis": "published on-demand list price for ap-southeast-2, recorded 2026-08-11; declared, not measured — no bill or Price List API response backs this number",
+            "priced": true,
+            "usd_input": 0.0094634,
+            "usd_output": 0.0,
+            "usd_per_1k_input": 0.0001,
+            "usd_per_1k_output": 0.0,
+            "usd_total": 0.0094634
+          },
+          "usd_per_1000_documents": 0.00787619,
+          "usd_this_run": 0.0094634
+        },
+        "family": "Embed English v3",
+        "input_handling": {
+          "longest_text_cut_from_chars": 3998,
+          "max_input_chars_enforced_by_bedrock": 2048,
+          "reading": "Bedrock refuses this model any single text over 2048 characters — a request-schema validation, not a model truncation, so 'truncate: END' does not soften it. Every cut is counted here because a benchmark that silently shortens one arm's inputs is not a benchmark.",
+          "texts_truncated_client_side": 96,
+          "texts_truncated_fraction_of_corpus": 0.082262
+        },
+        "model_id": "cohere.embed-english-v3",
+        "native_dimension": 1024,
+        "notes": "the only Cohere embedder this account can invoke in-region on demand; its width happens to match VECTOR(1024), and Bedrock refuses any single text over 2048 characters",
+        "observed_dimension": 1024,
+        "requested_dimension": null,
+        "residency": "in_region",
+        "residency_label": "IN-REGION (ap-southeast-2, on-demand, no inference profile)",
+        "retrieval": {
+          "hit_at_k_any_relevant_grade_ge_2": {
+            "@1": {
+              "confidence": 0.95,
+              "interval": [
+                0.256404,
+                0.44312
+              ],
+              "interval_method": "wilson",
+              "n": 96,
+              "point": 0.34375,
+              "successes": 33
+            },
+            "@10": {
+              "confidence": 0.95,
+              "interval": [
+                0.769982,
+                0.911098
+              ],
+              "interval_method": "wilson",
+              "n": 96,
+              "point": 0.854167,
+              "successes": 82
+            },
+            "@3": {
+              "confidence": 0.95,
+              "interval": [
+                0.41196,
+                0.608071
+              ],
+              "interval_method": "wilson",
+              "n": 96,
+              "point": 0.510417,
+              "successes": 49
+            }
+          },
+          "hit_at_k_truth_precursor_grade_3": {
+            "@1": {
+              "confidence": 0.95,
+              "interval": [
+                0.057572,
+                0.181222
+              ],
+              "interval_method": "wilson",
+              "n": 96,
+              "point": 0.104167,
+              "successes": 10
+            },
+            "@10": {
+              "confidence": 0.95,
+              "interval": [
+                0.452516,
+                0.647642
+              ],
+              "interval_method": "wilson",
+              "n": 96,
+              "point": 0.552083,
+              "successes": 53
+            },
+            "@3": {
+              "confidence": 0.95,
+              "interval": [
+                0.219312,
+                0.400085
+              ],
+              "interval_method": "wilson",
+              "n": 96,
+              "point": 0.302083,
+              "successes": 29
+            }
+          },
+          "mrr_truth_precursor": {
+            "confidence": 0.95,
+            "interval": [
+              0.191107,
+              0.310433
+            ],
+            "interval_method": "bootstrap_percentile",
+            "mean": 0.248404,
+            "n": 96,
+            "p50": 0.125,
+            "p95": 1.0,
+            "resamples": 10000
+          },
+          "ndcg_at_10": {
+            "confidence": 0.95,
+            "interval": [
+              0.280229,
+              0.409394
+            ],
+            "interval_method": "bootstrap_percentile",
+            "mean": 0.342127,
+            "n": 96,
+            "p50": 0.201558,
+            "p95": 0.889058,
+            "resamples": 10000
+          },
+          "ranking": "exhaustive cosine over the walled candidate pool; no ANN index",
+          "task": "G4 retro-recall: given a permit synthesised from a fatality investigation's own description of the work, does the prior incident the investigator cited surface inside the time wall?",
+          "tie_break": {
+            "max_documents_tied_with_the_truth_precursor": 7,
+            "mean_documents_tied_with_the_truth_precursor": 0.3542,
+            "queries_whose_truth_precursor_is_tied": 8,
+            "reading": "a tie here is not a near-miss, it is an exact one: the corpus contains byte-identical narratives, so the vectors are identical. See corpus.text_duplication.",
+            "rule": "pessimistic: the truth precursor is ranked behind every document that scores equal to it within 1e-9, not in front of them"
+          },
+          "truth_rank": {
+            "confidence": 0.95,
+            "interval": [
+              18.28099,
+              39.53151
+            ],
+            "interval_method": "bootstrap_percentile",
+            "mean": 28.21875,
+            "n": 96,
+            "p50": 8.0,
+            "p95": 96.25,
+            "resamples": 10000
+          }
+        },
+        "storage_compatibility": {
+          "fits_existing_column": true,
+          "migration_cost_if_adopted": "none — the width already matches",
+          "stored_dimension_would_be": 1024,
+          "target_column": "mainline.clause_embedding.embedding VECTOR(1024)",
+          "target_migration": "verticals/mainline/db/migrations/0031_clause_embedding.sql"
+        },
+        "vendor": "Cohere"
+      },
+      "cohere_v4_global": {
+        "cost_and_latency": {
+          "calls": 1167,
+          "calls_excluded_from_latency": 246,
+          "calls_retried_by_botocore": 116,
+          "client_latency_ms": {
+            "confidence": 0.95,
+            "interval": [
+              367.551112,
+              388.238614
+            ],
+            "interval_method": "bootstrap_percentile",
+            "mean": 377.366203,
+            "n": 921,
+            "p50": 359.163,
+            "p95": 537.3745,
+            "resamples": 10000
+          },
+          "input_tokens_documents_only": 111710,
+          "input_tokens_total": 121954,
+          "latency_basis": "calls that neither botocore nor this program retried; a retried call's wall clock is the account's request quota, not the model's response time",
+          "mean_input_tokens_per_document": 104.3044,
+          "one_text_per_call": true,
+          "server_reported_latency_ms": {
+            "confidence": 0.95,
+            "interval": [
+              333.515472,
+              354.182628
+            ],
+            "interval_method": "bootstrap_percentile",
+            "mean": 343.361564,
+            "n": 921,
+            "p50": 323.0,
+            "p95": 510.0,
+            "resamples": 10000
+          },
+          "throttle_retries_total": 146,
+          "token_ledger_entry": {
+            "calls": 1167,
+            "input_tokens": 121954,
+            "model_id": "global.cohere.embed-v4:0",
+            "output_tokens": 0,
+            "over_ceiling": false,
+            "price_basis": "published on-demand list price for ap-southeast-2, recorded 2026-08-11; declared, not measured — no bill or Price List API response backs this number",
+            "priced": true,
+            "usd_input": 0.01463448,
+            "usd_output": 0.0,
+            "usd_per_1k_input": 0.00012,
+            "usd_per_1k_output": 0.0,
+            "usd_total": 0.01463448
+          },
+          "usd_per_1000_documents": 0.01251653,
+          "usd_this_run": 0.01463448
+        },
+        "family": "Embed v4 (via the global cross-region inference profile)",
+        "input_handling": {
+          "longest_text_cut_from_chars": null,
+          "max_input_chars_enforced_by_bedrock": null,
+          "reading": "no character ceiling was hit for this arm on this corpus",
+          "texts_truncated_client_side": 0,
+          "texts_truncated_fraction_of_corpus": 0.0
+        },
+        "model_id": "global.cohere.embed-v4:0",
+        "native_dimension": 1536,
+        "notes": "RESIDENCY-VIOLATING. The bare id cohere.embed-v4:0 is refused for on-demand throughput; the sole profile that carries it routes globally. Measured for completeness on a synthetic corpus only, and never proposed for use.",
+        "observed_dimension": 1536,
+        "requested_dimension": null,
+        "residency": "cross_region",
+        "residency_label": "RESIDENCY-VIOLATING — cross-region routing profile, measured for completeness on a synthetic corpus and NOT proposed for use",
+        "retrieval": {
+          "hit_at_k_any_relevant_grade_ge_2": {
+            "@1": {
+              "confidence": 0.95,
+              "interval": [
+                0.462759,
+                0.657432
+              ],
+              "interval_method": "wilson",
+              "n": 96,
+              "point": 0.5625,
+              "successes": 54
+            },
+            "@10": {
+              "confidence": 0.95,
+              "interval": [
+                0.912113,
+                0.989316
+              ],
+              "interval_method": "wilson",
+              "n": 96,
+              "point": 0.96875,
+              "successes": 93
+            },
+            "@3": {
+              "confidence": 0.95,
+              "interval": [
+                0.654902,
+                0.82586
+              ],
+              "interval_method": "wilson",
+              "n": 96,
+              "point": 0.75,
+              "successes": 72
+            }
+          },
+          "hit_at_k_truth_precursor_grade_3": {
+            "@1": {
+              "confidence": 0.95,
+              "interval": [
+                0.057572,
+                0.181222
+              ],
+              "interval_method": "wilson",
+              "n": 96,
+              "point": 0.104167,
+              "successes": 10
+            },
+            "@10": {
+              "confidence": 0.95,
+              "interval": [
+                0.806374,
+                0.934801
+              ],
+              "interval_method": "wilson",
+              "n": 96,
+              "point": 0.885417,
+              "successes": 85
+            },
+            "@3": {
+              "confidence": 0.95,
+              "interval": [
+                0.284726,
+                0.474893
+              ],
+              "interval_method": "wilson",
+              "n": 96,
+              "point": 0.375,
+              "successes": 36
+            }
+          },
+          "mrr_truth_precursor": {
+            "confidence": 0.95,
+            "interval": [
+              0.260378,
+              0.367745
+            ],
+            "interval_method": "bootstrap_percentile",
+            "mean": 0.312418,
+            "n": 96,
+            "p50": 0.225,
+            "p95": 1.0,
+            "resamples": 10000
+          },
+          "ndcg_at_10": {
+            "confidence": 0.95,
+            "interval": [
+              0.448144,
+              0.570249
+            ],
+            "interval_method": "bootstrap_percentile",
+            "mean": 0.508916,
+            "n": 96,
+            "p50": 0.437479,
+            "p95": 0.864588,
+            "resamples": 10000
+          },
+          "ranking": "exhaustive cosine over the walled candidate pool; no ANN index",
+          "task": "G4 retro-recall: given a permit synthesised from a fatality investigation's own description of the work, does the prior incident the investigator cited surface inside the time wall?",
+          "tie_break": {
+            "max_documents_tied_with_the_truth_precursor": 7,
+            "mean_documents_tied_with_the_truth_precursor": 0.3542,
+            "queries_whose_truth_precursor_is_tied": 8,
+            "reading": "a tie here is not a near-miss, it is an exact one: the corpus contains byte-identical narratives, so the vectors are identical. See corpus.text_duplication.",
+            "rule": "pessimistic: the truth precursor is ranked behind every document that scores equal to it within 1e-9, not in front of them"
+          },
+          "truth_rank": {
+            "confidence": 0.95,
+            "interval": [
+              8.114063,
+              27.865365
+            ],
+            "interval_method": "bootstrap_percentile",
+            "mean": 16.9375,
+            "n": 96,
+            "p50": 4.5,
+            "p95": 98.25,
+            "resamples": 10000
+          }
+        },
+        "storage_compatibility": {
+          "fits_existing_column": false,
+          "migration_cost_if_adopted": "an expand/contract migration: a new sidecar table, a read view over both, one cutover migration, then the old table is dropped. Migration 0031's header forbids ALTER TABLE ... ALTER COLUMN embedding TYPE VECTOR(n), and the dimension probe in residency-finding.json shows the platform refusing both the narrow INSERT and the in-place widen.",
+          "stored_dimension_would_be": 1536,
+          "target_column": "mainline.clause_embedding.embedding VECTOR(1024)",
+          "target_migration": "verticals/mainline/db/migrations/0031_clause_embedding.sql"
+        },
+        "vendor": "Cohere"
+      },
+      "titan_v2": {
+        "cost_and_latency": {
+          "calls": 1167,
+          "calls_excluded_from_latency": 48,
+          "calls_retried_by_botocore": 20,
+          "client_latency_ms": {
+            "confidence": 0.95,
+            "interval": [
+              82.212083,
+              83.712284
+            ],
+            "interval_method": "bootstrap_percentile",
+            "mean": 82.940472,
+            "n": 1119,
+            "p50": 79.1373,
+            "p95": 112.6994,
+            "resamples": 10000
+          },
+          "input_tokens_documents_only": 111085,
+          "input_tokens_total": 121153,
+          "latency_basis": "calls that neither botocore nor this program retried; a retried call's wall clock is the account's request quota, not the model's response time",
+          "mean_input_tokens_per_document": 103.7208,
+          "one_text_per_call": true,
+          "server_reported_latency_ms": {
+            "confidence": 0.95,
+            "interval": [
+              49.336014,
+              50.112623
+            ],
+            "interval_method": "bootstrap_percentile",
+            "mean": 49.71403,
+            "n": 1119,
+            "p50": 48.0,
+            "p95": 61.0,
+            "resamples": 10000
+          },
+          "throttle_retries_total": 96,
+          "token_ledger_entry": {
+            "calls": 1167,
+            "input_tokens": 121153,
+            "model_id": "amazon.titan-embed-text-v2:0",
+            "output_tokens": 0,
+            "over_ceiling": false,
+            "price_basis": "published on-demand list price for ap-southeast-2, recorded 2026-08-11; declared, not measured — no bill or Price List API response backs this number",
+            "priced": true,
+            "usd_input": 0.00242306,
+            "usd_output": 0.0,
+            "usd_per_1k_input": 2e-05,
+            "usd_per_1k_output": 0.0,
+            "usd_total": 0.00242306
+          },
+          "usd_per_1000_documents": 0.00207442,
+          "usd_this_run": 0.00242306
+        },
+        "family": "Titan Text Embeddings V2",
+        "input_handling": {
+          "longest_text_cut_from_chars": null,
+          "max_input_chars_enforced_by_bedrock": null,
+          "reading": "no character ceiling was hit for this arm on this corpus",
+          "texts_truncated_client_side": 0,
+          "texts_truncated_fraction_of_corpus": 0.0
+        },
+        "model_id": "amazon.titan-embed-text-v2:0",
+        "native_dimension": 1024,
+        "notes": "the incumbent; providers/bedrock_titan.py::TITAN_EMBED_MODEL_ID, and the width migration 0031 declares as VECTOR(1024)",
+        "observed_dimension": 1024,
+        "requested_dimension": 1024,
+        "residency": "in_region",
+        "residency_label": "IN-REGION (ap-southeast-2, on-demand, no inference profile)",
+        "retrieval": {
+          "hit_at_k_any_relevant_grade_ge_2": {
+            "@1": {
+              "confidence": 0.95,
+              "interval": [
+                0.313453,
+                0.506261
+              ],
+              "interval_method": "wilson",
+              "n": 96,
+              "point": 0.40625,
+              "successes": 39
+            },
+            "@10": {
+              "confidence": 0.95,
+              "interval": [
+                0.831347,
+                0.949892
+              ],
+              "interval_method": "wilson",
+              "n": 96,
+              "point": 0.90625,
+              "successes": 87
+            },
+            "@3": {
+              "confidence": 0.95,
+              "interval": [
+                0.473043,
+                0.667179
+              ],
+              "interval_method": "wilson",
+              "n": 96,
+              "point": 0.572917,
+              "successes": 55
+            }
+          },
+          "hit_at_k_truth_precursor_grade_3": {
+            "@1": {
+              "confidence": 0.95,
+              "interval": [
+                0.035768,
+                0.14293
+              ],
+              "interval_method": "wilson",
+              "n": 96,
+              "point": 0.072917,
+              "successes": 7
+            },
+            "@10": {
+              "confidence": 0.95,
+              "interval": [
+                0.525107,
+                0.715274
+              ],
+              "interval_method": "wilson",
+              "n": 96,
+              "point": 0.625,
+              "successes": 60
+            },
+            "@3": {
+              "confidence": 0.95,
+              "interval": [
+                0.219312,
+                0.400085
+              ],
+              "interval_method": "wilson",
+              "n": 96,
+              "point": 0.302083,
+              "successes": 29
+            }
+          },
+          "mrr_truth_precursor": {
+            "confidence": 0.95,
+            "interval": [
+              0.186982,
+              0.291205
+            ],
+            "interval_method": "bootstrap_percentile",
+            "mean": 0.23642,
+            "n": 96,
+            "p50": 0.142857,
+            "p95": 1.0,
+            "resamples": 10000
+          },
+          "ndcg_at_10": {
+            "confidence": 0.95,
+            "interval": [
+              0.364547,
+              0.499451
+            ],
+            "interval_method": "bootstrap_percentile",
+            "mean": 0.431955,
+            "n": 96,
+            "p50": 0.334479,
+            "p95": 0.876512,
+            "resamples": 10000
+          },
+          "ranking": "exhaustive cosine over the walled candidate pool; no ANN index",
+          "task": "G4 retro-recall: given a permit synthesised from a fatality investigation's own description of the work, does the prior incident the investigator cited surface inside the time wall?",
+          "tie_break": {
+            "max_documents_tied_with_the_truth_precursor": 7,
+            "mean_documents_tied_with_the_truth_precursor": 0.3542,
+            "queries_whose_truth_precursor_is_tied": 8,
+            "reading": "a tie here is not a near-miss, it is an exact one: the corpus contains byte-identical narratives, so the vectors are identical. See corpus.text_duplication.",
+            "rule": "pessimistic: the truth precursor is ranked behind every document that scores equal to it within 1e-9, not in front of them"
+          },
+          "truth_rank": {
+            "confidence": 0.95,
+            "interval": [
+              15.37474,
+              35.792448
+            ],
+            "interval_method": "bootstrap_percentile",
+            "mean": 24.645833,
+            "n": 96,
+            "p50": 7.0,
+            "p95": 92.75,
+            "resamples": 10000
+          }
+        },
+        "storage_compatibility": {
+          "fits_existing_column": true,
+          "migration_cost_if_adopted": "none — the width already matches",
+          "stored_dimension_would_be": 1024,
+          "target_column": "mainline.clause_embedding.embedding VECTOR(1024)",
+          "target_migration": "verticals/mainline/db/migrations/0031_clause_embedding.sql"
+        },
+        "vendor": "Amazon"
+      }
+    },
+    "corpus": {
+      "corpus": "trappoint_recall synthetic replica, loaded from tests/fixtures/recall",
+      "corpus_class": "synthetic_replica",
+      "documents_by_source": {
+        "au_regulator_alert": 60,
+        "csb_report": 24,
+        "msha_fatality_report": 96,
+        "msha_part50": 891
+      },
+      "documents_sha256": "676dd5a38e26a4260758f9cb91e3b7688f57c15f9d1f1a94ab3f04b5e8e98d88",
+      "embed_facet": "narrative",
+      "embed_template": "{activity_path} | {asset_class} | {facet}: {cue_text}",
+      "embed_template_sha256": "08a1b8d5eb127d19a192653d290e7608d0e24ab3a34b2a720664a4b6f6ecc266",
+      "goldset": "G4 retro-recall (the money metric)",
+      "n_documents": 1071,
+      "n_judgements": 981,
+      "n_queries": 96,
+      "pool_rule": {
+        "effect_on_the_numbers": "a smaller pool raises every arm's absolute hit@k by the same mechanism. Those absolutes describe a synthetic generator and are not a product claim. The comparison between arms is paired on identical queries and an identical pool and is unaffected.",
+        "full_corpus_documents": 1071,
+        "judged_documents_in_full_corpus": 449,
+        "judged_documents_kept": 449,
+        "judgements_dropped_as_out_of_pool": 0,
+        "max_documents_requested": null,
+        "rule": "tier 1 every truth precursor (mandatory), tier 2 the other judged documents in external_ref order, tier 3 unjudged distractors in external_ref order, until the cap. No shuffle, no seed — the pool is reproducible with sort. Judgements about documents outside the pool are dropped from the nDCG ideal and counted above.",
+        "truth_precursors_kept": 96,
+        "unjudged_distractors_kept": 622,
+        "why_capped": "not capped; this is the whole corpus"
+      },
+      "queries_sha256": "1f9cc7b72e467e1cc58b03641e4c95f7d96b00ff742245cd3f0e5fd4a8548c6e",
+      "tenant_use": "harness_only",
+      "text_duplication": {
+        "distinct_document_texts": 224,
+        "distinct_query_texts": 24,
+        "documents_sharing_a_text": 847,
+        "queries_sharing_a_text": 72,
+        "reading": "The synthetic generator draws narratives from a small template set, so many records are byte-identical once the production embedding template is applied. Identical input gives an identical vector and an exact cosine tie, and the tie rule then decides the headline number. This benchmark breaks ties AGAINST the right answer (see score_arm): a retriever that cannot separate the truth precursor from documents identical to it has not found it. The practical consequences are that (a) hit@1 here is a lower bound, (b) the number of distinct texts, not the number of documents, is what each arm was actually charged for, and (c) any conclusion about absolute retrieval quality on this corpus is a conclusion about the generator."
+      },
+      "text_normalisation": "providers/base.py::normalise_text (NFKC + whitespace collapse)",
+      "time_wall": "per query: occurred_at < t AND ingested_at < t AND corpus_commit_at <= t, the three predicates trappoint_recall.eval.splits.SplitPolicy applies; t is read from the grade-3 judgement's own wall note",
+      "walled_pool_size": {
+        "max": 1065,
+        "median": 831.0,
+        "min": 282
+      }
+    },
+    "decision": {
+      "adr": "docs/adr/0040-embedding-benchmark-titan-vs-cohere.md",
+      "recommendation": "KEEP amazon.titan-embed-text-v2:0",
+      "what_this_file_does_not_do": "It changes no provider code and switches no model. providers/bedrock_titan.py::TITAN_EMBED_MODEL_ID is untouched."
+    },
+    "paired_comparison_note": "All arms are scored on the same 96 queries, so the arms are paired data. Comparing two independent Wilson intervals answers a weaker question than the one being asked; the discordant counts and the exact sign test below are the comparison that respects the pairing.",
+    "paired_comparisons": {
+      "titan_v2_vs_cohere_v3": {
+        "hit@10_truth_precursor": {
+          "discordant_first_only": 21,
+          "discordant_second_only": 14,
+          "n_discordant": 35,
+          "p_value_exact_two_sided_sign_test": 0.310505,
+          "reading": "a paired comparison on the same queries; the p-value is exact and makes no normal approximation, and n_discordant is the sample it is computed on"
+        },
+        "hit@1_truth_precursor": {
+          "discordant_first_only": 5,
+          "discordant_second_only": 8,
+          "n_discordant": 13,
+          "p_value_exact_two_sided_sign_test": 0.581055,
+          "reading": "a paired comparison on the same queries; the p-value is exact and makes no normal approximation, and n_discordant is the sample it is computed on"
+        },
+        "hit@3_truth_precursor": {
+          "discordant_first_only": 16,
+          "discordant_second_only": 16,
+          "n_discordant": 32,
+          "p_value_exact_two_sided_sign_test": 1.0,
+          "reading": "a paired comparison on the same queries; the p-value is exact and makes no normal approximation, and n_discordant is the sample it is computed on"
+        }
+      },
+      "titan_v2_vs_cohere_v4_global": {
+        "hit@10_truth_precursor": {
+          "discordant_first_only": 3,
+          "discordant_second_only": 28,
+          "n_discordant": 31,
+          "p_value_exact_two_sided_sign_test": 5e-06,
+          "reading": "a paired comparison on the same queries; the p-value is exact and makes no normal approximation, and n_discordant is the sample it is computed on"
+        },
+        "hit@1_truth_precursor": {
+          "discordant_first_only": 2,
+          "discordant_second_only": 5,
+          "n_discordant": 7,
+          "p_value_exact_two_sided_sign_test": 0.453125,
+          "reading": "a paired comparison on the same queries; the p-value is exact and makes no normal approximation, and n_discordant is the sample it is computed on"
+        },
+        "hit@3_truth_precursor": {
+          "discordant_first_only": 9,
+          "discordant_second_only": 16,
+          "n_discordant": 25,
+          "p_value_exact_two_sided_sign_test": 0.229523,
+          "reading": "a paired comparison on the same queries; the p-value is exact and makes no normal approximation, and n_discordant is the sample it is computed on"
+        }
+      }
+    },
+    "question": "ADR 0002 recorded cohere.embed-v4:0 as a benchmark candidate against Titan and made no change. This is the benchmark, and the answer it produces is a recommendation, not a switch.",
+    "residency": {
+      "allow_residency_violation_flag": true,
+      "cross_region_arms": [
+        "global.cohere.embed-v4:0"
+      ],
+      "finding": "evidence/aws/bench/residency-finding.json",
+      "in_region_arms": [
+        "amazon.titan-embed-text-v2:0",
+        "cohere.embed-english-v3"
+      ]
+    },
+    "sweep": {
+      "calls_made_this_run": {
+        "cohere_v3": 0,
+        "cohere_v4_global": 0,
+        "titan_v2": 0
+      },
+      "calls_reused_from_journal": {
+        "cohere_v3": 248,
+        "cohere_v4_global": 248,
+        "titan_v2": 248
+      },
+      "journal": "replayed from out/aws/bench/<arm>.calls.jsonl; no model was invoked",
+      "mode": "rescore-only: every vector and every timing replayed from the on-disk journal, no model invoked"
+    },
+    "throughput": {
+      "measured_batch_capability": {
+        "amazon.titan-embed-text-v2:0": {
+          "error": {
+            "code": "ValidationException",
+            "http_status": 400,
+            "message_sha256": "f76501e82651fd37781dd80fe6a33d4f8529ffe96a7a67668baab10eb02c1c5f",
+            "message_verbatim": "Malformed input request: expected type: String, found: JSONArray, please reformat your input and try again.",
+            "request_id": "05d1ff75-fad7-4c3b-8193-5ff1d1661e18",
+            "type": "ValidationException"
+          },
+          "outcome": "REFUSED",
+          "texts_sent": 96
+        },
+        "cohere.embed-english-v3": {
+          "input_tokens": 672,
+          "latency_ms": 338.361,
+          "outcome": "ACCEPTED",
+          "texts_sent": 96,
+          "vectors_returned": 96
+        },
+        "global.cohere.embed-v4:0": {
+          "input_tokens": 768,
+          "latency_ms": 2587.044,
+          "outcome": "ACCEPTED",
+          "texts_sent": 96,
+          "vectors_returned": 96
+        }
+      },
+      "observed_throughput": {
+        "available": true,
+        "bare_v4_row_is_the_refusals": "the cohere.embed-v4:0 row counts Invocations with ZERO InputTokenCount. Those are the on-demand attempts Bedrock refused: the request was counted, no model was reached, and nothing was billed. The work done under Embed v4 is metered under global.cohere.embed-v4:0, which is AWS's own accounting confirming that the profile — not the in-region model — is what served it.",
+        "by_metered_model_id": {
+          "amazon.titan-embed-text-v2:0": {
+            "InputTokenCount": 792300.0,
+            "InvocationThrottles": 55929.0,
+            "Invocations": 6120.0,
+            "throttled_fraction": 0.901368
+          },
+          "cohere.embed-english-v3": {
+            "InputTokenCount": 58673.0,
+            "InvocationThrottles": 0,
+            "Invocations": 330.0,
+            "throttled_fraction": 0.0
+          },
+          "cohere.embed-v4:0": {
+            "InputTokenCount": 0,
+            "InvocationThrottles": 0,
+            "Invocations": 10.0,
+            "throttled_fraction": 0.0
+          },
+          "global.cohere.embed-v4:0": {
+            "InputTokenCount": 91321.0,
+            "InvocationThrottles": 93.0,
+            "Invocations": 329.0,
+            "throttled_fraction": 0.220379
+          }
+        },
+        "reading": "This counts every call this account made in the window, including this fleet's other workers and this benchmark's own failed first attempt. It is not a controlled experiment; it is the operational reality the next corpus-scale embedding pass will meet.",
+        "source": "cloudwatch:GetMetricStatistics, namespace AWS/Bedrock, read-only",
+        "window_end": "2026-08-11T03:25:57Z",
+        "window_hours": 12
+      },
+      "service_quotas": {
+        "available": true,
+        "quotas": [
+          {
+            "adjustable": false,
+            "quota_code": "L-3CAACDCF",
+            "quota_name": "Batch inference input file size (in GB) for Titan Text Embeddings V2",
+            "value": 1.0
+          },
+          {
+            "adjustable": false,
+            "quota_code": "L-F687AD4D",
+            "quota_name": "Batch inference job size (in GB) for Titan Text Embeddings V2",
+            "value": 5.0
+          },
+          {
+            "adjustable": true,
+            "quota_code": "L-7089DC7D",
+            "quota_name": "Global cross-region model inference requests per minute for Cohere Embed V4",
+            "value": 20.0
+          },
+          {
+            "adjustable": false,
+            "quota_code": "L-795ADAB0",
+            "quota_name": "Global cross-region model inference tokens per day for Cohere Embed V4",
+            "value": 16200000.0
+          },
+          {
+            "adjustable": true,
+            "quota_code": "L-02DFBB76",
+            "quota_name": "Global cross-region model inference tokens per minute for Cohere Embed V4",
+            "value": 300000.0
+          },
+          {
+            "adjustable": false,
+            "quota_code": "L-6F2B2616",
+            "quota_name": "Minimum number of records per batch inference job for Titan Text Embeddings V2",
+            "value": 100.0
+          },
+          {
+            "adjustable": true,
+            "quota_code": "L-1074C53D",
+            "quota_name": "Model units per provisioned model for Amazon Titan Text Embeddings V2",
+            "value": 0.0
+          },
+          {
+            "adjustable": true,
+            "quota_code": "L-97A8CC77",
+            "quota_name": "Model units per provisioned model for Cohere Embed English",
+            "value": 0.0
+          },
+          {
+            "adjustable": false,
+            "quota_code": "L-26C560CE",
+            "quota_name": "On-demand model inference requests per minute for Amazon Titan Text Embeddings V2",
+            "value": 60.0
+          },
+          {
+            "adjustable": false,
+            "quota_code": "L-FF8E7864",
+            "quota_name": "On-demand model inference requests per minute for Cohere Embed English",
+            "value": 20.0
+          },
+          {
+            "adjustable": false,
+            "quota_code": "L-DE641971",
+            "quota_name": "On-demand model inference tokens per minute for Amazon Titan Text Embeddings V2",
+            "value": 300000.0
+          },
+          {
+            "adjustable": false,
+            "quota_code": "L-A2BE277A",
+            "quota_name": "On-demand model inference tokens per minute for Cohere Embed English",
+            "value": 300000.0
+          },
+          {
+            "adjustable": true,
+            "quota_code": "L-AAC5F6D6",
+            "quota_name": "Records per batch inference job for Titan Text Embeddings V2",
+            "value": 100000.0
+          },
+          {
+            "adjustable": true,
+            "quota_code": "L-D1151D45",
+            "quota_name": "Records per input file per batch inference job for Titan Text Embeddings V2",
+            "value": 100000.0
+          },
+          {
+            "adjustable": true,
+            "quota_code": "L-1AC1CABC",
+            "quota_name": "Sum of in-progress and submitted batch inference jobs using a base model for Titan Text Embeddings V2",
+            "value": 100.0
+          },
+          {
+            "adjustable": false,
+            "quota_code": "L-329D7443",
+            "quota_name": "Sum of in-progress and submitted batch inference jobs using a custom model for Titan Text Embeddings V2",
+            "value": 3.0
+          }
+        ],
+        "reading": "On-demand requests per minute is the binding constraint for a corpus-scale sweep, and it is the number that decides how long an embedding pass takes. Read the per-request batch size beside it: the Cohere embedders accept up to 96 texts in one InvokeModel call and Titan v2 accepts exactly one, so requests per minute and TEXTS per minute are not the same quantity and the ranking reverses between them. This is measured in 'throughput' below rather than reasoned about.",
+        "source": "service-quotas:ListServiceQuotas, ServiceCode=bedrock, read-only"
+      },
+      "texts_per_minute": {
+        "amazon.titan-embed-text-v2:0": {
+          "basis": "quota value from service-quotas:ListServiceQuotas; texts per request from the 96-text probe in 'measured_batch_capability'. This is a CEILING the quota permits, not a rate this program achieved — see 'observed_sustained_rate' for what the account actually served.",
+          "measured_texts_per_request": 1,
+          "quota_adjustable": false,
+          "quota_requests_per_minute": 60.0,
+          "texts_per_minute_ceiling": 60.0
+        },
+        "cohere.embed-english-v3": {
+          "basis": "quota value from service-quotas:ListServiceQuotas; texts per request from the 96-text probe in 'measured_batch_capability'. This is a CEILING the quota permits, not a rate this program achieved — see 'observed_sustained_rate' for what the account actually served.",
+          "measured_texts_per_request": 96,
+          "quota_adjustable": false,
+          "quota_requests_per_minute": 20.0,
+          "texts_per_minute_ceiling": 1920.0
+        },
+        "global.cohere.embed-v4:0": {
+          "basis": "quota value from service-quotas:ListServiceQuotas; texts per request from the 96-text probe in 'measured_batch_capability'. This is a CEILING the quota permits, not a rate this program achieved — see 'observed_sustained_rate' for what the account actually served.",
+          "measured_texts_per_request": 96,
+          "quota_adjustable": true,
+          "quota_requests_per_minute": 20.0,
+          "texts_per_minute_ceiling": 1920.0
+        }
+      },
+      "why_this_section_exists": "This benchmark's first attempt was killed by a ThrottlingException after roughly 700 of 1 167 texts. Rather than treat that as a flaky run, the quota was read and the per-request batch size measured. The result is the strongest argument against the decision recorded in ADR 0040, and it belongs beside the decision rather than in a postmortem nobody opens."
+    },
+    "token_ledger": {
+      "entries": [
+        {
+          "calls": 1167,
+          "input_tokens": 121153,
+          "model_id": "amazon.titan-embed-text-v2:0",
+          "output_tokens": 0,
+          "over_ceiling": false,
+          "price_basis": "published on-demand list price for ap-southeast-2, recorded 2026-08-11; declared, not measured — no bill or Price List API response backs this number",
+          "priced": true,
+          "usd_input": 0.00242306,
+          "usd_output": 0.0,
+          "usd_per_1k_input": 2e-05,
+          "usd_per_1k_output": 0.0,
+          "usd_total": 0.00242306
+        },
+        {
+          "calls": 1167,
+          "input_tokens": 94634,
+          "model_id": "cohere.embed-english-v3",
+          "output_tokens": 0,
+          "over_ceiling": false,
+          "price_basis": "published on-demand list price for ap-southeast-2, recorded 2026-08-11; declared, not measured — no bill or Price List API response backs this number",
+          "priced": true,
+          "usd_input": 0.0094634,
+          "usd_output": 0.0,
+          "usd_per_1k_input": 0.0001,
+          "usd_per_1k_output": 0.0,
+          "usd_total": 0.0094634
+        },
+        {
+          "calls": 1167,
+          "input_tokens": 121954,
+          "model_id": "global.cohere.embed-v4:0",
+          "output_tokens": 0,
+          "over_ceiling": false,
+          "price_basis": "published on-demand list price for ap-southeast-2, recorded 2026-08-11; declared, not measured — no bill or Price List API response backs this number",
+          "priced": true,
+          "usd_input": 0.01463448,
+          "usd_output": 0.0,
+          "usd_per_1k_input": 0.00012,
+          "usd_per_1k_output": 0.0,
+          "usd_total": 0.01463448
+        }
+      ],
+      "total": {
+        "calls": 3501,
+        "entries": 3,
+        "input_tokens": 337741,
+        "output_tokens": 0,
+        "price_basis": "published on-demand list price for ap-southeast-2, recorded 2026-08-11; declared, not measured — no bill or Price List API response backs this number",
+        "unpriced_entries": 0,
+        "usd_ceiling_per_run": 0.5,
+        "usd_total": 0.02652094
+      }
+    }
+  },
+  "region": "ap-southeast-2",
+  "synthetic": true
+}

@@ -11,17 +11,17 @@
   "scan": {
     "root": "<repository root>",
     "method": "filesystem walk, NOT the git index. A count here will not equal `git grep -l <pattern> | wc -l`: the walk sees files that are present but not yet committed, and it prunes directories git tracks (out_mainline/, out_trappoint_ref/, .hypothesis-corpus/). The walk is the right unit for a submission document, because a judge checks out a working tree.",
-    "files_scanned": 7233,
+    "files_scanned": 7352,
     "files_by_category": {
-      "config": 4750,
-      "docs": 247,
+      "config": 4796,
+      "docs": 274,
       "migration": 271,
-      "other": 334,
-      "python": 1180,
-      "sql": 128,
+      "other": 342,
+      "python": 1214,
+      "sql": 130,
       "terraform": 25,
       "typescript": 282,
-      "workflow": 16
+      "workflow": 18
     },
     "skipped_binary": 22,
     "skipped_too_large": 0,
@@ -69,8 +69,8 @@
   "totals": {
     "rows": 12,
     "by_verdict": {
-      "EXERCISED": 0,
-      "DESIGNED": 11,
+      "EXERCISED": 3,
+      "DESIGNED": 8,
       "NOT-AVAILABLE": 1
     },
     "by_kind": {
@@ -84,8 +84,8 @@
       "key": "aws_bedrock_runtime",
       "name": "Amazon Bedrock — Claude inference via au.* profiles",
       "kind": "service",
-      "verdict": "DESIGNED",
-      "verdict_basis": "eight au.* Claude inference profiles are listed live in region ap-southeast-2, but every agent test in this repository replays a recorded cassette; no live model call is captured under evidence/, and docs/HONESTY.md says so",
+      "verdict": "EXERCISED",
+      "verdict_basis": "a live bedrock-runtime:Converse against the Australia-only inference profile au.anthropic.claude-haiku-4-5-20251001-v1:0 in ap-southeast-2 returned evidence/aws/probe/raw-haiku-converse.json#/payload/response/metadata/http_status = 200 with an AWS request id, stopReason end_turn, evidence/aws/probe/raw-haiku-converse.json#/payload/response/usage/inputTokens = 22 and evidence/aws/probe/raw-haiku-converse.json#/payload/response/usage/outputTokens = 8; the summary that checks it is evidence/aws/probe/bedrock-probe.json (payload.checks.haiku_http_200_with_request_id). The PRODUCT's own agent layer then ran on it: evidence/aws/agent/live-run.json#/payload/leg_count = 7 live InvokeModel legs through that same au.* profile, each with an AWS request id and each recorded as a cassette, carrying evidence/aws/agent/live-run.json#/payload/token_ledger/0/input_tokens = 17429 input tokens (the output count is deliberately NOT quoted here: generation is not reproducible, and this repository claims replayability of recorded calls and never reproducibility of generation); evidence/aws/agent/determinism.json replays those cassettes twice to a byte-identical decision hash and refuses to load a tampered one. Corroborated from OUTSIDE this repository by AWS's own metric series for that ModelId in evidence/aws/cloudwatch/bedrock-metrics.json. WHAT THIS DOES NOT SAY: the live legs ran on claude-haiku-4-5 while the shipping request builders target the pinned claude-opus-5 generation, and four builder fields are refused on the wire by haiku — projected at the wire, named field by field, in evidence/aws/agent/live-run.json#/payload/measured_wire_refusals, never written back into a builder. And no live leg REFUSED (payload.refusal_behaviour.live_refusals_observed 0), so the refusal-degrades-the-run path was exercised against a CONSTRUCTED refusing transport rather than a model that said no",
       "how": "bedrock-runtime InvokeModel with the Anthropic native body. The modelId is an au.* inference-profile ARN RESOLVED AT START-UP from ListInferenceProfiles and pinned into the run record — never hard-coded — and any identifier without the au. prefix is refused by the transport as a residency violation. One model generation across the fleet, differentiated by effort rather than by model.",
       "anchor": "packages/mainline-agentkit/src/mainline_agentkit/transport.py:273",
       "anchor_resolved": {
@@ -94,22 +94,22 @@
         "resolves": true,
         "line_text": "\"\"\"Refuse any model identifier that is not an ``au.*`` inference profile."
       },
-      "file_count": 245,
+      "file_count": 310,
       "files_by_category": {
-        "config": 58,
-        "docs": 42,
+        "config": 83,
+        "docs": 56,
         "migration": 2,
         "other": 4,
-        "python": 129,
-        "sql": 1,
+        "python": 152,
+        "sql": 3,
         "terraform": 5,
         "typescript": 1,
-        "workflow": 3
+        "workflow": 4
       },
       "representative_paths": [
         "verticals/mainline/db/migrations/0049y_meas_mutation_run.sql",
         "verticals/mainline/db/migrations/0089_agent_action.sql",
-        "verticals/mainline/db/seeds/demo/demo_world.sql"
+        "evidence/aws/ann/the-one-query.sql"
       ],
       "search": {
         "pattern": "bedrock",
@@ -121,28 +121,28 @@
       "key": "aws_bedrock_embeddings",
       "name": "Amazon Bedrock — embeddings (Titan v2, Cohere embed v4)",
       "kind": "service",
-      "verdict": "DESIGNED",
-      "verdict_basis": "amazon.titan-embed-text-v2:0 and cohere.embed-v4:0 are both available in ap-southeast-2 and the provider is implemented; the committed embeddings are fixtures, so Tier-2 verification needs no model call at all",
+      "verdict": "EXERCISED",
+      "verdict_basis": "amazon.titan-embed-text-v2:0 produced evidence/aws/embeddings/manifest.json#/payload/totals/vectors = 2060 vectors of width evidence/aws/embeddings/manifest.json#/payload/dimensions = 1024 in ap-southeast-2, for evidence/aws/embeddings/manifest.json#/payload/totals/input_tokens = 177345 input tokens, enumerated one per row with a text digest, a vector digest and a token count; evidence/aws/ann/ann-proof.json then searched evidence/aws/ann/ann-proof.json#/payload/vectors/rows_searched = 1080 of them through CockroachDB's ce_ann index and names the same model at payload.vectors.embed_model_expected. WHAT THIS DOES NOT SAY: the corpus is SYNTHETIC, the vector blobs live under the gitignored out/ so the manifest's per-vector sha256 is the checkable part, and Tier-2 verification in VERIFY.md still needs no model call because the committed fixtures are unchanged",
       "how": "The embedding provider writes into the C-SPANN sidecar tables. Model ids are never hard-coded at a call site — tests/unit/recall_providers/test_no_hardcoded_model_ids.py enforces that — and every embedding row stores its embed_model and index_gen, because a vector whose model is unknown cannot be compared to anything.",
-      "anchor": "verticals/mainline/packages/mainline-recall-agent/src/mainline_recall_agent/providers/bedrock_titan.py:39",
+      "anchor": "verticals/mainline/packages/mainline-recall-agent/src/mainline_recall_agent/providers/bedrock_titan.py:55",
       "anchor_resolved": {
         "path": "verticals/mainline/packages/mainline-recall-agent/src/mainline_recall_agent/providers/bedrock_titan.py",
-        "line": 39,
+        "line": 55,
         "resolves": true,
         "line_text": "TITAN_EMBED_MODEL_ID: Final[str] = \"amazon.titan-embed-text-v2:0\""
       },
-      "file_count": 25,
+      "file_count": 73,
       "files_by_category": {
-        "config": 2,
-        "docs": 11,
+        "config": 20,
+        "docs": 25,
         "migration": 1,
-        "python": 9,
-        "sql": 2
+        "python": 23,
+        "sql": 4
       },
       "representative_paths": [
         "verticals/mainline/db/migrations/0031_clause_embedding.sql",
-        "verticals/mainline/db/ext/vector_fallback/clause_embedding_table.sql",
-        "verticals/mainline/db/seeds/demo/demo_world.sql"
+        "evidence/aws/ann/the-one-query.sql",
+        "verticals/mainline/db/evidence/ann_evidence_schema.sql"
       ],
       "search": {
         "pattern": "titan-embed-text-v2|cohere\\.embed-v4|titan_embed|BedrockTitan",
@@ -162,12 +162,12 @@
         "path": "docs/HONESTY.md",
         "line": 276,
         "resolves": true,
-        "line_text": "| Bedrock Rerank in `ap-southeast-2` | **not available.** No dependency was taken on it |"
+        "line_text": ""
       },
-      "file_count": 18,
+      "file_count": 19,
       "files_by_category": {
         "config": 2,
-        "docs": 13,
+        "docs": 14,
         "python": 2,
         "workflow": 1
       },
@@ -196,10 +196,10 @@
         "resolves": true,
         "line_text": "resource \"aws_s3_bucket_object_lock_configuration\" \"evidence\" {"
       },
-      "file_count": 117,
+      "file_count": 121,
       "files_by_category": {
         "config": 32,
-        "docs": 28,
+        "docs": 32,
         "migration": 5,
         "other": 3,
         "python": 33,
@@ -233,10 +233,10 @@
         "resolves": true,
         "line_text": "KMS_SIGNING_ALGORITHM: Final = \"ECDSA_SHA_256\""
       },
-      "file_count": 41,
+      "file_count": 42,
       "files_by_category": {
         "config": 17,
-        "docs": 8,
+        "docs": 9,
         "python": 9,
         "terraform": 7
       },
@@ -265,11 +265,11 @@
         "resolves": true,
         "line_text": "resource \"aws_cloudtrail\" \"evidence\" {"
       },
-      "file_count": 27,
+      "file_count": 33,
       "files_by_category": {
         "config": 17,
-        "docs": 6,
-        "python": 2,
+        "docs": 11,
+        "python": 3,
         "terraform": 2
       },
       "representative_paths": [
@@ -295,11 +295,11 @@
         "path": "infra/modules/demo-api/main.tf",
         "line": 257,
         "resolves": true,
-        "line_text": "resource \"aws_lambda_function_url\" \"this\" {"
+        "line_text": "timeout                        = var.timeout"
       },
-      "file_count": 8,
+      "file_count": 9,
       "files_by_category": {
-        "docs": 3,
+        "docs": 4,
         "terraform": 5
       },
       "representative_paths": [
@@ -327,12 +327,12 @@
         "resolves": true,
         "line_text": "resource \"aws_cloudfront_distribution\" \"site\" {"
       },
-      "file_count": 32,
+      "file_count": 43,
       "files_by_category": {
-        "config": 3,
-        "docs": 9,
+        "config": 4,
+        "docs": 16,
         "other": 4,
-        "python": 3,
+        "python": 6,
         "terraform": 11,
         "typescript": 1,
         "workflow": 1
@@ -352,21 +352,21 @@
       "key": "aws_cloudwatch",
       "name": "Amazon CloudWatch — logs, four alarms, one dashboard",
       "kind": "service",
-      "verdict": "DESIGNED",
-      "verdict_basis": "written in infra/modules/demo-api; nothing deployed, so no metric exists",
+      "verdict": "EXERCISED",
+      "verdict_basis": "METRICS READ, NOTHING PROVISIONED — and the second half of that sentence is the load-bearing half. evidence/aws/cloudwatch/bedrock-metrics.json#/payload/api_call_summary/GetMetricStatistics = 110 read-only calls against the AWS/Bedrock namespace in ap-southeast-2 recorded, for amazon.titan-embed-text-v2:0, evidence/aws/cloudwatch/bedrock-metrics.json#/payload/models/amazon.titan-embed-text-v2:0/sums/Invocations/value = 7542 and evidence/aws/cloudwatch/bedrock-metrics.json#/payload/models/amazon.titan-embed-text-v2:0/sums/InputTokenCount/value = 1026175 — each Sum taken at Period 300 and at 3600 and required to agree, because a Sum is resolution-invariant and a disagreement would mean a clipped bucket. evidence/aws/cloudwatch/reconciliation.json subtracts this repository's own token ledgers from AWS's counters and names every non-zero delta. NOTHING WAS PROVISIONED: no log group, alarm, dashboard, metric filter, IAM role or terraform apply, and the reader invoked no model — bedrock-metrics.json's prohibitions block asserts each of those false and cloudwatch_evidence.py's before-call guard raises for any operation outside its six-item read-only allow-list before the request is signed. The alarms and dashboard WRITTEN in infra/modules/demo-api remain unapplied and unexercised",
       "how": "A log group with a finite retention — an unbounded retention on a demo account is a cost bug, not a safety feature — plus four metric alarms and a dashboard that makes the demo's latency and error rate visible to a judge who wants to look.",
-      "anchor": "infra/modules/demo-api/main.tf:391",
+      "anchor": "scripts/aws/cloudwatch_evidence.py:248",
       "anchor_resolved": {
-        "path": "infra/modules/demo-api/main.tf",
-        "line": 391,
+        "path": "scripts/aws/cloudwatch_evidence.py",
+        "line": 248,
         "resolves": true,
-        "line_text": "resource \"aws_cloudwatch_dashboard\" \"this\" {"
+        "line_text": "\"this file proves the calls happened and what they cost. It proves nothing about \""
       },
-      "file_count": 21,
+      "file_count": 48,
       "files_by_category": {
-        "config": 3,
-        "docs": 7,
-        "python": 4,
+        "config": 9,
+        "docs": 17,
+        "python": 15,
         "terraform": 6,
         "workflow": 1
       },
@@ -425,7 +425,7 @@
         "path": "infra/modules/demo-api/main.tf",
         "line": 146,
         "resolves": true,
-        "line_text": "actions = [\"ssm:GetParameter\"]"
+        "line_text": "})"
       },
       "file_count": 8,
       "files_by_category": {
@@ -457,18 +457,18 @@
         "resolves": true,
         "line_text": "# `(schedule_id, occurrence_ts)`, where `occurrence_ts` is EventBridge's"
       },
-      "file_count": 24,
+      "file_count": 30,
       "files_by_category": {
         "config": 2,
-        "docs": 6,
+        "docs": 11,
         "migration": 2,
         "other": 2,
-        "python": 12
+        "python": 13
       },
       "representative_paths": [
         "verticals/mainline/db/migrations/0090_patrol_run.sql",
         "verticals/mainline/db/migrations/0168_v_changefeed_health.sql",
-        "tests/integration/schema/test_ops_producer.py"
+        "scripts/submission/check_submission_ready.py"
       ],
       "search": {
         "pattern": "EventBridge|aws_cloudwatch_event|events:PutEvents|event_bus",

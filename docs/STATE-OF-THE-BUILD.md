@@ -17,12 +17,16 @@ and names exactly what is missing.
 **The headline, in four sentences.** The product's central claim is proven, and it is
 stronger than it was: the whole 271-file chain now applies with zero failures, the five
 unproduced tables have producers, and the `open_blocking` caveat is gone because a trigger
-projects the counter rather than a script writing it. The conformance suite has now been
-demonstrated end to end for the first time, and it is red — 10 of 71 — with 46 of the 61
-non-passing cases blocked by a **single defect in one test-harness helper**, not by 46
-product defects. Both Stage One pass/fail gates are still unmet: the repository is
-**PRIVATE** and there is **no demo URL**. And no AWS service has ever actually executed —
-Bedrock invocation is `NOT_AUTHORIZED` on this account, which I confirmed by calling it.
+projects the counter rather than a script writing it. A conformance **census** has for the first time
+produced a result for all 71 declared cases rather than erroring out, and it is red — 10
+passed — with 46 of the 61 non-passing cases blocked by a **single defect in one
+test-harness helper**, not by 46 product defects. The suite itself is still **not**
+demonstrated in the sense `docs/submission/MUST-NOT-CLAIM.md` reserves that word for, and
+this page will not use it. Both Stage One pass/fail gates are still unmet: the repository is
+**PRIVATE** and there is **no demo URL**. AWS has moved: on 2026-08-10 no AWS service had
+ever executed and Bedrock invocation was `NOT_AUTHORIZED`, which I confirmed by calling
+it; model access has since been enabled and Bedrock now runs (§3.3, corrected 2026-08-11).
+What has *not* moved is deployment — no MAINLINE infrastructure exists in the account.
 
 ---
 
@@ -390,60 +394,126 @@ Two more are wrong-mechanism rather than wrong-outcome:
 And two are schema/syntax gaps: CF-67 (`42703`, `witness_quorum` column absent — the census
 labels it `SCHEMA NOT MIGRATED`) and CF-68 (`42601`, a syntax error).
 
-## 3.3 No AWS service has ever executed — Bedrock is NOT_AUTHORIZED
+## 3.3 Bedrock executes — and nothing MAINLINE-shaped is deployed
 
-`evidence/tool-usage/aws-services.json`:
+**This section is a correction, and the thing it corrects stays on the page.** Until
+2026-08-11 the heading here read *"No AWS service has ever executed — Bedrock is
+NOT_AUTHORIZED"*, and **that finding was correct on 2026-08-10 when it was measured**:
+three invocations came back `ValidationException: Operation not allowed`, and
+`get-foundation-model-availability` named the cause as `authorizationStatus:
+NOT_AUTHORIZED` — model access had never been enabled in the Bedrock console for account
+`022950218246`. **It has since been enabled.** The old finding is quoted rather than
+deleted because a correction that erases what it corrects teaches nobody anything: what
+changed was an account setting, not a line of code, and a reader who cannot see that will
+not know which of these two states their own account is in.
 
-```
-by_verdict: { "EXERCISED": 0, "DESIGNED": 11, "NOT-AVAILABLE": 1 }
-aws_bedrock_runtime DESIGNED · aws_bedrock_embeddings DESIGNED · aws_bedrock_rerank NOT-AVAILABLE
-aws_s3_object_lock · aws_kms · aws_cloudtrail · aws_lambda · aws_cloudfront
-aws_cloudwatch · aws_iam · aws_ssm_parameter_store · aws_eventbridge — all DESIGNED
-```
-
-**Zero.** I did not take that on trust; I called Bedrock myself, three ways, and all three
-failed:
-
-```
-$ aws bedrock list-foundation-models --region ap-southeast-2 → 64          # control plane OK
-$ invoke_model  amazon.titan-embed-text-v2:0                  → ValidationException: Operation not allowed
-$ converse      au.anthropic.claude-haiku-4-5-20251001-v1:0   → ValidationException: Operation not allowed
-$ invoke_model  global.cohere.embed-v4:0                      → ValidationException: Operation not allowed
-```
-
-The cause is not a code bug. It is account entitlement:
+Re-measured today, with the same command that produced the `NOT_AUTHORIZED` block:
 
 ```
+$ aws sts get-caller-identity --profile mainline-dev
+  arn:aws:iam::022950218246:user/mainline-dev
+
 $ aws bedrock get-foundation-model-availability \
       --model-id anthropic.claude-haiku-4-5-20251001-v1:0 --region ap-southeast-2
 {
-  "agreementAvailability": { "status": "NOT_AVAILABLE" },
-  "authorizationStatus":   "NOT_AUTHORIZED",
+  "modelId": "anthropic.claude-haiku-4-5-20251001-v1",
+  "agreementAvailability":   { "status": "AVAILABLE" },
+  "authorizationStatus":     "AUTHORIZED",
   "entitlementAvailability": "AVAILABLE",
   "regionAvailability":      "AVAILABLE"
 }
 ```
 
-Model access was never enabled in the Bedrock console for account `022950218246`. Region
-and entitlement are fine, so this is a one-time click by the account owner — but **until it
-is done, every Bedrock code path in this repository is unreachable**, and the brief's claim
-that "AWS is LIVE … Bedrock has 8 `au.*` Claude profiles" is true only in the sense that
-the profiles are *listed*. They cannot be invoked.
-
-Nothing MAINLINE-shaped is deployed either. The account holds exactly one CloudFront
-distribution and it belongs to a different project:
+An entitlement API saying `AUTHORIZED` is still only a control-plane opinion, so it is not
+what this section rests on. These are invocations, run from this workstation against
+`ap-southeast-2` while writing this:
 
 ```
-$ aws cloudfront get-distribution --id E2FCXK8NILPNWF
-  Comment: "checkout-platform static site distribution"
-  Origin:  checkout-platform-debd5edd-site.s3.ap-southeast-2.amazonaws.com
+$ AWS_PROFILE=mainline-dev .venv/Scripts/python.exe -c '<boto3 bedrock-runtime>'
 
+  invoke_model  amazon.titan-embed-text-v2:0
+    HTTP 200 · len(embedding) 1024 · inputTextTokenCount 7
+    RequestId a555693c-716a-421c-9d75-773cd496cca6
+
+  converse      au.anthropic.claude-haiku-4-5-20251001-v1:0
+    HTTP 200 · text "MAINLINE gate online" · stopReason end_turn
+    usage { inputTokens 16, outputTokens 8 }
+```
+
+**`ValidationException: Operation not allowed` no longer reproduces on any model family
+§3.3 previously named**, and the sentence that stood here — *"until it is done, every
+Bedrock code path in this repository is unreachable"* — is retired. The `au.*` profiles
+are no longer merely *listed*; they answer.
+
+That is this document's own measurement. Three committed artefacts carry the fleet's,
+and they are the ones to read rather than this summary:
+
+| artefact | what it establishes |
+|---|---|
+| `evidence/aws/probe/bedrock-probe.json` | the probe: Titan `1024`-d at HTTP `200` with a request id, Haiku through the `au.` profile, and the Cohere `embed-v4` refusal recorded **verbatim** — that refusal is a residency finding, because the only id on this account that serves `embed-v4` is `global.cohere.embed-v4:0`, a cross-region routing profile |
+| `evidence/aws/ann/ann-proof.json` | the vectors CockroachDB's C-SPANN index searched were Titan's: `1080` rows of `1024`-d `amazon.titan-embed-text-v2:0` embeddings in `mainline_ann_evidence` on Cloud, `96` queries, and an `EXPLAIN` naming `clause_embedding@ce_ann` with both prefix columns bound (`evidence/aws/ann/explain-hinted.txt`) |
+| `evidence/aws/cloudwatch/bedrock-metrics.json` | the AWS-side attestation, read-only — the only evidence in this section that MAINLINE did not write about itself. This row was a **forward reference** when it was written; the file has since landed and `ls` answers |
+| `evidence/deploy/aws-live.json` | the whole round trip in one file, taken `2026-08-11T01:11:53Z` by `scripts/deploy/aws_live_probe.py`: `sts:GetCallerIdentity`, `bedrock:ListFoundationModels` (`64` models in region), `InvokeModel` on Titan v2 (HTTP `200`, request id `b4d826e9-03ba-4368-9687-f00cc28a98ef`, `1024` dimensions, L2 norm `1.0`, `13` input-text tokens) and `Converse` on the `au.` Haiku 4.5 profile (HTTP `200`, request id `3c7a283c-9f67-4d98-aa8f-26490d54d32d`, reply `"MAINLINE gate online"`, usage `{16 in, 8 out, 24 total}`). `calls_attempted 4`, `calls_failed []` |
+
+The CloudWatch half is worth stating plainly even before its artefact lands, because it is
+the only evidence here that MAINLINE did not write about itself. AWS publishes per-model
+invocation counters for this account at no cost and with no deployment:
+
+```
+$ aws cloudwatch list-metrics --namespace AWS/Bedrock --region ap-southeast-2
+  Invocations · InputTokenCount · InvocationLatency · EstimatedTPMQuotaUsage,
+  dimensioned by ModelId, for amazon.titan-embed-text-v2:0
+  and au.anthropic.claude-haiku-4-5-20251001-v1:0
+
+$ get_metric_statistics --statistics Sum --period 86400
+      window 2026-08-10T04:17Z → 2026-08-11T04:17Z
+  amazon.titan-embed-text-v2:0                  Invocations 7541  InputTokenCount 1026168
+  au.anthropic.claude-haiku-4-5-20251001-v1:0   Invocations   18  InputTokenCount    3647
+```
+
+Those two counters are a moving snapshot — the fleet was still running against the account
+while they were read, and a later read will be larger. Quote the window, never the number
+alone. What is not moving is the shape of the answer: it is not zero, and AWS wrote it.
+
+**None of the above is a deployment, and the rest of this section is unchanged because it
+is unchanged.** Nothing MAINLINE-shaped exists in the account. The account holds exactly
+one CloudFront distribution and it belongs to a different project:
+
+```
+# re-listed 2026-08-11
+$ aws cloudfront list-distributions --query 'DistributionList.Items[].{Id:Id,Comment:Comment,Domain:DomainName}'
+  E2FCXK8NILPNWF  "checkout-platform static site distribution"  d2hlkr5e2hb7k7.cloudfront.net
+
+# measured 2026-08-10, NOT re-run today
+$ aws cloudfront get-distribution --id E2FCXK8NILPNWF
+  Origin:  checkout-platform-debd5edd-site.s3.ap-southeast-2.amazonaws.com
 $ curl -s -o /dev/null -w "HTTP=%{http_code}" https://d2hlkr5e2hb7k7.cloudfront.net/
   HTTP=403
 ```
 
 The only Lambda in the account is `cci-chage-enricher`, also unrelated. There is no
-MAINLINE S3 site bucket.
+MAINLINE S3 site bucket — both re-listed 2026-08-11, and every bucket in the account
+belongs to something else:
+
+```
+$ aws s3api list-buckets --query 'Buckets[].Name'
+  aws-cloudtrail-logs-022950218246-10882a56   cci-change-feed
+  checkout-platform-debd5edd-site             checkout-platform-site
+  elasticbeanstalk-ap-southeast-2-022950218246
+  intellicanvas-voice-model
+  shortstack-pipeline-artifactbucket-amxvhsepi4ak
+
+$ aws lambda list-functions --region ap-southeast-2 --query 'Functions[].FunctionName'
+  cci-chage-enricher
+```
+
+So the AWS picture is now two-toned, and the two tones must not be blurred into one
+verdict. **Bedrock inference and Titan embeddings are exercised**, with request ids,
+committed transcripts, vectors in a CockroachDB Cloud table and an AWS-side counter that
+agrees. **Everything else remains designed and unapplied** — S3 Object Lock, KMS,
+CloudTrail, Lambda, CloudFront, CloudWatch as *provisioned* infrastructure, IAM roles, SSM
+Parameter Store and EventBridge. `terraform apply` has still never been run (§4), and the
+demo URL requirement is still unmet for exactly that reason.
 
 ## 3.4 The console test suite is load-sensitive
 
@@ -455,7 +525,10 @@ Three runs of the same suite on the same tree, minutes apart, gave three differe
 | `pnpm run test` | test census running concurrently | **1 failed**, 1 460 passed (1 461) |
 | `pnpm run test` | test census running concurrently | **3 failed**, 79 files (1 failed) |
 
-Every failure was in `tests/unit/silence/screen.test.tsx`, all the same shape:
+Every failure was in `verticals/mainline/apps/console/tests/unit/silence/screen.test.tsx`
+— written here as the repository-relative path, because the bare `tests/unit/…` form
+the runner prints resolves against the console package and against nothing at the root —
+all the same shape:
 
 ```
 TestingLibraryElementError: Unable to find an element by: [data-testid="conservation-panel"]
@@ -538,7 +611,7 @@ A judge who clones the repository and follows the README does not reach the proo
 |---|---|
 | **the deployed demo URL** | nothing exists. `docs/submission/SUBMISSION.json` has `"demo_url": "UNRESOLVED"`. **Stage One pass/fail.** |
 | **the demo video** | not recorded. `"video_url": "UNRESOLVED"`. |
-| **judge access declaration** | all three members `UNRESOLVED`. |
+| ~~judge access declaration~~ | **resolved 2026-08-11.** All three members answered from `evidence/deploy/judge-access.json`: a rotated read-only `mainline_judge` login that read 14 of 14 `mainline_audit` views and was refused on 11 of 11 base tables and writes, plus the Managed MCP path in `verticals/mainline/demo/judge/MCP-CONFIG.md`. The password is in the submission form's credentials field and in no file here. |
 | **a public repository** | `gh repo view` → `"visibility": "PRIVATE"`, `"licenseInfo": null`. **Stage One pass/fail.** |
 | **any applied AWS infrastructure** | Terraform validates; `terraform apply` has never been run. |
 
@@ -550,15 +623,15 @@ Deadline **2026-08-18 17:00 EDT** — 8 d 13 h remaining at the time of this mea
 
 | # | Requirement | Verdict | Evidence / what is missing |
 |---|---|---|---|
-| **1** | Public repo with an open-source LICENSE file | **UNMET** | `gh repo view Shaugato/mainline --json visibility` → `PRIVATE`; `licenseInfo: null`. `LICENSE` exists on disk (Apache-2.0, byte-identical to `LICENSES/Apache-2.0.txt`) but is **untracked**, and the repo is 2 commits ahead of `origin/master` with 89 dirty paths. Nothing is on the server. **Stage One.** |
+| **1** | Public repo with an open-source LICENSE file | **UNMET** | Re-measured 2026-08-11: `gh repo view Shaugato/mainline --json visibility,licenseInfo` → `PRIVATE`, but `licenseInfo.key` is now `apache-2.0` — `LICENSE` is **tracked** (`git ls-files LICENSE` answers), which is a change from the 2026-08-10 reading this row used to carry. `HEAD` == `origin/master`, so nothing committed is missing from the server; 93 paths are uncommitted and would not be published. The remaining gap is the flip alone. **Stage One.** |
 | **2** | A URL to a functional demo app | **UNMET** | `demo_url: "UNRESOLVED"`. No MAINLINE resource is deployed. The only CloudFront distribution in the account belongs to `checkout-platform` and returns HTTP 403. **Stage One.** |
-| **3** | Text description of features | **MET** | `docs/submission/DEVPOST.md`, 14 637 bytes, 111 non-blank lines; `check_submission_ready.py` passes this row. |
+| **3** | Text description of features | **MET** | `docs/submission/DEVPOST.md`, 28 503 bytes, 161 non-blank lines, 15 paste blocks totalling 3 415 words, five of them answering the five judging criteria one apiece; `check_submission_ready.py` passes this row and `check_submission_prose.py` reports 0 violations in it. |
 | **4** | Video < 3 min on YouTube/Vimeo | **UNMET** | `video_url: "UNRESOLVED"`. Script, shot list and seeded state exist in `docs/submission/VIDEO-KIT.md`. Founder's to record. |
-| **5** | Documentation of which CockroachDB and AWS services were used, and how | **MET, with a caveat** | `docs/TOOL-USAGE.md` names 4 CockroachDB tools + 10 features and 12 AWS services, each with a file:line mechanism and a verdict. Caveat: the census is **stale by a few bytes** — `capture_tool_evidence.py --check` says re-run it. The document is honest that AWS `EXERCISED` is 0. |
-| **6** | Free, unrestricted judge access | **UNMET** | `judge_access.required`, `.how`, `.credentials_location` all `UNRESOLVED`. Cannot be resolved before a demo exists. |
+| **5** | Documentation of which CockroachDB and AWS services were used, and how | **MET, with a caveat** | `docs/TOOL-USAGE.md` names 4 CockroachDB tools + 10 features and 12 AWS services, each with a file:line mechanism and a verdict. Caveat, re-measured 2026-08-11: the census is still **stale**, but by 8 bytes on `aws-services.json` rather than by a whole verdict column — it has been regenerated since Bedrock was invoked and no longer understates AWS. `capture_tool_evidence.py --check` still exits 1 and the regeneration is owed. Read the verdict tally from `evidence/tool-usage/aws-services.json`, not from this row. |
+| **6** | Free, unrestricted judge access | **MET for the database, UNMET for the demo** | All three `judge_access` members are answered in `docs/submission/SUBMISSION.json` and `check_submission_ready.py` passes the row — `required: true`, both access paths named, and `credentials_location` a pointer at the submission form rather than a credential. What a judge can reach today is the **ledger**, read-only, over MCP or `psql` (`evidence/deploy/judge-access.json`: 14/14 views readable, 11/11 denials as expected). What they cannot reach is the demo, because requirement 2 is unmet; when the apply lands, nothing in this row changes. |
 | **7** | Newly created in the submission window; pre-existing code disclosed | **MET** | First commit `f80fefd`, 2026-08-05 22:47 — inside the window. 16 commits, all inside per `check_submission_ready.py`. `docs/submission/DISCLOSURE.md`, 20 445 bytes. |
 | **≥2 CockroachDB tools** | | **MET** | 11 of 14 rows `EXERCISED` incl. `crdb_database` and `crdb_cloud_ccloud`; the managed MCP additionally has a real run in `evidence/deploy/judge-run.json`. |
-| **≥1 AWS service used** | | **AT RISK / effectively UNMET** | 0 of 12 `EXERCISED`. Bedrock invocation is `NOT_AUTHORIZED` (§3.3). Terraform unapplied. The only successful AWS calls this project can demonstrate are IAM/STS auth and the Bedrock *control plane* listing models. |
+| **≥1 AWS service used** | | **MET** | Bedrock **runtime** is exercised, not merely listed: `invoke_model` on `amazon.titan-embed-text-v2:0` and `converse` on `au.anthropic.claude-haiku-4-5-20251001-v1:0` both return HTTP `200` with request ids (§3.3), the resulting `1024`-d vectors are searched through a C-SPANN index on CockroachDB Cloud (`evidence/aws/ann/ann-proof.json`), and AWS's own `AWS/Bedrock` CloudWatch counters record the invocations. The per-service verdict tally is **not restated here** — read it from `evidence/tool-usage/aws-services.json` (`totals.by_verdict`), which `scripts/submission/capture_tool_evidence.py` regenerates; a count copied into prose is a count that goes stale the next time that file is rebuilt. What is *still* unmet is deployment: `terraform apply` has never been run and every non-Bedrock row is DESIGNED. |
 
 ### One judgement call the founder should make consciously
 
@@ -588,30 +661,44 @@ scripts exist, and `docs/leads/deploy-plan.md` §2.3 prices the whole stack at
 **≈ $0.03/month, worst case < $1.00** — CloudFront and Lambda both inside perpetual free
 tiers, no custom domain, no DynamoDB lock table.
 
-**The lowest-risk version of this is very small.** The Phase-1 static console is already
-built (`apps/console/dist/`) over an already-sealed, already-verified EvidenceBundle
-(§2.1). Getting a live HTTPS URL requires an S3 bucket, a CloudFront distribution and one
-`aws s3 sync` — no Lambda, no database in the request path, nothing that can fall over
-while a judge is looking at it. Do that **first**, today, and the Stage One gate is closed.
-Phase 2 (the live `/v1/demo/gate-run` Lambda against Cloud) is then an upgrade to a
-submission that already qualifies, not a prerequisite for one.
+**The shape of this changed on 2026-08-11 and the page has to say so.** The CloudFront
+route recorded here on 2026-08-10 is *blocked by AWS*, not by us: a real `terraform apply`
+was refused with `AccessDenied: Your account must be verified before you can add new
+CloudFront resources` (`docs/deploy/RUNBOOK.md:26`), an account-level hold liftable only by
+AWS Support. The deploy lead's DECISION D1 (`docs/leads/ship-final.md` §1.4) therefore makes
+the demo URL a **public Lambda Function URL** — HTTPS on an AWS-issued certificate, no
+account verification, no ACM, no hosted zone — with one origin serving the console SPA and
+`/v1/*`, and CloudFront demoted to `var.enable_cloudfront`, default `false`. The sentence
+that stood here, recommending S3 + CloudFront as the lowest-risk path, is retired: it was
+the lowest-risk path only while nobody had tried it.
 
 Order matters:
 
-1. `terraform apply` in `infra/envs/demo` → S3 + CloudFront (+ Lambda for Phase 2).
-2. `python scripts/deploy/demo_acceptance.py` against the **real URL** until the verdict is
-   `PROVEN`, not `NOT PROVEN` against `127.0.0.1`.
-3. Write the URL into `docs/submission/SUBMISSION.json`, resolve the three `judge_access`
-   members, then `check_submission_ready.py --check-urls` from a machine that did not
-   deploy it.
-4. `python scripts/submission/audit_public_readiness.py` until it exits 0.
-5. `git add` the 89 untracked/modified paths (including `LICENSE`, which is *untracked*
-   today), commit, **push**, then flip visibility.
+1. `terraform -chdir=infra/envs/demo plan` — committed at
+   `evidence/deploy/terraform-plan-furl.txt`. Then, and only with the founder's approval,
+   `MAINLINE_APPLY_APPROVED=1 scripts/deploy/deploy.sh --expect-account <id>`, which prints
+   a `https://<id>.lambda-url.ap-southeast-1.on.aws` hostname.
+2. `python scripts/deploy/demo_acceptance.py --url <the URL>` until the verdict is
+   `PROVEN`. It is **`NOT PROVEN` today** against the local Function-URL emulator, and
+   `evidence/deploy/acceptance.json` names the two defects and the lines that cause them
+   rather than rounding them off.
+3. Write the URL into `docs/submission/SUBMISSION.json` — `demo_url` is the only field
+   still waiting on this step; `judge_access` was resolved on 2026-08-11 from
+   `evidence/deploy/judge-access.json`. Then `check_submission_ready.py --check-urls` from
+   a machine that did not deploy it.
+4. `python scripts/submission/audit_public_readiness.py --json qa/public-readiness.json`
+   until it exits 0.
+5. `git add` the paths this wave left uncommitted, commit, **push**, then flip visibility.
+   `LICENSE` is tracked as of this edit (`git ls-files LICENSE` answers), which is a change
+   from what this page said on 2026-08-10.
 
 Do not flip visibility before step 4. It is irreversible in practice.
 
-Separately and in parallel: **enable Bedrock model access** in the console for account
-`022950218246`. It is one click, it costs nothing, and without it §3.3 stands.
+Separately and in parallel: **Bedrock model access is now enabled** for account
+`022950218246`, so the one-click blocker this document listed here on 2026-08-10 is done
+and §3.3 has been rewritten around what the invocations returned. The remaining AWS work
+is not entitlement, it is deployment — and deployment is step 1 above, not a separate
+task.
 
 ## 2 — Fix `_world.py::clause_version` and re-run the census
 

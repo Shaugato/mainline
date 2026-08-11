@@ -1,0 +1,66 @@
+{
+  "artefact": "evidence/aws/probe/raw-haiku-converse.json",
+  "caveats": [
+    "the embedded text and the prompt are fabricated MAINLINE-shaped strings, not real incident or permit data; this file proves the AWS call path, not any domain result",
+    "model output is not reproducible; MAINLINE claims replayability of recorded calls, never reproducibility of generation (A6)"
+  ],
+  "generated_at": "2026-08-10T22:00:59Z",
+  "generated_by": "scripts/aws/probe_bedrock.py",
+  "kind": "bedrock-raw-converse",
+  "payload": {
+    "derived": {
+      "latency_ms": 526.3,
+      "reply_sha256": "431e182abd2de886cdbe3763d217db54bdf2e325b71206b71e07c701df51ff41",
+      "reply_text": "MAINLINE gate online"
+    },
+    "request": {
+      "inferenceConfig": {
+        "maxTokens": 32
+      },
+      "messages": [
+        {
+          "content": [
+            {
+              "text": "Reply with exactly these three words and nothing else: MAINLINE gate online"
+            }
+          ],
+          "role": "user"
+        }
+      ],
+      "modelId": "au.anthropic.claude-haiku-4-5-20251001-v1:0",
+      "operation": "bedrock-runtime:Converse",
+      "sampling_note": "A6: no sampling parameter is sent on any Claude generation used here; tests/boundary/test_ci_greps.py enforces the absence across scripts/",
+      "sampling_parameters_sent": []
+    },
+    "response": {
+      "metadata": {
+        "date_header": "Mon, 10 Aug 2026 22:00:59 GMT",
+        "http_status": 200,
+        "request_id": "0c763c9d-48bd-4b1f-9b4a-8d8e0507dc12",
+        "retry_attempts": 0
+      },
+      "metrics": {
+        "latencyMs": 496
+      },
+      "output": {
+        "message": {
+          "content": [
+            {
+              "text": "MAINLINE gate online"
+            }
+          ],
+          "role": "assistant"
+        }
+      },
+      "stopReason": "end_turn",
+      "usage": {
+        "cacheReadInputTokens": 0,
+        "inputTokens": 22,
+        "outputTokens": 8,
+        "totalTokens": 30
+      }
+    }
+  },
+  "region": "ap-southeast-2",
+  "synthetic": true
+}

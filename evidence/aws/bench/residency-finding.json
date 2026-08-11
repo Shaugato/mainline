@@ -1,0 +1,259 @@
+{
+  "artefact": "evidence/aws/bench/residency-finding.json",
+  "caveats": [
+    "a control-plane listing plus four live invocations on one account in one region on one day; it says nothing about another account, another region, or a future model-access grant",
+    "the cross-region arm was invoked deliberately, on a synthetic probe string, to measure what refusing it costs; the flag that permitted it is recorded in this file",
+    "'global' routing is read from AWS's own profile description and from the regionless model ARN; this program did not and cannot observe which region actually served the request, which is precisely the finding",
+    "the input-length ceiling is measured with one long probe string, not swept; it establishes that a limit exists and quotes the refusal verbatim"
+  ],
+  "generated_at": "2026-08-11T03:22:06Z",
+  "generated_by": "scripts/aws/bench_cohere.py",
+  "kind": "bedrock-residency-finding",
+  "payload": {
+    "bare_v4_refusal": {
+      "error": {
+        "code": "ValidationException",
+        "http_status": 400,
+        "message_sha256": "89694584cbfdd26b875ecb0f32d4e00098d5383311e629c6dc85853fd4c6f826",
+        "message_verbatim": "Invocation of model ID cohere.embed-v4:0 with on-demand throughput isn’t supported. Retry your request with the ID or ARN of an inference profile that contains this model.",
+        "request_id": "08ad4794-ca38-4992-b5d1-1d596cfd1e09",
+        "type": "ValidationException"
+      },
+      "latency_ms": 114.216,
+      "outcome": "REFUSED"
+    },
+    "commitments_at_stake": {
+      "note_on_ARCHITECTURE": "ARCHITECTURE 10.1 is cited by name in provider source but the document itself is not committed to this repository. The binding artefacts are the two REQUIRED_REGION constants and the refusal string above, all of which are in the tree and all of which are exercised by tests.",
+      "providers/bedrock_titan.py refusal": "refusing to embed Australian safety narratives outside the residency region; cognition stays in ap-southeast-2 (ARCHITECTURE 10.1)",
+      "providers/bedrock_titan.py::REQUIRED_REGION": "ap-southeast-2",
+      "providers/resolve.py::REQUIRED_REGION": "ap-southeast-2",
+      "scripts/aws/_common.py::CROSS_REGION_PREFIXES": [
+        "apac",
+        "eu",
+        "global",
+        "us"
+      ]
+    },
+    "conclusion": "cohere.embed-english-v3 is the only Cohere embedder this account can use without breaking residency, and it carries its own structural limit: Bedrock refuses any single text over 2048 characters for it, which 96 of the 1071 corpus documents exceed. embed-v4 is reachable only by a global routing profile. Neither can be adopted on the strength of a score alone.",
+    "declared_by_the_control_plane": {
+      "amazon.titan-embed-text-v2:0": {
+        "inference_types_supported": [
+          "ON_DEMAND"
+        ],
+        "input_modalities": [
+          "TEXT"
+        ],
+        "lifecycle": "ACTIVE",
+        "model_name": "Titan Text Embeddings V2",
+        "output_modalities": [
+          "EMBEDDING"
+        ],
+        "provider": "Amazon"
+      },
+      "cohere.embed-english-v3": {
+        "inference_types_supported": [
+          "ON_DEMAND"
+        ],
+        "input_modalities": [
+          "TEXT"
+        ],
+        "lifecycle": "ACTIVE",
+        "model_name": "Embed English",
+        "output_modalities": [
+          "EMBEDDING"
+        ],
+        "provider": "Cohere"
+      },
+      "cohere.embed-v4:0": {
+        "inference_types_supported": [
+          "INFERENCE_PROFILE"
+        ],
+        "input_modalities": [
+          "TEXT",
+          "IMAGE"
+        ],
+        "lifecycle": "ACTIVE",
+        "model_name": "Embed v4",
+        "output_modalities": [
+          "EMBEDDING"
+        ],
+        "provider": "Cohere"
+      }
+    },
+    "dimension_probe": {
+      "alter_to_1536": {
+        "message_verbatim": "error executing PostCommitPhase stage 2 of 15 with 1 BackfillType op: failed to construct index entries during backfill: expected 1536 dimensions, not 1024",
+        "outcome": "REFUSED",
+        "sqlstate": "22000"
+      },
+      "available": true,
+      "insert_1024d": {
+        "outcome": "ACCEPTED"
+      },
+      "insert_1536d": {
+        "message_verbatim": "expected 1024 dimensions, not 1536",
+        "outcome": "REFUSED",
+        "sqlstate": "22000"
+      },
+      "reading": "VECTOR(1024) is a hard shape, not a hint. A 1536-d vector is refused at INSERT, and widening the column in place is refused during the index backfill. Migration 0031's 'a new table, never an ALTER' is therefore a description of the platform's behaviour rather than a house style.",
+      "scratch_database": "w_cohere_bench",
+      "server_version": "CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu"
+    },
+    "headline": "On this account, cohere.embed-v4:0 cannot be invoked in ap-southeast-2 at all. The only Bedrock identifier that serves it is the cross-region routing profile global.cohere.embed-v4:0, and MAINLINE's residency commitment (providers/bedrock_titan.py::REQUIRED_REGION, ARCHITECTURE 10.1) forbids it. The question ADR 0002 left open is therefore not 'which model scores higher' but 'residency or that model', and this system has already answered that once.",
+    "identity": {
+      "caller_arn": "arn:aws:iam::<redacted>:user/mainline-dev",
+      "profile": "mainline-dev",
+      "region": "ap-southeast-2"
+    },
+    "inference_profiles": {
+      "containing_cohere_embed_v4": [
+        {
+          "arn": "arn:aws:bedrock:ap-southeast-2:<redacted>:inference-profile/global.cohere.embed-v4:0",
+          "description_verbatim": "Routes requests to Embed v4 globally across all supported AWS Regions.",
+          "inference_profile_id": "global.cohere.embed-v4:0",
+          "inference_profile_name": "Global Cohere Embed v4",
+          "model_arns": [
+            "arn:aws:bedrock:::foundation-model/cohere.embed-v4:0",
+            "arn:aws:bedrock:ap-southeast-2::foundation-model/cohere.embed-v4:0"
+          ],
+          "status": "ACTIVE",
+          "type": "SYSTEM_DEFINED"
+        }
+      ],
+      "count_containing_cohere_embed_v4": 1,
+      "total_visible": 29
+    },
+    "input_length_ceiling": {
+      "amazon.titan-embed-text-v2:0": {
+        "input_chars": 4680,
+        "input_tokens": 782,
+        "outcome": "ACCEPTED",
+        "truncate_parameter_sent": null
+      },
+      "cohere.embed-english-v3": {
+        "error": {
+          "code": "ValidationException",
+          "http_status": 400,
+          "message_sha256": "3efae41e0cc134253d3aa031999c638e336bf82bca515c906eae9fea4a5e29af",
+          "message_verbatim": "Malformed input request: #/texts/0: expected maxLength: 2048, actual: 4680, please reformat your input and try again.",
+          "request_id": "ff239fc0-5f75-417e-8729-c0ae6fbc9f2d",
+          "type": "ValidationException"
+        },
+        "input_chars": 4680,
+        "outcome": "REFUSED",
+        "truncate_parameter_sent": "END"
+      },
+      "global.cohere.embed-v4:0": {
+        "input_chars": 4680,
+        "input_tokens": 781,
+        "outcome": "ACCEPTED",
+        "truncate_parameter_sent": "END"
+      }
+    },
+    "measured_invocations": {
+      "amazon.titan-embed-text-v2:0": {
+        "dimension": 1024,
+        "first_16": [
+          0.00786093,
+          -0.0126099,
+          -0.00765263,
+          -0.00233233,
+          0.02907856,
+          0.0261469,
+          0.04215487,
+          -0.01992951,
+          0.00999837,
+          0.01794644,
+          0.01624817,
+          0.00264332,
+          0.01802557,
+          0.04699047,
+          0.02362107,
+          -0.07240993
+        ],
+        "l2_norm": 1.00000004,
+        "outcome": "OK",
+        "sha256_float32_le": "9d324644948558ea7c09542c4f616b808f4d84a7d56d952882247344742f106d",
+        "truncation_note": "16 of 1024 coordinates are shown; the sha256 is over the full vector as little-endian float32, which is the form a reproduction must match"
+      },
+      "cohere.embed-english-v3": {
+        "dimension": 1024,
+        "first_16": [
+          0.06192017,
+          0.02241516,
+          0.00801086,
+          -0.01552582,
+          0.02001953,
+          -0.0221405,
+          0.02928162,
+          -0.05352783,
+          -0.01555634,
+          -0.00378036,
+          0.01597595,
+          0.00486755,
+          -0.02609253,
+          -0.0536499,
+          0.02044678,
+          -0.01977539
+        ],
+        "l2_norm": 0.99997406,
+        "outcome": "OK",
+        "sha256_float32_le": "82f26f2dbdbf6dd25d92060735d120ba1aac12e98c7c52b7819d89fc42a94c76",
+        "truncation_note": "16 of 1024 coordinates are shown; the sha256 is over the full vector as little-endian float32, which is the form a reproduction must match"
+      },
+      "global.cohere.embed-v4:0": {
+        "dimension": 1536,
+        "first_16": [
+          0.02429809,
+          0.04785426,
+          -0.00765112,
+          -0.03616892,
+          0.00577312,
+          -0.01929009,
+          -0.0007767,
+          -0.00475297,
+          0.02114491,
+          0.01122164,
+          -0.01558046,
+          -0.0222578,
+          0.01938283,
+          -0.04228981,
+          -0.01678609,
+          -0.00899586
+        ],
+        "l2_norm": 1.00000006,
+        "outcome": "OK",
+        "sha256_float32_le": "9617ccd0b11b54cdae87b97006f9e19f9e59a5d6eeec3519e35f8871749b83b9",
+        "truncation_note": "16 of 1536 coordinates are shown; the sha256 is over the full vector as little-endian float32, which is the form a reproduction must match"
+      }
+    },
+    "our_own_residency_guard": {
+      "amazon.titan-embed-text-v2:0": {
+        "admitted": true,
+        "refusal_verbatim": null
+      },
+      "cohere.embed-english-v3": {
+        "admitted": true,
+        "refusal_verbatim": null
+      },
+      "cohere.embed-v4:0": {
+        "admitted": true,
+        "refusal_verbatim": null
+      },
+      "global.cohere.embed-v4:0": {
+        "admitted": false,
+        "refusal_verbatim": "'global.cohere.embed-v4:0' routes through the 'global' cross-region inference profile; MAINLINE embeds and reasons over Australian safety narratives in ap-southeast-2 or not at all (ARCHITECTURE §10.1). Use an 'au.' profile or a bare in-region model id."
+      }
+    },
+    "what_global_means": {
+      "aws_own_words": "Routes requests to Embed v4 globally across all supported AWS Regions.",
+      "model_arns_are_partly_regionless": [
+        "arn:aws:bedrock:::foundation-model/cohere.embed-v4:0",
+        "arn:aws:bedrock:ap-southeast-2::foundation-model/cohere.embed-v4:0"
+      ],
+      "reading": "An inference profile whose member list includes an ARN with an EMPTY region segment (arn:aws:bedrock:::foundation-model/...) is not pinned to any region. AWS's own description says the profile 'routes requests to Embed v4 globally across all supported AWS Regions'. Where a given request is served is chosen by AWS at call time and is not observable to the caller, so the sentence 'these narratives were embedded in Australia' becomes unverifiable the moment this id is used. Unverifiable is the operative word: the harm is not that the data certainly leaves, it is that we could no longer prove it did not."
+    }
+  },
+  "region": "ap-southeast-2",
+  "synthetic": false
+}

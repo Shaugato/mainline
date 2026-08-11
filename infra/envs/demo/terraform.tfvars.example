@@ -2,9 +2,15 @@
 # SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
 #
 # Copy to terraform.tfvars ONLY if you want to override a default. You do not need to:
-# every variable in variables.tf has a default that works on account 022950218246, and
-# `scripts/deploy/deploy.ps1` passes the two values it computes (`lambda_package_path`
-# and `enable_api`) on the command line with `-var`, which beats a tfvars file.
+# every variable in variables.tf has a default that works as-is, and
+# `scripts/deploy/deploy.ps1` passes the values it computes (`lambda_package_path` and
+# `enable_api`) on the command line with `-var`, which beats a tfvars file.
+#
+# NO ACCOUNT ID APPEARS IN THIS FILE. Everything that needs one derives it at run time
+# from `data.aws_caller_identity` inside Terraform, or from
+# `aws sts get-caller-identity --query Account --output text` outside it. That is decision
+# D2, docs/leads/ship-final.md 1.6: an account id in an example somebody pastes is an
+# executable value that is correct on one machine and wrong on every other.
 #
 # terraform.tfvars is NOT committed. Nothing secret belongs in it either — the only
 # secret in this system is the CockroachDB DSN, and that goes to SSM Parameter Store as a
@@ -18,12 +24,22 @@ aws_region = "ap-southeast-1"
 # Must start with "mainline-demo" — scripts/deploy/teardown.sh keys its refusal on it.
 name_prefix = "mainline-demo"
 
-# Leave empty to derive "<name_prefix>-site-<account id>", which is globally unique
-# without you having to invent a name. Set it only if that name is somehow taken.
-site_bucket_name = ""
+# ── THE ARCHITECTURAL SWITCH ──────────────────────────────────────────────────────────
+#
+# false (the default) is a MEASUREMENT. AWS refused a real apply on 2026-08-10 with
+#   403 AccessDenied, "Your account must be verified before you can add new CloudFront
+#   resources", RequestID 3e63e30d-8c5b-441b-a01b-b70085eba504
+# and refused a bare `aws cloudfront create-distribution` identically. So there is no
+# distribution: the public Lambda Function URL is the demo hostname, one origin serves the
+# console, the signed bundle and /v1/*, and there is no CORS anywhere. Decision D1.
+#
+# Set it true ONLY after AWS Support lifts that account-level hold. It flips the Function
+# URL to AWS_IAM and moves the hostname to the distribution in the same breath — one
+# variable, both halves.
+enable_cloudfront = false
 
-# false is the Phase-1 cut line: a complete HTTPS demo URL, console + verified
-# EvidenceBundle, REPLAY badge, and no Lambda at all. `deploy.ps1 --phase1` sets this.
+# Under D1 this module owns the hostname. `enable_api = false` together with
+# `enable_cloudfront = false` creates nothing at all and demo_url refuses to resolve.
 enable_api = true
 
 # Written by scripts/deploy/build_lambda.{sh,ps1}. Relative paths resolve against
@@ -36,11 +52,20 @@ lambda_architecture = "arm64"
 # The NAME of the SSM SecureString. Never the value.
 dsn_parameter_name = "/mainline/demo/cockroach_dsn"
 
+# Short, and never 0 — an unexpiring log group is the one line item here with no ceiling.
+log_retention_days = 7
+
+# ── Read only when enable_cloudfront = true ───────────────────────────────────────────
+
+# Leave empty to derive "<name_prefix>-site-<account-id>", which is globally unique
+# without you having to invent a name, and without the account id being written down
+# anywhere. Set it only if that name is somehow taken.
+site_bucket_name = ""
+
 # Free-tier either way; PriceClass_All keeps latency low for a judge anywhere.
 cloudfront_price_class = "PriceClass_All"
 
-# Short, and never 0 — an unexpiring log group is the one line item here with no ceiling.
-log_retention_days = 7
+# ── Tags ──────────────────────────────────────────────────────────────────────────────
 
 # Merged on top of project=mainline and managed_by=terraform, which are not overridable.
 tags = {

@@ -1,0 +1,48 @@
+{
+  "count": 1,
+  "entries": [
+    {
+      "api": "anthropic.messages/2023-06-01",
+      "cassette_sha256": "43dd90730a3073523a2c2ddfe1036210346a955a1a28099bd82e5e82455eeb63",
+      "digest": "7d2ff133b14e936f7028fd419f632358d5301e0b1595c48fd58420db10270c5b",
+      "file": "judge/7d2ff133b14e936f7028fd419f632358d5301e0b1595c48fd58420db10270c5b.json",
+      "kind": "judge",
+      "model_id": "au.anthropic.claude-haiku-4-5-20251001-v1:0",
+      "note": "model_id=au.anthropic.claude-haiku-4-5-20251001-v1:0 region=ap-southeast-2 wire_projection=au.claude-haiku-4-5.invoke-model/1; recorded by scripts/aws/agent_live.py. SYNTHETIC SUBJECT, LIVE CALL.",
+      "prompt_version": "recall-judge-1",
+      "provenance": "bedrock-live",
+      "provenance_class": "live",
+      "recorded_at": "2026-08-11T04:39:28+00:00",
+      "recorder": "mainline-recall-agent",
+      "region": "ap-southeast-2",
+      "request_digest_recomputed": "7d2ff133b14e936f7028fd419f632358d5301e0b1595c48fd58420db10270c5b",
+      "response_sha256": "dec1ff8c3b9493f5d1130d1b931f18949d6258f3ef792c646ebb93c72b801e65",
+      "stop_reason": "end_turn",
+      "usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "input_tokens": 3606,
+        "output_tokens": 506
+      }
+    }
+  ],
+  "generated_at": "2026-08-11T04:39:22Z",
+  "generated_by": "scripts/aws/agent_live.py",
+  "key_rule": "sha256(JCS(request)); computed by mainline_recall_agent.providers.canonical.request_digest via CassetteStore.save, never by hand",
+  "model_id": "au.anthropic.claude-haiku-4-5-20251001-v1:0",
+  "provenance": "bedrock-live",
+  "provenance_note": "This store's vocabulary is defined by mainline_recall_agent.providers.cassette._VALID_PROVENANCE: the live spelling is 'bedrock-live' (a member of LIVE_PROVENANCE) and the bare token 'live' is NOT a value it accepts. Every entry below is live; provenance_class says so in the fleet's common words and provenance says so in the store's own.",
+  "region": "ap-southeast-2",
+  "schema": "mainline.recall.live-cassette-index/1",
+  "sibling_store": {
+    "path": "tests/fixtures/cassettes/recall",
+    "provenance": "handwritten",
+    "relationship": "the contract fixtures, still handwritten and still correct: they are evidence about our client (a refusal raises, the repair path fires once, the cache breakpoint sits on the last system block) and about nothing else. This store is evidence about the model. Neither replaces the other and this program does not write to that one."
+  },
+  "store": "tests/fixtures/cassettes/recall_live",
+  "wire_projection": {
+    "id": "au.claude-haiku-4-5.invoke-model/1",
+    "sampling_parameters_sent": [],
+    "why": "providers/schema.py emits output_config.format.name and .strict per the Anthropic structured-output contract; this model refuses both on InvokeModel. The recorded REQUEST is the shipping request, unprojected \u2014 the projection is applied at the wire and named per leg in evidence/aws/agent/live-run.json."
+  }
+}

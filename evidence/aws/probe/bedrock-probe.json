@@ -1,0 +1,159 @@
+{
+  "artefact": "evidence/aws/probe/bedrock-probe.json",
+  "caveats": [
+    "the embedded text and the prompt are fabricated MAINLINE-shaped strings, not real incident or permit data; this file proves the AWS call path, not any domain result",
+    "one call per model: latency here is a single observation with no interval and must not be quoted as a performance figure",
+    "costs are priced from a declared list-price table, not from a bill",
+    "this file proves Bedrock executes; it proves nothing about any vector reaching CockroachDB, which is a later worker's artefact"
+  ],
+  "generated_at": "2026-08-10T22:00:59Z",
+  "generated_by": "scripts/aws/probe_bedrock.py",
+  "kind": "bedrock-probe",
+  "payload": {
+    "census_error": null,
+    "census_summary": {
+      "embedding_models_on_demand_in_region": [
+        "amazon.titan-embed-image-v1",
+        "amazon.titan-embed-text-v2:0",
+        "cohere.embed-english-v3",
+        "cohere.embed-multilingual-v3"
+      ],
+      "foundation_models_total": 64,
+      "inference_profiles_by_routing_prefix": {
+        "apac": 8,
+        "au": 8,
+        "global": 13
+      },
+      "inference_profiles_total": 29
+    },
+    "checks": {
+      "cohere_validation_exception_captured_verbatim": true,
+      "haiku_http_200_with_request_id": true,
+      "haiku_no_sampling_parameters_sent": true,
+      "titan_http_200_with_request_id": true,
+      "titan_width_1024": true
+    },
+    "claim": "Amazon Bedrock executed for MAINLINE in ap-southeast-2 from this workstation: Titan v2 returned a 1024-d embedding, Claude Haiku 4.5 answered through the Australia-only au. inference profile, and Cohere embed-v4 refused on-demand invocation for a reason that is itself a residency finding",
+    "cohere": {
+      "call": "invoke_model",
+      "date_header": "Mon, 10 Aug 2026 22:00:59 GMT",
+      "error_code": "ValidationException",
+      "error_message_sha256": "89694584cbfdd26b875ecb0f32d4e00098d5383311e629c6dc85853fd4c6f826",
+      "error_message_verbatim": "Invocation of model ID cohere.embed-v4:0 with on-demand throughput isn’t supported. Retry your request with the ID or ARN of an inference profile that contains this model.",
+      "error_type": "ValidationException",
+      "http_status": 400,
+      "latency_ms": 62.1,
+      "model_id": "cohere.embed-v4:0",
+      "observed_as_expected": true,
+      "outcome": "refused",
+      "redaction_altered_message": false,
+      "request_id": "a826eb16-e813-45aa-932e-4696e9979087",
+      "residency_finding": "the only identifier on this account that serves cohere embed-v4 is global.cohere.embed-v4:0, a cross-region routing profile that scripts/aws/_common.py::assert_in_region refuses; the in-region alternative at v3 is cohere.embed-english-v3 (ON_DEMAND, ap-southeast-2)",
+      "retry_attempts": 0
+    },
+    "haiku": {
+      "call": "converse",
+      "date_header": "Mon, 10 Aug 2026 22:00:59 GMT",
+      "http_status": 200,
+      "latency_ms": 526.3,
+      "model_id": "au.anthropic.claude-haiku-4-5-20251001-v1:0",
+      "ok": true,
+      "reply_sha256": "431e182abd2de886cdbe3763d217db54bdf2e325b71206b71e07c701df51ff41",
+      "reply_text": "MAINLINE gate online",
+      "request_id": "0c763c9d-48bd-4b1f-9b4a-8d8e0507dc12",
+      "retry_attempts": 0,
+      "sampling_parameters_sent": [],
+      "server_latency_ms": 496,
+      "stop_reason": "end_turn",
+      "usage": {
+        "cacheReadInputTokens": 0,
+        "inputTokens": 22,
+        "outputTokens": 8,
+        "totalTokens": 30
+      }
+    },
+    "raw_artefacts": [
+      "evidence/aws/probe/raw-titan-invoke.json",
+      "evidence/aws/probe/raw-haiku-converse.json",
+      "evidence/aws/probe/raw-cohere-refusal.json",
+      "evidence/aws/probe/model-availability.json"
+    ],
+    "reproduce": "AWS_PROFILE=mainline-dev D:/CoackroachDBxAWS/mainline/.venv/Scripts/python.exe scripts/aws/probe_bedrock.py",
+    "supersedes": "docs/STATE-OF-THE-BUILD.md §3.3, which recorded 'no AWS service has ever executed' and a ValidationException: Operation not allowed. That finding was true when written and does not reproduce; this artefact is its replacement.",
+    "titan": {
+      "call": "invoke_model",
+      "content_type": "application/json",
+      "date_header": "Mon, 10 Aug 2026 22:00:59 GMT",
+      "embedding_length": 1024,
+      "embedding_length_matches_ddl": true,
+      "embedding_sha256": "9dbe8b44f7366cbfc9974ac474d9db4d68b40ae822105cc3241da2722bce8751",
+      "http_status": 200,
+      "input_text_token_count": 36,
+      "l2_norm": 1.00000006,
+      "l2_norm_is_unit_to_1e_6": true,
+      "latency_ms": 324.9,
+      "model_id": "amazon.titan-embed-text-v2:0",
+      "ok": true,
+      "request_id": "6dcdcdf0-38d3-453f-a476-fa69b2d87863",
+      "response_body_sha256": "74dfddacce0ed23d387e2494df266d53f5a18543bc982e8688ddd5ab268ce197",
+      "retry_attempts": 0
+    },
+    "token_ledger": [
+      {
+        "calls": 1,
+        "input_tokens": 36,
+        "model_id": "amazon.titan-embed-text-v2:0",
+        "output_tokens": 0,
+        "over_ceiling": false,
+        "price_basis": "published on-demand list price for ap-southeast-2, recorded 2026-08-11; declared, not measured — no bill or Price List API response backs this number",
+        "priced": true,
+        "usd_input": 7.2e-07,
+        "usd_output": 0.0,
+        "usd_per_1k_input": 2e-05,
+        "usd_per_1k_output": 0.0,
+        "usd_total": 7.2e-07
+      },
+      {
+        "calls": 1,
+        "input_tokens": 22,
+        "model_id": "au.anthropic.claude-haiku-4-5-20251001-v1:0",
+        "output_tokens": 8,
+        "over_ceiling": false,
+        "price_basis": "published on-demand list price for ap-southeast-2, recorded 2026-08-11; declared, not measured — no bill or Price List API response backs this number",
+        "priced": true,
+        "usd_input": 2.2e-05,
+        "usd_output": 4e-05,
+        "usd_per_1k_input": 0.001,
+        "usd_per_1k_output": 0.005,
+        "usd_total": 6.2e-05
+      },
+      {
+        "calls": 1,
+        "input_tokens": 0,
+        "model_id": "cohere.embed-v4:0",
+        "output_tokens": 0,
+        "over_ceiling": false,
+        "price_basis": "published on-demand list price for ap-southeast-2, recorded 2026-08-11; declared, not measured — no bill or Price List API response backs this number",
+        "priced": true,
+        "usd_input": 0.0,
+        "usd_output": 0.0,
+        "usd_per_1k_input": 0.00012,
+        "usd_per_1k_output": 0.0,
+        "usd_total": 0.0
+      }
+    ],
+    "token_ledger_total": {
+      "calls": 3,
+      "entries": 3,
+      "input_tokens": 58,
+      "output_tokens": 8,
+      "price_basis": "published on-demand list price for ap-southeast-2, recorded 2026-08-11; declared, not measured — no bill or Price List API response backs this number",
+      "unpriced_entries": 0,
+      "usd_ceiling_per_run": 0.5,
+      "usd_total": 6.272e-05
+    },
+    "verdict": "PROVEN"
+  },
+  "region": "ap-southeast-2",
+  "synthetic": true
+}

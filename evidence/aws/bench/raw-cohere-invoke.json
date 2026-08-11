@@ -1,0 +1,230 @@
+{
+  "artefact": "evidence/aws/bench/raw-cohere-invoke.json",
+  "caveats": [
+    "the embeddings here are of a single probe sentence, not of the benchmark corpus; the corpus vectors are cached under out/aws/bench/ and are gitignored by size",
+    "a captured refusal is a result, not a failure of this program"
+  ],
+  "generated_at": "2026-08-11T03:22:06Z",
+  "generated_by": "scripts/aws/bench_cohere.py",
+  "kind": "bedrock-raw-invocations",
+  "payload": {
+    "calls": [
+      {
+        "label": "bare vendor id, on-demand — REFUSED",
+        "model_id": "cohere.embed-v4:0",
+        "request": {
+          "accept": "application/json",
+          "body": {
+            "embedding_types": [
+              "float"
+            ],
+            "input_type": "search_document",
+            "texts": [
+              "MAINLINE residency probe: isolate and de-pressurise the line, prove zero energy at the break point, and hold the permit open until the isolation is independently verified."
+            ]
+          },
+          "body_sha256": "8f2693e0940b71b6375e691bacfa1b3aa91e25cf55779b068455ee0e8241b5ca",
+          "contentType": "application/json",
+          "modelId": "cohere.embed-v4:0",
+          "operation": "bedrock-runtime:InvokeModel"
+        },
+        "response": null,
+        "result": {
+          "error": {
+            "code": "ValidationException",
+            "http_status": 400,
+            "message_sha256": "89694584cbfdd26b875ecb0f32d4e00098d5383311e629c6dc85853fd4c6f826",
+            "message_verbatim": "Invocation of model ID cohere.embed-v4:0 with on-demand throughput isn’t supported. Retry your request with the ID or ARN of an inference profile that contains this model.",
+            "request_id": "08ad4794-ca38-4992-b5d1-1d596cfd1e09",
+            "type": "ValidationException"
+          },
+          "latency_ms": 114.216,
+          "outcome": "REFUSED"
+        }
+      },
+      {
+        "label": "Titan Text Embeddings V2 — in_region",
+        "model_id": "amazon.titan-embed-text-v2:0",
+        "request": {
+          "accept": "application/json",
+          "body": {
+            "dimensions": 1024,
+            "inputText": "MAINLINE residency probe: isolate and de-pressurise the line, prove zero energy at the break point, and hold the permit open until the isolation is independently verified.",
+            "normalize": true
+          },
+          "body_sha256": "0d5b76b809a0ecaba30b117a54edd75d3ad9e1b64bbf3f0326a066f6ecdb21ca",
+          "contentType": "application/json",
+          "modelId": "amazon.titan-embed-text-v2:0",
+          "operation": "bedrock-runtime:InvokeModel"
+        },
+        "response": {
+          "body_keys": [
+            "embedding",
+            "embeddingsByType",
+            "inputTextTokenCount"
+          ],
+          "client_latency_ms": 113.322,
+          "embedding": {
+            "dimension": 1024,
+            "first_16": [
+              0.00786093,
+              -0.0126099,
+              -0.00765263,
+              -0.00233233,
+              0.02907856,
+              0.0261469,
+              0.04215487,
+              -0.01992951,
+              0.00999837,
+              0.01794644,
+              0.01624817,
+              0.00264332,
+              0.01802557,
+              0.04699047,
+              0.02362107,
+              -0.07240993
+            ],
+            "l2_norm": 1.00000004,
+            "sha256_float32_le": "9d324644948558ea7c09542c4f616b808f4d84a7d56d952882247344742f106d",
+            "truncation_note": "16 of 1024 coordinates are shown; the sha256 is over the full vector as little-endian float32, which is the form a reproduction must match"
+          },
+          "http_status": 200,
+          "input_tokens": 36,
+          "request_id": "d443bcfb-21be-4e50-98fe-8fe0fda35848",
+          "response_type": null,
+          "server_latency_ms": 65
+        },
+        "result": {
+          "outcome": "OK"
+        }
+      },
+      {
+        "label": "Embed English v3 — in_region",
+        "model_id": "cohere.embed-english-v3",
+        "request": {
+          "accept": "application/json",
+          "body": {
+            "embedding_types": [
+              "float"
+            ],
+            "input_type": "search_document",
+            "texts": [
+              "MAINLINE residency probe: isolate and de-pressurise the line, prove zero energy at the break point, and hold the permit open until the isolation is independently verified."
+            ]
+          },
+          "body_sha256": "8f2693e0940b71b6375e691bacfa1b3aa91e25cf55779b068455ee0e8241b5ca",
+          "contentType": "application/json",
+          "modelId": "cohere.embed-english-v3",
+          "operation": "bedrock-runtime:InvokeModel"
+        },
+        "response": {
+          "body_keys": [
+            "embeddings",
+            "id",
+            "response_type",
+            "texts"
+          ],
+          "client_latency_ms": 81.599,
+          "embedding": {
+            "dimension": 1024,
+            "first_16": [
+              0.06192017,
+              0.02241516,
+              0.00801086,
+              -0.01552582,
+              0.02001953,
+              -0.0221405,
+              0.02928162,
+              -0.05352783,
+              -0.01555634,
+              -0.00378036,
+              0.01597595,
+              0.00486755,
+              -0.02609253,
+              -0.0536499,
+              0.02044678,
+              -0.01977539
+            ],
+            "l2_norm": 0.99997406,
+            "sha256_float32_le": "82f26f2dbdbf6dd25d92060735d120ba1aac12e98c7c52b7819d89fc42a94c76",
+            "truncation_note": "16 of 1024 coordinates are shown; the sha256 is over the full vector as little-endian float32, which is the form a reproduction must match"
+          },
+          "http_status": 200,
+          "input_tokens": 34,
+          "request_id": "a542912b-6bca-41dd-bdb7-cd6719bb4567",
+          "response_type": "embeddings_by_type",
+          "server_latency_ms": 53
+        },
+        "result": {
+          "outcome": "OK"
+        }
+      },
+      {
+        "label": "Embed v4 (via the global cross-region inference profile) — cross_region",
+        "model_id": "global.cohere.embed-v4:0",
+        "request": {
+          "accept": "application/json",
+          "body": {
+            "embedding_types": [
+              "float"
+            ],
+            "input_type": "search_document",
+            "texts": [
+              "MAINLINE residency probe: isolate and de-pressurise the line, prove zero energy at the break point, and hold the permit open until the isolation is independently verified."
+            ]
+          },
+          "body_sha256": "8f2693e0940b71b6375e691bacfa1b3aa91e25cf55779b068455ee0e8241b5ca",
+          "contentType": "application/json",
+          "modelId": "global.cohere.embed-v4:0",
+          "operation": "bedrock-runtime:InvokeModel"
+        },
+        "response": {
+          "body_keys": [
+            "embeddings",
+            "id",
+            "response_type",
+            "texts"
+          ],
+          "client_latency_ms": 376.217,
+          "embedding": {
+            "dimension": 1536,
+            "first_16": [
+              0.02429809,
+              0.04785426,
+              -0.00765112,
+              -0.03616892,
+              0.00577312,
+              -0.01929009,
+              -0.0007767,
+              -0.00475297,
+              0.02114491,
+              0.01122164,
+              -0.01558046,
+              -0.0222578,
+              0.01938283,
+              -0.04228981,
+              -0.01678609,
+              -0.00899586
+            ],
+            "l2_norm": 1.00000006,
+            "sha256_float32_le": "9617ccd0b11b54cdae87b97006f9e19f9e59a5d6eeec3519e35f8871749b83b9",
+            "truncation_note": "16 of 1536 coordinates are shown; the sha256 is over the full vector as little-endian float32, which is the form a reproduction must match"
+          },
+          "http_status": 200,
+          "input_tokens": 35,
+          "request_id": "874522b3-34f3-4168-b7f2-de05834fea99",
+          "response_type": "embeddings_by_type",
+          "server_latency_ms": 347
+        },
+        "result": {
+          "outcome": "OK"
+        }
+      }
+    ],
+    "note": "one full request and response per model id, redacted through _common.redact. Embeddings are truncated to their first 16 coordinates and accompanied by a sha256 over the full little-endian float32 vector, so a reproduction is checkable without committing 4 KiB of floats.",
+    "probe_text": "MAINLINE residency probe: isolate and de-pressurise the line, prove zero energy at the break point, and hold the permit open until the isolation is independently verified.",
+    "probe_text_sha256": "d464082fbd98e85a421d41038e5475d2c6a2149a16cf6f3e9108395a5c0d5ca4"
+  },
+  "region": "ap-southeast-2",
+  "synthetic": false
+}

@@ -70,6 +70,7 @@ import re
 import shutil
 import socket
 import subprocess
+import sys
 import time
 import tomllib
 import uuid
@@ -83,6 +84,20 @@ import pytest
 psycopg = pytest.importorskip(
     "psycopg", reason="psycopg 3 is required to talk to CockroachDB; `uv sync` installs it"
 )
+
+# The ONE migration-id parser and band selector (MR-5). Every file selector in this module used
+# to carry its own `MR5_FILENAME.match(path.name) is None: continue`, and that `continue` is a
+# silent drop: a file the selector could not name simply left the set, so "no migration creates
+# mainline_meas.silence_ledger" and "one does, under a name this loop skipped" produced the same
+# answer. `scan_tree` refuses and names the file. The source-tree fallback keeps a plain checkout
+# working and does NOT fall through to a skip.
+try:
+    from trappoint_migrate.ids import ScannedMigration, parse_id, scan_tree, select_band
+except ImportError:  # pragma: no cover - only in a checkout without the workspace installed
+    sys.path.insert(
+        0, str(Path(__file__).resolve().parents[3] / "packages" / "trappoint-migrate" / "src")
+    )
+    from trappoint_migrate.ids import ScannedMigration, parse_id, scan_tree, select_band
 
 # ══════════════════════════════════════════════════════════════════════════════════════════════
 # Paths and constants
@@ -181,11 +196,16 @@ READY_TIMEOUT_S = 120.0
 DOCKER_PROBE_TIMEOUT_S = 10.0
 DOCKER_RUN_TIMEOUT_S = 180.0
 
-#: Everything at or below this number is applied by the fixture, in lexicographic order on the
-#: whole stem — which is the order `discovery.discover()` applies in (ruling D7). 0070 is the last
-#: file of the counsel-gated family; nothing above it is needed to prove a lattice refusal, and
-#: applying less is applying something a fresh cluster never sees.
-APPLY_THROUGH = 70
+#: Everything at or below this KEY is applied by the fixture, in the order
+#: `discovery.discover()` applies in (ruling D7). 0070 is the last file of the counsel-gated
+#: family; nothing above it is needed to prove a lattice refusal, and applying less is applying
+#: something a fresh cluster never sees.
+#:
+#: A key and not the integer 70. ``int(path.name[:4]) <= 70`` happens to admit
+#: ``0070a_disposition_predicate_fk.sql`` today and would go on admitting a hypothetical
+#: ``0070z`` after this band's owner used its letter space for something else — the endpoint has
+#: to SAY it owns the letter space, which is what the ``z`` is.
+APPLY_THROUGH = "0070z"
 
 #: The relations the cluster tier genuinely needs. If one is missing after the chain has been
 #: applied, the suite SKIPS with the prerequisite failures printed — it does not pass, and it does
@@ -299,26 +319,46 @@ def header_value(text: str, key: str) -> str | None:
     return None
 
 
+def tree() -> list[ScannedMigration]:
+    """Every migration in the tree, keyed by its MR-5 pair and ordered by it.
+
+    Refuses a name it cannot place instead of walking past it. The three loops below used to
+    spell that as ``if MR5_FILENAME.match(path.name) is None: continue``, which makes "the
+    object has no producer" and "the producer is named in a way this loop skips" the same
+    answer — and the first of those is asserted on, loudly, by
+    ``test_every_counsel_gated_object_declares_it``.
+    """
+    return scan_tree(MIGRATIONS_DIR, where="the MAINLINE migration tree")
+
+
 def migration_for_relation(relation: str) -> Path | None:
     """Find the migration that creates *relation*, by reading the tree rather than a hardcoded map.
 
     ADR 0001 cites `0086` for the silence ledger and the recall band landed it at `0084`. A test
     that pinned the number would fail for the wrong reason and would go on failing after somebody
     "fixed" it by renumbering. The gate is about the OBJECT.
+
+    ``None`` here means *nothing in the tree creates it* — an answer, and one the caller asserts
+    on by name. It never means *a file was skipped*: that is a refusal from ``tree()``.
     """
     pattern = re.compile(rf"CREATE\s+TABLE\s+{re.escape(relation)}\b", re.IGNORECASE)
-    for path in sorted(MIGRATIONS_DIR.iterdir()):
-        if not path.is_file() or MR5_FILENAME.match(path.name) is None:
-            continue
-        if pattern.search(strip_sql_comments(path.read_text(encoding="utf-8"))):
-            return path
+    for entry in tree():
+        if pattern.search(strip_sql_comments(entry.path.read_text(encoding="utf-8"))):
+            return entry.path
     return None
 
 
 def migration_by_number(number: str) -> Path | None:
-    for path in sorted(MIGRATIONS_DIR.iterdir()):
-        if path.is_file() and MR5_FILENAME.match(path.name) and path.name.startswith(number):
-            return path
+    """The file whose MR-5 key is exactly *number* — an equality, never a string prefix.
+
+    ``path.name.startswith("0006")`` matches nine files in this tree and ``startswith("006")``
+    matches sixty; both return whichever the filesystem yields first, which is a selector whose
+    answer depends on collation. The key is a pair and this compares the pair.
+    """
+    key = parse_id(number, where="COUNSEL_GATED_OBJECTS")
+    for entry in tree():
+        if entry.id == key:
+            return entry.path
     return None
 
 
@@ -546,17 +586,26 @@ def test_adr_0001_records_the_default_executed() -> None:
 def test_every_counsel_gated_object_declares_it(number: str, relation: str) -> None:
     """ADR 0001 names five counsel-gated files; each must say so where a reviewer reads it.
 
-    **RED BY DESIGN for ``mainline_meas.silence_ledger`` (PL-2).** The migration that creates it
-    declares ``COUNSEL-GATED: no``, and ADR 0001 lists it as one of the five — "ships
-    **unprivileged** — treated as discoverable by default" is a *legal* posture, not a technical
-    one, and it is precisely the posture G0 question 2 was written to test. The header is where a
-    reviewer of that file finds out that its placement was a decision rather than a default.
+    **WAS RED for ``mainline_meas.silence_ledger`` (PL-2); the migration was what changed.**
+    ``0084_silence_ledger.sql`` declared ``COUNSEL-GATED: no``. Two documents disagreed with it
+    and neither is this suite:
+
+    * ADR 0001's table of the five counsel-sensitive DDL files carries the row
+      *``0086 silence_ledger`` — ships **unprivileged**, treated as discoverable by default*;
+    * ``db/ext/disposition_ext/disposition_ext.toml`` carries the same decision as **switch 3**
+      — ``[silence] silence_ledger_zone = "mainline_meas"``, ``privileged = false`` — which
+      ``test_disposition_ext_toml_declares_the_conservative_default`` above already asserts.
+
+    "Ships unprivileged" is a *legal* posture, not a technical one: it is the shipped answer to
+    G0 question 2, and the schema qualifier on that ``CREATE TABLE`` is the switch's value. So
+    the object genuinely is counsel-gated and the header was the thing that was wrong. It now
+    reads ``COUNSEL-GATED: yes (G0) · DEFAULT: conservative · ADR: docs/adr/0001-g0-counsel.md``
+    — DM-17's long form, because ``yes`` alone does not say which gate or what the default is.
 
     The number is deliberately not asserted. ADR 0001 and BUILD_PLAN §2.1 both cite ``0086`` and
-    the recall band landed the object at ``0084``; the gate is about the object, and pinning the
-    slot would assert the wrong thing and would keep failing after somebody renumbered it.
-
-    Owner of the fix: the recall domain, band 0080-0089z.
+    the recall band landed the object at ``0084`` (``0086`` is ``thymogate_certificate``); the
+    gate is about the object, and pinning the slot would assert the wrong thing and would keep
+    failing after somebody renumbered it.
     """
     path = migration_for_relation(relation) if number == "*" else migration_by_number(number)
     assert path is not None, (
@@ -769,16 +818,15 @@ def chain_files() -> list[Path]:
 
     Read by SHAPE rather than by name. Every file in this range belongs to another worker, and a
     prerequisite reader that hardcoded filenames would turn every legitimate change over there into
-    a red test over here.
+    a red test over here. Selected by MR-5 key, so ``0070a`` is in and ``0071`` is out for a
+    reason the endpoint states rather than for a reason a truncation implies.
     """
-    found = [
-        path
-        for path in sorted(MIGRATIONS_DIR.iterdir())
-        if path.is_file()
-        and MR5_FILENAME.match(path.name) is not None
-        and int(path.name[:4]) <= APPLY_THROUGH
+    return [
+        entry.path
+        for entry in select_band(
+            tree(), "0001", APPLY_THROUGH, where=f"the chain through {APPLY_THROUGH}"
+        )
     ]
-    return sorted(found, key=lambda p: p.name.removesuffix(".sql"))
 
 
 @dataclass
@@ -827,7 +875,7 @@ def lattice(gated_cluster: Cluster) -> Iterator[Lattice]:
     print(
         f"\n[gated] cluster:  {gated_cluster.provenance}\n"
         f"[gated] database: {database}\n"
-        f"[gated] applied {applied} of {len(files)} migrations at or below {APPLY_THROUGH:04d}"
+        f"[gated] applied {applied} of {len(files)} migrations at or below {APPLY_THROUGH}"
     )
     for name, sqlstate, message in failures:
         print(f"[gated] PREREQUISITE NOT APPLIED — {name}: [{sqlstate}] {message}")

@@ -29,6 +29,7 @@ proves the statement splitter that `conftest` applies migrations with never cuts
 from __future__ import annotations
 
 import re
+import sys
 from pathlib import Path
 
 import pytest
@@ -38,6 +39,26 @@ from _schema_support import (
     recall_migration_files,
     split_statements,
 )
+
+# The ONE migration-id parser (MR-5), imported rather than re-implemented. This module used
+# to spell it `int(p.name.split("_", 1)[0])`, which is not a parser but a truncation: it
+# raised `ValueError: invalid literal for int() with base 10: '0114a'` in CI run 31388699452
+# and would have gone on raising for `0138a`, `0049z`, `0155a` and every other MR-5
+# band-overflow suffix in the tree. A suffixed file is not a revision of the file before it —
+# `0114a` creates `mainline.fn_cue_coarse_project()`, a SECOND projector `0114` does not
+# contain — so neither crashing on it nor skipping it is acceptable, and the canonical parser
+# does neither.
+#
+# The source-tree fallback exists so the import works in a plain checkout, not only after
+# `uv sync`. It does NOT fall through to a skip: an unimportable selector is a collection
+# error a reader can act on, and a skipped shape suite is a suite that proves nothing.
+try:
+    from trappoint_migrate.ids import MigrationId, id_of_filename
+except ImportError:  # pragma: no cover - only in a checkout without the workspace installed
+    sys.path.insert(
+        0, str(Path(__file__).resolve().parents[3] / "packages" / "trappoint-migrate" / "src")
+    )
+    from trappoint_migrate.ids import MigrationId, id_of_filename
 
 pytestmark = pytest.mark.shape
 
@@ -175,10 +196,44 @@ def _triggers() -> list[tuple[str, str, str, Path]]:
 
 
 def test_rc00a_every_reserved_migration_exists_exactly_once() -> None:
+    """One file per declared number, no duplicates, applied in the order declared.
+
+    WAS RED (CI run 31388699452): ``int(p.name.split("_", 1)[0])`` raised
+    ``ValueError: invalid literal for int() with base 10: '0114a'``. The band declares
+    ``0114a`` on purpose — it is `0114`'s MR-5 overflow and carries a whole second cue
+    projector — so the crash was the selector's, not the band's.
+
+    Ported onto ``trappoint_migrate.ids``: the ordering key is the PAIR ``(number, suffix)``,
+    under which ``0114 < 0114a < 0115`` holds by construction. Three properties are asserted
+    where one used to be, because the integer key could express none of them:
+
+    * every file resolves to a key this repository can order (a name it cannot order raises
+      and names the file, rather than being dropped or crashed on);
+    * no two files in the band claim one key;
+    * the resolved keys are **exactly** ``RECALL_MIGRATION_NUMBERS``, in that order — so a
+      declaration and the tree that disagree is a failure here rather than a surprise
+      twenty-nine files later, at DDL time, inside a session fixture.
+    """
     files = recall_migration_files()  # raises on a missing or duplicated number
     assert len(files) == len(RECALL_MIGRATION_NUMBERS)
-    numbers = [int(p.name.split("_", 1)[0]) for p in files]
-    assert numbers == sorted(numbers), "the band is not in application order"
+
+    keys: list[MigrationId] = [id_of_filename(path) for path in files]
+    assert len(set(keys)) == len(keys), (
+        f"two files in the band claim one migration key: {[str(k) for k in keys]}"
+    )
+    assert keys == sorted(keys), (
+        "the band is not in application order. The band is applied in the order it is "
+        "written, so a misplaced entry applies a consumer before its producer.\n"
+        f"  declared: {[str(k) for k in keys]}\n"
+        f"  ordered:  {[str(k) for k in sorted(keys)]}"
+    )
+    assert [str(key) for key in keys] == list(RECALL_MIGRATION_NUMBERS), (
+        "the files resolved from the tree are not the numbers the band declares.\n"
+        f"  resolved: {[str(k) for k in keys]}\n"
+        f"  declared: {list(RECALL_MIGRATION_NUMBERS)}\n"
+        "An MR-5 suffix is part of the key: `0114a` is not `0114`, and a declaration that "
+        "spells one of them without its suffix names a different file."
+    )
 
 
 @pytest.mark.parametrize("path", recall_migration_files(), ids=lambda p: p.name)

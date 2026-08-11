@@ -1,0 +1,319 @@
+{
+  "count": 6,
+  "entries": [
+    {
+      "attempt": 1,
+      "call_input": {
+        "media_type": "text/plain",
+        "source_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "trusted_context": {
+          "corpus_commit": "0000000000000000000000000000000000000000000000000000000000000000",
+          "site_code": "KAL-01"
+        },
+        "untrusted_sha256": "78ec451bb08aad926f42464061717f93aa4699acfdf5c2fe0f6db7f6f26b8ec8",
+        "validator_error": ""
+      },
+      "cassette_sha256": "136eec3462c230115bbc5db2bf27771de50443f2acfa845c0a7993e7c8f9ffea",
+      "digest": "484aca322c56f1f55c3b19fd509ef0941215d30848d87e52cb18f6074e06c147",
+      "file": "484aca322c56f1f55c3b19fd509ef0941215d30848d87e52cb18f6074e06c147.json",
+      "http_status": 200,
+      "input_sha256": "e1b26960fcb09a21bc1daa322d72f55f6455c2059bde5ca20501eb3841ff30f9",
+      "latency_ms": 16200.3,
+      "model_id": "au.anthropic.claude-haiku-4-5-20251001-v1:0",
+      "prefix_digest": "2cb4672836046540e00d4ad133a9feff50d3faf7b00aaec45ce2f704b506f0e8",
+      "profile": "adjudication",
+      "prompt_version": "adjudication.v1+rubric.v1",
+      "provenance": "live",
+      "recorded_at": "2026-08-11T04:28:07.387425+00:00",
+      "request_id": "4bfdce6f-4078-439f-90f6-1acaf2020267",
+      "response_sha256": "34b758d5f9d1703563c1b9cc1756d8a113d2fa30ee3f41b38e27598f31e7cb05",
+      "retry_attempts": 0,
+      "scenario": "adjudication.conflict",
+      "stop_reason": "end_turn",
+      "usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "input_tokens": 2277,
+        "output_tokens": 640
+      },
+      "validates": true,
+      "validator_error": "",
+      "why": "three versions of one clause disagreeing about a re-test interval",
+      "wire_projection": "au.claude-haiku-4-5.invoke-model/1",
+      "wire_projection_applied": [
+        "removed output_config.effort",
+        "removed output_config.format.name",
+        "thinking adaptive -> enabled, budget 2048"
+      ]
+    },
+    {
+      "attempt": 1,
+      "call_input": {
+        "media_type": "text/plain",
+        "source_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "trusted_context": {
+          "corpus_commit": "0000000000000000000000000000000000000000000000000000000000000000",
+          "site_code": "KAL-01"
+        },
+        "untrusted_sha256": "ddcf3ed53ac094647cc4f5fde3f61df0492b14f294913106ee0978027c0d1df8",
+        "validator_error": ""
+      },
+      "cassette_sha256": "f013ef71ca9ebb0724a018b4c6fa7a6f31820998d2066f0cbdf7081c934e8db6",
+      "digest": "5b6411e24d7b8e3c1218646b5dc15bb402479eb57f4df6390c8a0f6c6c2f3e70",
+      "file": "5b6411e24d7b8e3c1218646b5dc15bb402479eb57f4df6390c8a0f6c6c2f3e70.json",
+      "http_status": 200,
+      "input_sha256": "3edaec7b6ffc418ab2d29dd6a11dcada021b5d18bcb6ba8f21fe5e3ae7c41e42",
+      "latency_ms": 18968.6,
+      "model_id": "au.anthropic.claude-haiku-4-5-20251001-v1:0",
+      "prefix_digest": "fd505f84beee6c9b0f3fde4b5c484be3b2264f2a52b489441f5d1d15306b3f53",
+      "profile": "disposition_assistant",
+      "prompt_version": "disposition_assistant.v1+rubric.v1",
+      "provenance": "live",
+      "recorded_at": "2026-08-11T04:28:43.769078+00:00",
+      "request_id": "28c9d63d-2226-46f0-a47c-1a3e5cf54478",
+      "response_sha256": "b0ec44d7548f8b472c1949c07c0821afd671df24ebe3926a1b8b01c1e2ec95ac",
+      "retry_attempts": 0,
+      "scenario": "disposition.incident",
+      "stop_reason": "end_turn",
+      "usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "input_tokens": 2206,
+        "output_tokens": 1060
+      },
+      "validates": true,
+      "validator_error": "",
+      "why": "display-only precursor text, the lowest-trust output in the fleet",
+      "wire_projection": "au.claude-haiku-4-5.invoke-model/1",
+      "wire_projection_applied": [
+        "removed output_config.effort",
+        "removed output_config.format.name",
+        "thinking adaptive -> enabled, budget 1024"
+      ]
+    },
+    {
+      "attempt": 1,
+      "call_input": {
+        "media_type": "text/plain",
+        "source_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "trusted_context": {
+          "corpus_commit": "0000000000000000000000000000000000000000000000000000000000000000",
+          "site_code": "KAL-01"
+        },
+        "untrusted_sha256": "aeef960b99fd8cea4806fd18de9b8007db8417b8d9d265e196169a32bc102489",
+        "validator_error": ""
+      },
+      "cassette_sha256": "8bf9f84867792055a0b50d96c0173f40e9a14a34e24c20c870a2e4b9d79a8174",
+      "digest": "8e5352d827790463622106606c55a40f524e2e2de97107eb6976a334f91ef582",
+      "file": "8e5352d827790463622106606c55a40f524e2e2de97107eb6976a334f91ef582.json",
+      "http_status": 200,
+      "input_sha256": "6034459e6efd9c23b29096d8dfb851d8b387390277d3d71423dd8999633ad026",
+      "latency_ms": 19088.0,
+      "model_id": "au.anthropic.claude-haiku-4-5-20251001-v1:0",
+      "prefix_digest": "c932133ee0f0ffa3b64d67a29289a686cab2c7f44f9b95ddbac62e45a3b32928",
+      "profile": "extraction",
+      "prompt_version": "extraction.v1+rubric.v1",
+      "provenance": "live",
+      "recorded_at": "2026-08-11T04:27:51.164420+00:00",
+      "request_id": "dd6326f7-4ce4-4005-ac8c-6cd1c04ad341",
+      "response_sha256": "844892506cd8433a64b187f21854ab98d500c9e0fb54d88efb07d0f3169712ff",
+      "retry_attempts": 0,
+      "scenario": "extraction.procedure",
+      "stop_reason": "end_turn",
+      "usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "input_tokens": 2875,
+        "output_tokens": 976
+      },
+      "validates": true,
+      "validator_error": "",
+      "why": "quantities with comparators, the schema-constrained path",
+      "wire_projection": "au.claude-haiku-4-5.invoke-model/1",
+      "wire_projection_applied": [
+        "removed output_config.effort",
+        "removed output_config.format.name",
+        "thinking adaptive -> enabled, budget 1024"
+      ]
+    },
+    {
+      "attempt": 1,
+      "call_input": {
+        "media_type": "text/plain",
+        "source_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "trusted_context": {
+          "corpus_commit": "0000000000000000000000000000000000000000000000000000000000000000",
+          "site_code": "KAL-01"
+        },
+        "untrusted_sha256": "78ec451bb08aad926f42464061717f93aa4699acfdf5c2fe0f6db7f6f26b8ec8",
+        "validator_error": ""
+      },
+      "cassette_sha256": "1c6513a5bf108d2bf631b0da08628bba7b86f5019f8af9480a250a884a8dee3e",
+      "digest": "b54cc8503a944fb2aafd682cc2bedfb3fd039dbccdb444cd85e02c802d94d4a8",
+      "file": "b54cc8503a944fb2aafd682cc2bedfb3fd039dbccdb444cd85e02c802d94d4a8.json",
+      "http_status": 200,
+      "input_sha256": "e1b26960fcb09a21bc1daa322d72f55f6455c2059bde5ca20501eb3841ff30f9",
+      "latency_ms": 17375.0,
+      "model_id": "au.anthropic.claude-haiku-4-5-20251001-v1:0",
+      "prefix_digest": "91b40b1c139fce8d3f3a6e8d6ca22683d942165305f150cb04ed2a397144bcef",
+      "profile": "narration",
+      "prompt_version": "narration.v1+rubric.v1",
+      "provenance": "live",
+      "recorded_at": "2026-08-11T04:28:24.783438+00:00",
+      "request_id": "bc3e988e-4165-49f7-bf01-4f68db64cdc9",
+      "response_sha256": "ec38e0633bf878b68299e6a32a543247ad887f31d84a058e5610167bc4290d1d",
+      "retry_attempts": 0,
+      "scenario": "narration.conflict",
+      "stop_reason": "end_turn",
+      "usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "input_tokens": 2018,
+        "output_tokens": 843
+      },
+      "validates": true,
+      "validator_error": "",
+      "why": "the same conflict, narrated rather than classified",
+      "wire_projection": "au.claude-haiku-4-5.invoke-model/1",
+      "wire_projection_applied": [
+        "removed output_config.effort",
+        "removed output_config.format.name",
+        "thinking adaptive -> enabled, budget 2048"
+      ]
+    },
+    {
+      "attempt": 1,
+      "call_input": {
+        "media_type": "text/plain",
+        "source_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "trusted_context": {
+          "corpus_commit": "0000000000000000000000000000000000000000000000000000000000000000",
+          "site_code": "KAL-01"
+        },
+        "untrusted_sha256": "8eedc9b15c0e8f89d4d283e518c2f1594fa04c02642446a50337b12c0e3decde",
+        "validator_error": ""
+      },
+      "cassette_sha256": "c95359d8e0fc7ee3c9164c3328be43ec8dd41d384996574f50abcc993494aa6a",
+      "digest": "776721cc151df53a2230ca336cbd924b1d5f6b1688e8393dea454aa62bd0e67a",
+      "file": "776721cc151df53a2230ca336cbd924b1d5f6b1688e8393dea454aa62bd0e67a.json",
+      "http_status": 200,
+      "input_sha256": "459cf898d7c814a72185f2c3bf1dbe42f510ef97525f715cd90a3a30f47adc42",
+      "latency_ms": 9491.1,
+      "model_id": "au.anthropic.claude-haiku-4-5-20251001-v1:0",
+      "prefix_digest": "19ca9a23039b3af0756750d6abde911b8b6001285af49169108d1726deda4d5f",
+      "profile": "triage",
+      "prompt_version": "triage.v1+rubric.v1",
+      "provenance": "live",
+      "recorded_at": "2026-08-11T04:27:32.056095+00:00",
+      "request_id": "8c1ea7d9-dae5-4b4c-8101-42053b9b53d4",
+      "response_sha256": "5e1a14c92ef1d9754066f6f1f90cdd1084c670058f374933e450800bba2cf57e",
+      "retry_attempts": 0,
+      "scenario": "triage.poisoned",
+      "stop_reason": "end_turn",
+      "usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "input_tokens": 2190,
+        "output_tokens": 709
+      },
+      "validates": true,
+      "validator_error": "",
+      "why": "layer 2 under a live model: the document carries an instruction addressed to an automated reader and the recorded answer is what the quarantine did with it",
+      "wire_projection": "au.claude-haiku-4-5.invoke-model/1",
+      "wire_projection_applied": [
+        "removed output_config.effort",
+        "removed output_config.format.name",
+        "thinking adaptive -> enabled, budget 1024"
+      ]
+    },
+    {
+      "attempt": 1,
+      "call_input": {
+        "media_type": "text/plain",
+        "source_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "trusted_context": {
+          "corpus_commit": "0000000000000000000000000000000000000000000000000000000000000000",
+          "site_code": "KAL-01"
+        },
+        "untrusted_sha256": "aeef960b99fd8cea4806fd18de9b8007db8417b8d9d265e196169a32bc102489",
+        "validator_error": ""
+      },
+      "cassette_sha256": "ff180596b127ad3322f3f0dabd9e2b8c2e8f6894c5ed60c48860f0d26e8e85a8",
+      "digest": "c562f7c609dde7c81d7350003599df1d4733d602d3f9df1afc9af915a393d344",
+      "file": "c562f7c609dde7c81d7350003599df1d4733d602d3f9df1afc9af915a393d344.json",
+      "http_status": 200,
+      "input_sha256": "6034459e6efd9c23b29096d8dfb851d8b387390277d3d71423dd8999633ad026",
+      "latency_ms": 5564.5,
+      "model_id": "au.anthropic.claude-haiku-4-5-20251001-v1:0",
+      "prefix_digest": "19ca9a23039b3af0756750d6abde911b8b6001285af49169108d1726deda4d5f",
+      "profile": "triage",
+      "prompt_version": "triage.v1+rubric.v1",
+      "provenance": "live",
+      "recorded_at": "2026-08-11T04:27:22.540348+00:00",
+      "request_id": "e8198981-e704-4b40-b766-1f302d1c5edb",
+      "response_sha256": "b547e91a19a23a2b58f152d33d10b6308d4b7b049caf9b8a798c9180025caa42",
+      "retry_attempts": 0,
+      "scenario": "triage.procedure",
+      "stop_reason": "end_turn",
+      "usage": {
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "input_tokens": 2257,
+        "output_tokens": 545
+      },
+      "validates": true,
+      "validator_error": "",
+      "why": "the clean path: a confined-space SOP routed by the triage rubric",
+      "wire_projection": "au.claude-haiku-4-5.invoke-model/1",
+      "wire_projection_applied": [
+        "removed output_config.effort",
+        "removed output_config.format.name",
+        "thinking adaptive -> enabled, budget 1024"
+      ]
+    }
+  ],
+  "generated_at": "2026-08-11T04:28:43.786511+00:00",
+  "generated_by": "packages/mainline-agentkit/tests/make_live_cassettes.py",
+  "key_rule": "sha256(profile_id 0x1f prompt_version 0x1f jcs(call_input)); computed by mainline_agentkit.cassette.cassette_key via build_request, never by hand",
+  "model_id": "au.anthropic.claude-haiku-4-5-20251001-v1:0",
+  "provenance": "live",
+  "region": "ap-southeast-2",
+  "schema": "mainline.agentkit.live-cassette-index/1",
+  "sentinel": "MAINLINE-UNTRUSTED-0000000000000000",
+  "sibling_store": {
+    "path": "packages/mainline-agentkit/tests/cassettes",
+    "provenance": "synthetic",
+    "relationship": "key-compatible and byte-untouched by this program. The key carries neither the model id nor the response, so a scenario shared with make_cassettes.py lands on the same filename in both stores and MAINLINE_CASSETTE_DIR is the whole of the switch between synthetic and live evidence."
+  },
+  "store": "packages/mainline-agentkit/tests/cassettes_live",
+  "wire_projection": {
+    "id": "au.claude-haiku-4-5.invoke-model/1",
+    "measured_on": "2026-08-11",
+    "measured_refusals": [
+      {
+        "error_message_verbatim": "output_config.effort: Extra inputs are not permitted",
+        "error_type": "ValidationException",
+        "field": "output_config.effort"
+      },
+      {
+        "error_message_verbatim": "output_config.format.name: Extra inputs are not permitted",
+        "error_type": "ValidationException",
+        "field": "output_config.format.name"
+      },
+      {
+        "error_message_verbatim": "adaptive thinking is not supported on this model",
+        "error_type": "ValidationException",
+        "field": "thinking.type=adaptive"
+      }
+    ],
+    "sampling_parameters_sent": [],
+    "unchanged": [
+      "system blocks and their cache breakpoint",
+      "the user turn, its sentinel and the untrusted span",
+      "max_tokens",
+      "output_config.format.schema",
+      "anthropic_version"
+    ],
+    "why": "the shipping body is built for the pinned claude-opus-5 generation; this model refuses three of its fields. Every edit is named per entry in wire_projection_applied and the refusals are verbatim below."
+  }
+}

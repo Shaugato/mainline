@@ -11,17 +11,17 @@
   "scan": {
     "root": "<repository root>",
     "method": "filesystem walk, NOT the git index. A count here will not equal `git grep -l <pattern> | wc -l`: the walk sees files that are present but not yet committed, and it prunes directories git tracks (out_mainline/, out_trappoint_ref/, .hypothesis-corpus/). The walk is the right unit for a submission document, because a judge checks out a working tree.",
-    "files_scanned": 7233,
+    "files_scanned": 7352,
     "files_by_category": {
-      "config": 4750,
-      "docs": 247,
+      "config": 4796,
+      "docs": 274,
       "migration": 271,
-      "other": 334,
-      "python": 1180,
-      "sql": 128,
+      "other": 342,
+      "python": 1214,
+      "sql": 130,
       "terraform": 25,
       "typescript": 282,
-      "workflow": 16
+      "workflow": 18
     },
     "skipped_binary": 22,
     "skipped_too_large": 0,
@@ -94,16 +94,16 @@
         "resolves": true,
         "line_text": "image: cockroachdb/cockroach:v26.2.5"
       },
-      "file_count": 266,
+      "file_count": 318,
       "files_by_category": {
-        "config": 29,
-        "docs": 59,
+        "config": 44,
+        "docs": 82,
         "migration": 59,
         "other": 20,
-        "python": 70,
-        "sql": 22,
+        "python": 81,
+        "sql": 23,
         "typescript": 2,
-        "workflow": 5
+        "workflow": 7
       },
       "representative_paths": [
         "verticals/mainline/db/migrations/0008a_owner_business.sql",
@@ -130,16 +130,16 @@
         "resolves": true,
         "line_text": "def connect(dsn: str, *, isolation: str = \"serializable\") -> psycopg.Connection[Any]:"
       },
-      "file_count": 128,
+      "file_count": 148,
       "files_by_category": {
-        "config": 17,
-        "docs": 26,
+        "config": 20,
+        "docs": 35,
         "migration": 15,
         "other": 6,
-        "python": 49,
+        "python": 56,
         "sql": 8,
         "typescript": 4,
-        "workflow": 3
+        "workflow": 4
       },
       "representative_paths": [
         "verticals/mainline/db/migrations/0026_ref.sql",
@@ -166,13 +166,13 @@
         "resolves": true,
         "line_text": "RAISE EXCEPTION USING ERRCODE = 'P0001',"
       },
-      "file_count": 118,
+      "file_count": 122,
       "files_by_category": {
         "config": 2,
-        "docs": 12,
+        "docs": 15,
         "migration": 46,
         "other": 5,
-        "python": 26,
+        "python": 27,
         "sql": 27
       },
       "representative_paths": [
@@ -200,16 +200,16 @@
         "resolves": true,
         "line_text": "CONSTRAINT gate_closed_when_issued        CHECK (state <> 'merged' OR open_blocking = 0),"
       },
-      "file_count": 156,
+      "file_count": 172,
       "files_by_category": {
-        "config": 25,
-        "docs": 49,
+        "config": 30,
+        "docs": 56,
         "migration": 7,
         "other": 5,
-        "python": 44,
+        "python": 47,
         "sql": 6,
         "typescript": 19,
-        "workflow": 1
+        "workflow": 2
       },
       "representative_paths": [
         "verticals/mainline/db/migrations/0026_ref.sql",
@@ -236,14 +236,14 @@
         "resolves": true,
         "line_text": "VECTOR INDEX ce_ann (site_id, activity_root, embedding vector_cosine_ops),"
       },
-      "file_count": 116,
+      "file_count": 141,
       "files_by_category": {
-        "config": 12,
-        "docs": 30,
+        "config": 17,
+        "docs": 41,
         "migration": 14,
         "other": 1,
-        "python": 54,
-        "sql": 2,
+        "python": 61,
+        "sql": 4,
         "typescript": 2,
         "workflow": 1
       },
@@ -272,13 +272,13 @@
         "resolves": true,
         "line_text": "\"SELECT count(*) FROM {s}.permit AS OF SYSTEM TIME '-2160h' \""
       },
-      "file_count": 62,
+      "file_count": 74,
       "files_by_category": {
-        "config": 11,
-        "docs": 22,
+        "config": 14,
+        "docs": 27,
         "migration": 1,
         "other": 2,
-        "python": 23,
+        "python": 27,
         "sql": 1,
         "typescript": 1,
         "workflow": 1
@@ -308,9 +308,9 @@
         "resolves": true,
         "line_text": "-- `follower_read_timestamp()` so that patrol never contends with a merge,"
       },
-      "file_count": 9,
+      "file_count": 10,
       "files_by_category": {
-        "docs": 1,
+        "docs": 2,
         "migration": 2,
         "python": 6
       },
@@ -339,10 +339,10 @@
         "resolves": true,
         "line_text": "ALTER TABLE mainline.permit FORCE ROW LEVEL SECURITY;"
       },
-      "file_count": 38,
+      "file_count": 40,
       "files_by_category": {
-        "config": 3,
-        "docs": 13,
+        "config": 4,
+        "docs": 14,
         "migration": 13,
         "python": 8,
         "sql": 1
@@ -372,13 +372,13 @@
         "resolves": true,
         "line_text": "(\"schemas\", \"SHOW CREATE ALL SCHEMAS\"),"
       },
-      "file_count": 54,
+      "file_count": 66,
       "files_by_category": {
-        "config": 4,
-        "docs": 11,
+        "config": 7,
+        "docs": 16,
         "migration": 10,
         "other": 3,
-        "python": 22,
+        "python": 26,
         "sql": 4
       },
       "representative_paths": [
@@ -406,13 +406,13 @@
         "resolves": true,
         "line_text": "FORBIDDEN_SCHEMAS: Final = frozenset("
       },
-      "file_count": 59,
+      "file_count": 64,
       "files_by_category": {
-        "config": 9,
-        "docs": 18,
+        "config": 10,
+        "docs": 21,
         "migration": 9,
         "other": 2,
-        "python": 20,
+        "python": 21,
         "workflow": 1
       },
       "representative_paths": [
@@ -470,12 +470,12 @@
         "resolves": true,
         "line_text": "`ccloud` **0.6.12** is the latest published build (0.7.0 / 0.8.0 / 0.9.0 / 1.0.0 all return 404 from `binaries.cockroachdb.com`). It has **no non-interactive service-account authentication**: `ccloud auth` exposes only `login` / `logout` / `whoami`, `login` is browser-based, and `CC_API_KEY` in the environment is ignored. The session it caches is scoped to the interactive Windows logon and is not readable from a non-interactive shell."
       },
-      "file_count": 48,
+      "file_count": 55,
       "files_by_category": {
-        "config": 11,
-        "docs": 12,
+        "config": 12,
+        "docs": 16,
         "migration": 3,
-        "python": 21,
+        "python": 23,
         "typescript": 1
       },
       "representative_paths": [
@@ -503,10 +503,10 @@
         "resolves": true,
         "line_text": "MCP_ENDPOINT: Final = \"https://cockroachlabs.cloud/mcp\""
       },
-      "file_count": 160,
+      "file_count": 170,
       "files_by_category": {
-        "config": 22,
-        "docs": 23,
+        "config": 26,
+        "docs": 29,
         "migration": 45,
         "other": 3,
         "python": 57,
@@ -538,16 +538,16 @@
         "resolves": true,
         "line_text": "_SQLSTATE = re.compile(r\"^SQLSTATE:\\s*(?P<code>[0-9A-Za-z]{5})\\s*$\")"
       },
-      "file_count": 10,
+      "file_count": 13,
       "files_by_category": {
-        "config": 3,
-        "docs": 6,
+        "config": 4,
+        "docs": 8,
         "workflow": 1
       },
       "representative_paths": [
         ".claude-plugin/marketplace.json",
         "docs/leads/workers.json",
-        "qa/judge-dry-run.json"
+        "evidence/provenance/third-party.json"
       ],
       "search": {
         "pattern": "designing-diachronic-gates|designing-vector-recall-prefixes|cockroachdb-resilience-and-disaster-recovery",

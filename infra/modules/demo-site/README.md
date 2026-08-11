@@ -3,7 +3,35 @@ SPDX-FileCopyrightText: 2026 MAINLINE contributors
 SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
 -->
 
-# `demo-site` — the module that produces the URL
+# `demo-site` — the optional CDN upgrade
+
+> ## ⛔ THIS MODULE IS OPTIONAL, IT IS OFF BY DEFAULT, AND IT NO LONGER PRODUCES THE DEMO URL
+>
+> `infra/envs/demo` instantiates it with `count = var.enable_cloudfront ? 1 : 0`, and that
+> variable **defaults to `false`**. The default is a measurement, not a preference. A real
+> `terraform apply` on 2026-08-10 created seven resources and AWS refused the eighth:
+>
+> ```
+> Error: creating CloudFront Distribution: operation error CloudFront:
+> CreateDistributionWithTags, https response error StatusCode: 403,
+> RequestID: 3e63e30d-8c5b-441b-a01b-b70085eba504, AccessDenied:
+> Your account must be verified before you can add new CloudFront resources.
+> ```
+>
+> The identical refusal comes from a bare `aws cloudfront create-distribution` with no
+> Terraform involved, from an identity holding `AdministratorAccess`. It is an AWS
+> **account-level verification hold on new CloudFront resources** — the account already
+> carries one distribution from an unrelated project — and only AWS Support can lift it.
+>
+> **Decision D1** (`docs/leads/ship-final.md` §1.4) therefore moved the hostname to the
+> Lambda Function URL in [`../demo-api`](../demo-api): `https://<id>.lambda-url.<region>.on.aws`
+> is HTTPS on an AWS-issued certificate, needs no account verification, no ACM and no
+> hosted zone, and serves the SPA and `/v1/*` from one origin. This module is what you
+> apply **the day the hold lifts**, and flipping `enable_cloudfront` is the whole change.
+>
+> Everything below is still correct and is still planned on every run —
+> `evidence/deploy/terraform-plan-cloudfront.txt` shows these ten resources in a clean
+> plan. What changed is which module the submission depends on.
 
 S3 + CloudFront + Origin Access Control. A private bucket serving the MAINLINE console
 over HTTPS, and — optionally — a second origin that routes `/v1/*` to a Lambda Function
@@ -12,8 +40,34 @@ anywhere in the system.
 
 > *"Provide a URL to your functional demo app."* — hackathon Stage One, pass/fail.
 
-This module is the only thing in the repository that emits that URL. Everything below is
-shaped by that.
+That sentence is why this module was written to fail loudly at plan time rather than
+subtly at 02:00. It is also why it is no longer on the critical path: a Stage One
+requirement may not depend on a support queue.
+
+---
+
+## Being absent, correctly
+
+A zero-count module needs nothing inside it to change — Terraform simply does not expand
+it. Two obligations fall on the **caller**, and both are load-bearing:
+
+1. **Every output must be reached indexed, through `try`.**
+
+   ```hcl
+   distribution_arn = try(module.site[0].distribution_arn, null)   # RIGHT
+   distribution_arn = join("", module.site[*].distribution_arn)    # WRONG
+   ```
+
+   `module.site[0]` on a zero-count module is an **invalid index** — an error, not a null —
+   which is what `try` converts. And a splat depends on the `module.site (close)` node,
+   which every resource in this module feeds, including the distribution; since the
+   distribution depends on `demo-api`'s Function URL, the splat rebuilds the dependency
+   cycle transcribed in [`infra/envs/demo/main.tf`](../../envs/demo/main.tf), in mirror
+   image.
+
+2. **`count` may key only on a plan-time-known boolean** — `var.enable_cloudfront`, a plain
+   variable — for exactly the reason `local.has_api` inside this module may key only on
+   `var.enable_api`. See *The two-input rule* below.
 
 ---
 
@@ -325,7 +379,18 @@ for a cost-minimal demo and the wrong call for a product.
 
 ---
 
-## Verification — measured, 2026-08-10, account 022950218246
+## Verification — measured 2026-08-10, re-confirmed 2026-08-11
+
+> **Everything in this section is still true, and the module it describes is now
+> optional.** These numbers were produced when this module was instantiated
+> unconditionally. It is now `count`-gated by `var.enable_cloudfront`, default `false`, so
+> in the shipping configuration **none of these resources is planned at all** — see
+> `evidence/deploy/terraform-plan-furl.txt`, whose `Plan: 11 to add` contains no
+> `aws_cloudfront_*` and no `aws_s3_*` resource. The measurements below describe what
+> `enable_cloudfront = true` still plans, and they were re-confirmed on 2026-08-11 by
+> `evidence/deploy/terraform-plan-cloudfront.txt` (`Plan: 22 to add, 0 to change, 0 to
+> destroy` — twelve from `demo-api`, ten from here). Nothing here was rewritten to look
+> tidier; the heading gained a date and this paragraph.
 
 The AWS-managed policy ids in `main.tf` are written as literals rather than resolved
 through `data.aws_cloudfront_cache_policy`, so that they are known at plan time and require
@@ -390,9 +455,16 @@ Four bad inputs were confirmed to be refused before any resource is written:
 
 ### Not verified
 
-**Nothing in this module has been applied.** `terraform apply` has never run against this
-configuration, so every claim above is a claim about a *plan*. In particular these are
-untested against live AWS and are the places to look first if the first apply misbehaves:
+**This module has never been applied to completion, and it cannot be on this account
+today.** The 2026-08-10 apply reached `aws_cloudfront_distribution.site` and was refused
+with `403 AccessDenied` (RequestID `3e63e30d-8c5b-441b-a01b-b70085eba504`) — the banner at
+the top of this page. Two of its resources *were* created before the refusal, and the
+teardown was verified clean afterwards: `aws s3api list-buckets` returns seven buckets and
+none carries the `mainline-demo-` prefix.
+
+So every claim above is a claim about a *plan*. In particular these are untested against
+live AWS and are the places to look first on the day the hold lifts and the first full
+apply runs:
 
 * whether CloudFront accepts `origin_access_control_id` on a `custom_origin_config` origin
   at the API — the provider accepts it and the AWS documentation describes it, but neither

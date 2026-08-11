@@ -17,26 +17,212 @@ the pre-committed fallback for every shot whose milestone might not be finished 
 
 ---
 
-## 0 · Authority, and the one rule about numbers
+## 0 · Authority, and how every number below is re-derived
 
-| Question | The file that answers it | Never answered here |
-|---|---|---|
-| How long is a shot? What is the running time? | `verticals/mainline/demo/script/SHOT-LIST.yaml` (`t`, `dur`, `budget`) | **yes — no duration appears in this document** |
-| What is spoken? | `verticals/mainline/demo/script/VO.md` | |
-| What prose appears on screen? | `verticals/mainline/demo/script/CAMERA-STRINGS.yaml` | |
-| What does the *database* print? | `verticals/mainline/demo/REFUSAL-STRINGS.yaml` | |
-| What may the founder not say? | [`MUST-NOT-CLAIM.md`](MUST-NOT-CLAIM.md) | |
+| Question | The file that answers it |
+|---|---|
+| How long is a shot? What is the running time? | `verticals/mainline/demo/script/SHOT-LIST.yaml` (`t`, `dur`, `budget`) |
+| What is spoken? | `verticals/mainline/demo/script/VO.md`, and `vo`/`word_count` per shot in `SHOT-LIST.yaml` |
+| What prose appears on screen? | `verticals/mainline/demo/script/CAMERA-STRINGS.yaml` |
+| What does the *database* print? | `verticals/mainline/demo/REFUSAL-STRINGS.yaml` |
+| What may the founder not say? | [`MUST-NOT-CLAIM.md`](MUST-NOT-CLAIM.md), and §0.3 below for the four that are specific to the film |
 
-**No duration, timecode or running total is written in this document.** A duration written
-twice is a duration that can drift, the validator only guards the YAML, and the failure mode
-is silent: a cut over three minutes is disqualified without anyone telling you. The schedule
-is one file. Print it when you need it:
+**Those files are authoritative and none of them is this document's to change.**
+`.github/workflows/claims.yml` runs `script/validate_shotlist.py` over the YAML, so a drifted
+shot list is a red build.
+
+Sections §0.1 and §0.2 carry the timings and the word counts anyway, because a founder cannot
+film from a promise that the numbers exist somewhere. They are **derived, not transcribed**:
+one command regenerates both tables, and if it disagrees with what is printed here, the
+command is right and this page is stale.
 
 ```bash
-D:/CoackroachDBxAWS/mainline/.venv/Scripts/python.exe -c "import yaml,sys; d=yaml.safe_load(open('verticals/mainline/demo/script/SHOT-LIST.yaml',encoding='utf-8')); print(f\"budget {d['budget']}\"); [print(f\"{s['t']:>4}  {s['dur']:>3}  {s['shot_id']}\") for s in d['shots']]"
+D:/CoackroachDBxAWS/mainline/.venv/Scripts/python.exe - <<'PY'
+import yaml, pathlib
+d = yaml.safe_load(pathlib.Path("verticals/mainline/demo/script/SHOT-LIST.yaml").read_text(encoding="utf-8"))
+b, s = d["budget"], d["shots"]
+total, words = sum(x["dur"] for x in s), sum(x.get("word_count") or 0 for x in s)
+for x in s:
+    print(f"{x['t']//60}:{x['t']%60:02d}  {x['dur']:>2}s  {x['shot_id']:<34} "
+          f"{x.get('word_count') or 0:>3}w  {(x.get('word_count') or 0)/x['dur']:.2f} w/s")
+print(f"\n{len(s)} shots  {total}s ({total//60}:{total%60:02d})  {words} words  "
+      f"{words/total:.2f} w/s")
+print(f"ceiling {b['hard_ceiling_s']}s  CI hard fail {b['ci_hard_fail_s']}s  "
+      f"headroom {b['hard_ceiling_s'] - total}s")
+PY
 ```
 
-Everything else in this kit is keyed by `shot_id`, which does not drift.
+Measured on **2026-08-11**, that command prints `25 shots  171s (2:51)  304 words  1.78 w/s`
+and `ceiling 180s  CI hard fail 176s  headroom 9s`. Everything in §0.1 and §0.2 is that
+output, formatted.
+
+---
+
+## 0.1 · THE SHOT LIST, TIMED — 2:51 against a 3:00 ceiling
+
+**Total 171 s = 2 minutes 51 seconds.** The rule is under three minutes; the hard ceiling in
+the budget is 180 s and CI fails the cut at 176 s, so there are **9 seconds of margin to the
+rule and 5 seconds to the build**. That margin is the whole reason the scope-cut ladder in §E
+exists and is pre-committed: an over-length cut is disqualified, and nobody discovers it at
+02:00 on the deadline.
+
+| in | dur | shot_id | beat | VO words | w/s | never cut | needs |
+|---|---|---|---|---|---|---|---|
+| `0:00` | 6 s | `s01-cold-open` | — | 14 | 2.33 |  | K3 |
+| `0:06` | 7 s | `s02-the-change` | — | 12 | 1.71 |  | K3 |
+| `0:13` | 5 s | `s03-title` | — | 10 | 2.00 |  | K0 |
+| `0:18` | 5 s | `s04-architecture` | — | 14 | 2.80 |  | K0 |
+| `0:23` | 10 s | `s05-beat1-blame-walk` | 1 | 9 | 0.90 |  | K3 |
+| `0:33` | 11 s | `s06-beat1-commit-message` | 1 | 19 | 1.73 |  | K3 |
+| `0:44` | 7 s | `s07-beat1-identity-survival` | 1 | 13 | 1.86 |  | K3 |
+| `0:51` | 7 s | `s08-beat2-merge-refused` | 2 | 10 | 1.43 | **yes** | K1 |
+| `0:58` | 7 s | `s09-beat2-constraint` | 2 | 11 | 1.57 | **yes** | K1 |
+| `1:05` | 8 s | `s10-beat2-bypass-admin-update` | 2 | 12 | 1.50 | **yes** | K1 |
+| `1:13` | 5 s | `s11-beat2-bypass-append-only` | 2 | 8 | 1.60 | **yes** | K1 |
+| `1:18` | 10 s | `s12-beat2-bypass-drop-constraint` | 2 | 14 | 1.40 | **yes** | K6 |
+| `1:28` | 9 s | `s13-beat3-lattice-refusal` | 3 | 17 | 1.89 | **yes** | K5 |
+| `1:37` | 8 s | `s14-beat3-disposition-signed` | 3 | 16 | 2.00 |  | K5 |
+| `1:45` | 5 s | `s15-beat3-merge-succeeds` | 3 | 11 | 2.20 |  | K5 |
+| `1:50` | 5 s | `s16-beat4-register-gains-activity` | 4 | 11 | 2.20 |  | K6 |
+| `1:55` | 6 s | `s17-beat4-lease-revoked` | 4 | 9 | 1.50 | **yes** | K5 |
+| `2:01` | 4 s | `s18-beat4-suspend-and-fork` | 4 | 8 | 2.00 |  | K5 |
+| `2:05` | 8 s | `s19-beat5-mcp-connect` | 5 | 13 | 1.62 |  | K6 |
+| `2:13` | 8 s | `s20-beat5-explain` | 5 | 15 | 1.88 |  | K4 |
+| `2:21` | 6 s | `s21-beat5-silence` | 5 | 12 | 2.00 |  | K4 |
+| `2:27` | 5 s | `s22-readiness-strip` | — | 11 | 2.20 |  | K6 |
+| `2:32` | 8 s | `s23-honesty-card` | — | 12 | 1.50 |  | K0 |
+| `2:40` | 5 s | `s24-rubber-stamp` | — | 16 | 3.20 |  | K0 |
+| `2:45` | 6 s | `s25-end-card` | — | 7 | 1.17 |  | K0 |
+| | **171 s** | **25 shots** | | **304** | **1.78** | | |
+
+`2:45 + 6 = 2:51`. Export at 30 fps: **5 130 frames.**
+
+---
+
+## 0.2 · THE VOICE-OVER, WITH WORD COUNTS — so the timing is checkable
+
+304 words over 171 seconds is **1.78 words per second — 107 words per minute**, which is a
+deliberate, unhurried read. It is *slow* for narration on purpose: every sentence in this film
+is load-bearing and several of them contain a SQLSTATE.
+
+**Two lines are faster than the rest, and you will feel it.** Read them first, with a
+stopwatch, before you commit to the take:
+
+| shot | words | dur | w/s | what to do |
+|---|---|---|---|---|
+| `s24-rubber-stamp` | 16 | 5 s | **3.20** | The fastest line in the film, 80 % above the average. It is also the most important one to land — it is the honesty beat. Read it at the average rate and it takes **9 s**, i.e. 4 s over. Take those 4 s out of the 9 s of headroom, or split the line across `s23`'s tail. **Do not rush it.** |
+| `s04-architecture` | 14 | 5 s | **2.80** | Comfortable if the card is static and you start on the cut. The scope-cut ladder deletes this shot first, and the line with it. |
+
+Everything else sits between 0.90 and 2.33 w/s and needs no decision.
+
+**A stopwatch pass, before any recording:** read each line aloud from the table below, time
+it, and write the time next to it. A line whose read time exceeds its `dur` is a line that
+will be cut off or a shot that will run long, and it is cheaper to find that out on the sofa
+than in the edit.
+
+| shot | VO | words | dur | w/s |
+|---|---|---|---|---|
+| `s01-cold-open` | One number in a maintenance procedure. Nobody at this site knows why it's 135. | 14 | 6 s | 2.33 |
+| `s02-the-change` | An engineer raised it to 150 — the manufacturer's number. Defensible. Approved. | 12 | 7 s | 1.71 |
+| `s03-title` | MAINLINE: institutional safety memory as a version-controlled repository, on CockroachDB. | 10 | 5 s | 2.00 |
+| `s04-architecture` | Commits are written by incidents. Every clause points at the event that wrote it. | 14 | 5 s | 2.80 |
+| `s05-beat1-blame-walk` | So we ask the clause where it came from. | 9 | 10 s | 0.90 |
+| `s06-beat1-commit-message` | 2013. A gland seal fire. Two contractors burned. The alarm gave ninety seconds; 135 would have given six minutes. | 19 | 11 s | 1.73 |
+| `s07-beat1-identity-survival` | Retypeset 2016. Split 2019. The clause kept its identity, so the blame survived. | 13 | 7 s | 1.86 |
+| `s08-beat2-merge-refused` | Today's permit relies on that clause. The supervisor clicks merge. | 10 | 7 s | 1.43 |
+| `s09-beat2-constraint` | Refused — not by a warning. By a CHECK constraint: gate_closed_when_issued. | 11 | 7 s | 1.57 |
+| `s10-beat2-bypass-admin-update` | Cluster admin. Raw SQL. Our application bypassed entirely. The database still refuses. | 12 | 8 s | 1.50 |
+| `s11-beat2-bypass-append-only` | The obligation is append-only. It cannot be deleted. | 8 | 5 s | 1.60 |
+| `s12-beat2-bypass-drop-constraint` | An admin can drop the constraint. What they cannot do is drop it unobserved. | 14 | 10 s | 1.40 |
+| `s13-beat3-lattice-refusal` | Accept the residual risk? There's no such verdict — no row, and a foreign key says so. | 17 | 9 s | 1.89 |
+| `s14-beat3-disposition-signed` | Severity four forces a compensating control and a second signature. We measure deliberation. We never accuse. | 16 | 8 s | 2.00 |
+| `s15-beat3-merge-succeeds` | Now it merges, carrying a signed record of who overrode what. | 11 | 5 s | 2.20 |
+| `s16-beat4-register-gains-activity` | Then the site register gains an activity. Nobody touches the screen. | 11 | 5 s | 2.20 |
+| `s17-beat4-lease-revoked` | He signed it away only while this stayed true. | 9 | 6 s | 1.50 |
+| `s18-beat4-suspend-and-fork` | The permit suspends itself and forks a child. | 8 | 4 s | 2.00 |
+| `s19-beat5-mcp-connect` | Hand it to an auditor. CockroachDB's own managed MCP — read-only, not ours. | 13 | 8 s | 1.62 |
+| `s20-beat5-explain` | Because everyone asks whether the vector search is real — C-SPANN, on the named index. | 15 | 8 s | 1.88 |
+| `s21-beat5-silence` | Then the question nobody else answers: what did you not tell me? | 12 | 6 s | 2.00 |
+| `s22-readiness-strip` | Single tenant. Row-level security. CockroachDB's audit log hashed into our ledger. | 11 | 5 s | 2.20 |
+| `s23-honesty-card` | Live: database in Singapore, inference in Sydney. Operator and incidents are synthetic. | 12 | 8 s | 1.50 |
+| `s24-rubber-stamp` | The honest limit: nothing separates a considered disposition from a rubber stamp. We log our silence. | 16 | 5 s | 3.20 |
+| `s25-end-card` | Repo, demo, read-only endpoint. Verify it yourself. | 7 | 6 s | 1.17 |
+
+`VO.md` carries two `·hold` marks — `s06` and `s20` — where the line lands early and the
+frame is held in silence. **The silence is part of the shot.** Do not fill it.
+
+Export: **1920 × 1080, 30 fps, −16 LUFS, true peak −1 dBTP, captions burned in**
+(`SHOT-LIST.yaml: budget.export`). Judges watch muted; a film whose SQLSTATEs are only in the
+audio is a film with no evidence in it.
+
+---
+
+## 0.3 · MUST NOT CLAIM — the four the camera will tempt you into
+
+[`MUST-NOT-CLAIM.md`](MUST-NOT-CLAIM.md) is the register and it is nine families long. Read it
+the morning of the shoot. **These four are specific to the film, are not in that register, and
+each one is a number somebody will ask you about.**
+
+### 1 · Do NOT say "thirty of thirty invariants", or "all the invariants are enforced"
+
+| | |
+|---|---|
+| **MUST NOT SAY** | "All thirty machine invariants are enforced." · "30/30." · "The invariant catalogue is complete." |
+| **TRUE INSTEAD** | "The catalogue names thirty invariants. Nine are enforced in the database today and twenty-one are pending. The ratchet is what keeps that number honest — it fails the build if a pending invariant is quietly described as enforced." |
+| **MEASURED** | `.venv/Scripts/python.exe scripts/mi_ratchet.py report` → **`21 pending / 9 enforced`**, on 2026-08-11. |
+| **THE NUMBER YOU MAY HAVE HEARD** | An intentional-red note in `.github/workflows/ci.yml:683` still says **"28 of 30"** — that was 28 *unenforced* when it was written, and nine have been promoted since, which the file says about itself. Quote neither figure from memory; run the command. |
+
+The ratchet being red is not a defect to hide. It is the top-level incompleteness counter, and
+an honest 9-of-30 with a machine that refuses to let it be overstated scores better under
+*Technological Implementation* than a silent 30/30 nobody believes.
+
+### 2 · Do NOT say the custody chain is complete
+
+| | |
+|---|---|
+| **MUST NOT SAY** | "The custody chain is verified end to end." · "Every custody check passes." |
+| **TRUE INSTEAD** | "Sixteen custody checks are specified. Nine pass. **Seven of the sixteen are unimplemented** — the cryptographic verifier checks are not written — and the CI lane is red for exactly that reason, by name, per check." |
+| **MEASURED** | `.github/workflows/custody-chain.yml:214` asserts the summary line `16 checks \| 9 passed \| 0 failed \| 7 not checked`; `docs/CI-STATE.md:92` records the lane as an intentional red owned by `verify-crypto`. |
+
+`s12`'s claim survives this intact: the drop of the constraint becomes an attested leaf. What
+is *not* yet built is the cryptographic verification of the chain those leaves sit in. Those
+are different sentences and only the first one is filmed.
+
+### 3 · Do NOT say CloudFront, a CDN, or "edge"
+
+| | |
+|---|---|
+| **MUST NOT SAY** | "Served through CloudFront." · "Behind a CDN." · "At the edge." |
+| **TRUE INSTEAD** | "One AWS Lambda Function URL serves the console and the API from a single origin — HTTPS on an AWS-issued certificate, no CDN, no bucket in the request path, and therefore no CORS anywhere." |
+| **WHY** | `docs/leads/ship-final.md` §1.4: this AWS account is under a verification hold and a real `terraform apply` was refused with `AccessDenied: Your account must be verified before you can add new CloudFront resources`. DECISION D1 removed CloudFront from the critical path; `var.enable_cloudfront` defaults `false` and **no distribution exists**. |
+
+`s22-readiness-strip`'s fourth tile is *"CloudWatch alarm on gate-bypass attempts"*. Those
+alarms are **declared in Terraform and not created**, because the apply has not been run. The
+shot's own fallback says to drop that tile if AWS is unreachable — drop it, or film the HCL
+that declares it and say "declared". Do not film a CloudWatch console showing an alarm that
+belongs to a different project's stack.
+
+### 4 · Do NOT name an AWS service the committed evidence does not show executing
+
+| | |
+|---|---|
+| **MUST NOT SAY** | Any AWS service as part of the running system unless a committed artefact shows it returning bytes. |
+| **TRUE INSTEAD** | "Amazon Bedrock executes: Titan embeddings and Claude Haiku, in `ap-southeast-2`, with the transcript committed." |
+| **MEASURED** | `evidence/deploy/aws-live.json`. Everything else in the AWS column — Lambda, SSM, CloudWatch — is **declared in Terraform and not applied**, and `evidence/deploy/acceptance.json` says so on its own face. |
+
+And the one that is easiest to get wrong because it sounds modest: the database does **not**
+stop a cluster admin from dropping the gate. `s12` films the drop succeeding. The claim is
+tamper-*evidence* — the drop becomes an attested leaf — and `REFUSAL-STRINGS.yaml` R3 says so
+in the file the camera reads from.
+
+### The demo URL, on `s25`
+
+`s25-end-card` shows the repository, the demo URL and the MCP one-liner.
+`docs/submission/SUBMISSION.json` holds `"demo_url": "UNRESOLVED"` as of 2026-08-11.
+**Film `s25` last, and do not put a URL on the card that is not in that file.** If it still
+reads `UNRESOLVED` on the day, the card carries the repository and the MCP line only, and the
+voice-over drops the word "demo" — "*Repo, read-only endpoint. Verify it yourself*" is seven
+words minus one and fits the same 6 seconds.
 
 ---
 
@@ -206,6 +392,33 @@ VERDICT  READY - 20 checks, 0 failed. Roll camera.
 
 **Exit 0 or do not record.** Exit 1 means the state is wrong and every failing row is named.
 Exit 2 means there was no cluster — a different problem, kept separate on purpose.
+
+**Re-measured `2026-08-11`, and the first result is the one to know about.** `--verify-only`
+was run against a clean machine and answered:
+
+```
+database  FAIL    all    w_s08_demo_state does not exist on this cluster - run without --verify-only to build it
+VERDICT  NOT READY - 1 check failed
+```
+
+The seeded database **does not survive a Docker restart or a machine reboot**, and nothing
+recreates it. So the full command above is not a one-off setup step you did last week; it is
+the first thing you type on capture day. Run in full on 2026-08-11 it took about a minute and
+answered `VERDICT  READY - 20 checks, 0 failed. Roll camera.`, with the projection trigger
+**installed** — so on that state the sentence *"the projection closed the counter"* is
+available to you (see B.4).
+
+The identifiers are minted fresh on every rebuild. The 2026-08-11 run printed:
+
+```
+  database        w_s08_demo_state
+  permit_id       d7380590-b92e-4932-bba9-b342c6d99450
+  check_id        4800ba2e-7c30-488d-a26c-636d4f7ce082
+  site_id         5c86f576-27fd-4c40-8ccb-3025a4c2544e
+```
+
+**Those exact values will not be yours.** Copy from *your* run's substitutions block, never
+from this page — that is the entire reason the block exists.
 
 The command then prints an **ON-CAMERA SUBSTITUTIONS** block with the `permit_id`, `check_id`
 and `site_id` this run minted, and the SQL statements with those values already substituted.

@@ -1,0 +1,242 @@
+{
+  "artefact": "evidence/aws/agent/determinism.json",
+  "caveats": [
+    "SYNTHETIC SUBJECT, LIVE CALL. The permit, the events and the facet cues are fabricated MAINLINE-shaped strings from tests/integration/recall_run/_run_corpus.py; no real incident, permit or fatality is described. The Bedrock invocation is real.",
+    "one live run: every latency here is a single observation with no interval and must not be quoted as a performance figure",
+    "the cluster and the kernel are recorded fakes (tests/integration/recall_run/_run_fakes.py); this file proves the model leg executed live and replays identically, not that any row reached CockroachDB",
+    "costs are priced from scripts/aws/_common.py's declared list-price table, not from a bill"
+  ],
+  "generated_at": "2026-08-11T04:39:28Z",
+  "generated_by": "scripts/aws/agent_live.py",
+  "kind": "bedrock-agent-determinism",
+  "payload": {
+    "claim": "The same input, replayed twice from the live cassette store, produced byte-identical decisions; and a tampered cassette refuses to load rather than silently rewriting a fixture.",
+    "hermetic_check": "D:/CoackroachDBxAWS/mainline/.venv/Scripts/python.exe -m pytest packages/mainline-agentkit/tests/test_live_cassettes.py packages/mainline-agentkit/tests/test_no_sampling_params.py — no credentials",
+    "hermetic_verify": {
+      "command": "scripts/aws/agent_live.py --verify",
+      "credentials_required": false,
+      "entries_checked": 7,
+      "findings": [
+        {
+          "checks": {
+            "cassette_sha256_recomputes": true,
+            "filename_is_the_digest": true,
+            "loads_through_the_shipping_store": true,
+            "provenance_is_live": true,
+            "request_digest_recomputes": true,
+            "response_sha256_recomputes": true
+          },
+          "digest": "7d2ff133b14e936f7028fd419f632358d5301e0b1595c48fd58420db10270c5b",
+          "store": "recall_live"
+        },
+        {
+          "checks": {
+            "cassette_sha256_recomputes": true,
+            "filename_is_the_digest": true,
+            "model_id_matches_the_index": true,
+            "provenance_is_live": true
+          },
+          "digest": "484aca322c56f1f55c3b19fd509ef0941215d30848d87e52cb18f6074e06c147",
+          "store": "agentkit_live"
+        },
+        {
+          "checks": {
+            "cassette_sha256_recomputes": true,
+            "filename_is_the_digest": true,
+            "model_id_matches_the_index": true,
+            "provenance_is_live": true
+          },
+          "digest": "5b6411e24d7b8e3c1218646b5dc15bb402479eb57f4df6390c8a0f6c6c2f3e70",
+          "store": "agentkit_live"
+        },
+        {
+          "checks": {
+            "cassette_sha256_recomputes": true,
+            "filename_is_the_digest": true,
+            "model_id_matches_the_index": true,
+            "provenance_is_live": true
+          },
+          "digest": "8e5352d827790463622106606c55a40f524e2e2de97107eb6976a334f91ef582",
+          "store": "agentkit_live"
+        },
+        {
+          "checks": {
+            "cassette_sha256_recomputes": true,
+            "filename_is_the_digest": true,
+            "model_id_matches_the_index": true,
+            "provenance_is_live": true
+          },
+          "digest": "b54cc8503a944fb2aafd682cc2bedfb3fd039dbccdb444cd85e02c802d94d4a8",
+          "store": "agentkit_live"
+        },
+        {
+          "checks": {
+            "cassette_sha256_recomputes": true,
+            "filename_is_the_digest": true,
+            "model_id_matches_the_index": true,
+            "provenance_is_live": true
+          },
+          "digest": "776721cc151df53a2230ca336cbd924b1d5f6b1688e8393dea454aa62bd0e67a",
+          "store": "agentkit_live"
+        },
+        {
+          "checks": {
+            "cassette_sha256_recomputes": true,
+            "filename_is_the_digest": true,
+            "model_id_matches_the_index": true,
+            "provenance_is_live": true
+          },
+          "digest": "c562f7c609dde7c81d7350003599df1d4733d602d3f9df1afc9af915a393d344",
+          "store": "agentkit_live"
+        }
+      ],
+      "network_required": false,
+      "replay_equal": true,
+      "replay_hashes": [
+        "c5c8abde89baef91e7ecb281db5f2cffbaf0e5cc6dfee88194b00634e462bc38",
+        "c5c8abde89baef91e7ecb281db5f2cffbaf0e5cc6dfee88194b00634e462bc38"
+      ],
+      "verdict": "PASS"
+    },
+    "pre_existing_synthetic_store": {
+      "count": 20,
+      "manifest_sha256": "877a192b5dc3791a38db51d02407c6375adf45c36dc341b991a31dd327c83679",
+      "method": "sha256 of every file, hashed again as a sorted JSON manifest. No program in this worker's set writes to this directory: make_live_cassettes.py binds CassetteStore to cassettes_live/ and agent_live.py binds it to tests/fixtures/cassettes/recall_live/.",
+      "path": "packages/mainline-agentkit/tests/cassettes",
+      "per_file_sha256": {
+        "0a8382e7db7933fc72279a8032601ae1c4097f5148bdc4dcdb6e82f3d373e6f9.json": "686d84b6aade3546e078cffa30ebbabf00c45b145591ca50fe7445d382436ed8",
+        "17a06b517d655894f881426349dbccaa07321594e36909e4c5f2f7cac0aea155.json": "499768beb2c6da5f255e9a6950c44370a37e9d6290bee6cc0c5e0144acd0e0e8",
+        "484aca322c56f1f55c3b19fd509ef0941215d30848d87e52cb18f6074e06c147.json": "90f9c24cb8430a305688a00a15b1d9b9194c71bfad0a7c9cc46116ac2cc6862e",
+        "5b6411e24d7b8e3c1218646b5dc15bb402479eb57f4df6390c8a0f6c6c2f3e70.json": "42aaa2d0e0ecb13c1e75163caa04b6f5122187f6fbd7f348fbbf69404def1d15",
+        "668ddbd2b1a905974b0c689de42666ee15add414cde9feac932d408e584a78ce.json": "afd372ac7a0d0d316476565470095434f4c2aac1209d35d976ed7cff8586700d",
+        "776721cc151df53a2230ca336cbd924b1d5f6b1688e8393dea454aa62bd0e67a.json": "a4d7fec3450f5b670fed90ba4ac2a2058b1400d1d35bb5d83427c899bdae705a",
+        "8e5352d827790463622106606c55a40f524e2e2de97107eb6976a334f91ef582.json": "707549fe6097959ce85ab407ea8f596007cc47bda1b1fc6298305fe87bad3ae1",
+        "923ab0a7e7b69dca4326d3a59dbb0489203a7d7181fbc11061fb7e2146038c5a.json": "50b372eb95f7497781ca573fba6e57d679fa78c39f09b6c335b4b3a539655241",
+        "a1f6ed54f83f96a982d60d87b4bdae6fa9ca3b6ab6c7be7eed4670db070a1155.json": "866f329974a85d23eee9184049ff2614c4e11e0258e986c93bfabc7225785288",
+        "a6c596734e1c47af3973497b5915cf5a0967c56f80e6c89a40ff06f0c1ebf13a.json": "3bf2690e2b5d4f1017deb4de82392a93379cf6df508ae1296105ef3394c1303c",
+        "ab2587d5a6450b28fcf0e6aaddb2d538e99d2c012ee06d665bc43708d5db99b2.json": "523a859002394d4d596d345ae989080e702307c54701ee8594bc1152161cd8c1",
+        "b54cc8503a944fb2aafd682cc2bedfb3fd039dbccdb444cd85e02c802d94d4a8.json": "8dd157911fe086d9411723bdb7d89d346cab5b6a65f11e882bb7cd404f6942b4",
+        "c300d40991157a71322178c831a7edca840c2c4f17200fdc8bb1a3b1f2d3b61c.json": "87cfcf00b6ed4e7002a2c58b4e2808804bc032989d8efd403d24e3e778c196b9",
+        "c562f7c609dde7c81d7350003599df1d4733d602d3f9df1afc9af915a393d344.json": "77feda768f3ae86071975a884c26a5a48d27012bf0fd80d505920b4034cd19b9",
+        "cdfcf81e98943f254fada08218fddafa86b72eb72d45c258e166de0f80a5fcbb.json": "24b35ca966af88fdfd51f87a7a3f139f04aa88447886915f4368148ded0f793e",
+        "d4f064a3c99d8290c18b6b8955db5651c8eb0fdca5d09dc6adc01d9748e9c0a0.json": "b3be17c339df46c57b2e9e722693990c7aed7ab2364e844e1710f4dd09ad2656",
+        "dce7b1e953ba2483374f0f71575eb307e4c0e5633787ae3c659332214545c6b6.json": "28d63544c9e2335f33b45be045191e4ff8c1f7c61f014f19f48c0080026bea75",
+        "e07e3bdae71ce82ce38c5c23467d91ef31212ca297bc20e4de97e17e97d43fe8.json": "13ce08c6cc7d063743f4d85941e2014a7b903e4cb458803967dea5ecf06b0a27",
+        "e65bd2c7ba12285f8686d3493df1e44e8d5503e4d942244b5e596f8662005288.json": "22bdeb771df1f8cd5d2f9668280974f11a7e76312f40ab9628b06dd41829660b",
+        "fa8671657a150629880e0b281a3027539dd0c7b1d13e41f2309067af7b298e27.json": "332387e990c11c6f47921e3fa038cdcf35697b239ebe443fe5baa27788b246b1"
+      }
+    },
+    "recording_locks": {
+      "agentkit": [
+        "MAINLINE_AGENT_ALLOW_LIVE=1",
+        "MAINLINE_CASSETTE_MODE=record"
+      ],
+      "note": "Two opt-ins per lane, and the lanes do not unlock each other. Both are read through the shipping settings objects, never re-parsed.",
+      "recall_agent": [
+        "MAINLINE_RECALL_CASSETTE_MODE=record",
+        "MAINLINE_RECALL_ALLOW_NETWORK=1"
+      ]
+    },
+    "replay": {
+      "equal": true,
+      "excluded": [
+        {
+          "field": "candidate_set.silence_receipt_id",
+          "why": "a fresh uuid4 minted per run; an identifier for the receipt, not a decision"
+        },
+        {
+          "field": "RunOutcome.latency_ms",
+          "why": "wall-clock duration of the run, and a live leg is ~10x a replayed one"
+        },
+        {
+          "field": "RunOutcome.run_id",
+          "why": "pinned to a constant for this program, so it is a control rather than an output"
+        }
+      ],
+      "hash_1": "c5c8abde89baef91e7ecb281db5f2cffbaf0e5cc6dfee88194b00634e462bc38",
+      "hash_2": "c5c8abde89baef91e7ecb281db5f2cffbaf0e5cc6dfee88194b00634e462bc38",
+      "hash_of": "sha256 over sorted-key compact JSON of scripts/aws/agent_live.py::determinism_projection(outcome)",
+      "included": [
+        "open_blocking",
+        "arms_degraded",
+        "the frozen CandidateSet minus silence_receipt_id",
+        "every candidate row: event_id, rank, severity, p_relevant, tau_applied, outcome, origin",
+        "every silence row: subject, reason, severity, score, threshold",
+        "the kernel materialise status, open_blocking and gate_epoch"
+      ],
+      "live_equals_replay": true,
+      "live_run_hash": "c5c8abde89baef91e7ecb281db5f2cffbaf0e5cc6dfee88194b00634e462bc38",
+      "run_id_pinned_to": "a11cef00-0000-4000-8000-00000000a11c",
+      "runs": 2
+    },
+    "reproduce": "AWS_PROFILE=mainline-dev MAINLINE_AGENT_ALLOW_LIVE=1 MAINLINE_RECALL_CASSETTE_MODE=record MAINLINE_RECALL_ALLOW_NETWORK=1 D:/CoackroachDBxAWS/mainline/.venv/Scripts/python.exe scripts/aws/agent_live.py",
+    "tamper_probe_redaction_note": "`<redacted>` inside a probe's filesystem path is _common.redact's secret-shape rule firing on `<dir>/<64-hex-digest>.json` — a 40+ character run containing '/'. Nothing was suppressed: the digests those paths carry are printed in full in the same message and in the entries above. Recorded here rather than worked around, because a redactor that is quietly tuned per artefact is a redactor nobody can reason about.",
+    "tamper_probes": [
+      {
+        "claim": "an edited request no longer hashes to its recorded digest, so the cassette refuses to load instead of answering a question it was never asked",
+        "expected": "CassetteTampered",
+        "held": true,
+        "observed": "CassetteTampered: cassette request does not hash to its recorded digest; the fixture has been edited [claimed='7d2ff133b14e936f7028fd419f632358d5301e0b1595c48fd58420db10270c5b', path='<repo>/out/aws/agent-<redacted>.json', recomputed='a052d4ed53d8d71450c076f5d7e8d6e9b9bb1adb3bf0d885b71dc58e9d1f8496']",
+        "probe": "request-edited"
+      },
+      {
+        "claim": "a cassette copied onto a filename that is not its digest becomes unreachable: load() computes the key from the request, looks under the true digest, and misses. A fixture cannot be moved onto another request's key, and a miss never falls through to a live call",
+        "expected": "CassetteMiss",
+        "held": true,
+        "observed": "CassetteMiss: no cassette for this request; record one with MAINLINE_RECALL_CASSETTE_MODE=record MAINLINE_RECALL_ALLOW_NETWORK=1 [digest='7d2ff133b14e936f7028fd419f632358d5301e0b1595c48fd58420db10270c5b', kind='judge', path='<repo>/out/aws/agent-<redacted>.json']",
+        "probe": "digest-renamed"
+      },
+      {
+        "claim": "'live' is not a provenance this store's vocabulary knows; its live spelling is 'bedrock-live', and an unknown value refuses to load rather than being taken as a claim about the model",
+        "expected": "CassetteTampered",
+        "held": true,
+        "observed": "CassetteTampered: cassette does not declare a known provenance [path='<repo>/out/aws/agent-<redacted>.json', provenance='live']",
+        "probe": "provenance-forged"
+      },
+      {
+        "claim": "recording needs MAINLINE_RECALL_CASSETTE_MODE=record and MAINLINE_RECALL_ALLOW_NETWORK=1; with either cleared the recorder refuses to construct rather than quietly spending money",
+        "expected": "CassetteRecordingNotPermitted",
+        "held": true,
+        "observed": "CassetteRecordingNotPermitted: cassette recording additionally requires MAINLINE_RECALL_ALLOW_NETWORK=1; recording issues real, billable calls against live safety narratives",
+        "probe": "recording-locked"
+      },
+      {
+        "claim": "CassetteStore._read recomputes sha256(JCS(request)) only, so an edited RESPONSE loads without complaint. INDEX.json's response_sha256 is the layer that detects it, and test_live_cassettes.py recomputes the same hash for the agentkit store. Stated rather than patched: cassette.py's logic is out of scope for this worker.",
+        "expected": "loads at the store layer, mismatches at the index layer",
+        "held": true,
+        "observed": {
+          "edited_response_sha256": "af881a97c98c3f09df817e13b7b5fa8c92ef9073c680efd9f15bd24bfc9bd64e",
+          "index_layer_detects": true,
+          "recorded_response_sha256": "dec1ff8c3b9493f5d1130d1b931f18949d6258f3ef792c646ebb93c72b801e65",
+          "store_layer_raised": null
+        },
+        "probe": "response-edited"
+      }
+    ],
+    "tamper_verdict": "HELD",
+    "what_each_layer_catches": {
+      "gap_stated_plainly": "Neither store's loader hashes the RESPONSE. That is why both live stores ship an INDEX.json carrying response_sha256 and cassette_sha256, and why test_live_cassettes.py recomputes both. The loader is not being changed to close this: cassette.py's logic is out of scope for this worker and a silent behaviour change to a replay path is exactly the kind of edit that should arrive as its own reviewed commit.",
+      "mainline_agentkit.cassette.CassetteTransport": [
+        "prefix drift: the cassette was recorded against a rubric since edited",
+        "a miss: replay never falls through to a live call",
+        "a replay-mode store refuses to write at all"
+      ],
+      "mainline_recall_agent.providers.cassette.CassetteStore._read": [
+        "the request was edited (sha256(JCS(request)) != request_digest)",
+        "the file was renamed onto another digest",
+        "the provenance is outside the store's vocabulary",
+        "the schema string is not mainline.recall.cassette/1"
+      ],
+      "packages/mainline-agentkit/tests/cassettes_live/INDEX.json": [
+        "the filename is not what cassette_key() produces for the recorded input",
+        "the response or the cassette file was edited"
+      ],
+      "tests/fixtures/cassettes/recall_live/INDEX.json": [
+        "the response was edited (response_sha256 no longer recomputes)",
+        "a cassette was added or removed (count and per-entry cassette_sha256)"
+      ]
+    }
+  },
+  "region": "ap-southeast-2",
+  "synthetic": true
+}

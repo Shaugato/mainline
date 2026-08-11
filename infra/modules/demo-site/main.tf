@@ -2,13 +2,49 @@
 # SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
 #
 # ═══════════════════════════════════════════════════════════════════════════════════════
-#  `demo-site` — THE MODULE THAT PRODUCES THE URL
+#  `demo-site` — THE OPTIONAL CDN UPGRADE. IT NO LONGER PRODUCES THE DEMO URL.
 # ═══════════════════════════════════════════════════════════════════════════════════════
+#
+# ── READ THIS FIRST: THIS MODULE IS OPTIONAL AND OFF BY DEFAULT ────────────────────────
+#
+# It used to be the only thing in the repository that emitted the demo URL. It is not any
+# more, and the reason is a refusal from AWS rather than a change of mind. A real
+# `terraform apply` of `infra/envs/demo` on 2026-08-10 created seven resources and was
+# refused the eighth:
+#
+#     Error: creating CloudFront Distribution: operation error CloudFront:
+#     CreateDistributionWithTags, https response error StatusCode: 403,
+#     RequestID: 3e63e30d-8c5b-441b-a01b-b70085eba504, AccessDenied:
+#     Your account must be verified before you can add new CloudFront resources.
+#
+# The same refusal comes from a bare `aws cloudfront create-distribution`, from an identity
+# holding `AdministratorAccess`. It is an account-level verification hold on NEW CloudFront
+# resources, liftable only by AWS Support. Decision D1 (`docs/leads/ship-final.md` §1.4)
+# therefore moved the hostname to the Lambda Function URL in `../demo-api`, and this module
+# became the upgrade you apply the day the hold lifts.
+#
+# HOW ABSENCE IS EXPRESSED. `infra/envs/demo` instantiates this module with
+# `count = var.enable_cloudfront ? 1 : 0`, default `false`. NOTHING INSIDE THIS FILE HAS TO
+# CHANGE for that to work — a zero-count module is simply not expanded — but two things are
+# true of the caller and are stated here because a future caller will otherwise rediscover
+# them the hard way:
+#
+#   1. Every reference to this module's outputs must be INDEXED AND WRAPPED IN `try`:
+#      `try(module.site[0].distribution_arn, null)`. `module.site[0]` on a zero-count module
+#      is an INVALID INDEX — an error, not a null — and a splat `module.site[*].x` depends on
+#      the `module.site (close)` node, which every resource below feeds, which rebuilds the
+#      2026-08-10 dependency cycle in mirror image. See `infra/envs/demo/main.tf`'s header.
+#   2. `count` on the module may only key on a plain plan-time-known boolean, for the same
+#      reason `local.has_api` below may only key on `var.enable_api`.
+#
+# Everything from here down is unchanged, correct, and still planned on every run — see
+# `evidence/deploy/terraform-plan-cloudfront.txt`, where these ten resources appear.
 #
 # "Provide a URL to your functional demo app." — Stage One, pass/fail. There is no partial
 # credit and no second chance: a submission without a working URL is not judged on Agentic
-# Memory Design, or on anything else. This module is the only thing in the repository that
-# emits that URL, so it is written to fail loudly at plan time rather than subtly at 02:00.
+# Memory Design, or on anything else. That sentence is why this module was written to fail
+# loudly at plan time rather than subtly at 02:00, and it is now also why it is not on the
+# critical path.
 #
 # WHAT IT BUILDS
 #
@@ -118,7 +154,7 @@ locals {
   # "known after apply" is a value no gate can read off a plan, and a data source is an API
   # call and an IAM permission that can fail on the one day it matters.
   #
-  # Verified on account 022950218246, 2026-08-10, with:
+  # Verified against the live account on 2026-08-10 with:
   #   aws cloudfront list-cache-policies --type managed \
   #     --query "CachePolicyList.Items[].{Name:CachePolicy.CachePolicyConfig.Name,Id:CachePolicy.Id}"
   #   aws cloudfront list-origin-request-policies --type managed \

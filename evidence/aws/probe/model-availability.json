@@ -1,0 +1,233 @@
+{
+  "artefact": "evidence/aws/probe/model-availability.json",
+  "caveats": [
+    "a control-plane listing, read-only; it says what this account may invoke, not what it has invoked",
+    "inferenceTypesSupported is AWS's declaration; only bedrock-probe.json records what an actual invocation did"
+  ],
+  "generated_at": "2026-08-10T22:00:59Z",
+  "generated_by": "scripts/aws/probe_bedrock.py",
+  "kind": "bedrock-model-census",
+  "payload": {
+    "au_inference_profile_ids": [
+      "au.anthropic.claude-haiku-4-5-20251001-v1:0",
+      "au.anthropic.claude-opus-4-6-v1",
+      "au.anthropic.claude-opus-4-7",
+      "au.anthropic.claude-opus-4-8",
+      "au.anthropic.claude-opus-5",
+      "au.anthropic.claude-sonnet-4-5-20250929-v1:0",
+      "au.anthropic.claude-sonnet-4-6",
+      "au.anthropic.claude-sonnet-5"
+    ],
+    "au_inference_profiles": [
+      {
+        "inference_profile_id": "au.anthropic.claude-haiku-4-5-20251001-v1:0",
+        "models": [
+          "arn:aws:bedrock:ap-southeast-2::foundation-model/anthropic.claude-haiku-4-5-20251001-v1:0",
+          "arn:aws:bedrock:ap-southeast-4::foundation-model/anthropic.claude-haiku-4-5-20251001-v1:0"
+        ],
+        "name": "AU Anthropic Claude Haiku 4.5",
+        "routing_prefix": "au",
+        "status": "ACTIVE",
+        "type": "SYSTEM_DEFINED"
+      },
+      {
+        "inference_profile_id": "au.anthropic.claude-opus-4-6-v1",
+        "models": [
+          "arn:aws:bedrock:ap-southeast-2::foundation-model/anthropic.claude-opus-4-6-v1",
+          "arn:aws:bedrock:ap-southeast-4::foundation-model/anthropic.claude-opus-4-6-v1"
+        ],
+        "name": "AU Anthropic Claude Opus 4.6",
+        "routing_prefix": "au",
+        "status": "ACTIVE",
+        "type": "SYSTEM_DEFINED"
+      },
+      {
+        "inference_profile_id": "au.anthropic.claude-opus-4-7",
+        "models": [
+          "arn:aws:bedrock:ap-southeast-2::foundation-model/anthropic.claude-opus-4-7",
+          "arn:aws:bedrock:ap-southeast-4::foundation-model/anthropic.claude-opus-4-7"
+        ],
+        "name": "AU Anthropic Claude Opus 4.7",
+        "routing_prefix": "au",
+        "status": "ACTIVE",
+        "type": "SYSTEM_DEFINED"
+      },
+      {
+        "inference_profile_id": "au.anthropic.claude-opus-4-8",
+        "models": [
+          "arn:aws:bedrock:ap-southeast-2::foundation-model/anthropic.claude-opus-4-8",
+          "arn:aws:bedrock:ap-southeast-4::foundation-model/anthropic.claude-opus-4-8"
+        ],
+        "name": "AU Anthropic Claude Opus 4.8",
+        "routing_prefix": "au",
+        "status": "ACTIVE",
+        "type": "SYSTEM_DEFINED"
+      },
+      {
+        "inference_profile_id": "au.anthropic.claude-opus-5",
+        "models": [
+          "arn:aws:bedrock:ap-southeast-2::foundation-model/anthropic.claude-opus-5",
+          "arn:aws:bedrock:ap-southeast-4::foundation-model/anthropic.claude-opus-5"
+        ],
+        "name": "AU Anthropic Claude Opus 5",
+        "routing_prefix": "au",
+        "status": "ACTIVE",
+        "type": "SYSTEM_DEFINED"
+      },
+      {
+        "inference_profile_id": "au.anthropic.claude-sonnet-4-5-20250929-v1:0",
+        "models": [
+          "arn:aws:bedrock:ap-southeast-2::foundation-model/anthropic.claude-sonnet-4-5-20250929-v1:0",
+          "arn:aws:bedrock:ap-southeast-4::foundation-model/anthropic.claude-sonnet-4-5-20250929-v1:0"
+        ],
+        "name": "AU AU Anthropic Claude Sonnet 4.5",
+        "routing_prefix": "au",
+        "status": "ACTIVE",
+        "type": "SYSTEM_DEFINED"
+      },
+      {
+        "inference_profile_id": "au.anthropic.claude-sonnet-4-6",
+        "models": [
+          "arn:aws:bedrock:ap-southeast-2::foundation-model/anthropic.claude-sonnet-4-6",
+          "arn:aws:bedrock:ap-southeast-4::foundation-model/anthropic.claude-sonnet-4-6"
+        ],
+        "name": "AU Anthropic Claude Sonnet 4.6",
+        "routing_prefix": "au",
+        "status": "ACTIVE",
+        "type": "SYSTEM_DEFINED"
+      },
+      {
+        "inference_profile_id": "au.anthropic.claude-sonnet-5",
+        "models": [
+          "arn:aws:bedrock:ap-southeast-2::foundation-model/anthropic.claude-sonnet-5",
+          "arn:aws:bedrock:ap-southeast-4::foundation-model/anthropic.claude-sonnet-5"
+        ],
+        "name": "AU Anthropic Claude Sonnet 5",
+        "routing_prefix": "au",
+        "status": "ACTIVE",
+        "type": "SYSTEM_DEFINED"
+      }
+    ],
+    "embedding_models": [
+      {
+        "inference_types_supported": [
+          "ON_DEMAND"
+        ],
+        "input_modalities": [
+          "TEXT",
+          "IMAGE"
+        ],
+        "lifecycle": "ACTIVE",
+        "model_id": "amazon.titan-embed-image-v1",
+        "model_name": "Titan Multimodal Embeddings G1",
+        "output_modalities": [
+          "EMBEDDING"
+        ],
+        "provider": "Amazon",
+        "streaming": null
+      },
+      {
+        "inference_types_supported": [
+          "PROVISIONED"
+        ],
+        "input_modalities": [
+          "TEXT",
+          "IMAGE"
+        ],
+        "lifecycle": "ACTIVE",
+        "model_id": "amazon.titan-embed-image-v1:0",
+        "model_name": "Titan Multimodal Embeddings G1",
+        "output_modalities": [
+          "EMBEDDING"
+        ],
+        "provider": "Amazon",
+        "streaming": null
+      },
+      {
+        "inference_types_supported": [
+          "ON_DEMAND"
+        ],
+        "input_modalities": [
+          "TEXT"
+        ],
+        "lifecycle": "ACTIVE",
+        "model_id": "amazon.titan-embed-text-v2:0",
+        "model_name": "Titan Text Embeddings V2",
+        "output_modalities": [
+          "EMBEDDING"
+        ],
+        "provider": "Amazon",
+        "streaming": false
+      },
+      {
+        "inference_types_supported": [
+          "ON_DEMAND"
+        ],
+        "input_modalities": [
+          "TEXT"
+        ],
+        "lifecycle": "ACTIVE",
+        "model_id": "cohere.embed-english-v3",
+        "model_name": "Embed English",
+        "output_modalities": [
+          "EMBEDDING"
+        ],
+        "provider": "Cohere",
+        "streaming": false
+      },
+      {
+        "inference_types_supported": [
+          "ON_DEMAND"
+        ],
+        "input_modalities": [
+          "TEXT"
+        ],
+        "lifecycle": "ACTIVE",
+        "model_id": "cohere.embed-multilingual-v3",
+        "model_name": "Embed Multilingual",
+        "output_modalities": [
+          "EMBEDDING"
+        ],
+        "provider": "Cohere",
+        "streaming": false
+      },
+      {
+        "inference_types_supported": [
+          "INFERENCE_PROFILE"
+        ],
+        "input_modalities": [
+          "TEXT",
+          "IMAGE"
+        ],
+        "lifecycle": "ACTIVE",
+        "model_id": "cohere.embed-v4:0",
+        "model_name": "Embed v4",
+        "output_modalities": [
+          "EMBEDDING"
+        ],
+        "provider": "Cohere",
+        "streaming": false
+      }
+    ],
+    "embedding_models_inference_profile_only": [
+      "cohere.embed-v4:0"
+    ],
+    "embedding_models_on_demand_in_region": [
+      "amazon.titan-embed-image-v1",
+      "amazon.titan-embed-text-v2:0",
+      "cohere.embed-english-v3",
+      "cohere.embed-multilingual-v3"
+    ],
+    "foundation_models_total": 64,
+    "inference_profiles_by_routing_prefix": {
+      "apac": 8,
+      "au": 8,
+      "global": 13
+    },
+    "inference_profiles_total": 29,
+    "reading": "an embedding model listed only as INFERENCE_PROFILE cannot be invoked by its bare id; if no au.* profile exists for it, it cannot be invoked in-region at all, and that is a residency constraint rather than a benchmark footnote",
+    "region": "ap-southeast-2"
+  },
+  "region": "ap-southeast-2",
+  "synthetic": false
+}

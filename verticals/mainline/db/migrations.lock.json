@@ -23,7 +23,7 @@
   "files": 271,
   "rendered": 107,
   "authored": 164,
-  "counsel_gated": 30,
+  "counsel_gated": 31,
   "counsel_gated_undeclared": 0,
   "bands_occupied": 32
  },
@@ -2264,8 +2264,8 @@
     "I01",
     "I13"
    ],
-   "sha256": "18389d62af510528b81e7866245728591fa78b0ee6e5dc972e1fcba9a1c1a708",
-   "counsel_gated": false
+   "sha256": "a25d26ab7af5603266c4c661f8d8f835657d3d960aa6a95b24a116ff19b88b6e",
+   "counsel_gated": true
   },
   {
    "file": "0085_recall_policy_calibrator.sql",

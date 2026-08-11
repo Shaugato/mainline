@@ -57,6 +57,30 @@ before and after the transaction (``docs/deploy/gate-run-contract.md`` §3); thi
 both the flag and ``persistence_check.identical``, because a ``persisted: false`` beside a
 ``persistence_check.identical: false`` is a server contradicting itself and that is worth catching.
 
+AND THEN IT IS CHECKED AGAIN, FROM OUTSIDE, WITH A DIFFERENT ENDPOINT
+---------------------------------------------------------------------
+``persisted: false`` is the server's word about itself. So after each gate run this program reads
+``GET /v1/permits/{permit_id}`` — a different resource, a different code path, a different
+transaction — and compares ``counters.open_blocking``, ``state``, ``gate_epoch`` and ``head_seq``
+with what they were before. **If the four beats really rolled back, the committed permit is
+byte-identical afterwards.** That is the property ``evidence/deploy/lead/savepoint-probe-20260810
+.txt`` established by hand at the SQL layer; here it is established over HTTP by a caller with no
+credentials, which is the only version a judge can reproduce.
+
+A drift in ``open_blocking`` is the specific failure that would matter: the fourth beat signs a
+disposition, which closes the obligation and takes the counter to zero. If that survived the
+rollback, the second judge to press the button would see a permit that merges immediately and the
+demo would silently stop demonstrating anything.
+
+THE TARGET MAY BE AN EMULATOR, AND THE EVIDENCE SAYS SO IN ITS OWN FIELD
+-------------------------------------------------------------------------
+``scripts/deploy/local_furl.py`` serves the real handler over a local socket so the demo can be
+proven before ``terraform apply`` has ever run. It stamps ``X-Mainline-Emulator: local_furl`` on
+every response; this program reads that header and writes ``target_is_local_emulator: true`` into
+the evidence, with an advisory. A PROVEN verdict against the emulator is a true statement about
+the handler, the console bundle and the database — and **not** a statement that a public demo URL
+exists. Those two are different claims and the file keeps them apart.
+
 EXIT CODES
 ----------
 ``0`` proven · ``1`` reachable and wrong · ``2`` usage · ``3`` not reachable at all.
@@ -76,6 +100,7 @@ import sys
 import time
 import urllib.error
 import urllib.request
+from collections.abc import Mapping
 from pathlib import Path
 from typing import Any, Final
 from urllib.parse import urljoin, urlsplit
@@ -140,6 +165,24 @@ EXPECTED_BEATS: Final[tuple[dict[str, Any], ...]] = (
         ),
     },
 )
+
+#: The permit fields that MUST NOT MOVE across two gate runs. Read from
+#: ``GET /v1/permits/{permit_id}`` — a different endpoint from the one under test — and compared
+#: with the same four fields as the gate run reported for its own subject before it started.
+#:
+#: ``open_blocking`` is the one that carries the argument. Beat 4 signs a disposition against the
+#: open obligation, which closes it; if the transaction did not roll back, this reads 0 afterwards
+#: and every subsequent judge sees a permit that merges with no refusal at all.
+PERMIT_INVARIANT_FIELDS: Final[tuple[str, ...]] = (
+    "open_blocking",
+    "state",
+    "gate_epoch",
+    "head_seq",
+)
+
+#: Set by ``scripts/deploy/local_furl.py`` on every response. Its presence means the target is a
+#: local emulator of a Lambda Function URL and NOT a deployed demo.
+EMULATOR_HEADER: Final = "x-mainline-emulator"
 
 #: Excluded from the two-run comparison, and named in the evidence so the exclusion is auditable.
 VOLATILE_FIELDS: Final[tuple[str, ...]] = (
@@ -276,6 +319,63 @@ def stable_projection(data: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def permit_snapshot_from_read(payload: dict[str, Any]) -> dict[str, Any]:
+    """The four invariant fields, out of a ``GET /v1/permits/{id}`` envelope."""
+    data = payload.get("data", payload)
+    counters = data.get("counters") or {}
+    return {
+        "permit_id": data.get("permit_id"),
+        "open_blocking": counters.get("open_blocking"),
+        "state": data.get("state"),
+        "gate_epoch": data.get("gate_epoch"),
+        "head_seq": data.get("head_seq"),
+    }
+
+
+def permit_snapshot_from_subject(subject: dict[str, Any]) -> dict[str, Any]:
+    """The same four fields, out of a gate run's ``subject`` block.
+
+    ``scenario.ResolvedScenario.as_json`` reads them in ONE statement at the top of the run,
+    before any beat has executed, so this is a legitimate "before" even though it arrives inside
+    the payload of the thing being measured. It is labelled as such in the evidence.
+    """
+    return {
+        "permit_id": subject.get("subject_id"),
+        "open_blocking": subject.get("open_blocking"),
+        "state": subject.get("state"),
+        "gate_epoch": subject.get("gate_epoch"),
+        "head_seq": subject.get("head_seq"),
+    }
+
+
+def payload_target_is_emulator(evidence: Mapping[str, Any]) -> bool:
+    """Whether this run was taken against ``scripts/deploy/local_furl.py``."""
+    return bool(evidence.get("target_is_local_emulator"))
+
+
+def describe_error_body(response: Fetched) -> str:
+    """Name what a non-2xx said, not merely that it was not 200.
+
+    The API's error contract is ``{"error": {"kind", "status", "detail", …}}`` and the detail is
+    where the SQLSTATE lives. A failure line that reports only the status sends whoever reads it
+    to the server logs to learn what this response already told them.
+    """
+    try:
+        body = response.json()
+    except Exception:  # noqa: BLE001 - a non-JSON body is reported as its own first line
+        text = response.body[:200].decode("utf-8", "replace").strip()
+        return f" body: {text!r}" if text else ""
+    error = body.get("error") if isinstance(body, dict) else None
+    if isinstance(error, dict):
+        parts = [str(error.get("kind"))]
+        if error.get("resource"):
+            parts.append(f"resource={error['resource']}")
+        if error.get("detail"):
+            parts.append(str(error["detail"])[:300])
+        return " — " + " · ".join(p for p in parts if p and p != "None")
+    return f" body: {json.dumps(body)[:300]}"
+
+
 def check_beats(data: dict[str, Any]) -> tuple[list[dict[str, Any]], list[str]]:
     """Assert the four beats verbatim. Returns ``(recorded, failures)``."""
     failures: list[str] = []
@@ -374,6 +474,22 @@ def phase2(  # noqa: PLR0912, PLR0915 - one branch per assertion, and the assert
     # ── 1. the console ───────────────────────────────────────────────────────────────────
     console = fetch(base, timeout=args.timeout, insecure=args.insecure)
     evidence["checks"]["console"] = console.summary()
+
+    # WHO ANSWERED. Declared before any assertion, because a PROVEN verdict against the local
+    # emulator and a PROVEN verdict against a deployed Function URL are different claims and
+    # only one of them can go in the submission form.
+    emulator = console.headers.get(EMULATOR_HEADER)
+    evidence["target_is_local_emulator"] = bool(emulator)
+    if emulator:
+        evidence["emulator"] = emulator
+        evidence["checks"]["console"][EMULATOR_HEADER] = emulator
+        advisories.append(
+            f"the target answered with {EMULATOR_HEADER}: {emulator}. This run was taken against "
+            "scripts/deploy/local_furl.py — the REAL demo-api handler and the REAL console "
+            "bundle, over a local socket, against the database named under /v1/health. It proves "
+            "the handler, the site and the gate. It does NOT prove that a public demo URL "
+            "exists; docs/submission/SUBMISSION.json holds UNRESOLVED until one does."
+        )
     if console.status == 0:
         failures.append(f"the demo URL is not reachable at all: {console.error}")
         return evidence, failures
@@ -437,10 +553,38 @@ def phase2(  # noqa: PLR0912, PLR0915 - one branch per assertion, and the assert
                     "fingerprint above is the trustworthy identifier; this counter is not."
                 )
 
-    # ── 3 and 4. the gate, twice ─────────────────────────────────────────────────────────
+    # ── 3. the permit, BEFORE anything is driven ─────────────────────────────────────────
+    # Only when a permit id was supplied. Without one the "before" comes from run 1's own
+    # `subject` block, which the server reads in a single statement before the first beat — see
+    # `permit_snapshot_from_subject`. Both provenances are recorded by name.
+    snapshots: list[dict[str, Any]] = []
+    permit_id: str | None = args.permit_id or None
+    if permit_id:
+        pre = fetch(
+            urljoin(base, f"/v1/permits/{permit_id}"), timeout=args.timeout, insecure=args.insecure
+        )
+        if pre.status == 200:
+            try:
+                snapshots.append(
+                    {
+                        "when": "before_run_1",
+                        "source": f"GET /v1/permits/{permit_id}",
+                        **permit_snapshot_from_read(pre.json()),
+                    }
+                )
+            except Exception as exc:  # noqa: BLE001
+                failures.append(f"GET /v1/permits/{permit_id} did not return JSON: {exc}")
+        else:
+            failures.append(
+                f"GET /v1/permits/{permit_id} returned {pre.status}, expected 200"
+                f"{describe_error_body(pre)}"
+            )
+
+    # ── 4 and 5. the gate, twice, with the permit re-read after each ─────────────────────
     runs: list[dict[str, Any]] = []
     projections: list[dict[str, Any]] = []
     digests: list[str | None] = []
+    observed: list[dict[str, Any]] = []
     for index in (1, 2):
         response = fetch(
             urljoin(base, "/v1/demo/gate-run"),
@@ -454,6 +598,7 @@ def phase2(  # noqa: PLR0912, PLR0915 - one branch per assertion, and the assert
             record["body"] = response.body[:600].decode("utf-8", "replace")
             failures.append(
                 f"POST /v1/demo/gate-run (run {index}) returned {response.status}, expected 200"
+                f"{describe_error_body(response)}"
             )
             runs.append(record)
             continue
@@ -518,9 +663,66 @@ def phase2(  # noqa: PLR0912, PLR0915 - one branch per assertion, and the assert
         merge_record = ((admit or {}).get("observed") or {}).get("merge_record") or {}
         digests.append(merge_record.get("clearance_digest"))
         projections.append(stable_projection(data))
+
+        # THE FOUR SQLSTATES, VERBATIM, flattened so a reader — or a grep — finds them without
+        # walking the envelope. Nothing here is composed: every value is the driver's.
+        for beat in beats:
+            if beat.get("present"):
+                observed.append(
+                    {
+                        "run": index,
+                        "ordinal": beat.get("ordinal"),
+                        "name": beat.get("name"),
+                        "outcome": beat.get("outcome"),
+                        "sqlstate": beat.get("sqlstate"),
+                        "constraint": beat.get("constraint"),
+                        "constraint_source": beat.get("constraint_source"),
+                    }
+                )
+
+        subject = data.get("subject") or {}
+        if index == 1 and not snapshots and subject:
+            snapshots.append(
+                {
+                    "when": "before_run_1",
+                    "source": (
+                        "run 1's own subject block, read by the server in one statement before "
+                        "the first beat"
+                    ),
+                    **permit_snapshot_from_subject(subject),
+                }
+            )
+        if permit_id is None:
+            permit_id = subject.get("subject_id")
+
+        # Re-read the permit from a DIFFERENT endpoint, in a DIFFERENT transaction. This is the
+        # part the server cannot fake by setting a flag in its own payload.
+        if permit_id:
+            after = fetch(
+                urljoin(base, f"/v1/permits/{permit_id}"),
+                timeout=args.timeout,
+                insecure=args.insecure,
+            )
+            if after.status == 200:
+                try:
+                    snapshots.append(
+                        {
+                            "when": f"after_run_{index}",
+                            "source": f"GET /v1/permits/{permit_id}",
+                            **permit_snapshot_from_read(after.json()),
+                        }
+                    )
+                except Exception as exc:  # noqa: BLE001
+                    failures.append(f"GET /v1/permits/{permit_id} did not return JSON: {exc}")
+            else:
+                failures.append(
+                    f"GET /v1/permits/{permit_id} after run {index} returned {after.status}, "
+                    f"expected 200{describe_error_body(after)}"
+                )
         runs.append(record)
 
     evidence["checks"]["gate_runs"] = runs
+    evidence["observed_sqlstates"] = observed
 
     # ── the concurrency claim ────────────────────────────────────────────────────────────
     if len(projections) == 2:
@@ -551,6 +753,47 @@ def phase2(  # noqa: PLR0912, PLR0915 - one branch per assertion, and the assert
             "fewer than two gate runs completed, so repeatability — the property that makes "
             "this demo safe for concurrent judges — was NOT established"
         )
+
+    # ── the rollback claim, checked from outside ─────────────────────────────────────────
+    invariant: dict[str, Any] = {
+        "fields": list(PERMIT_INVARIANT_FIELDS),
+        "permit_id": permit_id,
+        "snapshots": snapshots,
+        "why": (
+            "the four beats run inside ONE transaction that is rolled back. If that is true, the "
+            "committed permit is unchanged afterwards, and open_blocking in particular is still 1 "
+            "rather than the 0 the signed disposition would leave behind."
+        ),
+    }
+    if len(snapshots) >= 2:
+        first = snapshots[0]
+        last = snapshots[-1]
+        moved = [f for f in PERMIT_INVARIANT_FIELDS if first.get(f) != last.get(f)]
+        invariant["unchanged"] = not moved
+        invariant["moved_fields"] = moved
+        invariant["compared"] = f"{first['when']} vs {last['when']}"
+        for field in moved:
+            failures.append(
+                f"the seeded permit's {field} moved from {first.get(field)!r} ({first['when']}) to "
+                f"{last.get(field)!r} ({last['when']}). The gate run's transaction did NOT roll "
+                "back, so the demo changes state under a judge and the next one sees a different "
+                "permit."
+            )
+        ids = {s.get("permit_id") for s in snapshots if s.get("permit_id")}
+        if len(ids) > 1:
+            invariant["unchanged"] = False
+            failures.append(
+                f"the permit snapshots do not all describe one subject: {sorted(ids)}. Nothing can "
+                "be concluded about persistence from readings of different rows."
+            )
+    else:
+        invariant["unchanged"] = None
+        failures.append(
+            "the seeded permit could not be read before and after the gate runs, so the claim "
+            "that nothing persists was NOT established from outside. Only the server's own "
+            "persisted flag was available, and that is the claim under test."
+        )
+    evidence["checks"]["permit_invariant"] = invariant
     return evidence, failures
 
 
@@ -561,6 +804,7 @@ def phase1(args: argparse.Namespace, base: str) -> tuple[dict[str, Any], list[st
 
     console = fetch(base, timeout=args.timeout, insecure=args.insecure)
     evidence["checks"]["console"] = console.summary()
+    evidence["target_is_local_emulator"] = bool(console.headers.get(EMULATOR_HEADER))
     if console.status == 0:
         failures.append(f"the demo URL is not reachable at all: {console.error}")
         return evidence, failures
@@ -639,7 +883,31 @@ def main(argv: list[str] | None = None) -> int:  # noqa: PLR0912, PLR0915 - argu
             "cluster, and drives the gate through refusal and admission without persisting."
         ),
     )
-    parser.add_argument("url", help="the public demo URL, e.g. https://dXXXXXXXX.cloudfront.net")
+    # TWO SPELLINGS OF ONE ARGUMENT, AND THAT IS DELIBERATE. The positional is what
+    # `deploy.sh` has always passed. `--url` is what CI, the health lane and the orchestrator's
+    # post-apply run pass, so the same program is pointed at the local emulator today and at
+    # `https://<id>.lambda-url.ap-southeast-1.on.aws` after the apply WITH NO CODE CHANGE — the
+    # target is an argument, never a constant in this file.
+    parser.add_argument(
+        "url",
+        nargs="?",
+        default=None,
+        help="the demo URL, e.g. https://<id>.lambda-url.ap-southeast-1.on.aws",
+    )
+    parser.add_argument(
+        "--url",
+        dest="url_flag",
+        default=None,
+        help="the same value as the positional argument; use whichever reads better",
+    )
+    parser.add_argument(
+        "--permit-id",
+        default="",
+        help=(
+            "read GET /v1/permits/<id> BEFORE the first gate run as well as after each one. "
+            "Without it the 'before' reading comes from run 1's own subject block."
+        ),
+    )
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument(
         "--phase1",
@@ -658,7 +926,11 @@ def main(argv: list[str] | None = None) -> int:  # noqa: PLR0912, PLR0915 - argu
     )
     parser.add_argument(
         "--bundle-path",
-        default="fixtures/bundles/demo-cloud/manifest.json",
+        # `console/src/app/composition.tsx` resolves `./bundle/` against the document, and
+        # `static_site.ASSET_PREFIXES` serves `/bundle/` as files rather than as SPA routes. So
+        # the deployed manifest is at `/bundle/manifest.json`, not under `fixtures/`, which was
+        # the repository path the console builds FROM.
+        default="bundle/manifest.json",
         help="path to the EvidenceBundle manifest, relative to the demo URL (phase 1)",
     )
     parser.add_argument(
@@ -681,6 +953,22 @@ def main(argv: list[str] | None = None) -> int:  # noqa: PLR0912, PLR0915 - argu
         ),
     )
     args = parser.parse_args(argv)
+
+    if args.url and args.url_flag and args.url != args.url_flag:
+        print(
+            f"demo_acceptance: two different URLs were given, {args.url!r} positionally and "
+            f"{args.url_flag!r} with --url. Refusing to guess which one the evidence should name.",
+            file=sys.stderr,
+        )
+        return EXIT_USAGE
+    args.url = args.url_flag or args.url
+    if not args.url:
+        print(
+            "demo_acceptance: no URL. Pass one positionally or with --url. There is no default: "
+            "a prover with a built-in target proves something about the target it remembered.",
+            file=sys.stderr,
+        )
+        return EXIT_USAGE
 
     scheme = urlsplit(args.url).scheme
     if scheme not in ("http", "https"):
@@ -721,7 +1009,11 @@ def main(argv: list[str] | None = None) -> int:  # noqa: PLR0912, PLR0915 - argu
         "failures": failures,
         "total_ms": total_ms,
         "reachable": reachable,
+        # Always present, so "was this a deployment or an emulator?" is answered by a field
+        # rather than by the absence of one. `evidence` overwrites it with the measured value.
+        "target_is_local_emulator": False,
         "volatile_fields": list(VOLATILE_FIELDS),
+        "permit_invariant_fields": list(PERMIT_INVARIANT_FIELDS),
         "expected_beats": list(EXPECTED_BEATS),
         **evidence,
     }
@@ -767,6 +1059,20 @@ def main(argv: list[str] | None = None) -> int:  # noqa: PLR0912, PLR0915 - argu
         repeat = evidence["checks"].get("repeatability")
         if repeat:
             print(f"REPEATABLE    {repeat['identical']}  (stable projection of two runs)")
+        invariant = evidence["checks"].get("permit_invariant")
+        if invariant:
+            print(
+                f"UNCHANGED     {invariant.get('unchanged')}  "
+                f"({invariant.get('compared', 'not compared')})"
+            )
+            for snapshot in invariant.get("snapshots", []):
+                print(
+                    f"  {snapshot['when']:14} open_blocking={snapshot.get('open_blocking')} "
+                    f"state={snapshot.get('state')} gate_epoch={snapshot.get('gate_epoch')} "
+                    f"head_seq={snapshot.get('head_seq')}"
+                )
+        if payload_target_is_emulator(evidence):
+            print("TARGET        LOCAL EMULATOR (x-mainline-emulator) — not a deployed demo URL")
     else:
         bundle = evidence["checks"].get("bundle", {})
         print(

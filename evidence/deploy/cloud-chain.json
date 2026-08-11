@@ -9,7 +9,7 @@
     "version": "CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)"
   },
   "fingerprint_source": "trappoint_migrate.fingerprint (stable, double-computed)",
-  "tree_fingerprint": "fe27b6208d2281929a9d3c554e4612ac7453bd8f30ae9679ddbe2da7db7a1a15",
+  "tree_fingerprint": "e1135b40fab0f5100420dbd449204514f646ba4fc9682ac09e616676566a1e39",
   "zone": {
     "requested": 4500,
     "accepted": true,
@@ -2926,6 +2926,740 @@
       "tree_fingerprint": "fe27b6208d2281929a9d3c554e4612ac7453bd8f30ae9679ddbe2da7db7a1a15",
       "live_fingerprint": "06b0ad843fec829ed89d1ccecddc05415fa0b29fd5d7c13183d54f38ce24a79b",
       "note": "Re-ran the deploy against a database that already matched its marker. No migration was applied and nothing changed."
+    },
+    {
+      "at_utc": "2026-08-11T01:01:18Z",
+      "outcome": "unchanged",
+      "seconds": 20.4,
+      "zone": {
+        "requested": 4500,
+        "accepted": true,
+        "observed": 4500
+      },
+      "database_selection": {
+        "requested": "mainline_demo",
+        "confirmed_by_server": "mainline_demo",
+        "matches": true,
+        "dsn_path_segment": "defaultdb",
+        "selected_how": "substituted into the DSN by name and verified with SELECT current_database(); the DSN's own path segment is never trusted"
+      },
+      "tree_fingerprint": "e1135b40fab0f5100420dbd449204514f646ba4fc9682ac09e616676566a1e39",
+      "live_fingerprint": "06b0ad843fec829ed89d1ccecddc05415fa0b29fd5d7c13183d54f38ce24a79b",
+      "note": "Re-ran the deploy against a database that already matched its marker. No migration was applied and nothing changed."
+    },
+    {
+      "at_utc": "2026-08-11T01:25:24Z",
+      "outcome": "unchanged",
+      "seconds": 21.3,
+      "zone": {
+        "requested": 4500,
+        "accepted": true,
+        "observed": 4500
+      },
+      "database_selection": {
+        "requested": "mainline_demo",
+        "confirmed_by_server": "mainline_demo",
+        "matches": true,
+        "dsn_path_segment": "defaultdb",
+        "selected_how": "substituted into the DSN by name and verified with SELECT current_database(); the DSN's own path segment is never trusted"
+      },
+      "tree_fingerprint": "e1135b40fab0f5100420dbd449204514f646ba4fc9682ac09e616676566a1e39",
+      "live_fingerprint": "06b0ad843fec829ed89d1ccecddc05415fa0b29fd5d7c13183d54f38ce24a79b",
+      "note": "Re-ran the deploy against a database that already matched its marker. No migration was applied and nothing changed."
+    }
+  ],
+  "reattestation": {
+    "why": "The migration tree's text changed. Rather than drop a database judges are pointed at, the current tree was applied in full to a separate database on the same cluster and the two live schemas compared.",
+    "how_the_comparison_is_made": "NOT by comparing live fingerprints across databases \u2014 that can never succeed. CockroachDB renders fully-qualified names into SHOW CREATE, pg_get_functiondef and pg_get_triggerdef, so the fingerprint embeds the database name; and the SQL pretty-printer wraps on line width, so the name's LENGTH changes where a long JOIN clause breaks. Measured, by controlled experiment: identical DDL in databases named with 12 and 34 characters renders differently. So the verification database is given a name of exactly the same length, the name is replaced by a placeholder in every rendered definition, the five parts are sorted, and THOSE are compared.",
+    "verification_database": "mainline__vfy",
+    "verification_database_name_length_matches": true,
+    "tree_fingerprint_recorded": "fe27b6208d2281929a9d3c554e4612ac7453bd8f30ae9679ddbe2da7db7a1a15",
+    "tree_fingerprint_now": "e1135b40fab0f5100420dbd449204514f646ba4fc9682ac09e616676566a1e39",
+    "live_fingerprint_recorded_by_marker": "06b0ad843fec829ed89d1ccecddc05415fa0b29fd5d7c13183d54f38ce24a79b",
+    "live_fingerprint_of_target_now": "06b0ad843fec829ed89d1ccecddc05415fa0b29fd5d7c13183d54f38ce24a79b",
+    "live_fingerprint_of_verification_build": "8cc42e844d80e8f2ad4aea75a2c1ac67723da02350d2317fcdb00fb66d01d955",
+    "target_undrifted_since_it_was_built": true,
+    "normalised_snapshot_digest_target": "54985c1f5239c960e1ab87de24f90a8227ea39dbe8786eefcab4addfefc094e5",
+    "normalised_snapshot_digest_verification": "54985c1f5239c960e1ab87de24f90a8227ea39dbe8786eefcab4addfefc094e5",
+    "schema_entries_compared": 406,
+    "parts_that_differ": [],
+    "current_tree_builds_this_exact_schema": true,
+    "all_three_identical": true,
+    "chain": {
+      "files": 271,
+      "applied": 271,
+      "failed": 0,
+      "files_that_needed_a_retry": 0,
+      "files_with_injected_retries": 0,
+      "connection_reconnects": 0,
+      "chain_seconds": 356.5,
+      "bootstrap": {
+        "ok": true,
+        "how": "trappoint.exe migrate bootstrap",
+        "returncode": 0,
+        "stdout": "bootstrapped: schema, schema_migration, schema_lock, schema_attestation, genesis attestation",
+        "stderr": "",
+        "seconds": 8.1
+      },
+      "zone": {
+        "requested": 4500,
+        "accepted": true,
+        "observed": 4500
+      },
+      "retried_files": [],
+      "failures": [],
+      "failures_by_missing_object": {},
+      "slowest": [
+        {
+          "file": "0085_recall_policy_calibrator.sql",
+          "seconds": 8.356,
+          "attempts": 1,
+          "sqlstate": "00000",
+          "error": null,
+          "injected_40001": 0,
+          "attribution": {
+            "kind": "applied"
+          }
+        },
+        {
+          "file": "0180_disposition_peer_visible.sql",
+          "seconds": 6.872,
+          "attempts": 1,
+          "sqlstate": "00000",
+          "error": null,
+          "injected_40001": 0,
+          "attribution": {
+            "kind": "applied"
+          }
+        },
+        {
+          "file": "0029a_clause_version_trgm.sql",
+          "seconds": 5.518,
+          "attempts": 1,
+          "sqlstate": "00000",
+          "error": null,
+          "injected_40001": 0,
+          "attribution": {
+            "kind": "applied"
+          }
+        },
+        {
+          "file": "0065a_predicate_watch_set_index.sql",
+          "seconds": 5.201,
+          "attempts": 1,
+          "sqlstate": "00000",
+          "error": null,
+          "injected_40001": 0,
+          "attribution": {
+            "kind": "applied"
+          }
+        },
+        {
+          "file": "0058a_bc_open_index.sql",
+          "seconds": 5.076,
+          "attempts": 1,
+          "sqlstate": "00000",
+          "error": null,
+          "injected_40001": 0,
+          "attribution": {
+            "kind": "applied"
+          }
+        },
+        {
+          "file": "0066a_one_live_disposition.sql",
+          "seconds": 5.036,
+          "attempts": 1,
+          "sqlstate": "00000",
+          "error": null,
+          "injected_40001": 0,
+          "attribution": {
+            "kind": "applied"
+          }
+        },
+        {
+          "file": "0058b_bc_open_cr_index.sql",
+          "seconds": 4.986,
+          "attempts": 1,
+          "sqlstate": "00000",
+          "error": null,
+          "injected_40001": 0,
+          "attribution": {
+            "kind": "applied"
+          }
+        },
+        {
+          "file": "0050a_permit_scope_index.sql",
+          "seconds": 4.973,
+          "attempts": 1,
+          "sqlstate": "00000",
+          "error": null,
+          "injected_40001": 0,
+          "attribution": {
+            "kind": "applied"
+          }
+        },
+        {
+          "file": "0023_signing_credential_index.sql",
+          "seconds": 4.922,
+          "attempts": 1,
+          "sqlstate": "00000",
+          "error": null,
+          "injected_40001": 0,
+          "attribution": {
+            "kind": "applied"
+          }
+        },
+        {
+          "file": "0071d_refusal_ledger_index.sql",
+          "seconds": 4.866,
+          "attempts": 1,
+          "sqlstate": "00000",
+          "error": null,
+          "injected_40001": 0,
+          "attribution": {
+            "kind": "applied"
+          }
+        },
+        {
+          "file": "0199_exposure_receipt_fk_silence.sql",
+          "seconds": 2.164,
+          "attempts": 1,
+          "sqlstate": "00000",
+          "error": null,
+          "injected_40001": 0,
+          "attribution": {
+            "kind": "applied"
+          }
+        },
+        {
+          "file": "0149b_trg_person_measure_policy_append_only.sql",
+          "seconds": 2.137,
+          "attempts": 1,
+          "sqlstate": "00000",
+          "error": null,
+          "injected_40001": 0,
+          "attribution": {
+            "kind": "applied"
+          }
+        },
+        {
+          "file": "0071b_epoch_pin_cr.sql",
+          "seconds": 2.131,
+          "attempts": 1,
+          "sqlstate": "00000",
+          "error": null,
+          "injected_40001": 0,
+          "attribution": {
+            "kind": "applied"
+          }
+        },
+        {
+          "file": "0071a_epoch_pin_permit.sql",
+          "seconds": 2.093,
+          "attempts": 1,
+          "sqlstate": "00000",
+          "error": null,
+          "injected_40001": 0,
+          "attribution": {
+            "kind": "applied"
+          }
+        },
+        {
+          "file": "0086a_recall_policy_thymogate_fk.sql",
+          "seconds": 2.046,
+          "attempts": 1,
+          "sqlstate": "00000",
+          "error": null,
+          "injected_40001": 0,
+          "attribution": {
+            "kind": "applied"
+          }
+        }
+      ],
+      "verdict": "APPLIED"
+    },
+    "marker_updated": "trappoint.deploy_chain.tree_fingerprint now names the current tree. files / applied / failed / retried / applied_at were NOT touched: they record how this database was BUILT, and re-dating them would be a lie about a six-minute apply that did not happen to it.",
+    "verification_database_dropped": {
+      "database": "mainline__vfy",
+      "ok": true
+    },
+    "at_utc": "2026-08-11T00:47:12Z",
+    "verdict": "REATTESTED \u2014 the current tree builds this exact schema"
+  },
+  "last_verified_at_utc": "2026-08-11T01:25:24Z",
+  "retry_proof": {
+    "at_utc": "2026-08-11T01:19:32Z",
+    "jitter_seed": 40001,
+    "database_selection": {
+      "requested": "mainline_demo",
+      "confirmed_by_server": "mainline_demo",
+      "matches": true,
+      "dsn_path_segment": "defaultdb",
+      "selected_how": "substituted into the DSN by name and verified with SELECT current_database(); the DSN's own path segment is never trusted"
+    },
+    "what_this_is": "The 40001 retry loop, made to fire. Every Cloud chain run so far has reported files_that_needed_a_retry = 0, which proves the loop was not needed, not that it works. These three cases inject psycopg.errors.SerializationFailure BEFORE the statement reaches the server \u2014 so no partial work is done and the recovery is the loop's alone \u2014 and record what the loop did about it.",
+    "injected_by": "scripts/deploy/cloud_chain.py --inject-40001 (InjectedSerializationFailure)",
+    "not_a_cluster_event": "These 40001s were raised by this program. The cluster did not produce them. No number in this file's `files_that_needed_a_retry` comes from here.",
+    "max_attempts": 6,
+    "backoff": "equal jitter: attempt n waits between 50% and 100% of min(0.25 * 2^(n-1), 4.0) seconds",
+    "retryable_sqlstate": "40001",
+    "cases": [
+      {
+        "case": "recovers",
+        "statement": "SELECT 1",
+        "injected_40001": 2,
+        "attempts": 3,
+        "sqlstate": "00000",
+        "error": null,
+        "waits_seconds": [
+          0.234,
+          0.292
+        ],
+        "backoff_seconds": 0.526,
+        "elapsed_seconds": 0.753,
+        "trail": [
+          {
+            "attempt": 1,
+            "sqlstate": "40001",
+            "raised": "InjectedSerializationFailure",
+            "retryable": true,
+            "action": "retry",
+            "waited_seconds": 0.234
+          },
+          {
+            "attempt": 2,
+            "sqlstate": "40001",
+            "raised": "InjectedSerializationFailure",
+            "retryable": true,
+            "action": "retry",
+            "waited_seconds": 0.292
+          },
+          {
+            "attempt": 3,
+            "sqlstate": "00000",
+            "action": "applied"
+          }
+        ],
+        "expected": "2 injected failures, then success on attempt 3",
+        "held": true
+      },
+      {
+        "case": "bounded",
+        "statement": "SELECT 1",
+        "injected_40001": 6,
+        "attempts": 6,
+        "sqlstate": "40001",
+        "error": "injected by scripts/deploy/cloud_chain.py --inject-40001: simulated TransactionRetryError: retry txn (RETRY_SERIALIZABLE - failed preemptive refresh)",
+        "waits_seconds": [
+          0.192,
+          0.379,
+          0.755,
+          1.984,
+          2.795
+        ],
+        "backoff_seconds": 6.105,
+        "elapsed_seconds": 6.107,
+        "trail": [
+          {
+            "attempt": 1,
+            "sqlstate": "40001",
+            "raised": "InjectedSerializationFailure",
+            "retryable": true,
+            "action": "retry",
+            "waited_seconds": 0.192
+          },
+          {
+            "attempt": 2,
+            "sqlstate": "40001",
+            "raised": "InjectedSerializationFailure",
+            "retryable": true,
+            "action": "retry",
+            "waited_seconds": 0.379
+          },
+          {
+            "attempt": 3,
+            "sqlstate": "40001",
+            "raised": "InjectedSerializationFailure",
+            "retryable": true,
+            "action": "retry",
+            "waited_seconds": 0.755
+          },
+          {
+            "attempt": 4,
+            "sqlstate": "40001",
+            "raised": "InjectedSerializationFailure",
+            "retryable": true,
+            "action": "retry",
+            "waited_seconds": 1.984
+          },
+          {
+            "attempt": 5,
+            "sqlstate": "40001",
+            "raised": "InjectedSerializationFailure",
+            "retryable": true,
+            "action": "retry",
+            "waited_seconds": 2.795
+          },
+          {
+            "attempt": 6,
+            "sqlstate": "40001",
+            "raised": "InjectedSerializationFailure",
+            "retryable": true,
+            "action": "give_up"
+          }
+        ],
+        "expected": "gives up after MAX_ATTEMPTS=6 and reports 40001, having waited 5 times",
+        "held": true
+      },
+      {
+        "case": "not_retryable",
+        "statement": "SELECT 1 FROM mainline.no_such_relation_retry_probe",
+        "injected_40001": 0,
+        "attempts": 1,
+        "sqlstate": "42P01",
+        "error": "relation \"mainline.no_such_relation_retry_probe\" does not exist",
+        "waits_seconds": [],
+        "backoff_seconds": 0,
+        "elapsed_seconds": 0.233,
+        "trail": [
+          {
+            "attempt": 1,
+            "sqlstate": "42P01",
+            "raised": "UndefinedTable",
+            "retryable": false,
+            "action": "not_retryable"
+          }
+        ],
+        "expected": "a real 42P01 from the server, attempted once, not retried",
+        "held": true
+      }
+    ],
+    "verdict": "RETRY LOOP PROVEN"
+  },
+  "refusals": [
+    {
+      "at_utc": "2026-08-11T00:30:39Z",
+      "by": "scripts/deploy/cloud_chain.py",
+      "reason": "the migration tree has changed since this database was built (tree fe27b6208d228192 recorded, e1135b40fab0f510 now). Migration files are forward-only and are not written IF NOT EXISTS, so replaying them over a live database says nothing. Nothing was changed. Use --recreate.",
+      "tree_fingerprint_on_disk": "e1135b40fab0f5100420dbd449204514f646ba4fc9682ac09e616676566a1e39",
+      "database_selection": {
+        "requested": "mainline_demo",
+        "confirmed_by_server": "mainline_demo",
+        "matches": true,
+        "dsn_path_segment": "defaultdb",
+        "selected_how": "substituted into the DSN by name and verified with SELECT current_database(); the DSN's own path segment is never trusted"
+      }
+    }
+  ],
+  "tree_fingerprint_when_applied": "fe27b6208d2281929a9d3c554e4612ac7453bd8f30ae9679ddbe2da7db7a1a15",
+  "verification_builds": [
+    {
+      "why": "Re-measurement on demand. The current tree was applied IN FULL to a separate database on mainline-dev-31219.j77.aws-ap-southeast-1.cockroachlabs.cloud:26257/defaultdb, so that 'the chain still applies to this cluster' is a number taken today rather than one copied out of an older file. The target database was read and never written; no marker moved.",
+      "how_the_comparison_is_made": "NOT by comparing live fingerprints across databases \u2014 that can never succeed. CockroachDB renders fully-qualified names into SHOW CREATE, pg_get_functiondef and pg_get_triggerdef, so the fingerprint embeds the database name; and the SQL pretty-printer wraps on line width, so the name's LENGTH changes where a long JOIN clause breaks. Measured, by controlled experiment: identical DDL in databases named with 12 and 34 characters renders differently. So the verification database is given a name of exactly the same length, the name is replaced by a placeholder in every rendered definition, the five parts are sorted, and THOSE are compared.",
+      "verification_database": "mainline__vfy",
+      "verification_database_name_length_matches": true,
+      "tree_fingerprint_recorded": "e1135b40fab0f5100420dbd449204514f646ba4fc9682ac09e616676566a1e39",
+      "tree_fingerprint_now": "e1135b40fab0f5100420dbd449204514f646ba4fc9682ac09e616676566a1e39",
+      "live_fingerprint_recorded_by_marker": "06b0ad843fec829ed89d1ccecddc05415fa0b29fd5d7c13183d54f38ce24a79b",
+      "live_fingerprint_of_target_now": "06b0ad843fec829ed89d1ccecddc05415fa0b29fd5d7c13183d54f38ce24a79b",
+      "live_fingerprint_of_verification_build": "8cc42e844d80e8f2ad4aea75a2c1ac67723da02350d2317fcdb00fb66d01d955",
+      "target_undrifted_since_it_was_built": true,
+      "normalised_snapshot_digest_target": "54985c1f5239c960e1ab87de24f90a8227ea39dbe8786eefcab4addfefc094e5",
+      "normalised_snapshot_digest_verification": "54985c1f5239c960e1ab87de24f90a8227ea39dbe8786eefcab4addfefc094e5",
+      "schema_entries_compared": 406,
+      "parts_that_differ": [],
+      "current_tree_builds_this_exact_schema": true,
+      "all_three_identical": true,
+      "chain": {
+        "files": 271,
+        "applied": 271,
+        "failed": 0,
+        "files_that_needed_a_retry": 0,
+        "files_with_injected_retries": 1,
+        "connection_reconnects": 0,
+        "chain_seconds": 365.0,
+        "bootstrap": {
+          "ok": true,
+          "how": "trappoint.exe migrate bootstrap",
+          "returncode": 0,
+          "stdout": "bootstrapped: schema, schema_migration, schema_lock, schema_attestation, genesis attestation",
+          "stderr": "",
+          "seconds": 9.1
+        },
+        "zone": {
+          "requested": 4500,
+          "accepted": true,
+          "observed": 4500
+        },
+        "retried_files": [
+          {
+            "file": "0002_schema_meas.sql",
+            "attempts": 4,
+            "injected_40001": 3,
+            "backoff_seconds": 1.295,
+            "waits_seconds": [
+              0.234,
+              0.292,
+              0.769
+            ],
+            "trail": [
+              {
+                "attempt": 1,
+                "sqlstate": "40001",
+                "raised": "InjectedSerializationFailure",
+                "retryable": true,
+                "action": "retry",
+                "waited_seconds": 0.234
+              },
+              {
+                "attempt": 2,
+                "sqlstate": "40001",
+                "raised": "InjectedSerializationFailure",
+                "retryable": true,
+                "action": "retry",
+                "waited_seconds": 0.292
+              },
+              {
+                "attempt": 3,
+                "sqlstate": "40001",
+                "raised": "InjectedSerializationFailure",
+                "retryable": true,
+                "action": "retry",
+                "waited_seconds": 0.769
+              },
+              {
+                "attempt": 4,
+                "sqlstate": "00000",
+                "action": "applied"
+              }
+            ]
+          }
+        ],
+        "failures": [],
+        "failures_by_missing_object": {},
+        "slowest": [
+          {
+            "file": "0065a_predicate_watch_set_index.sql",
+            "seconds": 7.952,
+            "attempts": 1,
+            "sqlstate": "00000",
+            "error": null,
+            "injected_40001": 0,
+            "attribution": {
+              "kind": "applied"
+            }
+          },
+          {
+            "file": "0058a_bc_open_index.sql",
+            "seconds": 7.222,
+            "attempts": 1,
+            "sqlstate": "00000",
+            "error": null,
+            "injected_40001": 0,
+            "attribution": {
+              "kind": "applied"
+            }
+          },
+          {
+            "file": "0085_recall_policy_calibrator.sql",
+            "seconds": 7.21,
+            "attempts": 1,
+            "sqlstate": "00000",
+            "error": null,
+            "injected_40001": 0,
+            "attribution": {
+              "kind": "applied"
+            }
+          },
+          {
+            "file": "0180_disposition_peer_visible.sql",
+            "seconds": 7.168,
+            "attempts": 1,
+            "sqlstate": "00000",
+            "error": null,
+            "injected_40001": 0,
+            "attribution": {
+              "kind": "applied"
+            }
+          },
+          {
+            "file": "0071d_refusal_ledger_index.sql",
+            "seconds": 7.132,
+            "attempts": 1,
+            "sqlstate": "00000",
+            "error": null,
+            "injected_40001": 0,
+            "attribution": {
+              "kind": "applied"
+            }
+          },
+          {
+            "file": "0066a_one_live_disposition.sql",
+            "seconds": 6.796,
+            "attempts": 1,
+            "sqlstate": "00000",
+            "error": null,
+            "injected_40001": 0,
+            "attribution": {
+              "kind": "applied"
+            }
+          },
+          {
+            "file": "0029a_clause_version_trgm.sql",
+            "seconds": 5.931,
+            "attempts": 1,
+            "sqlstate": "00000",
+            "error": null,
+            "injected_40001": 0,
+            "attribution": {
+              "kind": "applied"
+            }
+          },
+          {
+            "file": "0050a_permit_scope_index.sql",
+            "seconds": 5.146,
+            "attempts": 1,
+            "sqlstate": "00000",
+            "error": null,
+            "injected_40001": 0,
+            "attribution": {
+              "kind": "applied"
+            }
+          },
+          {
+            "file": "0058b_bc_open_cr_index.sql",
+            "seconds": 5.012,
+            "attempts": 1,
+            "sqlstate": "00000",
+            "error": null,
+            "injected_40001": 0,
+            "attribution": {
+              "kind": "applied"
+            }
+          },
+          {
+            "file": "0023_signing_credential_index.sql",
+            "seconds": 4.85,
+            "attempts": 1,
+            "sqlstate": "00000",
+            "error": null,
+            "injected_40001": 0,
+            "attribution": {
+              "kind": "applied"
+            }
+          },
+          {
+            "file": "0199_exposure_receipt_fk_silence.sql",
+            "seconds": 2.191,
+            "attempts": 1,
+            "sqlstate": "00000",
+            "error": null,
+            "injected_40001": 0,
+            "attribution": {
+              "kind": "applied"
+            }
+          },
+          {
+            "file": "0070a_disposition_predicate_fk.sql",
+            "seconds": 2.187,
+            "attempts": 1,
+            "sqlstate": "00000",
+            "error": null,
+            "injected_40001": 0,
+            "attribution": {
+              "kind": "applied"
+            }
+          },
+          {
+            "file": "0071b_epoch_pin_cr.sql",
+            "seconds": 2.177,
+            "attempts": 1,
+            "sqlstate": "00000",
+            "error": null,
+            "injected_40001": 0,
+            "attribution": {
+              "kind": "applied"
+            }
+          },
+          {
+            "file": "0071a_epoch_pin_permit.sql",
+            "seconds": 2.152,
+            "attempts": 1,
+            "sqlstate": "00000",
+            "error": null,
+            "injected_40001": 0,
+            "attribution": {
+              "kind": "applied"
+            }
+          },
+          {
+            "file": "0002_schema_meas.sql",
+            "seconds": 2.039,
+            "attempts": 4,
+            "sqlstate": "00000",
+            "error": null,
+            "injected_40001": 3,
+            "backoff_seconds": 1.295,
+            "waits_seconds": [
+              0.234,
+              0.292,
+              0.769
+            ],
+            "trail": [
+              {
+                "attempt": 1,
+                "sqlstate": "40001",
+                "raised": "InjectedSerializationFailure",
+                "retryable": true,
+                "action": "retry",
+                "waited_seconds": 0.234
+              },
+              {
+                "attempt": 2,
+                "sqlstate": "40001",
+                "raised": "InjectedSerializationFailure",
+                "retryable": true,
+                "action": "retry",
+                "waited_seconds": 0.292
+              },
+              {
+                "attempt": 3,
+                "sqlstate": "40001",
+                "raised": "InjectedSerializationFailure",
+                "retryable": true,
+                "action": "retry",
+                "waited_seconds": 0.769
+              },
+              {
+                "attempt": 4,
+                "sqlstate": "00000",
+                "action": "applied"
+              }
+            ],
+            "attribution": {
+              "kind": "applied"
+            }
+          }
+        ],
+        "verdict": "APPLIED"
+      },
+      "fault_injection": {
+        "requested": 3,
+        "into": "0002_schema_meas.sql",
+        "what_it_does": "raises psycopg.errors.SerializationFailure (SQLSTATE 40001) on the first N attempts of the named migration BEFORE the statement reaches the server, so the cluster does no partial work and the recovery is the retry loop's alone",
+        "files_with_injected_retries": 1,
+        "spontaneous_retries_this_run": 0,
+        "read_the_transcript_at": "verification_build.chain.retried_files",
+        "not_a_cluster_event": "These 40001s were raised by this program against a real migration on the real managed cluster. files_that_needed_a_retry counts only the ones the CLUSTER produced, and it is reported separately above."
+      },
+      "marker_updated": "NOT TOUCHED, by design. --verify-build never writes trappoint.deploy_chain: it measures that the current tree still applies to this cluster and still builds this exact schema, and says so. Moving a marker is --reattest's job.",
+      "verification_database_dropped": {
+        "database": "mainline__vfy",
+        "ok": true
+      },
+      "at_utc": "2026-08-11T01:11:42Z",
+      "verdict": "VERIFIED \u2014 271/271 applied, 0 failed, against mainline-dev-31219.j77.aws-ap-southeast-1.cockroachlabs.cloud:26257/defaultdb, and the current tree builds this exact schema",
+      "total_seconds": 451.8
     }
   ]
 }

@@ -10,10 +10,22 @@
 # SecureString with `aws ssm put-parameter` before `terraform apply`; this module grants
 # the function permission to read it and nothing more.
 #
-# There is also deliberately NO `function_url_authorization_type` variable. A public
-# Function URL is a public unauthenticated database gateway and an unbounded bill, and a
-# variable that can turn the authentication off is a variable somebody turns off at 02:00
-# to make a curl work.
+# THERE IS NOW A `url_authorization_type` VARIABLE, AND THAT IS A REVERSAL.
+#
+# This file used to say, here, that no such variable existed because "a variable that can
+# turn the authentication off is a variable somebody turns off at 02:00 to make a curl
+# work". The reasoning was sound and the premise was wrong: it assumed a CloudFront
+# distribution would front the function, and AWS refuses to create one on this account
+# (403 AccessDenied, "Your account must be verified before you can add new CloudFront
+# resources", RequestID 3e63e30d-8c5b-441b-a01b-b70085eba504 - docs/deploy/RUNBOOK.md:26,
+# reproduced from a bare `aws cloudfront create-distribution`). An `AWS_IAM` Function URL
+# with no distribution to grant to is not a hardened demo; it is a URL that answers 403 to
+# everyone including the judges. Decision D1, docs/leads/ship-final.md sec 1.4.
+#
+# The variable admits exactly two values and its validation names both. It is a decision
+# recorded in HCL, not a knob: the `NONE` shape's cost ceiling is
+# `reserved_concurrent_executions`, and the README states the exposure plainly rather than
+# calling a public URL private.
 
 variable "function_name" {
   description = <<-EOT
@@ -29,6 +41,45 @@ variable "function_name" {
   validation {
     condition     = can(regex("^[A-Za-z0-9_-]{1,64}$", var.function_name))
     error_message = "function_name must be 1-64 characters of [A-Za-z0-9_-]; that is the Lambda name grammar."
+  }
+}
+
+variable "url_authorization_type" {
+  description = <<-EOT
+    Authorisation on the Lambda Function URL. Exactly two values are legal.
+
+      NONE     (default) The URL is PUBLIC and IS the demo hostname:
+               `https://<id>.lambda-url.<region>.on.aws`, HTTPS on an AWS-issued
+               certificate, no ACM, no hosted zone, no account verification. The console
+               SPA, the signed evidence bundle and `/v1/*` all answer on it, so there is
+               one origin, no CORS and one URL to put in the submission form. No
+               `aws_lambda_permission` for `cloudfront.amazonaws.com` is created - the
+               resource is `count = 0`, absent from the plan, not present-and-inert.
+
+      AWS_IAM  The pre-D1 shape. An unsigned request gets `403 Forbidden` with an empty
+               body, and the single `lambda:InvokeFunctionUrl` grant is created with
+               `cloudfront_distribution_arn` as its SourceArn. Requires that ARN to be
+               non-empty; a `lifecycle.precondition` on the grant refuses an empty one,
+               because a grant to `cloudfront.amazonaws.com` with no SourceArn is readable
+               as "any CloudFront distribution in any account may invoke this URL".
+
+    WHY THE DEFAULT IS `NONE`. AWS holds this account from creating new CloudFront
+    resources (403 AccessDenied, RequestID 3e63e30d-8c5b-441b-a01b-b70085eba504), a hold
+    only AWS Support can lift. `AWS_IAM` without a distribution is a URL that refuses
+    everyone. See decision D1, docs/leads/ship-final.md sec 1.4.
+
+    WHAT BOUNDS THE `NONE` SHAPE, honestly: not authentication. It is
+    `reserved_concurrent_executions` (a hard cap, default 20), the handler's single
+    rolled-back transaction, the CockroachDB Basic spend limit, and the `-concurrency`
+    alarm. If the CloudFront hold lifts, set this to `AWS_IAM`, pass the distribution ARN,
+    and re-apply; nothing else in this module changes.
+  EOT
+  type        = string
+  default     = "NONE"
+
+  validation {
+    condition     = contains(["NONE", "AWS_IAM"], var.url_authorization_type)
+    error_message = "url_authorization_type must be exactly \"NONE\" (public Function URL, which under decision D1 is the demo hostname) or \"AWS_IAM\" (403 to unsigned callers, plus the single lambda:InvokeFunctionUrl grant scoped to cloudfront_distribution_arn). No other value is accepted, and the empty string is not a synonym for either."
   }
 }
 
@@ -102,7 +153,9 @@ variable "ssm_kms_key_arn" {
     "the account's AWS-managed `aws/ssm` key", whose ARN this module deliberately does NOT
     look up.
 
-    MEASURED 2026-08-10, account 022950218246:
+    MEASURED 2026-08-10, in the deploy account (`aws sts get-caller-identity`; the account
+    id is not written down here - decision D2, docs/leads/ship-final.md sec 1.6 - and the
+    unelided transcript is quoted once, as evidence, in this module's README):
       aws kms list-aliases --region ap-southeast-1 --query "Aliases[?AliasName=='alias/aws/ssm']"
       -> [{"AliasName": "alias/aws/ssm", "AliasArn": "arn:aws:kms:ap-southeast-1:...:alias/aws/ssm"}]
     with NO `TargetKeyId`. The AWS-managed key does not exist until the first SecureString
@@ -204,15 +257,58 @@ variable "log_level" {
 variable "cloudfront_distribution_arn" {
   description = <<-EOT
     ARN of the CloudFront distribution allowed to invoke the Function URL, from the
-    `w5-tf-site` module. This is the `SourceArn` on the one `lambda:InvokeFunctionUrl`
+    `demo-site` module. This is the `SourceArn` on the one `lambda:InvokeFunctionUrl`
     grant, so it is the difference between "invocable by our distribution" and "invocable
     by any CloudFront distribution in the world, including one an attacker creates".
+
+    EMPTY IS THE DEFAULT AND IT IS THE NORMAL CASE under decision D1: with
+    `url_authorization_type = "NONE"` there is no grant to scope, so there is nothing for
+    this to be. It stopped being a required variable when CloudFront stopped being a
+    dependency; a required input for a resource that is not created is a caller forced to
+    invent a value.
+
+    It becomes REQUIRED again the moment `url_authorization_type = "AWS_IAM"`, and that is
+    enforced - by a `lifecycle.precondition` on the grant rather than by a cross-variable
+    `validation` block, because cross-variable validation needs Terraform >= 1.9 and this
+    module's floor is 1.6.
+
+    It may legitimately be UNKNOWN at plan time (the caller wires it from
+    `module.site.distribution_arn`, which does not exist until the distribution does),
+    which is why nothing in this module derives a `count` or a `for_each` from it. See
+    `local.create_cloudfront_invoke_grant` in main.tf.
   EOT
   type        = string
+  default     = ""
 
   validation {
-    condition     = can(regex("^arn:aws[a-z-]*:cloudfront::[0-9]{12}:distribution/[A-Z0-9]+$", var.cloudfront_distribution_arn))
-    error_message = "cloudfront_distribution_arn must look like arn:aws:cloudfront::<account>:distribution/<ID>."
+    condition     = var.cloudfront_distribution_arn == "" || can(regex("^arn:aws[a-z-]*:cloudfront::[0-9]{12}:distribution/[A-Z0-9]+$", var.cloudfront_distribution_arn))
+    error_message = "cloudfront_distribution_arn must be empty (the D1 default: no CloudFront, no grant) or look like arn:aws:cloudfront::<account>:distribution/<ID>."
+  }
+}
+
+variable "web_root" {
+  description = <<-EOT
+    Absolute path, INSIDE the deployment package, of the static tree the handler serves at
+    `/` and `/assets/*`. Published as `$MAINLINE_WEB_ROOT`, which
+    `mainline_demo_api.app` reads.
+
+    `/var/task/web` is the default and it is the composition of two facts, neither of which
+    is this module's to choose: Lambda unpacks the deployment package at `/var/task`
+    (`$LAMBDA_TASK_ROOT`), and the build script places the console's `dist/` at `web/` in
+    the package root. Under D1 this function is the whole origin - console, evidence bundle
+    and `/v1/*` on one hostname - so if this path is wrong the judges get a 404 at `/` and
+    a perfectly healthy `/v1/health`.
+
+    Stated as a variable rather than a constant so the agreement between the handler and
+    the package layout is one value in one place, and so a caller who builds the zip a
+    different way can say so instead of patching the module.
+  EOT
+  type        = string
+  default     = "/var/task/web"
+
+  validation {
+    condition     = startswith(var.web_root, "/") && !endswith(var.web_root, "/")
+    error_message = "web_root must be an absolute POSIX path with no trailing slash, e.g. /var/task/web. Lambda's filesystem is Linux regardless of where terraform runs, and a trailing slash produces a double separator in the handler's path join."
   }
 }
 
@@ -234,17 +330,42 @@ variable "memory_size" {
 
 variable "timeout" {
   description = <<-EOT
-    Seconds. 25 s, chosen against CloudFront's 30 s origin read timeout: the function must
-    fail before the distribution gives up, so the judge sees this API's JSON problem
-    document rather than CloudFront's 504 HTML. The `duration_p99_threshold_ms` alarm at
-    20 000 ms is the warning that this ceiling is being approached.
+    Seconds. 15 s, and the number is arithmetic rather than a round figure.
+
+    THE COLD PATH, ADDED UP. A cold invocation pays, in order: the python3.13 runtime's own
+    init; `import psycopg` plus `psycopg_binary` (a 6.7 MB C extension being dlopen'd);
+    one SigV4 `ssm:GetParameter` plus the KMS decrypt behind it; the TLS+pgwire connect to
+    CockroachDB Cloud; and then the four-beat gate transaction, which is six round trips
+    inside one SAVEPOINT/ROLLBACK envelope.
+
+    THE ONE NUMBER MEASURED RATHER THAN ESTIMATED: connect+query from THIS machine to the
+    Singapore cluster is **2.91 s** (docs/leads/ship-final.md sec 1.1). That figure is a
+    ceiling, not the Lambda figure - it crosses the public internet from Australia, where
+    the function is in-region and pays single-digit milliseconds per round trip. It is
+    quoted because it is the only connect latency anyone has actually observed against
+    this cluster, and because a budget built on the worst number available is the one that
+    survives being wrong.
+
+    So: 2.91 s of worst-case connect, a cold psycopg import that is hundreds of
+    milliseconds and not tens, six in-region round trips, and roughly 5 s of margin for the
+    tail nobody has measured yet - 15 s. It is also 10 s BELOW the previous default of 25 s,
+    which was sized against CloudFront's 30 s origin read timeout; under D1 there is no
+    CloudFront, and a demo that hangs for 25 s before failing is a demo a judge has already
+    closed the tab on. `duration_p99_threshold_ms` (default 12 000 ms) is the warning that
+    this ceiling is being approached, and a `lifecycle.precondition` on that alarm refuses
+    any threshold at or above `timeout`.
+
+    The 29 s ceiling in the validation stays. It is not needed by the `NONE` shape - a
+    Function URL will wait far longer - but it keeps every configuration of this module
+    valid for `AWS_IAM` + CloudFront, whose 30 s origin read timeout would otherwise turn
+    this API's JSON problem document into CloudFront's 504 HTML.
   EOT
   type        = number
-  default     = 25
+  default     = 15
 
   validation {
     condition     = var.timeout >= 1 && var.timeout <= 29
-    error_message = "timeout must be 1-29 s: above 29 s the function outlives CloudFront's 30 s origin read timeout and the caller gets a 504 with no diagnosis in it."
+    error_message = "timeout must be 1-29 s: above 29 s the function outlives CloudFront's 30 s origin read timeout in the AWS_IAM shape, and the caller gets a 504 with no diagnosis in it."
   }
 }
 
@@ -290,13 +411,24 @@ variable "log_retention_days" {
 }
 
 variable "duration_p99_threshold_ms" {
-  description = "p99 duration, in ms, above which the demo API is treated as approaching its 25 s timeout. Default 20 000."
+  description = <<-EOT
+    p99 duration, in ms, above which the demo API is treated as approaching its timeout.
+    Default 12 000 = 80 % of the 15 s default `timeout`.
+
+    IT MOVED WITH THE TIMEOUT, AND IT HAD TO. The old default was 20 000 ms against a 25 s
+    timeout. Dropping `timeout` to 15 s under D1 without touching this would have left the
+    threshold ABOVE the ceiling - Lambda terminates the invocation at `timeout` and the
+    Duration datapoint is capped there, so a 20 000 ms alarm on a 15 000 ms ceiling can
+    never breach. That is the exact shape of a control that looks present and is not, so
+    `aws_cloudwatch_metric_alarm.duration_p99` carries a plan-time `lifecycle.precondition`
+    refusing any threshold that is not strictly below `timeout * 1000`.
+  EOT
   type        = number
-  default     = 20000
+  default     = 12000
 
   validation {
     condition     = var.duration_p99_threshold_ms > 0 && var.duration_p99_threshold_ms <= 900000
-    error_message = "duration_p99_threshold_ms must be between 1 and 900000."
+    error_message = "duration_p99_threshold_ms must be between 1 and 900000. It must ALSO be strictly below timeout * 1000, which is checked at plan time by a precondition on the alarm rather than here, because a validation block cannot read a second variable before Terraform 1.9 and this module's floor is 1.6."
   }
 }
 
@@ -317,7 +449,7 @@ variable "alarm_actions" {
     topic with an email subscription needs a confirmed subscriber to be worth anything,
     and an unconfirmed one is a control that looks present and is not. With no actions the
     alarms still evaluate, still show state in the console and on the dashboard, and are
-    still readable by `aws cloudwatch describe-alarms` - which is what W10's GitHub Actions
+    still readable by `aws cloudwatch describe-alarms` - which is what the `demo-health`
     cron reads. The first ten alarms are free either way.
   EOT
   type        = list(string)
@@ -350,9 +482,10 @@ variable "extra_environment" {
       "MAINLINE_DEMO_DATABASE",
       "MAINLINE_SCENARIO_PERMIT_ID",
       "MAINLINE_DEMO_PERMIT_ID",
+      "MAINLINE_WEB_ROOT",
       "LOG_LEVEL",
     ])) == 0
-    error_message = "extra_environment must not set MAINLINE_DSN (the DSN is never in Terraform state - use dsn_parameter_name) nor any key this module already sets: MAINLINE_DSN_PARAM, MAINLINE_DEMO_DATABASE, MAINLINE_SCENARIO_PERMIT_ID, MAINLINE_DEMO_PERMIT_ID, LOG_LEVEL."
+    error_message = "extra_environment must not set MAINLINE_DSN (the DSN is never in Terraform state - use dsn_parameter_name) nor any key this module already sets: MAINLINE_DSN_PARAM, MAINLINE_DEMO_DATABASE, MAINLINE_SCENARIO_PERMIT_ID, MAINLINE_DEMO_PERMIT_ID, MAINLINE_WEB_ROOT (use var.web_root), LOG_LEVEL."
   }
 
   validation {

@@ -1,0 +1,38 @@
+{
+  "key": "8e5352d827790463622106606c55a40f524e2e2de97107eb6976a334f91ef582",
+  "model_id": "au.anthropic.claude-haiku-4-5-20251001-v1:0",
+  "prefix_digest": "c932133ee0f0ffa3b64d67a29289a686cab2c7f44f9b95ddbac62e45a3b32928",
+  "profile_id": "extraction",
+  "prompt_version": "extraction.v1+rubric.v1",
+  "provenance": "live",
+  "recorded_at": "2026-08-11T04:27:51.164420+00:00",
+  "response": {
+    "content": [
+      {
+        "signature": "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",
+        "thinking": "Let me carefully extract quantities, anchors, and abstention information from this confined space entry SOP.\n\nThe text is about atmospheric testing for confined space entry. Let me identify the measurable requirements:\n\n1. \"Oxygen shall be at least 19.5 %\"\n   - quantity_kind: oxygen_concentration\n   - value_milli: 19500 (19.5 * 1000)\n   - unit: \"%\"\n   - comparator: \"gte\" (at least)\n   - quote: \"Oxygen shall be at least 19.5 %\"\n\n2. \"and not more than 23.5 %\"\n   - quantity_kind: oxygen_concentration\n   - value_milli: 23500 (23.5 * 1000)\n   - unit: \"%\"\n   - comparator: \"lte\" (not more than)\n   - quote: \"not more than 23.5 %\"\n\n3. \"Hydrogen sulfide (CAS 7783-06-4) shall not exceed 10 ppm\"\n   - quantity_kind: h2s_concentration\n   - value_milli: 10000 (10 * 1000)\n   - unit: \"ppm\"\n   - comparator: \"lte\" (not exceed)\n   - quote: \"shall not exceed 10 ppm\"\n\n4. \"Re-test at intervals not exceeding 30 min while occupied\"\n   - quantity_kind: gas_test_interval\n   - value_milli: 30000 (30 * 1000)\n   - unit: \"min\"\n   - comparator: \"lte\" (not exceeding)\n   - quote: \"intervals not exceeding 30 min\"\n\nAnchors:\n- SOP-114 (document tag)\n- THICKENER 3 UNDERFLOW (equipment reference)\n- ICAM 2019-0417 (regulatory/incident reference)\n\n\n- CAS 7783-06-4 (chemical identifier for hydrogen sulfide)\n\nThe document appears to reference confined space entry standards, though no explicit WHS regulation is cited by name.\n\nThese anchors—SOP-114, THICKENER 3 UNDERFLOW, ICAM 2019-0417, and the CAS number—are concrete references embedded in the text that should be captured. The quantities are clearly measurable: oxygen concentration between 19.5% and 23.5%, hydrogen sulfide not exceeding 10 ppm, and monitoring intervals of no more than 30 minutes. Since specific numerical values are present, abstention isn't warranted.",
+        "type": "thinking"
+      },
+      {
+        "text": "{\"abstained\": false, \"abstain_reason\": \"none\", \"quantities\": [{\"quantity_kind\": \"oxygen_concentration\", \"value_milli\": 19500, \"unit\": \"%\", \"comparator\": \"gte\", \"quote\": \"Oxygen shall be at least 19.5 %\"}, {\"quantity_kind\": \"oxygen_concentration\", \"value_milli\": 23500, \"unit\": \"%\", \"comparator\": \"lte\", \"quote\": \"not more than 23.5 %\"}, {\"quantity_kind\": \"h2s_concentration\", \"value_milli\": 10000, \"unit\": \"ppm\", \"comparator\": \"lte\", \"quote\": \"shall not exceed 10 ppm\"}, {\"quantity_kind\": \"gas_test_interval\", \"value_milli\": 30000, \"unit\": \"min\", \"comparator\": \"lte\", \"quote\": \"intervals not exceeding 30 min\"}]}",
+        "type": "text"
+      }
+    ],
+    "id": "msg_bdrk_01NNfr5t99wrD3MVoTVMoCYE",
+    "model": "claude-haiku-4-5-20251001",
+    "role": "assistant",
+    "stop_reason": "end_turn",
+    "stop_sequence": null,
+    "type": "message",
+    "usage": {
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "input_tokens": 2875,
+      "output_tokens": 976
+    }
+  }
+}

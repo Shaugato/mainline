@@ -1,0 +1,38 @@
+{
+  "key": "c562f7c609dde7c81d7350003599df1d4733d602d3f9df1afc9af915a393d344",
+  "model_id": "au.anthropic.claude-haiku-4-5-20251001-v1:0",
+  "prefix_digest": "19ca9a23039b3af0756750d6abde911b8b6001285af49169108d1726deda4d5f",
+  "profile_id": "triage",
+  "prompt_version": "triage.v1+rubric.v1",
+  "provenance": "live",
+  "recorded_at": "2026-08-11T04:27:22.540348+00:00",
+  "response": {
+    "content": [
+      {
+        "signature": "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",
+        "thinking": "Let me analyze this document carefully.\n\nThe document is labeled \"SOP-114 CONFINED SPACE ENTRY - THICKENER 3 UNDERFLOW\" and contains revision information referencing an ICAM from 2019.\n\nKey characteristics:\n- It starts with \"SOP-114\" which indicates it's a Standard Operating Procedure\n- The title clearly states \"CONFINED SPACE ENTRY\"\n- It contains sections describing HOW work is to be done:\n  - Section 4.2 describes atmospheric testing procedures (\"Prior to entry the atmosphere shall be tested...\")\n  - Section 4.3 describes standby person requirements (\"A standby person shall remain...\")\n- The language uses prescriptive, procedural terms like \"shall\" indicating requirements for doing work\n\nThis is clearly a PROCEDURE document - it's a standard operating procedure (SOP) that describes how confined space entry work is to be conducted.\n\nHazard classes present:\n1. \"confined_space\" - explicitly mentioned in the title and throughout\n2. \"hydrogen_sulfide\" - explicitly mentioned in section 4.2 as a gas to be monitored (CAS 7783-06-4)\n\nThe document doesn't mention other hazards like cyanide, working_at_height, mobile_plant, electrical_isolation, hot_work, pressure_systems, ground_control, tailings, lifting_operations, molten_material, or dust_explosion.\n\nRoute: \"procedure\" (it's clearly a SOP describing how work should be done)\nHazard classes: [\"confined_space\", \"hydrogen_sulfide\"]\nAbstained: false (this is clearly a procedure)\nBasis quote: I should quote something that makes the route evident. The title line \"SOP-114 CONFINED SPACE ENTRY - THICKENER 3 UNDERFLOW\" clearly identifies it as a procedure, or I could quote from section 4.2 or 4.3 that shows procedural language. The title is the clearest indicator.\n\nBasis quote: \"SOP-114 CONFINED SPACE ENTRY - THICKENER 3 UNDERFLOW\"",
+        "type": "thinking"
+      },
+      {
+        "text": "{\"route\": \"procedure\", \"hazard_classes\": [\"confined_space\", \"hydrogen_sulfide\"], \"abstained\": false, \"basis_quote\": \"SOP-114 CONFINED SPACE ENTRY - THICKENER 3 UNDERFLOW\"}",
+        "type": "text"
+      }
+    ],
+    "id": "msg_bdrk_01P5HQyMvuFoXM7RRtv3r3rY",
+    "model": "claude-haiku-4-5-20251001",
+    "role": "assistant",
+    "stop_reason": "end_turn",
+    "stop_sequence": null,
+    "type": "message",
+    "usage": {
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "input_tokens": 2257,
+      "output_tokens": 545
+    }
+  }
+}

@@ -57,6 +57,7 @@ import re
 import shutil
 import socket
 import subprocess
+import sys
 import time
 import uuid
 from collections.abc import Iterator
@@ -69,6 +70,36 @@ import pytest
 psycopg = pytest.importorskip(
     "psycopg", reason="psycopg 3 is required to talk to CockroachDB; `uv sync` installs it"
 )
+
+# The ONE migration-id parser and band selector (MR-5). Imported rather than re-implemented,
+# because the thing re-implemented here was wrong: see `SPINE_BANDS` below.
+#
+# The source-tree fallback exists so a plain checkout can run the static tier, and it does NOT
+# fall through to a skip. `_load_discovery()` further down is allowed to skip because what it
+# imports is ANOTHER domain's runner and its absence is that domain's problem; this import is
+# the selector this file's own assertions are made of, and a suite that skips its selector is
+# a suite asserting nothing.
+try:
+    from trappoint_migrate.ids import (
+        MigrationId,
+        assert_declared_band_matches_tree,
+        id_of_filename,
+        parse_id,
+        scan_tree,
+        select_band,
+    )
+except ImportError:  # pragma: no cover - only in a checkout without the workspace installed
+    sys.path.insert(
+        0, str(Path(__file__).resolve().parents[3] / "packages" / "trappoint-migrate" / "src")
+    )
+    from trappoint_migrate.ids import (
+        MigrationId,
+        assert_declared_band_matches_tree,
+        id_of_filename,
+        parse_id,
+        scan_tree,
+        select_band,
+    )
 
 # ══════════════════════════════════════════════════════════════════════════════════════════════
 # Paths and band constants
@@ -86,9 +117,31 @@ EXT_VECTOR_FALLBACK_DIR = DB_DIR / "ext" / "vector_fallback"
 #: which named a ``.down.sql`` counterpart that is illegal by construction.
 MR5_FILENAME = re.compile(r"^\d{4}[a-z]?_[a-z0-9_]+\.sql$")
 
-#: The band this worker owns, exclusively. Two contiguous stretches, granted to `dm-spine` by
-#: verticals/mainline/db/migrations.allocation.toml (MR-6 lock 1).
-SPINE_RANGES: tuple[tuple[int, int], ...] = ((24, 31), (47, 49))
+#: The band this worker owns, exclusively, as MR-5 **allocation keys** — not as integers.
+#:
+#: WAS ``((24, 31), (47, 49))`` compared with ``int(p.name[:4])``, and that truncation is the
+#: defect CI run 31388699452 reported as *"the spine band on disk does not match the declared
+#: file list"*. The declared list was right. The selector took six files that were never
+#: dm-spine's: ``0049a_delta_witness``, ``0049b_commutation_edge``, ``0049c_cbm_account``,
+#: ``0049d_identity_assignment``, ``0049y_meas_mutation_run``, ``0049z_meas_mutation_result``.
+#:
+#: ``verticals/mainline/db/migrations.allocation.toml`` (MR-6 lock 1, the authority) settles it
+#: in two adjacent bands and in its own header::
+#:
+#:     [[band]] first = "0047"  last = "0049"   owner = "datamodel/dm-spine"
+#:              contents = "… identity_residue (0049) — bare 0049 only; its letter space is
+#:                          the algorithms annexe below"
+#:     [[band]] first = "0049a" last = "0049z"  owner = "algorithms"
+#:
+#:     "A `last` WITHOUT a letter closes at the bare number and hands that number's letter
+#:      space to the next band — that is how `0047`-`0049` (datamodel) and `0049a`-`0049z`
+#:      (algorithms) sit next to each other without either one guessing."
+#:
+#: So the endpoints are keys: ``0024``-``0031z`` (this band DOES own 0031's letter space, and
+#: ``0029a_clause_version_trgm.sql`` is its own file) and ``0047``-``0049`` (bare 0049 only).
+#: Widening the second endpoint to ``0049z`` to make the test pass would be this band claiming
+#: another domain's six migrations, and the `spine` fixture would then APPLY them.
+SPINE_BANDS: tuple[tuple[str, str], ...] = (("0024", "0031z"), ("0047", "0049"))
 
 #: The foundation band this one depends on: schemas, roles, the seven ENUM types,
 #: site/person/signing_credential. `mainline.control_delta` (0010) is the only one of those the
@@ -96,7 +149,10 @@ SPINE_RANGES: tuple[tuple[int, int], ...] = ((24, 31), (47, 49))
 #: cluster sees, so the fixture does the same. Under MR-1 most of this band is now RENDERED from
 #: `packages/trappoint-sql/templates/` rather than authored here — which is exactly why the fixture
 #: reads it by shape (see `foundation_files()`) and asserts nothing about any file in it.
-FOUNDATION_FIRST, FOUNDATION_LAST = 1, 23
+#:
+#: Keys, for the same reason as above: ``0023z`` and not ``23``. ``0001a`` and ``0020a`` are in
+#: this band and an integer endpoint says nothing about whether they are.
+FOUNDATION_FIRST, FOUNDATION_LAST = "0001", "0023z"
 
 #: Applied, in this order. Written out rather than globbed so that a file appearing in the band by
 #: accident — another worker's stray, a rename, a half-finished draft — is a test failure and not
@@ -299,24 +355,48 @@ def foundation_files() -> list[Path]:
     Read by SHAPE rather than by name, and this file asserts nothing about any of them: the
     foundation is another domain's output — most of it RENDERED from
     ``packages/trappoint-sql/templates/`` under MR-1 — and a prerequisite reader that hardcoded its
-    filenames would turn every legitimate change over there into a red test over here. The shape
-    filter is ``MR5_FILENAME``, which is also what excludes any ``.up.sql`` straggler mid-migration:
-    a stale hand-authored twin must not be applied on top of its rendered replacement.
+    filenames would turn every legitimate change over there into a red test over here.
 
-    Ordering is lexicographic on the whole stem, exactly as ``discovery.discover()`` orders, so
-    ``0009x`` follows ``0009e`` and ``0017b`` follows ``0017a``.
+    Ordering is by MR-5 **key**, ``(number, suffix)``, which is the order
+    ``discovery.discover()`` applies in: ``0009x`` follows ``0009e`` and ``0017b`` follows
+    ``0017a``.
+
+    The shape filter used to be ``if MR5_FILENAME.match(path.name) is None: continue``, and
+    that ``continue`` is what has been removed. It read as "skip the ``.up.sql`` stragglers",
+    but what it actually did was DROP any file this suite could not name — a stale hand-authored
+    twin, a ``.fallback.sql`` variant, a half-finished draft — from the set the fixture applies,
+    without a word. The failure then surfaced downstream as a missing ENUM type, with nothing in
+    it naming the file that had been skipped. ``scan_tree`` refuses the tree and names the file,
+    which is the same protection stated as a refusal instead of an omission.
     """
-    found: list[Path] = []
-    for path in sorted(MIGRATIONS_DIR.iterdir()):
-        if not path.is_file() or MR5_FILENAME.match(path.name) is None:
-            continue
-        if FOUNDATION_FIRST <= int(path.name[:4]) <= FOUNDATION_LAST:
-            found.append(path)
-    return sorted(found, key=lambda p: p.name.removesuffix(".sql"))
+    return [
+        entry.path
+        for entry in select_band(
+            scan_tree(MIGRATIONS_DIR, where="the MAINLINE migration tree"),
+            FOUNDATION_FIRST,
+            FOUNDATION_LAST,
+            where=f"foundation {FOUNDATION_FIRST}-{FOUNDATION_LAST}",
+        )
+    ]
 
 
 def band_paths() -> list[Path]:
     return [MIGRATIONS_DIR / name for name in BAND_FILES]
+
+
+def declared_within(first: str, last: str) -> tuple[str, ...]:
+    """The subset of ``BAND_FILES`` whose key falls in ``[first, last]``, in applied order."""
+    lo, hi = parse_id(first, where="SPINE_BANDS"), parse_id(last, where="SPINE_BANDS")
+    keyed: dict[MigrationId, str] = {id_of_filename(name): name for name in BAND_FILES}
+    return tuple(keyed[key] for key in sorted(keyed) if lo <= key <= hi)
+
+
+def in_spine(key: MigrationId) -> bool:
+    """Is this migration key inside one of dm-spine's two bands? Endpoints included."""
+    return any(
+        parse_id(first, where="SPINE_BANDS") <= key <= parse_id(last, where="SPINE_BANDS")
+        for first, last in SPINE_BANDS
+    )
 
 
 def fallback_paths() -> list[Path]:
@@ -361,20 +441,38 @@ def assert_refused(exc: Any, sqlstate: str, constraint: str) -> None:
 
 
 def test_band_is_exactly_the_declared_files() -> None:
-    """0024-0031 and 0047-0049, no gaps, no strays, nothing from another worker's band."""
-    on_disk = sorted(
-        p.name
-        for p in MIGRATIONS_DIR.iterdir()
-        if p.is_file() and any(lo <= int(p.name[:4]) <= hi for lo, hi in SPINE_RANGES)
-    )
-    assert on_disk == sorted(BAND_FILES), (
-        "the spine band on disk does not match the declared file list.\n"
-        f"  on disk:  {on_disk}\n"
-        f"  declared: {sorted(BAND_FILES)}\n"
-        "File ownership is exclusive: an unexpected file inside 0024-0031 or 0047-0049 is another "
-        "worker writing into this band, which corrupts the applied order. A `.up.sql` twin here "
-        "is the same failure wearing a suffix: `_version_of()` strips `.sql` and `.up.sql` alike, "
-        "so the twin claims the same version and `discover()` refuses the whole tree."
+    """``0024``-``0031z`` and ``0047``-``0049``: no gaps, no strays, nothing from another band.
+
+    WAS RED (CI run 31388699452), and the repair was the SELECTOR, not the declaration.
+    ``int(p.name[:4])`` cannot express "bare 0049 only", so the old form matched the six files
+    of the ``0049a``-``0049z`` **algorithms** annexe and reported dm-spine's correct twelve-file
+    list as wrong. Widening ``BAND_FILES`` to eighteen would have made the test green by having
+    this band claim another domain's migrations — and the `spine` fixture, which applies
+    ``band_paths()``, would then have applied them.
+
+    The check now runs per band, endpoints compared as MR-5 keys, and
+    ``assert_declared_band_matches_tree`` names the files on each side of any disagreement
+    rather than printing two sorted lists and leaving the diff to the reader.
+    """
+    covered: list[str] = []
+    for first, last in SPINE_BANDS:
+        declared = declared_within(first, last)
+        assert declared, f"BAND_FILES declares nothing in {first}-{last}"
+        assert_declared_band_matches_tree(
+            MIGRATIONS_DIR,
+            declared,
+            first=first,
+            last=last,
+            label=f"dm-spine {first}-{last}",
+            owner="datamodel/dm-spine (verticals/mainline/db/migrations.allocation.toml)",
+        )
+        covered.extend(declared)
+
+    assert sorted(covered) == sorted(BAND_FILES), (
+        "BAND_FILES declares a file that falls outside both of dm-spine's bands.\n"
+        f"  inside a band: {sorted(covered)}\n"
+        f"  declared:      {sorted(BAND_FILES)}\n"
+        "A declared file with no band is a file this suite applies and no allocation grants."
     )
     for name in BAND_FILES:
         assert MR5_FILENAME.match(name), (
@@ -414,7 +512,10 @@ def test_every_file_carries_the_mandatory_header_block(path: Path) -> None:
     assert counsel == "no", (
         f"{path.name} declares COUNSEL-GATED: {counsel!r}. Migrations 0001-0065 are "
         "counsel-independent by construction (BUILD_PLAN §2.1); the counsel-gated five are "
-        "0066-0069 and 0086, and none of them is in this band."
+        "0066-0069 and the silence ledger, and none of them is in this band. (ADR 0001 and "
+        "BUILD_PLAN §2.1 both cite `0086` for the ledger; the recall band landed the object at "
+        "`0084_silence_ledger.sql`. The gate is about the OBJECT, and this band contains neither "
+        "the slot nor the object.)"
     )
 
 
@@ -691,10 +792,16 @@ def test_no_filename_in_the_tree_defeats_the_runners_version_regex() -> None:
         "live 0031 would create mainline.clause_embedding twice."
     )
 
-    def in_spine(version: str) -> bool:
-        return any(lo <= int(version[:4]) <= hi for lo, hi in SPINE_RANGES)
-
-    spine = [m.version for m in found if in_spine(m.version)]
+    # Keyed, not truncated. `int(version[:4])` swept the `0049a`-`0049z` algorithms annexe into
+    # dm-spine's band and reported the resulting eighteen-file list as the runner's placement of
+    # this band, which it never was. The version stem is `NNNN[a-z]_slug`, so the key is what
+    # sits before the first underscore — and `id_of_filename` is not used here because these are
+    # discovery's version STEMS, which carry no `.sql`.
+    spine = [
+        m.version
+        for m in found
+        if in_spine(parse_id(m.version.split("_", 1)[0], where=f"discovered version {m.version!r}"))
+    ]
     assert spine == sorted(name.removesuffix(".sql") for name in BAND_FILES), (
         f"the runner places this band as {spine}; the declared order is "
         f"{sorted(name.removesuffix('.sql') for name in BAND_FILES)}. Ordering is lexicographic on "

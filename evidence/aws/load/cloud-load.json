@@ -1,0 +1,488 @@
+{
+  "artefact": "evidence/aws/load/cloud-load.json",
+  "caveats": [
+    "the corpus is SYNTHETIC — trappoint_recall.corpora.synthetic — and every count here describes fabricated documents",
+    "mainline_ann_evidence's parent table is a two-column stub; see verticals/mainline/db/evidence/README.md for exactly what that costs",
+    "row counts are read back from the server after the load, but a count is not a recall measurement: nothing here says the ANN index returns the right neighbours"
+  ],
+  "generated_at": "2026-08-11T02:40:10Z",
+  "generated_by": "scripts/aws/load_vectors.py",
+  "kind": "cockroachdb-vector-load",
+  "payload": {
+    "banned_identity_constructs": {
+      "banned": [
+        "CREATE SEQUENCE",
+        "nextval",
+        "SERIAL",
+        "unique_rowid"
+      ],
+      "clean": true,
+      "hits": [],
+      "scanned_statements": 15,
+      "scope": "every DDL statement this program issued, both INSERT templates, and the whole of ann_evidence_schema.sql — with `--` comments stripped, because the file's header names the prohibition in prose"
+    },
+    "bytes": {
+      "float32_equivalent_bytes": 1859584,
+      "note": "the wire form is a decimal text literal at %.8g; the column stores float32, so the second number is what the vectors weigh once landed",
+      "vector_literal_bytes_sent": 11776420
+    },
+    "source": {
+      "cap_note": "documents the manifest already covers are never dropped; the cap applies only to what this program would have had to embed itself, and it selects width-first across (site_id, activity_root) so every prefix pair survives it",
+      "corpus": "trappoint_recall.corpora.synthetic.generate() — SYNTHETIC, fabricated",
+      "distinct_prefix_pairs_offered": 21,
+      "documents": 454,
+      "documents_dropped_by_cap": 626,
+      "documents_dropped_unembedded": [],
+      "documents_dropped_unembedded_count": 0,
+      "documents_embedded_here": 240,
+      "documents_from_manifest": 214,
+      "embedding": {
+        "bedrock_calls": 0,
+        "cache_carries_token_counts": true,
+        "cache_hit_input_tokens": 69344,
+        "cache_hits": 240,
+        "cache_path": "out/aws/cloud-load-vectors.npz",
+        "documents": 240,
+        "elapsed_s": 0.0,
+        "failures": [],
+        "input_tokens": 0,
+        "note": "`bedrock_calls` counts InvokeModel in THIS process. `cache_hits` counts vectors this same program bought from Bedrock in an earlier run of itself and stored under out/ (gitignored). Both were paid for; only the first was paid for now, and the token ledger carries them as two rows so neither is double-counted nor disappears.",
+        "workers": 4
+      },
+      "manifest": {
+        "accepted": 21,
+        "blob_arrays": 1162,
+        "entries": 24,
+        "join": "text_sha256",
+        "manifest_complete": false,
+        "manifest_index_gen": "titan2-1",
+        "manifest_model_id": "amazon.titan-embed-text-v2:0",
+        "manifest_path": "evidence/aws/embeddings/manifest.json",
+        "manifest_present": true,
+        "notes": [],
+        "npz_path": "out/aws/titan-vectors.npz",
+        "npz_present": true,
+        "rejected_absent_from_blob": 0,
+        "rejected_digest_mismatch": 0,
+        "rejected_wrong_width": 0
+      },
+      "mode": "mixed",
+      "self_embed_cap": 240,
+      "streams": [
+        "au_regulator_alert",
+        "csb_report",
+        "msha_fatality_report",
+        "msha_part50_line"
+      ]
+    },
+    "targets": {
+      "cloud": {
+        "available": true,
+        "ddl_elapsed_s": 9.093,
+        "ddl_statements_issued": [
+          "CREATE DATABASE IF NOT EXISTS mainline_ann_evidence;",
+          "DROP TABLE IF EXISTS mainline.clause_embedding",
+          "DROP TABLE IF EXISTS mainline.clause_version",
+          "CREATE SCHEMA IF NOT EXISTS mainline;",
+          "CREATE TABLE mainline.clause_version (\n  clause_uuid   UUID  NOT NULL,\n  commit_id     BYTES NOT NULL,\n  CONSTRAINT clause_version_stub_pk PRIMARY KEY (clause_uuid, commit_id)\n);",
+          "CREATE TABLE mainline.clause_embedding (\n  clause_uuid   UUID   NOT NULL,\n  commit_id     BYTES  NOT NULL,\n  site_id       UUID   NOT NULL,          -- prefix 1  ← PROJECTED (band 0130-0199). Not a filter.\n  activity_root STRING NOT NULL,          -- prefix 2  ← PROJECTED (band 0130-0199). Not a filter.\n  embed_model   STRING NOT NULL,          -- 'amazon.titan-embed-text-v2:0'\n  index_gen     STRING NOT NULL,          -- generation label; feeds M4's index_fingerprint\n  embedding     VECTOR(1024) NOT NULL,\n  CONSTRAINT clause_embedding_pk PRIMARY KEY (clause_uuid, commit_id),\n  CONSTRAINT fk_version FOREIGN KEY (clause_uuid, commit_id)\n    REFERENCES mainline.clause_version (clause_uuid, commit_id),\n  CONSTRAINT embed_model_stated CHECK (embed_model <> ''),\n  CONSTRAINT index_gen_stated CHECK (index_gen <> ''),\n  VECTOR INDEX ce_ann (site_id, activity_root, embedding vector_cosine_ops),\n  FAMILY f_meta (clause_uuid, commit_id, site_id, activity_root, embed_model, index_gen),\n  FAMILY f_vec  (embedding)\n);"
+        ],
+        "elapsed_s": 46.477,
+        "load": {
+          "batch_size": 50,
+          "batches": 10,
+          "elapsed_s": 22.679,
+          "retries_40001": 0,
+          "rows_offered": 454,
+          "vector_literal_bytes": 5888210
+        },
+        "retry_probe": {
+          "attempts_allowed": 8,
+          "attempts_made": 2,
+          "committed": true,
+          "database": "w_cloud_load",
+          "elapsed_s": 2.572,
+          "label": "cloud/induced-write-after-read",
+          "loop_fired": true,
+          "method": "transaction A reads k=1; transaction B commits an update to k=1; transaction A then writes k=1 and commits — a write-after-read conflict, which CockroachDB refuses under SERIALIZABLE with SQLSTATE 40001",
+          "retries_40001": 1,
+          "table": "public.retry_probe",
+          "value_read_on_final_attempt": 100
+        },
+        "server_version": "CockroachDB CCL v26.2.5",
+        "status": "loaded",
+        "survey": {
+          "clause_embedding_rows": 454,
+          "clause_version_rows": 454,
+          "distinct_embed_models": 1,
+          "distinct_index_gens": 1,
+          "distinct_prefix_pairs": 21,
+          "per_prefix": [
+            {
+              "activity_root": "mill/instrument-maintenance",
+              "rows": 64,
+              "site_id": "8f2081c5-2a6b-5d95-a015-7f55525ab27b",
+              "site_id_hex32": "8f2081c52a6b5d95a0157f55525ab27b"
+            },
+            {
+              "activity_root": "nsw/explosives-and-breaking-agents",
+              "rows": 7,
+              "site_id": "5c5dd52f-e9d7-5402-8692-ddc9bb59779c",
+              "site_id_hex32": "5c5dd52fe9d754028692ddc9bb59779c"
+            },
+            {
+              "activity_root": "nsw/fall-of-roof-or-back",
+              "rows": 8,
+              "site_id": "e08a852f-d6ae-5451-b8d4-76fc987447de",
+              "site_id_hex32": "e08a852fd6ae5451b8d476fc987447de"
+            },
+            {
+              "activity_root": "nsw/fire",
+              "rows": 8,
+              "site_id": "51617f17-6f6e-55d0-a0ff-6d6b5d5ab7fc",
+              "site_id_hex32": "51617f176f6e55d0a0ff6d6b5d5ab7fc"
+            },
+            {
+              "activity_root": "process/arc-flash",
+              "rows": 5,
+              "site_id": "cea39fba-2c89-58ca-be3b-56228a8a4794",
+              "site_id_hex32": "cea39fba2c8958cabe3b56228a8a4794"
+            },
+            {
+              "activity_root": "process/fire",
+              "rows": 4,
+              "site_id": "2b7b5364-dd94-5cbb-a4bb-196ec41b9967",
+              "site_id_hex32": "2b7b5364dd945cbba4bb196ec41b9967"
+            },
+            {
+              "activity_root": "process/loss-of-containment",
+              "rows": 5,
+              "site_id": "f0a5d178-91ed-5456-91f9-63ca754a7a89",
+              "site_id_hex32": "f0a5d17891ed545691f963ca754a7a89"
+            },
+            {
+              "activity_root": "process/runaway-reaction",
+              "rows": 5,
+              "site_id": "cea64d26-97e6-5788-be05-765476f8703e",
+              "site_id_hex32": "cea64d2697e65788be05765476f8703e"
+            },
+            {
+              "activity_root": "process/vapour-cloud-explosion",
+              "rows": 5,
+              "site_id": "4fb18e97-75c4-55d8-a947-4eab3fee9484",
+              "site_id_hex32": "4fb18e9775c455d8a9474eab3fee9484"
+            },
+            {
+              "activity_root": "qld/exposure-to-chemicals-or-toxic-substances",
+              "rows": 7,
+              "site_id": "81c6d3df-58a2-5eea-99f4-0ae9929a42bf",
+              "site_id_hex32": "81c6d3df58a25eea99f40ae9929a42bf"
+            },
+            {
+              "activity_root": "qld/machinery",
+              "rows": 7,
+              "site_id": "1cf3ea2c-d75d-5225-92d1-83c7b57011f9",
+              "site_id_hex32": "1cf3ea2cd75d522592d183c7b57011f9"
+            },
+            {
+              "activity_root": "qld/powered-haulage",
+              "rows": 8,
+              "site_id": "c3a8e6df-7a4d-5fc5-b947-e4741b42e1d4",
+              "site_id_hex32": "c3a8e6df7a4d5fc5b947e4741b42e1d4"
+            },
+            {
+              "activity_root": "surface/electrical-maintenance",
+              "rows": 42,
+              "site_id": "c844a884-1eed-5db0-b55d-5702bd335baf",
+              "site_id_hex32": "c844a8841eed5db0b55d5702bd335baf"
+            },
+            {
+              "activity_root": "surface/haul-road-operations",
+              "rows": 54,
+              "site_id": "218e340b-e899-58f0-9716-80888e591688",
+              "site_id_hex32": "218e340be89958f0971680888e591688"
+            },
+            {
+              "activity_root": "surface/mobile-plant-maintenance",
+              "rows": 52,
+              "site_id": "36309030-3d3f-5b2a-a45d-ef39a0f4958e",
+              "site_id_hex32": "363090303d3f5b2aa45def39a0f4958e"
+            },
+            {
+              "activity_root": "surface/water-services-maintenance",
+              "rows": 33,
+              "site_id": "f10d0af6-26d1-50bd-9519-4e7fc09ed6dd",
+              "site_id_hex32": "f10d0af626d150bd95194e7fc09ed6dd"
+            },
+            {
+              "activity_root": "underground/ground-support-installation",
+              "rows": 57,
+              "site_id": "8c9d8d88-ab03-5c8f-b581-632d0cb95d12",
+              "site_id_hex32": "8c9d8d88ab035c8fb581632d0cb95d12"
+            },
+            {
+              "activity_root": "underground/sump-and-drainage-work",
+              "rows": 39,
+              "site_id": "df6454ef-7a92-5b96-931d-f8e59ff2a264",
+              "site_id_hex32": "df6454ef7a925b96931df8e59ff2a264"
+            },
+            {
+              "activity_root": "underground/ventilation-control",
+              "rows": 29,
+              "site_id": "938144f9-8ce7-5a53-85b1-ef977a26b99a",
+              "site_id_hex32": "938144f98ce75a5385b1ef977a26b99a"
+            },
+            {
+              "activity_root": "wa/caught-in-under-or-between",
+              "rows": 7,
+              "site_id": "826ac2b4-b653-550c-b475-2927fdf1e2f3",
+              "site_id_hex32": "826ac2b4b653550cb4752927fdf1e2f3"
+            },
+            {
+              "activity_root": "wa/electrical",
+              "rows": 8,
+              "site_id": "768cc280-1895-5144-8f9a-2bc9bee969ab",
+              "site_id_hex32": "768cc280189551448f9a2bc9bee969ab"
+            }
+          ],
+          "show_create": "CREATE TABLE mainline.clause_embedding (\n\tclause_uuid UUID NOT NULL,\n\tcommit_id BYTES NOT NULL,\n\tsite_id UUID NOT NULL,\n\tactivity_root STRING NOT NULL,\n\tembed_model STRING NOT NULL,\n\tindex_gen STRING NOT NULL,\n\tembedding VECTOR(1024) NOT NULL,\n\tCONSTRAINT clause_embedding_pk PRIMARY KEY (clause_uuid ASC, commit_id ASC),\n\tCONSTRAINT fk_version FOREIGN KEY (clause_uuid, commit_id) REFERENCES mainline.clause_version(clause_uuid, commit_id),\n\tVECTOR INDEX ce_ann (site_id, activity_root, embedding vector_cosine_ops),\n\tFAMILY f_meta (clause_uuid, commit_id, site_id, activity_root, embed_model, index_gen),\n\tFAMILY f_vec (embedding),\n\tCONSTRAINT embed_model_stated CHECK (embed_model != '':::STRING),\n\tCONSTRAINT index_gen_stated CHECK (index_gen != '':::STRING)\n) WITH (schema_locked = true) LOCALITY REGIONAL BY TABLE IN PRIMARY REGION;",
+          "vector_dims_max": 1024,
+          "vector_dims_min": 1024
+        },
+        "target": "cloud"
+      },
+      "local": {
+        "available": true,
+        "ddl_elapsed_s": 60.536,
+        "ddl_statements_issued": [
+          "CREATE DATABASE IF NOT EXISTS mainline_ann_evidence;",
+          "DROP TABLE IF EXISTS mainline.clause_embedding",
+          "DROP TABLE IF EXISTS mainline.clause_version",
+          "CREATE SCHEMA IF NOT EXISTS mainline;",
+          "CREATE TABLE mainline.clause_version (\n  clause_uuid   UUID  NOT NULL,\n  commit_id     BYTES NOT NULL,\n  CONSTRAINT clause_version_stub_pk PRIMARY KEY (clause_uuid, commit_id)\n);",
+          "CREATE TABLE mainline.clause_embedding (\n  clause_uuid   UUID   NOT NULL,\n  commit_id     BYTES  NOT NULL,\n  site_id       UUID   NOT NULL,          -- prefix 1  ← PROJECTED (band 0130-0199). Not a filter.\n  activity_root STRING NOT NULL,          -- prefix 2  ← PROJECTED (band 0130-0199). Not a filter.\n  embed_model   STRING NOT NULL,          -- 'amazon.titan-embed-text-v2:0'\n  index_gen     STRING NOT NULL,          -- generation label; feeds M4's index_fingerprint\n  embedding     VECTOR(1024) NOT NULL,\n  CONSTRAINT clause_embedding_pk PRIMARY KEY (clause_uuid, commit_id),\n  CONSTRAINT fk_version FOREIGN KEY (clause_uuid, commit_id)\n    REFERENCES mainline.clause_version (clause_uuid, commit_id),\n  CONSTRAINT embed_model_stated CHECK (embed_model <> ''),\n  CONSTRAINT index_gen_stated CHECK (index_gen <> ''),\n  VECTOR INDEX ce_ann (site_id, activity_root, embedding vector_cosine_ops),\n  FAMILY f_meta (clause_uuid, commit_id, site_id, activity_root, embed_model, index_gen),\n  FAMILY f_vec  (embedding)\n);"
+        ],
+        "elapsed_s": 271.725,
+        "load": {
+          "batch_size": 50,
+          "batches": 10,
+          "elapsed_s": 30.819,
+          "retries_40001": 0,
+          "rows_offered": 454,
+          "vector_literal_bytes": 5888210
+        },
+        "retry_probe": {
+          "attempts_allowed": 8,
+          "attempts_made": 2,
+          "committed": true,
+          "database": "w_cloud_load",
+          "elapsed_s": 0.065,
+          "label": "local/induced-write-after-read",
+          "loop_fired": true,
+          "method": "transaction A reads k=1; transaction B commits an update to k=1; transaction A then writes k=1 and commits — a write-after-read conflict, which CockroachDB refuses under SERIALIZABLE with SQLSTATE 40001",
+          "retries_40001": 1,
+          "table": "public.retry_probe",
+          "value_read_on_final_attempt": 100
+        },
+        "server_version": "CockroachDB CCL v26.2.5",
+        "status": "loaded",
+        "survey": {
+          "clause_embedding_rows": 454,
+          "clause_version_rows": 454,
+          "distinct_embed_models": 1,
+          "distinct_index_gens": 1,
+          "distinct_prefix_pairs": 21,
+          "per_prefix": [
+            {
+              "activity_root": "mill/instrument-maintenance",
+              "rows": 64,
+              "site_id": "8f2081c5-2a6b-5d95-a015-7f55525ab27b",
+              "site_id_hex32": "8f2081c52a6b5d95a0157f55525ab27b"
+            },
+            {
+              "activity_root": "nsw/explosives-and-breaking-agents",
+              "rows": 7,
+              "site_id": "5c5dd52f-e9d7-5402-8692-ddc9bb59779c",
+              "site_id_hex32": "5c5dd52fe9d754028692ddc9bb59779c"
+            },
+            {
+              "activity_root": "nsw/fall-of-roof-or-back",
+              "rows": 8,
+              "site_id": "e08a852f-d6ae-5451-b8d4-76fc987447de",
+              "site_id_hex32": "e08a852fd6ae5451b8d476fc987447de"
+            },
+            {
+              "activity_root": "nsw/fire",
+              "rows": 8,
+              "site_id": "51617f17-6f6e-55d0-a0ff-6d6b5d5ab7fc",
+              "site_id_hex32": "51617f176f6e55d0a0ff6d6b5d5ab7fc"
+            },
+            {
+              "activity_root": "process/arc-flash",
+              "rows": 5,
+              "site_id": "cea39fba-2c89-58ca-be3b-56228a8a4794",
+              "site_id_hex32": "cea39fba2c8958cabe3b56228a8a4794"
+            },
+            {
+              "activity_root": "process/fire",
+              "rows": 4,
+              "site_id": "2b7b5364-dd94-5cbb-a4bb-196ec41b9967",
+              "site_id_hex32": "2b7b5364dd945cbba4bb196ec41b9967"
+            },
+            {
+              "activity_root": "process/loss-of-containment",
+              "rows": 5,
+              "site_id": "f0a5d178-91ed-5456-91f9-63ca754a7a89",
+              "site_id_hex32": "f0a5d17891ed545691f963ca754a7a89"
+            },
+            {
+              "activity_root": "process/runaway-reaction",
+              "rows": 5,
+              "site_id": "cea64d26-97e6-5788-be05-765476f8703e",
+              "site_id_hex32": "cea64d2697e65788be05765476f8703e"
+            },
+            {
+              "activity_root": "process/vapour-cloud-explosion",
+              "rows": 5,
+              "site_id": "4fb18e97-75c4-55d8-a947-4eab3fee9484",
+              "site_id_hex32": "4fb18e9775c455d8a9474eab3fee9484"
+            },
+            {
+              "activity_root": "qld/exposure-to-chemicals-or-toxic-substances",
+              "rows": 7,
+              "site_id": "81c6d3df-58a2-5eea-99f4-0ae9929a42bf",
+              "site_id_hex32": "81c6d3df58a25eea99f40ae9929a42bf"
+            },
+            {
+              "activity_root": "qld/machinery",
+              "rows": 7,
+              "site_id": "1cf3ea2c-d75d-5225-92d1-83c7b57011f9",
+              "site_id_hex32": "1cf3ea2cd75d522592d183c7b57011f9"
+            },
+            {
+              "activity_root": "qld/powered-haulage",
+              "rows": 8,
+              "site_id": "c3a8e6df-7a4d-5fc5-b947-e4741b42e1d4",
+              "site_id_hex32": "c3a8e6df7a4d5fc5b947e4741b42e1d4"
+            },
+            {
+              "activity_root": "surface/electrical-maintenance",
+              "rows": 42,
+              "site_id": "c844a884-1eed-5db0-b55d-5702bd335baf",
+              "site_id_hex32": "c844a8841eed5db0b55d5702bd335baf"
+            },
+            {
+              "activity_root": "surface/haul-road-operations",
+              "rows": 54,
+              "site_id": "218e340b-e899-58f0-9716-80888e591688",
+              "site_id_hex32": "218e340be89958f0971680888e591688"
+            },
+            {
+              "activity_root": "surface/mobile-plant-maintenance",
+              "rows": 52,
+              "site_id": "36309030-3d3f-5b2a-a45d-ef39a0f4958e",
+              "site_id_hex32": "363090303d3f5b2aa45def39a0f4958e"
+            },
+            {
+              "activity_root": "surface/water-services-maintenance",
+              "rows": 33,
+              "site_id": "f10d0af6-26d1-50bd-9519-4e7fc09ed6dd",
+              "site_id_hex32": "f10d0af626d150bd95194e7fc09ed6dd"
+            },
+            {
+              "activity_root": "underground/ground-support-installation",
+              "rows": 57,
+              "site_id": "8c9d8d88-ab03-5c8f-b581-632d0cb95d12",
+              "site_id_hex32": "8c9d8d88ab035c8fb581632d0cb95d12"
+            },
+            {
+              "activity_root": "underground/sump-and-drainage-work",
+              "rows": 39,
+              "site_id": "df6454ef-7a92-5b96-931d-f8e59ff2a264",
+              "site_id_hex32": "df6454ef7a925b96931df8e59ff2a264"
+            },
+            {
+              "activity_root": "underground/ventilation-control",
+              "rows": 29,
+              "site_id": "938144f9-8ce7-5a53-85b1-ef977a26b99a",
+              "site_id_hex32": "938144f98ce75a5385b1ef977a26b99a"
+            },
+            {
+              "activity_root": "wa/caught-in-under-or-between",
+              "rows": 7,
+              "site_id": "826ac2b4-b653-550c-b475-2927fdf1e2f3",
+              "site_id_hex32": "826ac2b4b653550cb4752927fdf1e2f3"
+            },
+            {
+              "activity_root": "wa/electrical",
+              "rows": 8,
+              "site_id": "768cc280-1895-5144-8f9a-2bc9bee969ab",
+              "site_id_hex32": "768cc280189551448f9a2bc9bee969ab"
+            }
+          ],
+          "show_create": "CREATE TABLE mainline.clause_embedding (\n\tclause_uuid UUID NOT NULL,\n\tcommit_id BYTES NOT NULL,\n\tsite_id UUID NOT NULL,\n\tactivity_root STRING NOT NULL,\n\tembed_model STRING NOT NULL,\n\tindex_gen STRING NOT NULL,\n\tembedding VECTOR(1024) NOT NULL,\n\tCONSTRAINT clause_embedding_pk PRIMARY KEY (clause_uuid ASC, commit_id ASC),\n\tCONSTRAINT fk_version FOREIGN KEY (clause_uuid, commit_id) REFERENCES mainline.clause_version(clause_uuid, commit_id),\n\tVECTOR INDEX ce_ann (site_id, activity_root, embedding vector_cosine_ops),\n\tFAMILY f_meta (clause_uuid, commit_id, site_id, activity_root, embed_model, index_gen),\n\tFAMILY f_vec (embedding),\n\tCONSTRAINT embed_model_stated CHECK (embed_model != '':::STRING),\n\tCONSTRAINT index_gen_stated CHECK (index_gen != '':::STRING)\n) WITH (schema_locked = true);",
+          "vector_dims_max": 1024,
+          "vector_dims_min": 1024
+        },
+        "target": "local"
+      }
+    },
+    "token_ledger": [
+      {
+        "calls": 0,
+        "input_tokens": 0,
+        "model_id": "amazon.titan-embed-text-v2:0",
+        "output_tokens": 0,
+        "over_ceiling": false,
+        "price_basis": "published on-demand list price for ap-southeast-2, recorded 2026-08-11; declared, not measured — no bill or Price List API response backs this number",
+        "priced": true,
+        "usd_input": 0.0,
+        "usd_output": 0.0,
+        "usd_per_1k_input": 2e-05,
+        "usd_per_1k_output": 0.0,
+        "usd_total": 0.0
+      },
+      {
+        "calls": 240,
+        "input_tokens": 69344,
+        "model_id": "amazon.titan-embed-text-v2:0",
+        "output_tokens": 0,
+        "over_ceiling": false,
+        "price_basis": "published on-demand list price for ap-southeast-2, recorded 2026-08-11; declared, not measured — no bill or Price List API response backs this number",
+        "priced": true,
+        "usd_input": 0.00138688,
+        "usd_output": 0.0,
+        "usd_per_1k_input": 2e-05,
+        "usd_per_1k_output": 0.0,
+        "usd_total": 0.00138688
+      },
+      {
+        "calls": 1,
+        "input_tokens": 28,
+        "model_id": "amazon.titan-embed-text-v2:0",
+        "output_tokens": 0,
+        "over_ceiling": false,
+        "price_basis": "published on-demand list price for ap-southeast-2, recorded 2026-08-11; declared, not measured — no bill or Price List API response backs this number",
+        "priced": true,
+        "usd_input": 5.6e-07,
+        "usd_output": 0.0,
+        "usd_per_1k_input": 2e-05,
+        "usd_per_1k_output": 0.0,
+        "usd_total": 5.6e-07
+      }
+    ],
+    "token_ledger_note": "row 1 is InvokeModel in this process; row 2, when present, is the calls this same program made in an earlier run whose vectors came from its cache under out/ (gitignored). Every count is Bedrock's own `inputTextTokenCount`, never an estimate from character length.",
+    "token_ledger_total": {
+      "calls": 241,
+      "entries": 3,
+      "input_tokens": 69372,
+      "output_tokens": 0,
+      "price_basis": "published on-demand list price for ap-southeast-2, recorded 2026-08-11; declared, not measured — no bill or Price List API response backs this number",
+      "unpriced_entries": 0,
+      "usd_ceiling_per_run": 0.5,
+      "usd_total": 0.00138744
+    }
+  },
+  "region": "ap-southeast-2",
+  "synthetic": true
+}

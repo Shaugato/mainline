@@ -1,0 +1,259 @@
+SPDX-FileCopyrightText: 2026 MAINLINE contributors
+SPDX-License-Identifier: CC-BY-4.0
+
+========================================================================================
+EXPLAIN — the SAME statement without @ce_ann  (the control)
+========================================================================================
+
+The unflattering half, captured on purpose.
+
+ADR 0002 GT-06 recorded that at ~5,200 rows CockroachDB's optimizer does NOT choose the
+vector index for this shape — the plan becomes top-k over a scan — and GT-06b recorded
+that naming the index makes it traverse. That pair is the stated reason every ANN arm in
+MAINLINE pins the index. This file is the control that checks it, against the same rows
+and the same bound values as explain-hinted.txt, taken seconds apart.
+
+MEASURED HERE, AND IT IS NOT WHAT THE ADR SAYS: **the unhinted plan also traverses
+ce_ann.** On this cluster, today, at this corpus size, the optimizer chooses the vector
+index on its own. GT-06 did not reproduce.
+
+That is a single observation, so it was swept: row counts 0, 200, 1100, 5300 in a scratch
+database built from the same DDL, with seeded pseudo-random vectors, by
+`scripts/aws/ann_proof.py --crossover`. Appendix A is that sweep. It crosses 5,200 —
+GT-06's own row count — and the optimizer still picks the index.
+
+APPENDIX B IS THE COUNTERFACTUAL THAT STILL WORKS. Removing the *hint* changes nothing
+on this release; removing a *prefix constraint* is refused outright, SQLSTATE 42809,
+`index "ce_ann" cannot be used for this query`. That is the rule this design depends
+on, and it is enforced by the server rather than by a comment in a migration.
+
+WHAT THIS DOES AND DOES NOT CHANGE.
+
+  * It does NOT weaken the hint. A cost-based choice that has already changed once
+    between two measurements on the same cluster is precisely the kind of
+    non-determinism that must not sit beneath a safety gate. ADR 0002's DECISION —
+    pin the index in every arm — is if anything better supported by this than by the
+    finding it was written from.
+  * It DOES make ADR 0002's GT-06 row stale for this shape, and
+    evidence/aws/ann/ann-proof.json says so under plans.crossover_census. Correcting
+    that document is not this worker's file to edit; the measurement is published here
+    so that whoever owns it cannot miss it.
+  * It does NOT make explain-hinted.txt weaker evidence. The hinted plan still shows the
+    C-SPANN tree being descended with both prefix columns bound. What this file removes
+    is the ability to claim the hint was *necessary* at this scale, and that claim is
+    now absent from every artefact this worker writes.
+
+UNCONTROLLED DIFFERENCES between this sweep and GT-06's original: GT-06's exact prefix
+cardinality, vector distribution, statistics freshness and cluster build are not
+recorded in ADR 0002, so this sweep matches its row count and its DDL and nothing else.
+The honest statement is `did not reproduce under these conditions`, not `was wrong`.
+
+----------------------------------------------------------------------------------------
+CONTEXT
+----------------------------------------------------------------------------------------
+  database                     mainline_ann_evidence
+  cluster                      mainline-dev (aws-ap-southeast-1)
+  server_version               CockroachDB CCL v26.2.5
+  rows in the table            1534
+  rows under this site_id      1080
+  distinct activity_root       3
+  embed_model (searched)       amazon.titan-embed-text-v2:0
+  index_gen (searched)         titan-v2-1024-8b510425ae1d
+  vector dimensions            1024
+  beam size                    32
+  rerank multiplier            50
+  query id                     Q-G4-FAI-2011-142
+  site_id bound to             5b144fe2-c64e-54a4-8b7c-2e3eb31497b6
+  activity_root bound to       /mill
+  LIMIT                        10
+  captured at                  2026-08-11T04:07:47Z
+
+----------------------------------------------------------------------------------------
+STATEMENT (bound values are the ones named above; the full 1024-float vector is
+inlined in evidence/aws/ann/the-one-query.sql)
+----------------------------------------------------------------------------------------
+
+SELECT clause_uuid, commit_id, embedding <=> %(vec)s AS dist
+  FROM mainline.clause_embedding
+ WHERE site_id = %(site)s AND activity_root = %(root)s
+ ORDER BY embedding <=> %(vec)s LIMIT %(k)s
+
+----------------------------------------------------------------------------------------
+EXPLAIN
+----------------------------------------------------------------------------------------
+
+distribution: local
+
+• top-k
+│ estimated row count: 9
+│ order: +dist
+│ k: 10
+│
+└── • render
+    │
+    └── • lookup join
+        │ table: clause_embedding@clause_embedding_pk
+        │ equality: (clause_uuid, commit_id) = (clause_uuid, commit_id)
+        │ equality cols are key
+        │
+        └── • vector search
+              table: clause_embedding@ce_ann
+              target count: 10
+              prefix spans: [/'5b144fe2-c64e-54a4-8b7c-2e3eb31497b6'/'/mill' - /'5b144fe2-c64e-54a4-8b7c-2e3eb31497b6'/'/mill']
+
+index recommendations: 1
+1. type: index creation
+   SQL command: CREATE INDEX ON mainline_ann_evidence.mainline.clause_embedding (site_id, activity_root) STORING (embedding);
+
+----------------------------------------------------------------------------------------
+EXPLAIN ANALYZE  (the same statement, executed)
+----------------------------------------------------------------------------------------
+
+planning time: 1ms
+execution time: 8ms
+distribution: local
+plan type: generic, re-optimized
+rows decoded from KV: 34 (145 KiB, 68 KVs, 1 gRPC calls)
+regions: aws-ap-southeast-1
+estimated RUs consumed: 9.3271484375
+
+• top-k
+│ sql nodes: n1
+│ regions: aws-ap-southeast-1
+│ execution time: 40µs
+│ sql cpu time: 40µs
+│ actual row count: 10
+│ estimated row count: 9
+│ order: +dist
+│ k: 10
+│
+└── • render
+    │ execution time: 200µs
+    │ sql cpu time: 200µs
+    │ actual row count: 34
+    │
+    └── • lookup join
+        │ sql nodes: n1
+        │ kv nodes: n36
+        │ regions: aws-ap-southeast-1
+        │ KV time: 3ms
+        │ KV rows decoded: 34
+        │ execution time: 3ms
+        │ sql cpu time: 175µs
+        │ actual row count: 34
+        │ table: clause_embedding@clause_embedding_pk
+        │ equality: (clause_uuid, commit_id) = (clause_uuid, commit_id)
+        │ equality cols are key
+        │
+        └── • vector search
+              sql nodes: n1
+              regions: aws-ap-southeast-1
+              execution time: 4ms
+              sql cpu time: 587µs
+              actual row count: 34
+              table: clause_embedding@ce_ann
+              target count: 10
+              prefix spans: [/'5b144fe2-c64e-54a4-8b7c-2e3eb31497b6'/'/mill' - /'5b144fe2-c64e-54a4-8b7c-2e3eb31497b6'/'/mill']
+
+----------------------------------------------------------------------------------------
+MACHINE-CHECKABLE FACTS ABOUT THE PLAN ABOVE
+----------------------------------------------------------------------------------------
+  has_vector_search_node               True
+  names_clause_embedding_at_ce_ann     True
+  traverses_ce_ann                     True
+  has_prefix_spans                     True
+  has_full_scan_node                   False
+  has_filter_node                      False
+  digest_sha256                        53588c48ccb4f796a4787e6f36085b3efdb74937437b205d264641034779c060
+  lines                                22
+
+----------------------------------------------------------------------------------------
+APPENDIX A — DOES THE PLAN ABOVE DEPEND ON THE SIZE OF THE CORPUS?
+----------------------------------------------------------------------------------------
+
+measured 2026-08-11T02:25:36Z on CockroachDB CCL v26.2.5
+vectors: seeded pseudo-random unit vectors, NOT Bedrock output
+table:   verbatim 0031_clause_embedding.sql against a two-column stub parent
+
+     rows  hinted traverses ce_ann   unhinted traverses ce_ann 
+  -------  ------------------------  --------------------------
+        0  True                      True                      
+      200  True                      True                      
+     1100  True                      True                      
+     5300  True                      True                      
+
+  unhinted NEVER stopped using ce_ann at any size swept
+  GT-06 reproduces: False
+
+----------------------------------------------------------------------------------------
+APPENDIX B — THE COUNTERFACTUAL THAT DOES NOT DEPEND ON THE OPTIMIZER
+----------------------------------------------------------------------------------------
+
+Removing the hint is one counterfactual. Removing a PREFIX CONSTRAINT is the other,
+and it is the one that does not depend on table statistics. Each statement below keeps
+`@ce_ann` and changes exactly one thing.
+
+====================================================================================
+prefix_dropped_site_id
+====================================================================================
+
+SELECT clause_uuid, commit_id, embedding <=> %(vec)s AS dist
+  FROM mainline.clause_embedding@ce_ann
+ WHERE activity_root = %(root)s
+ ORDER BY embedding <=> %(vec)s LIMIT %(k)s
+
+  REFUSED BY THE SERVER — SQLSTATE 42809
+  index "ce_ann" cannot be used for this query
+
+  Not a worse plan. A refused one. This is the prefix rule enforced by
+  CockroachDB rather than asserted by a comment.
+
+====================================================================================
+prefix_dropped_activity_root
+====================================================================================
+
+SELECT clause_uuid, commit_id, embedding <=> %(vec)s AS dist
+  FROM mainline.clause_embedding@ce_ann
+ WHERE site_id = %(site)s
+ ORDER BY embedding <=> %(vec)s LIMIT %(k)s
+
+  REFUSED BY THE SERVER — SQLSTATE 42809
+  index "ce_ann" cannot be used for this query
+
+  Not a worse plan. A refused one. This is the prefix rule enforced by
+  CockroachDB rather than asserted by a comment.
+
+====================================================================================
+activity_root_in_list
+====================================================================================
+
+SELECT clause_uuid, commit_id, embedding <=> %(vec)s AS dist
+  FROM mainline.clause_embedding@ce_ann
+ WHERE site_id = %(site)s AND activity_root IN ('/mill', '/surface', '/underground')
+ ORDER BY embedding <=> %(vec)s LIMIT %(k)s
+
+  traverses ce_ann:  True
+  prefix spans:      True
+  full scan node:    False
+  plan digest:       0c75ec29f6a10f282ea03c54572ce14b7e496eb3e92abdb9b3905dddbdf57344
+
+distribution: local
+
+• top-k
+│ estimated row count: 10
+│ order: +dist
+│ k: 10
+│
+└── • render
+    │
+    └── • lookup join
+        │ table: clause_embedding@clause_embedding_pk
+        │ equality: (clause_uuid, commit_id) = (clause_uuid, commit_id)
+        │ equality cols are key
+        │
+        └── • vector search
+              table: clause_embedding@ce_ann
+              target count: 10
+              prefix spans: [/'5b144fe2-c64e-54a4-8b7c-2e3eb31497b6'/'/mill' - /'5b144fe2-c64e-54a4-8b7c-2e3eb31497b6'/'/mill'] [/'5b144fe2-c64e-54a4-8b7c-2e3eb31497b6'/'/surface' - /'5b144fe2-c64e-54a4-8b7c-2e3eb31497b6'/'/surface'] [/'5b144fe2-c64e-54a4-8b7c-2e3eb31497b6'/'/underground' - /'5b144fe2-c64e-54a4-8b7c-2e3eb31497b6'/'/underground']
+
+

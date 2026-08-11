@@ -1,0 +1,44 @@
+{
+  "artefact": "evidence/aws/probe/raw-cohere-refusal.json",
+  "caveats": [
+    "this is a captured refusal, not a failure of the probe; the refusal is the evidence",
+    "the message is recorded verbatim and hashed; bedrock-probe.json records whether redaction altered it (it must be false)"
+  ],
+  "generated_at": "2026-08-10T22:00:59Z",
+  "generated_by": "scripts/aws/probe_bedrock.py",
+  "kind": "bedrock-raw-refusal",
+  "payload": {
+    "error": {
+      "code": "ValidationException",
+      "message_sha256": "89694584cbfdd26b875ecb0f32d4e00098d5383311e629c6dc85853fd4c6f826",
+      "message_verbatim": "Invocation of model ID cohere.embed-v4:0 with on-demand throughput isn’t supported. Retry your request with the ID or ARN of an inference profile that contains this model.",
+      "metadata": {
+        "date_header": "Mon, 10 Aug 2026 22:00:59 GMT",
+        "http_status": 400,
+        "request_id": "a826eb16-e813-45aa-932e-4696e9979087",
+        "retry_attempts": 0
+      },
+      "type": "ValidationException"
+    },
+    "request": {
+      "accept": "application/json",
+      "body": {
+        "embedding_types": [
+          "float"
+        ],
+        "input_type": "search_document",
+        "output_dimension": 1024,
+        "texts": [
+          "MAINLINE probe clause: isolate and de-pressurise the line, prove zero energy at the break point, and hold the permit open until the isolation is independently verified."
+        ]
+      },
+      "body_sha256": "b1c39b0b5ce63863ef35770a10e2b1c9e85c0004af056cabfd2c69c666a07ff8",
+      "contentType": "application/json",
+      "modelId": "cohere.embed-v4:0",
+      "operation": "bedrock-runtime:InvokeModel"
+    },
+    "response": null
+  },
+  "region": "ap-southeast-2",
+  "synthetic": false
+}

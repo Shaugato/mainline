@@ -74,14 +74,19 @@ from psycopg.types.json import Jsonb
 if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
+from scripts.deploy.cloud_chain import _JITTER as JITTER
 from scripts.deploy.cloud_chain import (
     DEFAULT_DATABASE,
+    MAX_ATTEMPTS,
+    RETRYABLE,
     Applier,
     cluster_label,
+    database_report,
     load_dotenv,
     one_line,
     repo_root,
     rewrite_dsn,
+    row_of,
     sqlstate_of,
 )
 
@@ -169,26 +174,26 @@ def apply_seeds(applier: Applier, seeds: Path) -> list[dict[str, Any]]:
     is a single implicit transaction — the second ``permit_event`` reads the first's generated
     ``chain_digest``, and the projection triggers take ``FOR UPDATE`` on the permit — so splitting
     them would change what is being seeded, not merely how.
+
+    THIS IS THE SECOND APPLIER, AND IT SHARES THE FIRST ONE'S RETRY LOOP. ``cloud_chain.Applier``
+    is imported rather than reimplemented, so a fix to the ``40001`` handling cannot be applied to
+    the migration chain and forgotten here. ``--inject-40001`` therefore proves this path too, and
+    it proves it on a *real* seed file: the injection is raised before the statement is sent, so
+    the retry re-runs a file that has not partially applied, which is the only way an injected
+    recovery is evidence about the real one.
     """
     rows: list[dict[str, Any]] = []
     for name in SEED_FILES:
         path = seeds / name
         if not path.is_file():
             raise SystemExit(f"seed_demo: no seed file at {path}")
-        outcome = applier.run(path.read_text(encoding="utf-8"))
-        rows.append(
-            {
-                "file": name,
-                "seconds": outcome.seconds,
-                "attempts": outcome.attempts,
-                "sqlstate": outcome.sqlstate,
-                "error": outcome.error,
-            }
-        )
+        outcome = applier.run(path.read_text(encoding="utf-8"), label=name)
+        rows.append(row_of(name, outcome))
         status = "OK" if outcome.ok else f"FAILED {outcome.sqlstate}"
+        injected = f" injected={outcome.injected_40001}" if outcome.injected_40001 else ""
         print(
             f"  seed         {name:<20} {status:<16} {outcome.seconds:>6.2f}s "
-            f"attempts={outcome.attempts}",
+            f"attempts={outcome.attempts}{injected}",
             flush=True,
         )
         if not outcome.ok:
@@ -252,6 +257,18 @@ def observe(conn: psycopg.Connection[Any]) -> dict[str, Any]:
             ),
         }
     )
+    # EXACTLY ONE PERMIT, and the count is taken three ways on purpose. "the seed is present"
+    # and "the seed is the only thing present" are different claims, and only the second one
+    # tells a judge that the database they are about to drive has not accumulated leftovers
+    # from an earlier run, a test, or somebody's manual poke at the gate.
+    totals = conn.execute(
+        "SELECT count(*), count(*) FILTER (WHERE permit_id = %s), "
+        "count(*) FILTER (WHERE external_ref LIKE 'DEMO-%%') FROM mainline.permit",
+        (PERMIT_ID,),
+    ).fetchone()
+    out["permits_in_database"] = int(totals[0]) if totals else 0
+    out["the_demo_permit"] = int(totals[1]) if totals else 0
+    out["permits_flagged_demo"] = int(totals[2]) if totals else 0
     dispositions = conn.execute(
         "SELECT count(*) FROM mainline.disposition WHERE check_id = %s", (CHECK_ID,)
     ).fetchone()
@@ -364,7 +381,7 @@ def verify_refusable(conn: psycopg.Connection[Any]) -> dict[str, Any]:
 # reason" and "the rollback did not hold" are eight different diagnoses with eight different
 # fixes. A generic assertion helper would report all eight as one line of the form
 # `expected X got Y`, which is exactly the report nobody can act on at 2 a.m.
-def run(args: argparse.Namespace) -> tuple[int, dict[str, Any]]:  # noqa: PLR0912
+def run(args: argparse.Namespace) -> tuple[int, dict[str, Any]]:  # noqa: PLR0912, PLR0915
     root = repo_root()
     seeds = args.seeds or (root / "verticals" / "mainline" / "db" / "seeds" / "demo")
     dsn = rewrite_dsn(
@@ -395,11 +412,33 @@ def run(args: argparse.Namespace) -> tuple[int, dict[str, Any]]:  # noqa: PLR091
         },
     }
 
-    applier = Applier(dsn)
+    applier = Applier(dsn, inject_40001=args.inject_40001, inject_into=args.inject_into)
     version = applier.conn.execute("SELECT version()").fetchone()
     user = applier.conn.execute("SELECT current_user").fetchone()
+    observed = applier.database
     evidence["target"]["version"] = str(version[0]) if version else "unknown"
     evidence["target"]["connected_as"] = str(user[0]) if user else "unknown"
+    evidence["target"]["database_selection"] = database_report(args.dsn, args.database, observed)
+    print(
+        f"  connected    {observed} as {evidence['target']['connected_as']} "
+        f"(SELECT current_database(); the DSN's path segment said "
+        f"'{evidence['target']['database_selection']['dsn_path_segment']}' and was overridden)",
+        flush=True,
+    )
+    # REFUSING BEATS READING THE WRONG DATABASE. On the committed DSN this script would connect
+    # to `defaultdb`, find no `mainline` schema and report `UndefinedTable` — a scary message
+    # about a database that is perfectly healthy, and the single most time-wasting failure this
+    # deployment has produced. The database is named explicitly and then confirmed by the server.
+    if observed != args.database:
+        applier.close()
+        evidence["failures"] = [
+            (
+                f"asked for database {args.database!r} and the server answered "
+                f"current_database() = {observed!r}. Nothing was seeded and nothing was read."
+            )
+        ]
+        evidence["verdict"] = "WRONG DATABASE"
+        return EXIT_WRONG_STATE, evidence
 
     if args.check:
         evidence["seed_files"] = "not applied (--check)"
@@ -415,7 +454,29 @@ def run(args: argparse.Namespace) -> tuple[int, dict[str, Any]]:  # noqa: PLR091
     evidence["row_counts"] = census(applier.conn)
     evidence["observed"] = observe(applier.conn)
 
+    seed_rows = evidence["seed_files"] if isinstance(evidence["seed_files"], list) else []
+    evidence["retry"] = {
+        "executor": "scripts/deploy/cloud_chain.Applier — the same one the migration chain uses",
+        "retryable_sqlstate": RETRYABLE,
+        "max_attempts": MAX_ATTEMPTS,
+        "files_that_needed_a_retry": sum(
+            1 for r in seed_rows if r["attempts"] > r["injected_40001"] + 1
+        ),
+        "files_with_injected_retries": sum(1 for r in seed_rows if r["injected_40001"]),
+        "injected_by_this_run": args.inject_40001,
+        "note": (
+            "files_that_needed_a_retry counts SPONTANEOUS retries only — a 40001 the cluster "
+            "produced. Retries this program injected with --inject-40001 are counted separately "
+            "and are never allowed to inflate the first number."
+        ),
+    }
+
     observed = evidence["observed"]
+    if observed.get("permits_in_database") != 1:
+        failures.append(
+            f"{observed.get('permits_in_database')} permits stand in mainline.permit, expected "
+            "exactly 1 — the demo database has accumulated state that is not the seed"
+        )
     if observed["permit"] is None:
         failures.append("the seeded permit does not exist")
     elif observed["permit"]["state"] != "dispositioned":
@@ -473,9 +534,18 @@ def summarise(evidence: dict[str, Any]) -> None:
     target = evidence["target"]
     verification = evidence.get("verification", {})
     observed = evidence.get("observed", {})
+    selection = target.get("database_selection", {})
     print()
     print(f"cluster       {target['cluster']}")
-    print(f"database      {target['database']}  (as {target.get('connected_as')})")
+    print(
+        f"database      {selection.get('confirmed_by_server', target['database'])}  "
+        f"(as {target.get('connected_as')}; confirmed by SELECT current_database(), "
+        f"DSN path segment '{selection.get('dsn_path_segment', '?')}')"
+    )
+    print(
+        f"permits       {observed.get('permits_in_database')} in mainline.permit, "
+        f"{observed.get('the_demo_permit')} is the demo permit"
+    )
     print(f"permit        {evidence['subject']['permit_id']}")
     print(f"check         {evidence['subject']['check_id']}")
     if observed.get("permit"):
@@ -517,6 +587,28 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--out", type=Path, default=None, help="evidence path")
     parser.add_argument("--check", action="store_true", help="verify only; apply neither seed file")
     parser.add_argument("--connect-timeout", type=int, default=20)
+    parser.add_argument(
+        "--inject-40001",
+        type=int,
+        default=0,
+        metavar="N",
+        help=(
+            "raise a simulated 40001 on the first N attempts of one seed file, before it "
+            "reaches the server, to prove the shared retry loop recovers"
+        ),
+    )
+    parser.add_argument(
+        "--inject-into",
+        default=None,
+        metavar="SUBSTRING",
+        help="only inject into the seed file whose name or text contains SUBSTRING",
+    )
+    parser.add_argument(
+        "--jitter-seed",
+        type=int,
+        default=None,
+        help="seed the backoff jitter so a published transcript is reproducible",
+    )
     return parser
 
 
@@ -532,6 +624,8 @@ def main(argv: list[str] | None = None) -> int:
         )
         return EXIT_USAGE
     out = args.out or (root / "evidence" / "deploy" / "cloud-seed.json")
+    if args.jitter_seed is not None:
+        JITTER.seed(args.jitter_seed)
 
     try:
         code, evidence = run(args)

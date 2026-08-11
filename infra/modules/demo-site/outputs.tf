@@ -1,18 +1,30 @@
 # SPDX-FileCopyrightText: 2026 MAINLINE contributors
 # SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
 #
-# `demo_url` is the output the entire submission turns on. Everything else here exists so
-# that the deploy script, the teardown script and the judge pack can each do their job
-# without hard-coding a name that only Terraform knows.
+# These outputs exist so that the deploy script, the teardown script and the judge pack can
+# each do their job without hard-coding a name that only Terraform knows.
+#
+# NONE OF THEM IS READABLE WHEN THE MODULE IS ABSENT, AND ABSENT IS THE DEFAULT.
+# `infra/envs/demo` instantiates this module with `count = var.enable_cloudfront ? 1 : 0`
+# and that variable defaults to `false` (AWS refuses to create a distribution on this
+# account — see main.tf's header for the 403 and its RequestID). A caller therefore reaches
+# every value below as `try(module.site[0].<name>, null)`: on a zero-count module
+# `module.site[0]` is an INVALID INDEX rather than a null, and a splat would depend on the
+# module's close node and rebuild the dependency cycle `infra/envs/demo/main.tf` documents.
 
 output "demo_url" {
   description = <<-EOT
-    THE URL. `https://` + the distribution's domain name, with no trailing slash.
+    `https://` + the distribution's domain name, with no trailing slash.
 
-    This is the string that goes in the hackathon submission form's "URL to your functional
-    demo app" field — Stage One, pass/fail. It is stable for the life of the distribution:
-    adding the API origin later is an in-place update, so the URL printed by the first
-    Phase-1 apply is the URL in the final submission.
+    THIS IS NO LONGER THE SUBMISSION'S DEMO URL BY DEFAULT. Under decision D1
+    (`docs/leads/ship-final.md` §1.4) the hostname belongs to the Lambda Function URL in
+    `../demo-api`, because AWS will not create a CloudFront distribution on this account.
+    This value is the URL only when the caller sets `enable_cloudfront = true`, in which
+    case `infra/envs/demo`'s own `demo_url` output switches to it and says so in
+    `demo_url_source`.
+
+    It is stable for the life of the distribution: adding the API origin later is an
+    in-place update, not a replacement.
   EOT
   value       = "https://${aws_cloudfront_distribution.site.domain_name}"
 }

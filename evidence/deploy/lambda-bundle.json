@@ -1,0 +1,252 @@
+{
+  "artefact": "MAINLINE demo-api Lambda deployment package",
+  "license": "CC-BY-4.0",
+  "licence_note": "SPDX-License-Identifier: CC-BY-4.0. A JSON file cannot carry a comment header; coverage comes from REUSE.toml section 3, which declares CC-BY-4.0 over evidence/**.",
+  "worker": "w2-lambda-bundle",
+  "produced_by": [
+    "scripts/deploy/build_lambda.sh",
+    "scripts/deploy/build_lambda.ps1",
+    "scripts/deploy/bundle_manifest.py"
+  ],
+  "measured_at_utc": "2026-08-11T05:37:42Z",
+  "measured_on": "the project workstation, Windows 11, Git Bash (bash 5) and PowerShell 7, CPython 3.13.14",
+  "repository_head": "8e8c0b30dbb7f48fecf3daf4067ac997dca7a72f",
+  "decision": "D1, docs/leads/ship-final.md section 1.4: the demo URL is a public Lambda Function URL, so ONE package is the whole origin - console SPA, EvidenceBundle and /v1/*.",
+
+  "layout": {
+    "mainline_demo_api/": "the handler package, copied from verticals/mainline/apps/demo-api/src/mainline_demo_api",
+    "psycopg/ + psycopg_binary/ + psycopg_binary.libs/": "psycopg 3.3.4 and psycopg-binary 3.3.4, installed for the target platform",
+    "web/": "the contents of verticals/mainline/apps/console/dist, served at / and /assets/*",
+    "web/bundle/": "verticals/mainline/apps/console/fixtures/bundles/demo-cloud, the verified EvidenceBundle, served at /bundle/*",
+    "contract": "$MAINLINE_WEB_ROOT = /var/task/web, set by infra/modules/demo-api/main.tf:145 from var.web_root and read by mainline_demo_api.static_site.web_root()"
+  },
+
+  "inputs": {
+    "console_dist": {
+      "path": "verticals/mainline/apps/console/dist",
+      "files": 49,
+      "bytes": 3387678,
+      "tree_sha256": "f840234ec37afd5c6fc7e923b84ea1c1f0511dff6aabd052754580598520fb2f",
+      "tree_sha256_note": "sha256 over sorted (relative path, file digest) pairs; not a zip hash"
+    },
+    "evidence_bundle": {
+      "path": "verticals/mainline/apps/console/fixtures/bundles/demo-cloud",
+      "files": 26,
+      "bytes": 184312,
+      "tree_sha256": "92d7365130a629c73b84203575901127a69edf29a45d55fc07eea59da677527f",
+      "manifest_digest": "7772131bf9424359140540254167c40e37d458cb212df0f1b78ffff359076614",
+      "manifest_digest_source": "evidence/deploy/bundle-capture.json, verdict CAPTURED AND VERIFIED, 24 files agree"
+    },
+    "handler_package": {
+      "path": "verticals/mainline/apps/demo-api/src/mainline_demo_api",
+      "files_packed": 11,
+      "bytes_packed": 283402,
+      "owner": "w1-gate-run-route; this worker reads it and never edits it"
+    }
+  },
+
+  "toolchain": {
+    "python": "CPython 3.13.14",
+    "pip": "pip 26.2.1",
+    "target_python_version": "3.13",
+    "psycopg_version": "3.3.4",
+    "pip_flags": "--no-deps --no-compile --no-index --find-links <wheelhouse> --target <stage> --platform <tag> --implementation cp --python-version 3.13 --only-binary=:all:",
+    "pip_version_probe": "importlib.metadata.version('pip'), NOT `pip --version`, which prints an absolute path and would put a Windows path into this tracked file"
+  },
+
+  "packer": {
+    "sha256": "eab069d1eb460c71b01d506acdab6eabfd53713cef4beafa34953c9c47e30711",
+    "identical_in_both_builders": true,
+    "how_verified": "The staging/pruning/packing program is embedded in build_lambda.sh (heredoc) and build_lambda.ps1 (here-string). Both normalise it to LF, write it with UTF-8 no BOM, and print its sha256. Extracted from both files and hashed independently: sh eab069d1eb460c71b01d506acdab6eabfd53713cef4beafa34953c9c47e30711, ps1 eab069d1eb460c71b01d506acdab6eabfd53713cef4beafa34953c9c47e30711, string equality True.",
+    "why": "Two builders that print the same zip hash could still be two different programs that happen to agree today. This makes the agreement checkable."
+  },
+
+  "architectures": [
+    {
+      "architecture": "arm64",
+      "zip_path": "out/lambda/mainline-demo-api-arm64.zip",
+      "sidecar_path": "out/lambda/mainline-demo-api-arm64.zip.json",
+      "platform_tag": "manylinux_2_28_aarch64",
+      "sha256": "c85d7f00a5576e412dfb0124ad93c40104757011179d0029361d9a8db5b8a4b0",
+      "sha256_second_build": "c85d7f00a5576e412dfb0124ad93c40104757011179d0029361d9a8db5b8a4b0",
+      "sha256_third_build_powershell": "c85d7f00a5576e412dfb0124ad93c40104757011179d0029361d9a8db5b8a4b0",
+      "identical": true,
+      "bytes_zipped": 7989296,
+      "bytes_unzipped": 28364357,
+      "entry_count": 206,
+      "command_line": "scripts/deploy/build_lambda.sh --arch arm64",
+      "command_line_second_build": "scripts/deploy/build_lambda.sh --arch arm64 --out <a directory outside the repository>/mainline-demo-api-arm64.zip",
+      "command_line_third_build": "pwsh -NoProfile -File scripts/deploy/build_lambda.ps1 -Arch arm64 -Out <a second directory outside the repository>/mainline-demo-api-arm64.zip",
+      "wheels": [
+        {
+          "wheel": "psycopg-3.3.4-py3-none-any.whl",
+          "bytes": 213001,
+          "sha256": "b6bbc25ccf05c8fad3b061d9db2ef0909a555171b84b07f29458a447253d679a"
+        },
+        {
+          "wheel": "psycopg_binary-3.3.4-cp313-cp313-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl",
+          "bytes": 6736671,
+          "sha256": "26df2717e59c0473e4465a97dfb1b7afebaa479277870fd5784d1436470db47c"
+        }
+      ],
+      "top_level": {
+        "mainline_demo_api": { "entries": 11, "bytes": 283402 },
+        "psycopg": { "entries": 85, "bytes": 713024 },
+        "psycopg-3.3.4.dist-info": { "entries": 4, "bytes": 12064 },
+        "psycopg_binary": { "entries": 10, "bytes": 8093535 },
+        "psycopg_binary-3.3.4.dist-info": { "entries": 5, "bytes": 16806 },
+        "psycopg_binary.libs": { "entries": 16, "bytes": 15673536 },
+        "web": { "entries": 75, "bytes": 3571990 }
+      },
+      "elf_check": {
+        "shared_objects": 18,
+        "e_machine": "0xB7 EM_AARCH64",
+        "how": "byte 18 of the ELF header of every .so in the package, read out of the zip"
+      }
+    },
+    {
+      "architecture": "x86_64",
+      "zip_path": "out/lambda/mainline-demo-api-x86_64.zip",
+      "sidecar_path": "out/lambda/mainline-demo-api-x86_64.zip.json",
+      "platform_tag": "manylinux2014_x86_64",
+      "sha256": "bd7f188df9118085e6520ed7d8893e353cd7d82531ced370fabaa1b241d709ba",
+      "sha256_second_build": "bd7f188df9118085e6520ed7d8893e353cd7d82531ced370fabaa1b241d709ba",
+      "sha256_third_build_powershell": "bd7f188df9118085e6520ed7d8893e353cd7d82531ced370fabaa1b241d709ba",
+      "identical": true,
+      "bytes_zipped": 6403826,
+      "bytes_unzipped": 23598529,
+      "entry_count": 205,
+      "command_line": "scripts/deploy/build_lambda.sh --arch x86_64",
+      "command_line_second_build": "scripts/deploy/build_lambda.sh --arch x86_64 --out <a directory outside the repository>/mainline-demo-api-x86_64.zip",
+      "command_line_third_build": "pwsh -NoProfile -File scripts/deploy/build_lambda.ps1 -Arch x86_64 -Out <a second directory outside the repository>/mainline-demo-api-x86_64.zip",
+      "wheels": [
+        {
+          "wheel": "psycopg-3.3.4-py3-none-any.whl",
+          "bytes": 213001,
+          "sha256": "b6bbc25ccf05c8fad3b061d9db2ef0909a555171b84b07f29458a447253d679a"
+        },
+        {
+          "wheel": "psycopg_binary-3.3.4-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
+          "bytes": 5151137,
+          "sha256": "c677c4ad433cb7150c8cd304a0769ae3bcfbe5ea0676eb53faa7b1443b16d0d3"
+        }
+      ],
+      "top_level": {
+        "mainline_demo_api": { "entries": 11, "bytes": 283402 },
+        "psycopg": { "entries": 85, "bytes": 713024 },
+        "psycopg-3.3.4.dist-info": { "entries": 4, "bytes": 12064 },
+        "psycopg_binary": { "entries": 10, "bytes": 7786407 },
+        "psycopg_binary-3.3.4.dist-info": { "entries": 5, "bytes": 15659 },
+        "psycopg_binary.libs": { "entries": 15, "bytes": 11215983 },
+        "web": { "entries": 75, "bytes": 3571990 }
+      },
+      "elf_check": {
+        "shared_objects": 17,
+        "e_machine": "0x3E EM_X86_64",
+        "how": "byte 18 of the ELF header of every .so in the package, read out of the zip"
+      }
+    }
+  ],
+
+  "size_ratchet": {
+    "zipped_ceiling": 52428800,
+    "zipped_ceiling_why": "AWS Lambda refuses a direct (non-S3) upload above 50 MB, and infra/modules/demo-api/main.tf:249 uses `filename =`, which is a direct upload.",
+    "unzipped_ceiling": 262144000,
+    "unzipped_ceiling_why": "AWS Lambda refuses to unpack a deployment package above 250 MB.",
+    "arm64_zipped_headroom": 44439504,
+    "arm64_unzipped_headroom": 233779643,
+    "x86_64_zipped_headroom": 46024974,
+    "x86_64_unzipped_headroom": 238545471,
+    "enforced_in": [
+      "the builder, which deletes the zip and its sidecar and exits 2 rather than leave an unuploadable artefact behind",
+      "scripts/deploy/bundle_manifest.py, which measures the finished file"
+    ],
+    "proved_by": "python scripts/deploy/bundle_manifest.py out/lambda/mainline-demo-api-arm64.zip --quiet --max-zipped-mb 1 -> REFUSED [SIZE] zipped 7989296 bytes exceeds the Lambda ceiling of 1048576 bytes, exit 2"
+  },
+
+  "determinism": {
+    "claim": "Two builds of the same tree produce the same sha256, on either shell, into any output directory.",
+    "how": [
+      "every ZipInfo.date_time is (1980, 1, 1, 0, 0, 0), the DOS epoch",
+      "entries are written in sorted order of the UTF-8 bytes of their relative path",
+      "ZIP_DEFLATED at a fixed compresslevel 9",
+      "external_attr is 0o755 for shared objects and 0o644 for everything else, create_system 3",
+      "no directory entries are written at all",
+      "pip runs with --no-compile, so no .pyc carries a source mtime, and wheels are installed from a wheelhouse with --no-index rather than re-resolved"
+    ],
+    "verified_by": "scripts/deploy/bundle_manifest.py --strict, which re-reads those six properties out of the finished zip's central directory",
+    "arm64_builds": [
+      "c85d7f00a5576e412dfb0124ad93c40104757011179d0029361d9a8db5b8a4b0",
+      "c85d7f00a5576e412dfb0124ad93c40104757011179d0029361d9a8db5b8a4b0",
+      "c85d7f00a5576e412dfb0124ad93c40104757011179d0029361d9a8db5b8a4b0"
+    ],
+    "x86_64_builds": [
+      "bd7f188df9118085e6520ed7d8893e353cd7d82531ced370fabaa1b241d709ba",
+      "bd7f188df9118085e6520ed7d8893e353cd7d82531ced370fabaa1b241d709ba",
+      "bd7f188df9118085e6520ed7d8893e353cd7d82531ced370fabaa1b241d709ba"
+    ]
+  },
+
+  "source_maps": {
+    "decision": "KEPT",
+    "why": "A judge who opens DevTools on the demo should see component names and real stack frames, not surface-Bv8EMlU6.js:1:20481. This project's argument is that its claims are checkable; shipping an unreadable bundle to save bytes we are not short of would contradict it.",
+    "cost_measured": {
+      "map_files": 18,
+      "bytes_unzipped": 2586960,
+      "arm64_zipped_with_maps": 7989296,
+      "arm64_zipped_without_maps": 7328963,
+      "arm64_zipped_delta": 660333,
+      "arm64_unzipped_without_maps": 25777397,
+      "stripped_build_sha256": "6b35e89f25a1d273bf3d119b634323a0653c6f4e440f23072de8b33ecccb1f49",
+      "stripped_build_entries": 188
+    },
+    "escape_hatch": "scripts/deploy/build_lambda.sh --strip-source-maps (-StripSourceMaps in PowerShell). It is the first thing to try if the 50 MB ratchet ever refuses."
+  },
+
+  "checks": [
+    {
+      "check": "bundle_manifest.py accepts both packages",
+      "command": "python scripts/deploy/bundle_manifest.py out/lambda/mainline-demo-api-<arch>.zip --strict --quiet --require mainline_demo_api/app.py --require psycopg_binary/ --require web/assets/ --require web/bundle/manifest.json",
+      "result": "VERDICT PASS, exit 0, for both architectures; run automatically at the end of every build"
+    },
+    {
+      "check": "bundle_manifest.py refuses a package with a required root removed",
+      "command": "the arm64 zip rewritten without its 26 web/bundle/* entries, then python scripts/deploy/bundle_manifest.py <that zip> --quiet",
+      "result": "REFUSED [MISSING ROOT] web/bundle/ is not in this package, exit 2"
+    },
+    {
+      "check": "the builder refuses when the console has not been built",
+      "command": "the packer extracted from build_lambda.sh, --mode preflight --dist verticals/mainline/apps/console/dist-does-not-exist",
+      "result": "REFUSED [NO CONSOLE] ... Build it with: cd verticals/mainline/apps/console && pnpm install --frozen-lockfile && pnpm exec vite build --mode demo, exit 2"
+    },
+    {
+      "check": "the builder refuses when the EvidenceBundle is absent",
+      "command": "same, --bundle verticals/mainline/apps/console/fixtures/bundles/nope",
+      "result": "REFUSED [NO EVIDENCE BUNDLE] ... Capture it with: python scripts/deploy/capture_demo_bundle.py, exit 2"
+    },
+    {
+      "check": "the package actually serves the website through the real handler",
+      "command": "unzip the arm64 package, set MAINLINE_WEB_ROOT=<task root>/web, import mainline_demo_api.static_site from the unpacked tree and call serve()",
+      "result": "GET / -> 200 (4641 bytes, index.html); GET /assets/index-BjAGxrVJ.js -> 200 (433097 bytes); GET /bundle/manifest.json -> 200 (8424 bytes); GET /#/gate -> 200 (SPA fallback); GET /assets/missing-Xxxx.js -> 404; GET /../etc/passwd -> 403; GET /%2e%2e%2fetc/passwd -> 403; POST / -> 405"
+    },
+    {
+      "check": "the shared objects are for the architecture the package claims",
+      "command": "read the ELF e_machine field of every .so in each zip",
+      "result": "arm64: 18 objects, all 0xB7 EM_AARCH64. x86_64: 17 objects, all 0x3E EM_X86_64."
+    },
+    {
+      "check": "licence ratchet not raised by this worker",
+      "command": "python scripts/qa/check_reuse.py",
+      "result": "the non_spdx_spelling metric for the FSL identifier measured 1254 against baseline 1213, exactly as it stood before this domain ran; UNCOVERED 0. The metric name is not spelled out in this file on purpose: the ratchet counts occurrences of that token in tracked files, so quoting it verbatim in an evidence artefact would raise the number the artefact claims not to have raised."
+    }
+  ],
+
+  "caveats": [
+    "NOT DEPLOYED. This records a built artefact, not a running function. `terraform apply` was not run by this worker and is not this worker's to run (docs/leads/ship-final.md section 2.2).",
+    "The console dist/ in this package carries NEITHER VITE_MAINLINE_API_BASE NOR VITE_MAINLINE_BUNDLE_URL: it was built as a plain `vite build` (import.meta.env MODE=production) rather than `vite build --mode demo`. The site loads, the SPA mounts, and every surface then renders its NO SOURCE panel, because src/app/source-select.ts selects a transport purely from those two build-time variables. The bundle is therefore a working website with no data source. dist/ is not this worker's file; the builder prints the exact rebuild command as a WARNING on every run and records the probe in the sidecar manifest under `console`.",
+    "The reproducibility claim is same-machine, same-tree, both shells, three builds. It is NOT a claim that a different OS or a different pip would resolve the same wheels: the wheel sha256s are recorded here precisely so that a rebuild elsewhere can be compared rather than assumed.",
+    "dist/.vite/manifest.json is shipped because it is part of dist/. It is Vite's build map, it names only chunk files that are already public in the package, and nothing requests it at runtime."
+  ],
+
+  "verdict": "BUILT AND REPRODUCIBLE. Two architectures, three builds each across two shells, byte-identical per architecture. Both packages contain mainline_demo_api/, psycopg/, web/index.html and web/bundle/, are far inside both Lambda size ceilings, and serve / and /bundle/* through the handler that will run them."
+}

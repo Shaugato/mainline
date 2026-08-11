@@ -1,11 +1,12 @@
 # SPDX-FileCopyrightText: 2026 MAINLINE contributors
 # SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
 #
-# THE DEMO API: one Lambda, one IAM-only Function URL, one log group, four alarms.
+# THE DEMO API: one Lambda, one Function URL that IS the demo hostname, one log group,
+# four alarms.
 #
-# This module provisions the `/v1/*` half of the demo stack described in
-# docs/leads/deploy-plan.md sec 2.1. CloudFront and S3 are `w5-tf-site`; the env root that
-# wires the two together is `w7-env-and-deploy`. Everything here lives in
+# Under decision D1 (docs/leads/ship-final.md sec 1.4) this module provisions the WHOLE demo
+# origin, not half of it: the console SPA, the signed evidence bundle and `/v1/*` all answer
+# on one hostname, and that hostname is this function's own URL. Everything here lives in
 # `ap-southeast-1`, beside the CockroachDB Cloud cluster: a Lambda-to-CRDB round trip
 # in-region is single-digit milliseconds, the same call from ap-southeast-2 pays about
 # 90 ms each way, and the gate surface makes six of them - which is 1.1 s of pure geography
@@ -13,12 +14,38 @@
 #
 # Four decisions a reviewer should not have to guess the reason for:
 #
-#   1. THE FUNCTION URL IS `AWS_IAM`, NEVER `NONE`. A `NONE` Function URL is a public,
-#      unauthenticated gateway to a database, on a URL that is guessable in the sense that
-#      it appears in a browser's network tab the first time a judge opens the console. It
-#      is also an unbounded bill. With `AWS_IAM` plus the single `lambda:InvokeFunctionUrl`
-#      grant below, the function is invocable through THIS CloudFront distribution and by
-#      nothing else - `curl` against the URL gets 403 `Forbidden` with no body.
+#   1. THE FUNCTION URL'S AUTHORISATION TYPE IS A VARIABLE, AND ITS DEFAULT IS `NONE`.
+#      This file used to hard-code `AWS_IAM` and state, here, that there was deliberately
+#      no variable that could change it. That was the correct design for a stack with a
+#      CloudFront distribution in front of it. THIS ACCOUNT CANNOT HAVE ONE:
+#
+#          Error: creating CloudFront Distribution: StatusCode: 403,
+#          RequestID: 3e63e30d-8c5b-441b-a01b-b70085eba504, AccessDenied:
+#          Your account must be verified before you can add new CloudFront resources.
+#
+#      recorded in docs/deploy/RUNBOOK.md:26 from a real `terraform apply`, and reproduced
+#      from a bare `aws cloudfront create-distribution` with no Terraform involved. The
+#      identity holds AdministratorAccess; this is an account-level verification hold that
+#      only AWS Support can lift. With no distribution there is no principal to grant
+#      `lambda:InvokeFunctionUrl` to, so an `AWS_IAM` Function URL is not a hardened demo -
+#      it is a demo nobody, including the judges, can reach.
+#
+#      So `var.url_authorization_type` has two legal values and the default is `NONE`:
+#
+#        NONE     the Function URL is public and IS the demo hostname. No CloudFront
+#                 resource of any shape appears in the plan - the invoke grant below is
+#                 `count = 0`, not merely unused.
+#        AWS_IAM  the pre-D1 shape. The URL answers 403 to an unsigned request and the one
+#                 `lambda:InvokeFunctionUrl` grant below is created, scoped by SourceArn to
+#                 a single distribution.
+#
+#      A public URL is a public gateway to a database and this module does not pretend
+#      otherwise. What actually bounds it is written down rather than assumed:
+#      `reserved_concurrent_executions` (default 20) is a hard cap that stops a bill rather
+#      than reporting one; the handler's write surface is one transaction that ends in
+#      ROLLBACK; the CockroachDB Basic cluster carries its own spend limit; and the
+#      `-concurrency` alarm below is the tripwire. That is a smaller claim than "invocable
+#      by one distribution and nothing else", and it is the true one for this account.
 #
 #   2. THE DSN IS NOT A RESOURCE HERE. Terraform is given the SSM parameter's NAME. A
 #      Terraform-managed secret is a plaintext secret in the state file, and the state
@@ -33,9 +60,11 @@
 #
 #   4. THERE IS NO CLOUDWATCH SYNTHETICS CANARY. One canary at five-minute intervals is
 #      8 640 runs a month at $0.0012 = $10.37 - thirty times the cost of the entire rest of
-#      this stack. Health checking is a GitHub Actions cron against `/v1/health`, owned by
-#      W10, which costs nothing and whose failures are visible in the repository the judges
-#      are already reading.
+#      this stack. Health checking is a GitHub Actions cron against `/v1/health` -
+#      `.github/workflows/demo-health.yml` - which costs nothing and whose failures are
+#      visible in the repository the judges are already reading. It fails every hour today
+#      and correctly so: there is no deployed demo yet, and it goes green on its own the
+#      moment there is one.
 
 data "aws_caller_identity" "current" {}
 
@@ -71,6 +100,15 @@ locals {
   # `data.aws_iam_policy_document.dsn_access`.
   kms_decrypt_resources = var.ssm_kms_key_arn == "" ? ["*"] : [var.ssm_kms_key_arn]
 
+  # THE ONE PLAN-TIME-KNOWN GATE. `count` may not depend on a value that is unknown until
+  # apply, and `var.cloudfront_distribution_arn` IS unknown at plan time whenever the caller
+  # wires it straight from the site module's output - which is exactly how
+  # `infra/envs/demo/main.tf` wires it. `var.url_authorization_type` is a string variable and
+  # is therefore constant by the time `count` is evaluated, in every configuration. The
+  # non-empty ARN half of the condition is enforced by a `lifecycle.precondition` on the
+  # grant instead; see the resource, and see README.md for the reproduction that settled it.
+  create_cloudfront_invoke_grant = var.url_authorization_type == "AWS_IAM"
+
   environment = merge(var.extra_environment, {
     # Read by `mainline_demo_api.db`. The NAME of the SecureString; never its value.
     MAINLINE_DSN_PARAM = local.dsn_parameter_path
@@ -97,6 +135,14 @@ locals {
     # filters records in the managed python3.13 runtime is `logging_config
     # .application_log_level` below, which is set from the same variable.
     LOG_LEVEL = var.log_level
+
+    # WHERE THE SPA LIVES INSIDE THE PACKAGE. Under D1 this function serves the console and
+    # the signed bundle as well as `/v1/*`, from one origin, because there is no CloudFront
+    # distribution and no S3 bucket in the request path. `mainline_demo_api.app` reads this
+    # to find the static tree; the build script places it at the package root, and Lambda
+    # unpacks the package at `/var/task`, so `/var/task/web` is the default and the two
+    # halves of that agreement are stated in one variable rather than in two comments.
+    MAINLINE_WEB_ROOT = var.web_root
   })
 }
 
@@ -252,22 +298,48 @@ resource "aws_lambda_function" "this" {
   }
 }
 
-# ── The Function URL, and the one principal allowed to use it ───────────────────────
+# ── The Function URL: under D1 this IS the demo hostname ────────────────────────────
 
 resource "aws_lambda_function_url" "this" {
   function_name = aws_lambda_function.this.function_name
 
-  # NOT "NONE". See decision 1 at the top of this file. There is no variable that can
-  # change this, on purpose.
-  authorization_type = "AWS_IAM"
+  # `NONE` by default. See decision 1 at the top of this file for the 403 that forced it.
+  # The variable admits exactly two values and refuses everything else at plan time, so
+  # this cannot become a typo that silently deploys an unauthenticated URL somebody meant
+  # to authenticate, or the reverse.
+  authorization_type = var.url_authorization_type
+
+  # THERE IS DELIBERATELY NO `cors` BLOCK.
+  #
+  # Under D1 the SPA and the API answer on ONE origin - `GET /` and `GET /v1/*` are the
+  # same hostname, the same scheme and the same port - so every request the console makes
+  # is same-origin and the browser never sends a `Origin` header the function would have to
+  # answer. A `cors { allow_origins = ["*"] }` block would therefore change nothing about
+  # whether the demo works, and would change one thing about what an attacker can do: it
+  # turns "any page on the internet may make a no-credentials request to this URL and not
+  # read the answer" into "any page on the internet may make one and read it". That is a
+  # widening nobody needs and nobody audited, in exchange for zero function.
+  #
+  # If a future caller ever does serve the console from a second hostname, the repair is a
+  # `cors` block naming THAT hostname, not `*`, and it belongs in the same commit as the
+  # second hostname.
 
   # BUFFERED, not RESPONSE_STREAM: every response this API produces is a small JSON
-  # envelope, and streaming would only add a mode in which a partial body reaches the
-  # console with a 200 already on it.
+  # envelope or a static asset out of the package, and streaming would only add a mode in
+  # which a partial body reaches the console with a 200 already on it.
   invoke_mode = "BUFFERED"
 }
 
+# ── The CloudFront grant: created ONLY in the AWS_IAM shape ─────────────────────────
+#
+# `count = 0` and not "created but harmless". A `NONE` plan that still contained an
+# `aws_lambda_permission` naming `cloudfront.amazonaws.com` would be a plan whose reader
+# has to work out that the resource is inert, and a reviewer who has to work that out for
+# one resource stops checking the next one.
+
 resource "aws_lambda_permission" "cloudfront_invoke" {
+  count = local.create_cloudfront_invoke_grant ? 1 : 0
+
   statement_id  = "AllowCloudFrontOacInvoke"
   action        = "lambda:InvokeFunctionUrl"
   function_name = aws_lambda_function.this.function_name
@@ -278,16 +350,31 @@ resource "aws_lambda_permission" "cloudfront_invoke" {
   # points at our origin. With it, exactly one distribution can.
   source_arn = var.cloudfront_distribution_arn
 
-  # Required for a Function URL grant; without it the statement authorises `lambda:
-  # InvokeFunctionUrl` for a URL whose auth type is not being asserted.
-  function_url_auth_type = "AWS_IAM"
+  # Consistent with the variable rather than hard-coded, so the statement asserts the auth
+  # type the URL actually carries. A grant whose `function_url_auth_type` disagrees with
+  # the URL authorises nothing and reports no error.
+  function_url_auth_type = var.url_authorization_type
+
+  lifecycle {
+    precondition {
+      # The other half of "AWS_IAM **and** a non-empty distribution ARN". It is a
+      # precondition and not a `count` conjunct because `count` may not depend on a value
+      # that is unknown until apply, and this one is: `infra/envs/demo/main.tf` passes
+      # `module.site.distribution_arn`, which does not exist until the distribution does.
+      # Measured, this machine, Terraform v1.14.8 - the two-conjunct `count` fails with
+      # `Error: Invalid count argument ... cannot be determined until apply`, while this
+      # precondition plans cleanly and is checked at apply. The transcript is in README.md.
+      condition     = var.cloudfront_distribution_arn != ""
+      error_message = "url_authorization_type is \"AWS_IAM\", so this module creates a lambda:InvokeFunctionUrl grant - but cloudfront_distribution_arn is empty, and a grant to cloudfront.amazonaws.com with no SourceArn reads \"any CloudFront distribution in any account may invoke this URL\", including one an attacker creates. Pass the distribution ARN, or leave url_authorization_type at its default \"NONE\", in which case no grant is created at all."
+    }
+  }
 }
 
 # ── Observability: four alarms and a dashboard, all inside free tiers ───────────────
 
 # CloudWatch's first ten alarms per account are free, and these are four of them. None has
 # an action by default (see `var.alarm_actions`); they exist to be READ - by the console,
-# by the dashboard, and by W10's cron, which calls `describe-alarms`.
+# by the dashboard, and by the hourly `demo-health` workflow, which calls `describe-alarms`.
 
 resource "aws_cloudwatch_metric_alarm" "errors" {
   alarm_name = "${var.function_name}-errors"
@@ -319,7 +406,7 @@ resource "aws_cloudwatch_metric_alarm" "throttles" {
   alarm_description = join(" ", [
     "The reserved-concurrency cap is refusing invocations.",
     "Either the demo is under more load than a judging session produces, or reserved_concurrent_executions is set too low.",
-    "A throttled invocation reaches the judge as a CloudFront 502, so this is user-visible.",
+    "A throttled Function URL invocation reaches the caller as HTTP 429 with no body from the handler, so this is user-visible and undiagnosable from the browser.",
   ])
 
   namespace           = "AWS/Lambda"
@@ -362,6 +449,18 @@ resource "aws_cloudwatch_metric_alarm" "duration_p99" {
   alarm_actions = var.alarm_actions
   ok_actions    = var.alarm_actions
   tags          = local.tags
+
+  lifecycle {
+    precondition {
+      # An alarm threshold at or above the timeout is an alarm that cannot fire: Lambda
+      # kills the invocation at `timeout` and the Duration datapoint is capped there. Both
+      # sides are plain variables, so this is checked at PLAN time and costs nothing.
+      # It exists because the D1 timeout drop from 25 s to 15 s would otherwise have left
+      # the default threshold of 20 000 ms sitting silently above a 15 000 ms ceiling.
+      condition     = var.duration_p99_threshold_ms < var.timeout * 1000
+      error_message = "duration_p99_threshold_ms (${var.duration_p99_threshold_ms} ms) is not below the function timeout (${var.timeout} s = ${var.timeout * 1000} ms). Lambda terminates the invocation at the timeout and the Duration datapoint is capped there, so this alarm could never breach - a control that looks present and is not. Lower duration_p99_threshold_ms, or raise timeout."
+    }
+  }
 }
 
 resource "aws_cloudwatch_metric_alarm" "concurrency" {
@@ -406,8 +505,13 @@ resource "aws_cloudwatch_dashboard" "this" {
             "# MAINLINE demo API - ${var.function_name}",
             "",
             "`${var.architecture}` / `python3.13` / ${var.memory_size} MB / ${var.timeout}s timeout, in `${local.region}`, beside the CockroachDB Cloud cluster.",
-            "Invocable only through the CloudFront distribution (`AWS_IAM` Function URL). Logs: `${local.log_group_name}` (${var.log_retention_days}-day retention).",
-            "Health: `GET /v1/health` through the distribution. There is no Synthetics canary - a five-minute canary costs $10.37/month, thirty times the rest of this stack.",
+            (
+              var.url_authorization_type == "NONE"
+              ? "Function URL authorisation: **NONE** - this URL is the public demo hostname and serves the console, the bundle and `/v1/*` from one origin. The cost ceiling is `reserved_concurrent_executions = ${var.reserved_concurrent_executions}`, not authentication."
+              : "Function URL authorisation: **AWS_IAM** - invocable only by the one CloudFront distribution named in the `lambda:InvokeFunctionUrl` grant."
+            ),
+            "Logs: `${local.log_group_name}` (${var.log_retention_days}-day retention).",
+            "Health: `GET /v1/health`. There is no Synthetics canary - a five-minute canary costs $10.37/month, thirty times the rest of this stack.",
           ])
         }
       },

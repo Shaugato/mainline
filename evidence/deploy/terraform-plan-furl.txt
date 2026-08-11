@@ -1,0 +1,376 @@
+module.api[0].data.aws_caller_identity.current: Reading...
+module.api[0].data.aws_partition.current: Reading...
+module.api[0].data.aws_iam_policy_document.assume_role: Reading...
+data.aws_caller_identity.current: Reading...
+module.api[0].data.aws_region.current: Reading...
+module.api[0].data.aws_partition.current: Read complete after 0s [id=aws]
+module.api[0].data.aws_region.current: Read complete after 0s [id=ap-southeast-1]
+module.api[0].data.aws_iam_policy_document.assume_role: Read complete after 0s [id=3214165256]
+module.api[0].data.aws_caller_identity.current: Read complete after 1s [id=022950218246]
+module.api[0].data.aws_iam_policy_document.dsn_access: Reading...
+module.api[0].data.aws_iam_policy_document.dsn_access: Read complete after 0s [id=3329886133]
+data.aws_caller_identity.current: Read complete after 1s [id=022950218246]
+
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # module.api[0].aws_cloudwatch_dashboard.this[0] will be created
+  + resource "aws_cloudwatch_dashboard" "this" {
+      + dashboard_arn  = (known after apply)
+      + dashboard_body = (known after apply)
+      + dashboard_name = "mainline-demo-api"
+      + id             = (known after apply)
+      + region         = "ap-southeast-1"
+    }
+
+  # module.api[0].aws_cloudwatch_log_group.this will be created
+  + resource "aws_cloudwatch_log_group" "this" {
+      + arn                         = (known after apply)
+      + deletion_protection_enabled = (known after apply)
+      + id                          = (known after apply)
+      + log_group_class             = (known after apply)
+      + name                        = "/aws/lambda/mainline-demo-api"
+      + name_prefix                 = (known after apply)
+      + region                      = "ap-southeast-1"
+      + retention_in_days           = 7
+      + skip_destroy                = false
+      + tags                        = {
+          + "component"  = "demo-api"
+          + "managed_by" = "terraform"
+          + "project"    = "mainline"
+        }
+      + tags_all                    = {
+          + "component"  = "demo-api"
+          + "managed_by" = "terraform"
+          + "project"    = "mainline"
+        }
+    }
+
+  # module.api[0].aws_cloudwatch_metric_alarm.concurrency will be created
+  + resource "aws_cloudwatch_metric_alarm" "concurrency" {
+      + actions_enabled                       = true
+      + alarm_description                     = "Abuse tripwire: more than 20 concurrent executions. A judging session is a handful of browsers making four requests each; this threshold is not reachable by legitimate use of the demo. NOTE: Lambda emits per-function ConcurrentExecutions dependably for functions that have reserved concurrency; with reserved_concurrent_executions = -1 this alarm can sit in INSUFFICIENT_DATA and prove nothing."
+      + alarm_name                            = "mainline-demo-api-concurrency"
+      + arn                                   = (known after apply)
+      + comparison_operator                   = "GreaterThanThreshold"
+      + dimensions                            = {
+          + "FunctionName" = "mainline-demo-api"
+        }
+      + evaluate_low_sample_count_percentiles = (known after apply)
+      + evaluation_periods                    = 1
+      + id                                    = (known after apply)
+      + metric_name                           = "ConcurrentExecutions"
+      + namespace                             = "AWS/Lambda"
+      + period                                = 300
+      + region                                = "ap-southeast-1"
+      + statistic                             = "Maximum"
+      + tags                                  = {
+          + "component"  = "demo-api"
+          + "managed_by" = "terraform"
+          + "project"    = "mainline"
+        }
+      + tags_all                              = {
+          + "component"  = "demo-api"
+          + "managed_by" = "terraform"
+          + "project"    = "mainline"
+        }
+      + threshold                             = 20
+      + treat_missing_data                    = "notBreaching"
+    }
+
+  # module.api[0].aws_cloudwatch_metric_alarm.duration_p99 will be created
+  + resource "aws_cloudwatch_metric_alarm" "duration_p99" {
+      + actions_enabled                       = true
+      + alarm_description                     = "p99 duration is approaching the 15s function timeout. On this stack that almost always means the pgwire round trip to CockroachDB Cloud got slow, not that the handler did - `/v1/health` reports the connect time separately, which is the first thing to look at."
+      + alarm_name                            = "mainline-demo-api-duration-p99"
+      + arn                                   = (known after apply)
+      + comparison_operator                   = "GreaterThanThreshold"
+      + dimensions                            = {
+          + "FunctionName" = "mainline-demo-api"
+        }
+      + evaluate_low_sample_count_percentiles = (known after apply)
+      + evaluation_periods                    = 1
+      + extended_statistic                    = "p99"
+      + id                                    = (known after apply)
+      + metric_name                           = "Duration"
+      + namespace                             = "AWS/Lambda"
+      + period                                = 300
+      + region                                = "ap-southeast-1"
+      + tags                                  = {
+          + "component"  = "demo-api"
+          + "managed_by" = "terraform"
+          + "project"    = "mainline"
+        }
+      + tags_all                              = {
+          + "component"  = "demo-api"
+          + "managed_by" = "terraform"
+          + "project"    = "mainline"
+        }
+      + threshold                             = 12000
+      + treat_missing_data                    = "notBreaching"
+    }
+
+  # module.api[0].aws_cloudwatch_metric_alarm.errors will be created
+  + resource "aws_cloudwatch_metric_alarm" "errors" {
+      + actions_enabled                       = true
+      + alarm_description                     = "Any handler error at all in a 5-minute window. The demo API is supposed to answer refusals with a 200 and a REFUSED verdict, and failures with a JSON problem document - so a Lambda `Errors` datapoint means the handler RAISED, which it is written never to do."
+      + alarm_name                            = "mainline-demo-api-errors"
+      + arn                                   = (known after apply)
+      + comparison_operator                   = "GreaterThanThreshold"
+      + dimensions                            = {
+          + "FunctionName" = "mainline-demo-api"
+        }
+      + evaluate_low_sample_count_percentiles = (known after apply)
+      + evaluation_periods                    = 1
+      + id                                    = (known after apply)
+      + metric_name                           = "Errors"
+      + namespace                             = "AWS/Lambda"
+      + period                                = 300
+      + region                                = "ap-southeast-1"
+      + statistic                             = "Sum"
+      + tags                                  = {
+          + "component"  = "demo-api"
+          + "managed_by" = "terraform"
+          + "project"    = "mainline"
+        }
+      + tags_all                              = {
+          + "component"  = "demo-api"
+          + "managed_by" = "terraform"
+          + "project"    = "mainline"
+        }
+      + threshold                             = 0
+      + treat_missing_data                    = "notBreaching"
+    }
+
+  # module.api[0].aws_cloudwatch_metric_alarm.throttles will be created
+  + resource "aws_cloudwatch_metric_alarm" "throttles" {
+      + actions_enabled                       = true
+      + alarm_description                     = "The reserved-concurrency cap is refusing invocations. Either the demo is under more load than a judging session produces, or reserved_concurrent_executions is set too low. A throttled Function URL invocation reaches the caller as HTTP 429 with no body from the handler, so this is user-visible and undiagnosable from the browser."
+      + alarm_name                            = "mainline-demo-api-throttles"
+      + arn                                   = (known after apply)
+      + comparison_operator                   = "GreaterThanThreshold"
+      + dimensions                            = {
+          + "FunctionName" = "mainline-demo-api"
+        }
+      + evaluate_low_sample_count_percentiles = (known after apply)
+      + evaluation_periods                    = 1
+      + id                                    = (known after apply)
+      + metric_name                           = "Throttles"
+      + namespace                             = "AWS/Lambda"
+      + period                                = 300
+      + region                                = "ap-southeast-1"
+      + statistic                             = "Sum"
+      + tags                                  = {
+          + "component"  = "demo-api"
+          + "managed_by" = "terraform"
+          + "project"    = "mainline"
+        }
+      + tags_all                              = {
+          + "component"  = "demo-api"
+          + "managed_by" = "terraform"
+          + "project"    = "mainline"
+        }
+      + threshold                             = 0
+      + treat_missing_data                    = "notBreaching"
+    }
+
+  # module.api[0].aws_iam_role.this will be created
+  + resource "aws_iam_role" "this" {
+      + arn                   = (known after apply)
+      + assume_role_policy    = jsonencode(
+            {
+              + Statement = [
+                  + {
+                      + Action    = "sts:AssumeRole"
+                      + Effect    = "Allow"
+                      + Principal = {
+                          + Service = "lambda.amazonaws.com"
+                        }
+                      + Sid       = "LambdaAssume"
+                    },
+                ]
+              + Version   = "2012-10-17"
+            }
+        )
+      + create_date           = (known after apply)
+      + description           = "Execution role for the MAINLINE demo API Lambda. Reads one SSM parameter and writes to one log group."
+      + force_detach_policies = false
+      + id                    = (known after apply)
+      + managed_policy_arns   = (known after apply)
+      + max_session_duration  = 3600
+      + name                  = "mainline-demo-api-exec"
+      + name_prefix           = (known after apply)
+      + path                  = "/"
+      + tags                  = {
+          + "component"  = "demo-api"
+          + "managed_by" = "terraform"
+          + "project"    = "mainline"
+        }
+      + tags_all              = {
+          + "component"  = "demo-api"
+          + "managed_by" = "terraform"
+          + "project"    = "mainline"
+        }
+      + unique_id             = (known after apply)
+
+      + inline_policy (known after apply)
+    }
+
+  # module.api[0].aws_iam_role_policy.dsn_access will be created
+  + resource "aws_iam_role_policy" "dsn_access" {
+      + id          = (known after apply)
+      + name        = "mainline-demo-api-dsn-read"
+      + name_prefix = (known after apply)
+      + policy      = jsonencode(
+            {
+              + Statement = [
+                  + {
+                      + Action   = "ssm:GetParameter"
+                      + Effect   = "Allow"
+                      + Resource = "arn:aws:ssm:ap-southeast-1:022950218246:parameter/mainline/demo/cockroach_dsn"
+                      + Sid      = "ReadTheDemoDsnParameter"
+                    },
+                  + {
+                      + Action    = "kms:Decrypt"
+                      + Condition = {
+                          + StringEquals = {
+                              + "kms:EncryptionContext:PARAMETER_ARN" = "arn:aws:ssm:ap-southeast-1:022950218246:parameter/mainline/demo/cockroach_dsn"
+                              + "kms:ViaService"                      = "ssm.ap-southeast-1.amazonaws.com"
+                            }
+                        }
+                      + Effect    = "Allow"
+                      + Resource  = "*"
+                      + Sid       = "DecryptThatParameterAndNothingElse"
+                    },
+                ]
+              + Version   = "2012-10-17"
+            }
+        )
+      + role        = (known after apply)
+    }
+
+  # module.api[0].aws_iam_role_policy_attachment.basic_execution will be created
+  + resource "aws_iam_role_policy_attachment" "basic_execution" {
+      + id         = (known after apply)
+      + policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+      + role       = "mainline-demo-api-exec"
+    }
+
+  # module.api[0].aws_lambda_function.this will be created
+  + resource "aws_lambda_function" "this" {
+      + architectures                  = [
+          + "arm64",
+        ]
+      + arn                            = (known after apply)
+      + code_sha256                    = (known after apply)
+      + description                    = "MAINLINE demo API: the gate, refusing and admitting, over CockroachDB Cloud in Singapore."
+      + filename                       = "../../../out/lambda/mainline-demo-api-arm64.zip"
+      + function_name                  = "mainline-demo-api"
+      + handler                        = "mainline_demo_api.app.handler"
+      + id                             = (known after apply)
+      + invoke_arn                     = (known after apply)
+      + last_modified                  = (known after apply)
+      + memory_size                    = 512
+      + package_type                   = "Zip"
+      + publish                        = false
+      + qualified_arn                  = (known after apply)
+      + qualified_invoke_arn           = (known after apply)
+      + region                         = "ap-southeast-1"
+      + reserved_concurrent_executions = 20
+      + response_streaming_invoke_arn  = (known after apply)
+      + role                           = (known after apply)
+      + runtime                        = "python3.13"
+      + signing_job_arn                = (known after apply)
+      + signing_profile_version_arn    = (known after apply)
+      + skip_destroy                   = false
+      + source_code_hash               = "yF1/AKVXbkEt+wEkrZPEAQR1cBEXnQApNh2ajbW4pLA="
+      + source_code_size               = (known after apply)
+      + tags                           = {
+          + "component"  = "demo-api"
+          + "managed_by" = "terraform"
+          + "project"    = "mainline"
+        }
+      + tags_all                       = {
+          + "component"  = "demo-api"
+          + "managed_by" = "terraform"
+          + "project"    = "mainline"
+        }
+      + timeout                        = 15
+      + version                        = (known after apply)
+
+      + environment {
+          + variables = {
+              + "LOG_LEVEL"                   = "INFO"
+              + "MAINLINE_DEMO_DATABASE"      = "mainline_demo"
+              + "MAINLINE_DEMO_PERMIT_ID"     = "077a6fdd-2167-559c-b2ff-8e3c8352504d"
+              + "MAINLINE_DSN_PARAM"          = "/mainline/demo/cockroach_dsn"
+              + "MAINLINE_SCENARIO_PERMIT_ID" = "077a6fdd-2167-559c-b2ff-8e3c8352504d"
+              + "MAINLINE_WEB_ROOT"           = "/var/task/web"
+            }
+        }
+
+      + ephemeral_storage (known after apply)
+
+      + logging_config {
+          + application_log_level = "INFO"
+          + log_format            = "JSON"
+          + log_group             = "/aws/lambda/mainline-demo-api"
+          + system_log_level      = "WARN"
+        }
+
+      + tracing_config (known after apply)
+    }
+
+  # module.api[0].aws_lambda_function_url.this will be created
+  + resource "aws_lambda_function_url" "this" {
+      + authorization_type = "NONE"
+      + function_arn       = (known after apply)
+      + function_name      = "mainline-demo-api"
+      + function_url       = (known after apply)
+      + id                 = (known after apply)
+      + invoke_mode        = "BUFFERED"
+      + region             = "ap-southeast-1"
+      + url_id             = (known after apply)
+    }
+
+Plan: 11 to add, 0 to change, 0 to destroy.
+
+Changes to Outputs:
+  + api_authorization_type          = "NONE"
+  + api_enabled                     = true
+  + api_function_name               = "mainline-demo-api"
+  + api_function_url                = (known after apply)
+  + api_function_url_domain         = (known after apply)
+  + aws_account_id                  = "022950218246"
+  + aws_region                      = "ap-southeast-1"
+  + cloudfront_invoke_grant_created = false
+  + demo_url                        = (known after apply)
+  + demo_url_source                 = "module.api[0].function_url (Lambda Function URL)"
+  + deploy_summary                  = {
+      + api_authorization_type  = "NONE"
+      + api_enabled             = true
+      + api_function_name       = "mainline-demo-api"
+      + api_function_url        = (known after apply)
+      + api_function_url_domain = (known after apply)
+      + aws_account_id          = "022950218246"
+      + aws_region              = "ap-southeast-1"
+      + demo_url                = (known after apply)
+      + demo_url_source         = "module.api[0].function_url (Lambda Function URL)"
+      + distribution_id         = null
+      + dsn_parameter_name      = "/mainline/demo/cockroach_dsn"
+      + enable_cloudfront       = false
+      + phase                   = "2-furl"
+      + site_bucket             = null
+    }
+  + dsn_parameter_name              = "/mainline/demo/cockroach_dsn"
+  + enable_cloudfront               = false
+
+─────────────────────────────────────────────────────────────────────────────
+
+Saved the plan to: tfplan-furl.binary
+
+To perform exactly these actions, run the following command to apply:
+    terraform apply "tfplan-furl.binary"

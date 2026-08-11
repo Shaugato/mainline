@@ -14,30 +14,60 @@ Design commitments, in the style the repository already holds itself to:
 
 * **Standard library only, and no network.**  No ``urllib``, no ``socket``, no
   ``requests``.  The only subprocess is ``git``.  An auditor can read this file
-  top-to-bottom and know it phoned nobody.
-* **An allowlisted hit is a documented decision, never a silent pass.**  The
-  allowlist is keyed by *exact path plus family* and every entry carries a reason
-  string.  Allowlisted findings are printed, counted and written to the JSON — a
-  reader sees what was waived and why, and can disagree.
+  top-to-bottom and know it phoned nobody.  The disclosure register is YAML, and it
+  is read by a strict minimal parser in this file rather than by ``PyYAML``, so the
+  program still runs to completion under ``python -I -S``.
+* **A hit that does not gate is a documented decision, never a silent pass.**  There
+  are exactly three dispositions and two of them require somebody's name:
+
+  ``UNRESOLVED``   gating, red, the default for everything.
+  ``ALLOWLISTED``  non-gating; granted by an :class:`Waiver` in ``ALLOWLIST`` below,
+                   keyed by *exact path plus family*, each carrying a reason.
+  ``DISCLOSED``    non-gating; granted **only** by an entry naming the exact path in
+                   ``docs/submission/DISCLOSURE-DECISIONS.yaml`` that carries a
+                   family, a class from a fixed vocabulary, a date, a decider and a
+                   reason of at least 80 characters (decision D2,
+                   ``docs/leads/ship-final.md`` §1.6).
+
+  An occurrence in a file named by neither is ``UNRESOLVED`` and stays red.  A
+  register entry that grants nothing this run is itself a failure — a stale grant is
+  an allowlist quietly widening, and check 8 refuses it.
 * **History is scanned, not just the working tree.**  Masking a value at HEAD does
   not remove it from a commit that is already on the remote.  Check 2 exists
-  precisely so that difference cannot be papered over.
-* **Findings are redacted by default.**  A match preview is a prefix plus a length
-  unless the allowlist marks the value ``verbatim`` — that flag is used only for
-  values that are already public by design (AWS's own documentation placeholders).
+  precisely so that difference cannot be papered over.  A register entry declares
+  which scopes it covers, so a value accepted *in history* does not become
+  acceptable if it reappears at HEAD.
+* **Findings are redacted, always, in every disposition.**  A match preview is a
+  six-character prefix plus a length, and there is no flag that turns that off.  An
+  earlier design let a waiver mark a value ``verbatim`` when it was public by design;
+  because this program scans every tracked file and ``qa/public-readiness.json`` is
+  one, each run wrote N verbatim previews and the next run found N and wrote N + 32.
+  See :func:`redact_preview` for the measured numbers.  Values that are public by
+  design are still named — once each, in prose, in the waiver's own reason.
 
-Exit status is 0 only when every finding is either resolved or explicitly
-allowlisted with a reason, and every gating check passes.
+Exit status is 0 only when every finding is resolved, allowlisted with a reason, or
+disclosed by a register entry, and every gating check passes.
 
     python scripts/submission/audit_public_readiness.py
     python scripts/submission/audit_public_readiness.py --json qa/public-readiness.json
     python scripts/submission/audit_public_readiness.py --self-test
+    printf '%s' "$SECRET" | python scripts/submission/audit_public_readiness.py --assert-absent
 
 ``--self-test`` plants one secret of every family into a temporary tree and requires
 the scanner to fire on each; a scanner that has quietly stopped detecting is worse
 than no scanner, so the self-test is the thing that keeps this file honest.  Every
 planted literal is assembled at runtime from fragments so that this source file does
-not itself contain a string that its own scan would flag.
+not itself contain a string that its own scan would flag.  It additionally pins the
+detector fingerprint — a digest over every pattern, the entropy floor and the family
+list — so that widening a pattern, lowering a threshold or deleting a family fails
+the self-test rather than quietly buying a green.
+
+``--assert-absent`` reads one candidate value from **stdin** and proves it appears in
+no tracked file and in no line ever added on any ref.  It exists for the rotated
+``mainline_judge`` password: the value never reaches an argument vector, an
+environment variable, a shell history or a file, and the program prints only a
+SHA-256 prefix of what it checked, so the run is reproducible without republishing
+the credential.
 """
 
 from __future__ import annotations
@@ -135,6 +165,41 @@ ENTROPY_FLOOR = 4.2
 # assertion messages.  Both the raw and the JSON-escaped (`D:\\`) spellings match.
 RE_ABS_WIN_BACKSLASH = re.compile(r"(?<![A-Za-z0-9_])([A-Za-z]:\\\\?[A-Za-z0-9_. $()-]{1,60}\\)")
 RE_ABS_WIN_SLASH = re.compile(r"(?<![A-Za-z0-9_:])([A-Za-z]:/[A-Za-z0-9_.$-]{1,60}/)")
+
+
+# ── the detector fingerprint ──────────────────────────────────────────────────────
+# Adding a disposition to this program creates exactly one temptation: to buy a green
+# by widening a pattern, lowering the entropy floor, or deleting a family, and to call
+# the result "the scanner is unchanged". This digest covers every pattern source, the
+# entropy floor, the scan-line ceiling, the account-context regex, the documentation
+# account set and the family list. --self-test compares it to the constant below, so
+# any of those edits fails the self-test loudly instead of passing quietly.
+#
+# Changing DETECTOR_FINGERPRINT is legitimate ONLY when the detectors got STRICTER,
+# and the diff that changes it must say, in the commit message, which detector got
+# stricter and how it was measured.
+
+
+def detector_fingerprint() -> str:
+    import hashlib
+
+    parts: list[str] = [f"families={sorted(FAMILIES)}"]
+    for name in sorted(RE_KNOWN_PREFIX):
+        parts.append(f"{name}={RE_KNOWN_PREFIX[name].pattern}")
+    parts.append(f"twelve={RE_TWELVE.pattern}")
+    parts.append(f"acct_ctx={RE_ACCOUNT_CONTEXT.pattern}")
+    parts.append(f"doc_accounts={sorted(AWS_DOC_ACCOUNTS)}")
+    parts.append(f"keyname={RE_SECRET_KEYNAME.pattern}")
+    parts.append(f"candidate={RE_CANDIDATE_TOKEN.pattern}")
+    parts.append(f"dotted={RE_DOTTED_IDENT.pattern}")
+    parts.append(f"floor={ENTROPY_FLOOR!r}")
+    parts.append(f"maxline={MAX_SCAN_LINE!r}")
+    parts.append(f"abs_bs={RE_ABS_WIN_BACKSLASH.pattern}")
+    parts.append(f"abs_fs={RE_ABS_WIN_SLASH.pattern}")
+    return hashlib.sha256("\n".join(parts).encode("utf-8")).hexdigest()
+
+
+DETECTOR_FINGERPRINT = "9cdd7b45074eae6de5043d66f6b6bcf29747be99caf91f7f5041488b89d40c1a"
 
 
 # ══════════════════════════════════════════════════════════════════════════════════
@@ -411,6 +476,394 @@ ALLOWLIST: tuple[Waiver, ...] = (
 
 WAIVER_INDEX: dict[tuple[str, str], Waiver] = {(w.path, w.family): w for w in ALLOWLIST}
 
+ALL_FAMILIES: frozenset[str] = frozenset(FAMILIES) | {"abs_windows_path"}
+
+
+# ══════════════════════════════════════════════════════════════════════════════════
+# The disclosure register — decision D2, docs/leads/ship-final.md §1.6
+# ══════════════════════════════════════════════════════════════════════════════════
+#
+# The allowlist above is code: changing it is a diff somebody reviews.  That is the
+# right home for a handful of structural waivers and the wrong home for "this
+# recorded transcript quotes the AWS account id, and publishing it is the point of
+# the transcript" — a class of decision that is numerous, per-path, dated, and owned
+# by whoever captured the artefact.  Those live in data:
+#
+#     docs/submission/DISCLOSURE-DECISIONS.yaml
+#
+# The register is strictly weaker than the allowlist in what it can do.  It cannot
+# set `verbatim`, so a disclosed value is still printed masked.  It cannot name a
+# family that does not exist.  It cannot cover a scope it does not declare.  It
+# cannot duplicate an allowlist entry.  And an entry that matches nothing is a
+# failure, so the register cannot silently accumulate grants for hits that are gone.
+
+REGISTER_DEFAULT = "docs/submission/DISCLOSURE-DECISIONS.yaml"
+REGISTER_SCHEMA = "mainline.submission.disclosure-decisions/1"
+REGISTER_TOP_KEYS = frozenset({"schema", "note", "generated_by", "decisions"})
+REGISTER_REQUIRED = ("path", "family", "class", "date", "decided_by", "reason")
+REGISTER_KEYS = frozenset(REGISTER_REQUIRED) | {"scopes"}
+REGISTER_SCOPES = frozenset({"tracked", "history"})
+MIN_REASON_CHARS = 80
+
+# A fixed vocabulary. A worker cannot invent `class: fine` to get past this program;
+# an unknown class is a parse failure, and the classes are chosen so that the shape
+# of what was accepted is legible from the JSON without reading a single reason.
+REGISTER_CLASSES: dict[str, str] = {
+    "aws-documentation-placeholder": (
+        "A value AWS itself publishes in its own documentation. Authenticates nothing."
+    ),
+    "synthetic-test-fixture": (
+        "A credential-shaped literal that exists so some other program's self-test can "
+        "prove its own scanner fires. Never authenticated against anything."
+    ),
+    "detector-context-artefact": (
+        "A true positive of the pattern and a false positive of the intent: the matched "
+        "token is a hostname, a file path or similar, and the secret-shaped key name "
+        "that triggered the detector is a placeholder. The detector is not changed."
+    ),
+    "recorded-evidence-account-id": (
+        "The twelve-digit AWS account id inside a quoted command, a refusal transcript "
+        "or a committed plan. Not a credential; publication is the point of the record."
+    ),
+    "history-already-pushed": (
+        "The occurrence is in a commit that is already on origin/master. Masking HEAD "
+        "does not retract it; only a history rewrite would, and that trade was refused."
+    ),
+    "abs-path-layout": (
+        "An absolute Windows path that discloses directory layout only "
+        "(D:/CoackroachDBxAWS/mainline, C:/Program Files/...). No account name."
+    ),
+    "abs-path-username": (
+        "An absolute Windows path that DOES disclose the founder's local Windows "
+        "account name. A strictly larger disclosure than abs-path-layout and counted "
+        "separately so it can never be lost inside the layout total."
+    ),
+}
+
+
+class RegisterSyntaxError(ValueError):
+    """The register did not parse. Never swallowed: a register that does not parse
+    grants nothing, and check 8 fails."""
+
+
+@dataclass(frozen=True)
+class Disclosure:
+    path: str
+    family: str
+    cls: str
+    date: str
+    decided_by: str
+    reason: str
+    scopes: tuple[str, ...]
+
+    def to_json(self) -> dict[str, object]:
+        return {
+            "path": self.path,
+            "family": self.family,
+            "class": self.cls,
+            "scopes": list(self.scopes),
+            "date": self.date,
+            "decided_by": self.decided_by,
+            "reason": self.reason,
+        }
+
+
+# ── a strict minimal YAML reader ──────────────────────────────────────────────────
+# Supports exactly what the register uses: top-level `key: value`, one top-level
+# `decisions:` sequence of mappings, plain / single- / double-quoted scalars, flow
+# sequences of plain scalars, and `>`/`|` block scalars with an optional `-` chomp.
+# Everything else raises. That is deliberate: a parser that guesses is a parser that
+# can be fed a document meaning something other than it reads.
+
+
+def _indent_of(line: str) -> int:
+    return len(line) - len(line.lstrip(" "))
+
+
+def _skippable(line: str) -> bool:
+    stripped = line.strip()
+    return not stripped or stripped.startswith("#")
+
+
+def _parse_scalar(raw: str, lineno: int) -> object:
+    raw = raw.strip()
+    if raw.startswith("[") and raw.endswith("]"):
+        inner = raw[1:-1].strip()
+        if not inner:
+            return []
+        items = [piece.strip() for piece in inner.split(",")]
+        for item in items:
+            if not item or any(ch in item for ch in "[]{}'\"#"):
+                raise RegisterSyntaxError(f"line {lineno}: bad flow-sequence item {item!r}")
+        return items
+    if len(raw) >= 2 and raw[0] == raw[-1] and raw[0] in "'\"":
+        body = raw[1:-1]
+        if "\\" in body or raw[0] in body:
+            raise RegisterSyntaxError(f"line {lineno}: escapes are not supported in scalars")
+        return body
+    if any(ch in raw for ch in "{}[]") or raw.startswith(("&", "*", "!", "%")):
+        raise RegisterSyntaxError(f"line {lineno}: unsupported YAML construct in {raw!r}")
+    return raw
+
+
+def parse_minimal_yaml(text: str) -> dict[str, object]:  # noqa: PLR0915 - one grammar,
+    # read top to bottom; splitting the readers apart would scatter the rules they enforce
+    """Parse the register subset. Raises RegisterSyntaxError on anything unexpected."""
+    lines = text.splitlines()
+    total = len(lines)
+
+    def read_block_scalar(start: int, owner_indent: int, style: str, chomp: str) -> tuple[str, int]:
+        body: list[str] = []
+        cursor = start
+        while cursor < total:
+            line = lines[cursor]
+            if line.strip() and _indent_of(line) <= owner_indent:
+                break
+            body.append(line)
+            cursor += 1
+        while body and not body[-1].strip():
+            body.pop()
+        if not body:
+            raise RegisterSyntaxError(f"line {start}: empty block scalar")
+        base = min(_indent_of(b) for b in body if b.strip())
+        body = [b[base:] if len(b) >= base else "" for b in body]
+        if style == "|":
+            out = "\n".join(body)
+        else:
+            paragraphs: list[str] = []
+            run: list[str] = []
+            for b in body:
+                if b.strip():
+                    run.append(b.strip())
+                else:
+                    paragraphs.append(" ".join(run))
+                    run = []
+            if run:
+                paragraphs.append(" ".join(run))
+            out = "\n".join(paragraphs)
+        if chomp != "-":
+            out += "\n"
+        return out, cursor
+
+    def read_pair(target: dict[str, object], cursor: int, content: str, key_indent: int) -> int:
+        key, sep, rest = content.partition(":")
+        if not sep:
+            raise RegisterSyntaxError(f"line {cursor + 1}: expected 'key: value'")
+        key = key.strip()
+        rest = rest.strip()
+        if not key:
+            raise RegisterSyntaxError(f"line {cursor + 1}: empty key")
+        if key in target:
+            raise RegisterSyntaxError(f"line {cursor + 1}: duplicate key {key!r}")
+        if rest[:1] in ("|", ">"):
+            style = rest[0]
+            chomp = rest[1:]
+            if chomp not in ("", "-"):
+                raise RegisterSyntaxError(
+                    f"line {cursor + 1}: unsupported block indicator {rest!r}"
+                )
+            value, nxt = read_block_scalar(cursor + 1, key_indent, style, chomp)
+            target[key] = value
+            return nxt
+        if not rest:
+            raise RegisterSyntaxError(f"line {cursor + 1}: empty value for {key!r}")
+        target[key] = _parse_scalar(rest, cursor + 1)
+        return cursor + 1
+
+    def read_item(cursor: int, dash_indent: int) -> tuple[dict[str, object], int]:
+        mapping: dict[str, object] = {}
+        key_indent = dash_indent + 2
+        cursor = read_pair(mapping, cursor, lines[cursor].strip()[2:], key_indent)
+        while cursor < total:
+            line = lines[cursor]
+            if _skippable(line):
+                cursor += 1
+                continue
+            here = _indent_of(line)
+            if here < key_indent or line.strip().startswith("- "):
+                break
+            if here > key_indent:
+                raise RegisterSyntaxError(f"line {cursor + 1}: over-indented key in list item")
+            cursor = read_pair(mapping, cursor, line.strip(), key_indent)
+        return mapping, cursor
+
+    def read_sequence(start: int) -> tuple[list[dict[str, object]], int]:
+        items: list[dict[str, object]] = []
+        cursor = start
+        dash_indent: int | None = None
+        while cursor < total:
+            line = lines[cursor]
+            if _skippable(line):
+                cursor += 1
+                continue
+            here = _indent_of(line)
+            if not line.strip().startswith("- "):
+                break
+            if dash_indent is None:
+                dash_indent = here
+                if here == 0:
+                    raise RegisterSyntaxError(f"line {cursor + 1}: sequence must be indented")
+            elif here != dash_indent:
+                break
+            item, cursor = read_item(cursor, dash_indent)
+            items.append(item)
+        return items, cursor
+
+    # YAML forbids tabs in indentation, and this reader measures indentation in spaces,
+    # so a tab would be counted as zero and silently reparent a nested key to the
+    # document level. Refuse the whole file rather than parse a different document
+    # from the one an editor renders. (Found by the self-test, not by review.)
+    for lineno, line in enumerate(lines, 1):
+        if "\t" in line[: len(line) - len(line.lstrip())]:
+            raise RegisterSyntaxError(f"line {lineno}: tab in indentation; YAML forbids it")
+
+    doc: dict[str, object] = {}
+    i = 0
+    while i < total:
+        line = lines[i]
+        if _skippable(line):
+            i += 1
+            continue
+        if _indent_of(line) != 0:
+            raise RegisterSyntaxError(f"line {i + 1}: unexpected indentation at document level")
+        key, sep, rest = line.partition(":")
+        if not sep:
+            raise RegisterSyntaxError(f"line {i + 1}: expected 'key: value' at document level")
+        key = key.strip()
+        rest = rest.strip()
+        if key in doc:
+            raise RegisterSyntaxError(f"line {i + 1}: duplicate document key {key!r}")
+        if not rest:
+            seq, i = read_sequence(i + 1)
+            if not seq:
+                raise RegisterSyntaxError(f"line {i}: {key!r} has no value and no sequence")
+            doc[key] = seq
+            continue
+        if rest[:1] in ("|", ">"):
+            style = rest[0]
+            chomp = rest[1:]
+            if chomp not in ("", "-"):
+                raise RegisterSyntaxError(f"line {i + 1}: unsupported block indicator {rest!r}")
+            doc[key], i = read_block_scalar(i + 1, 0, style, chomp)
+            continue
+        doc[key] = _parse_scalar(rest, i + 1)
+        i += 1
+    return doc
+
+
+def validate_register(  # noqa: PLR0912, PLR0915 - one branch per rule, and the rules ARE
+    # the check; a reader must be able to see every way a register entry can be refused
+    doc: object,
+    root: Path,
+) -> tuple[list[Disclosure], list[str]]:
+    """Turn a parsed register into entries plus every reason it is not acceptable."""
+    errors: list[str] = []
+    if not isinstance(doc, dict):
+        return [], ["register did not parse to a mapping"]
+    unknown_top = sorted(set(doc) - REGISTER_TOP_KEYS)
+    if unknown_top:
+        errors.append(f"unknown top-level key(s): {unknown_top}")
+    if doc.get("schema") != REGISTER_SCHEMA:
+        errors.append(f"schema is {doc.get('schema')!r}, expected {REGISTER_SCHEMA!r}")
+    raw_entries = doc.get("decisions")
+    if not isinstance(raw_entries, list) or not raw_entries:
+        return [], [*errors, "`decisions:` is missing or empty"]
+
+    entries: list[Disclosure] = []
+    seen: set[tuple[str, str]] = set()
+    for index, raw in enumerate(raw_entries, 1):
+        where = f"decisions[{index}]"
+        if not isinstance(raw, dict):
+            errors.append(f"{where}: not a mapping")
+            continue
+        unknown = sorted(set(raw) - REGISTER_KEYS)
+        if unknown:
+            errors.append(f"{where}: unknown key(s) {unknown}")
+        missing = [k for k in REGISTER_REQUIRED if not raw.get(k)]
+        if missing:
+            errors.append(f"{where}: missing required key(s) {missing}")
+            continue
+        path = str(raw["path"])
+        family = str(raw["family"])
+        cls = str(raw["class"])
+        date = str(raw["date"])
+        decided_by = str(raw["decided_by"])
+        reason = str(raw["reason"]).strip()
+        scopes_raw = raw.get("scopes", ["tracked", "history"])
+        if isinstance(scopes_raw, str):
+            scopes_raw = [scopes_raw]
+        if not isinstance(scopes_raw, list) or not scopes_raw:
+            errors.append(f"{where}: `scopes` must be a non-empty sequence")
+            continue
+        scopes = tuple(str(s) for s in scopes_raw)
+        where = f"{where} {path}::{family}"
+        if family not in ALL_FAMILIES:
+            errors.append(f"{where}: unknown family (known: {sorted(ALL_FAMILIES)})")
+        if cls not in REGISTER_CLASSES:
+            errors.append(f"{where}: unknown class {cls!r} (known: {sorted(REGISTER_CLASSES)})")
+        bad_scopes = sorted(set(scopes) - REGISTER_SCOPES)
+        if bad_scopes:
+            errors.append(f"{where}: unknown scope(s) {bad_scopes}")
+        try:
+            datetime.strptime(date, "%Y-%m-%d").replace(tzinfo=UTC)
+        except ValueError:
+            errors.append(f"{where}: date {date!r} is not YYYY-MM-DD")
+        if len(reason) < MIN_REASON_CHARS:
+            errors.append(
+                f"{where}: reason is {len(reason)} chars, minimum {MIN_REASON_CHARS} - "
+                "a one-line reason is not a decision somebody can check"
+            )
+        if (path, family) in seen:
+            errors.append(f"{where}: duplicate (path, family)")
+        seen.add((path, family))
+        if (path, family) in WAIVER_INDEX:
+            errors.append(f"{where}: already granted by the code ALLOWLIST; grant it once")
+        if "tracked" in scopes and not (root / path).exists():
+            errors.append(f"{where}: scope 'tracked' but the path does not exist at HEAD")
+        entries.append(
+            Disclosure(
+                path=path,
+                family=family,
+                cls=cls,
+                date=date,
+                decided_by=decided_by,
+                reason=reason,
+                scopes=scopes,
+            )
+        )
+    return entries, errors
+
+
+# Module state. `install_register` is the only writer, so the self-test can swap in a
+# synthetic register and restore the real one without the scan functions knowing.
+REGISTER_INDEX: dict[tuple[str, str], Disclosure] = {}
+REGISTER_USED: set[tuple[str, str]] = set()
+
+
+def install_register(entries: Sequence[Disclosure]) -> None:
+    REGISTER_INDEX.clear()
+    REGISTER_USED.clear()
+    for entry in entries:
+        REGISTER_INDEX[(entry.path, entry.family)] = entry
+
+
+def load_register(
+    root: Path, rel: str = REGISTER_DEFAULT
+) -> tuple[list[Disclosure], list[str], bool]:
+    """Read, parse and validate the register. Never raises; errors are returned."""
+    target = root / rel
+    if not target.exists():
+        return [], [], False
+    text = read_text(target)
+    if text is None:
+        return [], [f"{rel}: not readable as UTF-8 text"], True
+    try:
+        doc = parse_minimal_yaml(text)
+    except RegisterSyntaxError as exc:
+        return [], [f"{rel}: {exc}"], True
+    entries, errors = validate_register(doc, root)
+    return entries, [f"{rel}: {e}" for e in errors], True
+
 
 # ══════════════════════════════════════════════════════════════════════════════════
 # Result model
@@ -423,10 +876,13 @@ class Finding:
     line: int
     family: str
     preview: str
-    scope: str  # "tracked" | "history"
-    disposition: str  # "UNRESOLVED" | "ALLOWLISTED"
+    scope: str  # "tracked" | "history" | "self-test"
+    disposition: str  # "UNRESOLVED" | "ALLOWLISTED" | "DISCLOSED"
     reason: str = ""
     commit: str = ""
+    disclosure_class: str = ""
+    decided: str = ""
+    decided_by: str = ""
 
     def to_json(self) -> dict[str, object]:
         row: dict[str, object] = {
@@ -439,6 +895,10 @@ class Finding:
         }
         if self.commit:
             row["commit"] = self.commit
+        if self.disclosure_class:
+            row["class"] = self.disclosure_class
+            row["date"] = self.decided
+            row["decided_by"] = self.decided_by
         if self.reason:
             row["reason"] = self.reason
         return row
@@ -463,6 +923,7 @@ class Row:
             "observed": self.observed,
             "unresolved": sum(1 for f in self.findings if f.disposition == "UNRESOLVED"),
             "allowlisted": sum(1 for f in self.findings if f.disposition == "ALLOWLISTED"),
+            "disclosed": sum(1 for f in self.findings if f.disposition == "DISCLOSED"),
             "findings": [f.to_json() for f in self.findings],
             "detail": self.detail,
         }
@@ -500,12 +961,33 @@ def shannon(token: str) -> float:
     return -sum((c / n) * math.log2(c / n) for c in counts.values())
 
 
-def redact_preview(value: str, *, verbatim: bool) -> str:
-    """Never print an unresolved secret in full. Length is enough to identify it."""
-    if verbatim:
-        return value
-    head = value[:6]
-    return f"{head}...(redacted, len {len(value)})"
+def redact_preview(value: str) -> str:
+    """EVERY preview is redacted, in every disposition, with no exception.
+
+    This used to take a `verbatim` flag: a waiver could mark a value "public by design"
+    — AWS's own documentation placeholders — and the preview would print it in full, on
+    the argument that an audit which redacts a value anybody can read tells the reader
+    less, not more. The argument is sound and the mechanism was not, because this
+    program scans every TRACKED file and `qa/public-readiness.json` is a tracked file:
+
+        HEAD's committed copy         8 occurrences of the placeholder
+        after one regeneration      420
+        after the next              452          (+32 per run, unbounded)
+
+    Each run wrote N verbatim previews; the next run found all N and wrote N + 32. The
+    artefact grew monotonically and would never have reached a fixed point. It never
+    went red, because the pair was allowlisted — which is precisely why it went
+    unnoticed.
+
+    Nothing is lost by redacting uniformly. Every waiver that used to set `verbatim`
+    names its value in its REASON, in prose, once: `AKIAIOSFODNN7EXAMPLE` and
+    `wJalrXUtnFEMI/...` are still legible to a reviewer, still exactly once each, and no
+    longer multiply. `Waiver.verbatim` survives as documentation — it is reported in the
+    JSON as an assertion that the value is public by design — and no longer controls
+    what gets printed. Detection is untouched: same patterns, same thresholds, same
+    families, same dispositions. Only the rendering changed.
+    """
+    return f"{value[:6]}...(redacted, len {len(value)})"
 
 
 def read_text(path: Path) -> str | None:
@@ -565,23 +1047,43 @@ def scan_text(path: str, text: str, scope: str, commit: str = "") -> list[Findin
 def build_finding(
     path: str, lineno: int, family: str, matched: str, scope: str, commit: str = ""
 ) -> Finding:
+    """Assign one of the three dispositions. Order matters and is checked: the code
+    allowlist wins, then the register, then red. A register entry that duplicates an
+    allowlist entry is a validation error, so the two can never disagree silently."""
     waiver = WAIVER_INDEX.get((path, family))
     if waiver is not None:
         return Finding(
             path=path,
             line=lineno,
             family=family,
-            preview=redact_preview(matched, verbatim=waiver.verbatim),
+            preview=redact_preview(matched),
             scope=scope,
             disposition="ALLOWLISTED",
             reason=waiver.reason,
             commit=commit,
         )
+    entry = REGISTER_INDEX.get((path, family))
+    if entry is not None and scope in entry.scopes:
+        REGISTER_USED.add((path, family))
+        return Finding(
+            path=path,
+            line=lineno,
+            family=family,
+            # A disclosed value is masked, like every other. See redact_preview().
+            preview=redact_preview(matched),
+            scope=scope,
+            disposition="DISCLOSED",
+            reason=entry.reason,
+            commit=commit,
+            disclosure_class=entry.cls,
+            decided=entry.date,
+            decided_by=entry.decided_by,
+        )
     return Finding(
         path=path,
         line=lineno,
         family=family,
-        preview=redact_preview(matched, verbatim=False),
+        preview=redact_preview(matched),
         scope=scope,
         disposition="UNRESOLVED",
         commit=commit,
@@ -607,17 +1109,18 @@ def tracked_files(root: Path) -> list[str]:
     return [p for p in git(root, "ls-files", "-z").split("\0") if p]
 
 
-def summarise(findings: Iterable[Finding]) -> tuple[int, int, Counter[str]]:
+def summarise(findings: Iterable[Finding]) -> tuple[int, int, int, Counter[str]]:
     findings = list(findings)
     unresolved = sum(1 for f in findings if f.disposition == "UNRESOLVED")
-    allowlisted = len(findings) - unresolved
+    allowlisted = sum(1 for f in findings if f.disposition == "ALLOWLISTED")
+    disclosed = sum(1 for f in findings if f.disposition == "DISCLOSED")
     by_family: Counter[str] = Counter(f.family for f in findings)
-    return unresolved, allowlisted, by_family
+    return unresolved, allowlisted, disclosed, by_family
 
 
 def check_secrets_tracked(root: Path, files: Sequence[str]) -> Row:
     findings = scan_paths(root, files, "tracked")
-    unresolved, allowlisted, by_family = summarise(findings)
+    unresolved, allowlisted, disclosed, by_family = summarise(findings)
     families = ", ".join(f"{k}={v}" for k, v in sorted(by_family.items())) or "no hits"
     return Row(
         check="secrets_tracked",
@@ -626,7 +1129,8 @@ def check_secrets_tracked(root: Path, files: Sequence[str]) -> Row:
         command="git ls-files -z  |  scan 8 families over each file's content",
         observed=(
             f"{len(files)} tracked paths scanned; {len(findings)} hits "
-            f"({unresolved} unresolved, {allowlisted} allowlisted); {families}"
+            f"({unresolved} unresolved, {allowlisted} allowlisted, {disclosed} disclosed); "
+            f"{families}"
         ),
         findings=findings,
         detail={"tracked_paths": len(files), "families": dict(by_family)},
@@ -689,7 +1193,7 @@ def check_secrets_history(root: Path) -> Row:
     for f in findings:
         collapsed.setdefault((f.commit, f.path, f.family), f)
     findings = sorted(collapsed.values(), key=lambda f: (f.disposition, f.path, f.family))
-    unresolved, allowlisted, by_family = summarise(findings)
+    unresolved, allowlisted, disclosed, by_family = summarise(findings)
     families = ", ".join(f"{k}={v}" for k, v in sorted(by_family.items())) or "no hits"
     return Row(
         check="secrets_history",
@@ -699,7 +1203,8 @@ def check_secrets_history(root: Path) -> Row:
         observed=(
             f"{len(commits)} commits, {lines} added lines scanned; "
             f"{len(findings)} distinct (commit,path,family) hits "
-            f"({unresolved} unresolved, {allowlisted} allowlisted); {families}"
+            f"({unresolved} unresolved, {allowlisted} allowlisted, {disclosed} disclosed); "
+            f"{families}"
         ),
         findings=findings,
         detail={"commits": len(commits), "added_lines": lines, "families": dict(by_family)},
@@ -805,8 +1310,8 @@ def check_tracked_sizes(root: Path) -> Row:
     )
 
 
-def check_committer_census(root: Path) -> Row:
-    raw = git(root, "log", "--all", "--format=%an <%ae>\x1f%cn <%ce>")
+def _census(root: Path, *revs: str) -> tuple[int, Counter[str], Counter[str]]:
+    raw = git(root, "log", *revs, "--format=%an <%ae>\x1f%cn <%ce>")
     authors: Counter[str] = Counter()
     committers: Counter[str] = Counter()
     commits = 0
@@ -817,31 +1322,86 @@ def check_committer_census(root: Path) -> Row:
         author, _, committer = line.partition("\x1f")
         authors[author.strip()] += 1
         committers[committer.strip()] += 1
-    identities = sorted(set(authors) | set(committers))
-    noreply = [i for i in identities if "users.noreply.github.com" in i]
+    return commits, authors, committers
+
+
+def check_committer_census(root: Path) -> Row:
+    """Two censuses, not one.
+
+    `git log --all` walks every ref, and this repository has six `origin/dependabot/*`
+    branches that `master` does not contain. Flipping visibility publishes those refs
+    too, so a census of `master` alone understates what a visitor can read. Both
+    numbers are reported: the gap between them IS the finding."""
+    all_commits, all_authors, all_committers = _census(root, "--all")
+    br_commits, br_authors, br_committers = _census(root, BRANCH_EXPECTED)
+    all_ids = sorted(set(all_authors) | set(all_committers))
+    br_ids = sorted(set(br_authors) | set(br_committers))
+    extra_ids = [i for i in all_ids if i not in br_ids]
+    noreply = [i for i in all_ids if "noreply" in i]
+    refs = [
+        ln.strip()
+        for ln in git(root, "for-each-ref", "--format=%(refname)").splitlines()
+        if ln.strip()
+    ]
     return Row(
         check="committer_census",
-        title="Every identity the history will publish",
+        title="Every commit and every identity the flip will publish, on every ref",
         status="INFO",
-        command="git log --all --format='%an <%ae>|%cn <%ce>' | sort | uniq -c",
+        command=(
+            "git log --all --format='%an <%ae>|%cn <%ce>' | sort | uniq -c ; "
+            f"git log {BRANCH_EXPECTED} --format=... ; git for-each-ref"
+        ),
         observed=(
-            f"{commits} commits, {len(identities)} distinct identity string(s): "
-            + "; ".join(f"{i} x{authors.get(i, 0)}" for i in identities)
+            f"{all_commits} commits over {len(refs)} ref(s), {len(all_ids)} distinct "
+            f"identity string(s): "
+            + "; ".join(f"{i} x{all_authors.get(i, 0)}" for i in all_ids)
+            + f" | {BRANCH_EXPECTED} alone: {br_commits} commits, {len(br_ids)} identity"
+            + ("" if len(br_ids) == 1 else " strings")
+            + (
+                f" | {len(extra_ids)} identity string(s) reachable ONLY from a "
+                f"non-{BRANCH_EXPECTED} ref: {extra_ids}"
+                if extra_ids
+                else ""
+            )
         ),
         detail={
-            "commits": commits,
-            "authors": dict(authors),
-            "committers": dict(committers),
-            "identities": identities,
-            "github_noreply_identities": noreply,
+            "commits_all_refs": all_commits,
+            "commits_on_branch": br_commits,
+            "branch": BRANCH_EXPECTED,
+            "refs": refs,
+            "authors": dict(all_authors),
+            "committers": dict(all_committers),
+            "identities": all_ids,
+            "identities_on_branch": br_ids,
+            "identities_only_off_branch": extra_ids,
+            "noreply_identities": noreply,
         },
     )
+
+
+# An absolute path that names a user profile directory discloses the founder's local
+# Windows account name. That is a strictly larger disclosure than a project directory
+# layout, and the two are counted apart so the larger one can never be lost inside the
+# smaller one's total. This classifies the *finding*; the register classifies the
+# *decision*, and check 8 refuses a register that calls a username hit `abs-path-layout`.
+RE_USER_PROFILE = re.compile(r"(?i)[A-Za-z]:[\\/]{1,2}Users[\\/]{1,2}([A-Za-z0-9_.<>-]+)")
+PLACEHOLDER_USERS = frozenset({"someone", "user", "username", "you", "name", "<name>", "<you>"})
+
+
+def path_disclosure_class(text: str) -> str:
+    """`abs-path-username` if any hit names a real-looking profile directory."""
+    for match in RE_USER_PROFILE.finditer(text):
+        who = match.group(1)
+        if who.lower() not in PLACEHOLDER_USERS and not who.startswith("<"):
+            return "abs-path-username"
+    return "abs-path-layout"
 
 
 def check_absolute_paths(root: Path, files: Sequence[str]) -> Row:
     findings: list[Finding] = []
     per_file: Counter[str] = Counter()
     slash_only: Counter[str] = Counter()
+    username_files: list[str] = []
     for rel in files:
         text = read_text(root / rel)
         if text is None:
@@ -855,9 +1415,15 @@ def check_absolute_paths(root: Path, files: Sequence[str]) -> Row:
                 per_file[rel] += 1
                 slash_only[rel] += 1
                 first_hit.setdefault("fs", (lineno, match.group(1)))
+        if not first_hit:
+            continue
+        if path_disclosure_class(text) == "abs-path-username":
+            username_files.append(rel)
         for _kind, (lineno, matched) in sorted(first_hit.items()):
             findings.append(build_finding(rel, lineno, "abs_windows_path", matched, "tracked"))
     unresolved = sum(1 for f in findings if f.disposition == "UNRESOLVED")
+    allowlisted = sum(1 for f in findings if f.disposition == "ALLOWLISTED")
+    disclosed = sum(1 for f in findings if f.disposition == "DISCLOSED")
     return Row(
         check="absolute_paths",
         title="Absolute Windows paths in tracked files (drive letter + segment)",
@@ -868,9 +1434,9 @@ def check_absolute_paths(root: Path, files: Sequence[str]) -> Row:
         ),
         observed=(
             f"{len(per_file)} file(s), {sum(per_file.values())} hit(s); "
-            f"{unresolved} unresolved, {len(findings) - unresolved} allowlisted. "
-            "Backslash form: "
-            + ", ".join(f"{p}({n})" for p, n in sorted(per_file.items()) if p not in slash_only)
+            f"{unresolved} unresolved, {allowlisted} allowlisted, {disclosed} disclosed. "
+            f"{len(username_files)} file(s) disclose a Windows account name "
+            f"(abs-path-username): {sorted(username_files) or 'none'}"
         ),
         findings=findings,
         detail={
@@ -878,6 +1444,88 @@ def check_absolute_paths(root: Path, files: Sequence[str]) -> Row:
             "hits": sum(per_file.values()),
             "per_file": dict(sorted(per_file.items())),
             "forward_slash_files": dict(sorted(slash_only.items())),
+            "username_class_files": sorted(username_files),
+            "layout_class_files": sorted(set(per_file) - set(username_files)),
+        },
+    )
+
+
+def check_disclosure_register(
+    root: Path,
+    entries: Sequence[Disclosure],
+    errors: Sequence[str],
+    present: bool,
+    rows: Sequence[Row],
+) -> Row:
+    """Check 8 — the register is only as trustworthy as its own audit.
+
+    An allowlist that can only grow is an allowlist that stops meaning anything. This
+    row refuses four ways for the register to decay:
+
+    1. it does not parse, or an entry is missing a field / names an unknown family or
+       class / carries a reason too short to be a decision;
+    2. an entry granted nothing this run — the hit it was written for is gone, so the
+       grant is now a standing permission for a future hit nobody looked at;
+    3. an entry claims scope `tracked` for a path that no longer exists at HEAD;
+    4. an entry classifies a Windows-account-name disclosure as mere layout.
+
+    (1) and (3) are enforced in validate_register(); (2) and (4) here, because they
+    need the scan results."""
+    problems = list(errors)
+    granted = {(e.path, e.family) for e in entries}
+    unused = sorted(granted - REGISTER_USED)
+    for path, family in unused:
+        problems.append(
+            f"{REGISTER_DEFAULT}: {path}::{family} granted nothing this run - "
+            "delete the entry rather than leave a standing permission"
+        )
+    # (4) a username disclosure may not be filed as layout.
+    misclassified: list[str] = []
+    for entry in entries:
+        if entry.family != "abs_windows_path" or "tracked" not in entry.scopes:
+            continue
+        text = read_text(root / entry.path)
+        if text is None:
+            continue
+        actual = path_disclosure_class(text)
+        if actual == "abs-path-username" and entry.cls != "abs-path-username":
+            misclassified.append(f"{entry.path}: class {entry.cls!r} but the file names an account")
+    problems.extend(
+        f"{REGISTER_DEFAULT}: {m} - reclassify as abs-path-username" for m in misclassified
+    )
+
+    by_class: Counter[str] = Counter(e.cls for e in entries)
+    disclosed_total = sum(1 for r in rows for f in r.findings if f.disposition == "DISCLOSED")
+    if not present:
+        observed = (
+            f"{REGISTER_DEFAULT} is absent; nothing is DISCLOSED and every hit that is "
+            "not in the code ALLOWLIST is UNRESOLVED"
+        )
+    else:
+        observed = (
+            f"{len(entries)} entry/entries granting {disclosed_total} finding(s); "
+            f"{len(unused)} stale; classes "
+            + (", ".join(f"{k}={v}" for k, v in sorted(by_class.items())) or "none")
+        )
+    return Row(
+        check="disclosure_register",
+        title="Every DISCLOSED grant is named, dated, classified and still load-bearing",
+        status="FAIL" if problems else "PASS",
+        command=(
+            f"parse {REGISTER_DEFAULT} with the strict reader in this file; "
+            "validate every entry; require each to have granted at least one finding"
+        ),
+        observed=observed,
+        detail={
+            "register": REGISTER_DEFAULT,
+            "present": present,
+            "entries": len(entries),
+            "granted_findings": disclosed_total,
+            "by_class": dict(by_class),
+            "stale_entries": [f"{p}::{f}" for p, f in unused],
+            "problems": problems,
+            "class_vocabulary": REGISTER_CLASSES,
+            "decisions": [e.to_json() for e in entries],
         },
     )
 
@@ -967,7 +1615,59 @@ def planted_samples() -> dict[str, str]:
     }
 
 
-def self_test() -> int:
+LONG_REASON = (
+    "A synthetic reason long enough to clear the minimum, planted by the self-test so "
+    "that the surrounding defect is the only thing under examination."
+)
+
+
+def bad_register(**overrides: object) -> str:
+    """One well-formed register entry with exactly one thing wrong with it.
+
+    Written as a builder rather than nine hand-typed blobs so that each fixture differs
+    from the good case in exactly the field its label names. A hand-written fixture with
+    two defects would pass the self-test while only proving one of them is caught."""
+    fields: dict[str, object] = {
+        "path": "planted_github_token.txt",
+        "family": "github_token",
+        "class": "synthetic-test-fixture",
+        "date": "2026-08-11",
+        "decided_by": "self-test",
+        "reason": f">-\n      {LONG_REASON}",
+    }
+    schema = str(overrides.pop("__schema__", REGISTER_SCHEMA))
+    extra = str(overrides.pop("__extra_top__", ""))
+    for key in list(overrides):
+        if overrides[key] is None:
+            fields.pop(key, None)
+            overrides.pop(key)
+    fields.update(overrides)  # type: ignore[arg-type]
+    items = list(fields.items())
+    head = f"  - {items[0][0]}: {items[0][1]}\n"
+    tail = "".join(f"    {k}: {v}\n" for k, v in items[1:])
+    return f"schema: {schema}\n{extra}decisions:\n{head}{tail}"
+
+
+# Nine ways for a register to be wrong. Each must be refused; the self-test asserts it.
+BAD_REGISTERS: tuple[tuple[str, str], ...] = (
+    ("unknown family", bad_register(family="not_a_family")),
+    ("unknown class", bad_register(**{"class": "it-is-fine"})),
+    ("missing decided_by", bad_register(decided_by=None)),
+    ("reason too short", bad_register(reason="fine")),
+    ("date not ISO", bad_register(date="last tuesday")),
+    ("unknown scope", bad_register(scopes="[everywhere]")),
+    ("wrong schema", bad_register(__schema__="something.else/9")),
+    (
+        "duplicates a code ALLOWLIST entry",
+        bad_register(
+            path="spec/wire/checkpoint.md", family="private_key_block", scopes="[history]"
+        ),
+    ),
+    ("unknown top-level key", bad_register(__extra_top__="please_pass: true\n")),
+)
+
+
+def self_test() -> int:  # noqa: PLR0912, PLR0915 - one linear proof, read top to bottom
     import shutil
     import tempfile
 
@@ -975,7 +1675,17 @@ def self_test() -> int:
     tmp = Path(tempfile.mkdtemp(prefix="mainline-readiness-selftest-"))
     failures: list[str] = []
     results: list[tuple[str, str, bool]] = []
+    saved = dict(REGISTER_INDEX)
+    got: set[str] = set()
+    checks: list[tuple[str, bool, str]] = []
+
+    def expect(name: str, ok: bool, detail: str = "") -> None:
+        checks.append((name, ok, detail))
+        if not ok:
+            failures.append(name)
+
     try:
+        install_register([])
         for family, payload in samples.items():
             rel = f"planted_{family}.txt"
             (tmp / rel).write_text(f"# planted fixture for {family}\n{payload}\n", encoding="utf-8")
@@ -992,30 +1702,166 @@ def self_test() -> int:
                 fired = any(fam == family for fam, _matched in scan_text_families(text))
             results.append((family, rel, fired))
             if not fired:
-                failures.append(family)
+                failures.append(f"{family} did not fire")
 
         # A scan over the whole planted tree must classify every hit UNRESOLVED:
         # nothing in a temp dir is allowlisted, so a silent pass would show up here.
         planted_paths = sorted(p.name for p in tmp.iterdir())
         findings = scan_paths(tmp, planted_paths, "self-test")
         got = {f.family for f in findings}
-        if any(f.disposition != "UNRESOLVED" for f in findings):
-            failures.append("a planted secret was classified as ALLOWLISTED")
+        expect(
+            "every planted hit is UNRESOLVED with an empty register",
+            all(f.disposition == "UNRESOLVED" for f in findings),
+            str(sorted({f.disposition for f in findings})),
+        )
 
         # Redaction must actually redact.
-        for finding in findings:
-            if finding.preview.count("...") == 0 and "redacted" not in finding.preview:
-                failures.append(f"preview for {finding.family} was not redacted")
-                break
+        expect(
+            "every planted preview is redacted",
+            all("redacted" in f.preview for f in findings),
+            "",
+        )
 
         # The self-test must also prove the negative: clean text fires nothing.
         (tmp / "clean.txt").write_text(
             "def hello() -> str:\n    return 'the database refused, and said why'\n",
             encoding="utf-8",
         )
-        if scan_paths(tmp, ["clean.txt"], "self-test"):
-            failures.append("clean control file produced a finding")
+        expect(
+            "clean control file produces no finding",
+            not scan_paths(tmp, ["clean.txt"], "self-test"),
+        )
+
+        # ── the detectors are exactly as strong as they were ──────────────────────
+        measured_fp = detector_fingerprint()
+        expect(
+            "detector fingerprint unchanged (no pattern widened, no threshold lowered, "
+            "no family removed)",
+            measured_fp == DETECTOR_FINGERPRINT,
+            f"measured {measured_fp}",
+        )
+        expect("all 8 secret families still declared", len(FAMILIES) == 8, str(sorted(FAMILIES)))
+        expect("entropy floor still 4.2", ENTROPY_FLOOR == 4.2, repr(ENTROPY_FLOOR))
+        expect(
+            "the register cannot set verbatim",
+            "verbatim" not in REGISTER_KEYS and "verbatim" not in REGISTER_TOP_KEYS,
+        )
+        # The amplification guard: no disposition, and no waiver flag, may cause a
+        # matched value to be echoed in full. Checked against a real waiver that used
+        # to be verbatim, not against a synthetic one.
+        expect(
+            "redact_preview takes no verbatim escape hatch",
+            "verbatim" not in redact_preview.__code__.co_varnames,
+        )
+        echoed = redact_preview("AKIA" + "IOSFODNN7EXAMPLE")
+        expect(
+            "a public-by-design value is still redacted in previews",
+            "IOSFODNN7EXAMPLE" not in echoed and "redacted" in echoed,
+            echoed,
+        )
+
+        # ── DISCLOSED is granted only by an exact-path register entry ─────────────
+        good = (
+            f"schema: {REGISTER_SCHEMA}\n"
+            "decisions:\n"
+            "  - path: planted_github_token.txt\n"
+            "    family: github_token\n"
+            "    class: synthetic-test-fixture\n"
+            "    scopes: [tracked]\n"
+            "    date: 2026-08-11\n"
+            "    decided_by: self-test\n"
+            "    reason: >-\n"
+            f"      {LONG_REASON}\n"
+        )
+        (tmp / "register.yaml").write_text(good, encoding="utf-8")
+        entries, errors, present = load_register(tmp, "register.yaml")
+        expect("a well-formed register parses with no errors", present and not errors, str(errors))
+        install_register(entries)
+        granted = scan_paths(tmp, ["planted_github_token.txt"], "tracked")
+        expect(
+            "the named (path, family) becomes DISCLOSED",
+            bool(granted) and all(f.disposition == "DISCLOSED" for f in granted),
+            str([f.disposition for f in granted]),
+        )
+        expect(
+            "a DISCLOSED preview is still redacted (register cannot ask for verbatim)",
+            all("redacted" in f.preview for f in granted),
+        )
+
+        # …and nothing else. Same family, different path: still red.
+        (tmp / "elsewhere.txt").write_text(samples["github_token"] + "\n", encoding="utf-8")
+        other = scan_paths(tmp, ["elsewhere.txt"], "tracked")
+        expect(
+            "the same family at an UNNAMED path stays UNRESOLVED",
+            bool(other) and all(f.disposition == "UNRESOLVED" for f in other),
+            str([f.disposition for f in other]),
+        )
+        # …and not in a scope it did not declare.
+        hist = scan_paths(tmp, ["planted_github_token.txt"], "history")
+        expect(
+            "a tracked-only grant does not cover the history scope",
+            bool(hist) and all(f.disposition == "UNRESOLVED" for f in hist),
+            str([f.disposition for f in hist]),
+        )
+        # …and a still-planted secret in a file the register never names is still red.
+        every = scan_paths(tmp, planted_paths, "tracked")
+        still_red = {f.family for f in every if f.disposition == "UNRESOLVED"}
+        expect(
+            "one grant does not disarm the other 8 families",
+            still_red == (set(samples) - {"github_token", "abs_windows_path"}),
+            str(sorted(still_red)),
+        )
+
+        # ── every way of writing a bad register is refused ────────────────────────
+        # The control first: bad_register() with NO override must be accepted. Without
+        # it, a builder that emitted garbage would make all nine fixtures "fail
+        # correctly" and prove nothing at all.
+        (tmp / "control.yaml").write_text(bad_register(), encoding="utf-8")
+        _c_entries, control_errors, _c_present = load_register(tmp, "control.yaml")
+        expect(
+            "control: the same fixture with NO defect is ACCEPTED",
+            not control_errors,
+            str(control_errors),
+        )
+        for label, blob in BAD_REGISTERS:
+            (tmp / "bad.yaml").write_text(blob, encoding="utf-8")
+            _bad_entries, bad_errors, _present = load_register(tmp, "bad.yaml")
+            expect(f"register refused: {label}", bool(bad_errors), str(bad_errors))
+
+        # Malformed YAML must raise rather than silently yield a partial document.
+        for label, blob in (
+            ("tab indentation", "schema: x\n\tdecisions: []\n"),
+            ("anchor", f"schema: {REGISTER_SCHEMA}\nnote: &a hello\n"),
+            ("no colon", f"schema: {REGISTER_SCHEMA}\nthis line has no key\n"),
+            ("empty value", f"schema: {REGISTER_SCHEMA}\ndecisions:\n  - path:\n"),
+        ):
+            raised = False
+            try:
+                parse_minimal_yaml(blob)
+            except RegisterSyntaxError:
+                raised = True
+            expect(f"parser rejects: {label}", raised)
+
+        # ── the strict reader agrees with PyYAML, where PyYAML is available ───────
+        cross = "PyYAML not importable - cross-check skipped"
+        try:
+            import yaml  # type: ignore[import-untyped]
+        except ImportError:
+            pass
+        else:
+            mine = parse_minimal_yaml(good)
+            theirs = yaml.safe_load(good)
+            for entry in theirs.get("decisions", []):
+                if "date" in entry:
+                    entry["date"] = str(entry["date"])
+            expect(
+                "strict reader agrees with PyYAML on the register subset",
+                mine == theirs,
+                f"{mine} != {theirs}",
+            )
+            cross = f"PyYAML {yaml.__version__} agrees with the strict reader"
     finally:
+        install_register(list(saved.values()))
         shutil.rmtree(tmp, ignore_errors=True)
 
     width = max(len(f) for f in samples)
@@ -1026,10 +1872,22 @@ def self_test() -> int:
     print("-" * (width + 34))
     print(f"  families reached by scan_text(): {sorted(got)}")
     print("  control file (no secret)       : no findings")
+    print()
+    print("SELF-TEST - the DISCLOSED disposition, and the strength of the detectors")
+    print("-" * (width + 34))
+    for name, ok, detail in checks:
+        suffix = f"   [{detail}]" if detail and not ok else ""
+        print(f"  {'OK    ' if ok else 'FAILED'}  {name}{suffix}")
+    print("-" * (width + 34))
+    print(f"  detector fingerprint : {DETECTOR_FINGERPRINT}")
+    print(f"  {cross}")
     if failures:
         print(f"\nSELF-TEST FAILED: {failures}")
         return 1
-    print(f"\nSELF-TEST PASSED: {len(samples)} families, {len(samples)} fired, 0 missed")
+    print(
+        f"\nSELF-TEST PASSED: {len(samples)} families, {len(samples)} fired, 0 missed; "
+        f"{len(checks)} disposition/strength assertions, 0 failed"
+    )
     return 0
 
 
@@ -1042,12 +1900,24 @@ def scan_text_families(text: str) -> Iterator[tuple[str, str]]:
 # Reporting
 # ══════════════════════════════════════════════════════════════════════════════════
 
-IRREVERSIBILITY = (
-    "The flip from PRIVATE to PUBLIC is IRREVERSIBLE. GitHub's fork network, the "
-    "GHArchive event stream, Software Heritage and search-engine caches all outlive a "
-    "revert, and the flip publishes ALL 16 COMMITS, not the tree at HEAD. A value "
-    "masked at HEAD but present in an earlier commit is published anyway."
-)
+
+def irreversibility(rows: Sequence[Row]) -> str:
+    """The commit count is measured, not written down.
+
+    An earlier version of this file hard-coded 'ALL 16 COMMITS'. By the time anybody
+    read it the repository held 44 across 8 refs, so the one paragraph whose whole job
+    is to make the reader feel the size of the act was understating it by 28 commits.
+    A constant that describes a moving tree is a lie with a delay on it."""
+    census = next((r for r in rows if r.check == "committer_census"), None)
+    commits = census.detail.get("commits_all_refs", "?") if census else "?"
+    refs = len(census.detail.get("refs", [])) if census else 0  # type: ignore[arg-type]
+    return (
+        "The flip from PRIVATE to PUBLIC is IRREVERSIBLE. GitHub's fork network, the "
+        "GHArchive event stream, Software Heritage and search-engine caches all outlive "
+        f"a revert, and the flip publishes ALL {commits} COMMITS on ALL {refs} REFS, not "
+        "the tree at HEAD. A value masked at HEAD but present in an earlier commit is "
+        "published anyway."
+    )
 
 
 def print_table(rows: Sequence[Row]) -> None:
@@ -1063,13 +1933,35 @@ def print_table(rows: Sequence[Row]) -> None:
 
     unresolved = [f for r in rows for f in r.findings if f.disposition == "UNRESOLVED"]
     allowlisted = [f for r in rows for f in r.findings if f.disposition == "ALLOWLISTED"]
-    print(f"findings: {len(unresolved)} UNRESOLVED, {len(allowlisted)} ALLOWLISTED")
+    disclosed = [f for r in rows for f in r.findings if f.disposition == "DISCLOSED"]
+    print(
+        f"findings: {len(unresolved)} UNRESOLVED, {len(allowlisted)} ALLOWLISTED, "
+        f"{len(disclosed)} DISCLOSED"
+    )
 
     if unresolved:
-        print("\nUNRESOLVED - each of these must be fixed or given an allowlist reason:")
+        print("\nUNRESOLVED - each of these must be fixed, allowlisted, or entered in")
+        print(f"{REGISTER_DEFAULT} with a class, a date, a decider and a reason:")
         for f in unresolved:
             where = f"{f.commit}:{f.path}" if f.commit else f"{f.path}:{f.line}"
             print(f"  [{f.family}] {where}  {f.preview}")
+
+    if disclosed:
+        by_class: dict[str, list[Finding]] = {}
+        for f in disclosed:
+            by_class.setdefault(f.disclosure_class, []).append(f)
+        print(f"\nDISCLOSED - granted by {REGISTER_DEFAULT}, grouped by class:")
+        for cls in sorted(by_class):
+            group = by_class[cls]
+            seen_paths = sorted({f.path for f in group})
+            print(f"  {cls}  ({len(group)} finding(s), {len(seen_paths)} path(s))")
+            print(f"      {REGISTER_CLASSES.get(cls, '')}")
+            for path in seen_paths:
+                first = next(f for f in group if f.path == path)
+                scopes = sorted({g.scope for g in group if g.path == path})
+                print(
+                    f"      - {path}  [{first.family}] {scopes}  {first.decided} {first.decided_by}"
+                )
 
     if allowlisted:
         print("\nALLOWLISTED - documented decisions, grouped by (path, family):")
@@ -1089,14 +1981,18 @@ def print_table(rows: Sequence[Row]) -> None:
             print(f"  - {p}")
 
     print()
-    print(IRREVERSIBILITY)
+    print(irreversibility(rows))
     print()
 
 
-def build_document(rows: Sequence[Row], root: Path) -> dict[str, object]:
+def build_document(
+    rows: Sequence[Row], root: Path, entries: Sequence[Disclosure]
+) -> dict[str, object]:
     unresolved = [f for r in rows for f in r.findings if f.disposition == "UNRESOLVED"]
     allowlisted = [f for r in rows for f in r.findings if f.disposition == "ALLOWLISTED"]
+    disclosed = [f for r in rows for f in r.findings if f.disposition == "DISCLOSED"]
     failed = [r.check for r in rows if r.status == "FAIL"]
+    by_class: Counter[str] = Counter(f.disclosure_class for f in disclosed)
     return {
         "schema": SCHEMA,
         "note": (
@@ -1107,9 +2003,15 @@ def build_document(rows: Sequence[Row], root: Path) -> dict[str, object]:
         "generated_utc": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "generator": "scripts/submission/audit_public_readiness.py",
         "repo_root": root.name,
-        "irreversibility": IRREVERSIBILITY,
+        "detector_fingerprint": detector_fingerprint(),
+        "irreversibility": irreversibility(rows),
         "verdict": "READY" if not failed else "NOT READY",
         "failed_checks": failed,
+        "dispositions": {
+            "UNRESOLVED": "gating; the default for every hit",
+            "ALLOWLISTED": f"non-gating; granted by ALLOWLIST in {Path(__file__).name}",
+            "DISCLOSED": f"non-gating; granted by an exact-path entry in {REGISTER_DEFAULT}",
+        },
         "totals": {
             "checks": len(rows),
             "passed": sum(1 for r in rows if r.status == "PASS"),
@@ -1117,14 +2019,72 @@ def build_document(rows: Sequence[Row], root: Path) -> dict[str, object]:
             "informational": sum(1 for r in rows if r.status == "INFO"),
             "unresolved_findings": len(unresolved),
             "allowlisted_findings": len(allowlisted),
+            "disclosed_findings": len(disclosed),
+            "disclosed_by_class": dict(sorted(by_class.items())),
         },
         "families": FAMILIES,
         "allowlist": [
             {"path": w.path, "family": w.family, "verbatim": w.verbatim, "reason": w.reason}
             for w in ALLOWLIST
         ],
+        "disclosure_register": {
+            "path": REGISTER_DEFAULT,
+            "schema": REGISTER_SCHEMA,
+            "classes": REGISTER_CLASSES,
+            "entries": [e.to_json() for e in entries],
+        },
         "rows": [r.to_json() for r in rows],
     }
+
+
+# ══════════════════════════════════════════════════════════════════════════════════
+# --assert-absent: prove a rotated credential is nowhere, without republishing it
+# ══════════════════════════════════════════════════════════════════════════════════
+
+
+def assert_absent(root: Path, candidate: str) -> int:
+    """Read one value from stdin; prove it is in no tracked file and no added line.
+
+    Deliberately not a flag with a value: an argument vector is visible in `ps`, lands
+    in a shell history, and would be captured by any CI log. The value is consumed
+    from stdin, held in one local, and the only thing printed is a SHA-256 prefix, so
+    the run is reproducible by anyone who holds the same secret and discloses nothing
+    to anyone who does not."""
+    import hashlib
+
+    candidate = candidate.strip()
+    digest = hashlib.sha256(candidate.encode("utf-8")).hexdigest()
+    print("ASSERT-ABSENT - is this value anywhere in the repository?")
+    print(f"  sha256(value)  {digest[:16]}...  (length {len(candidate)})")
+    if len(candidate) < 8:
+        print("  REFUSED: a value shorter than 8 characters would match everywhere.")
+        return 2
+
+    tracked_hits: list[str] = []
+    for rel in tracked_files(root):
+        text = read_text(root / rel)
+        if text is None or candidate not in text:
+            continue
+        for lineno, line in enumerate(text.splitlines(), 1):
+            if candidate in line:
+                tracked_hits.append(f"{rel}:{lineno}")
+    history_hits: list[str] = []
+    added = 0
+    for commit, path, line in iter_history_additions(root):
+        added += 1
+        if candidate in line:
+            history_hits.append(f"{commit}:{path}")
+    print(f"  tracked files  {len(tracked_files(root))} scanned -> {len(tracked_hits)} hit(s)")
+    print(f"  history        {added} added lines scanned -> {len(history_hits)} hit(s)")
+    for hit in tracked_hits[:20]:
+        print(f"    TRACKED  {hit}")
+    for hit in sorted(set(history_hits))[:20]:
+        print(f"    HISTORY  {hit}")
+    if tracked_hits or history_hits:
+        print("\nABSENT: NO - the value is in the repository. Rotate it again; do not flip.")
+        return 1
+    print("\nABSENT: YES - the value appears in no tracked file and in no added line.")
+    return 0
 
 
 # ══════════════════════════════════════════════════════════════════════════════════
@@ -1151,6 +2111,19 @@ def main(argv: Sequence[str] | None = None) -> int:
         help="plant one secret of every family in a temp tree; require the scanner to fire",
     )
     parser.add_argument(
+        "--assert-absent",
+        action="store_true",
+        help=(
+            "read ONE candidate value from stdin and prove it is in no tracked file and "
+            "no added line on any ref. For the rotated mainline_judge password."
+        ),
+    )
+    parser.add_argument(
+        "--register",
+        default=REGISTER_DEFAULT,
+        help=f"the disclosure register (default: {REGISTER_DEFAULT})",
+    )
+    parser.add_argument(
         "--root",
         default=".",
         help="repository root (default: the current directory)",
@@ -1168,6 +2141,14 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"ERROR: {root} is not a git repository root. Run from the repo root.")
         return 2
 
+    if args.assert_absent:
+        return assert_absent(root, sys.stdin.read())
+
+    entries, register_errors, register_present = load_register(root, args.register)
+    # A register that does not validate grants nothing: entries are installed only when
+    # every one of them is well-formed, so a typo cannot half-open the gate.
+    install_register([] if register_errors else entries)
+
     files = tracked_files(root)
     rows = [
         check_secrets_tracked(root, files),
@@ -1178,6 +2159,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         check_absolute_paths(root, files),
         check_repo_state(root),
     ]
+    rows.append(check_disclosure_register(root, entries, register_errors, register_present, rows))
 
     print_table(rows)
 
@@ -1187,7 +2169,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             out = root / out
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(
-            json.dumps(build_document(rows, root), indent=2, ensure_ascii=False) + "\n",
+            json.dumps(build_document(rows, root, entries), indent=2, ensure_ascii=False) + "\n",
             encoding="utf-8",
         )
         print(f"wrote {out}")
@@ -1196,7 +2178,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     if failed:
         print(f"VERDICT: NOT READY - failing checks: {', '.join(failed)}")
         return 1
-    print("VERDICT: READY - every finding resolved or allowlisted with a reason")
+    print(
+        "VERDICT: READY - every finding is resolved, allowlisted with a reason, or "
+        "disclosed by a dated register entry"
+    )
     return 0
 
 

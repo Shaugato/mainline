@@ -22,8 +22,20 @@ Every cassette also declares its ``provenance``:
     on the last system block — and about nothing else.  A test that needs to make a claim
     about the model's behaviour must assert ``provenance != "handwritten"``.
 
-That distinction is the honest core of this file: AWS credentials are not valid on the
-build machine, so the judge cassettes committed today are handwritten, and they say so.
+That distinction is the honest core of this file, and since 2026-08-11 **both halves of it
+exist on disk**.  ``tests/fixtures/cassettes/recall/`` is still ``handwritten`` and still
+correct — those are the contract fixtures, they make claims about our client and about
+nothing else, and they say so.  ``tests/fixtures/cassettes/recall_live/`` was recorded from
+the Claude Haiku 4.5 generation through the ``au.*`` inference profile in ``ap-southeast-2``
+and carries ``bedrock-live``; that store's ``INDEX.json`` and
+``evidence/aws/agent/live-run.json`` name the resolved profile, the AWS request id, the
+token usage and the ``stopReason`` of every call, and ``evidence/aws/agent/determinism.json``
+shows the recording replaying to an identical result twice.  The earlier claim here — that
+AWS credentials are not valid on the build machine, so every committed cassette is
+handwritten — was true when it was written and no longer reproduces.  The identifier itself
+stays out of this source file: D5 resolves it at start-up and
+``tests/unit/recall_providers/test_no_hardcoded_model_ids.py`` enforces the absence.
+**Read the ``provenance`` field, never the date.**
 """
 
 from __future__ import annotations

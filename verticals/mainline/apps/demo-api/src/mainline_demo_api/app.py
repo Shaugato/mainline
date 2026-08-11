@@ -1,13 +1,28 @@
 # SPDX-FileCopyrightText: 2026 MAINLINE contributors
 # SPDX-License-Identifier: FSL-1.1-ALv2
-"""The whole server: a router, a dispatcher, and one function AWS calls.
+"""The whole server: a router, a dispatcher, a file server, and one function AWS calls.
 
 THERE IS NO WEB FRAMEWORK HERE AND THERE IS NOT GOING TO BE ONE.
 A Lambda invocation already *is* a function call with a dict argument. Bolting Mangum in
 front of FastAPI would translate that dict into an HTTP request so a framework could
 parse it back into a dict — three dependencies and a cold-start penalty to arrive where
 we started. ``handler(event, context)`` is the server, and the routing table below is
-sixteen regexes compiled once at import.
+seventeen regexes compiled once at import.
+
+ONE ORIGIN, TWO SURFACES
+------------------------
+`docs/leads/ship-final.md` DECISION **D1**: the demo URL is a public **Lambda Function
+URL**, because this AWS account is under a verification hold that refuses new CloudFront
+distributions (§1.4, with the quoted ``AccessDenied``). So there is no CDN and no S3
+bucket in front of this function, and the same handler answers both surfaces:
+
+    /v1/*        the JSON API below — envelope, dispatcher, error contract, unchanged
+    everything   :mod:`mainline_demo_api.static_site` — the console SPA and the
+                 else        evidence bundle, out of a directory bundled beside this file
+
+Same origin for both means no CORS, one hostname in the submission form, and one
+resource to be wrong about. ``GET /v1/health`` answers exactly as it always has: it is
+matched before the static branch is ever considered.
 
 WHAT THE EVENT LOOKS LIKE
 -------------------------
@@ -71,7 +86,7 @@ from typing import Any, Final
 
 import psycopg
 
-from . import db, reads
+from . import db, reads, static_site
 from .envelope import SCHEMA_IDS, dumps
 from .health import HEALTH_PATH, health
 
@@ -119,11 +134,34 @@ class Route:
 
 
 def _routes() -> tuple[Route, ...]:
-    """Build the sixteen declared routes, transcribed from ``console/src/data/resources.ts``.
+    """Build the seventeen routes: sixteen console resources plus the demo driver's own.
 
-    The four POST templates are here even though this distribution implements none of
-    them: a POST to a real path must answer 501 with the module that owes it, not 404
-    with "no such path". Those are different bugs and they belong to different people.
+    **Sixteen are transcribed from** ``console/src/data/resources.ts`` — twelve GETs and
+    the four kernel POSTs. Those four POST templates are here even though this
+    distribution implements none of them: a POST to a real path must answer 501 with the
+    module that owes it, not 404 with "no such path". Those are different bugs and they
+    belong to different people.
+
+    **The seventeenth is** ``POST /v1/demo/gate-run``, and it is NOT one of the console's
+    sixteen. It is the demo driver's own endpoint: it is governed by
+    ``demo-api/contracts/gate-run.schema.json`` (``$id``
+    ``gate_run.GATE_RUN_SCHEMA_ID``) rather than by ``invoke.schema.json``, and it is
+    declared separately from the resource registry — ``transitions.TRANSITION_RESOURCES``
+    carries the key ``demo_gate_run`` and ``transitions.handle_transition`` dispatches it
+    to ``gate_run.gate_run``, four beats inside one transaction that is rolled back.
+
+    IT WAS MISSING, AND THAT WAS THE DEMO'S HEADLINE DEFECT. Every beat was implemented
+    and none of it was reachable, because this table had sixteen rows and the router
+    therefore answered 404 before the dispatcher was consulted.
+    ``evidence/deploy/acceptance.json`` recorded it as *"POST /v1/demo/gate-run (run 1)
+    returned 404, expected 200"* and ``console/src/features/gate/DemoDriver.tsx`` renders
+    *"POST /v1/demo/gate-run is not addressable from this console"* on screen.
+
+    The console still does not declare it: ``resources.ts`` has sixteen ``declare()``
+    calls and ``contracts.ts`` does not register ``gate-run.schema.json``, so the panel
+    keeps telling that truth until the console domain closes its half.
+    ``tests/test_routes_gate_run.py`` pins the difference between the two tables to
+    exactly this one endpoint, so a *second* undeclared route is still a failure.
     """
     return (
         Route("GET", "/v1/permits/{permit_id}", "permit"),
@@ -142,6 +180,10 @@ def _routes() -> tuple[Route, ...]:
         Route("POST", "/v1/checks/{check_id}/disposition", "sign_disposition"),
         Route("POST", "/v1/permits/{permit_id}/merge", "merge_permit"),
         Route("POST", "/v1/permits/{permit_id}/suspend", "suspend_permit"),
+        # The seventeenth. No path parameters: the subject is the seeded demo permit,
+        # resolved by `scenario.from_env()`, because a judge must not be able to point
+        # the demo driver at somebody else's row.
+        Route("POST", "/v1/demo/gate-run", "demo_gate_run"),
     )
 
 
@@ -224,7 +266,7 @@ def _response(status: int, body: Any, *, cache: str) -> dict[str, Any]:
         "headers": {
             "content-type": "application/json; charset=utf-8",
             "cache-control": cache,
-            # The console and the site are served from ONE CloudFront distribution, so
+            # Under DECISION D1 the console and this API are ONE Lambda Function URL, so
             # there is no cross-origin request to permit. This header exists for the
             # judge who curls the Function URL directly from a scratch page.
             "access-control-allow-origin": "*",
@@ -253,9 +295,11 @@ def handler(  # noqa: PLR0911 - one return per HTTP status, and the statuses are
 ) -> dict[str, Any]:
     """Answer one Lambda invocation with ``{statusCode, headers, body, isBase64Encoded}``.
 
-    Never raises. A handler that raises produces a Lambda-shaped 502 with a stack trace
-    the console cannot read and a judge cannot act on; every failure below arrives as a
-    JSON body that names what went wrong.
+    ``/v1/*`` is the JSON API: envelope, dispatcher and error contract, exactly as
+    before. Everything else is the bundled site, served by :mod:`static_site`. Never
+    raises. A handler that raises produces a Lambda-shaped 502 with a stack trace the
+    console cannot read and a judge cannot act on; every failure below arrives as a JSON
+    body that names what went wrong.
     """
     started = time.monotonic()
     event = event or {}
@@ -266,6 +310,13 @@ def handler(  # noqa: PLR0911 - one return per HTTP status, and the statuses are
         # Same-origin in the deployed stack, so this is only ever reached by a direct
         # caller. Answering it costs nothing and saves that caller a confusing 405.
         return _response(204, {}, cache=_NO_STORE)
+
+    # THE FORK, and it is the first thing after OPTIONS on purpose. `/v1` is the API's
+    # prefix and nothing else is, so a stray path can never consume an API route and an
+    # API route can never be answered with HTML. `/v1/health` is inside the prefix, so
+    # the health check below is reached exactly as it was before the site existed.
+    if not static_site.is_api_path(path):
+        return static_site.serve(method, path)
 
     if path in (HEALTH_PATH, f"{HEALTH_PATH}/"):
         if method != "GET":
@@ -312,7 +363,10 @@ def handler(  # noqa: PLR0911 - one return per HTTP status, and the statuses are
             type(exc).__name__.lower(),
             exc.detail,
             resource=matched.key,
-            schema_id=SCHEMA_IDS[matched.key],
+            # `.get` for the same reason as the 501 below: seventeen routes, sixteen
+            # contracts in SCHEMA_IDS. A missing entry must degrade to `null` in the
+            # body, not to a KeyError inside an except-clause.
+            schema_id=SCHEMA_IDS.get(matched.key),
         )
     except psycopg.Error as exc:
         # A broken connection must not be handed to the next invocation of this warm
@@ -372,7 +426,15 @@ def _transition(
             "design: this distribution owns the twelve GETs and the spine, and the four POSTs "
             "are implemented against handle_transition(resource_key, path_params, body, conn).",
             resource=matched.key,
-            schema_id=SCHEMA_IDS[matched.key],
+            # `.get`, not `[...]`: `demo_gate_run` is the one route whose contract is NOT
+            # in SCHEMA_IDS. SCHEMA_IDS is a transcription of the console's sixteen
+            # `declare()` calls — `tests/test_envelope.py` asserts that equality — and the
+            # demo driver's contract is `gate_run.GATE_RUN_SCHEMA_ID`, which cannot be
+            # imported here because importing `gate_run` is precisely what this branch
+            # exists to survive. A subscript would turn "the write surface is absent"
+            # into an unhandled KeyError, i.e. a 502 with no body, from the one code path
+            # whose entire job is to fail legibly.
+            schema_id=SCHEMA_IDS.get(matched.key),
         )
 
     entry = getattr(transitions, "handle_transition", None)

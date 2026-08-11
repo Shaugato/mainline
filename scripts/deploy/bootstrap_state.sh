@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # SPDX-FileCopyrightText: 2026 MAINLINE contributors
-# SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
+# SPDX-License-Identifier: Apache-2.0
 #
+# BEGIN-USAGE
 # ══════════════════════════════════════════════════════════════════════════════════════
 #  bootstrap_state.sh — the one resource Terraform cannot create for itself
 # ══════════════════════════════════════════════════════════════════════════════════════
@@ -26,17 +27,37 @@
 # somebody turned versioning off on is worse than a bucket that does not exist: the first
 # silently loses the ability to recover a clobbered state file.
 #
+# ── THE BUCKET NAME, AND WHY NO ACCOUNT ID IS WRITTEN HERE (decision D2) ──────────────
+#
+# The default name is `mainline-demo-tfstate-<account id>`, and the account id is READ AT
+# RUN TIME from the live caller identity:
+#
+#     aws sts get-caller-identity --query Account --output text
+#
+# It is not written in this file, in the example below, or anywhere else in the deploy
+# scripts. Deriving it costs one API call this script was going to make anyway, keeps the
+# name globally unique (S3 bucket names are shared across every AWS customer), and keeps
+# the `mainline-demo-` prefix that `teardown.sh` keys its safety refusal on.
+#
+# `--expect-account` is the same guard `deploy.sh` and `teardown.sh` carry: name the
+# account you mean and this script refuses to create anything in a different one. It is
+# optional here and mandatory there, because this script's blast radius is one empty,
+# private, versioned bucket and theirs is the whole stack.
+#
 # USAGE
-#   scripts/deploy/bootstrap_state.sh --bucket mainline-demo-tfstate-022950218246
-#   scripts/deploy/bootstrap_state.sh --bucket <name> --region ap-southeast-1 \
-#                                     --profile mainline-dev
+#   scripts/deploy/bootstrap_state.sh                       # derive the name from STS
+#   scripts/deploy/bootstrap_state.sh --expect-account <id>
+#   scripts/deploy/bootstrap_state.sh --bucket mainline-demo-tfstate-<account id> \
+#                                     --region ap-southeast-1 --profile mainline-dev
 #   scripts/deploy/bootstrap_state.sh --print-backend-config --bucket <name>   # no writes
 #
 # EXIT CODES
 #   0  the bucket exists, is versioned, is private, is encrypted and is tagged ours
 #   2  usage error, or the bucket name does not carry the mainline-demo- prefix
-#   3  the bucket exists but belongs to somebody else, or is in the wrong region
+#   3  the bucket exists but belongs to somebody else, is in the wrong region, or the
+#      caller is not the account named by --expect-account
 #   4  an AWS call failed
+# END-USAGE
 
 set -euo pipefail
 
@@ -44,13 +65,15 @@ BUCKET=""
 REGION="ap-southeast-1"
 PROFILE="${AWS_PROFILE:-}"
 PRINT_ONLY=0
+NAME_PREFIX="mainline-demo"
+EXPECT_ACCOUNT="${MAINLINE_AWS_ACCOUNT:-}"
 
 say()  { printf '%s\n' "$*"; }
 step() { printf '  %-14s %s\n' "$1" "$2"; }
 die()  { printf 'bootstrap_state: %s\n' "$1" >&2; exit "${2:-4}"; }
 
 usage() {
-  sed -n '5,44p' "$0" | sed 's/^# \{0,1\}//'
+  sed -n '/^# BEGIN-USAGE$/,/^# END-USAGE$/p' "$0" | sed '1d;$d' | sed 's/^# \{0,1\}//'
   exit "${1:-2}"
 }
 
@@ -59,28 +82,32 @@ while [ $# -gt 0 ]; do
     --bucket)  BUCKET="${2:-}"; shift 2 ;;
     --region)  REGION="${2:-}"; shift 2 ;;
     --profile) PROFILE="${2:-}"; shift 2 ;;
+    --expect-account) EXPECT_ACCOUNT="${2:-}"; shift 2 ;;
     --print-backend-config) PRINT_ONLY=1; shift ;;
     -h|--help) usage 0 ;;
     *) printf 'bootstrap_state: unknown argument %s\n' "$1" >&2; usage 2 ;;
   esac
 done
 
-[ -n "$BUCKET" ] || { printf 'bootstrap_state: --bucket is required\n' >&2; usage 2; }
+# --print-backend-config makes no AWS call at all, so it is the one mode that cannot
+# derive a name and must be given one.
+if [ "$PRINT_ONLY" -eq 1 ] && [ -z "$BUCKET" ]; then
+  printf 'bootstrap_state: --print-backend-config needs --bucket; it makes no AWS call and\n' >&2
+  printf '  therefore cannot read the account id to derive the name from.\n' >&2
+  usage 2
+fi
 
-# ── THE SAFETY REFUSAL ────────────────────────────────────────────────────────────────
-#
-# This account holds four unrelated live projects. Everything this repository creates
-# carries the `mainline-demo-` prefix, and `scripts/deploy/teardown.sh` will delete a
-# bucket only if it carries that prefix. A state bucket named anything else would be
-# created here and then be undeletable by our own teardown — so it is refused at the
-# point of creation instead, where the fix is free.
-case "$BUCKET" in
-  mainline-demo-*) : ;;
-  *) die "bucket name '$BUCKET' must start with 'mainline-demo-'.
-  scripts/deploy/teardown.sh keys its refusal on that prefix, and this account holds
-  four unrelated projects. A bucket outside the prefix would be unmanageable by our own
-  tools. Suggested: mainline-demo-tfstate-<account id>." 2 ;;
-esac
+# An explicitly supplied name is checked BEFORE any AWS call, so a typo is answered with
+# the typo rather than with a credentials error. A derived name is checked again below,
+# after the account id is known — the same `case`, because there is one rule.
+if [ -n "$BUCKET" ]; then
+  case "$BUCKET" in
+    mainline-demo-*) : ;;
+    *) die "bucket name '$BUCKET' must start with '${NAME_PREFIX}-'.
+  scripts/deploy/teardown.sh keys its refusal on that prefix. Omit --bucket entirely and
+  this script derives ${NAME_PREFIX}-tfstate-<account id> from the live caller identity." 2 ;;
+  esac
+fi
 
 AWSCLI=(aws)
 [ -n "$PROFILE" ] && AWSCLI+=(--profile "$PROFILE")
@@ -104,10 +131,38 @@ command -v aws >/dev/null 2>&1 || die "the AWS CLI is not on PATH." 4
 ACCOUNT="$("${AWSCLI[@]}" sts get-caller-identity --query Account 2>/dev/null)" \
   || die "aws sts get-caller-identity failed. Are the credentials for profile '${PROFILE:-<default>}' valid?" 4
 
+if [ -n "$EXPECT_ACCOUNT" ] && [ "$ACCOUNT" != "$EXPECT_ACCOUNT" ]; then
+  die "this is account $ACCOUNT. You said $EXPECT_ACCOUNT. Creating nothing.
+  Fix the profile (--profile <name>) or the expectation (--expect-account <id>)." 3
+fi
+
+# ── The name, derived rather than written down (decision D2) ──────────────────────────
+DERIVED=0
+if [ -z "$BUCKET" ]; then
+  BUCKET="${NAME_PREFIX}-tfstate-${ACCOUNT}"
+  DERIVED=1
+fi
+
+# ── THE SAFETY REFUSAL ────────────────────────────────────────────────────────────────
+#
+# This account holds seven buckets belonging to unrelated live projects. Everything this
+# repository creates carries the `mainline-demo-` prefix, and `scripts/deploy/teardown.sh`
+# will delete a bucket only if it carries that prefix. A state bucket named anything else
+# would be created here and then be undeletable by our own teardown — so it is refused at
+# the point of creation instead, where the fix is free.
+case "$BUCKET" in
+  mainline-demo-*) : ;;
+  *) die "bucket name '$BUCKET' must start with '${NAME_PREFIX}-'.
+  scripts/deploy/teardown.sh keys its refusal on that prefix, and this account holds
+  seven buckets across unrelated projects. A bucket outside the prefix would be
+  unmanageable by our own tools. Omit --bucket entirely and this script derives
+  ${NAME_PREFIX}-tfstate-<account id> from the live caller identity." 2 ;;
+esac
+
 say "bootstrap_state"
 step "account" "$ACCOUNT"
 step "region"  "$REGION"
-step "bucket"  "$BUCKET"
+step "bucket"  "$BUCKET$([ "$DERIVED" -eq 1 ] && printf '   (derived from sts get-caller-identity)')"
 
 # ── Does it exist, and is it ours? ────────────────────────────────────────────────────
 #
@@ -152,7 +207,12 @@ fi
 #
 # A pre-existing bucket in another region silently breaks the backend: Terraform signs
 # for `region`, S3 answers 301. Better to say so here.
-LOC="$("${AWSCLI[@]}" s3api get-bucket-location --bucket "$BUCKET" --query LocationConstraint 2>/dev/null || true)"
+if ! LOC="$("${AWSCLI[@]}" s3api get-bucket-location --bucket "$BUCKET" --query LocationConstraint 2>&1)"; then
+  die "get-bucket-location on '$BUCKET' failed, and a region this script could not read is
+  not a region it may assume is right:
+  $LOC" 4
+fi
+# `None` is how the API renders "no LocationConstraint", which means us-east-1.
 [ "$LOC" = "None" ] && LOC="us-east-1"
 if [ -n "$LOC" ] && [ "$LOC" != "$REGION" ]; then
   die "bucket '$BUCKET' lives in '$LOC' but this backend is configured for '$REGION'.

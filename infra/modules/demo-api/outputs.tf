@@ -1,10 +1,40 @@
 # SPDX-FileCopyrightText: 2026 MAINLINE contributors
 # SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
 #
-# Nothing here is sensitive, and nothing here is the DSN. The Function URL is useless to
-# anyone who cannot sign for `lambda:InvokeFunctionUrl` as the one CloudFront distribution
-# named in `aws_lambda_permission.cloudfront_invoke`, which is why it is emitted in the
-# clear: publishing it lets W7's deploy report and W10's acceptance run assert against it.
+# Nothing here is sensitive, and nothing here is the DSN.
+#
+# The Function URL used to be emitted in the clear on the grounds that it was useless to
+# anyone who could not sign for `lambda:InvokeFunctionUrl`. Under decision D1 that
+# justification is gone and the real one is simpler and larger: with
+# `url_authorization_type = "NONE"` THIS URL IS THE DEMO, it goes in the submission form,
+# and a hostname that has to be secret to be safe was never safe. What bounds it is the
+# reserved-concurrency cap and the rolled-back transaction, both of which are unaffected by
+# who knows the URL.
+#
+# `authorization_type` is echoed back so a caller does not have to infer which shape it
+# got. `terraform output -raw authorization_type` is the assertion the deploy report and
+# the acceptance run make before they trust `function_url`.
+
+output "authorization_type" {
+  description = <<-EOT
+    The Function URL's authorisation type as actually configured, read back off the
+    resource rather than off `var.url_authorization_type` - so it is the deployed truth and
+    not a restatement of the request. `NONE` means `function_url` is publicly reachable and
+    is the demo hostname; `AWS_IAM` means an unsigned request gets 403 and only the
+    CloudFront distribution named in the invoke grant can reach it.
+  EOT
+  value       = aws_lambda_function_url.this.authorization_type
+}
+
+output "cloudfront_invoke_grant_created" {
+  description = <<-EOT
+    Whether this module created the `lambda:InvokeFunctionUrl` grant for
+    `cloudfront.amazonaws.com`. `false` in the D1 default shape, where the resource is
+    `count = 0` and absent from the plan entirely rather than present and inert - which is
+    the property a reviewer wants to assert mechanically instead of by reading the plan.
+  EOT
+  value       = length(aws_lambda_permission.cloudfront_invoke) > 0
+}
 
 output "function_name" {
   description = "The deployed function's name. `aws lambda get-function-configuration --function-name` takes it verbatim."
@@ -19,17 +49,28 @@ output "function_arn" {
 output "function_url" {
   description = <<-EOT
     The full Function URL, `https://<id>.lambda-url.<region>.on.aws/`, with AWS's trailing
-    slash preserved. Requires SigV4 as `cloudfront.amazonaws.com`; a plain `curl` gets 403
-    with an empty body, which is the intended and load-bearing behaviour.
+    slash preserved.
+
+    WHEN `authorization_type` IS `NONE` - the default, and the shape decision D1 selects
+    because AWS will not create a CloudFront distribution on this account - THIS IS THE
+    DEMO URL. It is the value that goes in `docs/submission/SUBMISSION.json.demo_url` and
+    in the submission form's demo field: HTTPS on an AWS-issued certificate, free and
+    unrestricted, serving the console SPA at `/`, the signed evidence bundle at `/bundle/*`
+    and the API at `/v1/*` from one origin.
+
+    When it is `AWS_IAM` this is an origin, not a destination: a plain `curl` gets 403 with
+    an empty body, and the hostname a judge visits is the CloudFront distribution's.
   EOT
   value       = aws_lambda_function_url.this.function_url
 }
 
 output "function_url_domain" {
   description = <<-EOT
-    Host only - `<id>.lambda-url.<region>.on.aws` - for W5's CloudFront origin
-    `domain_name`, which rejects a scheme and a path. Derived from the URL rather than
-    rebuilt from `url_id`, so the two can never disagree.
+    Host only - `<id>.lambda-url.<region>.on.aws` - for the `demo-site` module's CloudFront
+    origin `domain_name`, which rejects a scheme and a path. Derived from the URL rather
+    than rebuilt from `url_id`, so the two can never disagree. Only meaningful in the
+    `AWS_IAM` shape; emitted unconditionally so the env root can reference it with a static
+    expression instead of a splat (see infra/envs/demo/main.tf on why a splat is a cycle).
   EOT
   value       = replace(trimsuffix(aws_lambda_function_url.this.function_url, "/"), "https://", "")
 }
@@ -68,6 +109,16 @@ output "dsn_parameter_arn" {
   value       = local.dsn_parameter_arn
 }
 
+output "web_root" {
+  description = <<-EOT
+    The path the function will look for the console SPA at, as published in
+    `$MAINLINE_WEB_ROOT`. Emitted so the deploy script can assert that the zip it just
+    uploaded actually contains that directory - `unzip -l <pkg> | grep '^ *[0-9].* web/'` -
+    rather than discovering at judging time that `/` 404s while `/v1/health` is green.
+  EOT
+  value       = var.web_root
+}
+
 output "architecture" {
   description = "The architecture actually deployed. Asserted against the package manifest by a `lifecycle.precondition` on the function, and worth re-asserting in the deploy report."
   value       = var.architecture
@@ -79,7 +130,7 @@ output "package_sha256_base64" {
 }
 
 output "alarm_names" {
-  description = "The four alarm names, for `aws cloudwatch describe-alarms --alarm-names` in W10's health cron."
+  description = "The four alarm names, for `aws cloudwatch describe-alarms --alarm-names` in the hourly `demo-health` workflow."
   value = [
     aws_cloudwatch_metric_alarm.errors.alarm_name,
     aws_cloudwatch_metric_alarm.throttles.alarm_name,

@@ -1,86 +1,107 @@
 # SPDX-FileCopyrightText: 2026 MAINLINE contributors
 # SPDX-License-Identifier: Apache-2.0
 #
-# THE DEMO HEARTBEAT — the cheapest true sentence about the deployed demo, twice an hour.
+# THE DEMO HEARTBEAT — hourly, and it means something.
 #
-# WHY THIS EXISTS INSTEAD OF A CLOUDWATCH SYNTHETICS CANARY
-# ---------------------------------------------------------
-# The deployment lead priced the alternative and refused it. One canary at five-minute
-# intervals is 8 640 runs a month at $0.0012 — **$10.37/month, roughly thirty times the
-# cost of the entire rest of the stack combined** (`docs/leads/deploy-plan.md` §2.3, and
-# the itemised bill in `docs/deploy/OBSERVABILITY.md`). This workflow costs nothing on a
-# public repository, and its failures are visible in the same place the judges are
-# already reading. Half the sampling rate, none of the bill, and a public audit trail.
+# WHY THIS LANE IS RED RIGHT NOW, AND WHY THAT IS CORRECT
+# -------------------------------------------------------
+# `docs/submission/SUBMISSION.json` holds `"demo_url": "UNRESOLVED"`. There is no deployed
+# demo, because `terraform apply` has not been run — the plan is committed and the
+# orchestrator reviews it with the founder before any apply (`docs/leads/ship-final.md`
+# §2.2). So this job fails, hourly, with ONE message that says exactly that:
 #
-# WHAT IT ASSERTS, AND WHY EACH ONE
-# ----------------------------------
-#   1. `GET /v1/health` answers **200**.
-#   2. The body parses as JSON and carries `ok: true`.
-#   3. `server_date` is **fresh** — within a bounded window of the runner's own clock.
+#     no demo URL is published; this lane is red because the demo is not deployed,
+#     not because it is broken
 #
-# The third is the one that earns the job. A cached 200 is the classic false green: a CDN
-# or a stale edge object will serve a perfectly valid health body for hours after the
-# database behind it has gone. `server_date` comes from `now()` **inside the health
-# statement**, so a body older than the window is proof that nothing spoke to CockroachDB
-# recently, whatever the status line says. The endpoint is served with `no-store` for the
-# same reason; this check is what verifies that it actually is.
+# That sentence is the whole design. Until 2026-08-11 this lane failed in six to thirteen
+# seconds with a curl connection error against an unset variable, which is the same red
+# for a completely different reason and taught its readers to ignore it. A monitor whose
+# red does not distinguish "not deployed" from "deployed and down" is not a monitor.
 #
-# The freshness window is deliberately generous (default 15 minutes). It is a staleness
-# detector, not a clock-skew detector: a GitHub runner and a CockroachDB Cloud node in
-# Singapore have no guaranteed relationship between their clocks, and a tight window would
-# turn ordinary drift into a page. Fifteen minutes catches "this body is from yesterday"
-# and ignores "these two clocks differ by nine seconds".
+# **It goes green on its own the moment the URL exists.** W10 writes `demo_url` into
+# `docs/submission/SUBMISSION.json` after the apply; the next scheduled run reads the file
+# out of the checkout, finds a URL, and starts asserting. Nothing else has to be touched —
+# no repository variable, no secret, no workflow edit. The submission file is the single
+# place a demo URL is recorded, so it is the single place this job reads.
+#
+# WHAT IT ASSERTS WHEN A URL IS PRESENT
+# --------------------------------------
+#   1. `GET /`               → 200 and an HTML document. The console is being served.
+#   2. `GET /v1/health`      → 200, `ok: true`, and a `server_date` fresh inside a window.
+#   3. `POST /v1/demo/gate-run` → 200, and **the four beats, by SQLSTATE**:
+#
+#          1  read                     00000
+#          2  merge                    23514  gate_closed_when_issued
+#          3  projection_drift_attack  P0001  mainline.fn_permit_merge_gate
+#          4  admit                    00000
+#
+#      plus `persisted: false`. Every one of those values is the DRIVER'S, surfaced by
+#      `mainline_demo_api.gate_run`; this job compares and never composes.
+#   4. Latency for each of the three, recorded in the step summary.
+#
+# The freshness assertion in (2) is what earns the job. A cached 200 is the classic false
+# green: an edge object serves a valid health body for hours after the database behind it
+# has gone. `server_date` comes from `now()` INSIDE the health statement, so a body older
+# than the window proves nothing has spoken to CockroachDB recently, whatever the status
+# line says. The window is generous (15 minutes) because a GitHub runner and a CockroachDB
+# Cloud node in Singapore have no guaranteed clock relationship; this is a staleness
+# detector, not a skew detector.
+#
+# WHY IT NOW DRIVES THE GATE, WHEN THE PREVIOUS VERSION REFUSED TO
+# -----------------------------------------------------------------
+# The previous header argued that calling gate-run every 30 minutes was ~380 needless
+# SERIALIZABLE transactions against a Basic cluster with a spend cap, to re-establish
+# something that does not silently change. Two facts moved:
+#
+#   * **It does silently change.** `evidence/deploy/acceptance.json` recorded the demo's
+#     headline endpoint answering 404 for days while every other surface was green,
+#     because the route was missing from `app._routes()`. A liveness check that never
+#     touched it could not have seen that, and did not.
+#   * **The transaction is rolled back and costs one round trip's worth of RUs.** The four
+#     beats run inside one transaction that ends in ROLLBACK; the acceptance prover proves
+#     from outside that the seeded permit's `open_blocking`, `state`, `gate_epoch` and
+#     `head_seq` are unchanged afterwards. Nothing accumulates, so nothing has to be
+#     cleaned up and there is no state for two runs to collide over.
+#
+# The cadence is therefore HOURLY, not half-hourly: 24 gate runs a day against a Basic
+# cluster whose whole monthly allowance is 100 M RU. `docs/deploy/OBSERVABILITY.md` §4
+# carries the arithmetic and the comparison with a CloudWatch Synthetics canary
+# (8 640 runs/month at $0.0012 = $10.37/month, roughly thirty times the entire rest of the
+# stack).
+#
+# NO `continue-on-error`. NO `|| true`. NO `set +e`.
+# ---------------------------------------------------
+# `docs/HONESTY.md` bans them and this file contains none. The previous version had one
+# `|| true` on the curl that fetched the health body; it is gone, replaced by curl's own
+# exit code being captured into a variable with `--write-out` and asserted. A step that
+# cannot fail is a step that asserts nothing.
 #
 # IT OPENS NOTHING WHEN IT PASSES
 # --------------------------------
 # No issue, no comment, no notification, no artefact. A monitor that produces output on a
 # healthy system trains its readers to ignore its output. The only signal is the red X on
-# a scheduled run, which is exactly the signal a maintainer already watches for.
-#
-# WHAT IT DOES NOT DO
-# --------------------
-# It does not call `POST /v1/demo/gate-run`. That endpoint opens a SERIALIZABLE
-# transaction and drives four beats through the kernel; running it every thirty minutes
-# for eight days is ~380 needless transactions against a Basic cluster with a spend cap,
-# to re-establish something that does not silently change. The gate is proven by
-# `scripts/deploy/demo_acceptance.py` at deploy time and by the release proof in CI.
-# **This job answers "is the demo up", not "is the demo correct".** Conflating the two is
-# how a health check becomes a test suite nobody can afford to run.
-#
-# CONFIGURATION
-# --------------
-# `vars.DEMO_URL` — repository variable, e.g. `https://dXXXXXXXX.cloudfront.net`. A
-# variable and not a secret: it is the URL printed in the submission form, and masking a
-# public URL in the logs of a public repository would only make failures harder to read.
-# When it is unset the job **fails loudly** rather than skipping — see the first step.
+# a scheduled run.
 
 name: demo-health
 
 on:
   # NO `push:` TRIGGER, AND THAT IS DELIBERATE — READ THIS BEFORE "FIXING" IT.
   #
-  # On 2026-08-10 fifteen workflows here were found triggering on `push: branches:
-  # [main]` against a repository whose default branch is `master`; they were repaired.
-  # This file was not one of them and must not be swept up in that repair. What this job
-  # asserts is a property of a DEPLOYED demo, not of a commit: at the instant a push
-  # lands, the deployment is by definition older than the commit that triggered it, so a
+  # On 2026-08-10 fifteen workflows here were found triggering on `push: branches: [main]`
+  # against a repository whose default branch is `master`; they were repaired. This file
+  # was not one of them and must not be swept up in that repair. What this job asserts is
+  # a property of a DEPLOYED demo, not of a commit: at the instant a push lands, the
+  # deployment is by definition older than the commit that triggered it, so a
   # push-triggered run would report the previous deployment's health under the new
   # commit's name. That is a measurement attributed to the wrong subject.
   #
   # It still reaches `master`: GitHub fires `schedule:` from the DEFAULT branch only,
-  # which is `master`, so the runs below are already master runs and already appear on
-  # the default view of the Actions tab.
-  #
-  # MEASURED 2026-08-10, and it is why this lane has no runs at all yet: `gh variable
-  # list` returns EMPTY, so `vars.DEMO_URL` is unset and the first step below will fail
-  # every scheduled run with `DEMO_URL is not set` until the demo is deployed and the
-  # variable is recorded. That failure is correct — see the header — but it is a
-  # CONFIGURATION truth, not a health truth, and it says so by name in its own error.
+  # which is `master`, so the runs below are already master runs.
   schedule:
-    # Every 30 minutes. Cron on GitHub Actions is best-effort and a scheduled run can be
-    # delayed or dropped under load, which is one more reason the freshness window is
+    # Hourly, on the hour. Cron on GitHub Actions is best-effort and a scheduled run can
+    # be delayed or dropped under load, which is one more reason the freshness window is
     # generous rather than tight.
-    - cron: "*/30 * * * *"
+    - cron: "0 * * * *"
   workflow_dispatch:
     inputs:
       url:
@@ -88,9 +109,8 @@ on:
         required: false
         type: string
 
-# Read-only. This workflow reads a repository variable and makes one outbound request; it
-# has no reason to be able to write to the repository, and a scheduled job with write
-# permissions is a standing invitation.
+# Read-only. This workflow reads one tracked file and makes three outbound requests; a
+# scheduled job with write permissions is a standing invitation.
 permissions:
   contents: read
 
@@ -101,47 +121,127 @@ concurrency:
 
 jobs:
   health:
-    name: GET /v1/health
+    name: console + health + the four beats
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     env:
-      DEMO_URL: ${{ inputs.url || vars.DEMO_URL }}
-      # Seconds. Generous on purpose — see the header.
+      # Precedence: a dispatch input, else the repository variable, else the submission
+      # file. The variable is kept as an override for a staging host; the FILE is the
+      # source of truth, because the file is what the submission form will quote.
+      URL_OVERRIDE: ${{ inputs.url || vars.DEMO_URL }}
+      SUBMISSION_FILE: docs/submission/SUBMISSION.json
       FRESHNESS_WINDOW_SECONDS: "900"
     steps:
-      - name: The URL must be configured
-        # A SKIP HERE WOULD BE A LIE. An unconfigured monitor that reports success is
-        # worse than no monitor: the green tick says "the demo is up" when it means
-        # "nobody told me where the demo is". Fail, and name the fix.
-        run: |
-          if [ -z "${DEMO_URL}" ]; then
-            echo "::error title=DEMO_URL is not set::Set the repository variable DEMO_URL to the CloudFront demo URL (Settings -> Secrets and variables -> Actions -> Variables). This job fails rather than skips, because a health check that passes without checking anything is the failure it exists to prevent."
-            exit 1
-          fi
-          echo "checking ${DEMO_URL}/v1/health"
+      - name: Check out the submission file
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
-      - name: Fetch and assert
+      - name: Resolve the demo URL, or say precisely why there is not one
+        id: resolve
+        # A SKIP HERE WOULD BE A LIE. An unconfigured monitor that reports success is worse
+        # than no monitor: the green tick says "the demo is up" when it means "nobody told
+        # me where the demo is". Fail, and name which of the two reds this is.
         run: |
           set -euo pipefail
-          url="${DEMO_URL%/}/v1/health"
+          python3 - <<'PY'
+          import json
+          import os
+          import sys
 
-          # --fail-with-body so a non-2xx still yields the body: this API's 503 names the
-          # reason (`dsn_unset`, `unreachable`, `no_bookkeeping`) and that sentence is the
-          # whole diagnostic value of the check. `|| true` keeps the pipeline alive so the
-          # status can be reported below rather than killing the step here.
-          status=$(curl -sS --max-time 30 --retry 2 --retry-delay 5 \
-                        -o /tmp/health.json -w '%{http_code}' "$url" || true)
+          override = (os.environ.get("URL_OVERRIDE") or "").strip()
+          path = os.environ["SUBMISSION_FILE"]
+          sentinel = "UNRESOLVED"
 
-          echo "HTTP ${status}"
+          if override:
+              source = "workflow input or vars.DEMO_URL"
+              url = override
+          else:
+              try:
+                  doc = json.load(open(path, encoding="utf-8"))
+              except Exception as exc:
+                  print(f"::error title=cannot read {path}::{exc}")
+                  raise SystemExit(1)
+              sentinel = doc.get("unresolved_sentinel", "UNRESOLVED")
+              url = (doc.get("demo_url") or "").strip()
+              source = f"{path}:demo_url"
+
+          if not url or url == sentinel:
+              print(
+                  "::error title=no demo URL is published::"
+                  "no demo URL is published; this lane is red because the demo is not "
+                  "deployed, not because it is broken. "
+                  f"{path} holds demo_url={url or '(empty)'!s}. terraform apply has not been "
+                  "run — the plan is committed and the founder reviews it before any apply "
+                  "(docs/leads/ship-final.md 2.2). This job starts asserting, and can go "
+                  "green on its own, the moment that field holds a URL. Nothing else has to "
+                  "change: no repository variable, no secret, no edit to this workflow."
+              )
+              raise SystemExit(1)
+
+          if not url.startswith(("http://", "https://")):
+              print(f"::error title=demo_url is not an http(s) URL::{source} holds {url!r}")
+              raise SystemExit(1)
+
+          url = url.rstrip("/")
+          print(f"demo URL {url}  (from {source})")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as handle:
+              handle.write(f"url={url}\n")
+              handle.write(f"source={source}\n")
+          PY
+
+      - name: GET / — the console is served
+        id: console
+        run: |
+          set -euo pipefail
+          url="${{ steps.resolve.outputs.url }}/"
+          # No `|| true`. curl's exit status IS the transport verdict and `set -e` must see
+          # it; a transport failure and a 500 are different reds and both must be reachable.
+          # Plain command substitution, NOT `read < <(...)`: under `set -e` a curl that
+          # cannot connect must abort the step with curl's own message, which is the
+          # TRANSPORT red. A process substitution would let `read` succeed with an empty
+          # line and turn that into a status red, and those are different faults.
+          out=$(curl -sS --max-time 30 --retry 2 --retry-delay 5 \
+                     -o /tmp/console.html -w '%{http_code} %{time_total}\n' "$url")
+          status=${out%% *}
+          seconds=${out##* }
+          echo "HTTP ${status} in ${seconds}s"
+          if [ "$status" != "200" ]; then
+            echo "::error title=the console is not served::GET ${url} returned ${status}, expected 200"
+            exit 1
+          fi
+          if ! grep -qiE '<html|<!doctype html' /tmp/console.html; then
+            echo "::error title=the console is not an HTML document::GET ${url} returned 200 with no HTML markers. Something is answering on this hostname; it is not the console."
+            exit 1
+          fi
+          echo "console_ms=$(python3 -c "print(round(${seconds}*1000, 1))")" >> "$GITHUB_OUTPUT"
+
+      - name: GET /v1/health — live, and not a cached body
+        id: health
+        run: |
+          set -euo pipefail
+          url="${{ steps.resolve.outputs.url }}/v1/health"
+          # --fail-with-body is NOT used: this API's 503 names its reason (`dsn_unset`,
+          # `database_unreachable`) in the body and that sentence is the diagnostic value of
+          # the check. The status is asserted below instead.
+          # Plain command substitution, NOT `read < <(...)`: under `set -e` a curl that
+          # cannot connect must abort the step with curl's own message, which is the
+          # TRANSPORT red. A process substitution would let `read` succeed with an empty
+          # line and turn that into a status red, and those are different faults.
+          out=$(curl -sS --max-time 30 --retry 2 --retry-delay 5 \
+                     -o /tmp/health.json -w '%{http_code} %{time_total}\n' "$url")
+          status=${out%% *}
+          seconds=${out##* }
+          echo "HTTP ${status} in ${seconds}s"
           echo "--- body ---"
-          cat /tmp/health.json || echo "(no body)"
+          cat /tmp/health.json
           echo
           echo "------------"
-
           if [ "$status" != "200" ]; then
             echo "::error title=demo health is down::GET ${url} returned ${status}, expected 200"
             exit 1
           fi
+          echo "health_ms=$(python3 -c "print(round(${seconds}*1000, 1))")" >> "$GITHUB_OUTPUT"
 
           python3 - "$FRESHNESS_WINDOW_SECONDS" <<'PY'
           import datetime as dt
@@ -159,7 +259,7 @@ jobs:
           if not body.get("ok"):
               print(
                   "::error title=health reports ok=false::"
-                  f"{body.get('reason')} — {body.get('detail')}"
+                  f"{body.get('reason')} - {body.get('detail')}"
               )
               raise SystemExit(1)
 
@@ -179,8 +279,8 @@ jobs:
               stamp = stamp.replace(tzinfo=dt.UTC)
           age = (dt.datetime.now(dt.UTC) - stamp).total_seconds()
 
-          # Report both directions. A NEGATIVE age is clock skew, not staleness, and
-          # calling it "stale" would send whoever is on call looking for the wrong thing.
+          # Report both directions. A NEGATIVE age is clock skew, not staleness, and calling
+          # it "stale" would send whoever is on call looking for the wrong thing.
           if age > window:
               print(
                   f"::error title=health body is stale::server_date {raw} is {age:.0f}s old, "
@@ -194,12 +294,117 @@ jobs:
                   "relative to this runner. Not a staleness failure; the clocks disagree."
               )
 
-          # The only output on a healthy run, and it goes to the log, not to a notification.
           print(
               f"OK  cluster={body.get('cluster_version', '?')[:40]!r} "
               f"database={body.get('database')} "
-              f"fingerprint={str(body.get('schema_fingerprint'))[:16]}… "
-              f"age={age:.0f}s "
-              f"roundtrip={body.get('seconds')}s"
+              f"fingerprint={str(body.get('schema_fingerprint'))[:16]} "
+              f"age={age:.0f}s"
           )
           PY
+
+      - name: POST /v1/demo/gate-run — the four beats, by SQLSTATE
+        id: gate
+        run: |
+          set -euo pipefail
+          url="${{ steps.resolve.outputs.url }}/v1/demo/gate-run"
+          # Plain command substitution, NOT `read < <(...)`: under `set -e` a curl that
+          # cannot connect must abort the step with curl's own message, which is the
+          # TRANSPORT red. A process substitution would let `read` succeed with an empty
+          # line and turn that into a status red, and those are different faults.
+          out=$(curl -sS --max-time 90 -X POST -H 'content-type: application/json' -d '{}' \
+                     -o /tmp/gate.json -w '%{http_code} %{time_total}\n' "$url")
+          status=${out%% *}
+          seconds=${out##* }
+          echo "HTTP ${status} in ${seconds}s"
+          if [ "$status" != "200" ]; then
+            echo "--- body ---"
+            head -c 2000 /tmp/gate.json
+            echo
+            echo "::error title=the gate is not reachable::POST ${url} returned ${status}, expected 200. The demo's headline endpoint is the one thing a judge will press."
+            exit 1
+          fi
+          echo "gate_ms=$(python3 -c "print(round(${seconds}*1000, 1))")" >> "$GITHUB_OUTPUT"
+
+          python3 - <<'PY'
+          import json
+
+          # THE CONTRACT, transcribed from docs/deploy/gate-run-contract.md 1 and asserted
+          # verbatim. Nothing here is relaxed to obtain a green: a beat that does not produce
+          # its SQLSTATE is the demo not demonstrating its claim, and that is a red.
+          EXPECTED = [
+              ("read", "read", "00000", None),
+              ("merge", "refused", "23514", "gate_closed_when_issued"),
+              ("projection_drift_attack", "refused", "P0001", "mainline.fn_permit_merge_gate"),
+              ("admit", "admitted", "00000", None),
+          ]
+
+          try:
+              envelope = json.load(open("/tmp/gate.json"))
+          except Exception as exc:
+              print(f"::error title=gate-run body is not JSON::{exc}")
+              raise SystemExit(1)
+
+          data = envelope.get("data", envelope)
+          beats = {b.get("name"): b for b in data.get("beats") or []}
+          failures = []
+
+          for name, outcome, sqlstate, constraint in EXPECTED:
+              beat = beats.get(name)
+              if beat is None:
+                  failures.append(f"beat {name} is absent from the payload")
+                  continue
+              if beat.get("outcome") != outcome:
+                  failures.append(
+                      f"beat {name}: outcome {beat.get('outcome')!r}, expected {outcome!r}"
+                  )
+              if beat.get("sqlstate") != sqlstate:
+                  failures.append(
+                      f"beat {name}: SQLSTATE {beat.get('sqlstate')!r}, expected {sqlstate!r}"
+                  )
+              if constraint is not None and beat.get("constraint") != constraint:
+                  failures.append(
+                      f"beat {name}: constraint {beat.get('constraint')!r}, "
+                      f"expected {constraint!r}"
+                  )
+              print(
+                  f"  {str(beat.get('outcome')).upper():9} [{beat.get('sqlstate')}] "
+                  f"{beat.get('constraint') or '-'}"
+              )
+
+          # persisted:false is why concurrent judges are safe. A true here means the demo
+          # mutated itself and the next judge sees a different permit.
+          if data.get("persisted") is not False:
+              failures.append(
+                  f"persisted is {data.get('persisted')!r}; the demo's whole concurrency "
+                  "story requires false"
+              )
+          if data.get("verdict") != "PROVEN":
+              failures.append(
+                  f"the server's own verdict is {data.get('verdict')!r}: {data.get('failures')}"
+              )
+
+          if failures:
+              for failure in failures:
+                  print(f"::error title=the gate did not behave as specified::{failure}")
+              raise SystemExit(1)
+          print("all four beats matched the contract; persisted=false; verdict PROVEN")
+          PY
+
+      - name: Record the latencies
+        # Runs whether or not the assertions passed, so a red carries its timings too — a
+        # 200 that took nine seconds is the shape of a problem that has not become an
+        # outage yet. `if: always()` reports; it does not suppress. The job's conclusion is
+        # still whatever the steps above decided.
+        if: always()
+        run: |
+          {
+            echo "### demo-health"
+            echo
+            echo "| check | latency (ms) |"
+            echo "|---|---|"
+            echo "| GET / | ${{ steps.console.outputs.console_ms || 'not reached' }} |"
+            echo "| GET /v1/health | ${{ steps.health.outputs.health_ms || 'not reached' }} |"
+            echo "| POST /v1/demo/gate-run | ${{ steps.gate.outputs.gate_ms || 'not reached' }} |"
+            echo
+            echo "URL \`${{ steps.resolve.outputs.url || 'UNRESOLVED' }}\` from \`${{ steps.resolve.outputs.source || 'docs/submission/SUBMISSION.json:demo_url' }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"

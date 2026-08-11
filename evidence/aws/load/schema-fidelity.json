@@ -1,0 +1,213 @@
+{
+  "artefact": "evidence/aws/load/schema-fidelity.json",
+  "caveats": [
+    "byte-identity of a CREATE TABLE statement is not equivalence of two databases: the evidence database's parent table is a two-column stub with none of clause_version's three triggers, and this check says nothing about that",
+    "a database can render a statement it was given and still differ in a property the statement does not mention, which is why the server-side SHOW CREATE comparison is reported alongside the file comparison rather than instead of it"
+  ],
+  "generated_at": "2026-08-11T02:40:10Z",
+  "generated_by": "scripts/aws/load_vectors.py",
+  "kind": "ann-evidence-schema-fidelity",
+  "payload": {
+    "coverage": {
+      "contiguous": true,
+      "covers_file": true,
+      "file_lines": 105,
+      "rows": 5
+    },
+    "diff_line_count": 0,
+    "diff_lines": [],
+    "findings": [],
+    "ok": true,
+    "provenance": [
+      {
+        "kind": "AUTHORED",
+        "note": "this header",
+        "range": "L001-L066"
+      },
+      {
+        "kind": "AUTHORED",
+        "note": "database and schema creation",
+        "range": "L067-L071"
+      },
+      {
+        "kind": "STUB",
+        "note": "mainline.clause_version — 2 of 25 columns, 0 of 3 triggers",
+        "range": "L072-L086"
+      },
+      {
+        "kind": "AUTHORED",
+        "note": "the @connect directive for the statement below it",
+        "range": "L087-L088"
+      },
+      {
+        "kind": "VERBATIM",
+        "note": "verticals/mainline/db/migrations/0031_clause_embedding.sql L136-L152",
+        "range": "L089-L105"
+      }
+    ],
+    "schema_file": "verticals/mainline/db/evidence/ann_evidence_schema.sql",
+    "server_side": {
+      "comparisons": [
+        {
+          "database": "cloud:mainline_ann_evidence",
+          "differing_lines": [],
+          "identical": true,
+          "sha256": "4a2330a9ff7479f8ea2952993b8544d340550f96431dc4d5b27ce2cc73cad16c"
+        },
+        {
+          "database": "local:mainline_ann_evidence",
+          "differing_lines": [
+            {
+              "line": 16,
+              "local:mainline_ann_evidence": ") WITH (schema_locked = true);",
+              "production": ") WITH (schema_locked = true) LOCALITY REGIONAL BY TABLE IN PRIMARY REGION;"
+            }
+          ],
+          "identical": false,
+          "sha256": "214e9dd0404adc2c1fd6a00d225f30ac79d230ace03f938d78679fbd7ae55f00"
+        }
+      ],
+      "note": "differences in LOCALITY or WITH(...) are database-level properties the cluster applies, not differences in the CREATE TABLE statement this repository wrote; differences in a column, constraint, index or family would be the opposite",
+      "production": {
+        "sha256": "4a2330a9ff7479f8ea2952993b8544d340550f96431dc4d5b27ce2cc73cad16c"
+      }
+    },
+    "verbatim": [
+      {
+        "byte_identical": true,
+        "is_complete_statement": true,
+        "lines": [
+          {
+            "equal": true,
+            "local_line": 89,
+            "sha256": "792c3e31dd584fa51432266db73912c3feca51c304730183c44181e647b705a4",
+            "source_line": 136,
+            "text": "CREATE TABLE mainline.clause_embedding ("
+          },
+          {
+            "equal": true,
+            "local_line": 90,
+            "sha256": "90af87aee824588a0f03b0a6c45b800d67f0ef3a8e93cbf97962816b5a69650c",
+            "source_line": 137,
+            "text": "  clause_uuid   UUID   NOT NULL,"
+          },
+          {
+            "equal": true,
+            "local_line": 91,
+            "sha256": "9ebdc26f3eca7868dc49a56f1181f97a60a9081f929709096d8d0a41317b1250",
+            "source_line": 138,
+            "text": "  commit_id     BYTES  NOT NULL,"
+          },
+          {
+            "equal": true,
+            "local_line": 92,
+            "sha256": "41d6f1233d3c4be6f70cb637a1ed27094ed2180647b823ef23ad4150f4ace695",
+            "source_line": 139,
+            "text": "  site_id       UUID   NOT NULL,          -- prefix 1  ← PROJECTED (band 0130-0199). Not a filter."
+          },
+          {
+            "equal": true,
+            "local_line": 93,
+            "sha256": "b5a6a58e0d221b8e3cd2d9b076b00e6bd3817acf142524262a436d4b8ef87c37",
+            "source_line": 140,
+            "text": "  activity_root STRING NOT NULL,          -- prefix 2  ← PROJECTED (band 0130-0199). Not a filter."
+          },
+          {
+            "equal": true,
+            "local_line": 94,
+            "sha256": "c49d5e758c1b80d25a4d5f10c0b71e7966634e50d30443a18ddc66ed5f359634",
+            "source_line": 141,
+            "text": "  embed_model   STRING NOT NULL,          -- 'amazon.titan-embed-text-v2:0'"
+          },
+          {
+            "equal": true,
+            "local_line": 95,
+            "sha256": "010873d96e95696555ef19f06d0931080c5726219e77b7cbe0b75b32653ec8f4",
+            "source_line": 142,
+            "text": "  index_gen     STRING NOT NULL,          -- generation label; feeds M4's index_fingerprint"
+          },
+          {
+            "equal": true,
+            "local_line": 96,
+            "sha256": "5928172a62abc6ca76f8035dcd0df1b205ed82c1355513c6879a20e70c3e10ba",
+            "source_line": 143,
+            "text": "  embedding     VECTOR(1024) NOT NULL,"
+          },
+          {
+            "equal": true,
+            "local_line": 97,
+            "sha256": "1bb243579f96b30648010a389042e9a8d59e882c0f4cc2352c6b4ce297ddb364",
+            "source_line": 144,
+            "text": "  CONSTRAINT clause_embedding_pk PRIMARY KEY (clause_uuid, commit_id),"
+          },
+          {
+            "equal": true,
+            "local_line": 98,
+            "sha256": "33223a2a2026ee3d697887fdaff893ba8f77255fcc7c784ebc59e19745d26f6b",
+            "source_line": 145,
+            "text": "  CONSTRAINT fk_version FOREIGN KEY (clause_uuid, commit_id)"
+          },
+          {
+            "equal": true,
+            "local_line": 99,
+            "sha256": "47283caffeb352a64f2c83483253c302448346d70cfec0c0c3c6f9cd4b5ea228",
+            "source_line": 146,
+            "text": "    REFERENCES mainline.clause_version (clause_uuid, commit_id),"
+          },
+          {
+            "equal": true,
+            "local_line": 100,
+            "sha256": "bacd485895a93708e4dfe18d10d53f46b08615d7879c48ee5f780fdfa0ac918a",
+            "source_line": 147,
+            "text": "  CONSTRAINT embed_model_stated CHECK (embed_model <> ''),"
+          },
+          {
+            "equal": true,
+            "local_line": 101,
+            "sha256": "7ad186fcb58599972a30f2d7ebb907b0e2cdf742f1aea6875e5fcdac1e9451b2",
+            "source_line": 148,
+            "text": "  CONSTRAINT index_gen_stated CHECK (index_gen <> ''),"
+          },
+          {
+            "equal": true,
+            "local_line": 102,
+            "sha256": "8b4940bda804d98c03a89bd1336a8226d3d540b30b3f686a3ab08ff9e8d65b8a",
+            "source_line": 149,
+            "text": "  VECTOR INDEX ce_ann (site_id, activity_root, embedding vector_cosine_ops),"
+          },
+          {
+            "equal": true,
+            "local_line": 103,
+            "sha256": "c78862ca3ea52594662a3d909a87b5f2575df4a8a71160ae1ca662bf427e2a6c",
+            "source_line": 150,
+            "text": "  FAMILY f_meta (clause_uuid, commit_id, site_id, activity_root, embed_model, index_gen),"
+          },
+          {
+            "equal": true,
+            "local_line": 104,
+            "sha256": "11b01f936237520bd44a3c727040fe760c89bfa7434a8f2acd108707db7ef6fb",
+            "source_line": 151,
+            "text": "  FAMILY f_vec  (embedding)"
+          },
+          {
+            "equal": true,
+            "local_line": 105,
+            "sha256": "9d8b2b5670d18da8a99f6152f7ee75558019cd106d8032bf7c1117bd37273e37",
+            "source_line": 152,
+            "text": ");"
+          }
+        ],
+        "lines_equal": 17,
+        "local_line_count": 17,
+        "local_range": "L89-L105",
+        "local_sha256": "e48307d603dd7418a8a64d3142b104ac17808f6ebf21d250b8f1b022cf0c7bdb",
+        "source": "verticals/mainline/db/migrations/0031_clause_embedding.sql",
+        "source_line_count": 17,
+        "source_range": "L136-L152",
+        "source_sha256": "e48307d603dd7418a8a64d3142b104ac17808f6ebf21d250b8f1b022cf0c7bdb"
+      }
+    ]
+  },
+  "region": "ap-southeast-2",
+  "synthetic": false
+}

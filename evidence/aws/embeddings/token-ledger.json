@@ -1,0 +1,140 @@
+{
+  "artefact": "evidence/aws/embeddings/token-ledger.json",
+  "caveats": [
+    "USD figures are computed from _common.USD_PER_1K_TOKENS, a published list price recorded 2026-08-11; no bill and no Price List API response backs them",
+    "throttles_observed counts the 429s this program's own loop saw. Any botocore_internal_retry_attempts are throttles the SDK absorbed before the loop could see them, so the honest total is the sum — published as index_cumulative.throttles_true_total rather than left for a reader to add",
+    "on a resumed run bedrock_calls is 0 by design — the cumulative block, not this run's block, is what the index cost to build"
+  ],
+  "generated_at": "2026-08-11T03:05:28Z",
+  "generated_by": "prove_behaviours.py",
+  "kind": "titan-embedding-token-ledger",
+  "payload": {
+    "budget_consumed": "This run sent 0 InvokeModel requests carrying 0 input tokens to amazon.titan-embed-text-v2:0 in ap-southeast-2, priced at USD 0.000000. The whole index, across the 2 run(s) that built it, is 2060 vectors and 177345 input tokens, priced at USD 0.003547 — 0.709% of the USD 0.50 per-run ceiling and 0.0709% of the USD 5/month project ceiling. Embedding models bill input only; the zero output tokens are the billing model, not a missing measurement. This is a declared list price, not a bill.",
+    "ceiling": {
+      "per_run_usd": 0.5,
+      "projection_before_run": {
+        "basis": "chars / 3.0 tokens, which over-estimates English through Titan by roughly 50%; priced at USD_PER_1K_TOKENS for amazon.titan-embed-text-v2:0",
+        "pending_chars": 0,
+        "pending_items": 0,
+        "projected_input_tokens": 0,
+        "projected_usd": 0.0
+      },
+      "projection_exceeded": false
+    },
+    "index_cumulative": {
+      "billable_calls_implied_by_the_index": 2060,
+      "build_history": [
+        {
+          "bedrock_calls": 1916,
+          "botocore_internal_retry_attempts": 115,
+          "failures": 70,
+          "finished_at": "2026-08-11T02:54:38Z",
+          "input_tokens": 169735,
+          "observed_requests_per_minute": 37.3,
+          "throttles_observed": 23063,
+          "transient_retries": 1,
+          "wall_seconds": 3078.1
+        },
+        {
+          "bedrock_calls": 70,
+          "botocore_internal_retry_attempts": 35,
+          "failures": 0,
+          "finished_at": "2026-08-11T02:57:00Z",
+          "input_tokens": 5182,
+          "observed_requests_per_minute": 49.4,
+          "throttles_observed": 482,
+          "transient_retries": 0,
+          "wall_seconds": 85.1
+        }
+      ],
+      "build_history_totals": {
+        "bedrock_calls": 1986,
+        "botocore_internal_retry_attempts": 150,
+        "failures": 70,
+        "input_tokens": 174917,
+        "runs": 2,
+        "throttles_observed": 23545,
+        "transient_retries": 1,
+        "wall_seconds": 3163.2
+      },
+      "input_tokens": 177345,
+      "ledger_entry": {
+        "calls": 2060,
+        "input_tokens": 177345,
+        "model_id": "amazon.titan-embed-text-v2:0",
+        "output_tokens": 0,
+        "over_ceiling": false,
+        "price_basis": "published on-demand list price for ap-southeast-2, recorded 2026-08-11; declared, not measured — no bill or Price List API response backs this number",
+        "priced": true,
+        "usd_input": 0.0035469,
+        "usd_output": 0.0,
+        "usd_per_1k_input": 2e-05,
+        "usd_per_1k_output": 0.0,
+        "usd_total": 0.0035469
+      },
+      "reconciliation": {
+        "delta": 74,
+        "meaning": "74 vectors were embedded by runs older than this file's build-history feature; they were paid for, but the ledger cannot name the run that did it",
+        "successful_calls_in_build_history": 1986,
+        "vectors_in_index": 2060
+      },
+      "throttles_true_total": {
+        "absorbed_by_botocore_before_this_program_saw_them": 150,
+        "note": "absorbed > 0 means the client that built those rows still had an SDK retry layer; every request it retried was also a throttle. The sum is the honest number and it is what any CloudWatch InvocationThrottles comparison should use.",
+        "observed_by_this_program": 23545,
+        "true_total": 23695
+      },
+      "vectors": 2060,
+      "why_history": "The run that spends the tokens is not always the run that writes this file: a resumed run makes zero calls by design. The history is what the index actually cost, run by run, including the throttles it rode out."
+    },
+    "model_id": "amazon.titan-embed-text-v2:0",
+    "this_run": {
+      "bedrock_calls": 0,
+      "botocore_internal_retry_attempts": 0,
+      "failures": 0,
+      "input_tokens": 0,
+      "ledger_entry": {
+        "calls": 0,
+        "input_tokens": 0,
+        "model_id": "amazon.titan-embed-text-v2:0",
+        "output_tokens": 0,
+        "over_ceiling": false,
+        "price_basis": "published on-demand list price for ap-southeast-2, recorded 2026-08-11; declared, not measured — no bill or Price List API response backs this number",
+        "priced": true,
+        "usd_input": 0.0,
+        "usd_output": 0.0,
+        "usd_per_1k_input": 2e-05,
+        "usd_per_1k_output": 0.0,
+        "usd_total": 0.0
+      },
+      "output_tokens": 0,
+      "throttles_observed": 0,
+      "transient_retries": 0,
+      "wall_seconds": 0.0
+    },
+    "throughput": {
+      "note": "Throttles here are a queueing fact, not an error: the account's requests-per-minute ceiling for this model is shared by every program in the fleet, and this one rides it out with jittered exponential backoff rather than dropping work.",
+      "service_quotas": {
+        "binding_constraint": "requests per minute, account-wide and shared with every other program in this fleet — not tokens per minute, which this corpus never approaches",
+        "quotas": {
+          "On-demand model inference requests per minute for Amazon Titan Text Embeddings V2": 60.0,
+          "On-demand model inference tokens per minute for Amazon Titan Text Embeddings V2": 300000.0
+        },
+        "read": true,
+        "source": "servicequotas:ListServiceQuotas, ServiceCode=bedrock, read-only"
+      }
+    },
+    "totals": {
+      "calls": 2060,
+      "entries": 1,
+      "input_tokens": 177345,
+      "output_tokens": 0,
+      "price_basis": "published on-demand list price for ap-southeast-2, recorded 2026-08-11; declared, not measured — no bill or Price List API response backs this number",
+      "unpriced_entries": 0,
+      "usd_ceiling_per_run": 0.5,
+      "usd_total": 0.0035469
+    }
+  },
+  "region": "ap-southeast-2",
+  "synthetic": true
+}

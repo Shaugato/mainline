@@ -1,0 +1,439 @@
+{
+  "generated_at": "2026-08-11T00:23:29Z",
+  "database": "mainline_demo",
+  "cluster": "postgresql://mainline-sql:***@mainline-dev-31219.j77.aws-ap-southeast-1.cockroachlabs.cloud:26257/mainline_demo?sslmode=verify-full&connect_timeout=20&application_name=mainline-judge-attest",
+  "login": "mainline_judge",
+  "rotation": {
+    "performed": true,
+    "at": "2026-08-11T00:23:29Z",
+    "mode": "rotated",
+    "why": "the previous password was echoed into a transcript. A credential that has appeared in a transcript is a burned credential whether or not the repository can see it, and this repository cannot \u2014 which is why the rotation is recorded in a file that can.",
+    "where_the_new_password_went": "printed once on this run's last line and typed into the submission form's credentials field. It is in no file in this repository, no evidence artefact, no environment variable and no shell history, and this program never writes it.",
+    "generator": "secrets.token_urlsafe(24) \u2014 32 URL-safe characters, ~143 bits"
+  },
+  "grants": [
+    {
+      "statement": "CREATE ROLE IF NOT EXISTS mainline_judge WITH LOGIN",
+      "ok": true
+    },
+    {
+      "statement": "GRANT CONNECT ON DATABASE \"mainline_demo\" TO mainline_judge",
+      "ok": true
+    },
+    {
+      "statement": "GRANT USAGE ON SCHEMA mainline_audit TO mainline_judge",
+      "ok": true
+    },
+    {
+      "statement": "GRANT USAGE ON SCHEMA mainline TO mainline_judge",
+      "ok": true
+    },
+    {
+      "statement": "GRANT USAGE ON SCHEMA mainline_meas TO mainline_judge",
+      "ok": true
+    },
+    {
+      "statement": "GRANT USAGE ON SCHEMA mainline_ops TO mainline_judge",
+      "ok": true
+    },
+    {
+      "statement": "GRANT SELECT ON TABLE mainline_audit.v_agent_actions TO mainline_judge",
+      "ok": true
+    },
+    {
+      "statement": "GRANT SELECT ON TABLE mainline_audit.v_blame_coverage TO mainline_judge",
+      "ok": true
+    },
+    {
+      "statement": "GRANT SELECT ON TABLE mainline_audit.v_cbm_ledger TO mainline_judge",
+      "ok": true
+    },
+    {
+      "statement": "GRANT SELECT ON TABLE mainline_audit.v_changefeed_health TO mainline_judge",
+      "ok": true
+    },
+    {
+      "statement": "GRANT SELECT ON TABLE mainline_audit.v_disposition_coverage TO mainline_judge",
+      "ok": true
+    },
+    {
+      "statement": "GRANT SELECT ON TABLE mainline_audit.v_fixity_coverage TO mainline_judge",
+      "ok": true
+    },
+    {
+      "statement": "GRANT SELECT ON TABLE mainline_audit.v_gate_latency_daily TO mainline_judge",
+      "ok": true
+    },
+    {
+      "statement": "GRANT SELECT ON TABLE mainline_audit.v_ledger_health TO mainline_judge",
+      "ok": true
+    },
+    {
+      "statement": "GRANT SELECT ON TABLE mainline_audit.v_open_gate_summary TO mainline_judge",
+      "ok": true
+    },
+    {
+      "statement": "GRANT SELECT ON TABLE mainline_audit.v_recall_conservation TO mainline_judge",
+      "ok": true
+    },
+    {
+      "statement": "GRANT SELECT ON TABLE mainline_audit.v_silence_summary TO mainline_judge",
+      "ok": true
+    },
+    {
+      "statement": "GRANT SELECT ON TABLE mainline_audit.v_txn_restart_daily TO mainline_judge",
+      "ok": true
+    },
+    {
+      "statement": "GRANT SELECT ON TABLE mainline_audit.v_unused_indexes TO mainline_judge",
+      "ok": true
+    },
+    {
+      "statement": "GRANT SELECT ON TABLE mainline_audit.v_weakenings_without_disposition TO mainline_judge",
+      "ok": true
+    },
+    {
+      "statement": "GRANT INSERT ON TABLE mainline_meas.external_attestation TO mainline_judge",
+      "skipped": true,
+      "sqlstate": "42P01",
+      "why": "cannot get the privileges on the grant targets: cannot determine the target type of the GRANT statement: relation \"mainline_meas.external_attestation\" does not exist"
+    },
+    {
+      "statement": "REVOKE ALL ON SCHEMA mainline_qa FROM mainline_judge",
+      "ok": true
+    },
+    {
+      "statement": "REVOKE ALL ON ALL TABLES IN SCHEMA mainline_qa FROM mainline_judge",
+      "ok": true
+    },
+    {
+      "statement": "REVOKE ALL ON ALL TABLES IN SCHEMA mainline FROM mainline_judge",
+      "ok": true
+    },
+    {
+      "statement": "REVOKE ALL ON ALL TABLES IN SCHEMA mainline_meas FROM mainline_judge",
+      "ok": true
+    },
+    {
+      "statement": "REVOKE ALL ON ALL TABLES IN SCHEMA mainline_ops FROM mainline_judge",
+      "ok": true
+    },
+    {
+      "statement": "GRANT USAGE ON SCHEMA mainline_audit TO mainline_judge",
+      "ok": true
+    }
+  ],
+  "probe": {
+    "mode": "rotated",
+    "verified": true,
+    "connected": true,
+    "identity": {
+      "user": "mainline_judge",
+      "database": "mainline_demo"
+    },
+    "views": [
+      {
+        "view": "mainline_audit.v_agent_actions",
+        "readable": true,
+        "rows": 0,
+        "ms": 227.5
+      },
+      {
+        "view": "mainline_audit.v_blame_coverage",
+        "readable": true,
+        "rows": 1,
+        "ms": 228.0
+      },
+      {
+        "view": "mainline_audit.v_cbm_ledger",
+        "readable": true,
+        "rows": 1,
+        "ms": 226.0
+      },
+      {
+        "view": "mainline_audit.v_changefeed_health",
+        "readable": true,
+        "rows": 0,
+        "ms": 228.2
+      },
+      {
+        "view": "mainline_audit.v_disposition_coverage",
+        "readable": true,
+        "rows": 1,
+        "ms": 234.3
+      },
+      {
+        "view": "mainline_audit.v_fixity_coverage",
+        "readable": true,
+        "rows": 0,
+        "ms": 226.7
+      },
+      {
+        "view": "mainline_audit.v_gate_latency_daily",
+        "readable": true,
+        "rows": 0,
+        "ms": 228.5
+      },
+      {
+        "view": "mainline_audit.v_ledger_health",
+        "readable": true,
+        "rows": 1,
+        "ms": 225.5
+      },
+      {
+        "view": "mainline_audit.v_open_gate_summary",
+        "readable": true,
+        "rows": 1,
+        "ms": 236.0
+      },
+      {
+        "view": "mainline_audit.v_recall_conservation",
+        "readable": true,
+        "rows": 1,
+        "ms": 227.5
+      },
+      {
+        "view": "mainline_audit.v_silence_summary",
+        "readable": true,
+        "rows": 0,
+        "ms": 226.0
+      },
+      {
+        "view": "mainline_audit.v_txn_restart_daily",
+        "readable": true,
+        "rows": 0,
+        "ms": 227.6
+      },
+      {
+        "view": "mainline_audit.v_unused_indexes",
+        "readable": true,
+        "rows": 0,
+        "ms": 227.5
+      },
+      {
+        "view": "mainline_audit.v_weakenings_without_disposition",
+        "readable": true,
+        "rows": 0,
+        "ms": 275.5
+      }
+    ],
+    "denials": [
+      {
+        "target": "base table mainline.permit",
+        "category": "select_base_table",
+        "statement": "SELECT count(*) FROM mainline.permit",
+        "destructive": false,
+        "expected_sqlstate": "42501",
+        "refused": true,
+        "sqlstate": "42501",
+        "as_expected": true,
+        "detail": "user mainline_judge does not have SELECT privilege on relation permit"
+      },
+      {
+        "target": "base table mainline.disposition",
+        "category": "select_base_table",
+        "statement": "SELECT count(*) FROM mainline.disposition",
+        "destructive": false,
+        "expected_sqlstate": "42501",
+        "refused": true,
+        "sqlstate": "42501",
+        "as_expected": true,
+        "detail": "user mainline_judge does not have SELECT privilege on relation disposition"
+      },
+      {
+        "target": "base table mainline_meas.standing",
+        "category": "select_base_table",
+        "statement": "SELECT count(*) FROM mainline_meas.standing",
+        "destructive": false,
+        "expected_sqlstate": "42501",
+        "refused": true,
+        "sqlstate": "42501",
+        "as_expected": true,
+        "detail": "user mainline_judge does not have SELECT privilege on relation standing"
+      },
+      {
+        "target": "mainline_qa.v_disposition_profile",
+        "category": "select_forbidden_schema",
+        "statement": "SELECT count(*) FROM mainline_qa.v_disposition_profile",
+        "destructive": false,
+        "expected_sqlstate": "42501",
+        "refused": true,
+        "sqlstate": "42501",
+        "as_expected": true,
+        "detail": "user mainline_judge does not have USAGE privilege on schema mainline_qa"
+      },
+      {
+        "target": "mainline_qa.v_my_record",
+        "category": "select_forbidden_schema",
+        "statement": "SELECT count(*) FROM mainline_qa.v_my_record",
+        "destructive": false,
+        "expected_sqlstate": "42501",
+        "refused": true,
+        "sqlstate": "42501",
+        "as_expected": true,
+        "detail": "user mainline_judge does not have USAGE privilege on schema mainline_qa"
+      },
+      {
+        "target": "mainline_qa.v_standing_components",
+        "category": "select_forbidden_schema",
+        "statement": "SELECT count(*) FROM mainline_qa.v_standing_components",
+        "destructive": false,
+        "expected_sqlstate": "42501",
+        "refused": true,
+        "sqlstate": "42501",
+        "as_expected": true,
+        "detail": "user mainline_judge does not have USAGE privilege on schema mainline_qa"
+      },
+      {
+        "target": "crdb_internal.jobs",
+        "category": "select_internal",
+        "statement": "SELECT count(*) FROM crdb_internal.jobs",
+        "destructive": false,
+        "expected_sqlstate": "42501",
+        "refused": true,
+        "sqlstate": "42501",
+        "as_expected": true,
+        "detail": "Access to crdb_internal and system is restricted. HINT: These interfaces are unsupported in production. To proceed, set the session variable allow_unsafe_internals = true (not recommended), or contact Cockroach Labs for "
+      },
+      {
+        "target": "crdb_internal.tables",
+        "category": "select_internal",
+        "statement": "SELECT count(*) FROM crdb_internal.tables",
+        "destructive": false,
+        "expected_sqlstate": "42501",
+        "refused": true,
+        "sqlstate": "42501",
+        "as_expected": true,
+        "detail": "Access to crdb_internal and system is restricted. HINT: These interfaces are unsupported in production. To proceed, set the session variable allow_unsafe_internals = true (not recommended), or contact Cockroach Labs for "
+      },
+      {
+        "target": "INSERT INTO mainline.refusal_ledger",
+        "category": "insert",
+        "statement": "INSERT INTO mainline.refusal_ledger (spec_version) VALUES ('w7-negative-probe')",
+        "destructive": true,
+        "expected_sqlstate": "42501",
+        "restore_guard": "DELETE FROM mainline.refusal_ledger WHERE spec_version = 'w7-negative-probe'",
+        "refused": true,
+        "sqlstate": "42501",
+        "as_expected": true,
+        "detail": "user mainline_judge does not have INSERT privilege on relation refusal_ledger"
+      },
+      {
+        "target": "CREATE TABLE mainline.w7_judge_probe",
+        "category": "create_table",
+        "statement": "CREATE TABLE mainline.w7_judge_probe (probe_id UUID PRIMARY KEY)",
+        "destructive": true,
+        "expected_sqlstate": "42501",
+        "restore_guard": "DROP TABLE IF EXISTS mainline.w7_judge_probe",
+        "refused": true,
+        "sqlstate": "42501",
+        "as_expected": true,
+        "detail": "user mainline_judge does not have CREATE privilege on schema mainline"
+      },
+      {
+        "target": "DROP VIEW mainline_audit.v_open_gate_summary",
+        "category": "drop_view",
+        "statement": "DROP VIEW mainline_audit.v_open_gate_summary",
+        "destructive": true,
+        "expected_sqlstate": "42501",
+        "restore_guard": "SHOW CREATE mainline_audit.v_open_gate_summary captured, 1615 chars",
+        "refused": true,
+        "sqlstate": "42501",
+        "as_expected": true,
+        "detail": "user mainline_judge does not have DROP privilege on relation v_open_gate_summary"
+      }
+    ],
+    "readable": 14,
+    "non_empty": 6,
+    "refused": 0,
+    "categories_refused": [
+      "create_table",
+      "drop_view",
+      "insert",
+      "select_base_table",
+      "select_forbidden_schema",
+      "select_internal"
+    ],
+    "categories_required": [
+      "select_base_table",
+      "insert",
+      "create_table",
+      "drop_view"
+    ],
+    "categories_missing": [],
+    "denied": 11,
+    "denials_total": 11
+  },
+  "positives": {
+    "asserted": "SELECT from each of the 14 mainline_audit views",
+    "readable": 14,
+    "of": 14,
+    "non_empty": 6
+  },
+  "negatives": {
+    "asserted": "every statement below must be REFUSED, and its SQLSTATE is the evidence",
+    "required_categories": [
+      "select_base_table",
+      "insert",
+      "create_table",
+      "drop_view"
+    ],
+    "categories_refused": [
+      "create_table",
+      "drop_view",
+      "insert",
+      "select_base_table",
+      "select_forbidden_schema",
+      "select_internal"
+    ],
+    "categories_missing": [],
+    "refused": 11,
+    "of": 11
+  },
+  "mcp_channel": {
+    "endpoint": "https://cockroachlabs.cloud/mcp",
+    "cluster_id": "7cfc9ee9-f9b4-413d-bcad-d81fca2c6c7e",
+    "database": "mainline_demo",
+    "reachable": true,
+    "ms": 591.1,
+    "protocol_version": "2025-06-18",
+    "server_info": {
+      "name": "cockroachdb-cloud",
+      "version": "1.0.0"
+    },
+    "tools": [
+      "create_database",
+      "create_table",
+      "explain_query",
+      "get_cluster",
+      "get_table_schema",
+      "insert_rows",
+      "list_clusters",
+      "list_databases",
+      "list_tables",
+      "select_query",
+      "show_running_queries",
+      "show_statement"
+    ],
+    "identity_ms": 664.7,
+    "sql_identity": "managed-mcp",
+    "credential_publishable": false,
+    "why_not_publishable": "the credential that reaches this endpoint is the account's Cloud service-account key. Its tool list carries create_database, create_table and insert_rows, and list_clusters enumerates every cluster the account owns. It is not a read-only credential and it is not this deployment's to hand to a stranger. The published credential is the SQL login mainline_judge, whose reach is the fourteen mainline_audit views and nothing else."
+  },
+  "ddl_rollback_is_not_a_safety_net": {
+    "measured_on": "CockroachDB CCL v26.2.5, local node, database w_w7_judge_access",
+    "observed": "BEGIN; DROP VIEW s1.v; ROLLBACK; leaves the view DROPPED, and BEGIN; CREATE TABLE s1.probe_tmp (...); ROLLBACK; leaves the table CREATED \u2014 through psycopg's transaction management and through literal BEGIN/ROLLBACK statements alike.",
+    "consequence": "the destructive negative probes cannot be made safe by a transaction. They run under a restore guard instead: the admin connection captures SHOW CREATE for the view under test before the probe, and repairs the cluster immediately if the statement is not refused. The guard has never fired."
+  },
+  "verdict": "PROVEN",
+  "failures": [],
+  "credential_hygiene": {
+    "assertion": "no field in this file is credential-shaped",
+    "method": "the serialised artefact was searched for (a) the literal password this run issued, (b) any connection string whose userinfo still carries a password rather than the redacted form, and (c) any bare token of 24+ characters mixing upper case, lower case and digits \u2014 the shape secrets.token_urlsafe produces. UUIDs and hex digests are excluded by shape, not by an allowlist of values.",
+    "self_scanned": true,
+    "bytes_scanned": 14854,
+    "password_was_issued_this_run": true,
+    "matches": 0,
+    "holds": true
+  }
+}

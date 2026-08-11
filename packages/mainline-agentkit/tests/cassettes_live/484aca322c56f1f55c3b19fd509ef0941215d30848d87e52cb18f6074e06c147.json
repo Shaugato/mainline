@@ -1,0 +1,38 @@
+{
+  "key": "484aca322c56f1f55c3b19fd509ef0941215d30848d87e52cb18f6074e06c147",
+  "model_id": "au.anthropic.claude-haiku-4-5-20251001-v1:0",
+  "prefix_digest": "2cb4672836046540e00d4ad133a9feff50d3faf7b00aaec45ce2f704b506f0e8",
+  "profile_id": "adjudication",
+  "prompt_version": "adjudication.v1+rubric.v1",
+  "provenance": "live",
+  "recorded_at": "2026-08-11T04:28:07.387425+00:00",
+  "response": {
+    "content": [
+      {
+        "signature": "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",
+        "thinking": "Let me analyze the relation between clause B and clause A.\n\nCLAUSE A (ANCESTOR): \"Re-test the atmosphere at intervals not exceeding 60 min while occupied.\"\nCLAUSE B (FLEET): \"Re-test the atmosphere at intervals not exceeding 30 min while occupied.\"\n\nBoth clauses are about the same thing: re-testing the atmosphere while occupied. The key difference is the interval constraint:\n- A: \"not exceeding 60 min\" (maximum 60 minutes between tests)\n- B: \"not exceeding 30 min\" (maximum 30 minutes between tests)\n\nFor the relation:\n- Does B entail A? Let me think: if you re-test at intervals not exceeding 30 min, does that satisfy \"intervals not exceeding 60 min\"? Yes, absolutely. If the interval never exceeds 30 minutes, it certainly never exceeds 60 minutes. B is more demanding (tighter bound) than A. So B entails A.\n- Does B contradict A? No, there's no situation satisfying B that violates A.\n\nSo the relation is \"entails\" - B is more demanding than A.\n\nNumeric disagreement: \n- A states: 60 min\n- B states: 30 min\nThese are different values for the same measurable thing (interval). So numeric_disagreement = true.\n\nConfidence band:\n- The relation is explicitly stated in both clauses with clear numerical values\n- It's a straightforward comparison of interval limits\n- This should be \"high\" confidence\n\nSupporting quote:\nThe span from B that determines the relation is: \"at intervals not exceeding 30 min\"\nThis is the key part that shows the tighter bound.\n\nActually, let me reconsider the supporting_quote. The schema says \"A verbatim span from B determining the relation.\" The entire clause B is: \"Re-test the atmosphere at intervals not exceeding 30 min while occupied.\"\n\nThe key part that determines the entailment is specifically \"at intervals not exceeding 30 min\" - this is the part that makes B more demanding than A.\n\n\nSatisfying B's stricter 30-minute threshold automatically satisfies A's 60-minute requirement, confirming the entailment relation. The numeric values are clearly distinct (60 versus 30), establishing numeric_disagreement as true. Given the explicit and unambiguous nature of both requirements, confidence_band should be high.",
+        "type": "thinking"
+      },
+      {
+        "text": "{\"relation\":\"entails\",\"confidence_band\":\"high\",\"numeric_disagreement\":true,\"supporting_quote\":\"at intervals not exceeding 30 min while occupied\"}",
+        "type": "text"
+      }
+    ],
+    "id": "msg_bdrk_01QYJ1qiNVYc9nk1BCKhSWC7",
+    "model": "claude-haiku-4-5-20251001",
+    "role": "assistant",
+    "stop_reason": "end_turn",
+    "stop_sequence": null,
+    "type": "message",
+    "usage": {
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "input_tokens": 2277,
+      "output_tokens": 640
+    }
+  }
+}
