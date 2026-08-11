@@ -27,28 +27,13 @@
 #     and asserts it. Pinning without reading back is a wish.
 #
 # (2) The version constant is now ASSERTED rather than restated. `compose.yaml` claims
-#     "THE VERSION CONSTANT LIVES HERE AND ONLY HERE". It does not. RE-MEASURED on
-#     2026-08-11 over `*.py` + `.github/workflows/*.yml` + `justfile`, excluding
+#     "THE VERSION CONSTANT LIVES HERE AND ONLY HERE". It does not. Measured on
+#     2026-08-10 over `*.py` + `.github/workflows/*.yml` + `justfile`, excluding
 #     `compose.yaml` itself and `packages/trappoint-testkit/` (which owns the pin and
 #     whose tests must name both spellings to assert the difference between them):
 #
 #         34 occurrences of the FLOATING tag `…:latest-v26.2`  in 20 files
-#         19 occurrences of the version literal restated        in 11 files
-#          6 occurrences inside a pin-agreement GUARD            in  2 files
-#
-#     The third row is new on 2026-08-11 and is the reason the second one fell from 21
-#     to 19 without a single line being deleted. A step named exactly
-#     `Assert the image pin agrees with compose.yaml` must WRITE the literal in order to
-#     COMPARE against it, and it fails the build when the two disagree — so it cannot
-#     drift in silence, which is the entire harm this census exists to prevent. That is
-#     the same argument that already exempts `packages/trappoint-testkit/` two paragraphs
-#     up: counting a guard as an offence is how a guard gets deleted. The exemption is
-#     STRUCTURAL rather than a path list — it applies only inside that exact step name,
-#     and only when the step's own body mentions `compose.yaml` — and the lines it moves
-#     are counted and ceilinged in their own right, so the exemption cannot grow in
-#     silence either. `cloud-verify.yml` and `release-proof.yml` would drop to 0 here by
-#     reading the pin out of `compose.yaml` instead of restating it; that is a better
-#     fix and it belongs to those lanes' owners, not to this census.
+#         21 occurrences of the version literal restated        in 12 files
 #
 #     A floating tag is precisely the dev/CI skew the schema fingerprint exists to
 #     catch, introduced by the harness that is supposed to prevent it. The `image-pin`
@@ -207,8 +192,7 @@ jobs:
         # says so, and the ceiling should be lowered in the same commit.
         env:
           FLOATING_CEILING: "34"
-          RESTATED_CEILING: "19"
-          GUARD_CEILING: "6"
+          RESTATED_CEILING: "21"
         run: |
           set -euo pipefail
           python3 - <<'PY'
@@ -228,14 +212,6 @@ jobs:
           # offence is how a guard gets deleted.
           EXEMPT_PREFIX = "packages/trappoint-testkit/"
           EXEMPT_EXACT = {"compose.yaml"}
-          WORKFLOW_PREFIX = ".github/workflows/"
-          # A step whose whole job is to assert this lane's pin against compose.yaml must
-          # WRITE the literal in order to COMPARE against it, and it exits 1 when the two
-          # disagree. It cannot drift in silence, so counting it as a restatement counts a
-          # guard as an offence — see paragraph (2) of this file's header. Recognised
-          # structurally and narrowly: this exact step name, AND the step's own body must
-          # mention compose.yaml, or the exemption does not apply.
-          GUARD_STEP = "Assert the image pin agrees with compose.yaml"
 
           def in_scope(path: pathlib.Path) -> bool:
               posix = path.as_posix()
@@ -245,37 +221,12 @@ jobs:
                   return False
               return (
                   path.suffix == ".py"
-                  or posix.startswith(WORKFLOW_PREFIX)
+                  or posix.startswith(".github/workflows/")
                   or path.name == "justfile"
               )
 
-          def guarded_lines(text: str) -> set[int]:
-              """1-based line numbers belonging to a pin-agreement guard step."""
-              lines = text.splitlines()
-              out: set[int] = set()
-              for i, line in enumerate(lines):
-                  if line.strip() != f"- name: {GUARD_STEP}":
-                      continue
-                  indent = len(line) - len(line.lstrip())
-                  j = i + 1
-                  while j < len(lines):
-                      nxt = lines[j]
-                      if nxt.strip().startswith(("- name:", "- uses:")) and (
-                          len(nxt) - len(nxt.lstrip())
-                      ) <= indent:
-                          break
-                      j += 1
-                  # lines[i + 1 : j], NOT lines[i : j]: the step NAME already contains the
-                  # words "compose.yaml", so testing the name too would make this condition
-                  # always true and the exemption unconditional. Observed 2026-08-11 by
-                  # planting a step that carries the name and never reads compose.yaml.
-                  if any("compose.yaml" in body for body in lines[i + 1 : j]):
-                      out.update(range(i + 1, j + 1))
-              return out
-
           floating: list[str] = []
           restated: list[str] = []
-          guarded: list[str] = []
           for path in sorted(pathlib.Path(".").rglob("*")):
               if not path.is_file() or not in_scope(path):
                   continue
@@ -283,20 +234,16 @@ jobs:
                   text = path.read_text(encoding="utf-8")
               except (UnicodeDecodeError, OSError):
                   continue
-              posix = path.as_posix()
-              exempt = guarded_lines(text) if posix.startswith(WORKFLOW_PREFIX) else set()
               for number, line in enumerate(text.splitlines(), 1):
                   if FLOATING in line:
-                      floating.append(f"{posix}:{number}")
+                      floating.append(f"{path.as_posix()}:{number}")
                   elif IMAGE + "v" in line:
-                      target = guarded if number in exempt else restated
-                      target.append(f"{posix}:{number}")
+                      restated.append(f"{path.as_posix()}:{number}")
 
           summary = pathlib.Path(os.environ["GITHUB_STEP_SUMMARY"])
           rows = [
               ("floating tag", len(floating), int(os.environ["FLOATING_CEILING"])),
               ("restated literal", len(restated), int(os.environ["RESTATED_CEILING"])),
-              ("pin-agreement guard", len(guarded), int(os.environ["GUARD_CEILING"])),
           ]
           with summary.open("a", encoding="utf-8") as handle:
               handle.write("## the version constant\n\n")
@@ -313,14 +260,6 @@ jobs:
                   print(f"::error::{label} rose from {ceiling} to {count}")
               elif count < ceiling:
                   print(f"::notice::{label} fell from {ceiling} to {count} — lower the ceiling in db.yml")
-
-          # The exemption is printed on EVERY run, green or red. An exemption nobody sees
-          # is an exemption nobody reviews, and this one is the only reason `restated`
-          # reads 19 rather than 25.
-          print("")
-          print(f"exempt as pin-agreement guards ({len(guarded)}), each asserted against compose.yaml:")
-          for line in guarded:
-              print(f"  {line}")
 
           if risen:
               print("")
