@@ -87,9 +87,11 @@ The cause is one omission, not a subtle bug.
 
 ```python
 TRANSITION_RESOURCES = {
-    "materialise_checks": (...), "sign_disposition": (...),
-    "merge_permit": (...), "suspend_permit": (...),
-    "demo_gate_run": (None, None, False),        # <- implemented, line 888
+    "materialise_checks": (...),
+    "sign_disposition": (...),
+    "merge_permit": (...),
+    "suspend_permit": (...),
+    "demo_gate_run": (None, None, False),  # <- implemented, line 888
 }
 ```
 
