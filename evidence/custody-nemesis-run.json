@@ -5,12 +5,14 @@
       "detected_by": [
         2,
         3,
+        10,
         16
       ],
-      "detection_latency_ms": 338,
+      "detection_latency_ms": 209,
       "findings": [
         "check 2: 72 of 72 leaves unproven [inclusion-proof-failed]",
         "check 3: 3 of 7 consecutive pairs unproven [consistency-proof-failed]",
+        "check 10: 9 canonicaliser finding(s) [canon-source-mismatch]",
         "check 16: 7 totality finding(s) \u2014 read no other verdict as complete [bundle-not-total]"
       ],
       "id": "A1",
@@ -36,13 +38,15 @@
         2,
         3,
         9,
+        10,
         16
       ],
-      "detection_latency_ms": 197,
+      "detection_latency_ms": 216,
       "findings": [
         "check 2: 72 of 72 leaves unproven [inclusion-proof-failed]",
         "check 3: 4 of 7 consecutive pairs unproven [consistency-proof-failed]",
         "check 9: 1 chain finding(s) [link-chain-broken]",
+        "check 10: 9 canonicaliser finding(s) [canon-source-mismatch]",
         "check 16: 7 totality finding(s) \u2014 read no other verdict as complete [bundle-not-total]"
       ],
       "id": "A2",
@@ -65,11 +69,13 @@
     {
       "database_refusals": [],
       "detected_by": [
-        1
+        1,
+        10
       ],
-      "detection_latency_ms": 239,
+      "detection_latency_ms": 235,
       "findings": [
-        "check 1: 1 leaf finding(s) [payload-disagrees-with-canon-bytes]"
+        "check 1: 1 leaf finding(s) [payload-disagrees-with-canon-bytes]",
+        "check 10: 9 canonicaliser finding(s) [canon-source-mismatch]"
       ],
       "id": "A3",
       "name": "payload_substitute",
@@ -93,12 +99,14 @@
       "detected_by": [
         2,
         3,
+        10,
         15
       ],
-      "detection_latency_ms": 239,
+      "detection_latency_ms": 235,
       "findings": [
         "check 2: 73 of 73 leaves unproven [inclusion-proof-failed]",
         "check 3: 5 of 7 consecutive pairs unproven [consistency-proof-failed]",
+        "check 10: 9 canonicaliser finding(s) [canon-source-mismatch]",
         "check 15: 1 of 16 receipts are not covered [receipt-orphaned]"
       ],
       "id": "A4",
@@ -122,11 +130,13 @@
       "database_refusals": [],
       "detected_by": [
         1,
+        10,
         16
       ],
-      "detection_latency_ms": 252,
+      "detection_latency_ms": 288,
       "findings": [
         "check 1: payload_ver [2] is not a canonicaliser this verifier holds [unknown-payload-ver]",
+        "check 10: 9 canonicaliser finding(s) [canon-source-mismatch]",
         "check 16: 1 totality finding(s) \u2014 read no other verdict as complete [unknown-payload-ver]"
       ],
       "id": "A5",
@@ -155,12 +165,14 @@
       "detected_by": [
         2,
         9,
+        10,
         16
       ],
-      "detection_latency_ms": 312,
+      "detection_latency_ms": 256,
       "findings": [
         "check 2: 1 of 74 leaves unproven [inclusion-proof-missing]",
         "check 9: 1 chain finding(s) [link-chain-broken]",
+        "check 10: 9 canonicaliser finding(s) [canon-source-mismatch]",
         "check 16: 1 totality finding(s) \u2014 read no other verdict as complete [bundle-not-total]"
       ],
       "id": "A6",
@@ -184,12 +196,14 @@
       "database_refusals": [],
       "detected_by": [
         3,
-        5
+        5,
+        10
       ],
-      "detection_latency_ms": 353,
+      "detection_latency_ms": 250,
       "findings": [
         "check 3: 2 of 7 consecutive pairs unproven [consistency-proof-failed]",
-        "check 5: size 50: the RFC 3161 messageImprint is not SHA-256(note text) \u2014 the note travelling with this token is not the note that was timestamped"
+        "check 5: size 50: the RFC 3161 messageImprint is not SHA-256(note text) \u2014 the note travelling with this token is not the note that was timestamped",
+        "check 10: 9 canonicaliser finding(s) [canon-source-mismatch]"
       ],
       "id": "A7",
       "name": "checkpoint_swap",
@@ -213,14 +227,16 @@
         3,
         5,
         6,
+        10,
         16
       ],
-      "detection_latency_ms": 216,
+      "detection_latency_ms": 252,
       "findings": [
         "check 3: 1 of 8 consecutive pairs unproven [consistency-proof-missing]",
         "check 5: size 97: the RFC 3161 messageImprint is not SHA-256(note text) \u2014 the note travelling with this token is not the note that was timestamped",
         "check 5: size 97 is timestamped 20260807020232Z, earlier than the smaller tree at size 73 (20260807020832Z): history was minted and dated backwards",
         "check 6: size 97: the checkpoint quotes drand round 31088382, issued at 1786068510, which is AFTER the RFC 3161 genTime 1786068152 \u2014 it quotes a round that did not yet exist",
+        "check 10: 10 canonicaliser finding(s) [canon-source-mismatch]",
         "check 16: 1 totality finding(s) \u2014 read no other verdict as complete [bundle-not-total]"
       ],
       "id": "A8",
@@ -243,12 +259,14 @@
       "database_refusals": [],
       "detected_by": [
         5,
-        6
+        6,
+        10
       ],
-      "detection_latency_ms": 237,
+      "detection_latency_ms": 218,
       "findings": [
         "check 5: size 34: the RFC 3161 messageImprint is not SHA-256(note text) \u2014 the note travelling with this token is not the note that was timestamped",
-        "check 6: size 34: the checkpoint quotes drand round 31288322, issued at 1786668330, which is AFTER the RFC 3161 genTime 1786068332 \u2014 it quotes a round that did not yet exist"
+        "check 6: size 34: the checkpoint quotes drand round 31288322, issued at 1786668330, which is AFTER the RFC 3161 genTime 1786068332 \u2014 it quotes a round that did not yet exist",
+        "check 10: 9 canonicaliser finding(s) [canon-source-mismatch]"
       ],
       "id": "A9",
       "name": "backdate_backward",
@@ -271,11 +289,13 @@
         "P0001: MAINLINE: this table is append-only; write a new row"
       ],
       "detected_by": [
+        10,
         11,
         14
       ],
-      "detection_latency_ms": 332,
+      "detection_latency_ms": 284,
       "findings": [
+        "check 10: 9 canonicaliser finding(s) [canon-source-mismatch]",
         "check 11: mainline.clause_blame_closure.append_only: the mechanism attested at migration 0128j_trg_refuse_mutation_clause_blame_closure is not present and enabled in the live catalogue. The exhibit can no longer show the source of the mechanism that refused",
         "check 14: 8 closure finding(s) over 8 (clause, commit) pairs [closure-severity-decreased]"
       ],
@@ -300,10 +320,12 @@
         "P0001: MAINLINE: prev_digest does not match the predecessor chain digest"
       ],
       "detected_by": [
+        10,
         11
       ],
-      "detection_latency_ms": 261,
+      "detection_latency_ms": 301,
       "findings": [
+        "check 10: 9 canonicaliser finding(s) [canon-source-mismatch]",
         "check 11: mainline.permit_event.permit_event_chain: the mechanism attested at migration 0125_trg_permit_event_chain is not present and enabled in the live catalogue. The exhibit can no longer show the source of the mechanism that refused"
       ],
       "id": "A11",
@@ -326,12 +348,14 @@
       "database_refusals": [],
       "detected_by": [
         2,
+        10,
         13,
         16
       ],
-      "detection_latency_ms": 321,
+      "detection_latency_ms": 234,
       "findings": [
         "check 2: 1 of 74 leaves unproven [inclusion-proof-missing]",
+        "check 10: 9 canonicaliser finding(s) [canon-source-mismatch]",
         "check 13: 1 leaf of 74 leaves carry is_sandbox = true [sandbox-leaf-present]",
         "check 16: 1 totality finding(s) \u2014 read no other verdict as complete [bundle-not-total]"
       ],
@@ -357,10 +381,12 @@
         "P0001: MAINLINE: merge refused by mainline.fn_permit_merge_gate \u2014 re-derived open obligation count is 1 while the projected counter reads zero"
       ],
       "detected_by": [
+        10,
         11
       ],
-      "detection_latency_ms": 236,
+      "detection_latency_ms": 273,
       "findings": [
+        "check 10: 9 canonicaliser finding(s) [canon-source-mismatch]",
         "check 11: mainline.permit_merge_gate: the mechanism attested at migration 0130_trg_permit_merge_gate is not present and enabled in the live catalogue. The exhibit can no longer show the source of the mechanism that refused"
       ],
       "id": "A13",
@@ -382,10 +408,12 @@
     {
       "database_refusals": [],
       "detected_by": [
+        10,
         15
       ],
-      "detection_latency_ms": 345,
+      "detection_latency_ms": 263,
       "findings": [
+        "check 10: 9 canonicaliser finding(s) [canon-source-mismatch]",
         "check 15: 1 of 17 receipts are not covered [receipt-orphaned]"
       ],
       "id": "A14",
@@ -423,7 +451,7 @@
   "environment": {
     "cluster": "$MAINLINE_TEST_DSN",
     "cryptography": "available",
-    "schema": "reduced nemesis fixture (see conftest.py)",
+    "schema": "reduced nemesis fixture (see nemesis_harness.py)",
     "verifier": "trappoint-verify 0.1.0; checks 4, 5, 6, 7, 8, 11, 12 answered by the nemesis-local fallback because no runner has landed for them"
   },
   "schema_version": 1

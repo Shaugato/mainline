@@ -303,8 +303,8 @@ Nothing here is "clean". The numbers are frozen, published, and may fall but not
 
 | | |
 |---|---|
-| `ruff check .` findings | 847 [src: qa/ruff-ratchet.json#lint.total] |
-| Files `ruff format` would rewrite | 245 [src: qa/ruff-ratchet.json#format.unformatted_files] |
+| `ruff check .` findings | 671 [src: qa/ruff-ratchet.json#lint.total] |
+| Files `ruff format` would rewrite | 0 [src: qa/ruff-ratchet.json#format.unformatted_files] |
 | `mypy` errors across the workspace | 0 [src: qa/mypy-ratchet.json#total_errors] |
 | Source files mypy actually checked | 660 [src: qa/mypy-ratchet.json#source_files_checked] |
 
@@ -325,17 +325,22 @@ dies with no completion line, and requires `--write-ratchet` to REFUSE rather th
 mypy's failure line. The published pair would therefore have read *no type errors, in
 nothing*, and nothing anywhere would have objected.
 
-**And the ratchet is red today, on a wave whose total went down.** `scripts/qa/ruff_ratchet.py`
-refuses the working tree. The findings total is now *below* the frozen
-847 [src: qa/ruff-ratchet.json#lint.total], and the unformatted-file count is *above* the
-frozen 245 [src: qa/ruff-ratchet.json#format.unformatted_files]. The ratchet gates per rule
-and per tree rather than on a headline sum, so a change that removes findings in one
-directory and adds five hard-gate violations — rules whose baseline is zero — in another
-cannot buy its way past it with the total. Every regression is in `scripts/`, where this
-wave's new scripts landed, and in `verticals/`, where its migrations did. The exact
-per-rule output is in [`docs/STATE-OF-THE-BUILD.md`](STATE-OF-THE-BUILD.md); no committed
-artefact holds the *measured* figures, because re-baselining is how a ratchet is defeated
-and nobody in this wave owned that file. **Discovered, not fixed.**
+**That paragraph said the ratchet was red on a wave whose lint total had fallen while its
+unformatted-file count had risen, and that no committed artefact held the measured
+figures. It was true when it was written. Both halves have since moved, in the same
+direction — down — and the artefact now holds them.** Re-measured on a clean tree,
+`ruff check .` finds
+**671 [src: qa/ruff-ratchet.json#lint.total]** findings and `ruff format --check .` finds
+**0 [src: qa/ruff-ratchet.json#format.unformatted_files]** files it would rewrite.
+
+The ratchet still gates per rule and per tree rather than on a headline sum, so a change
+that removes findings in one directory and adds a hard-gate violation — a rule whose
+baseline is zero — in another cannot buy its way past it with the total. **No baseline was
+raised to absorb a regression, and none was lowered to manufacture a green:** the frozen
+file records what the tree measures, which is the only move a falling ratchet permits.
+
+What emptied the format count was files being formatted, one lane naming each of them,
+not a threshold being moved.
 
 **"And the mypy pair is already one distribution stale." That paragraph said the ratchet
 recorded twenty-nine distributions, that the workspace had gained `mainline-corpus`, that

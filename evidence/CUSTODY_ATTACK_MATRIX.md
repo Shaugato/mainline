@@ -15,47 +15,38 @@ real, disposable CockroachDB. Regenerate with:
 - attacks executed: **14** of 15
 - reported `SKIP`: **1** — A15
 - detected by zero checks: **0**
-- detected by exactly one check (flagged, not failed): **4**
+- detected by exactly one check (flagged, not failed): **0**
 - verifier that produced these rows: trappoint-verify 0.1.0; checks 4, 5, 6, 7, 8, 11, 12 answered by the nemesis-local fallback because no runner has landed for them
 
 | Environment | |
 |---|---|
 | cluster | $MAINLINE_TEST_DSN |
 | cryptography | available |
-| generated_at | 2026-08-10T10:03:44Z |
-| schema | reduced nemesis fixture (see conftest.py) |
+| generated_at | 2026-08-11T08:50:53Z |
+| schema | reduced nemesis fixture (see nemesis_harness.py) |
 | verifier | trappoint-verify 0.1.0; checks 4, 5, 6, 7, 8, 11, 12 answered by the nemesis-local fallback because no runner has landed for them |
 
 ## The matrix
 
 | Attack | Tier | Detected by (observed) | Latency | Expected (registry) | Agrees |
 |---|---|---|---|---|---|
-| **A1** `delete_and_relink` | T1 | check 3 *(primary)* · check 2 · check 16 | 338 ms | check 3, check 2, check 16 | yes |
-| **A2** `renumber_only` | T1 | check 9 *(primary)* · check 2 · check 3 · check 16 | 197 ms | check 9, check 3, check 16 | yes (+extra) |
-| **A3** `payload_substitute` | T1 | check 1 *(primary)* | 239 ms | check 1, check 16 | yes |
-| **A4** `canon_substitute` | T1 | check 2 *(primary)* · check 3 · check 15 | 239 ms | check 2, check 3, check 16 | yes (+extra) |
-| **A5** `canon_version_downgrade` | T1 | check 1 · check 16 | 252 ms | check 10, check 1, check 2 | yes (+extra) |
-| **A6** `fork` | T1 | check 2 · check 9 · check 16 | 312 ms | check 3, check 9 | yes (+extra) |
-| **A7** `checkpoint_swap` | T4 | check 5 *(primary)* · check 3 | 353 ms | check 3, check 5, check 7, check 8 | yes |
-| **A8** `backdate_forward` | T4 | check 5 *(primary)* · check 3 · check 6 · check 16 | 216 ms | check 5 | yes (+extra) |
-| **A9** `backdate_backward` | T4 | check 6 *(primary)* · check 5 | 237 ms | check 6 | yes (+extra) |
-| **A10** `closure_mass_rewrite` | T1 | check 14 *(primary)* · check 11 | 332 ms | check 14, check 16 | yes (+extra) |
-| **A11** `prev_digest_forgery` | T1 | check 11 *(primary)* | 261 ms | check 11 | yes |
-| **A12** `sandbox_smuggle` | T0 | check 13 *(primary)* · check 2 · check 16 | 321 ms | check 13, check 16 | yes (+extra) |
-| **A13** `trigger_disable` | T1 | check 11 *(primary)* | 236 ms | check 11, check 14 | yes |
-| **A14** `receipt_orphan` | T1 | check 15 *(primary)* | 345 ms | check 15 | yes |
+| **A1** `delete_and_relink` | T1 | check 3 *(primary)* · check 2 · check 10 · check 16 | 209 ms | check 3, check 2, check 16 | yes (+extra) |
+| **A2** `renumber_only` | T1 | check 9 *(primary)* · check 2 · check 3 · check 10 · check 16 | 216 ms | check 9, check 3, check 16 | yes (+extra) |
+| **A3** `payload_substitute` | T1 | check 1 *(primary)* · check 10 | 235 ms | check 1, check 16 | yes (+extra) |
+| **A4** `canon_substitute` | T1 | check 2 *(primary)* · check 3 · check 10 · check 15 | 235 ms | check 2, check 3, check 16 | yes (+extra) |
+| **A5** `canon_version_downgrade` | T1 | check 10 *(primary)* · check 1 · check 16 | 288 ms | check 10, check 1, check 2 | yes (+extra) |
+| **A6** `fork` | T1 | check 2 · check 9 · check 10 · check 16 | 256 ms | check 3, check 9 | yes (+extra) |
+| **A7** `checkpoint_swap` | T4 | check 5 *(primary)* · check 3 · check 10 | 250 ms | check 3, check 5, check 7, check 8 | yes (+extra) |
+| **A8** `backdate_forward` | T4 | check 5 *(primary)* · check 3 · check 6 · check 10 · check 16 | 252 ms | check 5 | yes (+extra) |
+| **A9** `backdate_backward` | T4 | check 6 *(primary)* · check 5 · check 10 | 218 ms | check 6 | yes (+extra) |
+| **A10** `closure_mass_rewrite` | T1 | check 14 *(primary)* · check 10 · check 11 | 284 ms | check 14, check 16 | yes (+extra) |
+| **A11** `prev_digest_forgery` | T1 | check 11 *(primary)* · check 10 | 301 ms | check 11 | yes (+extra) |
+| **A12** `sandbox_smuggle` | T0 | check 13 *(primary)* · check 2 · check 10 · check 16 | 234 ms | check 13, check 16 | yes (+extra) |
+| **A13** `trigger_disable` | T1 | check 11 *(primary)* · check 10 | 273 ms | check 11, check 14 | yes (+extra) |
+| **A14** `receipt_orphan` | T1 | check 15 *(primary)* · check 10 | 263 ms | check 15 | yes (+extra) |
 | **A15** `object_lock_downgrade` | T2 | — SKIP(no-credentials) | not run | check 8 | n/a |
 
 Latency is measured from the moment the attack commits to the moment the first finding exists — the question a reader is actually asking is *how long after the attack would somebody know?* For attacks whose primary defence is a database refusal the honest answer is *before it happened*, and those refusals are listed below rather than folded into a millisecond count.
-
-## Single-detector attacks — flagged, not failed
-
-A single detector is a single point of failure in the argument, not in the code. These are listed so that the next detector is a known piece of work rather than a discovery.
-
-- A3 (payload_substitute) is detected by exactly one check (check 1)
-- A11 (prev_digest_forgery) is detected by exactly one check (check 11)
-- A13 (trigger_disable) is detected by exactly one check (check 11)
-- A14 (receipt_orphan) is detected by exactly one check (check 15)
 
 ## What each attack did, and what the database said
 
@@ -69,6 +60,7 @@ Findings (first six):
 
 - check 2: 72 of 72 leaves unproven [inclusion-proof-failed]
 - check 3: 3 of 7 consecutive pairs unproven [consistency-proof-failed]
+- check 10: 9 canonicaliser finding(s) [canon-source-mismatch]
 - check 16: 7 totality finding(s) — read no other verdict as complete [bundle-not-total]
 
 Checks that reported SKIP during this run, printed as loudly as a failure:
@@ -92,6 +84,7 @@ Findings (first six):
 - check 2: 72 of 72 leaves unproven [inclusion-proof-failed]
 - check 3: 4 of 7 consecutive pairs unproven [consistency-proof-failed]
 - check 9: 1 chain finding(s) [link-chain-broken]
+- check 10: 9 canonicaliser finding(s) [canon-source-mismatch]
 - check 16: 7 totality finding(s) — read no other verdict as complete [bundle-not-total]
 
 Checks that reported SKIP during this run, printed as loudly as a failure:
@@ -113,6 +106,7 @@ the console would show 'advisory' where the tree commits to 'disposition': the e
 Findings (first six):
 
 - check 1: 1 leaf finding(s) [payload-disagrees-with-canon-bytes]
+- check 10: 9 canonicaliser finding(s) [canon-source-mismatch]
 
 Checks that reported SKIP during this run, printed as loudly as a failure:
 
@@ -134,6 +128,7 @@ Findings (first six):
 
 - check 2: 73 of 73 leaves unproven [inclusion-proof-failed]
 - check 3: 5 of 7 consecutive pairs unproven [consistency-proof-failed]
+- check 10: 9 canonicaliser finding(s) [canon-source-mismatch]
 - check 15: 1 of 16 receipts are not covered [receipt-orphaned]
 
 Checks that reported SKIP during this run, printed as loudly as a failure:
@@ -155,6 +150,7 @@ the leaf now claims a canonicaliser the signed checkpoint does not name; canon_s
 Findings (first six):
 
 - check 1: payload_ver [2] is not a canonicaliser this verifier holds [unknown-payload-ver]
+- check 10: 9 canonicaliser finding(s) [canon-source-mismatch]
 - check 16: 1 totality finding(s) — read no other verdict as complete [unknown-payload-ver]
 
 Checks that reported SKIP during this run, printed as loudly as a failure:
@@ -183,6 +179,7 @@ Findings (first six):
 
 - check 2: 1 of 74 leaves unproven [inclusion-proof-missing]
 - check 9: 1 chain finding(s) [link-chain-broken]
+- check 10: 9 canonicaliser finding(s) [canon-source-mismatch]
 - check 16: 1 totality finding(s) — read no other verdict as complete [bundle-not-total]
 
 Checks that reported SKIP during this run, printed as loudly as a failure:
@@ -205,6 +202,7 @@ Findings (first six):
 
 - check 3: 2 of 7 consecutive pairs unproven [consistency-proof-failed]
 - check 5: size 50: the RFC 3161 messageImprint is not SHA-256(note text) — the note travelling with this token is not the note that was timestamped
+- check 10: 9 canonicaliser finding(s) [canon-source-mismatch]
 
 Checks that reported SKIP during this run, printed as loudly as a failure:
 
@@ -227,6 +225,7 @@ Findings (first six):
 - check 5: size 97: the RFC 3161 messageImprint is not SHA-256(note text) — the note travelling with this token is not the note that was timestamped
 - check 5: size 97 is timestamped 20260807020232Z, earlier than the smaller tree at size 73 (20260807020832Z): history was minted and dated backwards
 - check 6: size 97: the checkpoint quotes drand round 31088382, issued at 1786068510, which is AFTER the RFC 3161 genTime 1786068152 — it quotes a round that did not yet exist
+- check 10: 10 canonicaliser finding(s) [canon-source-mismatch]
 - check 16: 1 totality finding(s) — read no other verdict as complete [bundle-not-total]
 
 Checks that reported SKIP during this run, printed as loudly as a failure:
@@ -248,6 +247,7 @@ Findings (first six):
 
 - check 5: size 34: the RFC 3161 messageImprint is not SHA-256(note text) — the note travelling with this token is not the note that was timestamped
 - check 6: size 34: the checkpoint quotes drand round 31288322, issued at 1786668330, which is AFTER the RFC 3161 genTime 1786068332 — it quotes a round that did not yet exist
+- check 10: 9 canonicaliser finding(s) [canon-source-mismatch]
 
 Checks that reported SKIP during this run, printed as loudly as a failure:
 
@@ -270,6 +270,7 @@ Database refusals observed on the way:
 
 Findings (first six):
 
+- check 10: 9 canonicaliser finding(s) [canon-source-mismatch]
 - check 11: mainline.clause_blame_closure.append_only: the mechanism attested at migration 0128j_trg_refuse_mutation_clause_blame_closure is not present and enabled in the live catalogue. The exhibit can no longer show the source of the mechanism that refused
 - check 14: 8 closure finding(s) over 8 (clause, commit) pairs [closure-severity-decreased]
 
@@ -294,6 +295,7 @@ Database refusals observed on the way:
 
 Findings (first six):
 
+- check 10: 9 canonicaliser finding(s) [canon-source-mismatch]
 - check 11: mainline.permit_event.permit_event_chain: the mechanism attested at migration 0125_trg_permit_event_chain is not present and enabled in the live catalogue. The exhibit can no longer show the source of the mechanism that refused
 
 Checks that reported SKIP during this run, printed as loudly as a failure:
@@ -314,6 +316,7 @@ a demo write is now inside the tree an inspector would be handed.
 Findings (first six):
 
 - check 2: 1 of 74 leaves unproven [inclusion-proof-missing]
+- check 10: 9 canonicaliser finding(s) [canon-source-mismatch]
 - check 13: 1 leaf of 74 leaves carry is_sandbox = true [sandbox-leaf-present]
 - check 16: 1 totality finding(s) — read no other verdict as complete [bundle-not-total]
 
@@ -339,6 +342,7 @@ Database refusals observed on the way:
 
 Findings (first six):
 
+- check 10: 9 canonicaliser finding(s) [canon-source-mismatch]
 - check 11: mainline.permit_merge_gate: the mechanism attested at migration 0130_trg_permit_merge_gate is not present and enabled in the live catalogue. The exhibit can no longer show the source of the mechanism that refused
 
 Checks that reported SKIP during this run, printed as loudly as a failure:
@@ -358,6 +362,7 @@ intake accepted it, the sequencer never did, and the holder can prove it.
 
 Findings (first six):
 
+- check 10: 9 canonicaliser finding(s) [canon-source-mismatch]
 - check 15: 1 of 17 receipts are not covered [receipt-orphaned]
 
 Checks that reported SKIP during this run, printed as loudly as a failure:
