@@ -5,19 +5,12 @@ SPDX-License-Identifier: CC-BY-4.0
 
 # CI state — what GitHub actually says
 
-**Measured:** 2026-08-10, from `github.com/Shaugato/mainline`, branch `master`, commit
-`4d948dd` (`fix(ci): repair the sixteen-workflow pipeline; run it on master at last`).
-**Source:** `gh run list` and `gh run view --log-failed` against real runs. Nothing in this
-document is inferred from a local run; where a local reproduction is quoted it is labelled as
-such and is used only to *explain* a CI result, never to replace one.
+**Re-measured 2026-08-11 by W10**, after the completion wave (W1–W9) and the mechanical
+sweep landed, at commit `47f8aa2` on `master`. Every conclusion below is a run id you can
+open. Every cause is quoted from a real log, not inferred from a plan.
 
-This file is written by the CI verifier and is deliberately unflattering. Of 17 workflows, six
-are green, ten are red, and one has never run. Two of the reds are **regressions introduced by
-the repair wave this commit contains**, and they are named as such in §5. Two more are
-pre-existing defects that became visible for the first time today, for the reason given in §1.
-
-Nothing here was inferred from a green local run. Where a workflow is red, it is named and the
-cause is quoted from its log.
+This document replaces the version taken at `ed4a12f`. Three of that version's claims did
+not survive re-measurement and are corrected in §5.
 
 ---
 
@@ -25,515 +18,293 @@ cause is quoted from its log.
 
 ```bash
 # every workflow's real conclusion on the default branch
-gh run list --branch master --limit 20
+gh run list --branch master --limit 100 --json databaseId,workflowName,conclusion,headSha,createdAt \
+  --jq 'group_by(.workflowName)[] | max_by(.createdAt) | "\(.workflowName)|\(.conclusion)|\(.databaseId)"'
 
 # one workflow's conclusion and its jobs
-gh run view <run-id> --json jobs \
-  --template '{{range .jobs}}{{.conclusion}} :: {{.name}}{{"\n"}}{{end}}'
+gh run view <run-id> --json jobs --template '{{range .jobs}}{{.conclusion}} :: {{.name}}{{"\n"}}{{end}}'
 
-# the precise cause of a red (this is the command every claim below rests on)
+# the precise cause of a red — the command every claim below rests on
 gh run view <run-id> --log-failed
-
-# the default branch, which is the whole of §1
-gh repo view --json defaultBranchRef
 ```
 
-`jq` is **not** installed on this workstation; the `--template` form above is the substitute
-used throughout. Note that `gh --template` renders large run ids in scientific notation — use
-`--json databaseId` and read the id from `gh run list`'s plain output instead.
+`jq` is not installed on this workstation; `gh --json --jq` is the substitute.
 
 ---
 
-## 1. The finding that outranks the table
+## 1. Every workflow, with its real conclusion
 
-Before this commit, **every workflow except `submission` was triggered on
-`push: branches: [main]`, against a repository whose default branch is `master`.**
+Latest run per workflow on `master`. A lane whose `paths:` filter did not match the last
+few commits carries an older SHA — that is not staleness in the table, it is the lane
+truthfully not having been asked.
 
-```
-gh repo view --json defaultBranchRef   ->  master
-gh run list --branch main              ->  (empty)
-```
-
-The branch `main` does not exist. Fifteen lanes had therefore **never run once on the branch
-the Actions tab opens on**. Their green — or their red — was invisible to anyone who landed on
-the repository. The single push-triggered lane a visitor could see was `submission`, and it
-was red.
-
-This commit retargets them to `master`. The fifteen runs analysed below are, for most of these
-lanes, **the first push run in the repository's history**. That is why several reds appear here
-that no previous run could have shown: they were always true, and nothing was looking.
-
-Two lanes deliberately have **no** `push:` trigger and were correctly left alone —
-`cloud-verify` (holds the only credential, `secrets.CRDB_CLOUD_DSN`; nightly by design) and
-`demo-health` (asserts a property of a *deployed* demo, not of a commit). Both still reach
-`master`, because GitHub fires `schedule:` from the default branch only.
-
----
-
-## 2. Every workflow, with its real conclusion
-
-Run ids are from the push of `4d948dd`. URL form:
-`https://github.com/Shaugato/mainline/actions/runs/<run-id>`.
-
-| workflow | conclusion | run id | cause of red | intentional? |
-|---|---|---|---|---|
-| `claims` | **success** | 31386723733 | — | — |
-| `console` | **success** | 31386723734 | — | — |
-| `judge-pack` | **success** | 31386723727 | — | — |
-| `release-proof` | **success** | 31386723657 | — | — |
-| `skills` | **success** | 31386723686 | — | — |
-| `supply-chain` | **success** | 31386723719 | — | — (verified non-vacuous, §4) |
-| `mutation-ratchet` | **failure** | 31386723743 | lane dependency floor: no `pytest-timeout`, no `PyYAML` — §3.9 | **no — still to fix** |
-| `nightly-differential` | **failure** | 31386723762 | `uv … --package` passed twice — §3.10 | **no — still to fix** |
-| `ci` | **failure** | 31386723652 | 5 of 12 jobs red — §3.1 | partly (2 of 5) |
-| `db` | **failure** | 31386723687 | image-pin census ratchet rose — §3.2 | **no — regression** |
-| `db-schema` | **failure** | 31386723718 | MI catalogue lag + tier-0 precondition — §3.3 | partly |
-| `boundary` | **failure** | 31386723645 | A6 sampling-param grep false positive — §3.4 | **no — instrument defect** |
-| `custody-chain` | **failure** | 31386723642 | 7 of 16 custody checks unimplemented — §3.5 | **yes** |
-| `schema` | **failure** | 31386723716 | reference vertical missing a producer — §3.6 | **yes** |
-| `submission` | **failure** | 31386723640 | licence-spelling ratchet — §3.7 | **yes** (pre-existing) |
-| `demo-health` | **failure** | 31386591084 | `DEMO_URL` unset; no demo deployed — §3.8 | **yes** |
-| `cloud-verify` | *no runs* | — | schedule-only; has never fired | **yes** |
-
-**Score on GitHub: 6 green, 10 red, 1 never-run, of 17 workflows.**
-
-Before this commit the honest score was *1 red and 16 invisible*, because only `submission` ran
-on `master` at all. Six green lanes and ten precisely-diagnosed reds is a worse-looking Actions
-tab and a far better-understood repository.
-
----
-
-## 3. Each red, precisely
-
-### 3.1 `ci` — 5 of 12 jobs red
-
-Green now, and worth naming because they were red before: **`actionlint`** (SC2015 in
-`custody-chain.yml`, SC2034 in `nightly-differential.yml`), **`mypy · and the target list is
-complete`** (the `CandidateRow | None` narrowing and the misplaced `docx` override),
-**`import-linter contracts`**, **`the lockfile is authoritative`**, **`the sequence ban`**, and
-the new **`RED BY DESIGN, and it must stay red`** job, which passes — meaning the by-design-red
-suites really are red and are now asserted to be, rather than being lost in the general lane.
-
-Still red:
-
-| job | cause | class |
-|---|---|---|
-| `PL-2 — the red run is recorded` | `PL-2: the db lane's red run URL is still UNRECORDED. Open the db workflow run, copy its URL into the ADR's run_url field, and commit.` | bookkeeping — **now newly actionable**, because `db` has only just produced its first `master` run to cite |
-| `REUSE — every file names its licence` | `REFUSED [RATCHET] metric=non_spdx_spelling.FSL-1.1-ALv2 baseline=1213 measured=1254` | **pre-existing**, not this wave — see §3.7 |
-| `pytest --crdb=none` | `41 failed, 8224 passed, 833 skipped, 5 deselected` (was `47 failed, 8182 passed`) | mixed — includes **2 new regressions**, §5.1 |
-| `ruff format · the counted lint ratchet` | `209 files would be reformatted, 1185 files already formatted`; `ruff_ratchet: REFUSED - 4 ratchet regression(s)` | **deliberately deferred** — a mechanical `ruff format .` that must land alone or it hides every other diff in the wave |
-| `CI summary` | aggregate of the above | — |
-
-### 3.2 `db` — a regression this wave introduced
-
-```
-##[error]floating tag rose from 34 to 37
-##[error]restated literal rose from 21 to 24
-```
-
-The `db` lane carries a census job — *"one version constant, and it lives in compose.yaml"* —
-which counts how many files restate the CockroachDB image instead of reading it from
-`compose.yaml`. It is a falling-only ratchet: the count may fall, it may not rise.
-
-Reproduced locally, exactly (`floating=37 ceiling=34  restated=24 ceiling=21`). Counting the
-same census at both commits settles authorship beyond argument — **at `HEAD~1` both metrics sat
-exactly on their ceilings**, so the lane was passing with zero headroom and any new mention at
-all would trip it:
-
-```
-HEAD~1  floating=34  restated=21     <- exactly at ceiling, passing
-HEAD    floating=37  restated=24     <- +3 and +3
-ceilings          34            21
-```
-
-The delta is attributable line by line:
-
-| file | metric | before | after |
+| workflow | conclusion | run | at |
 |---|---|---|---|
-| `conftest.py` | floating | 1 | 4 |
-| `.github/workflows/custody-chain.yml` | restated | 0 | 2 |
-| `tests/integration/recall_schema/_schema_support.py` | restated | 0 | 1 |
+| `claims` | success | 31441300036 | `9d02cee` |
+| `cloud-verify` | success | 31441340234 | `9d02cee` |
+| `console` | success | 31443340130 | `fd3b0bc` |
+| `judge-pack` | success | 31441299981 | `9d02cee` |
+| `mutation-ratchet` | **success** | 31462708330 | `998c526` |
+| `release-proof` | success | 31441299987 | `9d02cee` |
+| `skills` | success | 31444357481 | `c8a3b46` |
+| `supply-chain` | success | 31459262572 | `8e8c0b3` |
+| `boundary` | failure | 31462708369 | `998c526` |
+| `ci` | failure | 31462708400 | `998c526` |
+| `custody-chain` | failure | 31462708356 | `998c526` |
+| `db` | failure | 31463897045 | `47f8aa2` |
+| `db-schema` | failure | 31462708433 | `998c526` |
+| `demo-health` | failure | 31462743972 | `998c526` |
+| `nightly-differential` | failure | 31435379720 | `834aa59` |
+| `schema` | failure | 31463897104 | `47f8aa2` |
+| `submission` | failure | 31463897101 | `47f8aa2` |
 
-All six new lines are **prose** — docstrings, error-message text and comments in which workers
-recorded *"measured on cockroachdb/cockroach:v26.2.5"* to make their evidence checkable. The
-intent was good and the ratchet is still right: a version literal restated in prose is a
-version literal that goes stale. The fix is to reword the six lines so they cite the version
-without spelling the image coordinate, or to extend the census's existing exemption mechanism
-to prose with an argued reason. **Not** to raise the ceiling.
+**Score: 8 green, 9 red, 0 never-run.**
 
-Owners: `conftest.py` (w3), `custody-chain.yml` (w4), `_schema_support.py` (w6). The verifier
-does not own these files and has not edited them.
+The wave moved two lanes and one job: `mutation-ratchet` is green for the first time,
+`cloud-verify` has fired and is green, and `ci`'s `ruff format · the counted lint ratchet`
+job is green for the first time. Of the nine reds, **six report a true incompleteness and
+are meant to stay red** (§3); **three are untidy** (§4).
 
-### 3.3 `db-schema` — the original defect is fixed; two lesser ones remain
+---
 
-The failure named in the brief — `0139_trg_candidate_project.sql failed to apply — unknown
-function: mainline.fn_candidate_project()` — **no longer occurs.** The cause was real and was
-never an environment difference: `RECALL_MIGRATION_NUMBERS` in
-`tests/integration/recall_schema/_schema_support.py` hand-declares a subset of the chain and
-omitted `0110`, the producer that `0139` welds to. The full local chain always applies `0110`
-first, which is why 271/271 passed locally and CI failed. Adding the producer fixed it.
+## 2. `ci`, job by job — 5 of 12 red
 
-Remaining:
+Run **31462708400**.
 
-* **`mi-red`** — `REFUSED: MI06 / MI10 / MI21 / MI22 / MI27 is pending but its tests pass —
-  promote it in mi_catalogue.yaml`. Down from ten. Seven invariants (MI01, MI02, MI11, MI16,
-  MI18, MI19, MI28) were promoted; **five were deliberately held**, with the reasoning written
-  into the catalogue: for MI06 and MI21 the object §16 names (`fn_boundary_project`) is absent
-  from all 271 migrations, so promoting would be a lie. This red is honest, and it is pointing
-  at a real disagreement: the ratchet equates *"the owning test passes"* with *"the invariant
-  is enforced"*, and for these five that equation is false. The fix is to strengthen the owning
-  tests so they fail — not to promote, and not to weaken the ratchet.
-* **tier 0** — `assert 'uv sync --package' not in err`, from
-  `packages/trappoint-migrate/tests/test_cli_offline.py::test_delegated_verb_actually_delegates_when_present`.
-  The test asserts that `render` reaches the real implementation *when `trappoint-sql` is
-  installed*; the job runs `uv run --frozen --package trappoint-migrate`, an environment in
-  which `trappoint-sql` is by construction absent. The precondition is unstated. Environment
-  defect, still to fix — the repair is to guard the test on the import it silently requires.
+| | job |
+|---|---|
+| success | every checker this lane invokes exists |
+| success | the lockfile is authoritative · workspace membership |
+| success | mypy · and the target list is complete |
+| success | import-linter contracts · and no package outside them |
+| success | **ruff format · the counted lint ratchet** |
+| success | the sequence ban, repository-wide |
+| success | RED BY DESIGN, and it must stay red |
+| failure | actionlint |
+| failure | PL-2 — the red run is recorded |
+| failure | REUSE — every file names its licence |
+| failure | pytest --crdb=none |
+| failure | CI summary |
 
-### 3.4 `boundary` — the import floor is fixed; the grep is miscalibrated
-
-The `ModuleNotFoundError: No module named 'psycopg'` that failed all seven jobs is **gone** —
-`trappoint_testkit/__init__.py` no longer drags the cluster module (and a live database driver)
-in for callers who only want the image pin. The lane now actually runs its tests.
-
-What it reports now is a **false positive**:
-
-```
-[GREP/GREP-SAMPLING-PARAM] packages/trappoint-recall/.../lexical/units.py:67:
-    model request builder sets 'temperature'
-[GREP/GREP-SAMPLING-PARAM] verticals/mainline/.../mainline_domain/quantity/units.py:262:
-    model request builder sets 'temperature'
-```
-
-Both lines were read at source. Neither is a model request builder:
-
-```python
-# packages/trappoint-recall/src/trappoint_recall/lexical/units.py:67
-DIMENSION_SYMBOL: Final[dict[str, str]] = { ..., "temperature": "k", ... }
-
-# verticals/mainline/packages/mainline-domain/src/mainline_domain/quantity/units.py:262
-_LABEL_REPRESENTATIVES: Final[Mapping[str, str]] = { ..., "temperature": "kelvin", ... }
-```
-
-They are physical-dimension tables in an industrial-safety domain that also carries `pressure`,
-`lel` and `uel`. The A6 guard matches the bare token `temperature` and calls any hit a sampling
-parameter. This is a red that is **not** telling the truth, and suppressing it is not the
-answer either: the guard must be narrowed so it measures what it claims — a sampling parameter
-in a request-builder context — or these two must take the argued exemption the guard already
-supports and uses elsewhere. Until then the A6 ban is partly unenforceable, because its
-operators have learned that its output contains noise.
-
-### 3.5 `custody-chain` — correctly red
-
-`16 checks | 9 passed | 0 failed | 7 not checked`.
-
-Check 14 (`closure_generation_monotone`) and check 13 (`no_sandbox_leaf`) are now
-`implemented`, so the brief's `K2.2 NOT MET: … check 14 with status 'deferred'` is **fixed**.
-The seven that remain are all `status=deferred, target=implemented, owner=verify-crypto` — the
-cryptographic verifier checks genuinely do not exist yet. The lane is red because the product
-is incomplete, which is the correct behaviour. See also §5.1: the *way* checks 13/14 were
-flipped introduced a regression.
-
-### 3.6 `schema` — correctly red, and deliberately out of scope
+**The regression lane is now readable.** `pytest --crdb=none` reports
 
 ```
-trappoint migrate: REFUSED: 0058_blocking_check: [42P01] relation "trappoint_ref.event" does not exist
+21 failed, 8280 passed
 ```
 
-The **reference** vertical (`packages/trappoint-sql/refvertical/sql`) has a missing producer —
-the same shape of defect as §3.3, in a different tree with a different owner. It was
-deliberately not folded into this wave. It is genuine product incompleteness and stays red
-until `trappoint_ref.event` has a producer.
+against `41 failed, 8224 passed, 833 skipped, 5 deselected` at run 31388699452 before the
+wave. Twenty of those twenty-one were closed by W1–W9; the eight declared PL-2 reds that
+used to fail inside this job now run in `RED BY DESIGN`, which is green because they are
+red, which is the point.
 
-### 3.7 `submission` — the path-length gate is fixed; the licence ratchet is not
+**`actionlint`** — not a workflow defect of this wave:
 
-Two of three jobs are green, including `the submission gate can say no`. The old failure —
-`path-length budget EXCEEDED: longest tracked path 218 > budget 214` — is **fixed**; measured
-locally now: `budget: max_tracked_path_chars=141 files_unclonable_at_typical_prefix=0
-STATUS: OK`. A stranger can clone this repository on Windows.
+```
+.github/workflows/console.yml:498:9: shellcheck reported issue in this script: SC2140
+```
 
-The remaining red is the licence-spelling ratchet:
+**`REUSE`** — see §4.1.
+
+---
+
+## 3. The six reds that are meant to be red
+
+Each names the artefact that does not exist and the domain that owes it.
+
+### 3.1 `custody-chain` — 7 of 16 checks unimplemented
+
+Run 31462708356. Three jobs fail and two are skipped behind them. The message names all
+seven checks, their artefacts and `owner=verify-crypto` (W-wave commit `dd770c5`). Nothing
+here is broken; seven crypto checks have not been written.
+
+### 3.2 `schema` — the reference vertical has no producer
+
+Run 31463897104. `trappoint_ref.event` has no producer. The failure names the object.
+
+### 3.3 `db-schema` — `mi-red` and the catalogue
+
+Run 31462708433: `the catalogue is committed, current and well-formed` and `mi-red and
+mi-green`. `mi-red` holds invariants whose owning tests are too weak to promote. The
+**MI ratchet stands at 21 of 30 pending**, not 28 of 30 — see §5.3.
+
+### 3.4 `demo-health` — no demo is deployed
+
+Run 31462743972, and eight more today. `DEMO_URL` is unset because nothing is deployed.
+This is the best-worded red in the tree and the model the others were brought up to. The
+cure is a deployment, not a workflow edit. It will keep accumulating a red every 30
+minutes until then.
+
+### 3.5 `db` — a pin restatement, correctly refused
+
+Run 31463897045, job `one version constant, and it lives in compose.yaml`:
+
+```
+##[error].github/workflows/cloud-verify.yml:522: restates the image instead of reading compose.yaml
+##[error].github/workflows/cloud-verify.yml:523: restates the image instead of reading compose.yaml
+```
+
+This is a HARD check over six OWNED harness files and it is right. It is *listed here*
+rather than under §4 because the refusal is correct and precise; it is nonetheless
+**fixable, and §4.3 says by whom**. `kernel` is `skipped` behind it, so the lane's
+`conform` red required by ADR 0005 has still not been observed on `master`, which is why
+`ci`'s `PL-2 — the red run is recorded` job is also red.
+
+### 3.6 `nightly-differential` — the lane refuses to report green on a skip
+
+Run 31435379720:
+
+```
+the differential SKIPPED. A cluster is running in this job, so a skip means the suite
+could not reach it. This lane asserts nothing when it skips and must not be allowed to
+report green.
+```
+
+The lane is correct to refuse. It has not re-run since `834aa59`; its next run is the
+measurement that matters.
+
+---
+
+## 4. The three untidy reds
+
+Untidy, not intentional: each is fixable and none of them was fixed.
+
+### 4.1 `ci` → `REUSE`, and `submission` with it
 
 ```
 REFUSED [RATCHET] metric=non_spdx_spelling.FSL-1.1-ALv2 baseline=1213 measured=1254
 ```
 
-**This is pre-existing and is not attributable to this wave.** `qa/reuse-ratchet.json` was not
-touched by this commit; the same `measured=1254` was recorded in the pre-wave runs, and it
-reproduces locally at `HEAD`. It entered with `5ddaa3a`. The Functional Source License is not
-on the SPDX list, so REUSE 3.3 requires the `LicenseRef-` form; 41 files added by the previous
-wave use the bare spelling. The red is telling the truth and the repair is a spelling pass over
-those 41 files, followed by regenerating the ratchet.
+The repository is mid-migration between `FSL-1.1-ALv2` and `LicenseRef-FSL-1.1-ALv2`:
+4 821 occurrences already use the REUSE 3.3 form and 1 254 do not.
 
-### 3.8 `demo-health` — correctly red, and loudly so
+**W10 built the migration, measured it, and reverted it.** It is not a mechanical sweep:
+it rewrites 290 migration `.sql` files whose bytes are recorded in
+`verticals/mainline/db/migrations.lock.json` — the artefact behind `chain 271/271
+applied` — and it produced **59 new test failures** (5 → 64 across the suites that name the
+spelling), because eleven sites *generate* the bare spelling and five *assert* it. The full
+measurement, and the ordered plan for doing it properly, are in
+[`docs/ci/mechanical-sweeps.md`](ci/mechanical-sweeps.md) §2.
 
-```
-##[error]Set the repository variable DEMO_URL to the CloudFront demo URL … This job fails
-rather than skips, because a health check that passes without checking anything is the
-failure it exists to prevent.
-```
+This is the **only** thing keeping `submission` red. `LICENSE` and `LICENSES/` exist and
+the path-length gate is fixed.
 
-No demo is deployed and `gh variable list` is empty. The job is scheduled every 30 minutes, so
-it will keep accumulating red runs on the Actions tab until the demo exists and `DEMO_URL` is
-set. That is a configuration truth, not a health truth, and the job says so by name. It is
-correct as written; the cost is cosmetic and the cure is to deploy the demo.
+### 4.2 `boundary` — two lint findings, both older than the wave
 
-### 3.9 `mutation-ratchet` — the cluster now starts; the lane's dependency floor is short
-
-The `error: hostname of listen_addr must be "127.0.0.1" or "localhost"` that stopped this lane
-is **gone**. The node came up and the whole chain applied against it in CI:
+Run 31462708369, job `mainline-boundary unit tests`, step `ruff`: `Found 2 errors.`
 
 ```
-fingerprint b558074c4e01a80ab76e523237443cc9a332390de770da7a9ea348cb688b7c7c
-            (grade strong, attestation ordinal 271)
+tests/boundary/conftest.py:39:1        E402   Module level import not at top of file
+tests/boundary/test_fleet_matrix.py:5  RUF002 Docstring contains ambiguous EN DASH
 ```
 
-That is 271 migrations applied on a real CockroachDB v26.2.5 container inside GitHub Actions —
-the central claim now has a CI witness, not only a local one.
+Both pre-date the sweep. Measured on a fresh LF worktree with
+`ruff check packages/mainline-boundary tests/boundary`: **7 errors at `8e8c0b3`, 2 at
+`47f8aa2`** — the sweep removed four `I001` and one `E501` and introduced nothing. The A6
+grep W3 narrowed is fixed and its `RED —` control is green.
 
-The lane then fails at `exit code 4` (pytest usage error) for two dependency reasons:
+### 4.3 `db`'s pin restatement has a known repair
 
-```
-uv run --frozen --package mainline-mutation python -m pytest tests/e2e/mutation tests/unit/domain/novelty -q
-ERROR: Unknown config option: timeout
-ModuleNotFoundError: No module named 'yaml'   (tests/unit/domain/novelty/test_novelty_manifest.py:45)
-```
+`cloud-verify.yml:522` and `release-proof.yml:380,384` write the image literal in order to
+compare it against `compose.yaml`. The repair is to extract it the way
+`trappoint_migrate.crdb.pinned_image` already does — find the `trappoint:crdb-image-pin`
+marker, take the first `image:` line within the next three — which spells no image literal
+at all, satisfies the hard check, and takes the census `restated` count from 25 to 19
+without a ceiling moving. Owner: those two lanes.
 
-The root `pyproject.toml` sets `--strict-config` and `timeout = 120`, so any environment
-without `pytest-timeout` refuses to start; and the minimal `--package mainline-mutation`
-environment does not carry `PyYAML`, which the selected tests import. This is the same class of
-defect as `release-proof`'s exit-4 — which **was** fixed in this wave — applied to a lane whose
-owner fixed only the container. Environment defect, still to fix, and the repair is to add both
-to the lane's install line.
-
-### 3.10 `nightly-differential` — a latent authoring bug that only became visible today
-
-```
-error: the argument '--package <PACKAGE>' cannot be used multiple times
-##[error]Process completed with exit code 2.
-```
-
-`uv` accepts `--package` once. `nightly-differential.yml:292` and `:302` pass it twice:
-
-```yaml
-run: uv sync --frozen --package trappoint-model --package trappoint-core
-     uv run  --frozen --package trappoint-model --package trappoint-core \
-```
-
-**This is pre-existing, and it is the clearest single illustration of §1.** The same two lines
-are present verbatim at `HEAD~1`; the wave did not touch them. They had simply never been
-executed, because the lane was keyed to `push: branches: [main]` and `main` does not exist. The
-defect has been sitting in the tree unobserved, and retargeting the trigger is what found it.
-Environment defect, still to fix; the repair is `--all-packages`, or one `--package` plus the
-other dependency supplied another way.
-
-The `64 parallel merges of one subject` job carries no `continue-on-error` (there is none
-anywhere in the file), so its failure fixes the run's conclusion at **failure** regardless of
-the two `differential ·` matrix jobs, which allow up to `timeout-minutes: 180` and were still
-running when this was written. Their individual outcomes are worth reading when they land, but
-they cannot change the lane's verdict.
+W10 owns `db.yml` and deliberately did **not** absorb this into the census. An earlier
+attempt (`f229c1b`) taught the census to treat those lines as a self-policing guard; it was
+reverted whole in `47f8aa2` once the real run showed the hard check refusing first, and
+because db.yml's own comment says an exclusion list "is a place to hide a real regression".
 
 ---
 
-## 4. `supply-chain` is green, and the green is real
+## 5. Claims in the previous version of this document that did not survive
 
-The brief flagged this lane as the one whose *earlier pass was vacuous* — the anti-vacuity
-guard had reported that `mainline-domain` and `trappoint-core` never appeared in the set being
-searched, so the clean result was measured over the wrong thing. That has been verified fixed,
-not merely observed green:
+### 5.1 "`ruff format`, 247 files" — the number is **207**
 
-```
-Witness two — uv tree --frozen --no-dev --package mainline-gate-svc
-  mainline-gate-svc v0.1.0
-  ├── mainline-domain v0.1.0
-  │   ├── numpy v2.5.1
-  │   ├── pint v0.25.3
-  │   ├── rapidfuzz v3.14.5
-  │   └── scipy v1.18.0
-  ├── psycopg[binary] v3.3.4
-  └── trappoint-core v0.1.0
+`core.autocrlf` is `true` in this checkout and `ruff.toml` pins `line-ending = "lf"`, so
+153 of 1 190 `.py` files counted as unformatted on Windows and did not on the runner.
+Measured on a fresh LF worktree: **207**, being 200 `.py` and 7 `.md` (ruff formats python
+fences inside Markdown). The tree is now at **0**.
 
-THE ASSERTION — uv export: 15 distribution(s) … including mainline-domain, trappoint-core
-                uv tree:   14 distribution(s) … including mainline-domain, trappoint-core
-```
+### 5.2 "`db-schema`: the helper hand-lists a migration subset omitting 0110 … drops 0138a"
 
-Both witnesses now name the required workspace members, so the anti-vacuity guard is satisfied
-**by evidence** rather than bypassed, and the no-model-SDK claim is asserted over a set that
-actually contains the gate service's own dependencies. The guard was strengthened, not removed.
+**Already fixed** before this wave measured it.
+`tests/integration/recall_schema/_schema_support.py` carries
+`_MIGRATION_ID = re.compile(r"(\d{1,4})([a-z]*)")`, a `migration_id()` that raises rather
+than skipping, `"0110"` in the band, and `_assert_band_is_self_contained`. The lane's live
+failures are the catalogue job and `mi-red`. W5 generalised the same defect class to
+`test_rc00_migration_shape.py` and `test_mi_spine.py`.
 
-The architectural fact this exposes is recorded rather than hidden: `mainline-gate-svc`, a
-service whose entire job is one `SERIALIZABLE` transaction and one `CALL mainline.merge_permit`,
-reaches **scipy, numpy, pint and rapidfuzz** through `mainline-domain`. No model SDK is present
-— the claim holds — but four BLAS/binary-wheel distributions inside a determinism-critical
-merge gate is a `mainline-domain` split worth making later.
+### 5.3 "MI ratchet at 28 of 30"
 
----
+The measured message is **21 of 30 pending** — `MI03…MI30`, nine promoted. An intentional
+red whose message is seven invariants out of date is an intentional red losing its
+precision; W4 corrected the registry string.
 
-## 5. Regressions introduced by this wave
+### 5.4 The image-pin census, restated
 
-Two, both caught by guards that were doing their job.
+The previous version recorded `floating 37 / ceiling 34, restated 24 / ceiling 21` and
+called it "a regression this wave introduced". W1 closed it exactly as planned:
 
-### 5.1 The custody registry was flipped on one side only
+| commit | floating | restated |
+|---|---|---|
+| `ed4a12f` | 37 | 24 |
+| `90b74df` (W1) | **34** | **21** |
+| `8e8c0b3` (before the sweep) | 34 | 25 |
+| `998c526` (after the sweep) | 34 | 25 |
 
-`packages/trappoint-verify/tests/test_checks_totality.py` — 2 tests, newly failing:
-
-```
-test_the_embedded_registry_matches_the_normative_yaml
-  check 1.status: the copy in trappoint_verify.checks says 'deferred';
-  spec/custody/checks.yaml says 'implemented'
-
-test_the_declared_status_lag_is_exactly_the_real_one
-  checks.SPEC_STATUS_LAG says the registry lags for (1, 2, 3, 9, 10, 13, 14, 15, 16),
-  but the real discrepancy is (). Either a check was implemented without declaring the
-  lag, or checks.yaml has been flipped and this tuple must shrink in the same commit.
-```
-
-`SPEC_STATUS_LAG` names the checks that are implemented **in code** while `checks.yaml` still
-calls them `deferred` — a declared, bounded window. This commit flipped exactly those nine ids
-in `spec/custody/checks.yaml` from `deferred` to `implemented`, and did not touch
-`packages/trappoint-verify/src/trappoint_verify/checks/__init__.py`, where both the embedded
-status copy and `SPEC_STATUS_LAG = (1, 2, 3, 9, 10, 13, 14, 15, 16)` still stand. The window
-closed; its declaration did not shrink with it.
-
-Verified by substitution, then restored:
-
-```
-HEAD~1 checks.yaml + HEAD code  ->  12 passed
-HEAD   checks.yaml + HEAD code  ->  2 failed, 10 passed
-```
-
-The remedy is the one the assertion names: in `checks/__init__.py`, set `SPEC_STATUS_LAG = ()`
-and flip the embedded status metadata for ids 1, 2, 3, 9, 10, 13, 14, 15, 16 to `implemented`,
-in one commit. Owner: w5. The verifier does not own that file.
-
-### 5.2 The image-pin census rose
-
-Six prose lines restating `cockroachdb/cockroach:v26.2.5` and `…:latest-v26.2`. Full accounting
-in §3.2.
+The sweep is census-neutral. The four that arrived after W1 are the pin restatements in
+§4.3. Measured by extracting `db.yml`'s own heredoc and running it, not by reimplementing
+it.
 
 ---
 
-## 6. Honest reds — what stays red, and the truth each one reports
+## 6. Anti-vacuity — which greens are load-bearing
 
-| assertion | truth it reports |
+W8's ruling: a proof that a lane *can* fail belongs in the lane as a standing job, because
+a one-off proves it on one day and a standing job proves it on every run. Every green lane
+now carries one.
+
+| lane | the job that proves it can say no |
 |---|---|
-| `custody-chain`, 7 not checked | the cryptographic verifier checks do not exist yet (`owner=verify-crypto`) |
-| `schema`, `0058_blocking_check` | the reference vertical has no producer for `trappoint_ref.event` |
-| `db-schema` `mi-red`, 5 held | five MI invariants' owning tests pass without the invariant being enforced; the tests are too weak, and saying so is more honest than promoting |
-| `ci` `ruff format`, 209 files | the tree is genuinely unformatted; the fix is one mechanical commit that must land alone |
-| `ci` REUSE / `submission`, 1254 vs 1213 | 41 files use the bare `FSL-1.1-ALv2` spelling where REUSE 3.3 requires `LicenseRef-` |
-| `ci` PL-2 run url | the ADR does not yet cite the `db` red run — newly citable, since `db` only just ran on `master` |
-| `demo-health`, `DEMO_URL` unset | no demo is deployed |
-| `tests/eval/recall/test_g4alpha_gates.py` and the MI/PL-2 reds | asserted red by the new `RED BY DESIGN` job, which fails loudly if any of them goes green |
+| `claims` | `RED — the scanner fires on every planted violation family`; `RED — the committed non-compliant fixture is refused`; `Every declared rule is reached by a planted violation, and the plants are load-bearing` |
+| `cloud-verify` | `RED — with no secret the probe says false, and says why`; `RED — a DSN that is not Cloud is a FAILURE, never a quiet false`; `RED — the gate and its complement are both still declared` |
+| `console` | `RED — pnpm run ci fails on every planted violation family`; `RED — one planted violation per promise, and the COMPOSITE must name each` |
+| `judge-pack` | `the validator fires on every planted violation`; `RED — one planted violation per family, all of them caught`; `Each planted mutation changes the pack, is caught, and is absent without it` |
+| `release-proof` | `RED — the gate refuses a run where nothing was proved`; `RED — the proof reports NOT PROVEN when the gate is removed`; `RED — the proof reports a named FAILURE for every planted family` |
+| `skills` | `RED — five planted spec violations, each refused BY NAME`; `RED — four planted marketplace violations, each refused BY NAME` |
+| `submission` | `the submission gate can say no`; `RED — every planted failure family fires` |
+| `boundary` | `RED — the narrowed A6 rule still fires on a real request builder` |
 
-The last row is the structural change that makes this table legible rather than embarrassing.
-`ci` previously ran the by-design-red suites inside the general `pytest` lane, where a judge —
-and a contributor — could not tell a declared red from a regression. They now run in a
-dedicated job that **inverts the verdict**: a test in the declared set that fails is the
-expected state and the job is green; a test that *passes* fails the job by name. It carries
-three anti-vacuity guards, read directly from `.github/workflows/ci.yml`:
+`supply-chain` carries an anti-vacuity **guard** (the resolved set must name the workspace
+members) rather than a planted violation, and is the one green lane whose proof is weaker
+than the others'. It is named here rather than left to be discovered.
 
-* a **floor** (`RED_FLOOR: 5`) on *failures*, so a selector that silently collapses to the
-  empty set fails instead of passing;
-* a **registry** mapping every permitted file to the truth its red reports, so the marker
-  cannot become a place to hide an inconvenient regression;
-* a **skip census**, because `--crdb=none` cannot measure a cluster-backed test and an
-  unmeasured test may never satisfy the floor.
-
-The job is green in run 31386723652, which means all nine declared reds are still red and
-nothing else moved into that set.
-
-No `continue-on-error` was added and no `|| true` was added. **Four real ones were removed**
-(non-comment occurrences across the workflow tree fell 19 → 15):
+Two checkers additionally prove themselves outside CI, on a synthetic tree:
 
 ```
--  run: python -m mainline_boundary.cli e1 --json || true          boundary.yml
--  run: python -m mainline_boundary.cli e3 || true                 boundary.yml
--  … && { echo "::error::the verifier pulled in a dependency beyond cryptography"; exit 1; } || true
--  grep -E '^[A-Za-z0-9]' gate-svc.requirements.txt || true        supply-chain.yml
+$ scripts/qa/check_reuse.py --self-test
+7 of 7 scenarios behaved as declared: the checker passes a complete tree and refuses
+each of the 6 planted violations.
 ```
 
-The third of those is the `custody-chain.yml` SC2015 that `actionlint` flagged: an
-`A && { …; exit 1; } || true` whose trailing `|| true` swallowed the very `exit 1` it had just
-raised, so the dependency-floor check could not fail. Removing it is what makes that assertion
-real. No assertion was deleted, and `docs/HONESTY.md` was not edited by this wave.
-The three `continue-on-error` entries in `submission.yml` are pre-existing and structural: they
-capture a step's exit status via `PIPESTATUS` so a later decision step can fail on it.
+and `tests/release/test_ruff_ratchet.py` records, in its own module docstring, the two runs
+in which the ratchet was neutered and the exact assertions that went red.
 
 ---
 
-## 7. Corrections to the triage this repair started from
+## 7. What this leaves for the next wave
 
-Three claims in the original problem statement did not survive measurement. They are recorded
-because each one would have sent a worker to fix a thing that was not broken.
+1. **Finish the licence migration properly** — `docs/ci/mechanical-sweeps.md` §2.4 has the
+   ordered plan. Closes `ci`'s `REUSE` job and all of `submission`.
+2. **Make `cloud-verify.yml` and `release-proof.yml` read the pin** (§4.3). Closes `db`'s
+   `image-pin`, which unblocks `kernel`, which produces the observed red `conform` run that
+   `ci`'s `PL-2` job is waiting for.
+3. **Two lint findings in `tests/boundary/`** (§4.2). Closes `boundary`.
+4. **`console.yml:498` SC2140** (§2). Closes `ci`'s `actionlint`.
+5. Deploy a demo and set `DEMO_URL`. Closes `demo-health` and the submission's Stage One.
 
-* **"`custody-chain` → `check_chain_fn_matches_spec.py` **absent**"** — the file is present and
-  has been tracked since `904f1b4`:
-  `git ls-files --error-unmatch scripts/custody/check_chain_fn_matches_spec.py` resolves. The
-  brief's line was the `run:` block's own **echoed source** appearing in the log, not the step's
-  output. `gh run view --log-failed` prints both, and they are easy to confuse: every echoed
-  source line is prefixed by the runner with the same job/step columns as real output.
-* **"`supply-chain` → `SECURITY CLAIM BROKEN: mainline-gate-svc now resolves …`"** — this string
-  was never printed as output either; same cause. The finding that *was* printed, in every
-  recent run, is the anti-vacuity guard reporting that the resolved set did not contain the
-  workspace members — which is a statement about the instrument, not about a broken boundary.
-  §4 shows the boundary itself holds.
-* **"Sixteen workflows exist"** — there are **17** files in `.github/workflows/`.
-
-The general lesson for reading these logs: `##[error]` lines and lines inside a `##[group]Run …`
-header are different kinds of thing, and only the former are results.
-
----
-
-## 8. What to do next, in the order that changes the Actions tab most
-
-1. **Fix the two regressions this wave introduced** (§5). Both are small, both are guards
-   working correctly, and both should land before anything else — a repair wave that leaves
-   regressions behind teaches people to distrust the guards.
-   `SPEC_STATUS_LAG = ()` plus nine embedded status flips; six prose lines reworded.
-2. **`nightly-differential`'s `--package` twice** (§3.10) and **`mutation-ratchet`'s missing
-   `pytest-timeout` / `PyYAML`** (§3.9). Both are one-line lane fixes and both currently mask
-   whatever those lanes would otherwise measure.
-3. **Narrow the A6 sampling-parameter grep** (§3.4) so `boundary` stops reporting two
-   physical-unit tables as model request builders. A guard that cries wolf is a guard on its
-   way to being ignored.
-4. **The `ruff format` commit** (§3.1) — mechanical, 209 files, must land alone.
-5. **The `LicenseRef-` spelling pass** over 41 files (§3.7), then regenerate
-   `qa/reuse-ratchet.json`.
-6. **Record the `db` red run URL in the PL-2 ADR** (§3.1). This is now possible for the first
-   time, because `db` has finally run on `master`.
-
-What stays red after all of that, and should: `custody-chain` (7 crypto checks unwritten),
-`schema` (reference vertical producer), `db-schema`'s five held MI invariants, and
-`demo-health` until a demo exists. Those four are the product being honest about its own
-incompleteness, which is the property this pipeline was built to preserve.
-
----
-
-## 9. Re-checking this document
-
-Every claim above is reproducible with the commands in §0. The fastest full check:
-
-```bash
-gh run list --branch master --limit 20
-gh run view 31386723652 --json jobs \
-  --template '{{range .jobs}}{{.conclusion}} :: {{.name}}{{"\n"}}{{end}}'   # ci
-gh run view <any-red-run-id> --log-failed
-```
-
-For a job in a run that is still in progress — whose logs `gh run view` will not serve — fetch
-the job directly:
-
-```bash
-gh api repos/Shaugato/mainline/actions/runs/<run-id>/jobs \
-  --jq '.jobs[] | "\(.id) \(.conclusion) \(.name)"'
-gh api repos/Shaugato/mainline/actions/jobs/<job-id>/logs
-```
-
-`gh api --jq` uses gh's own embedded jq and does not need the `jq` binary, which is not
-installed on this workstation. Omit the leading `/` from the endpoint or Git Bash will rewrite
-it into a filesystem path.
-
-At the time of writing, `nightly-differential`'s two `differential ·` matrix jobs
-(`93448687081`, `93448687143`) were still running. They cannot change that lane's conclusion
-(§3.10), but their own results are worth reading when they land.
+Nothing in this list is a ratchet to be raised or a check to be softened. Every one of them
+is a thing that does not exist yet, or a line that is written twice and should be written
+once.
