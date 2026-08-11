@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """The fleet capability matrix.
 
-E1–E4 prove no model reaches the gate through IAM, the network, the image or the
+E1-E4 prove no model reaches the gate through IAM, the network, the image or the
 protocol set. This module proves the fifth thing, about the register rather than
 the infrastructure: that the fleet we *declare* is one in which the components
 reading hostile text hold nothing to act with.

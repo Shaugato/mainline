@@ -36,7 +36,12 @@ _SRC = _REPO_ROOT / "packages" / "mainline-boundary" / "src"
 if _SRC.is_dir() and str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
 
-from mainline_boundary.planfacts import PlanFacts
+# The suppression on the next line is load-bearing, not a silenced warning. The
+# sys.path insert directly above must run BEFORE this import, or a bare checkout
+# cannot import the package at all and the boundary enforcements go unrunnable for
+# a packaging reason. That is the one way E1-E4 could quietly stop protecting the
+# gate: not by failing, but by never running.
+from mainline_boundary.planfacts import PlanFacts  # noqa: E402
 
 PLAN_FIXTURE = _REPO_ROOT / "tests" / "boundary" / "fixtures" / "plan.json"
 POLICY_DIR = _REPO_ROOT / "tests" / "boundary" / "policy"
