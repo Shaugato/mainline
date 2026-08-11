@@ -912,9 +912,7 @@ def _admitted_rows(run: _RunInput) -> tuple[list[AnnRow], list[AnnRow], list[Ann
     return candidates, scoped_duplicates, kept[run.k :]
 
 
-def _declare_partition(
-    run: _RunInput, tau_table: TauTable, cap: int
-) -> tuple[int, int, int, int]:
+def _declare_partition(run: _RunInput, tau_table: TauTable, cap: int) -> tuple[int, int, int, int]:
     """``(blocking, advisory, silenced, deduped)`` from the policy arithmetic alone.
 
     This is the *declared* side of conservation law L3 and it is deliberately a second
@@ -982,16 +980,20 @@ class BedrockBackend:
         self._embedder = embedder if embedder is not None else TitanEmbedder()
         self._probe = probe
         self._corpus_head_wall = corpus_head_wall
-        self._tau = tau_table if tau_table is not None else TauTable(
-            thresholds=dict(DEFAULT_TAU),
-            policy_version=policy_version or "architecture-6.4-defaults",
-            provenance={
-                "source": "ARCHITECTURE 6.4 initial calibrated defaults",
-                "note": (
-                    "not fitted on this corpus; severity selects the threshold and never "
-                    "alters the score"
-                ),
-            },
+        self._tau = (
+            tau_table
+            if tau_table is not None
+            else TauTable(
+                thresholds=dict(DEFAULT_TAU),
+                policy_version=policy_version or "architecture-6.4-defaults",
+                provenance={
+                    "source": "ARCHITECTURE 6.4 initial calibrated defaults",
+                    "note": (
+                        "not fitted on this corpus; severity selects the threshold and never "
+                        "alters the score"
+                    ),
+                },
+            )
         )
         self._cap = cap
         self._ann_overfetch = max(1, ann_overfetch)

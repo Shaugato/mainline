@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 MAINLINE contributors
-# SPDX-License-Identifier: FSL-1.1-ALv2
+# SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
 """A driver exception, turned into the wire refusal payload — with nothing added.
 
 ``spec/wire/refusal.md`` and ``spec/wire/refusal.schema.json`` govern the payload; this

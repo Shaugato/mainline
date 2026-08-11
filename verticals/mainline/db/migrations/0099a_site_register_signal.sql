@@ -1,5 +1,5 @@
 -- SPDX-FileCopyrightText: 2026 MAINLINE contributors
--- SPDX-License-Identifier: FSL-1.1-ALv2
+-- SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
 --
 -- MAINLINE · 0099a_site_register_signal.sql
 -- CREATE TABLE mainline_ops.site_register_signal — the mechanism-predicate watch source

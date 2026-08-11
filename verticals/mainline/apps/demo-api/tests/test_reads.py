@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 MAINLINE contributors
-# SPDX-License-Identifier: FSL-1.1-ALv2
+# SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
 """The twelve reads, against a real migrated CockroachDB, checked against the real contracts.
 
 THE CENTRAL TEST IS :func:`test_every_read_satisfies_its_committed_contract`. It runs each

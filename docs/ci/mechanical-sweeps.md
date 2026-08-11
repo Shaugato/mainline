@@ -129,7 +129,7 @@ sweep and are named in `docs/CI-STATE.md`.
 
 ## 2. Sweep two — finish the REUSE 3.3 migration — **NOT LANDED**
 
-The brief was: rewrite every remaining bare `SPDX-License-Identifier: FSL-1.1-ALv2` to
+The brief was: rewrite every remaining bare `SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2` to
 `LicenseRef-FSL-1.1-ALv2`, delete `LICENSES/FSL-1.1-ALv2.txt`, and gate
 `non_spdx_spelling.FSL-1.1-ALv2` at 0.
 

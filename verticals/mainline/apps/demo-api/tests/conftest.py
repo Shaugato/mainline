@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 MAINLINE contributors
-# SPDX-License-Identifier: FSL-1.1-ALv2
+# SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
 """The cluster, the schema, the seeded history, and a validator for the console's contracts.
 
 FOUR THINGS THIS FILE PROVIDES, AND THE REASON EACH IS SHAPED THE WAY IT IS.

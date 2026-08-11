@@ -1,5 +1,5 @@
 -- SPDX-FileCopyrightText: 2026 MAINLINE contributors
--- SPDX-License-Identifier: FSL-1.1-ALv2
+-- SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
 --
 -- MAINLINE · 0099_outbox.sql
 -- CREATE TABLE mainline_ops.outbox — THE ONE CDC-QUERY SOURCE in the deployment

@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 MAINLINE contributors
-# SPDX-License-Identifier: FSL-1.1-ALv2
+# SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
 """The gate run, against a real migrated CockroachDB node.
 
 These are not unit tests and are not pretending to be. Every assertion below is about what

@@ -505,7 +505,7 @@ jobs:
             echo "| \`const x: number = 'a string'\` | \`tsc --noEmit\` | \`TS2322\` |"
             echo "| \`expect(1).toBe(2)\` | \`vitest run\` | \`PLANTED-VITEST-FAILURE\` |"
             echo "| ~300 KB of incompressible ballast in the entry chunk | \`check:budgets\` | \`[evidentiary-shell] … exceeds\` |"
-            echo "| \`react\` added to \`forbidden_in_entry\` | \`check:budgets\` | \`[lazy-boundary] "react" is bundled INTO …\` |"
+            echo "| \`react\` added to \`forbidden_in_entry\` | \`check:budgets\` | \`[lazy-boundary] \"react\" is bundled INTO …\` |"
             echo "| \`gsap\` declared as a dependency | \`check:licences\` | \`DENIED  gsap\` |"
             echo "| \`axe-core\` (MPL-2.0) promoted to runtime | \`check:licences\` | \`NOT ALLOWED … (runtime) is \"MPL-2.0\"\` |"
             echo ""

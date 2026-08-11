@@ -539,9 +539,7 @@ def routine_partition_occupancy(
     }
 
 
-def text_uniqueness(
-    corpus: EvalCorpus, rows: Sequence[dict[str, Any]]
-) -> dict[str, object]:
+def text_uniqueness(corpus: EvalCorpus, rows: Sequence[dict[str, Any]]) -> dict[str, object]:
     """How many *distinct* strings the corpus actually presents to the embedder.
 
     Measured, not assumed, and it turned out to matter: 1 071 synthetic documents render to
@@ -658,9 +656,7 @@ def gate_attribution(
     * ``conservation_l3`` is an accounting law over whatever ran. It is never attributable
       to a missing channel — if it fails, this backend's counters are wrong.
     """
-    vacuous_control = bool(
-        occupancy and occupancy.get("nuisance_rate_is_materially_vacuous")
-    )
+    vacuous_control = bool(occupancy and occupancy.get("nuisance_rate_is_materially_vacuous"))
     if gate.gate_id == "nuisance_rate" and vacuous_control:
         share = occupancy["share_addressing_an_empty_partition"] if occupancy else None
         return {
@@ -708,10 +704,7 @@ def gate_attribution(
 
 def _measurement_line(label: str, measurement: Any) -> str:
     if not measurement.defined:
-        return (
-            f"- **{label}** is UNDEFINED over n={measurement.n}: "
-            f"{measurement.undefined_reason}"
-        )
+        return f"- **{label}** is UNDEFINED over n={measurement.n}: {measurement.undefined_reason}"
     pct = round(measurement.confidence * 100)
     return (
         f"- **{label}** {measurement.value:.4f}, {pct}% "
@@ -776,15 +769,15 @@ def render_report(
         "would produce; the threshold metrics are conditional on it and are not the "
         "shipped policy's numbers."
     )
-    add(
-        f"- **The parent table is a stub.** {manifest['database']['stub_disclosure']}"
-    )
+    add(f"- **The parent table is a stub.** {manifest['database']['stub_disclosure']}")
     add("")
 
     add("## The five G4-alpha gates")
     add("")
-    add(f"Overall: **{overall_status(gates)}** — {sum(1 for g in gates if g.passed)} of "
-        f"{len(gates)} gates pass.")
+    add(
+        f"Overall: **{overall_status(gates)}** — {sum(1 for g in gates if g.passed)} of "
+        f"{len(gates)} gates pass."
+    )
     add("")
     for gate in gates:
         add(f"### `{gate.gate_id}` — {gate.status}")
@@ -1076,8 +1069,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.skip_load:
         with crdb(database) as connection:
             stored = int(
-                connection.execute("SELECT count(*) FROM mainline.clause_embedding")
-                .fetchone()[0]
+                connection.execute("SELECT count(*) FROM mainline.clause_embedding").fetchone()[0]
             )
         load_report = {"skipped": True, "rows_in_index": stored}
     else:
@@ -1113,9 +1105,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     reachability = prefix_reachability(corpus, rows)
     uniqueness = text_uniqueness(corpus, rows)
     occupancy = routine_partition_occupancy(corpus, rows)
-    ledger_rows = [
-        token_ledger_entry(embedder.model_id, embedder.calls, embedder.input_tokens, 0)
-    ]
+    ledger_rows = [token_ledger_entry(embedder.model_id, embedder.calls, embedder.input_tokens, 0)]
     env = dotenv()
     # The cache lives under gitignored ``out/``; an absolute Windows path in a committed
     # artefact is not a secret but it is not reproducible either, and an evidence file that

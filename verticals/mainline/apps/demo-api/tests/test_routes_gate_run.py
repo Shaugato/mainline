@@ -188,6 +188,7 @@ def test_the_demo_route_reaches_the_connection_step_when_no_dsn_is_set(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """A 503 here proves the router passed it on. Before the fix this was a flat 404."""
+
     def _no_dsn(**_: Any) -> Any:
         raise demo_db.DsnUnavailable("no dsn in this test")
 

@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 MAINLINE contributors
-# SPDX-License-Identifier: FSL-1.1-ALv2
+# SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
 """The twelve GET resources declared by ``console/src/data/resources.ts``.
 
 Every function here returns a complete read envelope for one resource key, built from

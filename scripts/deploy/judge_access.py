@@ -496,8 +496,7 @@ def assert_no_credentials(payload: dict[str, Any], *, issued: str = "") -> dict[
         findings.append(f"a DSN carrying userinfo survived redaction: {match.group(0)[:24]}...")
     suspects = sorted({t for t in TOKEN_SHAPE.findall(text) if looks_like_credential(t)})
     findings.extend(
-        f"credential-shaped token in the artefact: {t[:6]}... ({len(t)} chars)"
-        for t in suspects
+        f"credential-shaped token in the artefact: {t[:6]}... ({len(t)} chars)" for t in suspects
     )
     if findings:
         raise CredentialInArtefact("; ".join(findings))

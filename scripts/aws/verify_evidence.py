@@ -317,9 +317,7 @@ _DSN_PASSWORD = re.compile(r"(?i)\bpostgres(?:ql)?://[^:/@\s\"']+:([^@\s\"']+)@"
 #: bound is what keeps this from becoming the "mask" that swallows the leak it exists to
 #: catch: `<pw>` passes, `<pw>x` does not, and neither does anything with a space,
 #: a slash or a quote in it.
-_MASKED_PASSWORD = re.compile(
-    r"(?i)^(?:\*+|x+|<[a-z0-9_-]{1,24}>|redacted|%2A+|\.\.\.|…)$"
-)
+_MASKED_PASSWORD = re.compile(r"(?i)^(?:\*+|x+|<[a-z0-9_-]{1,24}>|redacted|%2A+|\.\.\.|…)$")
 
 #: AWS unique-id prefixes, from AWS's own list.
 _ACCESS_KEY_ID = re.compile(
@@ -429,7 +427,9 @@ class Verifier:
                 self.result.fail("ENV-PARSE", rel, f"does not parse as JSON: {exc}")
                 continue
             if not isinstance(doc, dict):
-                self.result.fail("ENV-PARSE", rel, f"top level is {type(doc).__name__}, not an object")
+                self.result.fail(
+                    "ENV-PARSE", rel, f"top level is {type(doc).__name__}, not an object"
+                )
                 continue
             self.result.tick("ENV-PARSE")
             self.envelopes[rel] = doc
@@ -466,8 +466,13 @@ class Verifier:
                 self.result.tick("ENV-REGION")
 
             stamp = doc.get("generated_at")
-            if not (isinstance(stamp, str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z", stamp)):
-                self.result.fail("ENV-TIME", rel, f"generated_at is {stamp!r}, not UTC ISO-8601 'Z'")
+            if not (
+                isinstance(stamp, str)
+                and re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z", stamp)
+            ):
+                self.result.fail(
+                    "ENV-TIME", rel, f"generated_at is {stamp!r}, not UTC ISO-8601 'Z'"
+                )
             else:
                 self.result.tick("ENV-TIME")
 
@@ -719,9 +724,9 @@ class Verifier:
         history = _dig(ledger, "index_cumulative", "build_history")
         entry = _dig(ledger, "index_cumulative", "ledger_entry")
         totals = _dig(ledger, "totals")
-        if not all(isinstance(x, dict) for x in (cumulative, recon, entry, totals)) or not isinstance(
-            history, list
-        ):
+        if not all(
+            isinstance(x, dict) for x in (cumulative, recon, entry, totals)
+        ) or not isinstance(history, list):
             self.result.fail(
                 "XR-LEDGER-RECON",
                 self.LEDGER,
@@ -812,7 +817,9 @@ class Verifier:
         {"json_pointer", "rows", "model_id", "also_at", "generated_at", "generated_by", "path"}
     )
 
-    def _compare_numbers(self, where: str, quoted: dict[str, Any], landed: dict[str, Any], path: str) -> int:
+    def _compare_numbers(
+        self, where: str, quoted: dict[str, Any], landed: dict[str, Any], path: str
+    ) -> int:
         """Compare every numeric key *quoted* also carries at *landed*. Returns the count."""
         matched = 0
         for key, value in quoted.items():
@@ -994,7 +1001,11 @@ class Verifier:
                     continue
                 if isinstance(landed, list) and isinstance(quoted.get("rows"), list):
                     for index, row in enumerate(quoted["rows"]):
-                        if index < len(landed) and isinstance(row, dict) and isinstance(landed[index], dict):
+                        if (
+                            index < len(landed)
+                            and isinstance(row, dict)
+                            and isinstance(landed[index], dict)
+                        ):
                             here += self._compare_numbers(
                                 f"repo_sources.{name}.{block}.rows[{index}]",
                                 row,
@@ -1138,7 +1149,7 @@ class Verifier:
                 self.result.fail(
                     "SEC-ACCOUNT-ID",
                     f"{rel}:{_line_of(text, match.start())}",
-                    f"a bare 12-digit run {text[match.start():match.end()]!r} survives "
+                    f"a bare 12-digit run {text[match.start() : match.end()]!r} survives "
                     "UUID/digest/decimal masking and has the shape of an AWS account id. "
                     "An account number is not a credential, and publishing one still "
                     "enables cross-account enumeration",
@@ -1225,7 +1236,9 @@ class Verifier:
                 verdict = row.get("verdict")
                 if verdict not in VERDICTS:
                     self.result.fail(
-                        "CEN-VERDICT-VALUES", f"{rel}#rows.{key}", f"verdict {verdict!r} is not one of {sorted(VERDICTS)}"
+                        "CEN-VERDICT-VALUES",
+                        f"{rel}#rows.{key}",
+                        f"verdict {verdict!r} is not one of {sorted(VERDICTS)}",
                     )
                 else:
                     self.result.tick("CEN-VERDICT-VALUES")
@@ -1389,7 +1402,7 @@ class Verifier:
             self.result.fail(
                 "SEC-CENSUS-NOTE",
                 self.AWS_CENSUS,
-                f"contains a 12-digit run {blob[match.start():match.end()]!r} despite its "
+                f"contains a 12-digit run {blob[match.start() : match.end()]!r} despite its "
                 "own note forbidding an account identifier",
             )
 
@@ -1430,7 +1443,8 @@ class Verifier:
         ):
             declared = {row.key: (row.verdict, row.verdict_basis) for row in getattr(module, attr)}
             committed = {
-                key: (row.get("verdict"), row.get("verdict_basis")) for key, row in doc["rows"].items()
+                key: (row.get("verdict"), row.get("verdict_basis"))
+                for key, row in doc["rows"].items()
             }
             if set(declared) != set(committed):
                 self.result.fail(
@@ -1566,7 +1580,9 @@ class Verifier:
             target = self.evidence.parent / path
             if not target.is_file():
                 self.result.fail(
-                    "DOC-TOOL-USAGE-REFS", "docs/TOOL-USAGE.md", f"cites {path}, which does not exist"
+                    "DOC-TOOL-USAGE-REFS",
+                    "docs/TOOL-USAGE.md",
+                    f"cites {path}, which does not exist",
                 )
                 continue
             if pointer is None:
@@ -1700,7 +1716,9 @@ def _plants() -> list[tuple[str, str, Any]]:
     def unpin_plan(ev: Path) -> None:
         target = ev / "aws" / "ann" / "explain-hinted.txt"
         target.write_text(
-            target.read_text(encoding="utf-8").replace("clause_embedding@ce_ann", "clause_embedding"),
+            target.read_text(encoding="utf-8").replace(
+                "clause_embedding@ce_ann", "clause_embedding"
+            ),
             encoding="utf-8",
         )
 
@@ -1981,8 +1999,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     if result.ok:
         sys.stdout.write(
-            "evidence/aws verified hermetically — no credential, no network, "
-            "no cluster.\n\n"
+            "evidence/aws verified hermetically — no credential, no network, no cluster.\n\n"
         )
         _render_report(result, sys.stdout)
         sys.stdout.write(

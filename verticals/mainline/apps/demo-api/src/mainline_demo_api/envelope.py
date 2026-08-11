@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 MAINLINE contributors
-# SPDX-License-Identifier: FSL-1.1-ALv2
+# SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
 """The read envelope, its provenance chips, and the encoding that makes a driver row wire-legal.
 
 READ ``console/src/data/transport.ts::finishExchange`` BEFORE CHANGING ANYTHING HERE.

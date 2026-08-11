@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 MAINLINE contributors
-# SPDX-License-Identifier: FSL-1.1-ALv2
+# SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
 """Tier-3 schema suite for the three producers of migrations 0090, 0099 and 0099a.
 
 These three tables had their consumers written first and nobody wrote the ``CREATE TABLE``.

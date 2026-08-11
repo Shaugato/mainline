@@ -217,9 +217,7 @@ def test_retrieve_returns_scored_candidates_on_channel_c() -> None:
 
 def test_routine_permit_is_walled_at_corpus_head() -> None:
     backend, probe = make_backend(rows_at(0.10))
-    routine = make_query(
-        "Q-NC-1", kind="routine", severity=None, wall=None, truth_doc_id=None
-    )
+    routine = make_query("Q-NC-1", kind="routine", severity=None, wall=None, truth_doc_id=None)
     asyncio.run(backend.retrieve(routine, 10))
     assert probe.seen[0]["wall"] == CORPUS_HEAD
 
@@ -460,8 +458,7 @@ def test_the_evidence_ddl_is_the_migration_table_and_not_a_paraphrase() -> None:
     from scripts.aws.recall_real import EMBEDDING_DDL
 
     migration = (
-        REPO_ROOT
-        / "verticals/mainline/db/migrations/0031_clause_embedding.sql"
+        REPO_ROOT / "verticals/mainline/db/migrations/0031_clause_embedding.sql"
     ).read_text(encoding="utf-8")
     match = re.search(
         r"^CREATE TABLE mainline\.clause_embedding \(.*?^\);",
@@ -531,7 +528,9 @@ def test_no_aws_call_is_made_without_a_client_when_the_cache_is_warm(tmp_path: P
 
 def test_embed_text_defaults_an_absent_asset_class_rather_than_dropping_the_field() -> None:
     rendered = embed_text(
-        activity_path="/surface/haul-road-operations", asset_class="", facet="narrative",
+        activity_path="/surface/haul-road-operations",
+        asset_class="",
+        facet="narrative",
         cue_text="grader on the ramp",
     )
     assert "| unspecified |" in rendered

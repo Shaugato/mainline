@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 MAINLINE contributors
-# SPDX-License-Identifier: FSL-1.1-ALv2
+# SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
 """The producer contract for ``mainline_meas.person_measure_policy`` and ``…standing``.
 
 Migrations under test: ``0089a_person_measure_policy``, ``0089b_standing``,

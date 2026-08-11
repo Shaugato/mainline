@@ -1,5 +1,5 @@
 // SPDX-FileCopyrightText: 2026 MAINLINE contributors
-// SPDX-License-Identifier: FSL-1.1-ALv2
+// SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
 
 /**
  * THE DEMO'S FRONT DOOR — four controls over `POST /v1/demo/gate-run`.

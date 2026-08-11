@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 MAINLINE contributors
-# SPDX-License-Identifier: FSL-1.1-ALv2
+# SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
 """The whole server: a router, a dispatcher, a file server, and one function AWS calls.
 
 THERE IS NO WEB FRAMEWORK HERE AND THERE IS NOT GOING TO BE ONE.

@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 MAINLINE contributors
-# SPDX-License-Identifier: FSL-1.1-ALv2
+# SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
 """The demo, in one transaction that is rolled back: refuse, refuse under attack, admit.
 
 ``POST /v1/demo/gate-run`` plays four beats against the seeded permit and returns what the

@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 MAINLINE contributors
-# SPDX-License-Identifier: FSL-1.1-ALv2
+# SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
 """The four POST transitions, against a real migrated CockroachDB node.
 
 Every refusal asserted here is the DATABASE's, produced by writing a row it will not

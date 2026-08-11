@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 MAINLINE contributors
-# SPDX-License-Identifier: FSL-1.1-ALv2
+# SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
 """One connection, one secret, and the retry a managed cluster actually needs.
 
 THREE THINGS THIS MODULE EXISTS TO GET RIGHT.

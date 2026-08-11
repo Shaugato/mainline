@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 MAINLINE contributors
-# SPDX-License-Identifier: FSL-1.1-ALv2
+# SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
 """The MAINLINE demo read API — one Lambda handler, twelve GET resources, no framework.
 
 WHAT THIS PACKAGE IS

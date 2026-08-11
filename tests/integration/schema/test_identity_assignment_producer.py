@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 MAINLINE contributors
-# SPDX-License-Identifier: FSL-1.1-ALv2
+# SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
 """The contract ``mainline.identity_assignment`` owes its consumers, asserted against a cluster.
 
 ``0140a_fn_cbm_account_guard.sql`` was written before its table existed.  Its ``asg``

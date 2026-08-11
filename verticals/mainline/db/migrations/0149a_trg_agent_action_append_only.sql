@@ -1,5 +1,5 @@
 -- SPDX-FileCopyrightText: 2026 MAINLINE contributors
--- SPDX-License-Identifier: FSL-1.1-ALv2
+-- SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
 --
 -- MAINLINE · 0149a_trg_agent_action_append_only.sql
 -- CREATE TRIGGER append_only ON mainline_meas.agent_action — the weld MI01 already claims

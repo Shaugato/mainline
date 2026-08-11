@@ -1,7 +1,7 @@
 {
   "artefact": "MAINLINE demo-api Lambda deployment package",
   "license": "CC-BY-4.0",
-  "licence_note": "SPDX-License-Identifier: CC-BY-4.0. A JSON file cannot carry a comment header; coverage comes from REUSE.toml section 3, which declares CC-BY-4.0 over evidence/**.",
+  "licence_note": "Licensed CC-BY-4.0. A JSON file cannot carry a comment header, so coverage comes from REUSE.toml section 3, which declares CC-BY-4.0 over evidence/**. This note deliberately does NOT spell the SPDX tag: written out in prose it ended a sentence, the full stop was read as part of the identifier, and scripts/qa/check_reuse.py correctly refused an identifier 'CC-BY-4.0.' that no file in LICENSES/ defines.",
   "worker": "w2-lambda-bundle",
   "produced_by": [
     "scripts/deploy/build_lambda.sh",

@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 MAINLINE contributors
-# SPDX-License-Identifier: FSL-1.1-ALv2
+# SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
 """The producer contract for ``mainline_meas.agent_action`` — migrations 0089 and 0149a.
 
 Three views were written against this table before the table existed. ``0164_v_agent_actions``,

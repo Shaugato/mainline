@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 MAINLINE contributors
-# SPDX-License-Identifier: FSL-1.1-ALv2
+# SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
 """``GET /v1/health`` — the cheapest true sentence about the database behind this API.
 
 WHAT CALLS IT, AND WHY THAT SHAPES IT

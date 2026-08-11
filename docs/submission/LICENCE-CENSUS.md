@@ -244,7 +244,7 @@ rise**:
 ```
 
 1 213 files are licensed under the non-conforming spelling today. That figure may go down.
-It cannot go up: a new file carrying `SPDX-License-Identifier: FSL-1.1-ALv2` makes
+It cannot go up: a new file carrying `SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2` makes
 `python3 scripts/qa/check_reuse.py` exit 1, and the only way to raise it is
 `--write`, which leaves the increase in a diff a reviewer has to approve.
 

@@ -1,5 +1,5 @@
 -- SPDX-FileCopyrightText: 2026 MAINLINE contributors
--- SPDX-License-Identifier: FSL-1.1-ALv2
+-- SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
 --
 -- MAINLINE · 0049d_identity_assignment.sql
 -- CREATE TABLE mainline.identity_assignment — the derived edge the conservation law counts

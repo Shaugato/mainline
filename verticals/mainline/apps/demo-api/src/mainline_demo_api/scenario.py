@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 MAINLINE contributors
-# SPDX-License-Identifier: FSL-1.1-ALv2
+# SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
 """The demo history's identifiers — one definition, shared by the seed and the API.
 
 The demo drives a REAL permit through a REAL gate. Both halves therefore have to agree on

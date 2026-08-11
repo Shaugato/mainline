@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2026 MAINLINE contributors
-# SPDX-License-Identifier: FSL-1.1-ALv2
+# SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
 """The five POST resources: four kernel transitions, and the demo driver.
 
 ONE ENTRY POINT, and its signature is fixed between this worker and ``w3-api-core-reads``:

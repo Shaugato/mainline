@@ -1,5 +1,5 @@
 -- SPDX-FileCopyrightText: 2026 MAINLINE contributors
--- SPDX-License-Identifier: FSL-1.1-ALv2
+-- SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
 --
 -- ══════════════════════════════════════════════════════════════════════════════════════════════
 --  MAINLINE · demo_permit.sql — ONE permit, in precisely the state in which the gate refuses
