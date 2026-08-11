@@ -21,6 +21,7 @@ import json
 from typing import Any
 
 import pytest
+
 from mainline_boundary.iam import (
     DENIED_ACTIONS,
     check_iam,
@@ -107,9 +108,7 @@ def _rewrite_boundary(document: dict[str, Any], transform: Any) -> None:
 def test_removing_every_deny_fails_e1(mutate_plan: Any) -> None:
     def mutation(document: dict[str, Any]) -> None:
         def drop_all_denies(policy: dict[str, Any]) -> None:
-            policy["Statement"] = [
-                s for s in policy["Statement"] if s.get("Effect") != "Deny"
-            ]
+            policy["Statement"] = [s for s in policy["Statement"] if s.get("Effect") != "Deny"]
 
         _rewrite_boundary(document, drop_all_denies)
 
@@ -160,9 +159,7 @@ def test_removing_the_kernel_role_fails_e1(mutate_plan: Any) -> None:
 
     def mutation(document: dict[str, Any]) -> None:
         module = document["planned_values"]["root_module"]
-        module["resources"] = [
-            r for r in module["resources"] if r["address"] != KERNEL_ROLE
-        ]
+        module["resources"] = [r for r in module["resources"] if r["address"] != KERNEL_ROLE]
 
     assert_violates(check_iam(mutate_plan(mutation)), "E1-KERNEL-ROLE-ABSENT")
 

@@ -205,9 +205,7 @@ def measure(
         },
         "typical_prefix_chars": typical_prefix,
         "files_unclonable_at_typical_prefix": len(unclonable),
-        "unclonable_at_typical_prefix": [
-            {"chars": len(p), "path": p} for p in unclonable[:top]
-        ],
+        "unclonable_at_typical_prefix": [{"chars": len(p), "path": p} for p in unclonable[:top]],
     }
 
 

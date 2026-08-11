@@ -268,9 +268,7 @@ def _check_denies(subject: str, statements: Sequence[PolicyStatement], report: R
             )
 
 
-def _check_no_bedrock_allow(
-    facts: PlanFacts, roles: Sequence[Resource], report: Report
-) -> None:
+def _check_no_bedrock_allow(facts: PlanFacts, roles: Sequence[Resource], report: Report) -> None:
     """A boundary makes an Allow inert, but an Allow on the kernel is still a defect.
 
     It means somebody believed the kernel needed Bedrock, and the next person to

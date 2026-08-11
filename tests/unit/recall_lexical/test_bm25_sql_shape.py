@@ -14,6 +14,7 @@ from __future__ import annotations
 import re
 
 import pytest
+
 from trappoint_recall.lexical.bm25 import (
     CorpusStats,
     build_bm25_statement,
@@ -155,7 +156,7 @@ def test_the_statement_text_is_a_function_of_the_term_set_not_its_order() -> Non
 
 
 def test_styles_differ_only_in_placeholder_tokens() -> None:
-    """"The SQL that was differentially tested is the SQL that ships", as a checked claim.
+    """ "The SQL that was differentially tested is the SQL that ships", as a checked claim.
 
     The differential suite executes the ``QMARK`` rendering on whatever engine is available;
     the gate path issues the ``NUMERIC`` one.  If those two texts could diverge, the

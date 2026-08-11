@@ -191,9 +191,7 @@ def decode(canon_text: str) -> DecodedEntry:
             + ", ".join(sorted(d.value for d in RATIFIABLE_DIRECTIONS))
         ) from None
     if direction not in RATIFIABLE_DIRECTIONS:
-        raise RegistryEncodingError(
-            f"{raw_direction!r} appears in a clause but is not ratifiable"
-        )
+        raise RegistryEncodingError(f"{raw_direction!r} appears in a clause but is not ratifiable")
 
     raw_status = match.group("status")
     try:

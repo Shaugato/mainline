@@ -8,7 +8,6 @@ import json
 from typing import Any
 
 import pytest
-
 from mainline_recall_agent.providers.cassette import CassetteJudgeTransport, CassetteStore
 from mainline_recall_agent.providers.errors import (
     CANONICAL_SILENCE_REASONS,
@@ -85,9 +84,7 @@ def test_the_result_carries_the_evidence_needed_to_reproduce_it(
 # --------------------------------------------------------------------------------------
 
 
-def test_one_repair_attempt_recovers_a_schema_violation(
-    store: CassetteStore, prefix: Any
-) -> None:
+def test_one_repair_attempt_recovers_a_schema_violation(store: CassetteStore, prefix: Any) -> None:
     judge = _judge(store)
     result = judge.judge_detailed(prefix, _payload("FX-EXP-REPAIR"), RerankVerdict)
     assert result.attempts == 2
@@ -231,9 +228,7 @@ def test_every_provider_exception_maps_into_the_closed_silence_vocabulary() -> N
     subclasses = [
         obj
         for obj in vars(error_module).values()
-        if isinstance(obj, type)
-        and issubclass(obj, ProviderError)
-        and obj is not ProviderError
+        if isinstance(obj, type) and issubclass(obj, ProviderError) and obj is not ProviderError
     ]
     assert subclasses
     for subclass in subclasses:

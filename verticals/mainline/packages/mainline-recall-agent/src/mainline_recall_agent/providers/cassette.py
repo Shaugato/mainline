@@ -140,7 +140,8 @@ class CassetteStore:
         loaded: Any = json.loads(path.read_text(encoding="utf-8"))
         if not isinstance(loaded, dict):
             raise CassetteTampered(
-                "a cassette must be a JSON object", path=str(path),
+                "a cassette must be a JSON object",
+                path=str(path),
                 json_type=type(loaded).__name__,
             )
         document: dict[str, Any] = loaded

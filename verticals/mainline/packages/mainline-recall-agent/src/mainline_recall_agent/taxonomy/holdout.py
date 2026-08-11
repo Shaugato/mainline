@@ -96,18 +96,16 @@ def _measurement_type() -> Any:
     return _Measurement
 
 
-def holdout_split(doc_ids: Sequence[str], size: int = DEFAULT_HOLDOUT_SIZE) -> tuple[
-    tuple[str, ...], tuple[str, ...]
-]:
+def holdout_split(
+    doc_ids: Sequence[str], size: int = DEFAULT_HOLDOUT_SIZE
+) -> tuple[tuple[str, ...], tuple[str, ...]]:
     """Split ``doc_ids`` into ``(train, holdout)`` by a digest of the id.
 
     Returns the *train* ids first.  Deterministic, order-independent, and stable under
     corpus growth: a document's side of the split is a property of its own id, so adding
     documents never moves an existing one from holdout into training.
     """
-    ranked = sorted(
-        doc_ids, key=lambda doc_id: hashlib.sha256(doc_id.encode("utf-8")).hexdigest()
-    )
+    ranked = sorted(doc_ids, key=lambda doc_id: hashlib.sha256(doc_id.encode("utf-8")).hexdigest())
     take = max(min(size, len(ranked)), 0)
     holdout = set(ranked[:take])
     train = tuple(doc_id for doc_id in doc_ids if doc_id not in holdout)
@@ -152,8 +150,7 @@ class HoldoutReport:
         verdict = "ACCEPTED" if self.accepted else "NOT ACCEPTED"
         return "\n".join(
             [
-                f"holdout confirmation ({self.n} documents, gate on {self.gate_on}) "
-                f"-> {verdict}",
+                f"holdout confirmation ({self.n} documents, gate on {self.gate_on}) -> {verdict}",
                 f"  corpus: {self.corpus_provenance}",
                 f"  {self.fonds_level.render()}   floor {self.fonds_floor}",
                 f"  {self.series_level.render()}",
@@ -275,13 +272,11 @@ def score_holdout(
     )
     if gate_on == "lower":
         accepted = bool(
-            leaf.meets_floor(file_floor, on="lower")
-            and fonds.meets_floor(fonds_floor, on="lower")
+            leaf.meets_floor(file_floor, on="lower") and fonds.meets_floor(fonds_floor, on="lower")
         )
     else:
         accepted = bool(
-            leaf.meets_floor(file_floor, on="value")
-            and fonds.meets_floor(fonds_floor, on="value")
+            leaf.meets_floor(file_floor, on="value") and fonds.meets_floor(fonds_floor, on="value")
         )
     return HoldoutReport(
         n=len(documents),

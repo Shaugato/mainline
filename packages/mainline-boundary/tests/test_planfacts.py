@@ -19,9 +19,7 @@ import pytest
 from mainline_boundary.errors import PlanParseError
 from mainline_boundary.planfacts import PlanFacts
 
-FIXTURE = (
-    Path(__file__).resolve().parents[3] / "tests" / "boundary" / "fixtures" / "plan.json"
-)
+FIXTURE = Path(__file__).resolve().parents[3] / "tests" / "boundary" / "fixtures" / "plan.json"
 
 
 def _minimal(resources: list[dict[str, Any]], **extra: Any) -> dict[str, Any]:

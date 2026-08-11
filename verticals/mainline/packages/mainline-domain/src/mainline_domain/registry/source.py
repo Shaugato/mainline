@@ -88,9 +88,7 @@ class ClauseVersionSource(Protocol):
         """
         ...
 
-    def registry_versions(
-        self, *, site_id: UUID, doc_code: str
-    ) -> Sequence[ClauseVersionRow]:
+    def registry_versions(self, *, site_id: UUID, doc_code: str) -> Sequence[ClauseVersionRow]:
         """Every clause version of that document for that site, any commit.
 
         Unfiltered by commit on purpose: reachability is the loader's decision,
@@ -168,9 +166,7 @@ class InMemoryClauseVersionSource:
             stack.extend(node.parents)
         return frozenset(seen)
 
-    def registry_versions(
-        self, *, site_id: UUID, doc_code: str
-    ) -> Sequence[ClauseVersionRow]:
+    def registry_versions(self, *, site_id: UUID, doc_code: str) -> Sequence[ClauseVersionRow]:
         """Every recorded version, unfiltered by commit — reachability is the loader's."""
         if self.site_id is not None and site_id != self.site_id:
             return ()

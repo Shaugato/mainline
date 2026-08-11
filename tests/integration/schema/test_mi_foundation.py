@@ -625,6 +625,7 @@ def test_lattice_seed_files_have_not_drifted_from_the_migrations() -> None:
     which tool ran. So the row sets are compared directly, and the migration is the authority —
     it is what a second TRAPPOINT vertical receives.
     """
+
     def cells(text: str) -> list[tuple[str, str]]:
         body = strip_sql_comments(text)
         return sorted(
@@ -690,9 +691,7 @@ def test_grants_yaml_is_wellformed_and_covers_the_role_matrix() -> None:
     assert not missing, f"GRANTS.yaml omits roles from §11.2: {missing}"
 
     # S2: agent_projector writes exactly one table.
-    projector = [
-        r for r in matrix["table_privileges"] if r["role"] == "agent_projector"
-    ]
+    projector = [r for r in matrix["table_privileges"] if r["role"] == "agent_projector"]
     assert len(projector) == 1 and projector[0]["object"] == "mainline.clause_blame_closure", (
         "agent_projector must hold INSERT on clause_blame_closure and nothing else (S2)"
     )
@@ -856,8 +855,16 @@ def _from_docker() -> Cluster | None:
     port = _free_port()
     started = _docker(
         [
-            "run", "-d", "--name", CONTAINER_NAME, "-p", f"{port}:26257", CRDB_IMAGE,
-            "start-single-node", "--insecure", "--store=type=mem,size=2GiB",
+            "run",
+            "-d",
+            "--name",
+            CONTAINER_NAME,
+            "-p",
+            f"{port}:26257",
+            CRDB_IMAGE,
+            "start-single-node",
+            "--insecure",
+            "--store=type=mem,size=2GiB",
         ],
         timeout=DOCKER_RUN_TIMEOUT_S,
     )
@@ -929,8 +936,7 @@ class Foundation:
 
 def _table_exists(conn: Any, schema: str, table: str) -> bool:
     row = conn.execute(
-        "SELECT 1 FROM information_schema.tables "
-        "WHERE table_schema = %s AND table_name = %s",
+        "SELECT 1 FROM information_schema.tables WHERE table_schema = %s AND table_name = %s",
         (schema, table),
     ).fetchone()
     return row is not None
@@ -959,16 +965,13 @@ def apply_grants_matrix(conn: Any, matrix: dict[str, Any]) -> list[str]:
         conn.execute(f"CREATE ROLE IF NOT EXISTS {name} WITH {option}")
 
     for member in matrix.get("memberships", []):
-        conn.execute(
-            f"GRANT {quote_ident(member['role'])} TO {quote_ident(member['member'])}"
-        )
+        conn.execute(f"GRANT {quote_ident(member['role'])} TO {quote_ident(member['member'])}")
 
     for row in matrix.get("schema_privileges", []):
         privileges = ", ".join(row["privileges"])
         for schema in row["schemas"]:
             conn.execute(
-                f"GRANT {privileges} ON SCHEMA {quote_ident(schema)} "
-                f"TO {quote_ident(row['role'])}"
+                f"GRANT {privileges} ON SCHEMA {quote_ident(schema)} TO {quote_ident(row['role'])}"
             )
 
     for row in matrix.get("table_privileges", []) + matrix.get("subject_access_views", []):
@@ -1086,8 +1089,7 @@ def test_clearance_lattice_absent_cells_return_no_row(conn: Any) -> None:
     """
     for virulence, kind in ABSENT_CELLS:
         row = conn.execute(
-            "SELECT count(*) FROM mainline.clearance_legal "
-            "WHERE virulence = %s AND kind = %s",
+            "SELECT count(*) FROM mainline.clearance_legal WHERE virulence = %s AND kind = %s",
             (virulence, kind),
         ).fetchone()
         assert row is not None and row[0] == 0, (
@@ -1109,9 +1111,7 @@ def test_clearance_lattice_is_complete_apart_from_those_three(conn: Any) -> None
         "SELECT virulence::STRING, kind::STRING FROM mainline.clearance_legal"
     ).fetchall()
     present = {(v, k) for v, k in rows}
-    expected = {
-        (v, k) for v in VIRULENCES for k in DISPOSITION_KINDS
-    } - set(ABSENT_CELLS)
+    expected = {(v, k) for v in VIRULENCES for k in DISPOSITION_KINDS} - set(ABSENT_CELLS)
     assert present == expected, (
         f"lattice mismatch.\n  missing: {sorted(expected - present)}\n"
         f"  unexpected: {sorted(present - expected)}"
@@ -1151,9 +1151,7 @@ def test_clearance_lattice_escalates_and_bounds(conn: Any) -> None:
 
     # 4. min_signer_rank is monotone non-decreasing with virulence for the kinds present at all.
     for kind in DISPOSITION_KINDS:
-        ranks = [
-            by_cell[(v, kind)][1] for v in VIRULENCES if (v, kind) in by_cell
-        ]
+        ranks = [by_cell[(v, kind)][1] for v in VIRULENCES if (v, kind) in by_cell]
         assert ranks == sorted(ranks), (
             f"min_signer_rank for {kind} is not monotone across virulence: {ranks}"
         )
@@ -1164,8 +1162,7 @@ def test_clearance_lattice_escalates_and_bounds(conn: Any) -> None:
 def test_subject_transition_edges_are_identical_for_both_subjects(conn: Any) -> None:
     """S16. The change_request is a gated subject in exactly the sense the permit is."""
     rows = conn.execute(
-        "SELECT subject_kind, from_state::STRING, to_state::STRING "
-        "FROM mainline.subject_transition"
+        "SELECT subject_kind, from_state::STRING, to_state::STRING FROM mainline.subject_transition"
     ).fetchall()
     assert len(rows) == 18, f"expected 18 edges (9 × 2 subjects), got {len(rows)}"
     by_kind: dict[str, set[tuple[str, str]]] = {k: set() for k in SUBJECT_KINDS}
@@ -1214,17 +1211,30 @@ def test_enum_types_carry_exactly_the_declared_labels(conn: Any) -> None:
     expected = {
         "control_delta": ["introduce", "strengthen", "restate", "weaken", "remove"],
         "subject_state": [
-            "draft", "checks_materialised", "dispositioned", "merged",
-            "suspended", "closed", "abandoned",
+            "draft",
+            "checks_materialised",
+            "dispositioned",
+            "merged",
+            "suspended",
+            "closed",
+            "abandoned",
         ],
         "disposition_kind": list(DISPOSITION_KINDS),
         "virulence_class": list(VIRULENCES),
         "blame_basis": [
-            "asserted_document", "asserted_human", "derived_documentary", "inferred_semantic"
+            "asserted_document",
+            "asserted_human",
+            "derived_documentary",
+            "inferred_semantic",
         ],
         "blame_state": ["active", "provisional", "dormant", "refuted"],
         "prop_state": [
-            "proposed", "already_present", "conflicted", "adopted", "declined", "revoked"
+            "proposed",
+            "already_present",
+            "conflicted",
+            "adopted",
+            "declined",
+            "revoked",
         ],
     }
     for type_name, labels in expected.items():
@@ -1405,9 +1415,7 @@ def test_public_holds_nothing_on_the_mainline_zones(conn: Any) -> None:
         )
         leaked = [r for r in rows if str(r["grantee"]) == "public"]
         if schema == "public":
-            offending = [
-                r for r in leaked if str(r["privilege_type"]).upper() in {"CREATE", "ALL"}
-            ]
+            offending = [r for r in leaked if str(r["privilege_type"]).upper() in {"CREATE", "ALL"}]
             assert not offending, (
                 "`public` still holds CREATE on the built-in public schema. Migration "
                 "0009f_revoke_create_public_schema.sql is the one revoke that changes something "
@@ -1731,17 +1739,13 @@ def test_person_is_a_temporal_series_not_a_mutable_row(conn: Any) -> None:
     sub = f"oidc|{uuid.uuid4().hex[:12]}"
     for moment, rank in (("2027-01-01T00:00:00Z", 2), ("2028-01-01T00:00:00Z", 5)):
         conn.execute(_PERSON_INSERT, (sub, moment, rank, uuid.uuid4(), b"\x00" * 32))
-    rows = conn.execute(
-        "SELECT rank FROM mainline.person WHERE signer_sub = %s", (sub,)
-    ).fetchall()
+    rows = conn.execute("SELECT rank FROM mainline.person WHERE signer_sub = %s", (sub,)).fetchall()
     assert [r[0] for r in rows] == [5, 2], (
         f"the primary index must yield the most recent row first; got {[r[0] for r in rows]}"
     )
 
     with pytest.raises(psycopg.Error) as caught:
-        conn.execute(
-            _PERSON_INSERT, (sub, "2029-01-01T00:00:00Z", 11, uuid.uuid4(), b"\x00" * 32)
-        )
+        conn.execute(_PERSON_INSERT, (sub, "2029-01-01T00:00:00Z", 11, uuid.uuid4(), b"\x00" * 32))
     assert caught.value.sqlstate == "23514"
     # `person_rank_range`, not the authored `rank_in_lattice`. MR-1 makes `person` a SUBSTRATE
     # object emitted from templates/0021_identity.sql.j2, and MRR-2 accepts the rename knowingly:

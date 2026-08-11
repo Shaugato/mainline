@@ -102,21 +102,15 @@ def _grouped(
     return buckets
 
 
-def per_class(
-    results: Sequence[MutationResult], *, confidence: str
-) -> tuple[ClassMetric, ...]:
+def per_class(results: Sequence[MutationResult], *, confidence: str) -> tuple[ClassMetric, ...]:
     """One figure per mutation class, across every family."""
     return tuple(
-        metric_for(
-            bucket, kind=kind, class_id=class_id, family=ALL_FAMILIES, confidence=confidence
-        )
+        metric_for(bucket, kind=kind, class_id=class_id, family=ALL_FAMILIES, confidence=confidence)
         for (kind, class_id), bucket in sorted(_grouped(results, "class_id").items())
     )
 
 
-def per_family(
-    results: Sequence[MutationResult], *, confidence: str
-) -> tuple[ClassMetric, ...]:
+def per_family(results: Sequence[MutationResult], *, confidence: str) -> tuple[ClassMetric, ...]:
     """One figure per document family, across every class."""
     return tuple(
         metric_for(bucket, kind=kind, class_id=ALL_FAMILIES, family=family, confidence=confidence)
@@ -166,9 +160,7 @@ def false_identity_change_rate(results: Sequence[MutationResult]) -> float:
     if not subset:
         return 0.0
     failed = sum(
-        1
-        for r in subset
-        if r.outcome in ("identity_changed", "identity_changed_and_false_weaken")
+        1 for r in subset if r.outcome in ("identity_changed", "identity_changed_and_false_weaken")
     )
     return round(failed / len(subset), REPORT_DP)
 

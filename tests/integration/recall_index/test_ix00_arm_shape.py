@@ -20,6 +20,7 @@ import uuid
 
 import pytest
 from _support import CUE_SCOPED, CUE_SWEEP, FACETS, POPULATED_FACETS, policy, unit_vector
+
 from trappoint_recall.arms import (
     MCP_MAX_STATEMENT_CHARS,
     AncestorChain,

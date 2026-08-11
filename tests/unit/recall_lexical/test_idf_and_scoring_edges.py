@@ -20,6 +20,7 @@ import itertools
 import math
 
 import pytest
+
 from trappoint_recall.lexical.bm25 import Bm25Params, CorpusStats, build_bm25_statement
 from trappoint_recall.lexical.executor import ParamStyle, UnsafeLiteralError
 from trappoint_recall.lexical.reference import LexicalTables, reference_bm25
@@ -33,13 +34,9 @@ def idf(n_docs: int, df: int) -> float:
 
 
 def tables(*, n_docs: int, df: int, term: str = "k-401", doc_len: int = 10) -> LexicalTables:
-    posting = tuple(
-        (SITE, term, f"e{i}", 1.0) for i in range(df)
-    )
+    posting = tuple((SITE, term, f"e{i}", 1.0) for i in range(df))
     doclen = tuple((f"e{i}", doc_len) for i in range(n_docs))
-    return LexicalTables(
-        posting=posting, stats=((SITE, term, df),), doclen=doclen
-    )
+    return LexicalTables(posting=posting, stats=((SITE, term, df),), doclen=doclen)
 
 
 # ── the boundary the `+ 1` exists for ────────────────────────────────────────────────────────
@@ -242,9 +239,7 @@ def test_b_must_be_a_fraction(b: float) -> None:
 def test_terms_that_did_not_come_from_the_analyser_are_refused() -> None:
     stats = CorpusStats(n_docs=10, avgdl=10.0)
     with pytest.raises(ValueError, match="must come from the analyser"):
-        build_bm25_statement(
-            site_id=SITE, terms=["k-401'; DROP TABLE"], stats=stats, limit=5
-        )
+        build_bm25_statement(site_id=SITE, terms=["k-401'; DROP TABLE"], stats=stats, limit=5)
 
 
 def test_a_site_id_that_is_not_a_uuid_shaped_string_is_refused_for_literal_rendering() -> None:

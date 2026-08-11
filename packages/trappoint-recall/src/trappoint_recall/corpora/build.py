@@ -539,9 +539,7 @@ def _write_all(
         )
     )
     written.append(
-        write_jsonl(
-            goldsets / "g4_retro.queries.jsonl", (q.to_dict() for q in g4.queries)
-        )
+        write_jsonl(goldsets / "g4_retro.queries.jsonl", (q.to_dict() for q in g4.queries))
     )
     written.append(
         write_jsonl(
@@ -640,9 +638,7 @@ def regenerate_fixtures(fixtures_root: Path, *, seed: str = DEFAULT_SEED) -> Map
     write_jsonl(fixtures_root / FIXTURE_LAYOUT["au_alerts"], corpus.au_alerts)
 
     records = load_inputs(fixtures_root, provenance=SYNTHETIC_PROVENANCE)
-    resolution = g1_citations.resolve_citations(
-        g1_citations.citations_of(records.records), records
-    )
+    resolution = g1_citations.resolve_citations(g1_citations.citations_of(records.records), records)
     g4 = g4_retro.build_g4(records, resolution, corpus_commit=_corpus_commit(records))
     _, rows = _g3_from_g4(g4, records)
     write_jsonl(fixtures_root / FIXTURE_LAYOUT["adjudication"], rows)
@@ -688,11 +684,7 @@ def write_provenance_manifest(
                 bytes=path.stat().st_size,
                 records=records,
                 role=role,
-                provenance=(
-                    PERMIT_PROVENANCE
-                    if "permit" in relative
-                    else SYNTHETIC_PROVENANCE
-                ),
+                provenance=(PERMIT_PROVENANCE if "permit" in relative else SYNTHETIC_PROVENANCE),
             )
         )
     manifest = ProvenanceManifest(

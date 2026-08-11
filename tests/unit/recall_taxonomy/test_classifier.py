@@ -91,9 +91,9 @@ def test_a_mismatched_weight_matrix_is_refused() -> None:
     model = TaxonomyClassifier.fit(texts=TEXTS, scopes=SCOPES, min_df=1)
     artefact = model.to_dict()
     artefact["weights"] = artefact["weights"][:1]
-    artefact["digest"] = TaxonomyClassifier.fit(
-        texts=TEXTS, scopes=SCOPES, min_df=1
-    ).to_dict()["digest"]
+    artefact["digest"] = TaxonomyClassifier.fit(texts=TEXTS, scopes=SCOPES, min_df=1).to_dict()[
+        "digest"
+    ]
     with pytest.raises(ClassifierArtefactInvalid):
         TaxonomyClassifier.from_dict(artefact)
 

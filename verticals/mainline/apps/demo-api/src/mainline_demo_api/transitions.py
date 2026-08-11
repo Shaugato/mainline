@@ -388,9 +388,7 @@ def _merge_permit(
     anchor = _permit_epoch(conn, permit_id)
     if anchor is None:
         conn.rollback()
-        return _error(
-            404, "no_such_permit", f"no mainline.permit with permit_id {permit_id}"
-        )
+        return _error(404, "no_such_permit", f"no mainline.permit with permit_id {permit_id}")
     gate_epoch, _head, _state = anchor
 
     payload = {"permit": str(permit_id), "merged_by": merged_by, "source": "POST /v1/permits/merge"}
@@ -495,8 +493,17 @@ def _append_transition(
     """
     conn.execute(
         _APPEND_EVENT_SQL,
-        (permit_id, head + 1, head, from_state, to_state, actor_sub, Jsonb(payload),
-         permit_id, head),
+        (
+            permit_id,
+            head + 1,
+            head,
+            from_state,
+            to_state,
+            actor_sub,
+            Jsonb(payload),
+            permit_id,
+            head,
+        ),
     )
     moved = conn.execute(
         "UPDATE mainline.permit SET state = %s, head_seq = %s "
@@ -743,8 +750,14 @@ VALUES (%s, %s, %s, 'permit', %s, %s, %s, 'routine', 0, %s, %s, %s, %s, %s, 1, '
 #: reaching the database as an enum cast error, which would be a 22P02 nobody modelled
 #: rather than the 23503 the lattice is entitled to raise.
 _DISPOSITION_KINDS: Final[frozenset[str]] = frozenset(
-    {"applied", "mitigated", "mechanism_absent", "escalated", "accept_residual",
-     "emergency_override"}
+    {
+        "applied",
+        "mitigated",
+        "mechanism_absent",
+        "escalated",
+        "accept_residual",
+        "emergency_override",
+    }
 )
 
 
@@ -789,9 +802,7 @@ def _sign_disposition(
     found = conn.execute(_CHECK_SQL, (check_id,)).fetchone()
     if found is None:
         conn.rollback()
-        return _error(
-            404, "no_such_check", f"no mainline.blocking_check with check_id {check_id}"
-        )
+        return _error(404, "no_such_check", f"no mainline.blocking_check with check_id {check_id}")
     permit_id, site_id, gate_epoch, receipt_id = found
 
     guard = _demo_guard(permit_id, scenario)

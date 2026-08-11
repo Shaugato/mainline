@@ -167,9 +167,7 @@ class FixtureRef(BaseModel):
     records: Annotated[
         int | None, Field(ge=0, description="Record count, when the file has records.")
     ] = None
-    role: Annotated[
-        str, Field(min_length=1, description="What the build uses this file for.")
-    ]
+    role: Annotated[str, Field(min_length=1, description="What the build uses this file for.")]
     provenance: FixtureProvenance
 
 

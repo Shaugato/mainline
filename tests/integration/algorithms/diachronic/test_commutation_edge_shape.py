@@ -30,8 +30,7 @@ def sql_text() -> str:
 def sql_body() -> str:
     statements = split_statements(sql_text())
     assert len(statements) == 1, (
-        f"{TABLE_FILE} must contain exactly one top-level statement (MR-5); "
-        f"found {len(statements)}"
+        f"{TABLE_FILE} must contain exactly one top-level statement (MR-5); found {len(statements)}"
     )
     return code_of(statements[0])
 
@@ -45,9 +44,7 @@ def test_the_primary_key_is_the_four_identity_columns_and_not_the_site():
     ``commit_obj``, and putting the site in the key would let two rows for one pair
     exist under two site values — a disagreement the CHECKs could not see."""
     body = sql_body()
-    found = re.search(
-        r"CONSTRAINT commutation_edge_pk PRIMARY KEY\s*\(([^)]*)\)", body, re.S
-    )
+    found = re.search(r"CONSTRAINT commutation_edge_pk PRIMARY KEY\s*\(([^)]*)\)", body, re.S)
     assert found is not None
     columns = [c.strip() for c in found.group(1).split(",")]
     assert columns == ["from_commit", "from_clause_uuid", "to_commit", "to_clause_uuid"]

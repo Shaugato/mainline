@@ -23,8 +23,8 @@ uv run --package mainline-mutation mainline-mutation catalogue
 from mainline_mutation import run, build_report, surviving_classes
 
 intact = run(seed=0)
-build_report(intact)["headline"]["kill"]["wilson_lower"]   # the claim
-surviving_classes(intact.results)                          # the residual risk, named
+build_report(intact)["headline"]["kill"]["wilson_lower"]  # the claim
+surviving_classes(intact.results)  # the residual risk, named
 ```
 
 ---

@@ -20,7 +20,6 @@ worse than useless:
 from __future__ import annotations
 
 import pytest
-
 from mainline_recall_agent.cue.anchors import (
     anchor_keys,
     extract_anchors,
@@ -89,9 +88,9 @@ def test_a_cue_naming_a_tag_absent_from_its_source_is_rejected() -> None:
 
 def test_a_cue_naming_a_tag_present_in_its_source_is_accepted() -> None:
     source = "Drive K-401 rolled back when the brake was released."
-    verdict = verify_anchors("Stored energy released through drive K-401.", anchor_keys(
-        extract_anchors(source)
-    ))
+    verdict = verify_anchors(
+        "Stored energy released through drive K-401.", anchor_keys(extract_anchors(source))
+    )
     assert verdict.ok is True
     assert verdict.missing == ()
 

@@ -148,8 +148,7 @@ def sublinearity_verdict(
     """
     if len(p50_by_size) < 2:
         raise ValueError(
-            "sublinearity needs at least two corpus sizes; one point is a measurement, not a "
-            "curve"
+            "sublinearity needs at least two corpus sizes; one point is a measurement, not a curve"
         )
     ordered = sorted(p50_by_size.items())
     ratios: list[DoublingRatio] = []

@@ -27,9 +27,7 @@ from typing import Any
 from uuid import UUID
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-PACKAGE_SRC = (
-    REPO_ROOT / "verticals" / "mainline" / "packages" / "mainline-recall-agent" / "src"
-)
+PACKAGE_SRC = REPO_ROOT / "verticals" / "mainline" / "packages" / "mainline-recall-agent" / "src"
 if str(PACKAGE_SRC) not in sys.path:  # pragma: no cover - import-time bootstrap
     sys.path.insert(0, str(PACKAGE_SRC))
 
@@ -386,8 +384,7 @@ BODY_EVENT_ANCHOR_FABRICATION = json.dumps(
             "The belt rolled back through the drive when the brake was released.",
         ),
         "precondition": _facet(
-            "A person is inside a drive guard while the belt above the drive remains "
-            "loaded.",
+            "A person is inside a drive guard while the belt above the drive remains loaded.",
             "A maintainer entered the drive guard of an inclined conveyor to clear spillage",
         ),
         "control_failure": _facet(
@@ -419,8 +416,7 @@ BODY_EXPOSURE_EXPOSED = json.dumps(
         "control_failure": _facet(
             "Proof of zero stored energy is replaced by a visual check that cannot detect "
             "an unbalanced charge.",
-            "after: A visual check that the shell is stationary shall be recorded before "
-            "entry.",
+            "after: A visual check that the shell is stationary shall be recorded before entry.",
         ),
         "recurrence_test": _facet(
             "Recurs wherever people enter a machine envelope isolated against supply but "
@@ -457,8 +453,7 @@ BODY_INVALID_EXTRA_FIELD = json.dumps(
     {
         "mechanism": {
             **_facet(
-                "A suspended load descends without command when the hoist brake fails to "
-                "hold it.",
+                "A suspended load descends without command when the hoist brake fails to hold it.",
                 "A suspended load descended without command when the hoist brake failed",
             ),
             "confidence": 0.91,

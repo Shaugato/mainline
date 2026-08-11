@@ -17,11 +17,12 @@ tamper-evidence product, because it manufactures a false accusation.
 from __future__ import annotations
 
 import json
+import tomllib
 from pathlib import Path
 
-import tomllib
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
+
 from trappoint_jcs.canon_v1 import MAX_SAFE_INTEGER, canonicalise, canonicalise_payload
 
 # Float-free by construction: the payload profile bans floats, and the round-trip property

@@ -397,9 +397,7 @@ def _document(leaf_index: int, doc_index: int, serial: int) -> dict[str, Any]:
 
 
 def _unclassifiable(index: int, serial: int) -> dict[str, Any]:
-    sentences = [
-        _FILLER[(index + offset) % len(_FILLER)] for offset in range(4)
-    ]
+    sentences = [_FILLER[(index + offset) % len(_FILLER)] for offset in range(4)]
     return {
         "doc_id": f"FX-{serial:04d}",
         "kind": "audit finding",
@@ -462,9 +460,7 @@ def _self_check(documents: list[dict[str, Any]]) -> None:
     be the rule that generated it.  A fixture that silently mislabels itself would produce a
     holdout score that looks like a classifier problem.
     """
-    all_triggers = [
-        (index, trigger) for index, leaf in enumerate(LEAVES) for trigger in leaf[3]
-    ]
+    all_triggers = [(index, trigger) for index, leaf in enumerate(LEAVES) for trigger in leaf[3]]
     for sentence in _FILLER:
         for index, trigger in all_triggers:
             if trigger in sentence:

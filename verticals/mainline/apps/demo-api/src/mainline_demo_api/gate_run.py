@@ -566,9 +566,9 @@ def gate_run(  # noqa: PLR0912, PLR0915 — one straight line of four beats; spl
                         resolved.scenario.countersigner_sub,
                         _sha("cred", "cosigner"),
                         _sha("authenticator", str(disposition_id)),
-                        canonical_json(
-                            {"challenge": disposition_id.hex, "type": "webauthn.get"}
-                        )[0],
+                        canonical_json({"challenge": disposition_id.hex, "type": "webauthn.get"})[
+                            0
+                        ],
                         Jsonb({"authorisations": ["ISOLATION_AUTHORITY"]}),
                         uuid.uuid4(),
                         _sha("competency", resolved.scenario.signer_sub),

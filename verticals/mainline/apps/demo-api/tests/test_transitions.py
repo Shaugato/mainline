@@ -310,9 +310,7 @@ def test_unknown_resource_is_404_and_not_an_envelope(w4_conn: psycopg.Connection
 def test_a_malformed_identifier_is_422_and_not_an_envelope(
     w4_conn: psycopg.Connection[Any],
 ) -> None:
-    status, payload = handle_transition(
-        "merge_permit", {"permit_id": "../etc/passwd"}, {}, w4_conn
-    )
+    status, payload = handle_transition("merge_permit", {"permit_id": "../etc/passwd"}, {}, w4_conn)
     assert status == 422
     assert payload["error"] == "unprocessable_request"
     assert "envelope_version" not in payload

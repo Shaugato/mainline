@@ -53,9 +53,15 @@ __all__ = [
 ROUTINE_TASKS: Final[tuple[tuple[str, str], ...]] = (
     ("scheduled visual inspection", "walk-down inspection against the standard checklist"),
     ("planned lubrication", "greasing to the OEM schedule with the unit shut down and isolated"),
-    ("filter replacement", "change-out of the primary and secondary filters at the service interval"),
+    (
+        "filter replacement",
+        "change-out of the primary and secondary filters at the service interval",
+    ),
     ("lamp replacement", "replacement of a failed area light at ground level"),
-    ("instrument calibration", "five-point calibration of a field transmitter against a certified reference"),
+    (
+        "instrument calibration",
+        "five-point calibration of a field transmitter against a certified reference",
+    ),
     ("routine sampling", "collection of a scheduled sample at the established sample point"),
     ("housekeeping", "removal of spillage and restoration of walkway access"),
     ("scheduled service", "service to the maintenance strategy, all controls in place"),

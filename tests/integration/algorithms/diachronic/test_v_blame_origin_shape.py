@@ -31,8 +31,7 @@ def sql_text() -> str:
 def sql_body() -> str:
     statements = split_statements(sql_text())
     assert len(statements) == 1, (
-        f"{VIEW_FILE} must contain exactly one top-level statement (MR-5); "
-        f"found {len(statements)}"
+        f"{VIEW_FILE} must contain exactly one top-level statement (MR-5); found {len(statements)}"
     )
     return code_of(statements[0])
 
@@ -110,9 +109,7 @@ def test_the_tie_break_is_deterministic_and_survives_either_null_ordering():
     order = body[body.index(" ORDER BY ") + len(" ORDER BY ") :]
     # Strip trailing comments LINE BY LINE before splitting: the comments here
     # contain commas, and splitting first would shred them into phantom terms.
-    uncommented = " ".join(
-        re.sub(r"--.*$", "", line).strip() for line in order.splitlines()
-    )
+    uncommented = " ".join(re.sub(r"--.*$", "", line).strip() for line in order.splitlines())
     terms = [term.strip().rstrip(";").strip() for term in uncommented.split(",")]
     assert terms == [
         "s.clause_uuid",

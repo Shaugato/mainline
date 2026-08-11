@@ -491,10 +491,7 @@ AMBIGUOUS_TOKENS: Final[Mapping[str, str]] = {
         "temperature interlock silently read as an electric charge compares "
         "against nothing. Write 'degC'."
     ),
-    "F": (
-        "'F' is farad in the unit registry and Fahrenheit in a procedure. "
-        "Write 'degF'."
-    ),
+    "F": ("'F' is farad in the unit registry and Fahrenheit in a procedure. Write 'degF'."),
     "in": (
         "'in' is both the inch and the commonest English preposition, so "
         "'reduced to 50 in 2019' would parse as fifty inches. Write 'inch'."

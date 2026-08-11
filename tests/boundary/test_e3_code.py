@@ -22,6 +22,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+
 from mainline_boundary.astscan import (
     DEFAULT_KERNEL_ROOTS,
     ImportGraph,
@@ -69,9 +70,7 @@ def test_gate_service_scan_never_passes_by_absence(repo_root: Path) -> None:
     assert not skips, (
         f"{GATE_SVC_ROOT} exists but the scan still skipped it: {[str(s) for s in skips]}"
     )
-    assert report.examined > 0, (
-        f"{GATE_SVC_ROOT} exists but the scan examined nothing in it"
-    )
+    assert report.examined > 0, f"{GATE_SVC_ROOT} exists but the scan examined nothing in it"
     assert_enforced(report)
 
 
@@ -133,12 +132,8 @@ def test_import_graph_finds_an_indirect_reach(tmp_path: Path) -> None:
     """A kernel module two hops from a model SDK is still a kernel module with one."""
     kernel_src = tmp_path / "packages" / "trappoint-demo" / "src"
     (kernel_src / "kdemo").mkdir(parents=True)
-    (kernel_src / "kdemo" / "__init__.py").write_text(
-        "from kdemo import gate\n", encoding="utf-8"
-    )
-    (kernel_src / "kdemo" / "gate.py").write_text(
-        "from helper import narrate\n", encoding="utf-8"
-    )
+    (kernel_src / "kdemo" / "__init__.py").write_text("from kdemo import gate\n", encoding="utf-8")
+    (kernel_src / "kdemo" / "gate.py").write_text("from helper import narrate\n", encoding="utf-8")
     # `helper` lives OUTSIDE the kernel root, so only the import graph can find it.
     # This is the case import-linter exists for and the case a naive file scan
     # misses: the kernel package itself is clean.
@@ -151,9 +146,7 @@ def test_import_graph_finds_an_indirect_reach(tmp_path: Path) -> None:
     report = scan_kernel_code_boundary(tmp_path, roots=("packages/trappoint-*",))
     rules = report.rules_violated()
     assert "E3-IMPORT-REACHABLE" in rules, report.summary()
-    reachable = ImportGraph.build(ModuleIndex.build(tmp_path)).reachable_with_paths(
-        ["kdemo.gate"]
-    )
+    reachable = ImportGraph.build(ModuleIndex.build(tmp_path)).reachable_with_paths(["kdemo.gate"])
     assert "helper" in reachable
 
 

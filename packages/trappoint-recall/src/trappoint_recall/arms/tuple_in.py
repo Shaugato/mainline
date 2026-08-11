@@ -144,8 +144,7 @@ def tuple_in_sql(
     table = probe.table
     columns = ", ".join(f"{alias}.{column}" for column in table.prefix_columns)
     tuples = ", ".join(
-        "(" + ", ".join(render_prefix_literal(value) for value in row) + ")"
-        for row in probe.tuples
+        "(" + ", ".join(render_prefix_literal(value) for value in row) + ")" for row in probe.tuples
     )
     vector_sql = f"'{render_vector_literal(probe.query_vector)}'::VECTOR({table.dimensions})"
     distance = f"{alias}.{table.vector_column} {table.distance_operator} {vector_sql}"
@@ -173,8 +172,7 @@ def brute_force_sql(probe: TupleInProbe, *, alias: str = "e") -> RenderedSql:
     table = probe.table
     columns = ", ".join(f"{alias}.{column}" for column in table.prefix_columns)
     tuples = ", ".join(
-        "(" + ", ".join(render_prefix_literal(value) for value in row) + ")"
-        for row in probe.tuples
+        "(" + ", ".join(render_prefix_literal(value) for value in row) + ")" for row in probe.tuples
     )
     vector_sql = f"'{render_vector_literal(probe.query_vector)}'::VECTOR({table.dimensions})"
     distance = f"{alias}.{table.vector_column} {table.distance_operator} {vector_sql}"

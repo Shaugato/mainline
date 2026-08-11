@@ -30,7 +30,12 @@ from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import Final, cast
 
-from trappoint_recall.eval.ablation import DEFAULT_MATRIX, AblationArm, matrix_config, run_ablation_sync
+from trappoint_recall.eval.ablation import (
+    DEFAULT_MATRIX,
+    AblationArm,
+    matrix_config,
+    run_ablation_sync,
+)
 from trappoint_recall.eval.backend import NullBackend, RetrievalBackend
 from trappoint_recall.eval.corpus import CorpusError, load_corpus
 from trappoint_recall.eval.crosscheck import CrosscheckUnavailable, crosscheck_all
@@ -188,8 +193,7 @@ def build_parser() -> argparse.ArgumentParser:
             "sample size and the split policy that produced it."
         ),
         epilog=(
-            "Exit codes: 0 all gates pass, 1 at least one gate is RED, 2 the harness "
-            "could not run."
+            "Exit codes: 0 all gates pass, 1 at least one gate is RED, 2 the harness could not run."
         ),
     )
     sub = parser.add_subparsers(dest="command", required=True)

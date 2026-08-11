@@ -67,7 +67,9 @@ class RandomSplitRefused(RuntimeError):
     """Raised when a random or stratified-random split is requested for a recall metric."""
 
 
-def refuse_as_of_system_time(context: str, *, horizon_seconds: int = GC_TTL_SECONDS_DEFAULT) -> None:
+def refuse_as_of_system_time(
+    context: str, *, horizon_seconds: int = GC_TTL_SECONDS_DEFAULT
+) -> None:
     """Always raises. There is no argument that makes AOST an acceptable time wall.
 
     Args:
@@ -229,9 +231,7 @@ class TemporalSplit:
         }
 
 
-def temporally_blocked_split(
-    records: Iterable[SplitRecord], policy: SplitPolicy
-) -> TemporalSplit:
+def temporally_blocked_split(records: Iterable[SplitRecord], policy: SplitPolicy) -> TemporalSplit:
     """Partition ``records`` into indexable and withheld under ``policy``.
 
     Deterministic and order-preserving: the returned tuples follow input order so that

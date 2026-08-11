@@ -78,9 +78,7 @@ def _squash(text: str) -> str:
 
 
 def _profile_fields(summary: dict[str, Any]) -> tuple[str, str | None, str]:
-    profile_id = str(
-        summary.get("inferenceProfileId") or summary.get("inference_profile_id") or ""
-    )
+    profile_id = str(summary.get("inferenceProfileId") or summary.get("inference_profile_id") or "")
     arn = summary.get("inferenceProfileArn") or summary.get("inference_profile_arn")
     name = str(summary.get("inferenceProfileName") or summary.get("inference_profile_name") or "")
     return profile_id, (str(arn) if arn else None), name

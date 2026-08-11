@@ -23,6 +23,7 @@ from __future__ import annotations
 import uuid
 
 import pytest
+
 from trappoint_recall.lexical.analyser import analyse_query
 from trappoint_recall.lexical.bm25 import (
     bm25_search,
@@ -88,8 +89,12 @@ def test_the_other_sites_term_weights_do_not_leak_into_our_scores(two_sites) -> 
     terms = analyse_query("K-401").terms
     alone_stats = fetch_corpus_stats(backend.execute, site_id=ours, style=backend.style)
     ours_hits = bm25_search(
-        backend.execute, site_id=ours, terms=terms, limit=10,
-        stats=alone_stats, style=backend.style,
+        backend.execute,
+        site_id=ours,
+        terms=terms,
+        limit=10,
+        stats=alone_stats,
+        style=backend.style,
     )
     theirs_hits = bm25_search(
         backend.execute, site_id=theirs, terms=terms, limit=10, style=backend.style
@@ -161,9 +166,7 @@ def test_an_orphan_posting_is_reported_rather_than_silently_dropped(backend) -> 
     from trappoint_recall.lexical.executor import SqlBuilder, Statement
 
     builder = SqlBuilder(backend.style)
-    sql = "DELETE FROM mainline.lex_doclen WHERE event_id = " + builder.bind(
-        document.event_id
-    )
+    sql = "DELETE FROM mainline.lex_doclen WHERE event_id = " + builder.bind(document.event_id)
     deletion = Statement(sql, builder.params, backend.style)
     backend.execute(deletion.sql, deletion.params)
 

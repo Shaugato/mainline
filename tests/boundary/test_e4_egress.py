@@ -169,13 +169,9 @@ def test_losing_pgwire_fails_e4(mutate_plan: Any) -> None:
 
     def mutation(document: dict[str, Any]) -> None:
         module = document["planned_values"]["root_module"]
-        module["resources"] = [
-            r for r in module["resources"] if r["address"] != KERNEL_PGWIRE
-        ]
+        module["resources"] = [r for r in module["resources"] if r["address"] != KERNEL_PGWIRE]
 
-    assert_violates(
-        check_kernel_protocol_set(mutate_plan(mutation)), "E4-PROTOCOL-SET-INCOMPLETE"
-    )
+    assert_violates(check_kernel_protocol_set(mutate_plan(mutation)), "E4-PROTOCOL-SET-INCOMPLETE")
 
 
 # ---------------------------------------------------------------------------

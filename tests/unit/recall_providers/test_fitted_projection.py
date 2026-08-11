@@ -28,7 +28,6 @@ from typing import Any
 
 import numpy as np
 import pytest
-
 from mainline_recall_agent.providers.errors import ProjectionError, VectorShapeError
 from mainline_recall_agent.providers.projection import load_projection
 from mainline_recall_agent.providers.types import COARSE_DIM, EMBED_DIM
@@ -161,9 +160,7 @@ def test_the_fitted_projection_is_deterministic_across_independent_loads(
     load_projection.cache_clear()
 
 
-def test_the_mean_is_actually_subtracted(
-    fitted_dir: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_the_mean_is_actually_subtracted(fitted_dir: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Projecting the corpus centroid yields the zero vector — and is refused.
 
     This is the assertion that proves the ``mean`` branch runs.  A loader that ignored the

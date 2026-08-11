@@ -29,6 +29,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+
 from trappoint_recall.lexical.plan import (
     PlanAssertionError,
     assert_constrained_lex_scan,
@@ -127,8 +128,6 @@ def test_driver_rows_are_joined_into_one_text() -> None:
 
 def test_the_digest_ignores_row_counts_but_not_shape(fixtures_dir: Path) -> None:
     plan = load(fixtures_dir, "constrained")
-    grown = plan.replace("2,000 (100%", "9,000,000 (100%").replace(
-        "41 (0.02%", "918 (0.02%"
-    )
+    grown = plan.replace("2,000 (100%", "9,000,000 (100%").replace("41 (0.02%", "918 (0.02%")
     assert plan_digest(grown) == plan_digest(plan)
     assert plan_digest(load(fixtures_dir, "full_scan")) != plan_digest(plan)

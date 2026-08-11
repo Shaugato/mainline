@@ -7,12 +7,15 @@ Public surface::
     from mainline_domain.registry import load_registry, setpoint_delta
 
     registry = load_registry(source, site_id=site, as_of_commit=head)
-    registry.safe_direction("max_operating_pressure")   # LOWER_IS_SAFER
-    registry.safe_direction("not_a_parameter")          # ABSTAIN
+    registry.safe_direction("max_operating_pressure")  # LOWER_IS_SAFER
+    registry.safe_direction("not_a_parameter")  # ABSTAIN
 
-    setpoint_delta(registry, "max_operating_pressure",
-                   ancestor=quantity("400", "kPa"),
-                   descendant=quantity("600", "kPa")).delta   # ControlDelta.WEAKEN
+    setpoint_delta(
+        registry,
+        "max_operating_pressure",
+        ancestor=quantity("400", "kPa"),
+        descendant=quantity("600", "kPa"),
+    ).delta  # ControlDelta.WEAKEN
 
 THE CLAIM, STATED PRECISELY
 ---------------------------

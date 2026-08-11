@@ -11,6 +11,7 @@ identifier evidence differently from narrative evidence.  A term that drifts fro
 from __future__ import annotations
 
 import pytest
+
 from trappoint_recall.lexical.analyser import (
     IDENTIFIER_CLASSES,
     TokenClass,
@@ -49,9 +50,7 @@ def test_token_class_assignment(text: str, term: str, expected: TokenClass) -> N
 
 
 def test_every_token_carries_a_class() -> None:
-    tokens = analyse(
-        "Vessel K-401 at 25 %LEL, cited 30 CFR 57.22239, CAS 7783-06-4, valve failed."
-    )
+    tokens = analyse("Vessel K-401 at 25 %LEL, cited 30 CFR 57.22239, CAS 7783-06-4, valve failed.")
     assert tokens
     assert all(isinstance(t.token_class, TokenClass) for t in tokens)
     assert {t.token_class for t in tokens} == {
@@ -160,7 +159,7 @@ def test_stopwords_are_removed_from_prose() -> None:
 
 
 def test_negations_and_spatial_prepositions_are_never_stopped() -> None:
-    """"valve not closed" and "valve closed" must not become the same document."""
+    """ "valve not closed" and "valve closed" must not become the same document."""
     with_negation = {t for t, _ in classed("The isolation valve was not closed.")}
     without = {t for t, _ in classed("The isolation valve was closed.")}
     assert "not" in with_negation

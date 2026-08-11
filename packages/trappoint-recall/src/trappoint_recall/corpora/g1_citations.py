@@ -182,9 +182,7 @@ class RawCitation:
         return cls(
             citing_ref=str(payload["citing_ref"]),
             raw=str(payload["raw"]),
-            cited_ref=(
-                str(payload["cited_ref"]) if payload.get("cited_ref") is not None else None
-            ),
+            cited_ref=(str(payload["cited_ref"]) if payload.get("cited_ref") is not None else None),
             pattern=str(payload.get("pattern", "structured_related")),
             anchor=str(payload["anchor"]) if payload.get("anchor") is not None else None,
             anchor_kind=(
@@ -429,9 +427,7 @@ def resolve_citations(
         )
 
     resolved.sort(key=lambda r: (r.citing_ref, r.cited_ref))
-    return CitationResolution(
-        resolved=tuple(resolved), dropped=dropped, n_input=n_input
-    )
+    return CitationResolution(resolved=tuple(resolved), dropped=dropped, n_input=n_input)
 
 
 def g1_query_id(citing_ref: str) -> str:

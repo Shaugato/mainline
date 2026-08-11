@@ -18,6 +18,7 @@ from __future__ import annotations
 import json
 
 import pytest
+
 from trappoint_jcs.canon_v1 import (
     MAX_DEPTH,
     MAX_SAFE_INTEGER,

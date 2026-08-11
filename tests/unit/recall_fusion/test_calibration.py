@@ -84,12 +84,8 @@ def calibrator(fit_samples: list[CalibrationSample]) -> IsotonicCalibrator:
 
 
 def test_the_knots_are_monotone_non_decreasing(calibrator: IsotonicCalibrator) -> None:
-    assert all(
-        calibrator.y[i] <= calibrator.y[i + 1] for i in range(calibrator.n_knots - 1)
-    )
-    assert all(
-        calibrator.x[i] < calibrator.x[i + 1] for i in range(calibrator.n_knots - 1)
-    )
+    assert all(calibrator.y[i] <= calibrator.y[i + 1] for i in range(calibrator.n_knots - 1))
+    assert all(calibrator.x[i] < calibrator.x[i + 1] for i in range(calibrator.n_knots - 1))
     assert all(0.0 <= value <= 1.0 for value in calibrator.y)
 
 

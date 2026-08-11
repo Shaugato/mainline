@@ -95,7 +95,9 @@ class EvalQuery:
                     "temporally blocked; Retro-Recall would silently score on the future"
                 )
             if self.severity is None:
-                raise CorpusError(f"{self.query_id}: a retro permit must carry the precursor severity")
+                raise CorpusError(
+                    f"{self.query_id}: a retro permit must carry the precursor severity"
+                )
         else:
             if self.truth_doc_id is not None:
                 raise CorpusError(

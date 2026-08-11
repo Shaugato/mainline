@@ -429,8 +429,8 @@ def test_check_registry_totality() -> None:
             broken.append(f"check {check['id']}: module {check['module']} not importable")
         if not test_path.is_file():
             broken.append(f"check {check['id']}: test {check['test']} does not exist")
-    assert not broken, (
-        "checks marked implemented without a module and a test:\n  " + "\n  ".join(broken)
+    assert not broken, "checks marked implemented without a module and a test:\n  " + "\n  ".join(
+        broken
     )
 
 
@@ -508,9 +508,7 @@ def test_gate_depends_on_ledger() -> None:
 
 def test_no_ttl_on_ledger() -> None:
     """Crimes (Document Destruction) Act 2006 (Vic) — no silent expiry of an evidentiary row."""
-    pytest.skip(
-        "SKIP(no-cluster): reads the live schema for row-level TTL on any ledger_* table."
-    )
+    pytest.skip("SKIP(no-cluster): reads the live schema for row-level TTL on any ledger_* table.")
 
 
 def test_verifier_determinism() -> None:

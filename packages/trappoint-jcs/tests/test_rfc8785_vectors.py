@@ -27,6 +27,7 @@ from pathlib import Path
 
 import es6_numgen
 import pytest
+
 from trappoint_jcs.canon_v1 import canonicalise, canonicalise_json, es6_number
 
 VECTORS = Path(__file__).resolve().parent / "vectors"

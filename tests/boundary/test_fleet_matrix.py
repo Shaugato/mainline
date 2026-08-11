@@ -31,6 +31,7 @@ from dataclasses import replace
 from pathlib import Path
 
 import pytest
+
 from mainline_boundary.fleet import (
     COGNITION,
     KERNEL,
@@ -46,12 +47,7 @@ from mainline_boundary.testkit import assert_enforced, assert_violates
 _REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 SHIPPED_REGISTER = _REPO_ROOT / "spec" / "agents" / "fleet.yaml"
 REFERENCE_REGISTER = (
-    _REPO_ROOT
-    / "packages"
-    / "mainline-boundary"
-    / "tests"
-    / "fixtures"
-    / "fleet_reference.yaml"
+    _REPO_ROOT / "packages" / "mainline-boundary" / "tests" / "fixtures" / "fleet_reference.yaml"
 )
 
 
@@ -188,9 +184,7 @@ def test_giving_the_kernel_a_model_profile_fails_the_matrix() -> None:
     kernel_agents = [a for a in AGENTS if a.may_write_gate_field]
     if not kernel_agents:
         pytest.skip("the register declares no gate-writing agent to mutate")
-    mutated = replace(
-        kernel_agents[0], no_model=False, call_profiles=("gate-adjudication-high",)
-    )
+    mutated = replace(kernel_agents[0], no_model=False, call_profiles=("gate-adjudication-high",))
     assert_violates(check_fleet([mutated]), "FLEET-GATE-WRITE-WITH-MODEL")
 
 

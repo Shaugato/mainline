@@ -179,9 +179,7 @@ def parse_fleet(document: Any, *, source: str = "") -> tuple[AgentSpec, ...]:
                 continue
             name = str(item.get("name") or item.get("id") or item.get("agent") or "")
             if not name:
-                raise FleetParseError(
-                    f"{source or '<fleet>'}: an agent entry has no name/id field"
-                )
+                raise FleetParseError(f"{source or '<fleet>'}: an agent entry has no name/id field")
             entries.append((name, item))
     else:
         raise FleetParseError(
@@ -204,9 +202,7 @@ def parse_fleet(document: Any, *, source: str = "") -> tuple[AgentSpec, ...]:
                 may_write_gate_field=bool(spec.get("may_write_gate_field", False)),
                 call_profiles=call_profiles,
                 no_model=bool(spec.get("no_model", False)),
-                declared_plane=(
-                    str(spec["plane"]) if isinstance(spec.get("plane"), str) else None
-                ),
+                declared_plane=(str(spec["plane"]) if isinstance(spec.get("plane"), str) else None),
                 raw=spec,
             )
         )

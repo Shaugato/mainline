@@ -10,7 +10,6 @@ from bytes we control.
 from __future__ import annotations
 
 import pytest
-
 from mainline_recall_agent.cue.errors import SpanAmbiguous, SpanOverlap, SpanUnresolvable
 from mainline_recall_agent.cue.spans import MIN_QUOTE_CHARS, Span, locate_quote, resolve_spans
 
@@ -43,7 +42,7 @@ def test_a_quote_occurring_twice_is_ambiguous_rather_than_first_wins() -> None:
 
 
 def test_a_quote_too_short_to_localise_is_refused() -> None:
-    short = SOURCE[:MIN_QUOTE_CHARS - 1]
+    short = SOURCE[: MIN_QUOTE_CHARS - 1]
     with pytest.raises(SpanUnresolvable, match="too short to localise"):
         locate_quote(SOURCE, short, facet="mechanism")
 

@@ -21,6 +21,7 @@ The load-bearing assertions:
 from __future__ import annotations
 
 import pytest
+
 from trappoint_recall.lexical.analyser import (
     TokenClass,
     analyse,
@@ -171,8 +172,6 @@ def test_query_terms_are_deduplicated_and_sorted() -> None:
 
 
 def test_class_weights_are_applied_by_token_class() -> None:
-    query = analyse_query(
-        "K-401 valve failed", class_weights={TokenClass.IDENTIFIER: 3.0}
-    )
+    query = analyse_query("K-401 valve failed", class_weights={TokenClass.IDENTIFIER: 3.0})
     assert query.weights["k-401"] == 3.0
     assert query.weights[stem("valve")] == 1.0

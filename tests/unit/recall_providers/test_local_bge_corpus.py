@@ -26,7 +26,6 @@ import math
 from typing import Any
 
 import pytest
-
 from mainline_recall_agent.providers.base import embed_text
 from mainline_recall_agent.providers.errors import HeterogeneousCorpus
 from mainline_recall_agent.providers.homogeneity import assert_homogeneous

@@ -20,9 +20,7 @@ import pytest
 
 HERE = Path(__file__).resolve().parent
 REPO_ROOT = HERE.parents[2]
-PACKAGE_SRC = (
-    REPO_ROOT / "verticals" / "mainline" / "packages" / "mainline-recall-agent" / "src"
-)
+PACKAGE_SRC = REPO_ROOT / "verticals" / "mainline" / "packages" / "mainline-recall-agent" / "src"
 UNIT_DIR = REPO_ROOT / "tests" / "unit" / "recall_cue"
 CASSETTE_ROOT = UNIT_DIR / "cassettes"
 #: The uv workspace installs ``trappoint-recall`` editable; adding its source tree as well

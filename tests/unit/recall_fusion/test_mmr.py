@@ -102,9 +102,7 @@ def test_split_at_returns_the_overflow_rather_than_forgetting_it() -> None:
 
 
 def test_a_threshold_of_one_suppresses_nothing() -> None:
-    selection = maximal_marginal_relevance(
-        _fleet_duplicate_corpus(), redundancy_threshold=1.0
-    )
+    selection = maximal_marginal_relevance(_fleet_duplicate_corpus(), redundancy_threshold=1.0)
     assert selection.suppressed == ()
     assert len(selection.representatives) == 8
 

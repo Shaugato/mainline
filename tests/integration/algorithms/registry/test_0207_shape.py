@@ -222,7 +222,7 @@ def test_the_revoked_0207_address_is_still_empty_and_unallocated() -> None:
     assert not squatters, (
         f"{[p.name for p in squatters]} claim migration number {REVOKED_ADDRESS}, which no band "
         "grants. verticals/mainline/db/migrations.allocation.toml records 0200-9999z as "
-        "owner = \"UNALLOCATED\", mode = \"unallocated\", and the algorithms 0200-0219 annexe as "
+        'owner = "UNALLOCATED", mode = "unallocated", and the algorithms 0200-0219 annexe as '
         f"revoked (MR-7). {VIEW_OBJECT} lives at {ALLOCATED_PATH}. "
         f"Owner: {OWNING_DOMAIN}."
     )

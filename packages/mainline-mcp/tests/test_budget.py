@@ -11,7 +11,6 @@ cannot be measured has not been verified.
 
 from __future__ import annotations
 
-from conftest import StubResponse, StubTransport, rows_payload, text_payload, view_router
 from mainline_mcp.budget import BudgetProber, row_bytes, row_key
 from mainline_mcp.catalogue import parse_contract
 from mainline_mcp.client import Client
@@ -21,6 +20,8 @@ from mainline_mcp.limits import (
     MAX_RESPONSE_BYTES,
     ResponseTooLarge,
 )
+
+from conftest import StubResponse, StubTransport, rows_payload, text_payload, view_router
 
 CONTRACT = {
     "views": [

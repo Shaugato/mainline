@@ -187,9 +187,7 @@ def test_a_denied_component_in_the_current_image_fails(tmp_path: Path) -> None:
         json.dumps(
             {
                 "bomFormat": "CycloneDX",
-                "metadata": {
-                    "component": {"name": "k", "version": "sha256:" + "d" * 64}
-                },
+                "metadata": {"component": {"name": "k", "version": "sha256:" + "d" * 64}},
                 "components": [{"name": "strands-agents", "version": "1.50.2"}],
             }
         ),

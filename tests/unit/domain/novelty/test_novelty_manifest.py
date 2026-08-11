@@ -250,9 +250,7 @@ def test_the_slug_matches_the_filename(path):
 @pytest.mark.parametrize("path", FRAGMENTS, ids=lambda p: p.stem)
 def test_every_cited_test_path_exists(path):
     document = _load(path)
-    missing = [
-        citation for citation in document["tests"] if not _test_file(str(citation)).exists()
-    ]
+    missing = [citation for citation in document["tests"] if not _test_file(str(citation)).exists()]
     assert not missing, (
         f"{path.name} cites tests that do not exist: {missing}. A fragment whose evidence points "
         "at a file nobody wrote is the most expensive kind of wrong, because it reads as proof.\n"

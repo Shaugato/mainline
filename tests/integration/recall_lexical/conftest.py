@@ -181,7 +181,9 @@ def _discover_cockroach(tmp: Path) -> tuple[str, str, object] | None:
         port = _free_port()
         proc = subprocess.Popen(  # noqa: S603 - fixed argv, no shell
             [
-                binary, "start-single-node", "--insecure",
+                binary,
+                "start-single-node",
+                "--insecure",
                 "--store=type=mem,size=2GiB",
                 f"--listen-addr=127.0.0.1:{port}",
                 f"--http-addr=127.0.0.1:{_free_port()}",
@@ -203,8 +205,15 @@ def _discover_cockroach(tmp: Path) -> tuple[str, str, object] | None:
             port = _free_port()
             started = _docker(
                 [
-                    "run", "-d", "--name", CONTAINER_NAME, "-p", f"{port}:26257",
-                    CRDB_IMAGE, "start-single-node", "--insecure",
+                    "run",
+                    "-d",
+                    "--name",
+                    CONTAINER_NAME,
+                    "-p",
+                    f"{port}:26257",
+                    CRDB_IMAGE,
+                    "start-single-node",
+                    "--insecure",
                     "--store=type=mem,size=2GiB",
                 ],
                 timeout=DOCKER_RUN_TIMEOUT_S,

@@ -21,12 +21,11 @@ state of the product, and these report the state of the harness.
 from __future__ import annotations
 
 import pytest
+from oracles import DroppingBackend, OracleBackend, ShoutingBackend
 
 from trappoint_recall.eval.corpus import EvalCorpus
 from trappoint_recall.eval.gates import GateResult, evaluate_g4alpha, overall_status
 from trappoint_recall.eval.harness import compute_metrics, run_evaluation_sync
-
-from oracles import DroppingBackend, OracleBackend, ShoutingBackend
 
 
 def _gates(backend: object, corpus: EvalCorpus) -> dict[str, GateResult]:

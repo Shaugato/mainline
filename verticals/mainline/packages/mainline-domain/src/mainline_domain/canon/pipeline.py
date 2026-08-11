@@ -79,9 +79,7 @@ def _segments(canon_text: str, *, layout_segmented: bool) -> tuple[Segment, ...]
     if not canon_text:
         return ()
     if layout_segmented:
-        return (
-            Segment(start=0, end=len(canon_text), sha256=segment_digest(canon_text)),
-        )
+        return (Segment(start=0, end=len(canon_text), sha256=segment_digest(canon_text)),)
 
     tokens = tuple(iter_tokens(canon_text))
     ranges = segment_tokens(token_texts(canon_text))

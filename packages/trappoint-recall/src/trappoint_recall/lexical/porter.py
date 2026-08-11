@@ -64,11 +64,7 @@ def _has_vowel(word: str) -> bool:
 
 
 def _ends_double_consonant(word: str) -> bool:
-    return (
-        len(word) >= 2
-        and word[-1] == word[-2]
-        and _is_consonant(word, len(word) - 1)
-    )
+    return len(word) >= 2 and word[-1] == word[-2] and _is_consonant(word, len(word) - 1)
 
 
 def _ends_cvc(word: str) -> bool:
@@ -127,16 +123,36 @@ def _step1c(word: str) -> str:
 
 #: Longest suffix first within each step; the first match wins.
 _STEP2: Final[tuple[tuple[str, str], ...]] = (
-    ("ational", "ate"), ("tional", "tion"), ("enci", "ence"), ("anci", "ance"),
-    ("izer", "ize"), ("abli", "able"), ("alli", "al"), ("entli", "ent"),
-    ("eli", "e"), ("ousli", "ous"), ("ization", "ize"), ("ation", "ate"),
-    ("ator", "ate"), ("alism", "al"), ("iveness", "ive"), ("fulness", "ful"),
-    ("ousness", "ous"), ("aliti", "al"), ("iviti", "ive"), ("biliti", "ble"),
+    ("ational", "ate"),
+    ("tional", "tion"),
+    ("enci", "ence"),
+    ("anci", "ance"),
+    ("izer", "ize"),
+    ("abli", "able"),
+    ("alli", "al"),
+    ("entli", "ent"),
+    ("eli", "e"),
+    ("ousli", "ous"),
+    ("ization", "ize"),
+    ("ation", "ate"),
+    ("ator", "ate"),
+    ("alism", "al"),
+    ("iveness", "ive"),
+    ("fulness", "ful"),
+    ("ousness", "ous"),
+    ("aliti", "al"),
+    ("iviti", "ive"),
+    ("biliti", "ble"),
 )
 
 _STEP3: Final[tuple[tuple[str, str], ...]] = (
-    ("icate", "ic"), ("ative", ""), ("alize", "al"), ("iciti", "ic"),
-    ("ical", "ic"), ("ful", ""), ("ness", ""),
+    ("icate", "ic"),
+    ("ative", ""),
+    ("alize", "al"),
+    ("iciti", "ic"),
+    ("ical", "ic"),
+    ("ful", ""),
+    ("ness", ""),
 )
 
 #: Step 4 strips a derivational suffix when ``m > 1``.  ``ational`` and ``tional`` are NOT here
@@ -145,9 +161,24 @@ _STEP3: Final[tuple[tuple[str, str], ...]] = (
 #: without ever trying ``al``; ``rational`` stemmed to itself while ``rationally`` stemmed to
 #: ``ration``, so the two forms never met in a posting list.
 _STEP4: Final[tuple[str, ...]] = (
-    "ement", "ance", "ence", "able", "ible", "ment",
-    "ant", "ent", "ism", "ate", "iti", "ous", "ive", "ize", "al", "er",
-    "ic", "ou",
+    "ement",
+    "ance",
+    "ence",
+    "able",
+    "ible",
+    "ment",
+    "ant",
+    "ent",
+    "ism",
+    "ate",
+    "iti",
+    "ous",
+    "ive",
+    "ize",
+    "al",
+    "er",
+    "ic",
+    "ou",
 )
 
 

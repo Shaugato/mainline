@@ -102,8 +102,25 @@ def crosscheck_normal_quantile() -> CrosscheckResult:
     """Compare :func:`normal_ppf` against ``scipy.stats.norm.ppf``."""
     stats = _require("scipy.stats")
     probabilities = [
-        1e-6, 1e-4, 0.001, 0.01, 0.025, 0.05, 0.1, 0.25, 0.4, 0.5,
-        0.6, 0.75, 0.9, 0.95, 0.975, 0.99, 0.999, 1 - 1e-4, 1 - 1e-6,
+        1e-6,
+        1e-4,
+        0.001,
+        0.01,
+        0.025,
+        0.05,
+        0.1,
+        0.25,
+        0.4,
+        0.5,
+        0.6,
+        0.75,
+        0.9,
+        0.95,
+        0.975,
+        0.99,
+        0.999,
+        1 - 1e-4,
+        1 - 1e-6,
     ]
     worst = 0.0
     for p in probabilities:
@@ -133,7 +150,12 @@ def crosscheck_wilson() -> CrosscheckResult:
     """Compare :func:`wilson_interval` against the closed form driven by scipy's z."""
     stats = _require("scipy.stats")
     z = float(stats.norm.ppf(0.975))
-    cases = [(k, n) for n in (1, 2, 5, 17, 50, 200, 1000) for k in (0, 1, n // 2, n - 1, n) if 0 <= k <= n]
+    cases = [
+        (k, n)
+        for n in (1, 2, 5, 17, 50, 200, 1000)
+        for k in (0, 1, n // 2, n - 1, n)
+        if 0 <= k <= n
+    ]
     worst = 0.0
     for k, n in cases:
         lo, hi = wilson_interval(k, n)

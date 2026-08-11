@@ -94,7 +94,9 @@ class PeopleWorld:
     def separated_fraction(self) -> float:
         if not self.people:
             return 0.0
-        return sum(1 for person in self.people if person.separated_at is not None) / len(self.people)
+        return sum(1 for person in self.people if person.separated_at is not None) / len(
+            self.people
+        )
 
     def rows(self) -> list[dict[str, Any]]:
         return [person.to_row() for person in self.people]
@@ -202,7 +204,9 @@ def build_people(world: SiteWorld) -> PeopleWorld:
                 separated_at=(
                     None
                     if separated_raw is None
-                    else clock.coerce_datetime(separated_raw, origin=f"people.yaml/{sub}/separated_at")
+                    else clock.coerce_datetime(
+                        separated_raw, origin=f"people.yaml/{sub}/separated_at"
+                    )
                 ),
                 enrolment_assurance=str(entry["enrolment_assurance"]),
                 tickets=[str(item) for item in entry["tickets"]],

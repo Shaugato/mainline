@@ -284,10 +284,7 @@ def test_two_live_clauses_claiming_one_parameter_both_lose() -> None:
 
     registry = load_registry(source, site_id=SITE, as_of_commit=c1)
     assert registry.parameters() == frozenset()
-    assert (
-        registry.resolve("max_operating_pressure").reason
-        is AbstentionReason.DUPLICATE_PARAMETER
-    )
+    assert registry.resolve("max_operating_pressure").reason is AbstentionReason.DUPLICATE_PARAMETER
 
 
 def test_a_retirement_reachable_from_the_commit_abstains_and_a_later_one_does_not() -> None:

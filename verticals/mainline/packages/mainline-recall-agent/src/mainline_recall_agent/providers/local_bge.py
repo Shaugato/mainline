@@ -42,9 +42,7 @@ BGE_MODEL_NAME: Final[str] = "BAAI/bge-large-en-v1.5"
 #: query side; the event-cue side is the document side.  Getting this backwards costs
 #: several points of recall silently, which is exactly the class of error the ablation
 #: table exists to catch.
-BGE_QUERY_INSTRUCTION: Final[str] = (
-    "Represent this sentence for searching relevant passages: "
-)
+BGE_QUERY_INSTRUCTION: Final[str] = "Represent this sentence for searching relevant passages: "
 
 
 class LocalBGE:
@@ -109,9 +107,7 @@ class LocalBGE:
     def is_semantic(self) -> bool:
         return True
 
-    def embed(
-        self, texts: list[str], facet: str, *, side: str = "document"
-    ) -> list[Vector1024]:
+    def embed(self, texts: list[str], facet: str, *, side: str = "document") -> list[Vector1024]:
         """Encode a batch.
 
         ``side='query'`` applies the bge retrieval instruction prefix (the permit side);

@@ -83,8 +83,7 @@ _CITING_VERDICTS = [
         "candidate_ref": "C03",
         "relevance": "not_relevant",
         "shared_mechanism": "loss of containment of a corrosive liquid",
-        "shared_precondition": "residual pressure with no verification before breaking "
-        "containment",
+        "shared_precondition": "residual pressure with no verification before breaking containment",
         "justification": "Same reagent discipline, but the proposed work does not break "
         "containment and creates no residual-pressure condition.",
         "evidence_strength": "supporting",
@@ -101,8 +100,7 @@ DEMOTION_BODY = json.dumps(
             {
                 **_CITING_VERDICTS[0],
                 "shared_mechanism": "insufficient_evidence",
-                "justification": "These records both concern the leach circuit and feel "
-                "related.",
+                "justification": "These records both concern the leach circuit and feel related.",
             },
             _CITING_VERDICTS[1],
             _CITING_VERDICTS[2],
@@ -114,9 +112,7 @@ DEMOTION_BODY = json.dumps(
 OMISSION_BODY = json.dumps({"verdicts": _CITING_VERDICTS[:2]})
 
 # Extra field: caught by additionalProperties:false server-side and extra='forbid' here.
-INVALID_EXTRA_FIELD = json.dumps(
-    {"verdicts": [{**_CITING_VERDICTS[0], "confidence": 0.91}]}
-)
+INVALID_EXTRA_FIELD = json.dumps({"verdicts": [{**_CITING_VERDICTS[0], "confidence": 0.91}]})
 
 INVALID_BAD_ENUM = json.dumps(
     {"verdicts": [{**_CITING_VERDICTS[0], "relevance": "probably_relevant"}]}
@@ -222,9 +218,7 @@ def main() -> int:
             TransportReply(
                 stop_reason="end_turn",
                 text=VALID_BODY,
-                usage=Usage(
-                    input_tokens=480, output_tokens=320, cache_read_input_tokens=2560
-                ),
+                usage=Usage(input_tokens=480, output_tokens=320, cache_read_input_tokens=2560),
             ),
         ],
         note="one repair attempt carrying the validator error, then success",
@@ -241,9 +235,7 @@ def main() -> int:
             TransportReply(
                 stop_reason="end_turn",
                 text=INVALID_EXTRA_FIELD,
-                usage=Usage(
-                    input_tokens=486, output_tokens=138, cache_read_input_tokens=2560
-                ),
+                usage=Usage(input_tokens=486, output_tokens=138, cache_read_input_tokens=2560),
             ),
         ],
         note="two schema failures: dead letter, DegradedRerank(abstained), never a third call",
@@ -255,9 +247,7 @@ def main() -> int:
             TransportReply(
                 stop_reason="end_turn",
                 text=DEMOTION_BODY,
-                usage=Usage(
-                    input_tokens=210, output_tokens=300, cache_read_input_tokens=2560
-                ),
+                usage=Usage(input_tokens=210, output_tokens=300, cache_read_input_tokens=2560),
             )
         ],
         note="schema-valid but rubric-violating: 'relevant' with no citable mechanism",
@@ -269,9 +259,7 @@ def main() -> int:
             TransportReply(
                 stop_reason="end_turn",
                 text=OMISSION_BODY,
-                usage=Usage(
-                    input_tokens=210, output_tokens=240, cache_read_input_tokens=2560
-                ),
+                usage=Usage(input_tokens=210, output_tokens=240, cache_read_input_tokens=2560),
             )
         ],
         note="a candidate shown to the judge with no verdict returned: abstained, not dropped",

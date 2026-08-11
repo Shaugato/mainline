@@ -215,7 +215,11 @@ def test_mrr_is_bounded_by_one(data: tuple[list[QueryResult], QrelSet]) -> None:
 # --------------------------------------------------------------------------------------
 
 
-@given(data=corpora(), k=st.sampled_from([1, 3, 5, 10]), gain=st.sampled_from(["exponential", "linear"]))
+@given(
+    data=corpora(),
+    k=st.sampled_from([1, 3, 5, 10]),
+    gain=st.sampled_from(["exponential", "linear"]),
+)
 @settings(deadline=None, max_examples=60)
 def test_ndcg_is_in_the_unit_interval(
     data: tuple[list[QueryResult], QrelSet], k: int, gain: str
@@ -232,9 +236,15 @@ def test_ndcg_is_one_for_a_perfectly_ordered_ranking() -> None:
     results = [_result("Q-000", ["E-000", "E-001", "E-002"])]
     qrels = QrelSet.build(
         [
-            Judgement(query_id="Q-000", doc_id="E-000", grade=3, gold_set="P", judged_by="authored"),
-            Judgement(query_id="Q-000", doc_id="E-001", grade=2, gold_set="P", judged_by="authored"),
-            Judgement(query_id="Q-000", doc_id="E-002", grade=1, gold_set="P", judged_by="authored"),
+            Judgement(
+                query_id="Q-000", doc_id="E-000", grade=3, gold_set="P", judged_by="authored"
+            ),
+            Judgement(
+                query_id="Q-000", doc_id="E-001", grade=2, gold_set="P", judged_by="authored"
+            ),
+            Judgement(
+                query_id="Q-000", doc_id="E-002", grade=1, gold_set="P", judged_by="authored"
+            ),
         ]
     )
     m = ndcg_at_k(results, qrels, 3, split_policy_id=SPLIT)
@@ -245,9 +255,15 @@ def test_ndcg_is_below_one_for_an_inverted_ranking() -> None:
     results = [_result("Q-000", ["E-002", "E-001", "E-000"])]
     qrels = QrelSet.build(
         [
-            Judgement(query_id="Q-000", doc_id="E-000", grade=3, gold_set="P", judged_by="authored"),
-            Judgement(query_id="Q-000", doc_id="E-001", grade=2, gold_set="P", judged_by="authored"),
-            Judgement(query_id="Q-000", doc_id="E-002", grade=1, gold_set="P", judged_by="authored"),
+            Judgement(
+                query_id="Q-000", doc_id="E-000", grade=3, gold_set="P", judged_by="authored"
+            ),
+            Judgement(
+                query_id="Q-000", doc_id="E-001", grade=2, gold_set="P", judged_by="authored"
+            ),
+            Judgement(
+                query_id="Q-000", doc_id="E-002", grade=1, gold_set="P", judged_by="authored"
+            ),
         ]
     )
     m = ndcg_at_k(results, qrels, 3, split_policy_id=SPLIT)
@@ -382,7 +398,9 @@ def test_nuisance_rate_is_undefined_without_routine_permits() -> None:
 
 def test_mean_blocking_counts_every_permit_including_quiet_ones() -> None:
     noisy = _result("Q-000", ["E-000", "E-001", "E-002", "E-003"])
-    quiet = QueryResult(query=_query("Q-001"), candidates=(), declared_tally=RunTally(0, 0, 0, 0, 0))
+    quiet = QueryResult(
+        query=_query("Q-001"), candidates=(), declared_tally=RunTally(0, 0, 0, 0, 0)
+    )
     m = mean_blocking_checks_per_permit([noisy, quiet], split_policy_id=SPLIT)
     expected = len(noisy.blocking) / 2
     assert m.value == pytest.approx(expected)

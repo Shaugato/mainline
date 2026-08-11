@@ -45,6 +45,7 @@ from _support import (
     vector_literal,
     warm,
 )
+
 from trappoint_recall.arms import (
     DEFAULT_SUBLINEARITY_LIMIT,
     AncestorChain,
@@ -142,8 +143,10 @@ def measurements(session_conn: object, corpus: CorpusState) -> dict:
         control = _brute_force_sql(corpus, scoped.query_vector, scoped.k)
         warm(session_conn, control, repeats=1)
         brute[size] = run_median_p50(
-            [time_query(session_conn, control, repeats=max(2, REPEATS // 3)).milliseconds
-             for _ in range(RUNS)]
+            [
+                time_query(session_conn, control, repeats=max(2, REPEATS // 3)).milliseconds
+                for _ in range(RUNS)
+            ]
         )
 
         hit_sql = f"SELECT * FROM {arm_sql(scoped, form=SqlForm.LITERAL).text} AS hit"

@@ -439,9 +439,7 @@ def load_au_regulator_alerts(
         n_read += 1
         try:
             records.append(
-                parse_regulator_alert(
-                    row, provenance=provenance, corpus_commit_at=corpus_commit_at
-                )
+                parse_regulator_alert(row, provenance=provenance, corpus_commit_at=corpus_commit_at)
             )
         except RegulatorAlertFormatError as exc:
             if strict:

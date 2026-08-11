@@ -152,8 +152,8 @@ def test_not_ranked_is_distinct_from_not_relevant() -> None:
     """*Not asked* and *asked and refused* must not be the same number."""
     not_ranked = _vector(rerank_verdict=RERANK_NOT_RANKED, rerank_confidence=0.0)
     not_relevant = _vector(rerank_verdict=0.0, rerank_confidence=0.0)
-    assert not_ranked.as_mapping()["rerank_verdict"] != (
-        not_relevant.as_mapping()["rerank_verdict"]
+    assert (
+        not_ranked.as_mapping()["rerank_verdict"] != (not_relevant.as_mapping()["rerank_verdict"])
     )
 
 

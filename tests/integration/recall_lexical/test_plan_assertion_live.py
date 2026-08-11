@@ -24,6 +24,7 @@ import re
 
 import pytest
 from _corpus import Fixture
+
 from conftest import Backend  # type: ignore[import-not-found]
 from trappoint_recall.lexical.analyser import analyse_query
 from trappoint_recall.lexical.bm25 import (
@@ -81,9 +82,7 @@ def explain(backend: Backend, statement: Statement) -> str:
 def build(
     backend: Backend, corpus: Fixture, query_text: str, style: ParamStyle | None = None
 ) -> Statement:
-    stats = fetch_corpus_stats(
-        backend.execute, site_id=corpus.site_id, style=backend.style
-    )
+    stats = fetch_corpus_stats(backend.execute, site_id=corpus.site_id, style=backend.style)
     return build_bm25_statement(
         site_id=corpus.site_id,
         terms=analyse_query(query_text).terms,
@@ -118,9 +117,7 @@ def test_a_query_weighted_statement_is_also_constrained(crdb) -> None:  # noqa: 
     """The ``CASE`` arm is a different statement; the ``IN`` list is why it stays constrained."""
     backend, corpus = crdb
     terms = analyse_query("K-401 H2S 25 %LEL").terms
-    stats = fetch_corpus_stats(
-        backend.execute, site_id=corpus.site_id, style=backend.style
-    )
+    stats = fetch_corpus_stats(backend.execute, site_id=corpus.site_id, style=backend.style)
     statement = build_bm25_statement(
         site_id=corpus.site_id,
         terms={term: 1.0 + index for index, term in enumerate(terms)},
@@ -136,9 +133,7 @@ def test_a_large_term_set_is_still_constrained(crdb) -> None:  # noqa: ANN001
     """``optimizer_span_limit`` is a silent cliff; a 100-term query must not walk off it."""
     backend, corpus = crdb
     terms = sorted({t for tag in corpus.unique_tags[:60] for t in analyse_query(tag).terms})
-    stats = fetch_corpus_stats(
-        backend.execute, site_id=corpus.site_id, style=backend.style
-    )
+    stats = fetch_corpus_stats(backend.execute, site_id=corpus.site_id, style=backend.style)
     statement = build_bm25_statement(
         site_id=corpus.site_id, terms=terms, stats=stats, limit=25, style=backend.style
     )

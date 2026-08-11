@@ -32,7 +32,9 @@ __all__ = ["COMMAND", "HELP", "NAME", "add_arguments", "configure", "main", "run
 
 COMMAND = "skeleton"
 NAME = COMMAND
-HELP = "Stage 1: emit the deterministic world (sites, energy graph, taxonomy, people, events, MOCs)."
+HELP = (
+    "Stage 1: emit the deterministic world (sites, energy graph, taxonomy, people, events, MOCs)."
+)
 
 
 def add_arguments(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:

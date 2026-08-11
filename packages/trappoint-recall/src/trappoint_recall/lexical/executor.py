@@ -123,9 +123,7 @@ def render_literal(value: object) -> str:
 #: ``--`` to end of line, ``/* … */``, and single-quoted string literals (doubled quotes
 #: included).  Order matters: the string-literal alternative is last so that a quote inside a
 #: comment is not read as opening a literal.
-_SQL_NOISE: Final[re.Pattern[str]] = re.compile(
-    r"--[^\n]*|/\*.*?\*/|'(?:[^']|'')*'", re.DOTALL
-)
+_SQL_NOISE: Final[re.Pattern[str]] = re.compile(r"--[^\n]*|/\*.*?\*/|'(?:[^']|'')*'", re.DOTALL)
 
 
 def strip_sql_noise(sql: str) -> str:
@@ -156,8 +154,10 @@ class SqlBuilder:
         if key is not None and self.style is ParamStyle.NUMERIC and key in self._slots:
             return self._slots[key]
         self._params.append(value)
-        token = f"${len(self._params)}" if self.style is ParamStyle.NUMERIC else (
-            "?" if self.style is ParamStyle.QMARK else "%s"
+        token = (
+            f"${len(self._params)}"
+            if self.style is ParamStyle.NUMERIC
+            else ("?" if self.style is ParamStyle.QMARK else "%s")
         )
         if key is not None:
             self._slots[key] = token

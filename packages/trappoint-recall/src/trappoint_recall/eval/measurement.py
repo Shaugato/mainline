@@ -111,8 +111,10 @@ def normal_ppf(p: float) -> float:
     elif p <= 1.0 - _P_LOW:
         q = p - 0.5
         r = q * q
-        x = (((((_A[0] * r + _A[1]) * r + _A[2]) * r + _A[3]) * r + _A[4]) * r + _A[5]) * q / (
-            ((((_B[0] * r + _B[1]) * r + _B[2]) * r + _B[3]) * r + _B[4]) * r + 1.0
+        x = (
+            (((((_A[0] * r + _A[1]) * r + _A[2]) * r + _A[3]) * r + _A[4]) * r + _A[5])
+            * q
+            / (((((_B[0] * r + _B[1]) * r + _B[2]) * r + _B[3]) * r + _B[4]) * r + 1.0)
         )
     else:
         q = math.sqrt(-2.0 * math.log1p(-p))

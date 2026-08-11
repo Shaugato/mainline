@@ -294,9 +294,8 @@ def refusal_payload(
         # `naa_reason: not_computable` says no alternative was computed. Emitting a
         # confident-looking `declarative` here would be the single failure invariant I14
         # exists to prevent.
-        detail = (
-            "trappoint.explain_refusal did not produce a decomposition for this exhibit"
-            + (f": {why_not}" if why_not else "")
+        detail = "trappoint.explain_refusal did not produce a decomposition for this exhibit" + (
+            f": {why_not}" if why_not else ""
         )
         explained = {
             "spec_version": SPEC_VERSION,

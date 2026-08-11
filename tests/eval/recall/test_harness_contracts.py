@@ -14,9 +14,11 @@ import json
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
+import g4alpha_lane as lane
 import pytest
+from oracles import OracleBackend
 
-from trappoint_recall.eval.ablation import AblationArm, DEFAULT_MATRIX, run_ablation_sync
+from trappoint_recall.eval.ablation import DEFAULT_MATRIX, AblationArm, run_ablation_sync
 from trappoint_recall.eval.backend import NullBackend, RetrievalBackend, RunTally, ScoredCandidate
 from trappoint_recall.eval.cli import build_parser, main
 from trappoint_recall.eval.corpus import CorpusError, EvalCorpus, EvalQuery, load_corpus
@@ -44,9 +46,6 @@ from trappoint_recall.eval.splits import (
     refuse_as_of_system_time,
     temporally_blocked_split,
 )
-
-import g4alpha_lane as lane
-from oracles import OracleBackend
 
 PACKAGE_ROOT = Path(__file__).resolve().parents[3] / "packages" / "trappoint-recall"
 SCHEMA_PATH = PACKAGE_ROOT / "src" / "trappoint_recall" / "eval" / "schema" / "qrels-v1.schema.json"
@@ -99,13 +98,19 @@ def test_the_wall_requires_all_three_predicates() -> None:
     # Each predicate on its own is sufficient to exclude, which is the point: an event
     # that happened before the wall but was ingested after it is knowledge from the future.
     assert not policy.admits(
-        SplitRecord(doc_id="late-ingest", occurred_at=before, ingested_at=after, corpus_commit_at=before)
+        SplitRecord(
+            doc_id="late-ingest", occurred_at=before, ingested_at=after, corpus_commit_at=before
+        )
     )
     assert not policy.admits(
-        SplitRecord(doc_id="late-event", occurred_at=after, ingested_at=before, corpus_commit_at=before)
+        SplitRecord(
+            doc_id="late-event", occurred_at=after, ingested_at=before, corpus_commit_at=before
+        )
     )
     assert not policy.admits(
-        SplitRecord(doc_id="late-commit", occurred_at=before, ingested_at=before, corpus_commit_at=after)
+        SplitRecord(
+            doc_id="late-commit", occurred_at=before, ingested_at=before, corpus_commit_at=after
+        )
     )
 
 
@@ -149,9 +154,7 @@ def test_the_policy_id_is_deterministic_and_legible() -> None:
 def test_grades_outside_the_umbrela_scale_are_refused() -> None:
     for bad in (-1, 4, 99):
         with pytest.raises(ValueError):
-            Judgement(
-                query_id="Q", doc_id="E", grade=bad, gold_set="G", judged_by="human"
-            )
+            Judgement(query_id="Q", doc_id="E", grade=bad, gold_set="G", judged_by="human")
 
 
 def test_contradictory_judgements_are_a_hard_error() -> None:
@@ -395,9 +398,7 @@ def test_cli_help_exits_zero(capsys: pytest.CaptureFixture[str]) -> None:
 
 def test_cli_gates_exits_one_when_the_lane_is_red(corpus_path: Path, tmp_path: Path) -> None:
     out = tmp_path / "status.json"
-    code = main(
-        ["gates", "--corpus", str(corpus_path), "--format", "json", "--out", str(out)]
-    )
+    code = main(["gates", "--corpus", str(corpus_path), "--format", "json", "--out", str(out)])
     assert code == 1, "a red lane must not exit zero"
     document = json.loads(out.read_text(encoding="utf-8"))
     assert document["lane_colour"] == "RED"

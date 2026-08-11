@@ -288,9 +288,7 @@ def assert_arm_plan(
     observed_ref = node.table_ref if node else None
     index_matches = observed_ref == expected_index_ref
     if node is not None and not index_matches:
-        failures.append(
-            f"vector search reads {observed_ref!r}, expected {expected_index_ref!r}"
-        )
+        failures.append(f"vector search reads {observed_ref!r}, expected {expected_index_ref!r}")
 
     target = node.target_count if node else None
     target_present = target is not None

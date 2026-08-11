@@ -176,11 +176,9 @@ class SqlNodeSource:
             return None
         return _row_to_node(row)
 
-    def fonds_roots(self, *, site_id: str, taxonomy_ver: int, activity_root: str) -> tuple[
-        ActivityNode, ...
-    ]:
+    def fonds_roots(
+        self, *, site_id: str, taxonomy_ver: int, activity_root: str
+    ) -> tuple[ActivityNode, ...]:
         """Every node under one level-1 code, level-ordered.  Used by the bond backfill."""
-        cursor = self._connection.execute(
-            SELECT_ANCESTORS, (site_id, taxonomy_ver, activity_root)
-        )
+        cursor = self._connection.execute(SELECT_ANCESTORS, (site_id, taxonomy_ver, activity_root))
         return tuple(_row_to_node(row) for row in cursor.fetchall())

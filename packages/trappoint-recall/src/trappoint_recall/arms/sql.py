@@ -91,7 +91,13 @@ _SAFE_TOKEN: Final = re.compile(r"^[A-Za-z0-9_][A-Za-z0-9_.:\-]{0,63}$")
 
 #: The projection every arm shares, so the branches of the ``UNION ALL`` are type-compatible.
 UNION_COLUMNS: Final = (
-    "cue_id", "arm_id", "arm_kind", "arm_level", "arm_facet", "arm_weight", "dist",
+    "cue_id",
+    "arm_id",
+    "arm_kind",
+    "arm_level",
+    "arm_facet",
+    "arm_weight",
+    "dist",
 )
 
 
@@ -179,11 +185,7 @@ def arm_sql(
     table = arm.table
     params: tuple[str, ...]
     if form is SqlForm.EXECUTE:
-        marker = (
-            f"${placeholder_index}"
-            if placeholder_style is PlaceholderStyle.NUMERIC
-            else "%s"
-        )
+        marker = f"${placeholder_index}" if placeholder_style is PlaceholderStyle.NUMERIC else "%s"
         vector_sql = f"{marker}::VECTOR({table.dimensions})"
         # The query vector appears TWICE in the execute form — projected as `dist` and again
         # in the ORDER BY. A numbered placeholder is one parameter referenced twice; a
@@ -191,11 +193,7 @@ def arm_sql(
         # numbered path and raises an unhelpful arity error on the other, so the count is
         # derived here rather than left to the caller.
         literal = render_vector_literal(arm.query_vector)
-        params = (
-            (literal,)
-            if placeholder_style is PlaceholderStyle.NUMERIC
-            else (literal, literal)
-        )
+        params = (literal,) if placeholder_style is PlaceholderStyle.NUMERIC else (literal, literal)
     else:
         vector_sql = f"'{render_vector_literal(arm.query_vector)}'::VECTOR({table.dimensions})"
         params = ()

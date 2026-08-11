@@ -40,7 +40,10 @@ MIGRATIONS_DIR = ROOT / "verticals" / "mainline" / "db" / "migrations"
 #: DDL worker owns the exact membership, and a hard-coded copy here would drift the first time
 #: they add a file. Ranges are the interface; the files found inside them are theirs.
 RESERVED_RANGES: tuple[range, ...] = (
-    range(40, 47), range(80, 89), range(112, 115), range(136, 140),
+    range(40, 47),
+    range(80, 89),
+    range(112, 115),
+    range(136, 140),
 )
 
 #: Without these five the suite is not testing anything: the cue entity, both vector sidecars,

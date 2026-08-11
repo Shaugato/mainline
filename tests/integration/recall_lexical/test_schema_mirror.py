@@ -21,6 +21,7 @@ import sqlite3
 from pathlib import Path
 
 import pytest
+
 from conftest import LEX_MIGRATIONS, MIGRATIONS, SQLITE_DDL  # type: ignore[import-not-found]
 
 TABLES = ("lex_posting", "lex_stats", "lex_doclen")

@@ -13,7 +13,6 @@ So the policy's commitment must have left the trust boundary before any run may 
 from __future__ import annotations
 
 import pytest
-
 from _schema_support import (
     INSERT_RUN_SQL,
     assert_trigger_refusal,

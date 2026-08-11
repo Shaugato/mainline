@@ -111,9 +111,7 @@ def test_each_gauge_unit_agrees_with_its_absolute_twin() -> None:
     sample = Decimal("37")
     for gauge, absolute in pairs:
         # Scale-only comparison: how many pascals is one unit of each worth?
-        gauge_span = Decimal(
-            str(registry.Quantity(sample, gauge).to("pascal_gauge").magnitude)
-        )
+        gauge_span = Decimal(str(registry.Quantity(sample, gauge).to("pascal_gauge").magnitude))
         absolute_span = Decimal(str(registry.Quantity(sample, absolute).to("pascal").magnitude))
         difference = abs(gauge_span - absolute_span)
         assert difference <= abs(absolute_span) * Decimal("1e-24"), (

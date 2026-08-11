@@ -136,9 +136,7 @@ def test_ordinal_and_count_scales_compare_but_do_not_convert() -> None:
     left=st.decimals(min_value=Decimal("-1e6"), max_value=Decimal("1e6"), places=4),
     right=st.decimals(min_value=Decimal("-1e6"), max_value=Decimal("1e6"), places=4),
 )
-def test_comparison_is_antisymmetric_and_frame_invariant(
-    left: Decimal, right: Decimal
-) -> None:
+def test_comparison_is_antisymmetric_and_frame_invariant(left: Decimal, right: Decimal) -> None:
     """The two properties rule R2 silently assumes.
 
     Antisymmetry: swapping the arguments flips the sign.  Frame invariance:

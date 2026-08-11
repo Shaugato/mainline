@@ -9,7 +9,6 @@ import math
 from pathlib import Path
 
 import pytest
-
 from mainline_recall_agent.providers.errors import ProjectionError
 from mainline_recall_agent.providers.projection import (
     derive_ternary_matrix,
@@ -97,9 +96,7 @@ def test_a_tampered_sidecar_fails_to_load(tmp_path: Path, monkeypatch: pytest.Mo
 
     import mainline_recall_agent.providers.projection as projection_module
 
-    source = (
-        Path(projection_module.__file__).parent / "data" / "bge_large_en_v1_5.coarse256.json"
-    )
+    source = Path(projection_module.__file__).parent / "data" / "bge_large_en_v1_5.coarse256.json"
     sidecar = json.loads(source.read_text(encoding="utf-8"))
     sidecar["generator"]["seed"] = "a-different-seed"
     target_dir = tmp_path / "data"
@@ -134,7 +131,6 @@ def test_require_fitted_projection_env_makes_the_provisional_artefact_a_hard_fai
 def test_fit_pca_produces_ranked_orthonormal_components() -> None:
     """The fitter is real code, exercised on synthetic data — not a stub for later."""
     import numpy as np
-
     from mainline_recall_agent.providers.fit_projection import fit_pca
 
     rng = np.random.default_rng(7)

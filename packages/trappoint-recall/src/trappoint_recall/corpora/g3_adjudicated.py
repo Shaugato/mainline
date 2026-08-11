@@ -376,9 +376,15 @@ def ingest_confirmations(
             llm_generous += 1
         else:
             llm_stricter += 1
-        raters = ", ".join(
-            r for r in (confirmation.rater_a, confirmation.rater_b, confirmation.adjudicator) if r
-        ) if confirmation else ""
+        raters = (
+            ", ".join(
+                r
+                for r in (confirmation.rater_a, confirmation.rater_b, confirmation.adjudicator)
+                if r
+            )
+            if confirmation
+            else ""
+        )
         judgements.append(
             Judgement(
                 query_id=item.query_id,

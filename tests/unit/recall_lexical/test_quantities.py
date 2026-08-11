@@ -14,6 +14,7 @@ ambient pressure the analyser does not have, so it does not guess.
 from __future__ import annotations
 
 import pytest
+
 from trappoint_recall.lexical.analyser import TokenClass, analyse
 from trappoint_recall.lexical.units import DIMENSION_SYMBOL, format_magnitude
 

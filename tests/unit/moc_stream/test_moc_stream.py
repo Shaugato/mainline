@@ -22,6 +22,7 @@ from itertools import pairwise
 from pathlib import Path
 
 import pytest
+
 from conftest import read_jsonl
 
 # ── what the DDL actually says ───────────────────────────────────────────────────────────────

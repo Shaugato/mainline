@@ -29,6 +29,7 @@ from pathlib import Path
 
 import pytest
 from _support import FIXTURES
+
 from trappoint_recall.arms import (
     assert_arm_plan,
     assert_arm_set_plan,

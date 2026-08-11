@@ -97,9 +97,7 @@ def _origin(conn, *, clause_uuid, as_of: Commit):
 # --------------------------------------------------------------------------- #
 
 
-def test_the_origin_is_the_earliest_blood_bearing_version_not_the_declared_parent(
-    conn, site_id
-):
+def test_the_origin_is_the_earliest_blood_bearing_version_not_the_declared_parent(conn, site_id):
     """The headline. ``parent_version`` points at the bloodless branch; the origin does not."""
     dag = Dag(conn, site_id)
     clause = insert_clause(conn, site_id=site_id, birth=dag.c0)
@@ -114,13 +112,16 @@ def test_the_origin_is_the_earliest_blood_bearing_version_not_the_declared_paren
         (dag.m, dag.sb),  # THE RE-PARENTING ATTEMPT
     ):
         _version(
-            conn, site_id=site_id, dag=dag, clause_uuid=clause,
-            commit=commit, parent=parent, sev=5,
+            conn,
+            site_id=site_id,
+            dag=dag,
+            clause_uuid=clause,
+            commit=commit,
+            parent=parent,
+            sev=5,
         )
 
-    insert_blame_edge(
-        conn, site_id=site_id, clause_uuid=clause, event_id=fatality, commit=dag.c0
-    )
+    insert_blame_edge(conn, site_id=site_id, clause_uuid=clause, event_id=fatality, commit=dag.c0)
     insert_blame_edge(conn, site_id=site_id, clause_uuid=clause, event_id=lesser, commit=dag.c1)
     for commit in (dag.c0, dag.c1, dag.c2, dag.sb, dag.m):
         insert_closure(
@@ -168,14 +169,23 @@ def test_a_lower_severity_edge_never_defines_the_origin(conn, site_id):
 
     for commit, parent in ((dag.c0, None), (dag.c1, dag.c0), (dag.c2, dag.c1)):
         _version(
-            conn, site_id=site_id, dag=dag, clause_uuid=clause,
-            commit=commit, parent=parent, sev=5,
+            conn,
+            site_id=site_id,
+            dag=dag,
+            clause_uuid=clause,
+            commit=commit,
+            parent=parent,
+            sev=5,
         )
     insert_blame_edge(conn, site_id=site_id, clause_uuid=clause, event_id=minor, commit=dag.c0)
     insert_blame_edge(conn, site_id=site_id, clause_uuid=clause, event_id=fatality, commit=dag.c1)
     for commit in (dag.c0, dag.c1, dag.c2):
         insert_closure(
-            conn, site_id=site_id, clause_uuid=clause, as_of=commit, max_severity=5,
+            conn,
+            site_id=site_id,
+            clause_uuid=clause,
+            as_of=commit,
+            max_severity=5,
             ancestor_events=[fatality],
         )
 
@@ -192,11 +202,20 @@ def test_a_projected_and_clean_closure_appears_with_empty_origin_columns(conn, s
     clause = insert_clause(conn, site_id=site_id, birth=dag.c0)
     for commit, parent in ((dag.c0, None), (dag.c1, dag.c0)):
         _version(
-            conn, site_id=site_id, dag=dag, clause_uuid=clause,
-            commit=commit, parent=parent, sev=0,
+            conn,
+            site_id=site_id,
+            dag=dag,
+            clause_uuid=clause,
+            commit=commit,
+            parent=parent,
+            sev=0,
         )
         insert_closure(
-            conn, site_id=site_id, clause_uuid=clause, as_of=commit, max_severity=0,
+            conn,
+            site_id=site_id,
+            clause_uuid=clause,
+            as_of=commit,
+            max_severity=0,
             virulence="routine",
         )
 
@@ -242,8 +261,13 @@ def test_a_same_generation_fork_resolves_the_same_way_twice(conn, site_id):
     _version(conn, site_id=site_id, dag=dag, clause_uuid=clause, commit=dag.c0, parent=None, sev=5)
     for commit in (dag.c1, dag.sb):
         _version(
-            conn, site_id=site_id, dag=dag, clause_uuid=clause,
-            commit=commit, parent=dag.c0, sev=5,
+            conn,
+            site_id=site_id,
+            dag=dag,
+            clause_uuid=clause,
+            commit=commit,
+            parent=dag.c0,
+            sev=5,
         )
         insert_blame_edge(
             conn,
@@ -258,7 +282,11 @@ def test_a_same_generation_fork_resolves_the_same_way_twice(conn, site_id):
     )
     for commit in (dag.c0, dag.c1, dag.sb, dag.c2):
         insert_closure(
-            conn, site_id=site_id, clause_uuid=clause, as_of=commit, max_severity=5,
+            conn,
+            site_id=site_id,
+            clause_uuid=clause,
+            as_of=commit,
+            max_severity=5,
             ancestor_events=[fatality],
         )
 
@@ -271,9 +299,7 @@ def test_a_same_generation_fork_resolves_the_same_way_twice(conn, site_id):
     assert first.origin_gen == 1
 
 
-def test_an_origin_off_the_first_parent_chain_is_returned_and_flagged_not_dropped(
-    conn, site_id
-):
+def test_an_origin_off_the_first_parent_chain_is_returned_and_flagged_not_dropped(conn, site_id):
     """The conservative answer, end to end.
 
     The clause's only severity-5 blood attached on the side branch.  The view
@@ -293,13 +319,22 @@ def test_an_origin_off_the_first_parent_chain_is_returned_and_flagged_not_droppe
         (dag.m, dag.c2),
     ):
         _version(
-            conn, site_id=site_id, dag=dag, clause_uuid=clause,
-            commit=commit, parent=parent, sev=5,
+            conn,
+            site_id=site_id,
+            dag=dag,
+            clause_uuid=clause,
+            commit=commit,
+            parent=parent,
+            sev=5,
         )
     insert_blame_edge(conn, site_id=site_id, clause_uuid=clause, event_id=fatality, commit=dag.sb)
     for commit in (dag.c0, dag.sb, dag.c1, dag.c2, dag.m):
         insert_closure(
-            conn, site_id=site_id, clause_uuid=clause, as_of=commit, max_severity=5,
+            conn,
+            site_id=site_id,
+            clause_uuid=clause,
+            as_of=commit,
+            max_severity=5,
             ancestor_events=[fatality],
         )
 
@@ -345,7 +380,11 @@ def test_the_origin_query_does_not_full_scan_clause_version(conn, site_id):
     clause = insert_clause(conn, site_id=site_id, birth=dag.c0)
     _version(conn, site_id=site_id, dag=dag, clause_uuid=clause, commit=dag.c0, parent=None, sev=0)
     insert_closure(
-        conn, site_id=site_id, clause_uuid=clause, as_of=dag.c0, max_severity=0,
+        conn,
+        site_id=site_id,
+        clause_uuid=clause,
+        as_of=dag.c0,
+        max_severity=0,
         virulence="routine",
     )
 
@@ -368,9 +407,7 @@ def _explain(conn, clause_uuid, dag: Dag) -> str:
     return "\n".join(str(row[0]) for row in result)
 
 
-def test_the_recursive_walk_plans_as_a_recursive_cte_and_nothing_more_is_observable(
-    conn, site_id
-):
+def test_the_recursive_walk_plans_as_a_recursive_cte_and_nothing_more_is_observable(conn, site_id):
     """MEASURED, v26.2.5: ``EXPLAIN`` does not render a recursive CTE's recursive term.
 
     The whole plan for :data:`FIRST_PARENT_ANCESTRY_SQL` is::

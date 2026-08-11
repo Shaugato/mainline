@@ -255,9 +255,7 @@ def build() -> tuple[list[dict[str, object]], list[dict[str, object]]]:
             {
                 "query_id": qid,
                 "kind": "routine",
-                "text": (
-                    f"Permit to work: {task} on {asset} at {path}. Uneventful replay: {why}."
-                ),
+                "text": (f"Permit to work: {task} on {asset} at {path}. Uneventful replay: {why}."),
                 "site_id": f"SITE-{(n % 3) + 1}",
                 "activity_path": path,
                 "asset_class": asset,

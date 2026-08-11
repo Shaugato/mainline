@@ -283,9 +283,7 @@ class FacetValue:
 
     def __post_init__(self) -> None:
         if self.facet not in FACETS:
-            raise CueEmissionError(
-                "unknown facet", facet=self.facet, allowed=list(FACETS)
-            )
+            raise CueEmissionError("unknown facet", facet=self.facet, allowed=list(FACETS))
         if self.insufficient_evidence and self.text.strip():
             raise CueEmissionError(
                 "a facet that declares insufficient evidence must not also carry cue text; "

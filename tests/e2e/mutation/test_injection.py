@@ -63,9 +63,7 @@ def test_a_disabled_rule_produces_no_findings():
     weakened = load_fixtures()[0].raw_text.replace("must not", "should not")
     descendant = view_of(load_fixtures()[0].document(text=weakened))
 
-    whole = explain_with(
-        ancestor.cat, descendant.cat, registry(), HARNESS_COMMIT
-    )
+    whole = explain_with(ancestor.cat, descendant.cat, registry(), HARNESS_COMMIT)
     assert "R1_DEONTIC" in {f.rule_id for f in whole.findings}
 
     hurt = explain_with(
@@ -76,9 +74,9 @@ def test_a_disabled_rule_produces_no_findings():
         disabled=frozenset({"R1_DEONTIC"}),
     )
     assert "R1_DEONTIC" not in {f.rule_id for f in hurt.findings}
-    assert {f.rule_id for f in hurt.findings} == {
-        f.rule_id for f in whole.findings
-    } - {"R1_DEONTIC"}, "disabling one rule must not silence another"
+    assert {f.rule_id for f in hurt.findings} == {f.rule_id for f in whole.findings} - {
+        "R1_DEONTIC"
+    }, "disabling one rule must not silence another"
 
 
 def test_the_crippled_lattice_version_says_so():

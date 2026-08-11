@@ -338,9 +338,7 @@ def _delta_from_sign(direction: SafeDirection, comparison: int) -> ControlDelta:
 _MOVED: Final[dict[int, str]] = {-1: "decreased", 0: "did not move", 1: "increased"}
 
 
-def _explain(
-    parameter: str, direction: SafeDirection, comparison: int, delta: ControlDelta
-) -> str:
+def _explain(parameter: str, direction: SafeDirection, comparison: int, delta: ControlDelta) -> str:
     return (
         f"{parameter} {_MOVED[comparison]}; the registry has it ratified "
         f"{direction.value}, so this edit is {delta.value}"

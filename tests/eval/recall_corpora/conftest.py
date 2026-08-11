@@ -64,8 +64,7 @@ def manifest(fixtures_root: Path) -> ProvenanceManifest:
 def panel() -> Panel:
     if not PANEL.is_file():
         pytest.fail(
-            f"{PANEL} is not built. Run `python scripts/recall/build_goldsets.py "
-            "--from-fixtures`."
+            f"{PANEL} is not built. Run `python scripts/recall/build_goldsets.py --from-fixtures`."
         )
     return load_panel(PANEL)
 
@@ -74,7 +73,6 @@ def panel() -> Panel:
 def gs0() -> EvalCorpus:
     if not (GS0 / "queries.jsonl").is_file():
         pytest.fail(
-            f"{GS0} is not built. Run `python scripts/recall/build_goldsets.py "
-            "--from-fixtures`."
+            f"{GS0} is not built. Run `python scripts/recall/build_goldsets.py --from-fixtures`."
         )
     return load_corpus(GS0)

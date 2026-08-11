@@ -331,7 +331,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         default=Path(__file__).resolve().parents[2],
         help="repository root, used to shorten reported paths",
     )
-    parser.add_argument("--selftest", action="store_true", help="check the rule against its own cases")
+    parser.add_argument(
+        "--selftest", action="store_true", help="check the rule against its own cases"
+    )
     args = parser.parse_args(argv)
 
     if args.selftest:

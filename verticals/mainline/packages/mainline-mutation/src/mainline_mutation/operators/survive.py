@@ -234,9 +234,7 @@ def table_to_prose(revision: Revision, rng: random.Random) -> MutationApplicatio
         raise OperatorInapplicable(f"{revision.fixture_id} is not a table row")
     subject, parameter, limit, *rest = cells
     tail = f", and the reading shall be {rest[0]}" if rest else ""
-    body = (
-        f"The {parameter[0].lower()}{parameter[1:]} of {subject} must not exceed {limit}{tail}."
-    )
+    body = f"The {parameter[0].lower()}{parameter[1:]} of {subject} must not exceed {limit}{tail}."
     return MutationApplication(
         descendant_document=revision.document(text=body),
         note=f"table row {cells} reformatted as one sentence",

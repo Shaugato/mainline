@@ -189,6 +189,7 @@ _TEMPLATES: Final[dict[str, tuple[str, str]]] = {
     "suspend_permit": ("POST", "/v1/permits/{permit_id}/suspend"),
 }
 
+
 def _assert_resources_agree() -> None:
     """Refuse to run if :data:`_TEMPLATES` has drifted from ``resources.ts``.
 
@@ -199,9 +200,7 @@ def _assert_resources_agree() -> None:
     source = (CONSOLE / "src" / "data" / "resources.ts").read_text(encoding="utf-8")
     import re
 
-    found = dict(
-        re.findall(r"declare\(\s*'([a-z_]+)',\s*'(?:GET|POST)',\s*'([^']+)'", source)
-    )
+    found = dict(re.findall(r"declare\(\s*'([a-z_]+)',\s*'(?:GET|POST)',\s*'([^']+)'", source))
     if not found:
         raise SystemExit(
             "capture_demo_bundle: could not read any resource declaration out of "
@@ -221,8 +220,9 @@ def _assert_resources_agree() -> None:
         )
 
 
-def resolve_key(resource: str, path: dict[str, str] | None = None,
-                query: dict[str, str] | None = None) -> tuple[str, str, str, list[tuple[str, str]]]:
+def resolve_key(
+    resource: str, path: dict[str, str] | None = None, query: dict[str, str] | None = None
+) -> tuple[str, str, str, list[tuple[str, str]]]:
     """Return ``(key, method, interpolated_path, sorted_query)`` for one request.
 
     Mirrors ``resolveRequest`` in ``console/src/data/resources.ts``: the key is method,
@@ -241,9 +241,7 @@ def resolve_key(resource: str, path: dict[str, str] | None = None,
     pairs = sorted((query or {}).items())
     from urllib.parse import quote
 
-    encoded = "&".join(
-        f"{quote(name, safe='')}={quote(value, safe='')}" for name, value in pairs
-    )
+    encoded = "&".join(f"{quote(name, safe='')}={quote(value, safe='')}" for name, value in pairs)
     key = f"{method} {interpolated}" if not encoded else f"{method} {interpolated}?{encoded}"
     return key, method, interpolated, pairs
 
@@ -645,6 +643,7 @@ def round_trip_text(
     cannot. There is no ``exit code`` block, because no process exited: this ran in a
     library, and a fabricated ``1`` would be the first invented byte in the bundle.
     """
+
     def block(name: str, body: str) -> str:
         return f"--- {name} ---\n{body.rstrip()}\n" if body.strip() else f"--- {name} ---\n(none)\n"
 
@@ -745,8 +744,7 @@ def _cluster_fingerprint(
 
     version = observed.get("version", "")
     product = (
-        "CockroachDB CCL" if "CockroachDB CCL" in version
-        else version.split(" v")[0] or "unknown"
+        "CockroachDB CCL" if "CockroachDB CCL" in version else version.split(" v")[0] or "unknown"
     )
     tag = ""
     for token in version.split():
@@ -1169,8 +1167,14 @@ def capture(  # noqa: PLR0915 - one straight line through the run; splitting it 
                         payload["staged"] = True
                         payload["staged_note"] = staged_note
                     bundle.frame(
-                        resource=resource, payload=payload, status=200, path=path,
-                        query=query, duration_ms=elapsed, via="python-call", source="sql",
+                        resource=resource,
+                        payload=payload,
+                        status=200,
+                        path=path,
+                        query=query,
+                        duration_ms=elapsed,
+                        via="python-call",
+                        source="sql",
                     )
                     say(
                         f"  read         {resource:18s} {path.get('permit_id', '')[:8]:8s} "
@@ -1179,8 +1183,13 @@ def capture(  # noqa: PLR0915 - one straight line through the run; splitting it 
                     return payload
 
                 evidence["omitted"].append(
-                    {"resource": resource, "path": path, "query": query,
-                     "reason": reason, "required": required}
+                    {
+                        "resource": resource,
+                        "path": path,
+                        "query": query,
+                        "reason": reason,
+                        "required": required,
+                    }
                 )
                 say(f"  omitted      {resource:18s} {reason[:80]}")
                 if required:
@@ -1200,10 +1209,12 @@ def capture(  # noqa: PLR0915 - one straight line through the run; splitting it 
             if check_row is not None:
                 addresses["disposition"] = ({"check_id": str(check_row[0])}, {})
                 addresses["clause_version"] = (
-                    {"clause_uuid": str(check_row[1]), "commit_id": check_row[2]}, {}
+                    {"clause_uuid": str(check_row[1]), "commit_id": check_row[2]},
+                    {},
                 )
                 addresses["clause_ancestry"] = (
-                    {"clause_uuid": str(check_row[1])}, {"as_of": check_row[2]}
+                    {"clause_uuid": str(check_row[1])},
+                    {"as_of": check_row[2]},
                 )
             if receipt_row is not None:
                 addresses["exposure_receipt"] = ({"receipt_id": str(receipt_row[0])}, {})
@@ -1251,10 +1262,20 @@ def capture(  # noqa: PLR0915 - one straight line through the run; splitting it 
                 # refusal payload read the rows the refusal points at.
                 conn.execute("ROLLBACK TO SAVEPOINT beat_2")
                 _file_refusal(
-                    bundle, conn, evidence, beat, permit_id, seeded_epoch, exc,
+                    bundle,
+                    conn,
+                    evidence,
+                    beat,
+                    permit_id,
+                    seeded_epoch,
+                    exc,
                     elapsed=(time.perf_counter() - started_beat) * 1000.0,
-                    staged=False, staged_note=None, database=database,
-                    statement=_MERGE_SQL, extra_statement=None, say=say,
+                    staged=False,
+                    staged_note=None,
+                    database=database,
+                    statement=_MERGE_SQL,
+                    extra_statement=None,
+                    say=say,
                 )
             else:
                 conn.execute("ROLLBACK TO SAVEPOINT beat_2")
@@ -1270,8 +1291,11 @@ def capture(  # noqa: PLR0915 - one straight line through the run; splitting it 
             twin = twins["drift"]
             drift_permit = uuid.UUID(twin["permit_id"])
             drift_note = _TWIN_NOTE.format(
-                ref=twin["external_ref"], permit=drift_permit, source_ref=external_ref,
-                why=_WHY_DRIFT, sql=f"sql/{beat['sql_name']}.txt",
+                ref=twin["external_ref"],
+                permit=drift_permit,
+                source_ref=external_ref,
+                why=_WHY_DRIFT,
+                sql=f"sql/{beat['sql_name']}.txt",
             )
             conn.execute("SAVEPOINT beat_3")
             trace = _clone_twin(conn, permit_id, twin)
@@ -1334,8 +1358,10 @@ def capture(  # noqa: PLR0915 - one straight line through the run; splitting it 
                 "permit", {"permit_id": str(drift_permit)}, required=True, staged_note=drift_note
             )
             capture_read(
-                "blocking_checks", {"permit_id": str(drift_permit)},
-                required=True, staged_note=drift_note,
+                "blocking_checks",
+                {"permit_id": str(drift_permit)},
+                required=True,
+                staged_note=drift_note,
             )
             drift_epoch = (
                 int(drift_payload["data"]["gate_epoch"]) if drift_payload else seeded_epoch
@@ -1352,9 +1378,17 @@ def capture(  # noqa: PLR0915 - one straight line through the run; splitting it 
                 # refusal payload reads the obligation the refusal names.
                 conn.execute("ROLLBACK TO SAVEPOINT beat_3_merge")
                 _file_refusal(
-                    bundle, conn, evidence, beat, drift_permit, drift_epoch, exc,
+                    bundle,
+                    conn,
+                    evidence,
+                    beat,
+                    drift_permit,
+                    drift_epoch,
+                    exc,
                     elapsed=(time.perf_counter() - started_beat) * 1000.0,
-                    staged=True, staged_note=drift_note, database=database,
+                    staged=True,
+                    staged_note=drift_note,
+                    database=database,
                     statement=_MERGE_SQL,
                     extra_statement=(
                         f"{_FORCE_SQL}\n"
@@ -1378,8 +1412,11 @@ def capture(  # noqa: PLR0915 - one straight line through the run; splitting it 
             twin = twins["cleared"]
             cleared_permit = uuid.UUID(twin["permit_id"])
             cleared_note = _TWIN_NOTE.format(
-                ref=twin["external_ref"], permit=cleared_permit, source_ref=external_ref,
-                why=_WHY_CLEARED, sql=f"sql/{beat['sql_name']}.txt",
+                ref=twin["external_ref"],
+                permit=cleared_permit,
+                source_ref=external_ref,
+                why=_WHY_CLEARED,
+                sql=f"sql/{beat['sql_name']}.txt",
             )
             conn.execute("SAVEPOINT beat_4")
             _clone_twin(conn, permit_id, twin)
@@ -1391,16 +1428,22 @@ def capture(  # noqa: PLR0915 - one straight line through the run; splitting it 
             # drives the screen in. A read taken after the merge would describe a merged
             # permit and the attempt control would have nothing left to do.
             cleared_payload = capture_read(
-                "permit", {"permit_id": str(cleared_permit)},
-                required=True, staged_note=cleared_note,
+                "permit",
+                {"permit_id": str(cleared_permit)},
+                required=True,
+                staged_note=cleared_note,
             )
             capture_read(
-                "blocking_checks", {"permit_id": str(cleared_permit)},
-                required=True, staged_note=cleared_note,
+                "blocking_checks",
+                {"permit_id": str(cleared_permit)},
+                required=True,
+                staged_note=cleared_note,
             )
             capture_read(
-                "disposition", {"check_id": twin["check_id"]},
-                required=False, staged_note=cleared_note,
+                "disposition",
+                {"check_id": twin["check_id"]},
+                required=False,
+                staged_note=cleared_note,
             )
             cleared_epoch = (
                 int(cleared_payload["data"]["gate_epoch"]) if cleared_payload else seeded_epoch
@@ -1430,13 +1473,20 @@ def capture(  # noqa: PLR0915 - one straight line through the run; splitting it 
                     "ledger_seq": None,
                 }
                 data = _transitions._invoke(
-                    MERGE_PROCEDURE, 200, "committed", str(cleared_permit),
-                    int(record[3]) if record else cleared_epoch, committed=committed,
+                    MERGE_PROCEDURE,
+                    200,
+                    "committed",
+                    str(cleared_permit),
+                    int(record[3]) if record else cleared_epoch,
+                    committed=committed,
                 )
                 data["sql_round_trip"] = f"sql/{beat['sql_name']}.txt"
                 payload = _transitions._envelope(
-                    "merge_permit", INVOKE_SCHEMA_ID, data,
-                    staged=True, staged_note=cleared_note,
+                    "merge_permit",
+                    INVOKE_SCHEMA_ID,
+                    data,
+                    staged=True,
+                    staged_note=cleared_note,
                     statement_refs=[
                         _transitions._ref("procedure", "mainline.merge_permit"),
                         _transitions._ref("table", "mainline.merge_record"),
@@ -1444,14 +1494,18 @@ def capture(  # noqa: PLR0915 - one straight line through the run; splitting it 
                     provenance=list(_transitions._COMMITTED_PROVENANCE),
                 )
                 bundle.frame(
-                    resource="merge_permit", payload=payload, status=200,
+                    resource="merge_permit",
+                    payload=payload,
+                    status=200,
                     path={"permit_id": str(cleared_permit)},
                     body={
                         "subject_kind": "permit",
                         "subject_id": str(cleared_permit),
                         "expected_gate_epoch": cleared_epoch,
                     },
-                    duration_ms=elapsed, via="python-call", source="sql",
+                    duration_ms=elapsed,
+                    via="python-call",
+                    source="sql",
                 )
                 bundle.text(
                     f"sql/{beat['sql_name']}.txt",
@@ -1496,10 +1550,15 @@ def capture(  # noqa: PLR0915 - one straight line through the run; splitting it 
                 )
                 evidence["beats"].append(
                     {
-                        "ordinal": beat["ordinal"], "name": beat["name"],
-                        "subject": str(cleared_permit), "outcome": "committed",
-                        "sqlstate": "00000", "constraint": None, "constraint_source": None,
-                        "expected": beat["expect"], "matched_expectation": True,
+                        "ordinal": beat["ordinal"],
+                        "name": beat["name"],
+                        "subject": str(cleared_permit),
+                        "outcome": "committed",
+                        "sqlstate": "00000",
+                        "constraint": None,
+                        "constraint_source": None,
+                        "expected": beat["expect"],
+                        "matched_expectation": True,
                         "sql_round_trip": f"sql/{beat['sql_name']}.txt",
                         "clearance_digest": committed["clearance_digest"],
                         "open_blocking_after_signature": int(closed),
@@ -1527,7 +1586,12 @@ def capture(  # noqa: PLR0915 - one straight line through the run; splitting it 
                 # itself.
                 "single_transaction": opened_ts == closed_ts,
                 "savepoints": [
-                    "beat_2", "beat_3", "beat_3_merge", "beat_4", "beat_4_merge", "ctx",
+                    "beat_2",
+                    "beat_3",
+                    "beat_3_merge",
+                    "beat_4",
+                    "beat_4_merge",
+                    "ctx",
                 ],
                 "attempt": attempt,
             }
@@ -1580,8 +1644,7 @@ def capture(  # noqa: PLR0915 - one straight line through the run; splitting it 
             title="Persistence check — the capture mutated nothing",
             connection=f"database {database}",
             transaction="autocommit, outside the capture transaction, before and after",
-            statement=_counts_statement(tables)
-            + "\n" + _PERMIT_ROW_SQL.strip(),
+            statement=_counts_statement(tables) + "\n" + _PERMIT_ROW_SQL.strip(),
             parameters=[f"permit_id = {permit_id}"],
             outcome="IDENTICAL" if identical else "CHANGED",
             sqlstate="00000",
@@ -1678,35 +1741,52 @@ def _file_refusal(
         return
 
     payload = _refusal.refusal_payload(
-        conn, found, subject_kind="permit", subject_id=str(subject),
-        gate_epoch=gate_epoch, attempt={"kind": "merge", "gate_epoch": gate_epoch},
+        conn,
+        found,
+        subject_kind="permit",
+        subject_id=str(subject),
+        gate_epoch=gate_epoch,
+        attempt={"kind": "merge", "gate_epoch": gate_epoch},
     )
     data = _transitions._invoke(
-        MERGE_PROCEDURE, 409, "refused", str(subject),
-        int(payload.get("gate_epoch", gate_epoch)), refusal=payload,
+        MERGE_PROCEDURE,
+        409,
+        "refused",
+        str(subject),
+        int(payload.get("gate_epoch", gate_epoch)),
+        refusal=payload,
     )
     data["sql_round_trip"] = sql_rel
     envelope = _transitions._envelope(
-        "merge_permit", INVOKE_SCHEMA_ID, data,
-        staged=staged, staged_note=staged_note,
+        "merge_permit",
+        INVOKE_SCHEMA_ID,
+        data,
+        staged=staged,
+        staged_note=staged_note,
         statement_refs=[_transitions._ref("procedure", "mainline.merge_permit")],
         provenance=list(_transitions._REFUSAL_PROVENANCE),
     )
     bundle.frame(
-        resource="merge_permit", payload=envelope, status=409,
+        resource="merge_permit",
+        payload=envelope,
+        status=409,
         path={"permit_id": str(subject)},
         body={
             "subject_kind": "permit",
             "subject_id": str(subject),
             "expected_gate_epoch": gate_epoch,
         },
-        duration_ms=elapsed, via="python-call", source="sql",
+        duration_ms=elapsed,
+        via="python-call",
+        source="sql",
     )
     matched = (
         found.sqlstate == expected["sqlstate"]
         and (expected["exhibit"] is None or found.constraint == expected["exhibit"])
-        and (expected["constraint_source"] is None
-             or found.constraint_source == expected["constraint_source"])
+        and (
+            expected["constraint_source"] is None
+            or found.constraint_source == expected["constraint_source"]
+        )
     )
     bundle.text(
         sql_rel,
@@ -1741,12 +1821,17 @@ def _file_refusal(
     )
     evidence["beats"].append(
         {
-            "ordinal": beat["ordinal"], "name": beat["name"], "subject": str(subject),
-            "outcome": "refused", "sqlstate": found.sqlstate,
+            "ordinal": beat["ordinal"],
+            "name": beat["name"],
+            "subject": str(subject),
+            "outcome": "refused",
+            "sqlstate": found.sqlstate,
             "constraint": found.constraint or None,
             "constraint_source": found.constraint_source,
-            "expected": expected, "matched_expectation": matched,
-            "sql_round_trip": sql_rel, "elapsed_ms": round(elapsed, 3),
+            "expected": expected,
+            "matched_expectation": matched,
+            "sql_round_trip": sql_rel,
+            "elapsed_ms": round(elapsed, 3),
         }
     )
     if not matched:
@@ -1771,10 +1856,14 @@ def _node(mode: str, out: Path, node: str) -> tuple[int, str]:
     rel = os.path.relpath(out, CONSOLE).replace("\\", "/")
     proc = subprocess.run(
         [node, str(script), mode, "--dir", rel],
-        cwd=str(CONSOLE), capture_output=True, text=True, check=False,
+        cwd=str(CONSOLE),
+        capture_output=True,
+        text=True,
+        check=False,
         # node writes UTF-8; the default here is the Windows ANSI code page, which turns
         # every em dash in capture-bundle.ts's own output into mojibake in the evidence.
-        encoding="utf-8", errors="replace",
+        encoding="utf-8",
+        errors="replace",
     )
     return proc.returncode, (proc.stdout + proc.stderr).strip()
 
@@ -1849,18 +1938,21 @@ def under_root(path: Path) -> str:
 def summarise(evidence: dict[str, Any]) -> None:
     print()
     fp = evidence["cluster_fingerprint"]
-    print(f"cluster       {fp['product']} {fp['version']}  "
-          f"({fp['source']}, {fp['region']})")
+    print(f"cluster       {fp['product']} {fp['version']}  ({fp['source']}, {fp['region']})")
     print(f"database      {evidence['target']['database']}")
     subject = evidence["subject"]
     print(f"subject       {subject['external_ref']}  {subject['permit_id']}")
     for beat in evidence["beats"]:
         mark = "OK " if beat["matched_expectation"] else "!! "
         exhibit = beat.get("constraint") or beat.get("clearance_digest") or ""
-        print(f"beat {beat['ordinal']}        {mark}{beat['outcome'].upper():9s} "
-              f"[{beat['sqlstate']}] {exhibit}")
-    print(f"frames        {evidence.get('frame_count', 0)} "
-          f"({sum(1 for f in evidence.get('frames', []) if f['staged'])} staged)")
+        print(
+            f"beat {beat['ordinal']}        {mark}{beat['outcome'].upper():9s} "
+            f"[{beat['sqlstate']}] {exhibit}"
+        )
+    print(
+        f"frames        {evidence.get('frame_count', 0)} "
+        f"({sum(1 for f in evidence.get('frames', []) if f['staged'])} staged)"
+    )
     print(f"bytes         {evidence.get('total_bytes', 0)}")
     print(f"manifest      sha256 {evidence.get('manifest_digest', '(not sealed)')}")
     persisted = "nothing" if evidence["persistence_check"]["identical"] else "SOMETHING CHANGED"
@@ -1902,8 +1994,7 @@ def main(argv: list[str] | None = None) -> int:
     args.dsn = args.dsn or os.environ.get("COCKROACH_DSN")
     if not args.dsn:
         print(
-            "capture_demo_bundle: no DSN. Pass --dsn, or put COCKROACH_DSN in the repo-root "
-            ".env.",
+            "capture_demo_bundle: no DSN. Pass --dsn, or put COCKROACH_DSN in the repo-root .env.",
             file=sys.stderr,
         )
         return EXIT_USAGE
@@ -1931,9 +2022,7 @@ def main(argv: list[str] | None = None) -> int:
 
     sealed = seal_and_check(args.out, args.node, evidence)
     evidence["verdict"] = (
-        "CAPTURED AND VERIFIED"
-        if sealed and not evidence["failures"]
-        else "NOT VERIFIED"
+        "CAPTURED AND VERIFIED" if sealed and not evidence["failures"] else "NOT VERIFIED"
     )
     args.evidence.parent.mkdir(parents=True, exist_ok=True)
     args.evidence.write_text(

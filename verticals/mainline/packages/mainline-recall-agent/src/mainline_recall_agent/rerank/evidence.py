@@ -52,9 +52,7 @@ class EvidenceRefused(ProviderError):
     """
 
 
-def evidence_summary(
-    verdict: RerankedCandidate, *, also_matched: Sequence[str] = ()
-) -> str:
+def evidence_summary(verdict: RerankedCandidate, *, also_matched: Sequence[str] = ()) -> str:
     """Render the evidence text for one blocking check.
 
     Args:

@@ -98,8 +98,7 @@ def load_seed(path: Path | None = None) -> tuple[SeedParameter, ...]:
         raise SeedError("the seed has no [meta] table")
     if meta.get("doc_code") != DOC_CODE:
         raise SeedError(
-            f"the seed declares doc_code {meta.get('doc_code')!r}; this build writes "
-            f"{DOC_CODE!r}"
+            f"the seed declares doc_code {meta.get('doc_code')!r}; this build writes {DOC_CODE!r}"
         )
     if meta.get("encoding_version") != ENCODING_VERSION:
         raise SeedError(
@@ -142,9 +141,7 @@ def load_seed(path: Path | None = None) -> tuple[SeedParameter, ...]:
         try:
             direction = SafeDirection(raw_direction.upper())
         except ValueError:
-            raise SeedError(
-                f"{key!r}: {raw_direction!r} is not a safe direction"
-            ) from None
+            raise SeedError(f"{key!r}: {raw_direction!r} is not a safe direction") from None
 
         rationale = item.get("rationale")
         if not isinstance(rationale, str) or not rationale.strip():

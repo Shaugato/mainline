@@ -43,9 +43,7 @@ FILE_LABEL = "anchoring fall-arrest to a rated point"
 def _chain() -> tuple[ActivityNode, ActivityNode, ActivityNode]:
     def node(level: int, label: str, path: list[str], parent: str | None) -> ActivityNode:
         return ActivityNode(
-            scope_id=derive_scope_id(
-                site_id=SITE, taxonomy_ver=VER, level=level, label_path=path
-            ),
+            scope_id=derive_scope_id(site_id=SITE, taxonomy_ver=VER, level=level, label_path=path),
             site_id=SITE,
             level=level,
             parent_scope=parent,
@@ -134,9 +132,7 @@ def test_a_bond_outside_the_path_is_refused_too() -> None:
     ]
     with pytest.raises(BondClosureError) as excinfo:
         assert_ancestor_closure(inflated, path)
-    assert excinfo.value.context["unexpected"] == [
-        "99999999-9999-4999-8999-999999999999"
-    ]
+    assert excinfo.value.context["unexpected"] == ["99999999-9999-4999-8999-999999999999"]
 
 
 def test_bond_rows_disagreeing_about_taxonomy_version_are_refused() -> None:

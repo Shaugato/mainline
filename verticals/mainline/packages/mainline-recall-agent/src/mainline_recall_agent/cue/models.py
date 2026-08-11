@@ -158,9 +158,7 @@ class EventInput(BaseModel):
     event_id: UUID
     site_id: UUID
     taxonomy_ver: int = Field(ge=0)
-    kind: Literal[
-        "incident", "near_miss", "regulator_notice", "oem_alert", "audit_finding", "capa"
-    ]
+    kind: Literal["incident", "near_miss", "regulator_notice", "oem_alert", "audit_finding", "capa"]
     title: str = Field(min_length=1, max_length=500)
     narrative: str = Field(min_length=1)
     external_ref: str | None = Field(default=None, max_length=120)

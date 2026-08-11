@@ -123,7 +123,11 @@ def _table(path: Path, name: str) -> dict[str, object]:
 
 def _stamp(path: Path, section: Mapping[str, object]) -> tuple[str, int, bytes]:
     """``(file name, declared version, sha256 of the file's bytes)``."""
-    return path.name, require_version(section, path.name), hashlib.sha256(path.read_bytes()).digest()
+    return (
+        path.name,
+        require_version(section, path.name),
+        hashlib.sha256(path.read_bytes()).digest(),
+    )
 
 
 def _strings(section: dict[str, object], key: str, path: Path) -> tuple[str, ...]:

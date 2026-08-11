@@ -102,7 +102,12 @@ _SPECS: tuple[TableSpec, ...] = (
     TableSpec(
         "asset_edge.jsonl",
         "mainline.asset_edge",
-        lambda row: (str(row["site_id"]), str(row["from_tag"]), str(row["to_tag"]), str(row["kind"])),
+        lambda row: (
+            str(row["site_id"]),
+            str(row["from_tag"]),
+            str(row["to_tag"]),
+            str(row["kind"]),
+        ),
         "the control-dependency / energy graph; edges point from source toward exposure",
     ),
     TableSpec(
@@ -190,9 +195,7 @@ def _verify_citations() -> str:
     for rows in citations.values():
         for row in rows:
             text = str(row["text"])
-            if not any(
-                anchor.cls.name == "REGULATORY_CITATION" for anchor in iter_anchors(text)
-            ):
+            if not any(anchor.cls.name == "REGULATORY_CITATION" for anchor in iter_anchors(text)):
                 misses.append(text)
     if misses:
         raise gaz.GazetteerError(

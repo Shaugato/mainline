@@ -82,9 +82,7 @@ def _snapshot(file_label: str, version: int) -> TaxonomySnapshot:
         induced_by="llm_induced",
         frozen=False,
     )
-    return TaxonomySnapshot(
-        site_id=SITE, taxonomy_ver=version, nodes=(fonds, series, leaf)
-    )
+    return TaxonomySnapshot(site_id=SITE, taxonomy_ver=version, nodes=(fonds, series, leaf))
 
 
 def test_the_first_version_reports_everything_as_added() -> None:

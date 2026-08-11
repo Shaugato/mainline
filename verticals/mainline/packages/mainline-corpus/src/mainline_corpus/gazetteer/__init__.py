@@ -134,7 +134,9 @@ def as_sequence(source: Mapping[str, Any], key: str, *, origin: str) -> Sequence
     except KeyError as exc:
         raise GazetteerError(f"{origin}: required key {key!r} is missing") from exc
     if isinstance(value, (str, bytes)) or not isinstance(value, Sequence):
-        raise GazetteerError(f"{origin}: key {key!r} must be a sequence, got {type(value).__name__}")
+        raise GazetteerError(
+            f"{origin}: key {key!r} must be a sequence, got {type(value).__name__}"
+        )
     if len(value) == 0:
         raise GazetteerError(f"{origin}: key {key!r} is empty; the corpus cannot draw from it")
     return value

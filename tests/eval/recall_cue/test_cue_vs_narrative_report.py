@@ -14,7 +14,6 @@ from __future__ import annotations
 from typing import Any
 
 import pytest
-
 from cue_vs_narrative import (
     GENRES,
     CueVsNarrativeReport,
@@ -141,9 +140,10 @@ def test_tokenisation_preserves_identifiers() -> None:
 
 def test_the_report_serialises_to_stable_json(cue_sample: list[Any]) -> None:
     report = compare_genres(cue_sample, pairs=(("FIX-PTW-0002", "FIX-EVT-0002"),))
-    assert report.to_json() == compare_genres(
-        cue_sample, pairs=(("FIX-PTW-0002", "FIX-EVT-0002"),)
-    ).to_json()
+    assert (
+        report.to_json()
+        == compare_genres(cue_sample, pairs=(("FIX-PTW-0002", "FIX-EVT-0002"),)).to_json()
+    )
     payload = report.to_dict()
     assert set(payload) == {"label", "stats", "pairs", "notes"}
     assert any("open question" in note for note in payload["notes"])

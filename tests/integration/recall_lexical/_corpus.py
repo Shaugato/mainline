@@ -39,20 +39,66 @@ N_DOCUMENTS: Final[int] = 2000
 N_QUERIES: Final[int] = 200
 
 _PREFIXES: Final[tuple[str, ...]] = (
-    "K", "TK", "CC", "PSV", "FT", "LT", "PT", "MV", "XV", "HV", "P", "C", "E", "D",
+    "K",
+    "TK",
+    "CC",
+    "PSV",
+    "FT",
+    "LT",
+    "PT",
+    "MV",
+    "XV",
+    "HV",
+    "P",
+    "C",
+    "E",
+    "D",
 )
 _HEAD_NOUNS: Final[tuple[str, ...]] = (
-    "vessel", "pump", "valve", "compressor", "conveyor", "hoist", "winder", "drill",
-    "loader", "excavator", "screen", "thickener", "kiln", "flare", "scrubber", "sump",
+    "vessel",
+    "pump",
+    "valve",
+    "compressor",
+    "conveyor",
+    "hoist",
+    "winder",
+    "drill",
+    "loader",
+    "excavator",
+    "screen",
+    "thickener",
+    "kiln",
+    "flare",
+    "scrubber",
+    "sump",
 )
 _VERBS: Final[tuple[str, ...]] = (
-    "failed", "leaked", "overpressured", "tripped", "stalled", "ruptured", "collapsed",
-    "ignited", "overheated", "seized", "vibrated", "corroded", "cracked", "jammed",
+    "failed",
+    "leaked",
+    "overpressured",
+    "tripped",
+    "stalled",
+    "ruptured",
+    "collapsed",
+    "ignited",
+    "overheated",
+    "seized",
+    "vibrated",
+    "corroded",
+    "cracked",
+    "jammed",
 )
 _MODIFIERS: Final[tuple[str, ...]] = (
-    "during maintenance", "under a hot work permit", "on night shift", "after isolation",
-    "before the pre-start check", "while the lock-out was in place", "at the shift handover",
-    "without a rescue plan", "with the guard removed", "after a bypass was applied",
+    "during maintenance",
+    "under a hot work permit",
+    "on night shift",
+    "after isolation",
+    "before the pre-start check",
+    "while the lock-out was in place",
+    "at the shift handover",
+    "without a rescue plan",
+    "with the guard removed",
+    "after a bypass was applied",
 )
 _CONSEQUENCE: Final[tuple[str, ...]] = (
     "The operator was not injured.",
@@ -62,15 +108,39 @@ _CONSEQUENCE: Final[tuple[str, ...]] = (
     "A fatality occurred and the site was placed under a prohibition notice.",
 )
 _UNITS: Final[tuple[str, ...]] = (
-    "10 ppm", "25 %LEL", "100 psi", "689 kPa", "50 °C", "30 min", "1.2e-3 m3/h",
-    "40 µg/m3", "5 bar", "1450 rpm", "0.1 %", "-5 °C", "120 degF", "30 psig",
+    "10 ppm",
+    "25 %LEL",
+    "100 psi",
+    "689 kPa",
+    "50 °C",
+    "30 min",
+    "1.2e-3 m3/h",
+    "40 µg/m3",
+    "5 bar",
+    "1450 rpm",
+    "0.1 %",
+    "-5 °C",
+    "120 degF",
+    "30 psig",
 )
 _CITATIONS: Final[tuple[str, ...]] = (
-    "30 CFR 57.22239", "29 CFR 1910.146", "AS/NZS 3000", "ISO 45001", "ASME B31.3",
-    "API RP 754", "NFPA 70E", "WHS Regulation 2011 r 341", "§ 57.22239(a)",
+    "30 CFR 57.22239",
+    "29 CFR 1910.146",
+    "AS/NZS 3000",
+    "ISO 45001",
+    "ASME B31.3",
+    "API RP 754",
+    "NFPA 70E",
+    "WHS Regulation 2011 r 341",
+    "§ 57.22239(a)",
 )
 _CAS: Final[tuple[str, ...]] = (
-    "7783-06-4", "71-43-2", "1333-74-0", "74-82-8", "7664-41-7", "630-08-0",
+    "7783-06-4",
+    "71-43-2",
+    "1333-74-0",
+    "74-82-8",
+    "7664-41-7",
+    "630-08-0",
 )
 #: Planted in every document so that ``df = N`` is a case the differential actually reaches.
 _UBIQUITOUS: Final[str] = "%LEL"
@@ -116,9 +186,7 @@ def build_fixture(
     other_site_id = str(uuid.UUID(int=rng.getrandbits(128), version=4))
 
     # A pool of shared tags (many documents) and one unique tag per document (df = 1).
-    shared_tags = tuple(
-        f"{rng.choice(_PREFIXES)}-{rng.randint(100, 999)}" for _ in range(120)
-    )
+    shared_tags = tuple(f"{rng.choice(_PREFIXES)}-{rng.randint(100, 999)}" for _ in range(120))
     unique_tags: list[str] = []
     texts: dict[str, str] = {}
     event_ids: list[str] = []
@@ -140,9 +208,7 @@ def build_fixture(
         sentences.append(_zipf_choice(rng, _CONSEQUENCE))
         texts[event_id] = " ".join(sentences)
 
-    documents = tuple(
-        build_document_postings(event_id, texts[event_id]) for event_id in event_ids
-    )
+    documents = tuple(build_document_postings(event_id, texts[event_id]) for event_id in event_ids)
 
     queries: list[tuple[str, str]] = []
     quarter = n_queries // 4
@@ -150,7 +216,12 @@ def build_fixture(
     # 1. single-term, over the whole df range
     single_pool = [
         *shared_tags[:20],
-        _UBIQUITOUS, "valve", "pump", "isolation", "fatality", "hot work",
+        _UBIQUITOUS,
+        "valve",
+        "pump",
+        "isolation",
+        "fatality",
+        "hot work",
         *unique_tags[:20],
     ]
     for i in range(quarter):

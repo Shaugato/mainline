@@ -140,9 +140,7 @@ def test_five_bonded_fatalities_produce_five_blocking_checks(tau: TauTable) -> N
 def test_a_bonded_fatality_blocks_even_at_a_score_far_below_every_threshold(
     tau: TauTable,
 ) -> None:
-    result = admit(
-        [AdmissionCandidate("F1", 0.0, 5, "bonded", "B", 1)], tau_table=tau
-    )
+    result = admit([AdmissionCandidate("F1", 0.0, 5, "bonded", "B", 1)], tau_table=tau)
     assert result.blocking[0].outcome == "blocking"
     assert result.blocking[0].tau_consulted is False
 
@@ -241,18 +239,14 @@ def test_a_cap_of_zero_blocks_nothing_probabilistic_and_still_blocks_the_bonded_
 def test_a_sweep_hit_below_severity_five_is_advisory_however_high_it_scores(
     tau: TauTable,
 ) -> None:
-    result = admit(
-        [_probabilistic("S1", 0.99, severity=4, channel="C_sweep")], tau_table=tau
-    )
+    result = admit([_probabilistic("S1", 0.99, severity=4, channel="C_sweep")], tau_table=tau)
     assert result.blocking == ()
     assert result.advisory[0].demotion == "coarse_sweep_below_severity_5"
     assert result.silence_records[0].reason == "bounded_negative"
 
 
 def test_a_sweep_hit_at_severity_five_blocks_like_any_other(tau: TauTable) -> None:
-    result = admit(
-        [_probabilistic("S1", 0.50, severity=5, channel="C_sweep")], tau_table=tau
-    )
+    result = admit([_probabilistic("S1", 0.50, severity=5, channel="C_sweep")], tau_table=tau)
     assert [c.doc_id for c in result.blocking] == ["S1"]
 
 

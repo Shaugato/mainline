@@ -96,9 +96,7 @@ def test_the_delta_of_record_is_never_quieter_than_the_origin_diff_either(
 
 @_COROLLARY
 @given(origin=cats(), parent=cats(), descendant=cats())
-def test_the_delta_of_record_is_exactly_the_join_and_never_a_new_label(
-    origin, parent, descendant
-):
+def test_the_delta_of_record_is_exactly_the_join_and_never_a_new_label(origin, parent, descendant):
     """COMPOSITION SOUNDNESS. No label is invented; the record is one of the two verdicts.
 
     The trap this closes is composing delta *labels* — inventing an algebra in

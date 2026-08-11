@@ -71,6 +71,7 @@ def sha256_lf(path: Path) -> str:
 # A deliberately small registry reader
 # --------------------------------------------------------------------------------------
 
+
 def read_registry(path: Path) -> list[dict[str, Any]]:
     """Return the ``canonicalisers`` entries, reading only the fields this gate needs.
 
@@ -137,7 +138,9 @@ def read_registry(path: Path) -> list[dict[str, Any]]:
                 current[key] = value.strip("'\"")
 
     if not entries:
-        raise ValueError(f"{path} lists no canonicalisers; a registry that empties itself is a defect")
+        raise ValueError(
+            f"{path} lists no canonicalisers; a registry that empties itself is a defect"
+        )
     return entries
 
 
@@ -165,6 +168,7 @@ def cross_check_with_pyyaml(path: Path, entries: list[dict[str, Any]]) -> str | 
 # --------------------------------------------------------------------------------------
 # The gate
 # --------------------------------------------------------------------------------------
+
 
 class Report:
     def __init__(self) -> None:
@@ -220,8 +224,16 @@ def selftest() -> int:
     cases: list[tuple[str, dict[str, str | None], int]] = [
         ("intact tree", {"pin": digest, "source": source_text, "copy": source_text}, 0),
         ("canonicaliser deleted", {"pin": digest, "source": None, "copy": source_text}, 1),
-        ("canonicaliser modified", {"pin": digest, "source": source_text + "X = 2\n", "copy": source_text}, 1),
-        ("vendored copy drifted", {"pin": digest, "source": source_text, "copy": source_text + "X = 2\n"}, 1),
+        (
+            "canonicaliser modified",
+            {"pin": digest, "source": source_text + "X = 2\n", "copy": source_text},
+            1,
+        ),
+        (
+            "vendored copy drifted",
+            {"pin": digest, "source": source_text, "copy": source_text + "X = 2\n"},
+            1,
+        ),
     ]
 
     failures = 0
@@ -244,7 +256,9 @@ def selftest() -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     parser.add_argument(
         "--repo-root",
         type=Path,

@@ -121,6 +121,7 @@ class DepthExceeded(CanonicalisationError):
 # RFC 8785 §3.2.2.3 — ECMAScript number serialisation
 # --------------------------------------------------------------------------------------
 
+
 def es6_number(value: float) -> str:
     """Serialise *value* exactly as ECMAScript ``Number.prototype.toString`` does.
 
@@ -255,6 +256,7 @@ def _member_sort_key(name: str) -> bytes:
 # The serialiser
 # --------------------------------------------------------------------------------------
 
+
 def _serialise(value: Any, out: list[str], depth: int) -> None:
     if depth > MAX_DEPTH:
         raise DepthExceeded(f"structure nests deeper than MAX_DEPTH={MAX_DEPTH}")
@@ -356,6 +358,7 @@ def canonicalise_json(text: str | bytes) -> bytes:
 # CU-5 — the evidentiary payload profile
 # --------------------------------------------------------------------------------------
 
+
 def _assert_evidentiary(value: Any, depth: int) -> None:
     if depth > MAX_DEPTH:
         raise DepthExceeded(f"structure nests deeper than MAX_DEPTH={MAX_DEPTH}")
@@ -402,6 +405,7 @@ def canonicalise_payload(value: Any) -> bytes:
 # --------------------------------------------------------------------------------------
 # The scheme's own code, inside the scheme (verifier check 10)
 # --------------------------------------------------------------------------------------
+
 
 def canon_src_sha256() -> bytes:
     """SHA-256 of this module's own source, over **LF-normalised** bytes.

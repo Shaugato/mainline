@@ -189,8 +189,7 @@ def event_source_document(event: EventInput) -> SourceDocument:
     nothing rated is included — see :mod:`.models` for why severity is absent.
     """
     failures = "\n".join(
-        f"- {hint.control_class} | {hint.barrier_role} | {hint.failure_mode} | "
-        f"{hint.hazard_energy}"
+        f"- {hint.control_class} | {hint.barrier_role} | {hint.failure_mode} | {hint.hazard_energy}"
         for hint in event.control_failures
     )
     sections = [
@@ -223,9 +222,7 @@ def exposure_source_document(
         isolation_lines.append(f"- {point.tag} | {point.energy} | {point.method}{verified}")
     if isolation_plan.residual_energy_notes.strip():
         isolation_lines.append(f"residual energy: {isolation_plan.residual_energy_notes.strip()}")
-    isolation_body = "\n".join(
-        [f"plan reference: {isolation_plan.plan_ref}", *isolation_lines]
-    )
+    isolation_body = "\n".join([f"plan reference: {isolation_plan.plan_ref}", *isolation_lines])
 
     diff_blocks: list[str] = []
     for entry in clause_diff.waived_or_weakened():

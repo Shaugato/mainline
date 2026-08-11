@@ -12,7 +12,6 @@ safety defect, an answer that does not say how complete it is has not answered.
 from __future__ import annotations
 
 import pytest
-from conftest import StubResponse, StubTransport, rows_payload, text_payload, view_router
 from mainline_mcp.auditor import (
     AUDITOR_QUESTIONS,
     AuditorPersona,
@@ -21,6 +20,8 @@ from mainline_mcp.auditor import (
 )
 from mainline_mcp.catalogue import ARCHITECTURE_VIEWS, parse_contract
 from mainline_mcp.client import Client
+
+from conftest import StubResponse, StubTransport, rows_payload, text_payload, view_router
 
 
 def _catalogue(names=ARCHITECTURE_VIEWS):

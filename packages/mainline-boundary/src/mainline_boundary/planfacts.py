@@ -178,9 +178,7 @@ class PlanFacts:
 
     def all_matching(self, address: str) -> tuple[Resource, ...]:
         return tuple(
-            r
-            for r in self.resources
-            if r.address == address or r.address.startswith(f"{address}[")
+            r for r in self.resources if r.address == address or r.address.startswith(f"{address}[")
         )
 
     def references(self, address: str, attribute: str) -> tuple[str, ...]:
@@ -365,9 +363,7 @@ def _collect_module_references(
                 continue
             inner = call.get("module")
             if isinstance(inner, Mapping):
-                _collect_module_references(
-                    inner, prefix=f"{prefix}module.{call_name}.", out=out
-                )
+                _collect_module_references(inner, prefix=f"{prefix}module.{call_name}.", out=out)
 
 
 def _expression_references(expression: Any) -> tuple[str, ...]:

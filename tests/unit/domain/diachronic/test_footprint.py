@@ -20,7 +20,7 @@ from mainline_domain.diachronic.footprint import (
 
 
 def test_a_footprint_is_the_union_over_both_versions_not_the_difference():
-    """"In scope of", not "changed by" — the decision the module docstring defends.
+    """ "In scope of", not "changed by" — the decision the module docstring defends.
 
     An edit that adjusts the deontic of a clause about ``P-101A`` did not change
     the tag, but it is an edit about that pump, and a second edit about the same
@@ -36,12 +36,15 @@ def test_a_footprint_is_the_union_over_both_versions_not_the_difference():
     assert "anchor:equipment_tag:P-101A" in footprint.tokens
     assert "param:max_operating_pressure" in footprint.tokens
     assert "control:pressure|pressure vessel|operate" in footprint.tokens
-    assert changed_tokens(
-        reference=pressure_cat("<=", "350", deontic="MUST"),
-        descendant=pressure_cat("<=", "350", deontic="SHOULD"),
-        reference_anchors=tag,
-        descendant_anchors=tag,
-    ) == ()
+    assert (
+        changed_tokens(
+            reference=pressure_cat("<=", "350", deontic="MUST"),
+            descendant=pressure_cat("<=", "350", deontic="SHOULD"),
+            reference_anchors=tag,
+            descendant_anchors=tag,
+        )
+        == ()
+    )
 
 
 def test_an_anchor_that_only_appears_on_one_side_is_still_in_the_footprint():

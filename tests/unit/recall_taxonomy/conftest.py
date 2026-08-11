@@ -26,9 +26,7 @@ from typing import Any
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-PACKAGE_SRC = (
-    REPO_ROOT / "verticals" / "mainline" / "packages" / "mainline-recall-agent" / "src"
-)
+PACKAGE_SRC = REPO_ROOT / "verticals" / "mainline" / "packages" / "mainline-recall-agent" / "src"
 EVAL_SRC = REPO_ROOT / "packages" / "trappoint-recall" / "src"
 FIXTURES = REPO_ROOT / "tests" / "fixtures" / "recall_taxonomy"
 MIGRATIONS = REPO_ROOT / "verticals" / "mainline" / "db" / "migrations"

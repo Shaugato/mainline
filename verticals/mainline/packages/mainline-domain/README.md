@@ -47,9 +47,9 @@ rows and their honest prior-art position), §4 (the interfaces, frozen), §7 (th
 from mainline_domain.canon import canonicalise
 
 result = canonicalise(raw_clause_text)
-result.canon_text      # every offset in the system is an offset into this
-result.canon_sha256    # clause_version.canon_sha256 (32 bytes)
-result.printed_label   # '7.3.2(b)' — stored as presentation, never as identity
+result.canon_text  # every offset in the system is an offset into this
+result.canon_sha256  # clause_version.canon_sha256 (32 bytes)
+result.printed_label  # '7.3.2(b)' — stored as presentation, never as identity
 ```
 
 The pipeline runs in one fixed order, and each step is at its position because the next one
@@ -109,11 +109,11 @@ Repair is a 1:1 substitution, so it is length-preserving and never invalidates a
 ```python
 from mainline_domain.anchors import extract_anchors, uncompensated_drops
 
-reference  = extract_anchors(origin_canon_text)     # blame-origin, not parent (W6)
+reference = extract_anchors(origin_canon_text)  # blame-origin, not parent (W6)
 descendant = extract_anchors(new_canon_text)
 
-reference.compatible_with(descendant)        # False VETOES a semantic match
-uncompensated_drops(reference, descendant)   # each one is a weaken candidate on its own
+reference.compatible_with(descendant)  # False VETOES a semantic match
+uncompensated_drops(reference, descendant)  # each one is a weaken candidate on its own
 ```
 
 Seven classes, by regex plus committed TOML gazetteers under

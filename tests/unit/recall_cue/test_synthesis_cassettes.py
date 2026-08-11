@@ -26,21 +26,6 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-
-from mainline_recall_agent.cue.anchors import span_sha256
-from mainline_recall_agent.cue.prompts import PROMPT_VERSION
-from mainline_recall_agent.cue.schema import FACETS, SYNTHESISED_FACETS, CueOutcome
-from mainline_recall_agent.cue.source_text import (
-    event_source_document,
-    exposure_source_document,
-)
-from mainline_recall_agent.cue.synthesise import (
-    VERBATIM_GEN_MODEL,
-    synthesise_event_cue,
-    synthesise_exposure_cue,
-)
-from mainline_recall_agent.cue.template import EMBED_TEMPLATE_SHA256
-
 from fixtures import (
     ACTIVITY_PATH,
     ASSET_CLASS_TYRE,
@@ -57,6 +42,19 @@ from fixtures import (
     PERMIT_EXPOSED,
     PERMIT_ROUTINE,
 )
+from mainline_recall_agent.cue.anchors import span_sha256
+from mainline_recall_agent.cue.prompts import PROMPT_VERSION
+from mainline_recall_agent.cue.schema import FACETS, SYNTHESISED_FACETS, CueOutcome
+from mainline_recall_agent.cue.source_text import (
+    event_source_document,
+    exposure_source_document,
+)
+from mainline_recall_agent.cue.synthesise import (
+    VERBATIM_GEN_MODEL,
+    synthesise_event_cue,
+    synthesise_exposure_cue,
+)
+from mainline_recall_agent.cue.template import EMBED_TEMPLATE_SHA256
 
 JudgeFactory = Callable[[], Any]
 
@@ -107,9 +105,7 @@ def test_the_two_sides_produce_structurally_identical_output(
     replay_judge: JudgeFactory,
 ) -> None:
     """Same model, same fields, same facets, same provenance columns.  Different subject."""
-    event = synthesise_event_cue(
-        EVENT_FULL, ACTIVITY_PATH, ASSET_CLASS_TYRE, judge=replay_judge()
-    )
+    event = synthesise_event_cue(EVENT_FULL, ACTIVITY_PATH, ASSET_CLASS_TYRE, judge=replay_judge())
     exposure = synthesise_exposure_cue(
         PERMIT_EXPOSED, ISOLATION_EXPOSED, DIFF_EXPOSED, judge=replay_judge()
     )
@@ -177,9 +173,7 @@ def test_every_row_carries_its_provenance(replay_judge: JudgeFactory) -> None:
 def test_the_embedded_text_uses_the_one_template_on_both_sides(
     replay_judge: JudgeFactory,
 ) -> None:
-    event = synthesise_event_cue(
-        EVENT_FULL, ACTIVITY_PATH, ASSET_CLASS_TYRE, judge=replay_judge()
-    )
+    event = synthesise_event_cue(EVENT_FULL, ACTIVITY_PATH, ASSET_CLASS_TYRE, judge=replay_judge())
     exposure = synthesise_exposure_cue(
         PERMIT_EXPOSED, ISOLATION_EXPOSED, DIFF_EXPOSED, judge=replay_judge()
     )
@@ -356,9 +350,7 @@ def test_a_dead_letter_becomes_abstained_after_exactly_two_calls(
 ) -> None:
     """One call, one repair, then stop.  Never a free-text retry loop (ARCHITECTURE §8.4)."""
     judge = replay_judge()
-    outcome = synthesise_event_cue(
-        EVENT_DEADLETTER, ACTIVITY_PATH, ASSET_CLASS_TYRE, judge=judge
-    )
+    outcome = synthesise_event_cue(EVENT_DEADLETTER, ACTIVITY_PATH, ASSET_CLASS_TYRE, judge=judge)
     assert outcome.status == "silenced"
     assert outcome.silence is not None
     assert outcome.silence.reason == "abstained"
@@ -410,12 +402,8 @@ def test_a_missing_cassette_is_an_error_rather_than_a_silence(
 
 
 def test_synthesis_is_deterministic_under_replay(replay_judge: JudgeFactory) -> None:
-    left = synthesise_event_cue(
-        EVENT_FULL, ACTIVITY_PATH, ASSET_CLASS_TYRE, judge=replay_judge()
-    )
-    right = synthesise_event_cue(
-        EVENT_FULL, ACTIVITY_PATH, ASSET_CLASS_TYRE, judge=replay_judge()
-    )
+    left = synthesise_event_cue(EVENT_FULL, ACTIVITY_PATH, ASSET_CLASS_TYRE, judge=replay_judge())
+    right = synthesise_event_cue(EVENT_FULL, ACTIVITY_PATH, ASSET_CLASS_TYRE, judge=replay_judge())
     assert left.model_dump(mode="json") == right.model_dump(mode="json")
 
 

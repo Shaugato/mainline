@@ -237,16 +237,14 @@ class SnapshotBuild:
     dropped_groups: tuple[str, ...] = ()
 
 
-def _batched(items: Sequence[InductionDocument], size: int) -> Iterable[
-    tuple[InductionDocument, ...]
-]:
+def _batched(
+    items: Sequence[InductionDocument], size: int
+) -> Iterable[tuple[InductionDocument, ...]]:
     for start in range(0, len(items), size):
         yield tuple(items[start : start + size])
 
 
-def _sample(documents: Sequence[InductionDocument], size: int) -> tuple[
-    InductionDocument, ...
-]:
+def _sample(documents: Sequence[InductionDocument], size: int) -> tuple[InductionDocument, ...]:
     """Take the first ``size`` documents in the caller's order.
 
     Not a random sample.  The caller owns the split policy — the harness's
@@ -368,10 +366,7 @@ def propose_labels(
 
 def _groups_key(groups: Sequence[MergeGroup]) -> tuple[tuple[int, str, str, str], ...]:
     return tuple(
-        sorted(
-            (g.level, g.activity_root, g.parent_label or "", g.canonical_label)
-            for g in groups
-        )
+        sorted((g.level, g.activity_root, g.parent_label or "", g.canonical_label) for g in groups)
     )
 
 
@@ -424,9 +419,7 @@ def merge_and_refine(
             ],
         }
         try:
-            decision: MergeDecision = judge.judge(
-                _system_argument(prefix), payload, MergeDecision
-            )
+            decision: MergeDecision = judge.judge(_system_argument(prefix), payload, MergeDecision)
             groups = list(decision.groups)
         except ProviderError as exc:
             fell_back = True
@@ -576,8 +569,11 @@ def build_snapshot(
             site_id=site_id,
             taxonomy_ver=taxonomy_ver,
             level=LEVEL_FILE,
-            label_path=[by_root[group.activity_root].label, parent_node.label,
-                        group.canonical_label],
+            label_path=[
+                by_root[group.activity_root].label,
+                parent_node.label,
+                group.canonical_label,
+            ],
         )
         nodes.append(
             ActivityNode(
@@ -600,9 +596,7 @@ def build_snapshot(
     snapshot = TaxonomySnapshot(
         site_id=site_id,
         taxonomy_ver=taxonomy_ver,
-        nodes=tuple(
-            sorted(nodes, key=lambda n: (n.level, n.activity_root, n.label))
-        ),
+        nodes=tuple(sorted(nodes, key=lambda n: (n.level, n.activity_root, n.label))),
         aliases=dict(sorted(aliases.items())),
         register_id=register.register_id,
         register_sha256=register.sha256,

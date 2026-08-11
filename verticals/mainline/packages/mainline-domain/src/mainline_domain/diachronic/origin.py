@@ -359,8 +359,7 @@ def resolve_origin(
         closure_truncated=row.closure_truncated,
         reason=(
             f"severity {row.origin_severity} blame attached at generation {row.origin_gen}, "
-            f"{depth} generations before this edit"
-            + unverified_note
+            f"{depth} generations before this edit" + unverified_note
         ),
     )
 

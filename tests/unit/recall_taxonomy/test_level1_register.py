@@ -100,9 +100,7 @@ def _register_payload(count: int, *, duplicate: bool = False) -> dict[str, objec
 
 
 @pytest.mark.parametrize("count", [MIN_LEVEL1_CODES - 1, MAX_LEVEL1_CODES + 1])
-def test_loader_refuses_a_register_outside_the_cardinality_band(
-    tmp_path: Path, count: int
-) -> None:
+def test_loader_refuses_a_register_outside_the_cardinality_band(tmp_path: Path, count: int) -> None:
     path = tmp_path / "register.json"
     path.write_text(json.dumps(_register_payload(count)), encoding="utf-8")
     with pytest.raises(RegisterMalformed) as excinfo:

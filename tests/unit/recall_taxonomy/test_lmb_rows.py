@@ -44,9 +44,7 @@ FILE_LABEL = "applying personal locks to isolation points"
 
 def _node(level: int, label: str, path: list[str], parent: str | None, site: str = SITE):
     return ActivityNode(
-        scope_id=derive_scope_id(
-            site_id=site, taxonomy_ver=7, level=level, label_path=path
-        ),
+        scope_id=derive_scope_id(site_id=site, taxonomy_ver=7, level=level, label_path=path),
         site_id=site,
         level=level,
         parent_scope=parent,
@@ -60,9 +58,7 @@ def _node(level: int, label: str, path: list[str], parent: str | None, site: str
 
 def _chain(site: str = SITE) -> tuple[ActivityNode, ActivityNode, ActivityNode]:
     fonds = _node(LEVEL_FONDS, FONDS_LABEL, [FONDS_LABEL], None, site)
-    series = _node(
-        LEVEL_SERIES, SERIES_LABEL, [FONDS_LABEL, SERIES_LABEL], fonds.scope_id, site
-    )
+    series = _node(LEVEL_SERIES, SERIES_LABEL, [FONDS_LABEL, SERIES_LABEL], fonds.scope_id, site)
     leaf = _node(
         LEVEL_FILE,
         FILE_LABEL,
@@ -162,8 +158,10 @@ def test_an_event_with_no_populated_facet_is_reported_as_unindexed(event: EventR
     emission = build_cue_rows(
         event=event,
         path=ArchivalPath((fonds, series, leaf)),
-        facets=[FacetValue(facet=name, insufficient_evidence=True) for name in
-                ("mechanism", "precondition", "control_failure", "recurrence_test")],
+        facets=[
+            FacetValue(facet=name, insufficient_evidence=True)
+            for name in ("mechanism", "precondition", "control_failure", "recurrence_test")
+        ],
         gen_model=GEN_MODEL,
         prompt_version=PROMPT,
     )
@@ -253,9 +251,7 @@ def test_the_writer_resolves_the_path_and_refuses_a_missing_ancestor(
 def test_the_writer_emits_the_same_rows_as_the_pure_function(event: EventRef) -> None:
     fonds, series, leaf = _chain()
     source = InMemoryNodeSource([fonds, series, leaf])
-    writer = LevelMaterialisedBondWriter(
-        source=source, gen_model=GEN_MODEL, prompt_version=PROMPT
-    )
+    writer = LevelMaterialisedBondWriter(source=source, gen_model=GEN_MODEL, prompt_version=PROMPT)
     emitted = writer.emit(event=event, scope_id=leaf.scope_id, facets=_four_facets())
     direct = build_cue_rows(
         event=event,

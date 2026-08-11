@@ -161,10 +161,16 @@ def _start_docker() -> Cluster | None:
     port = _free_port()
     started = _docker(
         [
-            "run", "-d", "--name", CONTAINER_NAME,
-            "-p", f"{port}:26257",
+            "run",
+            "-d",
+            "--name",
+            CONTAINER_NAME,
+            "-p",
+            f"{port}:26257",
             CRDB_IMAGE,
-            "start-single-node", "--insecure", "--store=type=mem,size=2GiB",
+            "start-single-node",
+            "--insecure",
+            "--store=type=mem,size=2GiB",
         ],
         timeout=DOCKER_RUN_TIMEOUT_S,
     )
@@ -271,9 +277,7 @@ def schema(cluster: Cluster) -> Iterator[Schema]:
         f"[directrix] applied {len(applied)} files ({statements} statements) forward from clean"
     )
     try:
-        yield Schema(
-            dsn=dsn, database=database, applied=applied, spine_is_standin=standin
-        )
+        yield Schema(dsn=dsn, database=database, applied=applied, spine_is_standin=standin)
     finally:
         with psycopg.connect(cluster.dsn, autocommit=True) as admin:
             admin.execute(f"DROP DATABASE IF EXISTS {database} CASCADE")

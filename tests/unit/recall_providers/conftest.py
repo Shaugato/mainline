@@ -18,9 +18,7 @@ from typing import Any
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-PACKAGE_SRC = (
-    REPO_ROOT / "verticals" / "mainline" / "packages" / "mainline-recall-agent" / "src"
-)
+PACKAGE_SRC = REPO_ROOT / "verticals" / "mainline" / "packages" / "mainline-recall-agent" / "src"
 CASSETTE_ROOT = REPO_ROOT / "tests" / "fixtures" / "cassettes" / "recall"
 
 # Work whether or not the uv workspace has been synced: an editable install wins, and a

@@ -170,9 +170,7 @@ def _cadence_dates(
     return dates
 
 
-def build_documents(
-    world: SiteWorld, people: PeopleWorld, events: EventWorld
-) -> DocumentWorld:
+def build_documents(world: SiteWorld, people: PeopleWorld, events: EventWorld) -> DocumentWorld:
     """Materialise the 36 documents and their revision streams."""
     doc_file = gaz.load("documents")
     expected = int(doc_file["expected_row_count"])

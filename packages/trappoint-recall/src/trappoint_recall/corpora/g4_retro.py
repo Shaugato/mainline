@@ -432,9 +432,7 @@ def build_g4(
                 grade=3,
                 gold_set=G4_GOLD_SET,
                 judged_by=(
-                    "distant_supervision"
-                    if truth_basis == "investigator_citation"
-                    else "authored"
+                    "distant_supervision" if truth_basis == "investigator_citation" else "authored"
                 ),
                 blinded=False,
                 notes=(
@@ -470,16 +468,12 @@ def build_g4(
         n_truth_from_codes=n_from_codes,
         walls=tuple(walls),
     )
-    result = G4Result(
-        permits=tuple(permits), judgements=tuple(judgements), report=report
-    )
+    result = G4Result(permits=tuple(permits), judgements=tuple(judgements), report=report)
     assert_no_leakage(result, records, corpus_commit=corpus_commit)
     return result
 
 
-def assert_no_leakage(
-    result: G4Result, records: EventRecordSet, *, corpus_commit: str
-) -> None:
+def assert_no_leakage(result: G4Result, records: EventRecordSet, *, corpus_commit: str) -> None:
     """Re-check every judgement against its own query's wall.
 
     Redundant with :func:`build_g4`'s construction, and that is the point: a wall applied

@@ -265,8 +265,6 @@ class SafeDirectionRegistry:
             ),
         )
 
-    def safe_direction(
-        self, parameter: str, *, dimensionality: str | None = None
-    ) -> SafeDirection:
+    def safe_direction(self, parameter: str, *, dimensionality: str | None = None) -> SafeDirection:
         """The direction, or :attr:`SafeDirection.ABSTAIN`.  Never a default."""
         return self.resolve(parameter, dimensionality=dimensionality).direction

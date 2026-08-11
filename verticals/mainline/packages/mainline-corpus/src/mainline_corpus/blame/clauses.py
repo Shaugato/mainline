@@ -239,9 +239,7 @@ def _outline(count: int, stream: rng.Stream, *, is_spine: bool) -> tuple[_Slot, 
     return tuple(slots)
 
 
-def _classes_for(
-    doc: Doc, classes: Sequence[Mapping[str, Any]]
-) -> tuple[Mapping[str, Any], ...]:
+def _classes_for(doc: Doc, classes: Sequence[Mapping[str, Any]]) -> tuple[Mapping[str, Any], ...]:
     matched = tuple(
         entry for entry in classes if doc.activity_root in {str(item) for item in entry["mue"]}
     )

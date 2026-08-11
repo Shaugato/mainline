@@ -124,9 +124,7 @@ def _canonical(members: Mapping[str, int]) -> str:
     return min(members.items(), key=lambda kv: (-kv[1], len(kv[0]), kv[0]))[0]
 
 
-def _agglomerate(
-    labels: Sequence[tuple[str, int]], threshold: float
-) -> list[dict[str, int]]:
+def _agglomerate(labels: Sequence[tuple[str, int]], threshold: float) -> list[dict[str, int]]:
     """Single-link clustering over ``(label, support)`` pairs, in a fixed order."""
     ordered = sorted(labels, key=lambda kv: (-kv[1], len(kv[0]), kv[0]))
     clusters: list[dict[str, int]] = []

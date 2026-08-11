@@ -97,9 +97,7 @@ class RerankCandidate:
         if not self.doc_id:
             raise ProviderError("a rerank candidate needs an event identity to join back to")
         if self.fused_rank < 1:
-            raise ProviderError(
-                f"{self.doc_id}: fused_rank is 1-based, got {self.fused_rank}"
-            )
+            raise ProviderError(f"{self.doc_id}: fused_rank is 1-based, got {self.fused_rank}")
         _validate_facets(self.facets, what=f"candidate {self.doc_id!r}")
 
 

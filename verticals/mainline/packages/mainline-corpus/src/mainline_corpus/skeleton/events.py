@@ -152,9 +152,10 @@ def _seasonal(moment: dt.datetime) -> float:
 
 
 def _reporting_growth(progress: float) -> float:
-    return params.REPORTING_GROWTH_START + (
-        params.REPORTING_GROWTH_END - params.REPORTING_GROWTH_START
-    ) * progress
+    return (
+        params.REPORTING_GROWTH_START
+        + (params.REPORTING_GROWTH_END - params.REPORTING_GROWTH_START) * progress
+    )
 
 
 def _excitation(now_days: float, major_days: Sequence[float]) -> float:
@@ -446,7 +447,9 @@ def _control_failures_for(
     return failures
 
 
-def _consequence(vocab: _Vocabulary, stream: rng.Stream, *, actual: int, energy: str) -> dict[str, Any]:
+def _consequence(
+    vocab: _Vocabulary, stream: rng.Stream, *, actual: int, energy: str
+) -> dict[str, Any]:
     band = vocab.bands[actual]
     return {
         "days_lost": int(band["days_lost"]),
@@ -569,9 +572,7 @@ def _anchor_hazard(fonds: Fonds, assets: AssetWorld, tags: Sequence[str]) -> str
 # ── the public builder ───────────────────────────────────────────────────────────────────────
 
 
-def build_events(
-    world: SiteWorld, taxonomy: TaxonomyWorld, assets: AssetWorld
-) -> EventWorld:
+def build_events(world: SiteWorld, taxonomy: TaxonomyWorld, assets: AssetWorld) -> EventWorld:
     """Sample the timeline, apportion severity, and flesh out every event."""
     vocab = _Vocabulary()
     anchored, anchored_failures = _build_anchored(world, taxonomy, assets, vocab)
@@ -612,7 +613,9 @@ def build_events(
     events: list[Event] = list(anchored)
     failures: list[ControlFailure] = list(anchored_failures)
 
-    for index, ((position, site_code, major), gate) in enumerate(zip(candidates, gates, strict=True)):
+    for index, ((position, site_code, major), gate) in enumerate(
+        zip(candidates, gates, strict=True)
+    ):
         site = world.by_code(site_code)
         stream = rng.sub_stream("event.detail", detail_stream_names[index])
         occurred_at = clock.from_days(position)
@@ -789,9 +792,7 @@ def _assign_gates(
     return gates
 
 
-def _pending_for(
-    events: Sequence[Event], failures: Sequence[ControlFailure]
-) -> list[PendingField]:
+def _pending_for(events: Sequence[Event], failures: Sequence[ControlFailure]) -> list[PendingField]:
     pending: list[PendingField] = []
     for event in events:
         pending.append(

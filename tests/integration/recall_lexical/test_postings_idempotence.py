@@ -28,6 +28,7 @@ import uuid
 
 import pytest
 from _corpus import Fixture
+
 from trappoint_recall.lexical.bm25 import fetch_corpus_stats
 from trappoint_recall.lexical.postings import (
     DocumentPostings,
@@ -89,15 +90,11 @@ def test_a_third_and_fourth_ingest_are_also_silent(backend, corpus_slice) -> Non
     site = new_site()
     for _ in range(2):
         for document in corpus_slice:
-            upsert_document(
-                backend.execute, site_id=site, document=document, style=backend.style
-            )
+            upsert_document(backend.execute, site_id=site, document=document, style=backend.style)
     digests = []
     for _ in range(2):
         reports = [
-            upsert_document(
-                backend.execute, site_id=site, document=document, style=backend.style
-            )
+            upsert_document(backend.execute, site_id=site, document=document, style=backend.style)
             for document in corpus_slice
         ]
         assert sum(r.rows_written for r in reports) == 0
@@ -127,21 +124,15 @@ def test_incremental_and_rebuild_agree_byte_for_byte(backend, corpus_slice) -> N
     assert sorted((t, e, w) for _s, t, e, w in a.posting) == sorted(
         (t, e, w) for _s, t, e, w in b.posting
     )
-    assert sorted((t, df) for _s, t, df in a.stats) == sorted(
-        (t, df) for _s, t, df in b.stats
-    )
+    assert sorted((t, df) for _s, t, df in a.stats) == sorted((t, df) for _s, t, df in b.stats)
     assert sorted(a.doclen) == sorted(b.doclen)
 
 
 def test_a_rebuild_is_itself_idempotent(backend, corpus_slice) -> None:  # noqa: ANN001
     site = new_site()
-    rebuild_site(
-        backend.execute, site_id=site, documents=corpus_slice, style=backend.style
-    )
+    rebuild_site(backend.execute, site_id=site, documents=corpus_slice, style=backend.style)
     first = content_digest(snapshot_tables(backend.execute, site_id=site, style=backend.style))
-    rebuild_site(
-        backend.execute, site_id=site, documents=corpus_slice, style=backend.style
-    )
+    rebuild_site(backend.execute, site_id=site, documents=corpus_slice, style=backend.style)
     second = content_digest(snapshot_tables(backend.execute, site_id=site, style=backend.style))
     assert first == second
 
@@ -150,9 +141,7 @@ def test_document_frequency_matches_the_posting_list(backend, corpus_slice) -> N
     """``df`` is the only input to IDF; drift here re-ranks silently rather than raising."""
     site = new_site()
     for document in corpus_slice:
-        upsert_document(
-            backend.execute, site_id=site, document=document, style=backend.style
-        )
+        upsert_document(backend.execute, site_id=site, document=document, style=backend.style)
     tables = snapshot_tables(backend.execute, site_id=site, style=backend.style)
     actual: dict[str, int] = {}
     for _site, term, _event, _weight in tables.posting:
@@ -168,9 +157,7 @@ def test_editing_a_document_moves_only_what_changed(backend) -> None:  # noqa: A
     edited = build_document_postings(event, "Vessel K-401 overpressured at 200 psi.")
 
     upsert_document(backend.execute, site_id=site, document=original, style=backend.style)
-    report = upsert_document(
-        backend.execute, site_id=site, document=edited, style=backend.style
-    )
+    report = upsert_document(backend.execute, site_id=site, document=edited, style=backend.style)
     assert report.rows_written > 0
 
     tables = snapshot_tables(backend.execute, site_id=site, style=backend.style)
@@ -193,18 +180,15 @@ def test_deleting_a_document_repairs_the_document_frequencies(backend) -> None: 
     keep = build_document_postings(new_event(), "Vessel K-401 overpressured at 100 psi.")
     drop = build_document_postings(new_event(), "Vessel K-401 leaked at 100 psi.")
     for document in (keep, drop):
-        upsert_document(
-            backend.execute, site_id=site, document=document, style=backend.style
-        )
+        upsert_document(backend.execute, site_id=site, document=document, style=backend.style)
 
-    before = {t: df for _s, t, df in snapshot_tables(
-        backend.execute, site_id=site, style=backend.style
-    ).stats}
+    before = {
+        t: df
+        for _s, t, df in snapshot_tables(backend.execute, site_id=site, style=backend.style).stats
+    }
     assert before["k-401"] == 2
 
-    delete_document(
-        backend.execute, site_id=site, event_id=drop.event_id, style=backend.style
-    )
+    delete_document(backend.execute, site_id=site, event_id=drop.event_id, style=backend.style)
     tables = snapshot_tables(backend.execute, site_id=site, style=backend.style)
     after = {t: df for _s, t, df in tables.stats}
     assert after["k-401"] == 1
@@ -237,16 +221,8 @@ def test_the_full_fixture_rebuilds_identically(backend, fixture_corpus: Fixture)
 def test_the_digest_is_not_vacuous(backend, corpus_slice) -> None:  # noqa: ANN001
     """PL-2: the digest must move when the index moves."""
     site = new_site()
-    rebuild_site(
-        backend.execute, site_id=site, documents=corpus_slice[:-1], style=backend.style
-    )
-    partial = content_digest(
-        snapshot_tables(backend.execute, site_id=site, style=backend.style)
-    )
-    rebuild_site(
-        backend.execute, site_id=site, documents=corpus_slice, style=backend.style
-    )
-    complete = content_digest(
-        snapshot_tables(backend.execute, site_id=site, style=backend.style)
-    )
+    rebuild_site(backend.execute, site_id=site, documents=corpus_slice[:-1], style=backend.style)
+    partial = content_digest(snapshot_tables(backend.execute, site_id=site, style=backend.style))
+    rebuild_site(backend.execute, site_id=site, documents=corpus_slice, style=backend.style)
+    complete = content_digest(snapshot_tables(backend.execute, site_id=site, style=backend.style))
     assert partial != complete

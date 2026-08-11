@@ -248,8 +248,7 @@ def test_a_clause_that_is_not_a_registry_entry_reports_answers_false(
     )
     found = rows(
         conn,
-        "SELECT answers, parameter_key FROM mainline.v_safe_direction_current "
-        "WHERE site_id = %s",
+        "SELECT answers, parameter_key FROM mainline.v_safe_direction_current WHERE site_id = %s",
         (site_id,),
     )
     assert found and found[0][0] is False
@@ -296,9 +295,7 @@ def test_the_sql_source_reproduces_the_python_registry(conn, site_id: uuid.UUID)
         assert entry.ratification_signed is True
 
 
-def test_the_recursive_ancestry_walk_terminates_on_a_diamond(
-    conn, site_id: uuid.UUID
-) -> None:
+def test_the_recursive_ancestry_walk_terminates_on_a_diamond(conn, site_id: uuid.UUID) -> None:
     """``UNION`` and not ``UNION ALL``: a merge must not make the walk loop.
 
     A diamond is the ordinary shape of any repository with branches, so a walk

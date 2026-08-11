@@ -6,9 +6,9 @@ Public surface::
 
     from mainline_domain.quantity import quantity, compare, convert, to_si
 
-    p = quantity("50", "psig")          # Quantity(50, 'psi_gauge', …, 'gauge')
-    convert(p, "bar_g")                 # 3.4473786… bar_gauge
-    convert(p, "kPa")                   # raises GaugeReferenceError
+    p = quantity("50", "psig")  # Quantity(50, 'psi_gauge', …, 'gauge')
+    convert(p, "bar_g")  # 3.4473786… bar_gauge
+    convert(p, "kPa")  # raises GaugeReferenceError
 
 One claim, and it is a refusal: **this package will not tell you how a gauge
 reading compares to an absolute one.**  Pint will — ``50 psig`` becomes

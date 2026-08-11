@@ -73,16 +73,98 @@ _TOKEN_RE: Final[re.Pattern[str]] = re.compile(r"[a-z0-9][a-z0-9'\-]*")
 #: "energy", "height", "atmosphere" are the signal.
 STOPWORDS: Final[frozenset[str]] = frozenset(
     {
-        "about", "after", "again", "against", "all", "also", "and", "any", "are", "around",
-        "because", "been", "before", "being", "between", "both", "but", "came", "can",
-        "did", "does", "doing", "down", "due", "during", "each", "for", "from",
-        "further", "had", "has", "have", "having", "her", "here", "him", "his", "how",
-        "into", "its", "itself", "just", "more", "most", "not", "now", "off", "once",
-        "only", "other", "our", "out", "over", "own", "prior", "said", "same", "she",
-        "should", "some", "such", "than", "that", "the", "their", "them", "then", "there",
-        "these", "they", "this", "those", "through", "too", "under", "until", "very",
-        "was", "were", "what", "when", "where", "which", "while", "who", "whom", "why",
-        "will", "with", "would", "you", "your",
+        "about",
+        "after",
+        "again",
+        "against",
+        "all",
+        "also",
+        "and",
+        "any",
+        "are",
+        "around",
+        "because",
+        "been",
+        "before",
+        "being",
+        "between",
+        "both",
+        "but",
+        "came",
+        "can",
+        "did",
+        "does",
+        "doing",
+        "down",
+        "due",
+        "during",
+        "each",
+        "for",
+        "from",
+        "further",
+        "had",
+        "has",
+        "have",
+        "having",
+        "her",
+        "here",
+        "him",
+        "his",
+        "how",
+        "into",
+        "its",
+        "itself",
+        "just",
+        "more",
+        "most",
+        "not",
+        "now",
+        "off",
+        "once",
+        "only",
+        "other",
+        "our",
+        "out",
+        "over",
+        "own",
+        "prior",
+        "said",
+        "same",
+        "she",
+        "should",
+        "some",
+        "such",
+        "than",
+        "that",
+        "the",
+        "their",
+        "them",
+        "then",
+        "there",
+        "these",
+        "they",
+        "this",
+        "those",
+        "through",
+        "too",
+        "under",
+        "until",
+        "very",
+        "was",
+        "were",
+        "what",
+        "when",
+        "where",
+        "which",
+        "while",
+        "who",
+        "whom",
+        "why",
+        "will",
+        "with",
+        "would",
+        "you",
+        "your",
     }
 )
 
@@ -233,9 +315,7 @@ class TaxonomyClassifier:
         for tokens in tokenised:
             for token in set(tokens):
                 document_frequency[token] = document_frequency.get(token, 0) + 1
-        eligible = [
-            (term, df) for term, df in document_frequency.items() if df >= max(min_df, 1)
-        ]
+        eligible = [(term, df) for term, df in document_frequency.items() if df >= max(min_df, 1)]
         if not eligible:
             raise ClassifierNotFitted(
                 "no term survived the document-frequency floor; the training set is too "
@@ -295,9 +375,7 @@ class TaxonomyClassifier:
         """Predicted ``scope_id`` per text.  Ties resolve to the first class in order."""
         return [self._class_scopes[int(index)] for index in np.argmax(self.scores(texts), axis=1)]
 
-    def predict_detailed(
-        self, *, doc_ids: Sequence[str], texts: Sequence[str]
-    ) -> list[Prediction]:
+    def predict_detailed(self, *, doc_ids: Sequence[str], texts: Sequence[str]) -> list[Prediction]:
         if len(doc_ids) != len(texts):
             raise ClassifierArtefactInvalid(
                 "doc_ids and texts must be the same length",

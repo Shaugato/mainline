@@ -233,8 +233,11 @@ def run_command(
         record["duration_s"] = round(time.monotonic() - started, 3)
         record["status"] = STATUS_TIMEOUT
         record["reason"] = f"killed at the {timeout}s deadline"
-        record["output"] = excerpt((exc.stdout or b"").decode("utf-8", "replace")
-                                  if isinstance(exc.stdout, bytes) else (exc.stdout or ""))
+        record["output"] = excerpt(
+            (exc.stdout or b"").decode("utf-8", "replace")
+            if isinstance(exc.stdout, bytes)
+            else (exc.stdout or "")
+        )
         return record
     except (OSError, subprocess.SubprocessError) as exc:
         record["duration_s"] = round(time.monotonic() - started, 3)
@@ -325,9 +328,7 @@ def source_block(repo: Path) -> dict[str, Any]:
     ]
     remote_readme = git("show", "origin/master:README.md")
     remote_has_commands = (
-        None
-        if not remote_readme
-        else all(command in remote_readme for command, _ in DOCUMENTED)
+        None if not remote_readme else all(command in remote_readme for command, _ in DOCUMENTED)
     )
 
     return {
@@ -352,9 +353,7 @@ def source_block(repo: Path) -> dict[str, Any]:
 # ---------------------------------------------------------------------------- cloning
 
 
-def clone_once(
-    source: Path, dest: Path, *, longpaths: bool, timeout: int = 900
-) -> dict[str, Any]:
+def clone_once(source: Path, dest: Path, *, longpaths: bool, timeout: int = 900) -> dict[str, Any]:
     """One `git clone`, classified. Never leaves a half-tree behind for the caller."""
     force_rmtree(dest)
     dest.parent.mkdir(parents=True, exist_ok=True)
@@ -612,6 +611,7 @@ def default_interpreters(repo: Path) -> list[tuple[str, str]]:
 
 def documented_commands_block(clone: Path) -> dict[str, Any]:
     """What the front door promises, and whether it still literally says so."""
+
     def text_of(path: Path) -> str:
         if not path.exists():
             return ""
@@ -675,8 +675,7 @@ def build_steps(
             "id": "gate-refusal",
             "documented_as": "just prove",
             "typed": (
-                f"{Path(python).name} scripts/proof/gate_refusal.py "
-                f"--dsn ... --database {database}"
+                f"{Path(python).name} scripts/proof/gate_refusal.py --dsn ... --database {database}"
             ),
             "requires": "scripts/proof/gate_refusal.py",
             "argv": proof_argv,
@@ -902,7 +901,7 @@ def derive_verdict(document: dict[str, Any]) -> str:
     proven = [s for s in passed if (s.get("verdict_line") or "").endswith("PROVEN")]
     if not proven:
         return "NOT_PROVEN"
-    chain = (proven[0].get("chain_line") or "")
+    chain = proven[0].get("chain_line") or ""
     clean = "0 failed" in chain
     return "PROVEN" if clean else "PROVEN_WITH_CAVEATS"
 
@@ -1044,8 +1043,10 @@ def main(argv: list[str] | None = None) -> int:  # noqa: PLR0912, PLR0915
     attempts: list[dict[str, Any]] = []
     temp_parent: Path | None = None
     if args.dest:
-        candidates = [(Path(args.dest), False, "as documented, at --dest"),
-                      (Path(args.dest), True, "core.longpaths=true, at --dest")]
+        candidates = [
+            (Path(args.dest), False, "as documented, at --dest"),
+            (Path(args.dest), True, "core.longpaths=true, at --dest"),
+        ]
     else:
         temp_parent = Path(tempfile.mkdtemp(prefix="mainline-judge-"))
         short_root = probe_root_default(source) / "jdr"

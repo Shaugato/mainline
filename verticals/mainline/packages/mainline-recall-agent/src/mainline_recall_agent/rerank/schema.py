@@ -108,9 +108,7 @@ class RerankedCandidate:
         This is the predicate the whole rerank exists to make true for admitted candidates,
         and it is a property rather than a comment so a test can assert it directly.
         """
-        return _is_substantive(self.shared_mechanism) and _is_substantive(
-            self.shared_precondition
-        )
+        return _is_substantive(self.shared_mechanism) and _is_substantive(self.shared_precondition)
 
     @property
     def confidence(self) -> float:

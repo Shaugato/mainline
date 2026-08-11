@@ -86,9 +86,7 @@ class LabelDiff:
             "added": [list(key) for key in self.added],
             "removed": [list(key) for key in self.removed],
             "renamed": [[list(before), list(after)] for before, after in self.renamed],
-            "reparented": [
-                [list(key), before, after] for key, before, after in self.reparented
-            ],
+            "reparented": [[list(key), before, after] for key, before, after in self.reparented],
             "unchanged": self.unchanged,
             "rename_overlap_threshold": self.rename_overlap,
             "rename_evidence": self.rename_evidence,
@@ -144,12 +142,8 @@ def diff_snapshots(
 
     reparented: list[tuple[_LabelKey, str, str]] = []
     for key in sorted(common):
-        node_before = next(
-            n for n in before.nodes if (n.level, n.activity_root, n.label) == key
-        )
-        node_after = next(
-            n for n in after.nodes if (n.level, n.activity_root, n.label) == key
-        )
+        node_before = next(n for n in before.nodes if (n.level, n.activity_root, n.label) == key)
+        node_after = next(n for n in after.nodes if (n.level, n.activity_root, n.label) == key)
         parent_before = _parent_label(before, node_before.scope_id)
         parent_after = _parent_label(after, node_after.scope_id)
         if parent_before != parent_after:
@@ -158,9 +152,7 @@ def diff_snapshots(
     renamed: list[tuple[_LabelKey, _LabelKey]] = []
     evidence = "none: no document assignments were supplied"
     if before_assignments and after_assignments:
-        evidence = (
-            f"document-set Jaccard >= {rename_overlap} between the removed and added label"
-        )
+        evidence = f"document-set Jaccard >= {rename_overlap} between the removed and added label"
         before_docs = _assignments_by_key(before, before_assignments)
         after_docs = _assignments_by_key(after, after_assignments)
         claimed_added: set[_LabelKey] = set()
@@ -236,10 +228,7 @@ class TaxonomyVersion:
             raise TaxonomyVersionError(
                 "taxonomy_ver is a positive integer", taxonomy_ver=self.taxonomy_ver
             )
-        if (
-            self.parent_taxonomy_ver is not None
-            and self.parent_taxonomy_ver >= self.taxonomy_ver
-        ):
+        if self.parent_taxonomy_ver is not None and self.parent_taxonomy_ver >= self.taxonomy_ver:
             raise TaxonomyVersionError(
                 "a taxonomy version's parent must precede it",
                 taxonomy_ver=self.taxonomy_ver,
@@ -349,9 +338,9 @@ def emit_version(
     )
 
 
-def diff_labels(before: Sequence[str], after: Sequence[str]) -> tuple[
-    tuple[str, ...], tuple[str, ...]
-]:
+def diff_labels(
+    before: Sequence[str], after: Sequence[str]
+) -> tuple[tuple[str, ...], tuple[str, ...]]:
     """Plain set difference over label strings — used by reports that have no snapshot."""
     left, right = set(before), set(after)
     return tuple(sorted(right - left)), tuple(sorted(left - right))

@@ -14,7 +14,6 @@ from __future__ import annotations
 import socket
 
 import pytest
-
 from mainline_recall_agent.providers.errors import ProviderUnavailable
 from mainline_recall_agent.providers.registry import current_mode, get_judge_provider
 

@@ -235,9 +235,7 @@ def _anchor_screen(
     for facet, answer in synthesis.as_mapping().items():
         if answer.insufficient:
             reason = (answer.insufficient_reason or "").strip()
-            silences.append(
-                FacetSilence(facet=facet, cause="insufficient_evidence", reason=reason)
-            )
+            silences.append(FacetSilence(facet=facet, cause="insufficient_evidence", reason=reason))
             log.info(
                 "facet %s reported insufficient evidence for %s: %s", facet, subject_kind, reason
             )
@@ -260,9 +258,7 @@ def _anchor_screen(
         )
         log.warning("anchor rejection: %s", detail)
         for anchor in verdict.missing:
-            rejections.append(
-                AnchorRejection.build(facet=facet, anchor=anchor, cue_text=cue_text)
-            )
+            rejections.append(AnchorRejection.build(facet=facet, anchor=anchor, cue_text=cue_text))
             routes.append(
                 HumanReviewRoute(
                     subject_kind=subject_kind,

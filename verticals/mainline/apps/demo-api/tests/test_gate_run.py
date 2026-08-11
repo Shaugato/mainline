@@ -378,7 +378,7 @@ def _every_table_count(conn: psycopg.Connection[Any]) -> dict[str, int]:
     # identifier. Interpolation is the only way to name a table, and these names are the
     # catalogue's own.
     union = " UNION ALL ".join(
-        f"SELECT '{schema}.{name}' AS t, count(*) AS n FROM \"{schema}\".\"{name}\""  # noqa: S608
+        f'SELECT \'{schema}.{name}\' AS t, count(*) AS n FROM "{schema}"."{name}"'  # noqa: S608
         for schema, name in tables
     )
     rows = conn.execute(f"SELECT t, n FROM ({union}) ORDER BY t").fetchall()  # noqa: S608

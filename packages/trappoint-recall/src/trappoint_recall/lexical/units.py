@@ -263,9 +263,7 @@ _ORDERED: Final[tuple[tuple[str, str], ...]] = tuple(
 #: negative lookahead is what stops ``m`` from matching the first letter of ``metres`` and
 #: ``2s`` from being read out of the asset tag ``2S1``.
 UNIT_PATTERN: Final[re.Pattern[str]] = re.compile(
-    "(?:"
-    + "|".join(f"(?P<u{i}>{frag})" for i, (frag, _) in enumerate(_ORDERED))
-    + r")(?![a-z0-9])"
+    "(?:" + "|".join(f"(?P<u{i}>{frag})" for i, (frag, _) in enumerate(_ORDERED)) + r")(?![a-z0-9])"
 )
 
 _GROUP_TO_KEY: Final[dict[str, str]] = {f"u{i}": key for i, (_, key) in enumerate(_ORDERED)}
@@ -279,11 +277,22 @@ _GROUP_TO_KEY: Final[dict[str, str]] = {f"u{i}": key for i, (_, key) in enumerat
 #: are never anything else.  Getting this wrong does not lose a recall, it invents one, which
 #: under this design is the more expensive error.
 _BARE_SURFACES: Final[dict[str, str]] = {
-    "%lel": "lel", "%uel": "uel", "lel": "lel", "uel": "uel",
-    "ppm": "ppm", "ppb": "ppb",
-    "psig": "psig", "psia": "psia", "psi": "psi", "kpa": "kpa", "mpa": "mpa",
-    "barg": "barg", "rpm": "rpm",
-    "mg/m3": "mg_m3", "ug/m3": "ug_m3", "mg/l": "mg_l",
+    "%lel": "lel",
+    "%uel": "uel",
+    "lel": "lel",
+    "uel": "uel",
+    "ppm": "ppm",
+    "ppb": "ppb",
+    "psig": "psig",
+    "psia": "psia",
+    "psi": "psi",
+    "kpa": "kpa",
+    "mpa": "mpa",
+    "barg": "barg",
+    "rpm": "rpm",
+    "mg/m3": "mg_m3",
+    "ug/m3": "ug_m3",
+    "mg/l": "mg_l",
 }
 
 
@@ -326,9 +335,7 @@ def unit_key_for_match(match: re.Match[str]) -> str:
 def unit_table_digest_material() -> list[str]:
     """Everything a fingerprint must cover so that a table edit cannot go unnoticed."""
     material = [UNIT_TABLE_VERSION]
-    material.extend(
-        f"{u.key}|{u.dimension}|{u.factor!r}|{u.offset!r}" for u in _UNIT_LIST
-    )
+    material.extend(f"{u.key}|{u.dimension}|{u.factor!r}|{u.offset!r}" for u in _UNIT_LIST)
     material.extend(f"{frag}->{key}" for frag, key in _ORDERED)
     material.extend(f"bare:{surface}->{key}" for surface, key in sorted(_BARE_SURFACES.items()))
     material.extend(f"dim:{d}->{s}" for d, s in sorted(DIMENSION_SYMBOL.items()))

@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+
 from mainline_boundary.network import (
     check_network,
     collect_egress_rules,
@@ -73,7 +74,9 @@ def test_kernel_443_targets_only_the_endpoint_security_group(plan_facts: PlanFac
 
 def test_kernel_cannot_reach_the_cognition_endpoint_group(plan_facts: PlanFacts) -> None:
     """The routing fact §10.3 asks for: separate endpoint groups, separate SGs."""
-    reachable = {sg.address for sg in kernel_reachable_security_groups(collect_egress_rules(plan_facts))}
+    reachable = {
+        sg.address for sg in kernel_reachable_security_groups(collect_egress_rules(plan_facts))
+    }
     cognition_endpoint = "aws_security_group.endpoint_cognition"
     assert cognition_endpoint not in reachable
     bedrock = plan_facts.get(BEDROCK_ENDPOINT)
@@ -105,9 +108,7 @@ def test_bedrock_endpoint_in_a_kernel_subnet_fails_e2(mutate_plan: Any) -> None:
             "references": ["aws_subnet.kernel_a.id", "aws_subnet.kernel_a"]
         }
 
-    assert_violates(
-        check_network(mutate_plan(mutation)), "E2-BEDROCK-ENDPOINT-IN-KERNEL-SUBNET"
-    )
+    assert_violates(check_network(mutate_plan(mutation)), "E2-BEDROCK-ENDPOINT-IN-KERNEL-SUBNET")
 
 
 def test_bedrock_endpoint_on_the_kernel_endpoint_sg_fails_e2(mutate_plan: Any) -> None:
@@ -125,9 +126,7 @@ def test_bedrock_endpoint_on_the_kernel_endpoint_sg_fails_e2(mutate_plan: Any) -
             ]
         }
 
-    assert_violates(
-        check_network(mutate_plan(mutation)), "E2-BEDROCK-ENDPOINT-KERNEL-REACHABLE"
-    )
+    assert_violates(check_network(mutate_plan(mutation)), "E2-BEDROCK-ENDPOINT-KERNEL-REACHABLE")
 
 
 def test_kernel_443_to_the_internet_fails_e2(mutate_plan: Any) -> None:
@@ -142,9 +141,7 @@ def test_kernel_443_to_the_internet_fails_e2(mutate_plan: Any) -> None:
 
 def test_kernel_443_to_the_cognition_endpoint_group_fails_e2(mutate_plan: Any) -> None:
     def mutation(document: dict[str, Any]) -> None:
-        configuration_of(document, KERNEL_443)["expressions"][
-            "referenced_security_group_id"
-        ] = {
+        configuration_of(document, KERNEL_443)["expressions"]["referenced_security_group_id"] = {
             "references": [
                 "aws_security_group.endpoint_cognition.id",
                 "aws_security_group.endpoint_cognition",
@@ -152,9 +149,7 @@ def test_kernel_443_to_the_cognition_endpoint_group_fails_e2(mutate_plan: Any) -
         }
 
     report = check_network(mutate_plan(mutation))
-    assert_violates(
-        report, "E2-ENDPOINT-SERVES-MISMATCH", "E2-BEDROCK-ENDPOINT-KERNEL-REACHABLE"
-    )
+    assert_violates(report, "E2-ENDPOINT-SERVES-MISMATCH", "E2-BEDROCK-ENDPOINT-KERNEL-REACHABLE")
 
 
 def test_untagged_subnet_fails_e2(mutate_plan: Any) -> None:

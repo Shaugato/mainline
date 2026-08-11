@@ -11,6 +11,14 @@ that outcome, which is why it is a test rather than a convention.
 
 from __future__ import annotations
 
+from fixtures import (
+    ASSET_CLASS_CRUSHER,
+    ASSET_CLASS_TYRE,
+    DIFF_EXPOSED,
+    EVENT_FULL,
+    ISOLATION_EXPOSED,
+    PERMIT_EXPOSED,
+)
 from mainline_recall_agent.cue.prompts import (
     FACET_DEFINITIONS,
     PROMPT_VERSION,
@@ -25,15 +33,6 @@ from mainline_recall_agent.cue.source_text import (
     exposure_source_document,
 )
 from mainline_recall_agent.providers.schema import output_config, to_strict_json_schema
-
-from fixtures import (
-    ASSET_CLASS_CRUSHER,
-    ASSET_CLASS_TYRE,
-    DIFF_EXPOSED,
-    EVENT_FULL,
-    ISOLATION_EXPOSED,
-    PERMIT_EXPOSED,
-)
 
 
 def test_both_prompts_share_the_facet_definitions_block_byte_for_byte() -> None:
@@ -95,9 +94,7 @@ def test_both_payloads_have_identical_shape() -> None:
     event_doc = event_source_document(EVENT_FULL)
     exposure_doc = exposure_source_document(PERMIT_EXPOSED, ISOLATION_EXPOSED, DIFF_EXPOSED)
     left = event_payload(event_doc, activity_path="a / b", asset_class=ASSET_CLASS_TYRE)
-    right = exposure_payload(
-        exposure_doc, activity_path="a / b", asset_class=ASSET_CLASS_CRUSHER
-    )
+    right = exposure_payload(exposure_doc, activity_path="a / b", asset_class=ASSET_CLASS_CRUSHER)
     assert set(left) == set(right)
     assert set(left["source_document"]) == set(right["source_document"])
     assert left["populate_facets"] == right["populate_facets"] == list(SYNTHESISED_FACETS)

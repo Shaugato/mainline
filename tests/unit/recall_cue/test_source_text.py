@@ -7,15 +7,6 @@ from __future__ import annotations
 import hashlib
 
 import pytest
-
-from mainline_recall_agent.cue.errors import SourceDocumentError
-from mainline_recall_agent.cue.models import EventInput
-from mainline_recall_agent.cue.source_text import (
-    canonicalise,
-    event_source_document,
-    exposure_source_document,
-)
-
 from fixtures import (
     DIFF_EXPOSED,
     DIFF_ROUTINE,
@@ -25,6 +16,13 @@ from fixtures import (
     PERMIT_EXPOSED,
     PERMIT_ROUTINE,
     SITE_ID,
+)
+from mainline_recall_agent.cue.errors import SourceDocumentError
+from mainline_recall_agent.cue.models import EventInput
+from mainline_recall_agent.cue.source_text import (
+    canonicalise,
+    event_source_document,
+    exposure_source_document,
 )
 
 

@@ -6,10 +6,10 @@ Public surface::
 
     from mainline_domain.anchors import extract_anchors, uncompensated_drops
 
-    reference  = extract_anchors(origin_canon_text)
+    reference = extract_anchors(origin_canon_text)
     descendant = extract_anchors(new_canon_text)
 
-    reference.compatible_with(descendant)     # False vetoes a semantic match
+    reference.compatible_with(descendant)  # False vetoes a semantic match
     uncompensated_drops(reference, descendant)  # each one is a weaken candidate
 
 **Honest position (see ``novelty/anchorlock.yaml``): the gazetteer NER is old;

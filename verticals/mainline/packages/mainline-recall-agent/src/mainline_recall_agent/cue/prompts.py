@@ -358,6 +358,4 @@ def event_payload(
 def exposure_payload(
     document: SourceDocument, *, activity_path: str, asset_class: str
 ) -> dict[str, Any]:
-    return _payload(
-        "exposure_cue", document, activity_path=activity_path, asset_class=asset_class
-    )
+    return _payload("exposure_cue", document, activity_path=activity_path, asset_class=asset_class)

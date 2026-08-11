@@ -215,9 +215,7 @@ class LevelMaterialisedBondWriter:
     def prompt_version(self) -> str:
         return self._prompt_version
 
-    def emit(
-        self, *, event: EventRef, scope_id: str, facets: Sequence[FacetValue]
-    ) -> LmbEmission:
+    def emit(self, *, event: EventRef, scope_id: str, facets: Sequence[FacetValue]) -> LmbEmission:
         path = resolve_path(self._source, scope_id)
         return build_cue_rows(
             event=event,

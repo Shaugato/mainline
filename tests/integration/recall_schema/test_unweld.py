@@ -16,7 +16,6 @@ much as the list of places where it is.
 from __future__ import annotations
 
 import pytest
-
 from _schema_support import (
     INSERT_RUN_SQL,
     assert_check_refusal,
@@ -145,9 +144,7 @@ def test_uw02_prefix_projection_depth_is_one(conn) -> None:
             "the forged prefix was refused after all — this weld is deeper than depth 1 and "
             "the claim in 0041/0114 must be upgraded"
         )
-        conn.execute(
-            "DELETE FROM mainline.event_cue_embedding WHERE cue_id = %s", (cue.cue_id,)
-        )
+        conn.execute("DELETE FROM mainline.event_cue_embedding WHERE cue_id = %s", (cue.cue_id,))
 
     # Re-welded: the same forgery is rewritten again.
     insert_embedding(

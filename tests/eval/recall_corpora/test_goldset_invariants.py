@@ -39,6 +39,7 @@ from pathlib import Path
 
 import pytest
 from corpora_paths import FIXTURES, GOLDSETS, GS0, QRELS_FILES
+
 from trappoint_recall.corpora import g1_citations, g2_codes, g3_adjudicated, g4_retro
 from trappoint_recall.corpora.build import (
     SYNTHETIC_PROVENANCE,
@@ -146,9 +147,7 @@ def test_a_leaking_pair_is_refused_by_the_builder(records: EventRecordSet) -> No
     ``assert_no_leakage`` is required to raise. An assertion over the committed data alone
     would pass vacuously the day the guard is removed and the data happens to be clean.
     """
-    resolution = g1_citations.resolve_citations(
-        g1_citations.citations_of(records.records), records
-    )
+    resolution = g1_citations.resolve_citations(g1_citations.citations_of(records.records), records)
     commit = "sha256:test"
     result = g4_retro.build_g4(records, resolution, corpus_commit=commit)
     permit = result.permits[0]
@@ -421,9 +420,12 @@ def test_panel_covers_all_eight_hazard_energy_classes(panel: Panel) -> None:
 def test_panel_mixes_archival_levels_and_is_all_fatal(panel: Panel) -> None:
     assert len({item.scope_level for item in panel.items}) >= 2
     assert all(item.severity == 5 for item in panel.items)
-    assert panel.digest == json.loads(
-        (FIXTURES / "thymogate_panel.json").read_text(encoding="utf-8")
-    )["panel_digest"]
+    assert (
+        panel.digest
+        == json.loads((FIXTURES / "thymogate_panel.json").read_text(encoding="utf-8"))[
+            "panel_digest"
+        ]
+    )
 
 
 def test_a_panel_missing_a_hazard_class_cannot_be_constructed(panel: Panel) -> None:
@@ -658,9 +660,7 @@ def test_citation_resolution_accounting_closes(records: EventRecordSet) -> None:
 def test_unresolvable_citations_are_dropped_by_reason_and_never_guessed(
     records: EventRecordSet,
 ) -> None:
-    resolution = g1_citations.resolve_citations(
-        g1_citations.citations_of(records.records), records
-    )
+    resolution = g1_citations.resolve_citations(g1_citations.citations_of(records.records), records)
     assert resolution.dropped, "no citation was dropped; the drop path is untested"
     assert "no_identifier" in resolution.dropped, (
         "no citation phrase without an identifier was extracted. Those exist in every real "

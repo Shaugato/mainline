@@ -115,9 +115,7 @@ def fixture_by_id(fixture_id: str) -> Revision:
     """Return one fixture, or raise :class:`~mainline_mutation.errors.FixtureError`."""
     revision = _index().get(fixture_id)
     if revision is None:
-        raise FixtureError(
-            f"no fixture {fixture_id!r}; the fixture set is {sorted(_index())}"
-        )
+        raise FixtureError(f"no fixture {fixture_id!r}; the fixture set is {sorted(_index())}")
     return revision
 
 

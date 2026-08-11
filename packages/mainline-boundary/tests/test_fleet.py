@@ -96,9 +96,7 @@ def test_plane_falls_back_to_the_agent_name() -> None:
 
 
 def test_a_declared_plane_must_be_a_legal_plane() -> None:
-    agents = parse_fleet(
-        {"agents": {"x": {"tier": "T1", "plane": "middleware", "no_model": True}}}
-    )
+    agents = parse_fleet({"agents": {"x": {"tier": "T1", "plane": "middleware", "no_model": True}}})
     plane, how = resolve_plane(agents[0])
     assert plane is None
     assert "middleware" in how

@@ -25,6 +25,7 @@ demanded.
 from __future__ import annotations
 
 import pytest
+
 from trappoint_recall.lexical import analyser as analyser_module
 from trappoint_recall.lexical.analyser import ANALYSER_VERSION, rule_fingerprint
 from trappoint_recall.lexical.digest import (

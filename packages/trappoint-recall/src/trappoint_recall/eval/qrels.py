@@ -73,9 +73,9 @@ class Judgement(BaseModel):
         int,
         Field(ge=0, le=3, description="UMBRELA relevance grade, 0-3. See GRADE_MEANINGS."),
     ]
-    scale: Annotated[
-        RelevanceScale, Field(description="Rubric the grade was produced under.")
-    ] = "umbrela-0-3"
+    scale: Annotated[RelevanceScale, Field(description="Rubric the grade was produced under.")] = (
+        "umbrela-0-3"
+    )
     gold_set: Annotated[
         str,
         Field(
@@ -172,7 +172,9 @@ class QrelSet:
     def graded_docs(self, query_id: str) -> Mapping[str, int]:
         return self._by_query.get(query_id, {})
 
-    def relevant_docs(self, query_id: str, *, floor: int = BLOCKING_RELEVANCE_FLOOR) -> frozenset[str]:
+    def relevant_docs(
+        self, query_id: str, *, floor: int = BLOCKING_RELEVANCE_FLOOR
+    ) -> frozenset[str]:
         return frozenset(
             doc for doc, grade in self._by_query.get(query_id, {}).items() if grade >= floor
         )

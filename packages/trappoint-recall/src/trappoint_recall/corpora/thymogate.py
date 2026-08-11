@@ -109,9 +109,7 @@ def config_digest(config: Mapping[str, object]) -> str:
     the same digest agree on how their thresholds were rounded as well as on what they
     were.
     """
-    return digest_hex(
-        {"float_quantisation": FLOAT_QUANTISATION, "config": _quantise(dict(config))}
-    )
+    return digest_hex({"float_quantisation": FLOAT_QUANTISATION, "config": _quantise(dict(config))})
 
 
 class PanelOutcome(BaseModel):

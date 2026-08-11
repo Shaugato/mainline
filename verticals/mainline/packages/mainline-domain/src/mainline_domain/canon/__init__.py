@@ -7,9 +7,9 @@ Public surface::
     from mainline_domain.canon import canonicalise, CANON_VERSION
 
     result = canonicalise(raw_clause_text)
-    result.canon_text      # every offset in the system is into this
-    result.canon_sha256    # clause_version.canon_sha256
-    result.printed_label   # '7.3.2(b)' — stored, never identity
+    result.canon_text  # every offset in the system is into this
+    result.canon_sha256  # clause_version.canon_sha256
+    result.printed_label  # '7.3.2(b)' — stored, never identity
 
 **Honest position (see ``novelty/canonhold.yaml``): this is a
 re-parameterisation.**  NFKC folding, de-hyphenation against a lexicon,

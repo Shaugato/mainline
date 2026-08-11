@@ -30,7 +30,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from fixtures import (  # noqa: E402
     ACTIVITY_PATH,
     ASSET_CLASS_TYRE,
-    CASSETTE_MODEL,
     BODY_EVENT_ANCHOR_FABRICATION,
     BODY_EVENT_FULL,
     BODY_EVENT_INSUFFICIENT,
@@ -38,6 +37,7 @@ from fixtures import (  # noqa: E402
     BODY_EXPOSURE_ROUTINE,
     BODY_INVALID_EXTRA_FIELD,
     BODY_INVALID_NO_QUOTE,
+    CASSETTE_MODEL,
     CASSETTE_ROOT,
     DIFF_EXPOSED,
     DIFF_ROUTINE,
@@ -51,7 +51,6 @@ from fixtures import (  # noqa: E402
     PERMIT_EXPOSED,
     PERMIT_ROUTINE,
 )
-
 from mainline_recall_agent.cue.prompts import PROMPT_VERSION  # noqa: E402
 from mainline_recall_agent.cue.synthesise import (  # noqa: E402
     synthesise_event_cue,

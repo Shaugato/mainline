@@ -155,10 +155,16 @@ def _start_docker() -> Cluster | None:
     port = _free_port()
     started = _docker(
         [
-            "run", "-d", "--name", CONTAINER_NAME,
-            "-p", f"{port}:26257",
+            "run",
+            "-d",
+            "--name",
+            CONTAINER_NAME,
+            "-p",
+            f"{port}:26257",
             CRDB_IMAGE,
-            "start-single-node", "--insecure", "--store=type=mem,size=2GiB",
+            "start-single-node",
+            "--insecure",
+            "--store=type=mem,size=2GiB",
         ],
         timeout=DOCKER_RUN_TIMEOUT_S,
     )

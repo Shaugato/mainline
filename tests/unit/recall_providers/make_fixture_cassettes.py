@@ -36,9 +36,7 @@ from pathlib import Path
 from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-PACKAGE_SRC = (
-    REPO_ROOT / "verticals" / "mainline" / "packages" / "mainline-recall-agent" / "src"
-)
+PACKAGE_SRC = REPO_ROOT / "verticals" / "mainline" / "packages" / "mainline-recall-agent" / "src"
 if str(PACKAGE_SRC) not in sys.path:
     sys.path.insert(0, str(PACKAGE_SRC))
 if str(Path(__file__).resolve().parent) not in sys.path:
@@ -52,7 +50,6 @@ from fixture_schema import (  # noqa: E402
     RerankVerdict,
     judge_payload,
 )
-
 from mainline_recall_agent.providers.base import embed_text  # noqa: E402
 from mainline_recall_agent.providers.cassette import CassetteStore, embed_request  # noqa: E402
 from mainline_recall_agent.providers.judge import BedrockClaudeJudge, TransportReply  # noqa: E402

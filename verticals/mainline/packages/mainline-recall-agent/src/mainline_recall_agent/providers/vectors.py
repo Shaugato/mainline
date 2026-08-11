@@ -38,9 +38,7 @@ UNIT_TOLERANCE: float = 1e-6
 
 def check_dim(vec: Sequence[float], expected: int) -> None:
     if len(vec) != expected:
-        raise VectorShapeError(
-            "wrong vector width", expected=expected, actual=len(vec)
-        )
+        raise VectorShapeError("wrong vector width", expected=expected, actual=len(vec))
     for i, component in enumerate(vec):
         if not math.isfinite(component):
             raise VectorShapeError("non-finite vector component", index=i, value=component)

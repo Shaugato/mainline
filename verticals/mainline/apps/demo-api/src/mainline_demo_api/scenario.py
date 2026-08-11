@@ -261,9 +261,7 @@ SELECT r.receipt_id
 """
 
 
-def resolve(
-    conn: psycopg.Connection[Any], scenario: Scenario | None = None
-) -> ResolvedScenario:
+def resolve(conn: psycopg.Connection[Any], scenario: Scenario | None = None) -> ResolvedScenario:
     """Read the seeded history back out of *conn*.
 
     Raises:
@@ -280,8 +278,16 @@ def resolve(
             f"history is seeded by w2-cloud-database; override the identifier with "
             f"{ENV_PREFIX}PERMIT_ID if this deployment seeded a different one."
         )
-    (external_ref, state, head_seq, gate_epoch, open_blocking, open_derived, check_id,
-     site_code) = row
+    (
+        external_ref,
+        state,
+        head_seq,
+        gate_epoch,
+        open_blocking,
+        open_derived,
+        check_id,
+        site_code,
+    ) = row
 
     receipt_id: uuid.UUID | None = None
     if check_id is not None:

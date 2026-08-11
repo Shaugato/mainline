@@ -115,9 +115,7 @@ def test_the_seeder_writes_proposed_and_unsigned_by_default() -> None:
     That is inconvenient by design: it is the difference between a registry a
     person stands behind and one a build step produced.
     """
-    rows = seed_clause_rows(
-        site_id=SITE, commit_id=HEAD, author_sub="sub-bootstrap"
-    )
+    rows = seed_clause_rows(site_id=SITE, commit_id=HEAD, author_sub="sub-bootstrap")
     assert rows
     for row in rows:
         assert decode(row.canon_text).status is EntryStatus.PROPOSED

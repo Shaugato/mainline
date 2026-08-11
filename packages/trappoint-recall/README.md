@@ -182,11 +182,11 @@ green when the corpus disappears.
 class MyBackend:
     name = "arms-v1"
 
-    async def retrieve(self, query: EvalQuery, k: int) -> list[ScoredCandidate]:
-        ...
+    async def retrieve(self, query: EvalQuery, k: int) -> list[ScoredCandidate]: ...
 
-    async def declared_tally(self, query: EvalQuery) -> RunTally:
-        ...   # the counters mainline_meas.recall_run would carry
+    async def declared_tally(
+        self, query: EvalQuery
+    ) -> RunTally: ...  # the counters mainline_meas.recall_run would carry
 ```
 
 `declared_tally` is optional to the type system and mandatory in practice: the

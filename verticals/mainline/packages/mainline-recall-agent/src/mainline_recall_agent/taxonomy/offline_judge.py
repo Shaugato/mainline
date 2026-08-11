@@ -183,8 +183,7 @@ class RuleBasedInductionJudge:
             payload = self._merge(user_payload)
         else:
             raise TaxonomyError(
-                "unknown induction phase; the offline judge implements 'propose' and "
-                "'merge' only",
+                "unknown induction phase; the offline judge implements 'propose' and 'merge' only",
                 phase=phase,
             )
         # Validated through the same client-side path the live judge uses, so a change to

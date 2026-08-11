@@ -235,9 +235,7 @@ class FeatureVector:
 
     def __post_init__(self) -> None:
         if len(self.values) != FEATURE_WIDTH:
-            raise InvalidFeatureVector(
-                f"expected {FEATURE_WIDTH} features, got {len(self.values)}"
-            )
+            raise InvalidFeatureVector(f"expected {FEATURE_WIDTH} features, got {len(self.values)}")
         for name, value in zip(FEATURE_NAMES, self.values, strict=True):
             if not math.isfinite(value):
                 raise InvalidFeatureVector(f"feature {name!r} is not finite: {value!r}")

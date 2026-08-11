@@ -16,7 +16,6 @@ and then vanished from the accounting has nowhere to go.
 from __future__ import annotations
 
 import pytest
-
 from _schema_support import (
     INSERT_RUN_SQL,
     assert_check_refusal,
@@ -56,8 +55,8 @@ def test_rc05_a_run_recognising_an_unblocked_fatality_is_refused(conn) -> None:
             n_blocking=1,
             n_advisory=1,
             n_silenced=1,
-            n_bonded_sev5=1,            # the run says it recognised a bonded fatality
-            n_bonded_sev5_blocking=0,   # and did not make it blocking
+            n_bonded_sev5=1,  # the run says it recognised a bonded fatality
+            n_bonded_sev5_blocking=0,  # and did not make it blocking
         ),
     )
     assert_check_refusal(
@@ -80,9 +79,7 @@ def test_rc05b_the_database_moves_both_counters_when_a_bonded_fatality_blocks(co
     run_id, permit_id = new_uuid(), new_uuid()
     conn.execute(
         INSERT_RUN_SQL,
-        run_values(
-            run_id=run_id, permit_id=permit_id, site_id=site_id, policy_version=policy
-        ),
+        run_values(run_id=run_id, permit_id=permit_id, site_id=site_id, policy_version=policy),
     )
 
     fatality = insert_event(conn, site_id=site_id, severity_gate=5)
@@ -105,15 +102,13 @@ def test_rc05b_the_database_moves_both_counters_when_a_bonded_fatality_blocks(co
 
 
 def test_rc05c_a_severity_4_precursor_does_not_move_the_bonded_counters(conn) -> None:
-    """"Bonded severity-5" means both halves. A serious event is not a fatality."""
+    """ "Bonded severity-5" means both halves. A serious event is not a fatality."""
     site_id = new_uuid()
     policy = _anchored_policy(conn, site_id)
     run_id, permit_id = new_uuid(), new_uuid()
     conn.execute(
         INSERT_RUN_SQL,
-        run_values(
-            run_id=run_id, permit_id=permit_id, site_id=site_id, policy_version=policy
-        ),
+        run_values(run_id=run_id, permit_id=permit_id, site_id=site_id, policy_version=policy),
     )
 
     serious = insert_event(conn, site_id=site_id, severity_gate=4)
@@ -148,11 +143,11 @@ def test_rc06_a_run_whose_candidates_do_not_partition_is_refused(conn) -> None:
             permit_id=new_uuid(),
             site_id=site_id,
             policy_version=policy,
-            n_candidates=5,      # five retrieved
+            n_candidates=5,  # five retrieved
             n_blocking=1,
             n_advisory=1,
             n_silenced=1,
-            n_deduped=1,         # four accounted for; one candidate has nowhere to be
+            n_deduped=1,  # four accounted for; one candidate has nowhere to be
         ),
     )
     assert_check_refusal(

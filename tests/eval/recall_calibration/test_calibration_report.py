@@ -293,9 +293,7 @@ def test_the_lane_emits_a_reliability_diagram_and_a_brier_ece_report(
     document["corpus"] = calibration_set.provenance()
     document["calibrator"] = calibrator.to_json()
     document["baseline"] = {
-        "naive_squash_brier_blocked": brier_score(
-            _naive(calibration_set.evaluation), labels
-        ),
+        "naive_squash_brier_blocked": brier_score(_naive(calibration_set.evaluation), labels),
         "calibrated_brier_blocked": report.brier,
         "naive_squash_brier_exchangeable_probe": brier_score(_naive(probe_half), probe_labels),
         "calibrated_brier_exchangeable_probe": brier_score(

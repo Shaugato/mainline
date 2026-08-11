@@ -314,7 +314,7 @@ def parse_part50(
                 ingested_at=ingested,
                 corpus_commit_at=commit_at,
                 title=f"{classification} — {injury_source}",
-                narrative=narrative[: 384],
+                narrative=narrative[:384],
                 work_description=None,
                 coded=CodedFields(
                     accident_classification=classification,
@@ -607,7 +607,9 @@ def load_fatality_reports(
             dropped["empty_envelope"] = dropped.get("empty_envelope", 0) + 1
             continue
         related_raw = row.get("related", ())
-        related = tuple(str(x) for x in related_raw) if isinstance(related_raw, (list, tuple)) else ()
+        related = (
+            tuple(str(x) for x in related_raw) if isinstance(related_raw, (list, tuple)) else ()
+        )
         try:
             record = parse_fatality_report(
                 text,

@@ -49,6 +49,7 @@ from _support import (
     unit_vector,
     vector_literal,
 )
+
 from trappoint_recall.arms.measure import (
     IngestCurve,
     IngestSample,
@@ -91,8 +92,13 @@ def _rows(corpus: CorpusState, conn: object, count: int, *, tag: str) -> list[tu
                 'A synthetic event created solely to parent the ingest-curve probe rows.',
                 %s, %s, 2, 2, 2, 'coded_field', 1)
         """,
-        (event_id, corpus.taxonomy.site_id, f"INC-{tag}-{event_id.hex[:8]}",
-         f"s3://mainline-raw/{event_id}", uuid.uuid4().bytes + uuid.uuid4().bytes),
+        (
+            event_id,
+            corpus.taxonomy.site_id,
+            f"INC-{tag}-{event_id.hex[:8]}",
+            f"s3://mainline-raw/{event_id}",
+            uuid.uuid4().bytes + uuid.uuid4().bytes,
+        ),
     )
     scope_id = corpus.taxonomy.levels[3]
     facet = POPULATED_FACETS[0]
@@ -100,8 +106,17 @@ def _rows(corpus: CorpusState, conn: object, count: int, *, tag: str) -> list[tu
     pending: list[tuple[object, ...]] = []
     for i in range(count):
         cue_id = uuid.uuid4()
-        pending.append((cue_id, event_id, corpus.taxonomy.site_id, scope_id, 3, facet,
-                        f"ingest probe {tag} {i}"))
+        pending.append(
+            (
+                cue_id,
+                event_id,
+                corpus.taxonomy.site_id,
+                scope_id,
+                3,
+                facet,
+                f"ingest probe {tag} {i}",
+            )
+        )
         out.append(
             (
                 cue_id,
@@ -157,12 +172,12 @@ def curves(session_conn: object, corpus: CorpusState) -> dict:
         rows = _rows(corpus, session_conn, ROWS_PER_PROBE, tag=f"live-{batch}")
         elapsed = _timed_insert(session_conn, CUE_SCOPED.qualified_name, rows, batch)
         live.append(IngestSample(rows=len(rows), batch_size=batch, elapsed_s=elapsed))
-        print(f"[ix06] live batch={batch:>4}: {len(rows)/elapsed:8.1f} rows/s")
+        print(f"[ix06] live batch={batch:>4}: {len(rows) / elapsed:8.1f} rows/s")
 
         rows = _rows(corpus, session_conn, ROWS_PER_PROBE, tag=f"stage-{batch}")
         elapsed = _timed_insert(session_conn, CUE_STAGE.qualified_name, rows, batch)
         staged.append(IngestSample(rows=len(rows), batch_size=batch, elapsed_s=elapsed))
-        print(f"[ix06] stage batch={batch:>4}: {len(rows)/elapsed:8.1f} rows/s")
+        print(f"[ix06] stage batch={batch:>4}: {len(rows) / elapsed:8.1f} rows/s")
 
     promotion = _measure_promotion(session_conn)
     return {

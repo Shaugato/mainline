@@ -74,9 +74,7 @@ def judge(kind: MutationKind, outcome: PipelineOutcome) -> tuple[Outcome, str]: 
     if kind == KILL:
         if reacted_delta:
             witnesses = ", ".join(outcome.witness_rule_ids) or "(none recorded)"
-            return "killed", (
-                f"the lattice returned {outcome.delta} on witnesses [{witnesses}]"
-            )
+            return "killed", (f"the lattice returned {outcome.delta} on witnesses [{witnesses}]")
         if residue:
             return "killed", (
                 f"the lattice returned {outcome.delta}, and the identity machinery raised "

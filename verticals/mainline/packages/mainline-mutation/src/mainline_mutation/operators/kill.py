@@ -243,14 +243,12 @@ def deontic_downgrade(revision: Revision, rng: random.Random) -> MutationApplica
         body = replace_first_ci(revision.raw_text, surface, replacement)
         if body is not None:
             return MutationApplication(
-                descendant_document=revision.document(text=_require_change(
-                    revision, body, "deontic_downgrade"
-                )),
+                descendant_document=revision.document(
+                    text=_require_change(revision, body, "deontic_downgrade")
+                ),
                 note=f"{surface!r} -> {replacement!r}",
             )
-    raise OperatorInapplicable(
-        f"{revision.fixture_id} states no MUST or SHALL to downgrade"
-    )
+    raise OperatorInapplicable(f"{revision.fixture_id} states no MUST or SHALL to downgrade")
 
 
 def _setpoint_nudge(revision: Revision, magnitude: str) -> MutationApplication:
@@ -461,9 +459,7 @@ def uncompensated_anchor_drop(revision: Revision, rng: random.Random) -> Mutatio
             if trimmed is not None:
                 return MutationApplication(
                     descendant_document=revision.document(
-                        text=_require_change(
-                            revision, _tidy(trimmed), "uncompensated_anchor_drop"
-                        )
+                        text=_require_change(revision, _tidy(trimmed), "uncompensated_anchor_drop")
                     ),
                     note=f"citation {target.norm!r} and its preamble removed",
                 )

@@ -53,8 +53,13 @@ CACHE_CONTROL_EPHEMERAL: Final[dict[str, str]] = {"type": "ephemeral"}
 MIN_CACHEABLE_CHARS: Final[int] = 4000
 
 _VOLATILE_PATTERNS: Final[tuple[tuple[str, re.Pattern[str]], ...]] = (
-    ("uuid", re.compile(r"\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-"
-                        r"[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b")),
+    (
+        "uuid",
+        re.compile(
+            r"\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-"
+            r"[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b"
+        ),
+    ),
     ("iso_instant", re.compile(r"\b\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}")),
     ("run_marker", re.compile(r"\b(run_id|permit_id|request_id|candidate_id)\s*[:=]")),
     ("format_placeholder", re.compile(r"\{[a-z_]{2,}\}")),

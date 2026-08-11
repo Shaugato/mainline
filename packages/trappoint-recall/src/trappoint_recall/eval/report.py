@@ -44,14 +44,17 @@ def _header(bundle: MetricBundle) -> list[str]:
     run = bundle.run
     lines = [
         f"**Corpus:** {run.corpus_name}",
-        f"**Backend:** `{run.backend_name}`" + (f" (arm `{run.config_id}`)" if run.config_id else ""),
+        f"**Backend:** `{run.backend_name}`"
+        + (f" (arm `{run.config_id}`)" if run.config_id else ""),
         f"**Split policy:** `{run.split_policy_id}`",
         f"**Depth requested:** k={run.k} over {len(run.results)} permits",
         f"**Run:** {run.started_at.isoformat()} to {run.finished_at.isoformat()} "
         f"({run.wall_seconds:.2f}s wall)",
     ]
     if run.synthetic:
-        lines.append("**SYNTHETIC CORPUS** — these numbers characterise the harness, not the product.")
+        lines.append(
+            "**SYNTHETIC CORPUS** — these numbers characterise the harness, not the product."
+        )
     if run.preliminary:
         lines.append("**PRELIMINARY** — no customer-grade floor is claimed at this checkpoint.")
     return lines
@@ -100,8 +103,7 @@ def render_metrics_markdown(bundle: MetricBundle) -> str:
     lines.append(
         f"`candidates = blocking + advisory + silenced + deduped` — holds: **{cons.holds}**, "
         f"over {cons.total_candidates} candidates across {cons.covered_runs}/"
-        f"{cons.expected_runs} runs"
-        + (" (**VACUOUS**)" if cons.vacuous else "")
+        f"{cons.expected_runs} runs" + (" (**VACUOUS**)" if cons.vacuous else "")
     )
     if cons.violations:
         lines.append("")
@@ -184,9 +186,7 @@ def render_gate_markdown(bundle: MetricBundle, results: Sequence[GateResult]) ->
     return "\n".join(lines)
 
 
-def gate_status_document(
-    bundle: MetricBundle, results: Sequence[GateResult]
-) -> dict[str, object]:
+def gate_status_document(bundle: MetricBundle, results: Sequence[GateResult]) -> dict[str, object]:
     """Machine-readable gate status. The artefact the CI lane records."""
     status = overall_status(results)
     return {
@@ -207,5 +207,7 @@ def gate_status_document(
     }
 
 
-def render_status_json(bundle: MetricBundle, results: Sequence[GateResult], *, indent: int = 2) -> str:
+def render_status_json(
+    bundle: MetricBundle, results: Sequence[GateResult], *, indent: int = 2
+) -> str:
     return json.dumps(gate_status_document(bundle, results), indent=indent, sort_keys=True) + "\n"

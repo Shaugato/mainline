@@ -56,7 +56,15 @@ def _alternation(values: tuple[str, ...]) -> str:
 class _Patterns:
     """Regexes built from the gazetteers.  Built once, cached."""
 
-    __slots__ = ("citation_body", "citation_reg", "equipment", "instrument", "isolation", "role", "setpoint")
+    __slots__ = (
+        "citation_body",
+        "citation_reg",
+        "equipment",
+        "instrument",
+        "isolation",
+        "role",
+        "setpoint",
+    )
 
     def __init__(self, gaz: Gazetteers) -> None:
         self.citation_body = re.compile(
@@ -77,7 +85,9 @@ class _Patterns:
         )
         self.instrument = re.compile(
             r"(?<![A-Za-z0-9])(?:(?P<area>\d{1,3})-)?"
-            r"(?P<code>" + _alternation(tuple(sorted(gaz.instrument_codes, key=lambda c: (-len(c), c)))) + r")"
+            r"(?P<code>"
+            + _alternation(tuple(sorted(gaz.instrument_codes, key=lambda c: (-len(c), c))))
+            + r")"
             r"-?(?P<number>\d{2,5})(?P<suffix>[A-Z]{0,2})(?![\w-])"
         )
         self.equipment = re.compile(

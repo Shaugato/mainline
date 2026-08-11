@@ -19,7 +19,6 @@ from __future__ import annotations
 from typing import Any
 
 import pytest
-
 from mainline_recall_agent.providers.cassette import CassetteJudgeTransport, CassetteStore
 from mainline_recall_agent.providers.errors import SystemBlockContract
 from mainline_recall_agent.providers.judge import BedrockClaudeJudge
@@ -204,9 +203,7 @@ def test_last_usage_is_populated_even_when_the_call_fails(store: CassetteStore) 
         prompt_version=PROMPT_VERSION,
     )
     with pytest.raises(ModelRefusal):
-        judge.judge(
-            _prefix(), judge_payload("FX-EXP-REFUSAL", ["FX-001", "FX-010"]), RerankVerdict
-        )
+        judge.judge(_prefix(), judge_payload("FX-EXP-REFUSAL", ["FX-001", "FX-010"]), RerankVerdict)
     assert judge.last_usage is not None
     assert judge.last_usage.input_tokens > 0
 

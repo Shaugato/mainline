@@ -454,20 +454,17 @@ def reconcile(
             message = (
                 "RED, as committed. PL-2 red-before-green: the gates are required to fail "
                 "until a retriever exists, and they failed for the right reason — the "
-                "floors were evaluated and not met, not skipped. "
-                + expectation.reason
+                "floors were evaluated and not met, not skipped. " + expectation.reason
             )
         else:
-            message = (
-                "GREEN, as committed. Any regression to RED will fail this lane from here on."
-            )
+            message = "GREEN, as committed. Any regression to RED will fail this lane from here on."
         return (observed, "AS_EXPECTED", EXIT_MATCHES_EXPECTATION, message)
 
     if observed == "GREEN" and expectation.colour == "RED":
         message = (
             "the gates now PASS but the repository still commits to RED. This is a real "
-            "result and it needs a human: " + (expectation.flip_procedure or "flip the "
-            "expectation to GREEN in a pull request.")
+            "result and it needs a human: "
+            + (expectation.flip_procedure or "flip the expectation to GREEN in a pull request.")
         )
     else:
         message = (

@@ -17,7 +17,6 @@ cosine distance, LIMIT k) against both the forged prefix and the true one.
 from __future__ import annotations
 
 import pytest
-
 from _schema_support import (
     assert_trigger_refusal,
     capture_refusal,

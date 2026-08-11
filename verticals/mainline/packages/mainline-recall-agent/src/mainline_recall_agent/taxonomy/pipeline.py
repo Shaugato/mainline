@@ -106,9 +106,7 @@ def run_induction(
     assignments = assign_leaves(pool, build)
 
     labelled = [(by_id[doc_id], scope) for doc_id, scope in sorted(assignments.items())]
-    scope_labels = {
-        node.scope_id: node.label for node in build.snapshot.nodes
-    }
+    scope_labels = {node.scope_id: node.label for node in build.snapshot.nodes}
     classifier = TaxonomyClassifier.fit(
         texts=[document.text for document, _ in labelled],
         scopes=[scope for _, scope in labelled],
@@ -144,9 +142,7 @@ def run_induction(
         holdout=holdout.to_dict() if holdout else None,
         classifier_digest=classifier.digest(),
         rejection_counts=pool.rejection_counts(),
-        rejected_labels=tuple(
-            rejection.to_dict() for rejection in pool.rejections[:200]
-        ),
+        rejected_labels=tuple(rejection.to_dict() for rejection in pool.rejections[:200]),
         abstained_documents=len(pool.abstained),
         failed_batches=pool.failed_batches,
         dropped_groups=build.dropped_groups,

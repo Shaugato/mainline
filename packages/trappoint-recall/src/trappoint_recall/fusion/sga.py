@@ -223,9 +223,7 @@ def _log_binomial_pmf(k: int, n: int, p: float) -> float:
         return 0.0 if k == 0 else -math.inf
     if p >= 1.0:  # pragma: no cover - alpha is validated to be strictly inside (0, 1)
         return 0.0 if k == n else -math.inf
-    log_choose = (
-        math.lgamma(n + 1) - math.lgamma(k + 1) - math.lgamma(n - k + 1)
-    )
+    log_choose = math.lgamma(n + 1) - math.lgamma(k + 1) - math.lgamma(n - k + 1)
     return log_choose + k * math.log(p) + (n - k) * math.log1p(-p)
 
 

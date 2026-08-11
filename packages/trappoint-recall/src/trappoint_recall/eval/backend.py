@@ -186,7 +186,9 @@ class RunTally:
         }
 
     @classmethod
-    def enumerate_from(cls, candidates: Sequence[ScoredCandidate], *, arms_degraded: bool = False) -> RunTally:
+    def enumerate_from(
+        cls, candidates: Sequence[ScoredCandidate], *, arms_degraded: bool = False
+    ) -> RunTally:
         """Derive a tally by counting candidates. Used as the *independent* side of L3."""
         counts = {"blocking": 0, "advisory": 0, "silenced": 0, "deduped": 0}
         bonded = 0

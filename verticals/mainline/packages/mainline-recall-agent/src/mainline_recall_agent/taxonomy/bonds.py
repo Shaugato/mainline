@@ -97,9 +97,7 @@ def assert_ancestor_closure(rows: Sequence[BondRow], path: ArchivalPath) -> None
         )
 
 
-def build_bond_rows(
-    *, event_id: str, path: ArchivalPath, bond_basis: str
-) -> BondEmission:
+def build_bond_rows(*, event_id: str, path: ArchivalPath, bond_basis: str) -> BondEmission:
     """Bond ``event_id`` to every node on ``path`` — leaf and all ancestors."""
     if not event_id:
         raise BondClosureError("an event id is required to write a bond")

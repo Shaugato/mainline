@@ -101,14 +101,26 @@ class Token:
 #: Applied before anything else.  Every one of these is a character that appears in real
 #: incident text and would otherwise fragment an identifier.
 _CHAR_MAP: Final[dict[int, str]] = {
-    0x2010: "-", 0x2011: "-", 0x2012: "-", 0x2013: "-", 0x2014: "-", 0x2015: "-",
-    0x2212: "-",           # minus sign
-    0x00AD: "",            # soft hyphen
-    0x2018: "'", 0x2019: "'", 0x201C: '"', 0x201D: '"',
-    0x00B2: "2", 0x00B3: "3",   # superscript 2/3 → m2 / m3
-    0x00B5: "u", 0x03BC: "u",   # micro sign and greek mu → u
-    0x00A0: " ", 0x2007: " ", 0x202F: " ",
-    0x2044: "/",           # fraction slash
+    0x2010: "-",
+    0x2011: "-",
+    0x2012: "-",
+    0x2013: "-",
+    0x2014: "-",
+    0x2015: "-",
+    0x2212: "-",  # minus sign
+    0x00AD: "",  # soft hyphen
+    0x2018: "'",
+    0x2019: "'",
+    0x201C: '"',
+    0x201D: '"',
+    0x00B2: "2",
+    0x00B3: "3",  # superscript 2/3 → m2 / m3
+    0x00B5: "u",
+    0x03BC: "u",  # micro sign and greek mu → u
+    0x00A0: " ",
+    0x2007: " ",
+    0x202F: " ",
+    0x2044: "/",  # fraction slash
 }
 
 
@@ -227,11 +239,7 @@ def _emit_identifier(out: _Emitter, surface: str, start: int, end: int) -> None:
         # rule nobody can reason about.
         if part.isdigit():
             stripped = part.lstrip("0")
-            if (
-                len(stripped) >= _MIN_COMPONENT_LEN
-                and stripped != part
-                and stripped not in seen
-            ):
+            if len(stripped) >= _MIN_COMPONENT_LEN and stripped != part and stripped not in seen:
                 seen.add(stripped)
                 out.emit(stripped, TokenClass.IDENTIFIER, start, end)
 
@@ -264,9 +272,7 @@ def _render_whs(m: re.Match[str]) -> str:
 #: ``(pattern, renderer, designator group)``.  Order is priority order; the first match at a
 #: position wins and consumes the whole citation, which is what keeps ``30 CFR 57.22239``
 #: from being read as the quantity ``30`` followed by the identifier ``57.22239``.
-_CITATION_RULES: Final[
-    tuple[tuple[re.Pattern[str], Callable[[re.Match[str]], str], int], ...]
-] = (
+_CITATION_RULES: Final[tuple[tuple[re.Pattern[str], Callable[[re.Match[str]], str], int], ...]] = (
     (_RE_CFR, _render_cfr, 2),
     (_RE_WHS, _render_whs, 1),
     (_RE_SECTION, _render_section, 1),
@@ -425,9 +431,7 @@ def analyse_query(
     if class_weights is None:
         weights = {term: 1.0 for term in classes}
     else:
-        weights = {
-            term: float(class_weights.get(cls, 1.0)) for term, cls in classes.items()
-        }
+        weights = {term: float(class_weights.get(cls, 1.0)) for term, cls in classes.items()}
     return QueryTerms(weights=weights, classes=classes)
 
 

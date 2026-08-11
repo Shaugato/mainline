@@ -12,8 +12,6 @@ that is both populated and insufficient, an escape with no stated reason.
 from __future__ import annotations
 
 import pytest
-from pydantic import ValidationError
-
 from mainline_recall_agent.cue.schema import (
     FACETS,
     MAX_FACET_TOKENS,
@@ -25,6 +23,7 @@ from mainline_recall_agent.cue.schema import (
     approx_token_count,
 )
 from mainline_recall_agent.cue.spans import Span
+from pydantic import ValidationError
 
 GOOD_TEXT = "Stored pneumatic energy released axially when a rim assembly separates."
 GOOD_QUOTE = "the rim components separated axially, striking the fitter"
@@ -110,16 +109,12 @@ def test_a_facet_cannot_be_populated_and_insufficient_at_once() -> None:
 def test_the_escape_requires_a_reason() -> None:
     """Silence with no ledger entry is the failure mode the whole product is about."""
     with pytest.raises(ValidationError, match="silence with no ledger entry"):
-        FacetAnswer(
-            cue_text=None, evidence_quote=None, insufficient=True, insufficient_reason="  "
-        )
+        FacetAnswer(cue_text=None, evidence_quote=None, insufficient=True, insufficient_reason="  ")
 
 
 def test_a_facet_that_is_neither_populated_nor_escaped_is_refused() -> None:
     with pytest.raises(ValidationError, match="use the insufficient escape"):
-        FacetAnswer(
-            cue_text="", evidence_quote=None, insufficient=False, insufficient_reason=None
-        )
+        FacetAnswer(cue_text="", evidence_quote=None, insufficient=False, insufficient_reason=None)
 
 
 def test_a_populated_facet_must_quote_its_source() -> None:

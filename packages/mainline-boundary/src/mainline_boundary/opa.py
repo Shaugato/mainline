@@ -126,9 +126,7 @@ def _run_conftest(
     )
 
 
-def _run_opa(
-    engine: PolicyRunner, policy_dir: Path, input_path: Path, timeout: int
-) -> RegoResult:
+def _run_opa(engine: PolicyRunner, policy_dir: Path, input_path: Path, timeout: int) -> RegoResult:
     query = f"data.{POLICY_PACKAGE}"
     completed = subprocess.run(
         [
@@ -151,8 +149,7 @@ def _run_opa(
         return RegoResult(
             runner=engine,
             failures=(
-                f"opa eval failed (exit {completed.returncode}): "
-                f"{completed.stderr.strip()[:600]}",
+                f"opa eval failed (exit {completed.returncode}): {completed.stderr.strip()[:600]}",
             ),
             warnings=(),
             raw_stdout=completed.stdout,

@@ -7,7 +7,6 @@ from __future__ import annotations
 import math
 
 import pytest
-
 from mainline_recall_agent.providers.errors import VectorShapeError
 from mainline_recall_agent.providers.types import COARSE_DIM, EMBED_DIM
 from mainline_recall_agent.providers.vectors import (

@@ -323,8 +323,10 @@ def fit_isotonic(
 
     declared = set(fit_folds)
     if not declared:
-        raise CalibrationRefused("fit_folds is empty: a calibrator with no declared fold "
-                                 "cannot be kept out of its own evaluation")
+        raise CalibrationRefused(
+            "fit_folds is empty: a calibrator with no declared fold "
+            "cannot be kept out of its own evaluation"
+        )
     stray = sorted({s.fold for s in samples} - declared)
     if stray:
         raise CalibrationRefused(
@@ -348,9 +350,7 @@ def fit_isotonic(
             "every calibration sample has the same raw score; the fit would be a constant"
         )
 
-    estimator = IsotonicRegression(
-        increasing=True, out_of_bounds="clip", y_min=0.0, y_max=1.0
-    )
+    estimator = IsotonicRegression(increasing=True, out_of_bounds="clip", y_min=0.0, y_max=1.0)
     estimator.fit(scores, [float(s.label) for s in samples])
     knots_x = [float(value) for value in estimator.X_thresholds_]
     knots_y = [float(value) for value in estimator.y_thresholds_]
@@ -392,9 +392,7 @@ def fit_isotonic(
         "gate will see. Safety corpora drift; recalibrate on a schedule and record the "
         "commit.",
     }
-    return IsotonicCalibrator(
-        x=tuple(collapsed_x), y=tuple(collapsed_y), provenance=provenance
-    )
+    return IsotonicCalibrator(x=tuple(collapsed_x), y=tuple(collapsed_y), provenance=provenance)
 
 
 def calibration_set_sha256(samples: Sequence[CalibrationSample]) -> str:
@@ -600,9 +598,7 @@ class CalibrationReport:
         )
         for b in self.bins:
             if b.n == 0:
-                lines.append(
-                    f"| [{b.lower:.1f}, {b.upper:.1f}) | 0 | - | - | - | - |"
-                )
+                lines.append(f"| [{b.lower:.1f}, {b.upper:.1f}) | 0 | - | - | - | - |")
                 continue
             lines.append(
                 f"| [{b.lower:.1f}, {b.upper:.1f}) | {b.n} | {b.mean_predicted:.4f} | "

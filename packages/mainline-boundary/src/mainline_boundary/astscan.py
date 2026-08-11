@@ -241,9 +241,7 @@ def scan_file(path: Path, *, module: str | None = None) -> FileScan:
             exempted_literals=(),
             syntax_error=f"unreadable: {exc}",
         )
-    return scan_source(
-        path, source, module=module, literal_rule_active=not is_test_path(path)
-    )
+    return scan_source(path, source, module=module, literal_rule_active=not is_test_path(path))
 
 
 # ---------------------------------------------------------------------------

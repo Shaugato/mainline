@@ -39,6 +39,7 @@ from _support import (
     read_setting,
     unit_vector,
 )
+
 from trappoint_recall.arms import parse_explain
 from trappoint_recall.arms.tuple_in import (
     SHIPPED,
@@ -111,10 +112,12 @@ def _observe(conn: object, probe: TupleInProbe) -> dict:
     source = pgwire_explain_source(conn)
     plan = parse_explain(source("EXPLAIN " + tuple_in_sql(probe).text))
     approximate = [
-        str(row[0]) for row in conn.execute(tuple_in_sql(probe).text).fetchall()  # type: ignore[attr-defined]
+        str(row[0])
+        for row in conn.execute(tuple_in_sql(probe).text).fetchall()  # type: ignore[attr-defined]
     ]
     exact = [
-        str(row[0]) for row in conn.execute(brute_force_sql(probe).text).fetchall()  # type: ignore[attr-defined]
+        str(row[0])
+        for row in conn.execute(brute_force_sql(probe).text).fetchall()  # type: ignore[attr-defined]
     ]
     overlap = len(set(approximate) & set(exact))
     return {

@@ -129,9 +129,7 @@ _NUMBER: Final[str] = r"[-+]?\d{1,3}(?:,\d{3})+(?:\.\d+)?|[-+]?\d+(?:\.\d+)?"
 #: matching it at all silently drops the setpoint.
 _UNIT_ALTERNATION: Final[str] = "|".join(
     re.escape(token)
-    for token in sorted(
-        set(UNIT_TOKENS) | set(AMBIGUOUS_TOKENS), key=lambda t: (-len(t), t)
-    )
+    for token in sorted(set(UNIT_TOKENS) | set(AMBIGUOUS_TOKENS), key=lambda t: (-len(t), t))
 )
 
 #: A unit token must not be followed by a word character, or ``m`` would match
@@ -143,9 +141,7 @@ _UNIT: Final[str] = rf"(?:{_UNIT_ALTERNATION})(?![A-Za-z0-9_])"
 #: ends at its last digit rather than swallowing the following space.  Spans are
 #: offsets into ``canon_text`` that end up in evidence, and an evidence span with
 #: a stray space in it is a small lie about what was read.
-_MEASURE: Final[re.Pattern[str]] = re.compile(
-    rf"(?P<number>{_NUMBER})(?:\s*(?P<unit>{_UNIT}))?"
-)
+_MEASURE: Final[re.Pattern[str]] = re.compile(rf"(?P<number>{_NUMBER})(?:\s*(?P<unit>{_UNIT}))?")
 
 _RANGE: Final[re.Pattern[str]] = re.compile(
     rf"\b(?:between|from)\s+(?P<low>{_NUMBER})\s*(?P<low_unit>{_UNIT})?\s*"
@@ -322,9 +318,7 @@ def parse_measurements(canon_text: str) -> tuple[Measurement, ...]:
             else:
                 # '50 +/- 2 kPa' prints the unit once, after the tolerance, and
                 # it governs both; '50 kPa +/- 2 kPa' prints it twice.
-                tolerance, _ = _make_quantity(
-                    tolerance_match.group("tol"), tol_unit or unit_token
-                )
+                tolerance, _ = _make_quantity(tolerance_match.group("tol"), tol_unit or unit_token)
                 if value is None and tol_unit is not None:
                     value, bare = _make_quantity(match.group("number"), tol_unit)
             end = tolerance_match.end()

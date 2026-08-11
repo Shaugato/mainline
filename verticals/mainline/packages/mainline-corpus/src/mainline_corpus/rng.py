@@ -146,9 +146,9 @@ def sid(stream: Stream | str, key: str) -> uuid.UUID:
     depend on draw order, and any worker in the fleet can recompute an id from the natural key
     without reading a byte of skeleton output::
 
-        sid("event", "INC-2013-044")     # the 2013 seal fire
-        sid("site", "MRD")               # Marrindal
-        sid("doc", "MRD/PRO-MEC-014")    # the spine's origin document
+        sid("event", "INC-2013-044")  # the 2013 seal fire
+        sid("site", "MRD")  # Marrindal
+        sid("doc", "MRD/PRO-MEC-014")  # the spine's origin document
 
     That is the entire cross-worker identity interface.  There is no registry to keep in sync,
     and nothing to coordinate on.

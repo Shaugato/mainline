@@ -68,7 +68,9 @@ class MocWorld:
         return dict(sorted(counts.items()))
 
 
-def _anchored(world: SiteWorld, documents: DocumentWorld, people: PeopleWorld) -> list[ChangeRequest]:
+def _anchored(
+    world: SiteWorld, documents: DocumentWorld, people: PeopleWorld
+) -> list[ChangeRequest]:
     doc = gaz.load("anchors")
     entries = gaz.as_sequence(doc, "change_requests", origin="anchors.yaml")
     out: list[ChangeRequest] = []
@@ -104,9 +106,7 @@ def _anchored(world: SiteWorld, documents: DocumentWorld, people: PeopleWorld) -
     return out
 
 
-def build_mocs(
-    world: SiteWorld, people: PeopleWorld, documents: DocumentWorld
-) -> MocWorld:
+def build_mocs(world: SiteWorld, people: PeopleWorld, documents: DocumentWorld) -> MocWorld:
     """Materialise roughly ``MOC_TARGET`` change requests across the window."""
     anchored = _anchored(world, documents, people)
     reserved: dict[int, set[int]] = {}
@@ -127,9 +127,9 @@ def build_mocs(
     weights: list[float] = []
     for year in years:
         progress = (year - first_year) / max(1, last_year - first_year)
-        share = params.MOC_GROWTH_START + (
-            params.MOC_GROWTH_END - params.MOC_GROWTH_START
-        ) * progress
+        share = (
+            params.MOC_GROWTH_START + (params.MOC_GROWTH_END - params.MOC_GROWTH_START) * progress
+        )
         # The final year is partial (the corpus stops on 2026-08-04).
         if year == last_year:
             share *= clock.NOW.timetuple().tm_yday / 365.25

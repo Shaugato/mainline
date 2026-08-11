@@ -18,7 +18,6 @@ import json
 
 import httpx
 import pytest
-from conftest import StubResponse, StubTransport, rows_payload, text_payload
 from mainline_mcp.client import (
     Client,
     HttpStreamableTransport,
@@ -37,6 +36,8 @@ from mainline_mcp.limits import (
     ResponseTooLarge,
     WriteTargetRefused,
 )
+
+from conftest import StubResponse, StubTransport, rows_payload, text_payload
 
 PINNED = "cl-stub-0001"
 

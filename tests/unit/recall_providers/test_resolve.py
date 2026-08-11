@@ -10,7 +10,6 @@ fixtures, not constants: nothing in the package may contain one.
 from __future__ import annotations
 
 import pytest
-
 from mainline_recall_agent.providers.errors import (
     ProfileResolutionFailed,
     ProviderUnavailable,
@@ -88,9 +87,7 @@ def test_no_visible_profile_fails_loudly_rather_than_falling_back_to_a_constant(
 
 def test_an_unknown_tier_with_no_ladder_match_refuses_to_guess() -> None:
     with pytest.raises(ProfileResolutionFailed, match="refusing to guess"):
-        select_profile(
-            [_summary("au.", "some-other-vendor-model")], requested_tier="claude-opus-5"
-        )
+        select_profile([_summary("au.", "some-other-vendor-model")], requested_tier="claude-opus-5")
 
 
 def test_name_matching_tolerates_bedrock_id_punctuation() -> None:

@@ -219,10 +219,10 @@ PL2_RED_MARKER: Final[str] = "pl2_red"
 #: The one-line registration `pyproject.toml`'s `markers` list needs, verbatim, so that
 #: the description a contributor reads and the description this file means are one string.
 PL2_RED_MARKER_DESCRIPTION: Final[str] = (
-    'pl2_red: RED BY DESIGN (PL-2). This case asserts that a mechanism does NOT exist yet '
-    'and fails until it lands. It is not a regression and it is never xfailed: it belongs '
-    'in an inverted job that fails when it goes GREEN. Registered in scripts/mi_ratchet.py; '
-    'list the files that hold such cases with `mi_ratchet.py pl2-red`.'
+    "pl2_red: RED BY DESIGN (PL-2). This case asserts that a mechanism does NOT exist yet "
+    "and fails until it lands. It is not a regression and it is never xfailed: it belongs "
+    "in an inverted job that fails when it goes GREEN. Registered in scripts/mi_ratchet.py; "
+    "list the files that hold such cases with `mi_ratchet.py pl2-red`."
 )
 
 #: The naming convention the tree already uses for such a case, e.g.
@@ -866,9 +866,7 @@ def strip_sql_comments(text: str) -> str:
 #: A SQL identifier as this schema writes them: lower snake_case, at least one underscore.
 #: `mechanism` is prose with backticks in it, and one underscore is what reliably separates
 #: `gate_closed_when_issued` from "trigger", "grants" and "RESTRICTIVE RLS".
-MECHANISM_IDENTIFIER_RE: Final[re.Pattern[str]] = re.compile(
-    r"\b[a-z][a-z0-9]*(?:_[a-z0-9]+)+\b"
-)
+MECHANISM_IDENTIFIER_RE: Final[re.Pattern[str]] = re.compile(r"\b[a-z][a-z0-9]*(?:_[a-z0-9]+)+\b")
 
 #: The states a named object can be in, worst first. `ABSENT` is the one that decides a
 #: review; `NAMED` covers a column or an identifier that appears in executable SQL without
@@ -1399,9 +1397,7 @@ def outcomes_for(witnesses: Witnesses, outcomes: Mapping[str, str]) -> dict[str,
 RED_VIOLATION_PREFIX: Final[str] = "is pending but its tests pass — promote it in mi_catalogue.yaml"
 
 
-def _mechanism_report(
-    inv: Invariant, objects: Sequence[MechanismObject] | None
-) -> list[str]:
+def _mechanism_report(inv: Invariant, objects: Sequence[MechanismObject] | None) -> list[str]:
     """The enforcing object, as the migration tree has it: the mechanism line, then one
     line per identifier §16 names — or one line saying why no identifier could be read."""
     lines = [f'    mechanism (§16): "{inv.mechanism}" — refuses {"/".join(inv.sqlstate)}']
@@ -2168,6 +2164,7 @@ def _selftest_locator() -> list[tuple[str, bool]]:
             "BEGIN RAISE EXCEPTION 'no_orphan_controls is not why'; END; $$ LANGUAGE plpgsql;"
         ),
     }
+
     def _probe(mi_id: str, mechanism: str, number: str) -> Invariant:
         return Invariant(
             mi_id=mi_id,

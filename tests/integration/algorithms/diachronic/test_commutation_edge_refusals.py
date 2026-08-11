@@ -135,8 +135,11 @@ def test_re_deriving_the_same_pair_is_a_no_op_and_never_an_update(conn, site_id)
     edge = _derived(pair)
     conn.execute(COMMUTATION_EDGE_INSERT_SQL, edge.as_parameters())
     conn.execute(COMMUTATION_EDGE_INSERT_SQL, edge.as_parameters())
-    count = rows(conn, "SELECT count(*) FROM mainline.commutation_edge WHERE from_commit = %s",
-                 (edge.from_commit,))
+    count = rows(
+        conn,
+        "SELECT count(*) FROM mainline.commutation_edge WHERE from_commit = %s",
+        (edge.from_commit,),
+    )
     assert count[0][0] == 1
 
 

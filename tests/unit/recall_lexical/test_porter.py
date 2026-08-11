@@ -17,6 +17,7 @@ word that would never have met in a posting list, with nothing failing anywhere.
 from __future__ import annotations
 
 import pytest
+
 from trappoint_recall.lexical.porter import stem
 
 # fmt: off

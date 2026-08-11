@@ -9,7 +9,6 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-
 from mainline_recall_agent.providers.base import embed_text
 from mainline_recall_agent.providers.canonical import request_digest
 from mainline_recall_agent.providers.cassette import (
@@ -62,8 +61,9 @@ def test_judge_cassettes_are_currently_handwritten_and_say_so(store: CassetteSto
 def test_a_cassette_edited_by_hand_fails_to_load(tmp_path: Path) -> None:
     store = CassetteStore(tmp_path)
     request = {"kind": "judge", "a": 1}
-    path = store.save("judge", request, {"stop_reason": "end_turn", "text": "{}"},
-                      provenance="handwritten")
+    path = store.save(
+        "judge", request, {"stop_reason": "end_turn", "text": "{}"}, provenance="handwritten"
+    )
     document = json.loads(path.read_text(encoding="utf-8"))
     document["request"]["a"] = 2  # "the model was asked something else"
     path.write_text(json.dumps(document), encoding="utf-8")
@@ -76,8 +76,9 @@ def test_a_cassette_edited_by_hand_fails_to_load(tmp_path: Path) -> None:
 def test_a_cassette_with_an_unknown_provenance_fails_to_load(tmp_path: Path) -> None:
     store = CassetteStore(tmp_path)
     request = {"kind": "judge", "a": 1}
-    path = store.save("judge", request, {"stop_reason": "end_turn", "text": "{}"},
-                      provenance="handwritten")
+    path = store.save(
+        "judge", request, {"stop_reason": "end_turn", "text": "{}"}, provenance="handwritten"
+    )
     document = json.loads(path.read_text(encoding="utf-8"))
     document["provenance"] = "definitely-real"
     path.write_text(json.dumps(document), encoding="utf-8")

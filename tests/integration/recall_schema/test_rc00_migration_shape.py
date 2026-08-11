@@ -32,7 +32,6 @@ import re
 from pathlib import Path
 
 import pytest
-
 from _schema_support import (
     PREREQ_DIR,
     RECALL_MIGRATION_NUMBERS,
@@ -52,9 +51,7 @@ pytestmark = pytest.mark.shape
 _CREATE_TABLE = re.compile(
     r"CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?([A-Za-z_][\w.]*)\s*\(", re.IGNORECASE
 )
-_ADD_COLUMN = re.compile(
-    r"ALTER\s+TABLE\s+([A-Za-z_][\w.]*)(.*)", re.IGNORECASE | re.DOTALL
-)
+_ADD_COLUMN = re.compile(r"ALTER\s+TABLE\s+([A-Za-z_][\w.]*)(.*)", re.IGNORECASE | re.DOTALL)
 _ADD_COLUMN_ITEM = re.compile(r"ADD\s+COLUMN\s+(\w+)", re.IGNORECASE)
 _CREATE_FUNCTION = re.compile(
     r"CREATE\s+(?:OR\s+REPLACE\s+)?FUNCTION\s+([A-Za-z_][\w.]*)\s*\(\s*\)", re.IGNORECASE
@@ -71,8 +68,17 @@ _BODY = re.compile(r"\$\$(.*?)\$\$", re.DOTALL)
 #: A leading token that means "this item of a CREATE TABLE body is not a column definition".
 _NOT_A_COLUMN = frozenset(
     {
-        "CONSTRAINT", "PRIMARY", "UNIQUE", "CHECK", "FOREIGN", "EXCLUDE",
-        "INDEX", "INVERTED", "VECTOR", "FAMILY", "LIKE",
+        "CONSTRAINT",
+        "PRIMARY",
+        "UNIQUE",
+        "CHECK",
+        "FOREIGN",
+        "EXCLUDE",
+        "INDEX",
+        "INVERTED",
+        "VECTOR",
+        "FAMILY",
+        "LIKE",
     }
 )
 
@@ -161,9 +167,7 @@ def _triggers() -> list[tuple[str, str, str, Path]]:
         for statement in split_statements(_strip_comments(path.read_text(encoding="utf-8"))):
             match = _CREATE_TRIGGER.search(statement)
             if match is not None:
-                found.append(
-                    (match.group(1), match.group(3).lower(), match.group(4).lower(), path)
-                )
+                found.append((match.group(1), match.group(3).lower(), match.group(4).lower(), path))
     return found
 
 
@@ -229,8 +233,12 @@ def test_rc00e_trigger_style_rules(function: str) -> None:
     """
     body = _strip_comments(_function_bodies()[function])
     for banned in (
-        r"\bFOR\b[^;]*\bIN\b", r"\bFOREACH\b", r"\bPERFORM\b",
-        r"\bEXECUTE\b", r"\bCASE\b", r"\bGET\s+DIAGNOSTICS\b",
+        r"\bFOR\b[^;]*\bIN\b",
+        r"\bFOREACH\b",
+        r"\bPERFORM\b",
+        r"\bEXECUTE\b",
+        r"\bCASE\b",
+        r"\bGET\s+DIAGNOSTICS\b",
     ):
         assert not re.search(banned, body, re.IGNORECASE), (
             f"{function} uses a construct §5.11 forbids and CockroachDB lacks: {banned}"

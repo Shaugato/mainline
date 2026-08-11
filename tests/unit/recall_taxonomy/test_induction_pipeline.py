@@ -84,9 +84,7 @@ class InventingJudge(_Wrapper):
         if schema is not LabelProposalBatch:
             return answer
         mutated = [
-            label.model_copy(update={"activity_root": "MUE-99"})
-            if index % 3 == 0
-            else label
+            label.model_copy(update={"activity_root": "MUE-99"}) if index % 3 == 0 else label
             for index, label in enumerate(answer.labels)
         ]
         return LabelProposalBatch(labels=mutated)
@@ -172,9 +170,7 @@ def test_variants_were_merged_rather_than_multiplied(
     induction: InductionRun, fixtures_dir: Path
 ) -> None:
     """The rule table has 24 leaves; its re-worded variants must fold back into them."""
-    rules = json.loads(
-        (fixtures_dir / "offline_induction_rules.json").read_text(encoding="utf-8")
-    )
+    rules = json.loads((fixtures_dir / "offline_induction_rules.json").read_text(encoding="utf-8"))
     canonical_leaves = {rule["file_label"] for rule in rules["rules"]}
     assert len(induction.snapshot.at_level(LEVEL_FILE)) == len(canonical_leaves) == 24
     for label in canonical_leaves:
@@ -397,9 +393,7 @@ def test_a_raised_support_floor_drops_thin_activities(
         corpus_provenance="SYNTHETIC",
         induced_at=RUN_AT,
     )
-    assert len(sparse.snapshot.at_level(LEVEL_FILE)) < len(
-        induction.snapshot.at_level(LEVEL_FILE)
-    )
+    assert len(sparse.snapshot.at_level(LEVEL_FILE)) < len(induction.snapshot.at_level(LEVEL_FILE))
     assert len(sparse.snapshot.at_level(LEVEL_FONDS)) == len(register.codes)
 
 

@@ -17,10 +17,10 @@ import hashlib
 import json
 import re
 import uuid
+from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from collections.abc import Iterable
 from typing import Any
 
 import psycopg
@@ -37,9 +37,7 @@ def repo_root() -> Path:
         candidate = parent / "verticals" / "mainline" / "db" / "migrations"
         if candidate.is_dir():
             return parent
-    raise RuntimeError(
-        "cannot locate verticals/mainline/db/migrations above " + str(HERE)
-    )
+    raise RuntimeError("cannot locate verticals/mainline/db/migrations above " + str(HERE))
 
 
 MIGRATIONS_DIR = repo_root() / "verticals" / "mainline" / "db" / "migrations"
@@ -105,19 +103,40 @@ def format_migration_id(key: tuple[int, str]) -> str:
 # single statement reaches a cluster.
 RECALL_MIGRATION_NUMBERS: tuple[str, ...] = (
     # the cue, its two vector sidecars, the lexical tables and the bond
-    "0040", "0041", "0042", "0043", "0044", "0045", "0046",
+    "0040",
+    "0041",
+    "0042",
+    "0043",
+    "0044",
+    "0045",
+    "0046",
     # policy, run, candidate, silence, calibration, thymogate, certificate, stage
-    "0080", "0081", "0082", "0083", "0084", "0085", "0086", "0087", "0088",
+    "0080",
+    "0081",
+    "0082",
+    "0083",
+    "0084",
+    "0085",
+    "0086",
+    "0087",
+    "0088",
     # PRODUCER, not a recall table. `mainline.fn_candidate_project()` lives here and `0139`
     # welds a trigger to it. Omitting it is the defect this file was repaired for: the band
     # welded to a producer it did not carry, and the full chain hid that forever.
     "0110",
     # the recall function stratum. `0114a` is `0114`'s MR-5 overflow — a SECOND function
     # (`fn_cue_coarse_project`), not a revision of the first — and `0138a` welds it.
-    "0112", "0113", "0114", "0114a",
+    "0112",
+    "0113",
+    "0114",
+    "0114a",
     # the recall trigger stratum. `0138a` is the coarse sidecar's weld and is what
     # test_rc01b / test_rc02b address by name; `0139` is `0110`'s consumer.
-    "0136", "0137", "0138", "0138a", "0139",
+    "0136",
+    "0137",
+    "0138",
+    "0138a",
+    "0139",
 )
 
 
@@ -176,7 +195,7 @@ def _add_it(object_name: str) -> str:
         )
     return (
         f"  producer: {path.name}\n"
-        f"  fix:      add \"{format_migration_id(migration_id_of(path))}\" to "
+        f'  fix:      add "{format_migration_id(migration_id_of(path))}" to '
         f"RECALL_MIGRATION_NUMBERS in {Path(__file__).name}, in numeric position"
     )
 
@@ -757,8 +776,8 @@ def check_constraint_expression(
     MEASURED 2026-08-10 on CockroachDB v26.2.5, the pin ``compose.yaml`` names — the row shape
     this must not be naive about::
 
-        ['table_name', 'constraint_name', 'constraint_type', 'details', 'validated']
-        ('t', 'sev_range', 'CHECK', 'CHECK ((severity BETWEEN 0 AND 5))', True)
+        ["table_name", "constraint_name", "constraint_type", "details", "validated"]
+        ("t", "sev_range", "CHECK", "CHECK ((severity BETWEEN 0 AND 5))", True)
 
     TWO columns satisfy ``"CHECK" in text.upper()`` and the useless one comes FIRST. Selecting on
     that substring returned ``_expression_only("CHECK")`` — the empty string — for every CHECK
@@ -833,8 +852,7 @@ def capture_refusal(fn, *args: Any, **kwargs: Any) -> Refusal:
         hint = producer_hint(str(exc))
         assert state in GATE_REFUSALS, (
             f"the database refused with {state}, which is not a modelled gate refusal "
-            f"({sorted(GATE_REFUSALS)}). Message: {exc}"
-            + (f"\n\n{hint}" if hint else "")
+            f"({sorted(GATE_REFUSALS)}). Message: {exc}" + (f"\n\n{hint}" if hint else "")
         )
         return Refusal(sqlstate=state, message=str(exc), constraint_name=constraint)
     raise AssertionError("the write was ACCEPTED; this history must be refused")

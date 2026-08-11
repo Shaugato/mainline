@@ -38,12 +38,8 @@ class DocumentLabel(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     doc_id: str = Field(description="Identifier of the narrative being labelled.")
-    activity_root: str = Field(
-        description="Level-1 code from the frozen register. Never invented."
-    )
-    series_label: str = Field(
-        description="Level-2 activity class, naming a function performed."
-    )
+    activity_root: str = Field(description="Level-1 code from the frozen register. Never invented.")
+    series_label: str = Field(description="Level-2 activity class, naming a function performed.")
     file_label: str = Field(description="Level-3 activity, naming a function performed.")
     insufficient_evidence: bool = Field(
         default=False,

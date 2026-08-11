@@ -116,13 +116,8 @@ def build() -> dict[str, Any]:
 def main() -> int:
     document = build()
     FIXTURE.parent.mkdir(parents=True, exist_ok=True)
-    FIXTURE.write_text(
-        json.dumps(document, indent=1, sort_keys=True) + "\n", encoding="utf-8"
-    )
-    print(
-        f"wrote {document['n_samples']} samples "
-        f"({document['n_positive']} positive) to {FIXTURE}"
-    )
+    FIXTURE.write_text(json.dumps(document, indent=1, sort_keys=True) + "\n", encoding="utf-8")
+    print(f"wrote {document['n_samples']} samples ({document['n_positive']} positive) to {FIXTURE}")
     return 0
 
 

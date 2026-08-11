@@ -24,9 +24,7 @@ import pytest
 
 TESTS_DIR = Path(__file__).resolve().parent
 REPO_ROOT = TESTS_DIR.parents[2]
-PACKAGE_SRC = (
-    REPO_ROOT / "verticals" / "mainline" / "packages" / "mainline-recall-agent" / "src"
-)
+PACKAGE_SRC = REPO_ROOT / "verticals" / "mainline" / "packages" / "mainline-recall-agent" / "src"
 CASSETTE_ROOT = TESTS_DIR / "cassettes"
 
 for path in (str(PACKAGE_SRC), str(TESTS_DIR)):

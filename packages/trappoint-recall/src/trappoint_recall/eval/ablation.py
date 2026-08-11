@@ -384,9 +384,7 @@ def run_ablation_sync(
     concurrency: int = 8,
 ) -> AblationTable:
     """Synchronous wrapper around :func:`run_ablation`."""
-    return asyncio.run(
-        run_ablation(factory, corpus, matrix=matrix, k=k, concurrency=concurrency)
-    )
+    return asyncio.run(run_ablation(factory, corpus, matrix=matrix, k=k, concurrency=concurrency))
 
 
 FactoryCallable = Callable[[AblationArm], RetrievalBackend]

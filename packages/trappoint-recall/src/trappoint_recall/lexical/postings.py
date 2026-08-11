@@ -151,9 +151,7 @@ def build_document_postings(
             weighted[term] = weighted.get(term, 0.0) + weight * count
     # Deterministic key order so that batched INSERT text is a function of the document.
     ordered = {term: weighted[term] for term in sorted(weighted)}
-    return DocumentPostings(
-        event_id=event_id, length=round(length), weights=ordered
-    )
+    return DocumentPostings(event_id=event_id, length=round(length), weights=ordered)
 
 
 # ── statement text ───────────────────────────────────────────────────────────────────────────
@@ -331,9 +329,7 @@ def upsert_document(
     # idempotence claim in this worker's completion test is that a second ingest of an
     # unchanged document issues NO writes at all, and this read is what makes that true.
     qb = SqlBuilder(style)
-    sql = _READ_DOCLEN.format(
-        schema=schema, event_id=qb.bind(document.event_id, key="event")
-    )
+    sql = _READ_DOCLEN.format(schema=schema, event_id=qb.bind(document.event_id, key="event"))
     current = _run(execute, Statement(sql, qb.params, style), report)
     if not current or as_int(current[0][0]) != document.length:
         _write_doclen(execute, [(document.event_id, document.length)], style, schema, report)
@@ -361,9 +357,7 @@ def delete_document(
         site_id=qb.bind(site_id, key="site"),
         event_id=qb.bind(event_id, key="event"),
     )
-    terms = [
-        as_text(row[0]) for row in _run(execute, Statement(sql, qb.params, style), report)
-    ]
+    terms = [as_text(row[0]) for row in _run(execute, Statement(sql, qb.params, style), report)]
     if terms:
         for chunk in _chunks(terms, batch_rows):
             qb = SqlBuilder(style)
@@ -494,9 +488,7 @@ def rebuild_site(
     event_ids = [doc.event_id for doc in documents]
     for chunk in _chunks(event_ids, batch_rows):
         qb = SqlBuilder(style)
-        sql = _DELETE_DOCLEN.format(
-            schema=schema, events=", ".join(qb.bind(e) for e in chunk)
-        )
+        sql = _DELETE_DOCLEN.format(schema=schema, events=", ".join(qb.bind(e) for e in chunk))
         _run(execute, Statement(sql, qb.params, style), report)
 
     rows: list[tuple[str, str, str, float]] = [
@@ -565,9 +557,7 @@ def snapshot_tables(
         (as_text(r[0]), as_text(r[1]), as_text(r[2]), as_float(r[3]))
         for r in _one(_SNAPSHOT_POSTINGS)
     )
-    stats = tuple(
-        (as_text(r[0]), as_text(r[1]), as_int(r[2])) for r in _one(_SNAPSHOT_STATS)
-    )
+    stats = tuple((as_text(r[0]), as_text(r[1]), as_int(r[2])) for r in _one(_SNAPSHOT_STATS))
     doclen = tuple((as_text(r[0]), as_int(r[1])) for r in _one(_SNAPSHOT_DOCLEN))
     return LexicalTables(posting=posting, stats=stats, doclen=doclen)
 
@@ -581,9 +571,7 @@ def content_digest(tables: LexicalTables) -> str:
     different weights equal at the seventeenth digit.
     """
     payload = {
-        "posting": sorted(
-            [s, t, e, repr(w)] for s, t, e, w in tables.posting
-        ),
+        "posting": sorted([s, t, e, repr(w)] for s, t, e, w in tables.posting),
         "stats": sorted([s, t, df] for s, t, df in tables.stats),
         "doclen": sorted([e, n] for e, n in tables.doclen),
     }

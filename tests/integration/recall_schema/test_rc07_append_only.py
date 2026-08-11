@@ -20,7 +20,6 @@ from __future__ import annotations
 import json
 
 import pytest
-
 from _schema_support import capture_refusal, new_uuid, rows, trigger_names
 
 pytestmark = pytest.mark.schema

@@ -61,9 +61,7 @@ def gear_table() -> tuple[int, ...]:
     """The 256-entry gear table, derived from a committed domain constant."""
     entries: list[int] = []
     for index in range(256):
-        digest = hashlib.blake2b(
-            _GEAR_DOMAIN + index.to_bytes(2, "big"), digest_size=8
-        ).digest()
+        digest = hashlib.blake2b(_GEAR_DOMAIN + index.to_bytes(2, "big"), digest_size=8).digest()
         entries.append(int.from_bytes(digest, "big"))
     return tuple(entries)
 

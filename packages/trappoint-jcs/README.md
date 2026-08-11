@@ -37,8 +37,8 @@ exact bytes hashed are stored alongside the hash.
 ```python
 from trappoint_jcs import canonicalise, canonicalise_payload
 
-canonicalise({"b": 1, "a": 3.5})          # b'{"a":3.5,"b":1}'   — RFC 8785, in full
-canonicalise_payload({"a": 3.5})          # raises NonEvidentiaryNumber
+canonicalise({"b": 1, "a": 3.5})  # b'{"a":3.5,"b":1}'   — RFC 8785, in full
+canonicalise_payload({"a": 3.5})  # raises NonEvidentiaryNumber
 canonicalise_payload({"a_millibar": 3500})  # b'{"a_millibar":3500}'
 ```
 

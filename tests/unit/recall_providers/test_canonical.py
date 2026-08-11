@@ -5,7 +5,6 @@
 from __future__ import annotations
 
 import pytest
-
 from mainline_recall_agent.providers.canonical import (
     canonical_json,
     es6_number,

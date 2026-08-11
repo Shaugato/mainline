@@ -27,7 +27,10 @@ def canon_digest(canon_text: str, canon_version: int = CANON_VERSION) -> bytes:
     if canon_version < 0:
         raise ValueError(f"canon_version must be non-negative, got {canon_version}")
     preimage = (
-        CANON_DIGEST_DOMAIN + str(canon_version).encode("ascii") + b"\x1f" + canon_text.encode("utf-8")
+        CANON_DIGEST_DOMAIN
+        + str(canon_version).encode("ascii")
+        + b"\x1f"
+        + canon_text.encode("utf-8")
     )
     return hashlib.sha256(preimage).digest()
 

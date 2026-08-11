@@ -41,8 +41,8 @@ spy = RecordingObserver()
 try:
     execute_gate(pool, request, observer=spy)
 except GateRefused as refused:
-    assert spy.attempts == [0]                        # one attempt
-    assert spy.attempts_for(refused.sqlstate) == 1    # ever
+    assert spy.attempts == [0]  # one attempt
+    assert spy.attempts_for(refused.sqlstate) == 1  # ever
 ```
 
 ---
@@ -119,20 +119,20 @@ exhibits were reported.
 from psycopg_pool import ConnectionPool
 from trappoint_core import MergeRequest, execute_gate, leaf_hash
 
-canon = jcs.canonicalise(payload)            # trappoint-jcs, RFC 8785
+canon = jcs.canonicalise(payload)  # trappoint-jcs, RFC 8785
 execute_gate(
     pool,
     MergeRequest(
         schema="mainline",
         subject_kind="permit",
         subject_id=permit_id,
-        merged_commit=commit_id,             # 32 bytes
+        merged_commit=commit_id,  # 32 bytes
         merged_by=actor_sub,
         actor_kind="human",
         payload=payload_json,
         canon_bytes=canon,
         payload_ver=1,
-        leaf_hash=leaf_hash(canon),          # SHA-256(0x00 || canon)
+        leaf_hash=leaf_hash(canon),  # SHA-256(0x00 || canon)
         gate_epoch=observed_epoch,
     ),
 )

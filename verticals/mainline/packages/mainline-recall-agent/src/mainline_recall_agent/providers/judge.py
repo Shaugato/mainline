@@ -122,9 +122,7 @@ def normalise_sdk_response(response: Any) -> TransportReply:
     usage = Usage(
         input_tokens=int(getattr(usage_obj, "input_tokens", 0) or 0),
         output_tokens=int(getattr(usage_obj, "output_tokens", 0) or 0),
-        cache_creation_input_tokens=int(
-            getattr(usage_obj, "cache_creation_input_tokens", 0) or 0
-        ),
+        cache_creation_input_tokens=int(getattr(usage_obj, "cache_creation_input_tokens", 0) or 0),
         cache_read_input_tokens=int(getattr(usage_obj, "cache_read_input_tokens", 0) or 0),
     )
     chunks: list[str] = []
@@ -276,9 +274,7 @@ class BedrockClaudeJudge:
                 ],
             },
         ]
-        repair_request = self.build_request(
-            system=prefix, messages=repair_messages, schema=schema
-        )
+        repair_request = self.build_request(system=prefix, messages=repair_messages, schema=schema)
         repair_reply = self._send(repair_request)
         self._check_stop_reason(repair_reply, digest)
         parsed, error = self._validate(repair_reply.text, schema)
@@ -328,9 +324,7 @@ class BedrockClaudeJudge:
             )
 
     @staticmethod
-    def _validate(
-        text: str, schema: type[ValidatedModelT]
-    ) -> tuple[ValidatedModelT | None, str]:
+    def _validate(text: str, schema: type[ValidatedModelT]) -> tuple[ValidatedModelT | None, str]:
         stripped = text.strip()
         if not stripped:
             return None, "empty response body"

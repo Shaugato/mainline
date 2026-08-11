@@ -105,12 +105,18 @@ FAMILIES: Final[tuple[Family, ...]] = (
         operation="Kestrel Ridge Mine",
         mine_id="4601731",
         work=(
-            ("The crew was installing secondary ground support along the number four entry "
-            "after a routine inspection identified a change in the immediate roof"),
-            ("The bolter operator was advancing the machine under a section of back that had "
-            "been supported on the previous shift"),
-            ("Two miners were extending the supported line towards the face in order to "
-            "recover a stalled continuous miner"),
+            (
+                "The crew was installing secondary ground support along the number four entry "
+                "after a routine inspection identified a change in the immediate roof"
+            ),
+            (
+                "The bolter operator was advancing the machine under a section of back that had "
+                "been supported on the previous shift"
+            ),
+            (
+                "Two miners were extending the supported line towards the face in order to "
+                "recover a stalled continuous miner"
+            ),
         ),
         outcome="A section of the immediate roof detached and the bolter operator was struck.",
         control_failure=(
@@ -137,12 +143,15 @@ FAMILIES: Final[tuple[Family, ...]] = (
         operation="Bellbird Creek Pit",
         mine_id="2200418",
         work=(
-            ("A haul truck was descending the main ramp with a loaded tray toward the primary "
-            "crusher at the end of the night shift"),
-            ("The operator was reversing to a tip head that had been re-established after "
-            "wet weather"),
-            ("A light vehicle was travelling the ramp to deliver a fuel sample to the "
-            "workshop"),
+            (
+                "A haul truck was descending the main ramp with a loaded tray toward the primary "
+                "crusher at the end of the night shift"
+            ),
+            (
+                "The operator was reversing to a tip head that had been re-established after "
+                "wet weather"
+            ),
+            ("A light vehicle was travelling the ramp to deliver a fuel sample to the workshop"),
         ),
         outcome="Retardation was lost on the grade and the truck was struck by the trailing unit.",
         control_failure=(
@@ -169,12 +178,18 @@ FAMILIES: Final[tuple[Family, ...]] = (
         operation="Wandoo Processing Facility",
         mine_id="0501992",
         work=(
-            ("An electrician was fault-finding on an eleven kilovolt feeder that had tripped "
-            "twice during the preceding shift"),
-            ("The crew was replacing a current transformer in a switchroom cubicle adjacent "
-            "to a live section of busbar"),
-            ("A tradesperson was proving a circuit dead before terminating a new cable into "
-            "the distribution board"),
+            (
+                "An electrician was fault-finding on an eleven kilovolt feeder that had tripped "
+                "twice during the preceding shift"
+            ),
+            (
+                "The crew was replacing a current transformer in a switchroom cubicle adjacent "
+                "to a live section of busbar"
+            ),
+            (
+                "A tradesperson was proving a circuit dead before terminating a new cable into "
+                "the distribution board"
+            ),
         ),
         outcome="An arc was initiated across the open cubicle and the electrician was electrocuted.",
         control_failure=(
@@ -201,12 +216,15 @@ FAMILIES: Final[tuple[Family, ...]] = (
         operation="Moonta Deeps Colliery",
         mine_id="1103377",
         work=(
-            ("Deputies were restoring auxiliary ventilation to a development panel after a "
-            "planned power outage"),
-            ("The crew was recovering equipment from a sealed area that had been re-entered "
-            "under a written procedure"),
-            ("A fitter was replacing ducting on the auxiliary circuit while the panel was "
-            "idle"),
+            (
+                "Deputies were restoring auxiliary ventilation to a development panel after a "
+                "planned power outage"
+            ),
+            (
+                "The crew was recovering equipment from a sealed area that had been re-entered "
+                "under a written procedure"
+            ),
+            ("A fitter was replacing ducting on the auxiliary circuit while the panel was idle"),
         ),
         outcome="An accumulation ignited at the face and two miners were fatally injured.",
         control_failure=(
@@ -233,12 +251,15 @@ FAMILIES: Final[tuple[Family, ...]] = (
         operation="Nardoo Iron Operations",
         mine_id="3300514",
         work=(
-            ("A maintenance crew was replacing a hydraulic hose on the boom of an excavator "
-            "parked on the pit floor"),
-            ("A serviceperson was refuelling a unit at the end of the shift at the field "
-            "service point"),
-            ("Two fitters were performing hot work on a bucket lip adjacent to the machine "
-            "house"),
+            (
+                "A maintenance crew was replacing a hydraulic hose on the boom of an excavator "
+                "parked on the pit floor"
+            ),
+            (
+                "A serviceperson was refuelling a unit at the end of the shift at the field "
+                "service point"
+            ),
+            ("Two fitters were performing hot work on a bucket lip adjacent to the machine house"),
         ),
         outcome="Fluid contacted a hot surface, a fire developed and the serviceperson died.",
         control_failure=(
@@ -265,10 +286,14 @@ FAMILIES: Final[tuple[Family, ...]] = (
         operation="Cobar Extension Mine",
         mine_id="6600239",
         work=(
-            ("A pump attendant was clearing a blocked suction line in a drainage sump at the "
-            "base of the decline"),
-            ("The crew was recovering a submersible pump from a sump that had been standing "
-            "for several weeks"),
+            (
+                "A pump attendant was clearing a blocked suction line in a drainage sump at the "
+                "base of the decline"
+            ),
+            (
+                "The crew was recovering a submersible pump from a sump that had been standing "
+                "for several weeks"
+            ),
             "A fitter entered the sump enclosure to reconnect the level instrument",
         ),
         outcome="The atmosphere was irrespirable and the attendant was fatally overcome.",
@@ -296,10 +321,14 @@ FAMILIES: Final[tuple[Family, ...]] = (
         operation="Yallourn Tailings Facility",
         mine_id="1500803",
         work=(
-            ("A services crew was cleaning a cooling tower basin that had been off line for "
-            "eleven weeks"),
-            ("An operator was taking a routine sample from the raw water line at the "
-            "treatment plant"),
+            (
+                "A services crew was cleaning a cooling tower basin that had been off line for "
+                "eleven weeks"
+            ),
+            (
+                "An operator was taking a routine sample from the raw water line at the "
+                "treatment plant"
+            ),
             "A contractor was replacing drift eliminators in the tower cell",
         ),
         outcome="A worker contracted a fatal infection traced to the aerosol from the basin.",
@@ -327,12 +356,18 @@ FAMILIES: Final[tuple[Family, ...]] = (
         operation="Ranger Sands Concentrator",
         mine_id="7700645",
         work=(
-            ("An instrument technician was removing a nucleonic density gauge from a slurry "
-            "line during a plant shutdown"),
-            ("A boilermaker was cutting a section of pipe adjacent to a gauge housing that "
-            "had been tagged for removal"),
-            ("The crew was relocating a source holder to a new position on the thickener "
-            "underflow"),
+            (
+                "An instrument technician was removing a nucleonic density gauge from a slurry "
+                "line during a plant shutdown"
+            ),
+            (
+                "A boilermaker was cutting a section of pipe adjacent to a gauge housing that "
+                "had been tagged for removal"
+            ),
+            (
+                "The crew was relocating a source holder to a new position on the thickener "
+                "underflow"
+            ),
         ),
         outcome="The shutter was open and the technician received a fatal dose.",
         control_failure=(
@@ -351,22 +386,30 @@ FAMILIES: Final[tuple[Family, ...]] = (
 )
 
 _FILLER: Final[tuple[str, ...]] = (
-    ("The investigation reviewed the training records of every person engaged on the task "
-    "and found that the required competencies had been recorded and were current at the "
-    "time of the accident. The task instruction in use on the shift was the current "
-    "revision and had been signed by each member of the crew before work commenced."),
-    ("Investigators examined the maintenance history of the equipment involved and "
-    "established that the scheduled services had been completed to the strategy. No "
-    "outstanding corrective work order was identified against the components examined, "
-    "and the condition monitoring results for the preceding period were within limits."),
-    ("The investigation considered the adequacy of supervision on the shift. The supervisor "
-    "held the statutory appointment required for the activity, had conducted the pre-shift "
-    "briefing, and had visited the work area earlier in the shift. Communications equipment "
-    "was tested and found to be serviceable throughout."),
-    ("Environmental conditions were examined in detail. Ambient conditions were within the "
-    "range recorded for the preceding weeks, the lighting at the work area met the "
-    "requirement, and no factor arising from weather was found to have contributed to the "
-    "sequence of events reconstructed by the investigation team."),
+    (
+        "The investigation reviewed the training records of every person engaged on the task "
+        "and found that the required competencies had been recorded and were current at the "
+        "time of the accident. The task instruction in use on the shift was the current "
+        "revision and had been signed by each member of the crew before work commenced."
+    ),
+    (
+        "Investigators examined the maintenance history of the equipment involved and "
+        "established that the scheduled services had been completed to the strategy. No "
+        "outstanding corrective work order was identified against the components examined, "
+        "and the condition monitoring results for the preceding period were within limits."
+    ),
+    (
+        "The investigation considered the adequacy of supervision on the shift. The supervisor "
+        "held the statutory appointment required for the activity, had conducted the pre-shift "
+        "briefing, and had visited the work area earlier in the shift. Communications equipment "
+        "was tested and found to be serviceable throughout."
+    ),
+    (
+        "Environmental conditions were examined in detail. Ambient conditions were within the "
+        "range recorded for the preceding weeks, the lighting at the work area met the "
+        "requirement, and no factor arising from weather was found to have contributed to the "
+        "sequence of events reconstructed by the investigation team."
+    ),
 )
 """Date-free prose.
 
@@ -419,7 +462,13 @@ _AU_SCENARIOS: Final[tuple[tuple[str, str, str, str, str], ...]] = (
     ("QLD", "Powered haulage", "Haul truck", "Metalliferous open cut", "serious accident"),
     ("WA", "Electrical", "Switchgear", "Processing plant", "dangerous incident"),
     ("NSW", "Fire", "Excavator", "Open cut coal", "notifiable incident"),
-    ("QLD", "Exposure to chemicals or toxic substances", "Pump", "Alumina refinery", "safety alert"),
+    (
+        "QLD",
+        "Exposure to chemicals or toxic substances",
+        "Pump",
+        "Alumina refinery",
+        "safety alert",
+    ),
     ("WA", "Caught in under or between", "Conveyor", "Iron ore plant", "fatality"),
     ("NSW", "Explosives and breaking agents", "Charging unit", "Quarry", "high potential incident"),
     ("QLD", "Machinery", "Drill", "Underground metalliferous", "significant incident"),
@@ -557,8 +606,7 @@ def _report_text(
             )
         else:
             blocks.append(
-                f"Investigators reviewed prior events of the same character. See "
-                f"{identifier}."
+                f"Investigators reviewed prior events of the same character. See {identifier}."
             )
         blocks.append("")
     blocks.extend(
@@ -576,8 +624,10 @@ def _report_text(
             "",
             "ENFORCEMENT ACTIONS",
             "",
-            ("Orders and citations issued as a result of this investigation are listed in "
-            "the appendix to this report."),
+            (
+                "Orders and citations issued as a result of this investigation are listed in "
+                "the appendix to this report."
+            ),
             "",
         ]
     )
@@ -631,7 +681,9 @@ def _fatality_reports(
             doc, when = earlier_part50[rng.below(len(earlier_part50))]
             citations.append((f"Document No. {doc}", _long_date(when)))
         if position % 4 == 3:
-            citations.append((f"FAI-1998-{position:03d}", _long_date(occurred - timedelta(days=4000))))
+            citations.append(
+                (f"FAI-1998-{position:03d}", _long_date(occurred - timedelta(days=4000)))
+            )
         if history and position % 5 == 4:
             repeat_ref, repeat_when = history[-1]
             citations.append((repeat_ref, _long_date(repeat_when)))

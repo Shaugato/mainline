@@ -269,14 +269,10 @@ class EventRecord(BaseModel):
     ]
     source: Annotated[CorpusSource, Field(description="Which corpus produced this record.")]
     occurred_at: Annotated[datetime, Field(description="When it happened. Timezone-aware.")]
-    ingested_at: Annotated[
-        datetime, Field(description="When we had it. Bitemporal: both, always.")
-    ]
+    ingested_at: Annotated[datetime, Field(description="When we had it. Bitemporal: both, always.")]
     corpus_commit_at: Annotated[
         datetime,
-        Field(
-            description="Corpus state this record belongs to. The third time-wall predicate."
-        ),
+        Field(description="Corpus state this record belongs to. The third time-wall predicate."),
     ]
     title: Annotated[str, Field(min_length=1)]
     narrative: Annotated[

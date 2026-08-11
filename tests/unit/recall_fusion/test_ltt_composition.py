@@ -203,12 +203,15 @@ def test_a_recall_driven_threshold_can_never_breach_the_nuisance_ceiling() -> No
 
 def test_a_full_table_composes_and_validates_its_own_monotonicity() -> None:
     per_severity = {}
-    for severity, span in ((5, (0.30, 0.99)), (4, (0.40, 0.99)), (3, (0.55, 0.99)),
-                           (2, (0.70, 0.99)), (1, (0.80, 0.99))):
+    for severity, span in (
+        (5, (0.30, 0.99)),
+        (4, (0.40, 0.99)),
+        (3, (0.55, 0.99)),
+        (2, (0.70, 0.99)),
+        (1, (0.80, 0.99)),
+    ):
         per_severity[severity] = (
-            learn_then_test_tau(
-                _precursors(300, *span), alpha=0.10, delta=0.05, severity=severity
-            ),
+            learn_then_test_tau(_precursors(300, *span), alpha=0.10, delta=0.05, severity=severity),
             precision_floor_tau([0.01] * 500, ceiling=0.03, severity=severity),
         )
     table, composition = compose_tau_table(per_severity, policy_version="p-1")

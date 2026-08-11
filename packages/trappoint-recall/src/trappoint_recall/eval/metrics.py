@@ -98,9 +98,7 @@ def recall_at_k(
     if k < 1:
         raise ValueError(f"k must be >= 1, got {k}")
     name = metric_name or f"recall_at_{k}"
-    scorable = [
-        r for r in results if qrels.relevant_docs(r.query.query_id, floor=relevance_floor)
-    ]
+    scorable = [r for r in results if qrels.relevant_docs(r.query.query_id, floor=relevance_floor)]
     if not scorable:
         return undefined_measurement(
             name,
@@ -186,9 +184,7 @@ def mrr(
     Bootstrap interval, not Wilson: MRR is a mean of per-query reciprocals, not a
     proportion, and a Wilson interval on it would be a category error.
     """
-    scorable = [
-        r for r in results if qrels.relevant_docs(r.query.query_id, floor=relevance_floor)
-    ]
+    scorable = [r for r in results if qrels.relevant_docs(r.query.query_id, floor=relevance_floor)]
     if not scorable:
         return undefined_measurement(
             "mrr",
@@ -292,7 +288,15 @@ class RankDistribution:
         return len(self.ranks) + self.not_found
 
     def histogram(self) -> Mapping[str, int]:
-        buckets = {"1": 0, "2": 0, "3": 0, "4-10": 0, "11-40": 0, ">40": 0, "not_found": self.not_found}
+        buckets = {
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4-10": 0,
+            "11-40": 0,
+            ">40": 0,
+            "not_found": self.not_found,
+        }
         for rank in self.ranks:
             if rank == 1:
                 buckets["1"] += 1

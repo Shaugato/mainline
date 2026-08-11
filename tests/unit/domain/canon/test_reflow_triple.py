@@ -47,7 +47,9 @@ def test_three_forms_yield_one_canon_sha256(triple: dict[str, Any]) -> None:
     texts = {r.canon_text for r in results}
     assert len(texts) == 1, (
         "canonicalisation is not reflow-invariant; got distinct texts:\n"
-        + "\n".join(f"  {form['id']}: {r.canon_text!r}" for form, r in zip(triple["forms"], results))
+        + "\n".join(
+            f"  {form['id']}: {r.canon_text!r}" for form, r in zip(triple["forms"], results)
+        )
     )
     assert results[0].canon_text == triple["expected_canon_text"]
 

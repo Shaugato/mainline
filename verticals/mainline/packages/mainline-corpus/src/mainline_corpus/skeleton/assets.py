@@ -187,7 +187,10 @@ def build_assets(world: SiteWorld) -> AssetWorld:
     graph_version = str(doc["asset_graph_version"])
     families = gaz.as_sequence(doc, "families", origin="assets.yaml")
     valid_energies = {
-        str(entry["key"]) for entry in gaz.as_sequence(gaz.load("hazard_energies"), "energies", origin="hazard_energies.yaml")
+        str(entry["key"])
+        for entry in gaz.as_sequence(
+            gaz.load("hazard_energies"), "energies", origin="hazard_energies.yaml"
+        )
     }
 
     assets: dict[str, Asset] = {}
@@ -352,7 +355,10 @@ def build_assets(world: SiteWorld) -> AssetWorld:
 
     asset_list = sorted(assets.values(), key=lambda item: item.tag)
     edge_list = sorted(
-        (AssetEdge(site_id=site_id, from_tag=a, to_tag=b, kind=kind) for site_id, a, b, kind in edges),
+        (
+            AssetEdge(site_id=site_id, from_tag=a, to_tag=b, kind=kind)
+            for site_id, a, b, kind in edges
+        ),
         key=lambda item: (item.site_id, item.from_tag, item.to_tag, item.kind),
     )
 

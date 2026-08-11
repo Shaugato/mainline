@@ -1,7 +1,7 @@
 {
   "schema": "mainline.qa.ruff-ratchet/1",
   "note": "Honest counts, not aspirations. Every number below was measured, not chosen. A count may fall and may not rise; see qa/README.md for how to re-derive all of it in one command.",
-  "generated_utc": "2026-08-09T21:06:32Z",
+  "generated_utc": "2026-08-11T05:29:30Z",
   "ruff_version": "0.16.1",
   "ruff_config": "ruff.toml",
   "commands": {
@@ -70,42 +70,31 @@
     }
   },
   "lint": {
-    "total": 847,
+    "total": 671,
     "total_by_tree": {
-      "packages/trappoint-*": 410,
-      "verticals/": 159,
-      "tests/": 229,
-      "scripts/": 24,
+      "packages/trappoint-*": 355,
+      "verticals/": 132,
+      "tests/": 150,
+      "scripts/": 9,
       "other/": 25
     },
     "rules": {
       "D102": {
-        "packages/trappoint-*": 160,
+        "packages/trappoint-*": 158,
         "other/": 4
       },
       "D401": {
-        "packages/trappoint-*": 52,
+        "packages/trappoint-*": 41,
         "verticals/": 69
-      },
-      "RUF100": {
-        "packages/trappoint-*": 4,
-        "verticals/": 11,
-        "tests/": 53,
-        "scripts/": 5
-      },
-      "E501": {
-        "packages/trappoint-*": 19,
-        "verticals/": 16,
-        "tests/": 21,
-        "scripts/": 9
-      },
-      "I001": {
-        "packages/trappoint-*": 6,
-        "verticals/": 2,
-        "tests/": 57
       },
       "PLR2004": {
         "packages/trappoint-*": 55
+      },
+      "RUF100": {
+        "packages/trappoint-*": 1,
+        "verticals/": 1,
+        "tests/": 51,
+        "scripts/": 1
       },
       "D105": {
         "packages/trappoint-*": 42
@@ -119,7 +108,7 @@
         "packages/trappoint-*": 2,
         "verticals/": 13,
         "tests/": 1,
-        "scripts/": 3,
+        "scripts/": 2,
         "other/": 1
       },
       "T201": {
@@ -136,8 +125,7 @@
       },
       "ISC004": {
         "packages/trappoint-*": 2,
-        "tests/": 9,
-        "scripts/": 1
+        "tests/": 9
       },
       "PLR0915": {
         "packages/trappoint-*": 2,
@@ -149,24 +137,26 @@
         "tests/": 2
       },
       "D103": {
-        "packages/trappoint-*": 8,
+        "packages/trappoint-*": 6,
         "other/": 1
       },
-      "PT001": {
-        "packages/trappoint-*": 1,
-        "tests/": 6
+      "E501": {
+        "packages/trappoint-*": 3,
+        "verticals/": 2,
+        "tests/": 1,
+        "scripts/": 1
       },
       "TRY300": {
         "packages/trappoint-*": 0,
         "tests/": 6,
         "scripts/": 1
       },
-      "D107": {
-        "packages/trappoint-*": 6
-      },
       "D301": {
         "packages/trappoint-*": 4,
         "verticals/": 2
+      },
+      "PT001": {
+        "tests/": 6
       },
       "C420": {
         "packages/trappoint-*": 3,
@@ -183,19 +173,15 @@
         "packages/trappoint-*": 1,
         "verticals/": 4
       },
-      "ANN001": {
-        "packages/trappoint-*": 1,
-        "other/": 3
+      "D107": {
+        "packages/trappoint-*": 4
       },
       "UP017": {
         "verticals/": 1,
         "tests/": 3
       },
-      "ANN002": {
-        "packages/trappoint-*": 3
-      },
-      "ANN003": {
-        "packages/trappoint-*": 3
+      "ANN001": {
+        "other/": 3
       },
       "ANN201": {
         "other/": 3
@@ -211,15 +197,8 @@
       "PLR0402": {
         "tests/": 3
       },
-      "PLR0911": {
-        "packages/trappoint-*": 2,
-        "verticals/": 1
-      },
       "UP042": {
         "packages/trappoint-*": 3
-      },
-      "ANN202": {
-        "packages/trappoint-*": 2
       },
       "B905": {
         "tests/": 2
@@ -240,7 +219,7 @@
       "D400": {
         "verticals/": 2
       },
-      "PTH119": {
+      "PLR0911": {
         "packages/trappoint-*": 2
       },
       "PTH123": {
@@ -266,13 +245,6 @@
       },
       "RUF046": {
         "tests/": 2
-      },
-      "SIM105": {
-        "tests/": 1,
-        "scripts/": 1
-      },
-      "ANN204": {
-        "packages/trappoint-*": 1
       },
       "ARG002": {
         "tests/": 1
@@ -325,6 +297,9 @@
         "packages/trappoint-*": 0,
         "scripts/": 1
       },
+      "SIM105": {
+        "tests/": 1
+      },
       "SIM905": {
         "tests/": 1
       },
@@ -376,13 +351,7 @@
     }
   },
   "format": {
-    "unformatted_files": 245,
-    "unformatted_by_tree": {
-      "packages/trappoint-*": 51,
-      "packages/mainline-*": 10,
-      "verticals/": 80,
-      "tests/": 99,
-      "scripts/": 5
-    }
+    "unformatted_files": 0,
+    "unformatted_by_tree": {}
   }
 }

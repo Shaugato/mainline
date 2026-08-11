@@ -125,8 +125,8 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     repo_root = Path(args.repo_root).resolve() if args.repo_root else find_repo_root(Path.cwd())
 
-    commands = ("e1", "e2", "e3", "e4", "fleet", "greps") if args.command == "all" else (
-        args.command,
+    commands = (
+        ("e1", "e2", "e3", "e4", "fleet", "greps") if args.command == "all" else (args.command,)
     )
     # Severity order, worst last. Violations beat vacuity beats a stated skip,
     # because "we found a hole" is more actionable than "we did not look".

@@ -164,16 +164,12 @@ def overlay_judgements(
     heuristic, so they are two functions with two names rather than one with a flag.
     """
     superseding = {(j.query_id, j.doc_id): j for j in overlay}
-    out: list[Judgement] = [
-        j for j in base if (j.query_id, j.doc_id) not in superseding
-    ]
+    out: list[Judgement] = [j for j in base if (j.query_id, j.doc_id) not in superseding]
     out.extend(superseding.values())
     return sorted_judgements(out)
 
 
-def refuse_headline_use(
-    judgements: Iterable[Judgement] | QrelSet, *, metric: str
-) -> None:
+def refuse_headline_use(judgements: Iterable[Judgement] | QrelSet, *, metric: str) -> None:
     """Refuse to compute a published metric over calibrator-only labels.
 
     Args:

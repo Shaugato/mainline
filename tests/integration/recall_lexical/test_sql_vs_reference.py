@@ -27,6 +27,7 @@ import math
 
 import pytest
 from _corpus import Fixture
+
 from conftest import Backend  # type: ignore[import-not-found]
 from trappoint_recall.lexical.analyser import analyse_query
 from trappoint_recall.lexical.bm25 import (
@@ -65,12 +66,8 @@ def loaded(backend: Backend, fixture_corpus: Fixture) -> Loaded:
         documents=fixture_corpus.documents,
         style=backend.style,
     )
-    tables = snapshot_tables(
-        backend.execute, site_id=fixture_corpus.site_id, style=backend.style
-    )
-    stats = fetch_corpus_stats(
-        backend.execute, site_id=fixture_corpus.site_id, style=backend.style
-    )
+    tables = snapshot_tables(backend.execute, site_id=fixture_corpus.site_id, style=backend.style)
+    stats = fetch_corpus_stats(backend.execute, site_id=fixture_corpus.site_id, style=backend.style)
     return backend, fixture_corpus, tables, stats
 
 
@@ -144,12 +141,8 @@ def test_every_query_agrees_to_1e_9(loaded: Loaded, fixture_corpus: Fixture) -> 
     print(f"\n[recall_lexical] worst |SQL - oracle| = {worst:.3e} over {compared} scores")
 
 
-@pytest.mark.parametrize(
-    "kind", ["single", "multi", "rare-identifier", "edge"]
-)
-def test_each_query_kind_is_actually_represented(
-    fixture_corpus: Fixture, kind: str
-) -> None:
+@pytest.mark.parametrize("kind", ["single", "multi", "rare-identifier", "edge"])
+def test_each_query_kind_is_actually_represented(fixture_corpus: Fixture, kind: str) -> None:
     """The differential is only as good as its query mix; assert the mix exists."""
     assert sum(1 for k, _ in fixture_corpus.queries if k == kind) >= 20
 
@@ -244,9 +237,7 @@ def test_the_limit_truncates_the_same_head(loaded: Loaded, fixture_corpus: Fixtu
             stats=stats,
             style=backend.style,
         )
-        oracle = reference_bm25(
-            tables, site_id=corpus.site_id, terms=terms, stats=stats, limit=10
-        )
+        oracle = reference_bm25(tables, site_id=corpus.site_id, terms=terms, stats=stats, limit=10)
         assert len(sql) <= 10
         assert [e for e, _ in sql] == [e for e, _ in oracle]
 
@@ -282,9 +273,7 @@ def test_the_differential_can_fail(loaded: Loaded, fixture_corpus: Fixture) -> N
             params=Bm25Params(k1=1.2, b=0.10),
         )
         by_event = dict(wrong)
-        if any(
-            abs(score - by_event.get(event, math.inf)) > TOLERANCE for event, score in sql
-        ):
+        if any(abs(score - by_event.get(event, math.inf)) > TOLERANCE for event, score in sql):
             disagreements += 1
     assert disagreements >= 30, (
         "a deliberately wrong oracle agreed with the SQL, so the differential is not "
@@ -307,14 +296,10 @@ def test_a_mutated_idf_is_caught(loaded: Loaded) -> None:
         for site, term, event, weight in tables.posting
         if site == corpus.site_id and term == "lel"
     }
-    textbook_idf = math.log(
-        (stats.n_docs - df_by_term["lel"] + 0.5) / (df_by_term["lel"] + 0.5)
-    )
+    textbook_idf = math.log((stats.n_docs - df_by_term["lel"] + 0.5) / (df_by_term["lel"] + 0.5))
     assert textbook_idf < 0.0, "premise: df = N is where the textbook IDF is negative"
     event, score = sql[0]
     weight = weights[event]
-    tf_norm = (weight * 2.2) / (
-        weight + 1.2 * (0.25 + 0.75 * lengths[event] / stats.avgdl)
-    )
+    tf_norm = (weight * 2.2) / (weight + 1.2 * (0.25 + 0.75 * lengths[event] / stats.avgdl))
     assert abs(score - textbook_idf * tf_norm) > TOLERANCE
     assert score > 0.0 > textbook_idf * tf_norm
