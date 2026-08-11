@@ -304,7 +304,22 @@ _DSN_PASSWORD = re.compile(r"(?i)\bpostgres(?:ql)?://[^:/@\s\"']+:([^@\s\"']+)@"
 
 #: What a redacted password looks like in this repository.  Anything else in that position
 #: is treated as live material.
-_MASKED_PASSWORD = re.compile(r"(?i)^(?:\*+|x+|<redacted>|redacted|%2A+|\.\.\.|…)$")
+#:
+#: ``<name>`` is an angle-bracketed **placeholder** — the shape `scripts/deploy/deploy.sh`
+#: prints in the copy-paste block it hands an operator (``…mainline_api:<pw>@<host>…``).
+#: Three of those reached `evidence/deploy/deploy-dry-run.json` and were reported as
+#: unmasked passwords on 2026-08-11.  They were not; the file leaks nothing.
+#:
+#: This is a *narrowing of a false positive, not a widening of the rule*, and the
+#: distinction matters enough to write down: the pattern admits only a bracketed run of
+#: identifier characters, so a live secret cannot satisfy it by accident — a real
+#: password containing ``<`` or ``>`` still fails to match and is still reported. The
+#: bound is what keeps this from becoming the "mask" that swallows the leak it exists to
+#: catch: `<pw>` passes, `<pw>x` does not, and neither does anything with a space,
+#: a slash or a quote in it.
+_MASKED_PASSWORD = re.compile(
+    r"(?i)^(?:\*+|x+|<[a-z0-9_-]{1,24}>|redacted|%2A+|\.\.\.|…)$"
+)
 
 #: AWS unique-id prefixes, from AWS's own list.
 _ACCESS_KEY_ID = re.compile(

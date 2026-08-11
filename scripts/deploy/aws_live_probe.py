@@ -313,10 +313,17 @@ def probe_converse(
     with Call("bedrock-runtime:Converse", mask) as call:
         call.record["model_id"] = model
         runtime = session.client("bedrock-runtime", region_name=region)
+        # No sampling parameter is set here, and none may be added. Boundary rule A6
+        # (docs/leads/agents-mcp.md, ARCHITECTURE.md §8.2) bans them in the fleet's
+        # request builders, and `temperature: 0.0` was the exact shape it bans: it reads
+        # as a promise that the reply is reproducible. It is not. What this repository
+        # claims is replayability of the *transcript* and arithmetic reproducibility of
+        # the gate — never that a model returns the same sentence twice. This probe
+        # asserts the call succeeded and the tokens were counted, which needs no sampler.
         response = runtime.converse(
             modelId=model,
             messages=[{"role": "user", "content": [{"text": prompt}]}],
-            inferenceConfig={"maxTokens": MAX_OUTPUT_TOKENS, "temperature": 0.0},
+            inferenceConfig={"maxTokens": MAX_OUTPUT_TOKENS},
         )
         call.record.update(http_of(response))
         blocks = response.get("output", {}).get("message", {}).get("content", [])

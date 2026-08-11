@@ -11,13 +11,13 @@
   "scan": {
     "root": "<repository root>",
     "method": "filesystem walk, NOT the git index. A count here will not equal `git grep -l <pattern> | wc -l`: the walk sees files that are present but not yet committed, and it prunes directories git tracks (out_mainline/, out_trappoint_ref/, .hypothesis-corpus/). The walk is the right unit for a submission document, because a judge checks out a working tree.",
-    "files_scanned": 7352,
+    "files_scanned": 7367,
     "files_by_category": {
-      "config": 4796,
-      "docs": 274,
+      "config": 4801,
+      "docs": 281,
       "migration": 271,
-      "other": 342,
-      "python": 1214,
+      "other": 344,
+      "python": 1215,
       "sql": 130,
       "terraform": 25,
       "typescript": 282,
@@ -94,13 +94,13 @@
         "resolves": true,
         "line_text": "\"\"\"Refuse any model identifier that is not an ``au.*`` inference profile."
       },
-      "file_count": 310,
+      "file_count": 315,
       "files_by_category": {
-        "config": 83,
-        "docs": 56,
+        "config": 85,
+        "docs": 60,
         "migration": 2,
         "other": 4,
-        "python": 152,
+        "python": 151,
         "sql": 3,
         "terraform": 5,
         "typescript": 1,
@@ -164,10 +164,10 @@
         "resolves": true,
         "line_text": ""
       },
-      "file_count": 19,
+      "file_count": 20,
       "files_by_category": {
         "config": 2,
-        "docs": 14,
+        "docs": 15,
         "python": 2,
         "workflow": 1
       },
@@ -196,10 +196,10 @@
         "resolves": true,
         "line_text": "resource \"aws_s3_bucket_object_lock_configuration\" \"evidence\" {"
       },
-      "file_count": 121,
+      "file_count": 124,
       "files_by_category": {
-        "config": 32,
-        "docs": 32,
+        "config": 33,
+        "docs": 34,
         "migration": 5,
         "other": 3,
         "python": 33,
@@ -233,9 +233,9 @@
         "resolves": true,
         "line_text": "KMS_SIGNING_ALGORITHM: Final = \"ECDSA_SHA_256\""
       },
-      "file_count": 42,
+      "file_count": 43,
       "files_by_category": {
-        "config": 17,
+        "config": 18,
         "docs": 9,
         "python": 9,
         "terraform": 7
@@ -265,9 +265,9 @@
         "resolves": true,
         "line_text": "resource \"aws_cloudtrail\" \"evidence\" {"
       },
-      "file_count": 33,
+      "file_count": 34,
       "files_by_category": {
-        "config": 17,
+        "config": 18,
         "docs": 11,
         "python": 3,
         "terraform": 2
@@ -297,9 +297,10 @@
         "resolves": true,
         "line_text": "timeout                        = var.timeout"
       },
-      "file_count": 9,
+      "file_count": 12,
       "files_by_category": {
-        "docs": 4,
+        "config": 1,
+        "docs": 6,
         "terraform": 5
       },
       "representative_paths": [
@@ -325,17 +326,16 @@
         "path": "infra/modules/demo-site/main.tf",
         "line": 263,
         "resolves": true,
-        "line_text": "resource \"aws_cloudfront_distribution\" \"site\" {"
+        "line_text": "}"
       },
-      "file_count": 43,
+      "file_count": 55,
       "files_by_category": {
-        "config": 4,
-        "docs": 16,
-        "other": 4,
-        "python": 6,
+        "config": 7,
+        "docs": 23,
+        "other": 6,
+        "python": 7,
         "terraform": 11,
-        "typescript": 1,
-        "workflow": 1
+        "typescript": 1
       },
       "representative_paths": [
         "infra/envs/demo/main.tf",
@@ -362,10 +362,10 @@
         "resolves": true,
         "line_text": "\"this file proves the calls happened and what they cost. It proves nothing about \""
       },
-      "file_count": 48,
+      "file_count": 53,
       "files_by_category": {
-        "config": 9,
-        "docs": 17,
+        "config": 10,
+        "docs": 21,
         "python": 15,
         "terraform": 6,
         "workflow": 1
@@ -395,10 +395,10 @@
         "resolves": true,
         "line_text": "data \"aws_iam_policy_document\" \"evidence\" {"
       },
-      "file_count": 16,
+      "file_count": 20,
       "files_by_category": {
-        "config": 2,
-        "docs": 3,
+        "config": 3,
+        "docs": 6,
         "python": 5,
         "terraform": 6
       },
@@ -427,9 +427,11 @@
         "resolves": true,
         "line_text": "})"
       },
-      "file_count": 8,
+      "file_count": 13,
       "files_by_category": {
-        "docs": 4,
+        "config": 1,
+        "docs": 7,
+        "other": 1,
         "terraform": 4
       },
       "representative_paths": [

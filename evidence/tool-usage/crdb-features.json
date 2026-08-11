@@ -11,13 +11,13 @@
   "scan": {
     "root": "<repository root>",
     "method": "filesystem walk, NOT the git index. A count here will not equal `git grep -l <pattern> | wc -l`: the walk sees files that are present but not yet committed, and it prunes directories git tracks (out_mainline/, out_trappoint_ref/, .hypothesis-corpus/). The walk is the right unit for a submission document, because a judge checks out a working tree.",
-    "files_scanned": 7352,
+    "files_scanned": 7367,
     "files_by_category": {
-      "config": 4796,
-      "docs": 274,
+      "config": 4801,
+      "docs": 281,
       "migration": 271,
-      "other": 342,
-      "python": 1214,
+      "other": 344,
+      "python": 1215,
       "sql": 130,
       "terraform": 25,
       "typescript": 282,
@@ -94,10 +94,10 @@
         "resolves": true,
         "line_text": "image: cockroachdb/cockroach:v26.2.5"
       },
-      "file_count": 318,
+      "file_count": 319,
       "files_by_category": {
-        "config": 44,
-        "docs": 82,
+        "config": 46,
+        "docs": 81,
         "migration": 59,
         "other": 20,
         "python": 81,
@@ -130,10 +130,10 @@
         "resolves": true,
         "line_text": "def connect(dsn: str, *, isolation: str = \"serializable\") -> psycopg.Connection[Any]:"
       },
-      "file_count": 148,
+      "file_count": 147,
       "files_by_category": {
         "config": 20,
-        "docs": 35,
+        "docs": 34,
         "migration": 15,
         "other": 6,
         "python": 56,
@@ -200,16 +200,16 @@
         "resolves": true,
         "line_text": "CONSTRAINT gate_closed_when_issued        CHECK (state <> 'merged' OR open_blocking = 0),"
       },
-      "file_count": 172,
+      "file_count": 175,
       "files_by_category": {
-        "config": 30,
-        "docs": 56,
+        "config": 31,
+        "docs": 57,
         "migration": 7,
         "other": 5,
         "python": 47,
         "sql": 6,
         "typescript": 19,
-        "workflow": 2
+        "workflow": 3
       },
       "representative_paths": [
         "verticals/mainline/db/migrations/0026_ref.sql",
@@ -470,10 +470,10 @@
         "resolves": true,
         "line_text": "`ccloud` **0.6.12** is the latest published build (0.7.0 / 0.8.0 / 0.9.0 / 1.0.0 all return 404 from `binaries.cockroachdb.com`). It has **no non-interactive service-account authentication**: `ccloud auth` exposes only `login` / `logout` / `whoami`, `login` is browser-based, and `CC_API_KEY` in the environment is ignored. The session it caches is scoped to the interactive Windows logon and is not readable from a non-interactive shell."
       },
-      "file_count": 55,
+      "file_count": 56,
       "files_by_category": {
         "config": 12,
-        "docs": 16,
+        "docs": 17,
         "migration": 3,
         "python": 23,
         "typescript": 1
@@ -503,10 +503,10 @@
         "resolves": true,
         "line_text": "MCP_ENDPOINT: Final = \"https://cockroachlabs.cloud/mcp\""
       },
-      "file_count": 170,
+      "file_count": 173,
       "files_by_category": {
-        "config": 26,
-        "docs": 29,
+        "config": 27,
+        "docs": 31,
         "migration": 45,
         "other": 3,
         "python": 57,

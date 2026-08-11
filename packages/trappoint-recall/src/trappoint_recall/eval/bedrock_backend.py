@@ -546,13 +546,29 @@ class TitanEmbedder:
         return {"inputText": text, "dimensions": self.dimensions, "normalize": self.normalize}
 
     def _client(self) -> InvokeModelClient:
-        if self.client is not None:
-            return self.client
-        try:
-            import boto3
-        except ImportError as exc:  # pragma: no cover - boto3 is a declared dependency
-            raise RuntimeError("boto3 is not installed; cannot reach Bedrock") from exc
-        self.client = boto3.client("bedrock-runtime", region_name=self.region)
+        """The injected transport, or a refusal naming who was supposed to supply it.
+
+        **This class never builds an AWS client, and must not learn how.**  It lives under
+        ``packages/trappoint-*``, which ARCHITECTURE.md §8.2 E3 defines as the kernel
+        plane: the plane whose source is not allowed to hold a model code path, so that
+        no model can reach the gate. Constructing the transport here also contradicted
+        this module's own design note above — the package is substrate whose declared
+        dependencies do not include an AWS SDK, yet ``_client`` imported ``boto3`` and
+        named the Bedrock runtime service directly.
+
+        So the kernel declares the protocol (:class:`InvokeModelClient`) and the AWS plane
+        supplies an object satisfying it — ``scripts/aws/recall_real.py`` for live runs, a
+        fake for the credential-free tests. ``client=None`` remains valid and useful: an
+        embedder with a warm cache serves every hit offline and only reaches this refusal
+        on a genuine miss, which is what makes the cache-only path testable.
+        """
+        if self.client is None:
+            raise RuntimeError(
+                "TitanEmbedder has no transport and will not construct one: this is "
+                "kernel-plane substrate (ARCHITECTURE.md 8.2 E3). Pass client=... from "
+                "the AWS plane, as scripts/aws/recall_real.py does. Reaching here also "
+                "means the embedding cache missed, so an offline run needs a warm cache."
+            )
         return self.client
 
     def _invoke(self, body: str) -> Mapping[str, Any]:
