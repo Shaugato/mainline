@@ -328,10 +328,18 @@ nothing*, and nothing anywhere would have objected.
 **That paragraph said the ratchet was red on a wave whose lint total had fallen while its
 unformatted-file count had risen, and that no committed artefact held the measured
 figures. It was true when it was written. Both halves have since moved, in the same
-direction — down — and the artefact now holds them.** Re-measured on a clean tree,
-`ruff check .` finds
-**671 [src: qa/ruff-ratchet.json#lint.total]** findings and `ruff format --check .` finds
-**0 [src: qa/ruff-ratchet.json#format.unformatted_files]** files it would rewrite.
+direction, and the artefact now holds them.** The frozen floors are
+**671 [src: qa/ruff-ratchet.json#lint.total]** lint findings and
+**0 [src: qa/ruff-ratchet.json#format.unformatted_files]** files the formatter would
+rewrite.
+
+**The formatter half is now met and the lint half is not, and the lane is red for the
+second one.** On the runner, `ruff format --check .` rewrites nothing — that count reached
+its floor and stayed there. `ruff check .`, on the same run, reports a total *above* the
+frozen lint floor, so `scripts/qa/ruff_ratchet.py` refuses the tree. **That refusal is
+correct and it is left standing.** Re-freezing the floor upward would silence it, which is
+the one thing a ratchet exists to prevent; the numbers here are therefore the floors, not
+a fresh measurement dressed as one.
 
 The ratchet still gates per rule and per tree rather than on a headline sum, so a change
 that removes findings in one directory and adds a hard-gate violation — a rule whose

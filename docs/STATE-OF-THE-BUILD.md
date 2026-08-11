@@ -321,7 +321,14 @@ is a disclosure decision plus housekeeping, not a leak — but it is a blocker.
 # 4 · The CI board, measured
 
 Pushed to `master` and observed. Commits: `6251c6e` (the wave), `56e3d92` (four
-cause-fixes), `f3125ac` (boundary lint), `b0fe884` (REUSE / actionlint / format).
+cause-fixes), `f3125ac` (boundary lint), `b0fe884` (REUSE / actionlint / format),
+`27ac8aa` (this document), `57c477c` (the HONESTY.md ruff paragraph).
+
+**The board below is `b0fe884`, the last commit on which all 13 workflows ran to
+completion.** Two later runs are not usable as evidence: on `57c477c` three `ci` gate
+jobs failed **in 2 seconds with zero steps executed** — a runner-allocation failure, not
+a repository failure — and a re-run reproduced it. Nothing is claimed from those runs in
+either direction.
 
 ## 4.1 Green — 6 of the 13 workflows that ran on `b0fe884`
 
@@ -358,8 +365,12 @@ Inside `ci`, the four remaining red jobs are not one thing:
 * **`PL-2 — the red run is recorded`** and **`mypy · and the target list is complete`** —
   fixable, not examined in depth here. `mypy`'s gate is known to cover a small fraction
   of what mypy could check, which is itself the finding.
-* **`ruff format`** — was 7 files, then 1 (`docs/leads/ship-final.md`), now 0. Fixed in
-  this pass.
+* **`ruff format`** — **half fixed, and the remaining half is a true red.** The formatter
+  count went 7 files → 1 → **0 on the runner**: that half is done. But the same job's
+  ratchet step reports `ruff check .` at **732 findings against a frozen floor of 671**,
+  so the lint total has *risen* and `scripts/qa/ruff_ratchet.py` refuses the tree. **The
+  floor was deliberately not re-frozen upward** — that is the one move that would silence
+  a ratchet — so this lane stays red until the added findings are removed.
 
 ## 4.3 Anti-vacuity — the honest gaps
 
