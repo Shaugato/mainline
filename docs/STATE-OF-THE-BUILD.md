@@ -5,61 +5,239 @@ SPDX-License-Identifier: CC-BY-4.0
 
 # STATE OF THE BUILD
 
-**Certified 2026-08-11 by the final certification agent, after the thirty-worker
-completion wave. Re-measured in part on 2026-08-12 by `w10-stale-sweep` at commit
-`1d41442`; every re-measured section says so in its own heading.** Deadline 2026-08-18.
+**Certified 2026-08-12 by the consolidation agent, at commit `f50efde`, after the
+twenty-five-worker verification wave.** Deadline 2026-08-18.
 
-Every number in this document was produced by a command an agent ran itself, against the
-live systems, on the date its section names. Nothing here is copied from a worker's
-self-report. Where a claim did not survive re-measurement it is marked and corrected.
-Where something could not be proven it says so, and says what is missing.
+Every number below was produced by a command this agent ran itself, on this machine or
+against the live account, today. Nothing is copied from a worker's self-report: where a
+worker's finding appears here it is because this agent re-ran the measurement and got the
+same answer. Where a worker's claim did not survive, it says so.
 
-The one sentence a reader in a hurry needs:
+The one paragraph a reader in a hurry needs:
 
-> **The central claim is PROVEN and caveat-free. AWS is genuinely executed, end to end,
-> and the ≥1-AWS-service rule is met with room to spare. The repository is PUBLIC. There
-> is no demo URL, and there is no video. Those two are the whole gap between this
-> repository and a submission, and only one of them is engineering.**
-
-**Three things this document said on 2026-08-11 that are no longer true, corrected in
-place and not deleted:** the repository is no longer private (§3.3, §5); the MI ratchet
-does not stand at 28/30 (§4.2); and the CI board in §4 describes a commit five behind
-`HEAD`, with §4.4 carrying the re-measurement.
+> **The central claim is PROVEN and caveat-free. The Terraform plan replays byte-identical
+> to its committed evidence. But the deploy is a NO-GO on two independently sufficient
+> grounds: the plan cannot apply on this account, and the headline demo route returns
+> `500`. Both have named one-line fixes, and this agent proved the second fix works. The
+> repository is PUBLIC, there is no demo URL, and there is no video.**
 
 ---
 
 ## How to read this
 
-Four dispositions, used strictly:
-
 | | meaning |
 |---|---|
 | **PROVEN** | this agent ran it today and watched it succeed; the artefact is named |
 | **BUILT-BUT-UNPROVEN** | the code exists and is complete, but nothing has demonstrated it end to end |
-| **BROKEN** | it exists and it does not work; the cause is named |
+| **BROKEN** | it exists and it does not work; the cause is named at `file:line` |
 | **NOT BUILT** | it does not exist |
 
-A red CI lane is not automatically bad. This repository's discipline is that a lane
-reporting a true incompleteness **stays red with a sharper message**. Section 4
-separates the reds that are defects from the reds that are honest instruments.
+A red CI lane is not automatically bad. The discipline is that a lane reporting a true
+incompleteness **stays red with a sharper message**. §4 separates the reds that are
+defects from the reds that are honest instruments.
+
+---
+
+# 0 · THE DEPLOY DECISION — **NO-GO**
+
+The founder has authorised the apply conditional on this verification returning GO. It
+returns **NO-GO**. Two blockers, each independently sufficient. Neither is a judgement
+call; both are measurements.
+
+### 0.1 BLOCKER 1 — the plan cannot apply. It will fail half-way and leave a partial stack.
+
+Measured by this agent, read-only, profile `mainline-dev`:
+
+```console
+$ aws lambda get-account-settings --region ap-southeast-1
+  AccountLimit.ConcurrentExecutions           = 10
+  AccountLimit.UnreservedConcurrentExecutions = 10
+  AccountUsage.FunctionCount                  = 0
+```
+
+And from this agent's own fresh plan (not the committed file):
+
+```
+module.api[0].aws_lambda_function.this
+  reserved_concurrent_executions = 20
+```
+
+A reservation of 20 cannot be satisfied by an account whose entire ceiling is 10, and AWS
+additionally refuses any reservation that drops unreserved concurrency below its floor —
+so on this account *any* positive reservation fails. The expected outcome of the
+authorised apply is a failed `PutFunctionConcurrency` **after** the log group, role,
+policy and role attachment have already been created: a partial apply with a tainted
+function, which is the worst possible shape for a first deploy.
+
+**The fix, exactly:** add `reserved_concurrent_executions = -1` to `module "api"` in
+`infra/envs/demo/main.tf` (the block begins line 280). The cost ceiling is unchanged —
+`min(20, account 10)` is 10 either way, and `ap-southeast-1` holds zero other functions,
+so the account quota *is* the cap.
+
+Two claims in the repository are falsified by this and must move with the fix:
+
+* `infra/modules/demo-api/variables.tf:388` describes the variable as reserving "20 of the
+  account's 1 000 unreserved executions". The account has **10**, not 1 000.
+* `aws_cloudwatch_metric_alarm.concurrency` has `threshold = 20`. `ConcurrentExecutions`
+  on this account can never exceed 10, so **the abuse tripwire is an alarm that cannot
+  fire** — the exact defect `duration_p99`'s own `lifecycle.precondition` exists to forbid,
+  reproduced one resource lower. Threshold must drop to 8.
+
+### 0.2 BLOCKER 2 — the headline route returns `500`. Deploying now publishes a broken demo.
+
+This agent invoked the real handler on the production `dict_row` path against a seeded
+local database:
+
+```
+GET  /v1/health          -> 200
+POST /v1/demo/gate-run   -> 500
+{"error": {"kind": "internal_error", "resource": "demo_gate_run",
+           "detail": "KeyError: 0", "status": 500}}
+```
+
+The traceback ends at `verticals/mainline/apps/demo-api/src/mainline_demo_api/refusal.py:235`:
+
+```python
+return (row[0] if row and isinstance(row[0], dict) else None), None
+```
+
+`db.py:309` opens every production connection with `row_factory=dict_row`. The query is
+`SELECT trappoint.explain_refusal(...)`, whose single column CockroachDB names
+`explain_refusal`, so `row[0]` is `KeyError: 0`. It is reached by `gate_run._record_refusal`
+on beats 2 and 3 of **every** gate run and by `transitions._refused` on **every** kernel
+refusal. There is no path through the demo that avoids it.
+
+**This agent proved the fix.** Taking the row's single *value* rather than its index — in
+memory, without editing the file — turns the same request into:
+
+```
+POST /v1/demo/gate-run -> 200
+  beat "merge" -> refused | 23514 | gate_closed_when_issued
+  MUS: 1 obligation, severity 4, virulence blood_major
+  NAA: dispose_obligations, cardinality 1
+```
+
+That is the headline demo beat, working. The fix is one line, it is correct, and nobody
+owns the file — three sibling modules were repaired in this wave and this fourth was
+recorded rather than edited because file ownership is absolute. **It must be assigned.**
+
+### 0.3 What the decision rule required, and what it got
+
+| # | GO condition | verdict |
+|---|---|---|
+| 1 | The plan applies cleanly on this account | **FAIL** — §0.1 |
+| 2 | No unauthenticated route mutates committed state | **PASS, after a fix landed this wave** — §0.4 |
+| 3 | The DSN reaches the Lambda only as a KMS SecureString, in no state/plan/log/commit | **PASS** |
+| 4 | Worst-case abusive 30-day bill bounded by a number the founder has accepted, enforced by a mechanism that exists | **FAIL** — §0.5 |
+| 5 | Every alarm can reach its threshold, and something reads it | **FAIL** — §0.1, §0.5 |
+
+### 0.4 The one NO-GO that was fixed during this wave — and it was serious
+
+`scenario_permit_id` defaulted to `077a6fdd-2167-559c-b2ff-8e3c8352504d`, the `uuid5`
+derivation in `scenario.py:77`. **Nothing has ever seeded that id.** The only permit in
+Cloud `mainline_demo` is `dec0de00-0006-4000-8000-000000000001`, and the same public
+hostname hands that id out at `GET /bundle/manifest.json`.
+
+`transitions._demo_guard` returns `423 Locked` **only** when `subject_id ==
+scenario.permit_id`. Armed at an id no caller would ever send, the guard was inert, and the
+four committing kernel POSTs — `materialise_checks`, `sign_disposition`, `merge_permit`,
+`suspend_permit`, all `mutates = True`, all calling `conn.commit()` — were reachable by any
+anonymous caller on a URL with `authorization_type = NONE`. The DSN login is not read-only:
+`cloud_roles.py` grants `mainline_api` the `UPDATE`s and `EXECUTE ON PROCEDURE
+mainline.merge_permit`. One anonymous request would have committed `dispositioned →
+checks_materialised` and destroyed the demo's headline refusal, unrecoverably.
+
+The default is now the row that is actually seeded, read back out of the database rather
+than derived, and this agent confirmed the regenerated plan carries it:
+
+```
+MAINLINE_DEMO_PERMIT_ID      = dec0de00-0006-4000-8000-000000000001
+MAINLINE_SCENARIO_PERMIT_ID  = dec0de00-0006-4000-8000-000000000001
+```
+
+Today the write surface is inert only because of the unrelated `KeyError: 0`. **Fixing
+§0.2 without §0.4 already committed would have opened it.** They must land together.
+
+### 0.5 Cost — the bound the founder has not yet seen
+
+| scenario | 30-day cost |
+|---|---|
+| A judging session | **USD 0.00** (USD 0.0019 without free tier) |
+| `demo-health` hourly cron, 30 days | **USD 0.00** (USD 0.053 without) |
+| Sustained gate-run flood | **~USD 168** |
+| **Sustained egress flood** | **USD 11,515 – 33,472** |
+
+The last row is unbounded by any mechanism that exists on this account. The AWS Budget is
+`My Monthly Cost Budget`, limit **USD 10.00**, actual spend **USD 12.41**, forecast **USD
+32.92** — *the account is already at ~3x its own budget from unrelated projects*, and no
+budget **action** is configured, so the budget notifies and stops nothing. The CockroachDB
+`spend_limit` disables the *database* between roughly day 4 and day 14 of a flood; AWS
+keeps metering while every request returns `500`. The two ceilings are not connected.
+
+All four alarms plan with `alarm_actions = null`. There is no SNS topic, the repository is
+public and holds zero secrets and zero variables, no workflow requests an OIDC token, and
+the account trusts no GitHub OIDC provider. **After the apply the alarms are read by
+exactly one thing: a human signing into the CloudWatch console.** With
+`treat_missing_data = notBreaching`, an idle demo shows four green rows, where green means
+"nobody called this function", not "this function is healthy".
+
+### 0.6 What is genuinely sound — verified, do not re-litigate
+
+This agent re-ran `terraform init -backend=false`, `terraform validate` and a full
+`terraform plan` from an isolated `TF_DATA_DIR`:
+
+```
+Terraform has been successfully initialized!
+Success! The configuration is valid.
+Plan: 11 to add, 0 to change, 0 to destroy.
+```
+
+Compared attribute-by-attribute against `evidence/deploy/terraform-plan-furl.json`:
+**11/11 addresses identical, all `create`, and exactly one attribute differs — the IAM
+policy string, differing only in the account id, which the committed evidence masks.**
+After masking, byte-identical. The committed plan is honest.
+
+* `dsn_access` grants exactly `ssm:GetParameter` on exactly one parameter ARN — no
+  `GetParameters`, no `GetParametersByPath`, no wildcard path — plus `kms:Decrypt`
+  conditioned on both `kms:EncryptionContext:PARAMETER_ARN` and `kms:ViaService`. The
+  `Resource: "*"` on `kms:Decrypt` is *stricter* than naming the key, proven from that
+  key's live policy.
+* No `MAINLINE_DSN` in the planned environment; Terraform is given a *name*. A `validation`
+  block refuses it and the six keys the module sets.
+* No `MAINLINE_DEMO_ALLOW_MUTATION`; the demo-subject guard is armed.
+* `aws_lambda_permission.cloudfront_invoke` is `count = 0` and genuinely absent.
+* No CloudFront, S3, or CockroachDB resource of any kind. Nothing pre-existing is addressed.
+* The DSN appears in no plan, no state, no log, no committed file, and in none of the 48
+  commits. No `mainline_judge` password and no real AWS key either.
+
+### 0.7 The order of operations, if the founder wants a URL
+
+1. Fix `refusal.py:235` (§0.2) — one line, proven.
+2. Set `reserved_concurrent_executions = -1`, drop the concurrency alarm threshold to 8,
+   and correct the "1 000 unreserved" sentence (§0.1).
+3. Accept, in writing, the USD 11.5k–33.5k egress bound — or cap it. There is no mechanism
+   on this account that bounds it today.
+4. Re-plan, re-verify, then apply.
+
+**No worker, and not this agent, may run `terraform apply`.** The apply is the
+orchestrator's.
 
 ---
 
 # 1 · PROVEN
 
-## 1.1 The gate refuses the merge, and the last caveat is gone
+## 1.1 The gate refuses the merge, caveat-free
 
-Run by this agent, `scripts/proof/gate_refusal.py`, against the pinned local v26.2.5
+Run by this agent today, `scripts/proof/gate_refusal.py`, against the pinned local v26.2.5
 node. Verbatim:
 
 ```
-cluster       CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00)
+cluster       CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)
 database      w_qr_gate_refusal_proof
-chain         271/271 applied, 0 failed, 58.197s
+chain         271/271 applied, 0 failed, 51.035s
 reached 0115  True
 unproduced    (none) — every relation this tree references has a producer
-PROJECTION    10/10 held — open_blocking 0->1 — gate_epoch 0->1 —
-              outbox 'check_opened' severity 4 (client supplied 0)
+PROJECTION    10/10 held — open_blocking 0->1 — gate_epoch 0->1 — outbox 'check_opened' severity 4 (client supplied 0)
 REFUSAL       REFUSED [23514] gate_closed_when_issued (reported)
 DRIFT         REFUSED [P0001] mainline.fn_permit_merge_gate (parsed)
 ADMISSION     ADMITTED [00000]
@@ -67,615 +245,313 @@ caveats       (none) — nothing in this run is unproven-but-tolerated
 VERDICT       PROVEN
 ```
 
-Artefact: `evidence/gate-refusal/proof-20260811T074629Z.json`.
+Evidence: `evidence/gate-refusal/proof-20260812T172318Z.json`. **No caveat.** The database
+refuses the merge because an obligation is open, it refuses a hand-rolled bypass of the
+gate function, and it admits the legal path. The severity-4 outbox row while the client
+supplied 0 is the projection asserting itself over caller input.
 
-**`caveats (none)` is the load-bearing line.** Earlier proofs carried an
-`open_blocking` caveat. It is gone: the counter is trigger-projected, and the outbox row
-carries severity 4 while the client supplied 0 — the database overrode the client, which
-is the entire thesis of the project demonstrated in one field.
+## 1.2 The Terraform plan is what it says it is
 
-## 1.2 The claim is falsifiable — I broke it on purpose
+§0.6. 11 to add, 0 to change, 0 to destroy, replayed by this agent and diffed
+attribute-by-attribute to a single masked-account-id difference.
 
-A green that cannot go red proves nothing. Two independent checks:
+## 1.3 Bedrock genuinely executes
 
-**Falsified by this agent.** `scripts/demo/claim_hygiene.py --check` against the
-committed red fixture returned **21 violations and exit 1**; `--self-test` planted 4
-violation families and the scanner fired on all 4.
+Four live calls in `ap-southeast-2`, `calls_failed: []`, each with the AWS request id it
+returned: `sts:GetCallerIdentity`, `bedrock:ListFoundationModels`,
+`bedrock-runtime:InvokeModel` (Titan v2, 1024-d, L2 norm 1.00000006),
+`bedrock-runtime:Converse` (`au.anthropic.claude-haiku-4-5`, `end_turn`). Total probe spend
+USD 0.00006. Evidence: `evidence/deploy/aws-live.json`, `evidence/aws/probe/`.
 
-**The gate's own negative controls ran green today**, in run `31470822444`:
+`cohere.embed-v4:0` is refused on-demand and its only inference profile is
+`global.cohere.embed-v4:0` — a **residency violation**. The in-region answer is
+`cohere.embed-english-v3`. This is disclosed, not worked around.
 
-| job / step | conclusion |
-|---|---|
-| `RED — the proof reports NOT PROVEN when the gate is removed` | success |
-| `RED — the gate refuses a run where nothing was proved` | success |
-| `RED — the proof reports a named FAILURE for every planted family` | success |
+## 1.4 The route table is complete
 
-So the PROVEN in §1.1 is a measurement, not a tautology. `docs/ci/anti-vacuity.md`
-records the full matrix, and it is honest about its own gaps — see §4.3.
+`app._routes()` returns **17** routes, and `POST /v1/demo/gate-run → demo_gate_run` is
+among them. The 404 defect recorded in earlier states is fixed. **Addressable is not the
+same as working** — see §3.1.
 
-## 1.3 AWS genuinely executed — this is the ≥1-service rule, met
+## 1.5 The repository is public and the tree behind the URL is the audited tree
 
-**This agent invoked both models directly**, in `ap-southeast-2`, account
-`0229REDACTED8246`:
-
-| call | result |
-|---|---|
-| `amazon.titan-embed-text-v2:0` | **1024-dimension embedding**, `inputTextTokenCount: 5` |
-| `au.anthropic.claude-haiku-4-5-20251001-v1:0` (Converse) | replied as instructed; **22 in / 14 out**, `stopReason: end_turn` |
-
-The `ValidationException: Operation not allowed` recorded in earlier revisions of this
-document is **gone**. That finding is now stale and is corrected here.
-
-**A second, independent probe corroborates it, and it is the one to cite** because it
-records AWS request ids rather than only outcomes.
-[`evidence/deploy/aws-live.json`](../evidence/deploy/aws-live.json), written by
-`scripts/deploy/aws_live_probe.py` at `2026-08-11T01:11:53Z` against profile
-`mainline-dev` in `ap-southeast-2`, made **four calls and none failed**:
-
-| call | request id | result |
-|---|---|---|
-| `sts:GetCallerIdentity` | `04018eca-8928-459e-92a6-edffe73e34df` | HTTP 200, 339.3 ms |
-| `bedrock:ListFoundationModels` | `d8c940e8-6fa9-44d7-970d-73a5d1e6b792` | HTTP 200, **64 models offered in region** |
-| `bedrock-runtime:InvokeModel` `amazon.titan-embed-text-v2:0` | `b4d826e9-03ba-4368-9687-f00cc28a98ef` | HTTP 200, **1024 dimensions**, L2 norm 1.0, 13 input tokens |
-| `bedrock-runtime:Converse` `au.anthropic.claude-haiku-4-5-20251001-v1:0` | `3c7a283c-9f67-4d98-aa8f-26490d54d32d` | HTTP 200, `stop_reason: end_turn`, 16 in / 8 out |
-
-`calls_attempted: 4`, `calls_failed: []`, `total_seconds: 1.75`, verdict
-**`AWS BEDROCK EXECUTED`**. The whole probe cost well under USD 0.01.
-
-**That artefact names this document by section number, and the number has moved.** Its
-`supersedes` field says *"`docs/STATE-OF-THE-BUILD.md` 3.3 recorded `ValidationException:
-Operation not allowed` for every Bedrock call and concluded that no AWS service had ever
-executed"*. That was true of the revision the probe was written against; the correction
-landed in **§1.3, this section**, before the artefact was read, and §3.3 has since been
-reused for the public-readiness record. Both are stated so a reader following the
-artefact's pointer does not conclude the correction was never made. The artefact's own
-`embedding_note` is worth copying as a habit: it stores dimension, first eight components,
-L2 norm and a SHA-256 of the whole array rather than 1,024 floats, because those four
-values are enough to recognise the vector again and are three orders of magnitude smaller.
-
-**One thing this probe does not prove, and must not be read as proving.** Four Bedrock
-calls in `ap-southeast-2` say nothing about Lambda, CloudFront, S3, KMS, IAM roles or SSM.
-Those remain DESIGNED — `terraform apply` has never been run — and §2.1 is unchanged.
-
-**The vectors are really in the vector-indexed table.** Against the live Cloud cluster
-(`mainline-dev`, `aws-ap-southeast-1`), database `mainline_ann_evidence`:
-
-```
-SHOW INDEXES   ce_ann = (site_id ASC, activity_root ASC, embedding ASC)
-rows           1534, of which 1534 have a non-null embedding
-dimensions     1024
-embed_model    amazon.titan-embed-text-v2:0
-index_gen      titan-v2-1024-8b510425ae1d
-```
-
-**A hinted, prefix-constrained ANN traverses that index and returns the right
-precursor.** This agent ran the committed judge-facing statement
-(`evidence/aws/ann/the-one-query.sql`) and got the recorded result back exactly:
-
-```
-rank 1   FAI-2010-141   msha_fatality_report   2010-06-07   distance 0.494575
-rank 2   FAI-2013-145                          2013-01-22   distance 0.497643
-rank 3   FAI-2017-151                          2017-01-01   distance 0.505576
-```
-
-and its `EXPLAIN`, verbatim:
-
-```
-• vector search
-    table: clause_embedding@ce_ann
-    target count: 10
-    prefix spans: [/'5b144fe2-…-2e3eb31497b6'/'/mill' - /'5b144fe2-…-2e3eb31497b6'/'/mill']
-```
-
-That is the whole claim in one plan: a **`vector search` node**, on **`ce_ann`**, with
-**both prefix columns bound to exactly one value each**, returning the fatality precursor
-that the permit's author could not have had.
-
-**AWS's own telemetry corroborates it independently.** CloudWatch `AWS/Bedrock`
-`Invocations` for the Titan model, queried by this agent:
-
-```
-2026-08-11T12:33 +10:00   Sum = 3330      (the corpus embedding pass)
-2026-08-11T13:33 +10:00   Sum = 1053
-2026-08-11T17:33 +10:00   Sum = 1         (this agent's own probe, minutes earlier)
-```
-
-The last row is this certification's own call, counted by Amazon rather than by us. Three
-AWS services are therefore EXERCISED, not one: **Bedrock Runtime (Converse)**, **Bedrock
-Embeddings (InvokeModel)**, **CloudWatch (GetMetricStatistics)**.
-
-## 1.4 …and the recall number is modest, which the artefacts say plainly
-
-The exhibit above is the **best of 96**, chosen by a rule written down before the numbers
-were seen, and the file says so in its own header. The distribution over all 96 retro
-permits, single-root arm, 95 % Wilson intervals, from
-`evidence/aws/ann/ann-proof.json`:
-
-| metric | measured |
-|---|---|
-| truth precursor hit@1 | **1/96 = 0.010** [0.002, 0.057] |
-| truth precursor hit@3 | 5/96 = 0.052 [0.022, 0.116] |
-| truth precursor hit@10 | **29/96 = 0.302** [0.219, 0.400] |
-| any relevant (grade ≥ 2) hit@10 | 74/96 = 0.771 [0.677, 0.844] |
-| MRR (any relevant) | 0.4439 |
-
-**Say "in the top ten, three times in ten" and never "it finds the precursor."** The
-retrieval is a useful assistant and a poor oracle. The artefact carries eight caveats
-including the two that cost it most — the corpus is synthetic, and GT-06's counterfactual
-did **not** reproduce (the optimizer chose `ce_ann` unhinted too at every size swept, so
-the hint is defensible as a *pin* but cannot be called *necessary* at this scale). Those
-caveats are the reason to trust the rest.
-
-## 1.5 CockroachDB usage clears the bar, well past it
-
-From `evidence/tool-usage/crdb-features.json`, re-derived from the tree today
-(14 rows: 11 EXERCISED, 3 DESIGNED):
-
-**Tools — 2 of 4 exercised** (the rule needs ≥ 2): `crdb_database` (the cluster itself),
-`crdb_cloud_ccloud` (CLI, transcript in `evidence/ccloud/`). `crdb_managed_mcp` and
-`crdb_agent_skills` are DESIGNED and honestly labelled.
-
-**Features — 9 exercised**, and they are not decorative: `SERIALIZABLE`, triggers, CHECK
-constraints, **vector index (C-SPANN)**, `AS OF SYSTEM TIME`, follower reads, row-level
-security, `SHOW CREATE`, `crdb_internal`. Changefeeds are DESIGNED, not claimed.
-
-## 1.6 Static gates that genuinely pass
-
-`claims`, `judge-pack`, `release-proof`, `supply-chain`, `boundary`, `submission` — see
-the board in §4. `boundary` is 121 passed / 6 skipped locally, and every skip **declares
-itself NOT A PASS** rather than counting as one.
+`github.com/Shaugato/mainline`, `visibility: PUBLIC`, Apache-2.0 resolved independently by
+GitHub. This agent scanned every tracked file and every new artefact in this commit: **zero
+occurrences of the real 12-digit account id**, zero real credentials. All DSN and password
+strings in the new verification artefacts are placeholders or `***`-redacted.
 
 ---
 
 # 2 · BUILT-BUT-UNPROVEN
 
-## 2.1 The demo application — written, complete, and never successfully run
-
-`verticals/mainline/apps/demo-api` and the console exist in full. The Terraform is
-written, `init`/`validate`/`plan` were run, and the plan output is committed
-(`evidence/deploy/terraform-plan-furl.txt`, `…-furl.json`,
-`…-cloudfront.txt`). **`terraform apply` has never been run** — correctly, since it is
-reserved for the founder's approval.
-
-This agent verified the consequence directly against AWS rather than inferring it:
-
-```
-aws lambda list-functions  ap-southeast-2  ->  cci-chage-enricher   (an unrelated project)
-aws lambda list-functions  ap-southeast-1  ->  (none)
-aws s3api list-buckets                     ->  no MAINLINE bucket
-```
-
-**There is no MAINLINE Lambda, no Function URL, no site bucket, in any region.** The
-`demo_url` field in `docs/submission/SUBMISSION.json` holds `UNRESOLVED`, and that is the
-truthful value. No URL is claimed anywhere in this document because none answers.
-
-## 2.2 The video — script yes, film no
-
-`docs/submission/VIDEO-KIT.md` holds the script, shot list and seeded state. The film
-does not exist. **Only the founder can record it**; no agent may.
-
-## 2.3 Judge access without a deployment
-
-`verticals/mainline/demo/judge/MCP-CONFIG.md` documents two paths for a judge to read the
-live Cloud ledger. It is correctly written — credentials are `${ENV}` interpolations, and
-the page states plainly that the published key is not the one handed out. It is unproven
-only because no judge has walked it.
+* **The deployed stack.** Eleven resources planned, none created. `terraform apply` has
+  never run. There is no MAINLINE Lambda, Function URL, log group, alarm or dashboard in
+  the account.
+* **The state backend.** `bootstrap_state.sh` is written and correct; the bucket
+  `mainline-demo-tfstate-*` does not exist, so `terraform init` with the S3 backend fails
+  until it runs. The committed plan was produced with `-backend=false`, which is documented.
+* **The SSM SecureString.** No parameter exists under `/mainline/`. A bare apply yields a
+  function that answers `503 dsn_unset`.
+* **The end-to-end acceptance transcript.** `evidence/deploy/acceptance.json` reads `NOT
+  PROVEN`: both gate runs returned `500 KeyError: 0`. Nothing in that file was relaxed to
+  reach a green, which is the correct behaviour.
+* **The unwelding matrix and the gate-source snapshot comparison.** Both are collateral of
+  §3.3 — they do not run at all while the reference vertical's producers are absent, so
+  their subjects are UNPROVEN, not failing. The `schema` lane says so in its own words.
 
 ---
 
 # 3 · BROKEN
 
-## 3.1 The demo API's own gate run reports NOT PROVEN
+## 3.1 `POST /v1/demo/gate-run` returns `500` — the headline beat
 
-This is the most important entry in this document after §1.
+`refusal.py:235`, `KeyError: 0`. Full detail and the proven fix in §0.2. **This is the
+single highest-value line of code in the repository right now.** Owner: unassigned.
 
-`verticals/mainline/apps/demo-api` fails 7 of its own tests. Run by this agent:
+## 3.2 The canonicaliser has drifted from its pin
 
-```
-AssertionError: ["beat 4 (admit): expected {'outcome': 'admitted', 'sqlstate': '00000'},
-                  observed outcome='skipped'"]
-assert 'NOT PROVEN' == 'PROVEN'
-```
+`packages/trappoint-jcs/src/trappoint_jcs/canon_v1.py` hashes to `d09036a8…`; the registry
+and the committed reference bundle pin `260ed37d…`. This is **real drift the mechanism
+caught**, and it is the dominant cause of the `ci` lane's failures — roughly eight of the
+seventeen failing tests are this one fact, seen from eight angles:
+`test_canonicaliser_registry_is_pinned_and_retained`, `test_verifier_determinism`,
+`test_canon_identity`, `test_canon_identity_refuses_a_downgraded_canon_line`,
+`test_checkpoint_body`, and three in `test_no_network.py`.
 
-`evidence/deploy/acceptance.json` names both causes precisely, and both are real:
+`trappoint-verify` on the committed bundle now reports `16 checks | 8 passed | 1 failed |
+7 not checked`, exit 1 — moved from exit 2. `docs/HONESTY.md` records this against its own
+census rather than absorbing it, which is the correct handling. The repair is owed by the
+custody domain.
 
-1. **`mainline_demo_api/db.py:309` opens every connection with `row_factory=dict_row`**,
-   which `reads.py` and `health.py` rely on — but `gate_run.py:272` and
-   `scenario.py:283` unpack the same rows **positionally**. Through the app's own
-   connection `scenario.resolve()` binds the string `'check_id'` as a UUID and
-   CockroachDB answers `22P02`.
-2. **Two derivations of one identifier.** `gate_run.py` derives
-   `signer_credential_id` as `sha256('cred' + 'signer')`; `demo_world.sql` seeds
-   `digest('mainline-demo/credential/demo.signer', 'sha256')`. Beat 4 is refused
-   `23503 disposition_signer_credential_id_fkey`.
+## 3.3 The reference vertical cannot be applied
 
-**Nothing was relaxed to hide this.** It means the demo, if deployed today, would serve a
-gate run that says NOT PROVEN. **Fixing this is the single highest-value piece of
-engineering left**, because it stands between a working demo URL and the submission.
+`trappoint_ref.clause` and `trappoint_ref.event` are referenced by the rendered SQL and
+created by no file in it. `trappoint migrate up --tree trappoint-ref` refuses at
+`0058_blocking_check` with `42P01`. This is the same defect class as the seven unproduced
+tables, **in the package that is supposed to be the forkable half**. The `schema` lane is
+red for exactly this and refuses to be closed by narrowing the matrix, skipping the job or
+dropping the foreign key. See §4.2 — this is the model red.
 
-## 3.2 Four defects this certification found and fixed
+## 3.4 The migration manifest is stale
 
-Recorded because a wave that leaves defects behind will leave more.
+`packages/trappoint-migrate/tests/test_lockfile.py::test_the_committed_manifest_is_current`
+fails: several files' `sha256` in the manifest disagree with the tree. Fix is mechanical —
+`trappoint migrate lock --write`. This is also the whole of the `db-schema` red.
 
-**The entire test suite was unrunnable.** `tests/unit/aws/` and `tests/integration/aws/`
-both carried `__init__.py`, so both claimed the top-level module name `aws`. The second
-to import lost, and collection **aborted**:
+## 3.5 `submission.yml` carries four steps that cannot fail the lane, and the repo bans that
 
-```
-ModuleNotFoundError: No module named 'aws.test_common_redaction'
-```
+Verified by this agent at `.github/workflows/submission.yml:148,155,172,176` — three
+`continue-on-error: true` and one `|| true`. Two are load-bearing in a way a downstream
+decision step makes safe. **`The machine record` carries `continue-on-error: true` *and*
+`|| true` on the same command and cannot fail under any input.** It is unfalsifiable by
+construction, which is precisely what the standing discipline forbids. It should drop its
+suppression or be merged into the step that already asserts something.
 
-A collection error stops the whole run, so all 9,281 collected tests went unmeasured.
-Fixed at the cause. **Collection today: 9,324 tests, 0 errors.** The committed census
-could not have caught this — it runs each target in a separate process, and its own
-caveat list says cross-target basename collisions are "NOT measured here."
+## 3.6 Four `mypy` errors and a ruff-format regression
 
-**An A6 violation the previous wave recorded as a false positive.**
-`scripts/deploy/aws_live_probe.py` set `temperature: 0.0` beside `maxTokens` in a Converse
-request builder. It was a true finding. Removed: it reads as a promise that a model reply
-is reproducible, which this project does not claim.
+`packages/trappoint-recall/src/trappoint_recall/eval/bedrock_backend.py:1152,1153,1171,1172`
+— `Found 4 errors in 1 file (checked 661 source files)`. The ruff ratchet reports **9
+regressions**. Both were introduced by this wave's edits and both are mechanical.
 
-**A determinism-boundary breach (E3).**
-`trappoint_recall.eval.bedrock_backend` constructed its own
-`boto3.client("bedrock-runtime")`. `packages/trappoint-*` **is** the kernel plane — the
-plane that must hold no model code path so a model cannot reach the gate — and the
-module's own design note already said the package declares no AWS SDK. The kernel now
-declares the protocol; the AWS plane supplies the transport. The removed branch was dead
-on the live path.
+## 3.7 `health` reports `migrations_applied: 0`
 
-**A hard-gate licence breach, and a ratchet that had risen.**
-`evidence/deploy/lambda-bundle.json` spelled the SPDX tag out in prose; ending a sentence,
-the full stop was read as part of the identifier, so the tree declared a fifth licence
-`CC-BY-4.0.` that no file in `LICENSES/` defines. Separately,
-`non_spdx_spelling.FSL-1.1-ALv2` had risen **1213 → 1254**: 44 files added since
-2026-08-10 carried the non-conforming spelling that ruling L-1 exists to prevent. Those
-44 — and only those — now carry `LicenseRef-`. **No baseline was lowered**: the measure
-is 1210 against a floor of 1213, and `check_reuse.py` exits 0 over 7,402 tracked files.
-
-## 3.3 The repository was not safe to flip public — a record of what was true, and when
-
-**This section was titled "The repository is not safe to flip public yet" and it is
-superseded. The repository has been PUBLIC since `2026-08-11`.** It is rewritten rather
-than deleted for two reasons: the movement is part of the evidence, and the findings it
-enumerates did not go away when the flip happened — **a public repository still owes its
-readers a disclosure register**, and this is where the register's headline lives.
-
-### What it said, and on what date
-
-On `2026-08-11`, at `ead0f7c` and earlier, `scripts/submission/audit_public_readiness.py`
-printed:
-
-```
-VERDICT: NOT READY — failing checks: secrets_tracked, secrets_history, absolute_paths
-```
-
-122 unresolved findings. **That red was correct, it was acted on, and it went green before
-the flip** — the flip-time reading was `8 checks, 7 PASS, 1 INFO, 0 FAIL; 0 unresolved,
-77 allowlisted, 92 disclosed`, and `docs/submission/PUBLIC-FLIP-CHECKLIST.md` is the ticked
-list. The account id was masked at `HEAD` (84 occurrences across 13 files) beforehand.
-
-### The findings themselves, which the flip did not retract
-
-They are a **disclosure register**, not a blocker, and they are now permanent:
-
-| what | flip-time disposition | still true today |
-|---|---|---|
-| the AWS account id in `evidence/deploy/` plan files | masked at `HEAD`; kept in six documentation files as recorded evidence, declared per path | yes — §5.1 is the decision, and it can no longer be reversed |
-| the same id in commits `5ddaa3a` and `e518787` | **Option A: accepted in writing**, fourteen `history-already-pushed` register entries; `git filter-repo` refused | yes — permanently readable via `git log -p` |
-| `aws_access_key_id` shapes | the redaction **test vectors** and the `AKIA…EXAMPLE` id AWS prints in its own public documentation. Not credentials | yes |
-| `high_entropy_secret` | cluster ids, model ids and `${ENV}` names; `MCP-CONFIG.md` inspected and clean | yes |
-| `abs_windows_path` | directory layout, plus **9 files disclosing the Windows account name `shaug`** — chiefly `qa/test-state.json` (52 pytest temp paths) | yes — still exactly nine files |
-
-**No live credential was found in the tracked tree or in history, then or now.** The
-`bearer_or_jwt` family returns zero unresolved findings over 7,402 tracked files and
-1,010,052 added lines. No GitHub token, no Slack token, no CockroachDB Cloud API key, and
-no private key outside the deliberately published `NOT-SECRET` set.
-
-### Where the register stands on 2026-08-12, one day after the flip
-
-The audit now has a **post-flip mode** — the same eight checks, the same detectors, the
-same findings, reported as a standing register in which every finding carries a disposition
-(`repaired`, `recorded-not-repaired`, `waived-with-reason`, `undisposed`) instead of a
-verdict. Its detector fingerprint is unchanged at `9cdd7b45…`, which is what proves the
-mode did not buy its report by widening anything.
-
-```
-$ python scripts/submission/audit_public_readiness.py | grep -A1 'finding(s), every'
-214 finding(s), every one of them carried over from the checks above:
-  repaired                  23   recorded-not-repaired  57
-  waived-with-reason        80   undisposed             54
-$ echo $?
-3
-```
-
-**54 findings are undisposed and that is red.** They accumulated in files that landed during
-the completion wave, none is a credential, and they are enumerated by owning domain in
-`docs/submission/PUBLIC-READINESS.md` §1.9. Exit `3` means *this register is incomplete*,
-deliberately not `1`, because `1` meant *do not flip* and that sentence has no referent now.
-
-**One measurement changed direction when the flip happened.** The pre-flip audit counted
-what would be published with `git log --all` — the conservative choice while the act was
-still ahead, since it can only over-count. After the flip it is the wrong instrument:
-`--all` on this workstation reaches **113 commits over 67 refs**, of which **61 commits on
-56 local branches were never pushed**. What a visitor can read is **52 commits over 4
-branches, 47 of them on `master`**.
+Measured by this agent on a seeded local database, and independently by a worker read-only
+against Cloud `mainline_demo`: `trappoint.schema_migration` is **empty**, so `/v1/health`
+answers `200` with `migrations_applied: 0` while the submission and `health.py`'s own
+docstring say 271. `ok` stays `true` because it keys on the fingerprint. **A judge will
+read that zero.** Nobody owns this number.
 
 ---
 
-# 4 · The CI board, measured
+# 4 · CI — every workflow's real conclusion
 
-Pushed to `master` and observed. Commits: `6251c6e` (the wave), `56e3d92` (four
-cause-fixes), `f3125ac` (boundary lint), `b0fe884` (REUSE / actionlint / format),
-`27ac8aa` (this document), `57c477c` (the HONESTY.md ruff paragraph).
+Measured on commit `f50efde`, pushed by this agent, `gh run list --branch master`.
+**13 push-triggered workflows: 7 green, 6 red.** Plus the scheduled `demo-health`, red.
 
-**The board below is `b0fe884`, the last commit on which all 13 workflows ran to
-completion.** Two later runs are not usable as evidence: on `57c477c` three `ci` gate
-jobs failed **in 2 seconds with zero steps executed** — a runner-allocation failure, not
-a repository failure — and a re-run reproduced it. Nothing is claimed from those runs in
-either direction.
+| workflow | conclusion | class | why |
+|---|---|---|---|
+| `claims` | **success** | | |
+| `supply-chain` | **success** | | |
+| `judge-pack` | **success** | | |
+| `submission` | **success** | see §4.3 | green here does **not** mean ready |
+| `skills` | **success** | | |
+| `release-proof` | **success** | | |
+| `boundary` | **success** | | the A6 grep false positive is fixed |
+| `ci` | **failure** | mixed | §4.1 |
+| `db` | **failure** | fixable | 17 files use a floating image tag instead of the census pin |
+| `db-schema` | **failure** | fixable | §3.4, `trappoint migrate lock --write` |
+| `aws-evidence` | **failure** | **fixable — false positive** | §4.4 |
+| `custody-chain` | **failure** | **intentional-and-precise** | checks 8, 11, 12 (`archive_object`, `ga…`, `webauthn`) unimplemented; 7/16 |
+| `schema` | **failure** | **intentional-and-precise** | §3.3 — the model red |
+| `demo-health` (cron) | **failure** | **intentional-and-precise** | there is no demo; `demo_url` is `UNRESOLVED` |
 
-## 4.1 Green — 6 of the 13 workflows that ran on `b0fe884`
+This is a real improvement on the previous board of ~7 green / ~10 red, and the
+improvement is in *causes fixed*, not thresholds moved.
 
-`judge-pack` · `submission` · `boundary` · `supply-chain` · `release-proof` · `console`
+## 4.1 Inside `ci`
 
-(`claims` is green too, on `6251c6e`; its path filter did not re-trigger it.)
+`17 failed, 8455 passed, 839 skipped, 13 deselected` in 318s. Job-level: `actionlint`,
+`import-linter`, `lockfile`, `REUSE`, `RED BY DESIGN`, `sequence ban` all green; `PL-2`,
+`mypy`, `ruff format`, `pytest --crdb=none` red.
 
-`boundary` and `submission` were **red before this pass and are green now** for real
-reasons, not relaxations: an A6 violation and an E3 breach removed, two ruff findings
-paid, and a licence ratchet returned below its floor without the floor being touched.
+* ~8 failures: the canonicaliser drift (§3.2) — **one cause**.
+* `ruff_ratchet`: 9 regressions (§3.6) — fixable.
+* `test_lockfile` (§3.4) — fixable.
+* `test_live_cassettes`: a recorded body no longer hashes to its index row — fixable.
+* `test_dm9_the_closure_is_read_only_through_the_view`: a file outside the three permitted
+  ones touches `mainline.clause_blame_closure` in an executable position — **a real
+  architectural violation**, not cosmetic.
+* `test_k2_4/5/6`: missing artefacts and a missing `spec/CHANGELOG.md` entry — genuine
+  incompleteness, correctly red.
 
-**`submission` green does not mean the submission is ready.** Its readiness gate is
-**report-only until `2026-08-15T21:00:00Z`**, after which it blocks. On that date the
-`UNRESOLVED` rows in §5 start failing CI.
+**The `RED_SELECTOR` defect is fixed.** `pl2_red` is now registered and applied — 13 tests
+collected by `-m "g4alpha or pl2_red"`, 9240 deselected, and the `RED BY DESIGN` job is
+**green**, meaning the intentionally-red tests are red in their own lane and no longer
+indistinguishable from regressions inside the general lane. That was the single worst CI
+defect in the previous state and it is gone.
 
-## 4.2 Red, and correct to be red
+**The MI ratchet number is corrected.** This agent ran `scripts/mi_ratchet.py`:
+`21 pending / 9 enforced`. The stale `28 of 30` string is corrected in `ci.yml:690` and
+`docs/CI-STATE.md:352,561`; it survives only in superseded planning documents. The red
+stays red, with the right number.
 
-| lane | why | verdict |
-|---|---|---|
-| `aws-evidence` | 90 findings, **all** the undeclared account id of §5.1 | INTENTIONAL, and precise |
-| `custody-chain` | 7 of 16 custody checks unimplemented | INTENTIONAL |
-| `schema` | the reference vertical is missing a producer | INTENTIONAL |
-| `demo-health` | no demo is deployed | INTENTIONAL — it is reporting §2.1 |
-| `g4alpha` gates | retro-recall 0/24 on the offline fixture corpus; channel C only, with B and D absent by construction | INTENTIONAL |
-| MI ratchet | **21 of 30 invariants pending, 9 enforced** — this row said 28/30 and was seven invariants out of date | INTENTIONAL — the top-level incompleteness counter, and the red **stays** |
-| `db`, `db-schema` | image-pin census, and a helper hand-listing migrations that omits 0110 and drops `0138a` because `"0138a".isdigit()` is False | **STILL FIXABLE** |
-| `ci` | 4 of 12 jobs (was 5; `actionlint` and `REUSE` fixed here) | **MIXED — see below** |
+## 4.2 What an intentional red should look like
 
-Inside `ci`, the four remaining red jobs are not one thing:
+The `schema` lane is the standard. It names the missing producers, states *"what it is NOT:
+a CI defect. It must not be closed by narrowing the matrix, skipping the job or dropping
+the foreign key"*, explains that a live database can only ever surface the *first* missing
+producer because `migrate up` stops at its first refusal, and declares that the static scan
+is the only reader in the repository that can name the second. It then marks the two
+downstream jobs as **collateral — UNPROVEN, not failing**. That is a red doing work.
 
-* **`pytest --crdb=none`** — inherits the custody K2 reds above (missing
-  `evidence/k2-checkpoint-cadence.json`, an unpinned canonicaliser hash, a DM-9
-  violation). Same true incompleteness, surfacing in a second lane. INTENTIONAL.
-* **`PL-2 — the red run is recorded`** and **`mypy · and the target list is complete`** —
-  fixable, not examined in depth here. `mypy`'s gate is known to cover a small fraction
-  of what mypy could check, which is itself the finding.
-* **`ruff format`** — **half fixed, and the remaining half is a true red.** The formatter
-  count went 7 files → 1 → **0 on the runner**: that half is done. But the same job's
-  ratchet step reports `ruff check .` at **732 findings against a frozen floor of 671**,
-  so the lint total has *risen* and `scripts/qa/ruff_ratchet.py` refuses the tree. **The
-  floor was deliberately not re-frozen upward** — that is the one move that would silence
-  a ratchet — so this lane stays red until the added findings are removed.
+## 4.3 A green that must not be misread
 
-## 4.3 Anti-vacuity — the honest gaps
+`submission` is **green**, and the submission is **not ready**. The readiness job is
+*designed* not to fail before `2026-08-15T21:00:00Z`. `SUBMISSION.json` still holds
+`UNRESOLVED` for **`demo_url` and `video_url`** — this agent read the file; `judge_access`
+is resolved — and the gate itself exits 1 saying so. Between now and D-3 a green tick on
+this lane carries no information about readiness. After D-3 it becomes blocking.
 
-`docs/ci/anti-vacuity.md` records which lanes prove they can fail. Verified green on real
-runs: `claims`, `judge-pack`, `console`, `release-proof`, `skills`, `supply-chain`,
-`cloud-verify`.
+## 4.4 `aws-evidence` is red on a false positive — and it is poisoning an anti-vacuity job
 
-**Greens this agent could not falsify, and will not pretend it could:** `ci`, `db`,
-`db-schema`, `custody-chain`, `schema`, `nightly-differential` have **no** negative
-control; `boundary` has only a partial one; `submission`'s was never examined. A green
-from those six lanes is weaker evidence than a green from the seven above, and that
-difference should be assumed until someone plants a violation in them.
+The `SEC-ACCOUNT-ID` invariant flags any bare 12-digit number. It is firing on
+`evidence/deploy/verify/aws-quota-and-cost.json:30`:
 
-## 4.4 The board re-measured on 2026-08-12, at `1d41442`
+```
+"AccountLimit.TotalCodeSize": 322122547200
+```
 
-`gh run list --branch master --limit 120`, latest run per workflow. **8 green, 10 red.**
+That is 300 GiB in bytes — Lambda's code-storage quota, read straight from
+`get-account-settings`. It is not an account id. The previous run failed the same way on
+`999999999999`, an obvious placeholder. The invariant cannot distinguish a byte count from
+an account number.
 
-Green: `boundary` · `claims` · `console` · `judge-pack` · `mutation-ratchet` ·
-`release-proof` · `skills` · **`submission`**.
-
-`submission` is the movement worth naming: its only remaining red was the licence-spelling
-ratchet, and `python scripts/qa/check_reuse.py` now exits 0 — `7402 tracked files, 0
-uncovered, 4 licence texts, no counted number rose`, with `FSL-1.1-ALv2` at 1213 against a
-floor of 1213. **No baseline was lowered; the migration closed the gap.**
-
-**Two of the ten reds assert nothing about this repository**, and a judge reading the
-Actions tab cannot see that without opening the logs. `supply-chain` and nine of `ci`'s
-twelve jobs died in `astral-sh/setup-uv` on `connect ECONNREFUSED 54.185.253.63:443`, and
-`ci`'s `actionlint` job on `curl: (7) Failed to connect to
-release-assets.githubusercontent.com`. `db`'s single failing job died the same way. Those
-are runner-network failures; nothing is claimed from them in either direction, which is the
-same discipline §4 applied to the two-second gate-job failures on `57c477c`.
-
-The remaining reds report real conditions and are covered in §4.2 and `docs/CI-STATE.md`.
-**No `ci` run on `master` since `47f8aa2` has produced a usable measurement of this
-repository** — the two runs before this one failed at the `checkers` gate with everything
-after it skipped. That is the honest state of the `ci` lane and it is worth more than a
-colour.
+The consequence is worse than one red lane. The same workflow's mutation-testing job
+reports `FAMILY red-for-the-wrong-reason: an unmutated copy of evidence/ already fails, so
+every plant below would be red for a reason that is not its plant`. **While the baseline is
+red, the anti-vacuity job in `aws-evidence` proves nothing.** Fix the checker (an allowlist
+for quota-shaped integers, or compare against the account-id *format* in context), not the
+evidence.
 
 ---
 
-# 5 · Rules-compliance matrix
+# 5 · ANTI-VACUITY — which greens are falsifiable
 
-| requirement | status | evidence / what is missing |
-|---|---|---|
-| New project inside the window | **MET** | first commit 2026-08-05 |
-| OSS licence | **MET** | `LICENSE` (Apache-2.0) + `LICENSES/`; `check_reuse.py` exits 0 over 7,402 files, 0 uncovered |
-| **Public repository** | **MET** | flipped `2026-08-11`. `gh repo view Shaugato/mainline --json visibility` → `{"visibility":"PUBLIC"}`; signed-out `curl -sI` → `HTTP/1.1 200 OK`. 52 commits over 4 branches published; the standing disclosure register is §3.3 |
-| **URL to a functional demo, free and unrestricted** | **UNMET** | no Lambda, no bucket, in any region (§2.1); and the app would answer NOT PROVEN if deployed (§3.1) |
-| Text description | **MET** | `docs/submission/DEVPOST.md` |
-| **Video < 3 min** | **UNMET** | script and shot list ready; **founder must record it** |
-| ≥ 2 CockroachDB tools | **MET** | 2 tools + 9 features EXERCISED (§1.5) |
-| **≥ 1 AWS service** | **MET, PROVEN** | 3 services exercised; Bedrock vectors in a C-SPANN index; CloudWatch corroborates independently (§1.3) |
-| Documentation of which tools/services and **how** | **MET** | `docs/TOOL-USAGE.md` + machine census in `evidence/tool-usage/`, anchors re-derived today |
+Three workers planted defects and checked that the lane went red for *that* defect.
 
-## 5.1 One judgement call only the founder can make
+| audit | result |
+|---|---|
+| `w9-judge-release-skills-console` | **26 promises tested, 21 falsified with a named red, 5 could not be** — 2 of those 5 *proved unfalsifiable*, with a run id |
+| `w8-claims-boundary-submission` | every tested promise **falsified for the planted reason**; one step found unfalsifiable by construction (§3.5) |
+| `w10-ci-supplychain-mutation` | declared reds confirmed still red; one control found unfalsifiable by construction and disclosed |
 
-**Four files under `evidence/deploy/` publish the AWS account id `0229REDACTED8246`**, in
-bare form and inside ARNs. Two committed artefacts currently disagree about whether that
-is acceptable:
+**Proven falsifiable** (a planted defect made them red, for the planted reason): the claims
+gate, the boundary invariants, the submission readiness gate's blocking half, the release
+proof, the skills lane, the console build, the supply-chain assertions, and — notably — the
+gate proof itself: removing the gate turns `VERDICT PROVEN` into `VERDICT NOT PROVEN` with
+the failing clause named, *and* the standing negative control notices its anchor has gone
+and refuses to report a vacuous pass. That is the strongest single result in this audit.
 
-* `docs/deploy/terraform-plan.md` and decision **D2** say publication is deliberate: "an
-  account id is an identifier, not a credential."
-* `scripts/aws/verify_evidence.py` refuses it: "an account number is not a credential, and
-  publishing one still enables cross-account enumeration."
+**Could not be falsified**, each disclosed rather than counted as a pass:
 
-**D2 is a worker's decision, not the founder's**, and D2's own rule is that recorded
-evidence may keep the value **only if declared per-path** in
-`docs/submission/DISCLOSURE-DECISIONS.yaml`. When this section was written those four files
-were **not declared there**, so the `aws-evidence` red was correct under the project's own
-ruling and this agent deliberately did not grant the exemption.
-
-### 5.2 How it was settled, on 2026-08-11, before the flip
-
-**Both resolutions were used, on different files.** Where the id was an *executable
-default* it was **redacted** — `EXPECTED_ACCOUNT` in `deploy.sh`, variable defaults in
-`variables.tf`, the S3 `backend-config` example, an interpolated bucket name — and the value
-is now derived at run time from `aws sts get-caller-identity`. Where it is *recorded
-evidence* it was **declared**: six paths, granted per path with a class, a date, a decider
-and a reason, because a redacted transcript is not a transcript and a refusal with the
-account elided cannot be matched against an AWS support case. The founder ratified both at
-`PUBLIC-FLIP-CHECKLIST.md` item 8.
-
-**The history half was settled as Option A, in writing.** The id is in commits `5ddaa3a`
-and `e518787`, both already on `origin/master`. Fourteen `history-already-pushed` register
-entries accept it rather than rewriting shared history, because `git filter-repo
---replace-text` plus a force-push would invalidate every commit SHA this repository's own
-evidence artefacts cite, in order to hide a value that is not a credential.
-
-**This is no longer reversible. It was settled before the flip, and the flip has happened.**
-
-### 5.3 The mask is itself a finding, and the disagreement is left standing
-
-`aws-evidence` is still red, and its message is now about the *replacement*:
-
-```
-[SEC-ACCOUNT-ID] evidence/deploy/deploy-dry-run.json:409: a bare 12-digit run
-'999999999999' survives UUID/digest/decimal masking and has the shape of an AWS
-account id
-```
-
-`scripts/submission/audit_public_readiness.py` flags the same shape in
-`evidence/deploy/terraform-plan-furl.json`, where the mask is `000000000000`. Two checkers
-disagree about whether twelve identical digits is a mask or a value. Both positions are
-defensible; **neither was silenced to buy a green**, and recording the disagreement in a
-document that owns neither checker is cheaper and more honest than picking a winner.
+* `submission.yml`'s `The machine record` — `continue-on-error` **and** `|| true` (§3.5).
+* The `green`/`envelope` step in the judge pack — recorded as a finding, not a pass.
+* The image-pin assertion — not falsifiable *in the direction that matters*: it would catch
+  a pin that failed to arrive, but not a pin that was wrong when requested.
+* `claims`' honesty card — falsifiable against the **fixture** corpus and falsified there;
+  the real-corpus promise cannot be tested until `corpus.lock.json` is frozen. Today
+  `gen_card.py` prints `BUILT FROM A FIXTURE — not for camera`.
+* `aws-evidence`'s mutation family — vacuous today for the reason in §4.4.
 
 ---
 
-# 6 · The top three things to do next, in order
+# 6 · RULES MATRIX
 
-## 1 — Fix the demo API, then deploy *(engineering, then founder)*
+| # | Rule | Verdict | Evidence / what is missing |
+|---|---|---|---|
+| **R1** | Public repo, open-source licence | **MET** | `visibility: PUBLIC`; `LICENSE` tracked, Apache-2.0 resolved by GitHub independently; `origin/master...HEAD` is `0 0` |
+| **R2** | URL to a functional demo, free and unrestricted | **UNMET** | `demo_url` is `UNRESOLVED`. Both halves open: **the origin does not exist** (`apply` never run) and **the app does not answer** (§0.2, `500`). The access half *is* solved — judge credentials and pack exist |
+| **R3** | Text description of features | **MET** | `docs/submission/DEVPOST.md`, 40 515 bytes, 6 175 words; prose gate reports 0 violations in this file |
+| **R4** | Demo video under three minutes | **UNMET** | `video_url` is `UNRESOLVED`. Kit, VO, shot list and a CI validator for the 3-minute budget all exist. **Nothing in this repository can resolve this row** |
+| **R5** | New project, inside the submission window | **MET** | First commit `f80fefd`, authored *and* committed `2026-08-05T22:47:47+10:00`; all commits pass on both dates |
+| **R6** | ≥2 CockroachDB tools | **MET** — floor 2, three exercised | The database (v26.2.5, real refusal on a real cluster), CockroachDB Cloud + `ccloud`, the Managed MCP Server (15/16 pack questions PASS). Agent Skills reads DESIGNED and is not counted |
+| **R7** | ≥1 AWS service | **MET** | Bedrock executes, `ap-southeast-2`, four HTTP 200s with request ids (§1.3) |
+| **R8** | Documentation of which tools/services and how | **MET, regeneration owed** | `docs/TOOL-USAGE.md`, 80 819 bytes; 21/21 cited artefacts present on disk. `capture_tool_evidence.py --check` exits 1 on a stale `files_scanned` count — a regeneration owed, not a false claim |
 
-**Step 3 of this list — flip public — was done on `2026-08-11`** and is struck from it.
-52 commits over 4 branches are published; §3.3 is the standing disclosure register.
-
-The order still matters: deploying the app in its current state produces a demo URL that
-says **NOT PROVEN**, which is worse than no URL.
-
-1. **Engineering:** fix the two defects in §3.1. Both are small and both are named down to
-   the line — one `row_factory` mismatch, one identifier derived two ways. This is
-   measured in hours, not days.
-2. **Founder:** review the committed plan and approve `terraform apply`. The design costs
-   ≈ USD 0.03/month; the ceiling is USD 5.
-3. ~~**Founder:** settle §5.1, clear the `abs_windows_path` username disclosures, then flip
-   public.~~ **DONE 2026-08-11.** §5.1 was settled (§5.2); the username disclosures were
-   *recorded, not repaired*, which is a decision and not an omission. What remains is the
-   54 undisposed findings that accumulated after the flip — hygiene, not a blocker, listed
-   by owning domain in `docs/submission/PUBLIC-READINESS.md` §1.9.
-
-## 2 — Record the video *(founder only)*
-
-`docs/submission/VIDEO-KIT.md` has the script and the shot list. Two constraints from the
-evidence: do **not** promise the AWS FIS game-day (specified, unrun), and describe recall
-as *"in the top ten, three times in ten"* — never as *"it finds the precursor"* (§1.4).
-The gate refusal is the moment worth filming; it is the one thing here that is
-unambiguously proven.
-
-## 3 — Close the remaining fixable reds *(engineering)*
-
-`db` and `db-schema` are the only reds left that are neither intentional nor a founder
-decision. The `db-schema` cause is already diagnosed: a test helper hand-lists a migration
-subset that omits `0110` — the producer of `fn_candidate_project()` — and silently drops
-`0138a` because `"0138a".isdigit()` is False. Everything else red in §4.2 should **stay**
-red until the thing it reports is actually built.
+**Six MET, two UNMET.** Only R2 is a Stage One pass/fail. R2 is now the *only* rule
+blocked by engineering, and §0.2 is the whole of that engineering.
 
 ---
 
-# 7 · Appendix — the test census, both ways
+# 7 · THE FOUNDER'S NEXT ACTIONS
 
-The two methods disagree, and the disagreement is the finding.
+## 7.1 Only he can do these
 
-**Whole suite, one process, measured today after the §3.2 fix:**
+1. **Record the video (R4).** The kit is complete: VO, timings, seeded state, shot list,
+   and the sentences that may not be said on camera. A CI validator already fails the build
+   if the script drifts past three minutes. Nothing else in the repository can move this row.
+2. **Decide the egress exposure (§0.5).** A sustained egress flood against a public,
+   unauthenticated Function URL costs **USD 11,515–33,472 over 30 days**, and no mechanism
+   on this account bounds it. The account is already at ~3x its own USD 10 budget. Either
+   accept that number explicitly, or ask for a cap before the apply.
+3. **Authorise the corrected plan.** The existing authorisation was conditional on this
+   verification returning GO. It returns NO-GO, so that authorisation has not vested. Once
+   §0.1 and §0.2 land, the plan changes and needs fresh approval.
+4. **Approve the disclosure position.** The AWS account id is masked at `HEAD` but remains
+   in already-pushed commit history, and the local Windows account name appears in nine
+   files. Neither is a credential; both are now public. `docs/submission/PUBLIC-READINESS.md`
+   is the register.
 
-```
-9,324 tests collected, 0 errors
-```
+## 7.2 Engineering remaining — ranked
 
-Before the fix this number did not exist: collection aborted, and **no** test in the
-repository could be run in a single process.
+| # | task | size | blocks |
+|---|---|---|---|
+| 1 | `refusal.py:235` — take the row's value, not `row[0]` | **one line, fix proven** | R2, the demo, the acceptance transcript, the apply |
+| 2 | `reserved_concurrent_executions = -1`; concurrency alarm threshold `20 → 8`; correct the "1 000 unreserved" sentence | 3 edits | the apply |
+| 3 | Fix `SEC-ACCOUNT-ID` to not flag quota-shaped integers | small | `aws-evidence`, **and un-vacuums its mutation job** |
+| 4 | `trappoint migrate lock --write` | mechanical | `db-schema`, one `ci` test |
+| 5 | ruff ratchet (9 regressions) + 4 `mypy` errors in `bedrock_backend.py` | mechanical | `ci` |
+| 6 | Re-pin or re-derive the canonicaliser (§3.2) | medium | ~8 `ci` tests, the reference bundle |
+| 7 | Pin the image in the 17 census-flagged files | mechanical | `db` |
+| 8 | Own the `migrations_applied: 0` number (§3.7) | small | judge-facing honesty |
+| 9 | Drop the suppression on `submission.yml`'s `The machine record` (§3.5) | small | the standing discipline |
+| 10 | `DM-9` closure-view violation | real | `ci` |
+| 11 | Add the four missing teardown verify checks (role, log group, alarms, dashboard) | small | teardown's truthfulness, not the bill |
 
-**Per-target census, committed, generated 2026-08-09** (`qa/test-state.json`,
-26 targets, 40 minutes wall clock):
+Items 1 and 2 are the whole distance between here and a deployable demo. Items 3–11 are
+quality and do not block R2.
 
-| pass | tests | passed | failed | errored | skipped |
-|---|---|---|---|---|---|
-| `none` (no cluster) | 8,845 | 8,065 | 44 | 0 | 736 |
-| `cluster` | 7,187 | 6,960 | 29 | 182 | 16 |
+## 7.3 What must stay red
 
-The `cluster` pass also records 1 timed-out and 1 unmeasured target — it does not claim
-those as passes.
-
-**Why the two disagree, and which to trust.** The census runs each target as a separate
-pytest process, which is why its own caveat says cross-target module-basename collisions
-are "NOT measured here" — and why it ran green through the very defect that made the
-whole-suite run impossible. Trust the census for per-area detail; trust the single-process
-number for whether the suite runs at all. **Both are now stale in the same direction:**
-the census predates 5 commits, including 44 licence-header corrections and the E3
-refactor, and re-running it costs 40 minutes.
+`custody-chain` (7/16 custody checks unimplemented), `schema` (the reference vertical's
+missing producers), `demo-health` (there is no demo), the g4alpha recall gates, and the MI
+ratchet at 9 enforced / 21 pending. Each reports a true incompleteness. **None of them may
+be closed by narrowing a matrix, moving a threshold, adding `continue-on-error`, or
+deleting a test.** If one of them goes green without the underlying work, that is a
+regression in honesty, which is the only asset here that cannot be rebuilt in a week.
 
 ---
 
-# 8 · What changed in this document
-
-* §1.3 **corrected**: the earlier finding that "no AWS service has ever executed" is
-  **stale and wrong**. Bedrock executes; three services are exercised; the ANN claim is
-  reproduced end to end by this agent with the plan quoted.
-* §1.4 **added**: the recall distribution, so the exhibit is never read as the average.
-* §3.1 **promoted to BROKEN**: the demo API's own gate run reports NOT PROVEN.
-* §3.2 **added**: four defects found and fixed during certification, including one that
-  made the entire test suite unrunnable.
-* §5.1 **added**: the account-id disclosure conflict, left unresolved on purpose because
-  it is the founder's decision.
-* §4.3 **sharpened**: the six lanes whose greens this agent could not falsify are named.
-
-## 8.1 What `w10-stale-sweep` changed on 2026-08-12, at `1d41442`
-
-* §1.3 **extended**: `evidence/deploy/aws-live.json` — four Bedrock-plane calls with AWS
-  request ids, `calls_failed: []`, verdict `AWS BEDROCK EXECUTED`. The artefact names this
-  document's §3.3 as the thing it supersedes; that section number has since been reused,
-  and both facts are stated so the pointer does not read as an uncorrected error.
-* §3.3 **rewritten from a blocker into a dated record**. The heading claimed the repository
-  was not safe to flip; the flip happened on `2026-08-11`. **Not one finding was dropped** —
-  they are a disclosure register a public repository still owes its readers, and the
-  post-flip audit reports all 214 of them with a disposition each, 54 of them undisposed
-  and red.
-* §4.2 **corrected**: the MI ratchet is **21 of 30 pending, 9 enforced**, not 28/30.
-  `python scripts/mi_ratchet.py` prints `21 pending / 9 enforced`. The lane stays red; a
-  sharper number is a sharper red.
-* §4.4 **added**: the board at `1d41442` — 8 green, 10 red — with the two lanes whose reds
-  are runner-network failures named, because a colour that means nothing is worse than no
-  colour.
-* §5 **corrected**: `Public repository` moved `UNMET` → `MET`, with the two commands that
-  check it. `URL to a functional demo` is unchanged and still `UNMET`.
-* §5.2 and §5.3 **added**: how the account-id decision was actually settled, and the
-  disagreement between two checkers about whether twelve identical digits is a mask.
-* §6 item 1 **updated**: the flip step is struck, done.
-
-**One number was re-derived once and made consistent across all eight files this worker
-owns.** It appeared as 38, 44, 45 and 53 in different places. Measured: `master` carries
-**47** commits (`git rev-list --count origin/master`, corroborated by the GitHub API's
-`rel="last"` page), the published surface is **52 commits over 4 branches**, and
-`git log --all` on this workstation reaches 113 over 67 refs — a number about a machine,
-not about a repository.
+*Consolidation agent, 2026-08-12, commit `f50efde`. No `terraform apply` was run. No
+credential was read, printed, or written. The AWS account id is masked throughout. The
+repository is public: every claim above is checkable by a stranger, and that is the point.*
