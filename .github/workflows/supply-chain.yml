@@ -25,6 +25,29 @@
 # emitter below is forty lines of `json` and needs nothing installed. `pip-audit` is the
 # one step that must reach out, to PyPI, for the advisory database — and it is the last
 # step, in its own job, so that a PyPI outage cannot make the SBOM lane look broken.
+#
+# WHY `release-assets.githubusercontent.com:443` IS ON EVERY ALLOW-LIST BELOW.
+#
+# This lane was GREEN at `b0fe884` and all three of its jobs were RED at `1d41442` with
+# no change to this file, to `uv.lock` or to the setup action in between. Run
+# 31596446007, quoted from the harden-runner post-step's own agent log:
+#
+#     Downloading uv from "https://github.com/astral-sh/uv/releases/download/0.12.3/…"
+#     Wed, 12 Aug 2026 12:26:48 GMT:domain not allowed: release-assets.githubusercontent.com.
+#     ##[error]connect ECONNREFUSED 54.185.253.63:443
+#
+# GitHub now serves release-asset bodies from `release-assets.githubusercontent.com`
+# rather than from `objects.githubusercontent.com`. The request to `github.com` is a
+# redirect; the body comes from a host no list in this repository named, so
+# `egress-policy: block` refused it — correctly. Nothing regressed here; the destination
+# moved underneath a correct deny-list, which is what a deny-list is FOR.
+#
+# Two things this fix deliberately is not. It is not `egress-policy: audit` — that would
+# retire the assertion instead of updating it. And it is not a version pin on `uv`: the
+# URL in the log ALREADY carries an exact version (`0.12.3`), because `latest` had been
+# resolved successfully against `api.github.com` one line earlier. Pinning `uv-version`
+# changes which tag is fetched and nothing at all about which host serves it, so it
+# would have left all three jobs exactly as red.
 
 name: supply-chain
 
@@ -75,6 +98,7 @@ jobs:
             api.github.com:443
             github.com:443
             objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
             raw.githubusercontent.com:443
             pypi.org:443
             files.pythonhosted.org:443
@@ -123,6 +147,7 @@ jobs:
             api.github.com:443
             github.com:443
             objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
             raw.githubusercontent.com:443
             pypi.org:443
             files.pythonhosted.org:443
@@ -342,6 +367,7 @@ jobs:
             api.github.com:443
             github.com:443
             objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
             raw.githubusercontent.com:443
             pypi.org:443
             files.pythonhosted.org:443
@@ -810,6 +836,7 @@ jobs:
             api.github.com:443
             github.com:443
             objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
             raw.githubusercontent.com:443
             pypi.org:443
             files.pythonhosted.org:443

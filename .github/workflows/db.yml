@@ -44,6 +44,30 @@
 #     0, and a repository-wide reformat of files nine other people are editing is a
 #     merge catastrophe that buys a number nobody can audit.
 #
+#     THE RESTATED CEILING WAS 21 AND THE TREE HAS BEEN AT 25 SINCE `b0fe884`. Measured
+#     2026-08-12 by running this job's own census script over `git grep` at five
+#     revisions: `b0fe884`, `c8a3b46`, `4f46436`, `ca912eb` and `1d41442` all read
+#     `restated=25, floating=34`. The 21 was true at `c76c454`, where it was written,
+#     and stopped being true at `4d948dd`. So this job carried TWO independent reds and
+#     the second one had never been seen: the census cannot report anything until the
+#     harder step above it passes, and the harder step was refusing `cloud-verify.yml`
+#     — and since 2026-08-12 nothing in this lane ran at all, because `setup-workspace`
+#     died first on a blocked egress endpoint (run 31596634515).
+#
+#     Both reds had ONE cause and it is now removed rather than exempted. Four steps in
+#     `cloud-verify.yml` and `release-proof.yml` opened with `pinned="<image literal>"`
+#     and then checked `compose.yaml` AGAINST it — two copies of the constant asserting
+#     that they agree. They now READ the pin, by the rule
+#     `trappoint_migrate.crdb.pinned_image` implements. That takes `restated` 25 → 19,
+#     measured, and the ceiling below moves with it in the same commit.
+#
+#     19 IS THE SAME NUMBER `f229c1b` REACHED AND `47f8aa2` REVERTED, by a different
+#     road, and the difference is the whole point. That commit taught the census to
+#     classify a step named "Assert the image pin agrees with compose.yaml" as a guard
+#     rather than a restatement; its revert message says the repository's answer to
+#     those lines "is not 'reclassify', it is 'read compose.yaml'". This is that. The
+#     lines are gone, not excused, and the HARD check above the census agrees.
+#
 # No AWS account. No CockroachDB Cloud organisation. No credential of ours. That is
 # PL-1, and it is the reason this lane can be reproduced by a judge on a laptop.
 
@@ -102,12 +126,19 @@ jobs:
     steps:
       - name: Deny egress except to the package indexes
         uses: step-security/harden-runner@v2
+        # `release-assets.githubusercontent.com:443` is the host GitHub now serves
+        # release-asset BODIES from; `github.com` only issues the redirect. Without it
+        # `astral-sh/setup-uv` cannot fetch the uv tarball and this job dies before
+        # `setup-workspace` finishes, which is what happened in run 31596634515. The
+        # measurement and the two fixes that were rejected are recorded in
+        # `.github/actions/setup-workspace/action.yml`'s header.
         with:
           egress-policy: block
           allowed-endpoints: >
             api.github.com:443
             github.com:443
             objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
             raw.githubusercontent.com:443
             pypi.org:443
             files.pythonhosted.org:443
@@ -192,7 +223,13 @@ jobs:
         # says so, and the ceiling should be lowered in the same commit.
         env:
           FLOATING_CEILING: "34"
-          RESTATED_CEILING: "21"
+          # 21 → 19 on 2026-08-12, and this is a ceiling being LOWERED to meet a
+          # measurement, not raised to meet a tree. The four restating steps in
+          # `cloud-verify.yml` and `release-proof.yml` now read `compose.yaml`; six lines
+          # carrying the literal went with them, 25 − 6 = 19, and 19 is what this census
+          # printed locally over the edited tree. The 21 it replaces had been unreachable
+          # since `4d948dd` — see the header.
+          RESTATED_CEILING: "19"
         run: |
           set -euo pipefail
           python3 - <<'PY'

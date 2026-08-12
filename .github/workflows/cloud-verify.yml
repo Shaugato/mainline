@@ -259,11 +259,19 @@ jobs:
           # of it and resolves per-cluster, so the wildcard-free list below is the
           # honest minimum. `block` still applies to everything else — this job holds a
           # database credential and must not be able to post it anywhere.
+          #
+          # `release-assets.githubusercontent.com` is where GitHub now serves release-asset
+          # BODIES from — `github.com` issues only the redirect — so `astral-sh/setup-uv`
+          # cannot install uv without it. It is named here and NOT on the other two jobs
+          # in this file, because neither of those installs uv: an endpoint permitted by a
+          # job that has no use for it is a hole, not a convenience. Measured in
+          # `.github/actions/setup-workspace/action.yml`'s header.
           egress-policy: block
           allowed-endpoints: >
             api.github.com:443
             github.com:443
             objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
             raw.githubusercontent.com:443
             pypi.org:443
             files.pythonhosted.org:443
@@ -515,17 +523,43 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Assert the image pin agrees with compose.yaml
+      - name: Read the ONE version constant out of compose.yaml
         id: image
+        # READ, not restate — see the header of `release-proof.yml`'s `prove` job for the
+        # full reasoning. In short: until 2026-08-12 this step opened with an image
+        # literal and checked compose.yaml AGAINST it, which is two copies of the version
+        # constant asserting that they agree. `db.yml`'s `image-pin` job refuses exactly
+        # that, HARD, over a list of harness files this one is on — so the restatement was
+        # not a stylistic matter, it was the reason `db` was red. One copy cannot disagree
+        # with itself.
         run: |
           set -euo pipefail
-          pinned="cockroachdb/cockroach:v26.2.5"
-          found="$(sed -n 's|.*\(cockroachdb/cockroach:v[0-9]\{1,\}\.[0-9]\{1,\}\.[0-9]\{1,\}\).*|\1|p' compose.yaml | head -n1)"
-          if [ -n "$found" ] && [ "$found" != "$pinned" ]; then
-            echo "::error::compose.yaml pins $found but this workflow pins $pinned."
-            exit 1
-          fi
-          echo "image=$pinned" >> "$GITHUB_OUTPUT"
+          image="$(python3 - <<'PY'
+          import pathlib
+          import re
+          import sys
+
+          MARKER = "trappoint:crdb-image-pin"
+          IMAGE_LINE = re.compile(r"^\s*image:\s*(?P<image>\S+)\s*$")
+
+          lines = pathlib.Path("compose.yaml").read_text(encoding="utf-8").splitlines()
+          for index, line in enumerate(lines):
+              if MARKER not in line:
+                  continue
+              for candidate in lines[index + 1 : index + 4]:
+                  found = IMAGE_LINE.match(candidate)
+                  if found is not None:
+                      print(found.group("image"))
+                      sys.exit(0)
+          sys.exit(
+              f"compose.yaml carries no line marked {MARKER!r} followed by an 'image:' key "
+              "within the next three lines; the CockroachDB version constant has moved or "
+              "been deleted"
+          )
+          PY
+          )"
+          echo "image=${image}" >> "$GITHUB_OUTPUT"
+          echo "using ${image}"
 
       - name: Start the single-node cluster
         run: |
