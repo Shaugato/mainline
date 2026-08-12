@@ -113,7 +113,7 @@ asserts that the body names the cluster it is talking to. Only then does anythin
 
 ## 3 · Which AWS account (decision D2)
 
-**No account id is written in any of the four deploy scripts.** `grep -c 022950218246`
+**No account id is written in any of the four deploy scripts.** `grep -c 0229REDACTED8246`
 over `deploy.sh`, `deploy.ps1`, `teardown.sh` and `bootstrap_state.sh` is `0`. The live
 account is read at run time:
 
@@ -753,7 +753,7 @@ distribution before AWS refused:
 
 ```
 module.site.aws_cloudfront_origin_access_control.s3: Creation complete after 2s [id=E2SG85QVMCDKDB]
-module.site.aws_s3_bucket.site:                      Creation complete after 6s [id=mainline-demo-site-022950218246]
+module.site.aws_s3_bucket.site:                      Creation complete after 6s [id=mainline-demo-site-0229REDACTED8246]
 module.site.aws_cloudfront_distribution.site:        Creating...
 
 Error: creating CloudFront Distribution: operation error CloudFront:
@@ -778,7 +778,7 @@ The identity holds `AdministratorAccess`.
 > **Note for `w9-public-readiness`, for the disclosure register.** The two blocks above are
 > **recorded evidence** under decision D2 and must stay verbatim, `RequestID` included. The
 > AWS account id appears inside them at the resource name
-> `mainline-demo-site-022950218246`, and again in this appendix's § A.2 output. Both are
+> `mainline-demo-site-0229REDACTED8246`, and again in this appendix's § A.2 output. Both are
 > quoted transcripts, not executable defaults, and belong in
 > `docs/submission/DISCLOSURE-DECISIONS.yaml` with the reason *"a quoted AWS refusal;
 > redacting it would make the evidence unverifiable"*. Every executable occurrence in the

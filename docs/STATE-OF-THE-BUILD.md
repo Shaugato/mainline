@@ -90,7 +90,7 @@ records the full matrix, and it is honest about its own gaps — see §4.3.
 ## 1.3 AWS genuinely executed — this is the ≥1-service rule, met
 
 **This agent invoked both models directly**, in `ap-southeast-2`, account
-`022950218246`:
+`0229REDACTED8246`:
 
 | call | result |
 |---|---|
@@ -402,7 +402,7 @@ difference should be assumed until someone plants a violation in them.
 
 ## 5.1 One judgement call only the founder can make
 
-**Four files under `evidence/deploy/` publish the AWS account id `022950218246`**, in
+**Four files under `evidence/deploy/` publish the AWS account id `0229REDACTED8246`**, in
 bare form and inside ARNs. Two committed artefacts currently disagree about whether that
 is acceptable:
 

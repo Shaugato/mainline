@@ -155,7 +155,7 @@ permit in the right state; the pattern is what was under test, and the pattern h
 | Fact | How I know |
 |---|---|
 | Cloud cluster answers, `mainline-sql` user, 3.15 s connect+query from Australia | `psycopg` round trip, this session |
-| AWS `022950218246`, profile `mainline-dev`, **AdministratorAccess** | `aws sts get-caller-identity`, `aws iam list-attached-user-policies` |
+| AWS `0229REDACTED8246`, profile `mainline-dev`, **AdministratorAccess** | `aws sts get-caller-identity`, `aws iam list-attached-user-policies` |
 | Terraform **v1.14.8** installed; OpenTofu is **not** | `terraform version`; `which tofu` → not found |
 | Node v24.14.0, pnpm 11.5.3 | `node --version`, `pnpm --version` |
 | Console builds; `dist/` is 3.2 MB | `du -sh verticals/mainline/apps/console/dist` |

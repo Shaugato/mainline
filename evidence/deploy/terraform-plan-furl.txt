@@ -6,10 +6,10 @@ module.api[0].data.aws_region.current: Reading...
 module.api[0].data.aws_partition.current: Read complete after 0s [id=aws]
 module.api[0].data.aws_region.current: Read complete after 0s [id=ap-southeast-1]
 module.api[0].data.aws_iam_policy_document.assume_role: Read complete after 0s [id=3214165256]
-module.api[0].data.aws_caller_identity.current: Read complete after 1s [id=022950218246]
+module.api[0].data.aws_caller_identity.current: Read complete after 1s [id=0229REDACTED8246]
 module.api[0].data.aws_iam_policy_document.dsn_access: Reading...
 module.api[0].data.aws_iam_policy_document.dsn_access: Read complete after 0s [id=3329886133]
-data.aws_caller_identity.current: Read complete after 1s [id=022950218246]
+data.aws_caller_identity.current: Read complete after 1s [id=0229REDACTED8246]
 
 Terraform used the selected providers to generate the following execution
 plan. Resource actions are indicated with the following symbols:
@@ -230,14 +230,14 @@ Terraform will perform the following actions:
                   + {
                       + Action   = "ssm:GetParameter"
                       + Effect   = "Allow"
-                      + Resource = "arn:aws:ssm:ap-southeast-1:022950218246:parameter/mainline/demo/cockroach_dsn"
+                      + Resource = "arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn"
                       + Sid      = "ReadTheDemoDsnParameter"
                     },
                   + {
                       + Action    = "kms:Decrypt"
                       + Condition = {
                           + StringEquals = {
-                              + "kms:EncryptionContext:PARAMETER_ARN" = "arn:aws:ssm:ap-southeast-1:022950218246:parameter/mainline/demo/cockroach_dsn"
+                              + "kms:EncryptionContext:PARAMETER_ARN" = "arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn"
                               + "kms:ViaService"                      = "ssm.ap-southeast-1.amazonaws.com"
                             }
                         }
@@ -344,7 +344,7 @@ Changes to Outputs:
   + api_function_name               = "mainline-demo-api"
   + api_function_url                = (known after apply)
   + api_function_url_domain         = (known after apply)
-  + aws_account_id                  = "022950218246"
+  + aws_account_id                  = "0229REDACTED8246"
   + aws_region                      = "ap-southeast-1"
   + cloudfront_invoke_grant_created = false
   + demo_url                        = (known after apply)
@@ -355,7 +355,7 @@ Changes to Outputs:
       + api_function_name       = "mainline-demo-api"
       + api_function_url        = (known after apply)
       + api_function_url_domain = (known after apply)
-      + aws_account_id          = "022950218246"
+      + aws_account_id          = "0229REDACTED8246"
       + aws_region              = "ap-southeast-1"
       + demo_url                = (known after apply)
       + demo_url_source         = "module.api[0].function_url (Lambda Function URL)"

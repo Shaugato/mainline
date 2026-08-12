@@ -187,7 +187,7 @@ FAIL. **That table is out of date in the bad direction.** What changed:
 
 | finding | count | why it is new |
 |---|---|---|
-| `aws_account_id` `022950218246`, literal | **18 tracked files, 37 lines** | introduced by commit `5ddaa3a` (infra, deploy scripts, RUNBOOK, module READMEs) |
+| `aws_account_id` `0229REDACTED8246`, literal | **18 tracked files, 37 lines** | introduced by commit `5ddaa3a` (infra, deploy scripts, RUNBOOK, module READMEs) |
 | `abs_windows_path` | 33 unresolved (was 14 allowlisted) | new evidence artefacts and new docs quoting `D:\CoackroachDBxAWS\...` |
 | `high_entropy_secret` in `docs/deploy/JUDGE-PACK.md:68`, `docs/deploy/cloud-database.md:282`, `scripts/deploy/judge_access.py:13,1143` | 4 | judge/API DSN shapes |
 

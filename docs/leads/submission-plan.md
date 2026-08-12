@@ -140,7 +140,7 @@ copy-paste block. The deeper fix — a truncate-and-hash encoding in `resources.
 The private keys in the tree are the deliberate `evidence/reference-ledger/keys/*.NOT-SECRET.key.pem`
 fixtures. `AKIAIOSFODNN7EXAMPLE` and account `111122223333` are AWS's own documentation
 placeholders. One genuine item: **`docs/adr/0002-g1-platform-ground-truth.md:64` prints the
-real AWS account `022950218246`.** Not a credential, but account numbers enable
+real AWS account `0229REDACTED8246`.** Not a credential, but account numbers enable
 cross-account enumeration and there is no reason to publish one. S03 masks it. A second,
 cosmetic: `evidence/gate-refusal/proof-*.json` embeds `D:\CoackroachDBxAWS\mainline\…`,
 leaking the founder's directory layout. Recorded, not repaired — rewriting an evidence

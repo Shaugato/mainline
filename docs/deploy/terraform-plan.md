@@ -140,7 +140,7 @@ Known at plan time:
 api_authorization_type          = "NONE"
 api_enabled                     = true
 api_function_name               = "mainline-demo-api"
-aws_account_id                  = "022950218246"
+aws_account_id                  = "0229REDACTED8246"
 aws_region                      = "ap-southeast-1"
 cloudfront_invoke_grant_created = false
 demo_url_source                 = "module.api[0].function_url (Lambda Function URL)"
@@ -228,7 +228,7 @@ Outputs flip in exactly the two places the design says they should:
 api_authorization_type          = "AWS_IAM"      (was "NONE")
 cloudfront_invoke_grant_created = true           (was false)
 demo_url_source                 = "module.site[0].distribution_domain_name (CloudFront)"
-site_bucket                     = "mainline-demo-site-022950218246"
+site_bucket                     = "mainline-demo-site-0229REDACTED8246"
 phase                           = "2-cloudfront" (was "2-furl")
 ```
 

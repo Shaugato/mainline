@@ -423,7 +423,7 @@ Plan: 39 to add, 0 to change, 0 to destroy.
 
   + phase1_bucket              = "mainline-demo-site-df7d591eb6"
   + phase2_bucket              = "mainline-demo-sitelive-3f395933b5"
-  + envroot_bucket             = "mainline-demo-siteroot-022950218246"
+  + envroot_bucket             = "mainline-demo-siteroot-0229REDACTED8246"
   + envroot_phase1_bucket      = "mainline-demo-siteoff-4959c5b5c8"
   + phase1_api_enabled         = false
   + phase2_api_enabled         = true

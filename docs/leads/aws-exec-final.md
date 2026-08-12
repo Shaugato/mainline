@@ -17,7 +17,7 @@ and §7 names the file that has to change.
 
 ### 1.1 Bedrock, `ap-southeast-2`, profile `mainline-dev`
 
-`aws sts get-caller-identity` → `arn:aws:iam::022950218246:user/mainline-dev`.
+`aws sts get-caller-identity` → `arn:aws:iam::0229REDACTED8246:user/mainline-dev`.
 
 | call | result |
 |---|---|

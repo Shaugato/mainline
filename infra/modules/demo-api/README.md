@@ -400,13 +400,13 @@ parameter ARN and nothing wider.
 > redacted transcript is not a transcript"*. An undeclared occurrence stays `UNRESOLVED`
 > and stays red; that is the point of the register.
 
-Measured on 2026-08-10 in account `022950218246`:
+Measured on 2026-08-10 in account `0229REDACTED8246`:
 
 ```
 $ aws kms list-aliases --region ap-southeast-1 \
     --query "Aliases[?AliasName=='alias/aws/ssm']"
 [{"AliasName": "alias/aws/ssm",
-  "AliasArn": "arn:aws:kms:ap-southeast-1:022950218246:alias/aws/ssm"}]
+  "AliasArn": "arn:aws:kms:ap-southeast-1:0229REDACTED8246:alias/aws/ssm"}]
 ```
 
 Note the absent `TargetKeyId`: the AWS-managed key **does not exist yet**. It is created
@@ -425,7 +425,7 @@ The grant is scoped by two conditions instead:
   "Condition": { "StringEquals": {
     "kms:ViaService": "ssm.ap-southeast-1.amazonaws.com",
     "kms:EncryptionContext:PARAMETER_ARN":
-      "arn:aws:ssm:ap-southeast-1:022950218246:parameter/mainline/demo/dsn"
+      "arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/dsn"
   }}
 }
 ```
