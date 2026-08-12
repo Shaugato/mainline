@@ -174,3 +174,35 @@ indent-style = "space"
 skip-magic-trailing-comma = false
 line-ending = "lf"
 docstring-code-format = true
+
+# THE SHIPPED CANONICALISERS ARE NOT FORMATTABLE FILES. They are frozen bytes whose
+# SHA-256 is pinned in `spec/custody/canon-registry.yaml` with `retained: forever`, and
+# that pin is what `canon_src_sha256` writes into every checkpoint. A stranger with the
+# registry and the published hash must be able to reproduce the module byte for byte;
+# a formatter that "improves" it invalidates every signature ever written under it.
+# `canon_v1.py` says so itself, in its own module docstring:
+#
+#     "Removing or modifying a shipped ``canon_v*`` is a breaking change to *evidence*,
+#      not to code, and CI refuses it."
+#
+# THE INCIDENT. Commit `998c526 "style(ruff): the tree is formatted"` — a machine sweep,
+# nothing typed by hand — added FOUR BLANK LINES to each file and nothing else
+# (`4 ++++` and `4 ++++`, the hunks all of the shape
+# `@@ -121,6 +121,7 @@ … + <blank>` before a top-level `def`, PEP8's two-blank-lines
+# rule). Semantically empty; evidentially fatal. It moved both files off the pin
+# 260ed37ddc610f1fb94ddce98998fe4ae5ce883698ad5c7033839cd258dcd659 and took check 10
+# (`canon-source-mismatch`) of the custody chain, three pytest assertions and the
+# reference bundle down with it. The revert is worthless on its own: the next
+# `ruff format .` would silently redo it. This exclude is the durable half.
+#
+# This is a FORMAT exclude only. `ruff check` still lints both files in full — the
+# substrate's strictest tree does not get a blind spot, and the blank-line rules that
+# would fight this (E301–E306) are preview-gated and not enabled here. Both entries are
+# load-bearing; the second is the byte-identical vendored twin that
+# `scripts/custody/check_vendored_canon.py` asserts equal to the first. Do not remove an
+# entry to make a sweep quiet, and do NOT re-pin the registry to whatever the formatter
+# produced — that admits a canonicaliser the registry has never accepted.
+exclude = [
+    "packages/trappoint-jcs/src/trappoint_jcs/canon_v1.py",
+    "packages/trappoint-verify/src/trappoint_verify/vendor/canon_v1.py",
+]
