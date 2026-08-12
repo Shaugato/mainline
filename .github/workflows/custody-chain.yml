@@ -347,20 +347,163 @@ jobs:
       # needed — never ran. A hermetic check that answers the question the failing step
       # raised must not be silenced by that step's exit code. The job still fails; nothing
       # here is `continue-on-error` and nothing is excused.
+      #
+      # MEASURED 2026-08-12, run 31606592499 — the first run in which this step was allowed
+      # to execute: it refused, correctly, with `FAIL canon_v1: … hashes to d09036a8…`, and
+      # the only annotation it put on the Actions tab was `Process completed with exit code
+      # 1`. Un-skipping a check and leaving it inarticulate trades one silence for another,
+      # so its refusal is classified here.
       - name: Vendored canonicaliser is byte-identical to the shipped one
         if: ${{ !cancelled() }}
-        run: uv run python scripts/custody/check_vendored_canon.py
+        run: |
+          set -euo pipefail
+          log="$RUNNER_TEMP/vendored-canon.log"
+          if uv run python scripts/custody/check_vendored_canon.py 2>&1 | tee "$log"; then
+            exit 0
+          fi
+
+          uv run python - "$log" <<'PY'
+          import pathlib
+          import re
+          import sys
+
+          ANSI = re.compile(r"\x1b\[[0-9;]*m")
+          text = ANSI.sub("", pathlib.Path(sys.argv[1]).read_text(encoding="utf-8", errors="replace"))
+          refusals = [line.strip() for line in text.splitlines() if line.startswith("FAIL")]
+
+          live = None
+          try:
+              from trappoint_jcs.canon_v1 import canon_src_sha256
+
+              live = canon_src_sha256().hex()
+          except Exception as exc:  # any import failure is the same finding
+              print(
+                  "::error title=the canonicaliser is not importable::NEEDS "
+                  "packages/trappoint-jcs/src/trappoint_jcs/canon_v1.py to import "
+                  f"({exc.__class__.__name__}: {exc}). Owner: custody worker 2, "
+                  "jcs-canonicaliser."
+              )
+
+          pinned = None
+          registry = pathlib.Path("spec/custody/canon-registry.yaml")
+          if registry.exists():
+              entry = re.search(
+                  r"name:\s*canon_v1\b.*?\n\s*sha256:\s*([0-9a-f]{64})",
+                  registry.read_text(encoding="utf-8", errors="ignore"),
+                  re.DOTALL,
+              )
+              if entry:
+                  pinned = entry.group(1)
+
+          if live and pinned and live != pinned:
+              print(
+                  "::error title=the registry refuses the canonicaliser on disk::"
+                  "spec/custody/canon-registry.yaml pins canon_v1 at "
+                  f"{pinned} with retained: forever; "
+                  "packages/trappoint-jcs/src/trappoint_jcs/canon_v1.py hashes to "
+                  f"{live}. This is the check that exists to say exactly this. NEEDS the "
+                  "module restored to its pinned bytes, or a new registry entry with a new "
+                  "payload_ver. Owner: custody worker 2, jcs-canonicaliser "
+                  "(docs/leads/custody.md section 5)."
+              )
+              print(
+                  "::notice title=the pin is not a convenience::a canonicaliser entry is "
+                  "retained forever because ledger_intake.payload_ver dispatches on it: "
+                  "deleting or silently re-pinning canon_v1 makes every leaf ever written "
+                  "under it permanently unverifiable, which is a breaking change to EVIDENCE "
+                  "and a silent one. That is the only reason a machine has to refuse it. This "
+                  "notice is the EXPLANATION; the error above is the FINDING."
+              )
+          else:
+              for refusal in refusals or ["(the script printed no FAIL line)"]:
+                  print(
+                      "::error title=the canonicaliser registry check refused::"
+                      f"scripts/custody/check_vendored_canon.py reported: {refusal}. Not a "
+                      "registry-pin drift — the module on disk matches its pin — so this is "
+                      "something else and the script's whole output is above. Owner: custody "
+                      "worker 2, jcs-canonicaliser."
+                  )
+          PY
+          exit 1
 
       # CU-7. "Requires no cooperation from us" must be a 200 ms test.
       # `!cancelled()` for the same reason as the step above: this is a hermetic, 200 ms
       # question about the verifier's dependency floor, and its answer does not depend on
-      # whether the ledger suite passed.
+      # whether the ledger suite passed. Same 2026-08-12 measurement, same treatment: run
+      # 31606592499 showed `7 failed, 88 passed` here with no annotation naming one of them.
       - name: Verifier dependency floor and no-network guarantee
         if: ${{ !cancelled() }}
         run: |
           set -euo pipefail
           if [ -d packages/trappoint-verify ]; then
-            uv run pytest packages/trappoint-verify -q
+            log="$RUNNER_TEMP/verify-pytest.log"
+            if uv run pytest packages/trappoint-verify -q 2>&1 | tee "$log"; then
+              exit 0
+            fi
+
+            uv run python - "$log" <<'PY'
+          import pathlib
+          import re
+          import sys
+
+          ANSI = re.compile(r"\x1b\[[0-9;]*m")
+          text = ANSI.sub("", pathlib.Path(sys.argv[1]).read_text(encoding="utf-8", errors="replace"))
+          failures = re.findall(r"^FAILED (\S+?)(?: - (.*))?$", text, re.MULTILINE)
+
+          live = None
+          pinned = None
+          try:
+              from trappoint_jcs.canon_v1 import canon_src_sha256
+
+              live = canon_src_sha256().hex()
+          except Exception:  # the classifier below simply says less
+              live = None
+          registry = pathlib.Path("spec/custody/canon-registry.yaml")
+          if registry.exists():
+              entry = re.search(
+                  r"name:\s*canon_v1\b.*?\n\s*sha256:\s*([0-9a-f]{64})",
+                  registry.read_text(encoding="utf-8", errors="ignore"),
+                  re.DOTALL,
+              )
+              if entry:
+                  pinned = entry.group(1)
+          drifted = bool(live and pinned and live != pinned)
+
+          if drifted:
+              print(
+                  "::notice title=the canonicaliser has drifted off its registry pin::"
+                  f"canon_v1.py hashes to {live}; spec/custody/canon-registry.yaml pins "
+                  f"canon_v1 at {pinned}. Any failure below that mentions canon, "
+                  "canon-source-mismatch or an exit code of 1 where 0 or 2 was expected is "
+                  "downstream of that. Owner of the drift: custody worker 2, "
+                  "jcs-canonicaliser. This notice is the EXPLANATION; the errors below are "
+                  "the FINDINGS."
+              )
+
+          CANON_WORDS = ("canon", "0, 2", "(0, 2)")
+          for node_id, message in failures:
+              blob = f"{node_id} {message or ''}".lower()
+              attributable = drifted and any(word in blob for word in CANON_WORDS)
+              print(
+                  f"::error title=failing test: {node_id.split('::')[-1]}::{node_id} failed"
+                  f"{(' - ' + message) if message else ''}. Owner: custody worker 6, "
+                  "verify-core (the trappoint-verify CLI, the bundle loader, the structural "
+                  "checks, the dependency-floor test and the no-network test). "
+                  + (
+                      "Attributable to the canonicaliser drift named in the notice above."
+                      if attributable
+                      else "NOT attributable to anything this step knows how to classify; the "
+                      "pytest output above is the whole of what is known."
+                  )
+              )
+          if not failures:
+              print(
+                  "::error title=pytest failed and named no test::the run exited non-zero and "
+                  "printed no FAILED line, so this step cannot say what broke. The whole "
+                  "output is above. Owner: custody worker 6, verify-core."
+              )
+          PY
+            exit 1
           else
             echo "::error title=trappoint-verify absent::PRINTED ONLY WHEN \
             packages/trappoint-verify is missing from the checkout — if you are reading \
@@ -707,11 +850,14 @@ jobs:
               print(f"            proves     {spec.proves}")
               print(
                   f"::error title=check {check_id} {name} FAILED against the committed bundle::"
-                  f"{headline} Owner: {spec.owner}. Subject: "
-                  "evidence/reference-ledger/bundle.json, regenerated by "
-                  "scripts/custody/regen_reference_ledger.py (owner: custody worker 10, "
-                  "reference-ledger-and-nemesis). This is a FINDING about the bundle a "
-                  "stranger receives, not an unimplemented check."
+                  f"{headline}"
+                  + (f" First finding: {detail[0]}" if detail else "")
+                  + f" Owner of the check: {spec.owner}. Subject: "
+                  "evidence/reference-ledger/bundle.json, the artefact a stranger actually "
+                  "receives. This is a FINDING, not an unimplemented check. Which side moved "
+                  "— the bundle or the thing it quotes — is answered by 'Vendored "
+                  "canonicaliser is byte-identical to the shipped one' in this same lane, "
+                  "which reads the normative pin."
               )
           print("")
           print("  A FAILED check is not an unimplemented one. The bundle is present, the")
