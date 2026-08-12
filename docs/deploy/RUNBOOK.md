@@ -525,9 +525,10 @@ teardown REFUSED
    bucket 'aws-cloudtrail-logs-…' does not carry the 'mainline-demo-' prefix.
 exit=3
 
-$ scripts/deploy/teardown.sh --dry-run --expect-account 999999999999
+$ scripts/deploy/teardown.sh --dry-run --expect-account SOMEONE-ELSES-ACCOUNT
 teardown REFUSED
-   this is account <id>. You said 999999999999. Deleting nothing.
+   this is account <id>. You said SOMEONE-ELSES-ACCOUNT. Deleting nothing.
+   Fix the profile (--profile <name>) or the expectation (--expect-account <id>).
 exit=3
 
 $ scripts/deploy/teardown.sh --yes                       # no account named
@@ -536,6 +537,19 @@ teardown REFUSED
    delete from one.
 exit=3
 ```
+
+**Why the second refusal names a word and not a number.** The natural way to demonstrate
+the account gate is to type a wrong twelve-digit account id, and that is how it was
+demonstrated when this page was first written. It cannot stay that way, because
+`scripts/aws/verify_evidence.py` refuses to let *any* bare twelve-digit run into
+`evidence/` — invariant `SEC-ACCOUNT-ID`, enforced by the `aws-evidence` lane on every
+push — and it is right to: a scanner that cannot tell a deliberately-wrong account id from
+a real one is a scanner with a hole in it, and one carved exception becomes the next. The
+gate is a plain string comparison against `aws sts get-caller-identity`
+(`scripts/deploy/teardown.sh:190`), so `SOMEONE-ELSES-ACCOUNT` reaches exactly the branch a
+mistyped account id reaches, and refuses with exit `3` for exactly the same reason. The
+transcript in `evidence/deploy/deploy-dry-run.json` is the output of that command run
+against the live account on 2026-08-12 — the block above was re-measured, not re-worded.
 
 ### Why versions, not just objects
 

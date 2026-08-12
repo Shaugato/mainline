@@ -4,7 +4,7 @@
   "captured_at": "2026-08-11T06:01:53.149576Z",
   "captured_on": "TRAPPOINT (win32), Git Bash via C:/Program Files/Git/bin/bash.exe",
   "git_head_at_capture": "47f8aa29a685ad34682ce231506798d8f9e52323",
-  "what_this_is": "The verbatim stdout+stderr of scripts/deploy/deploy.sh --dry-run and of scripts/deploy/teardown.sh --dry-run, run against the LIVE AWS account and the LIVE CockroachDB Cloud cluster on 2026-08-11. Nothing here is transcribed by hand: each `stdout` array is the captured stream split on newlines, with NO_COLOR=1 set so no escape sequences appear. The account id is present because these are quoted transcripts, which decision D2 keeps as recorded evidence; it is removed from every executable default in the four deploy scripts, where `grep -c 0229REDACTED8246` is now 0.",
+  "what_this_is": "The verbatim stdout+stderr of scripts/deploy/deploy.sh --dry-run and of scripts/deploy/teardown.sh --dry-run, run against the LIVE AWS account and the LIVE CockroachDB Cloud cluster on 2026-08-11, with run E's two --dry-run beats re-run on 2026-08-12 (see runs[].recaptured_why). Nothing here is transcribed by hand: each `stdout` array is the captured stream split on newlines, with NO_COLOR=1 set so no escape sequences appear. EXACTLY ONE substitution is applied to those streams, uniformly and to every occurrence: the twelve-digit AWS account id is replaced by the mask token 0229REDACTED8246, the convention ADR 0002 already used. No other character is altered and no line is elided. The masked account id is present at all because these are quoted transcripts, which decision D2 keeps as recorded evidence; it is removed from every executable default in the four deploy scripts, where `grep -c 0229REDACTED8246` is now 0. No bare twelve-digit run survives anywhere in this file, which is the invariant SEC-ACCOUNT-ID enforces on every CI run of the aws-evidence lane.",
   "scripts_under_test": {
     "scripts/deploy/deploy.sh": {
       "sha256": "7e43fd71c7878307e5bf22919f35ff5766b75a5cdb0b256cf1710da36de6b319",
@@ -394,8 +394,59 @@
       "command": "three teardown safety refusals, each run for real",
       "exit_code": 3,
       "claim": "The prefix gate, the account gate, and the unnamed-account gate. --ignore-tags does not relax the prefix gate and nothing does; --any-account is the only override on the account gate; --dry-run is exempt from the unnamed-account requirement because it deletes nothing, and is NOT exempt from a named-but-wrong account.",
+      "recaptured_at": "2026-08-12T13:22:42Z",
+      "recaptured_why": "The 2026-08-11 capture of this run exercised the account gate by passing a deliberately-wrong expectation that was itself twelve digits long, and a bare twelve-digit run is exactly what this repository's own secret scanner refuses to let into evidence/ (SEC-ACCOUNT-ID in scripts/aws/verify_evidence.py). The scanner is right: it cannot tell a wrong twelve-digit expectation from a real account id, and a scanner carrying an exception for one such literal would carry it for any. Hand-editing the recorded output to something the scanner tolerates would have made this file claim a run that never happened, so the two --dry-run beats were RE-RUN against the live account with a non-numeric expectation and the transcript below is what actually came back.",
+      "recapture_environment": {
+        "git_head_at_recapture": "1d41442798cf6b710d94a6dd9be8f7488739d019",
+        "host": "TRAPPOINT (win32), Git Bash via C:/Program Files/Git/bin/bash.exe",
+        "aws_profile": "mainline-dev",
+        "region": "ap-southeast-1",
+        "scripts_unchanged_since_first_capture": "sha256(scripts/deploy/teardown.sh) is byte-identical to the value recorded in scripts_under_test above, so the program that produced the 2026-08-11 lines and the program that produced today's lines are the same program."
+      },
+      "beats": [
+        {
+          "gate": "the prefix gate",
+          "command": "NO_COLOR=1 bash scripts/deploy/teardown.sh --dry-run --site-bucket aws-cloudtrail-logs-0229REDACTED8246-10882a56",
+          "exit_code": 3,
+          "captured_at": "2026-08-12T13:22:42Z",
+          "what_it_proves": "A bucket outside the mainline-demo- prefix is refused even when the operator names it explicitly, and --ignore-tags does not relax it."
+        },
+        {
+          "gate": "the account gate",
+          "command": "NO_COLOR=1 bash scripts/deploy/teardown.sh --dry-run --expect-account SOMEONE-ELSES-ACCOUNT",
+          "exit_code": 3,
+          "captured_at": "2026-08-12T13:22:42Z",
+          "what_it_proves": "--dry-run is exempt from the unnamed-account requirement and is NOT exempt from a named-but-wrong account. The guard is a string comparison against sts get-caller-identity (teardown.sh:190), so SOMEONE-ELSES-ACCOUNT exercises precisely the same branch a mistyped account id would, and refuses for the same reason — without committing a twelve-digit literal to evidence/."
+        },
+        {
+          "gate": "the unnamed-account gate",
+          "command": "scripts/deploy/teardown.sh --yes    # no account named",
+          "exit_code": 3,
+          "captured_at": "2026-08-11T06:01:53Z",
+          "what_it_proves": "A real teardown with no account named deletes nothing and says so.",
+          "not_recaptured_on_2026-08-12": "This is the only beat here that is not --dry-run. It refuses at teardown.sh:193, before any AWS mutation is reached, but re-running a bare `teardown.sh --yes` was refused by this workstation's command-safety policy and that refusal was not worked around. The lines are therefore the 2026-08-11 capture, carried forward unchanged, against a teardown.sh whose sha256 has not moved since. Stated here rather than smoothed over: two of these three beats were captured today and one was captured on 2026-08-11."
+        }
+      ],
       "stdout": [
-        "$ scripts/deploy/teardown.sh --dry-run --site-bucket aws-cloudtrail-logs-<account>-10882a56",
+        "$ NO_COLOR=1 bash scripts/deploy/teardown.sh --dry-run --site-bucket aws-cloudtrail-logs-0229REDACTED8246-10882a56",
+        "MAINLINE demo teardown   account=0229REDACTED8246  region=ap-southeast-1  (DRY RUN — deletes nothing)",
+        "",
+        "== 0 · inventory",
+        "   [ok] no s3 bucket in this account carries the 'mainline-demo-' prefix",
+        "   WOULD NOT TOUCH s3://aws-cloudtrail-logs-0229REDACTED8246-10882a56  (no 'mainline-demo-' prefix)",
+        "   WOULD NOT TOUCH s3://cci-change-feed  (no 'mainline-demo-' prefix)",
+        "   WOULD NOT TOUCH s3://checkout-platform-debd5edd-site  (no 'mainline-demo-' prefix)",
+        "   WOULD NOT TOUCH s3://checkout-platform-site  (no 'mainline-demo-' prefix)",
+        "   WOULD NOT TOUCH s3://elasticbeanstalk-ap-southeast-2-0229REDACTED8246  (no 'mainline-demo-' prefix)",
+        "   WOULD NOT TOUCH s3://intellicanvas-voice-model  (no 'mainline-demo-' prefix)",
+        "   WOULD NOT TOUCH s3://shortstack-pipeline-artifactbucket-amxvhsepi4ak  (no 'mainline-demo-' prefix)",
+        "   [ok] no lambda function in ap-southeast-1 carries the 'mainline-demo-' prefix",
+        "   [ok] no SSM parameter under /mainline/ exists in ap-southeast-1",
+        "   WOULD NOT TOUCH cloudfront E2FCXK8NILPNWF  d2hlkr5e2hb7k7.cloudfront.net  (origin checkout-platform-debd5edd-site.s3.ap-southeast-2.amazonaws.com — not ours)",
+        "",
+        "== 1 · terraform destroy",
+        "   [skipped] the state bucket s3://mainline-demo-tfstate-0229REDACTED8246 is already gone — nothing for Terraform to read",
+        "",
         "== 2 · site bucket",
         "",
         "teardown REFUSED",
@@ -406,10 +457,10 @@
         "",
         "exit=3",
         "",
-        "$ scripts/deploy/teardown.sh --dry-run --expect-account 999999999999",
+        "$ NO_COLOR=1 bash scripts/deploy/teardown.sh --dry-run --expect-account SOMEONE-ELSES-ACCOUNT",
         "",
         "teardown REFUSED",
-        "   this is account 0229REDACTED8246. You said 999999999999. Deleting nothing.",
+        "   this is account 0229REDACTED8246. You said SOMEONE-ELSES-ACCOUNT. Deleting nothing.",
         "   Fix the profile (--profile <name>) or the expectation (--expect-account <id>).",
         "",
         "exit=3",
