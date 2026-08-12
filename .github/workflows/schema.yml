@@ -40,9 +40,27 @@
 #     does not exist
 #
 # — a true sentence that names neither the missing artefact as an artefact, nor the domain
-# that owes it, nor the second missing producer sitting behind the first. A migration run
-# stops at its first refusal, so a reader fixing `event` would have discovered `clause` on
-# the next run and nowhere else.
+# that owes it, nor the second missing producer sitting behind the first.
+#
+# AND THE DATABASE CANNOT NAME `clause` AT ALL IN THIS STATE. Measured 2026-08-13 against a
+# local CockroachDB v26.2.5, by applying all 109 files of the reference vertical in order
+# into an empty `trappoint_ref` schema and DELIBERATELY NOT STOPPING at refusals — which is
+# strictly more than `trappoint migrate up` will ever tell you. 42P01 is raised for six
+# relations:
+#
+#     trappoint_ref.event            first refused by 0058_blocking_check
+#     trappoint_ref.blocking_check   first refused by 0058a_bc_open_index
+#     trappoint_ref.exposure_line    first refused by 0066_disposition
+#     trappoint_ref.disposition      first refused by 0066a_one_live_disposition
+#     trappoint_ref.site             first refused by 0127_trg_closure_guard
+#     trappoint_ref.override_ledger  first refused by 0128f_trg_refuse_mutation_override_ledger
+#
+# `trappoint_ref.clause` is NOT among them. Five of those six are cascade — tables the tree
+# does create, whose CREATE never ran because an earlier file refused — and 0066_disposition
+# refuses on `exposure_line` before it reaches its `REFERENCES trappoint_ref.clause`. So the
+# second genuinely missing producer surfaces from the database only after `event` and its
+# entire cascade are restored. The static scan in the `producers` job is the only thing in
+# this repository that can name it today, which is why that job exists and runs first.
 #
 # The `producers` job below states the whole finding, hermetically, in about ten seconds,
 # and it is the first thing a reader sees. The two container jobs still run and still
@@ -213,6 +231,16 @@ jobs:
                 "producer at a time. They are COLLATERAL of this finding: neither the "
                 "unwelding matrix nor the gate-source snapshot comparison runs at all while "
                 "these producers are absent, so their subjects are UNPROVEN, not failing.")
+          print()
+          print("Measured 2026-08-13 on CockroachDB v26.2.5, applying all of "
+                "packages/trappoint-sql/refvertical/sql in order WITHOUT stopping at "
+                "refusals — strictly more than the runner will ever report: 42P01 names "
+                "trappoint_ref.event and five cascade victims, and NEVER names "
+                "trappoint_ref.clause, because 0066_disposition refuses on "
+                "trappoint_ref.exposure_line before it reaches its REFERENCES "
+                "trappoint_ref.clause. No amount of reading the database surfaces the second "
+                "missing producer until the first and its cascade are closed. This static "
+                "scan is the only reader in the repository that can name it today.")
 
           # The Actions SUMMARY page, not only the log. A reader who opens the run rather
           # than a job sees the whole finding, both objects, and the owning domain without
