@@ -256,6 +256,31 @@ verified is the Merkle structure: leaf recomputation, inclusion, consistency acr
 consecutive checkpoint pair, link-chain density from a zero genesis, canonicaliser
 identity, receipt coverage and bundle totality.
 
+**The table above is the committed census, and a live run on `2026-08-12` disagrees with
+it — in the bad direction.** The census is what the checker for this page compares against,
+so the rows stay as they are; the disagreement is printed here rather than absorbed,
+because a page that only updated when the news was good would be worth nothing:
+
+```
+$ trappoint-verify verify --bundle evidence/reference-ledger/bundle.json
+FAIL  check 10  canonicaliser_identity   9 canonicaliser finding(s)
+      - the bundle declares canon_src_sha256 260ed37ddc61…; the canonicaliser this
+        verifier is running hashes to d09036a85b02…
+      - checkpoint 0: its signed `canon:` line is '1 260ed37d…', expected '1 d09036a8…'
+        (and seven more checkpoints, each named)
+16 checks | 8 passed | 1 failed | 7 not checked
+exit 1: 1 finding(s). This bundle does not verify.
+```
+
+A check the census recorded as passing now **fails**, and it fails for the reason it exists:
+the bundle carries the hash of the canonicaliser that produced it, and the canonicaliser in
+the tree has moved. **That is real drift and the mechanism caught it.** Two consequences
+worth stating plainly. The count of checks that *held* is one lower than the table says.
+And the exit code moved from `2` to `1` — from *nothing failed and this is not clean* to
+*something failed* — which is a different sentence about the same bundle. The repair is
+owed by the custody domain and is recorded in `docs/CI-STATE.md`; retaking the census is
+what will move the table.
+
 ### The test census
 
 Taken by `scripts/qa/report_test_state.py`, one pytest subprocess per distribution and per
@@ -640,6 +665,20 @@ source a number may be drawn from here.
 * **The evidence SBOM path is gated on but absent.** One census skip says so in its own
   words: no kernel-image SBOM is committed, "so the image contents are unproven. NOT A
   PASS."
+* **The reference vertical cannot be applied.** `trappoint_ref.clause` and
+  `trappoint_ref.event` are referenced by the rendered SQL and created by no file in it, so
+  `trappoint migrate up --tree trappoint-ref` refuses at `0058_blocking_check` with `42P01`
+  and the conformance corpus reports `cannot_run` against that profile with the object
+  named in every case. **This is the same defect class as the seven unproduced tables
+  above, in the package that is supposed to be the forkable half**, and it is red in the
+  `schema` workflow with the owning domain on it. `VERIFY.md` used to give that sequence as
+  its headline Tier-2 command and no longer does.
+* **The repository is public**, since `2026-08-11`, which changes what a stale claim costs
+  rather than what one is. Every number on this page is now checkable by a stranger with no
+  account, and the disclosure register of what the flip published — including the founder's
+  local Windows account name in nine files, the AWS account id in commits already pushed,
+  and the findings nobody has yet signed for — is `docs/submission/PUBLIC-READINESS.md`.
+  None of it is a credential; all of it is disclosed on purpose or listed as owed.
 
 ---
 
@@ -651,7 +690,7 @@ Australian data residency, and any claim of it would be false.**
 | | |
 |---|---|
 | Bedrock inference | `ap-southeast-2` (Sydney), `au.*` Claude inference profiles |
-| Bedrock inference and Titan embeddings | **EXERCISED.** `invoke_model` on `amazon.titan-embed-text-v2:0` and `converse` on `au.anthropic.claude-haiku-4-5-20251001-v1:0` returned HTTP `200` with request ids, and the vectors were searched through a C-SPANN index. Transcripts: `evidence/aws/probe/bedrock-probe.json`; vectors and plan: `evidence/aws/ann/ann-proof.json` |
+| Bedrock inference and Titan embeddings | **EXERCISED.** `invoke_model` on `amazon.titan-embed-text-v2:0` and `converse` on `au.anthropic.claude-haiku-4-5-20251001-v1:0` returned HTTP `200` with request ids, and the vectors were searched through a C-SPANN index. Transcripts: `evidence/aws/probe/bedrock-probe.json`; vectors and plan: `evidence/aws/ann/ann-proof.json`; an independent four-call probe with its own AWS request ids and `calls_failed: []` in `evidence/deploy/aws-live.json` |
 | What that verdict does **not** cover | S3, KMS, CloudTrail, Lambda, CloudFront, IAM roles, SSM Parameter Store, EventBridge — and CloudWatch as provisioned infrastructure rather than as metrics read back. All still DESIGNED; `terraform apply` has never been run |
 | CockroachDB Cloud cluster | `aws-ap-southeast-1` (Singapore), Basic tier |
 | Why they are apart | `ap-southeast-2` is Advanced-tier only on CockroachDB Cloud — absent from the Basic and Standard region lists |

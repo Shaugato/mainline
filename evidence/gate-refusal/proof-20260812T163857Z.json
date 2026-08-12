@@ -1,0 +1,310 @@
+{
+  "artefact": "MAINLINE gate-refusal proof",
+  "claim": "The trigger projected the counter, emitted the CDC signal, bumped the epoch, and the gate refused: the database refuses a permit merge when a recalled precursor carries no signed disposition, and admits the same merge once a disposition is signed.",
+  "generated_at_utc": "2026-08-12T16:39:07Z",
+  "generated_by": "scripts/proof/gate_refusal.py",
+  "conformance_cases": {
+    "projection": "the check_materialised weld (0121), read back from mainline_ops.outbox",
+    "refusal": "CF-01 (23514 gate_closed_when_issued)",
+    "drift_refusal": "CF-03 (P0001 mainline.fn_permit_merge_gate)",
+    "admission": "the same history, after one signed disposition"
+  },
+  "cluster": {
+    "version": "CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)",
+    "database": "w_qr_gate_refusal_proof",
+    "zone": {
+      "gc_ttlseconds": 4500
+    }
+  },
+  "caveats": [],
+  "chain": {
+    "migrations_dir": "D:\\CoackroachDBxAWS\\mainline\\verticals\\mainline\\db\\migrations",
+    "files": 271,
+    "applied_count": 271,
+    "failed_count": 0,
+    "seconds": 51.336,
+    "bootstrap": {
+      "how": "trappoint migrate bootstrap (subprocess)",
+      "argv": [
+        "python",
+        "-m",
+        "trappoint_migrate",
+        "bootstrap",
+        "--dsn",
+        "<dsn>"
+      ],
+      "stdout": "bootstrapped: schema, schema_migration, schema_lock, schema_attestation, genesis attestation",
+      "ok": true
+    },
+    "reached_0115_fn_permit_merge_gate": true,
+    "unproduced_tables_enumerated": [],
+    "failures_attributable_to_an_unproduced_table": [],
+    "failures_unexplained": []
+  },
+  "gate_objects": {
+    "table:mainline.permit": true,
+    "table:mainline.blocking_check": true,
+    "table:mainline.disposition": true,
+    "table:mainline.merge_record": true,
+    "table:mainline.refusal_ledger": true,
+    "routine:mainline.fn_permit_merge_gate": true,
+    "routine:mainline.merge_permit": true,
+    "trigger:mainline.permit:permit_merge_gate": true
+  },
+  "history": {
+    "seeded": true,
+    "site_id": "7a17a0d9-010f-466d-adc5-1609229b8902",
+    "site_code": "7a17a0d9-010f-466d-adc5-1609229b8902",
+    "signer_sub": "proof.signer",
+    "countersigner_sub": "proof.countersigner",
+    "clause_version_commit": "a92e16e2a33e26f5dbfd15fb26d3ebf02e4a7626b2d4fedaab14a0ccdabca19b",
+    "clause_uuid": "ce583389-6cf1-4260-be21-141b63955f23",
+    "precursor_event_id": "973fff2c-75c0-4830-9e63-fec621244431",
+    "permit_id": "c60828e5-32ad-4e1e-8797-f8202e5dd1d2",
+    "blocking_check_id": "f1e2afcb-8d7e-4c5a-ada0-006799df39bf",
+    "exposure_receipt_id": "658619cf-938d-4082-bae7-0dc194c02a99",
+    "recall_run_id": "b75c388a-6a47-4d41-b6b1-e08505511dc6",
+    "merged_commit": "93bb35d778549a7d35b210b04612e80a9ecc88c84630a6b32e7340eda97a04ae",
+    "open_blocking_counter_written_by": "trigger check_materialised -> mainline.fn_check_materialised",
+    "projection_trigger_check_materialised_present": true
+  },
+  "projection": {
+    "claim": "the trigger projected the counter, emitted the CDC signal, bumped the epoch, and the gate refused",
+    "trigger": {
+      "name": "check_materialised",
+      "timing": "AFTER INSERT",
+      "on": "mainline.blocking_check",
+      "function": "mainline.fn_check_materialised",
+      "migration": "0121_trg_check_materialised.sql",
+      "present": true
+    },
+    "subject": {
+      "permit_id": "c60828e5-32ad-4e1e-8797-f8202e5dd1d2",
+      "check_id": "f1e2afcb-8d7e-4c5a-ada0-006799df39bf",
+      "site_id": "7a17a0d9-010f-466d-adc5-1609229b8902"
+    },
+    "fired_by": "one INSERT INTO mainline.blocking_check, with no other statement between the before and after readings",
+    "open_blocking": {
+      "before": 0,
+      "after": 1,
+      "expected_after": 1
+    },
+    "gate_epoch": {
+      "before": 0,
+      "after": 1,
+      "moved": true
+    },
+    "severity": {
+      "supplied_by_this_script": 0,
+      "projected_onto_the_check": 4,
+      "virulence_projected": "blood_major",
+      "closure_gen_projected": 0
+    },
+    "outbox": {
+      "relation": "mainline_ops.outbox",
+      "relation_present": true,
+      "rows_in_table": 1,
+      "rows_for_this_check": 1,
+      "expected_kind": "check_opened",
+      "row": {
+        "signal_id": "c7129636-af10-44ab-9384-4501fcc522d4",
+        "kind": "check_opened",
+        "subject_id": "f1e2afcb-8d7e-4c5a-ada0-006799df39bf",
+        "site_id": "7a17a0d9-010f-466d-adc5-1609229b8902",
+        "target_site": null,
+        "activity_root": null,
+        "max_severity": 4,
+        "score": "0",
+        "payload": {},
+        "emitted_at": "2026-08-12T16:40:08.866449+00:00",
+        "expires_at": "2026-09-11T16:40:08.866449+00:00"
+      },
+      "all_rows_for_this_check": [
+        {
+          "signal_id": "c7129636-af10-44ab-9384-4501fcc522d4",
+          "kind": "check_opened",
+          "subject_id": "f1e2afcb-8d7e-4c5a-ada0-006799df39bf",
+          "site_id": "7a17a0d9-010f-466d-adc5-1609229b8902",
+          "target_site": null,
+          "activity_root": null,
+          "max_severity": 4,
+          "score": "0",
+          "payload": {},
+          "emitted_at": "2026-08-12T16:40:08.866449+00:00",
+          "expires_at": "2026-09-11T16:40:08.866449+00:00"
+        }
+      ]
+    },
+    "captured": true,
+    "assertions": [
+      {
+        "id": "trigger_present",
+        "claim": "the check_materialised trigger is welded to mainline.blocking_check",
+        "holds": true,
+        "observed": "present=True"
+      },
+      {
+        "id": "counter_source_is_the_trigger",
+        "claim": "open_blocking was written by the trigger, not by this script",
+        "holds": true,
+        "observed": "trigger check_materialised -> mainline.fn_check_materialised"
+      },
+      {
+        "id": "open_blocking_projected",
+        "claim": "the trigger raised open_blocking from 0 to 1 across the one INSERT",
+        "holds": true,
+        "observed": "0 -> 1"
+      },
+      {
+        "id": "gate_epoch_strictly_increased",
+        "claim": "the trigger bumped gate_epoch, pinning the subject to a new (id, epoch) pair",
+        "holds": true,
+        "observed": "0 -> 1"
+      },
+      {
+        "id": "outbox_relation_present",
+        "claim": "mainline_ops.outbox exists \u2014 0099_outbox.sql applied",
+        "holds": true,
+        "observed": "present=True"
+      },
+      {
+        "id": "outbox_row_emitted",
+        "claim": "exactly one CDC signal was emitted for this obligation",
+        "holds": true,
+        "observed": "rows_for_this_check=1"
+      },
+      {
+        "id": "outbox_kind_is_check_opened",
+        "claim": "the emitted signal's kind is 'check_opened'",
+        "holds": true,
+        "observed": "'check_opened'"
+      },
+      {
+        "id": "outbox_subject_is_the_check",
+        "claim": "the emitted signal's subject_id is the blocking check's id",
+        "holds": true,
+        "observed": "f1e2afcb-8d7e-4c5a-ada0-006799df39bf vs check_id f1e2afcb-8d7e-4c5a-ada0-006799df39bf"
+      },
+      {
+        "id": "outbox_site_is_the_seeded_site",
+        "claim": "the emitted signal carries the site denormalised, as a CDC query needs",
+        "holds": true,
+        "observed": "7a17a0d9-010f-466d-adc5-1609229b8902 vs site_id 7a17a0d9-010f-466d-adc5-1609229b8902"
+      },
+      {
+        "id": "outbox_max_severity_is_the_projected_severity",
+        "claim": "the signal carries the severity the BEFORE trigger projected, not the severity this script supplied",
+        "holds": true,
+        "observed": "emitted=4 projected=4 supplied=0"
+      }
+    ],
+    "assertions_total": 10,
+    "assertions_held": 10
+  },
+  "refusal": {
+    "outcome": "REFUSED",
+    "sqlstate": "23514",
+    "constraint": "gate_closed_when_issued",
+    "constraint_source": "reported",
+    "message": "failed to satisfy CHECK constraint ((state != 'merged':::mainline.subject_state) OR (open_blocking = 0:::INT8))",
+    "case": "CF-01",
+    "history": "one open blocking check, no signed disposition",
+    "expected_sqlstate": "23514",
+    "expected_constraint": "gate_closed_when_issued",
+    "refusal_ledger": {
+      "written": true,
+      "read_back": true,
+      "refusal_id": "3e7dbc0c-8316-4b32-9169-56a1284916cc",
+      "observed_at": "2026-08-12T16:40:09.343914+00:00",
+      "sqlstate": "23514",
+      "constraint_name": "gate_closed_when_issued",
+      "constraint_source": "reported",
+      "subject_kind": "permit",
+      "subject_id": "c60828e5-32ad-4e1e-8797-f8202e5dd1d2",
+      "gate_epoch": 1,
+      "diagnosis": "declarative",
+      "mus_cardinality": 1,
+      "naa_kind": "dispose_obligations",
+      "recorded_by": "scripts/proof/gate_refusal.py"
+    }
+  },
+  "drift_refusal": {
+    "outcome": "REFUSED",
+    "sqlstate": "P0001",
+    "constraint": "mainline.fn_permit_merge_gate",
+    "constraint_source": "parsed",
+    "message": "MAINLINE: merge refused by mainline.fn_permit_merge_gate \u2014 re-derived open obligation count is 1 while the projected counter reads zero",
+    "case": "CF-03",
+    "history": "open_blocking forced to zero out of band; the obligation is still open",
+    "expected_sqlstate": "P0001",
+    "expected_constraint": "mainline.fn_permit_merge_gate",
+    "refusal_ledger": {
+      "written": true,
+      "read_back": true,
+      "refusal_id": "e7a78bec-3a33-4b0a-bf33-458bb3dae283",
+      "observed_at": "2026-08-12T16:40:09.516196+00:00",
+      "sqlstate": "P0001",
+      "constraint_name": "mainline.fn_permit_merge_gate",
+      "constraint_source": "parsed",
+      "subject_kind": "permit",
+      "subject_id": "c60828e5-32ad-4e1e-8797-f8202e5dd1d2",
+      "gate_epoch": 1,
+      "diagnosis": "declarative",
+      "mus_cardinality": 1,
+      "naa_kind": "dispose_obligations",
+      "recorded_by": "scripts/proof/gate_refusal.py"
+    }
+  },
+  "disposition": {
+    "signed": true,
+    "disposition_id": "0a560f97-c190-4b44-b084-fc8c90947d90",
+    "kind": "applied",
+    "virulence_projected": "blood_major",
+    "signer_rank_projected": 5,
+    "reading_floor_met_projected": true,
+    "deliberation_seconds_projected": 601,
+    "permit_open_blocking_after": 0,
+    "permit_unmet_floor_count_after": 0,
+    "permit_countersigned_count_after": 1
+  },
+  "admission": {
+    "outcome": "ADMITTED",
+    "sqlstate": "00000",
+    "case": "admission",
+    "expected_sqlstate": "00000",
+    "merge_record": {
+      "present": true,
+      "subject_kind": "permit",
+      "subject_id": "c60828e5-32ad-4e1e-8797-f8202e5dd1d2",
+      "gate_epoch": 1,
+      "merged_by": "proof.signer",
+      "merged_commit": "93bb35d778549a7d35b210b04612e80a9ecc88c84630a6b32e7340eda97a04ae",
+      "clearance_digest": "f76ca76f1e8bd3544c6f3a49429626cc9e8dd6ac5272341f76ec215c76cf6d07",
+      "merged_at": "2026-08-12T16:40:09.710053+00:00",
+      "permit_state": "merged",
+      "permit_open_blocking": 0,
+      "event_chain": [
+        {
+          "seq": 1,
+          "from": "draft",
+          "to": "checks_materialised",
+          "chain_digest": "ff92e5760fb0eb9666be2eb4b2ad754bbdd0915dca238a7208711ae88e150f94"
+        },
+        {
+          "seq": 2,
+          "from": "checks_materialised",
+          "to": "dispositioned",
+          "chain_digest": "03c06e3786664420db075da1cdb5d283a7a4a4ed3dc382f5723fffe8d828e485"
+        },
+        {
+          "seq": 3,
+          "from": "dispositioned",
+          "to": "merged",
+          "chain_digest": "0f7aef11364b6c6671ee74f9b253dd62d485eeb2a074f4d755364c85443dabf0"
+        }
+      ]
+    }
+  },
+  "failures": [],
+  "verdict": "PROVEN"
+}

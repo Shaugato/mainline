@@ -29,6 +29,8 @@ what that proof needs, which is the point.
 
 from __future__ import annotations
 
+import datetime as _dt
+import hashlib
 import importlib.util
 import json
 import os
@@ -36,6 +38,7 @@ import re
 import sys
 import uuid
 from collections.abc import Iterator
+from dataclasses import dataclass
 from pathlib import Path
 from types import ModuleType
 from typing import Any
@@ -130,15 +133,120 @@ def seed_history_into(conn: psycopg.Connection[Any]) -> Any:
 #: those on the second run, which made the demo permit look consumed. Measured, then fixed.
 _DEMO_EXTERNAL_REF = "PTW-PROOF-1"
 
-_DEMO_READY_SQL = """
-SELECT p.permit_id, p.site_id, p.state::STRING, p.open_blocking
-  FROM mainline.permit p
- WHERE p.external_ref = %s
+#: Everything the four beats need, read at ONE moment: the subject, the counter, the open
+#: obligation, and — the part this fixture used to omit — the LIVE exposure receipt that
+#: displayed that obligation.
+#:
+#: WHY THE RECEIPT IS IN THE READINESS PREDICATE AND NOT MERELY IN THE SEED.
+#: ``scenario._RECEIPT_SQL`` requires ``r.expires_at > now()``, so with no live receipt
+#: ``resolved.receipt_id`` is ``None`` and ``gate_run.py`` SKIPS beat 4 — the admission —
+#: which makes the verdict ``NOT PROVEN``. ``seed_history`` issues its receipt with a
+#: two-hour window, which is a correct TTL for a fresh run and a time bomb for a REUSED
+#: database: this fixture adopts a scratch database whenever the demo permit is still in
+#: state ``dispositioned`` with an open obligation, and both of those survive the receipt.
+#: Measured on 2026-08-12: ``w_w4_api_transitions`` had been seeded on 2026-08-10T22:06Z
+#: with a receipt that expired 2026-08-11T00:16:29Z, and five tests in this module were red
+#: with ``observed outcome='skipped'`` — a FIXTURE failure reported as a product failure.
+#:
+#: The permit ordering prefers a subject that is still gate-ready. ``seed_history`` gives
+#: EVERY permit it seeds the same ``external_ref``, so a database that was seeded twice
+#: holds two candidates and an unordered ``fetchone()`` may pick the consumed one.
+_DEMO_SUBJECT_SQL = """
+WITH subject AS (
+  SELECT p.permit_id, p.site_id, p.state::STRING AS state, p.open_blocking
+    FROM mainline.permit p
+   WHERE p.external_ref = %s
+   ORDER BY (p.state::STRING = 'dispositioned' AND p.open_blocking >= 1) DESC, p.permit_id
+   LIMIT 1
+), obligation AS (
+  SELECT s.permit_id, bc.check_id
+    FROM subject s
+    JOIN mainline.blocking_check bc ON bc.permit_id = s.permit_id
+   WHERE NOT EXISTS (SELECT 1 FROM mainline.disposition d
+                      WHERE d.check_id = bc.check_id
+                        AND d.retracted_by IS NULL
+                        AND (d.expires_at IS NULL OR d.expires_at > now()))
+   ORDER BY bc.check_id
+   LIMIT 1
+)
+SELECT s.permit_id,
+       s.site_id,
+       s.state,
+       s.open_blocking,
+       o.check_id,
+       (SELECT r.receipt_id
+          FROM mainline.exposure_receipt r
+          JOIN mainline.exposure_line l ON l.receipt_id = r.receipt_id
+         WHERE r.permit_id = o.permit_id
+           AND l.check_id = o.check_id
+           AND r.expires_at > now()
+         ORDER BY r.issued_at DESC
+         LIMIT 1) AS live_receipt_id,
+       (SELECT max(r.expires_at)
+          FROM mainline.exposure_receipt r
+          JOIN mainline.exposure_line l ON l.receipt_id = r.receipt_id
+         WHERE r.permit_id = o.permit_id
+           AND l.check_id = o.check_id) AS receipt_horizon,
+       now() AS observed_at
+  FROM subject s
+  LEFT JOIN obligation o ON o.permit_id = s.permit_id
 """
 
 
-def _demo_ready(dsn: str) -> tuple[Any, Any] | None:
-    """Return the demo permit if it is in the state the four beats need, else ``None``."""
+@dataclass(frozen=True, slots=True)
+class DemoSubject:
+    """What the demo permit looks like at one instant, and whether four beats can run on it."""
+
+    permit_id: uuid.UUID
+    site_id: uuid.UUID
+    state: str
+    open_blocking: int
+    check_id: uuid.UUID | None
+    live_receipt_id: uuid.UUID | None
+    #: The latest ``expires_at`` of ANY receipt bound to the open obligation — i.e. the
+    #: wall-clock instant after which beat 4 begins skipping. ``None`` when no receipt ever
+    #: displayed this obligation.
+    receipt_horizon: _dt.datetime | None
+    observed_at: _dt.datetime
+
+    @property
+    def gate_ready(self) -> bool:
+        """Beats 1-3: a client claim of ``dispositioned`` over an obligation still open.
+
+        ``dispositioned`` is the only state from which ``merged`` is a legal edge, and an
+        open obligation is what beats 2 and 3 are about. Anything else is a database whose
+        demo subject has been CONSUMED.
+        """
+        return (
+            self.state == "dispositioned" and self.open_blocking >= 1 and self.check_id is not None
+        )
+
+    @property
+    def beat_four_ready(self) -> bool:
+        """Beat 4 as well: a disposition's FK lands on ``(check_id, receipt_id)``."""
+        return self.gate_ready and self.live_receipt_id is not None
+
+    def why_not(self) -> str:
+        """One sentence naming the first unmet condition, and what fixes it."""
+        if self.state != "dispositioned":
+            return f"state={self.state!r}, not 'dispositioned' — the demo subject is consumed"
+        if self.open_blocking < 1:
+            return f"open_blocking={self.open_blocking}, so beats 2 and 3 have nothing to refuse"
+        if self.check_id is None:
+            return "every blocking_check on this permit already carries a live disposition"
+        horizon = (
+            "never issued" if self.receipt_horizon is None else self.receipt_horizon.isoformat()
+        )
+        return (
+            "no LIVE exposure receipt displays the open obligation (latest expires_at "
+            f"{horizon}, now {self.observed_at.isoformat()}), so gate_run skips beat 4 and "
+            "the verdict is NOT PROVEN. Re-issue a receipt or rebuild with "
+            "MAINLINE_W4_REBUILD=1"
+        )
+
+
+def _subject(dsn: str) -> DemoSubject | None:
+    """Read the demo subject out of *dsn*, or ``None`` when there is not one to read."""
     with psycopg.connect(dsn, autocommit=True) as probe:
         exists = probe.execute(
             "SELECT count(*) FROM information_schema.tables "
@@ -146,17 +254,107 @@ def _demo_ready(dsn: str) -> tuple[Any, Any] | None:
         ).fetchone()
         if not (exists and exists[0]):
             return None
-        row = probe.execute(_DEMO_READY_SQL, (_DEMO_EXTERNAL_REF,)).fetchone()
+        row = probe.execute(_DEMO_SUBJECT_SQL, (_DEMO_EXTERNAL_REF,)).fetchone()
     if row is None:
         return None
-    permit_id, site_id, state, open_blocking = row
-    # `dispositioned` is the only state from which `merged` is a legal edge, and an open
-    # obligation is what beats 2 and 3 are about. Anything else is a database whose demo
-    # subject has been consumed, and a suite that ran against it would report NOT PROVEN
-    # for a reason that is about the fixture rather than about the gate.
-    if state != "dispositioned" or int(open_blocking) < 1:
+    return DemoSubject(
+        permit_id=row[0],
+        site_id=row[1],
+        state=str(row[2]),
+        open_blocking=int(row[3]),
+        check_id=row[4],
+        live_receipt_id=row[5],
+        receipt_horizon=row[6],
+        observed_at=row[7],
+    )
+
+
+#: The most recent receipt that displayed this obligation, live or not. It is the row the
+#: replacement is CLONED from, so nothing about the exposure is invented here.
+_SOURCE_RECEIPT_SQL = """
+SELECT r.receipt_id
+  FROM mainline.exposure_receipt r
+  JOIN mainline.exposure_line l ON l.receipt_id = r.receipt_id
+ WHERE r.permit_id = %s AND l.check_id = %s
+ ORDER BY r.issued_at DESC
+ LIMIT 1
+"""
+
+#: ``INSERT … SELECT`` rather than a Python round-trip: every column except the identifier,
+#: the digest and the two timestamps is COPIED from the receipt that actually displayed the
+#: obligation, so the clone cannot drift from it. ``issued_at`` is ten minutes in the past
+#: because ``fn_disposition_project`` prices ``reading_floor_met`` as
+#: ``now() - issued_at >= tau0 + tokens/rho`` (0102 step 10); a receipt issued *now* would
+#: record a floor that was not met. Both intervals are ``seed_history``'s own.
+_CLONE_RECEIPT_SQL = """
+INSERT INTO mainline.exposure_receipt
+       (receipt_id, subject_kind, permit_id, actor_sub, issued_at, issued_hlc, expires_at,
+        corpus_root, silence_receipt_id, policy_version, total_tokens, receipt_digest)
+SELECT %s, r.subject_kind, r.permit_id, r.actor_sub,
+       now() - INTERVAL '10 minutes', r.issued_hlc, now() + INTERVAL '2 hours',
+       r.corpus_root, r.silence_receipt_id, r.policy_version, r.total_tokens, %s
+  FROM mainline.exposure_receipt r
+ WHERE r.receipt_id = %s
+"""
+
+_CLONE_LINES_SQL = """
+INSERT INTO mainline.exposure_line (receipt_id, check_id, payload_digest, tokens)
+SELECT %s, l.check_id, l.payload_digest, l.tokens
+  FROM mainline.exposure_line l
+ WHERE l.receipt_id = %s
+"""
+
+
+def reissue_exposure_receipt(
+    conn: psycopg.Connection[Any], permit_id: uuid.UUID, check_id: uuid.UUID
+) -> uuid.UUID | None:
+    """Issue a fresh exposure receipt over the same obligation. Returns its id, or ``None``.
+
+    THE REPAIR IS AN INSERT, AND IT HAS TO BE. ``0128d_trg_refuse_mutation_exposure_receipt``
+    welds ``append_only`` onto ``mainline.exposure_receipt`` for every UPDATE and every
+    DELETE, so an expired receipt cannot be extended and cannot be removed — which is the
+    correct schema and the reason this function exists in the shape it does. Re-materialising
+    the exposure is also what ``fn_disposition_project`` tells the caller to do in the
+    message it raises: *"exposure receipt absent or expired — re-materialise before signing"*.
+
+    ``None`` means no receipt has ever displayed this obligation, which is not a stale
+    fixture but an unseeded one: the caller rebuilds.
+    """
+    source = conn.execute(_SOURCE_RECEIPT_SQL, (permit_id, check_id)).fetchone()
+    if source is None:
         return None
-    return permit_id, site_id
+    receipt_id = uuid.uuid4()
+    digest = hashlib.sha256(b"receipt" + str(receipt_id).encode("utf-8")).digest()
+    conn.execute(_CLONE_RECEIPT_SQL, (receipt_id, digest, source[0]))
+    conn.execute(_CLONE_LINES_SQL, (receipt_id, source[0]))
+    return receipt_id
+
+
+def _reissue(dsn: str, subject: DemoSubject) -> uuid.UUID | None:
+    """``reissue_exposure_receipt`` in one committed transaction, with a 40001 retry.
+
+    The receipt and its lines are ONE transaction: a receipt committed without the line
+    that binds it to the obligation would satisfy nothing — ``scenario._RECEIPT_SQL`` joins
+    through ``exposure_line`` — and the next run would re-issue again, forever. The retry
+    loop is there because this DSN may be CockroachDB Cloud, where SERIALIZABLE returns
+    ``40001 RETRY_SERIALIZABLE`` and a single-node Docker never does.
+    """
+    assert subject.check_id is not None
+    for attempt in range(3):
+        with psycopg.connect(dsn, autocommit=False) as conn:
+            try:
+                receipt_id = reissue_exposure_receipt(conn, subject.permit_id, subject.check_id)
+            except psycopg.errors.SerializationFailure:
+                conn.rollback()
+                if attempt == 2:
+                    raise
+                continue
+            if receipt_id is None:
+                conn.rollback()
+                return None
+            conn.commit()
+            return receipt_id
+    return None  # pragma: no cover - the loop returns or raises
 
 
 @pytest.fixture(scope="session")
@@ -168,6 +366,15 @@ def w4_database() -> Iterator[str]:
     automatically when the demo subject is missing or consumed, and unconditionally with
     ``MAINLINE_W4_REBUILD=1``, so a stale scratch database is self-healing rather than a
     confusing red.
+
+    USABLE MEANS USABLE, NOT MERELY PRESENT. Until 2026-08-12 the adoption test asked only
+    whether the permit was still ``dispositioned`` with an open obligation. Both of those
+    outlive the two-hour exposure receipt ``seed_history`` issues, so a database seeded
+    yesterday was adopted today with a dead receipt, ``gate_run`` skipped beat 4, and five
+    tests below reported a product failure that was really a fixture failure. The predicate
+    now covers every input the four beats consume, and a dead receipt is REPAIRED — by
+    issuing a new one, because ``mainline.exposure_receipt`` is append-only — rather than by
+    paying 50 s to rebuild a database whose only stale row is that one.
     """
     admin = _admin_dsn()
     try:
@@ -179,11 +386,21 @@ def w4_database() -> Iterator[str]:
     rebuild = os.environ.get("MAINLINE_W4_REBUILD", "").strip() not in ("", "0", "false")
 
     with psycopg.connect(admin, autocommit=True) as probe:
-        present = probe.execute(
+        present_row = probe.execute(
             "SELECT count(*) FROM [SHOW DATABASES] WHERE database_name = %s", (SCRATCH_DB,)
         ).fetchone()
-        usable = bool(present and present[0]) and not rebuild and _demo_ready(dsn) is not None
-        if not usable:
+    present = bool(present_row and present_row[0])
+
+    subject = _subject(dsn) if present and not rebuild else None
+    # The one repair worth attempting before falling back to a rebuild: the subject is
+    # intact and only its exposure has aged out.
+    if subject is not None and subject.gate_ready and not subject.beat_four_ready:
+        _reissue(dsn, subject)
+        subject = _subject(dsn)
+
+    usable = subject is not None and subject.beat_four_ready
+    if not usable:
+        with psycopg.connect(admin, autocommit=True) as probe:
             probe.execute(f'DROP DATABASE IF EXISTS "{SCRATCH_DB}" CASCADE')
             probe.execute(f'CREATE DATABASE "{SCRATCH_DB}"')
             # 4500 is what CockroachDB Cloud Basic enforces. Pinning it locally keeps the
@@ -192,7 +409,6 @@ def w4_database() -> Iterator[str]:
                 f'ALTER DATABASE "{SCRATCH_DB}" CONFIGURE ZONE USING gc.ttlseconds = 4500'
             )
 
-    if not usable:
         proof = _gate_refusal_module()
         with psycopg.connect(dsn, autocommit=True) as work:
             report = proof.apply_chain(
@@ -209,13 +425,17 @@ def w4_database() -> Iterator[str]:
             )
         with psycopg.connect(dsn, autocommit=False) as conn:
             seed_history_into(conn)
+        subject = _subject(dsn)
 
-    ready = _demo_ready(dsn)
-    assert ready is not None, (
-        f"{SCRATCH_DB} was rebuilt and the demo permit {_DEMO_EXTERNAL_REF} is still not in "
-        "state 'dispositioned' with an open obligation"
+    assert subject is not None, (
+        f"{SCRATCH_DB} was rebuilt and no permit with external_ref {_DEMO_EXTERNAL_REF} is "
+        "in it — seed_history did not run, or it ran against another database"
     )
-    permit_id, site_id = ready
+    assert subject.beat_four_ready, (
+        f"{SCRATCH_DB} was rebuilt and its demo subject still cannot drive four beats: "
+        f"{subject.why_not()}"
+    )
+    permit_id, site_id = subject.permit_id, subject.site_id
     signer, cosigner = "proof.signer", "proof.countersigner"
 
     # The API reads its subject from the environment with committed defaults; the seed this
@@ -571,3 +791,119 @@ def test_gate_run_refuses_an_autocommit_connection(w4_database: str) -> None:
         pytest.raises(ValueError, match="autocommit"),
     ):
         gate_run(connection)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════
+# the fixture's own contract — the expired-receipt defect, pinned
+# ═══════════════════════════════════════════════════════════════════════════════════════
+
+
+def _subject_at(**overrides: Any) -> DemoSubject:
+    """A gate-ready ``DemoSubject``, with named fields overridden. Nothing is read."""
+    now = _dt.datetime(2026, 8, 12, 12, 27, tzinfo=_dt.UTC)
+    fields: dict[str, Any] = {
+        "permit_id": uuid.uuid4(),
+        "site_id": uuid.uuid4(),
+        "state": "dispositioned",
+        "open_blocking": 1,
+        "check_id": uuid.uuid4(),
+        "live_receipt_id": uuid.uuid4(),
+        "receipt_horizon": now + _dt.timedelta(hours=2),
+        "observed_at": now,
+    }
+    fields.update(overrides)
+    return DemoSubject(**fields)
+
+
+def test_a_subject_whose_receipt_expired_is_gate_ready_and_not_beat_four_ready() -> None:
+    """The exact shape of the 2026-08-12 defect, as a predicate rather than as a symptom.
+
+    ``state`` and ``open_blocking`` are what the old adoption test looked at, and BOTH of
+    them survive the receipt — which is why a database seeded yesterday was adopted today
+    and then reported ``NOT PROVEN`` about a gate that was working perfectly.
+    """
+    dead = _subject_at(
+        live_receipt_id=None,
+        receipt_horizon=_dt.datetime(2026, 8, 11, 7, 50, tzinfo=_dt.UTC),
+    )
+    assert dead.gate_ready is True, "beats 1-3 have everything they need"
+    assert dead.beat_four_ready is False, "beat 4 has no receipt to cite"
+    why = dead.why_not()
+    assert "LIVE exposure receipt" in why
+    assert "2026-08-11T07:50:00+00:00" in why, why
+    assert "NOT PROVEN" in why
+
+    never = _subject_at(live_receipt_id=None, receipt_horizon=None)
+    assert "never issued" in never.why_not()
+
+
+def test_a_consumed_subject_is_reported_as_consumed_not_as_an_expiry() -> None:
+    """The four unmet conditions are distinguished, because they have different remedies."""
+    assert "consumed" in _subject_at(state="merged").why_not()
+    assert "nothing to refuse" in _subject_at(open_blocking=0).why_not()
+    assert "live disposition" in _subject_at(check_id=None).why_not()
+    assert _subject_at().beat_four_ready is True
+
+
+def test_the_fixture_yields_a_subject_beat_four_can_actually_run_on(w4_database: str) -> None:
+    """The postcondition this fixture did not previously carry.
+
+    Before 2026-08-12 this assertion was false on any scratch database more than two hours
+    old, and the five tests above failed instead of this one — which is the wrong test
+    failing, because none of them is about the fixture.
+    """
+    subject = _subject(w4_database)
+    assert subject is not None, f"no permit with external_ref {_DEMO_EXTERNAL_REF}"
+    assert subject.beat_four_ready, subject.why_not()
+    assert subject.receipt_horizon is not None
+    assert subject.receipt_horizon > subject.observed_at, (
+        "the fixture yielded with a receipt that has already expired: horizon "
+        f"{subject.receipt_horizon.isoformat()} <= now {subject.observed_at.isoformat()}"
+    )
+
+
+def test_an_expired_receipt_is_repaired_by_issuing_one_not_by_editing_one(
+    w4_conn: psycopg.Connection[Any], w4_database: str
+) -> None:
+    """Why the repair is an INSERT: the receipt table refuses UPDATE and DELETE.
+
+    ``0128d_trg_refuse_mutation_exposure_receipt`` welds ``append_only`` onto
+    ``mainline.exposure_receipt``. That is asserted here against the running database rather
+    than read off the migration, because the reason ``reissue_exposure_receipt`` clones a
+    row instead of extending one is a property of the schema and not of this worker's taste.
+
+    Everything this test writes is rolled back.
+    """
+    subject = _subject(w4_database)
+    assert subject is not None and subject.check_id is not None
+    live_before = subject.live_receipt_id
+    assert live_before is not None
+
+    for statement in (
+        (
+            "UPDATE mainline.exposure_receipt SET expires_at = now() + INTERVAL '2 hours' "
+            "WHERE receipt_id = %s"
+        ),
+        "DELETE FROM mainline.exposure_receipt WHERE receipt_id = %s",
+    ):
+        w4_conn.execute("SAVEPOINT append_only_probe")
+        with pytest.raises(psycopg.Error) as raised:
+            w4_conn.execute(statement, (live_before,))
+        assert raised.value.sqlstate == "P0001", statement
+        w4_conn.execute("ROLLBACK TO SAVEPOINT append_only_probe")
+        w4_conn.execute("RELEASE SAVEPOINT append_only_probe")
+
+    issued = reissue_exposure_receipt(w4_conn, subject.permit_id, subject.check_id)
+    assert issued is not None and issued != live_before
+    row = w4_conn.execute(_DEMO_SUBJECT_SQL, (_DEMO_EXTERNAL_REF,)).fetchone()
+    assert row is not None
+    assert row[5] == issued, "the re-issued receipt is the one scenario._RECEIPT_SQL picks"
+    lines = w4_conn.execute(
+        "SELECT check_id FROM mainline.exposure_line WHERE receipt_id = %s", (issued,)
+    ).fetchall()
+    assert [line[0] for line in lines] == [subject.check_id], (
+        "the clone carries the exposure line that binds it to the obligation; without it "
+        "the disposition's fk_exposure has nothing to land on"
+    )
+    w4_conn.rollback()
+    assert _subject(w4_database).live_receipt_id == live_before, "the probe left nothing behind"

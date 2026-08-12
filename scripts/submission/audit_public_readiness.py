@@ -1,14 +1,46 @@
 #!/usr/bin/env python3
 # SPDX-FileCopyrightText: 2026 MAINLINE contributors
 # SPDX-License-Identifier: Apache-2.0
-"""PUBLIC-READINESS AUDIT: what a judge, a scraper and an archive would receive.
+"""PUBLIC-READINESS AUDIT: what a judge, a scraper and an archive have received.
 
-Flipping ``github.com/Shaugato/mainline`` from PRIVATE to PUBLIC is irreversible.
-Forks, GitHub's own fork network, search-engine caches, Software Heritage and the
-GHArchive stream all outlive a revert, and every one of the sixteen commits in the
-history is published at once — not just the tree at HEAD.  This program is the
-checklist that makes that decision defensible: seven checks, each of which emits a
-machine row carrying the command that produced it and what that command printed.
+**The flip has happened.**  ``github.com/Shaugato/mainline`` is PUBLIC (see
+:data:`FLIP`), so this program's job changed on that day and it now runs in two modes.
+
+``--post-flip`` (**the default**) is a **standing disclosure register**.  The same
+eight checks run, the same detectors fire, not one finding is dropped — but a finding
+is no longer a reason to stop, because there is nothing left to stop.  It is a thing
+somebody must be able to point at and say what was done about it.  Every finding
+therefore carries one of four dispositions, and the vocabulary is the whole design:
+
+  ``repaired``               the value is gone at HEAD and survives only in published
+                             history.  Nothing more can be done without rewriting
+                             shared history; the repair is real and it is partial.
+  ``recorded-not-repaired``  the value is still at HEAD, on purpose, granted by a
+                             dated entry in the disclosure register.  A redacted
+                             transcript is not a transcript.
+  ``waived-with-reason``     a :class:`Waiver` in this file names the exact path and
+                             family and says why the value authenticates nothing.
+  ``undisposed``             nothing names it.  This is the only disposition that is
+                             red, and it stays red: post-flip, an undisposed finding
+                             is a disclosure nobody has signed for.
+
+``--pre-flip`` reproduces the historical gate exactly — ``VERDICT: READY`` /
+``NOT READY``, exit 0 or 1 — so the decision the founder actually took can still be
+re-run against any commit.  It is kept rather than deleted because the gate is part of
+the record.
+
+Two things the flip changed about the measurement itself:
+
+* **``git log --all`` is the wrong instrument now.**  It walks every ref on the
+  *workstation*, and this one carries 56 local anti-vacuity branches that were never
+  pushed.  What a visitor can read is what is on ``origin``.  Post-flip mode measures
+  the published surface with ``git for-each-ref refs/remotes/origin`` and reports the
+  gap between the two, because the gap is exactly the size of the over-report.
+* **The commit count is never written down.**  An earlier revision of this docstring
+  said "the sixteen commits in the history".  It is computed on every run.
+
+Eight checks, each of which emits a machine row carrying the command that produced it
+and what that command printed.
 
 Design commitments, in the style the repository already holds itself to:
 
@@ -50,8 +82,13 @@ disclosed by a register entry, and every gating check passes.
 
     python scripts/submission/audit_public_readiness.py
     python scripts/submission/audit_public_readiness.py --json qa/public-readiness.json
+    python scripts/submission/audit_public_readiness.py --pre-flip     # the historical gate
     python scripts/submission/audit_public_readiness.py --self-test
     printf '%s' "$SECRET" | python scripts/submission/audit_public_readiness.py --assert-absent
+
+Exit status, post-flip: ``0`` when every finding carries a disposition, ``3`` when one
+or more are undisposed.  ``3`` is deliberately not ``1``: ``1`` meant *do not flip*, and
+that sentence no longer has a referent.  ``3`` means *this register is incomplete*.
 
 ``--self-test`` plants one secret of every family into a temporary tree and requires
 the scanner to fire on each; a scanner that has quietly stopped detecting is worse
@@ -87,6 +124,60 @@ from pathlib import Path
 SCHEMA = "mainline.qa.public-readiness/1"
 REPO_EXPECTED = "https://github.com/Shaugato/mainline.git"
 BRANCH_EXPECTED = "master"
+
+# ══════════════════════════════════════════════════════════════════════════════════
+# The flip, as a dated fact this program cannot itself verify
+# ══════════════════════════════════════════════════════════════════════════════════
+#
+# This file opens no socket — that is a design commitment checked by running it under
+# `python -I -S` and by the absence of any urllib/socket/http/ssl import.  Repository
+# visibility is not in the git object store, so the one fact this program most needs
+# is the one fact it cannot measure.  Rather than guess, it records the fact, names
+# the evidence, and states how a reader falsifies it in one command.
+#
+# If that command answers PRIVATE, this constant is wrong and `--pre-flip` is the mode
+# that applies.  A default that describes the world is worth more than a default that
+# is trivially safe, PROVIDED it says how to check.  This one says how to check.
+FLIP: dict[str, str] = {
+    "state": "PUBLIC",
+    "date_utc": "2026-08-11",
+    "by": "the orchestrator, with the founder, against docs/submission/PUBLIC-FLIP-CHECKLIST.md",
+    "evidence": (
+        "gh repo view Shaugato/mainline --json visibility  ->  "
+        '{"visibility":"PUBLIC"}; and signed out, '
+        "curl -sI https://github.com/Shaugato/mainline  ->  HTTP/1.1 200 OK. "
+        "GitHub answers 404 rather than 403 for a private repository, so the "
+        "signed-out probe is the half that distinguishes the two states."
+    ),
+    "falsify": "gh repo view Shaugato/mainline --json visibility,isPrivate",
+    "not_measured_here": (
+        "This program opens no socket. The line above is a recorded observation, not "
+        "a reading this run took. Run it yourself; it costs one second."
+    ),
+}
+
+# ── the post-flip disposition vocabulary ──────────────────────────────────────────
+# Three of these four are the vocabulary a disclosure register owes its readers. The
+# fourth exists because inventing a disposition for a finding nobody has looked at is
+# the exact move this file was written to prevent.
+POSTFLIP_DISPOSITIONS: dict[str, str] = {
+    "repaired": (
+        "gone at HEAD; present in published history. The repair is real and it is "
+        "partial, because history is public and rewriting it is refused (Option A)."
+    ),
+    "recorded-not-repaired": (
+        "still at HEAD, deliberately, granted by a dated entry in the disclosure "
+        "register. Editing a captured artefact so it looks tidier is refused."
+    ),
+    "waived-with-reason": (
+        "an exact-path Waiver in this file says why the value authenticates nothing "
+        "— an AWS documentation placeholder, a NOT-SECRET reference key, a fixture."
+    ),
+    "undisposed": (
+        "nothing names it. The only red disposition, and it stays red: after the "
+        "flip an undisposed finding is a disclosure nobody has signed for."
+    ),
+}
 MAX_TRACKED_BYTES = 5 * 1024 * 1024  # 5 MiB
 MAX_SCAN_LINE = 4000  # entropy tokenisation is skipped past this width
 
@@ -1325,13 +1416,68 @@ def _census(root: Path, *revs: str) -> tuple[int, Counter[str], Counter[str]]:
     return commits, authors, committers
 
 
+def published_surface(root: Path) -> dict[str, object]:
+    """What a visitor can actually read, as distinct from what this workstation holds.
+
+    Before the flip, `git log --all` was the conservative measurement: it could only
+    over-count, and over-counting an irreversible act is the safe direction to be
+    wrong in. After the flip it is simply the wrong instrument. `--all` walks every
+    ref on THIS MACHINE, and this checkout carries dozens of local anti-vacuity
+    branches (`w8-p-*`, `w9/*`) that were never pushed and that no visitor will ever
+    see. Reporting them as published overstates the disclosure, and an audit that
+    overstates is as untrustworthy as one that understates — it just fails in the
+    flattering direction, which is worse.
+
+    So both numbers are taken and the gap is reported. The remote-tracking refs can
+    themselves be stale (a branch deleted on the remote lingers here until
+    `git remote prune`), and that is stated rather than silently corrected, because
+    pruning is a write and this program performs none."""
+    refs = [
+        ln.strip()
+        for ln in git(root, "for-each-ref", "--format=%(refname)", "refs/remotes").splitlines()
+        if ln.strip() and not ln.strip().endswith("/HEAD")
+    ]
+    local_heads = [
+        ln.strip()
+        for ln in git(root, "for-each-ref", "--format=%(refname)", "refs/heads").splitlines()
+        if ln.strip()
+    ]
+    published_commits = 0
+    authors: Counter[str] = Counter()
+    if refs:
+        published_commits, authors, _committers = _census(root, *refs)
+    all_commits, _a, _c = _census(root, "--all")
+    branch_commits, _ba, _bc = _census(root, BRANCH_EXPECTED)
+    return {
+        "published_refs": refs,
+        "published_commits": published_commits,
+        "published_identities": sorted(authors),
+        "branch": BRANCH_EXPECTED,
+        "branch_commits": branch_commits,
+        "workstation_commits_all_refs": all_commits,
+        "workstation_local_heads": len(local_heads),
+        "over_report_commits": all_commits - published_commits,
+        "caveat": (
+            "Remote-tracking refs are a cache. A branch deleted on the remote is still "
+            "listed here until `git remote prune origin`, which this program does not "
+            "run because it performs no write. `git ls-remote --heads origin` is the "
+            "live reading and it is one command."
+        ),
+    }
+
+
 def check_committer_census(root: Path) -> Row:
     """Two censuses, not one.
 
     `git log --all` walks every ref, and this repository has six `origin/dependabot/*`
     branches that `master` does not contain. Flipping visibility publishes those refs
     too, so a census of `master` alone understates what a visitor can read. Both
-    numbers are reported: the gap between them IS the finding."""
+    numbers are reported: the gap between them IS the finding.
+
+    Post-flip, a THIRD census matters more than either: :func:`published_surface`,
+    which walks the remote-tracking refs only. `--all` on this workstation reaches
+    local branches that were never pushed, so after the flip it over-reports what a
+    visitor can read. All three are in `detail`."""
     all_commits, all_authors, all_committers = _census(root, "--all")
     br_commits, br_authors, br_committers = _census(root, BRANCH_EXPECTED)
     all_ids = sorted(set(all_authors) | set(all_committers))
@@ -1369,6 +1515,7 @@ def check_committer_census(root: Path) -> Row:
             "commits_on_branch": br_commits,
             "branch": BRANCH_EXPECTED,
             "refs": refs,
+            "published_surface": published_surface(root),
             "authors": dict(all_authors),
             "committers": dict(all_committers),
             "identities": all_ids,
@@ -1842,6 +1989,52 @@ def self_test() -> int:  # noqa: PLR0912, PLR0915 - one linear proof, read top t
                 raised = True
             expect(f"parser rejects: {label}", raised)
 
+        # ── the post-flip register renames findings; it may not lose one ─────────
+        # The single property that makes post-flip mode trustworthy is that it is a
+        # relabelling and not a filter. A mode invented to stop reporting reds would
+        # look exactly like this one from the outside, so the difference is asserted
+        # rather than described: same findings in, same findings out, partitioned.
+        synthetic = [
+            Finding("a.txt", 1, "github_token", "x", "tracked", "UNRESOLVED"),
+            Finding("b.txt", 2, "aws_account_id", "x", "tracked", "ALLOWLISTED", reason="r"),
+            Finding(
+                "c.txt", 3, "aws_account_id", "x", "tracked", "DISCLOSED", decided="2026-01-01"
+            ),
+            Finding("d.md", 0, "aws_account_id", "x", "history", "DISCLOSED", commit="abc123"),
+            Finding("c.txt", 0, "aws_account_id", "x", "history", "DISCLOSED", commit="abc123"),
+        ]
+        probe_row = Row("probe", "t", "INFO", "c", "o", findings=synthetic)
+        groups, total = postflip_register([probe_row])
+        expect(
+            "post-flip partitions the findings: none added, none dropped",
+            total == len(synthetic) and sum(len(g) for g in groups.values()) == len(synthetic),
+            f"{total} in, {sum(len(g) for g in groups.values())} out",
+        )
+        expect(
+            "every post-flip disposition is one of the four declared",
+            set(groups) == set(POSTFLIP_DISPOSITIONS),
+            str(sorted(groups)),
+        )
+        expect(
+            "an UNRESOLVED finding becomes `undisposed` and stays red",
+            [f.path for f in groups["undisposed"]] == ["a.txt"],
+            str([f.path for f in groups["undisposed"]]),
+        )
+        expect(
+            "a history-only grant whose value is gone at HEAD reads `repaired`",
+            [f.path for f in groups["repaired"]] == ["d.md"],
+            str([f.path for f in groups["repaired"]]),
+        )
+        expect(
+            "a value still at HEAD is `recorded-not-repaired`, never `repaired`",
+            sorted(f.path for f in groups["recorded-not-repaired"]) == ["c.txt", "c.txt"],
+            str(sorted(f.path for f in groups["recorded-not-repaired"])),
+        )
+        expect(
+            "post-flip cannot manufacture a disposition for an unnamed finding",
+            postflip_disposition(synthetic[0], frozenset()) == "undisposed",
+        )
+
         # ── the strict reader agrees with PyYAML, where PyYAML is available ───────
         cross = "PyYAML not importable - cross-check skipped"
         try:
@@ -1920,7 +2113,129 @@ def irreversibility(rows: Sequence[Row]) -> str:
     )
 
 
-def print_table(rows: Sequence[Row]) -> None:
+# ══════════════════════════════════════════════════════════════════════════════════
+# Post-flip: the same findings, as a standing disclosure register
+# ══════════════════════════════════════════════════════════════════════════════════
+
+
+def postflip_disposition(finding: Finding, repaired_keys: frozenset[tuple[str, str]]) -> str:
+    """Map one finding onto the post-flip vocabulary. Total, and it deletes nothing.
+
+    The map is deliberately mechanical. `repaired` is *derived*, not asserted: a
+    (path, family) that a register entry grants in the `history` scope and that the
+    tracked scan does not find at HEAD is a value somebody removed. That is the only
+    disposition this program infers, and it infers it from two scans rather than from
+    a sentence anybody wrote.
+
+    Nothing here can turn an UNRESOLVED finding into a disposed one. The pre-flip
+    dispositions are the input; this function renames them for a world in which the
+    question is no longer "may we publish?" but "what did we publish, and who said
+    so?". Same findings, same count — asserted by --self-test."""
+    if finding.disposition == "ALLOWLISTED":
+        return "waived-with-reason"
+    if finding.disposition == "DISCLOSED":
+        if (finding.path, finding.family) in repaired_keys:
+            return "repaired"
+        return "recorded-not-repaired"
+    return "undisposed"
+
+
+def postflip_register(rows: Sequence[Row]) -> tuple[dict[str, list[Finding]], int]:
+    """Group every finding by post-flip disposition. Returns (groups, total_in)."""
+    findings = [f for r in rows for f in r.findings]
+    at_head = {(f.path, f.family) for f in findings if f.scope == "tracked"}
+    repaired_keys = frozenset(
+        (f.path, f.family)
+        for f in findings
+        if f.scope == "history"
+        and f.disposition == "DISCLOSED"
+        and (f.path, f.family) not in at_head
+    )
+    groups: dict[str, list[Finding]] = {name: [] for name in POSTFLIP_DISPOSITIONS}
+    for finding in findings:
+        groups[postflip_disposition(finding, repaired_keys)].append(finding)
+    return groups, len(findings)
+
+
+def published_note(rows: Sequence[Row]) -> str:
+    """The paragraph that replaces the irreversibility warning once it is too late."""
+    census = next((r for r in rows if r.check == "committer_census"), None)
+    surface: dict[str, object] = {}
+    if census:
+        surface = census.detail.get("published_surface", {})  # type: ignore[assignment]
+    pub = surface.get("published_commits", "?")
+    refs = len(surface.get("published_refs", []))  # type: ignore[arg-type]
+    branch = surface.get("branch_commits", "?")
+    ws = surface.get("workstation_commits_all_refs", "?")
+    over = surface.get("over_report_commits", "?")
+    return (
+        f"PUBLISHED SURFACE. The repository is PUBLIC as of {FLIP['date_utc']}; the flip "
+        "is irreversible and it already happened, so nothing below is a decision — it "
+        f"is a record. A visitor can read {pub} commit(s) over {refs} remote ref(s); "
+        f"{branch} of them are on {surface.get('branch', BRANCH_EXPECTED)}. "
+        f"`git log --all` on THIS workstation reaches {ws}, over-reporting the published "
+        f"surface by {over} commit(s) that live on local branches nobody pushed. "
+        "A value masked at HEAD but present in an earlier published commit is public "
+        "anyway, and is dispositioned `repaired` below rather than counted as gone.\n"
+        f"  CAVEAT: {surface.get('caveat', '')}"
+    )
+
+
+def print_postflip(rows: Sequence[Row]) -> int:
+    """The standing disclosure register. Returns the count of undisposed findings."""
+    groups, total = postflip_register(rows)
+    print()
+    print("DISCLOSURE REGISTER (post-flip) - github.com/Shaugato/mainline")
+    print("=" * 100)
+    print(f"the repository is {FLIP['state']} since {FLIP['date_utc']} - {FLIP['by']}")
+    print(f"  evidence : {FLIP['evidence']}")
+    print(f"  falsify  : {FLIP['falsify']}")
+    print(f"  measured here: NO. {FLIP['not_measured_here']}")
+    print("-" * 100)
+    print(f"{total} finding(s), every one of them carried over from the checks above:")
+    for name, why in POSTFLIP_DISPOSITIONS.items():
+        group = groups[name]
+        paths = sorted({f.path for f in group})
+        print(f"  {name.ljust(23)} {str(len(group)).rjust(4)} finding(s), {len(paths)} path(s)")
+        print(f"      {why}")
+    print("-" * 100)
+
+    for name in ("repaired", "recorded-not-repaired", "waived-with-reason"):
+        group = groups[name]
+        if not group:
+            continue
+        print(f"\n{name.upper()} - {len(group)} finding(s):")
+        for path in sorted({f.path for f in group}):
+            fams = sorted({f.family for f in group if f.path == path})
+            first = next(f for f in group if f.path == path)
+            stamp = f"  {first.decided} {first.decided_by}" if first.decided else ""
+            print(f"  {path}  {fams}{stamp}")
+
+    undisposed = groups["undisposed"]
+    if undisposed:
+        print(f"\nUNDISPOSED - {len(undisposed)} finding(s). These are RED and stay red.")
+        print("Each is a value the public repository discloses that nobody has signed for.")
+        print(f"Dispose of it by repairing the file, by a Waiver here, or by {REGISTER_DEFAULT}:")
+        for finding in undisposed:
+            where = (
+                f"{finding.commit}:{finding.path}"
+                if finding.commit
+                else f"{finding.path}:{finding.line}"
+            )
+            print(f"  [{finding.family}] {where}  {finding.preview}")
+
+    print()
+    print(published_note(rows))
+    print()
+    return len(undisposed)
+
+
+def print_table(rows: Sequence[Row], mode: str = "pre-flip") -> None:
+    """The eight check rows. `mode` changes only the framing, never the findings.
+
+    Post-flip the per-finding detail is printed by :func:`print_postflip` instead, so
+    the blocks below would say the same thing twice in two vocabularies. The table
+    itself, and every count in it, is identical in both modes."""
     check_w = max(len(r.check) for r in rows)
     print()
     print("PUBLIC-READINESS AUDIT - github.com/Shaugato/mainline")
@@ -1939,6 +2254,30 @@ def print_table(rows: Sequence[Row]) -> None:
         f"{len(disclosed)} DISCLOSED"
     )
 
+    if mode != "post-flip":
+        print_preflip_detail(unresolved, disclosed, allowlisted)
+
+    problems = [p for r in rows for p in r.detail.get("problems", [])]  # type: ignore[union-attr]
+    if problems:
+        print("\nBLOCKING PRECONDITIONS:")
+        for p in problems:
+            print(f"  - {p}")
+
+    if mode != "post-flip":
+        print()
+        print(irreversibility(rows))
+        print()
+
+
+def print_preflip_detail(
+    unresolved: Sequence[Finding], disclosed: Sequence[Finding], allowlisted: Sequence[Finding]
+) -> None:
+    """Per-finding detail in the pre-flip vocabulary: fix it, waive it, or disclose it.
+
+    Post-flip the same findings are printed by :func:`print_postflip` under the four
+    dispositions a public repository owes its readers. Two vocabularies, one set of
+    findings; printing both at once would only invite a reader to compare the totals
+    and wonder which is the real one."""
     if unresolved:
         print("\nUNRESOLVED - each of these must be fixed, allowlisted, or entered in")
         print(f"{REGISTER_DEFAULT} with a class, a date, a decider and a reason:")
@@ -1974,26 +2313,32 @@ def print_table(rows: Sequence[Row]) -> None:
             print(f"  [{f.family}] {f.path}")
             print(f"      {f.reason}")
 
-    problems = [p for r in rows for p in r.detail.get("problems", [])]  # type: ignore[union-attr]
-    if problems:
-        print("\nBLOCKING PRECONDITIONS:")
-        for p in problems:
-            print(f"  - {p}")
-
-    print()
-    print(irreversibility(rows))
-    print()
-
 
 def build_document(
-    rows: Sequence[Row], root: Path, entries: Sequence[Disclosure]
+    rows: Sequence[Row], root: Path, entries: Sequence[Disclosure], mode: str = "pre-flip"
 ) -> dict[str, object]:
     unresolved = [f for r in rows for f in r.findings if f.disposition == "UNRESOLVED"]
     allowlisted = [f for r in rows for f in r.findings if f.disposition == "ALLOWLISTED"]
     disclosed = [f for r in rows for f in r.findings if f.disposition == "DISCLOSED"]
     failed = [r.check for r in rows if r.status == "FAIL"]
     by_class: Counter[str] = Counter(f.disclosure_class for f in disclosed)
+    groups, total_findings = postflip_register(rows)
     return {
+        "mode": mode,
+        "flip": dict(FLIP),
+        "post_flip_register": {
+            "vocabulary": POSTFLIP_DISPOSITIONS,
+            "note": (
+                "The same findings as `rows`, regrouped. Every finding appears in "
+                "exactly one disposition and none is dropped: sum(counts) == "
+                "the total number of findings, asserted by --self-test."
+            ),
+            "total_findings": total_findings,
+            "counts": {name: len(group) for name, group in groups.items()},
+            "paths": {name: sorted({f.path for f in group}) for name, group in groups.items()},
+            "undisposed": [f.to_json() for f in groups["undisposed"]],
+            "published_surface": published_note(rows),
+        },
         "schema": SCHEMA,
         "note": (
             "Measured, not asserted. Every row carries the command that produced it and "
@@ -2092,6 +2437,60 @@ def assert_absent(root: Path, candidate: str) -> int:
 # ══════════════════════════════════════════════════════════════════════════════════
 
 
+def write_document(
+    target: str, rows: Sequence[Row], root: Path, entries: Sequence[Disclosure], mode: str
+) -> None:
+    """Serialise the machine rows. The artefact is tracked, so it must have a fixed point.
+
+    `qa/public-readiness.json` is itself scanned by check 1 on the next run, which is how
+    an earlier design's `verbatim` previews grew without bound. Previews are redacted in
+    every disposition now, so a second run over this file's own output finds the same
+    redacted prefixes it wrote and the artefact is byte-stable."""
+    out = Path(target)
+    if not out.is_absolute():
+        out = root / out
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(
+        json.dumps(build_document(rows, root, entries, mode), indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+    print(f"wrote {out}")
+
+
+def verdict(rows: Sequence[Row], mode: str, undisposed: int) -> int:
+    """The last line, and the exit code. Two modes, two different questions.
+
+    Pre-flip the question was *may we publish?* and the answer gated an irreversible
+    act, so anything unresolved was a `1`. Post-flip that question has no referent:
+    the act happened. The question that replaces it is *is everything this public
+    repository discloses accounted for by somebody?* — and its answer is a different
+    exit code (`3`), never `1`, so a caller can tell "incomplete register" from "do
+    not flip" without parsing prose."""
+    if mode == "post-flip":
+        if undisposed:
+            print(
+                f"REGISTER: INCOMPLETE - {undisposed} finding(s) are undisposed. Nothing "
+                "was deleted to reach this number; each one is listed above with its "
+                "path, and each needs a repair, a Waiver, or a register entry."
+            )
+            return 3
+        print(
+            "REGISTER: COMPLETE - every finding this public repository discloses is "
+            "repaired, recorded with a reason, or waived by name."
+        )
+        return 0
+
+    failed = [r.check for r in rows if r.status == "FAIL"]
+    if failed:
+        print(f"VERDICT: NOT READY - failing checks: {', '.join(failed)}")
+        return 1
+    print(
+        "VERDICT: READY - every finding is resolved, allowlisted with a reason, or "
+        "disclosed by a dated register entry"
+    )
+    return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="audit_public_readiness",
@@ -2109,6 +2508,14 @@ def main(argv: Sequence[str] | None = None) -> int:
         "--self-test",
         action="store_true",
         help="plant one secret of every family in a temp tree; require the scanner to fire",
+    )
+    parser.add_argument(
+        "--pre-flip",
+        action="store_true",
+        help=(
+            "reproduce the historical PRIVATE->PUBLIC gate: VERDICT READY / NOT READY, "
+            "exit 0 or 1. The default is --post-flip, the standing disclosure register."
+        ),
     )
     parser.add_argument(
         "--assert-absent",
@@ -2144,6 +2551,15 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.assert_absent:
         return assert_absent(root, sys.stdin.read())
 
+    return audit(root, args)
+
+
+def audit(root: Path, args: argparse.Namespace) -> int:
+    """Run all eight checks and report them in the mode the caller asked for.
+
+    Separate from :func:`main` so that the eight checks are one readable list rather
+    than the tail of an argument parser, and so `main` stays inside the branch budget
+    the repository's own ruff ratchet enforces on `scripts/`."""
     entries, register_errors, register_present = load_register(root, args.register)
     # A register that does not validate grants nothing: entries are installed only when
     # every one of them is well-formed, so a typo cannot half-open the gate.
@@ -2161,28 +2577,14 @@ def main(argv: Sequence[str] | None = None) -> int:
     ]
     rows.append(check_disclosure_register(root, entries, register_errors, register_present, rows))
 
-    print_table(rows)
+    mode = "pre-flip" if args.pre_flip else "post-flip"
+    print_table(rows, mode)
+    undisposed = print_postflip(rows) if mode == "post-flip" else 0
 
     if args.json:
-        out = Path(args.json)
-        if not out.is_absolute():
-            out = root / out
-        out.parent.mkdir(parents=True, exist_ok=True)
-        out.write_text(
-            json.dumps(build_document(rows, root, entries), indent=2, ensure_ascii=False) + "\n",
-            encoding="utf-8",
-        )
-        print(f"wrote {out}")
+        write_document(args.json, rows, root, entries, mode)
 
-    failed = [r.check for r in rows if r.status == "FAIL"]
-    if failed:
-        print(f"VERDICT: NOT READY - failing checks: {', '.join(failed)}")
-        return 1
-    print(
-        "VERDICT: READY - every finding is resolved, allowlisted with a reason, or "
-        "disclosed by a dated register entry"
-    )
-    return 0
+    return verdict(rows, mode, undisposed)
 
 
 if __name__ == "__main__":

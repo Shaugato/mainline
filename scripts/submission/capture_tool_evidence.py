@@ -43,6 +43,7 @@ Usage::
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import re
 import sys
@@ -302,6 +303,17 @@ class Row:
     verdict_basis: str
     how: str
     anchor: str  # "path:line" — the single most load-bearing occurrence, hand-checked
+    #: A substring the anchor's line MUST contain, case-insensitively.
+    #:
+    #: Checking that ``path:line`` *resolves* only proves the file is long enough. It does
+    #: not prove the line still says what the row is about, and on 2026-08-12 five AWS
+    #: anchors were found pointing at a bare ``}``, a ``})``, a blank line, ``timeout =
+    #: var.timeout`` and a fragment of an unrelated docstring — every one of them
+    #: "resolving" perfectly. A judge following those citations reads a closing brace and
+    #: concludes the document is decorative. So the anchor now has to prove its subject:
+    #: :func:`main` REFUSES to write when this substring is absent, which turns silent
+    #: citation rot into a red gate at the moment the line moves.
+    anchor_must_contain: str
     scope: str = ""  # optional path prefix restriction, posix, "" = whole tree
 
     def compiled(self) -> re.Pattern[str]:
@@ -327,6 +339,7 @@ CRDB_ROWS: Final[tuple[Row, ...]] = (
             "recorded rather than assumed."
         ),
         anchor="compose.yaml:31",
+        anchor_must_contain="cockroachdb/cockroach:v26.2.5",
     ),
     Row(
         key="crdb_serializable",
@@ -349,6 +362,7 @@ CRDB_ROWS: Final[tuple[Row, ...]] = (
             "is the only SQLSTATE the harness retries."
         ),
         anchor="packages/trappoint-model/src/trappoint_model/cluster.py:222",
+        anchor_must_contain="isolation",
     ),
     Row(
         key="crdb_triggers",
@@ -368,6 +382,7 @@ CRDB_ROWS: Final[tuple[Row, ...]] = (
             "0120_trg_check_project.sql:28 is the projection trigger."
         ),
         anchor="verticals/mainline/db/migrations/0115_fn_permit_merge_gate.sql:77",
+        anchor_must_contain="P0001",
     ),
     Row(
         key="crdb_check_constraints",
@@ -386,6 +401,7 @@ CRDB_ROWS: Final[tuple[Row, ...]] = (
             "reason, so every conformance case asserts both."
         ),
         anchor="verticals/mainline/db/migrations/0050_permit.sql:114",
+        anchor_must_contain="gate_closed_when_issued",
     ),
     Row(
         key="crdb_vector_index",
@@ -409,6 +425,7 @@ CRDB_ROWS: Final[tuple[Row, ...]] = (
             "value for the index to be chosen."
         ),
         anchor="verticals/mainline/db/migrations/0031_clause_embedding.sql:149",
+        anchor_must_contain="VECTOR INDEX ce_ann",
     ),
     Row(
         key="crdb_as_of_system_time",
@@ -418,12 +435,21 @@ CRDB_ROWS: Final[tuple[Row, ...]] = (
         case_sensitive=False,
         verdict="EXERCISED",
         verdict_basis=(
-            "measured on the pinned local node: AS OF SYSTEM TIME '-90m' over system.namespace "
-            "returned 3658 rows, while '-2160h' (90 days) was REFUSED with XXUUU 'found no "
-            "descriptor'; ALTER DATABASE ... CONFIGURE ZONE pinned gc.ttlseconds to 4500 and "
-            "SHOW ZONE CONFIGURATION read it back. What that pair demonstrates is that a "
+            "measured on the pinned local node 2026-08-12 in scratch database "
+            "w_w6_tool_usage: AS OF SYSTEM TIME '-90m' over system.namespace returned 1619 "
+            "rows, while '-2160h' (90 days) was REFUSED with SQLSTATE XXUUU, message 'error "
+            "in retrieving descs between ...: batch timestamp ... must be after replica GC "
+            "threshold ... (r7: /Table/{0-4})'. What that pair demonstrates is that a "
             "far-past read is refused rather than answered — not the 4500 s boundary "
-            "specifically, which is the conformance case CF-46 and has not been demonstrated"
+            "specifically, which is the conformance case CF-46 and has not been "
+            "demonstrated. CORRECTION TO AN EARLIER BASIS, from re-running it rather than "
+            "remembering it: the row count was quoted as 3658, a live cluster's count on a "
+            "different day that was never going to reproduce, and the message was quoted as "
+            "'found no descriptor', where this node names the GC threshold directly. The "
+            "SQLSTATE XXUUU did reproduce exactly and is unchanged. Note it was read from "
+            "psycopg's sqlstate field: the cockroach CLI renders this refusal WITHOUT a "
+            "SQLSTATE line, and trusting that rendering would have produced a confident, "
+            "false correction"
         ),
         how=(
             "Used for consistent read-only snapshots — and, more importantly, used to mark "
@@ -432,6 +458,7 @@ CRDB_ROWS: Final[tuple[Row, ...]] = (
             "wrong, and long-horizon history is the application-level commit DAG instead."
         ),
         anchor="packages/trappoint-conformance/cases/cf46_time_travel_cannot_reach.py:106",
+        anchor_must_contain="AS OF SYSTEM TIME",
     ),
     Row(
         key="crdb_follower_reads",
@@ -450,6 +477,7 @@ CRDB_ROWS: Final[tuple[Row, ...]] = (
             "state its follower-read timestamp is refused by its own emitter."
         ),
         anchor="verticals/mainline/db/migrations/0180c_role_agent_patroller.sql:37",
+        anchor_must_contain="follower_read_timestamp()",
     ),
     Row(
         key="crdb_row_level_security",
@@ -469,6 +497,7 @@ CRDB_ROWS: Final[tuple[Row, ...]] = (
             "— so the documented-safe shape is USING (col = CURRENT_USER)."
         ),
         anchor="verticals/mainline/db/migrations/0181a_permit_rls_force.sql:54",
+        anchor_must_contain="FORCE ROW LEVEL SECURITY",
     ),
     Row(
         key="crdb_show_create",
@@ -488,6 +517,7 @@ CRDB_ROWS: Final[tuple[Row, ...]] = (
             "text is therefore inside the attestation: you cannot quietly edit the gate."
         ),
         anchor="packages/trappoint-migrate/src/trappoint_migrate/attest.py:243",
+        anchor_must_contain="SHOW CREATE ALL SCHEMAS",
     ),
     Row(
         key="crdb_internal",
@@ -497,11 +527,16 @@ CRDB_ROWS: Final[tuple[Row, ...]] = (
         case_sensitive=True,
         verdict="EXERCISED",
         verdict_basis=(
-            "measured on the pinned local node: the bare builtin cluster_logical_timestamp() "
-            "returns, while crdb_internal is RESTRICTED BY DEFAULT on v26.2.5 — "
-            "'SELECT count(*) FROM crdb_internal.tables' raises 42501 'Access to "
-            "crdb_internal and system is restricted' and only succeeds after "
-            "SET allow_unsafe_internals = true"
+            "re-measured on the pinned local node 2026-08-12: the bare builtin "
+            "cluster_logical_timestamp() returns, while crdb_internal is RESTRICTED BY "
+            "DEFAULT on v26.2.5 — 'SELECT count(*) FROM crdb_internal.tables' raises 42501 "
+            "'Access to crdb_internal and system is restricted' and only succeeds after "
+            "SET allow_unsafe_internals = true. The restriction is not crdb_internal-"
+            "specific: system.namespace is behind the same opt-in, as the "
+            "crdb_as_of_system_time row's measurement had to discover. No row COUNT is "
+            "quoted for the unlocked query, deliberately — it counts descriptors across "
+            "every database on the node, so on a shared node it measures who else was "
+            "working rather than anything about CockroachDB"
         ),
         how=(
             "Two opposite uses. Internally, cluster_logical_timestamp() is the HLC the "
@@ -515,6 +550,7 @@ CRDB_ROWS: Final[tuple[Row, ...]] = (
             "it."
         ),
         anchor="packages/mainline-mcp/src/mainline_mcp/limits.py:75",
+        anchor_must_contain="FORBIDDEN_SCHEMAS",
     ),
     Row(
         key="crdb_changefeed",
@@ -524,10 +560,14 @@ CRDB_ROWS: Final[tuple[Row, ...]] = (
         case_sensitive=False,
         verdict="DESIGNED",
         verdict_basis=(
-            "measured on the pinned local node: the machinery is present — "
-            "kv.rangefeed.enabled is true and SHOW CHANGEFEED JOBS answers — and it reports "
-            "0 jobs, because no changefeed has ever been created on any cluster in this "
-            "project"
+            "measured on the pinned local node 2026-08-12: SHOW CHANGEFEED JOBS answers and "
+            "reports 0 jobs, because no changefeed has ever been created on any cluster in "
+            "this project. MEASURED CORRECTION, and it makes the verdict stronger rather "
+            "than weaker: an earlier basis said 'kv.rangefeed.enabled is true'. It reads "
+            "FALSE on this node today. So CDC here is not merely unstarted, it is not "
+            "currently startable without flipping a cluster setting first — which is the "
+            "honest shape of a DESIGNED verdict and is exactly what a reader would discover "
+            "on their own node"
         ),
         how=(
             "CDC is deliberately NOT in a migration — CREATE CHANGEFEED in a migration makes "
@@ -537,6 +577,7 @@ CRDB_ROWS: Final[tuple[Row, ...]] = (
             "and multi-family tables."
         ),
         anchor="verticals/mainline/db/migrations/0168_v_changefeed_health.sql:37",
+        anchor_must_contain="CREATE CHANGEFEED",
     ),
     Row(
         key="crdb_cloud_ccloud",
@@ -558,6 +599,7 @@ CRDB_ROWS: Final[tuple[Row, ...]] = (
             "the Cloud REST API with the same key; and audit-log endpoints 404 on this tier."
         ),
         anchor="evidence/ccloud/README.md:37",
+        anchor_must_contain="0.6.12",
     ),
     Row(
         key="crdb_managed_mcp",
@@ -565,11 +607,27 @@ CRDB_ROWS: Final[tuple[Row, ...]] = (
         kind="tool",
         pattern=r"cockroachlabs\.cloud/mcp|mcp-cluster-id|mainline_audit",
         case_sensitive=False,
-        verdict="DESIGNED",
+        verdict="EXERCISED",
         verdict_basis=(
-            "packages/mainline-mcp implements the transport and the limits and its offline "
-            "tests pass, but no live session against the managed endpoint is captured in "
-            "evidence/; tests/integration/mcp skips with a reason when no key is present"
+            "PROMOTED 2026-08-12, and the basis it replaces is worth reading: this row said "
+            "'no live session against the managed endpoint is captured in evidence/' and "
+            "that stopped being true on 2026-08-11. evidence/deploy/judge-run.json records "
+            "an MCP session against https://cockroachlabs.cloud/mcp — payload channels.mcp."
+            "ran true, protocol 2025-06-18, server cockroachdb-cloud 1.0.0, tools/list "
+            "returning 12 tools — driving the whole "
+            "evidence/deploy/judge-run.json#/questions = 16 question pack against the live "
+            "Basic cluster 7cfc9ee9-f9b4-413d-bcad-d81fca2c6c7e, with "
+            "evidence/deploy/judge-run.json#/channels/mcp/passed = 15 of "
+            "evidence/deploy/judge-run.json#/channels/mcp/total = 16 PASS. THE FAILURE IS "
+            "NOT ROUNDED OFF: the run's own verdict is 'DIVERGED - KNOWN GAP' because the "
+            "managed-mcp identity can read mainline_qa.v_disposition_profile, which the "
+            "pack asserted it could not. It also settles two questions pessimistically "
+            "assumed before: the endpoint runs as SQL user 'managed-mcp', not root and not "
+            "the database owner, and managed_mcp_availability.credential_publishable is "
+            "FALSE, so this channel cannot be handed to anonymous judges. STILL TRUE AND "
+            "UNCHANGED: tests/integration/mcp skips with a reason when no key is present "
+            "rather than passing vacuously, so the SUITES remain unexercised in CI even "
+            "though the endpoint is not"
         ),
         how=(
             "MCP Streamable HTTP, bearer service-account key, mcp-cluster-id header pinning "
@@ -582,6 +640,7 @@ CRDB_ROWS: Final[tuple[Row, ...]] = (
             "so a truncated safety aggregate never reaches a reader."
         ),
         anchor="packages/mainline-mcp/src/mainline_mcp/limits.py:45",
+        anchor_must_contain="cockroachlabs.cloud/mcp",
     ),
     Row(
         key="crdb_agent_skills",
@@ -604,6 +663,7 @@ CRDB_ROWS: Final[tuple[Row, ...]] = (
             "skills/upstream/ for contribution back to Cockroach Labs."
         ),
         anchor="skills/designing-diachronic-gates/scripts/assert_gate_refuses.py:57",
+        anchor_must_contain="_SQLSTATE",
     ),
 )
 
@@ -644,7 +704,15 @@ AWS_ROWS: Final[tuple[Row, ...]] = (
             "back into a builder. And no live leg REFUSED "
             "(payload.refusal_behaviour.live_refusals_observed 0), so the "
             "refusal-degrades-the-run path was exercised against a CONSTRUCTED refusing "
-            "transport rather than a model that said no"
+            "transport rather than a model that said no. SECOND, INDEPENDENT TRANSCRIPT, "
+            "different day and different program: evidence/deploy/aws-live.json records a "
+            "bedrock-runtime:Converse on au.anthropic.claude-haiku-4-5-20251001-v1:0 at "
+            "evidence/deploy/aws-live.json#/calls/3/http_status = 200, stop_reason "
+            "end_turn, AWS REQUEST ID 3c7a283c-9f67-4d98-aa8f-26490d54d32d, "
+            "evidence/deploy/aws-live.json#/calls/3/usage/output_tokens = 8. The request "
+            "id is the load-bearing part: it is a string AWS minted and this repository "
+            "could not have, so a reader with the account's CloudTrail can look it up and "
+            "a reader without one can at least see that we did not round-number it"
         ),
         how=(
             "bedrock-runtime InvokeModel with the Anthropic native body. The modelId is an "
@@ -654,6 +722,7 @@ AWS_ROWS: Final[tuple[Row, ...]] = (
             "generation across the fleet, differentiated by effort rather than by model."
         ),
         anchor="packages/mainline-agentkit/src/mainline_agentkit/transport.py:273",
+        anchor_must_contain="Refuse any model identifier",
     ),
     Row(
         key="aws_bedrock_embeddings",
@@ -672,7 +741,32 @@ AWS_ROWS: Final[tuple[Row, ...]] = (
             "token count; evidence/aws/ann/ann-proof.json then searched "
             "evidence/aws/ann/ann-proof.json#/payload/vectors/rows_searched = 1080 of them "
             "through CockroachDB's ce_ann index and names the same model at "
-            "payload.vectors.embed_model_expected. WHAT THIS DOES NOT SAY: the corpus is "
+            "payload.vectors.embed_model_expected. TWO SINGLE-CALL ROUND TRIPS NAME AN AWS "
+            "REQUEST ID EACH, and they are different calls on different days rather than "
+            "one call quoted twice: evidence/aws/probe/raw-titan-invoke.json records "
+            "request id 6dcdcdf0-38d3-453f-a476-fa69b2d87863 at "
+            "evidence/aws/probe/raw-titan-invoke.json#/payload/response/metadata/"
+            "http_status = 200, width "
+            "evidence/aws/probe/raw-titan-invoke.json#/payload/derived/embedding_length = "
+            "1024 and L2 norm "
+            "evidence/aws/probe/raw-titan-invoke.json#/payload/derived/l2_norm = "
+            "1.00000006; evidence/deploy/aws-live.json records request id "
+            "b4d826e9-03ba-4368-9687-f00cc28a98ef at "
+            "evidence/deploy/aws-live.json#/calls/2/http_status = 200 and width "
+            "evidence/deploy/aws-live.json#/calls/2/embedding_dimension = 1024, whose L2 "
+            "norm is recorded as evidence/deploy/aws-live.json#/calls/2/embedding_l2_norm "
+            "= 1.0 because that program rounds and the probe does not — the two figures "
+            "are not in conflict and neither may be quoted as the other. RESIDENCY "
+            "FINDING, MEASURED AND PUBLISHED RATHER THAN WORKED AROUND: cohere.embed-v4:0 "
+            "is REFUSED on-demand in ap-southeast-2 — ValidationException, "
+            "evidence/aws/probe/raw-cohere-refusal.json#/payload/error/metadata/"
+            "http_status = 400, request id a826eb16-e813-45aa-932e-4696e9979087 — and "
+            "evidence/aws/bench/residency-finding.json#/payload/inference_profiles/"
+            "count_containing_cohere_embed_v4 = 1 says the only profile carrying it is "
+            "global.cohere.embed-v4:0, which AWS's own description calls global routing. "
+            "The in-region answer is cohere.embed-english-v3 (ON_DEMAND, ap-southeast-2), "
+            "and it carries its own limit: Bedrock refuses any single text over 2048 "
+            "characters for it. WHAT THIS DOES NOT SAY: the corpus is "
             "SYNTHETIC, the vector blobs live under the gitignored out/ so the manifest's "
             "per-vector sha256 is the checkable part, and Tier-2 verification in VERIFY.md "
             "still needs no model call because the committed fixtures are unchanged"
@@ -693,6 +787,7 @@ AWS_ROWS: Final[tuple[Row, ...]] = (
             "verticals/mainline/packages/mainline-recall-agent/src/"
             "mainline_recall_agent/providers/bedrock_titan.py:55"
         ),
+        anchor_must_contain="amazon.titan-embed-text-v2:0",
     ),
     Row(
         key="aws_bedrock_rerank",
@@ -706,8 +801,12 @@ AWS_ROWS: Final[tuple[Row, ...]] = (
         case_sensitive=False,
         verdict="NOT-AVAILABLE",
         verdict_basis=(
-            "Bedrock Rerank is not offered in ap-southeast-2; docs/HONESTY.md records it as "
-            "absent and confirms no dependency was taken on it"
+            "Bedrock Rerank is not offered in ap-southeast-2. The live control-plane census "
+            "in evidence/aws/probe/model-availability.json enumerates what IS offered and it "
+            "is not among them, and docs/HONESTY.md records the absence and confirms no "
+            "dependency was taken on it. The absence cost nothing because listwise reranking "
+            "was designed onto the Claude profile before it was checked, which is why this "
+            "row anchors at that reranker rather than at the sentence announcing the gap"
         ),
         how=(
             "NOT USED, and named here because a services list that omits what you checked and "
@@ -716,7 +815,25 @@ AWS_ROWS: Final[tuple[Row, ...]] = (
             "vector_search_rerank_multiplier session variable (observed at 50) governs the "
             "ANN side. The design assumed Rerank's absence before it was checked."
         ),
-        anchor="docs/HONESTY.md:276",
+        # Re-pointed TWICE on 2026-08-12, and the second move is the instructive one.
+        #
+        # It named docs/HONESTY.md:276, a BLANK LINE — resolving perfectly, saying nothing.
+        # Re-pointed to :658, the table row that makes the claim. Within the hour the new
+        # `anchor_must_contain` guard fired: HONESTY.md is another worker's file, under
+        # active edit, and the row had moved to :697. A line number into a prose document
+        # somebody else is rewriting is a citation with a short half-life, however carefully
+        # it is placed.
+        #
+        # So this row now anchors at the SUBSTITUTE rather than at the announcement. The
+        # claim is "Rerank is unavailable and listwise reranking is done by the Claude
+        # profile instead"; ListwiseReranker is the thing that does it, it is the reason the
+        # absence cost nothing, and it moves only when the mechanism moves. HONESTY.md is
+        # still cited in `how` as prose, where a drifting line number does no harm.
+        anchor=(
+            "verticals/mainline/packages/mainline-recall-agent/src/"
+            "mainline_recall_agent/rerank/listwise.py:77"
+        ),
+        anchor_must_contain="class ListwiseReranker",
     ),
     Row(
         key="aws_s3_object_lock",
@@ -741,6 +858,7 @@ AWS_ROWS: Final[tuple[Row, ...]] = (
             "unconstrained retention date."
         ),
         anchor="infra/modules/evidence-store/main.tf:100",
+        anchor_must_contain="aws_s3_bucket_object_lock_configuration",
     ),
     Row(
         key="aws_kms",
@@ -763,6 +881,7 @@ AWS_ROWS: Final[tuple[Row, ...]] = (
             "a rotated signing key silently invalidates historical verification."
         ),
         anchor="packages/trappoint-ledger/src/trappoint_ledger/signer.py:63",
+        anchor_must_contain="ECDSA_SHA_256",
     ),
     Row(
         key="aws_cloudtrail",
@@ -784,6 +903,7 @@ AWS_ROWS: Final[tuple[Row, ...]] = (
             "cadence instead of at the next audit."
         ),
         anchor="infra/envs/evidence/main.tf:114",
+        anchor_must_contain="aws_cloudtrail",
     ),
     Row(
         key="aws_lambda",
@@ -793,18 +913,40 @@ AWS_ROWS: Final[tuple[Row, ...]] = (
         case_sensitive=False,
         verdict="DESIGNED",
         verdict_basis=(
-            "the module is complete (python3.13, IAM-only Function URL, four alarms) and "
-            "nothing is deployed: the repository has no demo URL as of this census"
+            "the module is complete (python3.13, arm64, 512 MB, 15 s, four alarms, one "
+            "dashboard) and NOTHING IS DEPLOYED. A plan exists and a plan is not an apply: "
+            "evidence/deploy/terraform-plan-furl.txt reads '11 to add, 0 to change, 0 to "
+            "destroy' and terraform apply has not been run against it, so there is no "
+            "function, no role, no log group and no demo URL as of this census. This row "
+            "stays DESIGNED until an apply has happened — promoting it because an apply is "
+            "planned and authorised is exactly the arithmetic the verdict column exists to "
+            "refuse"
         ),
         how=(
-            "One python3.13 function behind a Function URL whose authorization_type is "
-            "AWS_IAM — never NONE — invoked only by CloudFront with an OAC signature. It runs "
-            "in ap-southeast-1 beside the Cloud cluster, because the same call from "
-            "ap-southeast-2 pays about 90 ms each way and the gate screen makes six of them. "
-            "Its execution role's entire non-managed grant is ssm:GetParameter on one "
-            "parameter plus a conditioned kms:Decrypt."
+            "One python3.13 arm64 function in ap-southeast-1, beside the Cloud cluster, "
+            "because the same call from ap-southeast-2 pays about 90 ms each way and the "
+            "gate screen makes six of them. Its execution role's entire non-managed grant "
+            "is ssm:GetParameter on ONE parameter ARN plus a conditioned kms:Decrypt. "
+            "MEASURED CORRECTION, and it is the kind that matters: an earlier census said "
+            "this row's Function URL was 'AWS_IAM — never NONE'. THAT IS NOT WHAT THE "
+            "COMMITTED PLAN DOES. var.url_authorization_type defaults to NONE and "
+            "evidence/deploy/terraform-plan-furl.txt:329 plans authorization_type = "
+            '"NONE", because AWS_IAM is only a hardening if a CloudFront distribution '
+            "exists to be granted lambda:InvokeFunctionUrl — and this account cannot "
+            "create one (see the aws_cloudfront row). An AWS_IAM URL with no principal "
+            "behind it is not a hardened demo, it is a demo nobody can reach. So the URL "
+            "is public and the module says so, and what actually bounds it is written "
+            "down instead of assumed: reserved_concurrent_executions caps the bill rather "
+            "than reporting it, the handler's write surface is one transaction that ends "
+            "in ROLLBACK, the Basic cluster carries its own spend limit, and the "
+            "concurrency alarm is the tripwire. That is a smaller claim than 'invocable by "
+            "one distribution and nothing else' and it is the true one for this account."
         ),
-        anchor="infra/modules/demo-api/main.tf:257",
+        # Re-pointed 2026-08-12. This anchor named main.tf:257, which reads
+        # `timeout = var.timeout` — a citation that resolved and proved nothing. Line 310
+        # is the authorisation decision the row now turns on.
+        anchor="infra/modules/demo-api/main.tf:310",
+        anchor_must_contain="authorization_type",
     ),
     Row(
         key="aws_cloudfront",
@@ -814,16 +956,35 @@ AWS_ROWS: Final[tuple[Row, ...]] = (
         case_sensitive=False,
         verdict="DESIGNED",
         verdict_basis=(
-            "one distribution with two OACs is written; nothing is deployed and the "
-            "submission's demo URL is unresolved"
+            "one distribution with two OACs is written, nothing is deployed, and — the "
+            "part that is not a schedule problem — THIS ACCOUNT CANNOT CREATE ONE. A real "
+            "terraform apply returned, verbatim: 'Error: creating CloudFront "
+            "Distribution: StatusCode: 403, RequestID: "
+            "3e63e30d-8c5b-441b-a01b-b70085eba504, AccessDenied: Your account must be "
+            "verified before you can add new CloudFront resources.' It reproduces from a "
+            "bare `aws cloudfront create-distribution` with no Terraform involved, and the "
+            "identity holds AdministratorAccess, so it is an account-level verification "
+            "hold only AWS Support can lift — not a permissions bug and not something this "
+            "repository can fix. CloudFront is therefore EXCLUDED from the committed plan: "
+            "enable_cloudfront is false in evidence/deploy/terraform-plan-furl.json and no "
+            "aws_cloudfront_* resource appears among its 11 planned additions. The "
+            "transcript is at infra/modules/demo-api/main.tf:22 and docs/deploy/RUNBOOK.md"
         ),
         how=(
-            "A single distribution fronts the static console from a private S3 origin and "
-            "the /v1/* Lambda Function URL, so the judge sees one origin and the bucket is "
-            "never public. Origin Access Control (not the legacy OAI) signs both origins, "
-            "which is what lets the Function URL keep AWS_IAM auth instead of NONE."
+            "AS DESIGNED, and the design is on hold: a single distribution fronts the "
+            "static console from a private S3 origin and the /v1/* Lambda Function URL, so "
+            "a judge sees one origin and the bucket is never public. Origin Access Control "
+            "(not the legacy OAI) signs both origins, which is what would let the Function "
+            "URL keep AWS_IAM auth instead of NONE. With the verification hold in place "
+            "there is no distribution, therefore no principal to grant "
+            "lambda:InvokeFunctionUrl to, therefore the Function URL is public — which is "
+            "why the aws_lambda row above reads NONE. One AWS account setting propagates "
+            "into the security posture of a second service, and both rows say so rather "
+            "than one of them quietly describing the plan that was abandoned."
         ),
-        anchor="infra/modules/demo-site/main.tf:263",
+        # Re-pointed 2026-08-12: main.tf:263 was a bare `}` inside an S3 lifecycle rule.
+        anchor="infra/modules/demo-site/main.tf:299",
+        anchor_must_contain="aws_cloudfront_distribution",
     ),
     Row(
         key="aws_cloudwatch",
@@ -863,7 +1024,11 @@ AWS_ROWS: Final[tuple[Row, ...]] = (
         # line that makes "metrics read, nothing provisioned" mechanical rather than a
         # promise: it raises before an out-of-list request is signed. The alarms and the
         # dashboard at infra/modules/demo-api/main.tf:391 are still described in `how`.
-        anchor="scripts/aws/cloudwatch_evidence.py:248",
+        # Re-pointed 2026-08-12: :248 had slid onto a fragment of an unrelated docstring
+        # string literal. :299 is `def _guard`, the function this row's whole verdict
+        # phrase rests on.
+        anchor="scripts/aws/cloudwatch_evidence.py:299",
+        anchor_must_contain="def _guard",
     ),
     Row(
         key="aws_iam",
@@ -884,6 +1049,7 @@ AWS_ROWS: Final[tuple[Row, ...]] = (
             "compliant plan and a family of deliberately broken ones."
         ),
         anchor="infra/modules/evidence-store/main.tf:145",
+        anchor_must_contain="aws_iam_policy_document",
     ),
     Row(
         key="aws_ssm_parameter_store",
@@ -892,14 +1058,22 @@ AWS_ROWS: Final[tuple[Row, ...]] = (
         pattern=r"ssm:GetParameter|aws_ssm_",
         case_sensitive=False,
         verdict="DESIGNED",
-        verdict_basis="granted in the Lambda execution role; nothing deployed",
+        verdict_basis=(
+            "granted in the Lambda execution role and NOTHING DEPLOYED — no parameter has "
+            "been written and no role exists. The grant is in the committed plan "
+            "(aws_iam_role_policy.dsn_access, one of the 11 additions in "
+            "evidence/deploy/terraform-plan-furl.txt) and a plan is not an apply, so this "
+            "row stays DESIGNED"
+        ),
         how=(
             "The CockroachDB Cloud DSN is a SecureString parameter, not a Lambda environment "
             "variable, so the connection string never appears in the function configuration "
             "that anyone with lambda:GetFunction can read. The role's grant is scoped to "
             "exactly one parameter ARN."
         ),
-        anchor="infra/modules/demo-api/main.tf:146",
+        # Re-pointed 2026-08-12: main.tf:146 was a bare `})` closing a locals block.
+        anchor="infra/modules/demo-api/main.tf:192",
+        anchor_must_contain="ssm:GetParameter",
     ),
     Row(
         key="aws_eventbridge",
@@ -920,6 +1094,7 @@ AWS_ROWS: Final[tuple[Row, ...]] = (
             "Terraform in this tree creates a rule or a bus."
         ),
         anchor="verticals/mainline/apps/steward/schedules.yaml:14",
+        anchor_must_contain="EventBridge",
     ),
 )
 
@@ -929,14 +1104,20 @@ AWS_ROWS: Final[tuple[Row, ...]] = (
 # --------------------------------------------------------------------------------------
 
 
-def resolve_anchor(anchor: str, root: Path) -> dict[str, Any]:
-    """Resolve ``path:line`` against the tree and quote the line it lands on.
+def resolve_anchor(anchor: str, root: Path, expect: str = "") -> dict[str, Any]:
+    """Resolve ``path:line`` against the tree, quote the line, and check its subject.
 
     The quoted text is the point. ``docs/TOOL-USAGE.md`` tells a judge to look at a file
     and a line; if the file is later reorganised, the citation silently starts pointing at
     a blank line or a closing brace and the document becomes confidently wrong. Quoting
-    the line into the evidence file makes that rot visible in a diff, and
-    :func:`main` refuses to write when an anchor no longer resolves at all.
+    the line into the evidence file makes that rot visible in a diff.
+
+    *Resolving is the weaker half of the check and was, for a while, the only half.* A
+    citation onto line 257 of a 500-line Terraform module resolves whatever line 257 has
+    become. So ``expect`` — the row's :attr:`Row.anchor_must_contain` — is matched against
+    the line text case-insensitively, and :func:`main` refuses to write when it is absent.
+    ``subject_holds`` is what a reader should look at; ``resolves`` only says the file was
+    long enough.
     """
     path_part, _, line_part = anchor.rpartition(":")
     if path_part and line_part.isdigit():
@@ -944,20 +1125,36 @@ def resolve_anchor(anchor: str, root: Path) -> dict[str, Any]:
     else:
         relpath, lineno = anchor, None
 
+    def miss(**kw: Any) -> dict[str, Any]:
+        base: dict[str, Any] = {
+            "path": relpath,
+            "line": lineno,
+            "resolves": False,
+            "line_text": None,
+            "must_contain": expect,
+            "subject_holds": False,
+        }
+        base.update(kw)
+        return base
+
     target = root / relpath
     if not target.is_file():
-        return {"path": relpath, "line": lineno, "resolves": False, "line_text": None}
+        return miss()
     if lineno is None:
-        return {"path": relpath, "line": None, "resolves": True, "line_text": None}
+        # A whole-file anchor cannot be checked line-wise; it carries no subject claim.
+        return miss(resolves=True, subject_holds=not expect)
 
     lines = target.read_text(encoding="utf-8", errors="replace").splitlines()
     if not 1 <= lineno <= len(lines):
-        return {"path": relpath, "line": lineno, "resolves": False, "line_text": None}
+        return miss()
+    text = lines[lineno - 1].strip()
     return {
         "path": relpath,
         "line": lineno,
         "resolves": True,
-        "line_text": lines[lineno - 1].strip(),
+        "line_text": text,
+        "must_contain": expect,
+        "subject_holds": (expect.lower() in text.lower()) if expect else True,
     }
 
 
@@ -992,7 +1189,7 @@ def measure(row: Row, scan: Scan) -> dict[str, Any]:
         "verdict_basis": row.verdict_basis,
         "how": row.how,
         "anchor": row.anchor,
-        "anchor_resolved": resolve_anchor(row.anchor, scan.root),
+        "anchor_resolved": resolve_anchor(row.anchor, scan.root, row.anchor_must_contain),
         "file_count": len(matched),
         "files_by_category": {k: by_category[k] for k in sorted(by_category)},
         "representative_paths": representative,
@@ -1073,11 +1270,193 @@ LICENSE_SIDECAR: Final = (
 )
 
 
+#: ``docs/TOOL-USAGE.md`` writes every count as ``<number> [src: <file>#<dotted.path>]``.
+#: This is the convention ``docs/HONESTY.md`` established, and it is only worth anything if
+#: something resolves it.
+DOC_CITATION: Final = re.compile(r"(\d+)\s*\[src:\s*(evidence/tool-usage/[^\]\s]+)\]")
+
+#: The document those citations live in. Named here rather than passed in, because a
+#: check that can be pointed at a different file is a check that can be pointed away.
+CITING_DOC: Final = "docs/TOOL-USAGE.md"
+
+
+def _dotted(document: dict[str, Any], path: str) -> Any:
+    """Resolve ``rows.aws_lambda.file_count`` against a census document."""
+    cur: Any = document
+    for token in path.split("."):
+        if not isinstance(cur, dict) or token not in cur:
+            return None
+        cur = cur[token]
+    return cur
+
+
+def check_doc_citations(root: Path, documents: dict[str, dict[str, Any]]) -> list[str]:
+    """Every ``N [src: evidence/tool-usage/…]`` in the citing document must equal ``N``.
+
+    **Why this belongs in the same program that writes the census.** The two JSON files are
+    a pure function of a tree that ten people edit at once, so a count moves whenever
+    somebody adds a file that happens to match a pattern — no edit to the prose required,
+    no diff on the document, and the sentence is now false. Regenerating the census used to
+    *silence* that: the artefacts became fresh, ``--check`` went green, and the document
+    they exist to support kept quoting yesterday's number. Freshness of the evidence and
+    truth of the claim are different properties and only one of them was being tested.
+
+    Returns a list of human-readable disagreements; empty means every citation resolves and
+    agrees.
+    """
+    target = root / CITING_DOC
+    if not target.is_file():
+        return [f"{CITING_DOC}: missing, but the census exists to support it"]
+
+    problems: list[str] = []
+    for match in DOC_CITATION.finditer(target.read_text(encoding="utf-8")):
+        claimed, ref = int(match.group(1)), match.group(2)
+        filename, _, pointer = ref.partition("#")
+        document = documents.get(Path(filename).name)
+        if document is None:
+            problems.append(f"{ref}: names no census this program writes")
+            continue
+        found = _dotted(document, pointer)
+        if found is None:
+            problems.append(f"{ref}: does not resolve in the census")
+        elif found != claimed:
+            problems.append(f"{ref}: {CITING_DOC} says {claimed}, the census says {found}")
+    return problems
+
+
 def repo_root() -> Path:
     return Path(__file__).resolve().parents[2]
 
 
+def audit_anchors(
+    documents: dict[str, dict[str, Any]],
+) -> tuple[list[str], list[str]]:
+    """Split every row's anchor into ``(dangling, drifted)`` complaints.
+
+    Two failure modes, and the second is the one that actually happened in this
+    repository: an anchor that no longer *resolves*, and an anchor that resolves perfectly
+    onto a line that has nothing to do with the row. Only the first was ever checked.
+    """
+    dangling: list[str] = []
+    drifted: list[str] = []
+    for doc in documents.values():
+        for row in doc["rows"].values():
+            got = row["anchor_resolved"]
+            where = f"{doc['subject']}: {row['key']} -> {row['anchor']}"
+            if not got["resolves"]:
+                dangling.append(where)
+            elif not got["subject_holds"]:
+                drifted.append(
+                    f"{where}\n"
+                    f"      expected the line to contain: {got['must_contain']!r}\n"
+                    f"      the line actually reads:      {got['line_text']!r}"
+                )
+    return dangling, drifted
+
+
+def stale_report(root: Path, out_dir: Path, documents: dict[str, dict[str, Any]]) -> list[str]:
+    """Compare each committed census against a fresh one and describe any difference.
+
+    The description matters as much as the verdict. Reporting *"30770 bytes on disk vs
+    30770 bytes fresh"* — which is what a pure length comparison produces when one count
+    goes ``64 -> 65`` while another goes ``23 -> 22``, and that happens routinely on a tree
+    several people are editing — reads like a bug in the checker and sends the reader
+    hunting for one. When the lengths agree, name the line that actually differs.
+    """
+    stale: list[str] = []
+    for name, doc in documents.items():
+        target = out_dir / name
+        rel_name = target.relative_to(root).as_posix()
+        fresh = render(doc)
+        if not target.exists():
+            stale.append(f"{rel_name}: missing")
+            continue
+        current = target.read_text(encoding="utf-8")
+        if current == fresh:
+            continue
+        if len(current) != len(fresh):
+            stale.append(f"{rel_name}: {len(current)} bytes on disk vs {len(fresh)} bytes fresh")
+            continue
+        on_disk, computed = current.splitlines(), fresh.splitlines()
+        where = next(
+            (i for i, (a, b) in enumerate(zip(on_disk, computed, strict=False), start=1) if a != b),
+            0,
+        )
+        stale.append(
+            f"{rel_name}: same length ({len(fresh)} bytes), different content; "
+            f"first difference at line {where}:\n"
+            f"      on disk: {on_disk[where - 1].strip()[:96]}\n"
+            f"      fresh:   {computed[where - 1].strip()[:96]}"
+        )
+    return stale
+
+
+def run_check(
+    root: Path,
+    out_dir: Path,
+    documents: dict[str, dict[str, Any]],
+    files_scanned: int,
+) -> int:
+    """``--check``: the committed census must be fresh AND the document must agree with it.
+
+    Two questions, and both have to be asked. Freshness alone was the whole test until
+    2026-08-12, and it has a blind spot big enough to drive a submission through:
+    regenerating the artefacts makes ``--check`` green without touching a word of the prose
+    those artefacts exist to support. A fresh census under a stale sentence is a *worse*
+    state than a stale census, because the gate now certifies it.
+    """
+    stale = stale_report(root, out_dir, documents)
+    if stale:
+        sys.stderr.write("tool-usage census is STALE:\n")
+        for line in stale:
+            sys.stderr.write(f"  {line}\n")
+        sys.stderr.write("  run: python scripts/submission/capture_tool_evidence.py\n")
+        return 1
+
+    disagreements = check_doc_citations(root, documents)
+    if disagreements:
+        sys.stderr.write(f"{CITING_DOC} quotes numbers the census does not agree with:\n")
+        for line in disagreements:
+            sys.stderr.write(f"  {line}\n")
+        sys.stderr.write(
+            "  The census is fresh; the prose is not. Edit the number in the document\n"
+            "  to match the artefact it cites - never the other way round.\n"
+        )
+        return 1
+
+    cited = sum(1 for _ in DOC_CITATION.finditer((root / CITING_DOC).read_text("utf-8")))
+    sys.stdout.write(
+        f"tool-usage census is current ({files_scanned} files scanned) and all "
+        f"{cited} {CITING_DOC} citations agree with it\n"
+    )
+    return 0
+
+
+def _force_utf8_streams() -> None:
+    """Make stdout/stderr UTF-8 capable before anything is written to them.
+
+    MEASURED BUG, 2026-08-12. ``--print`` — a command ``docs/TOOL-USAGE.md`` Part 5 tells a
+    reader to run — died on Windows with::
+
+        UnicodeEncodeError: 'charmap' codec can't encode character '\\u2264'
+
+    because the default console encoding is cp1252 and the census prose contains ``≤`` and
+    ``—``. The program that exists to make this document checkable was not runnable by a
+    judge on the most common desktop platform, and it failed *after* printing a header, so
+    it looked like a partial success. ``errors="replace"`` is deliberately NOT used: a
+    census with mangled characters is a census a reader cannot compare byte-for-byte
+    against the committed file, which is the one property the whole design rests on.
+    """
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            # pragma: no cover - detached / redirected-to-null streams cannot reconfigure
+            with contextlib.suppress(ValueError, OSError):
+                reconfigure(encoding="utf-8")
+
+
 def main(argv: Sequence[str] | None = None) -> int:
+    _force_utf8_streams()
     parser = argparse.ArgumentParser(
         prog="capture_tool_evidence.py",
         description=(
@@ -1135,17 +1514,23 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     # A dangling citation is a defect, not a warning. docs/TOOL-USAGE.md sends a judge to
     # every one of these anchors, so the census refuses to produce evidence it knows is
-    # already wrong.
-    dangling = [
-        f"{doc['subject']}: {r['key']} -> {r['anchor']}"
-        for doc in documents.values()
-        for r in doc["rows"].values()
-        if not r["anchor_resolved"]["resolves"]
-    ]
-    if dangling:
-        sys.stderr.write("REFUSING: anchor does not resolve\n")
-        for line in dangling:
-            sys.stderr.write(f"  {line}\n")
+    # already wrong. Two failure modes, and the second is the one that actually happened:
+    # an anchor that no longer resolves, and an anchor that resolves onto the wrong line.
+    dangling, drifted = audit_anchors(documents)
+    if dangling or drifted:
+        if dangling:
+            sys.stderr.write("REFUSING: anchor does not resolve\n")
+            for line in dangling:
+                sys.stderr.write(f"  {line}\n")
+        if drifted:
+            sys.stderr.write(
+                "REFUSING: anchor resolves but has drifted off its subject.\n"
+                "  A citation onto a closing brace is worse than no citation: it sends a\n"
+                "  reader somewhere and tells them nothing. Re-point the anchor, or change\n"
+                "  anchor_must_contain if the row's subject genuinely moved.\n"
+            )
+            for line in drifted:
+                sys.stderr.write(f"  {line}\n")
         return 2
 
     out_dir = root / "evidence" / "tool-usage"
@@ -1157,27 +1542,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 0
 
     if args.check:
-        stale: list[str] = []
-        for name, doc in documents.items():
-            target = out_dir / name
-            fresh = render(doc)
-            if not target.exists():
-                stale.append(f"{target.relative_to(root).as_posix()}: missing")
-                continue
-            current = target.read_text(encoding="utf-8")
-            if current != fresh:
-                stale.append(
-                    f"{target.relative_to(root).as_posix()}: "
-                    f"{len(current)} bytes on disk vs {len(fresh)} bytes fresh"
-                )
-        if stale:
-            sys.stderr.write("tool-usage census is STALE:\n")
-            for line in stale:
-                sys.stderr.write(f"  {line}\n")
-            sys.stderr.write("  run: python scripts/submission/capture_tool_evidence.py\n")
-            return 1
-        sys.stdout.write(f"tool-usage census is current ({len(scan.files)} files scanned)\n")
-        return 0
+        return run_check(root, out_dir, documents, len(scan.files))
 
     out_dir.mkdir(parents=True, exist_ok=True)
     for name, doc in documents.items():

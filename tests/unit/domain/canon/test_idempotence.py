@@ -17,6 +17,23 @@ dash family, LINE SEPARATOR).  Uniform random Unicode would test the standard
 library's NFKC, not this module.
 """
 
+# ruff: noqa: RUF001
+#
+# RUF001 flags "ambiguous" characters in string literals: NO-BREAK SPACE, LINE SEPARATOR,
+# the smart quotes, HYPHEN, EN DASH, MINUS SIGN. Here that ambiguity IS the subject under
+# test. `_TROUBLEMAKERS` is the fixture -- the exact characters a procedure PDF puts into
+# text and the canonicaliser has to absorb -- and the discretionary-break tuple in
+# `test_canon_text_has_no_residual_presentation` is the assertion that they are gone
+# afterwards. "Did you mean `-` (HYPHEN-MINUS)?": no. Applying ruff's suggestion would
+# replace every vector with the ASCII character the canonicaliser is supposed to
+# PRODUCE, so the property would be proved against input that never needed
+# canonicalising, and the suite would pass vacuously while the module rotted.
+#
+# The suppression is file-level, not per-line, for two reasons: every ambiguous character
+# in this file is a vector, so there is no other kind to keep gated; and a per-line
+# directive would have to be appended to the fixture lines themselves, where the
+# requirement is that those bytes never move.
+
 from __future__ import annotations
 
 from hypothesis import HealthCheck, given, settings

@@ -28,17 +28,39 @@ exposure receipt, the recall run, the counters, the state. That split is not arb
 A derived identifier the API pinned would be the API asserting a fact about rows it did
 not write; reading it back means the demo describes the database it actually found, and
 says so when it finds nothing (:class:`ScenarioNotSeeded`).
+
+ROW SHAPE IS NOT A GLOBAL ANY MODULE MAY ASSUME
+-----------------------------------------------
+:func:`positional` lives in this module because it is the one :mod:`gate_run` and
+:mod:`transitions` already import, and three copies of a two-line helper are three places
+for it to drift.
+
+It exists because :func:`mainline_demo_api.db.connection` opens every production connection
+with ``psycopg.rows.dict_row`` — the convention :mod:`reads` and :mod:`health` are written
+to — while the statements in these three modules are written to be read by POSITION. The
+mismatch does not raise where it happens. Unpacking a ``dict`` yields its KEYS, so
+``check_id`` became the literal string ``"check_id"`` and was bound as a query parameter one
+statement later, which is the ``22P02`` recorded in ``evidence/deploy/rowfactory-defect.json``.
+
+Flipping these modules to name-keyed access would not have been enough, and that is measured
+rather than assumed: ``_FINGERPRINT_SQL`` returns ten columns CockroachDB all names
+``count``, and both merge-record statements return two columns it names ``encode``, so a
+``dict`` row COLLAPSES them — ten values arriving as one key, silently, with no error to
+notice. Asking the cursor for tuples keeps every column and makes these modules independent
+of the connection's factory in BOTH directions, which is what
+``tests/test_row_factory_contract.py`` asserts.
 """
 
 from __future__ import annotations
 
 import os
 import uuid
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any, Final
 
 import psycopg
+from psycopg.rows import TupleRow, tuple_row
 
 __all__ = [
     "DEMO_NAMESPACE",
@@ -50,8 +72,29 @@ __all__ = [
     "ScenarioNotSeeded",
     "demo_uuid",
     "from_env",
+    "positional",
     "resolve",
 ]
+
+
+def positional(
+    conn: psycopg.Connection[Any],
+    sql: str,
+    params: Sequence[Any] | None = None,
+) -> psycopg.Cursor[TupleRow]:
+    """Run *sql* and return a cursor whose rows are TUPLES, whatever factory *conn* has.
+
+    The row factory is set on the CURSOR, which is psycopg's own mechanism for exactly
+    this: the statement declares the shape it is written against instead of inheriting one
+    from whoever opened the connection. Nothing about *conn* is mutated, so a caller that
+    opened it with ``dict_row`` for :mod:`reads` still has ``dict_row`` afterwards.
+
+    See the module docstring for why position rather than name is the right convention for
+    these statements — several of them return columns CockroachDB gives duplicate names,
+    which a ``dict`` row silently collapses.
+    """
+    return conn.cursor(row_factory=tuple_row).execute(sql, params)
+
 
 #: The string every demo identifier is derived from. Changing it re-mints the whole
 #: history and is therefore a deliberate act with a diff, which is the point.
@@ -271,7 +314,7 @@ def resolve(conn: psycopg.Connection[Any], scenario: Scenario | None = None) -> 
             and a message that does not say which permit was wanted cannot tell them so.
     """
     sc = scenario or from_env()
-    row = conn.execute(_RESOLVE_SQL, (sc.permit_id,)).fetchone()
+    row = positional(conn, _RESOLVE_SQL, (sc.permit_id,)).fetchone()
     if row is None:
         raise ScenarioNotSeeded(
             f"no mainline.permit with permit_id {sc.permit_id} in this database. The demo "
@@ -291,7 +334,7 @@ def resolve(conn: psycopg.Connection[Any], scenario: Scenario | None = None) -> 
 
     receipt_id: uuid.UUID | None = None
     if check_id is not None:
-        got = conn.execute(_RECEIPT_SQL, (sc.permit_id, check_id)).fetchone()
+        got = positional(conn, _RECEIPT_SQL, (sc.permit_id, check_id)).fetchone()
         receipt_id = got[0] if got else None
 
     return ResolvedScenario(

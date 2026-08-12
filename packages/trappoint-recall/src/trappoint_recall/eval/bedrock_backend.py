@@ -237,7 +237,7 @@ Two consequences, and the second is why these constants are what they are.
   refill. With a 0.75-to-8-second exponential schedule this module was observed taking well
   under 1% of the successful calls while other programs on the same account ran flat out.
   The schedule is therefore short and nearly flat, and the attempt count is deep enough
-  (900 × up to 1 s ≈ ten minutes) that one call can sit out a long dry spell rather than
+  (900 x up to 1 s ≈ ten minutes) that one call can sit out a long dry spell rather than
   failing a corpus pass at document nine hundred. Every trip is counted and published.
 """
 
@@ -498,8 +498,20 @@ class EmbeddingCache:
 class InvokeModelClient(Protocol):
     """The one Bedrock operation this module uses. Narrow on purpose: a fake is three lines."""
 
+    # N803 is suppressed on `modelId` and `contentType` because they are not names this
+    # project chose: they are the keyword-only parameter names of botocore's generated
+    # `bedrock-runtime.invoke_model`, which is called as
+    # `invoke_model(modelId=..., body=..., contentType=..., accept=...)`. Renaming them to
+    # snake_case would leave this Protocol matching nothing boto3 can be called with, and
+    # every live embed (`scripts/aws/recall_real.py`) would raise TypeError at the first
+    # call. The reason is the AWS wire contract, not convenience.
     def invoke_model(
-        self, *, modelId: str, body: str, contentType: str, accept: str
+        self,
+        *,
+        modelId: str,  # noqa: N803  # boto3 InvokeModel parameter name
+        body: str,
+        contentType: str,  # noqa: N803  # boto3 InvokeModel parameter name
+        accept: str,
     ) -> Mapping[str, Any]: ...
 
 

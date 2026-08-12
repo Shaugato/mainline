@@ -74,7 +74,7 @@ import psycopg
 from psycopg.types.json import Jsonb
 
 from .refusal import Diagnosis, classify, diagnose, refusal_payload, rfc3339
-from .scenario import ResolvedScenario, Scenario, resolve
+from .scenario import ResolvedScenario, Scenario, positional, resolve
 
 __all__ = [
     "ADMISSION_SQLSTATE",
@@ -124,6 +124,9 @@ VALUES (%s, %s, %s, 'permit', %s, %s, 'applied', 'routine', 0,
         %s, %s, true, %s, %s, %s, false, false, false, false, false, 1, 0, 0, true, 0)
 """
 
+#: Read by POSITION, through :func:`scenario.positional`, and it has to be: CockroachDB
+#: names both ``encode(...)`` columns ``encode``, so a dict row keeps six of these seven
+#: values and drops one without saying which.
 _MERGE_RECORD_SQL: Final = """
 SELECT encode(m.clearance_digest, 'hex'),
        encode(m.merged_commit, 'hex'),
@@ -243,7 +246,7 @@ def _logical_timestamp(conn: psycopg.Connection[Any]) -> str:
     read-only witness that the four beats shared one transaction rather than a claim this
     module makes about itself.
     """
-    row = conn.execute("SELECT cluster_logical_timestamp()::STRING").fetchone()
+    row = positional(conn, "SELECT cluster_logical_timestamp()::STRING").fetchone()
     if row is None:  # pragma: no cover - a scalar SELECT always returns a row
         raise RuntimeError("cluster_logical_timestamp() returned no row")
     return str(row[0])
@@ -258,10 +261,17 @@ class _Undecided(Exception):
 
 
 def _fingerprint(conn: psycopg.Connection[Any], permit_id: uuid.UUID) -> dict[str, Any]:
-    counts = conn.execute(_FINGERPRINT_SQL).fetchone() or ()
-    row = conn.execute(_PERMIT_ROW_SQL, (permit_id,)).fetchone()
+    counts = positional(conn, _FINGERPRINT_SQL).fetchone()
+    if counts is None:  # pragma: no cover - ten scalar subqueries always return one row
+        raise RuntimeError("the fingerprint statement returned no row")
+    row = positional(conn, _PERMIT_ROW_SQL, (permit_id,)).fetchone()
     return {
-        "row_counts": {name: int(n) for name, n in zip(_FINGERPRINT_TABLES, counts, strict=False)},
+        # strict=True: `_FINGERPRINT_TABLES` and the statement's ten subqueries are one
+        # list written twice, and a zip that truncated silently would report a persistence
+        # check over FEWER tables than the payload claims. CockroachDB names all ten of
+        # those columns `count`, so a dict row collapses them to one — measured, and the
+        # reason this pair is now guarded rather than merely converted.
+        "row_counts": {name: int(n) for name, n in zip(_FINGERPRINT_TABLES, counts, strict=True)},
         "permit_row": (
             None
             if row is None
@@ -501,7 +511,8 @@ def gate_run(  # noqa: PLR0912, PLR0915 — one straight line of four beats; spl
         conn.execute("SAVEPOINT gate_run_beat_3")
         try:
             conn.execute(_FORCE_SQL, (resolved.permit_id,))
-            forced = conn.execute(
+            forced = positional(
+                conn,
                 "SELECT open_blocking FROM mainline.permit WHERE permit_id = %s",
                 (resolved.permit_id,),
             ).fetchone()
@@ -574,7 +585,8 @@ def gate_run(  # noqa: PLR0912, PLR0915 — one straight line of four beats; spl
                         _sha("competency", resolved.scenario.signer_sub),
                     ),
                 )
-                closed = conn.execute(
+                closed = positional(
+                    conn,
                     "SELECT open_blocking FROM mainline.permit WHERE permit_id = %s",
                     (resolved.permit_id,),
                 ).fetchone()
@@ -593,7 +605,7 @@ def gate_run(  # noqa: PLR0912, PLR0915 — one straight line of four beats; spl
                     },
                 )
             else:
-                record = conn.execute(_MERGE_RECORD_SQL, (resolved.permit_id,)).fetchone()
+                record = positional(conn, _MERGE_RECORD_SQL, (resolved.permit_id,)).fetchone()
                 beats[3]["outcome"] = "admitted"
                 beats[3]["sqlstate"] = ADMISSION_SQLSTATE
                 beats[3]["observed"] = {

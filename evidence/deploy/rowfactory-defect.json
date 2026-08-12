@@ -1,0 +1,357 @@
+{
+  "SPDX-FileCopyrightText": "2026 MAINLINE contributors",
+  "SPDX-License-Identifier": "CC-BY-4.0",
+  "artefact": "evidence/deploy/rowfactory-defect.json",
+  "worker": "w1-rowfactory",
+  "plan": "docs/leads/submission-final-plan2.md",
+  "plan_section": "1 - DEFECT A, row_factory=dict_row against positional row access",
+  "generated_at": "2026-08-13T00:00:00Z",
+  "generated_on": "TRAPPOINT, Windows 11, CockroachDB v26.2.5 (local, pinned image), psycopg 3.3.4, python 3.13 (.venv)",
+  "repo_head_at_start": "1d41442",
+
+  "claim": "scenario.resolve() and the four beats of gate_run() read their rows by POSITION while db.connection() opens every production connection with dict_row. The mismatch bound a column NAME as a query parameter and returned 500 to the headline demo beat. The three modules named in the brief are now factory-agnostic and proven so under both factories. A FOURTH module carrying the same defect - refusal.py, owned by no worker in this wave - still blocks the dict_row half of the end-to-end path and was not edited.",
+
+  "verdict": "PARTIAL - the three owned modules are FIXED and PROVEN; the end-to-end dict_row path remains BLOCKED by refusal.py:235",
+
+  "the_defect": {
+    "summary": "verticals/mainline/apps/demo-api/src/mainline_demo_api/db.py:309 opens every production connection with row_factory=dict_row. reads.py and health.py were written to that convention (row[\"name\"]). scenario.py, gate_run.py, transitions.py and refusal.py were not. Unpacking a dict yields its KEYS, so scenario.resolve()'s eight-name unpacking made check_id the literal seven-character string \"check_id\", which was then bound as $2 of _RECEIPT_SQL and rejected by the type parser one statement later.",
+    "why_it_surfaced_as_a_500_and_not_a_TypeError": "A dict of eight entries unpacks into eight names without complaint. Nothing raises at the unpacking. The wrong values travel one statement further and fail as a data error, which is why the symptom (22P02 on a uuid parameter) names a column the caller never supplied.",
+    "why_no_test_caught_it": "verticals/mainline/apps/demo-api/tests/test_gate_run.py:249 and :256 open connections with psycopg.connect(w4_database, autocommit=False) - psycopg's default tuple_row. The production path and the test path used different row factories, so the one contract that spans them was never asserted by anybody. A suite that only ever runs under one factory is what created this defect; that is why the new test asserts BOTH."
+  },
+
+  "reproduction": {
+    "command": "python -c \"import sys,os; sys.path.insert(0,'verticals/mainline/apps/demo-api/src'); os.environ['MAINLINE_DEMO_PERMIT_ID']='d7380590-b92e-4932-bba9-b342c6d99450'; from mainline_demo_api import db,scenario; c=db.connection(dsn='postgresql://root@localhost:26257/w_s08_demo_state?sslmode=disable'); print(scenario.resolve(c))\"",
+    "python": "D:/CoackroachDBxAWS/mainline/.venv/Scripts/python.exe",
+    "cwd": "D:/CoackroachDBxAWS/mainline",
+    "note_on_the_dsn": "The local node takes no password. No credential appears in this file, and none was printed to obtain any measurement in it.",
+
+    "before_verbatim": [
+      "Traceback (most recent call last):",
+      "  File \"<string>\", line 1, in <module>",
+      "    import sys,os; sys.path.insert(0,'verticals/mainline/apps/demo-api/src'); os.environ['MAINLINE_DEMO_PERMIT_ID']='d7380590-b92e-4932-bba9-b342c6d99450'; from mainline_demo_api import db,scenario; c=db.connection(dsn='postgresql://root@localhost:26257/w_s08_demo_state?sslmode=disable'); print(scenario.resolve(c))",
+      "                                                                                                                                                                                                                                                                                                        ~~~~~~~~~~~~~~~~^^^",
+      "  File \"D:\\CoackroachDBxAWS\\mainline\\verticals/mainline/apps/demo-api/src\\mainline_demo_api\\scenario.py\", line 294, in resolve",
+      "    got = conn.execute(_RECEIPT_SQL, (sc.permit_id, check_id)).fetchone()",
+      "          ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+      "  File \"D:\\CoackroachDBxAWS\\mainline\\.venv\\Lib\\site-packages\\psycopg\\connection.py\", line 300, in execute",
+      "    raise ex.with_traceback(None)",
+      "psycopg.errors.InvalidTextRepresentation: error in argument for $2: could not parse \"check_id\" as type uuid: uuid: incorrect UUID length: check_id",
+      "DETAIL:  statement summary \"SELECT r.receipt_id FROM mainline.exposure_receipt AS r...\""
+    ],
+
+    "after_verbatim": [
+      "ResolvedScenario(scenario=Scenario(permit_id=UUID('d7380590-b92e-4932-bba9-b342c6d99450'), site_id=UUID('c333eb17-a6c8-5729-8e73-8d49a7ab3971'), clause_uuid=UUID('512b662e-1208-51a4-be59-ecb4f3ca085f'), event_id=UUID('bf94c82a-1aac-5cb0-87c9-b371d958f158'), signer_sub='demo.signer', countersigner_sub='demo.countersigner', merged_commit=b'O\\xbb\\xd3q\\x06\\xcf^\\x02\\xb0:I\\xce+\\xa5\\xc4\\xaaO\\xbb\\xd3q\\x06\\xcf^\\x02\\xb0:I\\xce+\\xa5\\xc4\\xaa'), external_ref='PTW-PROOF-1', state='dispositioned', head_seq=2, gate_epoch=1, open_blocking=1, open_derived=1, check_id=UUID('4800ba2e-7c30-488d-a26c-636d4f7ce082'), receipt_id=None, site_code='5c86f576-27fd-4c40-8ccb-3025a4c2544e')"
+    ],
+
+    "reading_the_after_transcript": "check_id is a UUID, not the string 'check_id', and the 22P02 is gone. receipt_id is None in THIS database only because w_s08_demo_state's exposure receipt expired on 2026-08-11 - that is DEFECT C in the lead's plan, owned by w3-receipt-ttl, and is not a row-factory fact. Against a freshly seeded database the same call returns a live receipt; see measurements.resolve_on_a_fresh_seed below.",
+
+    "identical_to_the_recorded_500": "evidence/deploy/acceptance.json records, for both gate runs against the emulated Function URL: 'POST /v1/demo/gate-run (run 1) returned 500, expected 200 - database_error - resource=demo_gate_run - [22P02] error in argument for $2: could not parse \"check_id\" as type uuid'. Character-identical to the before transcript above."
+  },
+
+  "positional_access_census": {
+    "method": "ripgrep for \\w+\\[\\d+\\] over the whole mainline_demo_api package, then ripgrep for every fetchone()/fetchall()/fetchmany() call site with one line of context, then each hit read individually. List indexing was distinguished from row indexing by reading the receiver, not by pattern.",
+    "line_numbers_are": "pre-fix, at repo HEAD 1d41442",
+
+    "scenario.py": {
+      "bracket_matches": 1,
+      "row_accesses": 2,
+      "sites": [
+        {
+          "line": "274 + 281-290",
+          "was": "row = conn.execute(_RESOLVE_SQL, (sc.permit_id,)).fetchone(); then (external_ref, state, head_seq, gate_epoch, open_blocking, open_derived, check_id, site_code) = row",
+          "kind": "row unpacking - THE ORIGIN OF THE 500",
+          "now": "row = positional(conn, _RESOLVE_SQL, (sc.permit_id,)).fetchone()"
+        },
+        {
+          "line": "294-295",
+          "was": "got = conn.execute(_RECEIPT_SQL, (sc.permit_id, check_id)).fetchone(); receipt_id = got[0] if got else None",
+          "kind": "row index - THE STATEMENT THAT RAISED",
+          "now": "got = positional(conn, _RECEIPT_SQL, (sc.permit_id, check_id)).fetchone()"
+        }
+      ]
+    },
+
+    "gate_run.py": {
+      "bracket_matches": 47,
+      "of_which_beats_list_indexing": 30,
+      "of_which_row_indexing": 17,
+      "row_reading_statements": 6,
+      "beats_list_indexing_lines": [457, 458, 459, 460, 469, 470, 474, 482, 489, 490, 491, 495, 496, 500, 508, 521, 528, 529, 530, 535, 536, 540, 542, 543, 586, 597, 598, 599, 619, 620],
+      "beats_list_indexing_note": "beats[0..3] is a Python list of four dicts built by _beat(). Not a row. Left exactly as it was.",
+      "sites": [
+        {
+          "line": "246-249",
+          "was": "row = conn.execute(\"SELECT cluster_logical_timestamp()::STRING\").fetchone(); return str(row[0])",
+          "kind": "row index",
+          "under_dict_row": "KeyError: 0 - the column is named cluster_logical_timestamp",
+          "now": "positional(conn, ...)"
+        },
+        {
+          "line": "261 + 264",
+          "was": "counts = conn.execute(_FINGERPRINT_SQL).fetchone() or (); zip(_FINGERPRINT_TABLES, counts, strict=False)",
+          "kind": "row ITERATION - no bracket, so the grep did not see it",
+          "under_dict_row": "iterating a dict yields its keys, so int(n) is int('count') -> ValueError. And with strict=False a dict-collapsed row would silently produce a persistence check over ONE table while the payload claimed ten.",
+          "now": "counts = positional(conn, _FINGERPRINT_SQL).fetchone(); explicit None guard; zip(..., strict=True) so a column-count drift is loud"
+        },
+        {
+          "line": "262 + 269-275",
+          "was": "row = conn.execute(_PERMIT_ROW_SQL, (permit_id,)).fetchone(); row[0] .. row[6]",
+          "kind": "row index x7",
+          "under_dict_row": "KeyError: 0",
+          "now": "positional(conn, _PERMIT_ROW_SQL, (permit_id,))"
+        },
+        {
+          "line": "504-507 + 509",
+          "was": "forced = conn.execute('SELECT open_blocking ...').fetchone(); int(forced[0])",
+          "kind": "row index - beat 3, the projection-drift attack's observed counter",
+          "under_dict_row": "KeyError: 0",
+          "now": "positional(conn, ...)"
+        },
+        {
+          "line": "577-580 + 602",
+          "was": "closed = conn.execute('SELECT open_blocking ...').fetchone(); int(closed[0])",
+          "kind": "row index - beat 4, open_blocking after the signature",
+          "under_dict_row": "KeyError: 0",
+          "now": "positional(conn, ...)"
+        },
+        {
+          "line": "596 + 607-613",
+          "was": "record = conn.execute(_MERGE_RECORD_SQL, (permit_id,)).fetchone(); record[0] .. record[6]",
+          "kind": "row index x7 - beat 4's clearance digest and merge record",
+          "under_dict_row": "KeyError: 0, AND the result set collapses from 7 keys to 6 (two columns named encode)",
+          "now": "positional(conn, _MERGE_RECORD_SQL, (permit_id,))"
+        }
+      ]
+    },
+
+    "transitions.py": {
+      "bracket_matches": 10,
+      "of_which_row_indexing": 5,
+      "of_which_python_tuple_indexing": 5,
+      "row_reading_statements": 7,
+      "python_tuple_indexing_lines": [316, 334, 703, 871],
+      "python_tuple_indexing_note": "anchor[0] / after[0] index the plain tuple _permit_epoch() returns, not a database row. Left as they were. Line 287 is counted under row indexing because it is where that tuple is BUILT from a row.",
+      "sites": [
+        {
+          "line": "283-287",
+          "was": "row = conn.execute('SELECT gate_epoch, head_seq, state::STRING ...').fetchone(); return (int(row[0]), int(row[1]), row[2]) if row else None",
+          "kind": "row index x3 - _permit_epoch, reached by all four kernel transitions",
+          "under_dict_row": "KeyError: 0",
+          "now": "positional(conn, ...); str(row[2]) added so the declared return type is honest"
+        },
+        {
+          "line": "417-421 + 425-427 + 439",
+          "was": "record = conn.execute('SELECT encode(merged_commit,...), merged_at, encode(clearance_digest,...), gate_epoch FROM mainline.merge_record ...').fetchone(); record[0..3]",
+          "kind": "row index x4 - the committed merge envelope",
+          "under_dict_row": "KeyError: 0, AND the result set collapses from 4 keys to 3 (two columns named encode)",
+          "now": "positional(conn, ...)"
+        },
+        {
+          "line": "508-512",
+          "was": "moved = conn.execute('UPDATE ... RETURNING head_seq').fetchone(); if moved is None",
+          "kind": "row read, tested only for None",
+          "under_dict_row": "SAFE as written - a dict is not None either. Routed through positional anyway so the convention is uniform and a later edit that adds moved[0] cannot reintroduce the defect.",
+          "now": "positional(conn, ...)"
+        },
+        {
+          "line": "637 + 648",
+          "was": "recall = conn.execute(_RECALL_SQL, (permit_id,)).fetchone(); silence_receipt_id, policy_version, corpus_root = recall",
+          "kind": "row unpacking x3",
+          "under_dict_row": "the three names take the strings 'silence_receipt_id', 'policy_version', 'corpus_root' and are inserted into mainline.exposure_receipt - the same silent class as the original defect",
+          "now": "positional(conn, _RECALL_SQL, (permit_id,))"
+        },
+        {
+          "line": "650",
+          "was": "checks = [row[0] for row in conn.execute(_OPEN_CHECKS_SQL, (permit_id,)).fetchall()]",
+          "kind": "row index over a result set",
+          "under_dict_row": "KeyError: 0",
+          "now": "positional(conn, _OPEN_CHECKS_SQL, (permit_id,))"
+        },
+        {
+          "line": "802 + 806",
+          "was": "found = conn.execute(_CHECK_SQL, (check_id,)).fetchone(); permit_id, site_id, gate_epoch, receipt_id = found",
+          "kind": "row unpacking x4 - the disposition endpoint's subject resolution",
+          "under_dict_row": "permit_id becomes the string 'permit_id' and is passed to _demo_guard and then to the INSERT",
+          "now": "positional(conn, _CHECK_SQL, (check_id,))"
+        }
+      ]
+    },
+
+    "refusal.py_NOT_OWNED_BY_THIS_WORKER": {
+      "bracket_matches": 1,
+      "of_which_row_indexing": 1,
+      "sites": [
+        {
+          "line": 235,
+          "text": "return (row[0] if row and isinstance(row[0], dict) else None), None",
+          "statement": "SELECT trappoint.explain_refusal(%s, %s, %s, %s), whose single column CockroachDB names explain_refusal",
+          "under_dict_row": "KeyError: 0",
+          "reached_by": "gate_run._record_refusal -> refusal.refusal_payload -> refusal._explain, on BEAT 2 and BEAT 3; and transitions._refused on every kernel refusal",
+          "status": "NOT EDITED. See blocking_finding below."
+        }
+      ]
+    }
+  },
+
+  "measurement_that_decided_the_fix_shape": {
+    "question": "Should the three modules be re-keyed by column NAME to match reads.py, or should they keep position and ask the cursor for tuples?",
+    "method": "probe every statement these modules run against the live node and read cursor.description",
+    "answer": "Name-keying is not available. Three of these result sets carry duplicate column names, and a dict row keeps one entry per name - so it silently LOSES columns, which is worse than the crash, because a crash is visible.",
+    "measured_column_names": {
+      "gate_run._FINGERPRINT_SQL": {
+        "columns": 10,
+        "names": ["count", "count", "count", "count", "count", "count", "count", "count", "count", "count"],
+        "dict_row_keys": 1,
+        "consequence": "the persistence check - the payload's proof that the demo wrote nothing - would have described ONE table while listing ten"
+      },
+      "gate_run._MERGE_RECORD_SQL": {
+        "columns": 7,
+        "names": ["encode", "encode", "gate_epoch", "merged_at", "state", "open_blocking", "head_seq"],
+        "dict_row_keys": 6,
+        "consequence": "clearance_digest and merged_commit share a name; one of them is dropped"
+      },
+      "transitions merge_record select (line 417)": {
+        "columns": 4,
+        "names": ["encode", "merged_at", "encode", "gate_epoch"],
+        "dict_row_keys": 3
+      },
+      "scenario._RESOLVE_SQL": {"columns": 8, "names": ["external_ref", "state", "head_seq", "gate_epoch", "open_blocking", "open_derived", "check_id", "site_code"], "dict_row_keys": 8},
+      "scenario._RECEIPT_SQL": {"columns": 1, "names": ["receipt_id"]},
+      "gate_run._PERMIT_ROW_SQL": {"columns": 7, "names": ["state", "head_seq", "gate_epoch", "open_blocking", "unmet_floor_count", "countersigned_count", "encode"], "dict_row_keys": 7},
+      "gate_run cluster_logical_timestamp": {"columns": 1, "names": ["cluster_logical_timestamp"]},
+      "transitions._permit_epoch": {"columns": 3, "names": ["gate_epoch", "head_seq", "state"]},
+      "transitions._RECALL_SQL": {"columns": 3, "names": ["silence_receipt_id", "policy_version", "corpus_root"]},
+      "transitions._OPEN_CHECKS_SQL": {"columns": 1, "names": ["check_id"]},
+      "transitions._CHECK_SQL": {"columns": 4, "names": ["permit_id", "site_id", "gate_epoch", "receipt_id"]},
+      "refusal._explain": {"columns": 1, "names": ["explain_refusal"]}
+    }
+  },
+
+  "the_fix": {
+    "shape": "scenario.positional(conn, sql, params) - a two-line helper that sets the row factory on the CURSOR rather than on the connection. psycopg's own mechanism: the statement declares the shape it is written against instead of inheriting one from whoever opened the connection.",
+    "why_not_flip_db_py": "db.py:309's dict_row serves reads.py's 43 row[\"name\"] accesses across the twelve GET resources and health.py's five. Flipping it would trade one broken endpoint for thirteen. db.py and reads.py were not edited.",
+    "why_not_mutate_conn_row_factory_in_passing": "a warm Lambda container reuses one connection across invocations, so a gate run that left the connection on tuple_row would break every GET served after it. positional() mutates nothing; tests/test_row_factory_contract.py::test_positional_does_not_mutate_the_connection_it_was_handed asserts that.",
+    "where_the_helper_lives": "scenario.py, because it is the module gate_run.py and transitions.py both already import - the only shared root of the three, since gate_run imports scenario and transitions imports both. Three copies of a two-line helper would be three places for it to drift.",
+    "secondary_hardening": "gate_run._fingerprint's zip over _FINGERPRINT_TABLES was strict=False and is now strict=True, with an explicit None guard on the row. A silently truncated zip is how a collapsed row would have produced a persistence check that under-reports the tables it claims to cover.",
+    "files_changed": [
+      "verticals/mainline/apps/demo-api/src/mainline_demo_api/scenario.py",
+      "verticals/mainline/apps/demo-api/src/mainline_demo_api/gate_run.py",
+      "verticals/mainline/apps/demo-api/src/mainline_demo_api/transitions.py"
+    ],
+    "diffstat": "gate_run.py 28 +++++++----, scenario.py 48 ++++++++++++++--, transitions.py 21 ++++++----; 3 files changed, 78 insertions(+), 19 deletions(-)"
+  },
+
+  "measurements": {
+    "scratch_database": "w_w1_rowfactory on postgresql://root@localhost:26257 - migrated by scripts/proof/gate_refusal.py::apply_chain and seeded by seed_history, this worker's own, built fresh so the exposure receipt is live",
+
+    "resolve_on_a_fresh_seed": {
+      "production row_factory": "dict_row",
+      "scenario.resolve(db.connection(...))": "check_id=UUID('2105bbc8-0b3f-4898-9cb0-205a262a37d9') receipt_id=UUID('0a2e9dab-640b-423c-91a4-ff5026949b0b') state=dispositioned open=1/1",
+      "reading": "a UUID and a live receipt, through the real production factory. The 22P02 cannot be reproduced."
+    },
+
+    "gate_run_through_tuple_row": {
+      "verdict": "PROVEN",
+      "outcome": "completed",
+      "beats": ["read", "refused", "refused", "admitted"],
+      "failures": [],
+      "fingerprint_tables_counted": 10,
+      "reading": "all four beats, including the admission, through the modules as fixed. The fix did not merely stop an exception - the run the demo exists to show completes."
+    },
+
+    "gate_run_through_dict_row": {
+      "result": "RAISED KeyError(0)",
+      "frames": [
+        "mainline_demo_api/refusal.py, line 289, in refusal_payload",
+        "mainline_demo_api/refusal.py, line 235, in _explain"
+      ],
+      "reading": "every frame in this worker's three modules passed. The single remaining positional row access in the package is the one on line 235 of a file this worker does not own."
+    },
+
+    "pytest": {
+      "command": "python -m pytest -q  (cwd verticals/mainline/apps/demo-api)",
+      "before": "6 failed, 203 passed, 1 skipped in 26.60s",
+      "after": "9 failed, 214 passed, 1 skipped in 27.09s",
+      "delta": "+11 passed, +3 failed - all 14 from the new tests/test_row_factory_contract.py. Zero regressions: the six pre-existing failures are unchanged in identity and in cause.",
+      "before_failures": [
+        "tests/test_gate_run.py::test_gate_run_verdict_is_proven",
+        "tests/test_gate_run.py::test_beat_four_admits_with_a_server_computed_clearance_digest",
+        "tests/test_gate_run.py::test_every_table_row_count_is_identical_across_a_gate_run",
+        "tests/test_gate_run.py::test_two_consecutive_runs_see_the_same_subject",
+        "tests/test_gate_run.py::test_concurrent_runs_do_not_collide",
+        "tests/test_transitions.py::test_gate_run_is_reachable_through_handle_transition"
+      ],
+      "before_failure_cause": "AssertionError: [\"beat 4 (admit): expected {'outcome': 'admitted', 'sqlstate': '00000'}, observed outcome='skipped'\"] - the exposure receipt in w_w4_api_transitions expired on 2026-08-11. That is DEFECT C in the lead's plan, owned by w3-receipt-ttl, and is a FIXTURE fact rather than a product fact. Re-measured after this change and identical.",
+      "after_failures_new": [
+        "tests/test_row_factory_contract.py::test_gate_run_through_the_production_connection",
+        "tests/test_row_factory_contract.py::test_gate_run_returns_the_same_answer_under_both_factories",
+        "tests/test_row_factory_contract.py::test_demo_gate_run_endpoint_through_the_production_connection"
+      ],
+      "after_failures_new_cause": "all three: KeyError: 0 at mainline_demo_api/refusal.py:235. See blocking_finding. Each failure message names the file, the line, the statement, the reason and the correction.",
+      "new_file_alone_first_run": "python -m pytest tests/test_row_factory_contract.py -q -> 3 failed, 11 passed in 58.52s (58s is building and seeding w_w1_rowfactory from 271 migrations)",
+      "new_file_alone_reused_fixture": "python -m pytest tests/test_row_factory_contract.py -q -> 3 failed, 11 passed in 2.83s"
+    },
+
+    "mypy": {
+      "command": "python -m mypy --config-file pyproject.toml   (strict = true, files = src/mainline_demo_api)",
+      "result": "Success: no issues found in 11 source files"
+    },
+
+    "ruff": {
+      "check": {
+        "command": "python -m ruff check verticals/mainline/apps/demo-api/",
+        "result": "All checks passed!"
+      },
+      "format": {
+        "command": "python -m ruff format --check <the four files, LF-normalised>",
+        "result": "4 files already formatted",
+        "why_normalised": "the Windows working tree carries CRLF for gate_run.py, scenario.py, transitions.py, refusal.py, static_site.py, test_gate_run.py and test_transitions.py while ruff.toml sets line-ending = \"lf\". `git ls-files --eol` shows i/lf w/crlf for all seven, so the committed bytes are LF and CI is unaffected. refusal.py and static_site.py were never touched by this worker and are equally CRLF, which is what establishes the condition as pre-existing rather than introduced here. Nothing about line endings was changed."
+      }
+    }
+  },
+
+  "the_test_that_was_missing": {
+    "file": "verticals/mainline/apps/demo-api/tests/test_row_factory_contract.py",
+    "tests": 14,
+    "passing": 11,
+    "failing": 3,
+    "design": "Every claim is made twice - once through db.connection() (the REAL production factory, not a hand-rolled imitation of it) and once through tuple_row - and then the two answers are required to be EQUAL on every field that is a function of what the database said. Proving only the new direction would reproduce the original mistake with the operands swapped.",
+    "what_it_asserts": [
+      "test_the_production_connection_really_is_dict_row - pins the premise, and names the twelve GET resources any future flip would owe an answer to",
+      "test_a_dict_row_would_silently_collapse_these_result_sets - reads cursor.description and requires duplicate names, so the reason position was chosen over name is executable rather than remembered",
+      "test_no_statement_in_these_modules_inherits_the_connection_s_row_factory - an AST ratchet over all three modules banning the conn.execute(...).fetchone() shape, covering every statement including the ones only a 404 or 422 path reaches",
+      "test_resolve_through_the_production_connection / _through_a_tuple_row_connection / _returns_the_same_answer_under_both_factories",
+      "test_positional_does_not_mutate_the_connection_it_was_handed - a warm container's next GET still gets dicts",
+      "test_gate_run_through_the_production_connection / _through_a_tuple_row_connection / _returns_the_same_answer_under_both_factories",
+      "test_gate_run_still_refuses_an_autocommit_connection - gate_run.py:397's ValueError is preserved; db.connection() returns autocommit=True and transitions._demo_gate_run:902 clears it, and the test mirrors that rather than opening a differently-configured connection",
+      "test_demo_gate_run_endpoint_through_the_production_connection - the call that 500'd, from the resource key inward",
+      "test_materialise_checks_reads_its_rows_through_either_factory and test_sign_disposition_resolves_its_check_row_through_either_factory - the two transitions.py unpackings a gate run never reaches"
+    ],
+    "fixture": "its own database w_w1_rowfactory, seeded by scripts/proof/gate_refusal.py so this suite and the central proof drive one history. Rebuilt when the demo subject is missing, consumed, OR no longer covered by a LIVE exposure receipt - the last clause is the one tests/conftest.py lacks, and without it a database adopted the morning after seeding makes beat 4 skip for a fixture reason wearing a product reason's clothes. conftest.py is w3-receipt-ttl's file and was not edited."
+  },
+
+  "blocking_finding": {
+    "severity": "BLOCKS the end-to-end dict_row path, and therefore blocks a PROVEN acceptance transcript and the apply",
+    "file": "verticals/mainline/apps/demo-api/src/mainline_demo_api/refusal.py",
+    "line": 235,
+    "owner": "NONE. Searched docs/leads/workers.json and every plan in docs/leads/ - no worker in this wave or any recorded wave owns this path. The only refusal.py in workers.json is packages/mainline-agentkit/src/mainline_agentkit/refusal.py, a different file. The lead's census in docs/leads/submission-final-plan2.md section 1 named three modules; this is a fourth it did not reach.",
+    "text": "return (row[0] if row and isinstance(row[0], dict) else None), None",
+    "defect": "identical class to the one this worker was dispatched to remove. _explain runs SELECT trappoint.explain_refusal(...), whose single column CockroachDB names explain_refusal, so under dict_row row[0] is KeyError: 0.",
+    "reached_by": "gate_run._record_refusal -> refusal_payload -> _explain on BEAT 2 and BEAT 3 of every gate run, and transitions._refused on every kernel refusal. There is no path through the demo that avoids it.",
+    "measured": "refusal._explain(conn, 'permit', <permit>, 'gate_closed_when_issued', {...}) -> dict_row: RAISED KeyError: 0 | tuple_row: OK -> dict, why_not=None",
+    "correction": "one line - take the row's single VALUE rather than its index. The shape the other three modules now use is: row = scenario.positional(conn, \"SELECT trappoint.explain_refusal(%s, %s, %s, %s)\", (subject_kind, subject_id, constraint, Jsonb(attempt) if attempt else None)).fetchone(). Everything else in refusal.py is unaffected; it is the only positional row access in the file.",
+    "why_it_was_not_fixed_here": "docs/leads/submission-final-plan2.md section 7 rule 5 - file ownership is absolute, and the remedy for needing a file you do not own is to record the finding, not to edit it. This worker's brief enumerated five owned paths and refusal.py is not among them. A silent edit outside the lane that another session then overwrote would leave this artefact claiming a fix that is not in the tree, which is the one failure mode the honesty discipline exists to prevent.",
+    "consequence_if_left": "POST /v1/demo/gate-run continues to return 500 to every judge. The 22P02 becomes a KeyError, which is a different message for the same broken button.",
+    "verification_after_it_is_fixed": "python -m pytest verticals/mainline/apps/demo-api/tests/test_row_factory_contract.py -q must report 14 passed. No edit to that file is required; the three failing tests are correct as written and turn green when line 235 does."
+  },
+
+  "not_touched": {
+    "db.py": "row_factory=dict_row at line 309 is deliberate and stays; reads.py's 43 name accesses and health.py's five depend on it",
+    "reads.py": "43 row[\"name\"] accesses, zero positional - already correct under dict_row",
+    "refusal.py": "see blocking_finding",
+    "tests/conftest.py": "w3-receipt-ttl's file; its stale-fixture weakness is described in the lead's plan section 3 and is guarded around rather than edited",
+    "tests/test_gate_run.py": "w4's file; its tuple_row-only convention is the reason this defect survived, and the new file adds the missing assertion beside it rather than rewriting it"
+  },
+
+  "credentials": "No credential, password or DSN password appears in this artefact. The local node takes none, and no cloud DSN was opened to produce any measurement here."
+}

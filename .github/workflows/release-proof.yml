@@ -75,22 +75,57 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Assert the image pin agrees with compose.yaml
+      - name: Read the ONE version constant out of compose.yaml
         id: image
+        # READ, not restate. This step used to open with an image literal and then check
+        # compose.yaml AGAINST it, under the heading "assert the image pin agrees with
+        # compose.yaml". It did assert that — and the assertion was between two copies of
+        # the same constant, which is the situation the constant exists to prevent. The
+        # old comment even boasted that it avoided `|| true`; it was scrupulous about the
+        # wrong half. Two copies is two things to forget, and this file forgot: `sed`
+        # matched `…:vN.N.N` only, so on the day compose.yaml moved to a tag of any other
+        # shape `found` would be empty, the `if` would be skipped, and the workflow would
+        # have gone on using its own stale literal while reporting agreement.
+        #
+        # The rule below is `trappoint_migrate.crdb.pinned_image`'s: find the line tagged
+        # `trappoint:crdb-image-pin` and take the first `image:` key within the next three
+        # lines. It is transcribed rather than imported because this job runs before any
+        # workspace exists — waiting on `uv sync` to learn one string would be a slower
+        # assertion about the same string — and because `release-proof` must stay runnable
+        # when the lockfile is behind, which is the same reason its pip installs use
+        # `--no-deps`. `packages/trappoint-migrate/tests/test_cli_offline.py` is what keeps
+        # the rule itself honest.
+        #
+        # There is now no literal here to disagree with anything, which is what `db.yml`'s
+        # `image-pin` job means by "the harness must not restate the pin".
         run: |
           set -euo pipefail
-          pinned="cockroachdb/cockroach:v26.2.5"
-          # `sed -n …p` prints nothing and exits 0 when compose.yaml names no image, so
-          # the empty case is handled by the `if` below rather than by `|| true`, which
-          # this repository bans because it is how a real failure becomes a silence.
-          found="$(sed -n 's|.*\(cockroachdb/cockroach:v[0-9]\{1,\}\.[0-9]\{1,\}\.[0-9]\{1,\}\).*|\1|p' compose.yaml | head -n1)"
-          if [ -n "$found" ] && [ "$found" != "$pinned" ]; then
-            echo "::error::compose.yaml pins $found but this workflow pins $pinned."
-            echo "The image pin is one constant. Two copies is two things to forget."
-            exit 1
-          fi
-          echo "image=$pinned" >> "$GITHUB_OUTPUT"
-          echo "using $pinned"
+          image="$(python3 - <<'PY'
+          import pathlib
+          import re
+          import sys
+
+          MARKER = "trappoint:crdb-image-pin"
+          IMAGE_LINE = re.compile(r"^\s*image:\s*(?P<image>\S+)\s*$")
+
+          lines = pathlib.Path("compose.yaml").read_text(encoding="utf-8").splitlines()
+          for index, line in enumerate(lines):
+              if MARKER not in line:
+                  continue
+              for candidate in lines[index + 1 : index + 4]:
+                  found = IMAGE_LINE.match(candidate)
+                  if found is not None:
+                      print(found.group("image"))
+                      sys.exit(0)
+          sys.exit(
+              f"compose.yaml carries no line marked {MARKER!r} followed by an 'image:' key "
+              "within the next three lines; the CockroachDB version constant has moved or "
+              "been deleted"
+          )
+          PY
+          )"
+          echo "image=${image}" >> "$GITHUB_OUTPUT"
+          echo "using ${image}"
 
       - name: Start the single-node cluster
         run: |
@@ -373,20 +408,40 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Assert the image pin agrees with compose.yaml
+      - name: Read the ONE version constant out of compose.yaml
         id: image
+        # The `prove` job's copy of this step carries the reasoning. The negative control
+        # has to run against the SAME node as the proof it is the control for, or "the
+        # proof reports NOT PROVEN when the gate is removed" would be a claim about a
+        # different database.
         run: |
           set -euo pipefail
-          pinned="cockroachdb/cockroach:v26.2.5"
-          # `sed -n …p` prints nothing and exits 0 when compose.yaml names no image, so
-          # the empty case is handled by the `if` below rather than by `|| true`, which
-          # this repository bans because it is how a real failure becomes a silence.
-          found="$(sed -n 's|.*\(cockroachdb/cockroach:v[0-9]\{1,\}\.[0-9]\{1,\}\.[0-9]\{1,\}\).*|\1|p' compose.yaml | head -n1)"
-          if [ -n "$found" ] && [ "$found" != "$pinned" ]; then
-            echo "::error::compose.yaml pins $found but this workflow pins $pinned."
-            exit 1
-          fi
-          echo "image=$pinned" >> "$GITHUB_OUTPUT"
+          image="$(python3 - <<'PY'
+          import pathlib
+          import re
+          import sys
+
+          MARKER = "trappoint:crdb-image-pin"
+          IMAGE_LINE = re.compile(r"^\s*image:\s*(?P<image>\S+)\s*$")
+
+          lines = pathlib.Path("compose.yaml").read_text(encoding="utf-8").splitlines()
+          for index, line in enumerate(lines):
+              if MARKER not in line:
+                  continue
+              for candidate in lines[index + 1 : index + 4]:
+                  found = IMAGE_LINE.match(candidate)
+                  if found is not None:
+                      print(found.group("image"))
+                      sys.exit(0)
+          sys.exit(
+              f"compose.yaml carries no line marked {MARKER!r} followed by an 'image:' key "
+              "within the next three lines; the CockroachDB version constant has moved or "
+              "been deleted"
+          )
+          PY
+          )"
+          echo "image=${image}" >> "$GITHUB_OUTPUT"
+          echo "using ${image}"
 
       - name: Start the single-node cluster
         run: |

@@ -11,10 +11,17 @@
 #     `git rev-list --left-right --count origin/master...HEAD` -> `0<TAB>2`
 #     `git diff --name-only origin/master..HEAD | wc -l` -> 98
 #   Ninety-eight committed files - `scripts/proof/gate_refusal.py`, `conftest.py`,
-#   `LICENSES/`, `docs/HONESTY.md` among them - exist on this disk and on no server.
-#   Flipping the repository public before they are pushed publishes a tree in which the
-#   proof this project is about does not exist. That is not a checklist item; it is the
-#   single row this program exists to keep red until it is fixed.
+#   `LICENSES/`, `docs/HONESTY.md` among them - existed on that disk and on no server.
+#   Flipping the repository public before they were pushed would have published a tree in
+#   which the proof this project is about did not exist.
+#
+#   Re-measured on 2026-08-12, and BOTH of those numbers have moved:
+#     `gh repo view Shaugato/mainline --json visibility` -> {"visibility":"PUBLIC"}
+#     `git rev-list --left-right --count origin/master...HEAD` -> `0<TAB>0`
+#   The flip happened and the push happened. The comment above is kept because a rationale
+#   that is silently rewritten every time the world changes teaches a reader nothing; the
+#   correction is dated beside it instead. Neither number is read from this comment. Both
+#   rows below ask `git` and `gh` again on every run, which is the whole point of the file.
 """The submission gate: exit non-zero while any rules requirement is unresolved.
 
 Run it from the repository root::
@@ -387,6 +394,61 @@ def parse_left_right(text: str) -> tuple[int, int]:
         raise ValueError(f"non-integer in rev-list output {text!r}") from exc
 
 
+def parse_porcelain(text: str) -> list[tuple[str, str]]:
+    """Parse ``git status --porcelain`` into ``(xy, path)`` pairs, in git's own order.
+
+    Three shapes have to survive, and all three occur in this repository:
+
+    * ``` M docs/HONESTY.md``` - the ordinary two-column status code, then one space;
+    * ``R  old/name -> new/name`` - a rename, where the path that matters is the NEW one,
+      because that is the path a judge would look for and not find;
+    * ``?? "docs/a file with spaces.md"`` - git quotes any path with a space or a
+      non-ASCII byte, and the quotes are not part of the name.
+
+    A line shorter than the ``XY<space>`` prefix is skipped rather than guessed at.
+    """
+    entries: list[tuple[str, str]] = []
+    prefix_width = 3
+    for line in text.splitlines():
+        if len(line) < prefix_width or not line.strip():
+            continue
+        xy, path = line[:2], line[prefix_width:].strip()
+        if " -> " in path:
+            path = path.split(" -> ", 1)[1].strip()
+        if len(path) >= 2 and path.startswith('"') and path.endswith('"'):
+            path = path[1:-1]
+        if path:
+            entries.append((xy, path))
+    return entries
+
+
+def summarise_dirty(paths: list[str], name_limit: int = 4) -> str:
+    """Name the uncommitted paths, then account for the rest by top-level directory.
+
+    A bare count - ``68 path(s) are uncommitted`` - tells a reader that something is wrong
+    and nothing about what, so the only available response is to run `git status` and read
+    it themselves, which is the work this row exists to do for them. Naming every path
+    would be unreadable in a markdown cell, so the row names the first few and then says
+    where the remainder live.
+    """
+    if not paths:
+        return ""
+    named = paths[:name_limit]
+    rest = len(paths) - len(named)
+    text = ", ".join(named)
+    if rest <= 0:
+        return text
+    buckets: dict[str, int] = {}
+    for path in paths:
+        head = path.split("/", 1)[0] + "/" if "/" in path else path
+        buckets[head] = buckets.get(head, 0) + 1
+    ranked = sorted(buckets.items(), key=lambda item: (-item[1], item[0]))
+    census = ", ".join(f"{count} under {head}" for head, count in ranked[:5])
+    if len(ranked) > 5:
+        census += f", and {len(ranked) - 5} other top-level path(s)"
+    return f"{text}, and {rest} more ({census})"
+
+
 def walk_json(node: Any, prefix: str = "") -> list[tuple[str, Any]]:
     """Flatten a JSON document into ``(dotted.path, scalar)`` pairs, in document order."""
     out: list[tuple[str, Any]] = []
@@ -465,6 +527,37 @@ def classify_url(value: Any) -> tuple[bool, str]:
     if not host or "." not in host:
         return False, f"no hostname in {text[:60]}"
     return True, text
+
+
+def slug_from_repo_url(value: Any) -> str | None:
+    """Return ``owner/name`` for a github.com URL, or ``None`` when it is not one.
+
+    The visibility row asks GitHub about **the URL this file tells a judge to open**, not
+    about whatever remote the current working directory happens to have. Before this
+    revision it ran a bare ``gh repo view``, which resolves through the checkout's own
+    ``origin`` -
+    so a `repo_url` pointing at one repository could be blessed PUBLIC by a checkout of a
+    different one, and a fork would report its upstream. Deriving the slug from the value
+    under test closes that gap.
+    """
+    if not isinstance(value, str):
+        return None
+    text = value.strip()
+    if not text.lower().startswith(("http://", "https://")):
+        return None
+    remainder = text.split("://", 1)[1]
+    host, _, path = remainder.partition("/")
+    if host.lower().split(":", 1)[0] not in ("github.com", "www.github.com"):
+        return None
+    parts = [segment for segment in path.split("?", 1)[0].split("#", 1)[0].split("/") if segment]
+    if len(parts) < 2:
+        return None
+    owner, name = parts[0], parts[1]
+    if name.endswith(".git"):
+        name = name[: -len(".git")]
+    if not owner or not name:
+        return None
+    return f"{owner}/{name}"
 
 
 def visibility_from_gh(stdout: str) -> str | None:
@@ -840,8 +933,15 @@ def row_licence_file(root: Path) -> Row:
 def row_remote_sync(root: Path, branch: str, remote: str) -> Row:  # noqa: PLR0911
     """Requirement 1b - the tree a judge clones is the tree on this disk.
 
-    This is the row that matters most today. Ninety-eight files, the proof among them,
-    are committed here and absent from the server.
+    On 2026-08-10 this was the row that mattered most: ninety-eight files, the proof among
+    them, were committed here and on no server. They were pushed, and on 2026-08-12
+    ``git rev-list --left-right --count origin/master...HEAD`` answers ``0\t0``.
+
+    What survives is the WARN half - work that is edited but not committed is invisible to
+    a judge just as completely as work that is committed but not pushed. That half now
+    **names the paths** instead of only counting them: a reader who is told
+    ``68 path(s) are uncommitted`` learns only that they must go and run `git status`
+    themselves, which is the work this row exists to have already done.
     """
     requirement = "1 - public repo with an open-source LICENSE file"
     title = "remote is in sync"
@@ -902,10 +1002,24 @@ def row_remote_sync(root: Path, branch: str, remote: str) -> Row:  # noqa: PLR09
         )
 
     _, diff_out, _ = _run(["git", "diff", "--name-only", f"{remote}/{branch}..HEAD"], root)
-    unpushed_files = len([line for line in diff_out.splitlines() if line.strip()])
+    unpushed = [line.strip() for line in diff_out.splitlines() if line.strip()]
+    unpushed_files = len(unpushed)
     _, porcelain, _ = _run(["git", "status", "--porcelain"], root)
-    dirty = len([line for line in porcelain.splitlines() if line.strip()])
-    detail = {"ahead": ahead, "behind": behind, "unpushed_files": unpushed_files, "dirty": dirty}
+    dirty_entries = parse_porcelain(porcelain)
+    dirty_paths = [path for _xy, path in dirty_entries]
+    dirty = len(dirty_paths)
+    detail = {
+        "ahead": ahead,
+        "behind": behind,
+        "unpushed_files": unpushed_files,
+        "unpushed_paths": unpushed[:40],
+        "dirty": dirty,
+        # The full list, capped, so `--json` carries something a script can act on while
+        # the observed column stays one readable sentence.
+        "dirty_paths": dirty_paths[:40],
+        "dirty_paths_truncated": max(0, dirty - 40),
+        "dirty_status_codes": sorted({xy.strip() or "??" for xy, _path in dirty_entries}),
+    }
 
     if ahead > 0:
         noun = "commit" if ahead == 1 else "commits"
@@ -916,7 +1030,8 @@ def row_remote_sync(root: Path, branch: str, remote: str) -> Row:  # noqa: PLR09
             status=STATUS_FAIL,
             observed=(
                 f"{ahead} {noun} ahead of {remote}/{branch}, "
-                f"{unpushed_files} file(s) on this disk and on no server"
+                f"{unpushed_files} file(s) on this disk and on no server: "
+                f"{summarise_dirty(unpushed)}"
             ),
             remedy=push_remedy,
             detail=detail,
@@ -942,11 +1057,17 @@ def row_remote_sync(root: Path, branch: str, remote: str) -> Row:  # noqa: PLR09
             status=STATUS_WARN,
             observed=(
                 f"in sync with {remote}/{branch}, but {dirty} path(s) are uncommitted "
-                "and will not be published"
+                f"and will not be published: {summarise_dirty(dirty_paths)}"
             ),
             remedy=[
-                "Uncommitted work is invisible to a judge. Commit it or discard it:",
-                "    git status --porcelain",
+                "Uncommitted work is invisible to a judge. Commit it or discard it.",
+                "The paths, in full - the observed column above names only the first few:",
+                *[f"    {path}" for path in dirty_paths[:12]],
+                *(
+                    [f"    ... and {dirty - 12} more; `git status --porcelain` lists them all"]
+                    if dirty > 12
+                    else []
+                ),
                 "    git add -A && git commit -m '<what changed>'",
                 f"    git push {remote} {branch}",
             ],
@@ -962,8 +1083,19 @@ def row_remote_sync(root: Path, branch: str, remote: str) -> Row:  # noqa: PLR09
     )
 
 
-def read_visibility(root: Path) -> tuple[str | None, str]:
-    """Return ``(visibility, source)``. Never guesses; ``None`` means nobody could say."""
+def read_visibility(root: Path, slug: str = GITHUB_SLUG) -> tuple[str | None, str]:
+    """Return ``(visibility, source)``. Never guesses; ``None`` means nobody could say.
+
+    Both sources are read **at call time, on every run**. Nothing here consults a cached
+    answer: not ``qa/public-readiness.json``, not a previous ``--json`` report, not this
+    module's own comments. That is deliberate and it is the property worth protecting -
+    visibility is the one fact in this gate that a person can change from a browser
+    between two runs, in either direction, and a cached PUBLIC would be the most expensive
+    lie the file could tell.
+
+    The ``gh`` branch names *slug* explicitly, so the command that runs is character for
+    character the command printed in the row's "Re-derive with" column.
+    """
     event_path = os.environ.get("GITHUB_EVENT_PATH")
     if event_path:
         text = read_text(Path(event_path))
@@ -974,13 +1106,15 @@ def read_visibility(root: Path) -> tuple[str | None, str]:
                 payload = None
             visibility = visibility_from_event(payload)
             if visibility is not None:
-                return visibility, "$GITHUB_EVENT_PATH (no credential, no network)"
+                return visibility, "$GITHUB_EVENT_PATH, read live (no credential, no network)"
     if shutil.which("gh") is not None:
-        rc, out, err = _run(["gh", "repo", "view", "--json", "visibility"], root, timeout=30.0)
+        rc, out, err = _run(
+            ["gh", "repo", "view", slug, "--json", "visibility"], root, timeout=30.0
+        )
         if rc == 0:
             visibility = visibility_from_gh(out)
             if visibility is not None:
-                return visibility, "gh repo view --json visibility"
+                return visibility, f"gh repo view {slug} --json visibility, asked live"
         return None, f"gh is present but refused ({(err or out).strip()[:80] or rc})"
     return None, "gh is not on PATH and this is not a GitHub Actions run"
 
@@ -1007,9 +1141,14 @@ def row_repo_public(root: Path, submission: dict[str, Any] | None) -> Row:
         f"    gh repo view {GITHUB_SLUG} --json visibility    # expect: PUBLIC",
     ]
 
-    url_ok, url_reason = classify_url((submission or {}).get("repo_url"))
+    repo_url = (submission or {}).get("repo_url")
+    url_ok, url_reason = classify_url(repo_url)
     url_note = f"repo_url {url_reason}" if url_ok else f"repo_url is {url_reason}"
-    visibility, source = read_visibility(root)
+    # Ask GitHub about the URL this file hands a judge, not about whatever remote this
+    # checkout happens to carry. When `repo_url` is not a github.com URL there is nothing
+    # to derive a slug from, so the declared slug stands in and the row still asks live.
+    slug = slug_from_repo_url(repo_url) or GITHUB_SLUG
+    visibility, source = read_visibility(root, slug)
 
     if visibility is None:
         return Row(
@@ -1023,7 +1162,13 @@ def row_repo_public(root: Path, submission: dict[str, Any] | None) -> Row:
                 f"    gh repo view {GITHUB_SLUG} --json visibility",
                 *flip,
             ],
-            detail={"visibility": None, "source": source, "repo_url": url_reason},
+            detail={
+                "visibility": None,
+                "source": source,
+                "repo_url": url_reason,
+                "slug_asked_about": slug,
+                "read_live": True,
+            },
         )
     if visibility != "PUBLIC":
         missing = "the flip" if url_ok else "the flip AND repo_url"
@@ -1045,7 +1190,13 @@ def row_repo_public(root: Path, submission: dict[str, Any] | None) -> Row:
                     *flip,
                 ]
             ),
-            detail={"visibility": visibility, "source": source, "repo_url": url_reason},
+            detail={
+                "visibility": visibility,
+                "source": source,
+                "repo_url": url_reason,
+                "slug_asked_about": slug,
+                "read_live": True,
+            },
         )
     if not url_ok:
         return Row(
@@ -1058,7 +1209,13 @@ def row_repo_public(root: Path, submission: dict[str, Any] | None) -> Row:
                 f"Write the URL a judge will open into {SUBMISSION_JSON.as_posix()}:",
                 f'    "repo_url": "https://github.com/{GITHUB_SLUG}"',
             ],
-            detail={"visibility": visibility, "source": source, "repo_url": url_reason},
+            detail={
+                "visibility": visibility,
+                "source": source,
+                "repo_url": url_reason,
+                "slug_asked_about": slug,
+                "read_live": True,
+            },
         )
     return Row(
         key="repo_public",
@@ -1789,7 +1946,7 @@ def _self_test() -> int:  # noqa: PLR0915 - a flat list of assertions reads bett
         str(scan_for_credentials({"judge_password": UNRESOLVED})),
     )
 
-    # 3 - rev-list parsing, the row that is red today.
+    # 3 - rev-list parsing. Red on 2026-08-10 at `0\t2`; `0\t0` on 2026-08-12.
     check("behind/ahead parses", parse_left_right("0\t2") == (0, 2))
     check("a synced remote parses", parse_left_right("0 0") == (0, 0))
     try:
@@ -1798,6 +1955,43 @@ def _self_test() -> int:  # noqa: PLR0915 - a flat list of assertions reads bett
         check("garbage raises rather than reading as zero", True)
     else:
         check("garbage raises rather than reading as zero", False, "no exception")
+
+    # 3b - the dirty tree, NAMED. A count tells a reader something is wrong and nothing
+    # about what, so `remote_sync` names the paths; these are the three line shapes git
+    # actually emits, and all three occur in this repository's own `git status`.
+    porcelain = (
+        " M docs/HONESTY.md\n"
+        "?? evidence/gate-refusal/proof-20260812T163857Z.json\n"
+        "R  docs/old-name.md -> docs/new-name.md\n"
+        '?? "docs/a file with spaces.md"\n'
+        "\n"
+    )
+    entries = parse_porcelain(porcelain)
+    paths = [path for _xy, path in entries]
+    check("a modified path parses", "docs/HONESTY.md" in paths, str(paths))
+    check(
+        "an untracked path parses",
+        "evidence/gate-refusal/proof-20260812T163857Z.json" in paths,
+        str(paths),
+    )
+    check("a rename reports the NEW path", "docs/new-name.md" in paths, str(paths))
+    check("a rename does not report the old path", "docs/old-name.md" not in paths, str(paths))
+    check("git's quoting is stripped", "docs/a file with spaces.md" in paths, str(paths))
+    check("a blank line is not a path", len(entries) == 4, str(entries))
+    check("the status code is kept", entries[0][0] == " M", str(entries[0]))
+    check("an empty porcelain is no paths", parse_porcelain("") == [])
+
+    summary = summarise_dirty(paths, name_limit=2)
+    check("the summary names the first paths", summary.startswith("docs/HONESTY.md"), summary)
+    check("the summary accounts for the rest", "and 2 more" in summary, summary)
+    check("the summary buckets by top directory", "under docs/" in summary, summary)
+    check("a short list is named in full", summarise_dirty(["a/b.md"]) == "a/b.md")
+    check("an empty list summarises to nothing", summarise_dirty([]) == "")
+    check(
+        "a top-level file is not given a trailing slash",
+        "under README.md" in summarise_dirty(["a/1", "a/2", "a/3", "a/4", "a/5", "README.md"]),
+        summarise_dirty(["a/1", "a/2", "a/3", "a/4", "a/5", "README.md"]),
+    )
 
     # 4 - URL classification.
     check("UNRESOLVED is not a URL", classify_url(UNRESOLVED)[0] is False)
@@ -1820,6 +2014,30 @@ def _self_test() -> int:  # noqa: PLR0915 - a flat list of assertions reads bett
         visibility_from_event({"repository": {"private": True}}) == "PRIVATE",
     )
     check("an empty payload is None", visibility_from_event({}) is None)
+
+    # 5b - the row asks GitHub about the URL a judge is handed, not about this checkout's
+    # own remote. Before this revision a bare `gh repo view` resolved through `origin`, so a
+    # `repo_url` pointing at one repository could be blessed PUBLIC by a clone of another.
+    check(
+        "a github URL yields its slug",
+        slug_from_repo_url("https://github.com/Shaugato/mainline") == "Shaugato/mainline",
+    )
+    check(
+        "a trailing .git is stripped",
+        slug_from_repo_url("https://github.com/Shaugato/mainline.git") == "Shaugato/mainline",
+    )
+    check(
+        "a deep github URL still yields owner/name",
+        slug_from_repo_url("https://github.com/Shaugato/mainline/tree/master/docs")
+        == "Shaugato/mainline",
+    )
+    check("a non-github host yields None", slug_from_repo_url("https://gitlab.com/a/b") is None)
+    check(
+        "an owner with no repo yields None",
+        slug_from_repo_url("https://github.com/Shaugato") is None,
+    )
+    check("the sentinel yields None", slug_from_repo_url(UNRESOLVED) is None)
+    check("a non-string yields None", slug_from_repo_url(None) is None)
 
     # 6 - the clock.
     before = datetime(2026, 8, 10, 21, 0, 0, tzinfo=UTC)

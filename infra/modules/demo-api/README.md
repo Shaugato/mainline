@@ -169,7 +169,7 @@ module "demo_api" {
 | `ssm_kms_key_arn` | `string` | `""` | Empty = the account's `aws/ssm` key, scoped by condition instead of by resource. See [KMS](#the-kms-grant-is-scoped-by-condition-not-by-resource). |
 | `restrict_kms_to_parameter` | `bool` | `true` | Add `kms:EncryptionContext:PARAMETER_ARN` to the `Decrypt` grant. |
 | `demo_database` | `string` | `mainline_demo` | Published as `$MAINLINE_DEMO_DATABASE`. Declarative — see [environment](#environment-variables). |
-| `scenario_permit_id` | `string` | `077a6fdd-…504d` | The permit the three beats drive. Published under two names — see [environment](#environment-variables). |
+| `scenario_permit_id` | `string` | `dec0de00-…0001` | The permit the three beats drive — the row `seed_demo.py` actually seeds, read back out of `mainline_demo` on 2026-08-12. Published under two names — see [environment](#environment-variables). |
 | `log_level` | `string` | `INFO` | Published as `$LOG_LEVEL` **and** wired into `logging_config.application_log_level`. |
 | `memory_size` | `number` | `512` | MB. CPU scales with it; the free tier is not the binding constraint. |
 | `timeout` | `number` | **`15`** | Seconds. Was 25. See [the timeout is 15 s](#the-timeout-is-15-s-and-the-number-is-arithmetic). Still capped at 29 so every configuration stays valid for CloudFront's 30 s origin read timeout. |
@@ -763,10 +763,26 @@ p99 threshold    12000
 env MAINLINE_WEB_ROOT       = /var/task/web
 env MAINLINE_DSN_PARAM      = /mainline/demo/dsn
 env MAINLINE_DEMO_DATABASE  = mainline_demo
-env MAINLINE_DEMO_PERMIT_ID = 077a6fdd-2167-559c-b2ff-8e3c8352504d
-env MAINLINE_SCENARIO_PERMIT_ID = 077a6fdd-2167-559c-b2ff-8e3c8352504d
+env MAINLINE_DEMO_PERMIT_ID = dec0de00-0006-4000-8000-000000000001
+env MAINLINE_SCENARIO_PERMIT_ID = dec0de00-0006-4000-8000-000000000001
 env LOG_LEVEL               = INFO
 ```
+
+> **The two permit lines were `077a6fdd-2167-559c-b2ff-8e3c8352504d` until 2026-08-12.**
+> That is `scenario.py:77`'s uuid5 fallback and **no row with that id has ever been
+> seeded**: a read-only `SELECT permit_id::string, state::string, open_blocking,
+> head_seq, gate_epoch FROM mainline.permit ORDER BY permit_id` against the live
+> `mainline-dev` / `mainline_demo` cluster returns **exactly one row**,
+> `dec0de00-0006-4000-8000-000000000001 | dispositioned | 1 | 2 | 1`. Deploying the old
+> default would have answered `422 demo_history_not_seeded` to every judge. The default in
+> `variables.tf` was corrected, the env-root plan was re-run, and the whole exchange —
+> query, verbatim rows, before/after values, plan diff — is
+> [`evidence/deploy/permit-id-agreement.json`](../../../evidence/deploy/permit-id-agreement.json).
+>
+> `MAINLINE_DSN_PARAM = /mainline/demo/dsn` above is **this module's own default** (see
+> the variables table). The env root overrides it to `/mainline/demo/cockroach_dsn`, which
+> is what `evidence/deploy/terraform-plan-furl.txt` — the artefact of record for the
+> deploy — actually plans. Both are correct for their respective runs.
 
 `validate` passes against the env root **as it stands today**, which still wires
 `cloudfront_distribution_arn = module.site.distribution_arn`. That keeps working because

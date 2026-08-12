@@ -28,22 +28,53 @@
 # ─────────────────────────────────────────────────────────────────────────────────────────
 # THIS LANE IS RED ON PURPOSE, AND SINCE 2026-08-10 IT SAYS WHY IN ONE SENTENCE
 # ─────────────────────────────────────────────────────────────────────────────────────────
-# The reference vertical references two tables that no file in it creates. Until
-# 2026-08-10 the only thing this lane printed about that was
+# The reference vertical references TWO tables that no file in it creates:
+#
+#     trappoint_ref.clause   consumed by 0066_disposition       (FOREIGN KEY target)
+#     trappoint_ref.event    consumed by 0058_blocking_check    (FOREIGN KEY target)
+#
+# Both are named in full, by every job in this file that speaks. Until 2026-08-10 the only
+# thing this lane printed about that was
 #
 #     trappoint migrate: REFUSED: 0058_blocking_check: [42P01] relation "trappoint_ref.event"
 #     does not exist
 #
 # — a true sentence that names neither the missing artefact as an artefact, nor the domain
-# that owes it, nor the second missing producer sitting behind the first. A migration run
-# stops at its first refusal, so a reader fixing `event` would have discovered `clause` on
-# the next run and nowhere else.
+# that owes it, nor the second missing producer sitting behind the first.
+#
+# AND THE DATABASE CANNOT NAME `clause` AT ALL IN THIS STATE. Measured 2026-08-13 against a
+# local CockroachDB v26.2.5, by applying all 109 files of the reference vertical in order
+# into an empty `trappoint_ref` schema and DELIBERATELY NOT STOPPING at refusals — which is
+# strictly more than `trappoint migrate up` will ever tell you. 42P01 is raised for six
+# relations:
+#
+#     trappoint_ref.event            first refused by 0058_blocking_check
+#     trappoint_ref.blocking_check   first refused by 0058a_bc_open_index
+#     trappoint_ref.exposure_line    first refused by 0066_disposition
+#     trappoint_ref.disposition      first refused by 0066a_one_live_disposition
+#     trappoint_ref.site             first refused by 0127_trg_closure_guard
+#     trappoint_ref.override_ledger  first refused by 0128f_trg_refuse_mutation_override_ledger
+#
+# `trappoint_ref.clause` is NOT among them. Five of those six are cascade — tables the tree
+# does create, whose CREATE never ran because an earlier file refused — and 0066_disposition
+# refuses on `exposure_line` before it reaches its `REFERENCES trappoint_ref.clause`. So the
+# second genuinely missing producer surfaces from the database only after `event` and its
+# entire cascade are restored. The static scan in the `producers` job is the only thing in
+# this repository that can name it today, which is why that job exists and runs first.
 #
 # The `producers` job below states the whole finding, hermetically, in about ten seconds,
 # and it is the first thing a reader sees. The two container jobs still run and still
 # refuse against a real CockroachDB — the database is the authority and a static check is
 # only a reading of it — but they now classify their own refusal instead of leaving a raw
-# SQLSTATE.
+# SQLSTATE, they name BOTH missing producers rather than the first one the runner reached,
+# and they say in their own first sentence that they are COLLATERAL.
+#
+# COLLATERAL, measured on run 31596641256 (2026-08-12, commit 1d41442): `unwelding matrix`
+# and `the self-attesting gate` both died at their `Apply the reference vertical` step, so
+# neither the unwelding matrix nor the gate-source snapshot comparison executed at all. A
+# reader of that run had to diff the tree to discover that two of the three red jobs were
+# consequences of the third's finding and had measured nothing of their own subject. Those
+# two jobs now say so: their subject is UNPROVEN by such a run, not failing.
 #
 # NOTHING HERE IS ALLOWED TO GO GREEN BY BEING QUIETER. No `continue-on-error`, no
 # `|| true`, no job that is skipped so its absence reads as a pass. The lane stays red
@@ -111,7 +142,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 - <<'PY'
-          import pathlib, re, sys
+          import os, pathlib, re, sys
 
           SQL = pathlib.Path("packages/trappoint-sql/refvertical/sql")
           MAINLINE_TWIN = {
@@ -193,9 +224,54 @@ jobs:
               ):
                   print(line)
           print()
-          print("The container jobs below reach only the FIRST of these, because "
-                "`trappoint migrate up` stops at its first REFUSED. That is why this job "
-                "exists: the run log otherwise names one missing producer at a time.")
+          print("The container jobs below reach only the FIRST of these against a real "
+                "database, because `trappoint migrate up` stops at its first REFUSED. That "
+                "is why this job exists — and it is why those two jobs now repeat this scan "
+                "and name the whole list themselves, so that no single log names one missing "
+                "producer at a time. They are COLLATERAL of this finding: neither the "
+                "unwelding matrix nor the gate-source snapshot comparison runs at all while "
+                "these producers are absent, so their subjects are UNPROVEN, not failing.")
+          print()
+          print("Measured 2026-08-13 on CockroachDB v26.2.5, applying all of "
+                "packages/trappoint-sql/refvertical/sql in order WITHOUT stopping at "
+                "refusals — strictly more than the runner will ever report: 42P01 names "
+                "trappoint_ref.event and five cascade victims, and NEVER names "
+                "trappoint_ref.clause, because 0066_disposition refuses on "
+                "trappoint_ref.exposure_line before it reaches its REFERENCES "
+                "trappoint_ref.clause. No amount of reading the database surfaces the second "
+                "missing producer until the first and its cascade are closed. This static "
+                "scan is the only reader in the repository that can name it today.")
+
+          # The Actions SUMMARY page, not only the log. A reader who opens the run rather
+          # than a job sees the whole finding, both objects, and the owning domain without
+          # expanding a single step. Written LAST so that a crash in the scan above cannot
+          # leave a confident half-table on the summary page.
+          step_summary = os.environ.get("GITHUB_STEP_SUMMARY")
+          if step_summary:
+              with open(step_summary, "a", encoding="utf-8") as handle:
+                  handle.write(
+                      f"## schema: {len(missing)} object(s) referenced by the reference "
+                      "vertical and created by nothing\n\n"
+                  )
+                  handle.write(
+                      "| missing object | consumed by | producer expected at | MAINLINE twin "
+                      "| owner |\n|---|---|---|---|---|\n"
+                  )
+                  for table, consumers in missing.items():
+                      twin = MAINLINE_TWIN.get(table, "(none identified)")
+                      handle.write(
+                          f"| `trappoint_ref.{table}` | {', '.join(consumers)} | "
+                          f"`packages/trappoint-sql/refvertical/sql/<nnnn>_{table}.sql` | "
+                          f"`{twin}` | KERNEL domain, `docs/leads/kernel.md` 1.1 |\n"
+                      )
+                  handle.write(
+                      "\nRED ON PURPOSE. This table is computed from the .sql files in this "
+                      "checkout at run time, so it cannot go stale. The lane goes green when "
+                      "the migrations above exist — not when a job is skipped, a foreign key "
+                      "is dropped or a matrix is narrowed. `unwelding matrix` and `the "
+                      "self-attesting gate` fail as COLLATERAL of this finding and measure "
+                      "nothing of their own subjects until it is closed.\n"
+                  )
           sys.exit(1)
           PY
 
@@ -256,10 +332,72 @@ jobs:
         # refusing, and the `producers` job above is only a reading of the same files. What
         # changed on 2026-08-10 is that a refusal is now CLASSIFIED here rather than left as
         # a raw SQLSTATE for a reader to interpret. The step still exits non-zero, always.
+        #
+        # What changed on 2026-08-13, after reading run 31596641256: this step named ONE
+        # missing producer (`trappoint_ref.event`, the first refusal) and never said that
+        # the unwelding matrix — the thing this job is named after and exists to run — had
+        # not executed at all. A reader of that log could not tell a collateral casualty
+        # from an independent failure without diffing the tree. Both are fixed below: the
+        # static scan is repeated here so the log carries the WHOLE list, and the first
+        # sentence out of this step is that the job is COLLATERAL.
         run: |
           set -euo pipefail
           uv run --package trappoint-migrate trappoint migrate bootstrap \
             --dsn "$TRAPPOINT_UNWELD_DSN"
+
+          # The same scan the `producers` job runs, repeated rather than shared: GitHub
+          # Actions has no YAML anchors, and a script under scripts/ would be a second
+          # place to look for the sentence THIS log has to carry. It is only a reading of
+          # the files. The refusal below is the database's own answer and stays the
+          # authority; this is what makes the answer legible when migrate stops early.
+          detail="$RUNNER_TEMP/missing-producers.txt"
+          oneline="$RUNNER_TEMP/missing-producers-oneline.txt"
+          python3 - "$detail" "$oneline" <<'PY'
+          import pathlib, re, sys
+
+          detail_path, oneline_path = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2])
+          SQL = pathlib.Path("packages/trappoint-sql/refvertical/sql")
+          TWIN = {
+              "event": "verticals/mainline/db/migrations/0033_event.sql",
+              "clause": "verticals/mainline/db/migrations/0028_clause.sql",
+          }
+          created = re.compile(
+              r"CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?trappoint_ref\.([a-z_][a-z0-9_]*)",
+              re.IGNORECASE,
+          )
+          referenced = re.compile(
+              r"REFERENCES\s+trappoint_ref\.([a-z_][a-z0-9_]*)", re.IGNORECASE
+          )
+
+          produced: set[str] = set()
+          consumed: dict[str, list[str]] = {}
+          for path in sorted(SQL.glob("*.sql")):
+              body = "\n".join(
+                  line
+                  for line in path.read_text(encoding="utf-8", errors="ignore").splitlines()
+                  if not line.lstrip().startswith("--")
+              )
+              produced.update(table.lower() for table in created.findall(body))
+              for table in referenced.findall(body):
+                  consumed.setdefault(table.lower(), []).append(path.stem)
+
+          missing = sorted(table for table in consumed if table not in produced)
+          detail_path.write_text(
+              "".join(
+                  f"    trappoint_ref.{table}  --  consumed by {', '.join(consumed[table])}"
+                  f"  --  expected at packages/trappoint-sql/refvertical/sql/<nnnn>_{table}.sql"
+                  f"  --  MAINLINE twin {TWIN.get(table, 'none identified')}\n"
+                  for table in missing
+              ),
+              encoding="utf-8",
+          )
+          oneline_path.write_text(
+              ", ".join(f"trappoint_ref.{table}" for table in missing) or "(none)",
+              encoding="utf-8",
+          )
+          PY
+          objects="$(cat "$oneline")"
+          missing_count="$(awk 'NF' "$detail" | wc -l | tr -d ' ')"
 
           log="$RUNNER_TEMP/refvertical-migrate.log"
           if uv run --package trappoint-migrate trappoint migrate up \
@@ -273,31 +411,49 @@ jobs:
           consumer="$(sed -n 's/.*REFUSED: \([0-9a-zA-Z_]*\):.*/\1/p' "$log" | head -n1)"
 
           if [ -n "$object" ]; then
-            echo "::error title=MISSING PRODUCER in the reference vertical::${object} is referenced by ${consumer} and created by no file in packages/trappoint-sql/refvertical/sql. Owner: KERNEL domain, docs/leads/kernel.md 1.1"
+            echo "::error title=COLLATERAL - the unwelding matrix never ran::${missing_count} object(s) are referenced by packages/trappoint-sql/refvertical/sql and created by no file in it: ${objects}. CockroachDB refused at ${consumer} on ${object}, the first of them. Owner: KERNEL domain, docs/leads/kernel.md 1.1. This job did NOT fail on its own subject -- the unwelding matrix did not execute, so it is UNPROVEN by this run rather than failing."
             cat <<EOF
 
           ========================================================================================
-          MISSING PRODUCER -- the reference vertical, not MAINLINE
+          COLLATERAL -- this job measured nothing of its own subject
           ========================================================================================
-            object     : ${object}
-            consumer   : ${consumer}  (FOREIGN KEY target, so it must exist at APPLY time)
-            tree       : packages/trappoint-sql/refvertical/sql   (--tree trappoint-ref)
-            expected   : a CREATE TABLE migration in that directory. The MAINLINE binding's
-                         twins already exist -- verticals/mainline/db/migrations/0033_event.sql
-                         and 0028_clause.sql -- and there is no template in
-                         packages/trappoint-sql/templates/ that renders either base table.
-            owner      : KERNEL domain -- docs/leads/kernel.md 1.1, which ships the reference
-                         vertical "alongside the MAINLINE binding, from day one, inside
-                         packages/trappoint-sql/refvertical/".
-            status     : RED ON PURPOSE. This is product incompleteness. It is not closed by
-                         continue-on-error, by dropping the foreign key, or by removing the
-                         reference vertical from this lane. See the 'producers' job in this
-                         workflow for the FULL list -- migrate stops at its first refusal and
-                         there is more than one.
+            this job     : unwelding matrix (serial, disposable cluster)
+            its subject  : packages/trappoint-conformance/unweld -- drop each constraint, prove
+                           the database refuses, restore it, and regenerate REFUSAL_DEPTH.md.
+                           NONE of that ran. This job is a casualty of the finding below, not
+                           an independent failure, and its subject is UNPROVEN by this run.
+            cause        : the reference vertical cannot be applied, so there is no schema to
+                           unweld. Identical cause, identical objects, in 'the self-attesting
+                           gate' -- the two are one finding seen twice, not two findings.
+          ----------------------------------------------------------------------------------------
+          MISSING PRODUCERS -- the reference vertical, not MAINLINE
+          ----------------------------------------------------------------------------------------
+            refused at   : ${consumer}  on  ${object}   (FOREIGN KEY target; it must exist at
+                           APPLY time, and migrate stops at its FIRST refusal)
+            full list    : ${missing_count} object(s) -- ${objects}
+                           (read out of the .sql files in this checkout, in this step, so the
+                           log is not one instalment of the finding)
+          EOF
+            cat "$detail"
+            cat <<'EOF'
+            tree         : packages/trappoint-sql/refvertical/sql   (--tree trappoint-ref)
+            expected     : a CREATE TABLE migration per object, in that directory. The MAINLINE
+                           binding's twins already exist and there is no template in
+                           packages/trappoint-sql/templates/ that renders either base table.
+            owner        : KERNEL domain -- docs/leads/kernel.md 1.1, which ships the reference
+                           vertical "alongside the MAINLINE binding, from day one, inside
+                           packages/trappoint-sql/refvertical/".
+            status       : RED ON PURPOSE. This is product incompleteness. It is not closed by
+                           continue-on-error, by dropping the foreign key, or by removing the
+                           reference vertical from this lane. The 'producers' job in this
+                           workflow states the same finding hermetically, in ten seconds.
           ========================================================================================
           EOF
+            if [ "$missing_count" -eq 0 ]; then
+              echo "::error title=the scan and the database disagree::The static scan found NO missing producer, yet CockroachDB refused on ${object}. The scan matches REFERENCES trappoint_ref.<table> and nothing else, so it is narrower than the database; that gap is itself a finding and belongs in the 'producers' job, not in a silence here."
+            fi
           else
-            echo "::error title=the reference vertical refused, unclassified::trappoint migrate up failed for a reason this step does not recognise. The log is below; classify it here rather than leaving the next reader with a bare exit code."
+            echo "::error title=the reference vertical refused, unclassified::trappoint migrate up failed for a reason this step does not recognise, so it is NOT attributed to the ${missing_count} known missing producer(s) (${objects}). The runner's whole output is below; classify it here rather than leaving the next reader with a bare exit code. Owner of the reference vertical: KERNEL domain, docs/leads/kernel.md 1.1."
             echo "---- trappoint migrate up ----"
             cat "$log"
             echo "------------------------------"
@@ -393,12 +549,62 @@ jobs:
       - name: Apply the reference vertical
         env:
           LOCAL_DSN: postgresql://root@127.0.0.1:26401/defaultdb?sslmode=disable
-        # Same classification as the `unweld` job. Duplicated rather than factored out
-        # because GitHub Actions has no YAML anchors and a shared script under scripts/
-        # would be a second place to look for the sentence a reader needs in the log.
+        # Same classification as the `unweld` job, including the repeated scan and the
+        # COLLATERAL framing. Duplicated rather than factored out because GitHub Actions has
+        # no YAML anchors and a shared script under scripts/ would be a second place to look
+        # for the sentence a reader needs in this log.
         run: |
           set -euo pipefail
           uv run --package trappoint-migrate trappoint migrate bootstrap --dsn "$LOCAL_DSN"
+
+          detail="$RUNNER_TEMP/missing-producers.txt"
+          oneline="$RUNNER_TEMP/missing-producers-oneline.txt"
+          python3 - "$detail" "$oneline" <<'PY'
+          import pathlib, re, sys
+
+          detail_path, oneline_path = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2])
+          SQL = pathlib.Path("packages/trappoint-sql/refvertical/sql")
+          TWIN = {
+              "event": "verticals/mainline/db/migrations/0033_event.sql",
+              "clause": "verticals/mainline/db/migrations/0028_clause.sql",
+          }
+          created = re.compile(
+              r"CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?trappoint_ref\.([a-z_][a-z0-9_]*)",
+              re.IGNORECASE,
+          )
+          referenced = re.compile(
+              r"REFERENCES\s+trappoint_ref\.([a-z_][a-z0-9_]*)", re.IGNORECASE
+          )
+
+          produced: set[str] = set()
+          consumed: dict[str, list[str]] = {}
+          for path in sorted(SQL.glob("*.sql")):
+              body = "\n".join(
+                  line
+                  for line in path.read_text(encoding="utf-8", errors="ignore").splitlines()
+                  if not line.lstrip().startswith("--")
+              )
+              produced.update(table.lower() for table in created.findall(body))
+              for table in referenced.findall(body):
+                  consumed.setdefault(table.lower(), []).append(path.stem)
+
+          missing = sorted(table for table in consumed if table not in produced)
+          detail_path.write_text(
+              "".join(
+                  f"    trappoint_ref.{table}  --  consumed by {', '.join(consumed[table])}"
+                  f"  --  expected at packages/trappoint-sql/refvertical/sql/<nnnn>_{table}.sql"
+                  f"  --  MAINLINE twin {TWIN.get(table, 'none identified')}\n"
+                  for table in missing
+              ),
+              encoding="utf-8",
+          )
+          oneline_path.write_text(
+              ", ".join(f"trappoint_ref.{table}" for table in missing) or "(none)",
+              encoding="utf-8",
+          )
+          PY
+          objects="$(cat "$oneline")"
+          missing_count="$(awk 'NF' "$detail" | wc -l | tr -d ' ')"
 
           log="$RUNNER_TEMP/refvertical-migrate.log"
           if uv run --package trappoint-migrate trappoint migrate up \
@@ -412,28 +618,48 @@ jobs:
           consumer="$(sed -n 's/.*REFUSED: \([0-9a-zA-Z_]*\):.*/\1/p' "$log" | head -n1)"
 
           if [ -n "$object" ]; then
-            echo "::error title=MISSING PRODUCER in the reference vertical::${object} is referenced by ${consumer} and created by no file in packages/trappoint-sql/refvertical/sql. Owner: KERNEL domain, docs/leads/kernel.md 1.1"
+            echo "::error title=COLLATERAL - the self-attesting gate never ran::${missing_count} object(s) are referenced by packages/trappoint-sql/refvertical/sql and created by no file in it: ${objects}. CockroachDB refused at ${consumer} on ${object}, the first of them. Owner: KERNEL domain, docs/leads/kernel.md 1.1. This job did NOT fail on its own subject -- test_gate_source_snapshot.py did not execute, so the gate's source is UNPROVEN by this run rather than drifted."
             cat <<EOF
 
           ========================================================================================
-          MISSING PRODUCER -- the reference vertical, not MAINLINE
+          COLLATERAL -- this job measured nothing of its own subject
           ========================================================================================
-            object     : ${object}
-            consumer   : ${consumer}  (FOREIGN KEY target, so it must exist at APPLY time)
-            tree       : packages/trappoint-sql/refvertical/sql   (--tree trappoint-ref)
-            expected   : a CREATE TABLE migration in that directory. The MAINLINE binding's
-                         twins already exist -- verticals/mainline/db/migrations/0033_event.sql
-                         and 0028_clause.sql -- and there is no template in
-                         packages/trappoint-sql/templates/ that renders either base table.
-            owner      : KERNEL domain -- docs/leads/kernel.md 1.1, which ships the reference
-                         vertical "alongside the MAINLINE binding, from day one, inside
-                         packages/trappoint-sql/refvertical/".
-            status     : RED ON PURPOSE. The self-attesting gate cannot compare a snapshot of a
-                         gate that was never created. See the 'producers' job for the full list.
+            this job     : the self-attesting gate
+            its subject  : packages/trappoint-conformance/tests/test_gate_source_snapshot.py --
+                           read the gate function the DATABASE will execute and compare it to
+                           the committed snapshot. That comparison did NOT run. The gate is
+                           UNPROVEN by this run; nothing here says it has drifted.
+            cause        : the reference vertical cannot be applied, so there is no gate in the
+                           database to read. Identical cause, identical objects, in 'unwelding
+                           matrix' -- the two are one finding seen twice, not two findings.
+          ----------------------------------------------------------------------------------------
+          MISSING PRODUCERS -- the reference vertical, not MAINLINE
+          ----------------------------------------------------------------------------------------
+            refused at   : ${consumer}  on  ${object}   (FOREIGN KEY target; it must exist at
+                           APPLY time, and migrate stops at its FIRST refusal)
+            full list    : ${missing_count} object(s) -- ${objects}
+                           (read out of the .sql files in this checkout, in this step, so the
+                           log is not one instalment of the finding)
+          EOF
+            cat "$detail"
+            cat <<'EOF'
+            tree         : packages/trappoint-sql/refvertical/sql   (--tree trappoint-ref)
+            expected     : a CREATE TABLE migration per object, in that directory. The MAINLINE
+                           binding's twins already exist and there is no template in
+                           packages/trappoint-sql/templates/ that renders either base table.
+            owner        : KERNEL domain -- docs/leads/kernel.md 1.1, which ships the reference
+                           vertical "alongside the MAINLINE binding, from day one, inside
+                           packages/trappoint-sql/refvertical/".
+            status       : RED ON PURPOSE. The self-attesting gate cannot compare a snapshot of
+                           a gate that was never created. The 'producers' job in this workflow
+                           states the same finding hermetically, in ten seconds.
           ========================================================================================
           EOF
+            if [ "$missing_count" -eq 0 ]; then
+              echo "::error title=the scan and the database disagree::The static scan found NO missing producer, yet CockroachDB refused on ${object}. The scan matches REFERENCES trappoint_ref.<table> and nothing else, so it is narrower than the database; that gap is itself a finding and belongs in the 'producers' job, not in a silence here."
+            fi
           else
-            echo "::error title=the reference vertical refused, unclassified::trappoint migrate up failed for a reason this step does not recognise. The log is below; classify it here rather than leaving the next reader with a bare exit code."
+            echo "::error title=the reference vertical refused, unclassified::trappoint migrate up failed for a reason this step does not recognise, so it is NOT attributed to the ${missing_count} known missing producer(s) (${objects}). The runner's whole output is below; classify it here rather than leaving the next reader with a bare exit code. Owner of the reference vertical: KERNEL domain, docs/leads/kernel.md 1.1."
             echo "---- trappoint migrate up ----"
             cat "$log"
             echo "------------------------------"

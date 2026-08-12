@@ -11,13 +11,13 @@
   "scan": {
     "root": "<repository root>",
     "method": "filesystem walk, NOT the git index. A count here will not equal `git grep -l <pattern> | wc -l`: the walk sees files that are present but not yet committed, and it prunes directories git tracks (out_mainline/, out_trappoint_ref/, .hypothesis-corpus/). The walk is the right unit for a submission document, because a judge checks out a working tree.",
-    "files_scanned": 7367,
+    "files_scanned": 7388,
     "files_by_category": {
-      "config": 4801,
-      "docs": 281,
+      "config": 4809,
+      "docs": 292,
       "migration": 271,
-      "other": 344,
-      "python": 1215,
+      "other": 345,
+      "python": 1216,
       "sql": 130,
       "terraform": 25,
       "typescript": 282,
@@ -69,8 +69,8 @@
   "totals": {
     "rows": 14,
     "by_verdict": {
-      "EXERCISED": 11,
-      "DESIGNED": 3,
+      "EXERCISED": 12,
+      "DESIGNED": 2,
       "NOT-AVAILABLE": 0
     },
     "by_kind": {
@@ -92,18 +92,20 @@
         "path": "compose.yaml",
         "line": 31,
         "resolves": true,
-        "line_text": "image: cockroachdb/cockroach:v26.2.5"
+        "line_text": "image: cockroachdb/cockroach:v26.2.5",
+        "must_contain": "cockroachdb/cockroach:v26.2.5",
+        "subject_holds": true
       },
-      "file_count": 319,
+      "file_count": 329,
       "files_by_category": {
-        "config": 46,
-        "docs": 81,
+        "config": 52,
+        "docs": 84,
         "migration": 59,
         "other": 20,
         "python": 81,
         "sql": 23,
         "typescript": 2,
-        "workflow": 7
+        "workflow": 8
       },
       "representative_paths": [
         "verticals/mainline/db/migrations/0008a_owner_business.sql",
@@ -128,15 +130,17 @@
         "path": "packages/trappoint-model/src/trappoint_model/cluster.py",
         "line": 222,
         "resolves": true,
-        "line_text": "def connect(dsn: str, *, isolation: str = \"serializable\") -> psycopg.Connection[Any]:"
+        "line_text": "def connect(dsn: str, *, isolation: str = \"serializable\") -> psycopg.Connection[Any]:",
+        "must_contain": "isolation",
+        "subject_holds": true
       },
-      "file_count": 147,
+      "file_count": 151,
       "files_by_category": {
-        "config": 20,
-        "docs": 34,
+        "config": 21,
+        "docs": 36,
         "migration": 15,
         "other": 6,
-        "python": 56,
+        "python": 57,
         "sql": 8,
         "typescript": 4,
         "workflow": 4
@@ -164,7 +168,9 @@
         "path": "verticals/mainline/db/migrations/0115_fn_permit_merge_gate.sql",
         "line": 77,
         "resolves": true,
-        "line_text": "RAISE EXCEPTION USING ERRCODE = 'P0001',"
+        "line_text": "RAISE EXCEPTION USING ERRCODE = 'P0001',",
+        "must_contain": "P0001",
+        "subject_holds": true
       },
       "file_count": 122,
       "files_by_category": {
@@ -198,12 +204,14 @@
         "path": "verticals/mainline/db/migrations/0050_permit.sql",
         "line": 114,
         "resolves": true,
-        "line_text": "CONSTRAINT gate_closed_when_issued        CHECK (state <> 'merged' OR open_blocking = 0),"
+        "line_text": "CONSTRAINT gate_closed_when_issued        CHECK (state <> 'merged' OR open_blocking = 0),",
+        "must_contain": "gate_closed_when_issued",
+        "subject_holds": true
       },
-      "file_count": 175,
+      "file_count": 181,
       "files_by_category": {
-        "config": 31,
-        "docs": 57,
+        "config": 34,
+        "docs": 60,
         "migration": 7,
         "other": 5,
         "python": 47,
@@ -234,7 +242,9 @@
         "path": "verticals/mainline/db/migrations/0031_clause_embedding.sql",
         "line": 149,
         "resolves": true,
-        "line_text": "VECTOR INDEX ce_ann (site_id, activity_root, embedding vector_cosine_ops),"
+        "line_text": "VECTOR INDEX ce_ann (site_id, activity_root, embedding vector_cosine_ops),",
+        "must_contain": "VECTOR INDEX ce_ann",
+        "subject_holds": true
       },
       "file_count": 141,
       "files_by_category": {
@@ -263,19 +273,21 @@
       "name": "AS OF SYSTEM TIME (bounded time travel, and its refusal)",
       "kind": "feature",
       "verdict": "EXERCISED",
-      "verdict_basis": "measured on the pinned local node: AS OF SYSTEM TIME '-90m' over system.namespace returned 3658 rows, while '-2160h' (90 days) was REFUSED with XXUUU 'found no descriptor'; ALTER DATABASE ... CONFIGURE ZONE pinned gc.ttlseconds to 4500 and SHOW ZONE CONFIGURATION read it back. What that pair demonstrates is that a far-past read is refused rather than answered — not the 4500 s boundary specifically, which is the conformance case CF-46 and has not been demonstrated",
+      "verdict_basis": "measured on the pinned local node 2026-08-12 in scratch database w_w6_tool_usage: AS OF SYSTEM TIME '-90m' over system.namespace returned 1619 rows, while '-2160h' (90 days) was REFUSED with SQLSTATE XXUUU, message 'error in retrieving descs between ...: batch timestamp ... must be after replica GC threshold ... (r7: /Table/{0-4})'. What that pair demonstrates is that a far-past read is refused rather than answered — not the 4500 s boundary specifically, which is the conformance case CF-46 and has not been demonstrated. CORRECTION TO AN EARLIER BASIS, from re-running it rather than remembering it: the row count was quoted as 3658, a live cluster's count on a different day that was never going to reproduce, and the message was quoted as 'found no descriptor', where this node names the GC threshold directly. The SQLSTATE XXUUU did reproduce exactly and is unchanged. Note it was read from psycopg's sqlstate field: the cockroach CLI renders this refusal WITHOUT a SQLSTATE line, and trusting that rendering would have produced a confident, false correction",
       "how": "Used for consistent read-only snapshots — and, more importantly, used to mark the boundary of what it can prove. gc.ttlseconds is pinned locally to the Cloud value of 4500 s, so a query past the window is REFUSED rather than silently wrong, and long-horizon history is the application-level commit DAG instead.",
       "anchor": "packages/trappoint-conformance/cases/cf46_time_travel_cannot_reach.py:106",
       "anchor_resolved": {
         "path": "packages/trappoint-conformance/cases/cf46_time_travel_cannot_reach.py",
         "line": 106,
         "resolves": true,
-        "line_text": "\"SELECT count(*) FROM {s}.permit AS OF SYSTEM TIME '-2160h' \""
+        "line_text": "\"SELECT count(*) FROM {s}.permit AS OF SYSTEM TIME '-2160h' \"",
+        "must_contain": "AS OF SYSTEM TIME",
+        "subject_holds": true
       },
-      "file_count": 74,
+      "file_count": 75,
       "files_by_category": {
         "config": 14,
-        "docs": 27,
+        "docs": 28,
         "migration": 1,
         "other": 2,
         "python": 27,
@@ -306,11 +318,13 @@
         "path": "verticals/mainline/db/migrations/0180c_role_agent_patroller.sql",
         "line": 37,
         "resolves": true,
-        "line_text": "-- `follower_read_timestamp()` so that patrol never contends with a merge,"
+        "line_text": "-- `follower_read_timestamp()` so that patrol never contends with a merge,",
+        "must_contain": "follower_read_timestamp()",
+        "subject_holds": true
       },
-      "file_count": 10,
+      "file_count": 9,
       "files_by_category": {
-        "docs": 2,
+        "docs": 1,
         "migration": 2,
         "python": 6
       },
@@ -337,7 +351,9 @@
         "path": "verticals/mainline/db/migrations/0181a_permit_rls_force.sql",
         "line": 54,
         "resolves": true,
-        "line_text": "ALTER TABLE mainline.permit FORCE ROW LEVEL SECURITY;"
+        "line_text": "ALTER TABLE mainline.permit FORCE ROW LEVEL SECURITY;",
+        "must_contain": "FORCE ROW LEVEL SECURITY",
+        "subject_holds": true
       },
       "file_count": 40,
       "files_by_category": {
@@ -370,12 +386,14 @@
         "path": "packages/trappoint-migrate/src/trappoint_migrate/attest.py",
         "line": 243,
         "resolves": true,
-        "line_text": "(\"schemas\", \"SHOW CREATE ALL SCHEMAS\"),"
+        "line_text": "(\"schemas\", \"SHOW CREATE ALL SCHEMAS\"),",
+        "must_contain": "SHOW CREATE ALL SCHEMAS",
+        "subject_holds": true
       },
-      "file_count": 66,
+      "file_count": 67,
       "files_by_category": {
         "config": 7,
-        "docs": 16,
+        "docs": 17,
         "migration": 10,
         "other": 3,
         "python": 26,
@@ -397,14 +415,16 @@
       "name": "crdb_internal (used by us, forbidden to the audit identity)",
       "kind": "feature",
       "verdict": "EXERCISED",
-      "verdict_basis": "measured on the pinned local node: the bare builtin cluster_logical_timestamp() returns, while crdb_internal is RESTRICTED BY DEFAULT on v26.2.5 — 'SELECT count(*) FROM crdb_internal.tables' raises 42501 'Access to crdb_internal and system is restricted' and only succeeds after SET allow_unsafe_internals = true",
+      "verdict_basis": "re-measured on the pinned local node 2026-08-12: the bare builtin cluster_logical_timestamp() returns, while crdb_internal is RESTRICTED BY DEFAULT on v26.2.5 — 'SELECT count(*) FROM crdb_internal.tables' raises 42501 'Access to crdb_internal and system is restricted' and only succeeds after SET allow_unsafe_internals = true. The restriction is not crdb_internal-specific: system.namespace is behind the same opt-in, as the crdb_as_of_system_time row's measurement had to discover. No row COUNT is quoted for the unlocked query, deliberately — it counts descriptors across every database on the node, so on a shared node it measures who else was working rather than anything about CockroachDB",
       "how": "Two opposite uses. Internally, cluster_logical_timestamp() is the HLC the sequencer orders appends by, since sequences are banned. Externally, crdb_internal is on the MCP identity's forbidden list — that it is unreachable is what proves the mainline_audit views are the API rather than a bypass. MEASURED CORRECTION: on v26.2.5 the qualified spelling crdb_internal.cluster_logical_timestamp() raises 42883 'unknown function'; the builtin is unqualified. The unreachability is therefore a platform default before it is a policy of ours, which strengthens the claim rather than weakening it.",
       "anchor": "packages/mainline-mcp/src/mainline_mcp/limits.py:75",
       "anchor_resolved": {
         "path": "packages/mainline-mcp/src/mainline_mcp/limits.py",
         "line": 75,
         "resolves": true,
-        "line_text": "FORBIDDEN_SCHEMAS: Final = frozenset("
+        "line_text": "FORBIDDEN_SCHEMAS: Final = frozenset(",
+        "must_contain": "FORBIDDEN_SCHEMAS",
+        "subject_holds": true
       },
       "file_count": 64,
       "files_by_category": {
@@ -431,14 +451,16 @@
       "name": "CHANGEFEED (CDC out of the outbox)",
       "kind": "feature",
       "verdict": "DESIGNED",
-      "verdict_basis": "measured on the pinned local node: the machinery is present — kv.rangefeed.enabled is true and SHOW CHANGEFEED JOBS answers — and it reports 0 jobs, because no changefeed has ever been created on any cluster in this project",
+      "verdict_basis": "measured on the pinned local node 2026-08-12: SHOW CHANGEFEED JOBS answers and reports 0 jobs, because no changefeed has ever been created on any cluster in this project. MEASURED CORRECTION, and it makes the verdict stronger rather than weaker: an earlier basis said 'kv.rangefeed.enabled is true'. It reads FALSE on this node today. So CDC here is not merely unstarted, it is not currently startable without flipping a cluster setting first — which is the honest shape of a DESIGNED verdict and is exactly what a reader would discover on their own node",
       "how": "CDC is deliberately NOT in a migration — CREATE CHANGEFEED in a migration makes migrations non-idempotent across a restore — so it is owned by the provisioning agent, and 0155a/0168 exist to observe changefeed health rather than to start one. RLS is never enabled on the outbox because CDC queries fail on RLS-enabled and multi-family tables.",
       "anchor": "verticals/mainline/db/migrations/0168_v_changefeed_health.sql:37",
       "anchor_resolved": {
         "path": "verticals/mainline/db/migrations/0168_v_changefeed_health.sql",
         "line": 37,
         "resolves": true,
-        "line_text": "-- restore and owned by the provisioning agent, because putting CREATE CHANGEFEED"
+        "line_text": "-- restore and owned by the provisioning agent, because putting CREATE CHANGEFEED",
+        "must_contain": "CREATE CHANGEFEED",
+        "subject_holds": true
       },
       "file_count": 3,
       "files_by_category": {
@@ -468,15 +490,18 @@
         "path": "evidence/ccloud/README.md",
         "line": 37,
         "resolves": true,
-        "line_text": "`ccloud` **0.6.12** is the latest published build (0.7.0 / 0.8.0 / 0.9.0 / 1.0.0 all return 404 from `binaries.cockroachdb.com`). It has **no non-interactive service-account authentication**: `ccloud auth` exposes only `login` / `logout` / `whoami`, `login` is browser-based, and `CC_API_KEY` in the environment is ignored. The session it caches is scoped to the interactive Windows logon and is not readable from a non-interactive shell."
+        "line_text": "`ccloud` **0.6.12** is the latest published build (0.7.0 / 0.8.0 / 0.9.0 / 1.0.0 all return 404 from `binaries.cockroachdb.com`). It has **no non-interactive service-account authentication**: `ccloud auth` exposes only `login` / `logout` / `whoami`, `login` is browser-based, and `CC_API_KEY` in the environment is ignored. The session it caches is scoped to the interactive Windows logon and is not readable from a non-interactive shell.",
+        "must_contain": "0.6.12",
+        "subject_holds": true
       },
-      "file_count": 56,
+      "file_count": 60,
       "files_by_category": {
-        "config": 12,
-        "docs": 17,
+        "config": 13,
+        "docs": 19,
         "migration": 3,
         "python": 23,
-        "typescript": 1
+        "typescript": 1,
+        "workflow": 1
       },
       "representative_paths": [
         "verticals/mainline/db/migrations/0076_cosignature.sql",
@@ -493,15 +518,17 @@
       "key": "crdb_managed_mcp",
       "name": "CockroachDB Managed MCP Server (cockroachlabs.cloud/mcp)",
       "kind": "tool",
-      "verdict": "DESIGNED",
-      "verdict_basis": "packages/mainline-mcp implements the transport and the limits and its offline tests pass, but no live session against the managed endpoint is captured in evidence/; tests/integration/mcp skips with a reason when no key is present",
+      "verdict": "EXERCISED",
+      "verdict_basis": "PROMOTED 2026-08-12, and the basis it replaces is worth reading: this row said 'no live session against the managed endpoint is captured in evidence/' and that stopped being true on 2026-08-11. evidence/deploy/judge-run.json records an MCP session against https://cockroachlabs.cloud/mcp — payload channels.mcp.ran true, protocol 2025-06-18, server cockroachdb-cloud 1.0.0, tools/list returning 12 tools — driving the whole evidence/deploy/judge-run.json#/questions = 16 question pack against the live Basic cluster 7cfc9ee9-f9b4-413d-bcad-d81fca2c6c7e, with evidence/deploy/judge-run.json#/channels/mcp/passed = 15 of evidence/deploy/judge-run.json#/channels/mcp/total = 16 PASS. THE FAILURE IS NOT ROUNDED OFF: the run's own verdict is 'DIVERGED - KNOWN GAP' because the managed-mcp identity can read mainline_qa.v_disposition_profile, which the pack asserted it could not. It also settles two questions pessimistically assumed before: the endpoint runs as SQL user 'managed-mcp', not root and not the database owner, and managed_mcp_availability.credential_publishable is FALSE, so this channel cannot be handed to anonymous judges. STILL TRUE AND UNCHANGED: tests/integration/mcp skips with a reason when no key is present rather than passing vacuously, so the SUITES remain unexercised in CI even though the endpoint is not",
       "how": "MCP Streamable HTTP, bearer service-account key, mcp-cluster-id header pinning exactly one cluster. Every documented cap is a type rather than a comment — one statement per call, 16384 chars, 20 s, 10240-byte response, 25 default rows — and a statement that would breach one is refused CLIENT-SIDE with an error naming the limit. The server TRUNCATES rather than raising, so a 10 KiB response is indistinguishable from an answer; the nine mainline_audit views are shaped aggregate-first to ≤25 rows and ≤8192 bytes, 80% of the cap, precisely so a truncated safety aggregate never reaches a reader.",
       "anchor": "packages/mainline-mcp/src/mainline_mcp/limits.py:45",
       "anchor_resolved": {
         "path": "packages/mainline-mcp/src/mainline_mcp/limits.py",
         "line": 45,
         "resolves": true,
-        "line_text": "MCP_ENDPOINT: Final = \"https://cockroachlabs.cloud/mcp\""
+        "line_text": "MCP_ENDPOINT: Final = \"https://cockroachlabs.cloud/mcp\"",
+        "must_contain": "cockroachlabs.cloud/mcp",
+        "subject_holds": true
       },
       "file_count": 173,
       "files_by_category": {
@@ -536,12 +563,14 @@
         "path": "skills/designing-diachronic-gates/scripts/assert_gate_refuses.py",
         "line": 57,
         "resolves": true,
-        "line_text": "_SQLSTATE = re.compile(r\"^SQLSTATE:\\s*(?P<code>[0-9A-Za-z]{5})\\s*$\")"
+        "line_text": "_SQLSTATE = re.compile(r\"^SQLSTATE:\\s*(?P<code>[0-9A-Za-z]{5})\\s*$\")",
+        "must_contain": "_SQLSTATE",
+        "subject_holds": true
       },
-      "file_count": 13,
+      "file_count": 16,
       "files_by_category": {
         "config": 4,
-        "docs": 8,
+        "docs": 11,
         "workflow": 1
       },
       "representative_paths": [

@@ -1,0 +1,291 @@
+{
+  "SPDX-FileCopyrightText": "2026 MAINLINE contributors",
+  "SPDX-License-Identifier": "CC-BY-4.0",
+  "artefact": "evidence/deploy/receipt-ttl-defect.json",
+  "worker": "w3-receipt-ttl",
+  "plan": "docs/leads/submission-final-plan2.md",
+  "defect": "DEFECT C",
+  "generated_at": "2026-08-12T16:25:00Z",
+  "generated_on": "TRAPPOINT, Windows 11, CockroachDB v26.2.5 at 127.0.0.1:26257, D:/CoackroachDBxAWS/mainline/.venv/Scripts/python.exe",
+
+  "claim": "The demo API's gate-run suite was red for a FIXTURE reason presented as a product failure: a test database seeded on a previous day was adopted with an exposure receipt whose two-hour window had closed, so gate_run skipped beat 4 (the admission) and every verdict read NOT PROVEN. The fixture now checks that its subject is USABLE rather than merely PRESENT, and repairs a dead receipt by issuing a new one. Beat 4 admits, the verdict is PROVEN, and it stays PROVEN on a database reused from a previous day.",
+
+  "the_defect": {
+    "mechanism": [
+      "verticals/mainline/apps/demo-api/src/mainline_demo_api/scenario.py:_RECEIPT_SQL requires 'r.expires_at > now()', so an expired receipt makes resolved.receipt_id None.",
+      "verticals/mainline/apps/demo-api/src/mainline_demo_api/gate_run.py:552-553 (the lead cited :541 before W1's edits landed) - 'if resolved.check_id is None or resolved.receipt_id is None' sets beats[3]['outcome'] = 'skipped'.",
+      "A skipped beat 4 is a failure the payload records as such, so the verdict becomes NOT PROVEN. Beats 1-3 keep refusing exactly as before, which is why the failure is silent to a human watching the screen.",
+      "scripts/proof/gate_refusal.py:1154 issues the receipt with 'now() + INTERVAL '2 hours''. That is a CORRECT TTL for a fresh run.",
+      "verticals/mainline/apps/demo-api/tests/conftest.py:661 (was :650 when the lead measured it) issues the same two-hour window in the read-surface fixture.",
+      "It becomes a time bomb at the ADOPTION step: tests/test_gate_run.py's w4_database fixture adopted any database whose demo permit was still state='dispositioned' with open_blocking >= 1, and tests/conftest.py's demo_database fixture adopted any database whose w3_fixture.ready marker row was present (the lead's citation: conftest.py:756-766). Both of those survive the receipt, so a database seeded yesterday was adopted today with a dead one."
+    ],
+    "why_the_tests_could_not_say_so": "The five red tests are all about the gate. None of them was about the fixture, so all five reported 'observed outcome=skipped' and none of them said 'the exposure receipt expired 40 hours ago'. The postcondition the fixture never carried is now test_the_fixture_yields_a_subject_beat_four_can_actually_run_on, and it fails with the receipt's expiry instant in the message.",
+    "not_a_ttl_widening": "mainline.exposure_receipt constrains only 'expires_at > issued_at' (0061_exposure_receipt.sql:75, CONSTRAINT ttl_bounded). The bound the lead pointed at - 0066_disposition.sql:183-185, CONSTRAINT ttl_enforced, 'expires_at <= signed_at + max_ttl_hours * INTERVAL 1 hour' - is on mainline.disposition and not on the receipt. So the receipt's window COULD have been widened without hitting a CHECK. It was not widened: two hours is what the product does, and a fixture that modelled a twelve-hour exposure would be asserting against a system nobody ships. The fix is in the adoption test and the repair, not in the number."
+  },
+
+  "measured_rows": {
+    "read_at": "2026-08-12T16:01:17Z and 2026-08-12T16:19:58Z, server clock (SELECT now() in the same statement as the row)",
+    "w_s08_demo_state": {
+      "permit": "d7380590-b92e-4932-bba9-b342c6d99450 external_ref=PTW-PROOF-1 state=dispositioned open_blocking=1",
+      "receipt_id": "eb537556-4282-4dcc-8716-90af5d77aad5",
+      "issued_at": "2026-08-11T05:40:00.176181+00:00",
+      "expires_at": "2026-08-11T07:50:00.176181+00:00",
+      "observed_now": "2026-08-12T16:01:17.748190+00:00",
+      "live": false,
+      "dead_for": "32h 11m"
+    },
+    "w_w4_api_transitions": {
+      "permit": "8d74a69c-726a-4e23-a569-6de38c955cd9 external_ref=PTW-PROOF-1 state=dispositioned open_blocking=1",
+      "receipt_id": "6179a77d-90fd-41c7-917a-8a52f0060151",
+      "issued_at": "2026-08-10T22:06:29.470625+00:00",
+      "expires_at": "2026-08-11T00:16:29.470625+00:00",
+      "observed_now": "2026-08-12T16:01:17.764104+00:00",
+      "live": false,
+      "dead_for": "39h 44m",
+      "note": "All 101 receipts in this database were expired except the ones the transitions suite minted earlier the same day for its own per-test permits. The DEMO permit had exactly one receipt and it was dead."
+    },
+    "w3_demo_api_d2a5ddd092e1": {
+      "note": "The read-surface fixture database (tests/conftest.py), named for the migration-tree fingerprint. Marker built_at 2026-08-11T08:30:13Z, migrations 271.",
+      "receipt_id": "32a6c7f2-e9d9-4339-9134-e9c3cda39d8f",
+      "issued_at": "2026-08-11T08:20:13.177492+00:00",
+      "expires_at": "2026-08-11T10:30:13.177492+00:00",
+      "observed_now": "2026-08-12T16:19:58.520563+00:00",
+      "live": false,
+      "dead_for": "29h 49m"
+    }
+  },
+
+  "pytest_before": {
+    "command": "cd verticals/mainline/apps/demo-api && .venv/Scripts/python.exe -m pytest tests/test_gate_run.py -q",
+    "summary": "5 failed, 11 passed, 1 skipped in 5.21s",
+    "lead_measurement_same_day": "5 failed, 11 passed, 1 skipped in 9.41s (docs/leads/submission-final-plan2.md section 3)",
+    "failed": [
+      "tests/test_gate_run.py::test_gate_run_verdict_is_proven",
+      "tests/test_gate_run.py::test_beat_four_admits_with_a_server_computed_clearance_digest",
+      "tests/test_gate_run.py::test_every_table_row_count_is_identical_across_a_gate_run",
+      "tests/test_gate_run.py::test_two_consecutive_runs_see_the_same_subject",
+      "tests/test_gate_run.py::test_concurrent_runs_do_not_collide"
+    ],
+    "assertion": "AssertionError: [\"beat 4 (admit): expected {'outcome': 'admitted', 'sqlstate': '00000'}, observed outcome='skipped' sqlstate=None constraint=None constraint_source=None\"]",
+    "whole_directory": {
+      "command": "cd verticals/mainline/apps/demo-api && .venv/Scripts/python.exe -m pytest tests -q",
+      "summary": "9 failed, 214 passed, 1 skipped in 25.57s",
+      "failed": [
+        "tests/test_gate_run.py::test_gate_run_verdict_is_proven",
+        "tests/test_gate_run.py::test_beat_four_admits_with_a_server_computed_clearance_digest",
+        "tests/test_gate_run.py::test_every_table_row_count_is_identical_across_a_gate_run",
+        "tests/test_gate_run.py::test_two_consecutive_runs_see_the_same_subject",
+        "tests/test_gate_run.py::test_concurrent_runs_do_not_collide",
+        "tests/test_row_factory_contract.py::test_gate_run_through_the_production_connection",
+        "tests/test_row_factory_contract.py::test_gate_run_returns_the_same_answer_under_both_factories",
+        "tests/test_row_factory_contract.py::test_demo_gate_run_endpoint_through_the_production_connection",
+        "tests/test_transitions.py::test_gate_run_is_reachable_through_handle_transition"
+      ]
+    }
+  },
+
+  "pytest_after": {
+    "command": "cd verticals/mainline/apps/demo-api && .venv/Scripts/python.exe -m pytest tests/test_gate_run.py -q",
+    "summary": "20 passed, 1 skipped in 7.29s",
+    "skipped": "tests/test_gate_run.py:744 - jsonschema is not a workspace dependency; the structural check above is what runs today and this turns green the day it is added",
+    "collection_moved_from_17_to_21": "17 tests were collected before (5 failed + 11 passed + 1 skipped) and 21 after; the difference is the 4 tests this worker added. No test was deleted, renamed or weakened.",
+    "whole_directory": {
+      "command": "cd verticals/mainline/apps/demo-api && .venv/Scripts/python.exe -m pytest tests -q",
+      "summary": "3 failed, 224 passed, 1 skipped in 27.49s",
+      "failed": [
+        "tests/test_row_factory_contract.py::test_gate_run_through_the_production_connection",
+        "tests/test_row_factory_contract.py::test_gate_run_returns_the_same_answer_under_both_factories",
+        "tests/test_row_factory_contract.py::test_demo_gate_run_endpoint_through_the_production_connection"
+      ],
+      "the_three_remaining_reds_are_not_this_defect": "They are DEFECT A (dict_row against positional row access), and specifically the residue W1 recorded as a blocking finding it was not authorised to fix: mainline_demo_api/refusal.py:235 does 'row[0]' on a dict_row cursor and raises KeyError(0). refusal.py is owned by no worker in this wave. See evidence/deploy/rowfactory-defect.json -> blocking_finding. Before this worker's change those three failed for the receipt reason as well and could not reach the refusal.py line at all."
+    },
+    "test_envelope": {
+      "command": "cd verticals/mainline/apps/demo-api && .venv/Scripts/python.exe -m pytest tests/test_envelope.py -q",
+      "summary": "47 passed in 10.48s"
+    },
+    "repeat_measurements_of_the_whole_directory": [
+      "3 failed, 224 passed, 1 skipped in 27.49s",
+      "3 failed, 224 passed, 1 skipped in 28.27s",
+      "3 failed, 224 passed, 1 skipped in 28.24s"
+    ]
+  },
+
+  "the_payload_itself": {
+    "how": "gate_run() called directly against w_w4_api_transitions through the fixture's own subject resolution, one SERIALIZABLE transaction, rolled back",
+    "subject": "8d74a69c-726a-4e23-a569-6de38c955cd9 external_ref=PTW-PROOF-1 state=dispositioned open_blocking=1",
+    "live_receipt": "19185577-4e09-46af-acee-9cf4058e012b, horizon 2026-08-12T18:09:56.162161+00:00",
+    "verdict": "PROVEN",
+    "outcome": "completed",
+    "failures": [],
+    "persisted": false,
+    "beats": [
+      "beat 1 read                    read      sqlstate=00000",
+      "beat 2 merge                   refused   sqlstate=23514",
+      "beat 3 projection_drift_attack refused   sqlstate=P0001",
+      "beat 4 admit                   admitted  sqlstate=00000"
+    ]
+  },
+
+  "the_fix": {
+    "verticals/mainline/apps/demo-api/tests/test_gate_run.py": {
+      "154": "_DEMO_SUBJECT_SQL - one statement reading the subject, the counter, the open obligation, the LIVE receipt bound to it through mainline.exposure_line, the latest expires_at of any receipt bound to it, and now(). The permit ordering now prefers a still-gate-ready candidate, because seed_history gives every permit it seeds the same external_ref and an unordered fetchone() could pick a consumed one.",
+      "197": "class DemoSubject - gate_ready (beats 1-3) and beat_four_ready (adds the live receipt) are separate predicates, and why_not() names the first unmet condition with the expiry instant in it.",
+      "308": "reissue_exposure_receipt(conn, permit_id, check_id) - the repair. INSERT ... SELECT cloning the most recent receipt that displayed the obligation, plus its exposure lines, with issued_at = now() - 10 minutes and expires_at = now() + 2 hours (seed_history's own intervals). Nothing about the exposure is invented.",
+      "333": "_reissue(dsn, subject) - the receipt and its lines in ONE transaction with a 40001 RETRY_SERIALIZABLE loop, because a receipt committed without the line that binds it to the obligation would satisfy nothing and the next run would re-issue forever.",
+      "361": "w4_database - adoption now requires beat_four_ready. A subject that is gate_ready but whose exposure aged out is repaired in place; anything else falls through to the existing drop/migrate/seed rebuild. The post-rebuild assertion carries why_not()."
+    },
+    "verticals/mainline/apps/demo-api/tests/conftest.py": {
+      "769": "_ADOPTION_SQL - one statement asking whether the seeded permit and the seeded receipt still exist and whether the receipt is still live, with now() read in the same statement.",
+      "783": "_REISSUE_RECEIPT_SQL / _REISSUE_LINES_SQL - the same clone, for the read-surface fixture.",
+      "859": "demo_database - 'if marker is not None' no longer returns immediately. The marker is a claim that the database was BUILT, never that it is still USABLE, so it is checked against the rows before it is believed; a dead receipt is re-issued and the new identifier is UPSERTed back into w3_fixture.ready so a later session adopts the repaired value rather than redoing the repair every run.",
+      "647": "The seed's receipt insert gained the comment saying why the two-hour window is NOT widened."
+    },
+    "why_the_repair_is_an_insert": "mainline.exposure_receipt carries an append_only weld - 0128d_trg_refuse_mutation_exposure_receipt.sql:28, 'CREATE TRIGGER append_only BEFORE UPDATE OR DELETE ON mainline.exposure_receipt' - which raises P0001 for every UPDATE and every DELETE, for every role. Extending an expired window in place is refused by the schema. Issuing a new receipt is also what the product itself asks for: 0102_fn_disposition_project.sql:123-125 raises 'MAINLINE: exposure receipt absent or expired - re-materialise before signing'. This is asserted against the running database, not read off the migration, by test_an_expired_receipt_is_repaired_by_issuing_one_not_by_editing_one.",
+    "tests_added_to_test_gate_run.py": [
+      "test_a_subject_whose_receipt_expired_is_gate_ready_and_not_beat_four_ready - the defect as a predicate: state and open_blocking, the two things the old adoption test looked at, BOTH survive the receipt.",
+      "test_a_consumed_subject_is_reported_as_consumed_not_as_an_expiry - the four unmet conditions are distinguished, because they have different remedies.",
+      "test_the_fixture_yields_a_subject_beat_four_can_actually_run_on - the postcondition the fixture never carried. False on any scratch database more than two hours old before this change.",
+      "test_an_expired_receipt_is_repaired_by_issuing_one_not_by_editing_one - proves P0001 on UPDATE and on DELETE against the live database, then re-issues inside a transaction and rolls it back, asserting the live receipt is unchanged afterwards."
+    ]
+  },
+
+  "proof_by_reuse": {
+    "statement": "The clock gap was not simulated. Two databases seeded on previous days were adopted as they stood, with nothing deleted from either.",
+    "w_w4_api_transitions": {
+      "seeded": "2026-08-10T22:06:29Z",
+      "receipt_dead_since": "2026-08-11T00:16:29Z",
+      "gap": "39h 44m of real elapsed time",
+      "result": "20 passed, 1 skipped in 7.29s",
+      "rows_after": "The expired receipt 6179a77d-90fd-41c7-917a-8a52f0060151 is STILL PRESENT. A second receipt 19185577-4e09-46af-acee-9cf4058e012b was issued at 2026-08-12T15:59:56Z, expiring 2026-08-12T18:09:56Z. Nothing was dropped and no database was rebuilt."
+    },
+    "w_s08_demo_state": {
+      "note": "A second, independent day-old database that this fixture had never built, driven by MAINLINE_W4_DATABASE=w_s08_demo_state.",
+      "seeded": "2026-08-11T05:40:00Z",
+      "receipt_dead_since": "2026-08-11T07:50:00Z",
+      "gap": "32h 24m of real elapsed time",
+      "result": "20 passed, 1 skipped in 7.14s",
+      "row_counts_before": "permit 1, blocking_check 1, exposure_receipt 1, exposure_line 1, disposition 0, merge_record 0",
+      "row_counts_after": "permit 1, blocking_check 1, exposure_receipt 2, exposure_line 2, disposition 0, merge_record 0",
+      "reading": "Only the two append-only exposure tables moved, and only upward. The permit was not merged, no disposition was signed, and the demo subject is intact for the camera."
+    },
+    "w3_demo_api_d2a5ddd092e1": {
+      "note": "The read-surface fixture (tests/conftest.py), adopted 29h 49m after its receipt died.",
+      "before": "seed receipt 32a6c7f2-e9d9-4339-9134-e9c3cda39d8f expired 2026-08-11T10:30:13Z, exposure_receipt rows 1",
+      "after": "seed receipt 86da4513-195b-44ab-a17f-ad74fbcaf011 live until 2026-08-12T18:20:25Z, exposure_receipt rows 2, w3_fixture.ready UPSERTed with the new identifier",
+      "result": "the whole directory stayed at 224 passed; test_reads.py, test_envelope.py and test_static_site.py are unaffected"
+    },
+    "repeatability": {
+      "command": "pytest tests/test_gate_run.py -q, three times in a row",
+      "results": [
+        "20 passed, 1 skipped in 6.52s (default database, receipt already repaired - no re-issue needed)",
+        "20 passed, 1 skipped in 6.70s (same)",
+        "20 passed, 1 skipped in 6.74s (MAINLINE_W4_DATABASE=w_s08_demo_state)"
+      ]
+    },
+    "rebuild_branch_still_works": {
+      "command": "MAINLINE_W4_DATABASE=w_w3_receipt_ttl MAINLINE_W4_REBUILD=1 pytest tests/test_gate_run.py -q, then the same without MAINLINE_W4_REBUILD",
+      "results": [
+        "20 passed, 1 skipped in 67.35s - drop, 271 migrations, seed",
+        "20 passed, 1 skipped in 6.27s - adopted"
+      ],
+      "note": "w_w3_receipt_ttl is this worker's own scratch database on the local node."
+    }
+  },
+
+  "the_seeder": {
+    "file": "scripts/submission/seed_demo_state.py",
+    "why_it_matters": "verticals/mainline/demo/VIDEO-KIT.md sends the founder to this script before a shoot. A shoot that overran by two hours produced a silent NOT PROVEN on camera: every refusal still refused, so nothing on screen changed.",
+    "changes": [
+      "find_history now selects the receipt the way the product selects it - through mainline.exposure_line onto the open obligation, matching scenario._RECEIPT_SQL - and reads issued_at, expires_at and the server's now() in the same statement.",
+      "Found gained receipt_issued_at, receipt_expires_at, observed_at and the receipt_live property.",
+      "The 'exposure receipt' row was INFO and is now the REQUIRED row 'exposure receipt live'. A dead receipt is a FAIL that names the remedy.",
+      "A BEAT 4 block is printed on EVERY run in BOTH modes, next to the existing CAVEAT, stating the wall-clock UTC instant after which a local gate-run starts skipping beat 4."
+    ],
+    "before_the_change": {
+      "command": "python scripts/submission/seed_demo_state.py --verify-only --database w_s08_demo_state",
+      "receipt_row": "exposure receipt           INFO    s14      receipt_id=eb537556-4282-4dcc-8716-90af5d77aad5",
+      "verdict": "VERDICT  READY - 16 checks, 0 failed. Roll camera.",
+      "exit_code": 0,
+      "reading": "The receipt had been dead for 32 hours and the script said roll camera."
+    },
+    "after_the_change_same_database": {
+      "command": "python scripts/submission/seed_demo_state.py --verify-only --database w_s08_demo_state",
+      "receipt_row": "exposure receipt live      FAIL    s13 s14  receipt_id=eb537556-4282-4dcc-8716-90af5d77aad5 EXPIRED 2026-08-11T07:50:00Z — beat 4 (the admission) SKIPS and the gate-run reports NOT PROVEN. REMEDY: re-seed with `python scripts/submission/seed_demo_state.py --database <db>` (mainline.exposure_receipt is append-only, so the window cannot be extended in place; a new receipt has to be issued)",
+      "deadline_block": [
+        "BEAT 4   ALREADY SKIPPING — the receipt died 2026-08-11T07:50:00Z (32h 24m ago)",
+        "         After this instant a local gate-run SKIPS beat 4 (the admission) and reports NOT",
+        "         PROVEN, while beats 1-3 keep refusing exactly as they do now — so the failure does not",
+        "         look like a failure on camera. scenario._RECEIPT_SQL selects the exposure receipt only",
+        "         while expires_at > now(); seed_history issues it with a two-hour window.",
+        "         Receipt eb537556-4282-4dcc-8716-90af5d77aad5 is EXPIRED. A gate-run against this",
+        "         database reports NOT PROVEN today. Re-seed before recording: python",
+        "         scripts/submission/seed_demo_state.py --database w_s08_demo_state"
+      ],
+      "verdict": "VERDICT  NOT READY - 1 check(s) failed:\n  ! exposure receipt live: ...\n  Do NOT record against this database.",
+      "exit_code": 1
+    },
+    "after_the_change_live_receipt": {
+      "command": "python scripts/submission/seed_demo_state.py --database w_w3_receipt_ttl   (build mode, fresh database)",
+      "deadline_block": [
+        "BEAT 4   SKIPS AFTER 2026-08-12T18:16:03Z  (1h 59m from now, server clock)",
+        "         After this instant a local gate-run SKIPS beat 4 (the admission) and reports NOT",
+        "         PROVEN, while beats 1-3 keep refusing exactly as they do now — so the failure does not",
+        "         look like a failure on camera. scenario._RECEIPT_SQL selects the exposure receipt only",
+        "         while expires_at > now(); seed_history issues it with a two-hour window.",
+        "         Receipt 331c70b7-2c93-44ed-ac75-96c99f32ba3b is LIVE. Finish the take before that",
+        "         instant, or re-run: python scripts/submission/seed_demo_state.py --database",
+        "         w_w3_receipt_ttl"
+      ],
+      "verdict": "VERDICT  READY - 20 checks, 0 failed. Roll camera.",
+      "exit_code": 0
+    },
+    "repaired_database_reads_green_again": {
+      "command": "python scripts/submission/seed_demo_state.py --verify-only --database w_s08_demo_state, after the fixture had re-issued",
+      "receipt_row": "exposure receipt live      OK      s13 s14  receipt_id=39dc6896-6559-4685-bfb1-4e00f76e1a0c LIVE until 2026-08-12T18:16:54Z",
+      "deadline_head": "BEAT 4   SKIPS AFTER 2026-08-12T18:16:54Z  (1h 59m from now, server clock)",
+      "verdict": "VERDICT  READY - 16 checks, 0 failed. Roll camera.",
+      "exit_code": 0
+    }
+  },
+
+  "the_cloud_demo_is_not_exposed_to_this": {
+    "statement": "The live CockroachDB Cloud demo does NOT carry this defect and nothing about it was changed.",
+    "evidence": "verticals/mainline/db/seeds/demo/demo_permit.sql:236 inserts exposure_receipt dec0de00-0008-4000-8000-000000000001 with expires_at = TIMESTAMPTZ '2027-01-01 00:00:00+00'. The receipt therefore stays live for the whole judging period rather than for two hours after a deploy.",
+    "already_disclosed": "demo_permit.sql:218-224 carries a '⚠ STAGED, AND SAY SO' comment stating that a receipt's TTL is hours in the product, that the long window is a demonstration convenience, and that it belongs in verticals/mainline/demo/DEMO-HONESTY.md's STAGED column. That call stands and this worker did not touch it.",
+    "files_not_edited": [
+      "verticals/mainline/db/seeds/demo/demo_permit.sql - not owned by this worker",
+      "scripts/proof/gate_refusal.py - not owned by this worker; its two-hour TTL at line 1154 is correct for a fresh run and was left alone"
+    ]
+  },
+
+  "route_assertion_reverified": {
+    "file": "verticals/mainline/apps/demo-api/tests/test_envelope.py:145 test_routes_match_the_console_path_templates",
+    "measured": "python -c 'from mainline_demo_api import app; ...' -> len(app.ROUTES) = 17, distinct (method, template) pairs = 17, including POST /v1/demo/gate-run",
+    "assertion_as_found": "declared <= routed, and routed - declared == {('POST', '/v1/demo/gate-run')}. Together those are exactly 'routed == declared | {demo_route}', which is equality against a 17-row router and is not weaker than the equality it replaced.",
+    "strengthened_not_relaxed": "Two assertions were ADDED and none was removed or loosened: 'demo_route not in declared' (so the exception cannot be satisfied vacuously by the console starting to declare it) and 'len(app.ROUTES) == len(declared) + 1 == 17' over the LIST. The set comparisons cannot see a duplicate row in app.ROUTES - two identical Route entries collapse into one member - and a duplicate is unreachable and shadows the row it duplicates. The 17 is re-derived as 16 + 1, with the 16 pinned by test_the_console_declares_sixteen_resources.",
+    "result": "47 passed in 10.48s"
+  },
+
+  "lint": {
+    "ruff check": "All checks passed! (conftest.py, test_gate_run.py, test_envelope.py, seed_demo_state.py)",
+    "ruff format --check": "4 files already formatted"
+  },
+
+  "findings_for_other_owners": [
+    {
+      "file": "evidence/deploy/gate-run-reachable.json:140 and :180",
+      "finding": "Records 'summary': '209 passed, 1 skipped in 27.36s' for the demo-api directory. That measurement is stale in both directions: the suite was 9 failed, 214 passed, 1 skipped before this worker's change and is 3 failed, 224 passed, 1 skipped after it. The file is not owned by this worker and was not edited.",
+      "owner": "the worker that wrote evidence/deploy/gate-run-reachable.json (w1-gate-run-route)"
+    },
+    {
+      "file": "verticals/mainline/apps/demo-api/src/mainline_demo_api/refusal.py:235",
+      "finding": "'return (row[0] if row and isinstance(row[0], dict) else None), None' raises KeyError(0) under the production dict_row connection. Three tests in test_row_factory_contract.py remain red for it. Independently recorded by W1 in evidence/deploy/rowfactory-defect.json -> blocking_finding.",
+      "owner": "unassigned in this wave"
+    },
+    {
+      "file": "scripts/proof/gate_refusal.py:1152-1170",
+      "finding": "seed_history issues its exposure receipt with a two-hour window and no caller is told when it dies. That is correct for the proof, which seeds and runs in one process. It is recorded here only because any FUTURE fixture that adopts a database this function seeded inherits the same expiry, and the two that did have now been corrected.",
+      "owner": "not owned by this worker"
+    }
+  ]
+}

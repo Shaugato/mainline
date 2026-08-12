@@ -3,14 +3,20 @@ SPDX-FileCopyrightText: 2026 MAINLINE contributors
 SPDX-License-Identifier: CC-BY-4.0
 -->
 
-# PUBLIC-READINESS — what flipping the repository actually publishes
+# PUBLIC-READINESS — the standing disclosure register of a repository that is already public
 
-**Measured 2026-08-11 against the working tree at the repository root and the live remote
-`https://github.com/Shaugato/mainline.git`.** Every row below carries the command that
-produced it and what that command printed. Nothing here is asserted; regenerate all of it
-with one command:
+**The flip happened on `2026-08-11`. This page stopped being a gate on that day and became
+a record.** It is kept, rather than deleted, because a public repository owes its readers a
+list of what it discloses and who signed for each item — and because the findings below are
+the same findings, not a shorter list.
+
+**Re-measured `2026-08-12` at commit `1d41442` on `master`, against the working tree and the
+live remote `https://github.com/Shaugato/mainline.git`.** Every row carries the command that
+produced it and what that command printed.
 
 ```
+python scripts/submission/audit_public_readiness.py                       # the register
+python scripts/submission/audit_public_readiness.py --pre-flip            # the old gate
 python scripts/submission/audit_public_readiness.py --json qa/public-readiness.json
 ```
 
@@ -20,77 +26,161 @@ site-packages entirely, and the file contains no `urllib`, `socket`, `http` or `
 import. The YAML register introduced below is read by a strict minimal parser written into
 the scanner rather than by `PyYAML`, precisely so that property survives.
 
-**Current verdict: `READY`.** Eight checks: seven `PASS`, one `INFO`, zero `FAIL`.
-**0 unresolved findings**, 77 allowlisted, 92 disclosed. The process exits 0.
+**The one thing this program cannot measure is the one thing it most needs.** Repository
+visibility is not in the git object store, and this file opens no socket, so the flip is
+recorded in the source as a dated constant (`FLIP`) that names its evidence and prints the
+command that falsifies it on every run. Verified for this page:
 
-That is a change of state and it deserves suspicion, so §2 is about exactly how it was
-reached and what would have to be true for it to be dishonest.
+```
+$ gh repo view Shaugato/mainline --json visibility,isPrivate,defaultBranchRef
+{"defaultBranchRef":{"name":"master"},"isPrivate":false,"visibility":"PUBLIC"}
+$ curl -sI https://github.com/Shaugato/mainline | head -1
+HTTP/1.1 200 OK
+```
+
+The second probe is the load-bearing one: GitHub answers `404`, not `403`, for a private
+repository, so an authenticated check cannot tell the two states apart.
+
+**Today's register: 214 findings, and not one of them was deleted to make this page
+shorter.**
+
+| disposition | findings | paths | meaning |
+|---|---|---|---|
+| `repaired` | 23 | 20 | gone at HEAD, present in published history. Real, and partial |
+| `recorded-not-repaired` | 57 | 35 | still at HEAD on purpose, granted by a dated register entry |
+| `waived-with-reason` | 80 | 23 | an exact-path waiver says why the value authenticates nothing |
+| **`undisposed`** | **54** | **28** | **nobody has signed for these. RED, and they stay red** |
+
+`python scripts/submission/audit_public_readiness.py` exits **3** — *this register is
+incomplete* — and deliberately not `1`, because `1` meant *do not flip* and that sentence no
+longer has a referent. §1.9 lists the 54 by domain.
+
+**The committed `qa/public-readiness.json` is stale and is not this worker's file to
+regenerate.** It records `verdict: READY`, `unresolved_findings: 0`, generated
+`2026-08-11T07:44:29Z`; the live run on `2026-08-12` finds 54 unresolved. Regenerating it is
+one command and it is owed by the public-readiness domain (`w9-public-readiness`, see the
+provenance block at the foot of `PUBLIC-FLIP-CHECKLIST.md`). **Where this page and that
+artefact disagree, this page is the live reading and the artefact is the older one.**
 
 ---
 
-## 0 · The irreversibility, stated first because it governs everything else
+## 0 · The irreversibility, and the date it stopped being a warning
 
-> **The flip from PRIVATE to PUBLIC is IRREVERSIBLE.** GitHub's fork network, the GHArchive
-> event stream, Software Heritage and search-engine caches all outlive a revert, and the
-> flip publishes **all 44 commits on all 9 refs**, not the tree at HEAD. A value masked at
-> HEAD but present in an earlier commit is published anyway.
+> **The flip from PRIVATE to PUBLIC was IRREVERSIBLE, and it has happened.** GitHub's fork
+> network, the GHArchive event stream, Software Heritage and search-engine caches all
+> outlive a revert. A value masked at `HEAD` but present in an earlier published commit is
+> public anyway. There was never a partial flip and there is no undo.
 
-**That paragraph used to say "all 16 commits", and it was wrong by 28.** The number is now
-computed from `git log --all` on every run rather than typed once and left. A constant that
-describes a moving tree is a lie with a delay on it, and the one paragraph whose entire job
-is to convey the size of the act was understating it.
+**That paragraph used to say "all 16 commits", and it was wrong by 28; then it said 44, and
+today it would say 113.** The number is computed on every run rather than typed once and
+left — but *which* number is computed turned out to matter more than whether it was fresh.
 
-The signed checklist for the flip itself is `docs/submission/PUBLIC-FLIP-CHECKLIST.md`.
-**This document is the evidence; that document is the gate.**
+### 0.1 `git log --all` is now the wrong instrument, and it fails in the flattering direction
+
+Before the flip, `--all` was the conservative choice: it walks every ref on this
+workstation, so it could only ever over-count, and over-counting an irreversible act is the
+safe direction to be wrong in. After the flip it is simply wrong. Measured today:
+
+```
+$ git ls-remote --heads origin | wc -l                         4     # what is published
+$ git rev-list --count origin/master                          47
+$ git rev-list --count origin/master origin/w1/… origin/w5/… origin/w7/…   52
+$ git for-each-ref refs/heads | wc -l                         56     # never pushed
+$ git rev-list --all --count                                 113     # this workstation
+$ git for-each-ref | wc -l                                    67
+```
+
+**A visitor can read 52 commits over 4 branches, 47 of them on `master`.** `git log --all`
+on this machine reaches 113 over 67 refs, because 56 local branches — the `w8-p-*` and
+`w9/*` anti-vacuity plants, which exist to prove CI lanes can go red — were never pushed and
+never will be. Reporting those as published overstates the disclosure by 61 commits.
+
+The scanner now measures both and prints the gap (`published_surface()`). One honest wrinkle
+it prints rather than hides: `refs/remotes/origin/*` is a *cache*, and this checkout still
+lists six `origin/dependabot/*` branches that have since been deleted on the remote, so the
+audit's own reading is `58 over 10`. `git ls-remote --heads origin` is the live answer and
+it is `4`. Pruning the cache is a write, and this program performs none.
+
+### 0.2 The identities that are actually published
+
+```
+$ git log --format='%an <%ae>' origin/master origin/w1/… origin/w5/… origin/w7/… | sort | uniq -c
+     45 Shaugato Paroi <shaugato2003@gmail.com>
+      7 MAINLINE certification <shaugato2003@gmail.com>
+```
+
+**Two identity strings, one real personal address, on all 52 published commits.** No
+`users.noreply.github.com` alias is in use for the human author, and enabling GitHub's
+email-privacy setting now does not retract commits already carrying the address. That is a
+deliberate, ordinary open-source choice and it is recorded here so it is a choice rather
+than a surprise.
+
+The `dependabot[bot]` and `GitHub <noreply@github.com>` identities that earlier revisions of
+this page enumerated are **no longer reachable from any published ref** — the six Dependabot
+branches are gone from the remote. A third identity, `w8 <w8@local>`, appears on 39 commits
+on this workstation and on **none** that were pushed.
+
+`docs/submission/PUBLIC-FLIP-CHECKLIST.md` is the record of the act itself.
+**This document is the evidence; that document is the ticked list.**
 
 ---
 
 ## 1 · The checks, and what each printed
 
-Eight checks. Status is one of `PASS` (gating, green), `FAIL` (gating, red) or `INFO`
-(reported, never gating). The program exits non-zero if any check is `FAIL`.
+Eight checks. Under `--pre-flip` the status column gated an irreversible act: `PASS`
+(green), `FAIL` (red), `INFO` (reported, never gating), and any `FAIL` exited 1. Post-flip
+the same eight checks run and produce the same findings; what changes is that a finding is
+now something to disposition rather than something to stop for.
 
-| # | check | status | what it asserts |
+| # | check | status today | what it asserts |
 |---|---|---|---|
-| 1 | `secrets_tracked` | **PASS** | no unresolved secret in any tracked file at HEAD |
-| 2 | `secrets_history` | **PASS** | no unresolved secret in any line ever added, on any ref |
+| 1 | `secrets_tracked` | **FAIL** | no unresolved secret in any tracked file at HEAD |
+| 2 | `secrets_history` | **FAIL** | no unresolved secret in any line ever added, on any ref |
 | 3 | `ignored_and_untracked` | **PASS** | `.env` / `*.tfstate*` gitignored, untracked, never committed |
 | 4 | `tracked_size` | **PASS** | no tracked blob over 5 MiB |
-| 5 | `committer_census` | **INFO** | every commit and identity the flip will publish, on every ref |
-| 6 | `absolute_paths` | **PASS** | absolute Windows paths, each classified and disposed of |
-| 7 | `repo_state` | **PASS** | the tree that would actually be published is the tree on disk |
+| 5 | `committer_census` | **INFO** | every commit and identity that is published, on every ref |
+| 6 | `absolute_paths` | **FAIL** | absolute Windows paths, each classified and disposed of |
+| 7 | `repo_state` | **PASS** | the tree that is published is the tree on disk |
 | 8 | `disclosure_register` | **PASS** | every `DISCLOSED` grant is named, dated and still load-bearing |
 
-### 1.0 What the previous revision of this table said, and why that mattered
+**Three `FAIL` rows, and the honest reading of them is not "the flip was a mistake".** It is
+that 54 findings have accumulated since `2026-08-11` — almost all of them in files that
+landed during the completion wave — and nobody has yet either repaired them or written them
+into the register. §1.9 names them.
 
-The committed version of this page claimed **checks 1, 3, 4 and 6 `PASS`, with only 2 and 7
-`FAIL`**. When the ship lead re-measured on 2026-08-11 the program actually printed:
+### 1.0 What the previous revisions of this table said, and why that matters
 
-```
-VERDICT NOT READY
-failed_checks   ['secrets_tracked', 'secrets_history', 'absolute_paths']
-totals          checks 7 · passed 3 · failed 3 · informational 1
-                unresolved_findings 105 · allowlisted_findings 60
-```
+The revision before last claimed **checks 1, 3, 4 and 6 `PASS`, with only 2 and 7 `FAIL`**,
+while the program printed `NOT READY` on three checks and 105 unresolved findings. **That
+table was stale in the bad direction**: green where the program showed red.
 
-**The table was stale in the bad direction**: it showed green where the program showed red.
-That is the worse of the two failure modes, and correcting it was the first act of this
-revision. Three rows had regressed since the page was written, and one had genuinely
-improved — `repo_state`, which is now `PASS` and is written up in §1.7 with both SHAs. A
-page that only ever gets better is as untrustworthy as one that only ever gets worse, so
-both directions are recorded.
+The revision after it recorded `READY`, `0 unresolved, 77 allowlisted, 92 disclosed`, and it
+was true at `ead0f7c` on `2026-08-11T07:44Z`.
 
-### 1.1 `secrets_tracked` — PASS
+Both are kept because the shape of the movement is the point: this page has now been wrong
+in both directions and printed the correction each time. A page that only ever gets better
+is as untrustworthy as one that only ever gets worse.
+
+### 1.1 `secrets_tracked` — 19 unresolved today
 
 ```
 git ls-files -z  |  scan 8 families over each file's content
 ```
 
 ```
-7314 tracked paths scanned; 74 hits (0 unresolved, 45 allowlisted, 29 disclosed);
-aws_access_key_id=39, aws_account_id=17, bearer_or_jwt=1, high_entropy_secret=9,
+7402 tracked paths scanned; 78 hits (19 unresolved, 46 allowlisted, 13 disclosed);
+aws_access_key_id=43, aws_account_id=12, bearer_or_jwt=1, high_entropy_secret=14,
 private_key_block=8
 ```
+
+**One recursion, stated rather than hidden.** This page is a tracked file, so the scan above
+includes it, and writing §1.9 moved the `allowlisted` column by one — a page that names the
+values it waives is a page that then contains them. That is the intended behaviour and the
+reason §2.4 removed the `verbatim` escape hatch: the counts move, the *previews* are
+redacted in every disposition, and the artefact still reaches a fixed point in one
+regeneration. **The `unresolved` column did not move**, which is the column that matters:
+these eight documents introduced no new finding, verified by diffing the undisposed list
+before and after they were written.
 
 The eight families are AWS access key ids (`AKIA`/`ASIA` + 16), GitHub tokens
 (`ghp_`/`gho_`/`ghu_`/`ghs_`/`ghr_`/`github_pat_`), Slack tokens (`xox[baprs]-`), PEM
@@ -115,21 +205,29 @@ is loud:
 Both counts were measured before the thresholds were chosen, not after. **Neither was
 touched by this revision** — see §2.1.
 
-### 1.2 `secrets_history` — PASS
+### 1.2 `secrets_history` — 18 unresolved today
 
 ```
 git log -p --all -U0 --no-color  |  scan 8 families over '+' lines
 ```
 
 ```
-44 commits, 901810 added lines scanned; 44 distinct (commit,path,family) hits
-(0 unresolved, 18 allowlisted, 26 disclosed);
-aws_access_key_id=7, aws_account_id=21, bearer_or_jwt=1, high_entropy_secret=7,
+107 commits, 1010052 added lines scanned; 69 distinct (commit,path,family) hits
+(18 unresolved, 21 allowlisted, 30 disclosed);
+aws_access_key_id=13, aws_account_id=35, bearer_or_jwt=1, high_entropy_secret=12,
 private_key_block=8
 ```
 
-Twenty-six of these are the account id in commits `5ddaa3a` and `e518787`, both already on
-`origin/master`. §3 is about them and about the decision that closed them.
+**Read `107 commits` against §0.1 before reading anything else in that block.** This scan
+walks `--all`, so 55 of those commits are on local branches nobody pushed and their contents
+were never published. The scan is deliberately left wide — a scanner that narrows itself is
+the failure mode this file exists to prevent — but a finding whose only occurrence is on an
+unpushed branch is a finding about this workstation, not about the repository. Fourteen of
+the eighteen unresolved history hits are in `6251c6effd78`, which **is** on `origin/master`.
+
+The account id in commits `5ddaa3a` and `e518787`, both already on `origin/master`, is
+covered by fourteen `history-already-pushed` register entries. §3 is about them and about
+the decision that closed them.
 
 ### 1.3 `ignored_and_untracked` — PASS
 
@@ -156,15 +254,15 @@ git ls-files -s -z | git cat-file --batch-check='%(objectname) %(objecttype) %(o
 ```
 
 ```
-7314 tracked blobs, 53478169 bytes total (51.0 MiB);
+7402 tracked blobs, 58322166 bytes total (55.6 MiB);
 largest verticals/mainline/fixtures/corpus/answer-key/clause_revision.jsonl
 at 1673465 bytes (1.60 MiB); 0 over the limit
 ```
 
 Blob sizes come from the object store, not from `stat`, so the number is what a clone
-actually transfers. **51.0 MiB is a comfortable clone for a judge on a conference network.**
+actually transfers. **55.6 MiB is a comfortable clone for a judge on a conference network.**
 
-### 1.5 `committer_census` — INFO, and it is not what anybody expected
+### 1.5 `committer_census` — INFO, and post-flip it needs a third census
 
 ```
 git log --all --format='%an <%ae>|%cn <%ce>' | sort | uniq -c ;
@@ -172,53 +270,56 @@ git log master --format=... ; git for-each-ref
 ```
 
 ```
-44 commits over 9 ref(s), 3 distinct identity string(s):
+113 commits over 67 ref(s), 5 distinct identity string(s):
   GitHub <noreply@github.com> x0
-  Shaugato Paroi <shaugato2003@gmail.com> x38
+  MAINLINE certification <shaugato2003@gmail.com> x7
+  Shaugato Paroi <shaugato2003@gmail.com> x61
   dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com> x6
-master alone: 38 commits, 1 identity
-2 identity string(s) reachable ONLY from a non-master ref:
+  w8 <w8@local> x39
+master alone: 47 commits, 2 identity strings
+3 identity string(s) reachable ONLY from a non-master ref:
   ['GitHub <noreply@github.com>',
-   'dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>']
+   'dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>',
+   'w8 <w8@local>']
 ```
 
-**The brief for this work said the census was "19 commits, 1 identity". It is not, in two
-separate ways, and both are worth stating plainly.**
+**Four of those five identity strings are not published, and `113` is not the number of
+commits anybody can read.** §0.1 has the arithmetic: 56 of the 67 refs are local branches
+that were never pushed, `w8 <w8@local>` exists only on them, and the six Dependabot
+branches that carried the other two bot identities have since been deleted on the remote.
+The published census is **52 commits over 4 refs, 2 identity strings, one real address**.
 
-* **`master` carries 38 commits, not 19.** The brief's figure was simply out of date; the
-  build has moved since it was written.
-* **`git log --all` reaches 44 commits over 9 refs, not 38 over 1.** The extra six are
-  Dependabot pull-request branches that live on `origin` — `origin/dependabot/uv/...`,
-  `origin/dependabot/npm_and_yarn/...` and four more. `git log master` cannot see them and
-  a census that only walks `master` therefore under-reports what a visitor can read.
-  **Flipping visibility publishes every ref, not the default branch.**
+This check reports all three censuses — `--all`, `master`, and (added post-flip) the
+remote-tracking surface under `detail.published_surface` — because the gap between them *is*
+the finding, and after the flip the gap points the other way from before. A census that
+over-reports what is public is not conservative; it is just wrong in the direction that
+flatters nobody and misleads everybody.
 
-This check now reports both numbers, and the check itself was changed to do so, because the
-gap between them *is* the finding. The two extra identities are `dependabot[bot]` as author
-and `GitHub <noreply@github.com>` as committer — both are bot accounts, neither is a person,
-and neither leaks anything the GitHub UI would not already show on a public repository.
+`master` carries **47** commits, confirmed independently against the API:
 
-What does remain a real, permanent disclosure is the first identity: **`shaugato2003@gmail.com`,
-a real personal address, on all 38 commits on `master`.** No `users.noreply.github.com`
-alias is in use for the human author. That is a deliberate, ordinary choice for an
-open-source project, and it is recorded here so that it is a choice rather than a surprise.
-Enabling GitHub's email-privacy alias after the fact does not retract commits already
-carrying the address.
+```
+$ gh api "repos/Shaugato/mainline/commits?sha=master&per_page=1" -i | grep -i '^link:'
+…&page=47>; rel="last"
+```
 
-### 1.6 `absolute_paths` — PASS
+### 1.6 `absolute_paths` — 17 unresolved today
 
 ```
 git ls-files -z  |  scan for (?<![A-Za-z0-9_])[A-Za-z]:\\?<segment>\ and :/<segment>/
 ```
 
 ```
-44 file(s), 310 hit(s); 0 unresolved, 14 allowlisted, 37 disclosed.
+60 file(s), 343 hit(s); 17 unresolved, 13 allowlisted, 37 disclosed.
 9 file(s) disclose a Windows account name (abs-path-username):
   docs/submission/DISCLOSURE-DECISIONS.yaml, docs/submission/PUBLIC-READINESS.md,
   evidence/deploy/acceptance.json, qa/judge-dry-run.json, qa/public-readiness.json,
   qa/test-state.json, scripts/deploy/deploy.sh, scripts/deploy/teardown.sh,
   scripts/submission/audit_public_readiness.py
 ```
+
+The username set is unchanged at nine files. The seventeen unresolved hits are all
+`abs-path-layout` — `D:/CoackroachDBxAWS/mainline/` and `C:/Windows/` — in files that landed
+after the register was written. They are listed in §1.9.
 
 **The check now separates two disclosure classes that it used to lump together**, because
 they are not the same thing:
@@ -241,7 +342,7 @@ Requiring a drive letter, then a path *segment*, then a further separator droppe
 to the genuine cases. The false-positive rate of the first attempt is recorded here because
 a scanner nobody audits is a scanner nobody should trust.
 
-### 1.7 `repo_state` — PASS, and this row genuinely improved
+### 1.7 `repo_state` — PASS
 
 ```
 git remote get-url origin ; git rev-parse --abbrev-ref HEAD ;
@@ -249,32 +350,27 @@ git rev-list --left-right --count origin/master...HEAD ; git status --porcelain
 ```
 
 ```
-origin=https://github.com/Shaugato/mainline.git; branch=master; HEAD=ead0f7c;
-origin/master=ead0f7c; behind=0 ahead=0; working tree: 97 uncommitted path(s)
+origin=https://github.com/Shaugato/mainline.git; branch=master; HEAD=1d41442;
+origin/master=1d41442; behind=0 ahead=0; working tree: 56 uncommitted path(s)
 ```
 
-**`HEAD` and `origin/master` are the same commit, `ead0f7c`.** Confirmed independently:
+That last figure read `40`, then `49`, then `56` over the three hours this revision took,
+because other workers are landing files into the same tree. **Do not copy it — run the
+command.**
 
-```
-$ git rev-parse HEAD
-ead0f7cf9b8dc471e91ff27d17f7d1c774395a3b
-$ git rev-parse origin/master
-ead0f7cf9b8dc471e91ff27d17f7d1c774395a3b
-```
+**`HEAD` and `origin/master` are the same commit, `1d41442`.** An earlier revision of this
+page recorded `HEAD=bb21962; origin/master=174b29f; ahead=2` and, worse, `LICENSE`
+untracked — a flip that day would have published a tree without the licence file and failed
+Stage One on a technicality. Both were fixed before the flip:
+`git ls-files --error-unmatch LICENSE` succeeds, and `LICENSES/` exists.
 
-The previous revision of this page recorded `HEAD=bb21962; origin/master=174b29f; ahead=2`
-and, worse, `LICENSE` untracked — meaning a flip that day would have published a tree
-without the licence file and failed Stage One on a technicality. Both are fixed:
-`git ls-files --error-unmatch LICENSE` now succeeds, and `LICENSES/` exists.
+**The 49 uncommitted paths are the live number and will move**, because other workers are
+landing files into this tree as this is written. It is reported and is *not* gating — what
+gates is `ahead=0 behind=0`. Post-flip it carries a different weight from before: an
+uncommitted path is no longer a file the judges will never see, it is a file the public
+repository does not yet show. The remedy is the same and it is a push.
 
-**The 97 uncommitted paths are the live number and will move**, because nine other workers
-are landing files into this tree as this is written. It is reported and is *not* gating —
-what gates is `ahead=0 behind=0`. But it is exactly why checklist item 2 requires the audit
-to be re-run **after** the push, against the commit that will actually be published. The
-tree audited here is the tree on disk; the tree published is the tree on the remote; today
-those agree at `ead0f7c` and tomorrow they will agree at some later SHA.
-
-### 1.8 `disclosure_register` — PASS (new check)
+### 1.8 `disclosure_register` — PASS
 
 ```
 parse docs/submission/DISCLOSURE-DECISIONS.yaml with the strict reader in this file;
@@ -282,21 +378,87 @@ validate every entry; require each to have granted at least one finding
 ```
 
 ```
-59 entry/entries granting 92 finding(s); 0 stale; classes
+59 entry/entries granting 80 finding(s); 0 stale; classes
 abs-path-layout=26, abs-path-username=6, aws-documentation-placeholder=2,
 detector-context-artefact=2, history-already-pushed=14,
 recorded-evidence-account-id=6, synthetic-test-fixture=3
 ```
 
-This check exists so that the mechanism §2 introduces cannot rot. It is described there.
+Fifty-nine entries, `0 stale` — every grant still covers a real finding, which is the
+property that stops the register from decaying into a blanket allowlist. It granted 92
+findings on `2026-08-11` and 80 today; twelve findings it used to cover have been repaired
+at the source, which is the mechanism cleaning up after itself exactly as §2.2 item 3
+describes. This check exists so that the mechanism §2 introduces cannot rot.
+
+### 1.9 The 54 undisposed findings, named, by the domain that owns each
+
+**They are listed rather than summarised, because a count is not a disclosure register.**
+None is a live credential: the family scan finds no GitHub token, no Slack token, no
+CockroachDB Cloud API key, and no private key outside the deliberately-published
+`NOT-SECRET` set anywhere in the tree or in history.
+
+| what | count | where | owner |
+|---|---|---|---|
+| `abs_windows_path` — `D:/CoackroachDBxAWS/mainline/` in module docstrings | 11 | `scripts/aws/*.py` (8), `evidence/aws/{agent,probe}/*.json` (3) | AWS domain |
+| `abs_windows_path` — the same layout in lead plans | 3 | `docs/leads/{aws-exec-final,ci-finish-final,ship-final}.md` | lead-plan domain |
+| `abs_windows_path` — `C:/Windows/` in captured output | 2 | `evidence/deploy/gate-run-reachable.json`, `verticals/…/tests/test_static_site.py` | deploy, demo-api |
+| `abs_windows_path` — `migrations_dir` in a proof artefact | 1 | `evidence/gate-refusal/proof-20260811T074629Z.json` | release domain |
+| `aws_account_id` — the mask `000000000000` | 8 | `evidence/deploy/terraform-plan-furl.json` (6), `scripts/aws/_common.py`, `scripts/aws/verify_evidence.py` | deploy, AWS |
+| `aws_account_id` — Bedrock inference-profile ARNs in a real region | 3 | `scripts/aws/embed_corpus.py` (2), `scripts/aws/verify_evidence.py` | AWS domain |
+| `aws_access_key_id` — AWS's own `AKIAIOSFODNN7EXAMPLE`/`ASIA…` documentation values | 3 | `tests/unit/aws/test_common_redaction.py` (2), `scripts/aws/verify_evidence.py` | AWS domain |
+| `high_entropy_secret` — model ids, a doc path, AWS's own placeholder, a DSN | 5 | `evidence/aws/COST.md` (2), `docs/leads/ship-final.md`, `tests/unit/aws/test_common_redaction.py`, `verticals/…/judge/MCP-CONFIG.md` | AWS, lead, demo |
+| the same values in `6251c6ef`, already on `origin/master` | 17 | history scope | — |
+| the mask `999999999999` in `1d41442798cf`, the current HEAD | 1 | `evidence/deploy/deploy-dry-run.json` | deploy domain |
+
+**The mask is itself a finding, and that is not a bug in the scanner.** Six of the eight
+`aws_account_id` hits in `evidence/deploy/terraform-plan-furl.json` are the literal
+`000000000000` the account id was masked to before the flip, and `aws-evidence` CI is red on
+the same value in `evidence/deploy/deploy-dry-run.json` with a precise message:
+
+```
+[SEC-ACCOUNT-ID] evidence/deploy/deploy-dry-run.json:409: a bare 12-digit run
+'999999999999' survives UUID/digest/decimal masking and has the shape of an AWS
+account id
+```
+
+Two checkers disagree about whether twelve identical digits is a mask or a value. Both are
+defensible; neither was silenced. Recording the disagreement is cheaper and more honest than
+picking a winner in a document that owns neither checker.
 
 ---
 
-## 2 · How `NOT READY` became `READY` without weakening anything
+## 2 · The mechanism, and why adding a post-flip mode did not weaken it
 
 This is the section to read sceptically. A green bought by loosening a scanner is worth
-less than an honest red, and the change made here was designed to be checkable rather than
-believed.
+less than an honest red, and both changes made to this program — the `DISCLOSED`
+disposition on `2026-08-11`, and the post-flip register on `2026-08-12` — were designed to
+be checkable rather than believed.
+
+**The post-flip mode is a relabelling, not a filter, and that is asserted rather than
+described.** `--self-test` builds a synthetic finding set spanning all three pre-flip
+dispositions and both scopes, runs the partition, and requires `sum(counts) == len(input)`;
+it requires an `UNRESOLVED` finding to come out `undisposed` and stay red; it requires a
+value still present at `HEAD` to read `recorded-not-repaired` and never `repaired`; and it
+requires `postflip_disposition()` to answer `undisposed` for a finding no register names,
+so no code path can invent a signature. Six assertions, and the self-test count moved from
+30 to 35 because of them:
+
+```
+$ python -I -S scripts/submission/audit_public_readiness.py --self-test | tail -8
+  OK      post-flip partitions the findings: none added, none dropped
+  OK      every post-flip disposition is one of the four declared
+  OK      an UNRESOLVED finding becomes `undisposed` and stays red
+  OK      a history-only grant whose value is gone at HEAD reads `repaired`
+  OK      a value still at HEAD is `recorded-not-repaired`, never `repaired`
+  OK      post-flip cannot manufacture a disposition for an unnamed finding
+  detector fingerprint : 9cdd7b45074eae6de5043d66f6b6bcf29747be99caf91f7f5041488b89d40c1a
+SELF-TEST PASSED: 9 families, 9 fired, 0 missed; 35 disposition/strength assertions, 0 failed
+```
+
+**`repaired` is the only disposition this program infers, and it infers it from two scans
+rather than from a sentence anybody wrote:** a `(path, family)` that a register entry grants
+in the `history` scope and that the tracked scan does *not* find at `HEAD` is a value
+somebody removed. Everything else is a relabelling of a disposition a human already granted.
 
 ### 2.1 The scanner is *provably* exactly as strong
 
@@ -328,6 +490,18 @@ ALLOWLIST entries HEAD -> now: 30 -> 30
 
 The code allowlist is byte-for-byte what it was: **thirty entries, none added**. Everything
 new went into the register, which is data a reviewer can read in one sitting.
+
+**Re-verified `2026-08-12`, after the post-flip mode landed**, because a mode that changes
+what a program reports is exactly when somebody is tempted to change what it detects:
+
+```
+$ python -c "import audit_public_readiness as m; print(len(m.ALLOWLIST), len(m.FAMILIES),
+             m.ENTROPY_FLOOR, m.detector_fingerprint() == m.DETECTOR_FINGERPRINT)"
+30 8 4.2 True
+```
+
+Thirty allowlist entries, eight secret families, entropy floor `4.2`, and the fingerprint
+still `9cdd7b45…`. **Not one detector was touched to produce the register in §1.**
 
 ### 2.2 The register cannot behave like a blanket allowlist
 
@@ -554,9 +728,16 @@ load-bearing.
 
 On the marginal cost of the username class, stated honestly: `shaug` is a prefix of the
 GitHub handle `Shaugato`, which is already in the repository URL, in `REUSE.toml`, in three
-`pyproject.toml` files, in two workflow files and in the author line of all 38 commits on
+`pyproject.toml` files, in two workflow files and in the author line of all 47 commits on
 `master`. What is newly disclosed is that the *local Windows account* is `shaug` rather than
 something else. Small, not zero, and enumerated to nine files rather than gestured at.
+
+**Post-flip these two classes get a third column: what is still worth doing.** The layout
+class is now published on 47 commits and cannot be retracted, so repairing a producer stops
+being risk reduction and becomes hygiene — worth doing because a relative path is a better
+artefact, not because it hides anything. The username class is identical in that respect.
+**Nothing in §4 is urgent any more, and saying so is more useful than leaving a list that
+reads like an outstanding action.**
 
 ---
 
@@ -568,11 +749,24 @@ run **after** the rotation landed, and the password appears in no tracked file.
 
 Three independent measurements, none of which required holding the credential:
 
-1. **The family scan.** `high_entropy_secret` and `bearer_or_jwt` return **zero unresolved
-   findings** over 7,314 tracked files and 901,810 added lines of history. The only
-   `high_entropy_secret` hits anywhere near the judge path are two in `JUDGE-PACK.md` whose
-   matched token is the *cluster hostname* and two in `judge_access.py` whose matched token
-   is a *file path* — both armed by the literal placeholder
+1. **The family scan.** `bearer_or_jwt` returns **zero unresolved findings** over 7,402
+   tracked files and 1,010,052 added lines of history.
+
+   **`high_entropy_secret` no longer returns zero, and that sentence is corrected rather
+   than kept.** On `2026-08-11` it did; on `2026-08-12` it returns **five** unresolved
+   tracked hits, and each one was opened and read:
+
+   | file | what the detector matched |
+   |---|---|
+   | `evidence/aws/COST.md` ×2 | the model ids `au.anthropic.claude-…` and `apac.anthropic.claude-…` |
+   | `docs/leads/ship-final.md` | a `docs/…` path sitting after a colon |
+   | `tests/unit/aws/test_common_redaction.py` | AWS's published `wJalrXUtnFEMI/…EXAMPLEKEY` placeholder |
+   | `verticals/mainline/demo/judge/MCP-CONFIG.md` | the cluster hostname, beginning `mainli…` |
+
+   **None is a password, and none is in `docs/deploy/`, `scripts/deploy/` or `qa/`** — none
+   is anywhere the judge password could plausibly have been written. The hits in
+   `JUDGE-PACK.md` (cluster hostname) and `judge_access.py` (a file path) remain waived
+   with their reasons; they are armed by the literal placeholder
    `<PASSWORD-FROM-THE-SUBMISSION-FORM>` and by ordinary English words in a docstring.
 
 2. **A shape sweep for the generator's output class.** `generate_password()` is
@@ -591,6 +785,12 @@ Three independent measurements, none of which required holding the credential:
    history added lines scanned : 901810
    token_urlsafe(24)-shaped candidates : 33   (same four files)
    ```
+
+   That sweep was taken on `2026-08-11`, at 7,312 tracked files and 901,810 added lines;
+   the tree is now 7,402 and 1,010,052. **It has not been retaken**, so read it as a
+   statement about that tree. It is transcribed here rather than re-run because it is not
+   a mode of the scanner and re-running it is somebody's deliberate act, not a side effect
+   of writing this page.
 
    Four files, all pre-existing published lockfile and reference-ledger material with
    independent explanations. **None is in `docs/deploy/`, `scripts/deploy/` or `qa/` — none
@@ -626,32 +826,54 @@ matters and the one this worker cannot complete alone.
 ## 6 · Reproducing this document
 
 ```
-$ python scripts/submission/audit_public_readiness.py --self-test
-SELF-TEST PASSED: 9 families, 9 fired, 0 missed; 30 disposition/strength assertions, 0 failed
+$ python -I -S scripts/submission/audit_public_readiness.py --self-test
+SELF-TEST PASSED: 9 families, 9 fired, 0 missed; 35 disposition/strength assertions, 0 failed
 $ echo $?
 0
 
-$ python -I -S scripts/submission/audit_public_readiness.py --json qa/public-readiness.json
+$ python -I -S scripts/submission/audit_public_readiness.py          # the register
 ...
-VERDICT: READY - every finding is resolved, allowlisted with a reason, or disclosed by a
-dated register entry
+REGISTER: INCOMPLETE - 54 finding(s) are undisposed. Nothing was deleted to reach
+this number; each one is listed above with its path, and each needs a repair, a
+Waiver, or a register entry.
 $ echo $?
-0
+3
+
+$ python -I -S scripts/submission/audit_public_readiness.py --pre-flip   # the old gate
+...
+VERDICT: NOT READY - failing checks: secrets_tracked, secrets_history, absolute_paths
+$ echo $?
+1
 ```
 
 `-I -S` disables site-packages, which is how the standard-library-only claim is checked
-rather than asserted. Both the audit and the self-test exit 0 under it.
+rather than asserted. All three run to completion under it.
 
-The full machine rows — every finding, the complete allowlist, and the complete register
-with every reason — are in `qa/public-readiness.json`
-(`schema: mainline.qa.public-readiness/1`). The register itself, with the reasoning
-organised into seven sections, is `docs/submission/DISCLOSURE-DECISIONS.yaml`.
+**Three exit codes, three different sentences.** `0` is *the register is complete*, `1` is
+the historical *do not flip*, and `3` is *this register is incomplete*. `3` is deliberately
+not `1`: a caller that treats "undisposed findings exist on a public repository" as "the
+flip is blocked" would be acting on a sentence that no longer has a referent.
+
+The full machine rows — every finding, the complete allowlist, the complete register with
+every reason, and the post-flip partition under `post_flip_register` — are written to
+`qa/public-readiness.json` (`schema: mainline.qa.public-readiness/1`) by `--json`. **The
+committed copy of that artefact is from `2026-08-11T07:44:29Z` and this worker did not
+regenerate it, because it is not this worker's file**; its owner is named in the provenance
+block of `PUBLIC-FLIP-CHECKLIST.md`. Regenerating it is one command, and the artefact
+reaches a byte-identical fixed point on the second run — measured here at 263,409 bytes on
+runs 2, 3 and 4, which is the property that stopped it growing without bound (§2.4).
+
+The register itself, with the reasoning organised into seven sections, is
+`docs/submission/DISCLOSURE-DECISIONS.yaml`.
 
 ### What this audit did not do
 
-It did not push. **It did not flip visibility.** It did not rewrite history, and it edited
-no file outside the five it owns: `scripts/submission/audit_public_readiness.py`,
-`docs/submission/PUBLIC-READINESS.md`, `docs/submission/DISCLOSURE-DECISIONS.yaml`,
-`qa/public-readiness.json` and `docs/submission/PUBLIC-FLIP-CHECKLIST.md`.
+It did not push. It did not rewrite history. **It did not change the repository's
+visibility — the flip was already done, by the orchestrator with the founder, on
+`2026-08-11`.** It edited no file outside the ones its worker owns; in particular it did
+**not** regenerate `qa/public-readiness.json`, and the divergence between that artefact and
+this page is stated in the header rather than papered over by writing a file this worker has
+no title to.
 
-The gate is the checklist, not this page. `docs/submission/PUBLIC-FLIP-CHECKLIST.md`.
+The record of the act is the checklist, not this page.
+`docs/submission/PUBLIC-FLIP-CHECKLIST.md`.

@@ -1,17 +1,16 @@
 {
-  "generated_at": "2026-08-11T05:43:54Z",
+  "generated_at": "2026-08-12T16:17:12Z",
   "mode": "phase2",
   "mode_description": "the live stack: console, /v1/health, and two /v1/demo/gate-run calls against CockroachDB Cloud",
-  "url": "http://127.0.0.1:8741",
+  "url": "http://127.0.0.1:8752",
   "tls_verified": false,
   "verdict": "NOT PROVEN",
   "failures": [
-    "POST /v1/demo/gate-run (run 1) returned 500, expected 200 \u2014 database_error \u00b7 resource=demo_gate_run \u00b7 [22P02] error in argument for $2: could not parse \"check_id\" as type uuid: uuid: incorrect UUID length: check_id",
-    "POST /v1/demo/gate-run (run 2) returned 500, expected 200 \u2014 database_error \u00b7 resource=demo_gate_run \u00b7 [22P02] error in argument for $2: could not parse \"check_id\" as type uuid: uuid: incorrect UUID length: check_id",
-    "fewer than two gate runs completed, so repeatability \u2014 the property that makes this demo safe for concurrent judges \u2014 was NOT established",
-    "the seeded permit could not be read before and after the gate runs, so the claim that nothing persists was NOT established from outside. Only the server's own persisted flag was available, and that is the claim under test."
+    "POST /v1/demo/gate-run (run 1) returned 500, expected 200 \u2014 internal_error \u00b7 resource=demo_gate_run \u00b7 KeyError: 0",
+    "POST /v1/demo/gate-run (run 2) returned 500, expected 200 \u2014 internal_error \u00b7 resource=demo_gate_run \u00b7 KeyError: 0",
+    "fewer than two gate runs completed, so repeatability \u2014 the property that makes this demo safe for concurrent judges \u2014 was NOT established"
   ],
-  "total_ms": 7518.1,
+  "total_ms": 1305.1,
   "reachable": true,
   "target_is_local_emulator": true,
   "volatile_fields": [
@@ -74,11 +73,17 @@
   ],
   "checks": {
     "console": {
-      "url": "http://127.0.0.1:8741/",
+      "url": "http://127.0.0.1:8752/",
       "status": 200,
-      "ms": 16.8,
+      "ms": 9.5,
       "bytes": 4655,
       "content_type": "text/html; charset=utf-8",
+      "x_mainline_headers": {
+        "x-mainline-api": "demo-static",
+        "x-mainline-emulator": "local_furl",
+        "x-mainline-not-the-demo-url": "scripts/deploy/local_furl.py - a local emulator of a Lambda Function URL. It is not the deployed demo and must not be published as one.",
+        "x-mainline-static": "index.html"
+      },
       "x-mainline-emulator": "local_furl",
       "html_markers": [
         "<html",
@@ -88,36 +93,38 @@
       ]
     },
     "health": {
-      "url": "http://127.0.0.1:8741/v1/health",
+      "url": "http://127.0.0.1:8752/v1/health",
       "status": 200,
-      "ms": 1909.3,
-      "bytes": 313,
+      "ms": 8.2,
+      "bytes": 315,
       "content_type": "application/json; charset=utf-8",
       "cluster_version": "CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)",
-      "database": "mainline_demo",
-      "schema_fingerprint": "ec9b1ce70a8df066e5763056c5ad9376800ef5df9362f7d0502b1dc7e7450339",
+      "database": "w_w4_acceptance",
+      "schema_fingerprint": "8cb8a7244a2750dedd8cfd35ba7adb686be981fd5cbba4ea09e29895304a5f03",
       "migrations_applied": 0,
-      "server_date": "2026-08-11T05:43:49.179495Z",
+      "server_date": "2026-08-12T16:10:00.722042Z",
       "ok": true
     },
     "gate_runs": [
       {
         "run": 1,
-        "url": "http://127.0.0.1:8741/v1/demo/gate-run",
+        "url": "http://127.0.0.1:8752/v1/demo/gate-run",
         "status": 500,
-        "ms": 909.3,
-        "bytes": 201,
+        "ms": 377.8,
+        "bytes": 115,
         "content_type": "application/json; charset=utf-8",
-        "body": "{\"error\":{\"detail\":\"[22P02] error in argument for $2: could not parse \\\"check_id\\\" as type uuid: uuid: incorrect UUID length: check_id\",\"kind\":\"database_error\",\"resource\":\"demo_gate_run\",\"status\":500}}"
+        "body": "{\"error\":{\"detail\":\"KeyError: 0\",\"kind\":\"internal_error\",\"resource\":\"demo_gate_run\",\"status\":500,\"traceback\":null}}",
+        "permit_reread_status": 200
       },
       {
         "run": 2,
-        "url": "http://127.0.0.1:8741/v1/demo/gate-run",
+        "url": "http://127.0.0.1:8752/v1/demo/gate-run",
         "status": 500,
-        "ms": 2377.5,
-        "bytes": 201,
+        "ms": 335.8,
+        "bytes": 115,
         "content_type": "application/json; charset=utf-8",
-        "body": "{\"error\":{\"detail\":\"[22P02] error in argument for $2: could not parse \\\"check_id\\\" as type uuid: uuid: incorrect UUID length: check_id\",\"kind\":\"database_error\",\"resource\":\"demo_gate_run\",\"status\":500}}"
+        "body": "{\"error\":{\"detail\":\"KeyError: 0\",\"kind\":\"internal_error\",\"resource\":\"demo_gate_run\",\"status\":500,\"traceback\":null}}",
+        "permit_reread_status": 200
       }
     ],
     "permit_invariant": {
@@ -137,24 +144,73 @@
           "state": "dispositioned",
           "gate_epoch": 1,
           "head_seq": 2
+        },
+        {
+          "when": "after_run_1",
+          "source": "GET /v1/permits/dec0de00-0006-4000-8000-000000000001",
+          "taken_after": "a gate run that answered 500 and was not analysable; the reading was taken anyway",
+          "permit_id": "dec0de00-0006-4000-8000-000000000001",
+          "open_blocking": 1,
+          "state": "dispositioned",
+          "gate_epoch": 1,
+          "head_seq": 2
+        },
+        {
+          "when": "after_run_2",
+          "source": "GET /v1/permits/dec0de00-0006-4000-8000-000000000001",
+          "taken_after": "a gate run that answered 500 and was not analysable; the reading was taken anyway",
+          "permit_id": "dec0de00-0006-4000-8000-000000000001",
+          "open_blocking": 1,
+          "state": "dispositioned",
+          "gate_epoch": 1,
+          "head_seq": 2
         }
       ],
       "why": "the four beats run inside ONE transaction that is rolled back. If that is true, the committed permit is unchanged afterwards, and open_blocking in particular is still 1 rather than the 0 the signed disposition would leave behind.",
-      "unchanged": null
+      "required_snapshots": [
+        "before_run_1",
+        "after_run_2"
+      ],
+      "snapshots_taken": [
+        "before_run_1",
+        "after_run_1",
+        "after_run_2"
+      ],
+      "bracketed": true,
+      "compared": "before_run_1 vs after_run_2",
+      "comparisons": [
+        {
+          "against": "before_run_1",
+          "reading": "after_run_1",
+          "moved_fields": [],
+          "identical": true
+        },
+        {
+          "against": "before_run_1",
+          "reading": "after_run_2",
+          "moved_fields": [],
+          "identical": true
+        }
+      ],
+      "moved_fields": [],
+      "unchanged": true,
+      "subjects_read": [
+        "dec0de00-0006-4000-8000-000000000001"
+      ]
     }
   },
   "advisories": [
     "the target answered with x-mainline-emulator: local_furl. This run was taken against scripts/deploy/local_furl.py \u2014 the REAL demo-api handler and the REAL console bundle, over a local socket, against the database named under /v1/health. It proves the handler, the site and the gate. It does NOT prove that a public demo URL exists; docs/submission/SUBMISSION.json holds UNRESOLVED until one does.",
-    "/v1/health reports migrations_applied=0. trappoint.schema_migration is empty on this database \u2014 the appliers do not record into it \u2014 so this number contradicts the 271-file chain the submission describes. The schema fingerprint above is the trustworthy identifier; this counter is not."
+    "/v1/health reports migrations_applied=0, and that is a true count of the wrong ledger rather than a broken deployment. health.py's statement counts trappoint.schema_migration WHERE state='applied'; the only writer of that table in the tree is trappoint_migrate/runner.py:295, i.e. `trappoint migrate up`. This database was built by scripts/deploy/cloud_chain.py, which bootstraps the attestation ledger (hence the non-null schema_fingerprint above) and then applies the 271 files itself, recording its count in trappoint.deploy_chain instead. So schema_migration is empty by construction, 0 is honest about it, and the chain really is applied \u2014 the schema_fingerprint above is the identifier that moves when the schema does. Two appliers, two ledgers, and /v1/health reads only one of them."
   ],
   "emulator": "local_furl",
   "observed_sqlstates": [],
-  "note": "THE COMMITTED TREE, AGAINST THE LIVE CockroachDB Cloud DATABASE mainline_demo, ON 2026-08-11. Target: scripts/deploy/local_furl.py, which serves the UNMODIFIED mainline_demo_api.app.handler and the real console dist over an emulated Lambda Function URL payload-2.0 event; the database under /v1/health is mainline-dev-31219.j77.aws-ap-southeast-1.cockroachlabs.cloud/mainline_demo. The route W1 added is present and reachable: the 404 that this file recorded on 2026-08-10 is GONE, and the endpoint now reaches its dispatcher. It fails there, on TWO defects, both outside this worker's files, both named with the line that causes them. (1) mainline_demo_api/db.py:309 opens every connection with row_factory=dict_row, which reads.py and health.py index by name; gate_run.py and scenario.py unpack the same rows POSITIONALLY (scenario.py:283 unpacks an 8-tuple, gate_run.py:272 subscripts row[3]). Through the app's own connection, scenario.resolve() therefore binds the STRING 'check_id' as a UUID parameter and CockroachDB answers 22P02. (2) With that mismatch neutralised in a scratchpad process - see corroborating_run, which is itself NOT PROVEN - beats 1, 2 and 3 produce 00000, 23514 gate_closed_when_issued (reported) and P0001 mainline.fn_permit_merge_gate (parsed) against the live Cloud cluster, the two runs are identical on the stable projection, and the permit is unchanged afterwards; beat 4 is refused 23503 disposition_signer_credential_id_fkey because gate_run.py derives signer_credential_id as sha256('cred'+'signer') while verticals/mainline/db/seeds/demo/demo_world.sql seeds digest('mainline-demo/credential/demo.signer','sha256'). Two derivations of one identifier. NOTHING IN THIS FILE WAS RELAXED TO REACH A GREEN: the four expectations are the ones docs/deploy/gate-run-contract.md states, and this run does not meet them.",
+  "note": "THE COMMITTED TREE, UNMODIFIED, AGAINST A DEMO-SEEDED DATABASE, ON 2026-08-13. Target: scripts/deploy/local_furl.py serving the UNMODIFIED mainline_demo_api.app.handler (banner: handler D:/CoackroachDBxAWS/mainline/verticals/mainline/apps/demo-api/src/mainline_demo_api/app.py) and the real console dist over an emulated Lambda Function URL payload-2.0 event. NO MONKEYPATCHING: this run imports nothing of its own into the handler's process. The database is w_w4_acceptance on the pinned local node, built by scripts/deploy/cloud_chain.py (271/271 applied, 0 failed, 0 retries, 115.2s) and seeded by scripts/deploy/seed_demo.py from verticals/mainline/db/seeds/demo/demo_world.sql + demo_permit.sql - THE SAME TWO SEED FILES THAT BUILT THE LIVE CockroachDB Cloud DATABASE mainline_demo, chosen for exactly that reason. seed_demo.py's own verifier reported SEEDED AND REFUSABLE, state=dispositioned open_blocking=1 gate_epoch=1 head_seq=2, MERGE REFUSED [23514] gate_closed_when_issued, rollback nothing_persisted=True. TWO DEFECTS REMAIN, BOTH OUTSIDE THIS WORKER'S FILES, BOTH NAMED WITH THE LINE THAT CAUSES THEM. (1) refusal.py:235 returns row[0] on a row the connection produced with dict_row, and the statement above it is SELECT trappoint.explain_refusal(...) whose single column CockroachDB names explain_refusal - so row[0] is KeyError: 0. Beats 2 and 3 both reach it through gate_run._record_refusal -> refusal_payload -> _explain, so no path through the demo avoids it and every gate run answers 500. This is the SAME defect class as the one w1-rowfactory was dispatched to remove; w1 fixed its three owned modules, found this fourth site, measured it, wrote the one-line correction into evidence/deploy/rowfactory-defect.json -> blocking_finding, and did not edit it because no worker in this wave owns refusal.py. It is still unowned. (2) Behind it, beat 4 cannot admit on a demo-seeded database at all: see corroborating_run, which is itself NOT PROVEN. gate_run.py:576,578 hard-code the credential ids that scripts/proof/gate_refusal.py:844 seeds, while the demo seeds write different ones, so the disposition INSERT violates disposition_signer_credential_id_fkey with 23503. The two are not interchangeable: gate_refusal.py:843 seeds signer_sub 'proof.signer' whereas scenario.py:209 defaults signer_sub to 'demo.signer', which is the DEMO seeder's subject - so gate_run.py writes one seeder's subject beside the other seeder's credential in a single INSERT. THIS MATTERS FOR THE APPLY: the Lambda the founder approved points MAINLINE_DEMO_DATABASE at mainline_demo, which is demo-seeded, so the headline beat would refuse with a foreign-key violation in front of a judge. The correction that fits this repository's own doctrine is a lookup, not a new constant: scenario.py's docstring says a derived identifier the API pinned would be the API asserting a fact about rows it did not write, and MEASURED on this database, SELECT credential_id FROM mainline.signing_credential WHERE signer_sub = %s AND revoked_at IS NULL resolves 'demo.signer' to ff356d14... and 'demo.countersigner' to 8d7b089f..., which is the shape gate_run.py already uses for every other identifier it needs. WHAT THIS RUN DOES ESTABLISH, and did not before: the permit was read BEFORE and AFTER both gate runs from GET /v1/permits/{id} - a different endpoint in a different transaction - and open_blocking, state, gate_epoch and head_seq are identical across before_run_1, after_run_1 and after_run_2. That reading was taken even though both gate runs answered 500, which is the case the 2026-08-11 artefact could not cover: the re-read used to sit on the success path behind a continue, so the one run where 'did anything persist?' most needed an answer was the one run that could not give it. NOTHING IN THIS FILE WAS RELAXED TO REACH A GREEN. The four expectations are the ones docs/deploy/gate-run-contract.md states; this run does not meet them; the verdict is NOT PROVEN and the apply is NO-GO until both defects above are closed by their owners.",
   "corroborating_run": {
-    "generated_at": "2026-08-11T05:43:26Z",
+    "generated_at": "2026-08-12T16:16:41Z",
     "mode": "phase2",
     "mode_description": "the live stack: console, /v1/health, and two /v1/demo/gate-run calls against CockroachDB Cloud",
-    "url": "http://127.0.0.1:8749",
+    "url": "http://127.0.0.1:8753",
     "tls_verified": false,
     "verdict": "NOT PROVEN",
     "failures": [
@@ -169,7 +225,7 @@
       "run 2: the admission beat carries no clearance_digest: an ADMITTED with no server-computed exhibit is an assertion, not evidence",
       "run 2: the server's own verdict is 'NOT PROVEN' \u2014 [\"beat 4 (admit): expected {'outcome': 'admitted', 'sqlstate': '00000'}, observed outcome='refused' sqlstate='23503' constraint='disposition_signer_credential_id_fkey' constraint_source='reported'\"]"
     ],
-    "total_ms": 30923.4,
+    "total_ms": 2821.7,
     "reachable": true,
     "target_is_local_emulator": true,
     "volatile_fields": [
@@ -232,11 +288,17 @@
     ],
     "checks": {
       "console": {
-        "url": "http://127.0.0.1:8749/",
+        "url": "http://127.0.0.1:8753/",
         "status": 200,
-        "ms": 4.2,
+        "ms": 31.1,
         "bytes": 4655,
         "content_type": "text/html; charset=utf-8",
+        "x_mainline_headers": {
+          "x-mainline-api": "demo-static",
+          "x-mainline-emulator": "local_furl",
+          "x-mainline-not-the-demo-url": "scripts/deploy/local_furl.py - a local emulator of a Lambda Function URL. It is not the deployed demo and must not be published as one.",
+          "x-mainline-static": "index.html"
+        },
         "x-mainline-emulator": "local_furl",
         "html_markers": [
           "<html",
@@ -246,25 +308,25 @@
         ]
       },
       "health": {
-        "url": "http://127.0.0.1:8749/v1/health",
+        "url": "http://127.0.0.1:8753/v1/health",
         "status": 200,
-        "ms": 2117.3,
-        "bytes": 312,
+        "ms": 32.1,
+        "bytes": 314,
         "content_type": "application/json; charset=utf-8",
         "cluster_version": "CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)",
-        "database": "mainline_demo",
-        "schema_fingerprint": "ec9b1ce70a8df066e5763056c5ad9376800ef5df9362f7d0502b1dc7e7450339",
+        "database": "w_w4_acceptance",
+        "schema_fingerprint": "8cb8a7244a2750dedd8cfd35ba7adb686be981fd5cbba4ea09e29895304a5f03",
         "migrations_applied": 0,
-        "server_date": "2026-08-11T05:42:58.500033Z",
+        "server_date": "2026-08-12T16:12:01.471427Z",
         "ok": true
       },
       "gate_runs": [
         {
           "run": 1,
-          "url": "http://127.0.0.1:8749/v1/demo/gate-run",
+          "url": "http://127.0.0.1:8753/v1/demo/gate-run",
           "status": 200,
-          "ms": 10642.9,
-          "bytes": 9576,
+          "ms": 1004.2,
+          "bytes": 10056,
           "content_type": "application/json; charset=utf-8",
           "envelope_version": 1,
           "staged": false,
@@ -282,7 +344,7 @@
               "constraint_source": null,
               "matched_expectation": true,
               "message": null,
-              "ms": 0.011,
+              "ms": 0.008,
               "expected": {
                 "outcome": "read",
                 "sqlstate": "00000",
@@ -302,7 +364,7 @@
               "constraint_source": "reported",
               "matched_expectation": true,
               "message": "failed to satisfy CHECK constraint ((state != 'merged':::mainline.subject_state) OR (open_blocking = 0:::INT8))",
-              "ms": 2141.581,
+              "ms": 414.225,
               "expected": {
                 "outcome": "refused",
                 "sqlstate": "23514",
@@ -322,7 +384,7 @@
               "constraint_source": "parsed",
               "matched_expectation": true,
               "message": "MAINLINE: merge refused by mainline.fn_permit_merge_gate \u2014 re-derived open obligation count is 1 while the projected counter reads zero",
-              "ms": 2384.6,
+              "ms": 314.352,
               "expected": {
                 "outcome": "refused",
                 "sqlstate": "P0001",
@@ -342,7 +404,7 @@
               "constraint_source": "reported",
               "matched_expectation": false,
               "message": "insert on table \"disposition\" violates foreign key constraint \"disposition_signer_credential_id_fkey\"",
-              "ms": 1842.189,
+              "ms": 208.746,
               "expected": {
                 "outcome": "admitted",
                 "sqlstate": "00000",
@@ -355,14 +417,15 @@
           ],
           "persistence_identical": true,
           "persistence_tables": 10,
-          "single_transaction": true
+          "single_transaction": true,
+          "permit_reread_status": 200
         },
         {
           "run": 2,
-          "url": "http://127.0.0.1:8749/v1/demo/gate-run",
+          "url": "http://127.0.0.1:8753/v1/demo/gate-run",
           "status": 200,
-          "ms": 10610.8,
-          "bytes": 9577,
+          "ms": 1080.2,
+          "bytes": 10054,
           "content_type": "application/json; charset=utf-8",
           "envelope_version": 1,
           "staged": false,
@@ -400,7 +463,7 @@
               "constraint_source": "reported",
               "matched_expectation": true,
               "message": "failed to satisfy CHECK constraint ((state != 'merged':::mainline.subject_state) OR (open_blocking = 0:::INT8))",
-              "ms": 2040.53,
+              "ms": 464.437,
               "expected": {
                 "outcome": "refused",
                 "sqlstate": "23514",
@@ -420,7 +483,7 @@
               "constraint_source": "parsed",
               "matched_expectation": true,
               "message": "MAINLINE: merge refused by mainline.fn_permit_merge_gate \u2014 re-derived open obligation count is 1 while the projected counter reads zero",
-              "ms": 2382.743,
+              "ms": 320.83,
               "expected": {
                 "outcome": "refused",
                 "sqlstate": "P0001",
@@ -440,7 +503,7 @@
               "constraint_source": "reported",
               "matched_expectation": false,
               "message": "insert on table \"disposition\" violates foreign key constraint \"disposition_signer_credential_id_fkey\"",
-              "ms": 1827.593,
+              "ms": 209.223,
               "expected": {
                 "outcome": "admitted",
                 "sqlstate": "00000",
@@ -453,7 +516,8 @@
           ],
           "persistence_identical": true,
           "persistence_tables": 10,
-          "single_transaction": true
+          "single_transaction": true,
+          "permit_reread_status": 200
         }
       ],
       "repeatability": {
@@ -499,6 +563,7 @@
           {
             "when": "after_run_1",
             "source": "GET /v1/permits/dec0de00-0006-4000-8000-000000000001",
+            "taken_after": "a gate run that answered 200",
             "permit_id": "dec0de00-0006-4000-8000-000000000001",
             "open_blocking": 1,
             "state": "dispositioned",
@@ -508,6 +573,7 @@
           {
             "when": "after_run_2",
             "source": "GET /v1/permits/dec0de00-0006-4000-8000-000000000001",
+            "taken_after": "a gate run that answered 200",
             "permit_id": "dec0de00-0006-4000-8000-000000000001",
             "open_blocking": 1,
             "state": "dispositioned",
@@ -516,14 +582,41 @@
           }
         ],
         "why": "the four beats run inside ONE transaction that is rolled back. If that is true, the committed permit is unchanged afterwards, and open_blocking in particular is still 1 rather than the 0 the signed disposition would leave behind.",
-        "unchanged": true,
+        "required_snapshots": [
+          "before_run_1",
+          "after_run_2"
+        ],
+        "snapshots_taken": [
+          "before_run_1",
+          "after_run_1",
+          "after_run_2"
+        ],
+        "bracketed": true,
+        "compared": "before_run_1 vs after_run_2",
+        "comparisons": [
+          {
+            "against": "before_run_1",
+            "reading": "after_run_1",
+            "moved_fields": [],
+            "identical": true
+          },
+          {
+            "against": "before_run_1",
+            "reading": "after_run_2",
+            "moved_fields": [],
+            "identical": true
+          }
+        ],
         "moved_fields": [],
-        "compared": "before_run_1 vs after_run_2"
+        "unchanged": true,
+        "subjects_read": [
+          "dec0de00-0006-4000-8000-000000000001"
+        ]
       }
     },
     "advisories": [
       "the target answered with x-mainline-emulator: local_furl. This run was taken against scripts/deploy/local_furl.py \u2014 the REAL demo-api handler and the REAL console bundle, over a local socket, against the database named under /v1/health. It proves the handler, the site and the gate. It does NOT prove that a public demo URL exists; docs/submission/SUBMISSION.json holds UNRESOLVED until one does.",
-      "/v1/health reports migrations_applied=0. trappoint.schema_migration is empty on this database \u2014 the appliers do not record into it \u2014 so this number contradicts the 271-file chain the submission describes. The schema fingerprint above is the trustworthy identifier; this counter is not."
+      "/v1/health reports migrations_applied=0, and that is a true count of the wrong ledger rather than a broken deployment. health.py's statement counts trappoint.schema_migration WHERE state='applied'; the only writer of that table in the tree is trappoint_migrate/runner.py:295, i.e. `trappoint migrate up`. This database was built by scripts/deploy/cloud_chain.py, which bootstraps the attestation ledger (hence the non-null schema_fingerprint above) and then applies the 271 files itself, recording its count in trappoint.deploy_chain instead. So schema_migration is empty by construction, 0 is honest about it, and the chain really is applied \u2014 the schema_fingerprint above is the identifier that moves when the schema does. Two appliers, two ledgers, and /v1/health reads only one of them."
     ],
     "emulator": "local_furl",
     "observed_sqlstates": [
@@ -600,8 +693,8 @@
         "constraint_source": "reported"
       }
     ],
-    "note": "SCRATCHPAD DIAGNOSTIC, NOT THE ACCEPTANCE RUN, AND ITS VERDICT IS ALSO NOT PROVEN. Identical to the primary run in every respect except one: mainline_demo_api.db._open was replaced, in this process only, with the same psycopg.connect call carrying a row factory whose rows are BOTH dicts (what reads.py and health.py index by name) and sequences (what gate_run.py and scenario.py unpack positionally). No repository file was edited. It exists to answer one question: how much of the demo is behind that single mismatch? ANSWER, measured against the LIVE CockroachDB Cloud database mainline_demo on 2026-08-11: all of it except beat 4. POST /v1/demo/gate-run answers 200; beats 1-3 produce 00000, 23514 gate_closed_when_issued (reported) and P0001 mainline.fn_permit_merge_gate (parsed); the two runs are identical on the stable projection; and the seeded permit's open_blocking, state, gate_epoch and head_seq are unchanged after both runs, read back from GET /v1/permits/{id}. Beat 4 is refused 23503 disposition_signer_credential_id_fkey, which is a SECOND and independent defect: gate_run.py writes signer_credential_id = sha256('cred'+'signer') = 487adc50409e8811b1f12055ee183ce9d8548f11262807d01776fb67cd09c765, and verticals/mainline/db/seeds/demo/demo_world.sql seeds credential_id = digest('mainline-demo/credential/demo.signer','sha256') = ff356d1461921438bbbc5d644db8793669cb948a46bddc2e8fb5ebef959bdf0c. Two derivations of one identifier; neither program reads the other's.",
-    "_embedded_from": "C:\\Users\\shaug\\AppData\\Local\\Temp\\claude\\D--CoackroachDBxAWS\\b1150179-8ec5-4ec7-bdfb-3da356eb4402\\scratchpad\\rowfactory-probe.json",
+    "note": "SCRATCHPAD DIAGNOSTIC, NOT THE ACCEPTANCE RUN, AND ITS VERDICT IS ALSO NOT PROVEN. Identical to the primary run in every respect except one: mainline_demo_api.refusal._explain was replaced, in this process only, by the same function taking the row's single VALUE instead of row[0] - the one-line correction evidence/deploy/rowfactory-defect.json -> blocking_finding.correction already specifies. NO REPOSITORY FILE WAS EDITED; the patch lives in a scratchpad wrapper that imports scripts/deploy/local_furl.py and serves the otherwise unmodified handler. It exists to answer one question the primary run cannot reach past refusal.py:235: with that line corrected, does the DEMO-SEEDED database drive all four beats? ANSWER, measured on 2026-08-13 against w_w4_acceptance - built by scripts/deploy/cloud_chain.py (271/271 applied, 0 failed) and seeded by scripts/deploy/seed_demo.py, i.e. verticals/mainline/db/seeds/demo/demo_world.sql + demo_permit.sql, THE SAME TWO FILES THAT SEEDED THE LIVE CockroachDB Cloud DATABASE mainline_demo: THREE of the four beats, not four. POST /v1/demo/gate-run answers 200; beats 1-3 produce 00000, 23514 gate_closed_when_issued (reported) and P0001 mainline.fn_permit_merge_gate (parsed); the two runs are identical on the stable projection; persisted is false and the permit is unchanged after both runs. Beat 4 is REFUSED 23503 disposition_signer_credential_id_fkey, and that is a SECOND defect standing behind the first. gate_run.py:576,578 writes signer_credential_id = sha256('cred'+'signer') = 487adc50409e8811b1f12055ee183ce9d8548f11262807d01776fb67cd09c765 and countersigner_credential_id = sha256('cred'+'cosigner') = 916b6121c8188a00ec5deff08e61ea034a58ed16d8ec85115c40cf7cb049d7fb. Those two values are seeded by scripts/proof/gate_refusal.py:844 and by nothing else. The demo seeds write digest('mainline-demo/credential/demo.signer','sha256') = ff356d1461921438bbbc5d644db8793669cb948a46bddc2e8fb5ebef959bdf0c and digest('mainline-demo/credential/demo.countersigner','sha256') = 8d7b089f4c0aec7d890810a5aca3ebd9f57e2ae8786e2749e576200019b18ebe. Measured: SELECT signer_sub, encode(credential_id,'hex') FROM mainline.signing_credential on this database returns exactly those two demo rows and neither gate_run.py constant. NOTHING IN THIS FILE WAS RELAXED TO REACH A GREEN: the four expectations are the ones docs/deploy/gate-run-contract.md states, and this run does not meet them either.",
+    "_embedded_from": "C:\\Users\\shaug\\AppData\\Local\\Temp\\claude\\D--CoackroachDBxAWS\\b1150179-8ec5-4ec7-bdfb-3da356eb4402\\scratchpad\\probe-patched.json",
     "_this_is_not_the_verdict": "This block is a SEPARATE run, embedded for reference. The verdict of the run this file documents is the top-level `verdict` key."
   }
 }

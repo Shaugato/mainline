@@ -219,10 +219,26 @@ variable "demo_database" {
 
 variable "scenario_permit_id" {
   description = <<-EOT
-    The permit the three demo beats drive. Default is the value
-    `mainline_demo_api.scenario` derives - `uuid5(uuid5(NAMESPACE_URL,
-    "https://mainline.trappoint.org/demo/2026-08"), "permit")` - which is committed in
-    that module's `EXPECTED` table and is what `scripts/deploy/seed_demo.py` seeds.
+    The permit the three demo beats drive. The default is THE ROW THAT IS ACTUALLY
+    SEEDED, read back out of the live Cloud database rather than derived:
+
+      SELECT permit_id::string, state::string, open_blocking, head_seq, gate_epoch
+        FROM mainline.permit ORDER BY permit_id;
+      -> exactly one row
+         dec0de00-0006-4000-8000-000000000001 | dispositioned | 1 | 2 | 1
+
+    read read-only against `mainline-dev` / `mainline_demo` (aws-ap-southeast-1) on
+    2026-08-12. `scripts/deploy/seed_demo.py:104` fixes that id as PERMIT_ID and
+    `verticals/mainline/db/seeds/demo/demo_permit.sql` is what inserts it.
+
+    THIS DEFAULT USED TO BE `077a6fdd-2167-559c-b2ff-8e3c8352504d`, which is
+    `mainline_demo_api.scenario`'s uuid5 fallback - `uuid5(uuid5(NAMESPACE_URL,
+    "https://mainline.trappoint.org/demo/2026-08"), "permit")`, `scenario.py:77`. That
+    derivation is committed in the module's `EXPECTED` table but NOTHING HAS EVER SEEDED
+    IT: the query above returns no such row. Deploying with it makes every gate-run
+    answer `422 demo_history_not_seeded`. The uuid5 value stays where it belongs, as
+    `scenario.py`'s in-code fallback for a database nobody has told it about; it is not
+    what this deployment points at.
 
     Published under TWO names, on purpose:
       MAINLINE_SCENARIO_PERMIT_ID  the name this module's brief specifies
@@ -231,7 +247,7 @@ variable "scenario_permit_id" {
     Setting only the first would leave the override silently inert. See the README.
   EOT
   type        = string
-  default     = "077a6fdd-2167-559c-b2ff-8e3c8352504d"
+  default     = "dec0de00-0006-4000-8000-000000000001"
 
   validation {
     condition     = can(regex("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", var.scenario_permit_id))

@@ -72,6 +72,23 @@ def sha256_lf(path: Path) -> str:
 # --------------------------------------------------------------------------------------
 
 
+def _scalar(value: str) -> str | int | None:
+    """Coerce the four scalar shapes this registry is specified to use, and no others.
+
+    Extracted from :func:`read_registry` so that the walk over the file and the decision
+    about what a scalar *means* are two readable things rather than one long one. The
+    block-scalar markers (``>-``, ``|``, ``>``) collapse to the empty string because every
+    field this gate reads is a scalar; a folded prose field is one it ignores.
+    """
+    if value in ("", ">-", "|", ">"):
+        return ""
+    if value == "null":
+        return None
+    if value.isdigit():
+        return int(value)
+    return value.strip("'\"")
+
+
 def read_registry(path: Path) -> list[dict[str, Any]]:
     """Return the ``canonicalisers`` entries, reading only the fields this gate needs.
 
@@ -128,14 +145,7 @@ def read_registry(path: Path) -> list[dict[str, Any]]:
         value = value.strip()
         in_vendored = key == "vendored_into" and value == ""
         if key in wanted:
-            if value in ("", ">-", "|", ">"):
-                current[key] = ""
-            elif value == "null":
-                current[key] = None
-            elif value.isdigit():
-                current[key] = int(value)
-            else:
-                current[key] = value.strip("'\"")
+            current[key] = _scalar(value)
 
     if not entries:
         raise ValueError(
@@ -155,7 +165,10 @@ def cross_check_with_pyyaml(path: Path, entries: list[dict[str, Any]]) -> str | 
     parsed = yaml.safe_load(path.read_text(encoding="utf-8"))
     reference = parsed["canonicalisers"]
     if len(reference) != len(entries):
-        return f"registry reader disagrees with PyYAML on entry count: {len(entries)} vs {len(reference)}"
+        return (
+            "registry reader disagrees with PyYAML on entry count: "
+            f"{len(entries)} vs {len(reference)}"
+        )
     for small, full in zip(entries, reference, strict=True):
         for key in ("payload_ver", "name", "source", "sha256"):
             if small.get(key) != full.get(key):
@@ -255,6 +268,70 @@ def selftest() -> int:
     return 1 if failures else 0
 
 
+def check_entry(root: Path, entry: dict[str, Any], report: Report) -> None:
+    """Run the three assertions against one registry entry, recording each verdict.
+
+    Extracted from :func:`main` so that the three assertions the module docstring names
+    are one function a reader can hold, and ``main`` is argument parsing plus a loop.
+    Records rather than returns, because a single entry can produce several verdicts (one
+    per vendored copy) and the report is the artefact.
+    """
+    name = entry.get("name", "<unnamed>")
+    source_relative = entry.get("source")
+    if not source_relative:
+        report.record(FAIL, f"{name}: registry entry has no `source`")
+        return
+    source = root / source_relative
+
+    # 1 — retention
+    if not source.is_file():
+        report.record(
+            FAIL,
+            f"{name}: source {source_relative} is missing — "
+            "removing a canonicaliser is a breaking change to evidence",
+        )
+        return
+
+    # 2 — integrity
+    actual = sha256_lf(source)
+    pinned = entry.get("sha256")
+    if pinned != actual:
+        report.record(
+            FAIL,
+            f"{name}: {source_relative} hashes to {actual} but the registry pins "
+            f"{pinned} — modifying a shipped canonicaliser is a breaking change to "
+            "evidence; ship canon_v"
+            f"{int(entry.get('payload_ver', 0)) + 1} instead",
+        )
+        return
+    report.record(PASS, f"{name}: {source_relative} matches its pin ({actual[:16]}…)")
+
+    # 3 — vendoring
+    vendored = entry.get("vendored_into") or []
+    if not vendored:
+        report.record(SKIP, f"{name}: registry declares no vendored copy")
+        return
+    for copy_relative in vendored:
+        copy_path = root / copy_relative
+        if not copy_path.is_file():
+            report.record(
+                SKIP,
+                f"{name}: vendored copy {copy_relative} does not exist yet "
+                "(trappoint-verify has not landed) — NOT CHECKED",
+            )
+            continue
+        copy_digest = sha256_lf(copy_path)
+        if copy_digest != actual:
+            report.record(
+                FAIL,
+                f"{name}: vendored copy {copy_relative} has drifted "
+                f"({copy_digest[:16]}… != {actual[:16]}…) — the verifier's "
+                "one-dependency claim is false while this differs",
+            )
+        else:
+            report.record(PASS, f"{name}: vendored copy {copy_relative} is byte-identical")
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
@@ -298,60 +375,7 @@ def main(argv: list[str] | None = None) -> int:
         report.record(FAIL, disagreement)
 
     for entry in entries:
-        name = entry.get("name", "<unnamed>")
-        source_relative = entry.get("source")
-        if not source_relative:
-            report.record(FAIL, f"{name}: registry entry has no `source`")
-            continue
-        source = root / source_relative
-
-        # 1 — retention
-        if not source.is_file():
-            report.record(
-                FAIL,
-                f"{name}: source {source_relative} is missing — "
-                "removing a canonicaliser is a breaking change to evidence",
-            )
-            continue
-
-        # 2 — integrity
-        actual = sha256_lf(source)
-        pinned = entry.get("sha256")
-        if pinned != actual:
-            report.record(
-                FAIL,
-                f"{name}: {source_relative} hashes to {actual} but the registry pins "
-                f"{pinned} — modifying a shipped canonicaliser is a breaking change to "
-                "evidence; ship canon_v"
-                f"{int(entry.get('payload_ver', 0)) + 1} instead",
-            )
-            continue
-        report.record(PASS, f"{name}: {source_relative} matches its pin ({actual[:16]}…)")
-
-        # 3 — vendoring
-        vendored = entry.get("vendored_into") or []
-        if not vendored:
-            report.record(SKIP, f"{name}: registry declares no vendored copy")
-            continue
-        for copy_relative in vendored:
-            copy_path = root / copy_relative
-            if not copy_path.is_file():
-                report.record(
-                    SKIP,
-                    f"{name}: vendored copy {copy_relative} does not exist yet "
-                    "(trappoint-verify has not landed) — NOT CHECKED",
-                )
-                continue
-            copy_digest = sha256_lf(copy_path)
-            if copy_digest != actual:
-                report.record(
-                    FAIL,
-                    f"{name}: vendored copy {copy_relative} has drifted "
-                    f"({copy_digest[:16]}… != {actual[:16]}…) — the verifier's "
-                    "one-dependency claim is false while this differs",
-                )
-            else:
-                report.record(PASS, f"{name}: vendored copy {copy_relative} is byte-identical")
+        check_entry(root, entry, report)
 
     report.emit()
 

@@ -433,89 +433,110 @@ class Verifier:
                 continue
             self.result.tick("ENV-PARSE")
             self.envelopes[rel] = doc
+            self._check_one_envelope(rel, doc)
 
-            missing = [f for f in ENVELOPE_FIELDS if f not in doc]
-            if missing:
-                self.result.fail(
-                    "ENV-FIELDS",
-                    rel,
-                    f"envelope is missing {', '.join(missing)}; "
-                    "scripts/aws/_common.py::artefact writes all eight",
-                )
-            else:
-                self.result.tick("ENV-FIELDS")
+        self._check_quarantine_is_current()
 
-            if doc.get("artefact") != rel:
-                self.result.fail(
-                    "ENV-SELF",
-                    rel,
-                    f"names itself {doc.get('artefact')!r}; a quoted fragment cannot be "
-                    "traced back to a file whose self-description is wrong",
-                )
-            else:
-                self.result.tick("ENV-SELF")
+    def _check_one_envelope(self, rel: str, doc: dict[str, Any]) -> None:
+        """The seven per-file envelope assertions, for one already-parsed artefact.
 
-            if doc.get("region") != REGION:
-                self.result.fail(
-                    "ENV-REGION",
-                    rel,
-                    f"region is {doc.get('region')!r}, not {REGION!r}; residency is restated "
-                    "per file precisely so it can be audited per file",
-                )
-            else:
-                self.result.tick("ENV-REGION")
+        Split out of :func:`check_envelopes` so that "which files are envelopes" and "what
+        an envelope must say" are two things a reader can hold separately; the loop above
+        owns the first and this owns the second. ``generated_by`` is delegated again, to
+        :func:`_check_producer`, because it is the one field whose verdict depends on the
+        rest of the tree.
+        """
+        missing = [f for f in ENVELOPE_FIELDS if f not in doc]
+        if missing:
+            self.result.fail(
+                "ENV-FIELDS",
+                rel,
+                f"envelope is missing {', '.join(missing)}; "
+                "scripts/aws/_common.py::artefact writes all eight",
+            )
+        else:
+            self.result.tick("ENV-FIELDS")
 
-            stamp = doc.get("generated_at")
-            if not (
-                isinstance(stamp, str)
-                and re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z", stamp)
-            ):
-                self.result.fail(
-                    "ENV-TIME", rel, f"generated_at is {stamp!r}, not UTC ISO-8601 'Z'"
-                )
-            else:
-                self.result.tick("ENV-TIME")
+        if doc.get("artefact") != rel:
+            self.result.fail(
+                "ENV-SELF",
+                rel,
+                f"names itself {doc.get('artefact')!r}; a quoted fragment cannot be "
+                "traced back to a file whose self-description is wrong",
+            )
+        else:
+            self.result.tick("ENV-SELF")
 
-            producer = doc.get("generated_by")
-            quarantined = KNOWN_PRODUCER_GAPS.get(rel)
-            if not isinstance(producer, str) or not producer:
-                self.result.fail("ENV-PRODUCER", rel, "generated_by is empty")
-            elif (self.repo / producer).is_file():
-                self.result.tick("ENV-PRODUCER")
-            elif quarantined is not None and quarantined[0] == producer:
-                self.result.notes.append(
-                    f"QUARANTINE {rel}: generated_by is {producer!r}, which is not a file in "
-                    f"this tree — {quarantined[1]}. Delete the KNOWN_PRODUCER_GAPS entry in "
-                    "scripts/aws/verify_evidence.py once the artefact is regenerated with a "
-                    "producer a reader can open."
-                )
-            else:
-                self.result.fail(
-                    "ENV-PRODUCER",
-                    rel,
-                    f"generated_by names {producer!r}, which is not a file in this tree; "
-                    "an artefact whose producer cannot be read cannot be re-run",
-                )
+        if doc.get("region") != REGION:
+            self.result.fail(
+                "ENV-REGION",
+                rel,
+                f"region is {doc.get('region')!r}, not {REGION!r}; residency is restated "
+                "per file precisely so it can be audited per file",
+            )
+        else:
+            self.result.tick("ENV-REGION")
 
-            caveats = doc.get("caveats")
-            if not isinstance(caveats, list) or any(not isinstance(c, str) for c in caveats):
-                self.result.fail("ENV-CAVEATS", rel, "caveats is not a list of strings")
-            else:
-                self.result.tick("ENV-CAVEATS")
+        stamp = doc.get("generated_at")
+        if not (
+            isinstance(stamp, str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z", stamp)
+        ):
+            self.result.fail("ENV-TIME", rel, f"generated_at is {stamp!r}, not UTC ISO-8601 'Z'")
+        else:
+            self.result.tick("ENV-TIME")
 
-            if not isinstance(doc.get("synthetic"), bool):
-                self.result.fail(
-                    "ENV-SYNTHETIC",
-                    rel,
-                    f"synthetic is {doc.get('synthetic')!r}; whether the subject matter is "
-                    "fabricated is a claim, and it is made with a boolean",
-                )
-            else:
-                self.result.tick("ENV-SYNTHETIC")
+        self._check_producer(rel, doc)
 
-        # The quarantine can only shrink. An entry whose artefact has been fixed, or has
-        # gone away, is an excuse outliving its reason, so it is a RED rather than a
-        # silently ignored line.
+        caveats = doc.get("caveats")
+        if not isinstance(caveats, list) or any(not isinstance(c, str) for c in caveats):
+            self.result.fail("ENV-CAVEATS", rel, "caveats is not a list of strings")
+        else:
+            self.result.tick("ENV-CAVEATS")
+
+        if not isinstance(doc.get("synthetic"), bool):
+            self.result.fail(
+                "ENV-SYNTHETIC",
+                rel,
+                f"synthetic is {doc.get('synthetic')!r}; whether the subject matter is "
+                "fabricated is a claim, and it is made with a boolean",
+            )
+        else:
+            self.result.tick("ENV-SYNTHETIC")
+
+    def _check_producer(self, rel: str, doc: dict[str, Any]) -> None:
+        """``generated_by`` must name a file in this tree, or hold a written quarantine.
+
+        The only envelope field whose verdict depends on something outside the artefact —
+        the tree, and ``KNOWN_PRODUCER_GAPS`` — which is why it is a function of its own
+        rather than a fourth ``if`` in the row of shape assertions above.
+        """
+        producer = doc.get("generated_by")
+        quarantined = KNOWN_PRODUCER_GAPS.get(rel)
+        if not isinstance(producer, str) or not producer:
+            self.result.fail("ENV-PRODUCER", rel, "generated_by is empty")
+        elif (self.repo / producer).is_file():
+            self.result.tick("ENV-PRODUCER")
+        elif quarantined is not None and quarantined[0] == producer:
+            self.result.notes.append(
+                f"QUARANTINE {rel}: generated_by is {producer!r}, which is not a file in "
+                f"this tree — {quarantined[1]}. Delete the KNOWN_PRODUCER_GAPS entry in "
+                "scripts/aws/verify_evidence.py once the artefact is regenerated with a "
+                "producer a reader can open."
+            )
+        else:
+            self.result.fail(
+                "ENV-PRODUCER",
+                rel,
+                f"generated_by names {producer!r}, which is not a file in this tree; "
+                "an artefact whose producer cannot be read cannot be re-run",
+            )
+
+    def _check_quarantine_is_current(self) -> None:
+        """The quarantine can only shrink.
+
+        An entry whose artefact has been fixed, or has gone away, is an excuse outliving
+        its reason, so it is a RED rather than a silently ignored line.
+        """
         for rel, (bad, why) in KNOWN_PRODUCER_GAPS.items():
             doc = self.envelopes.get(rel)
             if doc is None:
@@ -569,6 +590,52 @@ class Verifier:
             return
 
         # ── one model, four documents ─────────────────────────────────────────────────
+        self._check_model_is_one(manifest, ann, load, probe, ledger)
+
+        # ── generations ───────────────────────────────────────────────────────────────
+        self._check_generations(manifest, ann, load)
+
+        # ── the token ledger reconciles against itself ────────────────────────────────
+        self._check_ledger(ledger)
+
+        # ── and AWS's own numbers reconcile against the repository's ─────────────────
+        self._check_cloudwatch()
+
+        # ── the exhibit ───────────────────────────────────────────────────────────────
+        self._check_one_query(ann)
+        self._check_explains(ann)
+
+        # ── raw artefacts a summary points at ─────────────────────────────────────────
+        raw = probe.get("raw_artefacts")
+        for named in raw if isinstance(raw, list) else []:
+            if not isinstance(named, str):
+                continue
+            if not (self.evidence.parent / named).is_file():
+                self.result.fail(
+                    "XR-RAW-ARTEFACTS",
+                    self.PROBE,
+                    f"points at {named}, which does not exist",
+                )
+            else:
+                self.result.tick("XR-RAW-ARTEFACTS")
+
+        # ── the two disclosures the lead's plan makes non-negotiable ──────────────────
+        self._check_disclosures(ann)
+
+    def _check_model_is_one(
+        self,
+        manifest: dict[str, Any],
+        ann: dict[str, Any],
+        load: dict[str, Any],
+        probe: dict[str, Any],
+        ledger: dict[str, Any],
+    ) -> None:
+        """Six documents name an embedding model; they must all name the same one.
+
+        Extracted from :func:`check_cross_references` so that the one question this asks
+        — *is it one model?* — is not read through the generation and disclosure questions
+        that used to sit in the same function body.
+        """
         model = manifest.get("model_id")
         claims = {
             f"{self.MANIFEST}#payload.model_id": model,
@@ -604,7 +671,15 @@ class Verifier:
         else:
             self.result.tick("XR-MODEL-ONE")
 
-        # ── generations ───────────────────────────────────────────────────────────────
+    def _check_generations(
+        self, manifest: dict[str, Any], ann: dict[str, Any], load: dict[str, Any]
+    ) -> None:
+        """The four index-generation assertions, including the disclosed-divergence one.
+
+        Extracted from :func:`check_cross_references`: these four are a single argument
+        about which index generation each artefact is describing, and reading them as one
+        function is how the divergence rule below stops looking arbitrary.
+        """
         manifest_gen = manifest.get("index_gen")
         loader_gen = _dig(load, "source", "manifest", "manifest_index_gen")
         if manifest_gen is None or loader_gen != manifest_gen:
@@ -644,56 +719,33 @@ class Verifier:
 
         # The divergence itself is not a defect — it is two writers in one table — but a
         # SILENT divergence would be, so the disclosure is what is enforced.
-        if ann_gen != manifest_gen:
-            others = _dig(ann, "vectors", "rows_under_other_prefixes")
-            disclosed = isinstance(others, list) and any(
-                isinstance(row, dict) and row.get("index_gen") == manifest_gen for row in others
-            )
-            if not (disclosed and len(in_table) > 1):
-                self.result.fail(
-                    "XR-GEN-DIVERGENCE-DISCLOSED",
-                    self.ANN,
-                    f"the ANN proof searched {ann_gen!r} while the loader wrote "
-                    f"{manifest_gen!r} into the same table, and the artefact does not "
-                    "enumerate the other generation's rows; a reader would take the "
-                    "table's row count for the searched row count",
-                )
-            else:
-                self.result.tick("XR-GEN-DIVERGENCE-DISCLOSED")
-            self.result.notes.append(
-                f"two index generations share mainline_ann_evidence.mainline.clause_embedding: "
-                f"the loader's {manifest_gen!r} and the ANN proof's {ann_gen!r}. Disclosed by "
-                f"{self.ANN}#payload.vectors.rows_under_other_prefixes; the proof searched only "
-                f"{ann_gen!r}."
+        if ann_gen == manifest_gen:
+            self.result.tick("XR-GEN-DIVERGENCE-DISCLOSED")
+            return
+        others = _dig(ann, "vectors", "rows_under_other_prefixes")
+        disclosed = isinstance(others, list) and any(
+            isinstance(row, dict) and row.get("index_gen") == manifest_gen for row in others
+        )
+        if not (disclosed and len(in_table) > 1):
+            self.result.fail(
+                "XR-GEN-DIVERGENCE-DISCLOSED",
+                self.ANN,
+                f"the ANN proof searched {ann_gen!r} while the loader wrote "
+                f"{manifest_gen!r} into the same table, and the artefact does not "
+                "enumerate the other generation's rows; a reader would take the "
+                "table's row count for the searched row count",
             )
         else:
             self.result.tick("XR-GEN-DIVERGENCE-DISCLOSED")
+        self.result.notes.append(
+            f"two index generations share mainline_ann_evidence.mainline.clause_embedding: "
+            f"the loader's {manifest_gen!r} and the ANN proof's {ann_gen!r}. Disclosed by "
+            f"{self.ANN}#payload.vectors.rows_under_other_prefixes; the proof searched only "
+            f"{ann_gen!r}."
+        )
 
-        # ── the token ledger reconciles against itself ────────────────────────────────
-        self._check_ledger(ledger)
-
-        # ── and AWS's own numbers reconcile against the repository's ─────────────────
-        self._check_cloudwatch()
-
-        # ── the exhibit ───────────────────────────────────────────────────────────────
-        self._check_one_query(ann)
-        self._check_explains(ann)
-
-        # ── raw artefacts a summary points at ─────────────────────────────────────────
-        raw = probe.get("raw_artefacts")
-        for named in raw if isinstance(raw, list) else []:
-            if not isinstance(named, str):
-                continue
-            if not (self.evidence.parent / named).is_file():
-                self.result.fail(
-                    "XR-RAW-ARTEFACTS",
-                    self.PROBE,
-                    f"points at {named}, which does not exist",
-                )
-            else:
-                self.result.tick("XR-RAW-ARTEFACTS")
-
-        # ── the two disclosures the lead's plan makes non-negotiable ──────────────────
+    def _check_disclosures(self, ann: dict[str, Any]) -> None:
+        """The stub-parent and synthetic-corpus disclosures the lead's plan makes non-negotiable."""
         if _dig(ann, "database", "parent_table_is_stub") is not True:
             self.result.fail(
                 "XR-STUB-DISCLOSED",
@@ -899,37 +951,7 @@ class Verifier:
             )
             return
 
-        prohibitions = metrics.get("prohibitions")
-        if not isinstance(prohibitions, dict) or not prohibitions:
-            self.result.fail(
-                "XR-CLOUDWATCH-READONLY",
-                self.METRICS,
-                "carries no prohibitions block. 'metrics read, nothing provisioned' is the "
-                "entire basis of this row's verdict and it has to be stated in the artefact",
-            )
-        else:
-            asserted_false = [
-                key
-                for key, value in prohibitions.items()
-                if isinstance(value, bool) and value is not False
-            ]
-            if asserted_false:
-                self.result.fail(
-                    "XR-CLOUDWATCH-READONLY",
-                    self.METRICS,
-                    f"records that it DID {', '.join(sorted(asserted_false))}. This fleet is "
-                    "forbidden from provisioning anything, and the census's CloudWatch "
-                    "verdict says 'metrics read, nothing provisioned'",
-                )
-            elif not any(k.startswith("models_invoked") for k in prohibitions):
-                self.result.fail(
-                    "XR-CLOUDWATCH-READONLY",
-                    self.METRICS,
-                    "does not state whether the metric reader itself invoked a model; a "
-                    "reader that contributed to the series it quotes is corroborating itself",
-                )
-            else:
-                self.result.tick("XR-CLOUDWATCH-READONLY", len(prohibitions))
+        self._check_cloudwatch_prohibitions(metrics)
 
         sources = recon.get("repo_sources")
         if not isinstance(sources, dict) or not sources:
@@ -943,97 +965,157 @@ class Verifier:
         for name, source in sorted(sources.items()):
             if not isinstance(source, dict):
                 continue
-            path = source.get("path")
-            if source.get("status") == "absent":
-                self._check_absent_source(name, path, recon_stamp)
+            compared += self._check_recon_source(name, source, recon_stamp)
+
+        self._check_recon_completeness(recon, sources, compared)
+
+    def _check_cloudwatch_prohibitions(self, metrics: dict[str, Any]) -> None:
+        """'Metrics read, nothing provisioned' is a claim, and the artefact has to make it.
+
+        Extracted from :func:`_check_cloudwatch` because it reads a different document
+        (``bedrock-metrics.json``) than the reconciliation walk that follows, and mixing
+        the two made it hard to see that this one has nothing to do with repo sources.
+        """
+        prohibitions = metrics.get("prohibitions")
+        if not isinstance(prohibitions, dict) or not prohibitions:
+            self.result.fail(
+                "XR-CLOUDWATCH-READONLY",
+                self.METRICS,
+                "carries no prohibitions block. 'metrics read, nothing provisioned' is the "
+                "entire basis of this row's verdict and it has to be stated in the artefact",
+            )
+            return
+        asserted_false = [
+            key
+            for key, value in prohibitions.items()
+            if isinstance(value, bool) and value is not False
+        ]
+        if asserted_false:
+            self.result.fail(
+                "XR-CLOUDWATCH-READONLY",
+                self.METRICS,
+                f"records that it DID {', '.join(sorted(asserted_false))}. This fleet is "
+                "forbidden from provisioning anything, and the census's CloudWatch "
+                "verdict says 'metrics read, nothing provisioned'",
+            )
+        elif not any(k.startswith("models_invoked") for k in prohibitions):
+            self.result.fail(
+                "XR-CLOUDWATCH-READONLY",
+                self.METRICS,
+                "does not state whether the metric reader itself invoked a model; a "
+                "reader that contributed to the series it quotes is corroborating itself",
+            )
+        else:
+            self.result.tick("XR-CLOUDWATCH-READONLY", len(prohibitions))
+
+    def _check_recon_source(self, name: str, source: dict[str, Any], recon_stamp: str) -> int:
+        """Walk one ``repo_sources`` entry's pointers into the artefact it names.
+
+        Returns the count of figures actually compared, which the caller sums: a source
+        that compared nothing is a column in the AWS table with no repository behind it,
+        and that is the vacuity this whole check exists to refuse.
+        """
+        path = source.get("path")
+        if source.get("status") == "absent":
+            self._check_absent_source(name, path, recon_stamp)
+            return 0
+        # A source with no artefact path of its own — the local vector caches, for
+        # instance — carries nothing this check can walk into. Skipped, not failed.
+        if not isinstance(path, str) or not path.endswith(".json"):
+            return 0
+        if not (self.evidence.parent / path).is_file():
+            self.result.fail(
+                "XR-RECON-REPO-SIDE",
+                self.RECON,
+                f"repo source {name!r} was read from {path!r}, which is not a file",
+            )
+            return 0
+        target = json.loads((self.evidence.parent / path).read_text(encoding="utf-8"))
+        here = 0
+
+        # `ledger_entries` pointers are rooted at the artefact's PAYLOAD; the summary
+        # blocks below are rooted at the document. Both forms appear in the file and
+        # both are followed rather than guessed at.
+        for entry in source.get("ledger_entries") or []:
+            if not isinstance(entry, dict):
                 continue
-            # A source with no artefact path of its own — the local vector caches, for
-            # instance — carries nothing this check can walk into. Skipped, not failed.
-            if not isinstance(path, str) or not path.endswith(".json"):
-                continue
-            if not (self.evidence.parent / path).is_file():
+            landed = self._pointer(target.get("payload"), entry.get("json_pointer"))
+            if not isinstance(landed, dict):
                 self.result.fail(
                     "XR-RECON-REPO-SIDE",
                     self.RECON,
-                    f"repo source {name!r} was read from {path!r}, which is not a file",
+                    f"repo_sources.{name}.ledger_entries json_pointer "
+                    f"{entry.get('json_pointer')!r} does not resolve inside {path}",
                 )
                 continue
-            target = json.loads((self.evidence.parent / path).read_text(encoding="utf-8"))
-            here = 0
+            here += self._compare_numbers(
+                f"repo_sources.{name}.ledger_entries", entry, landed, path
+            )
 
-            # `ledger_entries` pointers are rooted at the artefact's PAYLOAD; the summary
-            # blocks below are rooted at the document. Both forms appear in the file and
-            # both are followed rather than guessed at.
-            for entry in source.get("ledger_entries") or []:
-                if not isinstance(entry, dict):
-                    continue
-                landed = self._pointer(target.get("payload"), entry.get("json_pointer"))
-                if not isinstance(landed, dict):
-                    self.result.fail(
-                        "XR-RECON-REPO-SIDE",
-                        self.RECON,
-                        f"repo_sources.{name}.ledger_entries json_pointer "
-                        f"{entry.get('json_pointer')!r} does not resolve inside {path}",
-                    )
-                    continue
-                here += self._compare_numbers(
-                    f"repo_sources.{name}.ledger_entries", entry, landed, path
-                )
+        for block in (
+            "nominated_entry",
+            "nominated_entries",
+            "retry_and_failure_facts",
+            "pass_facts",
+        ):
+            quoted = source.get(block)
+            if not isinstance(quoted, dict):
+                continue
+            here += self._check_recon_block(name, block, quoted, target, path)
 
-            for block in (
-                "nominated_entry",
-                "nominated_entries",
-                "retry_and_failure_facts",
-                "pass_facts",
-            ):
-                quoted = source.get(block)
-                if not isinstance(quoted, dict):
-                    continue
-                pointer = quoted.get("json_pointer")
-                landed = self._pointer(target, pointer)
-                if landed is None:
-                    self.result.fail(
-                        "XR-RECON-REPO-SIDE",
-                        self.RECON,
-                        f"repo_sources.{name}.{block}.json_pointer {pointer!r} does not "
-                        f"resolve inside {path}",
-                    )
-                    continue
-                if isinstance(landed, list) and isinstance(quoted.get("rows"), list):
-                    for index, row in enumerate(quoted["rows"]):
-                        if (
-                            index < len(landed)
-                            and isinstance(row, dict)
-                            and isinstance(landed[index], dict)
-                        ):
-                            here += self._compare_numbers(
-                                f"repo_sources.{name}.{block}.rows[{index}]",
-                                row,
-                                landed[index],
-                                path,
-                            )
-                    continue
-                if isinstance(landed, dict):
-                    # Only keys the pointer's own object carries are compared. The
-                    # reconciliation legitimately RENAMES some figures — `pass_facts`
-                    # quotes `calls_this_pass` for a field the artefact calls `calls` —
-                    # and demanding a key-for-key copy would turn a faithful summary into
-                    # a red build. Non-vacuity is enforced per SOURCE instead: every
-                    # source has `ledger_entries`, which are verbatim.
+        if here == 0:
+            self.result.fail(
+                "XR-RECON-REPO-SIDE",
+                self.RECON,
+                f"repo source {name!r} was read from {path} and not one of its figures "
+                "was checked against that file, so its column in the AWS comparison is "
+                "unsupported",
+            )
+        return here
+
+    def _check_recon_block(
+        self, name: str, block: str, quoted: dict[str, Any], target: Any, path: str
+    ) -> int:
+        """Compare one quoted summary block against where its pointer lands."""
+        pointer = quoted.get("json_pointer")
+        landed = self._pointer(target, pointer)
+        if landed is None:
+            self.result.fail(
+                "XR-RECON-REPO-SIDE",
+                self.RECON,
+                f"repo_sources.{name}.{block}.json_pointer {pointer!r} does not "
+                f"resolve inside {path}",
+            )
+            return 0
+        here = 0
+        if isinstance(landed, list) and isinstance(quoted.get("rows"), list):
+            for index, row in enumerate(quoted["rows"]):
+                if (
+                    index < len(landed)
+                    and isinstance(row, dict)
+                    and isinstance(landed[index], dict)
+                ):
                     here += self._compare_numbers(
-                        f"repo_sources.{name}.{block}", quoted, landed, path
+                        f"repo_sources.{name}.{block}.rows[{index}]",
+                        row,
+                        landed[index],
+                        path,
                     )
+            return here
+        if isinstance(landed, dict):
+            # Only keys the pointer's own object carries are compared. The
+            # reconciliation legitimately RENAMES some figures — `pass_facts`
+            # quotes `calls_this_pass` for a field the artefact calls `calls` —
+            # and demanding a key-for-key copy would turn a faithful summary into
+            # a red build. Non-vacuity is enforced per SOURCE instead: every
+            # source has `ledger_entries`, which are verbatim.
+            here += self._compare_numbers(f"repo_sources.{name}.{block}", quoted, landed, path)
+        return here
 
-            compared += here
-            if here == 0:
-                self.result.fail(
-                    "XR-RECON-REPO-SIDE",
-                    self.RECON,
-                    f"repo source {name!r} was read from {path} and not one of its figures "
-                    "was checked against that file, so its column in the AWS comparison is "
-                    "unsupported",
-                )
-
+    def _check_recon_completeness(
+        self, recon: dict[str, Any], sources: dict[str, Any], compared: int
+    ) -> None:
+        """What the reconciliation declares missing must equal what is actually absent."""
         declared_missing = set(recon.get("reconciliation", {}).get("sources_missing") or [])
         observed_missing = {
             name
@@ -1226,54 +1308,9 @@ class Verifier:
             return
 
         for rel, doc in ((self.AWS_CENSUS, aws), (self.CRDB_CENSUS, crdb)):
-            rows = doc["rows"]
-            totals = doc.get("totals") or {}
-            by_verdict = totals.get("by_verdict") or {}
-            by_kind = totals.get("by_kind") or {}
-            declared = totals.get("rows")
-
-            for key, row in rows.items():
-                verdict = row.get("verdict")
-                if verdict not in VERDICTS:
-                    self.result.fail(
-                        "CEN-VERDICT-VALUES",
-                        f"{rel}#rows.{key}",
-                        f"verdict {verdict!r} is not one of {sorted(VERDICTS)}",
-                    )
-                else:
-                    self.result.tick("CEN-VERDICT-VALUES")
-
-            if sum(by_verdict.values()) != declared or len(rows) != declared:
-                self.result.fail(
-                    "CEN-TALLY",
-                    rel,
-                    f"totals.rows is {declared!r}, by_verdict sums to {sum(by_verdict.values())}, "
-                    f"and {len(rows)} rows are present",
-                )
-            elif sum(by_kind.values()) != declared:
-                self.result.fail(
-                    "CEN-TALLY",
-                    rel,
-                    f"totals.by_kind sums to {sum(by_kind.values())} against {declared} rows",
-                )
-            else:
-                self.result.tick("CEN-TALLY")
-
-            observed: dict[str, int] = dict.fromkeys(VERDICTS, 0)
-            for row in rows.values():
-                if row.get("verdict") in observed:
-                    observed[row["verdict"]] += 1
-            for verdict, count in observed.items():
-                if by_verdict.get(verdict, 0) != count:
-                    self.result.fail(
-                        "CEN-TALLY",
-                        f"{rel}#totals.by_verdict.{verdict}",
-                        f"claims {by_verdict.get(verdict)!r}; {count} rows actually carry it",
-                    )
-                else:
-                    self.result.tick("CEN-TALLY")
-
-            self._check_anchors(rel, rows)
+            self._check_verdict_values(rel, doc["rows"])
+            self._check_tallies(rel, doc)
+            self._check_anchors(rel, doc["rows"])
 
         self._check_exercised_paths(self.AWS_CENSUS, aws["rows"])
         self._check_basis_figures(self.AWS_CENSUS, aws["rows"])
@@ -1281,6 +1318,62 @@ class Verifier:
         self._check_census_note(aws)
         self._check_verdict_source(aws, crdb)
         self._check_model_in_census(aws)
+
+    def _check_verdict_values(self, rel: str, rows: dict[str, Any]) -> None:
+        """Every row's verdict must be one of the four words the vocabulary allows."""
+        for key, row in rows.items():
+            verdict = row.get("verdict")
+            if verdict not in VERDICTS:
+                self.result.fail(
+                    "CEN-VERDICT-VALUES",
+                    f"{rel}#rows.{key}",
+                    f"verdict {verdict!r} is not one of {sorted(VERDICTS)}",
+                )
+            else:
+                self.result.tick("CEN-VERDICT-VALUES")
+
+    def _check_tallies(self, rel: str, doc: dict[str, Any]) -> None:
+        """The census's own arithmetic: totals against rows, and by_verdict against reality.
+
+        Extracted from :func:`check_census` so that the arithmetic — which is three
+        independent sums over the same rows — reads as one thing, and ``check_census``
+        reads as the list of checks it dispatches.
+        """
+        rows = doc["rows"]
+        totals = doc.get("totals") or {}
+        by_verdict = totals.get("by_verdict") or {}
+        by_kind = totals.get("by_kind") or {}
+        declared = totals.get("rows")
+
+        if sum(by_verdict.values()) != declared or len(rows) != declared:
+            self.result.fail(
+                "CEN-TALLY",
+                rel,
+                f"totals.rows is {declared!r}, by_verdict sums to {sum(by_verdict.values())}, "
+                f"and {len(rows)} rows are present",
+            )
+        elif sum(by_kind.values()) != declared:
+            self.result.fail(
+                "CEN-TALLY",
+                rel,
+                f"totals.by_kind sums to {sum(by_kind.values())} against {declared} rows",
+            )
+        else:
+            self.result.tick("CEN-TALLY")
+
+        observed: dict[str, int] = dict.fromkeys(VERDICTS, 0)
+        for row in rows.values():
+            if row.get("verdict") in observed:
+                observed[row["verdict"]] += 1
+        for verdict, count in observed.items():
+            if by_verdict.get(verdict, 0) != count:
+                self.result.fail(
+                    "CEN-TALLY",
+                    f"{rel}#totals.by_verdict.{verdict}",
+                    f"claims {by_verdict.get(verdict)!r}; {count} rows actually carry it",
+                )
+            else:
+                self.result.tick("CEN-TALLY")
 
     def _check_anchors(self, rel: str, rows: dict[str, Any]) -> None:
         for key, row in rows.items():
@@ -1431,7 +1524,12 @@ class Verifier:
         sys.modules[spec.name] = module
         try:
             spec.loader.exec_module(module)
-        except Exception as exc:  # pragma: no cover - defensive
+        # `exec_module` runs another file's whole top level, so the exception set is
+        # unbounded — a SyntaxError, a missing third-party import, or anything that file's
+        # module-level code chooses to raise. Narrowing this would turn "the census source
+        # is broken" from a recorded CEN-VERDICT-SOURCE failure into a traceback that kills
+        # the other thirty-nine invariants, which is the opposite of what a verifier is for.
+        except Exception as exc:  # noqa: BLE001 - see above; a broken source is a finding
             self.result.fail("CEN-VERDICT-SOURCE", str(source), f"failed to import: {exc}")
             return
         finally:
@@ -1589,22 +1687,8 @@ class Verifier:
                 seen += 1
                 self.result.tick("DOC-TOOL-USAGE-REFS")
                 continue
-            # Dotted, as `docs/HONESTY.md` established; a pointer beginning with `/` is
-            # read as RFC-6901 instead, which is how a key containing a dot stays citable.
             document = json.loads(target.read_text(encoding="utf-8"))
-            if pointer.startswith("/"):
-                landed = self._pointer(document, pointer)
-            else:
-                landed = document
-                for segment in pointer.split("."):
-                    if isinstance(landed, list) and segment.isdigit():
-                        landed = landed[int(segment)] if int(segment) < len(landed) else None
-                    elif isinstance(landed, dict):
-                        landed = landed.get(segment)
-                    else:
-                        landed = None
-                    if landed is None:
-                        break
+            landed = self._resolve_citation(document, pointer)
             if landed is None:
                 self.result.fail(
                     "DOC-TOOL-USAGE-REFS",
@@ -1613,30 +1697,8 @@ class Verifier:
                     "silently stopped landing is the failure this convention exists to stop",
                 )
                 continue
-            number = match.group("number")
-            if number is not None:
-                try:
-                    quoted = float(number.replace(",", ""))
-                except ValueError:  # pragma: no cover - the regex guarantees a number
-                    quoted = None
-                if quoted is not None:
-                    if not isinstance(landed, (int, float)) or isinstance(landed, bool):
-                        self.result.fail(
-                            "DOC-TOOL-USAGE-REFS",
-                            "docs/TOOL-USAGE.md",
-                            f"prints {number} beside {path}#{pointer}, which is {landed!r} "
-                            "and not a number",
-                        )
-                        continue
-                    if abs(float(landed) - quoted) > 1e-9:
-                        self.result.fail(
-                            "DOC-TOOL-USAGE-REFS",
-                            "docs/TOOL-USAGE.md",
-                            f"prints {number} beside {path}#{pointer}, which now reads "
-                            f"{landed!r}. Update the sentence or regenerate the artefact — "
-                            "the document and its evidence have drifted apart",
-                        )
-                        continue
+            if not self._quoted_number_still_holds(match.group("number"), landed, path, pointer):
+                continue
             seen += 1
             self.result.tick("DOC-TOOL-USAGE-REFS")
         if seen == 0:
@@ -1646,6 +1708,60 @@ class Verifier:
                 "carries no [src: evidence/aws/…] citation at all. The AWS half of the "
                 "services document is supposed to send a reader to the evidence",
             )
+
+    def _resolve_citation(self, document: Any, pointer: str) -> Any:
+        """Follow one citation's pointer into the artefact it names.
+
+        Dotted, as ``docs/HONESTY.md`` established; a pointer beginning with ``/`` is read
+        as RFC-6901 instead, which is how a key containing a dot stays citable. Extracted
+        from :func:`check_tool_usage_refs` so that "how a pointer is read" is one function
+        and "what a citation must satisfy" is another.
+        """
+        if pointer.startswith("/"):
+            return self._pointer(document, pointer)
+        landed = document
+        for segment in pointer.split("."):
+            if isinstance(landed, list) and segment.isdigit():
+                landed = landed[int(segment)] if int(segment) < len(landed) else None
+            elif isinstance(landed, dict):
+                landed = landed.get(segment)
+            else:
+                landed = None
+            if landed is None:
+                break
+        return landed
+
+    def _quoted_number_still_holds(
+        self, number: str | None, landed: Any, path: str, pointer: str
+    ) -> bool:
+        """When the prose prints a figure beside its citation, that figure must still be there.
+
+        Returns ``True`` when the citation is clean — including when it quotes no number at
+        all — and records the failure itself otherwise, so the caller's loop stays a loop.
+        """
+        if number is None:
+            return True
+        try:
+            quoted = float(number.replace(",", ""))
+        except ValueError:  # pragma: no cover - the regex guarantees a number
+            return True
+        if not isinstance(landed, (int, float)) or isinstance(landed, bool):
+            self.result.fail(
+                "DOC-TOOL-USAGE-REFS",
+                "docs/TOOL-USAGE.md",
+                f"prints {number} beside {path}#{pointer}, which is {landed!r} and not a number",
+            )
+            return False
+        if abs(float(landed) - quoted) > 1e-9:
+            self.result.fail(
+                "DOC-TOOL-USAGE-REFS",
+                "docs/TOOL-USAGE.md",
+                f"prints {number} beside {path}#{pointer}, which now reads "
+                f"{landed!r}. Update the sentence or regenerate the artefact — "
+                "the document and its evidence have drifted apart",
+            )
+            return False
+        return True
 
     def run(self) -> Result:
         self.check_envelopes()
@@ -1672,7 +1788,9 @@ def _edit_json(path: Path, mutate) -> None:
     path.write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
-def _plants() -> list[tuple[str, str, Any]]:
+def _envelope_plants() -> list[tuple[str, str, Any]]:
+    """§3.1 · the envelope family."""
+
     def drop_region(ev: Path) -> None:
         _edit_json(ev / "aws" / "probe" / "bedrock-probe.json", lambda d: d.pop("region"))
 
@@ -1687,6 +1805,16 @@ def _plants() -> list[tuple[str, str, Any]]:
             ev / "aws" / "embeddings" / "manifest.json",
             lambda d: d.__setitem__("generated_by", "scripts/aws/does_not_exist.py"),
         )
+
+    return [
+        ("envelope loses its region", "ENV-REGION", drop_region),
+        ("artefact stops naming itself", "ENV-SELF", rename_self),
+        ("producer no longer exists", "ENV-PRODUCER", fake_producer),
+    ]
+
+
+def _cross_reference_plants() -> list[tuple[str, str, Any]]:
+    """§3.2 · the cross-reference family, including CloudWatch reconciliation."""
 
     def switch_model(ev: Path) -> None:
         _edit_json(
@@ -1728,6 +1856,40 @@ def _plants() -> list[tuple[str, str, Any]]:
             lambda d: d["payload"]["database"].__setitem__("parent_table_is_stub", False),
         )
 
+    def claim_a_provision(ev: Path) -> None:
+        _edit_json(
+            ev / "aws" / "cloudwatch" / "bedrock-metrics.json",
+            lambda d: d["payload"]["prohibitions"].__setitem__("alarms_created", True),
+        )
+
+    def forget_a_source(ev: Path) -> None:
+        def mutate(d):
+            d["payload"]["repo_sources"]["probe"]["status"] = "absent"
+
+        _edit_json(ev / "aws" / "cloudwatch" / "reconciliation.json", mutate)
+
+    def retype_a_repo_number(ev: Path) -> None:
+        def mutate(d):
+            d["payload"]["repo_sources"]["titan_embed"]["nominated_entry"]["input_tokens"] = 1
+
+        _edit_json(ev / "aws" / "cloudwatch" / "reconciliation.json", mutate)
+
+    return [
+        ("ANN proof claims a different model", "XR-MODEL-ONE", switch_model),
+        ("loader claims a different generation", "XR-GEN-MANIFEST-LOAD", switch_gen),
+        ("reconciliation arithmetic stops closing", "XR-LEDGER-RECON", break_recon),
+        ("the exhibit query disappears", "XR-ONE-QUERY", hide_exhibit),
+        ("the hinted plan stops naming the index", "XR-EXPLAIN", unpin_plan),
+        ("the stub parent stops being disclosed", "XR-STUB-DISCLOSED", undisclose_stub),
+        ("the metric reader admits it provisioned", "XR-CLOUDWATCH-READONLY", claim_a_provision),
+        ("a source that was there is called absent", "XR-RECON-COMPLETENESS", forget_a_source),
+        ("a repo-side number is retyped", "XR-RECON-REPO-SIDE", retype_a_repo_number),
+    ]
+
+
+def _secret_plants() -> list[tuple[str, str, Any]]:
+    """§3.3 · the secret family. Every literal below is fabricated, and none is a credential."""
+
     def leak_account(ev: Path) -> None:
         (ev / "aws" / "probe" / "leak.txt").write_text(
             "caller arn account 123456789012 was here\n", encoding="utf-8"
@@ -1748,6 +1910,17 @@ def _plants() -> list[tuple[str, str, Any]]:
         (ev / "aws" / "probe" / "leak.txt").write_text(
             "AKIAQQQQWWWWEEEERRRR used once\n", encoding="utf-8"
         )
+
+    return [
+        ("an account id is written into evidence/", "SEC-ACCOUNT-ID", leak_account),
+        ("an ARN keeps its account field", "SEC-ARN-ACCOUNT", leak_arn),
+        ("a DSN keeps its password", "SEC-DSN-PASSWORD", leak_dsn),
+        ("an access-key id appears", "SEC-ACCESS-KEY", leak_key),
+    ]
+
+
+def _census_plants() -> list[tuple[str, str, Any]]:
+    """§3.4 · the census family."""
 
     def bend_tally(ev: Path) -> None:
         _edit_json(
@@ -1777,6 +1950,26 @@ def _plants() -> list[tuple[str, str, Any]]:
 
         _edit_json(ev / "tool-usage" / "aws-services.json", mutate)
 
+    def move_a_quoted_figure(ev: Path) -> None:
+        # The artefact moves, the census sentence does not. This is the drift the
+        # pointer-quoting convention exists to make loud.
+        _edit_json(
+            ev / "aws" / "embeddings" / "manifest.json",
+            lambda d: d["payload"]["totals"].__setitem__("vectors", 999),
+        )
+
+    return [
+        ("the census tally is bent", "CEN-TALLY", bend_tally),
+        ("an EXERCISED row cites a missing artefact", "CEN-EXERCISED-PATHS", dangling_basis),
+        ("a census anchor stops resolving", "CEN-ANCHORS", move_anchor),
+        ("a verdict basis is hand-edited", "CEN-VERDICT-SOURCE", forge_verdict),
+        ("an artefact moves under a quoted figure", "CEN-BASIS-FIGURES", move_a_quoted_figure),
+    ]
+
+
+def _document_plants() -> list[tuple[str, str, Any]]:
+    """§3.5 · the judge's index and the services document."""
+
     def drop_readme_line(ev: Path) -> None:
         readme = ev / "aws" / "README.md"
         readme.write_text(
@@ -1787,26 +1980,6 @@ def _plants() -> list[tuple[str, str, Any]]:
     def orphan_a_file(ev: Path) -> None:
         (ev / "aws" / "probe" / "nobody-wrote-about-this.json").write_text("{}\n", encoding="utf-8")
 
-    def move_a_quoted_figure(ev: Path) -> None:
-        # The artefact moves, the census sentence does not. This is the drift the
-        # pointer-quoting convention exists to make loud.
-        _edit_json(
-            ev / "aws" / "embeddings" / "manifest.json",
-            lambda d: d["payload"]["totals"].__setitem__("vectors", 999),
-        )
-
-    def claim_a_provision(ev: Path) -> None:
-        _edit_json(
-            ev / "aws" / "cloudwatch" / "bedrock-metrics.json",
-            lambda d: d["payload"]["prohibitions"].__setitem__("alarms_created", True),
-        )
-
-    def forget_a_source(ev: Path) -> None:
-        def mutate(d):
-            d["payload"]["repo_sources"]["probe"]["status"] = "absent"
-
-        _edit_json(ev / "aws" / "cloudwatch" / "reconciliation.json", mutate)
-
     def move_a_cited_value(ev: Path) -> None:
         # docs/TOOL-USAGE.md prints this number beside its citation.
         _edit_json(
@@ -1814,37 +1987,27 @@ def _plants() -> list[tuple[str, str, Any]]:
             lambda d: d["payload"]["api_call_summary"].__setitem__("GetMetricStatistics", 1),
         )
 
-    def retype_a_repo_number(ev: Path) -> None:
-        def mutate(d):
-            d["payload"]["repo_sources"]["titan_embed"]["nominated_entry"]["input_tokens"] = 1
-
-        _edit_json(ev / "aws" / "cloudwatch" / "reconciliation.json", mutate)
-
     return [
-        ("envelope loses its region", "ENV-REGION", drop_region),
-        ("artefact stops naming itself", "ENV-SELF", rename_self),
-        ("producer no longer exists", "ENV-PRODUCER", fake_producer),
-        ("ANN proof claims a different model", "XR-MODEL-ONE", switch_model),
-        ("loader claims a different generation", "XR-GEN-MANIFEST-LOAD", switch_gen),
-        ("reconciliation arithmetic stops closing", "XR-LEDGER-RECON", break_recon),
-        ("the exhibit query disappears", "XR-ONE-QUERY", hide_exhibit),
-        ("the hinted plan stops naming the index", "XR-EXPLAIN", unpin_plan),
-        ("the stub parent stops being disclosed", "XR-STUB-DISCLOSED", undisclose_stub),
-        ("an account id is written into evidence/", "SEC-ACCOUNT-ID", leak_account),
-        ("an ARN keeps its account field", "SEC-ARN-ACCOUNT", leak_arn),
-        ("a DSN keeps its password", "SEC-DSN-PASSWORD", leak_dsn),
-        ("an access-key id appears", "SEC-ACCESS-KEY", leak_key),
-        ("the census tally is bent", "CEN-TALLY", bend_tally),
-        ("an EXERCISED row cites a missing artefact", "CEN-EXERCISED-PATHS", dangling_basis),
-        ("a census anchor stops resolving", "CEN-ANCHORS", move_anchor),
-        ("a verdict basis is hand-edited", "CEN-VERDICT-SOURCE", forge_verdict),
         ("the README stops naming the one query", "DOC-README-EXISTS", drop_readme_line),
         ("a file appears that the README does not name", "DOC-README-COVERS", orphan_a_file),
-        ("an artefact moves under a quoted figure", "CEN-BASIS-FIGURES", move_a_quoted_figure),
-        ("the metric reader admits it provisioned", "XR-CLOUDWATCH-READONLY", claim_a_provision),
-        ("a source that was there is called absent", "XR-RECON-COMPLETENESS", forget_a_source),
-        ("a repo-side number is retyped", "XR-RECON-REPO-SIDE", retype_a_repo_number),
         ("a value cited by TOOL-USAGE.md moves", "DOC-TOOL-USAGE-REFS", move_a_cited_value),
+    ]
+
+
+def _plants() -> list[tuple[str, str, Any]]:
+    """Every planted defect, grouped by the ``check_*`` family it is aimed at.
+
+    Split into five family functions rather than one long body so that "does every family
+    have a plant?" is answerable by reading five short lists against the five sections of
+    :class:`Verifier`. The order below is the order :func:`self_test` reports in, and it is
+    the order of sections 3.1 to 3.5 above.
+    """
+    return [
+        *_envelope_plants(),
+        *_cross_reference_plants(),
+        *_secret_plants(),
+        *_census_plants(),
+        *_document_plants(),
     ]
 
 

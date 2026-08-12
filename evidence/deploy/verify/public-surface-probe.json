@@ -1,0 +1,1157 @@
+{
+  "SPDX-FileCopyrightText": "2026 MAINLINE contributors",
+  "SPDX-License-Identifier": "CC-BY-4.0",
+  "artefact": "evidence/deploy/verify/public-surface-probe.json",
+  "worker": "W2 - the public surface: abuse it, route by route",
+  "plan": "docs/leads/deploy-verify-plan2.md",
+  "generated_at": "2026-08-11T00:00:00Z",
+  "generated_on": "TRAPPOINT, Windows 11, .venv python 3.13, CockroachDB v26.2.5 pinned image",
+  "claim": "Every one of the seventeen declared routes plus the static surface was driven through the real handler over HTTP under the environment the committed Terraform plan sets. The twelve GETs and /v1/health changed no committed row. The four mutating POSTs cannot write at HEAD - they raise KeyError: 0 - and DO write once that defect is corrected, against a permit the demo-subject guard does not cover, because the guard is armed at an identifier that does not exist in the database.",
+  "constraints_observed": [
+    "No terraform was run. No terraform apply.",
+    "The CockroachDB Cloud cluster was read with SET default_transaction_read_only = on and SELECT only. Nothing was written to it.",
+    "No credential appears in this file. db.redact() was exercised on fabricated DSNs.",
+    "The only database mutated is the local scratch database w_w2 on the pinned Docker node."
+  ],
+  "target": {
+    "handler": "verticals/mainline/apps/demo-api/src/mainline_demo_api/app.py",
+    "driver": "scripts/deploy/local_furl.py (payload format 2.0, byte-for-byte the shipped handler)",
+    "artefact_under_review": {
+      "zip": "out/lambda/mainline-demo-api-arm64.zip",
+      "sha256_base64": "yF1/AKVXbkEt+wEkrZPEAQR1cBEXnQApNh2ajbW4pLA=",
+      "matches_plan_source_code_hash": true,
+      "entries": 206,
+      "web_entries": 75,
+      "web_bundle_entries": 26
+    },
+    "database": "w_w2 on postgresql://root@127.0.0.1:26257 - the migration chain 271/271 applied and scripts/deploy/seed_demo.py run, so it is row-for-row the shape of Cloud mainline_demo",
+    "planned_environment_from_terraform_plan_json": {
+      "LOG_LEVEL": "INFO",
+      "MAINLINE_DEMO_DATABASE": "mainline_demo",
+      "MAINLINE_DEMO_PERMIT_ID": "077a6fdd-2167-559c-b2ff-8e3c8352504d",
+      "MAINLINE_DSN_PARAM": "/mainline/demo/cockroach_dsn",
+      "MAINLINE_SCENARIO_PERMIT_ID": "077a6fdd-2167-559c-b2ff-8e3c8352504d",
+      "MAINLINE_WEB_ROOT": "/var/task/web",
+      "MAINLINE_DEBUG": "ABSENT - confirmed from the plan JSON",
+      "MAINLINE_DEMO_ALLOW_MUTATION": "ABSENT - confirmed from the plan JSON",
+      "MAINLINE_DSN": "ABSENT - confirmed from the plan JSON"
+    },
+    "function_url": {
+      "authorization_type": "NONE",
+      "cors": [],
+      "invoke_mode": "BUFFERED"
+    }
+  },
+  "route_table": {
+    "count": 17,
+    "columns": [
+      "method",
+      "template",
+      "resource_key",
+      "mutates",
+      "auth",
+      "status_measured",
+      "ms_measured",
+      "bytes_measured",
+      "worst_case_cost_note"
+    ],
+    "rows": [
+      [
+        "GET",
+        "/v1/health",
+        "health",
+        "reads",
+        "NONE",
+        200,
+        9.2,
+        305,
+        "one round trip; no joins; cold container measured separately"
+      ],
+      [
+        "GET",
+        "/v1/permits/{permit_id}",
+        "permit",
+        "reads",
+        "NONE",
+        200,
+        187.6,
+        5691,
+        "5 statements incl. pg_constraint; no LIMIT needed (single row)"
+      ],
+      [
+        "GET",
+        "/v1/permits/{permit_id}/blocking-checks",
+        "blocking_checks",
+        "reads",
+        "NONE",
+        200,
+        17.4,
+        2408,
+        "SQL LIMIT 512 on mainline.blocking_check"
+      ],
+      [
+        "GET",
+        "/v1/permits/{permit_id}/silence",
+        "silence",
+        "reads",
+        "NONE",
+        200,
+        24.0,
+        2342,
+        "SQL LIMIT 512 on silence_ledger, LIMIT 1 on silence_receipt"
+      ],
+      [
+        "GET",
+        "/v1/change-requests/{cr_id}",
+        "change_request",
+        "reads",
+        "NONE",
+        404,
+        11.2,
+        254,
+        "single row; 0 change_request rows exist on Cloud"
+      ],
+      [
+        "GET",
+        "/v1/checks/{check_id}/disposition",
+        "disposition",
+        "reads",
+        "NONE",
+        200,
+        23.3,
+        2822,
+        "LIMIT 16 lattice, LIMIT 32 defeaters, LIMIT 1 disposition"
+      ],
+      [
+        "GET",
+        "/v1/receipts/{receipt_id}",
+        "exposure_receipt",
+        "reads",
+        "NONE",
+        200,
+        37.9,
+        1817,
+        "SQL LIMIT 512 on exposure_line"
+      ],
+      [
+        "GET",
+        "/v1/clauses/{clause_uuid}/versions/{commit_id}",
+        "clause_version",
+        "reads",
+        "NONE",
+        200,
+        15.5,
+        3230,
+        "LIMIT 64 delta_witness"
+      ],
+      [
+        "GET",
+        "/v1/clauses/{clause_uuid}/ancestry",
+        "clause_ancestry",
+        "reads",
+        "NONE",
+        200,
+        211.3,
+        3744,
+        "6 statements; LIMIT 512 events / 512 control_failure / 2048 event_edge / 512 blame_edge / 512 commit_chain. Heaviest read by statement count."
+      ],
+      [
+        "GET",
+        "/v1/ledger",
+        "ledger",
+        "reads",
+        "NONE",
+        200,
+        52.9,
+        2265,
+        "LIMIT 64 checkpoints / 512 leaves / 2048 nodes / 64 cosignatures / 64 debt; from_seq,to_seq are unbounded integers but the SQL LIMIT 512 caps the window"
+      ],
+      [
+        "GET",
+        "/v1/recall-runs/{run_id}",
+        "recall_run",
+        "reads",
+        "NONE",
+        200,
+        12.8,
+        2223,
+        "capped"
+      ],
+      [
+        "GET",
+        "/v1/lessons/{lesson_id}/propagation",
+        "propagation",
+        "reads",
+        "NONE",
+        200,
+        66.3,
+        4041,
+        "staged: no lesson table exists; returns a probe result, not rows"
+      ],
+      [
+        "GET",
+        "/v1/audit",
+        "audit",
+        "reads",
+        "NONE",
+        200,
+        442.5,
+        19438,
+        "14 views x LIMIT 25 rows / 10240-byte cap EACH, plus agent_action LIMIT 128. NO cap across views: worst case ~14 x 10 KiB. Slowest read measured."
+      ],
+      [
+        "POST",
+        "/v1/permits/{permit_id}/checks:materialise",
+        "materialise_checks",
+        "MUTATES",
+        "NONE",
+        500,
+        16.4,
+        113,
+        "declared mutates=True; conn.commit() at transitions.py:698. 500 KeyError: 0 at HEAD; COMMITS once the row factory is corrected"
+      ],
+      [
+        "POST",
+        "/v1/checks/{check_id}/disposition",
+        "sign_disposition",
+        "MUTATES",
+        "NONE",
+        422,
+        14.0,
+        120,
+        "declared mutates=True; conn.commit() at transitions.py:861. Guard runs AFTER the row is resolved and is fed a column name, not a UUID, at HEAD"
+      ],
+      [
+        "POST",
+        "/v1/permits/{permit_id}/merge",
+        "merge_permit",
+        "MUTATES",
+        "NONE",
+        500,
+        16.4,
+        113,
+        "declared mutates=True; conn.commit() at transitions.py:422"
+      ],
+      [
+        "POST",
+        "/v1/permits/{permit_id}/suspend",
+        "suspend_permit",
+        "MUTATES",
+        "NONE",
+        500,
+        15.0,
+        113,
+        "declared mutates=True; conn.commit() at transitions.py:560"
+      ],
+      [
+        "POST",
+        "/v1/demo/gate-run",
+        "demo_gate_run",
+        "rolls back",
+        "NONE",
+        422,
+        11.1,
+        260,
+        "mutates=False; four beats in one transaction that is rolled back. 422 demo_history_not_seeded under the planned environment; 500 22P02 when the id is right"
+      ]
+    ],
+    "static_surface": "everything outside /v1 falls through to static_site.serve: GET/HEAD only, 200 file / 200 index fallback / 403 refused / 404 asset miss / 405 wrong method / 503 no bundle. No auth, no database, no cost beyond a file read."
+  },
+  "central_question": {
+    "question": "Does any route reachable without authentication mutate committed state?",
+    "cloud_measurement": {
+      "database": "mainline_demo on mainline-dev (aws-ap-southeast-1), read-only session",
+      "connected_as": "mainline-sql",
+      "permit_count": 1,
+      "permits": [
+        {
+          "permit_id": "dec0de00-0006-4000-8000-000000000001",
+          "state": "dispositioned",
+          "open_blocking": 1,
+          "head_seq": 2,
+          "gate_epoch": 1,
+          "external_ref": "DEMO-PTW-0001"
+        }
+      ],
+      "permit_ids_other_than_the_guarded_one": [
+        "dec0de00-0006-4000-8000-000000000001"
+      ],
+      "guarded_permit_077a6fdd_present": false,
+      "change_request_count": 0,
+      "disposition_count": 0,
+      "merge_record_count": 0,
+      "live_exposure_receipts": 1,
+      "no_other_project_data": "mainline_demo holds one site, one permit, one obligation. No other project's rows are reachable through any /v1 resource."
+    },
+    "discoverability": {
+      "GET /v1/ledger": {
+        "discloses_any_permit_id": false,
+        "only_uuid_carried": "dec0de00-0004-... (the clause), as ledger_intake.subject_id"
+      },
+      "GET /v1/audit": {
+        "discloses_any_permit_id": false,
+        "views_probed": 14,
+        "note": "v_open_gate_summary carries a COUNT column named 'permits', not an id"
+      },
+      "GET /bundle/manifest.json": {
+        "discloses_the_seeded_permit_id": true,
+        "served_by": "static_site, same origin, authorization_type = NONE",
+        "shipped_in_the_zip_under_review": "web/bundle/manifest.json",
+        "uuids_disclosed": [
+          "dec0de00-0001-4000-8000-000000000001",
+          "dec0de00-0004-4000-8000-000000000001",
+          "dec0de00-0006-4000-8000-000000000001",
+          "dec0de00-0007-4000-8000-000000000001",
+          "dec0de00-0008-4000-8000-000000000001",
+          "dec0de00-0009-4000-8000-000000000001"
+        ],
+        "conclusion": "The two index reads do NOT leak a permit id. The static surface does, from the same hostname, with no authentication, in the artefact Terraform is about to upload."
+      }
+    },
+    "guard": {
+      "implementation": "transitions._demo_guard, transitions.py:261",
+      "rule": "refuse 423 if and only if subject_id == scenario.permit_id",
+      "scenario.permit_id_comes_from": "MAINLINE_DEMO_PERMIT_ID, else uuid5 default 077a6fdd-2167-559c-b2ff-8e3c8352504d",
+      "armed_at": "077a6fdd-2167-559c-b2ff-8e3c8352504d",
+      "database_contains": "dec0de00-0006-4000-8000-000000000001",
+      "therefore": "the guard covers a row that does not exist and covers nothing that does"
+    }
+  },
+  "mutation_experiment_at_head": {
+    "environment": "MAINLINE_DEMO_PERMIT_ID = 077a6fdd-2167-559c-b2ff-8e3c8352504d (the plan's value)",
+    "initial_committed_state": {
+      "permits": 1,
+      "state": "dispositioned",
+      "head_seq": 2,
+      "open_blocking": 1,
+      "gate_epoch": 1,
+      "permit_events": 2,
+      "dispositions": 0,
+      "exposure_receipts": 1,
+      "exposure_lines": 1,
+      "merge_records": 0,
+      "blocking_checks": 1,
+      "outbox": 1
+    },
+    "steps": [
+      {
+        "method": "POST",
+        "path": "/v1/permits/077a6fdd-2167-559c-b2ff-8e3c8352504d/merge",
+        "status": 423,
+        "ms": 10.7,
+        "bytes": 582,
+        "content_type": "application/json; charset=utf-8",
+        "cache_control": "no-store",
+        "acao": "*",
+        "error_kind": "demo_subject_write_protected",
+        "error_detail": "This is the seeded demo subject, and it is a single shared copy that a hundred judges read. Every transition on this path is irreversible on it \u2014 a permit is never un-merged \u2014 so one caller must not be able to brick the demo for the next. Drive the gate through POST /v1/demo/gate-run, which plays th",
+        "label": "guard: merge the guarded id",
+        "committed_delta": {},
+        "committed_state_changed": false
+      },
+      {
+        "method": "POST",
+        "path": "/v1/permits/077a6fdd-2167-559c-b2ff-8e3c8352504d/suspend",
+        "status": 423,
+        "ms": 3.8,
+        "bytes": 582,
+        "content_type": "application/json; charset=utf-8",
+        "cache_control": "no-store",
+        "acao": "*",
+        "error_kind": "demo_subject_write_protected",
+        "error_detail": "This is the seeded demo subject, and it is a single shared copy that a hundred judges read. Every transition on this path is irreversible on it \u2014 a permit is never un-merged \u2014 so one caller must not be able to brick the demo for the next. Drive the gate through POST /v1/demo/gate-run, which plays th",
+        "label": "guard: suspend the guarded id",
+        "committed_delta": {},
+        "committed_state_changed": false
+      },
+      {
+        "method": "POST",
+        "path": "/v1/permits/077a6fdd-2167-559c-b2ff-8e3c8352504d/checks:materialise",
+        "status": 423,
+        "ms": 3.5,
+        "bytes": 582,
+        "content_type": "application/json; charset=utf-8",
+        "cache_control": "no-store",
+        "acao": "*",
+        "error_kind": "demo_subject_write_protected",
+        "error_detail": "This is the seeded demo subject, and it is a single shared copy that a hundred judges read. Every transition on this path is irreversible on it \u2014 a permit is never un-merged \u2014 so one caller must not be able to brick the demo for the next. Drive the gate through POST /v1/demo/gate-run, which plays th",
+        "label": "guard: materialise the guarded id",
+        "committed_delta": {},
+        "committed_state_changed": false
+      },
+      {
+        "method": "POST",
+        "path": "/v1/permits/00000000-0000-4000-8000-0000000000ff/merge",
+        "status": 404,
+        "ms": 31.3,
+        "bytes": 108,
+        "content_type": "application/json; charset=utf-8",
+        "cache_control": "no-store",
+        "acao": "*",
+        "error_kind": "no_such_permit",
+        "error_detail": "no mainline.permit with permit_id 00000000-0000-4000-8000-0000000000ff",
+        "label": "absent permit: merge",
+        "committed_delta": {},
+        "committed_state_changed": false
+      },
+      {
+        "method": "POST",
+        "path": "/v1/demo/gate-run",
+        "status": 422,
+        "ms": 42.3,
+        "bytes": 280,
+        "content_type": "application/json; charset=utf-8",
+        "cache_control": "no-store",
+        "acao": "*",
+        "error_kind": "demo_history_not_seeded",
+        "error_detail": "no mainline.permit with permit_id 077a6fdd-2167-559c-b2ff-8e3c8352504d in this database. The demo history is seeded by w2-cloud-database; override the identifier with MAINLINE_DEMO_PERMIT_ID if this deployment seeded a different one.",
+        "label": "demo driver",
+        "committed_delta": {},
+        "committed_state_changed": false
+      },
+      {
+        "method": "POST",
+        "path": "/v1/permits/dec0de00-0006-4000-8000-000000000001/merge",
+        "status": 500,
+        "ms": 12.7,
+        "bytes": 114,
+        "content_type": "application/json; charset=utf-8",
+        "cache_control": "no-store",
+        "acao": "*",
+        "error_kind": "internal_error",
+        "error_detail": "KeyError: 0",
+        "label": "SEEDED permit: merge (pristine)",
+        "committed_delta": {},
+        "committed_state_changed": false
+      },
+      {
+        "method": "POST",
+        "path": "/v1/permits/dec0de00-0006-4000-8000-000000000001/suspend",
+        "status": 500,
+        "ms": 9.2,
+        "bytes": 116,
+        "content_type": "application/json; charset=utf-8",
+        "cache_control": "no-store",
+        "acao": "*",
+        "error_kind": "internal_error",
+        "error_detail": "KeyError: 0",
+        "label": "SEEDED permit: suspend",
+        "committed_delta": {},
+        "committed_state_changed": false
+      },
+      {
+        "method": "POST",
+        "path": "/v1/permits/dec0de00-0006-4000-8000-000000000001/checks:materialise",
+        "status": 500,
+        "ms": 24.9,
+        "bytes": 120,
+        "content_type": "application/json; charset=utf-8",
+        "cache_control": "no-store",
+        "acao": "*",
+        "error_kind": "internal_error",
+        "error_detail": "KeyError: 0",
+        "label": "SEEDED permit: checks:materialise",
+        "committed_delta": {},
+        "committed_state_changed": false
+      },
+      {
+        "method": "POST",
+        "path": "/v1/checks/dec0de00-0007-4000-8000-000000000001/disposition",
+        "status": 422,
+        "ms": 60.1,
+        "bytes": 97,
+        "content_type": "application/json; charset=utf-8",
+        "cache_control": "no-store",
+        "acao": "*",
+        "error_kind": "unprocessable_request",
+        "error_detail": "invalid literal for int() with base 10: 'gate_epoch'",
+        "label": "SEEDED check: sign disposition",
+        "committed_delta": {},
+        "committed_state_changed": false
+      },
+      {
+        "method": "POST",
+        "path": "/v1/permits/dec0de00-0006-4000-8000-000000000001/merge",
+        "status": 500,
+        "ms": 11.2,
+        "bytes": 114,
+        "content_type": "application/json; charset=utf-8",
+        "cache_control": "no-store",
+        "acao": "*",
+        "error_kind": "internal_error",
+        "error_detail": "KeyError: 0",
+        "label": "SEEDED permit: merge (after the two writes)",
+        "committed_delta": {},
+        "committed_state_changed": false
+      },
+      {
+        "method": "POST",
+        "path": "/v1/demo/gate-run",
+        "status": 422,
+        "ms": 25.3,
+        "bytes": 280,
+        "content_type": "application/json; charset=utf-8",
+        "cache_control": "no-store",
+        "acao": "*",
+        "error_kind": "demo_history_not_seeded",
+        "error_detail": "no mainline.permit with permit_id 077a6fdd-2167-559c-b2ff-8e3c8352504d in this database. The demo history is seeded by w2-cloud-database; override the identifier with MAINLINE_DEMO_PERMIT_ID if this deployment seeded a different one.",
+        "label": "demo driver, replayed",
+        "committed_delta": {},
+        "committed_state_changed": false
+      }
+    ],
+    "final_committed_state": {
+      "permits": 1,
+      "state": "dispositioned",
+      "head_seq": 2,
+      "open_blocking": 1,
+      "gate_epoch": 1,
+      "permit_events": 2,
+      "dispositions": 0,
+      "exposure_receipts": 1,
+      "exposure_lines": 1,
+      "merge_records": 0,
+      "blocking_checks": 1,
+      "outbox": 1
+    },
+    "reads_changed_committed_state": {},
+    "finding": "Nothing committed. Not because the guard held - it did not run on the seeded permit - but because all four mutating handlers raise before their first write. db.connection() opens with row_factory=dict_row and transitions.py indexes rows positionally.",
+    "root_cause_reproduction": {
+      "command": "db.connection() then transitions._permit_epoch(conn, permit)",
+      "row_factory": "psycopg.rows.dict_row",
+      "fetchone_returned": {
+        "gate_epoch": 1,
+        "head_seq": 2,
+        "state": "dispositioned"
+      },
+      "raised": "KeyError: 0 at transitions.py:287 -> return (int(row[0]), ...)"
+    },
+    "guard_when_the_identifier_is_corrected": {
+      "environment": "MAINLINE_DEMO_PERMIT_ID = dec0de00-0006-4000-8000-000000000001",
+      "POST /v1/permits/{seeded}/merge": 423,
+      "POST /v1/permits/{seeded}/suspend": 423,
+      "POST /v1/permits/{seeded}/checks:materialise": 423,
+      "POST /v1/checks/{seeded_check}/disposition": "422 - the guard did NOT fire; _sign_disposition unpacks a dict row into four names and hands the literal string 'permit_id' to _demo_guard",
+      "POST /v1/demo/gate-run": "500 [22P02] could not parse \"check_id\" as type uuid - the same row-factory defect, already recorded in evidence/deploy/acceptance.json"
+    }
+  },
+  "mutation_experiment_with_the_row_factory_corrected": {
+    "what_this_is": "A SIMULATION OF THE FIX, run in-process against the local scratch database with a tuple_row connection and otherwise the plan's environment. It calls transitions.handle_transition with exactly the arguments app._transition passes. It answers what the public surface does the moment the KeyError is repaired.",
+    "environment": "MAINLINE_DEMO_PERMIT_ID = 077a6fdd-2167-559c-b2ff-8e3c8352504d (the plan's value)",
+    "initial_committed_state": {
+      "state": "dispositioned",
+      "head_seq": 2,
+      "open_blocking": 1,
+      "gate_epoch": 1,
+      "permit_events": 2,
+      "dispositions": 0,
+      "exposure_receipts": 1,
+      "exposure_lines": 1,
+      "merge_records": 0
+    },
+    "steps": [
+      {
+        "resource": "merge_permit",
+        "params": {
+          "permit_id": "dec0de00-0006-4000-8000-000000000001"
+        },
+        "status": 409,
+        "outcome": "refused",
+        "error": null,
+        "detail": "None",
+        "sqlstate": "23514",
+        "constraint": "gate_closed_when_issued",
+        "committed_delta": {},
+        "committed_state_changed": false
+      },
+      {
+        "resource": "suspend_permit",
+        "params": {
+          "permit_id": "dec0de00-0006-4000-8000-000000000001"
+        },
+        "status": 409,
+        "outcome": "refused",
+        "error": null,
+        "detail": "None",
+        "sqlstate": "23503",
+        "constraint": "legal_edge",
+        "committed_delta": {},
+        "committed_state_changed": false
+      },
+      {
+        "resource": "materialise_checks",
+        "params": {
+          "permit_id": "dec0de00-0006-4000-8000-000000000001"
+        },
+        "status": 200,
+        "outcome": "committed",
+        "error": null,
+        "detail": "None",
+        "sqlstate": null,
+        "constraint": null,
+        "committed_delta": {
+          "state": [
+            "dispositioned",
+            "checks_materialised"
+          ],
+          "head_seq": [
+            2,
+            3
+          ],
+          "permit_events": [
+            2,
+            3
+          ],
+          "exposure_receipts": [
+            1,
+            2
+          ],
+          "exposure_lines": [
+            1,
+            2
+          ]
+        },
+        "committed_state_changed": true
+      },
+      {
+        "resource": "sign_disposition",
+        "params": {
+          "check_id": "dec0de00-0007-4000-8000-000000000001"
+        },
+        "status": 409,
+        "outcome": "refused",
+        "error": null,
+        "detail": "None",
+        "sqlstate": "23503",
+        "constraint": "disposition_signer_credential_id_fkey",
+        "committed_delta": {},
+        "committed_state_changed": false
+      },
+      {
+        "resource": "merge_permit",
+        "params": {
+          "permit_id": "dec0de00-0006-4000-8000-000000000001"
+        },
+        "status": 409,
+        "outcome": "refused",
+        "error": null,
+        "detail": "None",
+        "sqlstate": "23503",
+        "constraint": "legal_edge",
+        "committed_delta": {},
+        "committed_state_changed": false
+      },
+      {
+        "resource": "suspend_permit",
+        "params": {
+          "permit_id": "dec0de00-0006-4000-8000-000000000001"
+        },
+        "status": 409,
+        "outcome": "refused",
+        "error": null,
+        "detail": "None",
+        "sqlstate": "23503",
+        "constraint": "legal_edge",
+        "committed_delta": {},
+        "committed_state_changed": false
+      }
+    ],
+    "final_committed_state": {
+      "state": "checks_materialised",
+      "head_seq": 3,
+      "open_blocking": 1,
+      "gate_epoch": 1,
+      "permit_events": 3,
+      "dispositions": 0,
+      "exposure_receipts": 2,
+      "exposure_lines": 2,
+      "merge_records": 0
+    },
+    "headline": "POST /v1/permits/dec0de00-0006-4000-8000-000000000001/checks:materialise COMMITS: permit.state dispositioned -> checks_materialised, head_seq 2 -> 3, one new permit_event, one new exposure_receipt, one new exposure_line. Anonymous. Irreversible.",
+    "consequence_for_the_demo": {
+      "before": "merge refused [23514] gate_closed_when_issued - the central claim",
+      "after": "merge refused [23503] legal_edge - a different, unrelated refusal",
+      "recoverable_by_re_running_the_seed": false,
+      "seed_verdict_after_the_write": "WRONG STATE",
+      "seed_output": [
+        "the seeded permit is in state 'checks_materialised', not 'dispositioned'",
+        "the merge was refused with [23503] 'legal_edge', expected [23514] 'gate_closed_when_issued'"
+      ],
+      "measured_by": "scripts/deploy/seed_demo.py re-run against the mutated database"
+    },
+    "what_did_NOT_become_possible": {
+      "merge on a pristine permit": "refused [23514] gate_closed_when_issued - the gate holds",
+      "suspend": "refused [23503] legal_edge - the state machine holds",
+      "sign_disposition": "refused [23503] disposition_signer_credential_id_fkey - the synthesised WebAuthn credential does not exist, so no signature can be forged"
+    }
+  },
+  "traversal": {
+    "probes": [
+      {
+        "method": "GET",
+        "path": "/../../../../etc/passwd",
+        "status": 403,
+        "ms": 15.1,
+        "bytes": 150,
+        "content_type": "application/json; charset=utf-8",
+        "cache_control": "no-store",
+        "acao": null,
+        "error_kind": "path_refused",
+        "error_detail": "the request path contains a '..' segment",
+        "vector_name": "dot_dot literal"
+      },
+      {
+        "method": "GET",
+        "path": "/../../../../Windows/win.ini",
+        "status": 403,
+        "ms": 1.9,
+        "bytes": 155,
+        "content_type": "application/json; charset=utf-8",
+        "cache_control": "no-store",
+        "acao": null,
+        "error_kind": "path_refused",
+        "error_detail": "the request path contains a '..' segment",
+        "vector_name": "dot_dot windows target"
+      },
+      {
+        "method": "GET",
+        "path": "/%2e%2e/%2e%2e/%2e%2e/Windows/win.ini",
+        "status": 403,
+        "ms": 13.1,
+        "bytes": 164,
+        "content_type": "application/json; charset=utf-8",
+        "cache_control": "no-store",
+        "acao": null,
+        "error_kind": "path_refused",
+        "error_detail": "the request path contains a '..' segment",
+        "vector_name": "dot_dot single encode"
+      },
+      {
+        "method": "GET",
+        "path": "/..%2f..%2f..%2fWindows/win.ini",
+        "status": 403,
+        "ms": 15.3,
+        "bytes": 158,
+        "content_type": "application/json; charset=utf-8",
+        "cache_control": "no-store",
+        "acao": null,
+        "error_kind": "path_refused",
+        "error_detail": "the request path contains a '..' segment",
+        "vector_name": "dot_dot slash encoded"
+      },
+      {
+        "method": "GET",
+        "path": "/%252e%252e/%252e%252e/Windows/win.ini",
+        "status": 200,
+        "ms": 17.0,
+        "bytes": 4655,
+        "content_type": "text/html; charset=utf-8",
+        "cache_control": "no-cache",
+        "acao": null,
+        "body_head": "<!doctype html>\n<!--\n  SPDX-FileCopyrightText: 2026 MAINLINE contributors\n  SPDX-License-Identifier: FSL-1.1-ALv2\n\n  The document shell. It carries no claim about the database, because at this point\n ",
+        "vector_name": "dot_dot double encode"
+      },
+      {
+        "method": "GET",
+        "path": "//etc/passwd",
+        "status": 200,
+        "ms": 2.9,
+        "bytes": 4655,
+        "content_type": "text/html; charset=utf-8",
+        "cache_control": "no-cache",
+        "acao": null,
+        "body_head": "<!doctype html>\n<!--\n  SPDX-FileCopyrightText: 2026 MAINLINE contributors\n  SPDX-License-Identifier: FSL-1.1-ALv2\n\n  The document shell. It carries no claim about the database, because at this point\n ",
+        "vector_name": "absolute unix"
+      },
+      {
+        "method": "GET",
+        "path": "/C:/Windows/win.ini",
+        "status": 403,
+        "ms": 1.5,
+        "bytes": 154,
+        "content_type": "application/json; charset=utf-8",
+        "cache_control": "no-store",
+        "acao": null,
+        "error_kind": "path_refused",
+        "error_detail": "the request path contains an absolute segment 'C:'",
+        "vector_name": "drive letter"
+      },
+      {
+        "method": "GET",
+        "path": "/C%3a/Windows/win.ini",
+        "status": 403,
+        "ms": 1.4,
+        "bytes": 156,
+        "content_type": "application/json; charset=utf-8",
+        "cache_control": "no-store",
+        "acao": null,
+        "error_kind": "path_refused",
+        "error_detail": "the request path contains an absolute segment 'C:'",
+        "vector_name": "drive letter encoded"
+      },
+      {
+        "method": "GET",
+        "path": "/..\\..\\Windows\\win.ini",
+        "status": 403,
+        "ms": 1.5,
+        "bytes": 247,
+        "content_type": "application/json; charset=utf-8",
+        "cache_control": "no-store",
+        "acao": null,
+        "error_kind": "path_refused",
+        "error_detail": "the request path contains a backslash, which is a path separator on the platform this is developed on and is never part of a URL path",
+        "vector_name": "backslash"
+      },
+      {
+        "method": "GET",
+        "path": "/%5c..%5cWindows%5cwin.ini",
+        "status": 403,
+        "ms": 1.6,
+        "bytes": 248,
+        "content_type": "application/json; charset=utf-8",
+        "cache_control": "no-store",
+        "acao": null,
+        "error_kind": "path_refused",
+        "error_detail": "the request path contains a backslash, which is a path separator on the platform this is developed on and is never part of a URL path",
+        "vector_name": "backslash encoded"
+      },
+      {
+        "method": "GET",
+        "path": "/index.html%00.txt",
+        "status": 403,
+        "ms": 1.6,
+        "bytes": 137,
+        "content_type": "application/json; charset=utf-8",
+        "cache_control": "no-store",
+        "acao": null,
+        "error_kind": "path_refused",
+        "error_detail": "the request path contains a NUL byte",
+        "vector_name": "nul byte"
+      },
+      {
+        "method": "GET",
+        "path": "/assets/../../app.py",
+        "status": 403,
+        "ms": 18.5,
+        "bytes": 147,
+        "content_type": "application/json; charset=utf-8",
+        "cache_control": "no-store",
+        "acao": null,
+        "error_kind": "path_refused",
+        "error_detail": "the request path contains a '..' segment",
+        "vector_name": "dot_dot inside segment"
+      },
+      {
+        "method": "GET",
+        "path": "/%c0%ae%c0%ae/app.py",
+        "status": 200,
+        "ms": 3.9,
+        "bytes": 4655,
+        "content_type": "text/html; charset=utf-8",
+        "cache_control": "no-cache",
+        "acao": null,
+        "body_head": "<!doctype html>\n<!--\n  SPDX-FileCopyrightText: 2026 MAINLINE contributors\n  SPDX-License-Identifier: FSL-1.1-ALv2\n\n  The document shell. It carries no claim about the database, because at this point\n ",
+        "vector_name": "unicode overlong-ish"
+      },
+      {
+        "method": "GET",
+        "path": "/../mainline_demo_api/db.py",
+        "status": 403,
+        "ms": 11.9,
+        "bytes": 154,
+        "content_type": "application/json; charset=utf-8",
+        "cache_control": "no-store",
+        "acao": null,
+        "error_kind": "path_refused",
+        "error_detail": "the request path contains a '..' segment",
+        "vector_name": "sibling package file"
+      },
+      {
+        "method": "GET",
+        "path": "/escape/db.py",
+        "status": 403,
+        "ms": 3.0,
+        "bytes": 263,
+        "content_type": "application/json; charset=utf-8",
+        "cache_control": "no-store",
+        "acao": null,
+        "error_kind": "path_refused",
+        "error_detail": "the request path resolves to D:\\CoackroachDBxAWS\\mainline\\verticals\\mainline\\apps\\demo-api\\src\\mainline_demo_api\\db.py, which is outside the web root",
+        "vector_name": "symlink escape"
+      },
+      {
+        "method": "GET",
+        "path": "/escape.txt",
+        "status": 403,
+        "ms": 3.0,
+        "bytes": 300,
+        "content_type": "application/json; charset=utf-8",
+        "cache_control": "no-store",
+        "acao": null,
+        "error_kind": "path_refused",
+        "error_detail": "the request path resolves to <probe-host-scratch>\\outside-secret.txt, which is outside the web root",
+        "vector_name": "symlink escape file"
+      }
+    ],
+    "symlink": {
+      "planted": "a real symlink inside the served web root pointing at a file and at a directory outside it",
+      "result": "403 path_refused, vector escapes_root, decided after resolve()"
+    },
+    "finding": "Every escape vector is refused before the filesystem is touched. %252e%252e is correctly NOT treated as a traversal - it decodes once to a literal %2e%2e segment, misses, and falls through to index.html, which is the documented decision. The 403 body discloses the resolved ABSOLUTE PATH; in the deployed stack that is /var/task/web/... - low value, but it is a disclosure."
+  },
+  "credential_leakage": {
+    "db_redact": [
+      {
+        "shape": "postgresql://\u2026",
+        "redacted": "postgresql://mainline_api:***@host.cockroachlabs.cloud:26257/mainline_demo?sslmode=verify-full",
+        "password_present_in_input": true,
+        "password_survives_redaction": false
+      },
+      {
+        "shape": "postgresql://\u2026",
+        "redacted": "postgresql://mainline_api:***@host:26257/db",
+        "password_present_in_input": true,
+        "password_survives_redaction": false
+      },
+      {
+        "shape": "postgresql://\u2026",
+        "redacted": "postgresql://root@localhost:26257/defaultdb?sslmode=disable",
+        "password_present_in_input": false,
+        "password_survives_redaction": false
+      },
+      {
+        "shape": "libpq keyword string",
+        "redacted": "***",
+        "password_present_in_input": false,
+        "password_survives_redaction": false
+      },
+      {
+        "shape": "postgres://\u2026",
+        "redacted": "postgres://u:***@h/d",
+        "password_present_in_input": true,
+        "password_survives_redaction": false
+      }
+    ],
+    "redaction_holds_on_every_shape_probed": true,
+    "health_200_body_keys": [
+      "cluster_version",
+      "database",
+      "migrations_applied",
+      "ok",
+      "schema_fingerprint",
+      "seconds",
+      "server_date"
+    ],
+    "health_200_carries_a_dsn": false,
+    "health_503_unreachable_body": {
+      "dsn_field_present": true,
+      "password_removed": true,
+      "still_published": [
+        "scheme",
+        "username",
+        "host",
+        "port",
+        "database",
+        "sslmode"
+      ],
+      "verbatim_with_a_fabricated_password": "postgresql://mainline_api:***@10.255.255.1:26257/mainline_demo?sslmode=verify-full",
+      "assessment": "The password never survives. The LOGIN NAME and the live pgwire endpoint of the CockroachDB Cloud cluster do, from an unauthenticated endpoint. The hostname is already public in evidence/deploy/cloud-seed.json, so the incremental disclosure is the user name plus liveness."
+    },
+    "error_bodies": {
+      "500_body_verbatim": "{\"error\":{\"detail\":\"KeyError: 0\",\"kind\":\"internal_error\",\"resource\":\"merge_permit\",\"status\":500,\"traceback\":null}}",
+      "carries_traceback": false,
+      "carries_sql_text": false,
+      "carries_dsn": false,
+      "MAINLINE_DEBUG": "absent from the planned environment, so traceback is null"
+    }
+  },
+  "unbounded_work": {
+    "query_parameter_caps": {
+      "/v1/ledger": {
+        "declared_parameters": [
+          "site_code",
+          "from_seq",
+          "to_seq"
+        ],
+        "site_code": "refused above 64 characters",
+        "from_seq/to_seq": "arbitrary integers, validated ascending and non-negative; there is NO caller-facing row cap, but the SQL carries LIMIT 512 on leaves, 2048 on nodes, 64 on checkpoints/cosignatures/debt",
+        "measured_to_seq_99999999": "200, 2265 bytes, 48 ms - the window is capped by SQL",
+        "undeclared_parameter_eg_limit": "400 - the resource names its declared set"
+      },
+      "/v1/audit": {
+        "declared_parameters": [],
+        "caps": "AUDIT_ROW_CAP 25 rows and AUDIT_BYTE_CAP 10240 bytes PER VIEW, plus information_schema.views LIMIT 32 and agent_action LIMIT 128",
+        "no_cap_across_views": true,
+        "worst_case_bytes": "32 views x 10 KiB + 128 agent_action rows ~ 340 KiB, far below the Lambda 6 MB response cap",
+        "measured": "200, 19438 bytes, 442 ms on a one-permit database - the slowest read"
+      },
+      "clause_ancestry": {
+        "declared_parameters": [
+          "as_of"
+        ],
+        "caps": "512 events, 512 control_failure, 2048 event_edge, 512 blame_edge, 512 commit_chain; truncation.cap is read from the ancestor_count_within_cap CHECK rather than hardcoded",
+        "measured": "200, 3744 bytes, 211 ms, six statements in one snapshot"
+      },
+      "there_is_no_limit_or_offset_parameter_anywhere": true
+    },
+    "worst_request_measured": {
+      "/v1/audit": {
+        "status": 200,
+        "bytes": 19438,
+        "ms": [
+          442.5,
+          421.2,
+          409.3
+        ],
+        "worst_ms": 442.5
+      },
+      "/v1/ledger?from_seq=0&to_seq=99999999": {
+        "status": 200,
+        "bytes": 2265,
+        "ms": [
+          25.0,
+          27.9,
+          43.7
+        ],
+        "worst_ms": 43.7
+      },
+      "/v1/clauses/{c}/ancestry": {
+        "status": 200,
+        "bytes": 3744,
+        "ms": [
+          255.7,
+          175.3,
+          158.5
+        ],
+        "worst_ms": 255.7
+      },
+      "/bundle/manifest.json": {
+        "status": 200,
+        "bytes": 8435,
+        "ms": [
+          2.3,
+          2.1,
+          2.3
+        ],
+        "worst_ms": 2.3
+      },
+      "/ (index)": {
+        "status": 200,
+        "bytes": 4655,
+        "ms": [
+          2.8,
+          2.3,
+          2.1
+        ],
+        "worst_ms": 2.8
+      }
+    },
+    "worst_case_when_the_database_is_unreachable": {
+      "measured": "10022-10046 ms per request, status 503, for /v1/health, /v1/ledger and /v1/permits/{id}",
+      "mechanism": "db.CONNECT_TIMEOUT_SECONDS = 10 against a Lambda timeout of 15 s",
+      "significance": "an anonymous caller cannot make one request cost more than ~10 s, but if the cluster stops answering - a CockroachDB Basic spend cap, a maintenance window - every request costs 10 s of billed duration instead of ~20 ms, a ~500x step change in Lambda cost per request. Handed to W4."
+    },
+    "cold_start_note": "The first request to a fresh emulator process measured 10.1 s, and that is a LOCAL artefact, not a property of the deployment: 'localhost' resolves to ::1 first, the Docker node publishes only on IPv4, and libpq waits out connect_timeout before falling back. psycopg to 127.0.0.1 connects in 3.0 ms. Reported so nobody mistakes it for a deployed cold-start measurement."
+  },
+  "cors": {
+    "hcl_says": "infra/modules/demo-api/main.tf justifies the absent cors block: adding allow_origins = [\"*\"] would turn 'any page may make a request and not read the answer' into 'may read it'",
+    "handler_does": "app._response, app.py:272, sets access-control-allow-origin: * on EVERY /v1 response including 4xx, 5xx and the 204 OPTIONS",
+    "measured": {
+      "GET /v1/health": {
+        "status": 200,
+        "access-control-allow-origin": "*",
+        "access-control-allow-methods": null,
+        "access-control-allow-headers": null,
+        "access-control-allow-credentials": null,
+        "vary": null,
+        "x-mainline-api": "demo-read",
+        "ms": 10123.8
+      },
+      "GET /v1/ledger": {
+        "status": 200,
+        "access-control-allow-origin": "*",
+        "access-control-allow-methods": null,
+        "access-control-allow-headers": null,
+        "access-control-allow-credentials": null,
+        "vary": null,
+        "x-mainline-api": "demo-read",
+        "ms": 48.2
+      },
+      "GET / (static index)": {
+        "status": 200,
+        "access-control-allow-origin": null,
+        "access-control-allow-methods": null,
+        "access-control-allow-headers": null,
+        "access-control-allow-credentials": null,
+        "vary": null,
+        "x-mainline-api": "demo-static",
+        "ms": 4.3
+      },
+      "GET /bundle/manifest.json": {
+        "status": 200,
+        "access-control-allow-origin": null,
+        "access-control-allow-methods": null,
+        "access-control-allow-headers": null,
+        "access-control-allow-credentials": null,
+        "vary": null,
+        "x-mainline-api": "demo-static",
+        "ms": 4.9
+      },
+      "GET /../ (static 403)": {
+        "status": 403,
+        "access-control-allow-origin": null,
+        "access-control-allow-methods": null,
+        "access-control-allow-headers": null,
+        "access-control-allow-credentials": null,
+        "vary": null,
+        "x-mainline-api": "demo-static",
+        "ms": 1.9
+      },
+      "OPTIONS /v1/permits/x/merge (preflight)": {
+        "status": 204,
+        "access-control-allow-origin": "*",
+        "access-control-allow-methods": null,
+        "access-control-allow-headers": null,
+        "access-control-allow-credentials": null,
+        "vary": null,
+        "x-mainline-api": "demo-read",
+        "ms": 23.6
+      },
+      "OPTIONS / (static preflight)": {
+        "status": 204,
+        "access-control-allow-origin": "*",
+        "access-control-allow-methods": null,
+        "access-control-allow-headers": null,
+        "access-control-allow-credentials": null,
+        "vary": null,
+        "x-mainline-api": "demo-read",
+        "ms": 1.6
+      }
+    },
+    "static_surface_sets_no_cors_header": true,
+    "the_real_delta": [
+      "The written justification is FALSE as deployed: any page can read every /v1 response cross-origin.",
+      "The confidentiality delta is ZERO. authorization_type = NONE, no cookie, no Authorization header, no credential of any kind: everything readable cross-origin is already readable by anyone who types the URL.",
+      "access-control-allow-credentials is NOT set and the origin is a literal *, so a browser will never attach ambient credentials. There are none to attach.",
+      "The preflight is INCOMPLETE, not permissive: OPTIONS returns 204 with access-control-allow-origin: * and NO allow-methods and NO allow-headers, so a cross-origin fetch with content-type: application/json is blocked by the browser.",
+      "A CORS SIMPLE REQUEST is not blocked: content-type: text/plain carrying a JSON body reached the handler and was parsed - app._body ignores content-type. Measured: 423 from the guard, i.e. the request arrived. So a third-party page can drive any POST from a visitor's browser. Since the endpoint is unauthenticated this grants an attacker nothing they did not already have, except attribution.",
+      "Vary: Origin is absent. Harmless with a constant *; it would matter the day the value became origin-dependent."
+    ]
+  },
+  "cross_domain": {
+    "W3_dsn": "Nothing in the deployment package reads MAINLINE_DEMO_DATABASE - only scripts/deploy/deploy.{sh,ps1} do. The Lambda connects to whatever database the SSM DSN's path segment names. If that value carries /defaultdb, every /v1 read answers 500 UndefinedTable and /v1/health answers 503 no_bookkeeping.",
+    "W4_cost": "10 s of billed duration per request whenever the cluster does not answer; see unbounded_work.worst_case_when_the_database_is_unreachable.",
+    "health_truthfulness": "trappoint.schema_migration is EMPTY in Cloud mainline_demo, so GET /v1/health will answer 200 with migrations_applied: 0 while the submission claims 271. schema_attestation carries 1 row, so ok is true. Measured read-only."
+  },
+  "verdict": "NO-GO",
+  "verdict_reason": "The demo-subject guard is armed at 077a6fdd-2167-559c-b2ff-8e3c8352504d and the only permit in Cloud mainline_demo is dec0de00-0006-4000-8000-000000000001, whose identifier the same public hostname serves at GET /bundle/manifest.json. Today that write surface is inert only because of an unrelated KeyError; the moment that defect is fixed - and it must be, POST /v1/demo/gate-run is 500 without it - one anonymous request irreversibly moves the demo subject out of the state the headline refusal depends on.",
+  "fix": {
+    "one_line": "infra/envs/demo/main.tf, inside module \"api\": add scenario_permit_id = \"dec0de00-0006-4000-8000-000000000001\"",
+    "equivalently": "infra/modules/demo-api/variables.tf:234, change the default of scenario_permit_id from 077a6fdd-2167-559c-b2ff-8e3c8352504d to dec0de00-0006-4000-8000-000000000001",
+    "then_re_plan": "the change is one environment variable on module.api[0].aws_lambda_function.this; the plan stays 11 to add / 0 to change / 0 to destroy",
+    "not_sufficient_alone": [
+      "transitions.py, scenario.py and gate_run.py index rows positionally while db.connection() supplies psycopg.rows.dict_row. Until that is reconciled the four kernel POSTs answer 500 KeyError: 0 and POST /v1/demo/gate-run answers 500 [22P02]. Not W2's file to repair; named so the apply is not sold as a working demo.",
+      "transitions._sign_disposition calls _demo_guard with a value taken out of an unpacked row, so once the row factory is right the guard covers it - but it is the only one of the four whose guard depends on a successful unpack."
+    ]
+  }
+}

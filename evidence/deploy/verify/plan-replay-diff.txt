@@ -1,0 +1,233 @@
+PLAN REPLAY — fresh `terraform plan` vs. the committed evidence
+W5 (deploy-verify). Run 2026-08-12, Terraform v1.14.8, provider hashicorp/aws v6.58.0,
+AWS profile mainline-dev, region ap-southeast-1, account 0229REDACTED8246 (masked).
+
+NO `terraform apply` WAS RUN. init / validate / plan / show only, plus read-only AWS
+describe calls. The fresh plan binary, its text and its JSON were written to a scratch
+directory outside the repository; nothing under evidence/deploy/ was overwritten.
+
+════════════════════════════════════════════════════════════════════════════════════════
+1 · COMMANDS, AND WHAT THEY RETURNED
+════════════════════════════════════════════════════════════════════════════════════════
+
+  A. In the repository, D:/CoackroachDBxAWS/mainline/infra/envs/demo
+
+     $ terraform init -backend=false
+       → "Terraform has been successfully initialized!"
+         Reusing previous version of hashicorp/aws from the dependency lock file
+         Using previously-installed hashicorp/aws v6.58.0                        EXIT 0
+
+     $ terraform validate
+       → "Success! The configuration is valid."                                  EXIT 0
+
+     $ terraform plan -out=<scratch>
+       → EXIT 1
+         Error: Backend initialization required: please run "terraform init"
+         Reason: Backend type changed from "local" to "s3"
+
+  B. In a clean copy of infra/ + out/lambda/ under the scratch directory (no .terraform,
+     no .terraform.lock.hcl carried over except the committed lock file itself), to rule
+     out the in-repo .terraform/terraform.tfstate as the cause:
+
+     $ terraform init -backend=false          → success, aws v6.58.0             EXIT 0
+     $ terraform validate                     → "Success! The configuration is valid."
+     $ terraform plan -out=<scratch>          → EXIT 1
+         Error: Backend initialization required, please run "terraform init"
+         Reason: Initial configuration of the requested backend "s3"
+
+     REPRODUCED. `init -backend=false` followed by `plan` fails on Terraform v1.14.8 for
+     this root, from a clean directory, exactly as docs/deploy/terraform-plan.md §"Why a
+     temporary local backend was used" already records. The documentation is correct and
+     the four-line command block at the top of that page is NOT runnable as printed; the
+     paragraph 20 lines below it is the operative instruction. No defect in the plan.
+
+  C. Same clean copy, with the documented throwaway local backend override
+     (`terraform { backend "local" {} }`, state redirected to a scratch path outside the
+     repository — no S3 object created, read, written or locked):
+
+     $ terraform init -reconfigure -backend-config="path=<scratch>/w5-demo-plan.tfstate"
+                                                                                 EXIT 0
+     $ terraform validate                     → "Success! The configuration is valid."
+     $ terraform plan -no-color -var enable_cloudfront=false -out=<scratch>/tfplan-furl.binary
+                                                                                 EXIT 0
+       → Plan: 11 to add, 0 to change, 0 to destroy.        (line 339 of the output)
+     $ terraform show -no-color -json <scratch>/tfplan-furl.binary                EXIT 0
+
+════════════════════════════════════════════════════════════════════════════════════════
+2 · RESOURCE COUNT AND ACTION SET
+════════════════════════════════════════════════════════════════════════════════════════
+
+  FRESH                                    COMMITTED
+  resource_changes = 11                    resource_changes = 11
+  actions          = {create: 11}          actions          = {create: 11}
+  terraform_version = 1.14.8               terraform_version = 1.14.8
+  applyable = true, complete = true,       applyable = true, complete = true,
+  errored = false                          errored = false
+  "Plan: 11 to add, 0 to change,           "Plan: 11 to add, 0 to change,
+   0 to destroy."  (line 339)               0 to destroy."  (line 339)
+
+  The exact action set, both files, all eleven ["create"] and nothing else:
+
+    module.api[0].aws_cloudwatch_dashboard.this[0]            create
+    module.api[0].aws_cloudwatch_log_group.this               create
+    module.api[0].aws_cloudwatch_metric_alarm.concurrency     create
+    module.api[0].aws_cloudwatch_metric_alarm.duration_p99    create
+    module.api[0].aws_cloudwatch_metric_alarm.errors          create
+    module.api[0].aws_cloudwatch_metric_alarm.throttles       create
+    module.api[0].aws_iam_role.this                           create
+    module.api[0].aws_iam_role_policy.dsn_access              create
+    module.api[0].aws_iam_role_policy_attachment.basic_execution  create
+    module.api[0].aws_lambda_function.this                    create
+    module.api[0].aws_lambda_function_url.this                create
+
+  No update. No delete. No replace. No CloudFront, S3 or CockroachDB resource.
+
+════════════════════════════════════════════════════════════════════════════════════════
+3 · THE JSON DIFF  —  evidence/deploy/terraform-plan-furl.json
+════════════════════════════════════════════════════════════════════════════════════════
+
+  Normalisation applied before comparing, and only this:
+    · the live 12-digit account id → 0229REDACTED8246 (20 occurrences in the fresh JSON;
+      the committed JSON already carries the mask 20 times). Normalised in the LIVE
+      direction only — the mask was never expanded into a written artefact.
+    · the plan `timestamp` field → <TIMESTAMP>
+      (committed 2026-08-11T05:33:11Z, fresh 2026-08-12T12:45:49Z)
+    · `relevant_attributes` compared as the unordered set it is: 32 entries on each side,
+      SET-EQUAL, no member present on one side and absent on the other. Terraform emits
+      this array in map-iteration order, which is randomised per run.
+
+  RESULT:  **BYTE-IDENTICAL MODULO MASK.**
+  Canonical (sorted-key, indent-1) SHA-256 of everything except relevant_attributes:
+
+    committed  d88bb44244e6eeeb88905944037452378666d3185a1007b34a08d7775543529b
+    fresh      d88bb44244e6eeeb88905944037452378666d3185a1007b34a08d7775543529b
+
+  Zero attributes differ. Not one. `planned_values`, `resource_changes`, `configuration`,
+  `prior_state`, `output_changes`, `checks`, `variables` are equal object-for-object.
+
+════════════════════════════════════════════════════════════════════════════════════════
+4 · THE TEXT DIFF  —  evidence/deploy/terraform-plan-furl.txt
+════════════════════════════════════════════════════════════════════════════════════════
+
+  Committed 18 690 bytes / 376 lines (CRLF), 6 occurrences of the mask.
+  Fresh     18 514 bytes / 377 lines (LF).
+
+  After masking the account id (6 occurrences), normalising the plan-file path and the
+  provider "Read complete after Ns" durations, the ENTIRE difference is TWO items — both
+  of them run-to-run noise, neither of them an attribute of any resource:
+
+  (a) The order of the five concurrent data-source "Reading..." lines at the top. Terraform
+      walks independent data sources in parallel and prints as they start:
+
+        --- committed                                +++ fresh
+        module.api[0].data.aws_caller_identity        module.api[0].data.aws_iam_policy_document.assume_role
+        module.api[0].data.aws_partition              module.api[0].data.aws_partition
+        module.api[0].data.aws_iam_policy_document    module.api[0].data.aws_region
+        data.aws_caller_identity                      module.api[0].data.aws_caller_identity
+        module.api[0].data.aws_region                 data.aws_caller_identity
+
+      Same five lines, same five data sources, different interleave.
+
+  (b) The trailer. Committed: `Saved the plan to: tfplan-furl.binary` (relative path, one
+      line). Fresh: `Saved the plan to:` + an absolute scratch path (two lines, because
+      the path is long enough to wrap). Same for the `terraform apply "<path>"` line.
+
+  Everything between line 8 and line 371 — every resource block, every attribute, every
+  `Changes to Outputs` entry — is identical character for character.
+
+════════════════════════════════════════════════════════════════════════════════════════
+5 · source_code_hash vs. THE ZIP ON DISK  —  NO DRIFT
+════════════════════════════════════════════════════════════════════════════════════════
+
+  The brief flagged a date paradox: evidence/deploy/terraform-plan-furl.{txt,json} carry
+  mtimes of 2026-08-12 21:48 while out/lambda/mainline-demo-api-arm64.zip is dated
+  2026-08-11 15:42. Both halves of that paradox dissolve on measurement.
+
+    planned source_code_hash   yF1/AKVXbkEt+wEkrZPEAQR1cBEXnQApNh2ajbW4pLA=
+    filebase64sha256 of the
+    zip on disk today         yF1/AKVXbkEt+wEkrZPEAQR1cBEXnQApNh2ajbW4pLA=
+                                                              → EQUAL, no drift.
+
+    zip size 7 989 296 bytes; manifest bytes_zipped 7 989 296; manifest sha256
+    c85d7f00a5576e412dfb0124ad93c40104757011179d0029361d9a8db5b8a4b0 = the hex form of the
+    same digest. Three independent records of one artefact, all agreeing.
+
+  The plan's own internal timestamp is 2026-08-11T05:33:11Z = 2026-08-11 15:33 local
+  (UTC+10); the zip's mtime is 15:42 local, nine minutes LATER. The plan was therefore
+  generated before the file that is now on disk was last touched — yet the content hash is
+  identical, so the rebuild changed no byte. The 2026-08-12 21:48 mtimes on the evidence
+  files are the account-id masking pass, not a re-plan.
+
+  I proved that masking pass is content-preserving. Restoring the 12 digits and converting
+  CRLF back to LF reproduces the SHA-256s recorded in docs/deploy/terraform-plan.md §1
+  EXACTLY, for all three artefacts:
+
+    terraform-plan-furl.txt        → 18 290 bytes → d5e6c3f08298ed409de4b6a41cfa24d71e4b1525335e6703d1872992de5e9316  MATCH
+    terraform-plan-furl.json       → 128 776 bytes → f2fe940bc292af3cc8f8695b6a46286952fe4ebb71ab704f4890c51c393616d9  MATCH
+    terraform-plan-cloudfront.txt  → 32 853 bytes → 6d7573a53fcf3f9ab1cad823cf767eed642bf58277dba08a2cac41aafb9c4970  MATCH
+
+  Custody is complete. FINDING (documentation, not plan): the SHA-256s printed in
+  docs/deploy/terraform-plan.md no longer match the files as committed — a stranger who
+  runs `sha256sum` on the public repo gets a mismatch on all three. On-disk today:
+    terraform-plan-furl.txt        5756e05552c982632c309d4c215688605591f4a927ade4c7f4d9639d10c757ea
+    terraform-plan-furl.json       5e0bf21d95123828dfd0149e6dac4490689730576a467250fd196d0d2989f7ad
+  The same page also says "Each file is the verbatim stdout+stderr of its command. Nothing
+  was added, reordered or removed", which is now true only up to the mask and a LF→CRLF
+  conversion applied afterwards. One sentence of prose fixes it.
+
+════════════════════════════════════════════════════════════════════════════════════════
+6 · THE THREE lifecycle.precondition BLOCKS — ALL THREE PROVEN TO EVALUATE
+════════════════════════════════════════════════════════════════════════════════════════
+
+  The plan JSON's `checks` array reports `pass` with one instance for each of
+  module.api.aws_lambda_function.this and module.api.aws_cloudwatch_metric_alarm
+  .duration_p99, in both the committed and the fresh plan. "pass" alone does not prove a
+  condition is live — a condition that is never reached also never fails. So each was
+  perturbed in the scratch copy until it FIRED. All three did:
+
+  (1) aws_lambda_function, main.tf:290 — package manifest architecture
+      Perturbation: `-var lambda_architecture=x86_64` against the arm64 package.
+      → Error: Resource precondition failed
+        var.architecture is "x86_64"
+        var.package_path is "../../../out/lambda/mainline-demo-api-arm64.zip"
+        "…was built for a different architecture than var.architecture (x86_64)…"        LIVE
+
+  (2) aws_lambda_function, main.tf:295 — package manifest handler
+      Perturbation: scratch copy of mainline-demo-api-arm64.zip.json rewritten with
+      handler = "wrong_module.wrong.handler".
+      → Error: Resource precondition failed
+        "…declares a handler other than mainline_demo_api.app.handler, which is what this
+         function is configured to call."                                                LIVE
+
+  (3) aws_cloudwatch_metric_alarm.duration_p99, main.tf:460 — threshold below timeout
+      Perturbation: scratch module default duration_p99_threshold_ms 12000 → 15000.
+      → Error: Resource precondition failed
+        var.duration_p99_threshold_ms is 15000
+        var.timeout is 15
+        "…is not below the function timeout (15 s = 15000 ms). Lambda terminates the
+         invocation at the timeout and the Duration datapoint is capped there, so this
+         alarm could never breach - a control that looks present and is not."            LIVE
+
+      Every perturbation was made in the scratch copy only and reverted. No file under
+      D:/CoackroachDBxAWS/mainline/infra/ was modified at any point.
+
+  Two further check entries deserve their status stated honestly, because "pass" is
+  vacuous for both — they have ZERO instances under this variable set:
+      module.api.aws_lambda_permission.cloudfront_invoke   pass, 0 instances (count = 0)
+      module.site.aws_cloudfront_distribution.site         pass, 0 instances
+      module.site.aws_s3_bucket.site                       pass, 0 instances
+  The cloudfront_distribution_arn precondition at main.tf:367 is therefore NOT exercised by
+  this plan. That is correct behaviour for url_authorization_type = "NONE" — it is only
+  worth knowing so nobody cites it as a control that was checked here.
+
+════════════════════════════════════════════════════════════════════════════════════════
+7 · VERDICT ON THE REPLAY
+════════════════════════════════════════════════════════════════════════════════════════
+
+  The committed plan is a faithful, reproducible record of what this configuration plans on
+  this account today. 11 resources, all `create`, zero attribute drift, zero package drift,
+  three live preconditions. Nothing in the replay is a reason to block the apply.
+
+  Every reason to block lives elsewhere: in the reserved-concurrency ceiling (W4) and in
+  the alarm that cannot fire (§ this worker's alarm-reachability.json and
+  docs/verify/deploy/alarms-and-plan-replay.md).

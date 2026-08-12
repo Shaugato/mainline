@@ -15,8 +15,8 @@ the scanner.
 # MUST NOT CLAIM — the sentences, and what to say instead
 
 This page exists because the founder is going to be on camera, in a Devpost form, and in
-front of judges, saying sentences out loud, and roughly nine of them are *plausible*,
-*flattering* and *false*. Every one of those nine has a true version that is very nearly as
+front of judges, saying sentences out loud, and roughly a dozen of them are *plausible*,
+*flattering* and *false*. Every one of them has a true version that is very nearly as
 good — often better, because a project that volunteers its own limits is the only kind a
 safety engineer believes.
 
@@ -24,11 +24,21 @@ safety engineer believes.
 your mouth, say the right column instead. Do not paraphrase the right column into something
 stronger; the wording is chosen to be defensible under a question.
 
-**How it is enforced.** `scripts/submission/check_submission_prose.py` invokes
-`scripts/demo/claim_hygiene.py` for the architecture-level must-not-claim table and then adds
-the nine submission-specific families below, scanning `README.md`, `docs/submission/*.md` and
-`docs/TOOL-USAGE.md`. It has a `--self-test` that plants one violation per family and requires
-the scanner to fire on each, because a check that has never been red asserts nothing.
+**How it is enforced, and where it is not.** `scripts/submission/check_submission_prose.py`
+invokes `scripts/demo/claim_hygiene.py` for the architecture-level must-not-claim table and
+then adds nine submission-specific rules — `SUB-01` to `SUB-09` — scanning `README.md`,
+`docs/submission/*.md` and `docs/TOOL-USAGE.md`. It has a `--self-test` that plants one
+violation per family and requires the scanner to fire on each, because a check that has never
+been red asserts nothing.
+
+**The register is twelve families and the scanner is nine rules, so the arithmetic does not
+close, and the gap is written down rather than hidden.** Families 1 to 9 each carry a
+`CAUGHT BY` line naming its rule. Family 10 is caught by `SUB-05`, which already fires on the
+word *demonstrated*. **Families 11 and 12 have no rule at all** — one is a number that lives in
+a workflow comment and the other is a verdict inside a JSON artefact, and neither is a sentence
+a line-scanner can recognise. Their `CAUGHT BY` line says so in those words. A family listed
+here without a rule is a family a human is the only control for, and pretending otherwise would
+be the same class of error this page exists to prevent.
 
 The prose checker cannot hear you. It reads files. **The video and the Devpost answers are
 where this page has to be obeyed by a human**, which is why it is written as sentences rather
@@ -106,7 +116,7 @@ claim and it is true.
 |---|---|
 | **MUST NOT SAY** | "The whole schema applies cleanly." · "All the migrations pass." · **Any migration count quoted from memory, including 246 of 261.** |
 | **TRUE INSTEAD** | "Re-derive it, don't quote it. The committed evidence file records the count for the tree it ran against; run `scripts/proof/gate_refusal.py` or `scripts/submission/seed_demo_state.py` and read the number that run produced." |
-| **WHY** | The number moves. `evidence/gate-refusal/proof-20260810T004200Z.json` records `chain.files = 261`, `applied_count = 246`, `failed_count = 15`, every failure attributed to one of five tables with no producer migration. On this working tree at `2026-08-10T05:12Z`, `scripts/submission/seed_demo_state.py` measured **271 of 271 applied, 0 failed, 0 unexplained** — five producer migrations (`0049d`, `0089`, `0089b`, `0090`, `0099`) have since appeared on disk and are, at the time of writing, still untracked by git. |
+| **WHY** | The number moves. `evidence/gate-refusal/proof-20260810T004200Z.json` records `chain.files = 261`, `applied_count = 246`, `failed_count = 15`, every failure attributed to one of five tables with no producer migration. On this working tree at `2026-08-10T05:12Z`, `scripts/submission/seed_demo_state.py` measured **271 of 271 applied, 0 failed, 0 unexplained** — five producer migrations (`0049d`, `0089`, `0089b`, `0090`, `0099`) had by then appeared on disk. **Re-checked 2026-08-12: all five are now tracked** — `git ls-files verticals/mainline/db/migrations/` lists each one — so the sentence "untracked at the time of writing", which this row carried until today, is itself an example of the rule. |
 | **CAUGHT BY** | `check_submission_prose.py` SUB-06 |
 
 This is the clearest illustration on the page of why the rule is *re-derive, never quote*. A
@@ -147,6 +157,35 @@ installed.**
 | **WHY** | `docs/HONESTY.md` § "Other things this document will not pretend about", first bullet. |
 | **CAUGHT BY** | `check_submission_prose.py` SUB-09 |
 
+### 10 · "Demonstrated" is not a weaker word than "passes"
+
+| | |
+|---|---|
+| **MUST NOT SAY** | "The conformance suite has been demonstrated." · "We demonstrated conformance end to end." · "There is a captured conformance run." |
+| **TRUE INSTEAD** | "The conformance suite has never been demonstrated. Two cases — CF-01 and CF-03 — are captured instead by `scripts/proof/gate_refusal.py`, which is a smaller claim and a true one." |
+| **WHY** | This is family 5 said with a different verb, and the different verb is the one that slips out, because it *sounds* like a hedge. It is not a hedge: "demonstrated" is the exact word `docs/HONESTY.md` uses for the thing that has not happened. A judge who hears "demonstrated" will look for the transcript, and there is not one. |
+| **CAUGHT BY** | `check_submission_prose.py` SUB-05 — its pattern lists `demonstrated` beside `pass`, `green` and `verified`. It fires on a *file*. In the film it is on you. |
+
+### 11 · The MI ratchet number, which has moved and will move again
+
+| | |
+|---|---|
+| **MUST NOT SAY** | "28 of 30." · "Twenty-eight invariants are pending." · "Two of thirty are enforced." · Any ratchet figure recalled rather than run. |
+| **TRUE INSTEAD** | "Run the ratchet and read its last line." |
+| **MEASURED** | `.venv/Scripts/python.exe scripts/mi_ratchet.py report` printed `21 pending / 9 enforced` on **2026-08-12**. The ratchet stays red at that figure on purpose; it is the top-level incompleteness counter and it is what stops the number being overstated. |
+| **WHY IT IS EASY TO GET WRONG** | `28 of 30` was true when it was written and nine invariants have been promoted since. The string survives in superseded planning documents under `docs/leads/`, and `.github/workflows/ci.yml:690` quotes it *in order to correct it* — so a reader who greps the tree finds the stale figure and its correction on adjacent lines, and can take away either one. |
+| **CAUGHT BY** | **Nothing.** No rule in `check_submission_prose.py` or `claim_hygiene.py` reads a ratchet count. The command above is the only control, and it takes four seconds. |
+
+### 12 · The acceptance run, which is a verdict in a file and not a memory
+
+| | |
+|---|---|
+| **MUST NOT SAY** | "The acceptance run passes." · "The deployed demo is proven." · "Every beat answers 200 over HTTP." — unless the artefact says so **on the day you say it**. |
+| **TRUE INSTEAD** | "Open `evidence/deploy/acceptance.json` and read the `verdict` field. That file is regenerated by `scripts/deploy/demo_acceptance.py`, and it is the only thing entitled to answer this question." |
+| **MEASURED** | On **2026-08-12T16:17:12Z** that file's `verdict` read **`NOT PROVEN`**, and its `failures` block names the reason. Do not film, narrate or write a sentence that assumes otherwise until a later run has replaced it. |
+| **WHY** | The gate-run has four beats and the fourth one *skips silently* when the exposure receipt behind it has expired — the first three keep refusing, so the screen looks correct and the verdict does not. A remembered `PROVEN` is therefore the single most likely false sentence in this submission. |
+| **CAUGHT BY** | **Nothing.** No rule reads a JSON verdict. Read the file. |
+
 ---
 
 ## Three more that are already enforced elsewhere, repeated because they are said out loud
@@ -179,6 +218,11 @@ The strongest sentence available to this project, and the one that costs nothing
 
 > "I don't know, and here is the file that would tell us."
 
-`docs/HONESTY.md` is 349 lines of exactly that, every number carrying the artefact that
-produced it, and a test that fails the build when a number and its source disagree. Link it.
-It is the best thing in the repository.
+`docs/HONESTY.md` is that sentence at length — every number carrying the artefact that produced
+it, and a test that fails the build when a number and its source disagree. Link it. It is the
+best thing in the repository.
+
+Its length is itself a number, so it is re-derived rather than remembered:
+`wc -l docs/HONESTY.md` printed **780** on 2026-08-12. An earlier revision of this page said
+349, which was true when someone typed it and had been false for a long time — the smallest
+possible demonstration of why every count on this page names the command that produced it.

@@ -19,6 +19,9 @@ run. The database is named for the SHA-256 of every migration's name and bytes, 
 second run reuses it and a single edited migration builds a new one. The marker table
 ``w3_fixture.ready`` carries the fingerprint AND the seeded identifiers, so a reused
 database hands back the same permit id it was seeded with rather than being re-seeded.
+**A marker is a claim that the database was built, never that it is still usable**, so it
+is checked against the rows before it is believed: the seeded history's one perishable row
+is a two-hour exposure receipt, and a database adopted the next day carries a dead one.
 
 **3. A seeded history that exercises all twelve resources.** Not the minimum for one
 claim — the minimum for twelve reads, which is a different and larger thing: two events
@@ -641,6 +644,14 @@ def _seed(conn: psycopg.Connection[Any]) -> dict[str, str]:
             (check_id, code, prompt, vocab),
         )
 
+    # THE ONLY ROW IN THIS FIXTURE THAT AGES. Two hours is what the product does —
+    # `scripts/proof/gate_refusal.py::seed_history` issues the same window — and it is NOT
+    # widened here to make a test convenient: a fixture that models a twelve-hour exposure
+    # would be asserting against a system nobody ships. `_receipt_is_dead` below detects the
+    # expiry on a reused database and `_reissue_receipt` repairs it, which is what the
+    # product's own remedy is (`0102_fn_disposition_project`: "exposure receipt absent or
+    # expired — re-materialise before signing"). Issued ten minutes in the past so that
+    # `reading_floor_met` is genuinely met rather than papered over.
     receipt_id = uuid.uuid4()
     conn.execute(
         "INSERT INTO mainline.exposure_receipt (receipt_id, subject_kind, permit_id, actor_sub, "
@@ -740,6 +751,88 @@ def _seed(conn: psycopg.Connection[Any]) -> dict[str, str]:
     }
 
 
+# ── Adopting a database somebody else's session built ───────────────────────────────
+#
+# THE MARKER SAYS THE DATABASE WAS BUILT. IT DOES NOT SAY IT IS STILL USABLE.
+# `w3_fixture.ready` carries the migration fingerprint and the seeded identifiers, so a
+# second run reuses the database rather than paying 46.7 s to apply 271 files again. Every
+# row `_seed` writes lands in an append-only table and cannot drift — except one. The
+# exposure receipt has a two-hour window, and a database seeded yesterday is adopted today
+# with a dead one. Nothing about the marker changes when that happens.
+#
+# The cost of missing it is not hypothetical: the sibling fixture in `tests/test_gate_run.py`
+# had the same shape, and on 2026-08-12 five tests there reported `observed outcome='skipped'`
+# for beat 4 — a FIXTURE failure presented as a product failure, against a gate that was
+# working perfectly. Measured then, and pinned here before it can be measured again.
+
+
+_ADOPTION_SQL: Final = """
+SELECT (SELECT count(*) FROM mainline.permit WHERE permit_id = %(permit)s) AS permits,
+       (SELECT count(*) FROM mainline.exposure_receipt WHERE receipt_id = %(receipt)s)
+         AS receipts,
+       (SELECT r.expires_at FROM mainline.exposure_receipt r
+         WHERE r.receipt_id = %(receipt)s) AS expires_at,
+       now() AS observed_at
+"""
+
+#: ``INSERT … SELECT``, so every column of the replacement except the identifier, the digest
+#: and the two timestamps is COPIED from the receipt it replaces. ``mainline.exposure_receipt``
+#: carries an ``append_only`` weld (``0128d_trg_refuse_mutation_exposure_receipt``) that
+#: refuses UPDATE and DELETE with ``P0001``, so extending the window in place is not merely
+#: discouraged — it is refused by the schema, and a new receipt is the only repair there is.
+_REISSUE_RECEIPT_SQL: Final = """
+INSERT INTO mainline.exposure_receipt
+       (receipt_id, subject_kind, permit_id, actor_sub, issued_at, issued_hlc, expires_at,
+        corpus_root, silence_receipt_id, policy_version, total_tokens, receipt_digest)
+SELECT %s, r.subject_kind, r.permit_id, r.actor_sub,
+       now() - INTERVAL '10 minutes', r.issued_hlc, now() + INTERVAL '2 hours',
+       r.corpus_root, r.silence_receipt_id, r.policy_version, r.total_tokens, %s
+  FROM mainline.exposure_receipt r
+ WHERE r.receipt_id = %s
+"""
+
+_REISSUE_LINES_SQL: Final = """
+INSERT INTO mainline.exposure_line (receipt_id, check_id, payload_digest, tokens)
+SELECT %s, l.check_id, l.payload_digest, l.tokens
+  FROM mainline.exposure_line l
+ WHERE l.receipt_id = %s
+"""
+
+
+def _adoption_state(conn: psycopg.Connection[Any], seed: Mapping[str, str]) -> dict[str, Any]:
+    """One statement: does the seeded subject still exist, and is its receipt still live?"""
+    row = conn.execute(
+        _ADOPTION_SQL, {"permit": seed["permit_id"], "receipt": seed["receipt_id"]}
+    ).fetchone()
+    assert row is not None  # a scalar SELECT with no FROM always returns one row
+    return dict(row)
+
+
+def _reissue_receipt(conn: psycopg.Connection[Any], seed: dict[str, str]) -> str:
+    """Issue a fresh receipt cloning the seeded one, carrying its exposure lines forward."""
+    receipt_id = uuid.uuid4()
+    conn.execute(
+        _REISSUE_RECEIPT_SQL,
+        (receipt_id, _sha("receipt", str(receipt_id)), seed["receipt_id"]),
+    )
+    conn.execute(_REISSUE_LINES_SQL, (receipt_id, seed["receipt_id"]))
+    return str(receipt_id)
+
+
+def _adoption_refusal(state: Mapping[str, Any]) -> str | None:
+    """Why this database may not be adopted as it stands, or ``None`` when it may be."""
+    if not state["permits"]:
+        return "the seeded permit is gone"
+    if not state["receipts"]:
+        return "the seeded exposure receipt is gone"
+    if state["expires_at"] <= state["observed_at"]:
+        return (
+            f"the seeded exposure receipt expired {state['expires_at'].isoformat()} "
+            f"(now {state['observed_at'].isoformat()})"
+        )
+    return None
+
+
 @pytest.fixture(scope="session")
 def demo_database(admin_dsn: str) -> tuple[str, dict[str, str]]:
     """A migrated, seeded database, cached by the fingerprint of the migration tree."""
@@ -756,14 +849,34 @@ def demo_database(admin_dsn: str) -> tuple[str, dict[str, str]]:
         with psycopg.connect(dsn, autocommit=True, row_factory=dict_row) as probe:
             try:
                 marker = probe.execute(
-                    "SELECT seed FROM w3_fixture.ready WHERE fingerprint = %s", (fingerprint,)
+                    "SELECT seed, migrations FROM w3_fixture.ready WHERE fingerprint = %s",
+                    (fingerprint,),
                 ).fetchone()
             except psycopg.Error:
                 marker = None
     except psycopg.Error:
         marker = None
     if marker is not None:
-        return dsn, dict(marker["seed"])
+        seed = dict(marker["seed"])
+        with psycopg.connect(dsn, autocommit=True, row_factory=dict_row) as adopt:
+            state = _adoption_state(adopt, seed)
+            # The one repair worth attempting: the history is intact and only its exposure
+            # has aged out. Anything else falls through to a rebuild, because a fixture that
+            # patches a database it does not understand is worse than one that rebuilds.
+            if state["receipts"] and state["expires_at"] <= state["observed_at"]:
+                seed["receipt_id"] = _reissue_receipt(adopt, seed)
+                state = _adoption_state(adopt, seed)
+            refusal = _adoption_refusal(state)
+            if refusal is None:
+                # The marker carries the identifiers a LATER session will adopt, so the
+                # re-issued receipt has to land in it. Without this the repair would be
+                # redone on every run and the seed dict would disagree with the marker.
+                adopt.execute(
+                    "UPSERT INTO w3_fixture.ready (fingerprint, migrations, seed) "
+                    "VALUES (%s, %s, %s)",
+                    (fingerprint, marker["migrations"], Jsonb(seed)),
+                )
+                return dsn, seed
 
     with psycopg.connect(admin_dsn, autocommit=True, row_factory=dict_row) as admin:
         admin.execute(f"DROP DATABASE IF EXISTS {database} CASCADE")

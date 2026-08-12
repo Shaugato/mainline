@@ -28,6 +28,44 @@
 # job ever needed. This repository's loudest claim is that no model can reach the merge
 # gate; the egress list is where that claim is enforced in CI, so it stays visible at
 # the call site.
+#
+# WHAT A CALLER'S `allowed-endpoints` MUST THEREFORE CONTAIN — MEASURED 2026-08-12.
+#
+# Because the list stays at the call site, this action's network needs have to be written
+# down somewhere a caller will find them, and this is that place. A job that runs this
+# action under `egress-policy: block` needs, at minimum:
+#
+#     api.github.com:443                      resolve `uv-version: latest` to a tag
+#     github.com:443                          the release URL (a redirect, no body)
+#     release-assets.githubusercontent.com:443  the uv tarball itself
+#     pypi.org:443                            \  `uv sync` — omit both when `sync: false`
+#     files.pythonhosted.org:443              /
+#
+# The third line is the one that was missing everywhere on 2026-08-12, and it took three
+# lanes down at once: `supply-chain` (3 of 3 jobs, run 31596446007), `db` (31596634515)
+# and `ci` (9 jobs, 31596249352). `supply-chain` had been GREEN at `b0fe884` with no
+# change to this action, to `uv.lock` or to that workflow in between — the destination
+# moved underneath a correct deny-list. From harden-runner's own post-step agent log:
+#
+#     Downloading uv from "https://github.com/astral-sh/uv/releases/download/0.12.3/…"
+#     Wed, 12 Aug 2026 12:26:48 GMT:domain not allowed: release-assets.githubusercontent.com.
+#     ##[error]connect ECONNREFUSED 54.185.253.63:443
+#
+# GitHub serves release-asset BODIES from `release-assets.githubusercontent.com`. The
+# older `objects.githubusercontent.com` — which every list here already named — no longer
+# receives that redirect. The refusal was correct behaviour by a control doing its job.
+#
+# TWO REPAIRS THAT WERE CONSIDERED AND REJECTED, so that neither is re-proposed:
+#
+#   `egress-policy: audit`  retires the assertion instead of updating it. The egress list
+#                           is where "no model reaches the merge gate" is enforced in CI.
+#   pin `uv-version`        would not have worked, and the log above is the proof: the URL
+#                           it failed on ALREADY names an exact version, because `latest`
+#                           had resolved against `api.github.com` one line earlier. The
+#                           version selects a tag; it does not select a host.
+#
+# `astral.sh:443` is retained on the lists that carry it. It is the host the standalone
+# installer script uses, and it is not on the path `astral-sh/setup-uv` takes.
 
 name: "Set up the MAINLINE Python workspace"
 description: >-

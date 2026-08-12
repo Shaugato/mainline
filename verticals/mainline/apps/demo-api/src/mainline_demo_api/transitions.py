@@ -85,7 +85,7 @@ from psycopg.types.json import Jsonb
 
 from .gate_run import GATE_RUN_SCHEMA_ID, canonical_json, gate_run
 from .refusal import classify, diagnose, refusal_payload, rfc3339
-from .scenario import Scenario, ScenarioNotSeeded, from_env
+from .scenario import Scenario, ScenarioNotSeeded, from_env, positional
 
 __all__ = [
     "CONTRACT_BASE",
@@ -280,11 +280,12 @@ def _demo_guard(subject_id: uuid.UUID, scenario: Scenario) -> tuple[int, dict[st
 def _permit_epoch(
     conn: psycopg.Connection[Any], permit_id: uuid.UUID
 ) -> tuple[int, int, str] | None:
-    row = conn.execute(
+    row = positional(
+        conn,
         "SELECT gate_epoch, head_seq, state::STRING FROM mainline.permit WHERE permit_id = %s",
         (permit_id,),
     ).fetchone()
-    return (int(row[0]), int(row[1]), row[2]) if row else None
+    return (int(row[0]), int(row[1]), str(row[2])) if row else None
 
 
 def _refused(
@@ -414,7 +415,10 @@ def _merge_permit(
             conn, procedure, permit_id, exc, {"kind": "merge", "gate_epoch": gate_epoch}
         )
 
-    record = conn.execute(
+    # By POSITION, and it has to be: CockroachDB names both `encode(...)` columns `encode`,
+    # so a dict row would keep three of these four values and drop one silently.
+    record = positional(
+        conn,
         "SELECT encode(merged_commit, 'hex'), merged_at, encode(clearance_digest, 'hex'), "
         "gate_epoch FROM mainline.merge_record WHERE subject_id = %s",
         (permit_id,),
@@ -505,7 +509,8 @@ def _append_transition(
             head,
         ),
     )
-    moved = conn.execute(
+    moved = positional(
+        conn,
         "UPDATE mainline.permit SET state = %s, head_seq = %s "
         "WHERE permit_id = %s AND head_seq = %s RETURNING head_seq",
         (to_state, head + 1, permit_id, head),
@@ -634,7 +639,7 @@ def _materialise_checks(
         return _error(404, "no_such_permit", f"no mainline.permit with permit_id {permit_id}")
     gate_epoch, head, state = anchor
 
-    recall = conn.execute(_RECALL_SQL, (permit_id,)).fetchone()
+    recall = positional(conn, _RECALL_SQL, (permit_id,)).fetchone()
     if recall is None:
         conn.rollback()
         return _error(
@@ -647,7 +652,7 @@ def _materialise_checks(
         )
     silence_receipt_id, policy_version, corpus_root = recall
 
-    checks = [row[0] for row in conn.execute(_OPEN_CHECKS_SQL, (permit_id,)).fetchall()]
+    checks = [row[0] for row in positional(conn, _OPEN_CHECKS_SQL, (permit_id,)).fetchall()]
     receipt_id = uuid.uuid4()
     tokens_each = 200
     digest = _sha(
@@ -799,7 +804,7 @@ def _sign_disposition(
     countersigner_sub = _text(body, "countersigner_sub", scenario.countersigner_sub, limit=256)
 
     _prepare(conn)
-    found = conn.execute(_CHECK_SQL, (check_id,)).fetchone()
+    found = positional(conn, _CHECK_SQL, (check_id,)).fetchone()
     if found is None:
         conn.rollback()
         return _error(404, "no_such_check", f"no mainline.blocking_check with check_id {check_id}")

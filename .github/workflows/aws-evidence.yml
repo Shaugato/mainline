@@ -88,6 +88,30 @@ jobs:
         run: python scripts/aws/verify_evidence.py --json
 
   # ── 2 · and the verifier can go RED, for the reason it claims ───────────────────────
+  #
+  # THIS JOB HAS ALREADY EARNED ITS KEEP, and the episode is worth recording because it is
+  # the only proof in this tree that the anti-vacuity discipline is not decoration. On
+  # 2026-08-12 it did not fail on a plant. It failed on the CONTROL:
+  #
+  #   FAMILY red-for-the-wrong-reason: an unmutated copy of evidence/ already fails, so
+  #   every plant below would be red for a reason that is not its plant
+  #
+  # An unmutated `evidence/` was already red — `SEC-ACCOUNT-ID` was firing on a recorded
+  # teardown transcript that demonstrated the account guard by naming a wrong twelve-digit
+  # account id. Every plant underneath still printed `fires`, and every one of those greens
+  # was worthless, because a sandbox that is red before you touch it cannot tell you what
+  # your plant did. The control check is what caught that; nothing else would have.
+  # `verify_evidence.py` was NOT relaxed and no exclusion was added for the offending path
+  # — the dry-run was re-run with a non-numeric expectation and the transcript replaced with
+  # what actually came back (`evidence/deploy/deploy-dry-run.json`, run E).
+  #
+  # MEASURED 2026-08-12 after that fix, by importing the verifier and printing the FULL set
+  # of invariants each plant makes fire, not just whether the expected one did:
+  # control 0 failures; 24 of 24 plants fire their own invariant; 13 fire it and NOTHING
+  # else; the other 11 additionally fire siblings their own edit necessarily breaks (the
+  # four secret plants write a new `evidence/aws/probe/leak.txt`, which `DOC-README-COVERS`
+  # then correctly reports as a file the README does not name). That figure is an
+  # observation, not a gate — the gate below is the one that runs every push.
   anti-vacuity:
     name: the red half is red for the reason it claims
     runs-on: ubuntu-24.04

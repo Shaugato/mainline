@@ -85,7 +85,19 @@
       "GET  /v1/nope           -> 404  error.kind = \"no_route\""
     ],
     "what_the_422_proves": "The 422 is the DISPATCHER's own answer, produced by transitions.handle_transition after the router handed it (demo_gate_run, {}, {}). Before this change the same request was a flat 404 from the router, which is what evidence/deploy/acceptance.json recorded. A seeded database turns the 422 into the four beats; an unseeded one now says which permit it wanted. Neither is a 404.",
-    "not_claimed": "This probe does NOT show a 200 gate-run. No local database carries the seeded demo history, so the four beats were not executed here. The end-to-end 200 belongs to w8-acceptance-and-video against the seeded CockroachDB Cloud cluster."
+    "not_claimed": {
+      "SUPERSEDED_2026-08-13": "This probe does NOT show a 200 gate-run. No local database carries the seeded demo history, so the four beats were not executed here. The end-to-end 200 belongs to w8-acceptance-and-video against the seeded CockroachDB Cloud cluster.",
+      "why_superseded": "Its CONCLUSION still holds and its REASON no longer does, and those are different things. A local database carrying the seeded demo history now exists, so 'the four beats were not executed here' is no longer true for want of a subject.",
+      "what_w4_acceptance_actually_ran_on_2026-08-13": [
+        "Built w_w4_acceptance on the pinned local node with scripts/deploy/cloud_chain.py --dsn postgresql://root@localhost:26257/defaultdb?sslmode=disable --database w_w4_acceptance  ->  VERDICT APPLIED, 271/271 applied, 0 failed, 0 retries, 115.2s, tree fp 278093ae94ced0ab4a418f8003450149",
+        "Seeded it with scripts/deploy/seed_demo.py --database w_w4_acceptance  ->  VERDICT SEEDED AND REFUSABLE, permit dec0de00-0006-4000-8000-000000000001, state=dispositioned open_blocking=1 gate_epoch=1 head_seq=2, MERGE REFUSED [23514] gate_closed_when_issued, rollback nothing_persisted=True. These are the SAME two seed files that built the live Cloud database mainline_demo.",
+        "Served the UNMODIFIED handler with scripts/deploy/local_furl.py --port 8752 --database w_w4_acceptance --permit-id dec0de00-0006-4000-8000-000000000001; the banner names the handler it loaded as verticals/mainline/apps/demo-api/src/mainline_demo_api/app.py",
+        "Ran scripts/deploy/demo_acceptance.py --url http://127.0.0.1:8752 --permit-id dec0de00-... --insecure  ->  GET / 200 (4655 bytes, HTML), GET /v1/health 200 (CockroachDB CCL v26.2.5, database w_w4_acceptance, schema_fingerprint 8cb8a7244a2750dedd8cfd35ba7adb68...), GET /v1/permits/{id} 200 three times, POST /v1/demo/gate-run 500 twice."
+      ],
+      "still_not_claimed": "The end-to-end 200 through the UNMODIFIED handler is STILL not shown, and the reason is now a named defect rather than a missing database: refusal.py:235 returns row[0] on a dict_row row and raises KeyError: 0 on beats 2 and 3, so every gate run answers 500. See evidence/deploy/acceptance.json, whose verdict is NOT PROVEN.",
+      "what_a_200_was_shown_to_require": "With refusal.py:235 corrected in a scratchpad process and NO repository file edited, POST /v1/demo/gate-run answers 200 and beats 1-3 produce 00000, 23514 gate_closed_when_issued (reported) and P0001 mainline.fn_permit_merge_gate (parsed), twice, identically. Beat 4 still refuses 23503 disposition_signer_credential_id_fkey on a demo-seeded database. That transcript is embedded in evidence/deploy/acceptance.json under `corroborating_run`, under its own key and with its own NOT PROVEN verdict, so that no reader or grep mistakes it for the deployment's.",
+      "who_owns_the_remaining_200": "The Cloud-backed run against the real Function URL belongs to the orchestrator after the apply. This worker's target was the local emulator, by brief."
+    }
   },
 
   "static_site": {
@@ -123,19 +135,40 @@
   },
 
   "tests": {
+    "SUPERSEDED_2026-08-13": {
+      "why_kept": "A record edited afterwards is not a record. These are w1-gate-run-route's readings of 2026-08-11, left visible so the correction below can be checked rather than taken on trust. They were ALREADY stale when docs/leads/submission-final-plan2.md was written: its section 3 measured five failures in tests/test_gate_run.py that this summary does not show.",
+      "summary": "209 passed, 1 skipped in 27.36s",
+      "summary_before_this_worker": "157 passed, 1 skipped in 128.94s",
+      "skip_is_pre_existing": "SKIPPED [1] tests/test_gate_run.py:524: jsonschema is not a workspace dependency; the structural check above is what runs today and this turns green the day it is added",
+      "new_files_alone": "D:/CoackroachDBxAWS/mainline/.venv/Scripts/python.exe -m pytest tests/test_routes_gate_run.py tests/test_static_site.py -q  ->  52 passed in 0.96s",
+      "mypy": "D:/CoackroachDBxAWS/mainline/.venv/Scripts/python.exe -m mypy  ->  Success: no issues found in 11 source files (mypy 2.3.0, strict, per pyproject.toml)",
+      "ruff": "D:/CoackroachDBxAWS/mainline/.venv/Scripts/python.exe -m ruff check verticals/mainline/apps/demo-api/  ->  All checks passed! (ruff 0.16.1, ruff.toml line-length 100)"
+    },
+    "remeasured_by": "w4-acceptance, 2026-08-13, on a working tree with w1-rowfactory and w2-permit-id landed and w3-receipt-ttl IN FLIGHT",
+    "tree_state_when_measured": "git status showed scenario.py, gate_run.py, transitions.py and tests/test_gate_run.py modified and tests/test_row_factory_contract.py untracked; tests/conftest.py was NOT yet modified and no receipt-TTL evidence artefact existed. These numbers are a snapshot of a moving tree and will move again when w3 lands.",
     "command": "D:/CoackroachDBxAWS/mainline/.venv/Scripts/python.exe -m pytest tests -q",
     "cwd": "D:/CoackroachDBxAWS/mainline/verticals/mainline/apps/demo-api",
-    "summary": "209 passed, 1 skipped in 27.36s",
-    "summary_before_this_worker": "157 passed, 1 skipped in 128.94s",
+    "summary": "3 failed, 224 passed, 1 skipped in 32.49s",
+    "the_three_failures_are_intentional_and_must_stay_red": {
+      "tests": [
+        "tests/test_row_factory_contract.py::test_gate_run_through_the_production_connection",
+        "tests/test_row_factory_contract.py::test_gate_run_returns_the_same_answer_under_both_factories",
+        "tests/test_row_factory_contract.py::test_demo_gate_run_endpoint_through_the_production_connection"
+      ],
+      "all_three_report_one_cause": "KeyError: 0 at mainline_demo_api/refusal.py:235",
+      "why_they_stay_red": "They report TRUE INCOMPLETENESS and their message already names the file, the line, the statement, the reason and the one-line correction. docs/leads/submission-final-plan2.md section 7 rule 3: a red that reports true incompleteness stays red with a sharper message. Nothing here was relaxed to lower the count.",
+      "owner": "refusal.py is owned by no worker in this wave. w1-rowfactory searched docs/leads/workers.json and every plan in docs/leads/ and found none; this worker confirms the path is absent from its own brief as well."
+    },
     "new_tests_added": 52,
-    "skip_is_pre_existing": "SKIPPED [1] tests/test_gate_run.py:524: jsonschema is not a workspace dependency; the structural check above is what runs today and this turns green the day it is added",
+    "skip_is_pre_existing": "SKIPPED [1] tests/test_gate_run.py:740: jsonschema is not a workspace dependency; the structural check above is what runs today and this turns green the day it is added. The LINE NUMBER moved from 524 to 740 because w3-receipt-ttl is editing that file; the skip itself is unchanged.",
     "new_files": [
       "verticals/mainline/apps/demo-api/tests/test_routes_gate_run.py",
       "verticals/mainline/apps/demo-api/tests/test_static_site.py"
     ],
-    "new_files_alone": "D:/CoackroachDBxAWS/mainline/.venv/Scripts/python.exe -m pytest tests/test_routes_gate_run.py tests/test_static_site.py -q  ->  52 passed in 0.96s",
-    "mypy": "D:/CoackroachDBxAWS/mainline/.venv/Scripts/python.exe -m mypy  ->  Success: no issues found in 11 source files (mypy 2.3.0, strict, per pyproject.toml)",
-    "ruff": "D:/CoackroachDBxAWS/mainline/.venv/Scripts/python.exe -m ruff check verticals/mainline/apps/demo-api/  ->  All checks passed! (ruff 0.16.1, ruff.toml line-length 100)"
+    "new_files_alone": "D:/CoackroachDBxAWS/mainline/.venv/Scripts/python.exe -m pytest tests/test_routes_gate_run.py tests/test_static_site.py -q  ->  52 passed in 1.06s (re-measured 2026-08-13)",
+    "mypy": "D:/CoackroachDBxAWS/mainline/.venv/Scripts/python.exe -m mypy  ->  Success: no issues found in 11 source files (re-measured 2026-08-13)",
+    "ruff": "D:/CoackroachDBxAWS/mainline/.venv/Scripts/python.exe -m ruff check verticals/mainline/apps/demo-api/  ->  Found 3 errors (re-measured 2026-08-13). NO LONGER CLEAN, and not because of this worker: all three are in tests/test_gate_run.py, which w3-receipt-ttl is editing right now - E501 at 220:101 and 235:101, and ISC004 at 879. Reported here for w3; not touched, because the file is theirs.",
+    "not_measured_by_this_worker": "scripts/deploy/demo_acceptance.py and scripts/deploy/local_furl.py, which this worker DOES own, pass ruff clean: `python -m ruff check scripts/deploy/demo_acceptance.py scripts/deploy/local_furl.py` -> All checks passed!"
   },
 
   "one_pre_existing_test_had_to_change": {
@@ -182,6 +215,53 @@
     "edited": [
       "verticals/mainline/apps/demo-api/src/mainline_demo_api/app.py",
       "verticals/mainline/apps/demo-api/tests/test_envelope.py"
+    ],
+    "edited_2026-08-13_by_w4_acceptance": [
+      "evidence/deploy/gate-run-reachable.json - the `tests` block re-measured, the `not_claimed` block superseded rather than deleted, and the quotable verdict below added"
     ]
+  },
+
+  "ACCEPTANCE_VERDICT": {
+    "quote_this_verbatim": "NOT PROVEN",
+    "for_the_avoidance_of_doubt": "w5 and w8 should quote the two words above and the sentence below, and should NOT paraphrase either. There is no PROVEN end-to-end acceptance transcript over HTTP as of 2026-08-13.",
+    "the_sentence": "POST /v1/demo/gate-run answers HTTP 500 through the unmodified handler, twice, against a database seeded from the same two files that built the live Cloud database mainline_demo. Two defects stand between the committed tree and a PROVEN transcript, both outside the acceptance worker's files, both named with the line that causes them.",
+    "artefact": "evidence/deploy/acceptance.json",
+    "verdict_key_in_that_artefact": "verdict",
+    "failures_recorded": 3,
+    "what_IS_established_and_may_be_quoted_as_established": [
+      "The route is reachable and the dispatcher is reached: the 404 this file recorded on 2026-08-10 is gone and stays gone.",
+      "The console is served from the same origin: GET / -> 200, 4655 bytes, HTML.",
+      "GET /v1/health -> 200, naming CockroachDB CCL v26.2.5 and a non-null schema_fingerprint.",
+      "NOTHING PERSISTS, and this is newly established from OUTSIDE rather than newly asserted: the permit was read before and after both gate runs from GET /v1/permits/{id}, a different endpoint in a different transaction, and open_blocking=1, state=dispositioned, gate_epoch=1, head_seq=2 are identical across before_run_1, after_run_1 and after_run_2. The 2026-08-11 artefact could not establish this and said so.",
+      "Beats 1-3 behave exactly as docs/deploy/gate-run-contract.md states - 00000, 23514 gate_closed_when_issued (reported), P0001 mainline.fn_permit_merge_gate (parsed) - twice, identically. This is quotable ONLY with its condition attached: it was measured with refusal.py:235 corrected in a scratchpad process, and the corroborating_run block that carries it is itself NOT PROVEN."
+    ],
+    "what_must_NOT_be_quoted_as_established": [
+      "That the demo has been shown working end to end. It has not.",
+      "That beat 4 admits. On a demo-seeded database it refuses 23503, and mainline_demo is demo-seeded.",
+      "That a public demo URL exists. docs/submission/SUBMISSION.json holds UNRESOLVED and must keep holding it."
+    ],
+    "GO_NO_GO_on_the_terraform_apply": {
+      "verdict": "NO-GO",
+      "reason": "The Lambda the founder approved points MAINLINE_DEMO_DATABASE at mainline_demo, which is seeded by verticals/mainline/db/seeds/demo/demo_world.sql. Measured on an identically-seeded database: every gate run answers 500, and with that first defect corrected the headline beat refuses with a foreign-key violation instead of admitting. Applying today ships a demo URL that shows a judge a 500.",
+      "blocker_1": {
+        "file": "verticals/mainline/apps/demo-api/src/mainline_demo_api/refusal.py",
+        "line": 235,
+        "defect": "`return (row[0] if row and isinstance(row[0], dict) else None), None` indexes by position a row the connection produced with dict_row (db.py:309). The statement above it is `SELECT trappoint.explain_refusal(...)`, whose single column CockroachDB names `explain_refusal`, so row[0] raises KeyError: 0.",
+        "reached_by": "gate_run._record_refusal -> refusal.refusal_payload -> refusal._explain, on BEAT 2 and BEAT 3 of every gate run, and transitions._refused on every kernel refusal. No path through the demo avoids it.",
+        "correction": "One line: take the row's single VALUE rather than its index, e.g. via scenario.positional() as the other three modules now do.",
+        "owner": "NONE. w1-rowfactory searched docs/leads/workers.json and every plan in docs/leads/ and found no owner; this worker's brief does not list it either. It needs assigning before it can be fixed by anyone obeying rule 5.",
+        "already_recorded_at": "evidence/deploy/rowfactory-defect.json -> blocking_finding, by the worker who found it and correctly declined to edit outside its lane"
+      },
+      "blocker_2": {
+        "file": "verticals/mainline/apps/demo-api/src/mainline_demo_api/gate_run.py",
+        "lines": [576, 578],
+        "defect": "Beat 4 cannot admit on a demo-seeded database. gate_run.py writes signer_credential_id = sha256('cred'+'signer') = 487adc50409e8811b1f12055ee183ce9d8548f11262807d01776fb67cd09c765 and countersigner_credential_id = sha256('cred'+'cosigner') = 916b6121c8188a00ec5deff08e61ea034a58ed16d8ec85115c40cf7cb049d7fb. Those two values are seeded by scripts/proof/gate_refusal.py:844 and by nothing else. The demo seeds write ff356d1461921438bbbc5d644db8793669cb948a46bddc2e8fb5ebef959bdf0c and 8d7b089f4c0aec7d890810a5aca3ebd9f57e2ae8786e2749e576200019b18ebe. The INSERT therefore violates disposition_signer_credential_id_fkey with 23503.",
+        "the_sharper_form_of_it": "gate_run.py mixes two seeders' identifiers in one INSERT. It takes signer_sub from scenario.py, whose default (scenario.py:209) is 'demo.signer' - the DEMO seeder's subject - and pairs it with a credential constant belonging to gate_refusal.py, whose subject is 'proof.signer' (gate_refusal.py:843). Those two columns never describe the same person on either database.",
+        "why_it_was_not_caught": "w1-rowfactory measured all four beats admitting, on w_w1_rowfactory - a database seeded by scripts/proof/gate_refusal.py, where the hard-coded credential does exist. That is a different database from the one the deploy targets. The green was real and was taken on a database no judge will ever touch.",
+        "correction_that_fits_this_repository's_own_doctrine": "A lookup, not a second constant. scenario.py's docstring says a derived identifier the API pinned would be the API asserting a fact about rows it did not write. MEASURED on the demo-seeded database: SELECT credential_id FROM mainline.signing_credential WHERE signer_sub = %s AND revoked_at IS NULL resolves 'demo.signer' -> ff356d14... and 'demo.countersigner' -> 8d7b089f..., which is the shape gate_run.py already uses for every other identifier it needs. Both seeders populate signer_sub, so the lookup is correct against either.",
+        "owner": "gate_run.py was edited by w1-rowfactory in this wave. Assigning this to the same owner keeps one module in one pair of hands."
+      },
+      "what_is_NOT_a_blocker": "/v1/health reporting migrations_applied=0 is not a defect in the deployment and not a reason to hold the apply. health.py counts trappoint.schema_migration, whose only writer in the tree is trappoint_migrate/runner.py:295 (`trappoint migrate up`). The demo databases are built by scripts/deploy/cloud_chain.py, which bootstraps the attestation ledger and records its own count in trappoint.deploy_chain instead. Measured on w_w4_acceptance after a 271/271 apply: schema_migration is empty, and the chain is nevertheless fully applied. Two appliers, two ledgers, and /v1/health reads only one of them. The schema_fingerprint is the identifier that moves with the schema; this counter is not."
+    }
   }
 }

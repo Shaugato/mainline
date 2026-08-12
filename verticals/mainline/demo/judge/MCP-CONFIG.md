@@ -14,6 +14,11 @@ Everything on this page was measured on **2026-08-11** against CockroachDB Cloud
 [`evidence/deploy/judge-access.json`](../../../../evidence/deploy/judge-access.json) and
 [`evidence/deploy/judge-run.json`](../../../../evidence/deploy/judge-run.json).
 
+The configuration block in §1 is **byte-identical to the one in
+[`docs/deploy/JUDGE-PACK.md`](../../../../docs/deploy/JUDGE-PACK.md) §4** — cross-checked
+2026-08-13. If the two ever diverge, that is a defect in whichever was edited last, and this
+file is the one with the field-by-field explanation.
+
 ---
 
 ## 0. Which path is yours
@@ -184,12 +189,14 @@ Everything the judge pack asks over MCP, you can ask over plain pgwire. This is 
 publish.
 
 ```bash
-psql "postgresql://mainline_judge:<password-from-the-submission-form>@mainline-dev-31219.j77.aws-ap-southeast-1.cockroachlabs.cloud:26257/mainline_demo?sslmode=verify-full"
+psql "postgresql://mainline_judge:<PASSWORD-FROM-THE-SUBMISSION-FORM>@mainline-dev-31219.j77.aws-ap-southeast-1.cockroachlabs.cloud:26257/mainline_demo?sslmode=verify-full"
 ```
 
-Replace `<password-from-the-submission-form>` with the value in the submission's credentials
+Replace `<PASSWORD-FROM-THE-SUBMISSION-FORM>` with the value in the submission's credentials
 field. **It is not in this repository and it is not on this page.** It was rotated on 2026-08-11
-and the reason is recorded in [`JUDGE-PACK.md`](../../../../docs/deploy/JUDGE-PACK.md) §2.1.
+and the reason is recorded in [`JUDGE-PACK.md`](../../../../docs/deploy/JUDGE-PACK.md) §2.1. That
+token is the only placeholder on this page; the demo URL, which is the other one in `JUDGE-PACK.md`,
+does not appear here at all because this path needs no deployment of ours.
 
 The first thing worth typing:
 
@@ -207,7 +214,17 @@ SELECT count(*) FROM mainline.permit;
 The full reach is the fourteen `mainline_audit` views and nothing else, verified from the other
 side on 2026-08-11: **14 of 14 readable, 6 non-empty; 11 of 11 refusals at `42501`**, covering
 `SELECT` on a base table, `INSERT`, `CREATE TABLE` and `DROP VIEW`.
-[`JUDGE-PACK.md`](../../../../docs/deploy/JUDGE-PACK.md) §2 has the table.
+[`JUDGE-PACK.md`](../../../../docs/deploy/JUDGE-PACK.md) §2 has the table, and §2.3 records the
+same four SQLSTATEs re-derived on a local v26.2.5 node on 2026-08-13 against a role of the same
+shape — so they are a property of the engine and the grant, not of one cluster on one afternoon.
+
+**Fourteen is the count of `GRANT SELECT` statements** in
+`verticals/mainline/db/demo/judge_grants.sql`, lines 136–149. That file holds exactly one other
+grant of any write privilege: a `GRANT INSERT` at line 155 on `mainline_meas.external_attestation`
+— **a relation with no producer migration anywhere in the 271-file chain**, so the statement skips
+and the login ends up with **no write surface at all**. [`FALLBACK.md`](FALLBACK.md) §0.3 shows the
+derivation; it is narrower than this directory's documents used to describe, and it is the true
+position.
 
 ---
 
@@ -223,6 +240,21 @@ allowance to buy isolation we do not need: every row is synthetic and the publis
 read-only. `PACK.md` is generated from `QUESTIONS.yaml`, which belongs to the agents-mcp domain;
 the deploy worker that measured this **records the discrepancy and does not edit the generator**.
 Anyone reading `PACK.md` should read `mainline-dev` wherever it says `mainline-verify`.
+[`FALLBACK.md`](FALLBACK.md) §0.2 carries the same correction, and notes that it *strengthens*
+the no-published-key rule rather than weakening it: the film was shot against the only cluster
+there is.
 
-*(`FALLBACK.md` refers to "eighteen questions". `QUESTIONS.yaml` holds **sixteen** — twelve
-positive, four negative.)*
+### 5.1 · A correction to this file's own previous claim
+
+An earlier revision of this section stated that *`FALLBACK.md` refers to "eighteen questions"*.
+**It does not, and it never did.** Before this correction was written on 2026-08-13,
+`git grep -ni eighteen -- verticals/mainline/demo/judge/` returned exactly one line — the footnote
+here making the claim, not the claim itself. (It now returns the three corrections, this one
+among them; that is what a self-referential grep does, and it is why the finding is stated with
+its date rather than as a standing command.) What was true is that `FALLBACK.md` stated no total
+at all, which is a different and smaller defect; it now states the count explicitly, in its §0.1.
+
+The number, counted out of [`QUESTIONS.yaml`](QUESTIONS.yaml) and corroborated by
+`evidence/deploy/judge-run.json`'s `questions / positive / negative` keys — written by the pack's
+own loader, not by hand — is **sixteen: twelve positive (`Q01`–`Q10C`), four negative
+(`N01`–`N04`)**. §2 above uses the same figure.

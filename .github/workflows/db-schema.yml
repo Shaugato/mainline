@@ -146,6 +146,158 @@ jobs:
         # is never a statement about a suite nobody measured.
         run: uv run --frozen python scripts/mi_ratchet.py selftest
 
+      - name: Which derived artefact is stale, what regenerates it, and who owns it
+        # R3: an intentional red names its missing artefact and its owner, in the log.
+        # This job is red for one of two reasons and they read identically from outside:
+        # a derived artefact has fallen behind the tree, or the runner is genuinely
+        # broken. It has to be able to say which.
+        #
+        # MEASURED 2026-08-12, run 31596638185 and again on 31600802469: the whole job was
+        # red because `verticals/mainline/db/migrations.lock.json` records the sha256 of
+        # ten migrations that were edited at b0fe884 and never re-locked. The only trace
+        # of that in the log was an assertion diff buried inside one of the 300 tier-0
+        # tests, `test_the_committed_manifest_is_current`, printed under `-q`. Everything
+        # else about the runner worked: 299 of 300 tier-0 cases passed with no cluster, so
+        # the tier-0 claim IS supportable without a database and this lane is not
+        # over-claiming — it was merely failing opaquely.
+        #
+        # Nothing below is written down here. The stale entries come from
+        # `trappoint_migrate.lockfile.verify_lock` — the same function the tier-0 test
+        # calls — the catalogue drift from `mi_ratchet.check_violations`, and the owner of
+        # every affected migration from `migrations.allocation.toml` via the band table. A
+        # hand-listed set of ten filenames would be a lie the day an eleventh joins.
+        #
+        # `if: failure()` — an earlier step has already failed, so this cannot rescue the
+        # job and is not a suppression. It is not `continue-on-error` either: if the
+        # diagnosis itself cannot be made, that is a finding and this step fails too.
+        if: failure()
+        run: |
+          set -euo pipefail
+          cat > catalogue-drift.py <<'PY'
+          """Name every derived artefact this job asserts, and whether it is current."""
+
+          from __future__ import annotations
+
+          import sys
+          from pathlib import Path
+
+          sys.path.insert(0, "scripts")
+          import mi_ratchet as mi
+          from trappoint_migrate.lockfile import lock_path_for, verify_lock
+
+          for stream in (sys.stdout, sys.stderr):
+              if hasattr(stream, "reconfigure"):
+                  stream.reconfigure(encoding="utf-8", errors="replace")
+
+          root = mi.REPO_ROOT
+          migrations = root / mi.MIGRATIONS_RELPATH
+          bands = mi.load_bands(root / mi.ALLOCATION_RELPATH)
+          paths = mi.Paths.under(root)
+
+
+          def owners_for(lines: list[str]) -> str:
+              """The band owners behind a set of findings, read from the allocation table.
+
+              A finding opens with the migration filename it is about. `verify_lock` also
+              returns one trailing advisory line that names no file; it simply fails to match
+              the migration-number pattern and drops out here, rather than being filtered by a
+              guess about its punctuation.
+              """
+              numbers = []
+              for line in lines:
+                  found = mi.MIGRATION_NUMBER_RE.match(line.split(":", 1)[0])
+                  if found:
+                      numbers.append(found.group("number"))
+              owners = mi.owners_of(numbers, bands)
+              return "; ".join(owners) if owners else "unallocated — no band claims these numbers"
+
+
+          sections: list[tuple[str, str, str, list[str]]] = []
+
+          lock = lock_path_for(migrations)
+          stale = verify_lock(lock, migrations, repo_root=root)
+          if stale:
+              sections.append(
+                  (
+                      lock.relative_to(root).as_posix(),
+                      "trappoint migrate lock --write",
+                      owners_for(stale),
+                      stale,
+                  )
+              )
+
+          drift = mi.check_violations(paths)
+          if drift:
+              sections.append(
+                  (
+                      mi.RENDERED_RELPATH,
+                      "python scripts/mi_ratchet.py reconcile --write",
+                      (
+                          "scripts/mi_ratchet.py renders it; the drift is owed by whoever last "
+                          "changed mi_catalogue.yaml or a `-- MI:` header without re-rendering. "
+                          "`check` also asserts the owning_migrations projection and the red "
+                          "suite's shape, so read the findings before assuming a re-render is all "
+                          "that is owed."
+                      ),
+                      drift,
+                  )
+              )
+
+          if not sections:
+              print(
+                  "::notice title=no derived artefact is stale::Every artefact this job asserts "
+                  "is current: the migration manifest verifies against the tree and the invariant "
+                  "catalogue matches its rendering. The red above is therefore NOT a staleness — "
+                  "read the failing step's own output, because the runner itself is what refused."
+              )
+              print("## db-schema — the catalogue job is red, and it is not a stale artefact")
+              print("")
+              print(
+                  "`trappoint_migrate.lockfile.verify_lock` and `mi_ratchet.py check` were both "
+                  "re-run here and both are clean. Whatever failed above failed on its own terms."
+              )
+              raise SystemExit(0)
+
+          names = ", ".join(name for name, _, _, _ in sections)
+          print(
+              f"::error title=db-schema is red on a stale derived artefact::{len(sections)} "
+              f"derived artefact(s) are out of date with the tree — {names}. Each is GENERATED; "
+              f"the fix is to re-run its generator and commit the result, never to edit it."
+          )
+          print("## db-schema — the derived artefact that is out of date, and who owes it")
+          print("")
+          print(
+              "Every step in this job asserts that something DERIVED is current. When one of "
+              "them fails the reader gets that tool's own output, which for the tier-0 suite is "
+              "an assertion diff inside one of 300 tests. The table below is the same question "
+              "asked directly."
+          )
+          print("")
+          print("| artefact | regenerate with | owner |")
+          print("|---|---|---|")
+          for artefact, generator, owner, _ in sections:
+              print(f"| `{artefact}` | `{generator}` | {owner} |")
+          print("")
+          for artefact, generator, owner, lines in sections:
+              print(f"### `{artefact}` — {len(lines)} finding(s)")
+              print("")
+              print(f"* **regenerate with** `{generator}` — it is derived, never authored.")
+              print(f"* **owner** — {owner}")
+              print("")
+              print("```")
+              for line in lines:
+                  print(line)
+              print("```")
+              print("")
+          print(
+              "**This job stays red.** No `continue-on-error`, no `|| true`, no threshold moved. "
+              "A manifest that disagrees with the bytes it manifests is exactly the condition "
+              "this lane exists to catch, and it goes green the moment the generator is re-run."
+          )
+          PY
+          uv run --frozen --all-packages python catalogue-drift.py | tee catalogue-drift.md
+          cat catalogue-drift.md >> "$GITHUB_STEP_SUMMARY"
+
   # ── The two laws. Both need a cluster, for opposite reasons. ────────────────────────
   ratchet:
     name: mi-red and mi-green
@@ -255,12 +407,22 @@ jobs:
         # the step after this one can name the held invariants without re-running a
         # three-minute suite; `PIPESTATUS[0]` is then re-raised verbatim. This is not a
         # `|| true` in disguise — nothing is swallowed, the status the ratchet returned is
-        # the status this step exits with, and `set -o pipefail` would abort before the
-        # capture could be used, which is why it is spelled out instead.
+        # the status this step exits with.
+        #
+        # `set -u`, NOT `set -uo pipefail`, and the difference was a live defect until
+        # 2026-08-12. The step's own comment already said `pipefail` "would abort before
+        # the capture could be used" — and then the line below set it anyway. MEASURED on
+        # run 31600802469: `pipefail` made the pipeline's status 1, the shell's `-e` (from
+        # `bash -e {0}`) fired on it, and the three lines after the pipeline never ran, so
+        # the log carried the command echo of the status line and never its output. The
+        # colour was right by accident and the sentence explaining it was lost every time.
+        # Without `pipefail` the pipeline exits with `tee`'s 0, `-e` stays quiet, and the
+        # explicit `exit "${status}"` below is what decides this step — which is what the
+        # comment always claimed and now is what happens.
         env:
           TRAPPOINT_DSN: ${{ env.LOCAL_DSN }}
         run: |
-          set -uo pipefail
+          set -u
           uv run --frozen python scripts/mi_ratchet.py red --on-collect-error-red 2>&1 \
             | tee mi-red.log
           status="${PIPESTATUS[0]}"
@@ -311,9 +473,11 @@ jobs:
               print(f"no mi-red transcript at {transcript}: an earlier step failed first.")
               raise SystemExit(0)
 
+          lines = ANSI.sub("", transcript.read_text(encoding="utf-8", errors="replace")).splitlines()
+
           held: dict[str, list[str]] = {}
           current: str | None = None
-          for raw in ANSI.sub("", transcript.read_text(encoding="utf-8", errors="replace")).splitlines():
+          for raw in lines:
               found = HELD.match(raw)
               if found:
                   current = found.group(1)
@@ -326,6 +490,26 @@ jobs:
                   held[current].append(node.group(1))
               elif raw.startswith("REFUSED:") or (raw and not raw.startswith(" ")):
                   current = None
+
+          def pending_ledger_block() -> list[str]:
+              """The ratchet's own PENDING LEDGER, lifted out of the transcript verbatim.
+
+              Sliced on `mi.PENDING_LEDGER_HEADING` rather than on a literal spelled here, so
+              the heading has exactly one definition. The slice ends at the first `REFUSED:`
+              because that is where the ledger stops and the red law's refusals begin.
+              """
+              start = next(
+                  (i for i, raw in enumerate(lines) if raw.startswith(mi.PENDING_LEDGER_HEADING)),
+                  None,
+              )
+              if start is None:
+                  return []
+              block: list[str] = []
+              for raw in lines[start:]:
+                  if raw.startswith("REFUSED:"):
+                      break
+                  block.append(raw)
+              return block
 
           if not held:
               print("mi-red named no held invariant in this transcript; the red is elsewhere.")
@@ -380,6 +564,29 @@ jobs:
               "For these, they are not."
           )
           print("")
+          ledger = pending_ledger_block()
+          if ledger:
+              print("### Every pending invariant, its missing artefact and its owner")
+              print("")
+              print(
+                  "The block below is `mi_ratchet.py red`'s own ledger, verbatim. It covers the "
+                  "WHOLE pending set — the ones held above, the ones whose owning tests already "
+                  "fail, and the ones with no owning test at all — because a lane that is red on "
+                  "purpose has to be able to say all of what it is holding, not a subset."
+              )
+              print("")
+              print("```")
+              for raw in ledger:
+                  print(raw)
+              print("```")
+              print("")
+          else:
+              print(
+                  f"*No `{mi.PENDING_LEDGER_HEADING}` block is present in this transcript: the "
+                  f"ratchet refused before it could measure a position for each pending "
+                  f"invariant. The held table below is all this run can say.*"
+              )
+              print("")
           print("| invariant | object §16 names | in the tree? | passing owning tests | owner |")
           print("|---|---|---|---|---|")
           for mi_id in sorted(held):

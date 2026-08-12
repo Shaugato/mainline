@@ -194,7 +194,10 @@ def test_stop_reason_is_checked_before_content_is_touched(
     )
 
     class _Transport:
-        def send(self, request: dict[str, Any]) -> TransportReply:
+        # This scenario scripts the reply and never inspects the request, so the parameter
+        # is underscored rather than suppressed. `JudgeTransport.send` is called
+        # positionally (`providers/judge.py:305`), so the name is free to say "unread".
+        def send(self, _request: dict[str, Any]) -> TransportReply:
             return TransportReply(
                 stop_reason="refusal",
                 text=perfectly_valid,

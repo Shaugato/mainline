@@ -77,6 +77,7 @@ import hashlib
 import json
 import sys
 import zipfile
+from pathlib import Path
 from typing import Any
 
 __all__ = [
@@ -118,7 +119,7 @@ _READ_BLOCK = 1 << 20
 
 def _sha256_file(path: str) -> str:
     digest = hashlib.sha256()
-    with open(path, "rb") as handle:
+    with Path(path).open("rb") as handle:
         for block in iter(lambda: handle.read(_READ_BLOCK), b""):
             digest.update(block)
     return digest.hexdigest()
@@ -189,9 +190,7 @@ def describe(path: str, *, hash_entries: bool = True) -> dict[str, Any]:
 
 
 def _zip_size(path: str) -> int:
-    import os
-
-    return os.path.getsize(path)
+    return Path(path).stat().st_size
 
 
 # ── Deciding ────────────────────────────────────────────────────────────────────────
@@ -286,10 +285,10 @@ def _render(manifest: dict[str, Any], verdict: dict[str, Any], *, listing: bool)
     out.append(f"bundle_manifest: {manifest['artifact']}")
     out.append(f"  sha256        {manifest['sha256']}")
     out.append(
-        "  zipped        {0} ({1})".format(manifest["bytes_zipped"], _mb(manifest["bytes_zipped"]))
+        "  zipped        {} ({})".format(manifest["bytes_zipped"], _mb(manifest["bytes_zipped"]))
     )
     out.append(
-        "  unzipped      {0} ({1})".format(
+        "  unzipped      {} ({})".format(
             manifest["bytes_unzipped"], _mb(manifest["bytes_unzipped"])
         )
     )
@@ -310,7 +309,7 @@ def _render(manifest: dict[str, Any], verdict: dict[str, Any], *, listing: bool)
     out.append("  " + "-" * 60)
     for row in verdict["limits"]:
         out.append(
-            "  {0:<13} {1:>12}  {2:>12}   {3}".format(
+            "  {:<13} {:>12}  {:>12}   {}".format(
                 row["limit"], row["measured"], row["ceiling"], "yes" if row["ok"] else "NO"
             )
         )
@@ -328,7 +327,7 @@ def _render(manifest: dict[str, Any], verdict: dict[str, Any], *, listing: bool)
         out.append("  " + "-" * 100)
         for entry in manifest["entries"]:
             out.append(
-                "  {0:<64} {1:>12}  {2}".format(
+                "  {:<64} {:>12}  {}".format(
                     entry.get("sha256", "-" * 64), entry["bytes"], entry["path"]
                 )
             )
@@ -430,7 +429,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.json_path:
         payload = dict(manifest)
         payload["check"] = {key: value for key, value in verdict.items() if key != "entries"}
-        with open(args.json_path, "w", encoding="utf-8") as handle:
+        with Path(args.json_path).open("w", encoding="utf-8") as handle:
             json.dump(payload, handle, indent=2, sort_keys=True)
             handle.write("\n")
 
@@ -438,7 +437,7 @@ def main(argv: list[str] | None = None) -> int:
         for line in verdict["refusals"]:
             sys.stderr.write(line + "\n")
         print(
-            "bundle_manifest: {0} sha256={1} zipped={2} unzipped={3} entries={4} VERDICT {5}".format(
+            "bundle_manifest: {} sha256={} zipped={} unzipped={} entries={} VERDICT {}".format(
                 manifest["artifact"],
                 manifest["sha256"],
                 manifest["bytes_zipped"],

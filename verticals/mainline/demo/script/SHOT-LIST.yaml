@@ -104,7 +104,10 @@ shots:
     word_count: 14
     judging_criterion: Impact
     requires_milestone: K3
-    fallback: "Static PNG of the same clause rendered from the authored fixture; no cursor move."
+    fallback: >-
+      Static PNG of the same clause, typeset from CAMERA-STRINGS.yaml
+      (clause_text_2013_onwards); no cursor move. Measured 2026-08-12: the authored
+      fixture root is absent, so this IS the path until corpus-spine-authored lands.
     evidence_artifact: "evidence/demo-run-<ts>/screens/s01.png"
 
   - t: 6
@@ -118,7 +121,10 @@ shots:
     word_count: 12
     judging_criterion: Impact
     requires_milestone: K3
-    fallback: "The same diff rendered by the mock fixture server in demo/browser/mock/."
+    fallback: >-
+      The same diff typeset as a card from moc_ref, moc_diff_line and moc_delta_badge
+      in CAMERA-STRINGS.yaml. Measured 2026-08-12: demo/browser/ does not exist on this
+      tree, so no fixture server renders it.
     evidence_artifact: "evidence/demo-run-<ts>/screens/s02.png"
 
   - t: 13
@@ -159,7 +165,11 @@ shots:
     word_count: 9
     judging_criterion: "Memory design"
     requires_milestone: K3
-    fallback: "Pre-recorded tape output replayed from evidence/; the VO is unchanged."
+    fallback: >-
+      Typeset replay of the four nodes from spine.labels and spine.dates in
+      CAMERA-STRINGS.yaml; the VO is unchanged. Measured 2026-08-12: no
+      evidence/demo-run-<ts>/ tape exists to replay and no `mainline` executable is
+      installed, so this is the only path until K3 has a surface.
     evidence_artifact: "evidence/demo-run-<ts>/roundtrips.jsonl#s05"
 
   - t: 33
@@ -175,7 +185,10 @@ shots:
     word_count: 19
     judging_criterion: Impact
     requires_milestone: K3
-    fallback: "Still frame of the same node from the authored fixture; the silence is kept."
+    fallback: >-
+      Still frame of the same node typeset from commit_message_2013,
+      commit_author_display and commit_date_display in CAMERA-STRINGS.yaml; the silence
+      is kept. The authored fixture is absent as of 2026-08-12.
     evidence_artifact: "evidence/demo-run-<ts>/roundtrips.jsonl#s06"
 
   - t: 44
@@ -206,7 +219,12 @@ shots:
     word_count: 10
     judging_criterion: Implementation
     requires_milestone: K1
-    fallback: "Run the same transition from the terminal; the red bar becomes the SQLSTATE line."
+    fallback: >-
+      Run the same transition from the terminal; the red bar becomes the SQLSTATE line.
+      Measured 2026-08-12: the seeded demo world's single permit carries
+      external_ref='DEMO-PTW-0001', not WO-88213 — that reference belongs to the authored
+      corpus, which has not landed. Frame the banner and the state, never a caption the
+      database does not hold.
     evidence_artifact: "evidence/demo-run-<ts>/roundtrips.jsonl#s08"
 
   - t: 58
@@ -409,7 +427,11 @@ shots:
     word_count: 15
     judging_criterion: Implementation
     requires_milestone: K4
-    fallback: "Run the same EXPLAIN in the SQL shell; the fragment is identical."
+    fallback: >-
+      Run the same EXPLAIN in the SQL shell; the fragment is identical. Verified
+      2026-08-12 on the pinned local node: with the @cue_scoped_idx hint and a single
+      value for each of site_id, scope_id and facet, the plan prints `vector search` over
+      `event_cue_embedding@cue_scoped_idx` with non-empty `prefix spans`.
     evidence_artifact: "evidence/demo-run-<ts>/mcp/prompt2.json"
 
   - t: 141
@@ -424,7 +446,11 @@ shots:
     word_count: 12
     judging_criterion: Originality
     requires_milestone: K4
-    fallback: "Same view over the SQL shell if the MCP key is withheld."
+    fallback: >-
+      Same view over the SQL shell if the MCP key is withheld — but against a database
+      that has actually run a recall. Measured 2026-08-12: on a freshly seeded local
+      database mainline_audit.v_silence_summary returns 0 rows, and an empty view is not
+      this shot.
     evidence_artifact: "evidence/demo-run-<ts>/mcp/prompt3.json"
 
   - t: 147
@@ -440,7 +466,11 @@ shots:
     word_count: 11
     judging_criterion: Readiness
     requires_milestone: K6
-    fallback: "Drop the CloudWatch tile if AWS is unreachable; the remaining three stand alone."
+    fallback: >-
+      Drop the CloudWatch tile; the remaining three stand alone. The condition is not
+      "if AWS is unreachable": as of 2026-08-12 the alarms are DECLARED in Terraform and
+      no apply has created them, so unless the apply has happened before the shoot there
+      is nothing to film. Filming the HCL and saying "declared" is the other legal move.
     evidence_artifact: "evidence/demo-run-<ts>/screens/s22.png"
 
   - t: 152
@@ -456,7 +486,13 @@ shots:
     word_count: 12
     judging_criterion: Readiness
     requires_milestone: K0
-    fallback: "None. The card ships in every cut, including the MWS."
+    fallback: >-
+      None — the card ships in every cut, including the MWS, so this shot cannot be
+      dropped. Measured 2026-08-12: gen_card.py --check REFUSES because
+      fixtures/corpus/corpus.lock.json is absent, and the committed card.html therefore
+      carries its own NOT FOR CAMERA banner, driven by a marker inside the data. Until
+      the lock lands, typeset the four columns from demo/DEMO-HONESTY.md, which holds
+      every sentence and, by design, no numbers.
     evidence_artifact: "verticals/mainline/demo/honesty/card.html"
 
   - t: 160

@@ -84,9 +84,13 @@ from scripts.aws._common import (
     with_retry,
 )
 
-_PACKAGE_SRC = Path(__file__).resolve().parents[2] / "packages" / "trappoint-recall" / "src"
-if str(_PACKAGE_SRC) not in sys.path:
-    sys.path.insert(0, str(_PACKAGE_SRC))
+# `packages/trappoint-recall/src` is a source layout, not an installed distribution, on any
+# interpreter that has not had the workspace installed into it. The bootstrap is written as
+# an `if` rather than an assignment followed by an `if` on purpose: E402 permits `if` and
+# `try` between imports precisely so that conditional import bootstraps can sit at the top
+# of a file, and a bare assignment here is what made every import below it a finding.
+if str(_pkg_src := repo_root() / "packages" / "trappoint-recall" / "src") not in sys.path:
+    sys.path.insert(0, str(_pkg_src))
 
 from trappoint_recall.corpora.build import (
     SYNTHETIC_PROVENANCE,
@@ -251,13 +255,21 @@ def resolve_corpus_dir(root: Path) -> Path:
 
 
 def _table_columns(connection: Any, table: str) -> set[str]:
+    # Local import for the same reason `_common.crdb` does it: this module must import on
+    # an interpreter with no driver installed, so that `--help` and the unit tests work.
+    import psycopg
+
     try:
         cursor = connection.execute(
             "SELECT column_name FROM information_schema.columns "
             "WHERE table_schema = 'mainline' AND table_name = %s",
             (table,),
         )
-    except Exception:
+    except psycopg.Error:
+        # An `information_schema` read of a table that does not exist returns no rows; it
+        # does not raise. Reaching here means the connection or the database itself is
+        # unusable, and the caller's answer to that is the same as "no such columns" —
+        # fall back to the scratch surface and say so in the artefact.
         return set()
     return {str(row[0]) for row in cursor.fetchall()}
 
@@ -713,15 +725,8 @@ def _measurement_line(label: str, measurement: Any) -> str:
     )
 
 
-def render_report(
-    *,
-    bundle: Any,
-    gates: Sequence[Any],
-    corpus: EvalCorpus,
-    manifest: dict[str, Any],
-    reachability: dict[str, Any],
-) -> str:
-    run = bundle.run
+def _report_preamble(run: Any, corpus: EvalCorpus, manifest: dict[str, Any]) -> list[str]:
+    """The masthead and the four caveats that bound every number after it."""
     lines: list[str] = []
     add = lines.append
 
@@ -771,6 +776,17 @@ def render_report(
     )
     add(f"- **The parent table is a stub.** {manifest['database']['stub_disclosure']}")
     add("")
+    return lines
+
+
+def _report_gates(gates: Sequence[Any], bundle: Any, manifest: dict[str, Any]) -> list[str]:
+    """The five gate verdicts, then every metric with its interval.
+
+    One function rather than two because a gate verdict is a floor applied to a metric
+    that appears in the table below it; splitting them puts a reader's eye in two places.
+    """
+    lines: list[str] = []
+    add = lines.append
 
     add("## The five G4-alpha gates")
     add("")
@@ -824,6 +840,20 @@ def render_report(
     for name in sorted(bundle.measurements):
         add(_measurement_line(f"`{name}`", bundle.measurements[name]))
     add("")
+    return lines
+
+
+def _report_reachability(
+    bundle: Any, manifest: dict[str, Any], reachability: dict[str, Any]
+) -> list[str]:
+    """Three sections that are one argument: what the prefix could return before ranking.
+
+    Where the truth precursor landed, the structural ceiling the prefix imposes on retro
+    recall, and the negative control that searches empty trees. Kept together because the
+    third is only readable as a finding once the second has been stated.
+    """
+    lines: list[str] = []
+    add = lines.append
 
     add("## Where the truth precursor landed")
     add("")
@@ -885,6 +915,13 @@ def render_report(
         "touches it."
     )
     add("")
+    return lines
+
+
+def _report_run_facts(manifest: dict[str, Any]) -> list[str]:
+    """What the retrieval, the retry loop, Bedrock's quota and the corpus's repetition did."""
+    lines: list[str] = []
+    add = lines.append
 
     add("## What the retrieval actually did")
     add("")
@@ -939,6 +976,13 @@ def render_report(
         "narratives."
     )
     add("")
+    return lines
+
+
+def _report_laws(bundle: Any) -> list[str]:
+    """The two invariants the harness checks independently of any gate: L3 and MI16."""
+    lines: list[str] = []
+    add = lines.append
 
     add("## Conservation, and why it is checked twice")
     add("")
@@ -966,6 +1010,13 @@ def render_report(
         "invariant rather than as an absence of one."
     )
     add("")
+    return lines
+
+
+def _report_colours_and_cost(manifest: dict[str, Any]) -> list[str]:
+    """What this program deliberately did not write, and what the run cost."""
+    lines: list[str] = []
+    add = lines.append
 
     add("## The gate colours in CI are unchanged, on purpose")
     add("")
@@ -1006,7 +1057,33 @@ def render_report(
         f"`{EVIDENCE_DIR.as_posix()}/run-manifest.json`, and this file."
     )
     add("")
-    return "\n".join(lines)
+    return lines
+
+
+def render_report(
+    *,
+    bundle: Any,
+    gates: Sequence[Any],
+    corpus: EvalCorpus,
+    manifest: dict[str, Any],
+    reachability: dict[str, Any],
+) -> str:
+    """Assemble the judge-readable report from its six sections, in reading order.
+
+    The sections were one 103-statement function until the ruff ratchet refused it. They
+    are split on the report's own `##` boundaries, which is the division a reader already
+    sees; nothing here decides anything, so the split costs no logic.
+    """
+    return "\n".join(
+        [
+            *_report_preamble(bundle.run, corpus, manifest),
+            *_report_gates(gates, bundle, manifest),
+            *_report_reachability(bundle, manifest, reachability),
+            *_report_run_facts(manifest),
+            *_report_laws(bundle),
+            *_report_colours_and_cost(manifest),
+        ]
+    )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════════════
@@ -1014,7 +1091,7 @@ def render_report(
 # ═══════════════════════════════════════════════════════════════════════════════════════
 
 
-def main(argv: Sequence[str] | None = None) -> int:
+def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="recall_real",
         description="Score the G4-alpha gates against real Titan vectors in a real ANN index.",
@@ -1039,7 +1116,53 @@ def main(argv: Sequence[str] | None = None) -> int:
         action="store_true",
         help="assume the surface is already populated (re-scoring an existing index)",
     )
-    args = parser.parse_args(argv)
+    return parser
+
+
+def _portable_embedding_ledger(embedder: Any, root: Path) -> dict[str, Any]:
+    """The embedder's ledger, with the cache path made relative to the repository.
+
+    The cache lives under gitignored ``out/``; an absolute Windows path in a committed
+    artefact is not a secret but it is not reproducible either, and an evidence file that
+    names a directory only one machine has is describing that machine.
+    """
+    ledger = embedder.ledger()
+    cache_block = dict(ledger["cache"])  # type: ignore[arg-type]
+    if cache_block.get("path"):
+        try:
+            cache_block["path"] = Path(str(cache_block["path"])).relative_to(root).as_posix()
+        except ValueError:
+            cache_block["path"] = Path(str(cache_block["path"])).name
+    ledger["cache"] = cache_block
+    return ledger
+
+
+def _verify_no_bare_point_estimates(root: Path, report_path: Path) -> int:
+    """Run this program's own output past ``scripts/recall/no_bare_point_estimates.py``.
+
+    A recall number published without its interval is not publishable, and the check that
+    says so is run here rather than only in CI so that the refusal arrives before the
+    artefact is committed.
+    """
+    checker = root / "scripts" / "recall" / "no_bare_point_estimates.py"
+    completed = subprocess.run(
+        [sys.executable, str(checker), "--paths", str(report_path)],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    sys.stdout.write(completed.stdout)
+    sys.stderr.write(completed.stderr)
+    if completed.returncode != 0:
+        sys.stderr.write(
+            "no_bare_point_estimates refused the gate report. A recall number published "
+            "without its interval is not publishable; fix the prose, not the check.\n"
+        )
+    return completed.returncode
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    args = _parser().parse_args(argv)
 
     root = repo_root()
     corpus_dir = resolve_corpus_dir(args.corpus if args.corpus else root / GOLDSETS_ROOT)
@@ -1107,17 +1230,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     occupancy = routine_partition_occupancy(corpus, rows)
     ledger_rows = [token_ledger_entry(embedder.model_id, embedder.calls, embedder.input_tokens, 0)]
     env = dotenv()
-    # The cache lives under gitignored ``out/``; an absolute Windows path in a committed
-    # artefact is not a secret but it is not reproducible either, and an evidence file that
-    # names a directory only one machine has is describing that machine.
-    embedding_ledger = embedder.ledger()
-    cache_block = dict(embedding_ledger["cache"])  # type: ignore[arg-type]
-    if cache_block.get("path"):
-        try:
-            cache_block["path"] = Path(str(cache_block["path"])).relative_to(root).as_posix()
-        except ValueError:
-            cache_block["path"] = Path(str(cache_block["path"])).name
-    embedding_ledger["cache"] = cache_block
+    embedding_ledger = _portable_embedding_ledger(embedder, root)
 
     manifest: dict[str, Any] = {
         "run": {
@@ -1281,22 +1394,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     for gate in gates:
         sys.stdout.write(f"[{gate.status}] {gate.gate_id}\n")
 
-    checker = root / "scripts" / "recall" / "no_bare_point_estimates.py"
-    completed = subprocess.run(
-        [sys.executable, str(checker), "--paths", str(report_path)],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    sys.stdout.write(completed.stdout)
-    sys.stderr.write(completed.stderr)
-    if completed.returncode != 0:
-        sys.stderr.write(
-            "no_bare_point_estimates refused the gate report. A recall number published "
-            "without its interval is not publishable; fix the prose, not the check.\n"
-        )
-        return completed.returncode
-    return 0
+    return _verify_no_bare_point_estimates(root, report_path)
 
 
 if __name__ == "__main__":

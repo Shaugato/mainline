@@ -22,14 +22,19 @@ is ninety seconds: what to look at, what to run, and what we are not claiming.
 | **Judge access — free and unrestricted** | `UNRESOLVED` |
 | **Video, under 3 minutes** | `UNRESOLVED` |
 | **Which CockroachDB tools and AWS services, and how** | [`docs/TOOL-USAGE.md`](docs/TOOL-USAGE.md) — every tool and every service with a file, a line number, and a verdict saying whether it has actually run |
-| **Repository and licence** | `https://github.com/Shaugato/mainline` · root [`LICENSE`](LICENSE) is Apache-2.0 |
+| **Repository and licence** | `https://github.com/Shaugato/mainline` — **public since 2026-08-11** · root [`LICENSE`](LICENSE) is Apache-2.0 |
 
 `UNRESOLVED` is a **literal token**, not a placeholder somebody forgot to replace. Those three
-rows render from `docs/submission/SUBMISSION.json`, the one file in this repository where a
-submission URL may be written, and every field in it starts life as that exact string. As of
-this commit that file has not landed and no URL has been resolved, so the rows say so. A
+rows render from [`docs/submission/SUBMISSION.json`](docs/submission/SUBMISSION.json), the one
+file in this repository where a submission URL may be written, and every field in it starts
+life as that exact string. That file has since landed and is tracked; those three fields still
+hold `UNRESOLVED` because nothing is deployed and no film exists, so the rows still say so. A
 submission checklist that looks finished before it is finished is the one failure mode this
 repository is built to refuse — including when the thing being described is the submission.
+
+`python scripts/submission/check_submission_ready.py` reads that file, prints exactly what is
+missing and what would resolve it, and reports **0 rows NOT CHECKED** — because a question
+nobody could answer is an unresolved row, never a pass.
 
 ---
 
@@ -39,26 +44,43 @@ repository is built to refuse — including when the thing being described is th
 git clone -c core.longpaths=true https://github.com/Shaugato/mainline.git
 ```
 
-**The flag is there because this repository has one path Windows cannot open, and we would
-rather say so than let you find out at checkout.** The longest tracked path is
-214 characters [src: qa/judge-dry-run.json#path_lengths.max_tracked_path_chars] — a console
-replay fixture whose filename is *derived* from the HTTP request it recorded — against a
-Windows `MAX_PATH` of 260. Measured with real clones into destinations of increasing length:
-a plain `git clone` yields a working tree up to a destination of
-44 characters [src: qa/judge-dry-run.json#clone_threshold.without_longpaths.max_working_dest_chars]
-and fails at
-45 [src: qa/judge-dry-run.json#clone_threshold.without_longpaths.first_failing_dest_chars] with
-`Filename too long`; with the flag, no clone failure was seen up to
-140 [src: qa/judge-dry-run.json#clone_threshold.with_longpaths.no_failure_observed_up_to].
+**The flag is there because this repository has paths Windows will refuse under a long
+destination, and we would rather say so than let you find out at checkout.** The longest
+tracked path is
+141 characters [src: qa/judge-dry-run.json#path_lengths.max_tracked_path_chars] —
+`skills/upstream/cockroachdb-resilience-and-disaster-recovery/verifying-a-restore-by-merkle-root/scripts/verify_restore_merkle_root.py.license`
+— against a Windows `MAX_PATH` of 260. A program without long-path support needs
+`len(destination) + 1 + len(path)` to stay at or under 259, which leaves a clone destination
+of
+117 characters [src: qa/judge-dry-run.json#path_lengths.max_safe_clone_prefix_chars].
 
-**The flag fixes `git`, not everything else** — the half a mitigation notice usually omits.
-Past a destination of
-44 characters [src: qa/judge-dry-run.json#clone_threshold.with_longpaths.max_readable_dest_chars]
-the checkout completes and that one fixture is still longer than Windows will hand to an
-ordinary program, so a plain `open()` on it raises. Clone into something short — `D:\m`,
-`C:\src\m` — if you want every file readable by every tool. On macOS and Linux the flag is a
-no-op. The durable repair is a shorter encoding in the fixture generator, which is a change
-to the console and is not disguised as a clone flag here.
+**This paragraph used to say 214 characters, and name a console replay fixture whose filename
+was derived from the HTTP request it recorded.** That fixture is no longer tracked and is not
+on disk. `git log --all --diff-filter=A` finds the commit that added it and nothing has
+tracked it since, so the number it supported went with it. The artefact still records `214` under
+`clone_threshold.longest_tracked_path_chars`, because that is the path the clone
+binary-search was run against — **so the 44/45 thresholds it published describe a tree that
+no longer exists, and this page no longer quotes them.** The citation on the old sentence
+pointed at `path_lengths.max_tracked_path_chars`, which has read `141` throughout. A number
+that is right for a different field is the quietest kind of wrong.
+
+Re-measured on 2026-08-12 with real clones of this tree, three probes rather than a binary
+search — so these are a bracket, not a threshold:
+
+| destination | `dest + 1 + 141` | `core.longpaths` | result |
+|---|---|---|---|
+| 111 chars | 253 | `false` | clone exits 0, tree clean, longest file readable by a plain `open()` |
+| 122 chars | 264 | `false` | `error: unable to create file …: Filename too long`, exit 128, 7 437 dirty paths |
+| 122 chars | 264 | `true` | clone exits 0, **tree clean**, and a plain `open()` still raises `FileNotFoundError` |
+
+The arithmetic puts the boundary at 117/118 and the artefact's own
+`max_safe_clone_prefix_chars` agrees; the bracket is what was actually observed.
+
+**The flag fixes `git`, not everything else** — the half a mitigation notice usually omits,
+and the third row above is it. With the flag the checkout completes and `git status` is
+clean, and a file whose full path exceeds what Windows hands an ordinary program is still
+unreadable by one. Clone into something short — `D:\m`, `C:\src\m` — if you want every file
+readable by every tool. On macOS and Linux the flag is a no-op.
 
 ### The four commands, and the same four without `just`
 
@@ -80,33 +102,49 @@ Four things that column is honest about.
   it fails are `uv` and `just`; it prints a numbered remedy under each and it does not block
   the proof.
 * **The install step is not optional.** An earlier version of this page said the proof needed
-  "nothing but the interpreter". A recorded dry run falsified that: run against an
-  interpreter that never had the workspace installed, `scripts/proof/gate_refusal.py` stops at
-  `ModuleNotFoundError: No module named 'trappoint_migrate'`
-  [src: qa/judge-dry-run.json#runs] and `pytest` will not even collect. The pip line above
-  installs that one distribution and its single dependency, `psycopg`, which is all the proof
-  imports. `just setup` does the fuller job — it installs `uv` if absent, then
-  `uv sync --all-packages` across every workspace member.
+  "nothing but the interpreter". A recorded dry run falsified that
+  [src: qa/judge-dry-run.json#runs], and re-running it today into a brand-new
+  `python -m venv` falsifies it again — with a different module name, because the import
+  order moved:
+
+  ```
+  $ <fresh-venv>/python scripts/proof/gate_refusal.py --dsn …
+  File "scripts/proof/gate_refusal.py", line 125, in <module>
+      import psycopg
+  ModuleNotFoundError: No module named 'psycopg'
+  ```
+
+  The recorded run stopped at `No module named 'trappoint_migrate'`; today it stops one
+  import earlier. Same lesson, different line, and the line is printed rather than
+  remembered. The pip line above installs that one distribution and what it pulls in —
+  measured `psycopg`, `psycopg-binary`, `psycopg-pool`, `typing-extensions`, `tzdata` and
+  `trappoint-migrate` itself, six packages in **19.7 s** on this machine. `just setup` does
+  the fuller job: it installs `uv` if absent, then `uv sync --all-packages` across every
+  workspace member.
 * **`crdb-align`** pins the local node's `gc.ttlseconds` to 4500, the value CockroachDB Cloud
   Basic enforces, so a time-travel assumption that is legal on your laptop is not one that
   fails in the cloud. The local default is the *more permissive* of the two.
-* **No committed artefact times the pip line**, so this page prints no figure for it.
 
 What each step cost when it was recorded — one clone of `HEAD`, one shared local node, other
 jobs running against the same container, so every figure is an upper bound rather than a
-benchmark [src: qa/judge-dry-run.json#operator_notes]:
+benchmark [src: qa/judge-dry-run.json#operator_notes] — beside what the same command cost
+today, run from the clean virtual environment described above:
 
-| Step | Exit | Seconds |
-|---|---|---|
-| `python scripts/qa/doctor.py` | 1, on `uv` and `just` only | 2.788 [src: qa/judge-dry-run.json#runs.1.steps.0.duration_s] |
-| `docker compose -f compose.yaml config` | 0 | 0.472 [src: qa/judge-dry-run.json#runs.1.steps.1.duration_s] |
-| `python scripts/proof/gate_refusal.py …` | 0, `VERDICT PROVEN` | 70.351 [src: qa/judge-dry-run.json#runs.1.steps.2.duration_s] |
-| `python -m pytest --crdb=none --collect-only -q` | 0 | 30.112 [src: qa/judge-dry-run.json#runs.1.steps.3.duration_s] |
+| Step | Exit | Recorded | Measured 2026-08-12 |
+|---|---|---|---|
+| `python scripts/qa/doctor.py` | 1, on `uv` and `just` only | 2.788 s [src: qa/judge-dry-run.json#runs.1.steps.0.duration_s] | 1, same two rows |
+| `docker compose -f compose.yaml config` | 0 | 0.472 s [src: qa/judge-dry-run.json#runs.1.steps.1.duration_s] | 0, 0.9 s |
+| `python -m pip install -e packages/trappoint-migrate` | 0 | *(not timed by any artefact)* | 0, 19.7 s |
+| `python scripts/proof/gate_refusal.py …` | 0, `VERDICT PROVEN` | 70.351 s [src: qa/judge-dry-run.json#runs.1.steps.2.duration_s] | 0, **106.2 s** |
+| `python -m pytest --crdb=none --collect-only -q` | 0 | 30.112 s [src: qa/judge-dry-run.json#runs.1.steps.3.duration_s] | 0, 13.7 s, 9 324 tests |
 
 That recording names the commit it ran against
-[src: qa/judge-dry-run.json#source.head], and the migration tree has grown since, so
-expect the proof step to take **longer** than the figure above, not less. The full account —
-what a judge sees on a clean machine, and where it goes wrong — is
+[src: qa/judge-dry-run.json#source.head], and the migration tree has grown since, so the
+page warned you to expect the proof step to take **longer** than the recorded figure. **It
+does: 106.2 seconds against 70.351.** The right-hand column is one run on one busy laptop
+and is not a benchmark either; it is here because a page that tells you a command works owes
+you the evidence that somebody ran it. The full account — what a judge sees on a clean
+machine, and where it goes wrong — is
 [`docs/submission/FIRST-FIVE-MINUTES.md`](docs/submission/FIRST-FIVE-MINUTES.md).
 
 `just prove` bootstraps a throwaway database, applies the migration chain, and attempts the
@@ -121,6 +159,12 @@ DRIFT         REFUSED [P0001] mainline.fn_permit_merge_gate (parsed)
 ADMISSION     ADMITTED [00000]
 VERDICT       PROVEN
 ```
+
+Re-run on `2026-08-12` from the clean virtual environment above, exit 0, and it printed the
+same six lines — `chain 271/271 applied, 0 failed, 55.611s`, the same two SQLSTATEs, the same
+`caveats (none)`, `VERDICT PROVEN` — into a new file beside the others in
+[`evidence/gate-refusal/`](evidence/gate-refusal/). **Only the timings and the database name
+differ, and the script chooses both.**
 
 Three attempts, and the third is the one that matters. A gate that always refuses is a
 broken gate, not a safe one. The first refusal is a plain `CHECK` constraint. The second
@@ -182,6 +226,13 @@ disagree. The short version, because it should not be buried:
   There is no end-to-end Australian residency; that claim is false here.
   The cross-region hop is unmeasured under load, and **every timing in the demo is a local
   timing** — a single-node CockroachDB in Docker on one laptop.
+* **Bedrock genuinely executes, and nothing else on AWS does.**
+  [`evidence/deploy/aws-live.json`](evidence/deploy/aws-live.json) records four live calls
+  with their AWS request ids — `sts:GetCallerIdentity`, `bedrock:ListFoundationModels`, a
+  Titan v2 embedding (1024-d, L2 norm 1.0) and a Claude Haiku 4.5 `Converse` that returned
+  `end_turn` — `calls_failed: []`, whole probe under one cent. Lambda, CloudFront, S3, KMS,
+  IAM roles and SSM are **DESIGNED**: `terraform apply` has never been run, which is also why
+  the demo URL above is `UNRESOLVED`.
 
 ---
 
@@ -260,9 +311,15 @@ The import boundaries are enforced by `import-linter` in CI, and they are simult
 ## Verifying without trusting us
 
 [`VERIFY.md`](VERIFY.md) is the three tiers, ordered by how much you have to take on
-faith. Tier 1 is an offline bundle check with no credential and no network. Tier 2 —
-clone, bring the node up, apply, replay — needs no account of ours and no model call, and
-it is the one that reproduces the refusal above on your laptop.
+faith. **Tier 2 is the one that reproduces the refusal above on your laptop** — clone, bring
+the node up, run the proof — and it needs no account of ours and no model call. It is the
+four commands on this page.
+
+Tier 1 is an offline bundle check with no credential and no network, and `VERIFY.md` records
+what it actually returns today: `16 checks | 8 passed | 1 failed | 7 not checked`, **exit
+1**. Seven cryptographic checks are unimplemented and one canonicaliser check has gone red on
+real drift. It is a genuine offline verification of the Merkle structure and it is **not** a
+verified ledger, and that page will not let you read it as one.
 
 Two artefacts are worth opening on their own:
 
@@ -279,6 +336,14 @@ Two artefacts are worth opening on their own:
 ## Status
 
 Pre-alpha. Under active construction. Design corpus: `ARCHITECTURE.md` and `BUILD_PLAN.md` live in a companion research repository, not this one; they were produced by a 40-agent design operation and hardened by an adversarial review (28 findings) plus an independent feasibility verification.
+
+**The Actions tab is red in places, on purpose, and one of the reds means nothing at all.**
+Before drawing a conclusion from a colour, read [`docs/CI-STATE.md`](docs/CI-STATE.md): it
+names every lane, separates the reds that report a true incompleteness — seven of sixteen
+custody checks unwritten, a reference vertical with no producer, 21 of 30 invariants pending,
+no demo to health-check — from the ones whose jobs died in the runner's network before
+executing a single check. A red that reports true incompleteness **stays** red here, with a
+sharper message.
 
 **Nothing here claims what it cannot prove**, and the claims that are not proven are
 listed by name in [`docs/HONESTY.md`](docs/HONESTY.md) rather than left out.

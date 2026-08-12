@@ -12,15 +12,22 @@ take on faith — which is, in every case, less than you would expect.
 
 **Lead with Tier 2. It needs nothing from anyone.**
 
+**Every command on this page was executed on 2026-08-12, against the tree at the head of
+`master`, and this revision records what each one actually printed.** Two of them do not do what earlier
+revisions of this page said they did, and the corrections are in the tiers below rather
+than in a footnote. `just`, `uv` and `pipx` are **not installed** on the machine these
+measurements were taken on, so every command is given in a form that runs without them; the
+`just` recipe is shown beside it because both are first-class.
+
 ---
 
 ## The three tiers
 
-| Tier | Credential | What it proves | Time |
+| Tier | Credential | What it proves | Measured |
 |---|---|---|---|
-| **1** | **none** | `pipx run trappoint-verify --bundle <bundle>` — offline verification of the checkpoint chain, the inclusion and consistency proofs, the timestamp bracket, and the gate's own trigger source inside the attestation. The exhibited refusal is in the ledger, and the signature on the exhibited disposition verifies against the enrolled key. | ~30 s |
-| **2** | **none** | `git clone && just up && just migrate && just conform` — Docker CockroachDB, migrations, seed from committed fixtures *including embeddings*, then the conformance corpus replays the illegal histories and prints the same SQLSTATEs. **The merge refusal reproduces on a stranger's laptop with no cloud account and no model call.** | ~4 min |
-| **3** | a published, scoped MCP key on a throwaway `mainline-verify` cluster | The audit surface, the vector-index proof and the silence ledger, read over **CockroachDB's own public managed endpoint — with none of our code in the path**. | ~2 min |
+| **1** | **none** | `trappoint-verify verify --bundle evidence/reference-ledger/bundle.json` — offline verification of the Merkle structure: leaf recomputation, inclusion, consistency across every consecutive checkpoint pair, link-chain density from a zero genesis, receipt coverage, bundle totality. **It exits 1 and it is meant to.** | **0.5 s, exit 1** |
+| **2** | **none** | `git clone`, bring up Docker CockroachDB, `python scripts/proof/gate_refusal.py` — applies the whole migration chain into a throwaway database and attempts the merge three times. **The merge refusal reproduces on a stranger's laptop with no cloud account and no model call.** | **106 s, exit 0, `VERDICT PROVEN`** |
+| **3** | a published, scoped MCP key on a throwaway `mainline-verify` cluster | The audit surface, the vector-index proof and the silence ledger, read over **CockroachDB's own public managed endpoint — with none of our code in the path**. | **not run here** — no key was held |
 
 Tier 1 and Tier 2 are the ones that matter. Tier 3 is the one that is *fun*, because you
 run it with your own agent against a Cockroach Labs endpoint we do not operate, and
@@ -28,7 +35,109 @@ nothing between your prompt and the row is ours.
 
 ---
 
+## Tier 1 — the offline bundle, and the number it actually returns
+
+```bash
+python -m pip install -e packages/trappoint-verify      # or: pipx run trappoint-verify
+trappoint-verify verify --bundle evidence/reference-ledger/bundle.json
+```
+
+Measured 2026-08-12:
+
+```
+16 checks | 8 passed | 1 failed | 7 not checked
+exit 1: 1 finding(s). This bundle does not verify.
+```
+
+**Read that last line before anything else on this page.** Earlier revisions of this table
+described Tier 1 as proving "the timestamp bracket, and the gate's own trigger source inside
+the attestation", and as taking about thirty seconds. **All three clauses were wrong.** It
+takes half a second, the timestamp bracket and the gate self-attestation are two of the
+**seven checks that do not run at all**, and the tool exits non-zero.
+
+| | |
+|---|---|
+| **8 PASSED** | leaf recomputation, inclusion, consistency across every consecutive checkpoint pair, link-chain density from a 32-zero-byte genesis, no sandbox leaf, closure-generation monotonicity, receipt coverage, bundle totality |
+| **1 FAILED** | `canonicaliser_identity` — the bundle's signed `canon_src_sha256` is `260ed37d…`; the canonicaliser this verifier runs hashes to `d09036a8…`, so eight checkpoints' signed `canon:` lines disagree with the code that would recompute them. **This is real drift and the check is catching it**, which is the whole reason a bundle carries the hash of its own canonicaliser |
+| **7 NOT CHECKED** | log signature, RFC-3161 timestamp bracket, beacon, witness quorum, S3 object-lock, gate self-attestation, WebAuthn re-verification — the cryptographic half. Each is registered, names its owner, and prints what it *would* have proved |
+
+**Eight passes are not a verified ledger, and the tool refuses to let you round them up into
+one.** What Tier 1 genuinely proves is that the Merkle structure is internally consistent
+and that the exhibited refusal is in it. What it does not yet prove is that anybody signed
+it. `docs/CI-STATE.md` §3.1 is the standing record, and `custody-chain` is red for exactly
+this.
+
+---
+
+## Tier 2 — the refusal, on your laptop, in four commands
+
+| The recipe | The same thing, plain |
+|---|---|
+| `just doctor` | `python scripts/qa/doctor.py` |
+| `just setup` | `python -m pip install -e packages/trappoint-migrate` |
+| `just up` | `docker compose -f compose.yaml up -d --wait` then `docker compose -f compose.yaml run --rm crdb-align` |
+| `just prove` | `python scripts/proof/gate_refusal.py --dsn "postgresql://root@localhost:26257/defaultdb?sslmode=disable"` |
+
+Measured 2026-08-12, from a `python -m venv` created for the purpose that had never seen
+this workspace:
+
+```
+chain         271/271 applied, 0 failed, 55.611s
+reached 0115  True
+unproduced    (none) — every relation this tree references has a producer
+PROJECTION    10/10 held — open_blocking 0->1 — gate_epoch 0->1 —
+              outbox 'check_opened' severity 4 (client supplied 0)
+REFUSAL       REFUSED [23514] gate_closed_when_issued (reported)
+DRIFT         REFUSED [P0001] mainline.fn_permit_merge_gate (parsed)
+ADMISSION     ADMITTED [00000]
+caveats       (none) — nothing in this run is unproven-but-tolerated
+VERDICT       PROVEN
+```
+
+Exit 0, 106.2 seconds end to end. The script writes its own evidence file under
+`evidence/gate-refusal/` and the earlier runs are kept beside it on purpose.
+
+### The correction: `just migrate && just conform` is not the Tier 2 command
+
+**Earlier revisions of this page gave Tier 2 as `git clone && just up && just migrate &&
+just conform`. Run today, that sequence does not reach a refusal.** `just migrate` applies
+the **reference vertical**, and the reference vertical is missing two producers:
+
+```
+$ trappoint migrate up --dsn <local> --tree trappoint-ref \
+    --migrations packages/trappoint-sql/refvertical/sql ; echo $?
+trappoint migrate: REFUSED: 0058_blocking_check:
+  [42P01] relation "trappoint_ref.event" does not exist
+1
+
+$ trappoint-conform --dsn <local> --profile trappoint-ref ; echo $?
+0/45 · spec 1.0.0-rc.1 · profile trappoint-ref · failed 6 · cannot_run 38 · error 1
+1
+```
+
+Every one of those 44 non-passes names the object it wanted — `trappoint_ref.blocking_check`
+or `trappoint_ref.permit_event` — which is the suite correctly refusing to call an unbuilt
+world a refusal rather than reporting a green on nothing. **The `schema` workflow is red for
+this, by name, with the owner on it** (KERNEL domain): `trappoint_ref.clause` and
+`trappoint_ref.event` are referenced by `0058_blocking_check` and `0066_disposition` and
+created by no file in `packages/trappoint-sql/refvertical/sql`.
+
+So the conformance corpus **cannot** currently replay the illegal histories against the
+reference vertical, and this page will not tell you it can. What reproduces the central
+claim is the MAINLINE chain, which is what `just prove` runs and what the block above shows.
+`just conform-mainline` runs the same suite against MAINLINE and resolves each case's
+`requires` token against the live catalogue; `qa/conformance-census.json` is the committed
+run of it, and it records 10 passed of 71 declared cases. That census is in
+`docs/HONESTY.md` under NOT YET BUILT, where a modest first result belongs.
+
+---
+
 ## Tier 3 — pointing your own agent at the cluster
+
+**Not run for this revision.** No scoped key was held by the worker that re-measured this
+page, so everything in this section is design and prior record, not a reading taken today.
+The one thing that *was* checked is that it degrades honestly: with no key the suites skip
+with a reason and never pass.
 
 **Endpoint.** `https://cockroachlabs.cloud/mcp`, MCP Streamable HTTP.
 **Auth.** `Authorization: Bearer <service-account key>`.
@@ -41,7 +150,7 @@ diagnosable, not to be required:
 ```bash
 export MAINLINE_MCP_API_KEY=...        # the scoped key published for judging
 export MAINLINE_MCP_CLUSTER_ID=...     # the mainline-verify cluster
-uv run pytest tests/integration/mcp -rs
+python -m pytest tests/integration/mcp -rs      # or: uv run pytest tests/integration/mcp -rs
 ```
 
 With no key those suites **skip with a reason and never pass**, which is deliberate: a
@@ -158,12 +267,20 @@ The split is stated here, in the README and in the deck, and nowhere is it round
 - Not that a Steward finding is **true**. *An LLM ops report is evidence that a review
   occurred, not evidence of a condition* — which is why every finding carries the SQL it
   ran and the sha256 of its result rows, so you can re-run it yourself.
+- **Not that the reference ledger is signed.** Tier 1 verifies its Merkle structure and
+  exits `1`; seven cryptographic checks are unimplemented and one has gone red on real
+  canonicaliser drift.
+- **Not that any AWS service other than Bedrock has run.** `evidence/deploy/aws-live.json`
+  records four Bedrock-plane calls with AWS request ids and `calls_failed: []`. Lambda,
+  CloudFront, S3, KMS, IAM roles and SSM are designed and unapplied — `terraform apply` has
+  never been run — which is also why there is no demo URL to point you at.
 
 ---
 
 ## If something here does not reproduce
 
-That is a defect and we would like to know. The suites that back this document are:
+That is a defect and we would like to know. **The repository is public — open an issue and
+quote the command and its output.** The suites that back this document are:
 
 - `tests/integration/mcp/test_audit_surface.py` — every contracted view measured, with the
   bytes, the rows and the worst observed row printed.
@@ -171,3 +288,22 @@ That is a defect and we would like to know. The suites that back this document a
   against the live endpoint.
 - `packages/mainline-mcp/tests/` — the same logic offline, including the transport itself,
   on a machine with no credential at all.
+
+### What was executed for this revision, and what was not
+
+| command | exit | note |
+|---|---|---|
+| `python scripts/qa/doctor.py` | 1 | on `uv` and `just` only; both remedies printed; does not block the proof |
+| `docker compose -f compose.yaml config` | 0 | 0.9 s |
+| `python -m pip install -e packages/trappoint-migrate` | 0 | into a fresh venv, 19.7 s, six packages |
+| `python scripts/proof/gate_refusal.py --dsn …` | 0 | 106.2 s, `VERDICT PROVEN` |
+| `python -m pytest --crdb=none --collect-only -q` | 0 | 9 324 tests, 0 errors, 13.7 s |
+| `trappoint-verify verify --bundle …` | **1** | `8 passed, 1 failed, 7 not checked` — Tier 1 |
+| `trappoint migrate up --tree trappoint-ref …` | **1** | `REFUSED: 0058_blocking_check [42P01]` |
+| `trappoint-conform --profile trappoint-ref` | **1** | `0/45 · failed 6 · cannot_run 38 · error 1` |
+| `pytest tests/integration/mcp` | — | **not run**; no scoped key was held. Tier 3 |
+
+`just`, `uv` and `pipx` are absent from this machine, which is why every row above is the
+plain form. That is not a workaround: `justfile`'s own header records that four recipes may
+not mention `uv` precisely because a stranger's first command must not answer
+`uv: command not found`.

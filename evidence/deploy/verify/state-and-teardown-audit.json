@@ -1,0 +1,350 @@
+{
+  "worker": "W3",
+  "domain": "deploy-verify",
+  "title": "The DSN, the state backend, blast radius and rollback",
+  "lead_plan": "docs/leads/deploy-verify-plan2.md",
+  "generated_at": "2026-08-12T12:55:00Z",
+  "account_id": "0229REDACTED8246",
+  "region": "ap-southeast-1",
+  "profile": "mainline-dev",
+  "constraints_observed": {
+    "terraform_apply_run": false,
+    "terraform_run_at_all": false,
+    "aws_write_calls": 0,
+    "aws_calls": "read-only only: sts get-caller-identity, kms list-aliases, kms describe-key, ssm describe-parameters, s3api list-buckets, s3api head-bucket, cloudfront list-distributions, lambda list-functions, logs describe-log-groups, cloudwatch describe-alarms, cloudwatch list-dashboards, iam list-attached-user-policies, iam list-user-policies, iam list-groups-for-user, iam list-roles",
+    "databases_mutated": "local Docker node only, scratch database w_w3, created and dropped",
+    "cloud_cluster_touched": false,
+    "credential_printed_anywhere": false
+  },
+
+  "dsn_path": {
+    "verdict": "the value never enters Terraform, never enters state, never enters a log, and never enters the package",
+    "hops": [
+      {"n": 1, "where": "scripts/deploy/deploy.sh:367-369", "what": "COCKROACH_DSN read from the repo-root .env when not exported. .env is untracked and gitignored (.gitignore:6)."},
+      {"n": 2, "where": "scripts/deploy/deploy.sh:718-720", "what": "payload built in mktemp file, chmod 600, trap rm -f on EXIT INT TERM"},
+      {"n": 3, "where": "scripts/deploy/deploy.sh:727-759", "what": "inline python swaps the userinfo to mainline_api and forces /<demo_database>; refuses at :747 if the result does not name mainline_api"},
+      {"n": 4, "where": "scripts/deploy/deploy.sh:761", "what": "aws ssm put-parameter --cli-input-json file://<paramfile> --query Version. The value is never in argv, ps, or shell history. No KeyId is supplied."},
+      {"n": 5, "where": "scripts/deploy/deploy.sh:764", "what": "rm -f the paramfile, trap cleared"},
+      {"n": 6, "where": "scripts/deploy/deploy.sh:774-776", "what": "read back WITHOUT --with-decryption; asserts Parameter.Type == SecureString"},
+      {"n": 7, "where": "scripts/deploy/deploy.sh:157 and :484-489 and :913", "what": "the NAME /mainline/demo/cockroach_dsn is a constant, asserted equal to var.dsn_parameter_name's default at preflight, and passed to terraform as -var dsn_parameter_name="},
+      {"n": 8, "where": "infra/envs/demo/variables.tf:210-231", "what": "variable dsn_parameter_name, validation condition can(regex(\"^/mainline/\", ...))"},
+      {"n": 9, "where": "infra/envs/demo/main.tf:291", "what": "dsn_parameter_name = var.dsn_parameter_name passed into module.api"},
+      {"n": 10, "where": "infra/modules/demo-api/main.tf:94-95", "what": "leading slash normalised; local.dsn_parameter_arn built from partition/region/account"},
+      {"n": 11, "where": "infra/modules/demo-api/main.tf:112-114", "what": "MAINLINE_DSN_PARAM = local.dsn_parameter_path enters the Lambda environment - the NAME only"},
+      {"n": 12, "where": "infra/modules/demo-api/main.tf:188-234", "what": "ssm:GetParameter on exactly one ARN; kms:Decrypt on * conditioned by kms:ViaService AND kms:EncryptionContext:PARAMETER_ARN"},
+      {"n": 13, "where": "verticals/mainline/apps/demo-api/src/mainline_demo_api/db.py:270-273", "what": "MAINLINE_DSN wins if set and non-empty. It is not set in the planned environment."},
+      {"n": 14, "where": "db.py:275-292", "what": "otherwise MAINLINE_DSN_PARAM + AWS_REGION -> _ssm_get_parameter"},
+      {"n": 15, "where": "db.py:161-252", "what": "hand-rolled SigV4 POST to https://ssm.<region>.amazonaws.com/, x-amz-target AmazonSSM.GetParameter, body {\"Name\":..,\"WithDecryption\":true}; credentials read from the runtime-injected AWS_ACCESS_KEY_ID/SECRET/SESSION_TOKEN only - no profile, no IMDS, no credential file"},
+      {"n": 16, "where": "db.py:118 and :265-268 and :290-292", "what": "_dsn_cache is a module global; resolve_dsn short-circuits on it. ONE GetParameter and ONE KMS decrypt per execution environment, not per invocation."},
+      {"n": 17, "where": "db.py:332 -> db.py:303-310", "what": "psycopg.connect(dsn, autocommit=True, connect_timeout=..., application_name=..., row_factory=dict_row)"}
+    ],
+    "planned_lambda_environment": {
+      "source": "evidence/deploy/terraform-plan-furl.json, module.api[0].aws_lambda_function.this, change.after.environment[0].variables",
+      "keys": [
+        "LOG_LEVEL",
+        "MAINLINE_DEMO_DATABASE",
+        "MAINLINE_DEMO_PERMIT_ID",
+        "MAINLINE_DSN_PARAM",
+        "MAINLINE_SCENARIO_PERMIT_ID",
+        "MAINLINE_WEB_ROOT"
+      ],
+      "key_count": 6,
+      "contains_MAINLINE_DSN": false,
+      "MAINLINE_DSN_PARAM": "/mainline/demo/cockroach_dsn",
+      "contains_MAINLINE_DEMO_ALLOW_MUTATION": false,
+      "contains_MAINLINE_DEBUG": false
+    },
+    "structural_refusal_of_MAINLINE_DSN": {
+      "where": "infra/modules/demo-api/variables.tf:478-489",
+      "mechanism": "validation { condition = length(setintersection(keys(var.extra_environment), [MAINLINE_DSN, MAINLINE_DSN_PARAM, MAINLINE_DEMO_DATABASE, MAINLINE_SCENARIO_PERMIT_ID, MAINLINE_DEMO_PERMIT_ID, MAINLINE_WEB_ROOT, LOG_LEVEL])) == 0 }",
+      "second_validation": "variables.tf:491-500 refuses Lambda reserved names",
+      "extra_environment_set_in_envs_demo": false,
+      "verdict": "structural - a caller cannot smuggle MAINLINE_DSN in through the only merge point"
+    },
+    "can_anything_set_MAINLINE_DSN_in_the_deployed_artefact": {
+      "answer": "no",
+      "evidence": [
+        "package out/lambda/mainline-demo-api-arm64.zip: 206 entries; top-level members are mainline_demo_api, psycopg, psycopg_binary, web and dist-info - scripts/deploy/local_furl.py (the one file that assigns os.environ['MAINLINE_DSN']) is NOT in the package",
+        "no .py in the package assigns os.environ['MAINLINE_DSN'] or calls load_dotenv",
+        "no .env / credential / .pem / .key member in the package",
+        "regex sweep of every member for postgres(ql)://user:pass@ and for AKIA|ASIA[0-9A-Z]{16}: zero hits",
+        "package sha256 c85d7f00a5576e412dfb0124ad93c40104757011179d0029361d9a8db5b8a4b0; base64 form matches the plan's source_code_hash yF1/AKVXbkEt+wEkrZPEAQR1cBEXnQApNh2ajbW4pLA= exactly"
+      ]
+    },
+    "ci_can_set_MAINLINE_DSN": {
+      "occurrences_in_dot_github": 1,
+      "where": ".github/workflows/judge-pack.yml:255",
+      "value": "empty string",
+      "effect": "db.resolve_dsn strips and treats empty as unset, so it falls through to MAINLINE_DSN_PARAM. Harmless, and it does not touch the deployed function."
+    },
+    "never_logged": {
+      "dsn_source_returns": "a name, never a value (db.py:295-297)",
+      "health_body": "db.redact(dsn) at health.py:133",
+      "redact_measured": {
+        "input_shape": "postgresql://user:<pw>@host:26257/db?sslmode=verify-full",
+        "output": "postgresql://user:***@host:26257/db?sslmode=verify-full",
+        "at_in_password_handled": true,
+        "non_url_input_becomes": "***"
+      },
+      "psycopg_error_leak_test": {
+        "method": "connect to the local node with a sentinel password, then search str(exc) and the full traceback for the sentinel",
+        "sentinel_in_str_exc": false,
+        "sentinel_in_traceback": false,
+        "message_observed": "connection failed: connection to server at \"127.0.0.1\", port 26257 failed: ERROR:  password authentication failed for user scratchuser",
+        "conclusion": "the [sqlstate] first-line-of-message error bodies in app.py:353/380/457 and health.py:132 cannot carry the password"
+      },
+      "traceback_in_response": "app.py:390 only when MAINLINE_DEBUG == \"1\"; that key is absent from the planned environment and extra_environment is never set in infra/envs/demo"
+    },
+    "kms": {
+      "key_requested_by_deploy_sh": "none - the put-parameter payload (deploy.sh:750-758, deploy.ps1:755-761) carries Name, Type, Overwrite, Tier, Description, Value and NO KeyId, so SSM uses the account default alias/aws/ssm",
+      "module_ssm_kms_key_arn_default": "\"\" -> kms_decrypt_resources = [\"*\"], scoped by two conditions instead (main.tf:97-101)",
+      "restrict_kms_to_parameter_default": true,
+      "measured_alias_state": {
+        "alias": "alias/aws/ssm",
+        "region": "ap-southeast-1",
+        "target_key_id": "81edadd5-dfa0-428b-a3c6-7694a7917577",
+        "key_manager": "AWS",
+        "key_state": "Enabled",
+        "key_creation_utc": "2026-08-12T12:46:08Z",
+        "read_at_utc": "2026-08-12T12:47:39Z",
+        "ssm_parameters_in_region": 0,
+        "note": "The lead's plan (deploy-verify-plan2.md 0.4) recorded that alias/aws/ssm had NO backing key. It has one now. It was created 91 seconds before I read it, during this verification pass, with zero SSM parameters in the region - so it was materialised by a read (aws kms list-aliases / describe-key), not by a SecureString write. Reported as measured; I ran no write call."
+      },
+      "consequence_for_first_cold_start": "the AWS-managed key now exists and is Enabled, so the first GetParameter WithDecryption does not have to wait on key creation. The previous 'no backing key' risk is gone.",
+      "consequence_for_encryption_context_condition": "kms:EncryptionContext:PARAMETER_ARN is still UNEXERCISED - no SecureString has ever been decrypted on this account. If SSM's context does not match byte-for-byte the cold start fails AccessDeniedException on kms:Decrypt and /v1/health reports dsn_unavailable. The named, one-variable fallback is restrict_kms_to_parameter = false, which keeps kms:ViaService. This is a runtime risk, not an apply risk, and it is reversible."
+    }
+  },
+
+  "public_repo_exposure": {
+    "repo": "github.com/Shaugato/mainline",
+    "public": true,
+    "tracked_paths_at_head": 7402,
+    "commits_scanned": 53,
+    "commit_scan_method": "git rev-list --all, then git grep -I -n -E over each commit's tree; every match classified in-process and never echoed",
+    "cockroach_dsn_carrying_a_password": {
+      "working_tree": {
+        "matches": 16,
+        "live_credentials": 0,
+        "classification": {
+          "placeholder": ["evidence/deploy/bundle-capture.json:9", "evidence/deploy/judge-access.json:4", "infra/modules/demo-api/README.md:129", "scripts/aws/verify_evidence.py:299", "scripts/deploy/judge_access.py:130", "tests/unit/aws/test_common_redaction.py:112", "verticals/mainline/apps/demo-api/tests/test_envelope.py:505"],
+          "synthetic_test_fixture_password": ["scripts/aws/verify_evidence.py:1743", "verticals/mainline/apps/demo-api/tests/test_envelope.py:436", "verticals/mainline/apps/demo-api/tests/test_envelope.py:504", "verticals/mainline/apps/demo-api/tests/test_envelope.py:507", "verticals/mainline/packages/mainline-gate-svc/src/mainline_gate_svc/config.py:252", "verticals/mainline/packages/mainline-gate-svc/tests/test_no_model_in_closure.py:904", "tests/unit/aws/test_common_redaction.py:66", "scripts/submission/check_submission_ready.py:1746"],
+          "documentation_template": ["docs/deploy/cloud-database.md:715 - the password field is the literal PASTE_THE_PASSWORD_HERE and the host field is the literal HOST"]
+        },
+        "note": "the two hits whose HOST looks like a CockroachDB Cloud endpoint (verify_evidence.py:1743, test_envelope.py:436) carry a well-known joke placeholder password AND a hostname whose sha256 prefix does not match either real cluster host recorded in evidence/ccloud/cluster-list.txt"
+      },
+      "full_history": {
+        "matches": 382,
+        "live_credentials": 0,
+        "breakdown": "345 placeholder/local-host across 9 paths and 39 commits; 37 in infra/modules/demo-api/README.md:129 across 37 commits, where the 'password' is a literal ellipsis in a copy-paste example"
+      },
+      "verdict": "ABSENT"
+    },
+    "mainline_judge_password": {
+      "occurrences_of_the_identifier_mainline_judge": "133 lines at HEAD across 11 paths; 334 (path,line,commit) triples in history that also mention a password-shaped word",
+      "password_literals_found": 0,
+      "sql_password_literal_scan": "111 matches of PASSWORD '<literal>' across 2 paths and 37 commits, every one a placeholder",
+      "one_candidate_investigated": "docs/submission/SUBMISSION.json:19 - the key is credentials_location and the value is a 373-character prose sentence containing no digits; the quoted word inside it is a path fragment, not a password",
+      "verdict": "ABSENT - the password the STATE says was echoed to a transcript twice is not in the working tree and is not in any of the 53 commits"
+    },
+    "aws_access_keys": {
+      "matches": 836,
+      "real_shape": 0,
+      "breakdown": "827 occurrences of AWS's own documented example key across 9 paths (redaction test fixtures and the public-readiness audit's own corpus); 9 occurrences at scripts/aws/verify_evidence.py:1749 of a single keyboard-row fixture the evidence verifier plants to prove its own leak detector fires. The token itself is not reproduced here, so this artefact adds no new AKIA-shaped string to a public repo.",
+      "verdict": "ABSENT"
+    },
+    "dot_env": {
+      "tracked": false,
+      "ever_committed": false,
+      "gitignored_at": ".gitignore:6",
+      ".env.example": "tracked; lines 34-42 are local root@localhost DSNs with no password at all; lines 123-124 are commented-out empty COCKROACH_DSN= and CC_API_KEY="
+    },
+    "private_keys": {
+      "matches": 8,
+      "assessment": "5 are evidence/reference-ledger/keys/reference-*.NOT-SECRET.key.pem (deliberate reference-vector material, named so), 3 are test/spec fixtures"
+    },
+    "deliberate_disclosure_noted": {
+      "item": "the real CockroachDB Cloud cluster hostname",
+      "tracked_files_containing_it": 12,
+      "files": ["docs/deploy/JUDGE-PACK.md", "docs/deploy/cloud-database.md", "docs/leads/ship-final.md", "evidence/ccloud/cluster-list.txt", "evidence/deploy/acceptance.json", "evidence/deploy/bundle-capture.json", "evidence/deploy/cloud-chain.json", "evidence/deploy/cloud-seed.json", "evidence/deploy/deploy-dry-run.json", "evidence/deploy/judge-access.json", "infra/modules/demo-api/README.md", "verticals/mainline/demo/judge/MCP-CONFIG.md"],
+      "status": "DECIDED, not leaked - docs/submission/DISCLOSURE-DECISIONS.yaml lines 391-426 record the decision and the reason (a judge must be able to connect). No password accompanies it anywhere.",
+      "consequence": "the SQL endpoint is a public target for online password guessing, which is what makes the mainline_judge rotation the orchestrator already owns load-bearing"
+    }
+  },
+
+  "state_backend": {
+    "backend_tf": {
+      "path": "infra/envs/demo/backend.tf:56-63",
+      "partial": true,
+      "bucket": "supplied at terraform init -backend-config",
+      "key": "demo/terraform.tfstate",
+      "region": "ap-southeast-1",
+      "encrypt": true,
+      "use_lockfile": true,
+      "dynamodb_table": null
+    },
+    "use_lockfile_requirements_met": {
+      "versions_tf_required_version": ">= 1.10.0 (infra/envs/demo/versions.tf:34)",
+      "terraform_on_this_machine": "1.14.8",
+      "terraform_version_recorded_in_the_plan": "1.14.8",
+      "provider_locked": "hashicorp/aws 6.58.0 (.terraform.lock.hcl), inside the >= 5.60.0, < 7.0.0 constraint",
+      "s3_permissions_needed": "PutObject with If-None-Match, GetObject and DeleteObject on demo/terraform.tfstate.tflock - satisfied, the deploying identity holds AdministratorAccess",
+      "verdict": "met"
+    },
+    "bucket_today": {
+      "expected_name": "mainline-demo-tfstate-0229REDACTED8246",
+      "exists": false,
+      "probe": "aws s3api head-bucket -> An error occurred (404) when calling the HeadBucket operation: Not Found",
+      "consequence": "terraform init with the S3 backend fails until scripts/deploy/bootstrap_state.sh runs. deploy.sh stage 1 runs it."
+    },
+    "bootstrap_state_sh_sets": {
+      "versioning": {"set": true, "where": "bootstrap_state.sh:224-227", "value": "Status=Enabled"},
+      "public_access_block": {"set": true, "where": "bootstrap_state.sh:230-234", "value": "BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"},
+      "sse": {"set": true, "where": "bootstrap_state.sh:244-248", "value": "SSE-S3 AES256 with BucketKeyEnabled=true; deliberately not a CMK"},
+      "tags": {"set": true, "where": "bootstrap_state.sh:251-255", "value": "project=mainline, managed_by=bootstrap_state.sh, mainline:role=terraform-state", "fatal_if_it_fails": true},
+      "lifecycle": {"set": true, "where": "bootstrap_state.sh:262-265", "value": "noncurrent versions expire after 30 days; incomplete multipart aborted after 7"},
+      "bucket_policy": {"set": false, "where": "nowhere - grep for put-bucket-policy across scripts/deploy and infra/envs returns nothing", "consequence": "no aws:SecureTransport deny, no principal allowlist, no explicit cross-account deny. Confidentiality rests entirely on the account's IAM."},
+      "region_guard": "bootstrap_state.sh:210-221 refuses a pre-existing bucket in another region",
+      "ownership_guard": "bootstrap_state.sh:172-186 treats head-bucket 403 as a hard stop (the name belongs to another AWS customer), never a retry",
+      "prefix_guard": "bootstrap_state.sh:100-110 and :153-160 refuse any name outside mainline-demo-",
+      "idempotent": true
+    },
+    "who_can_read_the_state_object": [
+      "the account root user",
+      "IAM user mainline-dev, which holds AdministratorAccess (plus AmazonS3FullAccess and AmazonBedrockFullAccess) - measured with iam list-attached-user-policies",
+      "anyone holding that user's long-lived access keys",
+      "nobody anonymously: all four public-access blocks are on and there is no bucket policy granting anything"
+    ],
+    "what_the_state_will_contain": {
+      "secrets": "none",
+      "present": [
+        "the IAM role ARN, the inline dsn_access policy JSON (which embeds the account id and the SSM parameter ARN)",
+        "the Lambda function ARN, name, runtime, architecture, memory, timeout, source_code_hash and the six non-secret environment variables including MAINLINE_DSN_PARAM (a NAME)",
+        "the Function URL and its domain",
+        "the log group ARN, four alarm ARNs, the dashboard body",
+        "the root outputs, which include aws_account_id"
+      ],
+      "absent": "the CockroachDB DSN, its password, and any KMS plaintext - Terraform is never given the value, so terraform show cannot print it"
+    }
+  },
+
+  "blast_radius": {
+    "plan_file": "evidence/deploy/terraform-plan-furl.json",
+    "format_version": "1.2",
+    "resource_changes": 11,
+    "actions": {"create": 11, "update": 0, "delete": 0, "replace": 0, "read": 0},
+    "every_change_before_is_null": true,
+    "types": [
+      "aws_cloudwatch_dashboard",
+      "aws_cloudwatch_log_group",
+      "aws_cloudwatch_metric_alarm",
+      "aws_iam_role",
+      "aws_iam_role_policy",
+      "aws_iam_role_policy_attachment",
+      "aws_lambda_function",
+      "aws_lambda_function_url"
+    ],
+    "cloudfront_resources": 0,
+    "s3_resources": 0,
+    "database_resources": 0,
+    "prior_state_managed_resources": 0,
+    "prior_state_contents": "6 data sources only: aws_caller_identity x2, aws_iam_policy_document x2, aws_partition, aws_region",
+    "import_or_moved_or_removed_blocks": 0,
+    "resource_drift": null,
+    "plan_variables": {
+      "enable_cloudfront": "false",
+      "enable_api": true,
+      "dsn_parameter_name": "/mainline/demo/cockroach_dsn",
+      "name_prefix": "mainline-demo",
+      "log_retention_days": 7,
+      "lambda_architecture": "arm64",
+      "site_bucket_name": ""
+    },
+    "pre_existing_resources_that_must_be_untouched": {
+      "cloudfront_distributions": [{"id": "E2FCXK8NILPNWF", "status": "Deployed", "comment": "checkout-platform static site distribution", "addressed_by_the_plan": false}],
+      "s3_buckets": ["aws-cloudtrail-logs-0229REDACTED8246-10882a56", "cci-change-feed", "checkout-platform-debd5edd-site", "checkout-platform-site", "elasticbeanstalk-ap-southeast-2-0229REDACTED8246", "intellicanvas-voice-model", "shortstack-pipeline-artifactbucket-amxvhsepi4ak"],
+      "s3_buckets_count": 7,
+      "s3_buckets_carrying_the_mainline_demo_prefix": 0,
+      "s3_buckets_addressed_by_the_plan": 0
+    },
+    "target_region_is_empty_today": {
+      "lambda_functions_ap_southeast_1": 0,
+      "iam_roles_named_mainline_star": 0,
+      "log_groups_ap_southeast_1": 0,
+      "cloudwatch_alarms_ap_southeast_1": 0,
+      "cloudwatch_dashboards_ap_southeast_1": 0,
+      "ssm_parameters_ap_southeast_1": 0,
+      "consequence": "no name collision on any of the 11 resources; the apply cannot adopt or clobber anything"
+    },
+    "iam_note": "the plan bounds the blast radius, IAM does not. The deploying identity holds AdministratorAccess, so a mistyped -var or a different root would not be refused by permissions."
+  },
+
+  "wrapper_deploy_sh": {
+    "question": "does deploy.sh do anything to the Cloud database around the apply, and is any of it destructive or irreversible",
+    "answer": "yes, before the apply, and one opt-in path is irreversible",
+    "stage_order": "0 preflight, 1 bootstrap_state.sh, 2 ssm put-parameter, 3 cloud_chain.py + seed_demo.py, 4 build zip, 5 optional site upload, 6 terraform init/plan/apply, 7 https proof, 8 demo_acceptance.py, 9 hand-off",
+    "the_gate_gates_only_stage_6": {
+      "where": "deploy.sh:940-965",
+      "fact": "without MAINLINE_APPLY_APPROVED=1 the script exits 7 AFTER stages 1-5 have run. So a 'plan-only' deploy has already created the state bucket, written the DSN SecureString, applied migrations to the Cloud database and seeded it. Only --dry-run and --preflight-only write nothing at all."
+    },
+    "cloud_chain_py": {
+      "default_path": "forward-only. Refuses with exit 3 and changes nothing when the migration-tree fingerprint drifts, the live fingerprint drifts, or the database exists without a marker row (cloud_chain.py:1080-1131)",
+      "down_migrations": "none exist - the chain is forward-only",
+      "destructive_path": "--recreate (reached only via deploy.sh --recreate-db) executes DROP DATABASE IF EXISTS \"<db>\" CASCADE at cloud_chain.py:1152, then CREATE DATABASE at :1153. IRREVERSIBLE.",
+      "scratch_database": "a verification database named by verification_database_name() - for mainline_demo that is mainline__vfy, distinct from mainline_demo - built and then dropped on both the success and the refusal path (cloud_chain.py:1545)"
+    },
+    "seed_demo_py": {"destructive": false, "shape": "ON CONFLICT DO NOTHING throughout; rollback on failure at :211/:322/:336; commits at :292/:361; a second run inserts nothing"},
+    "after_the_apply": "stage 7 GETs / and /v1/health over HTTPS; stage 8 runs demo_acceptance.py which POSTs /v1/demo/gate-run twice - the one handler that ends in ROLLBACK. Nothing after the apply writes to the database."
+  },
+
+  "rollback": {
+    "teardown_script": "scripts/deploy/teardown.sh",
+    "order": "0 inventory, 1 terraform destroy, 2 site bucket, 3 SSM parameter, 4 Cloud database + logins, 5 state bucket LAST",
+    "survives_terraform_destroy_alone": [
+      {"item": "SSM SecureString /mainline/demo/cockroach_dsn", "why": "written by deploy.sh with the AWS CLI, never a Terraform resource - unmanaged", "cost": "USD 0.00 (Standard tier)", "risk": "a live database password sitting in an account nobody is looking at"},
+      {"item": "s3://mainline-demo-tfstate-<account-id> and demo/terraform.tfstate, plus every noncurrent version and any stuck demo/terraform.tfstate.tflock", "why": "the backend cannot delete itself", "cost": "~USD 0.01/month"},
+      {"item": "CockroachDB Cloud database mainline_demo and the logins mainline_api, mainline_judge", "why": "not Terraform resources at all", "cost": "whatever the Basic cluster costs"},
+      {"item": "the AWS-managed KMS key behind alias/aws/ssm", "why": "AWS-managed, cannot be scheduled for deletion by a customer", "cost": "USD 0.00"}
+    ],
+    "removed_by_terraform_destroy": ["the Lambda function", "the Function URL", "the execution role, its inline policy and the managed-policy attachment", "the log group /aws/lambda/mainline-demo-api and its events", "all four alarms", "the dashboard"],
+    "survives_destroy_plus_teardown": [
+      {"item": "the AWS-managed KMS key behind alias/aws/ssm", "note": "AWS-managed; not deletable; costs nothing; will now always exist in this region"},
+      {"item": "the CockroachDB Cloud database, ONLY IF teardown skipped step 4", "note": "teardown.sh:516-519 skips step 4 when COCKROACH_DSN is unset or the venv is missing, and PRINTS the three statements to run by hand. It does not pretend it succeeded."},
+      {"item": "nothing else this project created", "note": "verified by teardown's own re-read at :605-626"}
+    ],
+    "safety_filter": {
+      "buckets": "assert_ours_bucket (teardown.sh:216-245) requires BOTH the mainline-demo- name prefix AND a live project=mainline tag read back from AWS at the moment of deletion. --ignore-tags relaxes the tag and never the prefix.",
+      "buckets_measured": "none of the 7 pre-existing buckets carries the mainline-demo- prefix, so none is reachable by delete_bucket_completely even with --ignore-tags",
+      "ssm": "step 3 is gated on the /mainline/ name prefix (teardown.sh:472-475) and DSN_PARAM is a hard-coded constant with no CLI flag to change it; the account holds zero parameters under /mainline/ or anywhere else",
+      "cloudfront": "teardown never deletes a distribution. It lists them and prints WOULD NOT TOUCH for any origin outside the prefix. E2FCXK8NILPNWF's origin is checkout-platform-debd5edd-site, which is outside the prefix.",
+      "lambda": "teardown never calls lambda delete-function; removal is terraform destroy's job, and a stray mainline-demo* function is reported as residue",
+      "account_guard": "no account id is written in the file; --expect-account or MAINLINE_AWS_ACCOUNT is mandatory for a real run, and a mismatch exits 3 (teardown.sh:187-203)",
+      "database_guard": "the inline python refuses any database name not starting with mainline_ (teardown.sh:539-540), so MAINLINE_DEMO_DATABASE=defaultdb cannot arm it",
+      "unreadable_is_not_empty": "aws_query (teardown.sh:147-155) makes a failed list call fatal instead of reporting it as 'nothing found'"
+    },
+    "drop_order_claim_reproduced": {
+      "claim": "teardown.sh:492-507 asserts DROP USER before DROP DATABASE fails with 2BP01 and that DROP DATABASE ... CASCADE first lets the logins drop cleanly",
+      "method": "local Docker node, scratch database w_w3, same grant shape cloud_roles.py produces (CONNECT on the database, SELECT on a table)",
+      "cluster": "CockroachDB CCL v26.2.5",
+      "reverse_order_result": "[2BP01] DROP USER IF EXISTS w3_api -> cannot drop role/user w3_api: grants still exist on w_w3, w_w3.public.t",
+      "teardown_order_result": "DROP DATABASE ... CASCADE, then both DROP USER statements, all OK; the residue query returned users=[] databases=[]",
+      "verdict": "CLAIM TRUE, reproduced"
+    }
+  },
+
+  "findings": [
+    {"id": "W3-F1", "severity": "medium", "title": "teardown's verify has four blind spots", "detail": "the verify block (teardown.sh:602-626) re-reads buckets, the SSM parameter and Lambda functions. It never re-reads the IAM role mainline-demo-api-exec, the log group /aws/lambda/mainline-demo-api, the four alarms or the dashboard. If terraform destroy is skipped (teardown.sh:332 skips step 1 whenever the state bucket is already gone) those six resources are orphaned and teardown still exits 0 saying 'nothing this project created remains'.", "cost_of_the_orphans": "USD 0.00 - an IAM role is free, an empty log group is free, 4 alarms are inside the free 10 and 1 dashboard inside the free 3", "fix": "add three read-only checks to the verify block: iam list-roles filtered on ${NAME_PREFIX}, logs describe-log-groups --log-group-name-prefix /aws/lambda/${NAME_PREFIX}, cloudwatch describe-alarms --alarm-name-prefix ${NAME_PREFIX}", "blocks_the_apply": false},
+    {"id": "W3-F2", "severity": "low", "title": "the bucket tag check is a substring match over the whole tag document", "detail": "teardown.sh:239 is grep -q '\"Value\": *\"mainline\"' over the JSON of ALL tags, so a bucket with any tag whose value is exactly mainline passes, not only project=mainline", "why_it_is_low": "unreachable except for a bucket that already carries the mainline-demo- prefix, and no such bucket exists in this account", "fix": "match the pair, e.g. python -c on the JSON asserting TagSet contains {Key: project, Value: mainline}", "blocks_the_apply": false},
+    {"id": "W3-F3", "severity": "low", "title": "the state bucket has no bucket policy", "detail": "bootstrap_state.sh sets versioning, all four public-access blocks, SSE-S3, tags and a lifecycle rule, but never calls put-bucket-policy. There is no Deny on aws:SecureTransport=false and no principal allowlist.", "why_it_is_low": "the state object holds no secret, the public-access block already excludes anonymous readers, and cross-account access is impossible without a policy", "fix": "one put-bucket-policy with a single Deny on aws:SecureTransport false, after the public-access-block call", "blocks_the_apply": false},
+    {"id": "W3-F4", "severity": "informational", "title": "the approval gate does not gate the secret write or the database migration", "detail": "deploy.sh reaches the gate only after stages 1-5, so a run without MAINLINE_APPLY_APPROVED has already created the state bucket, written the SecureString and migrated + seeded the Cloud database. The script's own gate text says so ('Stages 1 to 5 have already run'), but the RUNBOOK framing of 'plan-only deploy' invites the opposite reading.", "fix": "none required for the apply; worth one sentence in docs/deploy/RUNBOOK.md", "blocks_the_apply": false},
+    {"id": "W3-F5", "severity": "informational", "title": "infra/modules/demo-api/README.md:129 shows /mainline/demo/dsn, the deployed name is /mainline/demo/cockroach_dsn", "detail": "a copy-paste example in the module README names a different parameter than deploy.sh:157, teardown.sh:84, terraform.tfvars.example:53 and the plan all use. Nothing executes the README, and deploy.sh:484-489 asserts the real agreement at preflight, so it cannot cause a wrong deploy - only a wrong hand-fix.", "fix": "one-word edit in the README", "blocks_the_apply": false},
+    {"id": "W3-F6", "severity": "informational", "title": "the lead's 'alias/aws/ssm has no backing key' is no longer true", "detail": "measured at 2026-08-12T12:47:39Z: the alias targets AWS-managed key 81edadd5-dfa0-428b-a3c6-7694a7917577, Enabled, created 2026-08-12T12:46:08Z, with zero SSM parameters in the region. It was materialised by a read during this pass. The first-cold-start concern the lead raised is resolved; the kms:EncryptionContext:PARAMETER_ARN condition remains unexercised.", "fix": "none", "blocks_the_apply": false}
+  ],
+
+  "verdict": {
+    "value": "GO",
+    "scope": "W3's slice only - the DSN path, public-repo exposure, the state backend, blast radius and rollback",
+    "reason": "the DSN reaches the Lambda only as a KMS-encrypted SecureString read at runtime and cached per execution environment; it appears in no plan, no state, no log, no committed file and in none of the 53 commits; the plan is 11 creates that address nothing pre-existing in a region that holds nothing; and destroy+teardown is bounded by a prefix-plus-live-tag filter that provably cannot reach the seven unrelated buckets or the one unrelated distribution",
+    "not_in_scope": "the reserved_concurrent_executions = 20 vs an account ceiling of 10 (W4/W5) and the unauthenticated mutating routes (W2). Either can still make the aggregate a NO-GO.",
+    "conditions": "none blocking. W3-F1 is the one fix worth making before anyone relies on teardown's exit code."
+  }
+}

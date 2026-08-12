@@ -11,13 +11,13 @@
   "scan": {
     "root": "<repository root>",
     "method": "filesystem walk, NOT the git index. A count here will not equal `git grep -l <pattern> | wc -l`: the walk sees files that are present but not yet committed, and it prunes directories git tracks (out_mainline/, out_trappoint_ref/, .hypothesis-corpus/). The walk is the right unit for a submission document, because a judge checks out a working tree.",
-    "files_scanned": 7367,
+    "files_scanned": 7388,
     "files_by_category": {
-      "config": 4801,
-      "docs": 281,
+      "config": 4809,
+      "docs": 292,
       "migration": 271,
-      "other": 344,
-      "python": 1215,
+      "other": 345,
+      "python": 1216,
       "sql": 130,
       "terraform": 25,
       "typescript": 282,
@@ -85,19 +85,21 @@
       "name": "Amazon Bedrock — Claude inference via au.* profiles",
       "kind": "service",
       "verdict": "EXERCISED",
-      "verdict_basis": "a live bedrock-runtime:Converse against the Australia-only inference profile au.anthropic.claude-haiku-4-5-20251001-v1:0 in ap-southeast-2 returned evidence/aws/probe/raw-haiku-converse.json#/payload/response/metadata/http_status = 200 with an AWS request id, stopReason end_turn, evidence/aws/probe/raw-haiku-converse.json#/payload/response/usage/inputTokens = 22 and evidence/aws/probe/raw-haiku-converse.json#/payload/response/usage/outputTokens = 8; the summary that checks it is evidence/aws/probe/bedrock-probe.json (payload.checks.haiku_http_200_with_request_id). The PRODUCT's own agent layer then ran on it: evidence/aws/agent/live-run.json#/payload/leg_count = 7 live InvokeModel legs through that same au.* profile, each with an AWS request id and each recorded as a cassette, carrying evidence/aws/agent/live-run.json#/payload/token_ledger/0/input_tokens = 17429 input tokens (the output count is deliberately NOT quoted here: generation is not reproducible, and this repository claims replayability of recorded calls and never reproducibility of generation); evidence/aws/agent/determinism.json replays those cassettes twice to a byte-identical decision hash and refuses to load a tampered one. Corroborated from OUTSIDE this repository by AWS's own metric series for that ModelId in evidence/aws/cloudwatch/bedrock-metrics.json. WHAT THIS DOES NOT SAY: the live legs ran on claude-haiku-4-5 while the shipping request builders target the pinned claude-opus-5 generation, and four builder fields are refused on the wire by haiku — projected at the wire, named field by field, in evidence/aws/agent/live-run.json#/payload/measured_wire_refusals, never written back into a builder. And no live leg REFUSED (payload.refusal_behaviour.live_refusals_observed 0), so the refusal-degrades-the-run path was exercised against a CONSTRUCTED refusing transport rather than a model that said no",
+      "verdict_basis": "a live bedrock-runtime:Converse against the Australia-only inference profile au.anthropic.claude-haiku-4-5-20251001-v1:0 in ap-southeast-2 returned evidence/aws/probe/raw-haiku-converse.json#/payload/response/metadata/http_status = 200 with an AWS request id, stopReason end_turn, evidence/aws/probe/raw-haiku-converse.json#/payload/response/usage/inputTokens = 22 and evidence/aws/probe/raw-haiku-converse.json#/payload/response/usage/outputTokens = 8; the summary that checks it is evidence/aws/probe/bedrock-probe.json (payload.checks.haiku_http_200_with_request_id). The PRODUCT's own agent layer then ran on it: evidence/aws/agent/live-run.json#/payload/leg_count = 7 live InvokeModel legs through that same au.* profile, each with an AWS request id and each recorded as a cassette, carrying evidence/aws/agent/live-run.json#/payload/token_ledger/0/input_tokens = 17429 input tokens (the output count is deliberately NOT quoted here: generation is not reproducible, and this repository claims replayability of recorded calls and never reproducibility of generation); evidence/aws/agent/determinism.json replays those cassettes twice to a byte-identical decision hash and refuses to load a tampered one. Corroborated from OUTSIDE this repository by AWS's own metric series for that ModelId in evidence/aws/cloudwatch/bedrock-metrics.json. WHAT THIS DOES NOT SAY: the live legs ran on claude-haiku-4-5 while the shipping request builders target the pinned claude-opus-5 generation, and four builder fields are refused on the wire by haiku — projected at the wire, named field by field, in evidence/aws/agent/live-run.json#/payload/measured_wire_refusals, never written back into a builder. And no live leg REFUSED (payload.refusal_behaviour.live_refusals_observed 0), so the refusal-degrades-the-run path was exercised against a CONSTRUCTED refusing transport rather than a model that said no. SECOND, INDEPENDENT TRANSCRIPT, different day and different program: evidence/deploy/aws-live.json records a bedrock-runtime:Converse on au.anthropic.claude-haiku-4-5-20251001-v1:0 at evidence/deploy/aws-live.json#/calls/3/http_status = 200, stop_reason end_turn, AWS REQUEST ID 3c7a283c-9f67-4d98-aa8f-26490d54d32d, evidence/deploy/aws-live.json#/calls/3/usage/output_tokens = 8. The request id is the load-bearing part: it is a string AWS minted and this repository could not have, so a reader with the account's CloudTrail can look it up and a reader without one can at least see that we did not round-number it",
       "how": "bedrock-runtime InvokeModel with the Anthropic native body. The modelId is an au.* inference-profile ARN RESOLVED AT START-UP from ListInferenceProfiles and pinned into the run record — never hard-coded — and any identifier without the au. prefix is refused by the transport as a residency violation. One model generation across the fleet, differentiated by effort rather than by model.",
       "anchor": "packages/mainline-agentkit/src/mainline_agentkit/transport.py:273",
       "anchor_resolved": {
         "path": "packages/mainline-agentkit/src/mainline_agentkit/transport.py",
         "line": 273,
         "resolves": true,
-        "line_text": "\"\"\"Refuse any model identifier that is not an ``au.*`` inference profile."
+        "line_text": "\"\"\"Refuse any model identifier that is not an ``au.*`` inference profile.",
+        "must_contain": "Refuse any model identifier",
+        "subject_holds": true
       },
-      "file_count": 315,
+      "file_count": 325,
       "files_by_category": {
-        "config": 85,
-        "docs": 60,
+        "config": 88,
+        "docs": 67,
         "migration": 2,
         "other": 4,
         "python": 151,
@@ -122,14 +124,16 @@
       "name": "Amazon Bedrock — embeddings (Titan v2, Cohere embed v4)",
       "kind": "service",
       "verdict": "EXERCISED",
-      "verdict_basis": "amazon.titan-embed-text-v2:0 produced evidence/aws/embeddings/manifest.json#/payload/totals/vectors = 2060 vectors of width evidence/aws/embeddings/manifest.json#/payload/dimensions = 1024 in ap-southeast-2, for evidence/aws/embeddings/manifest.json#/payload/totals/input_tokens = 177345 input tokens, enumerated one per row with a text digest, a vector digest and a token count; evidence/aws/ann/ann-proof.json then searched evidence/aws/ann/ann-proof.json#/payload/vectors/rows_searched = 1080 of them through CockroachDB's ce_ann index and names the same model at payload.vectors.embed_model_expected. WHAT THIS DOES NOT SAY: the corpus is SYNTHETIC, the vector blobs live under the gitignored out/ so the manifest's per-vector sha256 is the checkable part, and Tier-2 verification in VERIFY.md still needs no model call because the committed fixtures are unchanged",
+      "verdict_basis": "amazon.titan-embed-text-v2:0 produced evidence/aws/embeddings/manifest.json#/payload/totals/vectors = 2060 vectors of width evidence/aws/embeddings/manifest.json#/payload/dimensions = 1024 in ap-southeast-2, for evidence/aws/embeddings/manifest.json#/payload/totals/input_tokens = 177345 input tokens, enumerated one per row with a text digest, a vector digest and a token count; evidence/aws/ann/ann-proof.json then searched evidence/aws/ann/ann-proof.json#/payload/vectors/rows_searched = 1080 of them through CockroachDB's ce_ann index and names the same model at payload.vectors.embed_model_expected. TWO SINGLE-CALL ROUND TRIPS NAME AN AWS REQUEST ID EACH, and they are different calls on different days rather than one call quoted twice: evidence/aws/probe/raw-titan-invoke.json records request id 6dcdcdf0-38d3-453f-a476-fa69b2d87863 at evidence/aws/probe/raw-titan-invoke.json#/payload/response/metadata/http_status = 200, width evidence/aws/probe/raw-titan-invoke.json#/payload/derived/embedding_length = 1024 and L2 norm evidence/aws/probe/raw-titan-invoke.json#/payload/derived/l2_norm = 1.00000006; evidence/deploy/aws-live.json records request id b4d826e9-03ba-4368-9687-f00cc28a98ef at evidence/deploy/aws-live.json#/calls/2/http_status = 200 and width evidence/deploy/aws-live.json#/calls/2/embedding_dimension = 1024, whose L2 norm is recorded as evidence/deploy/aws-live.json#/calls/2/embedding_l2_norm = 1.0 because that program rounds and the probe does not — the two figures are not in conflict and neither may be quoted as the other. RESIDENCY FINDING, MEASURED AND PUBLISHED RATHER THAN WORKED AROUND: cohere.embed-v4:0 is REFUSED on-demand in ap-southeast-2 — ValidationException, evidence/aws/probe/raw-cohere-refusal.json#/payload/error/metadata/http_status = 400, request id a826eb16-e813-45aa-932e-4696e9979087 — and evidence/aws/bench/residency-finding.json#/payload/inference_profiles/count_containing_cohere_embed_v4 = 1 says the only profile carrying it is global.cohere.embed-v4:0, which AWS's own description calls global routing. The in-region answer is cohere.embed-english-v3 (ON_DEMAND, ap-southeast-2), and it carries its own limit: Bedrock refuses any single text over 2048 characters for it. WHAT THIS DOES NOT SAY: the corpus is SYNTHETIC, the vector blobs live under the gitignored out/ so the manifest's per-vector sha256 is the checkable part, and Tier-2 verification in VERIFY.md still needs no model call because the committed fixtures are unchanged",
       "how": "The embedding provider writes into the C-SPANN sidecar tables. Model ids are never hard-coded at a call site — tests/unit/recall_providers/test_no_hardcoded_model_ids.py enforces that — and every embedding row stores its embed_model and index_gen, because a vector whose model is unknown cannot be compared to anything.",
       "anchor": "verticals/mainline/packages/mainline-recall-agent/src/mainline_recall_agent/providers/bedrock_titan.py:55",
       "anchor_resolved": {
         "path": "verticals/mainline/packages/mainline-recall-agent/src/mainline_recall_agent/providers/bedrock_titan.py",
         "line": 55,
         "resolves": true,
-        "line_text": "TITAN_EMBED_MODEL_ID: Final[str] = \"amazon.titan-embed-text-v2:0\""
+        "line_text": "TITAN_EMBED_MODEL_ID: Final[str] = \"amazon.titan-embed-text-v2:0\"",
+        "must_contain": "amazon.titan-embed-text-v2:0",
+        "subject_holds": true
       },
       "file_count": 73,
       "files_by_category": {
@@ -155,19 +159,21 @@
       "name": "Amazon Bedrock Rerank",
       "kind": "service",
       "verdict": "NOT-AVAILABLE",
-      "verdict_basis": "Bedrock Rerank is not offered in ap-southeast-2; docs/HONESTY.md records it as absent and confirms no dependency was taken on it",
+      "verdict_basis": "Bedrock Rerank is not offered in ap-southeast-2. The live control-plane census in evidence/aws/probe/model-availability.json enumerates what IS offered and it is not among them, and docs/HONESTY.md records the absence and confirms no dependency was taken on it. The absence cost nothing because listwise reranking was designed onto the Claude profile before it was checked, which is why this row anchors at that reranker rather than at the sentence announcing the gap",
       "how": "NOT USED, and named here because a services list that omits what you checked and could not have is a list you cannot audit. Listwise reranking is done by the Claude profile at high effort instead, and CockroachDB's own vector_search_rerank_multiplier session variable (observed at 50) governs the ANN side. The design assumed Rerank's absence before it was checked.",
-      "anchor": "docs/HONESTY.md:276",
+      "anchor": "verticals/mainline/packages/mainline-recall-agent/src/mainline_recall_agent/rerank/listwise.py:77",
       "anchor_resolved": {
-        "path": "docs/HONESTY.md",
-        "line": 276,
+        "path": "verticals/mainline/packages/mainline-recall-agent/src/mainline_recall_agent/rerank/listwise.py",
+        "line": 77,
         "resolves": true,
-        "line_text": ""
+        "line_text": "class ListwiseReranker:",
+        "must_contain": "class ListwiseReranker",
+        "subject_holds": true
       },
-      "file_count": 20,
+      "file_count": 21,
       "files_by_category": {
         "config": 2,
-        "docs": 15,
+        "docs": 16,
         "python": 2,
         "workflow": 1
       },
@@ -194,12 +200,14 @@
         "path": "infra/modules/evidence-store/main.tf",
         "line": 100,
         "resolves": true,
-        "line_text": "resource \"aws_s3_bucket_object_lock_configuration\" \"evidence\" {"
+        "line_text": "resource \"aws_s3_bucket_object_lock_configuration\" \"evidence\" {",
+        "must_contain": "aws_s3_bucket_object_lock_configuration",
+        "subject_holds": true
       },
-      "file_count": 124,
+      "file_count": 126,
       "files_by_category": {
         "config": 33,
-        "docs": 34,
+        "docs": 36,
         "migration": 5,
         "other": 3,
         "python": 33,
@@ -231,7 +239,9 @@
         "path": "packages/trappoint-ledger/src/trappoint_ledger/signer.py",
         "line": 63,
         "resolves": true,
-        "line_text": "KMS_SIGNING_ALGORITHM: Final = \"ECDSA_SHA_256\""
+        "line_text": "KMS_SIGNING_ALGORITHM: Final = \"ECDSA_SHA_256\"",
+        "must_contain": "ECDSA_SHA_256",
+        "subject_holds": true
       },
       "file_count": 43,
       "files_by_category": {
@@ -263,11 +273,13 @@
         "path": "infra/envs/evidence/main.tf",
         "line": 114,
         "resolves": true,
-        "line_text": "resource \"aws_cloudtrail\" \"evidence\" {"
+        "line_text": "resource \"aws_cloudtrail\" \"evidence\" {",
+        "must_contain": "aws_cloudtrail",
+        "subject_holds": true
       },
-      "file_count": 34,
+      "file_count": 35,
       "files_by_category": {
-        "config": 18,
+        "config": 19,
         "docs": 11,
         "python": 3,
         "terraform": 2
@@ -288,19 +300,21 @@
       "name": "AWS Lambda — the /v1/* demo API",
       "kind": "service",
       "verdict": "DESIGNED",
-      "verdict_basis": "the module is complete (python3.13, IAM-only Function URL, four alarms) and nothing is deployed: the repository has no demo URL as of this census",
-      "how": "One python3.13 function behind a Function URL whose authorization_type is AWS_IAM — never NONE — invoked only by CloudFront with an OAC signature. It runs in ap-southeast-1 beside the Cloud cluster, because the same call from ap-southeast-2 pays about 90 ms each way and the gate screen makes six of them. Its execution role's entire non-managed grant is ssm:GetParameter on one parameter plus a conditioned kms:Decrypt.",
-      "anchor": "infra/modules/demo-api/main.tf:257",
+      "verdict_basis": "the module is complete (python3.13, arm64, 512 MB, 15 s, four alarms, one dashboard) and NOTHING IS DEPLOYED. A plan exists and a plan is not an apply: evidence/deploy/terraform-plan-furl.txt reads '11 to add, 0 to change, 0 to destroy' and terraform apply has not been run against it, so there is no function, no role, no log group and no demo URL as of this census. This row stays DESIGNED until an apply has happened — promoting it because an apply is planned and authorised is exactly the arithmetic the verdict column exists to refuse",
+      "how": "One python3.13 arm64 function in ap-southeast-1, beside the Cloud cluster, because the same call from ap-southeast-2 pays about 90 ms each way and the gate screen makes six of them. Its execution role's entire non-managed grant is ssm:GetParameter on ONE parameter ARN plus a conditioned kms:Decrypt. MEASURED CORRECTION, and it is the kind that matters: an earlier census said this row's Function URL was 'AWS_IAM — never NONE'. THAT IS NOT WHAT THE COMMITTED PLAN DOES. var.url_authorization_type defaults to NONE and evidence/deploy/terraform-plan-furl.txt:329 plans authorization_type = \"NONE\", because AWS_IAM is only a hardening if a CloudFront distribution exists to be granted lambda:InvokeFunctionUrl — and this account cannot create one (see the aws_cloudfront row). An AWS_IAM URL with no principal behind it is not a hardened demo, it is a demo nobody can reach. So the URL is public and the module says so, and what actually bounds it is written down instead of assumed: reserved_concurrent_executions caps the bill rather than reporting it, the handler's write surface is one transaction that ends in ROLLBACK, the Basic cluster carries its own spend limit, and the concurrency alarm is the tripwire. That is a smaller claim than 'invocable by one distribution and nothing else' and it is the true one for this account.",
+      "anchor": "infra/modules/demo-api/main.tf:310",
       "anchor_resolved": {
         "path": "infra/modules/demo-api/main.tf",
-        "line": 257,
+        "line": 310,
         "resolves": true,
-        "line_text": "timeout                        = var.timeout"
+        "line_text": "authorization_type = var.url_authorization_type",
+        "must_contain": "authorization_type",
+        "subject_holds": true
       },
-      "file_count": 12,
+      "file_count": 23,
       "files_by_category": {
-        "config": 1,
-        "docs": 6,
+        "config": 6,
+        "docs": 12,
         "terraform": 5
       },
       "representative_paths": [
@@ -319,19 +333,21 @@
       "name": "Amazon CloudFront + Origin Access Control — the demo site",
       "kind": "service",
       "verdict": "DESIGNED",
-      "verdict_basis": "one distribution with two OACs is written; nothing is deployed and the submission's demo URL is unresolved",
-      "how": "A single distribution fronts the static console from a private S3 origin and the /v1/* Lambda Function URL, so the judge sees one origin and the bucket is never public. Origin Access Control (not the legacy OAI) signs both origins, which is what lets the Function URL keep AWS_IAM auth instead of NONE.",
-      "anchor": "infra/modules/demo-site/main.tf:263",
+      "verdict_basis": "one distribution with two OACs is written, nothing is deployed, and — the part that is not a schedule problem — THIS ACCOUNT CANNOT CREATE ONE. A real terraform apply returned, verbatim: 'Error: creating CloudFront Distribution: StatusCode: 403, RequestID: 3e63e30d-8c5b-441b-a01b-b70085eba504, AccessDenied: Your account must be verified before you can add new CloudFront resources.' It reproduces from a bare `aws cloudfront create-distribution` with no Terraform involved, and the identity holds AdministratorAccess, so it is an account-level verification hold only AWS Support can lift — not a permissions bug and not something this repository can fix. CloudFront is therefore EXCLUDED from the committed plan: enable_cloudfront is false in evidence/deploy/terraform-plan-furl.json and no aws_cloudfront_* resource appears among its 11 planned additions. The transcript is at infra/modules/demo-api/main.tf:22 and docs/deploy/RUNBOOK.md",
+      "how": "AS DESIGNED, and the design is on hold: a single distribution fronts the static console from a private S3 origin and the /v1/* Lambda Function URL, so a judge sees one origin and the bucket is never public. Origin Access Control (not the legacy OAI) signs both origins, which is what would let the Function URL keep AWS_IAM auth instead of NONE. With the verification hold in place there is no distribution, therefore no principal to grant lambda:InvokeFunctionUrl to, therefore the Function URL is public — which is why the aws_lambda row above reads NONE. One AWS account setting propagates into the security posture of a second service, and both rows say so rather than one of them quietly describing the plan that was abandoned.",
+      "anchor": "infra/modules/demo-site/main.tf:299",
       "anchor_resolved": {
         "path": "infra/modules/demo-site/main.tf",
-        "line": 263,
+        "line": 299,
         "resolves": true,
-        "line_text": "}"
+        "line_text": "resource \"aws_cloudfront_distribution\" \"site\" {",
+        "must_contain": "aws_cloudfront_distribution",
+        "subject_holds": true
       },
-      "file_count": 55,
+      "file_count": 67,
       "files_by_category": {
-        "config": 7,
-        "docs": 23,
+        "config": 10,
+        "docs": 32,
         "other": 6,
         "python": 7,
         "terraform": 11,
@@ -355,17 +371,19 @@
       "verdict": "EXERCISED",
       "verdict_basis": "METRICS READ, NOTHING PROVISIONED — and the second half of that sentence is the load-bearing half. evidence/aws/cloudwatch/bedrock-metrics.json#/payload/api_call_summary/GetMetricStatistics = 110 read-only calls against the AWS/Bedrock namespace in ap-southeast-2 recorded, for amazon.titan-embed-text-v2:0, evidence/aws/cloudwatch/bedrock-metrics.json#/payload/models/amazon.titan-embed-text-v2:0/sums/Invocations/value = 7542 and evidence/aws/cloudwatch/bedrock-metrics.json#/payload/models/amazon.titan-embed-text-v2:0/sums/InputTokenCount/value = 1026175 — each Sum taken at Period 300 and at 3600 and required to agree, because a Sum is resolution-invariant and a disagreement would mean a clipped bucket. evidence/aws/cloudwatch/reconciliation.json subtracts this repository's own token ledgers from AWS's counters and names every non-zero delta. NOTHING WAS PROVISIONED: no log group, alarm, dashboard, metric filter, IAM role or terraform apply, and the reader invoked no model — bedrock-metrics.json's prohibitions block asserts each of those false and cloudwatch_evidence.py's before-call guard raises for any operation outside its six-item read-only allow-list before the request is signed. The alarms and dashboard WRITTEN in infra/modules/demo-api remain unapplied and unexercised",
       "how": "A log group with a finite retention — an unbounded retention on a demo account is a cost bug, not a safety feature — plus four metric alarms and a dashboard that makes the demo's latency and error rate visible to a judge who wants to look.",
-      "anchor": "scripts/aws/cloudwatch_evidence.py:248",
+      "anchor": "scripts/aws/cloudwatch_evidence.py:299",
       "anchor_resolved": {
         "path": "scripts/aws/cloudwatch_evidence.py",
-        "line": 248,
+        "line": 299,
         "resolves": true,
-        "line_text": "\"this file proves the calls happened and what they cost. It proves nothing about \""
+        "line_text": "def _guard(model: Any = None, **_: Any) -> None:",
+        "must_contain": "def _guard",
+        "subject_holds": true
       },
-      "file_count": 53,
+      "file_count": 64,
       "files_by_category": {
-        "config": 10,
-        "docs": 21,
+        "config": 14,
+        "docs": 28,
         "python": 15,
         "terraform": 6,
         "workflow": 1
@@ -393,12 +411,14 @@
         "path": "infra/modules/evidence-store/main.tf",
         "line": 145,
         "resolves": true,
-        "line_text": "data \"aws_iam_policy_document\" \"evidence\" {"
+        "line_text": "data \"aws_iam_policy_document\" \"evidence\" {",
+        "must_contain": "aws_iam_policy_document",
+        "subject_holds": true
       },
-      "file_count": 20,
+      "file_count": 29,
       "files_by_category": {
-        "config": 3,
-        "docs": 6,
+        "config": 7,
+        "docs": 11,
         "python": 5,
         "terraform": 6
       },
@@ -418,19 +438,21 @@
       "name": "AWS Systems Manager Parameter Store — the DSN",
       "kind": "service",
       "verdict": "DESIGNED",
-      "verdict_basis": "granted in the Lambda execution role; nothing deployed",
+      "verdict_basis": "granted in the Lambda execution role and NOTHING DEPLOYED — no parameter has been written and no role exists. The grant is in the committed plan (aws_iam_role_policy.dsn_access, one of the 11 additions in evidence/deploy/terraform-plan-furl.txt) and a plan is not an apply, so this row stays DESIGNED",
       "how": "The CockroachDB Cloud DSN is a SecureString parameter, not a Lambda environment variable, so the connection string never appears in the function configuration that anyone with lambda:GetFunction can read. The role's grant is scoped to exactly one parameter ARN.",
-      "anchor": "infra/modules/demo-api/main.tf:146",
+      "anchor": "infra/modules/demo-api/main.tf:192",
       "anchor_resolved": {
         "path": "infra/modules/demo-api/main.tf",
-        "line": 146,
+        "line": 192,
         "resolves": true,
-        "line_text": "})"
+        "line_text": "actions = [\"ssm:GetParameter\"]",
+        "must_contain": "ssm:GetParameter",
+        "subject_holds": true
       },
-      "file_count": 13,
+      "file_count": 18,
       "files_by_category": {
-        "config": 1,
-        "docs": 7,
+        "config": 3,
+        "docs": 10,
         "other": 1,
         "terraform": 4
       },
@@ -457,12 +479,14 @@
         "path": "verticals/mainline/apps/steward/schedules.yaml",
         "line": 14,
         "resolves": true,
-        "line_text": "# `(schedule_id, occurrence_ts)`, where `occurrence_ts` is EventBridge's"
+        "line_text": "# `(schedule_id, occurrence_ts)`, where `occurrence_ts` is EventBridge's",
+        "must_contain": "EventBridge",
+        "subject_holds": true
       },
-      "file_count": 30,
+      "file_count": 29,
       "files_by_category": {
         "config": 2,
-        "docs": 11,
+        "docs": 10,
         "migration": 2,
         "other": 2,
         "python": 13

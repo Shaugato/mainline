@@ -209,6 +209,7 @@ jobs:
             api.github.com:443
             github.com:443
             objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
             raw.githubusercontent.com:443
             pypi.org:443
             files.pythonhosted.org:443
@@ -266,6 +267,7 @@ jobs:
             api.github.com:443
             github.com:443
             objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
             raw.githubusercontent.com:443
             pypi.org:443
             files.pythonhosted.org:443
@@ -306,6 +308,7 @@ jobs:
             api.github.com:443
             github.com:443
             objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
             raw.githubusercontent.com:443
             pypi.org:443
             files.pythonhosted.org:443
@@ -366,6 +369,7 @@ jobs:
             api.github.com:443
             github.com:443
             objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
             raw.githubusercontent.com:443
             pypi.org:443
             files.pythonhosted.org:443
@@ -408,6 +412,7 @@ jobs:
             api.github.com:443
             github.com:443
             objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
             raw.githubusercontent.com:443
             pypi.org:443
             files.pythonhosted.org:443
@@ -446,6 +451,7 @@ jobs:
             api.github.com:443
             github.com:443
             objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
             raw.githubusercontent.com:443
             pypi.org:443
             files.pythonhosted.org:443
@@ -602,6 +608,7 @@ jobs:
             api.github.com:443
             github.com:443
             objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
             raw.githubusercontent.com:443
             pypi.org:443
             files.pythonhosted.org:443
@@ -842,6 +849,7 @@ jobs:
             api.github.com:443
             github.com:443
             objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
             raw.githubusercontent.com:443
             pypi.org:443
             files.pythonhosted.org:443
@@ -873,6 +881,26 @@ jobs:
     timeout-minutes: 12
     steps:
       - name: Deny egress except to the release host
+        # `github.com:443` IS NOT THE RELEASE HOST, and this job spent 2026-08-12 proving
+        # it. `/releases/download/…` is a 302 with no body; GitHub serves the BYTES from a
+        # separate origin, and as of 2026 that origin is `release-assets.githubusercontent.com`
+        # rather than the `objects.githubusercontent.com` this list has always named.
+        # Measured, run 31596249352, `Install actionlint`:
+        #
+        #     curl: (7) Failed to connect to release-assets.githubusercontent.com port 443
+        #     after 1 ms: Couldn't connect to server
+        #     ##[error]Process completed with exit code 7.
+        #
+        # Exit 7 is curl's "could not connect", not curl's 404 — harden-runner refused a
+        # destination the allowlist could not name, which is the control working. The same
+        # host moving is what took the other eight jobs of this workflow down through
+        # `setup-workspace`, whose `astral-sh/setup-uv` fetches uv from a GitHub release
+        # too; see `.github/actions/setup-workspace/action.yml` for that half.
+        #
+        # Not fixed by pinning, and not fixed by `egress-policy: audit`. The URL above
+        # already carries an exact version, so the version was never the variable; and
+        # auditing would retire the assertion this list exists to make instead of
+        # correcting it.
         uses: step-security/harden-runner@v2
         with:
           egress-policy: block
@@ -880,6 +908,7 @@ jobs:
             api.github.com:443
             github.com:443
             objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
 
       - uses: actions/checkout@v4
 
@@ -893,6 +922,11 @@ jobs:
           tar -xzf /tmp/actionlint.tar.gz -C /tmp actionlint
           sudo install -m 0755 /tmp/actionlint /usr/local/bin/actionlint
           actionlint --version
+          # actionlint runs shellcheck over every `run:` block, but only if shellcheck is
+          # on PATH — and it says nothing when it is not. A lane whose most valuable half
+          # can vanish silently is a lane that reports on less than it claims to, so the
+          # version is printed and its absence is fatal here rather than invisible later.
+          shellcheck --version
 
       - name: Lint every workflow
         # shellcheck runs over `run:` blocks as part of actionlint, which is most of the
@@ -1087,7 +1121,7 @@ jobs:
             echo "| pytest --crdb=none | the hermetic suite MINUS the declared reds; a failure here is a REGRESSION | ${R_TESTS} |"
             echo "| RED BY DESIGN | the declared reds are still red; fails if one PASSES | ${R_RED} |"
             echo "| sequence ban | no sequence anywhere in any migration tree | ${R_SQL} |"
-            echo "| actionlint | every workflow and the composite action parse | ${R_WORKFLOWS} |"
+            echo "| actionlint | every workflow parses, shellcheck reads every \`run:\`, and the composite action is checked too | ${R_WORKFLOWS} |"
             echo "| PL-2 | the first red run has a recorded URL | ${R_ADR} |"
             echo ""
             echo "**Two pytest rows, on purpose.** The hermetic suite is split in two so the"

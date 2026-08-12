@@ -1,0 +1,216 @@
+{
+  "schema": "mainline.deploy.verify.alarm-reachability/1",
+  "worker": "W5",
+  "generated": "2026-08-12",
+  "scope": "The four aws_cloudwatch_metric_alarm resources in evidence/deploy/terraform-plan-furl.json, module.api[0], region ap-southeast-1, account 0229REDACTED8246 (masked).",
+  "method": "Every configured field below was read out of the plan JSON, not out of prose. Every account fact below was read with a read-only AWS API call under profile mainline-dev. No apply, no AWS write, no deployed function existed at measurement time (AccountUsage.FunctionCount = 0), so no claim about a running alarm's STATE is made here - only about whether the metric exists, whether the threshold is arithmetically attainable, and who is positioned to read the result.",
+  "account_facts_measured": {
+    "lambda_get_account_settings_ap_southeast_1": {
+      "AccountLimit.ConcurrentExecutions": 10,
+      "AccountLimit.UnreservedConcurrentExecutions": 10,
+      "AccountUsage.FunctionCount": 0,
+      "command": "aws lambda get-account-settings --region ap-southeast-1"
+    },
+    "service_quota_L_B99A9384_ap_southeast_1": {
+      "QuotaName": "Concurrent executions",
+      "Value": 10.0,
+      "Unit": "Count",
+      "Adjustable": true,
+      "GlobalQuota": false,
+      "QuotaAppliedAtLevel": "ACCOUNT",
+      "UsageMetric.MetricName": "ConcurrentExecutions",
+      "command": "aws service-quotas get-service-quota --service-code lambda --quota-code L-B99A9384 --region ap-southeast-1"
+    },
+    "cloudwatch_baseline_ap_southeast_1": {
+      "list_metrics_namespace_AWS_Lambda": 0,
+      "describe_alarms_MetricAlarms": 0,
+      "note": "No Lambda metric and no alarm exists in this region yet. The four new alarms land inside CloudWatch's free ten."
+    },
+    "planned_reserved_concurrent_executions": 20
+  },
+  "alarms": [
+    {
+      "name": "mainline-demo-api-errors",
+      "address": "module.api[0].aws_cloudwatch_metric_alarm.errors",
+      "namespace": "AWS/Lambda",
+      "metric_name": "Errors",
+      "statistic": "Sum",
+      "extended_statistic": null,
+      "period_seconds": 300,
+      "evaluation_periods": 1,
+      "datapoints_to_alarm": null,
+      "threshold": 0,
+      "comparison_operator": "GreaterThanThreshold",
+      "treat_missing_data": "notBreaching",
+      "dimensions": { "FunctionName": "mainline-demo-api" },
+      "alarm_actions": [],
+      "ok_actions": [],
+      "actions_enabled": true,
+      "metric_emitted_for_this_function": true,
+      "metric_emission_basis": "AWS/Lambda Errors is emitted for every function on every invocation, with value 0 or 1, unconditionally. No configuration of this stack can suppress it.",
+      "threshold_reachable": true,
+      "verdict": "REACHABLE",
+      "reachable_by": [
+        "Init/import failure - a wrong-architecture psycopg wheel raises Runtime.ImportModuleError before the handler runs. Errors = 1.",
+        "Function timeout at 15 s - Lambda records the invocation as an error. Errors = 1.",
+        "Out-of-memory at 512 MB. Errors = 1.",
+        "An exception escaping app.handler. The POST branch at app.py:450-460 catches only psycopg.Error, so any other exception raised inside transitions.handle_transition propagates out of the handler. Errors = 1."
+      ],
+      "blind_spot": "The handler is written never to raise on application failure: db.DsnUnavailable becomes a 503 JSON problem document (app.py:346) and the read branch catches bare Exception (app.py:383). The single most likely failure of a first deploy - the SSM SecureString /mainline/demo/cockroach_dsn does not exist yet, so every request answers 503 dsn_unset - produces Errors = 0 and leaves this alarm in OK. The alarm is reachable, and it is blind to the outage the founder is most likely to get.",
+      "caveat": "The reachable_by list is AWS-documented Lambda behaviour plus this repository's own handler source. It was not measured against a running function, because no function exists and deploying one is outside this pass."
+    },
+    {
+      "name": "mainline-demo-api-throttles",
+      "address": "module.api[0].aws_cloudwatch_metric_alarm.throttles",
+      "namespace": "AWS/Lambda",
+      "metric_name": "Throttles",
+      "statistic": "Sum",
+      "extended_statistic": null,
+      "period_seconds": 300,
+      "evaluation_periods": 1,
+      "datapoints_to_alarm": null,
+      "threshold": 0,
+      "comparison_operator": "GreaterThanThreshold",
+      "treat_missing_data": "notBreaching",
+      "dimensions": { "FunctionName": "mainline-demo-api" },
+      "alarm_actions": [],
+      "ok_actions": [],
+      "actions_enabled": true,
+      "metric_emitted_for_this_function": true,
+      "metric_emission_basis": "AWS/Lambda Throttles carries the FunctionName dimension for every invocation rejected with a 429, whether the binding limit is the function's reserved concurrency or the account's concurrency ceiling. It does not depend on reserved concurrency being configured.",
+      "threshold_reachable": true,
+      "verdict": "REACHABLE",
+      "note": "On this account it is reachable EARLIER than the module intends. The alarm description says throttling means 'the reserved-concurrency cap is refusing invocations'; with the account ceiling at 10 the eleventh simultaneous invocation is refused whether or not any reservation exists. This is the one alarm that actually catches the abuse case the concurrency alarm was written for, and it catches it at 10 rather than at 20."
+    },
+    {
+      "name": "mainline-demo-api-duration-p99",
+      "address": "module.api[0].aws_cloudwatch_metric_alarm.duration_p99",
+      "namespace": "AWS/Lambda",
+      "metric_name": "Duration",
+      "statistic": null,
+      "extended_statistic": "p99",
+      "period_seconds": 300,
+      "evaluation_periods": 1,
+      "datapoints_to_alarm": null,
+      "threshold": 12000,
+      "threshold_unit": "milliseconds",
+      "comparison_operator": "GreaterThanThreshold",
+      "treat_missing_data": "notBreaching",
+      "evaluate_low_sample_count_percentiles": "not set by Terraform; AWS defaults to 'evaluate', so the alarm still evaluates on a handful of datapoints",
+      "dimensions": { "FunctionName": "mainline-demo-api" },
+      "alarm_actions": [],
+      "ok_actions": [],
+      "actions_enabled": true,
+      "metric_emitted_for_this_function": true,
+      "metric_emission_basis": "AWS/Lambda Duration is emitted once per invocation, unconditionally.",
+      "threshold_reachable": true,
+      "verdict": "REACHABLE",
+      "headroom": "Duration is capped at the 15 000 ms timeout. 12 000 < 15 000 leaves a 3 000 ms band, and a timed-out invocation itself reports ~15 000 ms, which is above the threshold. A single invocation over 12 s in a five-minute window breaches, because p99 of a small sample is its maximum and AWS evaluates low sample counts by default.",
+      "guarded_by_precondition": "infra/modules/demo-api/main.tf:460, condition var.duration_p99_threshold_ms < var.timeout * 1000. PROVEN LIVE: raising the threshold to 15 000 in a scratch copy produced 'Error: Resource precondition failed' at plan time."
+    },
+    {
+      "name": "mainline-demo-api-concurrency",
+      "address": "module.api[0].aws_cloudwatch_metric_alarm.concurrency",
+      "namespace": "AWS/Lambda",
+      "metric_name": "ConcurrentExecutions",
+      "statistic": "Maximum",
+      "extended_statistic": null,
+      "period_seconds": 300,
+      "evaluation_periods": 1,
+      "datapoints_to_alarm": null,
+      "threshold": 20,
+      "comparison_operator": "GreaterThanThreshold",
+      "treat_missing_data": "notBreaching",
+      "dimensions": { "FunctionName": "mainline-demo-api" },
+      "alarm_actions": [],
+      "ok_actions": [],
+      "actions_enabled": true,
+      "metric_emitted_for_this_function": "conditional - AWS emits per-function ConcurrentExecutions dependably only for functions that carry reserved concurrency",
+      "threshold_reachable": false,
+      "verdict": "STRUCTURALLY UNFIRABLE",
+      "why_unfirable": [
+        "ARITHMETIC. The alarm breaches on ConcurrentExecutions > 20. The account's Lambda concurrency ceiling in ap-southeast-1 is 10 (service quota L-B99A9384, Value 10.0, applied at ACCOUNT level; AccountLimit.ConcurrentExecutions = 10). No function in this account can ever reach 11 concurrent executions, let alone 21. Maximum(ConcurrentExecutions) <= 10 < 21 for every possible five-minute window. The condition is false by construction, forever, at any level of abuse.",
+        "EMISSION. The plan sets reserved_concurrent_executions = 20. A reservation of 20 cannot be satisfied by an account whose entire ceiling is 10, and AWS additionally refuses any reservation that drops UnreservedConcurrentExecutions below its documented floor - this account reports UnreservedConcurrentExecutions = 10, i.e. the whole ceiling is unreserved and there is no room to take any of it. So the reservation cannot be set at any value >= 1, only -1 (unreserved). With no reserved concurrency, the per-function ConcurrentExecutions metric is not dependably emitted, and the alarm has no datapoints to evaluate. The module's own alarm_description says exactly this.",
+        "MISSING-DATA POLICY. treat_missing_data = notBreaching converts that absence of datapoints into alarm state OK rather than INSUFFICIENT_DATA. The alarm will therefore read green on the dashboard forever, which is worse than reading INSUFFICIENT_DATA: silence is rendered as health."
+      ],
+      "irony": "One resource higher in the same file, aws_cloudwatch_metric_alarm.duration_p99 carries a lifecycle.precondition whose error message is 'this alarm could never breach - a control that looks present and is not'. That precondition exists to forbid precisely this defect, it is proven live, and it does not cover the alarm one resource below it.",
+      "minimal_fixes": [
+        {
+          "edit": "infra/modules/demo-api/variables.tf, variable concurrency_alarm_threshold, default 20 -> 8",
+          "effect": "Puts the threshold below the account ceiling of 10, so the comparison becomes arithmetically attainable. Does NOT solve emission: without reserved concurrency the metric may still never appear."
+        },
+        {
+          "edit": "Add a lifecycle.precondition to aws_cloudwatch_metric_alarm.concurrency mirroring duration_p99's, plus a variable account_concurrency_ceiling (default 1000, passed as 10 from infra/envs/demo): condition = var.concurrency_alarm_threshold < var.account_concurrency_ceiling",
+          "effect": "Makes the defect impossible to reintroduce, the way the duration precondition already does for its sibling. This is the fix that matches the repository's own standard."
+        },
+        {
+          "edit": "Alternatively: delete the concurrency alarm and name mainline-demo-api-throttles as the abuse tripwire in the module README and docs/deploy/OBSERVABILITY.md.",
+          "effect": "Throttles is emitted unconditionally and, on a 10-concurrency account, fires at exactly the saturation point the concurrency alarm was written to catch. One fewer alarm, and the one that remains actually works."
+        }
+      ]
+    }
+  ],
+  "who_reads_these_alarms": {
+    "alarm_actions": [],
+    "ok_actions": [],
+    "insufficient_data_actions": [],
+    "sns_topics_created_by_this_plan": 0,
+    "conclusion": "Nothing is notified. Not a topic, not an email, not a webhook. Every reader must go and look.",
+    "candidate_readers": [
+      {
+        "reader": "aws_cloudwatch_dashboard.this[0], widget type 'alarm' at x=12 y=9",
+        "real": true,
+        "evidence": "infra/modules/demo-api/main.tf:589-600 renders a type='alarm' widget listing all four alarm ARNs; the plan's configuration block confirms dashboard_body references aws_cloudwatch_metric_alarm.{errors,throttles,duration_p99,concurrency}.arn. A human signed into the console sees four states at a glance.",
+        "limitation": "Console only. It pushes nothing, and nobody is watching a dashboard at 03:00."
+      },
+      {
+        "reader": ".github/workflows/demo-health.yml, hourly cron, claimed by the module to call describe-alarms",
+        "real": false,
+        "evidence": "The workflow contains no 'cloudwatch', no 'describe-alarms', no 'configure-aws-credentials', no 'role-to-assume', no 'aws-region' and no 'secrets.' reference. Its only external input is vars.DEMO_URL. Every step is an unauthenticated HTTP request to the demo URL: GET /, GET /v1/health, POST /v1/demo/gate-run, then a latency record.",
+        "claims_contradicted": [
+          "infra/modules/demo-api/main.tf:377 - 'by the hourly demo-health workflow, which calls describe-alarms'",
+          "infra/modules/demo-api/variables.tf:452 - 'still readable by aws cloudwatch describe-alarms - which is what the demo-health cron reads'",
+          "infra/modules/demo-api/outputs.tf:133 - 'for aws cloudwatch describe-alarms --alarm-names in the hourly demo-health workflow'",
+          "infra/modules/demo-api/README.md:207 - 'the hourly demo-health workflow's describe-alarms check'"
+        ]
+      },
+      {
+        "reader": "any other GitHub Actions workflow",
+        "real": false,
+        "evidence": "A repository-wide search for 'describe-alarms' returns exactly one executable hit, scripts/aws/cloudwatch_evidence.py:693, and no workflow invokes it with credentials. A search of .github/ for 'configure-aws-credentials', 'role-to-assume', 'id-token' and 'AWS_ACCESS_KEY' returns one hit, aws-evidence.yml:169, which UNSETS every AWS variable on purpose to prove that lane is hermetic."
+      }
+    ],
+    "can_github_actions_authenticate_to_aws_at_all": {
+      "answer": "No. There is no credential path of any kind.",
+      "measurements": [
+        "gh secret list  -> empty, exit 0",
+        "gh variable list -> empty, exit 0",
+        "gh api repos/Shaugato/mainline/actions/secrets   -> {\"total_count\":0,\"secrets\":[]}",
+        "gh api repos/Shaugato/mainline/actions/variables -> {\"variables\":[],\"total_count\":0}",
+        "gh api repos/Shaugato/mainline/environments      -> {\"total_count\":0,\"environments\":[]}",
+        "aws iam list-open-id-connect-providers -> {\"OpenIDConnectProviderList\": []}",
+        "aws iam list-roles, filtered for a trust policy naming token.actions.githubusercontent.com -> []",
+        "no workflow declares permissions: id-token: write"
+      ],
+      "consequence": "The repository is PUBLIC, holds zero secrets and zero variables, and the AWS account trusts no GitHub OIDC provider and has no role a workflow could assume. CI cannot call CloudWatch. Therefore, after the apply, the four alarms will be read by exactly one thing: a human being who signs into the CloudWatch console. There is no automated reader. Note also that vars.DEMO_URL, which demo-health.yml resolves the demo URL from, does not exist either - so the workflow falls back to docs/submission/SUBMISSION.json, whose demo_url is still the deliberate token UNRESOLVED."
+    }
+  },
+  "treat_missing_data_notBreaching_on_a_demo_with_no_traffic": {
+    "setting": "notBreaching on all four alarms",
+    "aws_semantics": "Missing datapoints are evaluated as if they were within the threshold. An alarm with no data does not sit in INSUFFICIENT_DATA; it transitions to OK.",
+    "consequence_for_this_demo": "A judging demo is idle almost all of the time. With no invocations there are no Errors, Throttles, Duration or ConcurrentExecutions datapoints, so all four alarms will read OK. On the dashboard's alarm widget that is four green rows. Green here means 'nobody has called this function', not 'this function is healthy'. The distinction is invisible to the reader, and there is no reader in the first place (see above).",
+    "self_contradiction": "The concurrency alarm's own description warns that with reserved_concurrent_executions = -1 'this alarm can sit in INSUFFICIENT_DATA and prove nothing'. It will not sit in INSUFFICIENT_DATA - treat_missing_data = notBreaching launders that same silence into OK, which proves nothing while looking like it proves something. That is strictly the worse of the two outcomes the module considered.",
+    "assessment": "notBreaching is the right choice for errors and throttles - 'no invocations' genuinely is not a failure, and the alternative would page on an idle demo. It is the wrong choice for concurrency, where missing data is the expected steady state and OK is therefore a permanent false reassurance.",
+    "recommended_disclosure": "Say in docs/deploy/OBSERVABILITY.md that an OK alarm on this stack means 'no breaching datapoint OR no datapoint at all', and that only /v1/health distinguishes the two."
+  },
+  "summary": {
+    "alarms_total": 4,
+    "reachable": 3,
+    "unreachable": 1,
+    "unreachable_names": ["mainline-demo-api-concurrency"],
+    "automated_readers": 0,
+    "human_readers": "CloudWatch console and the dashboard's alarm widget",
+    "notification_channels": 0
+  },
+  "verdict": "GO-WITH-FIX. The plan replays byte-identically to the committed evidence, the package has not drifted, and three of the four alarms can genuinely fire. The concurrency alarm cannot fire under any configuration this account permits, and no automated reader exists for any of the four. Exact edits: (1) infra/modules/demo-api/variables.tf, concurrency_alarm_threshold default 20 -> 8; (2) add the mirror lifecycle.precondition on aws_cloudwatch_metric_alarm.concurrency so the class of defect duration_p99 already forbids is forbidden one resource lower; (3) correct the four places that claim demo-health calls describe-alarms - it does not, and on a public repository with zero secrets it cannot."
+}

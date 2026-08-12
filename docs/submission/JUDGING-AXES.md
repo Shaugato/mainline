@@ -17,9 +17,11 @@ The counterweights are the point. A submission that argues five axes and concede
 asking to be disbelieved on all five. Every limitation below is one we published before a
 judge could find it, and each is a number with a file behind it.
 
-**Every path on this page was checked to resolve on `2026-08-10`.** Every number carries the
-artefact that produced it. Digits inside `code spans` are names (`v26.2.5`, SQLSTATE
-`23514`), not measurements.
+**Every relative path on this page was re-resolved against the working tree on `2026-08-12`
+and `0` of them were broken** — the same walk over [`DEVPOST.md`](DEVPOST.md) also came back
+clean. Every number carries the artefact that produced it. Digits inside `code spans` are
+names (`v26.2.5`, SQLSTATE `23514`), not measurements. Where a figure below moved after an
+earlier version of this page quoted it, the stale figure is named rather than deleted.
 
 **Fastest possible check — two minutes, no account, no credential:**
 
@@ -57,10 +59,14 @@ audited on what it withheld is not auditable at all.
 designed worked example, no real incident, no real site, no real fatality
 ([`docs/HONESTY.md`](../HONESTY.md) § SYNTHETIC). The agent layer's model transcripts are
 **recorded cassettes**; a green agent test proves the code handles that recorded exchange and
-proves nothing about a live model today. No live Bedrock inference transcript is committed.
-And the recall path crosses a region boundary on every embedding call with **no p50, no p99
-and no load profile anywhere in the repository** — anyone quoting MAINLINE's recall latency
-is guessing.
+proves nothing about a live model today. An earlier version of this line went on to say that
+no live Bedrock inference transcript was committed, and on `2026-08-11` that stopped being
+true: [`evidence/deploy/aws-live.json`](../../evidence/deploy/aws-live.json) records four
+calls in `ap-southeast-2`, each with an AWS request id, and a Titan v2 embedding of dimension
+`1024` at L2 norm `1.0`. The cassettes remain what the *test suite* replays; the transcript is
+a separate and narrower claim. And the recall path crosses a region boundary on every
+embedding call with **no p50, no p99 and no load profile anywhere in the repository** — anyone
+quoting MAINLINE's recall latency is guessing.
 
 ---
 
@@ -82,13 +88,18 @@ the proof forges one. The gate re-derives the obligation count and refuses anywa
 projections are enforced, never trusted.** The third beat matters equally — a gate that
 always refuses is broken, not safe.
 
-**Honest counterweight.** The AWS half has **nothing** in the EXERCISED column
-([`docs/TOOL-USAGE.md`](../TOOL-USAGE.md)): the account is live and the models are enabled,
-but every Terraform module is unapplied and every code path to a model is a cassette. Bedrock
-Rerank is **not available** in `ap-southeast-2` and is listed as such rather than dropped.
-`ccloud` `0.6.12` has no headless service-account authentication, and Cloud audit-log
-endpoints `404` on the Basic tier, so the control-plane half of "custody of the custodian"
-has **no input source on this tier**. Nothing has ever run against CockroachDB Cloud in CI.
+**Honest counterweight.** An earlier version of this page said the AWS half had **nothing** in
+the EXERCISED column. That was true when it was written and is not true now, and the honest
+correction is small rather than flattering: the census at
+[`evidence/tool-usage/aws-services.json`](../../evidence/tool-usage/aws-services.json) carries
+`12` service rows and only `3` of them are EXERCISED — the two Bedrock rows and CloudWatch.
+`8` are DESIGNED and `1` is NOT-AVAILABLE, every Terraform module is unapplied, and Bedrock
+Rerank is absent in `ap-southeast-2` and listed as such rather than dropped. Re-derive it with
+`python scripts/submission/capture_tool_evidence.py --check`, which exits `1` when any count
+in that file has gone stale. `ccloud` `0.6.12` has no headless service-account authentication,
+and Cloud audit-log endpoints `404` on the Basic tier, so the control-plane half of "custody
+of the custodian" has **no input source on this tier**.
+Nothing has ever run against CockroachDB Cloud in CI.
 
 ---
 
@@ -106,9 +117,15 @@ has **no input source on this tier**. Nothing has ever run against CockroachDB C
 
 **Cost, stated plainly.** The cluster's configured `spend_limit` is `2500` — US$25.00/month,
 a ceiling and not a spend ([`evidence/ccloud/cluster-list.txt`](../../evidence/ccloud/cluster-list.txt)).
-The cheapest arrangement satisfying *"functional demo URL, free and unrestricted for judges"*
-is a static console build with committed replay fixtures: no server, no credential, no
-egress, **US$0/month**, against roughly US$5–8/month for the cheapest always-on container.
+The arrangement that satisfies *"functional demo URL, free and unrestricted for judges"* is a
+single Lambda Function URL with `authorization_type = NONE` serving both the console and
+`/v1/*`, estimated at roughly **US$0.02/month** and planned at `Plan: 11 to add, 0 to change,
+0 to destroy` in
+[`evidence/deploy/terraform-plan-furl.txt`](../../evidence/deploy/terraform-plan-furl.txt).
+An earlier version of this paragraph costed a static console build with replay fixtures at
+US$0/month; that shape was abandoned because the console alone does not exercise the gate, and
+because CloudFront cannot be created on this account at all — see §4. The estimate is an
+estimate: **no bill has been observed, because nothing has been applied.**
 
 **Honest counterweight.** No real operator has used this, and no real data is in it. The
 domain corpus was authored for this repository. **Inference is in Sydney and the database is
@@ -131,15 +148,39 @@ one of the seven cryptographic checks that did not run.
 
 | Finding | Measurement | Source |
 |---|---|---|
-| The repository a judge would clone is **not public** | `visibility: PRIVATE`, `licenseInfo: null`, `homepageUrl: ""` | `gh repo view Shaugato/mainline`, run `2026-08-10` |
-| The root licence exists on disk but is **untracked** | `?? LICENSE` | `git status --porcelain` |
-| **Nothing is deployed** | no demo URL exists | [`docs/TOOL-USAGE.md`](../TOOL-USAGE.md) Part 4 |
-| The conformance suite passes **10 of 71 declared cases** | `10` passed, `6` failed, `55` cannot-run, `0` errored | [`qa/conformance-census.json`](../../qa/conformance-census.json) |
-| Lint is a published number, not a clean one | `847` `ruff` findings, `245` files `ruff format` would rewrite | [`qa/ruff-ratchet.json`](../../qa/ruff-ratchet.json) |
-| Types likewise | `12` `mypy` errors over `477` checked source files | [`qa/mypy-ratchet.json`](../../qa/mypy-ratchet.json) |
-| The test suite is not green | `8845` tests with no cluster: `8065` passed, `44` failed, `736` skipped | [`qa/test-state.json`](../../qa/test-state.json) |
+| **Nothing is deployed.** `terraform apply` has not been run | `demo_url` holds the literal `UNRESOLVED` | [`docs/submission/SUBMISSION.json`](SUBMISSION.json); `python scripts/submission/check_submission_ready.py` |
+| The plan that would deploy it is written and unapplied | `Plan: 11 to add, 0 to change, 0 to destroy` | [`evidence/deploy/terraform-plan-furl.txt`](../../evidence/deploy/terraform-plan-furl.txt) line `339` |
+| The end-to-end acceptance run does not reach its contract | `"verdict": "NOT PROVEN"` at `generated_at 2026-08-11T05:43:54Z`, with `4` named failures | [`evidence/deploy/acceptance.json`](../../evidence/deploy/acceptance.json) |
+| The conformance suite has never been demonstrated | `10` passed, `6` failed, `55` cannot-run, `0` errored, over `71` selected | [`qa/conformance-census.json`](../../qa/conformance-census.json) |
+| Lint is a published number, not a clean one | `671` `ruff` findings — down from the `847` an earlier version of this row carried — and `0` files `ruff format` would rewrite | [`qa/ruff-ratchet.json`](../../qa/ruff-ratchet.json) `lint.total`, `format.unformatted_files` |
+| Types likewise, and this one is now a zero with its denominator | `0` `mypy` errors over `660` checked source files; the row used to read `12` over `477` | [`qa/mypy-ratchet.json`](../../qa/mypy-ratchet.json) |
+| The test suite is not green | `8845` tests with no cluster: `8065` passed, `44` failed, `736` skipped | [`qa/test-state.json`](../../qa/test-state.json) `totals.none` |
 | One target cannot be measured at all | `tests/integration` did not finish even with the ceiling raised to `2400` seconds | [`qa/test-state.json`](../../qa/test-state.json) |
-| Custody verification is deliberately **not** a pass | exit `2`: `9` checks held, `0` failed, `7` never ran | [`qa/test-state.json`](../../qa/test-state.json) |
+| Custody verification is deliberately **not** a pass | exit `2`: `9` checks held, `0` failed, `7` never ran, of `16` | [`qa/test-state.json`](../../qa/test-state.json) `external_checks` |
+| Master is more red than green | `18` workflows, latest run each: `8` success, `10` failure | `gh run list --branch master`, re-derived `2026-08-12T14:58Z` at `1d41442` |
+
+**Two rows that were on this list are off it, and the removal is recorded rather than
+silent.** The repository was `PRIVATE` when this page was first written and is now `PUBLIC` —
+`gh repo view Shaugato/mainline --json visibility,licenseInfo` answers
+`{"visibility":"PUBLIC","licenseInfo":{"key":"apache-2.0"}}` — and the root `LICENSE`, which
+was untracked, is tracked and reads as Apache-2.0 at `11357` bytes. Neither is an achievement;
+they were table stakes, and the only reason to mention them is that a document which quietly
+drops its own failing rows cannot be trusted with the ones it keeps.
+
+**And one constraint that is not ours to fix.** The demo origin is a Lambda Function URL
+rather than CloudFront because AWS will not create new CloudFront distributions on this
+account. That is not a Terraform problem, an IAM problem or a module problem: a real apply on
+`2026-08-10` reached the distribution and was refused, and the same refusal comes back from a
+bare `aws cloudfront create-distribution` with a three-field config and no Terraform anywhere.
+AWS's words, quoted verbatim and kept verbatim in
+[`docs/deploy/RUNBOOK.md`](../deploy/RUNBOOK.md) Appendix A with the `RequestID` intact:
+
+<!-- prose-hygiene: quoting -->
+> `AccessDenied: Your account must be verified before you can add new CloudFront resources.`
+> `To verify your account, please contact AWS Support and include this error message.`
+
+Only AWS Support can lift it, the runbook is written as though it never clears, and the
+identity that was refused holds `AdministratorAccess`.
 
 **Now the part that should recover some of the mark: those numbers are falsifiable and
 monotone.** Each is a **ratchet** — a frozen figure in a committed JSON file that may fall
@@ -170,19 +211,35 @@ AssertionError: docs/HONESTY.md is behind its own evidence:
   family 'conformance-census' has 1 file(s) on disk (qa/conformance-census.json) …
 ```
 
-Both artefacts are **good news** — the forward-only deployment runner completed (`271` of
-`271` files, `0` failed, nothing dirty, attestation head ordinal `271` at grade `strong`),
-and the conformance suite was demonstrated end to end for the first time. The build went red
-anyway, because the document had not caught up. **A repository that breaks its own build when
-its documentation lags its evidence is the readiness signal here** — not the pass rate.
+One of those artefacts is **good news**: the forward-only deployment runner completed —
+`271` of `271` files, `0` failed, nothing dirty, attestation head ordinal `271` at grade
+`strong`, in `evidence/chain/chain-20260810T062542Z.json`.
+
+The other is a census, and it is **not** a demonstration. The conformance suite has never been
+demonstrated end to end: run against a bare node its cases error rather than skip, which is
+why `qa/conformance-census.json` reports `55` of `71` as cannot-run with the missing object
+named on each. Exactly two of the declared cases have been exercised anywhere in this
+repository — CF-01 and CF-03 — and they were exercised by `scripts/proof/gate_refusal.py`
+rather than by the suite. That is a smaller claim than "the suite ran", and it is the one this
+page will make. An earlier version of this paragraph said the suite had been demonstrated end
+to end for the first time; `scripts/submission/check_submission_prose.py` rule
+`SUB-05-conformance-passes` caught the sentence in our own document and this is the
+replacement it asked for.
+
+The build went red on both artefacts anyway, because the document had not caught up. **A
+repository that breaks its own build when its documentation lags its evidence is the readiness
+signal here** — not the pass rate.
 
 **Honest counterweight to the counterweight.** Do not over-credit that. `docs/HONESTY.md` is
 stale right now, and the same section that predicted this breakage also still says
 `qa/conformance-census.json` does not exist. The mechanism caught it; a human has not yet
-fixed it. Separately, `.github/workflows/ci.yml` gates every substantive job behind a
-`checkers` job — the program it named as missing has since landed, but **no GitHub Actions
-run of the pipeline is recorded in this repository**, so every CI claim remains a claim about
-a lane whose green nobody has observed.
+fixed it. Separately, an earlier version of this paragraph said **no GitHub Actions run of the
+pipeline was recorded in this repository**. That has since been fixed and the fix is not
+flattering: [`docs/CI-STATE.md`](../CI-STATE.md) now names every workflow with its run id, and
+what those run ids show is a board that is more red than green — `8` success and `10` failure
+across `18` workflows, latest run each, re-derived on `2026-08-12` at commit `1d41442` with
+`gh run list --branch master`. Six of the reds report a true incompleteness and are meant to
+stay red; the rest are not yet fixed. The observation problem is solved; the lanes are not.
 
 ---
 
@@ -223,14 +280,31 @@ committed artefact exercises them end to end.
 ## What a judge should do with all of this
 
 1. **Run `just prove`.** Two minutes. If `VERDICT` is not `PROVEN`, mark the project down on
-   axes 1 and 2 — that is what the artefact is for.
+   axes 1 and 2 — that is what the artefact is for. It was re-derived on `2026-08-12` into a
+   throwaway database on a pinned local node and answered `chain 271/271 applied, 0 failed`,
+   `PROJECTION 10/10 held`, `REFUSAL REFUSED [23514] gate_closed_when_issued (reported)`,
+   `DRIFT REFUSED [P0001] mainline.fn_permit_merge_gate (parsed)`,
+   `ADMISSION ADMITTED [00000]`, `caveats (none)`, `VERDICT PROVEN`.
 2. **Open [`docs/HONESTY.md`](../HONESTY.md) before the README.** It is the shortest route to
    an accurate picture, and it was written to be used against us.
 3. **Score Product Readiness low.** It is the weakest axis, the reasons are counted above,
-   and we would rather be marked accurately than believed generously.
+   and we would rather be marked accurately than believed generously. The single sharpest
+   check is `python scripts/submission/check_submission_ready.py`: on `2026-08-12` it printed
+   `3` unresolved rows of `10` and exited non-zero.
 4. **Check one number at random.** Every figure on this page and in
-   [`DEVPOST.md`](DEVPOST.md) resolves to a file under `qa/` or `evidence/`. If one does not,
-   that is a defect — and [`docs/HONESTY.md`](../HONESTY.md) says to report it.
+   [`DEVPOST.md`](DEVPOST.md) resolves to a file under `qa/` or `evidence/`, or to a command
+   printed beside it. If one does not, that is a defect — and
+   [`docs/HONESTY.md`](../HONESTY.md) says to report it.
+5. **Notice which claims on this page are written as "was X, is now Y", and which way each
+   moved.** Toward us: the repository's visibility, the tracked `LICENSE`, `ruff` `847`→`671`
+   with `245`→`0` unformatted, `mypy` `12`/`477`→`0`/`660`, the AWS EXERCISED column going
+   from empty to `3` of `12`, a committed live Bedrock transcript where there was none, and
+   recorded GitHub Actions runs where there were none. Away from us: the conformance suite,
+   which this page previously said had been demonstrated end to end and which has in fact
+   never been demonstrated; and the demo's cost, which was written as US$0/month for a static
+   console that was abandoned because it does not exercise the gate. Those recorded runs also
+   showed a board that is `8` green to `10` red. A page that keeps only the flattering half of
+   its own drift is not a register, it is an advertisement.
 
 Related: [`DEVPOST.md`](DEVPOST.md) — the submission text.
 [`docs/TOOL-USAGE.md`](../TOOL-USAGE.md) — which CockroachDB and AWS services, and how.

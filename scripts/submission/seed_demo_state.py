@@ -60,6 +60,7 @@ import sys
 import textwrap
 import uuid
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from pathlib import Path
 from types import ModuleType
 from typing import Any
@@ -146,6 +147,71 @@ def caveat(trigger_present: bool | None) -> str:
         wrapped(CAVEAT_QUESTION, indent="         ", first="CAVEAT   ")
         + "\n"
         + wrapped(CAVEAT_ANSWER[trigger_present], indent="         ")
+    )
+
+
+#: THE BEAT-4 DEADLINE. Printed on EVERY run, in both modes, because it is the one fact
+#: about this database that is true when the script exits and false two hours later, and
+#: nothing else on the screen changes when it flips.
+#:
+#: `scripts/proof/gate_refusal.py::seed_history` issues the exposure receipt with
+#: `expires_at = now() + INTERVAL '2 hours'`. `scenario._RECEIPT_SQL` selects a receipt only
+#: while `expires_at > now()`, and with no live receipt `gate_run.py` leaves beat 4 (the
+#: ADMISSION) `skipped`, which makes the verdict NOT PROVEN. A gate that only ever refuses
+#: is broken rather than safe, and that is the take nobody notices until the edit: every
+#: refusal on camera still refuses, so the failure is silent.
+#:
+#: Measured 2026-08-12 on `w_s08_demo_state`: receipt eb537556 expired 2026-08-11T07:50Z and
+#: this script still printed `VERDICT READY — 16 checks, 0 failed. Roll camera.`
+DEADLINE_EXPLANATION = (
+    "After this instant a local gate-run SKIPS beat 4 (the admission) and reports NOT "
+    "PROVEN, while beats 1-3 keep refusing exactly as they do now — so the failure does "
+    "not look like a failure on camera. scenario._RECEIPT_SQL selects the exposure "
+    "receipt only while expires_at > now(); seed_history issues it with a two-hour "
+    "window."
+)
+
+
+def _hhmm(seconds: float) -> str:
+    minutes = int(abs(seconds) // 60)
+    return f"{minutes // 60}h {minutes % 60:02d}m"
+
+
+def deadline(found: Found, database: str) -> str:
+    """The wall-clock UTC instant after which beat 4 begins skipping, or why it is unknown."""
+    live = found.receipt_live
+    if live is None or found.receipt_expires_at is None or found.observed_at is None:
+        head = "BEAT 4   DEADLINE NOT MEASURED"
+        body = (
+            "No exposure receipt displays the open obligation in this database, so beat 4 "
+            "(the admission) would skip right now and there is no instant to name. Run this "
+            "script without --verify-only to seed one."
+        )
+        return head + "\n" + wrapped(body, indent="         ")
+
+    expires = found.receipt_expires_at.astimezone(UTC)
+    now = found.observed_at.astimezone(UTC)
+    delta = (expires - now).total_seconds()
+    stamp = expires.strftime("%Y-%m-%dT%H:%M:%SZ")
+    if live:
+        head = f"BEAT 4   SKIPS AFTER {stamp}  ({_hhmm(delta)} from now, server clock)"
+        tail = (
+            f"Receipt {found.receipt_id} is LIVE. Finish the take before that instant, or "
+            f"re-run: python scripts/submission/seed_demo_state.py --database {database}"
+        )
+    else:
+        head = f"BEAT 4   ALREADY SKIPPING — the receipt died {stamp} ({_hhmm(delta)} ago)"
+        tail = (
+            f"Receipt {found.receipt_id} is EXPIRED. A gate-run against this database "
+            "reports NOT PROVEN today. Re-seed before recording: python "
+            f"scripts/submission/seed_demo_state.py --database {database}"
+        )
+    return (
+        head
+        + "\n"
+        + wrapped(DEADLINE_EXPLANATION, indent="         ")
+        + "\n"
+        + wrapped(tail, indent="         ")
     )
 
 
@@ -275,6 +341,22 @@ class Found:
     permits_matching: int = 0
     #: Whether `check_materialised` (0121) is installed. `None` means nothing asked.
     projection_trigger_present: bool | None = None
+    #: When the receipt naming `check_id` was issued and when it dies. `expires_at` IS the
+    #: beat-4 deadline: `scenario._RECEIPT_SQL` requires `expires_at > now()`, so the
+    #: instant it passes is the instant a local gate-run starts skipping the admission.
+    receipt_issued_at: datetime | None = None
+    receipt_expires_at: datetime | None = None
+    #: The server's `now()` at the moment the rows above were read. Never the laptop's
+    #: clock: the comparison that decides beat 4 is made by the database, so the instant it
+    #: is compared against has to be the database's too.
+    observed_at: datetime | None = None
+
+    @property
+    def receipt_live(self) -> bool | None:
+        """`None` means nothing was asked; `False` means beat 4 will skip right now."""
+        if self.observed_at is None or self.receipt_expires_at is None:
+            return None
+        return self.receipt_expires_at > self.observed_at
 
 
 def find_history(conn: psycopg.Connection[Any]) -> Found:
@@ -301,13 +383,31 @@ def find_history(conn: psycopg.Connection[Any]) -> Found:
     ).fetchall()
     if check:
         found.check_id, found.clause_uuid, found.event_id = check[0][0], check[0][1], check[0][2]
+    # THE RECEIPT IS CHOSEN THE WAY THE PRODUCT CHOOSES IT — through `exposure_line`, not
+    # by recency alone. `scenario._RECEIPT_SQL` joins the line because a disposition's
+    # composite foreign key lands on (check_id, receipt_id) (0066 `fk_exposure`), so a
+    # receipt that never displayed this obligation is not one a signature may cite. Asking
+    # a looser question here would report a receipt beat 4 cannot use.
+    #
+    # `now()` is selected in the SAME statement so that "expired" is decided against the
+    # instant the row was read and not against a clock that moved in between.
     receipt = conn.execute(
-        "SELECT receipt_id FROM mainline.exposure_receipt WHERE permit_id = %s "
-        "ORDER BY issued_at DESC LIMIT 1",
-        (found.permit_id,),
+        "SELECT r.receipt_id, r.issued_at, r.expires_at, now() "
+        "  FROM mainline.exposure_receipt r "
+        "  JOIN mainline.exposure_line l ON l.receipt_id = r.receipt_id "
+        " WHERE r.permit_id = %s AND l.check_id = %s "
+        " ORDER BY r.expires_at DESC LIMIT 1",
+        (found.permit_id, found.check_id),
     ).fetchone()
     if receipt:
-        found.receipt_id = receipt[0]
+        found.receipt_id, found.receipt_issued_at, found.receipt_expires_at = (
+            receipt[0],
+            receipt[1],
+            receipt[2],
+        )
+        found.observed_at = receipt[3]
+    else:
+        found.observed_at = conn.execute("SELECT now()").fetchone()[0]
     live = conn.execute(
         "SELECT count(*) FROM mainline.disposition d JOIN mainline.blocking_check bc "
         "ON bc.check_id = d.check_id WHERE bc.permit_id = %s AND d.retracted_by IS NULL "
@@ -512,13 +612,33 @@ def verify(conn: psycopg.Connection[Any], proof: ModuleType, table: Table) -> Fo
         f"{found.live_dispositions} live disposition(s) against the obligation",
         shots="s08 s13",
     )
-    table.add(
-        "exposure receipt",
-        found.receipt_id is not None,
-        f"receipt_id={found.receipt_id}",
-        required=False,
-        shots="s14",
-    )
+    # REQUIRED, AND IT USED TO BE INFO. A receipt that has expired costs the demo its
+    # fourth beat and nothing else: beats 1-3 refuse exactly as they always did, the table
+    # above stays green, and the verdict reads READY. On 2026-08-12 this script printed
+    # `VERDICT READY — 16 checks, 0 failed. Roll camera.` against `w_s08_demo_state`, whose
+    # receipt had died 32 hours earlier and whose gate-run therefore reported NOT PROVEN.
+    # An INFO row cannot stop a shoot; this one can.
+    live = found.receipt_live
+    if found.receipt_id is None:
+        observed = (
+            "NO exposure receipt displays the open obligation — beat 4 (the admission) "
+            "will SKIP and the verdict will be NOT PROVEN. Re-seed: drop --verify-only"
+        )
+    elif live:
+        observed = (
+            f"receipt_id={found.receipt_id} LIVE until "
+            f"{found.receipt_expires_at.astimezone(UTC).strftime('%Y-%m-%dT%H:%M:%SZ')}"  # type: ignore[union-attr]
+        )
+    else:
+        observed = (
+            f"receipt_id={found.receipt_id} EXPIRED "
+            f"{found.receipt_expires_at.astimezone(UTC).strftime('%Y-%m-%dT%H:%M:%SZ')}"  # type: ignore[union-attr]
+            " — beat 4 (the admission) SKIPS and the gate-run reports NOT PROVEN. REMEDY: "
+            "re-seed with `python scripts/submission/seed_demo_state.py --database "
+            "<db>` (mainline.exposure_receipt is append-only, so the window cannot be "
+            "extended in place; a new receipt has to be issued)"
+        )
+    table.add("exposure receipt live", bool(live), observed, shots="s13 s14")
 
     ok = constraint_present(conn, "mainline", "permit", "gate_closed_when_issued")
     table.add(
@@ -905,6 +1025,8 @@ def main(argv: list[str] | None = None) -> int:  # noqa: PLR0915
                 print()
                 print(caveat(None))
                 print()
+                print(deadline(Found(), args.database))
+                print()
                 print("VERDICT  NOT READY - 1 check failed")
                 return EXIT_WRONG_STATE
             table.add("database", True, f"{args.database} exists", required=False)
@@ -927,6 +1049,12 @@ def main(argv: list[str] | None = None) -> int:  # noqa: PLR0915
         print(table.render())
         print()
         print(caveat(found.projection_trigger_present))
+        print()
+        # UNCONDITIONAL, in both modes and whether or not anything is wrong — same rule as
+        # the caveat above. VIDEO-KIT.md sends the founder here before a shoot; the one
+        # thing this screen has to tell him that no other screen will is how long the take
+        # has before the fourth beat stops happening.
+        print(deadline(found, args.database))
 
         failures = table.failures
         if failures:

@@ -158,12 +158,25 @@ def test_routes_match_the_console_path_templates() -> None:
     undeclared route still fails here — this assertion is strictly stronger than the
     equality it replaces, not weaker. ``tests/test_routes_gate_run.py`` carries the rest
     of the agreement check between the router and the dispatcher.
+
+    The two set assertions are joined by a COUNT over the list, because ``app.ROUTES`` is a
+    list and the sets above cannot see a duplicate in it: two identical ``Route`` rows
+    collapse into one member and every assertion below would still hold while ``route()``
+    resolved to whichever came first. 16 declared + 1 demo endpoint = 17, re-derived here
+    rather than remembered — ``test_the_console_declares_sixteen_resources`` pins the 16.
     """
     demo_route = ("POST", "/v1/demo/gate-run")
     declared = {(entry["method"], entry["template"]) for entry in _declared()}
     routed = {(route.method, route.template) for route in app.ROUTES}
     assert declared <= routed, f"declared but not routed: {sorted(declared - routed)}"
     assert routed - declared == {demo_route}
+    assert demo_route not in declared, "the console declares the demo endpoint after all"
+    pairs = [(route.method, route.template) for route in app.ROUTES]
+    duplicated = sorted(pair for pair in routed if pairs.count(pair) > 1)
+    assert len(pairs) == len(declared) + 1 == 17, (
+        f"app.ROUTES holds {len(pairs)} rows for {len(routed)} distinct (method, template) "
+        f"pairs; a duplicate is unreachable and hides the row it shadows: {duplicated}"
+    )
 
 
 @pytest.mark.parametrize("entry", _declared(), ids=lambda entry: entry["key"])

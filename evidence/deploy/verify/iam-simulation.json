@@ -1,0 +1,1788 @@
+{
+  "$schema_note": "Hand-rolled evidence document. Not a contract artefact.",
+  "worker": "W1",
+  "produced_at_utc": "2026-08-12T12:48:43Z",
+  "produced_by": "iam:SimulateCustomPolicy via boto3, profile mainline-dev, region ap-southeast-1. Read-only; no AWS resource was created, modified or read for its contents.",
+  "account_id": "0229REDACTED8246",
+  "source_of_truth": {
+    "plan": "evidence/deploy/terraform-plan-furl.json",
+    "inline_policy": "module.api[0].aws_iam_role_policy.dsn_access .change.after.policy (verbatim, account id already masked in the plan)",
+    "managed_policy": "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole v1, fetched with iam:GetPolicyVersion"
+  },
+  "side_effects_disclosure": {
+    "what": "One AWS resource came into existence during this pass. It was not intended and it is disclosed rather than omitted.",
+    "call": "aws kms describe-key --key-id alias/aws/ssm --region ap-southeast-1",
+    "effect": "AWS KMS creates the AWS managed key behind a predefined AWS alias on first DescribeKey. Before the call the account held 0 KMS keys in ap-southeast-1 and alias/aws/ssm had TargetKeyId null (the deploy-verify lead measured this in plan2 section 0.4). After it, alias/aws/ssm resolves to a key created at 2026-08-12T12:46:08Z, seconds after the call.",
+    "impact": "None material. KeyManager=AWS, so it is not billable (the USD 1/month key charge applies to customer managed keys only), it cannot be scheduled for deletion by the account, and writing the DSN SecureString would have created it anyway. No Terraform resource addresses it; the plan is unchanged. It does invalidate one row of the lead's section 0.4 table.",
+    "no_other_mutations": "Every other call in this pass was iam:GetPolicy, iam:GetPolicyVersion, iam:SimulateCustomPolicy, kms:GetKeyPolicy, kms:ListKeys, kms:ListAliases, sts:GetCallerIdentity. No terraform was run."
+  },
+  "kms_key_policy_alias_aws_ssm": {
+    "note": "Fetched live with kms:GetKeyPolicy. This is the OTHER half of the authorization for the decrypt: an identity policy and a key policy must both allow. It shows the aws/ssm key already pins kms:ViaService and kms:CallerAccount, and does NOT pin PARAMETER_ARN \u2014 so the parameter-level scoping exists only in the identity policy under test.",
+    "document": {
+      "Version": "2012-10-17",
+      "Id": "auto-ssm-1",
+      "Statement": [
+        {
+          "Sid": "Allow access through SSM for all principals in the account that are authorized to use SSM",
+          "Effect": "Allow",
+          "Principal": {
+            "AWS": "*"
+          },
+          "Action": [
+            "kms:Encrypt",
+            "kms:Decrypt",
+            "kms:ReEncrypt*",
+            "kms:GenerateDataKey*",
+            "kms:DescribeKey"
+          ],
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "kms:ViaService": "ssm.ap-southeast-1.amazonaws.com",
+              "kms:CallerAccount": "0229REDACTED8246"
+            }
+          }
+        },
+        {
+          "Sid": "Allow direct access to key metadata to the account",
+          "Effect": "Allow",
+          "Principal": {
+            "AWS": "arn:aws:iam::0229REDACTED8246:root"
+          },
+          "Action": [
+            "kms:Describe*",
+            "kms:Get*",
+            "kms:List*"
+          ],
+          "Resource": "*"
+        }
+      ]
+    }
+  },
+  "policies_under_test": {
+    "dsn_access": {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "ReadTheDemoDsnParameter",
+          "Effect": "Allow",
+          "Action": "ssm:GetParameter",
+          "Resource": "arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn"
+        },
+        {
+          "Sid": "DecryptThatParameterAndNothingElse",
+          "Effect": "Allow",
+          "Action": "kms:Decrypt",
+          "Resource": "*",
+          "Condition": {
+            "StringEquals": {
+              "kms:ViaService": "ssm.ap-southeast-1.amazonaws.com",
+              "kms:EncryptionContext:PARAMETER_ARN": "arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn"
+            }
+          }
+        }
+      ]
+    },
+    "AWSLambdaBasicExecutionRole_v1": {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": [
+            "logs:CreateLogGroup",
+            "logs:CreateLogStream",
+            "logs:PutLogEvents"
+          ],
+          "Resource": "*"
+        }
+      ]
+    },
+    "assume_role_trust_policy": {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "LambdaAssume",
+          "Effect": "Allow",
+          "Action": "sts:AssumeRole",
+          "Principal": {
+            "Service": "lambda.amazonaws.com"
+          }
+        }
+      ]
+    }
+  },
+  "simulations": [
+    {
+      "id": "S1-allow-getparameter-exact-arn",
+      "expected": "allowed",
+      "observed": "allowed",
+      "matches_expectation": true,
+      "why_this_matters": "db.py:184 issues AmazonSSM.GetParameter for exactly this Name. This is the only SSM call the deployed code makes; if this were denied every DB-backed route would answer 503 dsn_unavailable.",
+      "request": {
+        "PolicyInputList": [
+          "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"ReadTheDemoDsnParameter\",\"Effect\":\"Allow\",\"Action\":\"ssm:GetParameter\",\"Resource\":\"arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn\"},{\"Sid\":\"DecryptThatParameterAndNothingElse\",\"Effect\":\"Allow\",\"Action\":\"kms:Decrypt\",\"Resource\":\"*\",\"Condition\":{\"StringEquals\":{\"kms:ViaService\":\"ssm.ap-southeast-1.amazonaws.com\",\"kms:EncryptionContext:PARAMETER_ARN\":\"arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn\"}}}]}"
+        ],
+        "ActionNames": [
+          "ssm:GetParameter"
+        ],
+        "ResourceArns": [
+          "arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn"
+        ],
+        "ContextEntries": []
+      },
+      "summary": {
+        "ssm:GetParameter on arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn": {
+          "decision": "allowed",
+          "matched_statements": [
+            "PolicyInputList.1:IAM Policy"
+          ],
+          "missing_context_values": []
+        }
+      },
+      "raw_response": {
+        "EvaluationResults": [
+          {
+            "EvalActionName": "ssm:GetParameter",
+            "EvalResourceName": "arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn",
+            "EvalDecision": "allowed",
+            "MatchedStatements": [
+              {
+                "SourcePolicyId": "PolicyInputList.1",
+                "SourcePolicyType": "IAM Policy",
+                "StartPosition": {
+                  "Line": 1,
+                  "Column": 38
+                },
+                "EndPosition": {
+                  "Line": 1,
+                  "Column": 207
+                }
+              }
+            ],
+            "MissingContextValues": [],
+            "EvalDecisionDetails": {},
+            "ResourceSpecificResults": [
+              {
+                "EvalResourceName": "arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn",
+                "EvalResourceDecision": "allowed",
+                "MatchedStatements": [
+                  {
+                    "SourcePolicyId": "PolicyInputList.1",
+                    "SourcePolicyType": "IAM Policy",
+                    "StartPosition": {
+                      "Line": 1,
+                      "Column": 38
+                    },
+                    "EndPosition": {
+                      "Line": 1,
+                      "Column": 207
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "IsTruncated": false
+      }
+    },
+    {
+      "id": "S2-allow-kms-decrypt-correct-context",
+      "expected": "allowed",
+      "observed": "allowed",
+      "matches_expectation": true,
+      "why_this_matters": "db.py:184 sends WithDecryption:true, so SSM calls kms:Decrypt on the caller's behalf with ViaService=ssm.ap-southeast-1 and EncryptionContext PARAMETER_ARN set to the parameter. Both conditions satisfied.",
+      "request": {
+        "PolicyInputList": [
+          "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"ReadTheDemoDsnParameter\",\"Effect\":\"Allow\",\"Action\":\"ssm:GetParameter\",\"Resource\":\"arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn\"},{\"Sid\":\"DecryptThatParameterAndNothingElse\",\"Effect\":\"Allow\",\"Action\":\"kms:Decrypt\",\"Resource\":\"*\",\"Condition\":{\"StringEquals\":{\"kms:ViaService\":\"ssm.ap-southeast-1.amazonaws.com\",\"kms:EncryptionContext:PARAMETER_ARN\":\"arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn\"}}}]}"
+        ],
+        "ActionNames": [
+          "kms:Decrypt"
+        ],
+        "ResourceArns": [
+          "arn:aws:kms:ap-southeast-1:0229REDACTED8246:key/1234abcd-12ab-34cd-56ef-1234567890ab"
+        ],
+        "ContextEntries": [
+          {
+            "ContextKeyName": "kms:ViaService",
+            "ContextKeyValues": [
+              "ssm.ap-southeast-1.amazonaws.com"
+            ],
+            "ContextKeyType": "string"
+          },
+          {
+            "ContextKeyName": "kms:EncryptionContext:PARAMETER_ARN",
+            "ContextKeyValues": [
+              "arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn"
+            ],
+            "ContextKeyType": "string"
+          }
+        ]
+      },
+      "summary": {
+        "kms:Decrypt on arn:aws:kms:ap-southeast-1:0229REDACTED8246:key/1234abcd-12ab-34cd-56ef-1234567890ab": {
+          "decision": "allowed",
+          "matched_statements": [
+            "PolicyInputList.1:IAM Policy"
+          ],
+          "missing_context_values": []
+        }
+      },
+      "raw_response": {
+        "EvaluationResults": [
+          {
+            "EvalActionName": "kms:Decrypt",
+            "EvalResourceName": "arn:aws:kms:ap-southeast-1:0229REDACTED8246:key/1234abcd-12ab-34cd-56ef-1234567890ab",
+            "EvalDecision": "allowed",
+            "MatchedStatements": [
+              {
+                "SourcePolicyId": "PolicyInputList.1",
+                "SourcePolicyType": "IAM Policy",
+                "StartPosition": {
+                  "Line": 1,
+                  "Column": 207
+                },
+                "EndPosition": {
+                  "Line": 1,
+                  "Column": 508
+                }
+              }
+            ],
+            "MissingContextValues": [],
+            "EvalDecisionDetails": {},
+            "ResourceSpecificResults": [
+              {
+                "EvalResourceName": "arn:aws:kms:ap-southeast-1:0229REDACTED8246:key/1234abcd-12ab-34cd-56ef-1234567890ab",
+                "EvalResourceDecision": "allowed",
+                "MatchedStatements": [
+                  {
+                    "SourcePolicyId": "PolicyInputList.1",
+                    "SourcePolicyType": "IAM Policy",
+                    "StartPosition": {
+                      "Line": 1,
+                      "Column": 207
+                    },
+                    "EndPosition": {
+                      "Line": 1,
+                      "Column": 508
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "IsTruncated": false
+      }
+    },
+    {
+      "id": "S3-deny-getparameters-plural",
+      "expected": "implicitDeny",
+      "observed": "implicitDeny",
+      "matches_expectation": true,
+      "why_this_matters": "ssm:GetParameters (batch) is a distinct action and is absent from the policy. The module claims it is absent; this proves it.",
+      "request": {
+        "PolicyInputList": [
+          "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"ReadTheDemoDsnParameter\",\"Effect\":\"Allow\",\"Action\":\"ssm:GetParameter\",\"Resource\":\"arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn\"},{\"Sid\":\"DecryptThatParameterAndNothingElse\",\"Effect\":\"Allow\",\"Action\":\"kms:Decrypt\",\"Resource\":\"*\",\"Condition\":{\"StringEquals\":{\"kms:ViaService\":\"ssm.ap-southeast-1.amazonaws.com\",\"kms:EncryptionContext:PARAMETER_ARN\":\"arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn\"}}}]}"
+        ],
+        "ActionNames": [
+          "ssm:GetParameters"
+        ],
+        "ResourceArns": [
+          "arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn"
+        ],
+        "ContextEntries": []
+      },
+      "summary": {
+        "ssm:GetParameters on arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn": {
+          "decision": "implicitDeny",
+          "matched_statements": [],
+          "missing_context_values": [
+            "kms:ViaService",
+            "kms:EncryptionContext:PARAMETER_ARN"
+          ]
+        }
+      },
+      "raw_response": {
+        "EvaluationResults": [
+          {
+            "EvalActionName": "ssm:GetParameters",
+            "EvalResourceName": "arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn",
+            "EvalDecision": "implicitDeny",
+            "MatchedStatements": [],
+            "MissingContextValues": [
+              "kms:ViaService",
+              "kms:EncryptionContext:PARAMETER_ARN"
+            ],
+            "EvalDecisionDetails": {},
+            "ResourceSpecificResults": [
+              {
+                "EvalResourceName": "arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn",
+                "EvalResourceDecision": "implicitDeny",
+                "MissingContextValues": [
+                  "kms:ViaService",
+                  "kms:EncryptionContext:PARAMETER_ARN"
+                ]
+              }
+            ]
+          }
+        ],
+        "IsTruncated": false
+      }
+    },
+    {
+      "id": "S4-deny-getparametersbypath",
+      "expected": "implicitDeny",
+      "observed": "implicitDeny",
+      "matches_expectation": true,
+      "why_this_matters": "ssm:GetParametersByPath would enumerate every parameter under /mainline/demo. Absent from the policy.",
+      "request": {
+        "PolicyInputList": [
+          "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"ReadTheDemoDsnParameter\",\"Effect\":\"Allow\",\"Action\":\"ssm:GetParameter\",\"Resource\":\"arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn\"},{\"Sid\":\"DecryptThatParameterAndNothingElse\",\"Effect\":\"Allow\",\"Action\":\"kms:Decrypt\",\"Resource\":\"*\",\"Condition\":{\"StringEquals\":{\"kms:ViaService\":\"ssm.ap-southeast-1.amazonaws.com\",\"kms:EncryptionContext:PARAMETER_ARN\":\"arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn\"}}}]}"
+        ],
+        "ActionNames": [
+          "ssm:GetParametersByPath"
+        ],
+        "ResourceArns": [
+          "arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo"
+        ],
+        "ContextEntries": []
+      },
+      "summary": {
+        "ssm:GetParametersByPath on arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo": {
+          "decision": "implicitDeny",
+          "matched_statements": [],
+          "missing_context_values": [
+            "kms:ViaService",
+            "kms:EncryptionContext:PARAMETER_ARN"
+          ]
+        }
+      },
+      "raw_response": {
+        "EvaluationResults": [
+          {
+            "EvalActionName": "ssm:GetParametersByPath",
+            "EvalResourceName": "arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo",
+            "EvalDecision": "implicitDeny",
+            "MatchedStatements": [],
+            "MissingContextValues": [
+              "kms:ViaService",
+              "kms:EncryptionContext:PARAMETER_ARN"
+            ],
+            "EvalDecisionDetails": {},
+            "ResourceSpecificResults": [
+              {
+                "EvalResourceName": "arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo",
+                "EvalResourceDecision": "implicitDeny",
+                "MissingContextValues": [
+                  "kms:ViaService",
+                  "kms:EncryptionContext:PARAMETER_ARN"
+                ]
+              }
+            ]
+          }
+        ],
+        "IsTruncated": false
+      }
+    },
+    {
+      "id": "S5-deny-describeparameters",
+      "expected": "implicitDeny",
+      "observed": "implicitDeny",
+      "matches_expectation": true,
+      "why_this_matters": "ssm:DescribeParameters lists parameter metadata account-wide (it takes Resource *). Absent from the policy.",
+      "request": {
+        "PolicyInputList": [
+          "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"ReadTheDemoDsnParameter\",\"Effect\":\"Allow\",\"Action\":\"ssm:GetParameter\",\"Resource\":\"arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn\"},{\"Sid\":\"DecryptThatParameterAndNothingElse\",\"Effect\":\"Allow\",\"Action\":\"kms:Decrypt\",\"Resource\":\"*\",\"Condition\":{\"StringEquals\":{\"kms:ViaService\":\"ssm.ap-southeast-1.amazonaws.com\",\"kms:EncryptionContext:PARAMETER_ARN\":\"arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn\"}}}]}"
+        ],
+        "ActionNames": [
+          "ssm:DescribeParameters"
+        ],
+        "ResourceArns": [
+          "*"
+        ],
+        "ContextEntries": []
+      },
+      "summary": {
+        "ssm:DescribeParameters on *": {
+          "decision": "implicitDeny",
+          "matched_statements": [],
+          "missing_context_values": [
+            "kms:ViaService",
+            "kms:EncryptionContext:PARAMETER_ARN"
+          ]
+        }
+      },
+      "raw_response": {
+        "EvaluationResults": [
+          {
+            "EvalActionName": "ssm:DescribeParameters",
+            "EvalResourceName": "*",
+            "EvalDecision": "implicitDeny",
+            "MatchedStatements": [],
+            "MissingContextValues": [
+              "kms:ViaService",
+              "kms:EncryptionContext:PARAMETER_ARN"
+            ]
+          }
+        ],
+        "IsTruncated": false
+      }
+    },
+    {
+      "id": "S6-deny-putparameter-same-arn",
+      "expected": "implicitDeny",
+      "observed": "implicitDeny",
+      "matches_expectation": true,
+      "why_this_matters": "Write-back on the one ARN the role can read. A compromised handler cannot overwrite the DSN to point the demo at an attacker's database.",
+      "request": {
+        "PolicyInputList": [
+          "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"ReadTheDemoDsnParameter\",\"Effect\":\"Allow\",\"Action\":\"ssm:GetParameter\",\"Resource\":\"arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn\"},{\"Sid\":\"DecryptThatParameterAndNothingElse\",\"Effect\":\"Allow\",\"Action\":\"kms:Decrypt\",\"Resource\":\"*\",\"Condition\":{\"StringEquals\":{\"kms:ViaService\":\"ssm.ap-southeast-1.amazonaws.com\",\"kms:EncryptionContext:PARAMETER_ARN\":\"arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn\"}}}]}"
+        ],
+        "ActionNames": [
+          "ssm:PutParameter"
+        ],
+        "ResourceArns": [
+          "arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn"
+        ],
+        "ContextEntries": []
+      },
+      "summary": {
+        "ssm:PutParameter on arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn": {
+          "decision": "implicitDeny",
+          "matched_statements": [],
+          "missing_context_values": [
+            "kms:ViaService",
+            "kms:EncryptionContext:PARAMETER_ARN"
+          ]
+        }
+      },
+      "raw_response": {
+        "EvaluationResults": [
+          {
+            "EvalActionName": "ssm:PutParameter",
+            "EvalResourceName": "arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn",
+            "EvalDecision": "implicitDeny",
+            "MatchedStatements": [],
+            "MissingContextValues": [
+              "kms:ViaService",
+              "kms:EncryptionContext:PARAMETER_ARN"
+            ],
+            "EvalDecisionDetails": {},
+            "ResourceSpecificResults": [
+              {
+                "EvalResourceName": "arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn",
+                "EvalResourceDecision": "implicitDeny",
+                "MissingContextValues": [
+                  "kms:ViaService",
+                  "kms:EncryptionContext:PARAMETER_ARN"
+                ]
+              }
+            ]
+          }
+        ],
+        "IsTruncated": false
+      }
+    },
+    {
+      "id": "S7-deny-getparameter-different-path-mainline-other",
+      "expected": "implicitDeny",
+      "observed": "implicitDeny",
+      "matches_expectation": true,
+      "why_this_matters": "Sibling path under the same /mainline prefix. Proves the grant is one ARN, not parameter/mainline/*.",
+      "request": {
+        "PolicyInputList": [
+          "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"ReadTheDemoDsnParameter\",\"Effect\":\"Allow\",\"Action\":\"ssm:GetParameter\",\"Resource\":\"arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn\"},{\"Sid\":\"DecryptThatParameterAndNothingElse\",\"Effect\":\"Allow\",\"Action\":\"kms:Decrypt\",\"Resource\":\"*\",\"Condition\":{\"StringEquals\":{\"kms:ViaService\":\"ssm.ap-southeast-1.amazonaws.com\",\"kms:EncryptionContext:PARAMETER_ARN\":\"arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn\"}}}]}"
+        ],
+        "ActionNames": [
+          "ssm:GetParameter"
+        ],
+        "ResourceArns": [
+          "arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/other/dsn"
+        ],
+        "ContextEntries": []
+      },
+      "summary": {
+        "ssm:GetParameter on arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/other/dsn": {
+          "decision": "implicitDeny",
+          "matched_statements": [],
+          "missing_context_values": [
+            "kms:ViaService",
+            "kms:EncryptionContext:PARAMETER_ARN"
+          ]
+        }
+      },
+      "raw_response": {
+        "EvaluationResults": [
+          {
+            "EvalActionName": "ssm:GetParameter",
+            "EvalResourceName": "arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/other/dsn",
+            "EvalDecision": "implicitDeny",
+            "MatchedStatements": [],
+            "MissingContextValues": [
+              "kms:ViaService",
+              "kms:EncryptionContext:PARAMETER_ARN"
+            ],
+            "EvalDecisionDetails": {},
+            "ResourceSpecificResults": [
+              {
+                "EvalResourceName": "arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/other/dsn",
+                "EvalResourceDecision": "implicitDeny",
+                "MissingContextValues": [
+                  "kms:ViaService",
+                  "kms:EncryptionContext:PARAMETER_ARN"
+                ]
+              }
+            ]
+          }
+        ],
+        "IsTruncated": false
+      }
+    },
+    {
+      "id": "S8-deny-getparameter-prod-anything",
+      "expected": "implicitDeny",
+      "observed": "implicitDeny",
+      "matches_expectation": true,
+      "why_this_matters": "Unrelated tenant path in the shared account. Proves no cross-project read.",
+      "request": {
+        "PolicyInputList": [
+          "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"ReadTheDemoDsnParameter\",\"Effect\":\"Allow\",\"Action\":\"ssm:GetParameter\",\"Resource\":\"arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn\"},{\"Sid\":\"DecryptThatParameterAndNothingElse\",\"Effect\":\"Allow\",\"Action\":\"kms:Decrypt\",\"Resource\":\"*\",\"Condition\":{\"StringEquals\":{\"kms:ViaService\":\"ssm.ap-southeast-1.amazonaws.com\",\"kms:EncryptionContext:PARAMETER_ARN\":\"arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn\"}}}]}"
+        ],
+        "ActionNames": [
+          "ssm:GetParameter"
+        ],
+        "ResourceArns": [
+          "arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/prod/anything"
+        ],
+        "ContextEntries": []
+      },
+      "summary": {
+        "ssm:GetParameter on arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/prod/anything": {
+          "decision": "implicitDeny",
+          "matched_statements": [],
+          "missing_context_values": [
+            "kms:ViaService",
+            "kms:EncryptionContext:PARAMETER_ARN"
+          ]
+        }
+      },
+      "raw_response": {
+        "EvaluationResults": [
+          {
+            "EvalActionName": "ssm:GetParameter",
+            "EvalResourceName": "arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/prod/anything",
+            "EvalDecision": "implicitDeny",
+            "MatchedStatements": [],
+            "MissingContextValues": [
+              "kms:ViaService",
+              "kms:EncryptionContext:PARAMETER_ARN"
+            ],
+            "EvalDecisionDetails": {},
+            "ResourceSpecificResults": [
+              {
+                "EvalResourceName": "arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/prod/anything",
+                "EvalResourceDecision": "implicitDeny",
+                "MissingContextValues": [
+                  "kms:ViaService",
+                  "kms:EncryptionContext:PARAMETER_ARN"
+                ]
+              }
+            ]
+          }
+        ],
+        "IsTruncated": false
+      }
+    },
+    {
+      "id": "S9-deny-getparameter-same-name-other-region",
+      "expected": "implicitDeny",
+      "observed": "implicitDeny",
+      "matches_expectation": true,
+      "why_this_matters": "Same parameter name in ap-southeast-2 (where Bedrock lives). The ARN pins the region, so a region-confused caller gets nothing.",
+      "request": {
+        "PolicyInputList": [
+          "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"ReadTheDemoDsnParameter\",\"Effect\":\"Allow\",\"Action\":\"ssm:GetParameter\",\"Resource\":\"arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn\"},{\"Sid\":\"DecryptThatParameterAndNothingElse\",\"Effect\":\"Allow\",\"Action\":\"kms:Decrypt\",\"Resource\":\"*\",\"Condition\":{\"StringEquals\":{\"kms:ViaService\":\"ssm.ap-southeast-1.amazonaws.com\",\"kms:EncryptionContext:PARAMETER_ARN\":\"arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn\"}}}]}"
+        ],
+        "ActionNames": [
+          "ssm:GetParameter"
+        ],
+        "ResourceArns": [
+          "arn:aws:ssm:ap-southeast-2:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn"
+        ],
+        "ContextEntries": []
+      },
+      "summary": {
+        "ssm:GetParameter on arn:aws:ssm:ap-southeast-2:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn": {
+          "decision": "implicitDeny",
+          "matched_statements": [],
+          "missing_context_values": [
+            "kms:ViaService",
+            "kms:EncryptionContext:PARAMETER_ARN"
+          ]
+        }
+      },
+      "raw_response": {
+        "EvaluationResults": [
+          {
+            "EvalActionName": "ssm:GetParameter",
+            "EvalResourceName": "arn:aws:ssm:ap-southeast-2:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn",
+            "EvalDecision": "implicitDeny",
+            "MatchedStatements": [],
+            "MissingContextValues": [
+              "kms:ViaService",
+              "kms:EncryptionContext:PARAMETER_ARN"
+            ],
+            "EvalDecisionDetails": {},
+            "ResourceSpecificResults": [
+              {
+                "EvalResourceName": "arn:aws:ssm:ap-southeast-2:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn",
+                "EvalResourceDecision": "implicitDeny",
+                "MissingContextValues": [
+                  "kms:ViaService",
+                  "kms:EncryptionContext:PARAMETER_ARN"
+                ]
+              }
+            ]
+          }
+        ],
+        "IsTruncated": false
+      }
+    },
+    {
+      "id": "S10-deny-kms-decrypt-wrong-parameter-arn",
+      "expected": "implicitDeny",
+      "observed": "implicitDeny",
+      "matches_expectation": true,
+      "why_this_matters": "Ciphertext of a DIFFERENT SecureString under the same aws/ssm key: SSM supplies that parameter's ARN as encryption context, the StringEquals fails. This is the test that makes Resource:* safe.",
+      "request": {
+        "PolicyInputList": [
+          "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"ReadTheDemoDsnParameter\",\"Effect\":\"Allow\",\"Action\":\"ssm:GetParameter\",\"Resource\":\"arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn\"},{\"Sid\":\"DecryptThatParameterAndNothingElse\",\"Effect\":\"Allow\",\"Action\":\"kms:Decrypt\",\"Resource\":\"*\",\"Condition\":{\"StringEquals\":{\"kms:ViaService\":\"ssm.ap-southeast-1.amazonaws.com\",\"kms:EncryptionContext:PARAMETER_ARN\":\"arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn\"}}}]}"
+        ],
+        "ActionNames": [
+          "kms:Decrypt"
+        ],
+        "ResourceArns": [
+          "arn:aws:kms:ap-southeast-1:0229REDACTED8246:key/1234abcd-12ab-34cd-56ef-1234567890ab"
+        ],
+        "ContextEntries": [
+          {
+            "ContextKeyName": "kms:ViaService",
+            "ContextKeyValues": [
+              "ssm.ap-southeast-1.amazonaws.com"
+            ],
+            "ContextKeyType": "string"
+          },
+          {
+            "ContextKeyName": "kms:EncryptionContext:PARAMETER_ARN",
+            "ContextKeyValues": [
+              "arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/other/dsn"
+            ],
+            "ContextKeyType": "string"
+          }
+        ]
+      },
+      "summary": {
+        "kms:Decrypt on arn:aws:kms:ap-southeast-1:0229REDACTED8246:key/1234abcd-12ab-34cd-56ef-1234567890ab": {
+          "decision": "implicitDeny",
+          "matched_statements": [],
+          "missing_context_values": []
+        }
+      },
+      "raw_response": {
+        "EvaluationResults": [
+          {
+            "EvalActionName": "kms:Decrypt",
+            "EvalResourceName": "arn:aws:kms:ap-southeast-1:0229REDACTED8246:key/1234abcd-12ab-34cd-56ef-1234567890ab",
+            "EvalDecision": "implicitDeny",
+            "MatchedStatements": [],
+            "MissingContextValues": [],
+            "EvalDecisionDetails": {},
+            "ResourceSpecificResults": [
+              {
+                "EvalResourceName": "arn:aws:kms:ap-southeast-1:0229REDACTED8246:key/1234abcd-12ab-34cd-56ef-1234567890ab",
+                "EvalResourceDecision": "implicitDeny"
+              }
+            ]
+          }
+        ],
+        "IsTruncated": false
+      }
+    },
+    {
+      "id": "S11-deny-kms-decrypt-absent-parameter-arn",
+      "expected": "implicitDeny",
+      "observed": "implicitDeny",
+      "matches_expectation": true,
+      "why_this_matters": "Encryption context absent entirely (a raw kms:Decrypt of arbitrary ciphertext). StringEquals on an absent key never matches.",
+      "request": {
+        "PolicyInputList": [
+          "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"ReadTheDemoDsnParameter\",\"Effect\":\"Allow\",\"Action\":\"ssm:GetParameter\",\"Resource\":\"arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn\"},{\"Sid\":\"DecryptThatParameterAndNothingElse\",\"Effect\":\"Allow\",\"Action\":\"kms:Decrypt\",\"Resource\":\"*\",\"Condition\":{\"StringEquals\":{\"kms:ViaService\":\"ssm.ap-southeast-1.amazonaws.com\",\"kms:EncryptionContext:PARAMETER_ARN\":\"arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn\"}}}]}"
+        ],
+        "ActionNames": [
+          "kms:Decrypt"
+        ],
+        "ResourceArns": [
+          "arn:aws:kms:ap-southeast-1:0229REDACTED8246:key/1234abcd-12ab-34cd-56ef-1234567890ab"
+        ],
+        "ContextEntries": [
+          {
+            "ContextKeyName": "kms:ViaService",
+            "ContextKeyValues": [
+              "ssm.ap-southeast-1.amazonaws.com"
+            ],
+            "ContextKeyType": "string"
+          }
+        ]
+      },
+      "summary": {
+        "kms:Decrypt on arn:aws:kms:ap-southeast-1:0229REDACTED8246:key/1234abcd-12ab-34cd-56ef-1234567890ab": {
+          "decision": "implicitDeny",
+          "matched_statements": [],
+          "missing_context_values": [
+            "kms:EncryptionContext:PARAMETER_ARN"
+          ]
+        }
+      },
+      "raw_response": {
+        "EvaluationResults": [
+          {
+            "EvalActionName": "kms:Decrypt",
+            "EvalResourceName": "arn:aws:kms:ap-southeast-1:0229REDACTED8246:key/1234abcd-12ab-34cd-56ef-1234567890ab",
+            "EvalDecision": "implicitDeny",
+            "MatchedStatements": [],
+            "MissingContextValues": [
+              "kms:EncryptionContext:PARAMETER_ARN"
+            ],
+            "EvalDecisionDetails": {},
+            "ResourceSpecificResults": [
+              {
+                "EvalResourceName": "arn:aws:kms:ap-southeast-1:0229REDACTED8246:key/1234abcd-12ab-34cd-56ef-1234567890ab",
+                "EvalResourceDecision": "implicitDeny",
+                "MissingContextValues": [
+                  "kms:EncryptionContext:PARAMETER_ARN"
+                ]
+              }
+            ]
+          }
+        ],
+        "IsTruncated": false
+      }
+    },
+    {
+      "id": "S12-deny-kms-decrypt-wrong-viaservice",
+      "expected": "implicitDeny",
+      "observed": "implicitDeny",
+      "matches_expectation": true,
+      "why_this_matters": "Right encryption context, wrong calling service. A decrypt routed through Secrets Manager or called directly by the role is refused.",
+      "request": {
+        "PolicyInputList": [
+          "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"ReadTheDemoDsnParameter\",\"Effect\":\"Allow\",\"Action\":\"ssm:GetParameter\",\"Resource\":\"arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn\"},{\"Sid\":\"DecryptThatParameterAndNothingElse\",\"Effect\":\"Allow\",\"Action\":\"kms:Decrypt\",\"Resource\":\"*\",\"Condition\":{\"StringEquals\":{\"kms:ViaService\":\"ssm.ap-southeast-1.amazonaws.com\",\"kms:EncryptionContext:PARAMETER_ARN\":\"arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn\"}}}]}"
+        ],
+        "ActionNames": [
+          "kms:Decrypt"
+        ],
+        "ResourceArns": [
+          "arn:aws:kms:ap-southeast-1:0229REDACTED8246:key/1234abcd-12ab-34cd-56ef-1234567890ab"
+        ],
+        "ContextEntries": [
+          {
+            "ContextKeyName": "kms:ViaService",
+            "ContextKeyValues": [
+              "secretsmanager.ap-southeast-1.amazonaws.com"
+            ],
+            "ContextKeyType": "string"
+          },
+          {
+            "ContextKeyName": "kms:EncryptionContext:PARAMETER_ARN",
+            "ContextKeyValues": [
+              "arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn"
+            ],
+            "ContextKeyType": "string"
+          }
+        ]
+      },
+      "summary": {
+        "kms:Decrypt on arn:aws:kms:ap-southeast-1:0229REDACTED8246:key/1234abcd-12ab-34cd-56ef-1234567890ab": {
+          "decision": "implicitDeny",
+          "matched_statements": [],
+          "missing_context_values": []
+        }
+      },
+      "raw_response": {
+        "EvaluationResults": [
+          {
+            "EvalActionName": "kms:Decrypt",
+            "EvalResourceName": "arn:aws:kms:ap-southeast-1:0229REDACTED8246:key/1234abcd-12ab-34cd-56ef-1234567890ab",
+            "EvalDecision": "implicitDeny",
+            "MatchedStatements": [],
+            "MissingContextValues": [],
+            "EvalDecisionDetails": {},
+            "ResourceSpecificResults": [
+              {
+                "EvalResourceName": "arn:aws:kms:ap-southeast-1:0229REDACTED8246:key/1234abcd-12ab-34cd-56ef-1234567890ab",
+                "EvalResourceDecision": "implicitDeny"
+              }
+            ]
+          }
+        ],
+        "IsTruncated": false
+      }
+    },
+    {
+      "id": "S13-kms-decrypt-lowercase-context-key-suffix-IS-ALLOWED",
+      "expected": "allowed",
+      "observed": "allowed",
+      "matches_expectation": true,
+      "why_this_matters": "FINDING. W1 predicted implicitDeny and got allowed. The condition key name, including the context-key suffix after kms:EncryptionContext:, is NOT case sensitive: 'A policy that uses this condition does not check the case of either element of the condition key' (AWS KMS Developer Guide, conditions-kms.html). So a decrypt whose encryption context key is spelled parameter_arn also satisfies the policy. Not exploitable \u2014 SSM only ever sets PARAMETER_ARN \u2014 but the condition is one character looser than it reads.",
+      "request": {
+        "PolicyInputList": [
+          "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"ReadTheDemoDsnParameter\",\"Effect\":\"Allow\",\"Action\":\"ssm:GetParameter\",\"Resource\":\"arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn\"},{\"Sid\":\"DecryptThatParameterAndNothingElse\",\"Effect\":\"Allow\",\"Action\":\"kms:Decrypt\",\"Resource\":\"*\",\"Condition\":{\"StringEquals\":{\"kms:ViaService\":\"ssm.ap-southeast-1.amazonaws.com\",\"kms:EncryptionContext:PARAMETER_ARN\":\"arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn\"}}}]}"
+        ],
+        "ActionNames": [
+          "kms:Decrypt"
+        ],
+        "ResourceArns": [
+          "arn:aws:kms:ap-southeast-1:0229REDACTED8246:key/1234abcd-12ab-34cd-56ef-1234567890ab"
+        ],
+        "ContextEntries": [
+          {
+            "ContextKeyName": "kms:ViaService",
+            "ContextKeyValues": [
+              "ssm.ap-southeast-1.amazonaws.com"
+            ],
+            "ContextKeyType": "string"
+          },
+          {
+            "ContextKeyName": "kms:EncryptionContext:parameter_arn",
+            "ContextKeyValues": [
+              "arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn"
+            ],
+            "ContextKeyType": "string"
+          }
+        ]
+      },
+      "summary": {
+        "kms:Decrypt on arn:aws:kms:ap-southeast-1:0229REDACTED8246:key/1234abcd-12ab-34cd-56ef-1234567890ab": {
+          "decision": "allowed",
+          "matched_statements": [
+            "PolicyInputList.1:IAM Policy"
+          ],
+          "missing_context_values": []
+        }
+      },
+      "raw_response": {
+        "EvaluationResults": [
+          {
+            "EvalActionName": "kms:Decrypt",
+            "EvalResourceName": "arn:aws:kms:ap-southeast-1:0229REDACTED8246:key/1234abcd-12ab-34cd-56ef-1234567890ab",
+            "EvalDecision": "allowed",
+            "MatchedStatements": [
+              {
+                "SourcePolicyId": "PolicyInputList.1",
+                "SourcePolicyType": "IAM Policy",
+                "StartPosition": {
+                  "Line": 1,
+                  "Column": 207
+                },
+                "EndPosition": {
+                  "Line": 1,
+                  "Column": 508
+                }
+              }
+            ],
+            "MissingContextValues": [],
+            "EvalDecisionDetails": {},
+            "ResourceSpecificResults": [
+              {
+                "EvalResourceName": "arn:aws:kms:ap-southeast-1:0229REDACTED8246:key/1234abcd-12ab-34cd-56ef-1234567890ab",
+                "EvalResourceDecision": "allowed",
+                "MatchedStatements": [
+                  {
+                    "SourcePolicyId": "PolicyInputList.1",
+                    "SourcePolicyType": "IAM Policy",
+                    "StartPosition": {
+                      "Line": 1,
+                      "Column": 207
+                    },
+                    "EndPosition": {
+                      "Line": 1,
+                      "Column": 508
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "IsTruncated": false
+      }
+    },
+    {
+      "id": "S14-deny-kms-encrypt-and-describekey",
+      "expected": "implicitDeny",
+      "observed": "implicitDeny",
+      "matches_expectation": true,
+      "why_this_matters": "Only Decrypt is granted. Encrypt/GenerateDataKey/DescribeKey/ReEncrypt are not, even with a perfect encryption context.",
+      "request": {
+        "PolicyInputList": [
+          "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"ReadTheDemoDsnParameter\",\"Effect\":\"Allow\",\"Action\":\"ssm:GetParameter\",\"Resource\":\"arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn\"},{\"Sid\":\"DecryptThatParameterAndNothingElse\",\"Effect\":\"Allow\",\"Action\":\"kms:Decrypt\",\"Resource\":\"*\",\"Condition\":{\"StringEquals\":{\"kms:ViaService\":\"ssm.ap-southeast-1.amazonaws.com\",\"kms:EncryptionContext:PARAMETER_ARN\":\"arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn\"}}}]}"
+        ],
+        "ActionNames": [
+          "kms:Encrypt",
+          "kms:DescribeKey",
+          "kms:GenerateDataKey",
+          "kms:ReEncryptFrom"
+        ],
+        "ResourceArns": [
+          "arn:aws:kms:ap-southeast-1:0229REDACTED8246:key/1234abcd-12ab-34cd-56ef-1234567890ab"
+        ],
+        "ContextEntries": [
+          {
+            "ContextKeyName": "kms:ViaService",
+            "ContextKeyValues": [
+              "ssm.ap-southeast-1.amazonaws.com"
+            ],
+            "ContextKeyType": "string"
+          },
+          {
+            "ContextKeyName": "kms:EncryptionContext:PARAMETER_ARN",
+            "ContextKeyValues": [
+              "arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn"
+            ],
+            "ContextKeyType": "string"
+          }
+        ]
+      },
+      "summary": {
+        "kms:Encrypt on arn:aws:kms:ap-southeast-1:0229REDACTED8246:key/1234abcd-12ab-34cd-56ef-1234567890ab": {
+          "decision": "implicitDeny",
+          "matched_statements": [],
+          "missing_context_values": []
+        },
+        "kms:DescribeKey on arn:aws:kms:ap-southeast-1:0229REDACTED8246:key/1234abcd-12ab-34cd-56ef-1234567890ab": {
+          "decision": "implicitDeny",
+          "matched_statements": [],
+          "missing_context_values": []
+        },
+        "kms:GenerateDataKey on arn:aws:kms:ap-southeast-1:0229REDACTED8246:key/1234abcd-12ab-34cd-56ef-1234567890ab": {
+          "decision": "implicitDeny",
+          "matched_statements": [],
+          "missing_context_values": []
+        },
+        "kms:ReEncryptFrom on arn:aws:kms:ap-southeast-1:0229REDACTED8246:key/1234abcd-12ab-34cd-56ef-1234567890ab": {
+          "decision": "implicitDeny",
+          "matched_statements": [],
+          "missing_context_values": []
+        }
+      },
+      "raw_response": {
+        "EvaluationResults": [
+          {
+            "EvalActionName": "kms:Encrypt",
+            "EvalResourceName": "arn:aws:kms:ap-southeast-1:0229REDACTED8246:key/1234abcd-12ab-34cd-56ef-1234567890ab",
+            "EvalDecision": "implicitDeny",
+            "MatchedStatements": [],
+            "MissingContextValues": [],
+            "EvalDecisionDetails": {},
+            "ResourceSpecificResults": [
+              {
+                "EvalResourceName": "arn:aws:kms:ap-southeast-1:0229REDACTED8246:key/1234abcd-12ab-34cd-56ef-1234567890ab",
+                "EvalResourceDecision": "implicitDeny"
+              }
+            ]
+          },
+          {
+            "EvalActionName": "kms:DescribeKey",
+            "EvalResourceName": "arn:aws:kms:ap-southeast-1:0229REDACTED8246:key/1234abcd-12ab-34cd-56ef-1234567890ab",
+            "EvalDecision": "implicitDeny",
+            "MatchedStatements": [],
+            "MissingContextValues": [],
+            "EvalDecisionDetails": {},
+            "ResourceSpecificResults": [
+              {
+                "EvalResourceName": "arn:aws:kms:ap-southeast-1:0229REDACTED8246:key/1234abcd-12ab-34cd-56ef-1234567890ab",
+                "EvalResourceDecision": "implicitDeny"
+              }
+            ]
+          },
+          {
+            "EvalActionName": "kms:GenerateDataKey",
+            "EvalResourceName": "arn:aws:kms:ap-southeast-1:0229REDACTED8246:key/1234abcd-12ab-34cd-56ef-1234567890ab",
+            "EvalDecision": "implicitDeny",
+            "MatchedStatements": [],
+            "MissingContextValues": [],
+            "EvalDecisionDetails": {},
+            "ResourceSpecificResults": [
+              {
+                "EvalResourceName": "arn:aws:kms:ap-southeast-1:0229REDACTED8246:key/1234abcd-12ab-34cd-56ef-1234567890ab",
+                "EvalResourceDecision": "implicitDeny"
+              }
+            ]
+          },
+          {
+            "EvalActionName": "kms:ReEncryptFrom",
+            "EvalResourceName": "arn:aws:kms:ap-southeast-1:0229REDACTED8246:key/1234abcd-12ab-34cd-56ef-1234567890ab",
+            "EvalDecision": "implicitDeny",
+            "MatchedStatements": [],
+            "MissingContextValues": [],
+            "EvalDecisionDetails": {},
+            "ResourceSpecificResults": [
+              {
+                "EvalResourceName": "arn:aws:kms:ap-southeast-1:0229REDACTED8246:key/1234abcd-12ab-34cd-56ef-1234567890ab",
+                "EvalResourceDecision": "implicitDeny"
+              }
+            ]
+          }
+        ],
+        "IsTruncated": false
+      }
+    },
+    {
+      "id": "S15-managed-allow-putlogevents-own-loggroup",
+      "expected": "allowed",
+      "observed": "allowed",
+      "matches_expectation": true,
+      "why_this_matters": "AWSLambdaBasicExecutionRole. Needed: the runtime writes every INIT/START/END/REPORT line and app.py's logging.getLogger output into this stream.",
+      "request": {
+        "PolicyInputList": [
+          "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"logs:CreateLogGroup\",\"logs:CreateLogStream\",\"logs:PutLogEvents\"],\"Resource\":\"*\"}]}"
+        ],
+        "ActionNames": [
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ],
+        "ResourceArns": [
+          "arn:aws:logs:ap-southeast-1:0229REDACTED8246:log-group:/aws/lambda/mainline-demo-api:*"
+        ],
+        "ContextEntries": []
+      },
+      "summary": {
+        "logs:CreateLogStream on arn:aws:logs:ap-southeast-1:0229REDACTED8246:log-group:/aws/lambda/mainline-demo-api:*": {
+          "decision": "allowed",
+          "matched_statements": [
+            "PolicyInputList.1:IAM Policy"
+          ],
+          "missing_context_values": []
+        },
+        "logs:PutLogEvents on arn:aws:logs:ap-southeast-1:0229REDACTED8246:log-group:/aws/lambda/mainline-demo-api:*": {
+          "decision": "allowed",
+          "matched_statements": [
+            "PolicyInputList.1:IAM Policy"
+          ],
+          "missing_context_values": []
+        }
+      },
+      "raw_response": {
+        "EvaluationResults": [
+          {
+            "EvalActionName": "logs:CreateLogStream",
+            "EvalResourceName": "arn:aws:logs:ap-southeast-1:0229REDACTED8246:log-group:/aws/lambda/mainline-demo-api:*",
+            "EvalDecision": "allowed",
+            "MatchedStatements": [
+              {
+                "SourcePolicyId": "PolicyInputList.1",
+                "SourcePolicyType": "IAM Policy",
+                "StartPosition": {
+                  "Line": 1,
+                  "Column": 38
+                },
+                "EndPosition": {
+                  "Line": 1,
+                  "Column": 147
+                }
+              }
+            ],
+            "MissingContextValues": [],
+            "EvalDecisionDetails": {},
+            "ResourceSpecificResults": [
+              {
+                "EvalResourceName": "arn:aws:logs:ap-southeast-1:0229REDACTED8246:log-group:/aws/lambda/mainline-demo-api:*",
+                "EvalResourceDecision": "allowed",
+                "MatchedStatements": [
+                  {
+                    "SourcePolicyId": "PolicyInputList.1",
+                    "SourcePolicyType": "IAM Policy",
+                    "StartPosition": {
+                      "Line": 1,
+                      "Column": 38
+                    },
+                    "EndPosition": {
+                      "Line": 1,
+                      "Column": 147
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "EvalActionName": "logs:PutLogEvents",
+            "EvalResourceName": "arn:aws:logs:ap-southeast-1:0229REDACTED8246:log-group:/aws/lambda/mainline-demo-api:*",
+            "EvalDecision": "allowed",
+            "MatchedStatements": [
+              {
+                "SourcePolicyId": "PolicyInputList.1",
+                "SourcePolicyType": "IAM Policy",
+                "StartPosition": {
+                  "Line": 1,
+                  "Column": 38
+                },
+                "EndPosition": {
+                  "Line": 1,
+                  "Column": 147
+                }
+              }
+            ],
+            "MissingContextValues": [],
+            "EvalDecisionDetails": {},
+            "ResourceSpecificResults": [
+              {
+                "EvalResourceName": "arn:aws:logs:ap-southeast-1:0229REDACTED8246:log-group:/aws/lambda/mainline-demo-api:*",
+                "EvalResourceDecision": "allowed",
+                "MatchedStatements": [
+                  {
+                    "SourcePolicyId": "PolicyInputList.1",
+                    "SourcePolicyType": "IAM Policy",
+                    "StartPosition": {
+                      "Line": 1,
+                      "Column": 38
+                    },
+                    "EndPosition": {
+                      "Line": 1,
+                      "Column": 147
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "IsTruncated": false
+      }
+    },
+    {
+      "id": "S16-managed-allow-writes-to-ANY-loggroup-ANY-region",
+      "expected": "allowed",
+      "observed": "allowed",
+      "matches_expectation": true,
+      "why_this_matters": "OVER-GRANT PROOF. The same managed policy permits creating a log group and writing log events into another team's function's log group in us-east-1. Resource is a bare *, unconditioned.",
+      "request": {
+        "PolicyInputList": [
+          "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"logs:CreateLogGroup\",\"logs:CreateLogStream\",\"logs:PutLogEvents\"],\"Resource\":\"*\"}]}"
+        ],
+        "ActionNames": [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ],
+        "ResourceArns": [
+          "arn:aws:logs:us-east-1:0229REDACTED8246:log-group:/aws/lambda/some-other-teams-function:*"
+        ],
+        "ContextEntries": []
+      },
+      "summary": {
+        "logs:CreateLogGroup on arn:aws:logs:us-east-1:0229REDACTED8246:log-group:/aws/lambda/some-other-teams-function:*": {
+          "decision": "allowed",
+          "matched_statements": [
+            "PolicyInputList.1:IAM Policy"
+          ],
+          "missing_context_values": []
+        },
+        "logs:CreateLogStream on arn:aws:logs:us-east-1:0229REDACTED8246:log-group:/aws/lambda/some-other-teams-function:*": {
+          "decision": "allowed",
+          "matched_statements": [
+            "PolicyInputList.1:IAM Policy"
+          ],
+          "missing_context_values": []
+        },
+        "logs:PutLogEvents on arn:aws:logs:us-east-1:0229REDACTED8246:log-group:/aws/lambda/some-other-teams-function:*": {
+          "decision": "allowed",
+          "matched_statements": [
+            "PolicyInputList.1:IAM Policy"
+          ],
+          "missing_context_values": []
+        }
+      },
+      "raw_response": {
+        "EvaluationResults": [
+          {
+            "EvalActionName": "logs:CreateLogGroup",
+            "EvalResourceName": "arn:aws:logs:us-east-1:0229REDACTED8246:log-group:/aws/lambda/some-other-teams-function:*",
+            "EvalDecision": "allowed",
+            "MatchedStatements": [
+              {
+                "SourcePolicyId": "PolicyInputList.1",
+                "SourcePolicyType": "IAM Policy",
+                "StartPosition": {
+                  "Line": 1,
+                  "Column": 38
+                },
+                "EndPosition": {
+                  "Line": 1,
+                  "Column": 147
+                }
+              }
+            ],
+            "MissingContextValues": [],
+            "EvalDecisionDetails": {},
+            "ResourceSpecificResults": [
+              {
+                "EvalResourceName": "arn:aws:logs:us-east-1:0229REDACTED8246:log-group:/aws/lambda/some-other-teams-function:*",
+                "EvalResourceDecision": "allowed",
+                "MatchedStatements": [
+                  {
+                    "SourcePolicyId": "PolicyInputList.1",
+                    "SourcePolicyType": "IAM Policy",
+                    "StartPosition": {
+                      "Line": 1,
+                      "Column": 38
+                    },
+                    "EndPosition": {
+                      "Line": 1,
+                      "Column": 147
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "EvalActionName": "logs:CreateLogStream",
+            "EvalResourceName": "arn:aws:logs:us-east-1:0229REDACTED8246:log-group:/aws/lambda/some-other-teams-function:*",
+            "EvalDecision": "allowed",
+            "MatchedStatements": [
+              {
+                "SourcePolicyId": "PolicyInputList.1",
+                "SourcePolicyType": "IAM Policy",
+                "StartPosition": {
+                  "Line": 1,
+                  "Column": 38
+                },
+                "EndPosition": {
+                  "Line": 1,
+                  "Column": 147
+                }
+              }
+            ],
+            "MissingContextValues": [],
+            "EvalDecisionDetails": {},
+            "ResourceSpecificResults": [
+              {
+                "EvalResourceName": "arn:aws:logs:us-east-1:0229REDACTED8246:log-group:/aws/lambda/some-other-teams-function:*",
+                "EvalResourceDecision": "allowed",
+                "MatchedStatements": [
+                  {
+                    "SourcePolicyId": "PolicyInputList.1",
+                    "SourcePolicyType": "IAM Policy",
+                    "StartPosition": {
+                      "Line": 1,
+                      "Column": 38
+                    },
+                    "EndPosition": {
+                      "Line": 1,
+                      "Column": 147
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "EvalActionName": "logs:PutLogEvents",
+            "EvalResourceName": "arn:aws:logs:us-east-1:0229REDACTED8246:log-group:/aws/lambda/some-other-teams-function:*",
+            "EvalDecision": "allowed",
+            "MatchedStatements": [
+              {
+                "SourcePolicyId": "PolicyInputList.1",
+                "SourcePolicyType": "IAM Policy",
+                "StartPosition": {
+                  "Line": 1,
+                  "Column": 38
+                },
+                "EndPosition": {
+                  "Line": 1,
+                  "Column": 147
+                }
+              }
+            ],
+            "MissingContextValues": [],
+            "EvalDecisionDetails": {},
+            "ResourceSpecificResults": [
+              {
+                "EvalResourceName": "arn:aws:logs:us-east-1:0229REDACTED8246:log-group:/aws/lambda/some-other-teams-function:*",
+                "EvalResourceDecision": "allowed",
+                "MatchedStatements": [
+                  {
+                    "SourcePolicyId": "PolicyInputList.1",
+                    "SourcePolicyType": "IAM Policy",
+                    "StartPosition": {
+                      "Line": 1,
+                      "Column": 38
+                    },
+                    "EndPosition": {
+                      "Line": 1,
+                      "Column": 147
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "IsTruncated": false
+      }
+    },
+    {
+      "id": "S17-managed-deny-logs-read-and-delete",
+      "expected": "implicitDeny",
+      "observed": "implicitDeny",
+      "matches_expectation": true,
+      "why_this_matters": "Bounding the over-grant: the managed policy is write-only. It cannot read back (FilterLogEvents/GetLogEvents) or destroy (DeleteLogGroup) any log data.",
+      "request": {
+        "PolicyInputList": [
+          "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"logs:CreateLogGroup\",\"logs:CreateLogStream\",\"logs:PutLogEvents\"],\"Resource\":\"*\"}]}"
+        ],
+        "ActionNames": [
+          "logs:FilterLogEvents",
+          "logs:GetLogEvents",
+          "logs:DeleteLogGroup",
+          "logs:PutRetentionPolicy"
+        ],
+        "ResourceArns": [
+          "arn:aws:logs:us-east-1:0229REDACTED8246:log-group:/aws/lambda/some-other-teams-function:*"
+        ],
+        "ContextEntries": []
+      },
+      "summary": {
+        "logs:FilterLogEvents on arn:aws:logs:us-east-1:0229REDACTED8246:log-group:/aws/lambda/some-other-teams-function:*": {
+          "decision": "implicitDeny",
+          "matched_statements": [],
+          "missing_context_values": []
+        },
+        "logs:GetLogEvents on arn:aws:logs:us-east-1:0229REDACTED8246:log-group:/aws/lambda/some-other-teams-function:*": {
+          "decision": "implicitDeny",
+          "matched_statements": [],
+          "missing_context_values": []
+        },
+        "logs:DeleteLogGroup on arn:aws:logs:us-east-1:0229REDACTED8246:log-group:/aws/lambda/some-other-teams-function:*": {
+          "decision": "implicitDeny",
+          "matched_statements": [],
+          "missing_context_values": []
+        },
+        "logs:PutRetentionPolicy on arn:aws:logs:us-east-1:0229REDACTED8246:log-group:/aws/lambda/some-other-teams-function:*": {
+          "decision": "implicitDeny",
+          "matched_statements": [],
+          "missing_context_values": []
+        }
+      },
+      "raw_response": {
+        "EvaluationResults": [
+          {
+            "EvalActionName": "logs:FilterLogEvents",
+            "EvalResourceName": "arn:aws:logs:us-east-1:0229REDACTED8246:log-group:/aws/lambda/some-other-teams-function:*",
+            "EvalDecision": "implicitDeny",
+            "MatchedStatements": [],
+            "MissingContextValues": [],
+            "EvalDecisionDetails": {},
+            "ResourceSpecificResults": [
+              {
+                "EvalResourceName": "arn:aws:logs:us-east-1:0229REDACTED8246:log-group:/aws/lambda/some-other-teams-function:*",
+                "EvalResourceDecision": "implicitDeny"
+              }
+            ]
+          },
+          {
+            "EvalActionName": "logs:GetLogEvents",
+            "EvalResourceName": "arn:aws:logs:us-east-1:0229REDACTED8246:log-group:/aws/lambda/some-other-teams-function:*",
+            "EvalDecision": "implicitDeny",
+            "MatchedStatements": [],
+            "MissingContextValues": [],
+            "EvalDecisionDetails": {},
+            "ResourceSpecificResults": [
+              {
+                "EvalResourceName": "arn:aws:logs:us-east-1:0229REDACTED8246:log-group:/aws/lambda/some-other-teams-function:*",
+                "EvalResourceDecision": "implicitDeny"
+              }
+            ]
+          },
+          {
+            "EvalActionName": "logs:DeleteLogGroup",
+            "EvalResourceName": "arn:aws:logs:us-east-1:0229REDACTED8246:log-group:/aws/lambda/some-other-teams-function:*",
+            "EvalDecision": "implicitDeny",
+            "MatchedStatements": [],
+            "MissingContextValues": [],
+            "EvalDecisionDetails": {},
+            "ResourceSpecificResults": [
+              {
+                "EvalResourceName": "arn:aws:logs:us-east-1:0229REDACTED8246:log-group:/aws/lambda/some-other-teams-function:*",
+                "EvalResourceDecision": "implicitDeny"
+              }
+            ]
+          },
+          {
+            "EvalActionName": "logs:PutRetentionPolicy",
+            "EvalResourceName": "arn:aws:logs:us-east-1:0229REDACTED8246:log-group:/aws/lambda/some-other-teams-function:*",
+            "EvalDecision": "implicitDeny",
+            "MatchedStatements": [],
+            "MissingContextValues": [],
+            "EvalDecisionDetails": {},
+            "ResourceSpecificResults": [
+              {
+                "EvalResourceName": "arn:aws:logs:us-east-1:0229REDACTED8246:log-group:/aws/lambda/some-other-teams-function:*",
+                "EvalResourceDecision": "implicitDeny"
+              }
+            ]
+          }
+        ],
+        "IsTruncated": false
+      }
+    },
+    {
+      "id": "S18-effective-role-deny-bedrock-s3-secrets-sts",
+      "expected": "implicitDeny",
+      "observed": "implicitDeny",
+      "matches_expectation": true,
+      "why_this_matters": "The role as it will exist (both documents together). Every other AWS service the repo touches elsewhere is unreachable from this function.",
+      "request": {
+        "PolicyInputList": [
+          "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"ReadTheDemoDsnParameter\",\"Effect\":\"Allow\",\"Action\":\"ssm:GetParameter\",\"Resource\":\"arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn\"},{\"Sid\":\"DecryptThatParameterAndNothingElse\",\"Effect\":\"Allow\",\"Action\":\"kms:Decrypt\",\"Resource\":\"*\",\"Condition\":{\"StringEquals\":{\"kms:ViaService\":\"ssm.ap-southeast-1.amazonaws.com\",\"kms:EncryptionContext:PARAMETER_ARN\":\"arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn\"}}}]}",
+          "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"logs:CreateLogGroup\",\"logs:CreateLogStream\",\"logs:PutLogEvents\"],\"Resource\":\"*\"}]}"
+        ],
+        "ActionNames": [
+          "bedrock:InvokeModel",
+          "s3:GetObject",
+          "secretsmanager:GetSecretValue",
+          "sts:AssumeRole",
+          "lambda:UpdateFunctionCode",
+          "iam:PassRole"
+        ],
+        "ResourceArns": [
+          "*"
+        ],
+        "ContextEntries": []
+      },
+      "summary": {
+        "bedrock:InvokeModel on *": {
+          "decision": "implicitDeny",
+          "matched_statements": [],
+          "missing_context_values": [
+            "kms:ViaService",
+            "kms:EncryptionContext:PARAMETER_ARN"
+          ]
+        },
+        "s3:GetObject on *": {
+          "decision": "implicitDeny",
+          "matched_statements": [],
+          "missing_context_values": [
+            "kms:ViaService",
+            "kms:EncryptionContext:PARAMETER_ARN"
+          ]
+        },
+        "secretsmanager:GetSecretValue on *": {
+          "decision": "implicitDeny",
+          "matched_statements": [],
+          "missing_context_values": [
+            "kms:ViaService",
+            "kms:EncryptionContext:PARAMETER_ARN"
+          ]
+        },
+        "sts:AssumeRole on *": {
+          "decision": "implicitDeny",
+          "matched_statements": [],
+          "missing_context_values": [
+            "kms:ViaService",
+            "kms:EncryptionContext:PARAMETER_ARN"
+          ]
+        },
+        "lambda:UpdateFunctionCode on *": {
+          "decision": "implicitDeny",
+          "matched_statements": [],
+          "missing_context_values": [
+            "kms:ViaService",
+            "kms:EncryptionContext:PARAMETER_ARN"
+          ]
+        },
+        "iam:PassRole on *": {
+          "decision": "implicitDeny",
+          "matched_statements": [],
+          "missing_context_values": [
+            "kms:ViaService",
+            "kms:EncryptionContext:PARAMETER_ARN"
+          ]
+        }
+      },
+      "raw_response": {
+        "EvaluationResults": [
+          {
+            "EvalActionName": "bedrock:InvokeModel",
+            "EvalResourceName": "*",
+            "EvalDecision": "implicitDeny",
+            "MatchedStatements": [],
+            "MissingContextValues": [
+              "kms:ViaService",
+              "kms:EncryptionContext:PARAMETER_ARN"
+            ]
+          },
+          {
+            "EvalActionName": "s3:GetObject",
+            "EvalResourceName": "*",
+            "EvalDecision": "implicitDeny",
+            "MatchedStatements": [],
+            "MissingContextValues": [
+              "kms:ViaService",
+              "kms:EncryptionContext:PARAMETER_ARN"
+            ]
+          },
+          {
+            "EvalActionName": "secretsmanager:GetSecretValue",
+            "EvalResourceName": "*",
+            "EvalDecision": "implicitDeny",
+            "MatchedStatements": [],
+            "MissingContextValues": [
+              "kms:ViaService",
+              "kms:EncryptionContext:PARAMETER_ARN"
+            ]
+          },
+          {
+            "EvalActionName": "sts:AssumeRole",
+            "EvalResourceName": "*",
+            "EvalDecision": "implicitDeny",
+            "MatchedStatements": [],
+            "MissingContextValues": [
+              "kms:ViaService",
+              "kms:EncryptionContext:PARAMETER_ARN"
+            ]
+          },
+          {
+            "EvalActionName": "lambda:UpdateFunctionCode",
+            "EvalResourceName": "*",
+            "EvalDecision": "implicitDeny",
+            "MatchedStatements": [],
+            "MissingContextValues": [
+              "kms:ViaService",
+              "kms:EncryptionContext:PARAMETER_ARN"
+            ]
+          },
+          {
+            "EvalActionName": "iam:PassRole",
+            "EvalResourceName": "*",
+            "EvalDecision": "implicitDeny",
+            "MatchedStatements": [],
+            "MissingContextValues": [
+              "kms:ViaService",
+              "kms:EncryptionContext:PARAMETER_ARN"
+            ]
+          }
+        ],
+        "IsTruncated": false
+      }
+    },
+    {
+      "id": "S19-deny-kms-decrypt-value-differing-only-in-case",
+      "expected": "implicitDeny",
+      "observed": "implicitDeny",
+      "matches_expectation": true,
+      "why_this_matters": "The condition VALUE is compared by the operator, and StringEquals is case-sensitive. A parameter named .../COCKROACH_DSN is a different parameter and is refused. Complements S13: key NAME casing is ignored, value casing is not.",
+      "request": {
+        "PolicyInputList": [
+          "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"ReadTheDemoDsnParameter\",\"Effect\":\"Allow\",\"Action\":\"ssm:GetParameter\",\"Resource\":\"arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn\"},{\"Sid\":\"DecryptThatParameterAndNothingElse\",\"Effect\":\"Allow\",\"Action\":\"kms:Decrypt\",\"Resource\":\"*\",\"Condition\":{\"StringEquals\":{\"kms:ViaService\":\"ssm.ap-southeast-1.amazonaws.com\",\"kms:EncryptionContext:PARAMETER_ARN\":\"arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn\"}}}]}"
+        ],
+        "ActionNames": [
+          "kms:Decrypt"
+        ],
+        "ResourceArns": [
+          "arn:aws:kms:ap-southeast-1:0229REDACTED8246:key/1234abcd-12ab-34cd-56ef-1234567890ab"
+        ],
+        "ContextEntries": [
+          {
+            "ContextKeyName": "kms:ViaService",
+            "ContextKeyValues": [
+              "ssm.ap-southeast-1.amazonaws.com"
+            ],
+            "ContextKeyType": "string"
+          },
+          {
+            "ContextKeyName": "kms:EncryptionContext:PARAMETER_ARN",
+            "ContextKeyValues": [
+              "arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/COCKROACH_DSN"
+            ],
+            "ContextKeyType": "string"
+          }
+        ]
+      },
+      "summary": {
+        "kms:Decrypt on arn:aws:kms:ap-southeast-1:0229REDACTED8246:key/1234abcd-12ab-34cd-56ef-1234567890ab": {
+          "decision": "implicitDeny",
+          "matched_statements": [],
+          "missing_context_values": []
+        }
+      },
+      "raw_response": {
+        "EvaluationResults": [
+          {
+            "EvalActionName": "kms:Decrypt",
+            "EvalResourceName": "arn:aws:kms:ap-southeast-1:0229REDACTED8246:key/1234abcd-12ab-34cd-56ef-1234567890ab",
+            "EvalDecision": "implicitDeny",
+            "MatchedStatements": [],
+            "MissingContextValues": [],
+            "EvalDecisionDetails": {},
+            "ResourceSpecificResults": [
+              {
+                "EvalResourceName": "arn:aws:kms:ap-southeast-1:0229REDACTED8246:key/1234abcd-12ab-34cd-56ef-1234567890ab",
+                "EvalResourceDecision": "implicitDeny"
+              }
+            ]
+          }
+        ],
+        "IsTruncated": false
+      }
+    },
+    {
+      "id": "S20-deny-kms-decrypt-direct-call-no-viaservice",
+      "expected": "implicitDeny",
+      "observed": "implicitDeny",
+      "matches_expectation": true,
+      "why_this_matters": "kms:ViaService is only populated when an integrated service makes the call. A kms:Decrypt issued directly by the role (arbitrary ciphertext, correct encryption context) has no ViaService and is refused.",
+      "request": {
+        "PolicyInputList": [
+          "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"ReadTheDemoDsnParameter\",\"Effect\":\"Allow\",\"Action\":\"ssm:GetParameter\",\"Resource\":\"arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn\"},{\"Sid\":\"DecryptThatParameterAndNothingElse\",\"Effect\":\"Allow\",\"Action\":\"kms:Decrypt\",\"Resource\":\"*\",\"Condition\":{\"StringEquals\":{\"kms:ViaService\":\"ssm.ap-southeast-1.amazonaws.com\",\"kms:EncryptionContext:PARAMETER_ARN\":\"arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn\"}}}]}"
+        ],
+        "ActionNames": [
+          "kms:Decrypt"
+        ],
+        "ResourceArns": [
+          "arn:aws:kms:ap-southeast-1:0229REDACTED8246:key/1234abcd-12ab-34cd-56ef-1234567890ab"
+        ],
+        "ContextEntries": [
+          {
+            "ContextKeyName": "kms:EncryptionContext:PARAMETER_ARN",
+            "ContextKeyValues": [
+              "arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn"
+            ],
+            "ContextKeyType": "string"
+          }
+        ]
+      },
+      "summary": {
+        "kms:Decrypt on arn:aws:kms:ap-southeast-1:0229REDACTED8246:key/1234abcd-12ab-34cd-56ef-1234567890ab": {
+          "decision": "implicitDeny",
+          "matched_statements": [],
+          "missing_context_values": [
+            "kms:ViaService"
+          ]
+        }
+      },
+      "raw_response": {
+        "EvaluationResults": [
+          {
+            "EvalActionName": "kms:Decrypt",
+            "EvalResourceName": "arn:aws:kms:ap-southeast-1:0229REDACTED8246:key/1234abcd-12ab-34cd-56ef-1234567890ab",
+            "EvalDecision": "implicitDeny",
+            "MatchedStatements": [],
+            "MissingContextValues": [
+              "kms:ViaService"
+            ],
+            "EvalDecisionDetails": {},
+            "ResourceSpecificResults": [
+              {
+                "EvalResourceName": "arn:aws:kms:ap-southeast-1:0229REDACTED8246:key/1234abcd-12ab-34cd-56ef-1234567890ab",
+                "EvalResourceDecision": "implicitDeny",
+                "MissingContextValues": [
+                  "kms:ViaService"
+                ]
+              }
+            ]
+          }
+        ],
+        "IsTruncated": false
+      }
+    },
+    {
+      "id": "S21-managed-policy-alone-grants-no-ssm",
+      "expected": "implicitDeny",
+      "observed": "implicitDeny",
+      "matches_expectation": true,
+      "why_this_matters": "AWSLambdaBasicExecutionRole in isolation cannot read the DSN parameter. The two documents are independent; the wildcard in the managed policy is confined to logs:* actions.",
+      "request": {
+        "PolicyInputList": [
+          "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"logs:CreateLogGroup\",\"logs:CreateLogStream\",\"logs:PutLogEvents\"],\"Resource\":\"*\"}]}"
+        ],
+        "ActionNames": [
+          "ssm:GetParameter",
+          "kms:Decrypt"
+        ],
+        "ResourceArns": [
+          "arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn"
+        ],
+        "ContextEntries": [
+          {
+            "ContextKeyName": "kms:ViaService",
+            "ContextKeyValues": [
+              "ssm.ap-southeast-1.amazonaws.com"
+            ],
+            "ContextKeyType": "string"
+          },
+          {
+            "ContextKeyName": "kms:EncryptionContext:PARAMETER_ARN",
+            "ContextKeyValues": [
+              "arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn"
+            ],
+            "ContextKeyType": "string"
+          }
+        ]
+      },
+      "summary": {
+        "ssm:GetParameter on arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn": {
+          "decision": "implicitDeny",
+          "matched_statements": [],
+          "missing_context_values": []
+        },
+        "kms:Decrypt on arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn": {
+          "decision": "implicitDeny",
+          "matched_statements": [],
+          "missing_context_values": []
+        }
+      },
+      "raw_response": {
+        "EvaluationResults": [
+          {
+            "EvalActionName": "ssm:GetParameter",
+            "EvalResourceName": "arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn",
+            "EvalDecision": "implicitDeny",
+            "MatchedStatements": [],
+            "MissingContextValues": [],
+            "EvalDecisionDetails": {},
+            "ResourceSpecificResults": [
+              {
+                "EvalResourceName": "arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn",
+                "EvalResourceDecision": "implicitDeny"
+              }
+            ]
+          },
+          {
+            "EvalActionName": "kms:Decrypt",
+            "EvalResourceName": "arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn",
+            "EvalDecision": "implicitDeny",
+            "MatchedStatements": [],
+            "MissingContextValues": [],
+            "EvalDecisionDetails": {},
+            "ResourceSpecificResults": [
+              {
+                "EvalResourceName": "arn:aws:ssm:ap-southeast-1:0229REDACTED8246:parameter/mainline/demo/cockroach_dsn",
+                "EvalResourceDecision": "implicitDeny"
+              }
+            ]
+          }
+        ],
+        "IsTruncated": false
+      }
+    }
+  ],
+  "totals": {
+    "cases": 21,
+    "matched_expectation": 21,
+    "deny_cases": 16,
+    "allow_cases": 5
+  }
+}

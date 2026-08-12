@@ -1,0 +1,537 @@
+{
+  "SPDX-FileCopyrightText": "2026 MAINLINE contributors",
+  "SPDX-License-Identifier": "LicenseRef-FSL-1.1-ALv2",
+  "artefact": "aws-quota-and-cost",
+  "worker": "W4",
+  "plan": "docs/leads/deploy-verify-plan2.md",
+  "generated_at": "2026-08-12",
+  "generated_on": "TRAPPOINT (win32)",
+  "account_id": "0229REDACTED8246",
+  "profile": "mainline-dev",
+  "discipline": {
+    "terraform_apply_run": false,
+    "aws_writes_run": false,
+    "cloud_cluster_touched": false,
+    "credentials_printed": false,
+    "account_id_masked_as": "0229REDACTED8246",
+    "email_addresses_recorded": false,
+    "local_scratch_database": "w_w4 (created on the local Docker node, left empty)"
+  },
+
+  "part_1_the_blocker": {
+    "claim_under_test": "module.api[0].aws_lambda_function.this sets reserved_concurrent_executions = 20 on an account whose Lambda concurrency ceiling is 10.",
+    "reproduced": true,
+
+    "measured_lambda_get_account_settings": {
+      "command": "aws lambda get-account-settings --region <r> --profile mainline-dev",
+      "ap-southeast-1": {
+        "AccountLimit.ConcurrentExecutions": 10,
+        "AccountLimit.UnreservedConcurrentExecutions": 10,
+        "AccountLimit.TotalCodeSize": 322122547200,
+        "AccountLimit.CodeSizeUnzipped": 262144000,
+        "AccountLimit.CodeSizeZipped": 52428800,
+        "AccountUsage.FunctionCount": 0,
+        "AccountUsage.TotalCodeSize": 0
+      },
+      "ap-southeast-2": {
+        "AccountLimit.ConcurrentExecutions": 10,
+        "AccountLimit.UnreservedConcurrentExecutions": 10,
+        "AccountUsage.FunctionCount": 1,
+        "AccountUsage.TotalCodeSize": 2687,
+        "note": "the lead recorded FunctionCount 0; that is true of ap-southeast-1 (the deploy region) but NOT of ap-southeast-2, which holds one unrelated function"
+      }
+    },
+
+    "measured_service_quota": {
+      "command": "aws service-quotas get-service-quota --service-code lambda --quota-code L-B99A9384 --region <r> --profile mainline-dev",
+      "QuotaName": "Concurrent executions",
+      "QuotaCode": "L-B99A9384",
+      "Value_ap_southeast_1": 10.0,
+      "Value_ap_southeast_2": 10.0,
+      "Unit": "Count",
+      "Adjustable": true,
+      "GlobalQuota": false,
+      "QuotaAppliedAtLevel": "ACCOUNT",
+      "aws_default_for_this_quota": 1000.0,
+      "aws_default_command": "aws service-quotas get-aws-default-service-quota --service-code lambda --quota-code L-B99A9384",
+      "requested_change_history": {
+        "command": "aws service-quotas list-requested-service-quota-change-history-by-quota --service-code lambda --quota-code L-B99A9384 --region ap-southeast-1",
+        "RequestedQuotas": [],
+        "reading": "no increase has ever been requested on this account"
+      }
+    },
+
+    "existing_lambda_functions": {
+      "ap-southeast-1": [],
+      "ap-southeast-2": [
+        { "FunctionName": "cci-chage-enricher", "Runtime": "python3.12", "MemorySize": 128, "relation_to_mainline": "none" }
+      ]
+    },
+
+    "planned_function_config_from_committed_plan": {
+      "source": "evidence/deploy/terraform-plan-furl.json",
+      "function_name": "mainline-demo-api",
+      "reserved_concurrent_executions": 20,
+      "memory_size": 512,
+      "timeout": 15,
+      "architectures": ["arm64"],
+      "runtime": "python3.13",
+      "logging_config": {
+        "log_format": "JSON",
+        "application_log_level": "INFO",
+        "system_log_level": "WARN",
+        "log_group": "/aws/lambda/mainline-demo-api"
+      },
+      "url_authorization_type": "NONE",
+      "url_invoke_mode": "BUFFERED",
+      "log_group_retention_in_days": 7
+    },
+
+    "documented_rule": {
+      "source_1": {
+        "url": "https://docs.aws.amazon.com/lambda/latest/dg/configuration-concurrency.html",
+        "title": "Configuring reserved concurrency for a function",
+        "fetched": "2026-08-12",
+        "quote": "You can reserve up to the Unreserved account concurrency value minus 100. The remaining 100 units of concurrency are for functions that aren't using reserved concurrency."
+      },
+      "source_2": {
+        "url": "https://docs.aws.amazon.com/lambda/latest/api/API_PutFunctionConcurrency.html",
+        "fetched": "2026-08-12",
+        "quote": "You can reserve concurrency for as many functions as you like, as long as you leave at least 100 simultaneous executions unreserved for functions that aren't configured with a per-function limit.",
+        "errors": ["InvalidParameterValueException (HTTP 400)", "ResourceConflictException (409)", "ResourceNotFoundException (404)", "ServiceException (500)", "TooManyRequestsException (429)"]
+      },
+      "source_3": {
+        "url": "https://docs.aws.amazon.com/lambda/latest/api/API_CreateFunction.html",
+        "fetched": "2026-08-12",
+        "finding": "the CreateFunction request body does NOT contain ReservedConcurrentExecutions",
+        "quote": "The other parameters let you configure version-specific and function-level settings ... Function-level settings apply to both the unpublished and published versions of the function, and include tags (TagResource) and per-function concurrency limits (PutFunctionConcurrency)."
+      },
+      "arithmetic": "UnreservedConcurrentExecutions (10) - documented floor (100) = -90. No positive reservation is satisfiable on this account. Field reports on 10-ceiling accounts show the floor reported as [10] rather than [100]; both readings give the same answer, because the ceiling IS the floor.",
+      "documented_minimum_unreserved_concurrency": 100,
+      "observed_minimum_reported_on_10_ceiling_accounts": 10
+    },
+
+    "correction_to_the_lead": {
+      "lead_wrote": "The expected outcome of the authorised apply is a failed CreateFunction, after the log group, role, policy and attachment have already been created.",
+      "measured": "CreateFunction does not carry the parameter and will SUCCEED. The hashicorp/aws provider issues CreateFunction, waits for the function to become Active, and then issues a separate PutFunctionConcurrency, which is what fails.",
+      "empirical_check_on_the_pinned_provider": {
+        "binary": "infra/envs/demo/.terraform/providers/registry.terraform.io/hashicorp/aws/6.58.0/windows_amd64/terraform-provider-aws_v6.58.0_x5.exe",
+        "bytes": 906479752,
+        "byte_string_counts": {
+          "PutFunctionConcurrency": 32,
+          "setting Lambda Function (%s) concurrency": 1,
+          "reserved_concurrent_executions": 1
+        },
+        "reading": "the post-create PutFunctionConcurrency error wrapper is present in the exact provider build that would run the apply"
+      },
+      "provider_source": "https://raw.githubusercontent.com/hashicorp/terraform-provider-aws/main/internal/service/lambda/function.go — resourceFunctionCreate builds lambda.CreateFunctionInput without ReservedConcurrentExecutions, then calls conn.PutFunctionConcurrency after creation."
+    },
+
+    "expected_failure": {
+      "api_operation": "PutFunctionConcurrency",
+      "error_class": "InvalidParameterValueException",
+      "http_status": 400,
+      "expected_terraform_error_shape": "Error: setting Lambda Function (mainline-demo-api) concurrency: operation error Lambda: PutFunctionConcurrency, https response error StatusCode: 400, RequestID: <uuid>, InvalidParameterValueException: Specified ReservedConcurrentExecutions for function decreases account's UnreservedConcurrentExecution below its minimum value of [10].",
+      "resource_at_which_the_apply_breaks": "module.api[0].aws_lambda_function.this"
+    },
+
+    "partial_apply_shape": {
+      "dependency_source": "infra/modules/demo-api/main.tf",
+      "created_before_the_failure": [
+        { "address": "module.api[0].aws_iam_role.this", "why": "no dependency" },
+        { "address": "module.api[0].aws_iam_role_policy.dsn_access", "why": "role = aws_iam_role.this.id (main.tf:232)" },
+        { "address": "module.api[0].aws_iam_role_policy_attachment.basic_execution", "why": "role = aws_iam_role.this.name (main.tf:184)" },
+        { "address": "module.api[0].aws_cloudwatch_log_group.this", "why": "no dependency" },
+        { "address": "module.api[0].aws_lambda_function.this", "why": "CreateFunction returns 201 and the provider calls d.SetId() BEFORE PutFunctionConcurrency; the function exists in AWS and is written to state as TAINTED" }
+      ],
+      "not_created": [
+        { "address": "module.api[0].aws_lambda_function_url.this", "why": "function_name = aws_lambda_function.this.function_name (main.tf:304)" },
+        { "address": "module.api[0].aws_cloudwatch_metric_alarm.errors", "why": "dimensions reference aws_lambda_function.this.function_name (main.tf:389)" },
+        { "address": "module.api[0].aws_cloudwatch_metric_alarm.throttles", "why": "main.tf:414" },
+        { "address": "module.api[0].aws_cloudwatch_metric_alarm.duration_p99", "why": "main.tf:437" },
+        { "address": "module.api[0].aws_cloudwatch_metric_alarm.concurrency", "why": "main.tf:477" },
+        { "address": "module.api[0].aws_cloudwatch_dashboard.this[0]", "why": "its alarm widget lists all four alarm ARNs (main.tf:598-603), so it depends on the alarms and transitively on the function" }
+      ],
+      "counts": { "created": 5, "not_created": 6, "total": 11 },
+      "one_mercy": "the Function URL is NOT created, so the partial apply leaves nothing publicly reachable — the failure is a mess, not an exposure"
+    },
+
+    "the_fix": {
+      "candidates": [
+        {
+          "option": "reserved_concurrent_executions = -1 (unreserved)",
+          "works": true,
+          "latency": "none",
+          "cost_ceiling_change": "none — min(20, account 10) = 10 either way; ap-southeast-1 holds 0 other functions",
+          "what_is_given_up": "the module documents that Lambda emits per-function ConcurrentExecutions reliably only for functions that HAVE reserved concurrency, so the -concurrency alarm can sit in INSUFFICIENT_DATA (variables.tf:381-383, README.md:653-657). But that alarm is already unreachable: its threshold is > 20 and this account's ConcurrentExecutions can never exceed 10. Throttles is still emitted and still fires at the account ceiling, so the throttle tripwire survives.",
+          "recommended": true
+        },
+        {
+          "option": "a smaller positive reservation (e.g. 5)",
+          "works": false,
+          "why": "10 - 100 = -90; no value >= 1 satisfies the documented floor. reserved = 0 passes the API but the module's own validation message says it: 'Note that 0 disables the function entirely.'"
+        },
+        {
+          "option": "request a quota increase on L-B99A9384",
+          "works": true,
+          "latency": "a support round trip of unknown duration; never requested on this account (RequestedQuotas: [])",
+          "why_not": "it makes the posture WORSE. Raising the ceiling to the AWS default of 1000 lets reserved = 20 actually take effect, doubling the sustained-abuse compute ceiling from 10 to 20 concurrent — USD 167.47 to USD 334.94 per 30 days, and the egress worst case with it.",
+          "recommended": false
+        }
+      ],
+      "exact_minimal_edit": {
+        "file": "infra/envs/demo/main.tf",
+        "block": "module \"api\" (begins at line 280)",
+        "current_state": "the root does not set the input at all; it inherits the module default of 20 (infra/modules/demo-api/variables.tf:386)",
+        "add_one_line": "reserved_concurrent_executions = -1",
+        "do_not": "do not change the module default — that would change behaviour for every consumer of the module"
+      },
+      "module_claim_this_falsifies": {
+        "file": "infra/modules/demo-api/variables.tf",
+        "lines": "378-379",
+        "quote": "It reserves 20 of the account's 1 000 unreserved executions, which the four unrelated projects in this account share; 2 % is the price of a demo that cannot be turned into a bill.",
+        "measured": "the account has 10 unreserved executions, not 1 000. The reservation is not 2 % of the account, it is 200 % of it."
+      }
+    }
+  },
+
+  "part_2_the_cost": {
+    "price_sources": {
+      "aws_price_list_api": {
+        "command": "aws pricing get-products --service-code <svc> --region us-east-1 --profile mainline-dev --filters Type=TERM_MATCH,Field=regionCode,Value=ap-southeast-1",
+        "queried_on": "2026-08-12",
+        "note": "read-only; the Price List API is the publisher's own feed and is preferred over the marketing pages"
+      },
+      "pages": [
+        { "url": "https://aws.amazon.com/cloudwatch/pricing/", "fetched": "2026-08-12", "used_for": "dashboard price and free-tier counts" },
+        { "url": "https://aws.amazon.com/lambda/pricing/", "fetched": "2026-08-12", "used_for": "free tier: 'The free tier includes one million requests and 400,000 GB-seconds per month.'" },
+        { "url": "https://aws.amazon.com/free/free-tier-faqs/", "fetched": "2026-08-12", "used_for": "always-free persistence on the paid plan" },
+        { "url": "https://www.cockroachlabs.com/docs/cockroachcloud/plan-your-cluster-basic", "fetched": "2026-08-12", "used_for": "Basic free allowance, RU price, disable-on-limit behaviour" },
+        { "url": "https://www.cockroachlabs.com/docs/cockroachcloud/resource-usage-basic", "fetched": "2026-08-12", "used_for": "the RU accounting formula" }
+      ]
+    },
+
+    "prices_ap_southeast_1_usd": {
+      "lambda_arm64_gb_second_tier1": { "usagetype": "APS1-Lambda-GB-Second-ARM", "price": 0.0000133334, "unit": "GB-s", "tier1_upper_bound_gb_s": 7500000000 },
+      "lambda_arm64_request": { "usagetype": "APS1-Request-ARM", "price": 0.0000002, "unit": "request" },
+      "lambda_x86_gb_second_tier1_for_reference": { "usagetype": "APS1-Lambda-GB-Second", "price": 0.0000166667 },
+      "cloudwatch_standard_alarm": { "usagetype": "APS1-CW:AlarmMonitorUsage", "price": 0.10, "unit": "alarm-month" },
+      "cloudwatch_logs_ingest_custom_standard_class": { "usagetype": "APS1-DataProcessing-Bytes", "price": 0.70, "unit": "GB" },
+      "cloudwatch_logs_storage": { "usagetype": "APS1-TimedStorage-ByteHrs", "price": 0.03, "unit": "GB-Mo" },
+      "cloudwatch_logs_insights_scan": { "usagetype": "APS1-DataScanned-Bytes", "price": 0.007, "unit": "GB" },
+      "cloudwatch_dashboard": { "price": 3.00, "unit": "dashboard-month", "source": "pricing page; not exposed by the Price List API query" },
+      "data_transfer_out_to_internet": {
+        "usagetype": "APS1-DataTransfer-Out-Bytes",
+        "tiers": [
+          { "from_gb": 0, "price_per_gb": 0.120, "label": "first 10 TB / month beyond the global free tier" },
+          { "from_gb": 10240, "price_per_gb": 0.085, "label": "next 40 TB" },
+          { "from_gb": 51200, "price_per_gb": 0.082, "label": "next 100 TB" },
+          { "from_gb": 153600, "price_per_gb": 0.080, "label": "greater than 150 TB" }
+        ],
+        "global_free_allowance_gb_per_month": 100
+      }
+    },
+
+    "free_tier_status_of_this_account": {
+      "command_1": "aws freetier get-account-plan-state --region us-east-1 --profile mainline-dev",
+      "accountPlanType": "PAID",
+      "accountPlanStatus": "ACTIVE",
+      "accountPlanRemainingCredits_usd": 0.0,
+      "command_2": "aws freetier get-free-tier-usage --region us-east-1 --profile mainline-dev",
+      "entries_returned": 5,
+      "always_free_confirmed_active": [
+        { "service": "AmazonCloudWatch", "usageType": "CW:Requests", "limit": 1000000.0, "unit": "Requests", "actual": 1554.0, "freeTierType": "Always Free" },
+        { "service": "AmazonCloudWatch", "usageType": "DataProcessing-Bytes", "limit": 5.0, "unit": "GB", "actual": 0.00141855, "freeTierType": "Always Free" },
+        { "service": "AmazonCloudWatch", "usageType": "TimedStorage-ByteHrs", "limit": 5.0, "unit": "GB-Mo", "actual": 0.00013541, "freeTierType": "Always Free" },
+        { "service": "AWS Glue", "usageType": "Catalog-Request", "limit": 1000000.0, "freeTierType": "Always Free" },
+        { "service": "AWS Key Management Service", "usageType": "KMS-Requests", "limit": 20000.0, "freeTierType": "Always Free" }
+      ],
+      "lambda_free_tier": {
+        "confirmed_on_this_account": false,
+        "why_not": "the API reports free-tier rows only for services with usage this month; the account has zero Lambda invocations anywhere this month, so there is no Lambda row to read. Absence is not evidence of loss.",
+        "documented": "AWS Lambda free tier = 1,000,000 requests and 400,000 GB-seconds per month, shared across x86 and arm64. The AWS Free Tier FAQ states that paid-plan accounts retain always-free offers: 'you will have access to all always free services and short-term trials. Always free services allow you to use the product for free up to specified limits as long as you are an AWS customer.'",
+        "materiality": "it is worth USD 5.53 against the USD 167 sustained-abuse figure. Every conclusion below holds whether or not it applies."
+      }
+    },
+
+    "measured_inputs": {
+      "gate_run": {
+        "source": "evidence/deploy/acceptance.json -> corroborating_run.checks.gate_runs[0]",
+        "measured_on": "2026-08-11",
+        "status": 200,
+        "response_bytes": 9576,
+        "wall_ms": 10642.9,
+        "per_beat_ms": [0.011, 2141.581, 2384.6],
+        "caveat": "measured from a developer machine in Australia against the Cloud cluster in ap-southeast-1. In-region (Lambda beside the cluster) the wall time will be lower and is UNMEASURED, because no function is deployed. Using 10.6 s is the conservative choice for cost."
+      },
+      "handler_log_volume": {
+        "log_call_sites_in_the_package": 2,
+        "sites": ["app.py:376 _log.warning('read %s failed: %s', ...)", "app.py:384 _log.exception('read %s raised', ...)"],
+        "reading": "both are on the failure path. A successful request emits nothing from the handler; what is billed is the Lambda platform's JSON records (platform.start / platform.runtimeDone / platform.report).",
+        "assumed_bytes_per_invocation": { "low": 1200, "high": 5000, "basis": "platform JSON records; the high end assumes a 15 s timeout record plus a handler traceback" }
+      },
+      "largest_anonymously_servable_asset": {
+        "path": "verticals/mainline/apps/console/dist/assets/index-BjAGxrVJ.js.map",
+        "bytes": 1554168,
+        "servable": true,
+        "why": "static_site.MEDIA_TYPES maps '.map' explicitly to 'application/json; charset=utf-8' (static_site.py:157) with a comment explaining the choice",
+        "second_largest": { "path": "assets/index-BjAGxrVJ.js", "bytes": 433396 },
+        "function_url_buffered_response_limit_mb": 6,
+        "reading": "1.55 MB is well inside the 6 MB BUFFERED limit, so it is fully servable"
+      }
+    },
+
+    "scenario_a_judging_session": {
+      "shape": "10 judges, each: 30 static/SPA requests at 0.12 s + 6 /v1 reads at 0.4 s + 2 gate runs at 10.6 s",
+      "arithmetic": "per judge 30*0.12 + 6*0.4 + 2*10.6 = 27.2 s; * 0.5 GB = 13.6 GB-s; * 10 judges = 136 GB-s over 380 requests",
+      "compute_usd": 0.0018,
+      "requests_usd": 0.000076,
+      "egress": "~40 MB, inside the 100 GB/month free allowance",
+      "logs": "380 * ~1.5 KB = 0.57 MB, inside the 5 GB free ingest (confirmed active)",
+      "total_with_free_tier_usd": 0.00,
+      "total_without_any_free_tier_usd": 0.0019
+    },
+
+    "scenario_b_demo_health_hourly_cron_30_days": {
+      "shape": "24 gate runs/day * 30 days = 720 gate runs, plus 720 GET /v1/health",
+      "arithmetic": "720 * 10.6 s * 0.5 GB = 3816 GB-s; health 720 * 0.4 s * 0.5 GB = 144 GB-s; total 3960 GB-s over 1440 requests",
+      "compute_usd": 0.0528,
+      "requests_usd": 0.000288,
+      "egress": "720 * 9576 B = 6.9 MB, free",
+      "logs": "1440 * ~1.5 KB = 2.2 MB, free",
+      "total_with_lambda_free_tier_usd": 0.00,
+      "total_without_lambda_free_tier_usd": 0.053,
+      "against_the_repo_claim": "docs/deploy/terraform-plan.md:265 bases the Lambda line on '512 MB x 300 ms x 10 k req = 1 536 GB-s'. The measured gate run is 10,642.9 ms, not 300 ms — 35x optimistic. The conclusion (inside the free tier) survives; the arithmetic does not."
+    },
+
+    "scenario_c1_sustained_abuse_gate_run_flood": {
+      "shape": "10 concurrent (the ACCOUNT ceiling) x 15 s per invocation x 512 MB, for 30 days",
+      "arithmetic": {
+        "seconds_in_30_days": 2592000,
+        "concurrent_seconds": 25920000,
+        "gb_seconds": 12960000,
+        "invocations": 1728000
+      },
+      "compute_usd_with_free_tier": 167.47,
+      "compute_usd_without_free_tier": 172.80,
+      "requests_usd_with_free_tier": 0.15,
+      "requests_usd_without_free_tier": 0.35,
+      "egress": {
+        "bytes": 16547328000,
+        "gb": 16.55,
+        "usd": 0.00,
+        "why": "inside the 100 GB/month global free allowance"
+      },
+      "logs_ingest": {
+        "low_1200_B_per_invocation": { "gb": 2.07, "usd": 0.00 },
+        "high_5000_B_per_invocation": { "gb": 8.64, "usd": 2.55 }
+      },
+      "logs_storage_7_day_retention": { "gb_mo": "0.48 - 2.02", "usd": 0.00, "why": "inside the 5 GB-Mo always-free" },
+      "alarms_usd": 0.00,
+      "dashboard_usd": 0.00,
+      "total_usd_30_days": "167.62 - 170.17",
+      "headline_usd": 168,
+      "note": "the compute term is invariant in the reservation. min(20, 10) = 10 and min(-1 -> account pool, 10) = 10, so USD 167.47 is the compute ceiling whether reserved_concurrent_executions is 20, -1, or anything in between."
+    },
+
+    "scenario_c2_sustained_abuse_egress_flood": {
+      "shape": "the same 10 concurrent, but fetching the 1,554,168-byte source map instead of running the gate. Compute is invariant (concurrency x wall-time x memory is fixed); requests/second and therefore egress are not.",
+      "static_serve_latency_assumption": "UNMEASURED — no function is deployed. Band 100-300 ms.",
+      "at_300_ms": {
+        "requests": 86400000,
+        "egress_gb": 134281,
+        "egress_usd": 11514.84,
+        "egress_tier_arithmetic": "(134281 - 100 free) = 134181 GB; 10240*0.120 = 1228.80; 40960*0.085 = 3481.60; 82981*0.082 = 6804.44",
+        "requests_usd": 17.28,
+        "compute_usd": 167.47,
+        "logs_usd": 69.09,
+        "total_usd": 11768.68
+      },
+      "at_100_ms": {
+        "requests": 259200000,
+        "egress_gb": 402842,
+        "egress_usd": 33038.56,
+        "egress_tier_arithmetic": "(402842 - 100 free) = 402742 GB; 10240*0.120 = 1228.80; 40960*0.085 = 3481.60; 102400*0.082 = 8396.80; 249142*0.080 = 19931.36",
+        "requests_usd": 51.84,
+        "compute_usd": 167.47,
+        "logs_usd": 214.20,
+        "total_usd": 33472.07
+      },
+      "band_usd_30_days": "11,769 - 33,472",
+      "reading": "this, not the gate-run flood, is the worst case. Nothing in the plan bounds egress: no CloudFront (excluded by the account's verification hold), no WAF, no rate limit in the handler, no alarm on BytesOut, no budget action."
+    },
+
+    "against_the_repo_claims": {
+      "claim_1": { "where": "docs/deploy/terraform-plan.md:279", "text": "Whole-system total = USD 0.02-0.03/month, worst case under USD 1.00. The founder's ceiling is ~USD 5/month.", "measured": "the gate-run flood is USD 168; the egress flood is USD 11,769-33,472. The 'worst case under USD 1.00' is low by 168x to 33,472x." },
+      "claim_2": { "where": "docs/deploy/terraform-plan.md:274", "text": "Total created by this plan: 0.00", "measured": "true for normal use and for the cron, on the free tier. It is the WORST-CASE line that is wrong, not the steady-state line." },
+      "claim_3": { "where": "docs/deploy/OBSERVABILITY.md:290", "text": "The whole stack is estimated at ~$0.02/month, worst case under $1.00", "measured": "same defect" },
+      "claim_4": { "where": "infra/modules/demo-api/README.md:88", "text": "reserved_concurrent_executions | 20 | a hard cap. The only control here that stops a bill instead of reporting one.", "measured": "on this account it cannot be set at all, and if it could it would be looser than the account quota. The real cap is the account quota of 10." }
+    }
+  },
+
+  "part_2b_the_budget": {
+    "command": "aws budgets describe-budgets --account-id <masked> --profile mainline-dev",
+    "budgets": [
+      {
+        "BudgetName": "My Monthly Cost Budget",
+        "BudgetLimit_usd": 10.0,
+        "TimeUnit": "MONTHLY",
+        "BudgetType": "COST",
+        "Metrics": ["UnblendedCost"],
+        "FilterExpression": "NOT RECORD_TYPE IN (Credit, Refund)",
+        "ActualSpend_usd": 12.41,
+        "ForecastedSpend_usd": 32.922,
+        "HealthStatus": "HEALTHY",
+        "LastUpdatedTime": "2026-08-12T19:36:21+10:00",
+        "notifications": [
+          { "type": "ACTUAL", "op": "GREATER_THAN", "threshold": 100.0, "state": "ALARM" },
+          { "type": "ACTUAL", "op": "GREATER_THAN", "threshold": 85.0, "state": "ALARM" },
+          { "type": "FORECASTED", "op": "GREATER_THAN", "threshold": 100.0, "state": "ALARM" }
+        ],
+        "subscribers": [{ "SubscriptionType": "EMAIL", "address": "not recorded — this repository is public" }],
+        "actions": []
+      },
+      {
+        "BudgetName": "My Monthly Cost Budget - $5 limit",
+        "BudgetLimit_usd": 5.0,
+        "ActualSpend_usd": 12.41,
+        "ForecastedSpend_usd": 32.922,
+        "notifications": [
+          { "type": "ACTUAL", "op": "GREATER_THAN", "threshold": 100.0, "state": "ALARM" },
+          { "type": "ACTUAL", "op": "GREATER_THAN", "threshold": 85.0, "state": "ALARM" },
+          { "type": "FORECASTED", "op": "GREATER_THAN", "threshold": 100.0, "state": "ALARM" }
+        ],
+        "subscribers": [{ "SubscriptionType": "EMAIL", "address": "not recorded — this repository is public" }],
+        "actions": []
+      },
+      {
+        "BudgetName": "My Zero-Spend Budget",
+        "BudgetLimit_usd": 1.0,
+        "ActualSpend_usd": 12.41,
+        "ForecastedSpend_usd": 32.922,
+        "notifications": [
+          { "type": "ACTUAL", "op": "GREATER_THAN", "threshold": 0.01, "thresholdType": "ABSOLUTE_VALUE", "state": "ALARM" }
+        ],
+        "subscribers": "none returned for the queried notification",
+        "actions": []
+      }
+    ],
+    "budget_actions_across_all_three": 0,
+    "budget_actions_command": "aws budgets describe-budget-actions-for-budget --account-id <masked> --budget-name <name>",
+    "reading": "three budgets, zero actions. Every one of them is ALREADY in ALARM and has been for months (12.41 against limits of 10, 5 and 1). A budget that is permanently breached carries no information about a new stack, and none of them can stop anything.",
+    "lead_measured_one_budget": "the lead recorded a single budget (limit 10.00). There are three."
+  },
+
+  "part_2c_what_actually_bounds_the_bill": {
+    "bounds_it_stops_spend": [
+      { "mechanism": "AWS account Lambda concurrency quota = 10 (L-B99A9384, ACCOUNT level)", "bounds": "compute rate; caps sustained-abuse compute at USD 167.47 per 30 days", "real": true },
+      { "mechanism": "aws_lambda_function.timeout = 15 s", "bounds": "per-invocation duration", "real": true },
+      { "mechanism": "CockroachDB Basic RU limit", "bounds": "database spend — the cluster is DISABLED when reached", "real": true, "side_effect": "the demo goes down, and the Lambda keeps billing while returning 500s" },
+      { "mechanism": "reserved_concurrent_executions", "bounds": "nothing on this account", "real": false, "why": "unsettable at 20; and at any settable value it is looser than the account quota of 10" }
+    ],
+    "reports_only_stops_nothing": [
+      { "mechanism": "all four CloudWatch alarms", "why": "alarm_actions is null on every one of them in the committed plan; nothing is notified and nothing acts" },
+      { "mechanism": "the -concurrency alarm specifically", "why": "threshold > 20 against a metric that cannot exceed 10 on this account — it cannot fire at all" },
+      { "mechanism": "the CloudWatch dashboard", "why": "a human has to be looking at it" },
+      { "mechanism": "all three AWS Budgets", "why": "zero budget actions; EMAIL subscribers only; all three already permanently in ALARM" },
+      { "mechanism": "the 100 GB/month data-transfer free allowance", "why": "a discount, not a cap" }
+    ],
+    "not_present_at_all": [
+      "no WAF",
+      "no rate limit in the handler",
+      "no CloudFront (excluded — the account carries a verification hold on creating distributions)",
+      "no alarm on data transfer out or on Invocations",
+      "no cap on egress of any kind"
+    ]
+  },
+
+  "part_3_cockroachdb": {
+    "cluster": { "plan": "Basic (SERVERLESS)", "provider_region": "aws-ap-southeast-1", "database": "mainline_demo", "org_profile": "mainline-dev" },
+    "spend_limit": { "configured_value": 2500, "usd": 25.00, "source": "docs/TOOL-USAGE.md:367,372,855 — the cluster JSON is parsed, not screen-scraped" },
+    "free_allowance": {
+      "repo_claims": { "ru": 100000000, "where": ["docs/deploy/cloud-database.md:946", "docs/deploy/OBSERVABILITY.md:113", "docs/TOOL-USAGE.md:856"] },
+      "vendor_publishes_today": {
+        "quote": "Each pay-as-you-go CockroachDB Cloud organization is given $15 of resource consumption (equivalent to 50 million Request Units and 10 GiB of storage) for free each month.",
+        "ru": 50000000,
+        "storage_gib": 10,
+        "url": "https://www.cockroachlabs.com/docs/cockroachcloud/plan-your-cluster-basic",
+        "fetched": "2026-08-12"
+      },
+      "discrepancy": "the repo's 100 M RU is 2x the vendor's published 50 M. Unverified against the org's own Cloud Console, which is the only place that would settle it. Both figures are carried through the arithmetic below."
+    },
+    "ru_price_usd_per_million": 0.20,
+    "storage_price_usd_per_gib_month": 0.50,
+    "ru_accounting_formula": {
+      "url": "https://www.cockroachlabs.com/docs/cockroachcloud/resource-usage-basic",
+      "fetched": "2026-08-12",
+      "rules": [
+        "1 RU = 2 storage read batches",
+        "1 RU = 8 storage read requests",
+        "1 RU = 64 KiB read request payload (prorated)",
+        "1 RU = 1 storage write batch",
+        "1 RU = 1 storage write request",
+        "1 RU = 1 KiB write request payload (prorated)",
+        "1 RU = 3 milliseconds SQL CPU",
+        "1 RU = 1 KiB network egress"
+      ],
+      "replication": "writes are replicated to 3 storage processes by default and each replica is counted as a separate write operation"
+    },
+    "ru_per_gate_run_estimate": {
+      "method": "the published formula applied to the measured payload and the code path. NOT a metered reading.",
+      "terms": {
+        "egress": { "kib": 9.35, "ru": 9, "basis": "the measured 9,576-byte response" },
+        "reads": { "ru": "10 - 50", "basis": "10 count(*) subqueries over a 27-row working set, plus the permit row and the site join" },
+        "writes": { "ru": "20 - 100", "basis": "UPDATE mainline.permit, INSERT mainline.disposition, and the writes inside CALL mainline.merge_permit — all rolled back, but the intents are written and billed — each at 3 replicas and 1 KiB payload granularity" },
+        "sql_cpu": { "ru": "100 - 350", "basis": "1 RU per 3 ms SQL CPU. Wall is 10,642.9 ms but that includes ~90 ms RTT per statement from a developer machine in Australia. At 3-10 % of wall as SQL CPU, 0.32-1.06 s, this is the dominant term." }
+      },
+      "estimate_ru": { "low": 150, "central": 300, "high": 500 },
+      "what_would_settle_it": "one reading of the RU chart in the CockroachDB Cloud Console, or the Cloud API's usage endpoint. Nobody has taken it. This estimate should not be quoted as measured."
+    },
+    "exhaustion_under_sustained_abuse": {
+      "rate_bound": "the AWS concurrency ceiling of 10, divided by the measured 10.6 s gate run = 0.943 gate runs/s = 81,510 per day",
+      "at_300_ru_central": {
+        "ru_per_day": 24453000,
+        "days_to_exhaust_50M_free": 2.0,
+        "days_to_exhaust_100M_free_repo_claim": 4.1,
+        "days_to_exhaust_free_plus_spend_limit": 7.2,
+        "free_plus_spend_limit_ru": 175000000,
+        "arithmetic": "50 M free + (USD 25.00 / USD 0.20 per M) = 50 M + 125 M = 175 M RU"
+      },
+      "at_150_ru_low": { "ru_per_day": 12226500, "days_to_exhaust_free_plus_spend_limit": 14.3 },
+      "at_500_ru_high": { "ru_per_day": 40755000, "days_to_exhaust_free_plus_spend_limit": 4.3 },
+      "conclusion": "the cluster is disabled somewhere between day 4 and day 14 of a sustained flood; most likely around day 7"
+    },
+    "what_the_judges_see_when_it_is_exhausted": {
+      "vendor_quote": "If you reach your RU limit, your cluster will be disabled until you increase your RU limit or a new billing cycle begins.",
+      "not_throttled": "disabled",
+      "observable_shape": "every handler DB call raises; app.py:384 _log.exception fires; the caller gets the JSON problem document with kind 'database_error' — the exact shape already recorded in evidence/deploy/acceptance.json (a 500 carrying '[22P02] error in argument ...'). GET /v1/health reports a connect failure.",
+      "who_is_told": "nobody. The -errors alarm goes to ALARM with alarm_actions = null. The only signal is the demo-health cron's red X on a public repository.",
+      "the_bill_does_not_stop": "the CockroachDB spend limit stops the database, not the Lambda. AWS keeps metering at USD 167.47 per 30 days while every request returns a 500."
+    }
+  },
+
+  "part_4_account_spend_context": {
+    "command": "aws ce get-cost-and-usage --time-period Start=2026-05-01,End=2026-08-13 --granularity MONTHLY --metrics UnblendedCost --group-by Type=DIMENSION,Key=SERVICE",
+    "by_month_usd": {
+      "2026-05": { "EC2 - Other": 0.0077 },
+      "2026-06": { "EC2 - Compute": 9.0609, "VPC": 7.202, "KMS": 2.9917, "Tax": 2.08, "EC2 - Other": 1.5435, "S3": 0.0619, "Amplify": 0.0001 },
+      "2026-07": { "EC2 - Compute": 19.6377, "VPC": 7.4433, "Tax": 3.17, "KMS": 3.0, "EC2 - Other": 1.544, "S3": 0.0666, "Amplify": 0.0001 },
+      "2026-08_to_the_13th": { "EC2 - Compute": 6.9014, "VPC": 2.63, "Tax": 1.12, "KMS": 1.0605, "EC2 - Other": 0.5369, "Claude Haiku 4.5 (Bedrock)": 0.0802, "Amazon Bedrock": 0.0267, "Cohere Embed 4 (Bedrock)": 0.0111, "Cohere Embed 3 English (Bedrock)": 0.0059, "Claude Sonnet 4.5 (Bedrock)": 0.0002, "S3": 0.0272, "Cost Explorer": 0.01 }
+    },
+    "aws_lambda_line_item": "absent in every month — the one existing function has never been billed",
+    "mainline_attributable_bedrock_mtd_usd": 0.1241,
+    "note": "STATE records 'total probe spend USD 0.00006' for the Bedrock probes. Cost Explorer shows USD 0.1241 of Bedrock month-to-date on this account. I cannot attribute the difference — other sessions may have used Bedrock on the same account — but the 'whole-system ~USD 0.02/month' claim is already exceeded roughly 6x by Bedrock alone, before any Lambda exists.",
+    "who_pays": "the founder's card. EC2 + VPC from unrelated projects is the dominant term and is forecast at USD 32.92 this month against a configured budget of USD 10.00."
+  },
+
+  "local_node_check": {
+    "dsn": "postgresql://root@localhost:26257/defaultdb?sslmode=disable",
+    "version": "CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu)",
+    "container": "mainline-crdb, cockroachdb/cockroach:v26.2.5, up 39 hours",
+    "scratch_database_created": "w_w4",
+    "rows_written": 0,
+    "why": "the RU question is a Cloud-metering question; the local node cannot answer it. The scratch database was created as instructed and left empty."
+  },
+
+  "verdict": "GO-WITH-FIX"
+}

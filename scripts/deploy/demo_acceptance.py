@@ -72,6 +72,24 @@ disposition, which closes the obligation and takes the counter to zero. If that 
 rollback, the second judge to press the button would see a permit that merges immediately and the
 demo would silently stop demonstrating anything.
 
+THE AFTER-READING IS TAKEN WHATEVER THE GATE RUN DID, AND THAT IS A CORRECTION
+------------------------------------------------------------------------------
+Until 2026-08-13 the re-read lived on the **success path**: a gate run that answered anything but
+``200`` took a ``continue`` and the loop reached neither the after-reading nor the next one. So
+``evidence/deploy/acceptance.json`` for 2026-08-11 carries one snapshot, ``before_run_1``, and a
+failure line admitting the property could not be established — on the exact run where it was most
+worth knowing. **A run that failed halfway is the case where "did anything persist?" has a real
+answer**, because a request that errored after its third beat is precisely how a rollback would be
+skipped. The reading is now unconditional: it is attempted after every gate run, 200 or not, and
+the only thing that can prevent it is not knowing which permit to read.
+
+The comparison is also no longer positional. It used to be ``snapshots[0]`` against
+``snapshots[-1]``, which is satisfied by *any* two readings — including ``before_run_1`` against
+``after_run_1``, leaving run 2 unbracketed. It is now by NAME: ``before_run_1`` must exist,
+``after_run_2`` must exist, and **every** intermediate reading is compared against the before as
+well, so a permit that moved during run 1 and moved back during run 2 is caught rather than
+cancelling out.
+
 THE TARGET MAY BE AN EMULATOR, AND THE EVIDENCE SAYS SO IN ITS OWN FIELD
 -------------------------------------------------------------------------
 ``scripts/deploy/local_furl.py`` serves the real handler over a local socket so the demo can be
@@ -179,6 +197,12 @@ PERMIT_INVARIANT_FIELDS: Final[tuple[str, ...]] = (
     "gate_epoch",
     "head_seq",
 )
+
+#: How many times the gate is driven. TWO, and the number is named rather than spelled out at
+#: each use, because the invariant check asks for a reading called ``after_run_{GATE_RUNS}`` by
+#: name and a third run added without moving that expectation would leave the last one
+#: unbracketed while every assertion still passed.
+GATE_RUNS: Final = 2
 
 #: Set by ``scripts/deploy/local_furl.py`` on every response. Its presence means the target is a
 #: local emulator of a Lambda Function URL and NOT a deployed demo.
@@ -480,6 +504,14 @@ def phase2(  # noqa: PLR0912, PLR0915 - one branch per assertion, and the assert
     # only one of them can go in the submission form.
     emulator = console.headers.get(EMULATOR_HEADER)
     evidence["target_is_local_emulator"] = bool(emulator)
+    # Every `x-mainline-*` header the target volunteered, recorded verbatim. It is the one piece
+    # of provenance a credential-free caller can actually obtain about who answered, and copying
+    # it costs nothing; `local_furl` uses this space to name its own file.
+    evidence["checks"]["console"]["x_mainline_headers"] = {
+        name: value
+        for name, value in sorted(console.headers.items())
+        if name.startswith("x-mainline-")
+    }
     if emulator:
         evidence["emulator"] = emulator
         evidence["checks"]["console"][EMULATOR_HEADER] = emulator
@@ -537,20 +569,36 @@ def phase2(  # noqa: PLR0912, PLR0915 - one branch per assertion, and the assert
                     "/v1/health carries no schema_fingerprint, so the cluster serving this demo "
                     "cannot be tied to the evidence bundle"
                 )
-            # AN ADVISORY, NOT A FAILURE. `migrations_applied` counts rows in
-            # `trappoint.schema_migration` whose state is 'applied'. Measured on 2026-08-10, that
-            # table is EMPTY both on the local scratch database and on the live Cloud database
-            # `mainline_demo` — neither `scripts/proof/gate_refusal.py` nor
-            # `scripts/deploy/cloud_chain.py` writes a row into it. So a correctly deployed demo
-            # will report 0 here while the submission says 271, and a judge who compares the two
-            # will conclude the deployment is broken when it is the bookkeeping that is missing.
-            # Failing the deploy over it would be wrong; letting it pass unremarked would be worse.
+            # AN ADVISORY, NOT A FAILURE, AND IT NOW SAYS WHAT THE FIELD MEANS RATHER THAN ONLY
+            # THAT IT IS UNTRUSTWORTHY. The zero is not a reporting bug in `health.py`: the field
+            # is exactly what it claims, a count of ONE table, and that table belongs to an
+            # applier which did not build this database. Two appliers, two ledgers:
+            #
+            #   `trappoint migrate up`               -> writes trappoint.schema_migration
+            #     (packages/trappoint-migrate/src/trappoint_migrate/runner.py:295, the ONLY
+            #      INSERT into that table anywhere in the tree)
+            #   `scripts/deploy/cloud_chain.py`      -> runs `trappoint migrate bootstrap` (which
+            #     writes trappoint.schema_attestation, hence a non-null schema_fingerprint),
+            #     executes the 271 files itself, and records ONE marker row in
+            #     trappoint.deploy_chain carrying applied/failed/files.
+            #
+            # `cloud_chain.py` is what built `mainline_demo` and what builds every scratch
+            # database, so schema_migration is empty BY CONSTRUCTION and 0 is the honest count of
+            # it. Failing the deploy over it would be wrong; letting a judge read it as "no
+            # migrations ran" would be worse.
             if body.get("migrations_applied") == 0:
                 advisories.append(
-                    "/v1/health reports migrations_applied=0. trappoint.schema_migration is empty "
-                    "on this database — the appliers do not record into it — so this number "
-                    "contradicts the 271-file chain the submission describes. The schema "
-                    "fingerprint above is the trustworthy identifier; this counter is not."
+                    "/v1/health reports migrations_applied=0, and that is a true count of the "
+                    "wrong ledger rather than a broken deployment. health.py's statement counts "
+                    "trappoint.schema_migration WHERE state='applied'; the only writer of that "
+                    "table in the tree is trappoint_migrate/runner.py:295, i.e. `trappoint "
+                    "migrate up`. This database was built by scripts/deploy/cloud_chain.py, "
+                    "which bootstraps the attestation ledger (hence the non-null "
+                    "schema_fingerprint above) and then applies the 271 files itself, recording "
+                    "its count in trappoint.deploy_chain instead. So schema_migration is empty by "
+                    "construction, 0 is honest about it, and the chain really is applied — the "
+                    "schema_fingerprint above is the identifier that moves when the schema does. "
+                    "Two appliers, two ledgers, and /v1/health reads only one of them."
                 )
 
     # ── 3. the permit, BEFORE anything is driven ─────────────────────────────────────────
@@ -585,7 +633,7 @@ def phase2(  # noqa: PLR0912, PLR0915 - one branch per assertion, and the assert
     projections: list[dict[str, Any]] = []
     digests: list[str | None] = []
     observed: list[dict[str, Any]] = []
-    for index in (1, 2):
+    for index in range(1, GATE_RUNS + 1):
         response = fetch(
             urljoin(base, "/v1/demo/gate-run"),
             method="POST",
@@ -594,121 +642,135 @@ def phase2(  # noqa: PLR0912, PLR0915 - one branch per assertion, and the assert
             insecure=args.insecure,
         )
         record: dict[str, Any] = {"run": index, **response.summary()}
+
+        # `data` stays None for every outcome from which nothing can be concluded about the four
+        # beats: a non-200, a body that is not JSON, or a 40001 retry. It is a FLAG rather than a
+        # `continue` on purpose — the after-reading below must happen in all four cases, and a
+        # `continue` is what stopped it happening on 2026-08-11.
+        data: dict[str, Any] | None = None
         if response.status != 200:
             record["body"] = response.body[:600].decode("utf-8", "replace")
             failures.append(
                 f"POST /v1/demo/gate-run (run {index}) returned {response.status}, expected 200"
                 f"{describe_error_body(response)}"
             )
-            runs.append(record)
-            continue
-        try:
-            envelope = response.json()
-        except Exception as exc:  # noqa: BLE001
-            failures.append(f"gate-run {index} did not return JSON: {exc}")
-            runs.append(record)
-            continue
+        else:
+            try:
+                envelope = response.json()
+            except Exception as exc:  # noqa: BLE001
+                failures.append(f"gate-run {index} did not return JSON: {exc}")
+            else:
+                # The API answers with the full envelope; `data` is the gate run itself.
+                candidate = envelope.get("data", envelope)
+                record["envelope_version"] = envelope.get("envelope_version")
+                record["staged"] = envelope.get("staged")
+                record["verdict"] = candidate.get("verdict")
+                record["persisted"] = candidate.get("persisted")
+                record["outcome"] = candidate.get("outcome")
+                if candidate.get("outcome") == "retry":
+                    # 40001. An undecided transaction has no reason set and is not a refusal; the
+                    # contract is explicit that this is a 503 and carries no refusal payload. Say
+                    # so rather than reporting it as a gate failure.
+                    failures.append(
+                        f"gate-run {index} came back outcome=retry (40001): the transaction was "
+                        "undecided, so nothing was proven or disproven. Re-run."
+                    )
+                else:
+                    data = candidate
 
-        # The API answers with the full envelope; `data` is the gate run itself.
-        data = envelope.get("data", envelope)
-        record["envelope_version"] = envelope.get("envelope_version")
-        record["staged"] = envelope.get("staged")
-        record["verdict"] = data.get("verdict")
-        record["persisted"] = data.get("persisted")
-        record["outcome"] = data.get("outcome")
+        if data is not None:
+            beats, beat_failures = check_beats(data)
+            record["beats"] = beats
+            failures.extend(f"run {index}: {f}" for f in beat_failures)
 
-        if data.get("outcome") == "retry":
-            # 40001. An undecided transaction has no reason set and is not a refusal; the
-            # contract is explicit that this is a 503 and carries no refusal payload. Say so
-            # rather than reporting it as a gate failure.
-            failures.append(
-                f"gate-run {index} came back outcome=retry (40001): the transaction was "
-                "undecided, so nothing was proven or disproven. Re-run."
-            )
-            runs.append(record)
-            continue
-
-        beats, beat_failures = check_beats(data)
-        record["beats"] = beats
-        failures.extend(f"run {index}: {f}" for f in beat_failures)
-
-        if data.get("persisted") is not False:
-            failures.append(
-                f"run {index}: persisted is {data.get('persisted')!r}, and the demo's whole "
-                "concurrency story requires false"
-            )
-        persistence = data.get("persistence_check") or {}
-        record["persistence_identical"] = persistence.get("identical")
-        record["persistence_tables"] = len(persistence.get("tables") or [])
-        if persistence.get("identical") is not True:
-            failures.append(
-                f"run {index}: persistence_check.identical is {persistence.get('identical')!r}. "
-                "A persisted=false beside a non-identical row-count check is the server "
-                "contradicting itself."
-            )
-        if data.get("verdict") != "PROVEN":
-            failures.append(
-                f"run {index}: the server's own verdict is {data.get('verdict')!r} — "
-                f"{data.get('failures')}"
-            )
-        transaction = data.get("transaction") or {}
-        record["single_transaction"] = transaction.get("single_transaction")
-        if transaction.get("single_transaction") is not True:
-            failures.append(
-                f"run {index}: transaction.single_transaction is not true, so the four beats did "
-                "not share one transaction and the rollback proves nothing about all of them"
-            )
-
-        admit = next((b for b in data.get("beats", []) if b.get("name") == "admit"), None)
-        merge_record = ((admit or {}).get("observed") or {}).get("merge_record") or {}
-        digests.append(merge_record.get("clearance_digest"))
-        projections.append(stable_projection(data))
-
-        # THE FOUR SQLSTATES, VERBATIM, flattened so a reader — or a grep — finds them without
-        # walking the envelope. Nothing here is composed: every value is the driver's.
-        for beat in beats:
-            if beat.get("present"):
-                observed.append(
-                    {
-                        "run": index,
-                        "ordinal": beat.get("ordinal"),
-                        "name": beat.get("name"),
-                        "outcome": beat.get("outcome"),
-                        "sqlstate": beat.get("sqlstate"),
-                        "constraint": beat.get("constraint"),
-                        "constraint_source": beat.get("constraint_source"),
-                    }
+            if data.get("persisted") is not False:
+                failures.append(
+                    f"run {index}: persisted is {data.get('persisted')!r}, and the demo's whole "
+                    "concurrency story requires false"
+                )
+            persistence = data.get("persistence_check") or {}
+            record["persistence_identical"] = persistence.get("identical")
+            record["persistence_tables"] = len(persistence.get("tables") or [])
+            if persistence.get("identical") is not True:
+                failures.append(
+                    f"run {index}: persistence_check.identical is "
+                    f"{persistence.get('identical')!r}. A persisted=false beside a non-identical "
+                    "row-count check is the server contradicting itself."
+                )
+            if data.get("verdict") != "PROVEN":
+                failures.append(
+                    f"run {index}: the server's own verdict is {data.get('verdict')!r} — "
+                    f"{data.get('failures')}"
+                )
+            transaction = data.get("transaction") or {}
+            record["single_transaction"] = transaction.get("single_transaction")
+            if transaction.get("single_transaction") is not True:
+                failures.append(
+                    f"run {index}: transaction.single_transaction is not true, so the four beats "
+                    "did not share one transaction and the rollback proves nothing about all of "
+                    "them"
                 )
 
-        subject = data.get("subject") or {}
-        if index == 1 and not snapshots and subject:
-            snapshots.append(
-                {
-                    "when": "before_run_1",
-                    "source": (
-                        "run 1's own subject block, read by the server in one statement before "
-                        "the first beat"
-                    ),
-                    **permit_snapshot_from_subject(subject),
-                }
-            )
-        if permit_id is None:
-            permit_id = subject.get("subject_id")
+            admit = next((b for b in data.get("beats", []) if b.get("name") == "admit"), None)
+            merge_record = ((admit or {}).get("observed") or {}).get("merge_record") or {}
+            digests.append(merge_record.get("clearance_digest"))
+            projections.append(stable_projection(data))
 
-        # Re-read the permit from a DIFFERENT endpoint, in a DIFFERENT transaction. This is the
-        # part the server cannot fake by setting a flag in its own payload.
+            # THE FOUR SQLSTATES, VERBATIM, flattened so a reader — or a grep — finds them without
+            # walking the envelope. Nothing here is composed: every value is the driver's.
+            for beat in beats:
+                if beat.get("present"):
+                    observed.append(
+                        {
+                            "run": index,
+                            "ordinal": beat.get("ordinal"),
+                            "name": beat.get("name"),
+                            "outcome": beat.get("outcome"),
+                            "sqlstate": beat.get("sqlstate"),
+                            "constraint": beat.get("constraint"),
+                            "constraint_source": beat.get("constraint_source"),
+                        }
+                    )
+
+            subject = data.get("subject") or {}
+            if index == 1 and not snapshots and subject:
+                snapshots.append(
+                    {
+                        "when": "before_run_1",
+                        "source": (
+                            "run 1's own subject block, read by the server in one statement "
+                            "before the first beat"
+                        ),
+                        **permit_snapshot_from_subject(subject),
+                    }
+                )
+            if permit_id is None:
+                permit_id = subject.get("subject_id")
+
+        # ── the after-reading, TAKEN WHATEVER THE RUN DID ────────────────────────────────
+        # A DIFFERENT endpoint, in a DIFFERENT transaction. This is the part the server cannot
+        # fake by setting a flag in its own payload, and it is exactly as informative after a
+        # run that errored as after one that passed: a request that died between its third beat
+        # and its rollback would leave the permit changed, and only this reading would say so.
         if permit_id:
             after = fetch(
                 urljoin(base, f"/v1/permits/{permit_id}"),
                 timeout=args.timeout,
                 insecure=args.insecure,
             )
+            record["permit_reread_status"] = after.status
             if after.status == 200:
                 try:
                     snapshots.append(
                         {
                             "when": f"after_run_{index}",
                             "source": f"GET /v1/permits/{permit_id}",
+                            "taken_after": (
+                                "a gate run that answered 200"
+                                if data is not None
+                                else f"a gate run that answered {response.status} and was not "
+                                "analysable; the reading was taken anyway"
+                            ),
                             **permit_snapshot_from_read(after.json()),
                         }
                     )
@@ -719,6 +781,13 @@ def phase2(  # noqa: PLR0912, PLR0915 - one branch per assertion, and the assert
                     f"GET /v1/permits/{permit_id} after run {index} returned {after.status}, "
                     f"expected 200{describe_error_body(after)}"
                 )
+        else:
+            record["permit_reread_status"] = None
+            failures.append(
+                f"after run {index} no permit id was known — neither --permit-id nor a subject "
+                "block from a successful run — so no after-reading could be taken and the "
+                "rollback claim cannot be checked from outside for this run"
+            )
         runs.append(record)
 
     evidence["checks"]["gate_runs"] = runs
@@ -765,33 +834,68 @@ def phase2(  # noqa: PLR0912, PLR0915 - one branch per assertion, and the assert
             "rather than the 0 the signed disposition would leave behind."
         ),
     }
-    if len(snapshots) >= 2:
-        first = snapshots[0]
-        last = snapshots[-1]
-        moved = [f for f in PERMIT_INVARIANT_FIELDS if first.get(f) != last.get(f)]
-        invariant["unchanged"] = not moved
-        invariant["moved_fields"] = moved
-        invariant["compared"] = f"{first['when']} vs {last['when']}"
-        for field in moved:
-            failures.append(
-                f"the seeded permit's {field} moved from {first.get(field)!r} ({first['when']}) to "
-                f"{last.get(field)!r} ({last['when']}). The gate run's transaction did NOT roll "
-                "back, so the demo changes state under a judge and the next one sees a different "
-                "permit."
-            )
-        ids = {s.get("permit_id") for s in snapshots if s.get("permit_id")}
-        if len(ids) > 1:
-            invariant["unchanged"] = False
-            failures.append(
-                f"the permit snapshots do not all describe one subject: {sorted(ids)}. Nothing can "
-                "be concluded about persistence from readings of different rows."
-            )
-    else:
+    # BY NAME, NOT BY POSITION. `snapshots[0]` vs `snapshots[-1]` was satisfied by any two
+    # readings at all — including before_run_1 against after_run_1, which leaves the second run
+    # unbracketed while the check still reports `unchanged: true`.
+    before = next((s for s in snapshots if s.get("when") == "before_run_1"), None)
+    final_when = f"after_run_{GATE_RUNS}"
+    final = next((s for s in snapshots if s.get("when") == final_when), None)
+    invariant["required_snapshots"] = ["before_run_1", final_when]
+    invariant["snapshots_taken"] = [s.get("when") for s in snapshots]
+
+    if before is None or final is None:
         invariant["unchanged"] = None
+        invariant["bracketed"] = False
+        missing = [
+            name
+            for name, snap in (("before_run_1", before), (final_when, final))
+            if snap is None
+        ]
         failures.append(
-            "the seeded permit could not be read before and after the gate runs, so the claim "
-            "that nothing persists was NOT established from outside. Only the server's own "
-            "persisted flag was available, and that is the claim under test."
+            f"the seeded permit was not read both before and after the gate runs — {missing} "
+            f"missing, taken {invariant['snapshots_taken']}. The claim that nothing persists was "
+            "NOT established from outside; only the server's own persisted flag was available, "
+            "and that is the claim under test."
+        )
+    else:
+        invariant["bracketed"] = True
+        invariant["compared"] = f"before_run_1 vs {final_when}"
+        # EVERY reading is compared with the before, not merely the last one. A permit that moved
+        # during run 1 and moved back during run 2 satisfies a first-versus-last comparison and is
+        # still a demo that changes state under a judge.
+        comparisons: list[dict[str, Any]] = []
+        moved_any: list[str] = []
+        for snapshot in snapshots:
+            if snapshot is before:
+                continue
+            moved = [f for f in PERMIT_INVARIANT_FIELDS if before.get(f) != snapshot.get(f)]
+            comparisons.append(
+                {
+                    "against": "before_run_1",
+                    "reading": snapshot.get("when"),
+                    "moved_fields": moved,
+                    "identical": not moved,
+                }
+            )
+            for field in moved:
+                moved_any.append(field)
+                failures.append(
+                    f"the seeded permit's {field} moved from {before.get(field)!r} "
+                    f"(before_run_1) to {snapshot.get(field)!r} ({snapshot.get('when')}). The "
+                    "gate run's transaction did NOT roll back, so the demo changes state under a "
+                    "judge and the next one sees a different permit."
+                )
+        invariant["comparisons"] = comparisons
+        invariant["moved_fields"] = sorted(set(moved_any))
+        invariant["unchanged"] = not moved_any
+
+    ids = {s.get("permit_id") for s in snapshots if s.get("permit_id")}
+    invariant["subjects_read"] = sorted(ids)
+    if len(ids) > 1:
+        invariant["unchanged"] = False
+        failures.append(
+            f"the permit snapshots do not all describe one subject: {sorted(ids)}. Nothing can "
+            "be concluded about persistence from readings of different rows."
         )
     evidence["checks"]["permit_invariant"] = invariant
     return evidence, failures

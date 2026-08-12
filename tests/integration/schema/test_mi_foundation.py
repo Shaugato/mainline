@@ -1164,7 +1164,7 @@ def test_subject_transition_edges_are_identical_for_both_subjects(conn: Any) -> 
     rows = conn.execute(
         "SELECT subject_kind, from_state::STRING, to_state::STRING FROM mainline.subject_transition"
     ).fetchall()
-    assert len(rows) == 18, f"expected 18 edges (9 × 2 subjects), got {len(rows)}"
+    assert len(rows) == 18, f"expected 18 edges (9 x 2 subjects), got {len(rows)}"
     by_kind: dict[str, set[tuple[str, str]]] = {k: set() for k in SUBJECT_KINDS}
     for kind, src, dst in rows:
         assert kind in by_kind, f"unknown subject_kind {kind!r}"

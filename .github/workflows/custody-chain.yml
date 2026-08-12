@@ -34,9 +34,22 @@
 # a conditional branch below appears in the log of a run in which that branch never
 # executed. Run 31372088425 was read that way and reported as
 # "check_chain_fn_matches_spec.py absent"; the script is tracked, it ran, and it found a
-# genuine spec drift. Every such message in this file now begins "PRINTED ONLY WHEN …" so
-# that source and output cannot be confused again. `##[group]Run` = source. Everything
-# after the group header = output.
+# genuine spec drift. Shell `echo "::error …"` messages in this file therefore begin
+# "PRINTED ONLY WHEN …". `##[group]Run` = source. Everything after the group header =
+# output.
+#
+# THAT CONVENTION HAS A COST, AND ON 2026-08-12 IT WAS PAID. Run 31596645067's exhibit
+# vocabulary job printed, as its ##[error], the sentence "PRINTED ONLY WHEN the phrase
+# appears unqualified in README.md or docs/ …" — its own documentation, standing where its
+# finding should have been. A check whose explanation is indistinguishable from its finding
+# cannot be read at all. So the newer classifiers in this file work the other way round:
+#
+#   * the ::error carries only what was MEASURED — a file and line, a digest, a check id,
+#     a node id — which no source echo can imitate, because the echo shows the f-string;
+#   * the ::notice carries why it matters, and says so in its own text;
+#   * anything printed unconditionally needs no disclaimer at all.
+#
+# Both conventions are honest. Prefer the second when a message can carry a measurement.
 
 name: custody-chain
 
@@ -103,20 +116,394 @@ jobs:
         run: uv run pytest packages/trappoint-jcs -q
 
       - name: RFC 6962 merkle — vectors and properties
-        run: uv run pytest packages/trappoint-ledger -q
+        # MEASURED 2026-08-12, run 31596645067: this step was one bare line, it failed, and
+        # the ONLY annotation it put on the public Actions tab was
+        #
+        #     ##[error]Process completed with exit code 1.
+        #
+        # The pytest traceback was in the log, but nothing named an artefact, nothing named
+        # an owner, and nothing said that the RFC 6962 vectors and properties this step is
+        # NAMED after had all passed — the single failure was in the checkpoint-body suite
+        # that shares the package. A reader of the Actions tab learned that a number was
+        # non-zero. That is the defect fixed here.
+        #
+        # The classifier below is not a hand-written story about a failure someone once
+        # saw. It reads THIS run's output, re-derives the canonicaliser digest in the same
+        # interpreter that just ran the suite, reads the NORMATIVE pin out of
+        # spec/custody/canon-registry.yaml, and reports which of the two moved. If it cannot
+        # explain a failure it says so and prints it, rather than attributing it to the
+        # explanation that happens to be written down.
+        run: |
+          set -euo pipefail
+          log="$RUNNER_TEMP/ledger-pytest.log"
+          if uv run pytest packages/trappoint-ledger -q 2>&1 | tee "$log"; then
+            exit 0
+          fi
+
+          uv run python - "$log" <<'PY'
+          import pathlib
+          import re
+          import sys
+
+          ANSI = re.compile(r"\x1b\[[0-9;]*m")
+          text = ANSI.sub("", pathlib.Path(sys.argv[1]).read_text(encoding="utf-8", errors="replace"))
+
+          failures = re.findall(r"^FAILED (\S+?)(?: - (.*))?$", text, re.MULTILINE)
+          counts = next(
+              (
+                  line.strip()
+                  for line in reversed(text.splitlines())
+                  if re.search(r"\d+ (?:passed|failed|error)", line)
+              ),
+              "(pytest printed no count line)",
+          )
+
+          # Which custody worker owns which suite. docs/leads/custody.md section 5.
+          OWNERS = (
+              ("test_checkpoint_body", "custody worker 4, note-signer-receipt",
+               "C2SP signed-note encode/decode and checkpoint body assembly, including the "
+               "canon: and beacon lines"),
+              ("packages/trappoint-ledger", "custody worker 3, merkle-and-proofs",
+               "RFC 6962 MTH / inclusion / consistency / tile addressing and the link_hash chain"),
+          )
+
+          def owner_of(node_id: str) -> tuple[str, str]:
+              for needle, owner, subject in OWNERS:
+                  if needle in node_id:
+                      return owner, subject
+              return "custody domain, docs/leads/custody.md section 5", "unattributed"
+
+          # The canonicaliser's self-digest, taken HERE, in the interpreter that just ran the
+          # suite — so it describes this run and cannot be a literal that went stale.
+          live = None
+          try:
+              from trappoint_jcs.canon_v1 import canon_src_sha256
+
+              live = canon_src_sha256().hex()
+          except Exception as exc:  # any import failure is the same finding
+              print(
+                  "::error title=the canonicaliser is not importable::NEEDS "
+                  "packages/trappoint-jcs/src/trappoint_jcs/canon_v1.py to import "
+                  f"({exc.__class__.__name__}: {exc}). Every digest below is a hash OF its "
+                  "bytes, so nothing in this package can be explained without it. Owner: "
+                  "custody worker 2, jcs-canonicaliser."
+              )
+
+          # spec/custody/canon-registry.yaml is NORMATIVE and it pins each shipped
+          # canonicaliser's source digest with `retained: forever`. So the question a
+          # digest mismatch raises is not "which artefact went stale" but "does the module
+          # still match the pin the evidence was written against". Read the pin.
+          REGISTRY = pathlib.Path("spec/custody/canon-registry.yaml")
+          pinned = None
+          if REGISTRY.exists():
+              entry = re.search(
+                  r"name:\s*canon_v1\b.*?\n\s*sha256:\s*([0-9a-f]{64})",
+                  REGISTRY.read_text(encoding="utf-8", errors="ignore"),
+                  re.DOTALL,
+              )
+              if entry:
+                  pinned = entry.group(1)
+
+          SCAN_ROOTS = ("spec", "evidence", "packages", "verticals", "docs", "tests", "scripts")
+          SCAN_SUFFIXES = {".md", ".json", ".yaml", ".yml", ".py", ".txt", ".sql"}
+          SCAN_SKIP = {
+              "__pycache__", ".git", ".venv", "node_modules",
+              ".ruff_cache", ".pytest_cache", ".mypy_cache",
+          }
+
+          def files_quoting(digest: str) -> list[tuple[str, int]]:
+              """Every tracked text file that carries *digest*, with its occurrence count."""
+              found: list[tuple[str, int]] = []
+              for root in SCAN_ROOTS:
+                  for path in pathlib.Path(root).rglob("*"):
+                      if path.suffix.lower() not in SCAN_SUFFIXES or not path.is_file():
+                          continue
+                      if SCAN_SKIP.intersection(path.parts):
+                          continue
+                      try:
+                          if path.stat().st_size > 4_000_000:
+                              continue
+                          body = path.read_text(encoding="utf-8", errors="ignore")
+                      except OSError:
+                          continue
+                      count = body.count(digest)
+                      if count:
+                          found.append((path.as_posix(), count))
+              return sorted(found)
+
+          canon_explained = False
+          if live is not None and pinned is None:
+              print(
+                  "::error title=the canonicaliser registry could not be read::NEEDS "
+                  "spec/custody/canon-registry.yaml to carry a canon_v1 entry with a sha256 "
+                  "pin. Without the pin this step cannot tell a drifted module from a stale "
+                  "artefact, and it will not guess. Owner: custody worker 2, jcs-canonicaliser."
+              )
+          elif live is not None and pinned is not None and live != pinned:
+              canon_explained = True
+              quoters = files_quoting(pinned)
+              occurrences = sum(count for _, count in quoters)
+              print(
+                  "::error title=canon_v1.py no longer matches its normative pin::"
+                  "packages/trappoint-jcs/src/trappoint_jcs/canon_v1.py hashes to "
+                  f"{live}, but spec/custody/canon-registry.yaml pins canon_v1 at {pinned} "
+                  "with retained: forever. The pin is the authority and the module is the "
+                  f"deviation: {occurrences} occurrence(s) of the pinned digest across "
+                  f"{len(quoters)} committed file(s) were written against it. Owner: custody "
+                  "worker 2, jcs-canonicaliser (the canonicaliser registry and the vendoring "
+                  "byte-equality guard), docs/leads/custody.md section 5."
+              )
+              print(
+                  "::notice title=why a whitespace-only edit does this, and what must NOT be "
+                  "done about it::canon_src_sha256() hashes canon_v1.py's own source, "
+                  "LF-normalised, which is what lets a checkpoint say which canonicaliser "
+                  "produced it. So ANY edit to that module moves the digest, including a "
+                  "reformat that changes no behaviour. The remedy is to restore the module to "
+                  "its pinned bytes, or to ship the change as a NEW registry entry with a new "
+                  "payload_ver. The remedy is NOT to re-pin the existing entry and NOT to "
+                  "regenerate the artefacts that quote it: both would launder an unregistered "
+                  "canonicaliser into evidence that has already been signed, and the registry "
+                  "exists precisely to refuse that. This notice is the EXPLANATION; the error "
+                  "above is the FINDING."
+              )
+              print("")
+              print("CANONICALISER DRIFT - the module moved off its own pin")
+              print(f"  pinned    : {pinned}")
+              print("              spec/custody/canon-registry.yaml, canon_v1,")
+              print("              status: current, retained: forever")
+              print(f"  measured  : {live}")
+              print("              packages/trappoint-jcs/src/trappoint_jcs/canon_v1.py,")
+              print("              SHA-256 over LF-normalised source bytes, taken in this run")
+              print("  owner     : custody worker 2, jcs-canonicaliser")
+              print("")
+              print(f"  {len(quoters)} committed file(s) were written against the PINNED digest.")
+              print("  They are consistent with the registry; they are not the defect:")
+              for name, count in quoters:
+                  print(f"    {count:>3}x  {name}")
+              print("")
+              print("  'reference bundle regenerates to zero diff' in this same lane fails on")
+              print("  the same digest, and 'Vendored canonicaliser is byte-identical to the")
+              print("  shipped one' is the check that names this by design. One defect, several")
+              print("  reds; one restoration or one version bump closes all of them.")
+              print("")
+          elif live is not None:
+              stale = [
+                  (name, count)
+                  for name, count in files_quoting(pinned or live)
+                  if name != "spec/custody/canon-registry.yaml"
+              ]
+              print(
+                  f"canon_v1.py matches its registry pin ({live}); {len(stale)} file(s) quote it"
+              )
+
+          for node_id, message in failures:
+              owner, subject = owner_of(node_id)
+              covered = canon_explained and "test_checkpoint_body" in node_id
+              print(
+                  f"::error title=failing test: {node_id.split('::')[-1]}::{node_id} failed"
+                  f"{(' - ' + message) if message else ''}. Owner: {owner} ({subject}). "
+                  + (
+                      "Attributed to the canonicaliser drift named above: this suite reads the "
+                      "worked example in spec/wire/checkpoint.md, which quotes the PINNED "
+                      "digest."
+                      if covered
+                      else "NOT explained by anything this step knows how to classify; the "
+                      "pytest output above is the whole of what is known."
+                  )
+              )
+
+          print("")
+          print(f"pytest counted: {counts}")
+          outside = [node_id for node_id, _ in failures if "test_checkpoint_body" not in node_id]
+          if outside:
+              print(
+                  f"{len(outside)} failure(s) are OUTSIDE the checkpoint-body suite, so the RFC "
+                  "6962 vectors and properties this step is named after did not all hold: "
+                  + ", ".join(outside)
+              )
+          elif failures:
+              print(
+                  "Every failure above is in the checkpoint-body suite. The RFC 6962 vectors "
+                  "and the merkle properties this step is named after all PASSED; this step is "
+                  "red for the canon: line, not for the tree algebra."
+              )
+          else:
+              print(
+                  "::error title=pytest failed and named no test::the run exited non-zero and "
+                  "printed no FAILED line, so this step cannot say what broke. Collection error, "
+                  "an internal error or a plugin failure — the whole output is above. Owner: "
+                  "custody worker 3, merkle-and-proofs."
+              )
+          PY
+          exit 1
 
       # CU-8 / §1.4a. The one-dependency claim dies the moment the vendored canonicaliser
       # drifts from the one the sequencer used, so the equality is a byte comparison rather
       # than a promise, and the registry pins every canonicaliser ever shipped.
+      #
+      # `!cancelled()` because of what run 31596645067 measured: the merkle step above
+      # failed, so THIS step — the one that reads spec/custody/canon-registry.yaml and
+      # names a source that has moved off its pin, which is precisely the finding that run
+      # needed — never ran. A hermetic check that answers the question the failing step
+      # raised must not be silenced by that step's exit code. The job still fails; nothing
+      # here is `continue-on-error` and nothing is excused.
+      #
+      # MEASURED 2026-08-12, run 31606592499 — the first run in which this step was allowed
+      # to execute: it refused, correctly, with `FAIL canon_v1: … hashes to d09036a8…`, and
+      # the only annotation it put on the Actions tab was `Process completed with exit code
+      # 1`. Un-skipping a check and leaving it inarticulate trades one silence for another,
+      # so its refusal is classified here.
       - name: Vendored canonicaliser is byte-identical to the shipped one
-        run: uv run python scripts/custody/check_vendored_canon.py
+        if: ${{ !cancelled() }}
+        run: |
+          set -euo pipefail
+          log="$RUNNER_TEMP/vendored-canon.log"
+          if uv run python scripts/custody/check_vendored_canon.py 2>&1 | tee "$log"; then
+            exit 0
+          fi
+
+          uv run python - "$log" <<'PY'
+          import pathlib
+          import re
+          import sys
+
+          ANSI = re.compile(r"\x1b\[[0-9;]*m")
+          text = ANSI.sub("", pathlib.Path(sys.argv[1]).read_text(encoding="utf-8", errors="replace"))
+          refusals = [line.strip() for line in text.splitlines() if line.startswith("FAIL")]
+
+          live = None
+          try:
+              from trappoint_jcs.canon_v1 import canon_src_sha256
+
+              live = canon_src_sha256().hex()
+          except Exception as exc:  # any import failure is the same finding
+              print(
+                  "::error title=the canonicaliser is not importable::NEEDS "
+                  "packages/trappoint-jcs/src/trappoint_jcs/canon_v1.py to import "
+                  f"({exc.__class__.__name__}: {exc}). Owner: custody worker 2, "
+                  "jcs-canonicaliser."
+              )
+
+          pinned = None
+          registry = pathlib.Path("spec/custody/canon-registry.yaml")
+          if registry.exists():
+              entry = re.search(
+                  r"name:\s*canon_v1\b.*?\n\s*sha256:\s*([0-9a-f]{64})",
+                  registry.read_text(encoding="utf-8", errors="ignore"),
+                  re.DOTALL,
+              )
+              if entry:
+                  pinned = entry.group(1)
+
+          if live and pinned and live != pinned:
+              print(
+                  "::error title=the registry refuses the canonicaliser on disk::"
+                  "spec/custody/canon-registry.yaml pins canon_v1 at "
+                  f"{pinned} with retained: forever; "
+                  "packages/trappoint-jcs/src/trappoint_jcs/canon_v1.py hashes to "
+                  f"{live}. This is the check that exists to say exactly this. NEEDS the "
+                  "module restored to its pinned bytes, or a new registry entry with a new "
+                  "payload_ver. Owner: custody worker 2, jcs-canonicaliser "
+                  "(docs/leads/custody.md section 5)."
+              )
+              print(
+                  "::notice title=the pin is not a convenience::a canonicaliser entry is "
+                  "retained forever because ledger_intake.payload_ver dispatches on it: "
+                  "deleting or silently re-pinning canon_v1 makes every leaf ever written "
+                  "under it permanently unverifiable, which is a breaking change to EVIDENCE "
+                  "and a silent one. That is the only reason a machine has to refuse it. This "
+                  "notice is the EXPLANATION; the error above is the FINDING."
+              )
+          else:
+              for refusal in refusals or ["(the script printed no FAIL line)"]:
+                  print(
+                      "::error title=the canonicaliser registry check refused::"
+                      f"scripts/custody/check_vendored_canon.py reported: {refusal}. Not a "
+                      "registry-pin drift — the module on disk matches its pin — so this is "
+                      "something else and the script's whole output is above. Owner: custody "
+                      "worker 2, jcs-canonicaliser."
+                  )
+          PY
+          exit 1
 
       # CU-7. "Requires no cooperation from us" must be a 200 ms test.
+      # `!cancelled()` for the same reason as the step above: this is a hermetic, 200 ms
+      # question about the verifier's dependency floor, and its answer does not depend on
+      # whether the ledger suite passed. Same 2026-08-12 measurement, same treatment: run
+      # 31606592499 showed `7 failed, 88 passed` here with no annotation naming one of them.
       - name: Verifier dependency floor and no-network guarantee
+        if: ${{ !cancelled() }}
         run: |
           set -euo pipefail
           if [ -d packages/trappoint-verify ]; then
-            uv run pytest packages/trappoint-verify -q
+            log="$RUNNER_TEMP/verify-pytest.log"
+            if uv run pytest packages/trappoint-verify -q 2>&1 | tee "$log"; then
+              exit 0
+            fi
+
+            uv run python - "$log" <<'PY'
+          import pathlib
+          import re
+          import sys
+
+          ANSI = re.compile(r"\x1b\[[0-9;]*m")
+          text = ANSI.sub("", pathlib.Path(sys.argv[1]).read_text(encoding="utf-8", errors="replace"))
+          failures = re.findall(r"^FAILED (\S+?)(?: - (.*))?$", text, re.MULTILINE)
+
+          live = None
+          pinned = None
+          try:
+              from trappoint_jcs.canon_v1 import canon_src_sha256
+
+              live = canon_src_sha256().hex()
+          except Exception:  # the classifier below simply says less
+              live = None
+          registry = pathlib.Path("spec/custody/canon-registry.yaml")
+          if registry.exists():
+              entry = re.search(
+                  r"name:\s*canon_v1\b.*?\n\s*sha256:\s*([0-9a-f]{64})",
+                  registry.read_text(encoding="utf-8", errors="ignore"),
+                  re.DOTALL,
+              )
+              if entry:
+                  pinned = entry.group(1)
+          drifted = bool(live and pinned and live != pinned)
+
+          if drifted:
+              print(
+                  "::notice title=the canonicaliser has drifted off its registry pin::"
+                  f"canon_v1.py hashes to {live}; spec/custody/canon-registry.yaml pins "
+                  f"canon_v1 at {pinned}. Any failure below that mentions canon, "
+                  "canon-source-mismatch or an exit code of 1 where 0 or 2 was expected is "
+                  "downstream of that. Owner of the drift: custody worker 2, "
+                  "jcs-canonicaliser. This notice is the EXPLANATION; the errors below are "
+                  "the FINDINGS."
+              )
+
+          CANON_WORDS = ("canon", "0, 2", "(0, 2)")
+          for node_id, message in failures:
+              blob = f"{node_id} {message or ''}".lower()
+              attributable = drifted and any(word in blob for word in CANON_WORDS)
+              print(
+                  f"::error title=failing test: {node_id.split('::')[-1]}::{node_id} failed"
+                  f"{(' - ' + message) if message else ''}. Owner: custody worker 6, "
+                  "verify-core (the trappoint-verify CLI, the bundle loader, the structural "
+                  "checks, the dependency-floor test and the no-network test). "
+                  + (
+                      "Attributable to the canonicaliser drift named in the notice above."
+                      if attributable
+                      else "NOT attributable to anything this step knows how to classify; the "
+                      "pytest output above is the whole of what is known."
+                  )
+              )
+          if not failures:
+              print(
+                  "::error title=pytest failed and named no test::the run exited non-zero and "
+                  "printed no FAILED line, so this step cannot say what broke. The whole "
+                  "output is above. Owner: custody worker 6, verify-core."
+              )
+          PY
+            exit 1
           else
             echo "::error title=trappoint-verify absent::PRINTED ONLY WHEN \
             packages/trappoint-verify is missing from the checkout — if you are reading \
@@ -144,7 +531,132 @@ jobs:
       # is a screenshot; a fixture that regenerates differently every time has no
       # "ordinarily" to appeal to under Evidence Act 1995 (Cth) ss.146-147.
       - name: Regeneration is a no-op
-        run: uv run python scripts/custody/regen_reference_ledger.py --check
+        # MEASURED 2026-08-12, run 31596645067: the regenerator printed a good JSON-path diff
+        # and then the only annotation on the Actions tab was `Process completed with exit
+        # code 1`. Nothing named the artefact to regenerate, nothing named the domain that
+        # owes it, and nothing said that `fifteen attacks · the matrix is generated from the
+        # run` needs this job and therefore did not run at all. All three are named below.
+        run: |
+          set -euo pipefail
+          log="$RUNNER_TEMP/regen-check.log"
+          if uv run python scripts/custody/regen_reference_ledger.py --check 2>&1 | tee "$log"; then
+            exit 0
+          fi
+
+          uv run python - "$log" <<'PY'
+          import pathlib
+          import re
+          import sys
+
+          ANSI = re.compile(r"\x1b\[[0-9;]*m")
+          text = ANSI.sub("", pathlib.Path(sys.argv[1]).read_text(encoding="utf-8", errors="replace"))
+
+          # The regenerator prints one `$.json.path: a != b` line per divergence. Read them
+          # back rather than restating them: this list describes THIS run.
+          paths = re.findall(r"^\s+(\$\.[^\s:]+):", text, re.MULTILINE)
+          unique = sorted(set(paths))
+
+          # WHICH WAY ROUND IS THE DEFECT? A divergence that includes the canonicaliser's
+          # self-digest is NOT necessarily a stale bundle. spec/custody/canon-registry.yaml
+          # pins canon_v1's source digest with `retained: forever`; if the module has moved
+          # off that pin, the committed bundle is the side that agrees with the normative
+          # registry and regenerating it would launder an unregistered canonicaliser into
+          # already-signed evidence. So the pin is read before any remedy is named.
+          canon_paths = [p for p in unique if "canon" in p.lower()]
+          live = None
+          pinned = None
+          if canon_paths:
+              try:
+                  from trappoint_jcs.canon_v1 import canon_src_sha256
+
+                  live = canon_src_sha256().hex()
+              except Exception as exc:  # any import failure is the same finding
+                  print(
+                      "::error title=the canonicaliser is not importable::NEEDS "
+                      "packages/trappoint-jcs/src/trappoint_jcs/canon_v1.py to import "
+                      f"({exc.__class__.__name__}: {exc}). Owner: custody worker 2, "
+                      "jcs-canonicaliser."
+                  )
+              registry = pathlib.Path("spec/custody/canon-registry.yaml")
+              if registry.exists():
+                  entry = re.search(
+                      r"name:\s*canon_v1\b.*?\n\s*sha256:\s*([0-9a-f]{64})",
+                      registry.read_text(encoding="utf-8", errors="ignore"),
+                      re.DOTALL,
+                  )
+                  if entry:
+                      pinned = entry.group(1)
+
+          drifted = bool(live and pinned and live != pinned)
+
+          if drifted:
+              print(
+                  "::error title=the reference bundle disagrees with a canonicaliser that has "
+                  f"itself drifted::{len(unique)} JSON path(s) differ, {len(canon_paths)} of them "
+                  "carrying the canonicaliser's self-digest. The committed bundle carries "
+                  f"{pinned}, which is what spec/custody/canon-registry.yaml pins canon_v1 at, "
+                  f"with retained: forever. The module now hashes to {live}. The BUNDLE agrees "
+                  "with the normative registry; the MODULE is the deviation. NEEDS "
+                  "packages/trappoint-jcs/src/trappoint_jcs/canon_v1.py restored to its pinned "
+                  "bytes, or shipped as a new registry entry with a new payload_ver. Owner: "
+                  "custody worker 2, jcs-canonicaliser."
+              )
+              print(
+                  "::notice title=what must NOT be done to close this red::regenerating "
+                  "evidence/reference-ledger/ would make this job green by re-signing the "
+                  "bundle against a canonicaliser the registry has never admitted. CU-6 asks "
+                  "whether a stranger can reproduce the fixture; it does not ask for a fixture "
+                  "that matches whatever is on disk today. Fix the module or bump the version. "
+                  "This notice is the EXPLANATION; the error above is the FINDING."
+              )
+          else:
+              print(
+                  "::error title=the committed reference bundle is not what the generator "
+                  f"produces::{len(unique)} JSON path(s) in evidence/reference-ledger/ differ "
+                  "from a fresh run of scripts/custody/regen_reference_ledger.py, and none of "
+                  "them is a canonicaliser digest that has drifted off its registry pin. NEEDS "
+                  "evidence/reference-ledger/bundle.json and evidence/reference-ledger/"
+                  "MANIFEST.sha256 regenerated and committed. Owner: custody worker 10, "
+                  "reference-ledger-and-nemesis (docs/leads/custody.md section 5)."
+              )
+              print(
+                  "::notice title=why this must not be silenced::CU-6. A fixture a stranger "
+                  "cannot regenerate is a screenshot, and a fixture that regenerates "
+                  "differently every time has no 'ordinarily' to appeal to under Evidence Act "
+                  "1995 (Cth) ss.146-147. This notice is the EXPLANATION; the error above is "
+                  "the FINDING."
+              )
+
+          print("")
+          print("REGENERATION DIFF - the committed bundle and a fresh generation disagree at:")
+          for json_path in unique:
+              print(f"  {json_path}")
+          print("")
+          if drifted:
+              print("  root cause: packages/trappoint-jcs/src/trappoint_jcs/canon_v1.py")
+              print(f"              pinned   {pinned}   spec/custody/canon-registry.yaml")
+              print(f"              measured {live}   the module on disk, this run")
+              print("  remedy    : restore the module to its pinned bytes, OR add a new")
+              print("              registry entry with a new payload_ver. Do NOT re-pin the")
+              print("              existing entry and do NOT regenerate the bundle.")
+              print("  owner     : custody worker 2, jcs-canonicaliser -")
+              print("              docs/leads/custody.md section 5, 'the canonicaliser registry")
+              print("              and the vendoring byte-equality guard'.")
+          else:
+              print("  artefact  : evidence/reference-ledger/bundle.json")
+              print("              evidence/reference-ledger/MANIFEST.sha256")
+              print("  regenerate: uv run python scripts/custody/regen_reference_ledger.py")
+              print("  owner     : custody worker 10, reference-ledger-and-nemesis -")
+              print("              docs/leads/custody.md section 5, 'the committed,")
+              print("              byte-deterministic signed reference bundle a stranger")
+              print("              verifies in 30 s'.")
+          print("")
+          print("  COLLATERAL: 'fifteen attacks · the matrix is generated from the run' declares")
+          print("              needs: [reference-bundle] and therefore does NOT run while this")
+          print("              job fails. The fifteen attacks and CUSTODY_ATTACK_MATRIX.md are")
+          print("              UNPROVEN by such a run — not passing, and not failing.")
+          PY
+          exit 1
 
       - name: The bundle carries what the K2 criteria name
         run: |
@@ -176,6 +688,20 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     needs: [reference-bundle]
+    # MEASURED 2026-08-12, run 31596645067: `reference-bundle` failed, so this job was
+    # SKIPPED, so the sixteen-check table — the sharpest honest red in the repository, the
+    # one docs/CI-STATE.md 3.1 describes as naming all seven unimplemented checks, their
+    # artefacts and owner=verify-crypto — did not print at all. The lane's best sentence was
+    # dark, and a skipped job says nothing on a public Actions tab.
+    #
+    # `needs:` is kept for ORDER. `!cancelled()` removes the silence: this job verifies the
+    # COMMITTED bundle, which is exactly the artefact a stranger receives, and whether that
+    # bundle also fails to regenerate is a separate finding reported by a separate job. A
+    # stale bundle is a REASON to run the stranger's verification, not a reason to hide it.
+    # This is not a `continue-on-error` and not an `|| true`: the job still fails, loudly,
+    # and every path out of the verification step below is still non-zero unless the bundle
+    # verifies with nothing failed and nothing unchecked.
+    if: ${{ !cancelled() }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -265,14 +791,85 @@ jobs:
           fi
           echo "summary line: ${summary}"
 
+          # A FAILED check used to end this step with the summary line quoted back — a
+          # reader learned that a number was non-zero and nothing else, and the unchecked
+          # table below never printed because the step had already exited. Both are fixed:
+          # the failure is NAMED out of the same registry the run used, and the step goes on
+          # to report the unchecked checks as well, because a bundle can be both wrong and
+          # under-verified and a reader needs to be told both.
+          failed=0
           if ! printf '%s' "${summary}" | grep -q '| 0 failed |'; then
-            echo "::error title=the reference bundle does not verify::PRINTED ONLY WHEN a \
-            check FAILED — if you are reading this inside a ##[group]Run header it is \
-            source, not output. Summary: ${summary}"
-            exit 1
+            failed=1
+            /tmp/stranger/bin/python - out.txt "${summary}" <<'PY'
+          import re
+          import sys
+
+          from trappoint_verify.checks import spec_for
+
+          ANSI = re.compile(r"\x1b\[[0-9;]*m")
+          with open(sys.argv[1], encoding="utf-8", errors="replace") as handle:
+              lines = ANSI.sub("", handle.read()).splitlines()
+          summary = sys.argv[2]
+
+          failures: list[tuple[int, str, str, list[str]]] = []
+          current: tuple[int, str, str, list[str]] | None = None
+          for line in lines:
+              head = re.match(r"^\s{2}FAIL\s+check\s+(\d+)\s+(\S+)\s*(.*)$", line)
+              if head:
+                  current = (int(head.group(1)), head.group(2), head.group(3).strip(), [])
+                  failures.append(current)
+                  continue
+              detail_line = re.match(r"^\s{8}- (.*)$", line)
+              if current is not None and detail_line:
+                  current[3].append(detail_line.group(1).rstrip())
+              elif line.strip() and not line.startswith(" " * 8):
+                  current = None
+
+          # Anti-vacuity for the explanation itself, the same discipline the unchecked block
+          # uses: a list that disagrees with the run it claims to explain is withheld.
+          printed = re.search(r"\|\s*(\d+) failed", summary)
+          if printed is None or int(printed.group(1)) != len(failures):
+              print(
+                  f"::error title=the failure list does not match the run::the summary line "
+                  f"reads {summary!r} but this step located {len(failures)} FAIL line(s) in the "
+                  f"verifier's report. The per-check explanation is withheld rather than "
+                  f"printed about a different run; the report is above, unedited."
+              )
+              raise SystemExit(0)
+
+          print("")
+          print(f"{len(failures)} check(s) FAILED against the committed bundle:")
+          for check_id, name, headline, detail in failures:
+              spec = spec_for(check_id)
+              print("")
+              print(f"  check {check_id:>2}  {name}")
+              print(f"            headline   {headline}")
+              for line in detail:
+                  print(f"            detail     {line}")
+              print(f"            owner      {spec.owner}")
+              print(f"            proves     {spec.proves}")
+              print(
+                  f"::error title=check {check_id} {name} FAILED against the committed bundle::"
+                  f"{headline}"
+                  + (f" First finding: {detail[0]}" if detail else "")
+                  + f" Owner of the check: {spec.owner}. Subject: "
+                  "evidence/reference-ledger/bundle.json, the artefact a stranger actually "
+                  "receives. This is a FINDING, not an unimplemented check. Which side moved "
+                  "— the bundle or the thing it quotes — is answered by 'Vendored "
+                  "canonicaliser is byte-identical to the shipped one' in this same lane, "
+                  "which reads the normative pin."
+              )
+          print("")
+          print("  A FAILED check is not an unimplemented one. The bundle is present, the")
+          print("  check ran, and the answer was no. That is a different work item from the")
+          print("  NOT CHECKED list below and it is owned by whoever the registry names above.")
+          PY
           fi
 
           if printf '%s' "${summary}" | grep -q '| 0 not checked'; then
+            if [ "${failed}" -ne 0 ]; then
+              exit 1
+            fi
             if [ "${status}" -ne 0 ]; then
               echo "::error title=a clean summary with a non-zero exit::PRINTED ONLY WHEN \
               the summary line reports nothing failed and nothing unchecked and the \
@@ -783,18 +1380,118 @@ jobs:
       # in contemplation of a proceeding. A ledger built to be evidence is not a business
       # record, so this is an admissibility requirement rather than a style guide.
       - name: The exhibit vocabulary leads with the gate
+        # THE CHECK WAS READING PHYSICAL LINES OF A WRAPPED DOCUMENT. Measured 2026-08-12,
+        # run 31596645067. `grep -rniE … | grep -viE …` matched
+        #
+        #   docs/leads/custody.md:315: … **Split-view resistance is
+        #   docs/leads/custody.md:316: not claimed** and a CI grep enforces its absence …
+        #
+        # The document says "Split-view resistance is not claimed", in bold, and the
+        # qualifier landed on the next physical line because the paragraph is hard-wrapped
+        # at 96 columns. A line-oriented reader saw a claim; a human reader sees a
+        # disclaimer. The lane then published, on a public Actions tab, that this
+        # repository claims split-view resistance — the opposite of what the file says.
+        #
+        # THE FIX IS THE UNIT OF READING, NOT THE RULE. The phrase set and the qualifier
+        # set below are the SAME two alternations the grep used, character for character.
+        # What changed is that they are applied to a whitespace-collapsed window around the
+        # match instead of to one physical line, which is how the sentence is read. An
+        # unqualified claim still fails, and now every EXCUSED match is printed too, so the
+        # exemptions can be audited instead of being taken on trust.
+        #
+        # AND THE FINDING IS SEPARATED FROM THE EXPLANATION. The old step emitted its own
+        # rationale as the ##[error], which is why the run log carried the self-referential
+        # sentence "PRINTED ONLY WHEN the phrase appears unqualified …" as though it were
+        # the finding. A check whose documentation is indistinguishable from its finding
+        # cannot be read. The ::error now carries only what was MEASURED — file, line and
+        # the offending text. The ::notice carries why it matters.
         run: |
           set -euo pipefail
-          uv run pytest tests/integration/custody/test_k2_exit.py::test_no_litigation_vocabulary -q
-          if grep -rniE "split[- ]view resistan" README.md docs/ --include="*.md" \
-               | grep -viE "not claim|never claim|is not|MUST NOT|until a genuinely adverse"; then
-            echo "::error title=split-view resistance is claimed::PRINTED ONLY WHEN the \
-            phrase appears unqualified in README.md or docs/ — if you are reading this \
-            inside a ##[group]Run header it is source, not output. Quorum is q=1 over our \
-            own infrastructure, which is not adverse in the legal sense."
+          if ! uv run pytest tests/integration/custody/test_k2_exit.py::test_no_litigation_vocabulary -q \
+               2>&1 | tee "$RUNNER_TEMP/vocabulary-pytest.log"; then
+            echo "::error title=the litigation-vocabulary test failed::tests/integration/custody/test_k2_exit.py::test_no_litigation_vocabulary is red. That test is CU-12's executable form and its output is above. Owner: custody worker 1, custody-spec-and-red (docs/leads/custody.md section 5)."
             exit 1
           fi
-          echo "vocabulary holds"
+
+          python3 - <<'PY'
+          import pathlib
+          import re
+          import sys
+
+          # Identical to the two grep alternations this replaces.
+          PHRASE = re.compile(r"split[-\s]view\s+resistan", re.IGNORECASE)
+          QUALIFIER = re.compile(
+              r"not claim|never claim|is not|must not|until a genuinely adverse", re.IGNORECASE
+          )
+          # A window, not a paragraph: wide enough to reach a qualifier wrapped onto the next
+          # line, narrow enough that an unrelated "is not" three sentences away cannot excuse
+          # a claim. In the case this replaces, the qualifier sits 4 characters past the match.
+          BEFORE, AFTER = 100, 160
+
+          targets = [pathlib.Path("README.md")] + sorted(pathlib.Path("docs").rglob("*.md"))
+
+          findings: list[tuple[str, int, str]] = []
+          excused: list[tuple[str, int, str]] = []
+
+          for path in targets:
+              if not path.is_file():
+                  continue
+              raw = path.read_text(encoding="utf-8", errors="ignore")
+
+              # Collapse runs of whitespace, keeping a map back to the source offset so a
+              # finding can be reported at the line a reader would open.
+              chars: list[str] = []
+              origin: list[int] = []
+              previous_was_space = False
+              for index, char in enumerate(raw):
+                  if char.isspace():
+                      if previous_was_space:
+                          continue
+                      chars.append(" ")
+                      previous_was_space = True
+                  else:
+                      chars.append(char)
+                      previous_was_space = False
+                  origin.append(index)
+              collapsed = "".join(chars)
+
+              for match in PHRASE.finditer(collapsed):
+                  window = collapsed[max(0, match.start() - BEFORE) : match.end() + AFTER]
+                  line_no = raw.count("\n", 0, origin[match.start()]) + 1
+                  (excused if QUALIFIER.search(window) else findings).append(
+                      (str(path).replace("\\", "/"), line_no, window.strip())
+                  )
+
+          print(
+              f"split-view phrase: {len(findings) + len(excused)} occurrence(s) across "
+              f"{len(targets)} file(s) — {len(excused)} qualified, {len(findings)} not"
+          )
+          for name, line_no, window in excused:
+              print(f"  QUALIFIED  {name}:{line_no}")
+              print(f"             …{window}…")
+
+          if not findings:
+              print("vocabulary holds: every occurrence is qualified where a reader would see it")
+              sys.exit(0)
+
+          for name, line_no, window in findings:
+              print(
+                  f"::error file={name},line={line_no},title=split-view resistance is claimed "
+                  f"unqualified::{name}:{line_no} — …{window}… No qualifier "
+                  "(not claim / never claim / is not / MUST NOT / until a genuinely adverse) "
+                  "appears within 100 characters before or 160 after, reading the paragraph "
+                  "as wrapped text."
+              )
+          print(
+              "::notice title=why the phrase is refused::CU-12. Witness quorum is q=1 over our "
+              "own S3 and our own ccloud audit stream, which is NOT adverse in the legal sense, "
+              "and spec/custody/checks.yaml marks check 7 implemented-but-not-adverse. Claiming "
+              "split-view resistance on that footing is an over-claim the deck, the README and "
+              "the video script are all held to. Owner: custody worker 1, custody-spec-and-red. "
+              "This notice is the EXPLANATION; the error(s) above are the FINDING."
+          )
+          sys.exit(1)
+          PY
 
       # The file header claims every cluster this lane touches is a container it started and
       # will delete. The runner is ephemeral, so that was true by accident; here it is true

@@ -23,26 +23,23 @@ Four claims, and the second is the one worth the file:
 
 from __future__ import annotations
 
+# Every import in this module sits at the top of the file, which it can because
+# ``tests/eval/recall/conftest.py`` performs the whole sys.path bootstrap — this
+# directory, then ``ensure_import_paths()`` for the package source — and pytest imports a
+# directory's conftest before any test module in it. This file used to repeat that
+# bootstrap inline and pay six E402s for the privilege; its three sibling modules
+# (``test_g4alpha_gates``, ``test_harness_contracts``, ``test_metrics_properties``)
+# already rely on conftest alone, so the repetition was the anomaly, not the rule.
 import asyncio
 import hashlib
 import json
 import re
-import sys
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 import pytest
-
-_HERE = Path(__file__).resolve().parent
-if str(_HERE) not in sys.path:
-    sys.path.insert(0, str(_HERE))
-
-from corpus_resolution import REPO_ROOT, ensure_import_paths
-
-ensure_import_paths()
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+from corpus_resolution import REPO_ROOT
 
 from trappoint_recall.eval.backend import (
     BLOCKING_CAP_PROBABILISTIC,
@@ -95,11 +92,31 @@ class FakeInvokeClient:
     def __init__(self) -> None:
         self.calls: list[dict[str, Any]] = []
 
+    # N803 is suppressed twice below because this fake exists to satisfy
+    # ``InvokeModelClient``, whose parameter names are botocore's, not ours:
+    # ``TitanEmbedder`` calls ``invoke_model(modelId=..., contentType=..., accept=...)``
+    # by keyword. Renaming them to snake_case here would make the fake un-callable by the
+    # code under test, and the suite would be proving a signature Bedrock never sees.
     def invoke_model(
-        self, *, modelId: str, body: str, contentType: str, accept: str
+        self,
+        *,
+        modelId: str,  # noqa: N803  # boto3 InvokeModel parameter name
+        body: str,
+        contentType: str,  # noqa: N803  # boto3 InvokeModel parameter name
+        accept: str,
     ) -> dict[str, Any]:
         payload = json.loads(body)
-        self.calls.append({"modelId": modelId, "body": payload})
+        # All four wire fields are recorded, not only the two the arithmetic needs. A fake
+        # that discarded ``contentType`` and ``accept`` could not catch a caller that sent
+        # the wrong ones, and the InvokeModel contract is exactly what this suite pins.
+        self.calls.append(
+            {
+                "modelId": modelId,
+                "body": payload,
+                "contentType": contentType,
+                "accept": accept,
+            }
+        )
         seed = sum(ord(char) for char in payload["inputText"]) or 1
         vector = [((seed * (index + 1)) % 97) / 97.0 for index in range(payload["dimensions"])]
         norm = sum(value * value for value in vector) ** 0.5
@@ -558,7 +575,9 @@ class _ThrottleThenAnswer:
 
 
 class _RefuseWithValidationError:
-    def invoke_model(self, **kwargs: Any) -> dict[str, Any]:
+    # The request never reaches arithmetic here, so the wire kwargs are deliberately
+    # unread; the leading underscore says so rather than a suppression saying it.
+    def invoke_model(self, **_kwargs: Any) -> dict[str, Any]:
         error = RuntimeError("bad body")
         error.response = {"Error": {"Code": "ValidationException"}}  # type: ignore[attr-defined]
         raise error

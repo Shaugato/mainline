@@ -80,6 +80,13 @@ incident_finding_line: "150 °C gave ~90 s of warning; 135 °C would have given 
 moc_ref: "MOC-2026-0413"
 moc_delta_badge: "control_delta: weaken"
 moc_diff_line: "135 → 150"
+# MEASURED 2026-08-12, and it does NOT match the seeded data. The demo world that
+# `scripts/deploy/seed_demo.py` writes — the same pair of seed files behind the Cloud
+# database — mints one permit whose external_ref reads `DEMO-PTW-0001`. `WO-88213` is
+# this file's string and belongs to the authored corpus, which has not landed
+# (fixtures/corpus/authored/ is absent). Until it does, a permit view on camera shows
+# DEMO-PTW-0001 and this string is unrealised. Raised to the corpus and demo-seed
+# owners rather than edited here: which of the two moves is not this file's call.
 permit_ref: "WO-88213"
 permit_scope_line: "hot work · P-4104 · Marrindal"
 operator: "Kestrel Resources Pty Ltd"
@@ -112,3 +119,30 @@ forbidden_on_camera:
     reason: >-
       ADR 0002 F5 — the cluster is aws-ap-southeast-1 (Singapore); only Bedrock
       inference is in ap-southeast-2 (Sydney). The card states the split.
+
+  # ── Added 2026-08-12, each one measured on that day ──────────────────────────
+  # These are frames rather than sentences, and each has a counterpart in
+  # docs/submission/MUST-NOT-CLAIM.md. The ban lives here too because the failure
+  # mode is a camera pointed at the wrong window, not a sentence said out loud.
+  - value: "a CloudFront distribution, a CDN, the word 'edge', or a CloudWatch console"
+    reason: >-
+      No distribution exists — the account is under a verification hold and a real
+      apply was refused. The gate-bypass alarms are DECLARED in Terraform and not
+      created, so a CloudWatch window on camera would be some other stack's.
+  - value: "an invariant or custody count read off a document instead of a run"
+    reason: >-
+      The MI ratchet measured 21 pending / 9 enforced on 2026-08-12 and the string
+      '28 of 30' still survives in superseded planning documents. Run
+      scripts/mi_ratchet.py report and film that.
+  - value: "a gate-run verdict that is not the one evidence/deploy/acceptance.json holds today"
+    reason: >-
+      That file read verdict='NOT PROVEN' at 2026-08-12T16:17:12Z. Beat 4 of a
+      gate-run skips silently when the exposure receipt has expired, so a remembered
+      PROVEN is the easiest false frame in the film.
+  - value: "the honesty card while it is built from fixtures"
+    reason: >-
+      card.html prints a full-width NOT FOR CAMERA banner, driven by a marker inside
+      the data, whenever corpus.lock.json is absent. It was absent on 2026-08-12.
+  - value: "a demo or video URL that reads UNRESOLVED in docs/submission/SUBMISSION.json"
+    reason: >-
+      Both fields read UNRESOLVED on 2026-08-12. s25 is filmed last for this reason.

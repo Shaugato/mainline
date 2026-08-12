@@ -1480,67 +1480,227 @@ def unwitnessed(
     ]
 
 
-def describe_unwitnessed(
+# ── The pending ledger ────────────────────────────────────────────────────────────────
+#
+# What `mi-red` used to say about the invariants it holds, and why it was not enough.
+#
+# The old message printed `unwitnessed (14): MI03, MI04, …` — fourteen identifiers and no
+# information — and then the red law's own `REFUSED:` block for the invariants whose tests
+# all pass. MEASURED 2026-08-12 on run 31600802469: 21 invariants are pending, 14 were
+# named as unwitnessed, 5 were named as REFUSED, and **two — MI15 and MI26 — appeared in
+# neither list**. They are pending, they have owning tests, and those tests fail today, so
+# the law holds for them and the old message had no place to say so. A lane that is red on
+# purpose cannot leave part of what it is holding unnamed: a reader then has to take the
+# count on trust, and this repository's whole position is that nobody should have to.
+#
+# So the ledger below names EVERY pending invariant, in one of three positions, and gives
+# each one the two facts a reader needs in order to act: the artefact that is missing, and
+# the band owner who produces it. Nothing in it is written down here — the count comes from
+# the catalogue, the object from `locate_mechanisms` over the real migration tree, the
+# owner from `migrations.allocation.toml`, and the position from the outcomes pytest
+# reported on this run. A hand-listed ledger would be a lie the day an invariant moves.
+
+#: The heading the ledger opens with. A constant because `db-schema.yml` slices the
+#: transcript on it to lift the ledger into the job summary; a restated literal in the
+#: workflow would be a second place for the wording to drift out from under the reader.
+PENDING_LEDGER_HEADING: Final[str] = "PENDING LEDGER"
+
+#: The three positions a pending invariant can occupy under the red law. Only `HELD` is a
+#: violation — it is the entire reason `mi-red` exits 1 — and the other two are the law
+#: holding. Naming all three is what stops "the lane is red" from reading as "everything
+#: below is broken", which is both false and the fastest way to teach a reader to skim.
+PENDING_HELD: Final[str] = "HELD"
+PENDING_RED: Final[str] = "RED"
+PENDING_UNWITNESSED: Final[str] = "UNWITNESSED"
+
+
+@dataclass(frozen=True, slots=True)
+class PendingRow:
+    """One pending invariant: where it stands, what it is missing, who owes it."""
+
+    mi_id: str
+    position: str
+    #: the artefact whose absence is why this invariant is not enforced
+    missing: str
+    #: the band owner of record, from `migrations.allocation.toml`
+    owner: str
+    detail: tuple[str, ...]
+
+
+def _pending_position(witnesses: Witnesses, observed: Mapping[str, str]) -> str:
+    """Where one pending invariant stands, from the outcomes pytest actually reported."""
+    if witnesses.is_unwitnessed:
+        return PENDING_UNWITNESSED
+    if all(outcome in GREEN_OUTCOMES for outcome in observed.values()):
+        return PENDING_HELD
+    return PENDING_RED
+
+
+def _owner_line(inv: Invariant, bands: Sequence[Band]) -> str:
+    """The band owner building this invariant's mechanism, or the truth that none does."""
+    owners = owners_of(inv.owning_migrations, bands)
+    if owners:
+        shown = "; ".join(owners[:3])
+        more = f"; +{len(owners) - 3} more" if len(owners) > 3 else ""
+        return f"{shown}{more} ({len(inv.owning_migrations)} migrations cite it)"
+    if not inv.owning_migrations:
+        return (
+            "nobody — no migration cites it on a `-- MI:` line, so it is unowned as well as "
+            "unenforced. Whoever writes the mechanism claims it by citing it in a header."
+        )
+    return (
+        f"unallocated — {len(inv.owning_migrations)} migrations cite it and not one of them "
+        f"falls inside a band of {ALLOCATION_RELPATH}"
+    )
+
+
+def _missing_artefact(
+    inv: Invariant,
+    found: Sequence[MechanismObject],
+    witnesses: Witnesses,
+    observed: Mapping[str, str],
+    position: str,
+) -> str:
+    """The one artefact whose absence keeps this invariant `pending`, named exactly.
+
+    Order matters and it is not arbitrary. An ABSENT enforcing object outranks a missing
+    test, because a test written against an object the database has never had cannot be
+    the thing that is owed. Only when the mechanism is in the tree does the missing
+    artefact become the witness.
+    """
+    absent = [obj for obj in found if obj.state == OBJECT_ABSENT]
+    if absent:
+        names = ", ".join(f"`{obj.name}`" for obj in absent)
+        return (
+            f"the enforcing object {names} — ABSENT from all {absent[0].searched} migrations "
+            f"under {MIGRATIONS_RELPATH}. Until it is created nothing can raise "
+            f"{'/'.join(inv.sqlstate)}, so no test can witness this invariant and no "
+            f"promotion recorded against one would be true."
+        )
+    if position == PENDING_UNWITNESSED:
+        reserved = ", ".join(witnesses.unresolved)
+        if reserved:
+            return (
+                f"an owning test — the catalogue reserves {reserved} and it is unwritten. The "
+                f"mechanism is in the tree; the witness that would observe it refusing is not."
+            )
+        return (
+            "an owning test AND a selector to address it by — the catalogue reserves nothing "
+            "for this invariant, so there is not even a promise of a witness to write."
+        )
+    if position == PENDING_HELD:
+        return (
+            f"a FAILING owning test — all {len(observed)} of its owning tests pass, so not one "
+            f"of them has been observed to make {'/'.join(inv.sqlstate)} happen. This is the "
+            f"invariant `mi-red` is refusing on; its REFUSED block below names the tests."
+        )
+    failing = sorted(node for node, state in observed.items() if state not in GREEN_OUTCOMES)
+    return (
+        f"the mechanism itself, and its own witness says so: {len(failing)} of "
+        f"{len(observed)} owning tests fail right now (first: {failing[0]}). The red law "
+        f"holds here — nothing is owed but the mechanism these tests are waiting for."
+    )
+
+
+def _pending_detail(
+    inv: Invariant,
+    found: Sequence[MechanismObject],
+    witnesses: Witnesses,
+    observed: Mapping[str, str],
+    position: str,
+) -> tuple[str, ...]:
+    """What a witness would have to observe, and where the tree puts the objects today."""
+    wanted = (
+        f"wanted:   a test observing {'/'.join(inv.sqlstate)} from {inv.mechanism} "
+        f"— {inv.statement}"
+    )
+    lines = [wanted]
+    present = [obj for obj in found if obj.state != OBJECT_ABSENT]
+    if present:
+        first = present[0]
+        where = ", ".join(first.files[:2]) or "—"
+        more = f" +{len(first.files) - 2} more" if len(first.files) > 2 else ""
+        lines.append(f"in tree:  {', '.join(o.name for o in present)} — {where}{more}")
+    elif not found:
+        lines.append(
+            f"in tree:  not locatable by name — §16's mechanism column for {inv.mi_id} names no "
+            f"SQL identifier, so its only locator is the `-- MI:` citation on "
+            f"{len(inv.owning_migrations)} migrations"
+        )
+    if position == PENDING_RED:
+        failing = sorted(node for node, state in observed.items() if state not in GREEN_OUTCOMES)
+        shown = ", ".join(failing[:2])
+        more = f" (+{len(failing) - 2} more)" if len(failing) > 2 else ""
+        lines.append(f"failing:  {shown}{more}")
+    elif position == PENDING_UNWITNESSED and witnesses.unresolved:
+        lines.append(f"reserved: {', '.join(witnesses.unresolved)} (unwritten)")
+    return tuple(lines)
+
+
+def pending_ledger(
     catalogue: Catalogue,
     resolution: Mapping[str, Witnesses],
-    status: str,
+    outcomes: Mapping[str, str],
+    *,
+    objects: Mapping[str, tuple[MechanismObject, ...]] | None = None,
+    bands: Sequence[Band] = (),
+) -> tuple[PendingRow, ...]:
+    """Every pending invariant, its position, the artefact it is missing and its owner.
+
+    One row per pending invariant, always — the ledger is complete by construction, so the
+    count it reports and the rows it prints cannot disagree.
+    """
+    rows: list[PendingRow] = []
+    for inv in catalogue.with_status("pending"):
+        witnesses = resolution[inv.mi_id]
+        observed = outcomes_for(witnesses, outcomes)
+        found = () if objects is None else objects.get(inv.mi_id, ())
+        position = _pending_position(witnesses, observed)
+        rows.append(
+            PendingRow(
+                mi_id=inv.mi_id,
+                position=position,
+                missing=_missing_artefact(inv, found, witnesses, observed, position),
+                owner=_owner_line(inv, bands),
+                detail=_pending_detail(inv, found, witnesses, observed, position),
+            )
+        )
+    return tuple(rows)
+
+
+def pending_ledger_lines(
+    catalogue: Catalogue,
+    resolution: Mapping[str, Witnesses],
+    outcomes: Mapping[str, str],
     *,
     objects: Mapping[str, tuple[MechanismObject, ...]] | None = None,
     bands: Sequence[Band] = (),
 ) -> list[str]:
-    """Say, per invariant, what a witness would have to be and who is building it.
-
-    `unwitnessed (14): MI03, MI04, …` is fourteen identifiers and no information, and it
-    reads — wrongly — as fourteen things nobody is doing. Every one of them has a mechanism
-    named in §16, a selector this catalogue already reserves for it, and a band owner of
-    record. Printing those three turns a list of gaps into a list of assignments.
-    """
-    lines: list[str] = []
-    for mi_id in unwitnessed(catalogue, resolution, status):
-        inv = catalogue.by_id(mi_id)
-        found = () if objects is None else objects.get(mi_id, ())
-        absent = [obj.name for obj in found if obj.state == OBJECT_ABSENT]
-        present = [obj for obj in found if obj.state != OBJECT_ABSENT]
-        lines.append(
-            f"  {mi_id}  wanted: a test observing {'/'.join(inv.sqlstate)} from "
-            f"{inv.mechanism} — {inv.statement}"
-        )
-        if absent and not present:
-            lines.append(
-                f"        in the tree: NOTHING — {', '.join(absent)} is in none of the "
-                f"{found[0].searched} migrations, so such a test would be RED on arrival, "
-                f"which is exactly the state PL-2 wants it written in"
-            )
-        elif absent:
-            lines.append(
-                f"        in the tree: {', '.join(o.name for o in present)} — but "
-                f"{', '.join(absent)} is ABSENT, so the mechanism is only half built"
-            )
-        elif present:
-            first = present[0]
-            where = ", ".join(first.files[:2])
-            more = f" +{len(first.files) - 2} more" if len(first.files) > 2 else ""
-            names = ", ".join(o.name for o in present)
-            lines.append(f"        in the tree: {names} — {where}{more}")
-        reserved = ", ".join(resolution[mi_id].unresolved)
-        lines.append(
-            f"        reserved:    {reserved} (unwritten)"
-            if reserved
-            else "        reserved:    nothing — the catalogue names no test for it at all"
-        )
-        owners = owners_of(inv.owning_migrations, bands)
-        if owners:
-            shown = "; ".join(owners[:3])
-            more = f"; +{len(owners) - 3} more" if len(owners) > 3 else ""
-            lines.append(
-                f"        owned by:    {shown}{more} "
-                f"({len(inv.owning_migrations)} migrations cite it)"
-            )
-        elif not inv.owning_migrations:
-            lines.append(
-                "        owned by:    nobody — no migration cites it on a `-- MI:` line, so "
-                "this one is unowned as well as unwitnessed"
-            )
+    """The ledger as `mi-red` prints it. Every number in the heading is computed here."""
+    rows = pending_ledger(catalogue, resolution, outcomes, objects=objects, bands=bands)
+    enforced = len(catalogue.with_status("enforced"))
+    tally = {
+        position: sum(1 for row in rows if row.position == position)
+        for position in (PENDING_HELD, PENDING_RED, PENDING_UNWITNESSED)
+    }
+    headline = (
+        f"{PENDING_LEDGER_HEADING} — {len(rows)} of {len(catalogue)} MAINLINE invariants are "
+        f"still pending, {enforced} enforced. MEASURED on this run from "
+        f"{CATALOGUE_RELPATH}; no number below is written down anywhere."
+    )
+    tally_line = (
+        f"{tally[PENDING_HELD]} HELD (the red law refuses on these — see REFUSED below) · "
+        f"{tally[PENDING_RED]} RED (an owning test fails; the law holds) · "
+        f"{tally[PENDING_UNWITNESSED]} UNWITNESSED (no owning test resolves at all). "
+        f"Every one is named below with the artefact it is missing and the owner who owes it."
+    )
+    lines = ["", headline, tally_line, ""]
+    for row in rows:
+        lines.append(f"  {row.mi_id}  {row.position}")
+        lines.extend(f"        {line}" for line in row.detail)
+        lines.append(f"        MISSING:  {row.missing}")
+        lines.append(f"        OWNER:    {row.owner}")
+    lines.append("")
     return lines
 
 
@@ -2050,17 +2210,21 @@ def _law_command(args: argparse.Namespace, status: str) -> int:
             print(f"NOTICE: the enforcing objects could not be located — {locator_note}")
         violations = red_violations(catalogue, resolution, collector.outcomes, objects=objects)
     silent = unwitnessed(catalogue, resolution, status)
-    if status == "pending" and silent:
-        print(
-            f"unwitnessed ({len(silent)}): {', '.join(silent)} — pending, with no owning test "
-            f"resolved. Not fatal at S0 (`--require-witness` makes it fatal, intended from K3). "
-            f"Each one below names the refusal a witness must observe, the selector this "
-            f"catalogue already reserves for it, and the band owner building the mechanism."
-        )
-        for line in describe_unwitnessed(
-            catalogue, resolution, status, objects=objects, bands=bands
+    if status == "pending":
+        # The whole ledger, not just the silent part of it. `--require-witness` still keys
+        # off `unwitnessed` alone, because "no owning test at all" is the only one of the
+        # three positions that is a candidate to become fatal at K3; the other two are the
+        # law working. Printing all three changes what the lane SAYS, never what it DOES.
+        for line in pending_ledger_lines(
+            catalogue, resolution, collector.outcomes, objects=objects, bands=bands
         ):
             print(line)
+        if silent:
+            print(
+                f"unwitnessed ({len(silent)}): {', '.join(silent)} — pending, with no owning "
+                f"test resolved. Not fatal at S0 (`--require-witness` makes it fatal, intended "
+                f"from K3)."
+            )
         if args.require_witness:
             violations.extend(f"{mi_id} is pending and no test witnesses it" for mi_id in silent)
     for violation in violations:
@@ -2241,6 +2405,50 @@ def _selftest_locator() -> list[tuple[str, bool]]:
     ]
 
 
+def _selftest_ledger(
+    catalogue: Catalogue, resolution: Mapping[str, Witnesses], node: str
+) -> list[tuple[str, bool]]:
+    """Prove the ledger is COMPLETE, and that completeness is what it is for.
+
+    The defect this ledger was written to repair is an invariant that is pending and
+    appears in no list — neither the unwitnessed roll nor the red law's refusal. So the
+    first check below is the one that matters: one row per pending invariant, every time,
+    with no filter that could quietly drop one.
+    """
+    pending = {inv.mi_id for inv in catalogue.with_status("pending")}
+    held = pending_ledger(catalogue, resolution, {node: PASSED})
+    red = pending_ledger(catalogue, resolution, {node: FAILED})
+    heading = pending_ledger_lines(catalogue, resolution, {node: PASSED})[1]
+    by_id = {row.mi_id: row for row in held}
+    return [
+        (
+            "the ledger has exactly one row per pending invariant, and no others",
+            {row.mi_id for row in held} == pending and len(held) == len(pending),
+        ),
+        (
+            "the ledger's heading counts what it printed, rather than a written-down number",
+            f"{len(pending)} of {len(catalogue)} MAINLINE invariants are still pending" in heading,
+        ),
+        (
+            "a pending invariant whose tests all pass is HELD; the same one is RED when they fail",
+            by_id["MI01"].position == PENDING_HELD
+            and next(r for r in red if r.mi_id == "MI01").position == PENDING_RED,
+        ),
+        (
+            "a pending invariant with no owning test at all is UNWITNESSED",
+            by_id["MI03"].position == PENDING_UNWITNESSED,
+        ),
+        (
+            "every row names a missing artefact and an owner — the two facts a reader acts on",
+            all(row.missing.strip() and row.owner.strip() for row in held),
+        ),
+        (
+            "an invariant no migration cites is reported as unowned, not silently omitted",
+            "nobody" in by_id["MI03"].owner,
+        ),
+    ]
+
+
 def cmd_selftest(_args: argparse.Namespace) -> int:
     """Prove both laws bite, with no repository, no cluster and no pytest."""
     catalogue = _selftest_catalogue({"MI02": "enforced"})
@@ -2340,6 +2548,7 @@ def cmd_selftest(_args: argparse.Namespace) -> int:
             len(red_violations(catalogue, resolution, {node: PASSED}))
             == len(red_violations(catalogue, resolution, {node: PASSED}, objects={})),
         ),
+        *_selftest_ledger(catalogue, resolution, node),
         *_selftest_locator(),
     ]
     failures = [name for name, held in checks if not held]

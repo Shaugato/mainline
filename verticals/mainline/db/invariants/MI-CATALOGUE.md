@@ -14,7 +14,7 @@ the collision with TRAPPOINT's SemVer'd public API: TRAPPOINT keeps `I01-I16`, M
 schema invariants are `MI*`, and the third column maps each `MI` to the `I` it
 instantiates — where it maps to nothing, that is the interesting case and it reads `—`.
 
-**28 pending · 2 enforced · 30 total.**
+**21 pending · 9 enforced · 30 total.**
 
 `pending` does not mean unwritten. It means *no owning test has been observed to pass*,
 and CI **requires** at least one owning test of every pending invariant to be failing
@@ -24,8 +24,8 @@ right now (`mi-red`). Promotion to `enforced` is a pull request; demotion needs 
 
 | # | Invariant | Instantiates | Mechanism | SQLSTATE | Status |
 |---|---|---|---|---|---|
-| **MI01** | Evidentiary tables are append-only | I01 | revoked grants + `BEFORE UPDATE/DELETE` trigger + RESTRICTIVE RLS | `P0001` | pending |
-| **MI02** | A merged permit has zero open blocking checks | I02 | `CHECK gate_closed_when_issued` + counter trigger | `23514` | pending |
+| **MI01** | Evidentiary tables are append-only | I01 | revoked grants + `BEFORE UPDATE/DELETE` trigger + RESTRICTIVE RLS | `P0001` | **enforced** |
+| **MI02** | A merged permit has zero open blocking checks | I02 | `CHECK gate_closed_when_issued` + counter trigger | `23514` | **enforced** |
 | **MI03** | A merged permit has zero un-dispositioned identity residue | I02 | `CHECK identity_conserved_when_issued` | `23514` | pending |
 | **MI04** | A merged permit has zero open fleet conflicts | I02 | `CHECK conflicts_resolved_when_issued` | `23514` | pending |
 | **MI05** | A merged permit cites no clause under an open discordance warrant | I02 | `CHECK no_open_warrant_when_issued` | `23514` | pending |
@@ -34,15 +34,15 @@ right now (`mi-red`). Promotion to `enforced` is a pull request; demotion needs 
 | **MI08** | At most one live disposition per check | — | partial `UNIQUE … WHERE retracted_by IS NULL` | `23505` | pending |
 | **MI09** | At most one merge per subject; no forked history | I04 | `merge_record` PK + `UNIQUE(permit_id, prev_seq)` CAS | `23505` | pending |
 | **MI10** | Only legal state transitions occur | — | FK to `subject_transition` | `23503` | pending |
-| **MI11** | No disposition kind dismisses a fatality-written control | I10 | composite FK to `clearance_legal` | `23503` | pending |
+| **MI11** | No disposition kind dismisses a fatality-written control | I10 | composite FK to `clearance_legal` | `23503` | **enforced** |
 | **MI12** | A disposition exists only for a precursor materialised to that actor | I09 | composite FK to `exposure_line` | `23503` | pending |
 | **MI13** | An inferred blame edge is never `active` | I11 | `CHECK inference_never_blocks` | `23514` | **enforced** |
 | **MI14** | A model-rated severity never arms the gate | I11 | `CHECK model_cannot_arm` | `23514` | **enforced** |
 | **MI15** | Blame ancestry never shrinks (`sev_max`, `blood_size` monotone) | I05 | `BEFORE INSERT` BLOODLINE guard | `P0001` | pending |
-| **MI16** | **Every severity-5 event bonded to the permit's activity node or an ancestor is blocking** | I13 | `CHECK bonded_fatalities_all_blocking` + `fn_bonded_sev5` | `23514` | pending |
+| **MI16** | **Every severity-5 event bonded to the permit's activity node or an ancestor is blocking** | I13 | `CHECK bonded_fatalities_all_blocking` + `fn_bonded_sev5` | `23514` | **enforced** |
 | **MI17** | Recall candidates are exactly partitioned | I13 | `CHECK candidates_conserved` | `23514` | pending |
-| **MI18** | A recall runs only under an anchored, cosigned policy version | I07 | `fn_recall_policy_anchored` | `P0001` | pending |
-| **MI19** | A document cannot be superseded while carrying a control series | I06 | `CHECK no_orphan_controls` | `23514` | pending |
+| **MI18** | A recall runs only under an anchored, cosigned policy version | I07 | `fn_recall_policy_anchored` | `P0001` | **enforced** |
+| **MI19** | A document cannot be superseded while carrying a control series | I06 | `CHECK no_orphan_controls` | `23514` | **enforced** |
 | **MI20** | A weakening below the frontier cites only post-dating non-disposition evidence | I11 | `frontier_evidence` kind `CHECK` + `fn_frontier_guard` | `23514` / `P0001` | pending |
 | **MI21** | An `UNDETERMINED` fixity result never blocks | — | `CHECK undetermined_never_blocks` | `23514` | pending |
 | **MI22** | The gate fails closed on a stale or absent blame projection | I02 | merge-gate trigger | `P0001` | pending |
@@ -51,7 +51,7 @@ right now (`mi-red`). Promotion to `enforced` is a pull request; demotion needs 
 | **MI25** | **`blocking_check.severity` and `.virulence` are projections of the blame closure, never inputs** | I02 | `fn_check_project`, raising on a missing closure | `P0001` | pending |
 | **MI26** | **The blame closure is append-only, generation-dense, and severity-monotone across generations** | I05 | `fn_closure_guard` + append-only trigger + `agent_projector` grant | `P0001` | pending |
 | **MI27** | **A disposition's identity, rank, org and competency are projections of `person`, and a missing person row refuses** | I09 | `fn_disposition_project` | `P0001` | pending |
-| **MI28** | **A bounded window means bounded, not merely present (`disposition`, `carried_disposition`, `mechanism_predicate`)** | I12 | `ttl_enforced`, `bounded` | `23514` | pending |
+| **MI28** | **A bounded window means bounded, not merely present (`disposition`, `carried_disposition`, `mechanism_predicate`)** | I12 | `ttl_enforced`, `bounded` | `23514` | **enforced** |
 | **MI29** | **Emergency overrides escalate against the person across permits, with no ceiling** | I10 | `override_escalates` + `override_ledger` projection | `23514` | pending |
 | **MI30** | **A `change_request` merges only with zero open blocking checks — the repository is a protected branch** | I02 | `CHECK cr_gate_closed_when_merged` | `23514` | pending |
 
@@ -73,9 +73,9 @@ named for an invariant it reasons about has not exercised the mechanism that enf
 
 | # | Status | Owning migrations | Declared owning tests |
 |---|---|---|---|
-| `MI01` | pending | `0001a`, `0003`, `0006a`, `0006b`, `0006g`, `0006h`, `0007a`, `0007b`, `0007c`, `0007d`, `0007e`, `0008a`, `0008b`, `0008c`, `0008d`, `0008e`, `0009a`, `0009c`, `0009e`, `0009f`, `0019`, `0020`, `0020a`, `0024`, `0025`, `0026`, `0027`, `0028`, `0029`, `0030`, `0031`, `0032`, `0047`, `0048`, `0049`, `0049b`, `0049y`, `0049z`, `0057`, `0065b`, `0070`, `0071c`, `0071d`, `0072`, `0073`, `0074`, `0075`, `0076`, `0077`, `0078`, `0084`, `0100`, `0104`, `0105`, `0106`, `0107`, `0108`, `0109`, `0119b`, `0124`, `0125`, `0126`, `0127`, `0128`, `0128a`, `0128b`, `0128c`, `0128d`, `0128e`, `0128f`, `0128g`, `0128h`, `0128i`, `0128j`, `0133`, `0149y`, `0149z`, `0164`, `0180`, `0180a`, `0180b`, `0180c`, `0180d`, `0180e`, `0180f`, `0180g`, `0180h`, `0181h`, `0183h`, `0185g`, `0185h` | `tests/integration/schema/test_mi_foundation.py::test_privilege_probe_refuses_ungranted_writes`<br>`tests/integration/schema/test_mi_triggers.py::test_mi01_*`<br>`tests/integration/schema/test_mi_rls.py::test_mi01_*` |
-| `MI02` | pending | `0006c`, `0009b`, `0050`, `0050a`, `0058`, `0058a`, `0058b`, `0071c`, `0101`, `0103`, `0115`, `0116`, `0119a`, `0121`, `0123`, `0130`, `0156`, `0157`, `0181`, `0181a`, `0181b`, `0181c`, `0181d`, `0181e`, `0181f`, `0181g`, `0185d` | `tests/integration/schema/test_mi_gate.py::test_mi02_*`<br>`tests/integration/schema/test_mi_projection.py::test_mi02_*` |
-| `MI03` | pending | `0028`, `0030`, `0049`, `0049c`, `0050`, `0051`, `0140a`, `0140b`, `0140c`, `0140d`, `0145a`, `0145b`, `0145c`, `0145d`, `0145e`, `0151` | `tests/integration/schema/test_mi_gate.py::test_mi03_*` |
+| `MI01` | **enforced** | `0001a`, `0003`, `0006a`, `0006b`, `0006g`, `0006h`, `0007a`, `0007b`, `0007c`, `0007d`, `0007e`, `0008a`, `0008b`, `0008c`, `0008d`, `0008e`, `0009a`, `0009c`, `0009e`, `0009f`, `0019`, `0020`, `0020a`, `0024`, `0025`, `0026`, `0027`, `0028`, `0029`, `0030`, `0031`, `0032`, `0047`, `0048`, `0049`, `0049b`, `0049y`, `0049z`, `0057`, `0065b`, `0070`, `0071c`, `0071d`, `0072`, `0073`, `0074`, `0075`, `0076`, `0077`, `0078`, `0084`, `0089`, `0089a`, `0100`, `0104`, `0105`, `0106`, `0107`, `0108`, `0109`, `0119b`, `0124`, `0125`, `0126`, `0127`, `0128`, `0128a`, `0128b`, `0128c`, `0128d`, `0128e`, `0128f`, `0128g`, `0128h`, `0128i`, `0128j`, `0133`, `0145f`, `0149a`, `0149b`, `0149y`, `0149z`, `0164`, `0180`, `0180a`, `0180b`, `0180c`, `0180d`, `0180e`, `0180f`, `0180g`, `0180h`, `0181h`, `0183h`, `0185g`, `0185h` | `tests/integration/schema/test_mi_foundation.py::test_privilege_probe_refuses_ungranted_writes`<br>`tests/integration/schema/test_mi_triggers.py::test_mi01_*`<br>`tests/integration/schema/test_mi_rls.py::test_mi01_*` |
+| `MI02` | **enforced** | `0006c`, `0009b`, `0050`, `0050a`, `0058`, `0058a`, `0058b`, `0071c`, `0101`, `0103`, `0115`, `0116`, `0119a`, `0121`, `0123`, `0130`, `0156`, `0157`, `0181`, `0181a`, `0181b`, `0181c`, `0181d`, `0181e`, `0181f`, `0181g`, `0185d` | `tests/integration/schema/test_mi_gate.py::test_mi02_*`<br>`tests/integration/schema/test_mi_projection.py::test_mi02_*` |
+| `MI03` | pending | `0028`, `0030`, `0049`, `0049c`, `0049d`, `0050`, `0051`, `0140a`, `0140b`, `0140c`, `0140d`, `0145a`, `0145b`, `0145c`, `0145d`, `0145e`, `0145f`, `0151` | `tests/integration/schema/test_mi_gate.py::test_mi03_*` |
 | `MI04` | pending | `0050`, `0051` | `tests/integration/schema/test_mi_gate.py::test_mi04_*`<br>`tests/integration/schema/test_mi_periphery.py::test_mi04_*` |
 | `MI05` | pending | `0050`, `0052` | `tests/integration/schema/test_mi_gate.py::test_mi05_*` |
 | `MI06` | pending | `0050`, `0054`, `0055`, `0056`, `0057`, `0115` | `tests/integration/schema/test_mi_boundary_override.py::test_mi06_*`<br>`tests/integration/schema/test_mi_gate.py::test_mi06_*`<br>`tests/integration/schema/test_mi_projection.py::test_mi06_*` |
@@ -83,24 +83,24 @@ named for an invariant it reasons about has not exercised the mechanism that enf
 | `MI08` | pending | `0006f`, `0066a`, `0069`, `0159`, `0185`, `0185a`, `0185b`, `0185c`, `0185d`, `0185e`, `0185f`, `0185g` | `tests/integration/schema/test_mi_disposition.py::test_mi08_*` |
 | `MI09` | pending | `0025`, `0026`, `0059`, `0060`, `0071`, `0105`, `0106`, `0117`, `0118`, `0125`, `0126` | `tests/integration/schema/test_mi_disposition.py::test_mi09_*`<br>`tests/integration/schema/test_mi_periphery.py::test_mi09_*` |
 | `MI10` | pending | `0011`, `0017a`, `0017b`, `0059`, `0060` | `tests/integration/schema/test_mi_foundation.py::test_subject_transition_edges_are_identical_for_both_subjects`<br>`tests/integration/schema/test_mi_gate.py::test_mi10_*` |
-| `MI11` | pending | `0012`, `0018a`, `0018b`, `0064`, `0066`, `0067`, `0069`, `0070`, `0070a`, `0102`, `0119a`, `0122` | `tests/integration/schema/test_mi_foundation.py::test_clearance_lattice_is_complete_apart_from_those_three`<br>`tests/integration/schema/test_mi_boundary_override.py::test_mi11_*`<br>`tests/integration/schema/test_mi_disposition.py::test_mi11_*` |
+| `MI11` | **enforced** | `0012`, `0018a`, `0018b`, `0064`, `0066`, `0067`, `0069`, `0070`, `0070a`, `0102`, `0119a`, `0122` | `tests/integration/schema/test_mi_foundation.py::test_clearance_lattice_is_complete_apart_from_those_three`<br>`tests/integration/schema/test_mi_boundary_override.py::test_mi11_*`<br>`tests/integration/schema/test_mi_disposition.py::test_mi11_*` |
 | `MI12` | pending | `0061`, `0062`, `0063`, `0065`, `0066`, `0159`, `0185f`, `0199` | `tests/integration/schema/test_mi_disposition.py::test_mi12_*` |
 | `MI13` | **enforced** | `0014`, `0035`, `0037` | `tests/integration/schema/test_mi_blame.py::test_mi13_*` |
 | `MI14` | **enforced** | `0029`, `0033`, `0036` | `tests/integration/schema/test_mi_event_severity.py::test_mi14_*`<br>`tests/integration/schema/test_mi_blame.py::test_mi14_*` |
 | `MI15` | pending | `0015`, `0029`, `0034`, `0036`, `0037`, `0108`, `0127`, `0141`, `0146` | `tests/integration/schema/test_mi_clause_version_bloodline.py::test_mi15_*`<br>`tests/integration/schema/test_mi_spine.py::test_mi15_*` |
-| `MI16` | pending | `0032`, `0033`, `0035`, `0040`, `0042`, `0046`, `0081`, `0113`, `0114a`, `0137`, `0138a`, `0160`, `0161` | `tests/integration/schema/test_mi_recall_tables.py::test_mi16_*`<br>`tests/integration/recall_schema/test_unweld.py::test_uw01_mi16_*` |
+| `MI16` | **enforced** | `0032`, `0033`, `0035`, `0040`, `0042`, `0046`, `0081`, `0113`, `0114a`, `0137`, `0138a`, `0160`, `0161` | `tests/integration/schema/test_mi_recall_tables.py::test_mi16_*`<br>`tests/integration/recall_schema/test_unweld.py::test_uw01_mi16_*` |
 | `MI17` | pending | `0002`, `0029a`, `0040`, `0043`, `0044`, `0045`, `0056`, `0081`, `0082`, `0083`, `0084`, `0087`, `0110`, `0139`, `0160`, `0161`, `0199` | `tests/integration/schema/test_mi_periphery.py::test_mi17_*`<br>`tests/integration/schema/test_mi_recall_tables.py::test_mi17_*` |
-| `MI18` | pending | `0075`, `0076`, `0077`, `0080`, `0081`, `0085`, `0086`, `0086a`, `0112`, `0136`, `0161`, `0162` | `tests/integration/schema/test_mi_triggers.py::test_mi18_*`<br>`tests/integration/recall_schema/test_unweld.py::test_uw03_mi18_*` |
-| `MI19` | pending | `0027`, `0047`, `0048` | `tests/integration/schema/test_mi_spine.py::test_mi19_*` |
+| `MI18` | **enforced** | `0075`, `0076`, `0077`, `0080`, `0081`, `0085`, `0086`, `0086a`, `0112`, `0136`, `0161`, `0162` | `tests/integration/schema/test_mi_triggers.py::test_mi18_*`<br>`tests/integration/recall_schema/test_unweld.py::test_uw03_mi18_*` |
+| `MI19` | **enforced** | `0027`, `0047`, `0048` | `tests/integration/schema/test_mi_spine.py::test_mi19_*` |
 | `MI20` | pending | — | `tests/integration/schema/test_mi_periphery.py::test_mi20_*` |
-| `MI21` | pending | `0163` | `tests/integration/schema/test_mi_periphery.py::test_mi21_*` |
-| `MI22` | pending | `0005`, `0038`, `0039`, `0049a`, `0115`, `0116`, `0140`, `0140b`, `0140c`, `0140d`, `0145`, `0145b`, `0145c`, `0145d`, `0150`, `0152`, `0155`, `0155a`, `0163`, `0164`, `0165`, `0166`, `0167`, `0168`, `0181d`, `0181e`, `0181g`, `0183d`, `0183e`, `0183g`, `0198x` | `tests/integration/schema/test_mi_triggers.py::test_mi22_*`<br>`tests/integration/schema/test_mi_projection.py::test_mi22_*` |
+| `MI21` | pending | `0090`, `0163` | `tests/integration/schema/test_mi_periphery.py::test_mi21_*` |
+| `MI22` | pending | `0005`, `0038`, `0039`, `0049a`, `0090`, `0099`, `0099a`, `0115`, `0116`, `0140`, `0140b`, `0140c`, `0140d`, `0145`, `0145b`, `0145c`, `0145d`, `0150`, `0152`, `0155`, `0155a`, `0163`, `0164`, `0165`, `0166`, `0167`, `0168`, `0181d`, `0181e`, `0181g`, `0183d`, `0183e`, `0183g`, `0198x` | `tests/integration/schema/test_mi_triggers.py::test_mi22_*`<br>`tests/integration/schema/test_mi_projection.py::test_mi22_*` |
 | `MI23` | pending | `0010`, `0016` | `tests/integration/schema/test_mi_periphery.py::test_mi23_*` |
 | `MI24` | pending | `0024`, `0059`, `0060`, `0072`, `0072a`, `0073`, `0074`, `0079`, `0105`, `0106`, `0117`, `0119`, `0125`, `0126`, `0162` | `tests/integration/schema/test_mi_periphery.py::test_mi24_*` |
-| `MI25` | pending | `0006e`, `0009x`, `0013`, `0020a`, `0031`, `0038`, `0039`, `0041`, `0042`, `0049c`, `0058`, `0082`, `0088`, `0100`, `0110`, `0114`, `0114a`, `0120`, `0138`, `0138a`, `0139`, `0140a`, `0140b`, `0140c`, `0145a`, `0145b`, `0145c`, `0145e`, `0151`, `0158`, `0159` | `tests/integration/schema/test_mi_projection.py::test_mi25_*`<br>`tests/integration/schema/test_mi_gate.py::test_mi25_*` |
+| `MI25` | pending | `0006e`, `0009x`, `0013`, `0020a`, `0031`, `0038`, `0039`, `0041`, `0042`, `0049c`, `0049d`, `0058`, `0082`, `0088`, `0100`, `0110`, `0114`, `0114a`, `0120`, `0138`, `0138a`, `0139`, `0140a`, `0140b`, `0140c`, `0145a`, `0145b`, `0145c`, `0145e`, `0151`, `0158`, `0159` | `tests/integration/schema/test_mi_projection.py::test_mi25_*`<br>`tests/integration/schema/test_mi_gate.py::test_mi25_*` |
 | `MI26` | pending | `0006d`, `0034`, `0038`, `0039`, `0049c`, `0108`, `0127`, `0140a`, `0145a`, `0145e`, `0151`, `0152`, `0157`, `0158`, `0168` | `tests/integration/schema/test_mi_blame.py::test_mi26_*`<br>`tests/integration/schema/test_mi_projection.py::test_mi26_*` |
 | `MI27` | pending | `0004`, `0006i`, `0009d`, `0021`, `0022`, `0023`, `0066`, `0102`, `0122`, `0170`, `0172` | `tests/integration/schema/test_mi_foundation.py::test_person_is_a_temporal_series_not_a_mutable_row`<br>`tests/integration/schema/test_mi_projection.py::test_mi27_*` |
-| `MI28` | pending | `0065`, `0065a`, `0065b`, `0066`, `0069`, `0070`, `0070a`, `0102`, `0122`, `0171`, `0172`, `0187`, `0187a`, `0187b`, `0187c`, `0187d`, `0187e` | `tests/integration/schema/test_mi_boundary_override.py::test_mi28_*`<br>`tests/integration/schema/test_mi_disposition.py::test_mi28_*`<br>`tests/integration/schema/test_mi_periphery.py::test_mi28_*` |
+| `MI28` | **enforced** | `0065`, `0065a`, `0065b`, `0066`, `0069`, `0070`, `0070a`, `0089b`, `0102`, `0122`, `0171`, `0172`, `0187`, `0187a`, `0187b`, `0187c`, `0187d`, `0187e` | `tests/integration/schema/test_mi_boundary_override.py::test_mi28_*`<br>`tests/integration/schema/test_mi_disposition.py::test_mi28_*`<br>`tests/integration/schema/test_mi_periphery.py::test_mi28_*` |
 | `MI29` | pending | `0066`, `0068`, `0102`, `0103`, `0122`, `0123`, `0156`, `0170` | `tests/integration/schema/test_mi_gate.py::test_mi29_*`<br>`tests/integration/schema/test_mi_projection.py::test_mi29_*` |
 | `MI30` | pending | `0051`, `0053`, `0058`, `0058a`, `0058b`, `0101`, `0103`, `0118`, `0121`, `0123`, `0131`, `0140d`, `0145d`, `0183`, `0183a`, `0183b`, `0183c`, `0183d`, `0183e`, `0183f`, `0183g` | `tests/integration/schema/test_mi_gate.py::test_mi30_*`<br>`tests/integration/schema/test_mi_projection.py::test_mi30_*` |
 

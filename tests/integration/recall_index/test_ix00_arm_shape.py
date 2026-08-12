@@ -85,7 +85,7 @@ def _arm_set(**kwargs) -> ArmSet:
 def test_ix00_level3_chain_four_facets_emits_twelve_arms_plus_the_sweep() -> None:
     arm_set = _arm_set()
     assert len(arm_set.scoped) == 12, (
-        "three archival levels × four populated facets is twelve constrained arms; "
+        "three archival levels x four populated facets is twelve constrained arms; "
         f"got {len(arm_set.scoped)}"
     )
     assert len(arm_set.scoped) <= policy().max_arms

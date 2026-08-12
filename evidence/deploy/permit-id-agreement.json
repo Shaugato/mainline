@@ -1,0 +1,267 @@
+{
+  "SPDX-FileCopyrightText": "2026 MAINLINE contributors",
+  "SPDX-License-Identifier": "CC-BY-4.0",
+  "$schema_note": "Hand-rolled evidence document. Not a contract artefact.",
+  "worker": "w2-permit-id-and-plan",
+  "lead": "submission-finalisation, docs/leads/submission-final-plan2.md §2 (DEFECT B)",
+  "produced_at_utc": "2026-08-12T14:05:03Z",
+  "one_sentence": "The Lambda the committed plan would deploy pointed at a permit that has never existed in mainline_demo; the live database holds exactly one permit, dec0de00-0006-4000-8000-000000000001, its exposure receipt is live until 2027-01-01, the Terraform default has been corrected to that id, and a freshly run plan still says 11 to add, 0 to change, 0 to destroy.",
+
+  "no_apply_was_run": {
+    "statement": "No `terraform apply` was executed by this worker. Only `init`, `validate`, `plan`, `show`, one read-only `aws sts get-caller-identity`, and read-only SQL.",
+    "commands_run_in_order": [
+      "terraform -chdir=infra/envs/demo init -backend=false -no-color",
+      "terraform -chdir=infra/envs/demo validate -no-color",
+      "terraform -chdir=infra/envs/demo plan -no-color -var enable_cloudfront=false -out=tfplan-furl.binary   (FAILED: Backend initialization required, backend type changed from local to s3)",
+      "terraform -chdir=infra/envs/demo init -reconfigure -no-color   (with a temporary local_backend_override.tf, deleted immediately afterwards)",
+      "terraform -chdir=infra/envs/demo validate -no-color",
+      "terraform -chdir=infra/envs/demo plan -no-color -var enable_cloudfront=false -out=tfplan-furl.binary",
+      "terraform -chdir=infra/envs/demo show -no-color -json tfplan-furl.binary"
+    ],
+    "backend": "A throwaway `backend \"local\"` override pointing at a scratch path OUTSIDE the repository, exactly as docs/deploy/terraform-plan.md § 'Why a temporary local backend was used' records for the original run. The state file was never created — state was empty throughout, which is why the plan reads `0 to change, 0 to destroy`. No S3 object was created, read, written or locked. The override file and `tfplan-furl.binary` were deleted; `infra/envs/demo` is back to its committed seven files.",
+    "terraform_version": "1.14.8",
+    "provider": "registry.terraform.io/hashicorp/aws v6.58.0 (from the committed .terraform.lock.hcl)",
+    "aws_profile": "mainline-dev",
+    "aws_account_id": "0229REDACTED8246 (masked as the repository already masks it: first four digits + REDACTED + last four)"
+  },
+
+  "step_1_which_permits_actually_exist": {
+    "why": "The disagreement is settled by the database, not by either file that claims to know. The query was run read-only against the live cluster the demo will serve from.",
+    "target": "mainline-dev-31219.j77.aws-ap-southeast-1.cockroachlabs.cloud:26257/mainline_demo",
+    "cluster": "CockroachDB Cloud `mainline-dev`, SERVERLESS Basic, aws-ap-southeast-1",
+    "connection": "psycopg, autocommit=False, `SET TRANSACTION READ ONLY` as the first statement, `conn.rollback()` at the end. Wrapped in a 40001 RETRY_SERIALIZABLE retry loop (7 attempts, backoff 0.15s x attempt). No password appears in this document or anywhere in this worker's output; the DSN was read from the repo-root .env and never printed.",
+    "retry_loop_attempts": [
+      { "attempt": 1, "sqlstate": "00000", "outcome": "ok" }
+    ],
+    "server_context": {
+      "now": "2026-08-12 14:01:36.670493+00",
+      "current_database": "mainline_demo",
+      "version": "CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)"
+    },
+
+    "query_permits": "SELECT permit_id::string, state::string, open_blocking, head_seq, gate_epoch FROM mainline.permit ORDER BY permit_id",
+    "permit_columns": ["permit_id", "state", "open_blocking", "head_seq", "gate_epoch"],
+    "permit_rows_verbatim": [
+      ["dec0de00-0006-4000-8000-000000000001", "dispositioned", 1, 2, 1]
+    ],
+    "permit_row_count": 1,
+    "permit_finding": "EXACTLY ONE permit exists. It is `dec0de00-0006-4000-8000-000000000001`. There is NO row with `077a6fdd-2167-559c-b2ff-8e3c8352504d` — not a different state, not a soft-deleted row: the table has one row and it is not that one.",
+
+    "query_receipts": "SELECT receipt_id::string, permit_id::string, subject_kind::string, issued_at::string, expires_at::string, (expires_at > now()) AS live FROM mainline.exposure_receipt ORDER BY receipt_id",
+    "receipt_columns": ["receipt_id", "permit_id", "subject_kind", "issued_at", "expires_at", "live"],
+    "receipt_rows_verbatim": [
+      [
+        "dec0de00-0008-4000-8000-000000000001",
+        "dec0de00-0006-4000-8000-000000000001",
+        "permit",
+        "2026-08-02 03:05:00+00",
+        "2027-01-01 00:00:00+00",
+        true
+      ]
+    ],
+    "receipt_finding": "The exposure receipt expires `2027-01-01 00:00:00+00`, which is exactly what `verticals/mainline/db/seeds/demo/demo_permit.sql:226-243` promises and comments as STAGED. `expires_at > now()` evaluates TRUE on the server. `scenario._RECEIPT_SQL` requires a live receipt to resolve `receipt_id`, and `gate_run.py:541` skips beat 4 (the admission) without one. The Cloud demo is therefore NOT exposed to the two-hour-TTL time bomb that plan2 §3 records against the local fixtures. THIS IS NOT A SECOND BLOCKER.",
+
+    "corroboration": [
+      "scripts/deploy/seed_demo.py:104 — PERMIT_ID = \"dec0de00-0006-4000-8000-000000000001\"",
+      "verticals/mainline/db/seeds/demo/demo_permit.sql — inserts that permit and the receipt above",
+      "evidence/deploy/acceptance.json permit_invariant block — read the same id back out of mainline_demo",
+      "evidence/deploy/verify/public-surface-probe.json:1150 — an earlier worker named this exact edit and did not make it",
+      "docs/deploy/JUDGE-PACK.md §6 item 3 — names the disagreement honestly and leaves it open"
+    ],
+    "where_077a6fdd_comes_from": "verticals/mainline/apps/demo-api/src/mainline_demo_api/scenario.py:77 — uuid5(uuid5(NAMESPACE_URL, \"https://mainline.trappoint.org/demo/2026-08\"), \"permit\"). It is a derivation, committed in that module's EXPECTED table as an in-code fallback for a database nobody has told the handler about. Nothing has ever seeded it. It stays where it is; it is simply not what this deployment points at.",
+    "derivation_reproduced": {
+      "command": "python -c \"import uuid; ns=uuid.uuid5(uuid.NAMESPACE_URL,'https://mainline.trappoint.org/demo/2026-08'); print(uuid.uuid5(ns,'permit'))\"",
+      "output": "077a6fdd-2167-559c-b2ff-8e3c8352504d",
+      "conclusion": "The old default reproduces exactly from the derivation and from nothing else. It is arithmetic, not a database row."
+    },
+    "seeded_id_reproduced": {
+      "scripts/deploy/seed_demo.py:104": "PERMIT_ID = \"dec0de00-0006-4000-8000-000000000001\"",
+      "verticals/mainline/db/seeds/demo/demo_permit.sql": "the id appears at lines 90, 105, 120 and onward — the permit row and everything that points at it",
+      "conclusion": "The seeded id is written down in the seeder and in the SQL, and the live database agrees with both."
+    }
+  },
+
+  "step_2_the_four_places_the_id_appears": [
+    {
+      "place": 1,
+      "file_line_before": "infra/modules/demo-api/variables.tf:234",
+      "file_line_after": "infra/modules/demo-api/variables.tf:250",
+      "what": "variable \"scenario_permit_id\" default — THE ONLY EXECUTABLE OCCURRENCE. infra/modules/demo-api/main.tf:131-132 publishes it as both MAINLINE_SCENARIO_PERMIT_ID and MAINLINE_DEMO_PERMIT_ID; infra/envs/demo/main.tf does not override it, so this default IS the deployed value.",
+      "before": "077a6fdd-2167-559c-b2ff-8e3c8352504d",
+      "after": "dec0de00-0006-4000-8000-000000000001",
+      "owner": "w2-permit-id-and-plan",
+      "also_changed": "The variable's `description` heredoc, which asserted the uuid5 value 'is what scripts/deploy/seed_demo.py seeds'. That sentence was false — seed_demo.py:104 seeds the dec0de00 id. The replacement quotes the read-only query and its row."
+    },
+    {
+      "place": 2,
+      "file_line_before": "infra/modules/demo-api/README.md:172",
+      "file_line_after": "infra/modules/demo-api/README.md:172",
+      "what": "The variables table, Default column.",
+      "before": "`077a6fdd-…504d`",
+      "after": "`dec0de00-…0001`",
+      "owner": "w2-permit-id-and-plan"
+    },
+    {
+      "place": 3,
+      "file_line_before": "infra/modules/demo-api/README.md:766-767",
+      "file_line_after": "infra/modules/demo-api/README.md:766-767",
+      "what": "The 'planned function configuration, from terraform show -json' block — a module-default plan run, not the env-root run.",
+      "before": "env MAINLINE_DEMO_PERMIT_ID = 077a6fdd-2167-559c-b2ff-8e3c8352504d / env MAINLINE_SCENARIO_PERMIT_ID = 077a6fdd-2167-559c-b2ff-8e3c8352504d",
+      "after": "env MAINLINE_DEMO_PERMIT_ID = dec0de00-0006-4000-8000-000000000001 / env MAINLINE_SCENARIO_PERMIT_ID = dec0de00-0006-4000-8000-000000000001",
+      "owner": "w2-permit-id-and-plan",
+      "note": "A dated annotation was added below the block saying what the values were, why they moved, and pointing at this file. The block records a measurement, so it says so rather than pretending it always read this way."
+    },
+    {
+      "place": 4,
+      "file_line_before": "evidence/deploy/terraform-plan-furl.txt:308 and :310, and evidence/deploy/terraform-plan-furl.json (2 x 2 occurrences: planned_values and resource_changes)",
+      "file_line_after": "evidence/deploy/terraform-plan-furl.txt:308 and :310 (same lines), evidence/deploy/terraform-plan-furl.json (same four positions)",
+      "what": "The committed plan artefacts — the two env strings the founder read.",
+      "before": "077a6fdd-2167-559c-b2ff-8e3c8352504d",
+      "after": "dec0de00-0006-4000-8000-000000000001",
+      "owner": "w2-permit-id-and-plan",
+      "note": "Not hand-edited. Both files are the verbatim stdout of a freshly run plan/show, masked and CRLF-normalised the same way the committed originals were."
+    },
+    {
+      "place": "5 (checked, no change needed)",
+      "file_line_before": "infra/envs/demo/terraform.tfvars.example",
+      "what": "`grep -in permit infra/envs/demo/terraform.tfvars.example` returns nothing. The example never carried the permit id, so there was nothing to correct. Recorded because the brief named it as a candidate."
+    }
+  ],
+
+  "step_3_plan_regeneration": {
+    "artefacts_rewritten": [
+      "evidence/deploy/terraform-plan-furl.txt",
+      "evidence/deploy/terraform-plan-furl.json"
+    ],
+    "post_processing_applied": "Two rules, the same two the committed originals carry: (1) the live 12-digit account id replaced by `0229REDACTED8246`, applied in the live direction only — the mask was never expanded; (2) LF -> CRLF, the committed convention. Nothing else was added, reordered or removed. The masking rule was verified against the committed files before use: both carry the mask 6 times (txt) and 20 times (json), and the fresh files carry it 6 and 20 times.",
+    "sizes_and_digests": {
+      "terraform-plan-furl.txt": {
+        "before_bytes": 18690, "after_bytes": 18690,
+        "before_lines": 376, "after_lines": 376,
+        "before_sha256": "5756e05552c982632c309d4c215688605591f4a927ade4c7f4d9639d10c757ea",
+        "after_sha256": "73fbe3792db126eca62183cccb194cff2a918fd330077b2e04feec79db1ddd8b"
+      },
+      "terraform-plan-furl.json": {
+        "before_bytes": 128857, "after_bytes": 129809,
+        "before_sha256": "5e0bf21d95123828dfd0149e6dac4490689730576a467250fd196d0d2989f7ad",
+        "after_sha256": "ca04e1329b0554fc38c65b5157de0dd8b139bee858a1ef8d98798bed20e613cd",
+        "why_it_grew_952_bytes": "`terraform show -json` embeds every variable's `description` in `configuration.root_module.module_calls.api.module.variables`. The corrected `scenario_permit_id` description is longer than the one it replaces. No resource attribute changed size."
+      }
+    },
+
+    "text_diff_committed_vs_fresh": {
+      "hunk_count": 3,
+      "hunks": [
+        {
+          "lines": "1-6",
+          "kind": "RUN-TO-RUN NOISE, not an attribute",
+          "detail": "The five concurrent data-source `Reading...` lines are printed in a different interleave. Terraform walks independent data sources in parallel. Same five lines, same five data sources. evidence/deploy/verify/plan-replay-diff.txt §4(a) records the identical phenomenon on an earlier replay."
+        },
+        {
+          "lines": "9",
+          "kind": "RUN-TO-RUN NOISE, not an attribute",
+          "detail": "`module.api[0].data.aws_caller_identity.current: Read complete after 1s` became `after 0s`. A wall-clock duration."
+        },
+        {
+          "lines": "308 and 310",
+          "kind": "THE INTENDED CHANGE",
+          "detail": "MAINLINE_DEMO_PERMIT_ID and MAINLINE_SCENARIO_PERMIT_ID moved from 077a6fdd-2167-559c-b2ff-8e3c8352504d to dec0de00-0006-4000-8000-000000000001. Both ids are 36 characters, so the file is byte-for-byte the same length and the alignment of the surrounding block is unchanged."
+        }
+      ],
+      "verdict": "Every other line of 376 — every resource block, every attribute, every `Changes to Outputs` entry, the `Plan:` line and the trailer — is identical character for character."
+    },
+
+    "json_object_diff_committed_vs_fresh": {
+      "method": "Both files parsed to objects and walked key by key. `relevant_attributes` compared as the unordered set it is (Terraform emits it in randomised map-iteration order): 32 entries each side, SET-EQUAL.",
+      "difference_count": 7,
+      "differences": [
+        { "path": "$.configuration.root_module.module_calls.api.module.variables.scenario_permit_id.default", "before": "077a6fdd-2167-559c-b2ff-8e3c8352504d", "after": "dec0de00-0006-4000-8000-000000000001", "kind": "THE INTENDED CHANGE" },
+        { "path": "$.configuration.root_module.module_calls.api.module.variables.scenario_permit_id.description", "before": "… 'is what scripts/deploy/seed_demo.py seeds' …", "after": "… quotes the read-only query and its one row …", "kind": "THE INTENDED CHANGE (prose that was false)" },
+        { "path": "$.planned_values.root_module.child_modules[0].resources[9].values.environment[0].variables.MAINLINE_DEMO_PERMIT_ID", "before": "077a6fdd-2167-559c-b2ff-8e3c8352504d", "after": "dec0de00-0006-4000-8000-000000000001", "kind": "THE INTENDED CHANGE" },
+        { "path": "$.planned_values.root_module.child_modules[0].resources[9].values.environment[0].variables.MAINLINE_SCENARIO_PERMIT_ID", "before": "077a6fdd-2167-559c-b2ff-8e3c8352504d", "after": "dec0de00-0006-4000-8000-000000000001", "kind": "THE INTENDED CHANGE" },
+        { "path": "$.resource_changes[9].change.after.environment[0].variables.MAINLINE_DEMO_PERMIT_ID", "before": "077a6fdd-2167-559c-b2ff-8e3c8352504d", "after": "dec0de00-0006-4000-8000-000000000001", "kind": "THE INTENDED CHANGE" },
+        { "path": "$.resource_changes[9].change.after.environment[0].variables.MAINLINE_SCENARIO_PERMIT_ID", "before": "077a6fdd-2167-559c-b2ff-8e3c8352504d", "after": "dec0de00-0006-4000-8000-000000000001", "kind": "THE INTENDED CHANGE" },
+        { "path": "$.timestamp", "before": "2026-08-11T05:33:11Z", "after": "2026-08-12T14:05:03Z", "kind": "RUN-TO-RUN NOISE — the plan's own generation instant" }
+      ],
+      "verdict": "Four env-string positions, one variable default, one variable description, one timestamp. ZERO resource attributes moved. `planned_values`, `resource_changes`, `prior_state`, `output_changes`, `checks`, `variables` are otherwise equal object-for-object."
+    },
+
+    "shape_invariants_re_measured_from_the_fresh_plan": {
+      "plan_line": "Plan: 11 to add, 0 to change, 0 to destroy.",
+      "resource_change_count": 11,
+      "actions": ["create"],
+      "types": {
+        "aws_iam_role": 1,
+        "aws_iam_role_policy": 1,
+        "aws_iam_role_policy_attachment": 1,
+        "aws_lambda_function": 1,
+        "aws_lambda_function_url": 1,
+        "aws_cloudwatch_log_group": 1,
+        "aws_cloudwatch_metric_alarm": 4,
+        "aws_cloudwatch_dashboard": 1
+      },
+      "function_url_authorization_type": "NONE",
+      "function_url_invoke_mode": "BUFFERED",
+      "region": "ap-southeast-1",
+      "lambda_runtime": "python3.13",
+      "lambda_architectures": ["arm64"],
+      "lambda_memory_size_mb": 512,
+      "lambda_timeout_s": 15,
+      "lambda_reserved_concurrent_executions": 20,
+      "log_retention_days": 7,
+      "alarms": [
+        "module.api[0].aws_cloudwatch_metric_alarm.concurrency",
+        "module.api[0].aws_cloudwatch_metric_alarm.duration_p99",
+        "module.api[0].aws_cloudwatch_metric_alarm.errors",
+        "module.api[0].aws_cloudwatch_metric_alarm.throttles"
+      ],
+      "dashboards": ["module.api[0].aws_cloudwatch_dashboard.this[0]"],
+      "cloudfront_resources_planned": [],
+      "s3_resources_planned": [],
+      "lambda_environment_as_planned": {
+        "LOG_LEVEL": "INFO",
+        "MAINLINE_DEMO_DATABASE": "mainline_demo",
+        "MAINLINE_DEMO_PERMIT_ID": "dec0de00-0006-4000-8000-000000000001",
+        "MAINLINE_DSN_PARAM": "/mainline/demo/cockroach_dsn",
+        "MAINLINE_SCENARIO_PERMIT_ID": "dec0de00-0006-4000-8000-000000000001",
+        "MAINLINE_WEB_ROOT": "/var/task/web"
+      },
+      "every_invariant_the_brief_pinned_held": true
+    }
+  },
+
+  "findings_outside_this_worker_s_files": [
+    {
+      "finding": "docs/deploy/terraform-plan.md §1 prints SHA-256s and byte counts for the plan artefacts. They were already stale before this run (they describe the pre-masking files; evidence/deploy/verify/plan-replay-diff.txt §5 records that), and this run moves the files again. On disk now: terraform-plan-furl.txt 18690 bytes 73fbe379…dd8b, terraform-plan-furl.json 129809 bytes ca04e132…613cd. The same page's sentence 'Each file is the verbatim stdout+stderr of its command. Nothing was added, reordered or removed' is true only up to the account-id mask and a LF->CRLF conversion.",
+      "severity": "documentation",
+      "owner": "not w2 — docs/deploy/terraform-plan.md belongs to the deploy-docs domain; W5 (JUDGE-PACK) or the orchestrator should re-derive it after the apply decision"
+    },
+    {
+      "finding": "evidence/deploy/terraform-plan-cloudfront.txt:311,313 still carry 077a6fdd-2167-559c-b2ff-8e3c8352504d. That is the enable_cloudfront=true shape, which the account cannot apply (AWS verification hold, 403 on create-distribution) and which the founder is not applying. It is stale but not on the critical path.",
+      "severity": "stale evidence, not a blocker",
+      "owner": "not w2 — not in this worker's file list"
+    },
+    {
+      "finding": "docs/verify/deploy/secrets-and-blast-radius.md:58,60 and docs/verify/deploy/public-surface.md:415 and evidence/deploy/verify/public-surface-probe.json quote the old id as the value the Lambda would carry. public-surface.md:415 records a NO-GO on exactly this ground; that NO-GO is now discharged. Those pages are the deploy-verification domain's.",
+      "severity": "stale prose",
+      "owner": "not w2 — deploy-verification domain / W5"
+    },
+    {
+      "finding": "docs/deploy/JUDGE-PACK.md §6 item 3 names this disagreement as open. It is now closed. W5 owns JUDGE-PACK.md.",
+      "severity": "stale prose",
+      "owner": "W5 (JUDGE-PACK)"
+    },
+    {
+      "finding": "docs/deploy/gate-run-contract.md:217 states permit_id = uuid5(namespace, \"permit\") = 077a6fdd…. As a statement about scenario.py's derivation that is still TRUE; as a statement about which permit the deployed demo drives it is now misleading. Worth one clarifying clause.",
+      "severity": "ambiguous prose",
+      "owner": "not w2"
+    }
+  ],
+
+  "verdict": {
+    "decision": "GO",
+    "sentence_for_the_orchestrator": "GO on Defect B: the live mainline_demo database holds exactly one permit, dec0de00-0006-4000-8000-000000000001 (dispositioned, open_blocking 1, head_seq 2, gate_epoch 1), its exposure receipt dec0de00-0008-4000-8000-000000000001 is live until 2027-01-01 so beat 4 will admit, infra/modules/demo-api/variables.tf now defaults scenario_permit_id to that id, and a freshly run terraform plan against infra/envs/demo regenerates evidence/deploy/terraform-plan-furl.{txt,json} still reading `Plan: 11 to add, 0 to change, 0 to destroy` with authorization_type = NONE, region ap-southeast-1, python3.13/arm64/512MB/15s, 7-day log retention, 4 alarms, 1 dashboard and no CloudFront or S3 resource of any kind — the only differences from the plan the founder approved are the two env strings, the variable default and description behind them, the plan timestamp, and two lines of run-to-run scheduler noise.",
+    "scope_of_this_go": "This GO covers Defect B ONLY — the permit id the apply would deploy with, and the shape of the regenerated plan. It says nothing about Defect A (row_factory, W1), Defect C (receipt TTL in the local fixtures, W3), or W4's acceptance transcript. The lead's overall GO still requires those.",
+    "what_would_have_happened_without_this_change": "The Lambda would have started, connected, and answered `422 demo_history_not_seeded` to every POST /v1/demo/gate-run — `no mainline.permit with permit_id 077a6fdd-2167-559c-b2ff-8e3c8352504d in this database` — which is precisely the response evidence/deploy/verify/public-surface-probe.json:407 already recorded under that environment."
+  }
+}
