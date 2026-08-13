@@ -1,0 +1,807 @@
+{
+  "schema": "mainline.qa.skip-ratchet/1",
+  "SPDX-FileCopyrightText": "2026 MAINLINE contributors",
+  "SPDX-License-Identifier": "CC-BY-4.0",
+  "note": "Every test that skips for want of a cluster is either EXECUTED by a named CI lane, or it is on the `unlanded` list below with a reason and an owner. A cluster-shaped skip that is neither fails the build by node id. Re-derive with `python scripts/qa/skip_ratchet.py --report`; check with a bare invocation.",
+  "generated_utc": "2026-08-13T12:33:09Z",
+  "generated_by": "scripts/qa/skip_ratchet.py --rebaseline",
+  "policy": {
+    "why_a_ratchet_and_not_a_fix": "Measured 2026-08-13 at HEAD 073dfea: the only lane in this repository that runs the whole-repository `testpaths` collection is `ci.yml#hermetic-tests`, it runs it `--crdb=none`, and it reports 988 skips out of 9839 collected. 974 of those 988 name a cluster, a node, a database or a DSN. Giving every one of them a lane is a multi-wave programme across eight domain leads and cannot be done in one commit. Deleting them would be a lie: the assertions are real and the mechanisms they test are real. Marking them `xfail` exits 0 and says nothing. So the fourth option, which is the only honest one and the only one that shrinks by itself: attribute every cluster-shaped skip to the lane that actually runs it, enumerate the remainder with a reason and an owner, publish both counts, and refuse an increase.",
+    "the_rule_that_makes_this_permanent": "Rule (a). A cluster-shaped skip that matches neither a cluster lane's patterns nor an `unlanded` pattern is a HARD FAILURE naming the node id — not a count, not a ceiling, a failure at one. After this file lands, adding a cluster-backed test that no lane executes fails the build. That is the difference between this wave and the three before it, each of which moved defects from INVISIBLE to SKIPPED, which is identical on a dashboard.",
+    "why_a_skip_is_not_a_pass": "`pytest` exits 0 when every test skips. `release-proof.yml:219-320` records that defect being live in this repository and built a control for it. A green tick over 974 skipped cluster tests is a green tick over 974 assertions nobody has ever run, and on the Actions tab that is indistinguishable from 974 that passed.",
+    "how_a_lane_earns_the_right_to_attribute": "A lane attributes a skip only when a `docker run -d … start-single-node` precedes its pytest step IN THE SAME JOB. That is checked as RAW TEXT on every run, so a lane that loses its node stops attributing in the same commit that removes it, rather than silently continuing to cover 187 tests it no longer runs.",
+    "how_the_lane_map_was_derived": "By EXECUTION, not by grep. Each lane's own pytest argv was lifted out of its workflow file as raw text and run with `--collect-only -q`, and the node ids it printed are its reach. The lead's mechanical alternative — checking whether a skipped file's path or any prefix of it appears in a non-comment line of any workflow — returned `968 covered / 19 uncovered`, which is nonsense: `verticals/mainline/apps/demo-api/tests/conftest.py` came back 'covered by eleven workflows' because the substring `verticals` occurs in eleven files. Path-grepping cannot answer this question and must not be tried again.",
+    "nodeid_normalisation": "The collections are run with `--rootdir=.`. pytest names a node id relative to the rootdir it DISCOVERS, and a nested `pyproject.toml` moves that rootdir: `pytest verticals/mainline/apps/demo-api/tests --collect-only -q` names `tests/test_reads.py::…` while the whole-repository run the census takes names `verticals/mainline/apps/demo-api/tests/test_reads.py::…`. Measured on four targets, the collected COUNT is identical with and without `--rootdir=.`; only the prefix moves. Without it the two files could not be compared at all.",
+    "a_short_unlanded_list_is_a_warning_sign": "The honest first version of this list is large. 730 of 974 cluster-shaped skips are on it. If a later commit makes it small in one step, the question to ask is which lane grew to cover them and whether that lane really runs them — not whether the number improved.",
+    "ceilings": "`unlanded_ceiling` and every per-pattern `count`, every per-root `roots` entry, and `totals.skipped` / `totals.cluster_shaped` are CEILINGS. They may fall — `--update` lowers them to what was measured and never raises one. They may rise only through `--rebaseline`, which is a deliberate act that must be argued in the commit message.",
+    "hard_gate_at_zero": "A root absent from `roots` has an implicit ceiling of 0, so the first cluster-shaped skip in a tree that has never had one fails the build there."
+  },
+  "caveats": [
+    "THIS RATCHET IS ONLY AS FRESH AS THE CENSUS IT READS. A bare `python scripts/qa/skip_ratchet.py` reads the COMMITTED `qa/ci-skip-census.json` and runs no pytest — deliberately, so it costs a second in gate zero rather than the 512 s the census itself costs. So a cluster-backed test added AFTER the census was taken is invisible to this checker until the census is re-taken. `scripts/qa/ci_skip_census.py --check` is the guard against that, and it is a separate claim owned by a separate file. The two together are the whole assertion; either alone is half of it.",
+    "MEASURED WHILE SIX WORKERS WROTE TO THE SAME TREE. At 12:33 UTC on 2026-08-13 the collection was 9839; forty minutes later it was 9894, because other workers landed test files. Every ceiling here is what was true of the tree the census names in `census.generated_utc`, and re-taking the census in the same commit that adds a test keeps the number true. A ceiling that has drifted is not evidence of a defect.",
+    "`unlanded` IS NOT A WAIVER. A test on this list is a test nobody has run. The list exists so the number is visible and cannot grow, not so it can be pointed at instead of fixed. 33 of the 730 — `tests/integration/mcp/**` and `tests/integration/steward/**` — are marked as needing a Cloud CREDENTIAL rather than a node, which means a container lane cannot remove them from the list and pretending otherwise would put them somewhere they can never execute.",
+    "A LANE ATTRIBUTES BY ARGV, NOT BY OUTCOME. `lanes[*].patterns` records what a lane's own pytest argv COLLECTS. It does not assert that those tests passed, or even that the lane ran; the lane's colour is the lane's own business and is on its own Actions page. What this file refuses is the state where NO lane would run a test at all."
+  ],
+  "census": {
+    "path": "qa/ci-skip-census.json",
+    "schema": "mainline.qa.ci-skip-census/1",
+    "generated_utc": "2026-08-13T12:04:05Z",
+    "argv": [
+      "python",
+      "-m",
+      "pytest",
+      "--crdb=none",
+      "-m",
+      "not (g4alpha or pl2_red)",
+      "-q",
+      "--durations=10",
+      "-p",
+      "no:cacheprovider",
+      "-o",
+      "junit_family=xunit1",
+      "--junit-xml",
+      "<tmp>\\hermetic.xml"
+    ]
+  },
+  "expansions": {
+    "cluster-tests.yml:${SUITE}": {
+      "value": "verticals/mainline/apps/demo-api/tests",
+      "read_from": ".github/workflows/cluster-tests.yml:80, the job's `env:` block"
+    },
+    "cluster-lane-bites.yml:${SUBSET}": {
+      "value": "verticals/mainline/apps/demo-api/tests/test_credentials.py verticals/mainline/apps/demo-api/tests/test_gate_run.py verticals/mainline/apps/demo-api/tests/test_transitions.py",
+      "read_from": ".github/workflows/cluster-lane-bites.yml:99-102, the job's `env:` block. The three modules the falsifiability 2x2 runs; it is a SUBSET on purpose and attributes nothing that `cluster-tests.yml#demo-api` does not already attribute."
+    },
+    "nightly-differential.yml:${{matrix.selector}}": {
+      "value": "packages/trappoint-model/tests/test_differential.py packages/trappoint-model/tests/test_read_committed.py",
+      "read_from": ".github/workflows/nightly-differential.yml:93-96, `strategy.matrix.include[*].selector`. BOTH arms are listed because the lane runs both, so its reach is their union."
+    }
+  },
+  "totals": {
+    "collected": 9839,
+    "skipped": 988,
+    "cluster_shaped": 974,
+    "other_skips": 14,
+    "deselected": 15
+  },
+  "roots": {
+    "packages/mainline-agentkit": 0,
+    "packages/mainline-boundary": 0,
+    "packages/mainline-mcp": 0,
+    "packages/trappoint-conformance": 187,
+    "packages/trappoint-core": 0,
+    "packages/trappoint-diagnose": 17,
+    "packages/trappoint-jcs": 0,
+    "packages/trappoint-ledger": 0,
+    "packages/trappoint-migrate": 0,
+    "packages/trappoint-model": 11,
+    "packages/trappoint-sql": 0,
+    "packages/trappoint-testkit": 2,
+    "packages/trappoint-verify": 0,
+    "tests/agents": 0,
+    "tests/boundary": 6,
+    "tests/concurrency": 16,
+    "tests/deploy": 0,
+    "tests/e2e": 0,
+    "tests/eval": 0,
+    "tests/integration": 542,
+    "tests/release": 15,
+    "tests/security": 2,
+    "tests/unit": 3,
+    "verticals/mainline/apps/demo-api": 187,
+    "verticals/mainline/packages/mainline-anchor": 0,
+    "verticals/mainline/packages/mainline-custody-patrol": 0,
+    "verticals/mainline/packages/mainline-gate-svc": 0,
+    "verticals/mainline/packages/mainline-sequencer": 0
+  },
+  "lanes": {
+    "boundary.yml#ci-greps": {
+      "cluster": false,
+      "invocations": [
+        {
+          "line": 289,
+          "argv": "run: python -m pytest tests/boundary/test_ci_greps.py -v --no-header -rs",
+          "node_started_at": [],
+          "targets": [
+            "tests/boundary/test_ci_greps.py"
+          ],
+          "narrowed_by_a_filter": false
+        }
+      ],
+      "patterns": [],
+      "reaches": 0,
+      "note": "no `docker run -d … start-single-node` precedes a pytest step in this job, so this lane executes no cluster-backed test and attributes nothing."
+    },
+    "boundary.yml#e1-iam": {
+      "cluster": false,
+      "invocations": [
+        {
+          "line": 161,
+          "argv": "run: python -m pytest tests/boundary/test_e1_iam.py -v --no-header -rs",
+          "node_started_at": [],
+          "targets": [
+            "tests/boundary/test_e1_iam.py"
+          ],
+          "narrowed_by_a_filter": false
+        }
+      ],
+      "patterns": [],
+      "reaches": 0,
+      "note": "no `docker run -d … start-single-node` precedes a pytest step in this job, so this lane executes no cluster-backed test and attributes nothing."
+    },
+    "boundary.yml#e2-network": {
+      "cluster": false,
+      "invocations": [
+        {
+          "line": 200,
+          "argv": "run: python -m pytest tests/boundary/test_e2_network.py -v --no-header -rs",
+          "node_started_at": [],
+          "targets": [
+            "tests/boundary/test_e2_network.py"
+          ],
+          "narrowed_by_a_filter": false
+        }
+      ],
+      "patterns": [],
+      "reaches": 0,
+      "note": "no `docker run -d … start-single-node` precedes a pytest step in this job, so this lane executes no cluster-backed test and attributes nothing."
+    },
+    "boundary.yml#e3-code": {
+      "cluster": false,
+      "invocations": [
+        {
+          "line": 219,
+          "argv": "run: python -m pytest tests/boundary/test_e3_code.py -v --no-header -rs",
+          "node_started_at": [],
+          "targets": [
+            "tests/boundary/test_e3_code.py"
+          ],
+          "narrowed_by_a_filter": false
+        }
+      ],
+      "patterns": [],
+      "reaches": 0,
+      "note": "no `docker run -d … start-single-node` precedes a pytest step in this job, so this lane executes no cluster-backed test and attributes nothing."
+    },
+    "boundary.yml#e4-egress": {
+      "cluster": false,
+      "invocations": [
+        {
+          "line": 249,
+          "argv": "run: python -m pytest tests/boundary/test_e4_egress.py -v --no-header -rs",
+          "node_started_at": [],
+          "targets": [
+            "tests/boundary/test_e4_egress.py"
+          ],
+          "narrowed_by_a_filter": false
+        }
+      ],
+      "patterns": [],
+      "reaches": 0,
+      "note": "no `docker run -d … start-single-node` precedes a pytest step in this job, so this lane executes no cluster-backed test and attributes nothing."
+    },
+    "boundary.yml#fleet-matrix": {
+      "cluster": false,
+      "invocations": [
+        {
+          "line": 274,
+          "argv": "run: python -m pytest tests/boundary/test_fleet_matrix.py -v --no-header -rs",
+          "node_started_at": [],
+          "targets": [
+            "tests/boundary/test_fleet_matrix.py"
+          ],
+          "narrowed_by_a_filter": false
+        }
+      ],
+      "patterns": [],
+      "reaches": 0,
+      "note": "no `docker run -d … start-single-node` precedes a pytest step in this job, so this lane executes no cluster-backed test and attributes nothing."
+    },
+    "boundary.yml#package-unit-tests": {
+      "cluster": false,
+      "invocations": [
+        {
+          "line": 352,
+          "argv": "run: python -m pytest packages/mainline-boundary/tests -q --no-header",
+          "node_started_at": [],
+          "targets": [
+            "packages/mainline-boundary/tests"
+          ],
+          "narrowed_by_a_filter": false
+        }
+      ],
+      "patterns": [],
+      "reaches": 0,
+      "note": "no `docker run -d … start-single-node` precedes a pytest step in this job, so this lane executes no cluster-backed test and attributes nothing."
+    },
+    "ci.yml#hermetic-tests": {
+      "cluster": false,
+      "invocations": [
+        {
+          "line": 471,
+          "argv": "run: uv run --frozen --all-packages pytest --crdb=none --collect-only -q",
+          "node_started_at": [],
+          "targets": [],
+          "narrowed_by_a_filter": false
+        },
+        {
+          "line": 487,
+          "argv": "uv run --frozen --all-packages pytest --crdb=none -m \"${RED_SELECTOR}\" --collect-only -q > handed-off.txt || code=$?",
+          "node_started_at": [],
+          "targets": [],
+          "narrowed_by_a_filter": true
+        },
+        {
+          "line": 522,
+          "argv": "uv run --frozen --all-packages pytest --crdb=none -m \"not (${RED_SELECTOR})\" -q --durations=10",
+          "node_started_at": [],
+          "targets": [],
+          "narrowed_by_a_filter": true
+        }
+      ],
+      "patterns": [],
+      "reaches": 0,
+      "note": "no `docker run -d … start-single-node` precedes a pytest step in this job, so this lane executes no cluster-backed test and attributes nothing."
+    },
+    "ci.yml#red-by-design": {
+      "cluster": false,
+      "invocations": [
+        {
+          "line": 634,
+          "argv": "uv run --frozen --all-packages pytest --crdb=none -m \"${RED_SELECTOR}\" -rA --durations=10 -o junit_family=xunit1 --junitxml=red-by-design.xml || code=$?",
+          "node_started_at": [],
+          "targets": [],
+          "narrowed_by_a_filter": true
+        }
+      ],
+      "patterns": [],
+      "reaches": 0,
+      "note": "no `docker run -d … start-single-node` precedes a pytest step in this job, so this lane executes no cluster-backed test and attributes nothing."
+    },
+    "cluster-lane-bites.yml#falsifiability": {
+      "cluster": true,
+      "invocations": [
+        {
+          "line": 286,
+          "argv": "uv run --frozen --all-packages pytest ${SUBSET} --crdb=reuse -q -p no:cacheprovider --junit-xml=\"${ART}/junit-absent-cluster.xml\"",
+          "node_started_at": [
+            174
+          ],
+          "targets": [
+            "verticals/mainline/apps/demo-api/tests/test_credentials.py",
+            "verticals/mainline/apps/demo-api/tests/test_gate_run.py",
+            "verticals/mainline/apps/demo-api/tests/test_transitions.py"
+          ],
+          "narrowed_by_a_filter": false
+        },
+        {
+          "line": 314,
+          "argv": "uv run --frozen --all-packages pytest ${SUBSET} --crdb=none -q -p no:cacheprovider --junit-xml=\"${ART}/junit-absent-hermetic.xml\"",
+          "node_started_at": [
+            174
+          ],
+          "targets": [
+            "verticals/mainline/apps/demo-api/tests/test_credentials.py",
+            "verticals/mainline/apps/demo-api/tests/test_gate_run.py",
+            "verticals/mainline/apps/demo-api/tests/test_transitions.py"
+          ],
+          "narrowed_by_a_filter": false
+        },
+        {
+          "line": 366,
+          "argv": "uv run --frozen --all-packages pytest ${SUBSET} --crdb=none -q -p no:cacheprovider --junit-xml=\"${ART}/junit-planted-hermetic.xml\"",
+          "node_started_at": [
+            174
+          ],
+          "targets": [
+            "verticals/mainline/apps/demo-api/tests/test_credentials.py",
+            "verticals/mainline/apps/demo-api/tests/test_gate_run.py",
+            "verticals/mainline/apps/demo-api/tests/test_transitions.py"
+          ],
+          "narrowed_by_a_filter": false
+        },
+        {
+          "line": 399,
+          "argv": "uv run --frozen --all-packages pytest ${SUBSET} --crdb=reuse -q -p no:cacheprovider --junit-xml=\"${ART}/junit-planted-cluster.xml\"",
+          "node_started_at": [
+            174
+          ],
+          "targets": [
+            "verticals/mainline/apps/demo-api/tests/test_credentials.py",
+            "verticals/mainline/apps/demo-api/tests/test_gate_run.py",
+            "verticals/mainline/apps/demo-api/tests/test_transitions.py"
+          ],
+          "narrowed_by_a_filter": false
+        },
+        {
+          "line": 521,
+          "argv": "uv run --frozen --all-packages pytest tests/ci/test_demo_seed_is_frozen.py --crdb=none -q -p no:cacheprovider",
+          "node_started_at": [
+            174
+          ],
+          "targets": [
+            "tests/ci/test_demo_seed_is_frozen.py"
+          ],
+          "narrowed_by_a_filter": false
+        },
+        {
+          "line": 570,
+          "argv": "uv run --frozen --all-packages pytest tests/ci/test_demo_seed_is_frozen.py --crdb=none -q -p no:cacheprovider",
+          "node_started_at": [
+            174
+          ],
+          "targets": [
+            "tests/ci/test_demo_seed_is_frozen.py"
+          ],
+          "narrowed_by_a_filter": false
+        }
+      ],
+      "patterns": [
+        "tests/ci/test_demo_seed_is_frozen.py::*",
+        "verticals/mainline/apps/demo-api/tests/test_credentials.py::*",
+        "verticals/mainline/apps/demo-api/tests/test_gate_run.py::*",
+        "verticals/mainline/apps/demo-api/tests/test_transitions.py::*"
+      ],
+      "reaches": 78
+    },
+    "cluster-tests.yml#demo-api": {
+      "cluster": true,
+      "invocations": [
+        {
+          "line": 267,
+          "argv": "uv run --frozen --all-packages pytest \"${SUITE}\" --crdb=none --collect-only -q > collected.txt",
+          "node_started_at": [
+            164
+          ],
+          "targets": [
+            "verticals/mainline/apps/demo-api/tests"
+          ],
+          "narrowed_by_a_filter": false
+        },
+        {
+          "line": 310,
+          "argv": "uv run --frozen --all-packages pytest \"${SUITE}\" --crdb=reuse -q -p no:cacheprovider --junit-xml=\"${report}\"",
+          "node_started_at": [
+            164
+          ],
+          "targets": [
+            "verticals/mainline/apps/demo-api/tests"
+          ],
+          "narrowed_by_a_filter": false
+        }
+      ],
+      "patterns": [
+        "verticals/mainline/apps/demo-api/tests/**"
+      ],
+      "reaches": 497
+    },
+    "custody-chain.yml#algebra-and-verifier": {
+      "cluster": false,
+      "invocations": [
+        {
+          "line": 116,
+          "argv": "run: uv run pytest packages/trappoint-jcs -q",
+          "node_started_at": [],
+          "targets": [
+            "packages/trappoint-jcs"
+          ],
+          "narrowed_by_a_filter": false
+        },
+        {
+          "line": 139,
+          "argv": "if uv run pytest packages/trappoint-ledger -q 2>&1 | tee \"$log\"; then",
+          "node_started_at": [],
+          "targets": [
+            "packages/trappoint-ledger"
+          ],
+          "narrowed_by_a_filter": false
+        },
+        {
+          "line": 440,
+          "argv": "if uv run pytest packages/trappoint-verify -q 2>&1 | tee \"$log\"; then",
+          "node_started_at": [],
+          "targets": [
+            "packages/trappoint-verify"
+          ],
+          "narrowed_by_a_filter": false
+        }
+      ],
+      "patterns": [],
+      "reaches": 0,
+      "note": "no `docker run -d … start-single-node` precedes a pytest step in this job, so this lane executes no cluster-backed test and attributes nothing."
+    },
+    "custody-chain.yml#nemesis": {
+      "cluster": true,
+      "invocations": [
+        {
+          "line": 1293,
+          "argv": "run: uv run pytest tests/integration/custody/nemesis -q",
+          "node_started_at": [
+            1195
+          ],
+          "targets": [
+            "tests/integration/custody/nemesis"
+          ],
+          "narrowed_by_a_filter": false
+        },
+        {
+          "line": 1311,
+          "argv": "run: uv run pytest tests/integration/custody/test_k2_exit.py -q",
+          "node_started_at": [
+            1195
+          ],
+          "targets": [
+            "tests/integration/custody/test_k2_exit.py"
+          ],
+          "narrowed_by_a_filter": false
+        }
+      ],
+      "patterns": [
+        "tests/integration/custody/nemesis/**",
+        "tests/integration/custody/test_k2_exit.py::*"
+      ],
+      "reaches": 17
+    },
+    "custody-chain.yml#policy-and-spec": {
+      "cluster": true,
+      "invocations": [
+        {
+          "line": 1577,
+          "argv": "if ! uv run pytest tests/integration/custody/test_k2_exit.py::test_no_litigation_vocabulary -q 2>&1 | tee \"$RUNNER_TEMP/vocabulary-pytest.log\"; then",
+          "node_started_at": [
+            1396
+          ],
+          "targets": [
+            "tests/integration/custody/test_k2_exit.py::test_no_litigation_vocabulary"
+          ],
+          "narrowed_by_a_filter": false
+        }
+      ],
+      "patterns": [
+        "tests/integration/custody/test_k2_exit.py::test_no_litigation_vocabulary"
+      ],
+      "reaches": 1
+    },
+    "custody-chain.yml#sequencer-concurrency": {
+      "cluster": true,
+      "invocations": [
+        {
+          "line": 1157,
+          "argv": "run: uv run pytest tests/integration/custody/test_ledger_append.py -q",
+          "node_started_at": [
+            1073
+          ],
+          "targets": [
+            "tests/integration/custody/test_ledger_append.py"
+          ],
+          "narrowed_by_a_filter": false
+        }
+      ],
+      "patterns": [
+        "tests/integration/custody/test_ledger_append.py::*"
+      ],
+      "reaches": 11
+    },
+    "db-schema.yml#catalogue": {
+      "cluster": false,
+      "invocations": [
+        {
+          "line": 108,
+          "argv": "uv run --frozen --package trappoint-migrate python -m pytest packages/trappoint-migrate/tests -q --deselect packages/trappoint-migrate/tests/test_cli_offline.py::test_delegated_verb_actually_delegates_when_present",
+          "node_started_at": [],
+          "targets": [
+            "packages/trappoint-migrate/tests"
+          ],
+          "narrowed_by_a_filter": true
+        },
+        {
+          "line": 123,
+          "argv": "uv run --frozen --all-packages python -m pytest packages/trappoint-migrate/tests/test_cli_offline.py::test_delegated_verb_actually_delegates_when_present -q",
+          "node_started_at": [],
+          "targets": [
+            "packages/trappoint-migrate/tests/test_cli_offline.py::test_delegated_verb_actually_delegates_when_present"
+          ],
+          "narrowed_by_a_filter": false
+        }
+      ],
+      "patterns": [],
+      "reaches": 0,
+      "note": "no `docker run -d … start-single-node` precedes a pytest step in this job, so this lane executes no cluster-backed test and attributes nothing."
+    },
+    "mutation-ratchet.yml#ratchet": {
+      "cluster": true,
+      "invocations": [
+        {
+          "line": 385,
+          "argv": "uv run --frozen --package mainline-mutation --with \"pytest-timeout>=2.4\" --with \"PyYAML>=6.0\" python -m pytest tests/e2e/mutation tests/unit/domain/novelty -q",
+          "node_started_at": [
+            316
+          ],
+          "targets": [
+            "tests/e2e/mutation",
+            "tests/unit/domain/novelty"
+          ],
+          "narrowed_by_a_filter": false
+        }
+      ],
+      "patterns": [
+        "tests/e2e/mutation/**",
+        "tests/unit/domain/novelty/**"
+      ],
+      "reaches": 0
+    },
+    "nightly-differential.yml#concurrency-64": {
+      "cluster": true,
+      "invocations": [
+        {
+          "line": 340,
+          "argv": "uv run --frozen --no-sync pytest tests/concurrency/test_single_merge.py tests/concurrency/test_retry_taxonomy_spy.py -p no:randomly -ra -q -s --timeout=3600 | tee concurrency.log",
+          "node_started_at": [
+            259
+          ],
+          "targets": [
+            "tests/concurrency/test_single_merge.py",
+            "tests/concurrency/test_retry_taxonomy_spy.py"
+          ],
+          "narrowed_by_a_filter": false
+        }
+      ],
+      "patterns": [
+        "tests/concurrency/test_retry_taxonomy_spy.py::*",
+        "tests/concurrency/test_single_merge.py::*"
+      ],
+      "reaches": 11
+    },
+    "nightly-differential.yml#differential": {
+      "cluster": true,
+      "invocations": [
+        {
+          "line": 172,
+          "argv": "uv run --frozen --package trappoint-model pytest packages/trappoint-model/tests/test_regression_corpus.py -ra -q",
+          "node_started_at": [
+            124
+          ],
+          "targets": [
+            "packages/trappoint-model/tests/test_regression_corpus.py"
+          ],
+          "narrowed_by_a_filter": false
+        },
+        {
+          "line": 181,
+          "argv": "uv run --frozen --package trappoint-model pytest \"${{ matrix.selector }}\" -p no:randomly -ra -q --timeout=10800 | tee differential.log",
+          "node_started_at": [
+            124
+          ],
+          "targets": [
+            "packages/trappoint-model/tests/test_differential.py",
+            "packages/trappoint-model/tests/test_read_committed.py"
+          ],
+          "narrowed_by_a_filter": false
+        }
+      ],
+      "patterns": [
+        "packages/trappoint-model/tests/test_differential.py::*",
+        "packages/trappoint-model/tests/test_read_committed.py::*",
+        "packages/trappoint-model/tests/test_regression_corpus.py::*"
+      ],
+      "reaches": 11
+    },
+    "release-proof.yml#prove": {
+      "cluster": true,
+      "invocations": [
+        {
+          "line": 289,
+          "argv": "python -m pytest tests/release/test_gate_refusal_proof.py -q --no-header -p no:cacheprovider --crdb=none --junit-xml=\"$report\" > \"$RUNNER_TEMP/bare.log\" 2>&1",
+          "node_started_at": [
+            133
+          ],
+          "targets": [
+            "tests/release/test_gate_refusal_proof.py"
+          ],
+          "narrowed_by_a_filter": false
+        },
+        {
+          "line": 320,
+          "argv": "python -m pytest tests/release/test_gate_refusal_proof.py -q --no-header -p no:cacheprovider --junit-xml=\"$report\"",
+          "node_started_at": [
+            133
+          ],
+          "targets": [
+            "tests/release/test_gate_refusal_proof.py"
+          ],
+          "narrowed_by_a_filter": false
+        }
+      ],
+      "patterns": [
+        "tests/release/test_gate_refusal_proof.py::*"
+      ],
+      "reaches": 0
+    },
+    "schema.yml#coverage-artefacts": {
+      "cluster": false,
+      "invocations": [
+        {
+          "line": 719,
+          "argv": "uv run --package trappoint-conformance pytest packages/trappoint-conformance/tests/test_manifest_totality.py packages/trappoint-conformance/tests/test_taxonomy_totality.py packages/trappoint-conformance/tests/test_raise_sites.py packages/trappoint-conformance/tests/test_anomaly_coverage.py packages/trappoint-conformance/unweld/test_unweld.py::test_restoration_matches_the_migration -q -m \"not db and not schema\"",
+          "node_started_at": [],
+          "targets": [
+            "packages/trappoint-conformance/tests/test_manifest_totality.py",
+            "packages/trappoint-conformance/tests/test_taxonomy_totality.py",
+            "packages/trappoint-conformance/tests/test_raise_sites.py",
+            "packages/trappoint-conformance/tests/test_anomaly_coverage.py",
+            "packages/trappoint-conformance/unweld/test_unweld.py::test_restoration_matches_the_migration"
+          ],
+          "narrowed_by_a_filter": true
+        }
+      ],
+      "patterns": [],
+      "reaches": 0,
+      "note": "no `docker run -d … start-single-node` precedes a pytest step in this job, so this lane executes no cluster-backed test and attributes nothing."
+    },
+    "schema.yml#gate-source": {
+      "cluster": true,
+      "invocations": [
+        {
+          "line": 687,
+          "argv": "uv run --package trappoint-conformance pytest packages/trappoint-conformance/tests/test_gate_source_snapshot.py -q",
+          "node_started_at": [
+            540
+          ],
+          "targets": [
+            "packages/trappoint-conformance/tests/test_gate_source_snapshot.py"
+          ],
+          "narrowed_by_a_filter": false
+        }
+      ],
+      "patterns": [
+        "packages/trappoint-conformance/tests/test_gate_source_snapshot.py::*"
+      ],
+      "reaches": 2
+    },
+    "schema.yml#unweld": {
+      "cluster": true,
+      "invocations": [
+        {
+          "line": 483,
+          "argv": "uv run --package trappoint-conformance pytest packages/trappoint-conformance/unweld -m schema -p no:xdist -p no:randomly -q",
+          "node_started_at": [
+            310
+          ],
+          "targets": [
+            "packages/trappoint-conformance/unweld"
+          ],
+          "narrowed_by_a_filter": true
+        }
+      ],
+      "patterns": [
+        "packages/trappoint-conformance/unweld/test_unweld.py::test_merge_gate_histories_are_at_least_double_welded",
+        "packages/trappoint-conformance/unweld/test_unweld.py::test_no_single_mechanism_unwelds_the_gate",
+        "packages/trappoint-conformance/unweld/test_unweld.py::test_restoration_matches_the_migration",
+        "packages/trappoint-conformance/unweld/test_unweld.py::test_the_surviving_refusal_is_a_different_mechanism"
+      ],
+      "reaches": 4
+    },
+    "supply-chain.yml#gate-svc-has-no-model-sdk": {
+      "cluster": false,
+      "invocations": [
+        {
+          "line": 786,
+          "argv": "uv run --frozen --package mainline-gate-svc pytest verticals/mainline/packages/mainline-gate-svc/tests/test_no_model_in_closure.py -q --no-header",
+          "node_started_at": [],
+          "targets": [
+            "verticals/mainline/packages/mainline-gate-svc/tests/test_no_model_in_closure.py"
+          ],
+          "narrowed_by_a_filter": false
+        }
+      ],
+      "patterns": [],
+      "reaches": 0,
+      "note": "no `docker run -d … start-single-node` precedes a pytest step in this job, so this lane executes no cluster-backed test and attributes nothing."
+    }
+  },
+  "unlanded": [
+    {
+      "pattern": "tests/integration/schema/**",
+      "count": 298,
+      "owner": "docs/leads/datamodel.md",
+      "reason": "`db-schema.yml#ratchet` is the only job in that file that stands a node up, and it runs `packages/trappoint-migrate/tests` — measured, not assumed. Nothing anywhere points a cluster at `tests/integration/schema`, which is where the MI producer and projection suites live. Confirmed by execution: the argv of every one of the eight cluster-bearing jobs was run with `--collect-only` and none of them reaches a node id under this path."
+    },
+    {
+      "pattern": "packages/trappoint-conformance/tests/**",
+      "count": 183,
+      "owner": "docs/leads/kernel.md",
+      "reason": "`schema.yml#unweld` runs `packages/trappoint-conformance/unweld -m schema` (4 node ids) and `schema.yml#gate-source` runs `tests/test_gate_source_snapshot.py` (2). Neither reaches `tests/test_conformance_cases.py`, where 181 of these 183 live. `schema.yml#coverage-artefacts` names four more files but has no node, so it executes none of them."
+    },
+    {
+      "pattern": "tests/integration/algorithms/**",
+      "count": 123,
+      "owner": "docs/leads/algorithms.md",
+      "reason": "No lane names this tree. `mutation-ratchet.yml#ratchet` has a node and runs `tests/e2e/mutation tests/unit/domain/novelty`, which does not reach it."
+    },
+    {
+      "pattern": "tests/integration/mcp/**",
+      "count": 30,
+      "owner": "docs/leads/agents-mcp.md",
+      "reason": "CANNOT BE FIXED BY A CONTAINER. Every reason string here asks for a CockroachDB Cloud credential — a Managed-MCP API key and a cluster id (`MAINLINE_MCP_API_KEY` / `MAINLINE_MCP_CLUSTER_ID`, or `CC_API_KEY` / `CRDB_CLUSTER`) — not for a node. `docker run cockroachdb/cockroach` would unskip none of them. Attributing them to a container lane would put them somewhere they can never execute; `cloud-verify.yml` is the only lane that has ever spoken to CockroachDB Cloud and it is nightly and secret-gated."
+    },
+    {
+      "pattern": "tests/integration/recall_schema/**",
+      "count": 24,
+      "owner": "docs/leads/recall.md",
+      "reason": "No lane names this tree."
+    },
+    {
+      "pattern": "packages/trappoint-diagnose/tests/**",
+      "count": 17,
+      "owner": "docs/leads/kernel.md",
+      "reason": "No lane names this package at all — it appears in no workflow file, with or without a node."
+    },
+    {
+      "pattern": "tests/integration/recall_index/**",
+      "count": 15,
+      "owner": "docs/leads/recall.md",
+      "reason": "No lane names this tree. Several of these need a vector index, which on this platform is used only when hinted (`FROM t@idx`), so a lane for them is a design question and not only a `docker run`."
+    },
+    {
+      "pattern": "tests/integration/recall_lexical/**",
+      "count": 10,
+      "owner": "docs/leads/recall.md",
+      "reason": "No lane names this tree."
+    },
+    {
+      "pattern": "tests/concurrency/recall/**",
+      "count": 7,
+      "owner": "docs/leads/recall.md",
+      "reason": "`nightly-differential.yml#concurrency-64` has a node and runs exactly two files — `tests/concurrency/test_single_merge.py` and `tests/concurrency/test_retry_taxonomy_spy.py`. The `recall/` subdirectory beside them is reached by nothing."
+    },
+    {
+      "pattern": "tests/concurrency/custody/**",
+      "count": 4,
+      "owner": "docs/leads/custody.md",
+      "reason": "Same lane, same gap: `nightly-differential.yml#concurrency-64` names two files and this subdirectory is not one of them."
+    },
+    {
+      "pattern": "tests/integration/cherrypick/**",
+      "count": 4,
+      "owner": "unassigned — no document under docs/leads/ names this tree",
+      "reason": "No lane names it and no lead document claims it. Recorded as unowned rather than assigned to a plausible-looking domain; a wrong owner is worse than a blank one because it stops anybody looking."
+    },
+    {
+      "pattern": "tests/integration/custody/**",
+      "count": 3,
+      "owner": "docs/leads/custody.md",
+      "reason": "`custody-chain.yml` runs four named custody targets against a node — `test_ledger_append.py`, `nemesis/`, `test_k2_exit.py` and one node id inside it — and reaches 26 of this tree's cluster-shaped skips. The remaining 3 are in `test_custodian_attestation.py`, which no lane names."
+    },
+    {
+      "pattern": "tests/integration/fixity/**",
+      "count": 3,
+      "owner": "unassigned — no document under docs/leads/ names this tree",
+      "reason": "No lane names it and no lead document claims it."
+    },
+    {
+      "pattern": "tests/integration/steward/**",
+      "count": 3,
+      "owner": "unassigned — no document under docs/leads/ names this tree",
+      "reason": "CANNOT BE FIXED BY A CONTAINER — like `tests/integration/mcp/**`, these three ask for a CockroachDB Cloud credential or an unattended `ccloud` login, not for a node."
+    },
+    {
+      "pattern": "packages/trappoint-model/tests/**",
+      "count": 3,
+      "owner": "docs/leads/datamodel.md",
+      "reason": "`nightly-differential.yml#differential` has a node and runs `test_regression_corpus.py` plus both matrix arms (`test_differential.py`, `test_read_committed.py`), reaching 8 of this package's 11 cluster-shaped skips. The remaining 3 are in `test_scheduler.py` (2) and `test_refschema.py` (1), which no lane names."
+    },
+    {
+      "pattern": "packages/trappoint-testkit/tests/**",
+      "count": 2,
+      "owner": "docs/leads/ci-runs-cluster-plan.md",
+      "reason": "`test_shared_cluster_contract.py` — the testkit's own assertions about how a shared node is acquired. Nothing runs the testkit against the thing it is a kit for, which is a small irony with a real cost: the contract that decides whether every other suite skips is itself unexecuted."
+    },
+    {
+      "pattern": "tests/unit/recall_taxonomy/**",
+      "count": 1,
+      "owner": "docs/leads/recall.md",
+      "reason": "One DDL-contract assertion under `tests/unit` that needs a live catalogue. No lane names it."
+    }
+  ],
+  "unlanded_ceiling": 730
+}
