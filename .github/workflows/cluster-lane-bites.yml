@@ -85,14 +85,28 @@ jobs:
 
     env:
       CRDB_CONTAINER: mainline-bites-crdb-${{ github.run_id }}-${{ github.run_attempt }}
-      # EVERY ARTEFACT THIS JOB WRITES GOES OUTSIDE THE WORKING TREE, and that is load
-      # bearing rather than tidy. The last thing this job does is assert that
-      # `git status --porcelain` is EMPTY - the strongest available statement that the
-      # plant did not survive, because it catches an untracked leftover as well as a
-      # modified file. Four JUnit reports and a doctored inventory written into the
-      # checkout would each be such a leftover, and the honest response to that assertion
-      # failing must never be to weaken it to `git diff`.
-      ART: ${{ runner.temp }}
+      # `ART` IS DELIBERATELY NOT DECLARED HERE, AND MUST NOT BE MOVED BACK.
+      #
+      # From 2026-08-13 until 2026-08-14 this block carried `ART:` set to an expression
+      # naming `runner.temp` (spelled out here without its delimiters on purpose, so that
+      # no future reader can restore the defect by copying this line). The `runner`
+      # context is NOT available in `jobs.<id>.env` - the available ones there are
+      # `github`, `inputs`, `matrix`, `needs`, `secrets`, `strategy` and `vars`.
+      # GitHub therefore rejected THE WHOLE FILE at parse time, and this lane's only run
+      # (31720234309) created zero jobs, lasted 0 s, and was titled by its file path
+      # rather than by the `name:` key above. That is the one failure mode a red lane
+      # cannot have: a workflow that never starts is on nobody's red list, so the lane
+      # that exists to prove `cluster-tests.yml` can fail spent a day proving nothing
+      # while looking like nothing was wrong.
+      #
+      # `actionlint`, which this repository already runs on every push, named it exactly
+      # - `cluster-lane-bites.yml:95:16, context "runner" is not allowed here` - and the
+      # file was pushed anyway. The control worked; the process around it did not.
+      #
+      # `ART` is now published from the plain environment variable `$RUNNER_TEMP`, which
+      # names the identical directory and needs no expression context, in this job's
+      # FIRST step. The comment explaining what it is for lives there.
+      #
       # The three modules measured green under a cluster on 2026-08-13. Kept as one
       # variable so that every cell of the 2x2 runs the SAME argv modulo `--crdb`; a 2x2
       # whose cells disagree about what they ran is four measurements, not a comparison.
@@ -110,6 +124,38 @@ jobs:
       CLUSTER_FLOOR: "77"
 
     steps:
+      - name: Publish ART, the out-of-tree directory every artefact of this job writes to
+        # EVERY ARTEFACT THIS JOB WRITES GOES OUTSIDE THE WORKING TREE, and that is load
+        # bearing rather than tidy. The last thing this job does is assert that
+        # `git status --porcelain` is EMPTY - the strongest available statement that the
+        # plant did not survive, because it catches an untracked leftover as well as a
+        # modified file. Four JUnit reports and a doctored inventory written into the
+        # checkout would each be such a leftover, and the honest response to that
+        # assertion failing must never be to weaken it to `git diff`, which cannot see an
+        # untracked file at all.
+        #
+        # FIRST step, and through `$GITHUB_ENV`, for two reasons that are not stylistic.
+        # `$GITHUB_ENV` publishes to SUBSEQUENT steps only, so every step that reads
+        # `${ART}` has to come after this one. And `$RUNNER_TEMP` is a plain environment
+        # variable rather than an expression, so it is legal exactly where the
+        # `runner.temp` expression was not, and it names the same directory that
+        # expression would have. Before `checkout`, because it reads nothing from the tree.
+        run: |
+          set -euo pipefail
+          : "${RUNNER_TEMP:?the runner published no temp directory, so this job has nowhere out of the tree to write and every artefact would land in the checkout}"
+          # ANTI-VACUITY, and the only reason this step is more than two lines. If `ART`
+          # ever named a path INSIDE the checkout, the four JUnit reports and the
+          # doctored inventory would become exactly the untracked leftovers the final
+          # assertion hunts for, and this lane would go red at the very last step for a
+          # reason that has nothing to do with the plant - which is how a real proof gets
+          # mistaken for a flaky one and then weakened. Say it here, where it is legible.
+          if [ "${RUNNER_TEMP#"${GITHUB_WORKSPACE}"}" != "${RUNNER_TEMP}" ]; then
+            echo "::error title=the bites lane would write into its own checkout::RUNNER_TEMP (${RUNNER_TEMP}) is inside GITHUB_WORKSPACE (${GITHUB_WORKSPACE}). Every artefact of this job must land outside the tree, because the job's final act is asserting that git status --porcelain is EMPTY, and that assertion is what proves the planted defect did not survive."
+            exit 1
+          fi
+          echo "ART=${RUNNER_TEMP}" >> "$GITHUB_ENV"
+          echo "artefacts: ${RUNNER_TEMP} (outside the checkout at ${GITHUB_WORKSPACE})"
+
       - uses: actions/checkout@v4
 
       # ── CONTRACT B, copied from `db-schema.yml:310-450` as the plan requires. Five
@@ -287,8 +333,15 @@ jobs:
           # arguments. `read -ra` splits it into a quoted array rather than relying on
           # unquoted word-splitting, which shellcheck reads as a defect and which would
           # silently do the wrong thing the day one of those paths acquired a space.
-          read -r -a subset <<< "${SUBSET}"
-          uv run --frozen --all-packages pytest "${subset[@]}" \
+          #
+          # The array is `subset_paths` and NOT `subset`. shellcheck reads a local whose
+          # name is a case-variant of an environment variable it cannot see assigned as a
+          # probable misspelling of it - SC2153, four findings against this file in run
+          # 31720235703 - `actionlint` is a hard gate here and `continue-on-error` is
+          # banned repository-wide, so the lane could not land while it was red. The name
+          # is the fix; the array and its quoting are unchanged.
+          read -r -a subset_paths <<< "${SUBSET}"
+          uv run --frozen --all-packages pytest "${subset_paths[@]}" \
             --crdb=reuse -q -p no:cacheprovider --junit-xml="${ART}/junit-absent-cluster.xml"
           python3 - <<'PY'
           import os, sys, xml.etree.ElementTree as ET
@@ -320,8 +373,15 @@ jobs:
           # arguments. `read -ra` splits it into a quoted array rather than relying on
           # unquoted word-splitting, which shellcheck reads as a defect and which would
           # silently do the wrong thing the day one of those paths acquired a space.
-          read -r -a subset <<< "${SUBSET}"
-          uv run --frozen --all-packages pytest "${subset[@]}" \
+          #
+          # The array is `subset_paths` and NOT `subset`. shellcheck reads a local whose
+          # name is a case-variant of an environment variable it cannot see assigned as a
+          # probable misspelling of it - SC2153, four findings against this file in run
+          # 31720235703 - `actionlint` is a hard gate here and `continue-on-error` is
+          # banned repository-wide, so the lane could not land while it was red. The name
+          # is the fix; the array and its quoting are unchanged.
+          read -r -a subset_paths <<< "${SUBSET}"
+          uv run --frozen --all-packages pytest "${subset_paths[@]}" \
             --crdb=none -q -p no:cacheprovider --junit-xml="${ART}/junit-absent-hermetic.xml"
           python3 - <<'PY'
           import os, pathlib, sys, xml.etree.ElementTree as ET
@@ -377,8 +437,15 @@ jobs:
           # arguments. `read -ra` splits it into a quoted array rather than relying on
           # unquoted word-splitting, which shellcheck reads as a defect and which would
           # silently do the wrong thing the day one of those paths acquired a space.
-          read -r -a subset <<< "${SUBSET}"
-          uv run --frozen --all-packages pytest "${subset[@]}" \
+          #
+          # The array is `subset_paths` and NOT `subset`. shellcheck reads a local whose
+          # name is a case-variant of an environment variable it cannot see assigned as a
+          # probable misspelling of it - SC2153, four findings against this file in run
+          # 31720235703 - `actionlint` is a hard gate here and `continue-on-error` is
+          # banned repository-wide, so the lane could not land while it was red. The name
+          # is the fix; the array and its quoting are unchanged.
+          read -r -a subset_paths <<< "${SUBSET}"
+          uv run --frozen --all-packages pytest "${subset_paths[@]}" \
             --crdb=none -q -p no:cacheprovider --junit-xml="${ART}/junit-planted-hermetic.xml"
           python3 - <<'PY'
           import os, pathlib, sys, xml.etree.ElementTree as ET
@@ -415,8 +482,15 @@ jobs:
           # arguments. `read -ra` splits it into a quoted array rather than relying on
           # unquoted word-splitting, which shellcheck reads as a defect and which would
           # silently do the wrong thing the day one of those paths acquired a space.
-          read -r -a subset <<< "${SUBSET}"
-          uv run --frozen --all-packages pytest "${subset[@]}" \
+          #
+          # The array is `subset_paths` and NOT `subset`. shellcheck reads a local whose
+          # name is a case-variant of an environment variable it cannot see assigned as a
+          # probable misspelling of it - SC2153, four findings against this file in run
+          # 31720235703 - `actionlint` is a hard gate here and `continue-on-error` is
+          # banned repository-wide, so the lane could not land while it was red. The name
+          # is the fix; the array and its quoting are unchanged.
+          read -r -a subset_paths <<< "${SUBSET}"
+          uv run --frozen --all-packages pytest "${subset_paths[@]}" \
             --crdb=reuse -q -p no:cacheprovider --junit-xml="${ART}/junit-planted-cluster.xml"
           rc=$?
           set -e
