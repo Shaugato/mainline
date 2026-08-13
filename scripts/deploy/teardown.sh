@@ -28,8 +28,9 @@
 # ORDER MATTERS, and it is this:
 #
 #   0  inventory                   what carries our prefix, and what does not
-#   1  terraform destroy           the Lambda, the Function URL, the role, the alarms,
-#                                  and the distribution + bucket if they ever existed
+#   1  terraform destroy           the Lambda, the Function URL, the execution role, the
+#                                  log group, the four alarms, the dashboard, and the
+#                                  distribution + bucket if they ever existed
 #   2  site bucket                 emptied of every version and delete marker, then gone
 #   3  SSM parameter               the DSN SecureString
 #   4  Cloud database + logins     DROP DATABASE mainline_demo CASCADE, then the users
@@ -38,6 +39,31 @@
 # Step 5 is last for a reason a first draft gets wrong: deleting the state bucket before
 # `terraform destroy` leaves every AWS resource alive and unmanaged, and the only way
 # back is to import them by hand.
+#
+# ── WHAT "COMPLETE" MEANS HERE ────────────────────────────────────────────────────────
+#
+# An apply creates SEVEN classes of resource. Deleting them is step 1's job. PROVING they
+# are gone is the verify block's, and it re-reads all seven from AWS rather than trusting
+# that the deletions returned success:
+#
+#     s3 buckets        mainline-demo-*                                  account-wide
+#     iam role          mainline-demo-api-exec                           account-wide
+#     lambda functions  mainline-demo-*                                  $REGION
+#     log group         /aws/lambda/mainline-demo-api                    $REGION
+#     alarms x4         mainline-demo-api-{errors,throttles,             $REGION
+#                                          duration-p99,concurrency}
+#     dashboard         mainline-demo-api                                $REGION
+#     ssm parameter     /mainline/demo/cockroach_dsn                     $REGION
+#
+# It used to read three of those seven and then print "nothing this project created
+# remains in account <id>". THE ORPHAN COST OF THE OTHER FOUR IS USD 0.00 — `terraform
+# destroy` really does delete all seven — so that was never a leak, and must not be sold
+# as one. It was a completeness claim with 43 % of its own subject unmeasured, which in a
+# repository whose whole argument is that its claims are checkable is the worse of the
+# two. The four checks make the sentence true rather than lucky, and they catch the two
+# ways it could genuinely be false: a `terraform destroy` that partially failed, and a
+# resource created outside Terraform — not hypothetical, since Lambda creates its own log
+# group on first invocation if Terraform has not.
 #
 # UNDER DECISION D1 there is normally no site bucket and no distribution at all — the
 # console and the evidence bundle are served out of the Lambda package. Steps 1 and 2
@@ -121,6 +147,46 @@ export PYTHONUTF8=1
 winpath() {
   if command -v cygpath >/dev/null 2>&1; then cygpath -m "$1"; else printf '%s' "$1"; fi
 }
+
+# ── the same problem as winpath, pointing the other way ───────────────────────────────
+#
+# Also found by running this for real. Git Bash rewrites any argument that LOOKS like an
+# absolute POSIX path before the native executable ever sees it. Measured on this machine,
+# with a native python.exe standing in for the native aws.exe:
+#
+#   $ python.exe -c 'import sys;[print(repr(a)) for a in sys.argv[1:]]' \
+#         /mainline/demo/cockroach_dsn /aws/lambda/mainline-demo mainline-demo
+#   'C:/Program Files/Git/mainline/demo/cockroach_dsn'
+#   'C:/Program Files/Git/aws/lambda/mainline-demo'
+#   'mainline-demo'
+#
+# `winpath` exists because one argument MUST arrive in Windows form. This exists because
+# two others must arrive UNCHANGED: they are not paths at all — one is an SSM parameter
+# name, the other a CloudWatch log group name. Both begin with `/`, and that is the whole
+# of what the rewriting looks at.
+#
+# Left alone, one of the two fails loudly and the other fails SILENTLY:
+#
+#   logs describe-log-groups --log-group-name-prefix /aws/lambda/mainline-demo
+#     -> InvalidParameterException: Member must satisfy [\.\-_/#A-Za-z0-9]+
+#        (the mangled value contains a colon and a space). Loud: aws_query would die.
+#
+#   ssm get-parameter --name /mainline/demo/cockroach_dsn
+#     -> ParameterNotFound, WHICH IS ALSO THE ANSWER WHEN THE PARAMETER IS SIMPLY GONE.
+#
+# The second is the dangerous one, and it is dangerous in this script's own idiom: step 3
+# tests exactly that call, so it would skip the delete and leave the DSN SecureString in
+# place, and the verify block would then print `[ok] /mainline/demo/cockroach_dsn is gone`
+# about a secret it never managed to look at. That is a green tick standing on a call that
+# never reached AWS — the identical failure `aws_query` was written to make impossible for
+# list calls. The defect is latent today only because no /mainline/* parameter exists in
+# this account, so both spellings answer ParameterNotFound; it bites the first time there
+# is something to delete.
+#
+# MSYS_NO_PATHCONV=1 turns the rewriting off. It is a Git-for-Windows variable and an
+# inert exported string on Linux and macOS. Nothing here wants the conversion: the one
+# argument that must be Windows-form goes through `winpath`, which is explicit about it.
+export MSYS_NO_PATHCONV=1
 
 step()  { printf '\n%s== %s%s\n' "$BOLD" "$1" "$RESET"; }
 info()  { printf '   %s\n' "$*"; }
@@ -312,6 +378,79 @@ $CF
 EOF
 else
   ok "no CloudFront distribution is visible to this identity"
+fi
+
+# ── the four classes this inventory used to leave out ─────────────────────────────────
+#
+# An apply creates seven classes; step 0 listed three, so an operator reading a --dry-run
+# before typing --yes was shown less than half of what the run would touch.
+#
+# These four are listed in ONE direction only, unlike the buckets and Lambdas above, and
+# the asymmetry is deliberate rather than an omission. This script deletes buckets BY
+# DISCOVERY, so for those it has to show you the whole account and draw the line through
+# it. It never deletes a role, a log group, an alarm or a dashboard by discovery — step 1
+# destroys exactly what Terraform holds in state, and these listings exist to CHECK that.
+# There is no blast radius here to draw a line through, so nothing is claimed about one.
+#
+# SCOPE IS NOT UNIFORM ACROSS THE SEVEN, and averaging over it is precisely how a closing
+# sentence ends up broader than its evidence:
+#
+#   IAM is GLOBAL. Measured on this account: `iam list-roles --query 'length(Roles)'`
+#     returns 15 under --region ap-southeast-1 and 15 under --region ap-southeast-2 — the
+#     same roles both times. `--region` is accepted and ignored, so this listing is
+#     account-wide whatever --region was passed, and it says "account-wide" for that
+#     reason and not as a figure of speech.
+#
+#   Log groups, alarms and dashboards are read through the REGIONAL CloudWatch endpoint,
+#     so they are listed for $REGION — which is where the provider in infra/envs/demo
+#     creates them and therefore where a survivor would be. Whether the DASHBOARD
+#     namespace is itself account-global could not be settled from here: this account
+#     holds zero dashboards in ap-southeast-1, ap-southeast-2 and us-east-1, so the
+#     question has no observable answer on it today. Nothing depends on which way it
+#     falls — a global store would still answer a $REGION call — so this reports what it
+#     looked at and claims nothing about regions it did not.
+aws_query "iam list-roles" iam list-roles \
+  --query "Roles[?starts_with(RoleName, '${NAME_PREFIX}-')].RoleName"
+OUR_ROLES="$QUERY_OUT"
+if [ -n "$OUR_ROLES" ]; then
+  for r in $OUR_ROLES; do info "ours    iam role $r  (account-wide)"; done
+else
+  ok "no IAM role carries the '${NAME_PREFIX}-' prefix (account-wide)"
+fi
+
+aws_query "logs describe-log-groups" logs describe-log-groups \
+  --log-group-name-prefix "/aws/lambda/${NAME_PREFIX}" --query 'logGroups[].logGroupName'
+OUR_LOG_GROUPS="$QUERY_OUT"
+if [ -n "$OUR_LOG_GROUPS" ]; then
+  for g in $OUR_LOG_GROUPS; do info "ours    log group $g"; done
+else
+  ok "no /aws/lambda/${NAME_PREFIX}* log group exists in $REGION"
+fi
+
+# Composite alarms are read as well as metric ones. The module creates only metric alarms,
+# but "nothing this project created remains" must not quietly narrow to "no metric alarm
+# remains" — and a composite alarm is exactly the sort of thing added by hand later.
+# describe-alarms always returns BOTH keys (measured against this account, which has
+# neither: `{"MetricAlarms": [], "CompositeAlarms": []}`), so this flatten cannot produce
+# the list-containing-null that step 2's comment warns about — there is no absent key for
+# it to flatten into a null.
+aws_query "cloudwatch describe-alarms" cloudwatch describe-alarms \
+  --alarm-name-prefix "${NAME_PREFIX}-" \
+  --query '[MetricAlarms[].AlarmName, CompositeAlarms[].AlarmName][]'
+OUR_ALARMS="$QUERY_OUT"
+if [ -n "$OUR_ALARMS" ]; then
+  for a in $OUR_ALARMS; do info "ours    alarm $a"; done
+else
+  ok "no ${NAME_PREFIX}-* CloudWatch alarm exists in $REGION"
+fi
+
+aws_query "cloudwatch list-dashboards" cloudwatch list-dashboards \
+  --dashboard-name-prefix "${NAME_PREFIX}-" --query 'DashboardEntries[].DashboardName'
+OUR_DASHBOARDS="$QUERY_OUT"
+if [ -n "$OUR_DASHBOARDS" ]; then
+  for d in $OUR_DASHBOARDS; do info "ours    dashboard $d"; done
+else
+  ok "no ${NAME_PREFIX}-* CloudWatch dashboard exists in $REGION"
 fi
 
 # ══════════════════════════════════════════════════════════════════════════════════════
@@ -586,27 +725,48 @@ fi
 # ══════════════════════════════════════════════════════════════════════════════════════
 step "verify"
 if [ "$DRY_RUN" -eq 1 ]; then
+  # All SEVEN classes are counted, because this total is what the "nothing to delete"
+  # sentence below rests on. Counting three of seven and then saying ZERO would be the
+  # same defect as the closing sentence's, one screen earlier.
   TOTAL_OURS=0
-  for b in $OURS;        do TOTAL_OURS=$((TOTAL_OURS + 1)); done
-  for f in $OUR_LAMBDAS; do TOTAL_OURS=$((TOTAL_OURS + 1)); done
-  for p in $OUR_PARAMS;  do TOTAL_OURS=$((TOTAL_OURS + 1)); done
+  for b in $OURS;           do TOTAL_OURS=$((TOTAL_OURS + 1)); done
+  for f in $OUR_LAMBDAS;    do TOTAL_OURS=$((TOTAL_OURS + 1)); done
+  for p in $OUR_PARAMS;     do TOTAL_OURS=$((TOTAL_OURS + 1)); done
+  for r in $OUR_ROLES;      do TOTAL_OURS=$((TOTAL_OURS + 1)); done
+  for g in $OUR_LOG_GROUPS; do TOTAL_OURS=$((TOTAL_OURS + 1)); done
+  for a in $OUR_ALARMS;     do TOTAL_OURS=$((TOTAL_OURS + 1)); done
+  for d in $OUR_DASHBOARDS; do TOTAL_OURS=$((TOTAL_OURS + 1)); done
   info "dry run — nothing was deleted, so there is nothing to verify."
   if [ "$TOTAL_OURS" -eq 0 ]; then
-    ok "and there was nothing to delete: ZERO resources in account $ACCOUNT carry the"
-    ok "'${NAME_PREFIX}-' prefix or live under /mainline/. The last teardown was clean."
+    ok "and there was nothing to delete: ZERO resources across all seven classes this"
+    ok "project creates — buckets, IAM role, Lambda functions, log group, alarms,"
+    ok "dashboard, SSM parameter. Buckets and the role were read account-wide; the other"
+    ok "five in $REGION. The last teardown was clean."
   else
-    info "$TOTAL_OURS resource(s) carry the '${NAME_PREFIX}-' prefix and are listed above."
+    info "$TOTAL_OURS resource(s), across the seven classes this project creates, are"
+    info "listed above. Every one of them is re-read after deletion by the verify block."
   fi
   exit 0
 fi
 RESIDUE=0
-# These two go through aws_query for the reason given at its definition: "verified clean"
-# must never be the result of a call that failed.
+# Every listing here goes through aws_query for the reason given at its definition:
+# "verified clean" must never be the result of a call that failed.
 aws_query "s3api list-buckets (verify)" s3api list-buckets --query "Buckets[?starts_with(Name, '${NAME_PREFIX}')].Name"
-LEFT="$QUERY_OUT"
-if [ -n "$LEFT" ] && [ "$KEEP_STATE" -eq 0 ]; then
+# --keep-state keeps EXACTLY ONE bucket, and it keeps it BY NAME. It was previously read
+# as a licence to forgive every surviving bucket at once, so a site bucket that outlived
+# step 2 would have been waved through by a flag that has nothing to say about it. The
+# state bucket is excused by name; anything else with our prefix is still residue.
+LEFT=""; STATE_KEPT=0
+for b in $QUERY_OUT; do
+  if [ "$KEEP_STATE" -eq 1 ] && [ "$b" = "$STATE_BUCKET" ]; then STATE_KEPT=1; continue; fi
+  LEFT="$LEFT $b"
+done
+LEFT="${LEFT# }"
+if [ -n "$LEFT" ]; then
   printf '   %s[NO]%s buckets still present: %s\n' "$BOLD" "$RESET" "$LEFT" >&2
   RESIDUE=1
+elif [ "$STATE_KEPT" -eq 1 ]; then
+  ok "no ${NAME_PREFIX}* buckets remain except s3://$STATE_BUCKET, kept by --keep-state"
 else
   ok "no ${NAME_PREFIX}* buckets remain"
 fi
@@ -625,9 +785,86 @@ else
   ok "no ${NAME_PREFIX}* lambda function remains in $REGION"
 fi
 
+# ── classes 4 to 7: the ones the closing sentence used to assert without reading ──────
+#
+# Same shape as the three above, same aws_query, same RESIDUE convention, and for the same
+# reason: an unreadable account must not be reported as an empty one. Scope per class is
+# as established in step 0's inventory — IAM account-wide, the rest in $REGION.
+#
+# ONE ROLE CHECK COVERS THREE OF THE ELEVEN PLANNED RESOURCES. `aws_iam_role_policy`
+# (mainline-demo-api-dsn-read) is an INLINE policy on this role, and
+# `aws_iam_role_policy_attachment` (AWSLambdaBasicExecutionRole) is an attachment to it.
+# Neither can outlive the role: IAM refuses to delete a role that still carries either, so
+# a role that is gone is proof that both went with it. Nothing separate to re-read, and
+# nothing assumed — this is IAM's own constraint, not an inference about Terraform.
+aws_query "iam list-roles (verify)" iam list-roles \
+  --query "Roles[?starts_with(RoleName, '${NAME_PREFIX}')].RoleName"
+LEFT_ROLES="$QUERY_OUT"
+if [ -n "$LEFT_ROLES" ]; then
+  printf '   %s[NO]%s iam roles still present: %s\n' "$BOLD" "$RESET" "$LEFT_ROLES" >&2
+  RESIDUE=1
+else
+  ok "no ${NAME_PREFIX}* iam role remains (account-wide; IAM is global)"
+fi
+
+# Lambda creates /aws/lambda/<function> itself on first invocation if Terraform has not,
+# so this is the one of the four most likely to survive a destroy Terraform thinks
+# succeeded — the log group need never have been in state to exist.
+aws_query "logs describe-log-groups (verify)" logs describe-log-groups \
+  --log-group-name-prefix "/aws/lambda/${NAME_PREFIX}" --query 'logGroups[].logGroupName'
+LEFT_LOGS="$QUERY_OUT"
+if [ -n "$LEFT_LOGS" ]; then
+  printf '   %s[NO]%s log groups still present: %s\n' "$BOLD" "$RESET" "$LEFT_LOGS" >&2
+  RESIDUE=1
+else
+  ok "no /aws/lambda/${NAME_PREFIX}* log group remains in $REGION"
+fi
+
+aws_query "cloudwatch describe-alarms (verify)" cloudwatch describe-alarms \
+  --alarm-name-prefix "${NAME_PREFIX}" \
+  --query '[MetricAlarms[].AlarmName, CompositeAlarms[].AlarmName][]'
+LEFT_ALARMS="$QUERY_OUT"
+if [ -n "$LEFT_ALARMS" ]; then
+  printf '   %s[NO]%s cloudwatch alarms still present: %s\n' "$BOLD" "$RESET" "$LEFT_ALARMS" >&2
+  RESIDUE=1
+else
+  ok "no ${NAME_PREFIX}* cloudwatch alarm remains in $REGION (metric or composite)"
+fi
+
+aws_query "cloudwatch list-dashboards (verify)" cloudwatch list-dashboards \
+  --dashboard-name-prefix "${NAME_PREFIX}" --query 'DashboardEntries[].DashboardName'
+LEFT_DASH="$QUERY_OUT"
+if [ -n "$LEFT_DASH" ]; then
+  printf '   %s[NO]%s cloudwatch dashboards still present: %s\n' "$BOLD" "$RESET" "$LEFT_DASH" >&2
+  RESIDUE=1
+else
+  ok "no ${NAME_PREFIX}* cloudwatch dashboard remains in $REGION"
+fi
+
 printf '\n'
 if [ "$RESIDUE" -ne 0 ]; then
   die "teardown finished with residue, listed above. Nothing here is destructive to run
    twice — re-run it, or delete the named resources by hand." 1
 fi
-ok "teardown complete — nothing this project created remains in account $ACCOUNT"
+
+# ── the closing sentence, and exactly what stands behind it ───────────────────────────
+#
+# Seven classes were re-read above, so the sentence names seven and names the scope each
+# was read at. It does not say "nothing this project created remains" full stop, because
+# no set of API calls can support that: what it can support is these classes, at these
+# scopes, in this account and this region — so that is what it says.
+ok "teardown complete — of the seven resource classes this project creates, none remains:"
+ok "  no ${NAME_PREFIX}* s3 bucket and no ${NAME_PREFIX}* iam role anywhere in account $ACCOUNT,"
+ok "  and no ${NAME_PREFIX}* lambda function, log group, alarm or dashboard, and no"
+ok "  $DSN_PARAM, in $REGION. Each re-read from AWS after deletion, not inferred."
+# Two flags deliberately leave something behind. A closing tick that did not mention them
+# would be back to being broader than its evidence, one flag later.
+if [ "$STATE_KEPT" -eq 1 ]; then
+  info "EXCEPT s3://$STATE_BUCKET, which --keep-state kept on purpose. It is a bucket this"
+  info "project created and it is still there; delete it, or re-run without --keep-state."
+fi
+if [ "$KEEP_DB" -eq 1 ]; then
+  info "--keep-db was passed, so the CockroachDB Cloud database $DEMO_DATABASE and the"
+  info "logins $API_USER / $JUDGE_USER are UNTOUCHED and still cost whatever they cost."
+  info "They are not in AWS account $ACCOUNT, so nothing above looked for them."
+fi
