@@ -35,7 +35,14 @@
 # EXITS WITH IT when it is non-zero, whatever the inventory says about the node ids
 # involved. It also refuses a run whose JUnit XML records failures while its caller
 # claims pytest exited 0 — which is the one rewiring that would let a fully-inventoried
-# red run present as green. Both properties are exercised by controls; see that file.
+# red run present as green. Both properties are exercised by controls — and the controls
+# are in `tests/ci/test_cluster_lane_report.py`, not in the report itself. The pointer is
+# part of the claim: this sentence read "see that file" until 2026-08-14, when a search
+# established that `cluster_lane_report.py` was named by two workflows and three documents
+# and by NO test at all. Each control there demonstrates its property by MUTATION — the
+# real program and a copy with that one property removed are run through the same
+# scenario, and the control asserts the real one is safe AND the mutant is not — so a
+# control that has quietly stopped discriminating goes red rather than passing.
 #
 # NO `harden-runner` ON THIS JOB, and the omission is deliberate and stated rather than
 # silent, exactly as `db.yml:362-368` states it. This job's first act is `docker pull`,
@@ -264,8 +271,33 @@ jobs:
         # run is a wall of noise; here it is one legible failure with a number.
         run: |
           set -euo pipefail
+          # `set +e` brackets ONLY the pytest call, and only so that a non-zero status can
+          # be EXPLAINED before it is obeyed. This is the identical idiom the next step in
+          # this file already uses for `--pytest-rc`, and it is DIAGNOSIS, NOT TOLERANCE:
+          # the step still exits with pytest's own status, `set -e` is restored before
+          # anything is decided, and nothing is suppressed. It must not be turned into
+          # tolerance — no `continue-on-error`, no `|| true`, no defaulted `rc`.
+          #
+          # WHY IT IS HERE, measured rather than imagined. Run 31720235677 at HEAD e944407
+          # died on this step with `Process completed with exit code 2` AND NO OTHER TEXT
+          # WHATSOEVER. Under `set -e` the shell aborts ON the pytest line, so the `tail`
+          # further down — the only thing in the step that would have said why — was
+          # unreachable. Meanwhile pytest had written the whole collection error to stdout,
+          # which the redirect had faithfully captured into `collected.txt`, and the abort
+          # then threw the file away unread. The lane was RIGHT to fail and left nobody
+          # able to say what it had found, which is a second defect sitting on top of the
+          # first one: an assertion whose red cannot be acted on is only half a control.
+          set +e
           uv run --frozen --all-packages pytest "${SUITE}" \
             --crdb=none --collect-only -q > collected.txt
+          rc=$?
+          set -e
+          if [ "${rc}" -ne 0 ]; then
+            echo "pytest --collect-only exited ${rc}; its own account of why follows."
+            tail -n 40 collected.txt
+            echo "::error title=the demo-api suite did not collect::pytest exited ${rc} while collecting ${SUITE}; the text above is pytest's own diagnosis, not this lane's guess. A collection error here is a real defect in the checked-out tree — most often a module the committed tests import that was itself left uncommitted — and it is answered by landing what is missing. It is never answered by lowering COLLECTED_FLOOR, by -k, by --deselect, or by stubbing the import."
+            exit "${rc}"
+          fi
           # `grep -c` exits 1 on no matches, and shell-level error suppression is banned
           # in this directory. `ci.yml` solves the same problem the same way — with the
           # guard rather than the suppression — so a broken collection, which also
