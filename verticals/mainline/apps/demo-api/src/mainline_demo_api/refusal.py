@@ -47,6 +47,30 @@ already drifted. A raise inside the caller's transaction would abort it, so the 
 wrapped in its own ``SAVEPOINT``. That is what makes this module usable from
 :mod:`mainline_demo_api.gate_run`, which must keep one transaction alive across four
 beats.
+
+EVERY STATEMENT DECLARES ITS OWN ROW SHAPE
+------------------------------------------
+All five statements this module issues go through :func:`mainline_demo_api.scenario.positional`,
+which sets ``row_factory=tuple_row`` on the CURSOR and leaves the connection's own factory
+untouched. This is not decoration. :func:`mainline_demo_api.db.connection` opens every
+production connection with ``psycopg.rows.dict_row`` — the convention :mod:`reads` and
+:mod:`health` are written to — and ``_EXPLAIN_SQL`` returns one column that CockroachDB
+v26.2.5 names ``explain_refusal``, after the function, because the projection is a bare
+call with no alias. Under ``dict_row`` the row is therefore a one-key ``dict`` and the
+positional read of it was ``KeyError: 0`` — reached by ``gate_run._record_refusal`` on
+beats 2 and 3 of every gate run and by ``transitions._refused`` on every kernel refusal,
+so no path through the demo avoided it. It is recorded verbatim in
+``evidence/deploy/rowfactory-defect.json``.
+
+The remedy is the row's single VALUE, obtained from a cursor that was told what shape to
+produce, rather than an index into whatever shape the connection happened to carry. The
+``SAVEPOINT`` / ``ROLLBACK TO`` / ``RELEASE`` statements return no rows and so cannot be
+misread today; they are routed through the same helper anyway, because the property being
+removed from this module is *inheriting a factory*, not *crashing*, and a later edit that
+adds a ``RETURNING`` clause to one of them must not be able to reintroduce the defect
+quietly. ``tests/test_refusal_row_factory.py`` asserts the answer is identical through
+:func:`db.connection` and through an explicit ``tuple_row`` connection, and pins the
+column name as the measured premise it is.
 """
 
 from __future__ import annotations
@@ -58,6 +82,8 @@ from datetime import UTC, datetime
 from typing import Any, Final
 
 import psycopg
+
+from .scenario import positional
 
 __all__ = [
     "DENIED_SQLSTATE",
@@ -105,6 +131,14 @@ _REFUSED_BY: Final = re.compile(r"\brefused by ([a-z_][a-z0-9_]*\.[a-z_][a-z0-9_
 #: fails validation at the console — a failure the console reports as a TAMPERED transport
 #: rather than as a defect here.
 _EXHIBIT_OK: Final = re.compile(r"^[A-Za-z_][A-Za-z0-9_.$]{0,127}$")
+
+#: The decomposition call, hoisted so ``tests/test_refusal_row_factory.py`` can pin the
+#: shape of THIS statement rather than of a re-typed copy of it. One projection, no alias:
+#: CockroachDB v26.2.5 therefore names the single output column ``explain_refusal``, which
+#: is the measurement that turned a positional read of a ``dict_row`` row into ``KeyError:
+#: 0``. The statement is read by POSITION and the name is not load-bearing — the test
+#: proves that by running the same call under an alias and requiring the same answer.
+_EXPLAIN_SQL: Final = "SELECT trappoint.explain_refusal(%s, %s, %s, %s)"
 
 
 def rfc3339(moment: datetime | None = None) -> str:
@@ -218,21 +252,35 @@ def _explain(
     plausible reason set when the counter it would decompose no longer supports one, and
     an unfenced raise here would abort a transaction that must survive — :mod:`gate_run`
     keeps one open across four beats and this function is called inside it three times.
+    The fence is four statements, and all four go through :func:`positional` for the
+    reason the module docstring gives: nothing here may inherit a row factory.
     """
     from psycopg.types.json import Jsonb  # local: keeps module import cost off cold start
 
-    conn.execute("SAVEPOINT trappoint_explain")
+    positional(conn, "SAVEPOINT trappoint_explain")
     try:
-        row = conn.execute(
-            "SELECT trappoint.explain_refusal(%s, %s, %s, %s)",
+        row = positional(
+            conn,
+            _EXPLAIN_SQL,
             (subject_kind, subject_id, constraint, Jsonb(attempt) if attempt else None),
         ).fetchone()
     except psycopg.Error as exc:
-        conn.execute("ROLLBACK TO SAVEPOINT trappoint_explain")
-        conn.execute("RELEASE SAVEPOINT trappoint_explain")
+        positional(conn, "ROLLBACK TO SAVEPOINT trappoint_explain")
+        positional(conn, "RELEASE SAVEPOINT trappoint_explain")
         return None, " ".join(str(exc).split())[:512]
-    conn.execute("RELEASE SAVEPOINT trappoint_explain")
-    return (row[0] if row and isinstance(row[0], dict) else None), None
+    positional(conn, "RELEASE SAVEPOINT trappoint_explain")
+
+    # The row's single VALUE, not an index into an inherited shape. `row` is a one-tuple
+    # because the cursor was told to make tuples; `explained` is the decoded JSONB, or
+    # None when `explain_refusal` returned SQL NULL. The `isinstance` test is kept — it is
+    # what makes "the function answered with something that is not an object" degrade to
+    # the honest-incompleteness payload in `refusal_payload` instead of propagating a
+    # value the wire contract cannot describe — but it now tests a value that was already
+    # safely obtained rather than being the thing that obtains it. The original spelling,
+    # `row[0] if row and isinstance(row[0], dict) else None`, could not short-circuit its
+    # own crash: it had to evaluate `row[0]` in order to test it.
+    explained = row[0] if row else None
+    return (explained if isinstance(explained, dict) else None), None
 
 
 def refusal_payload(

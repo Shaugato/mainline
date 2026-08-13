@@ -18,6 +18,13 @@ check**, because "we fixed the model access" is an assertion and
 
 FOUR CALLS, IN THIS ORDER, AND WHY EACH ONE IS HERE
 ---------------------------------------------------
+**The order is a published interface.** ``scripts/submission/capture_tool_evidence.py``
+cites ``evidence/deploy/aws-live.json#/calls/2/embedding_dimension`` and
+``#/calls/3/usage/output_tokens`` — by *index*. Anything added to this program appends at
+index 4 or later. Reordering or inserting silently retargets two JSON pointers in the
+submission evidence at the wrong call, which is the shape of defect this repository exists
+to refuse.
+
 1. ``sts:GetCallerIdentity`` — *who is calling.* Without it the other three prove that
    somebody's credentials work, not that this project's do.
 2. ``bedrock:ListFoundationModels`` — *the control-plane answers, and the two models this
@@ -31,6 +38,40 @@ FOUR CALLS, IN THIS ORDER, AND WHY EACH ONE IS HERE
 4. ``bedrock-runtime:Converse`` on Claude Haiku 4.5 — *the data plane answers with tokens.*
    Reported with the API's own ``usage`` block, so the token counts are AWS's numbers and
    not this program's arithmetic.
+
+THE FIFTH CALL — THE ALARM READER, AND WHY IT LIVES HERE AND NOT IN CI
+----------------------------------------------------------------------
+``--alarms`` adds ``cloudwatch:DescribeAlarms`` **at index 4**, and ``--alarms-only`` runs
+identity plus that call and nothing else.
+
+``infra/modules/demo-api`` declares four alarms and plans ``alarm_actions = []``. They
+notify nobody by design, so they are only worth anything if **something reads them**. The
+module's own comment used to say the hourly ``demo-health`` workflow would; it does not,
+and it cannot. ``.github/workflows/demo-health.yml`` runs with ``permissions: contents:
+read``, never calls ``cloudwatch``, and ``aws-evidence.yml`` goes out of its way to *unset*
+every ``AWS_*`` variable. **No AWS credential exists anywhere in this repository's CI**, so
+a CI-based alarm reader is not a thing that was skipped — it is a thing that cannot be
+built without first putting a credential into a public repository's workflows. This
+program, run by an operator against their own profile, is therefore the only reader that
+can exist. ``docs/deploy/OBSERVABILITY.md`` §3 states that in prose; this is the code.
+
+What it refuses to let you misread:
+
+* **``INSUFFICIENT_DATA`` is printed as loudly as ``ALARM``.** It is not a shrug. With
+  ``treat_missing_data = "missing"`` it is the honest state of an alarm on a function
+  nobody has called, and it is *the state a freshly applied demo should be in*. Under the
+  old ``notBreaching`` it would have rendered ``OK`` — four green alarms meaning "nobody
+  called this function", which is a green that measured nothing.
+* **Zero alarms matching the prefix is not a pass.** It means the stack is not applied.
+  ``--alarms-only`` exits **3** and names the missing alarms rather than printing an empty
+  table over a zero-length list, which reads as calm.
+* **An SNS action is verified, not believed.** If ``alarm_actions`` is ever wired, each
+  topic's subscriptions are read and any whose ``SubscriptionArn`` is the literal string
+  ``PendingConfirmation`` is reported as **UNCONFIRMED — NOTIFIES NOBODY**. An alarm
+  pointing at a topic with an unconfirmed subscription is a control that looks present and
+  is not, which is the exact defect ``duration_p99``'s ``lifecycle.precondition`` exists to
+  forbid one resource away in the same file. Subscription endpoints are e-mail addresses:
+  the endpoint is **never** printed, only its protocol and a SHA-256 prefix.
 
 WHAT THIS DELIBERATELY DOES **NOT** RECORD
 ------------------------------------------
@@ -62,12 +103,27 @@ Usage::
     .venv/Scripts/python.exe scripts/deploy/aws_live_probe.py --region ap-southeast-2 \\
         --profile mainline-dev --out evidence/deploy/aws-live.json
 
+    # the alarm reader — read-only, and the only one that can exist (see above)
+    .venv/Scripts/python.exe scripts/deploy/aws_live_probe.py --alarms-only
+    .venv/Scripts/python.exe scripts/deploy/aws_live_probe.py --alarms-only \\
+        --alarm-region ap-southeast-1 --alarm-prefix mainline-demo-api
+
 Exit codes:
 
-* ``0`` — all four calls succeeded and the two Bedrock responses were well formed.
+* ``0`` — every call attempted succeeded, and under ``--alarms-only`` all four alarms
+  exist and none is in ``ALARM``.
 * ``1`` — at least one call failed, or a response did not carry what it must. The evidence
   file is still written, and it names the failure. **Publish it.**
-* ``2`` — boto3 is not importable, or no region could be determined.
+* ``2`` — boto3 is not importable, or no region could be determined, or ``--alarms-only``
+  was pointed at the Bedrock evidence file.
+* ``3`` — ``--alarms-only`` only: every call succeeded and **what the alarms say is not
+  healthy** — one is in ``ALARM``, or an expected alarm does not exist. A finding, not a
+  failure, and a different number so a script cannot confuse the two.
+
+``--alarms-only`` **writes no evidence file unless ``--out`` is given, and refuses an
+``--out`` that resolves to ``evidence/deploy/aws-live.json``.** That file's calls 2 and 3
+are cited by JSON pointer from the submission evidence; a two-call alarm run overwriting it
+would leave those pointers aimed at calls that no longer exist.
 """
 
 from __future__ import annotations
@@ -87,6 +143,10 @@ from typing import Any
 EXIT_OK = 0
 EXIT_CALL_FAILED = 1
 EXIT_USAGE = 2
+#: Distinct from EXIT_CALL_FAILED on purpose: "AWS would not answer me" and "AWS answered,
+#: and the answer is that something is wrong with the demo" are different incidents with
+#: different first moves, and a caller that cannot tell them apart will take the wrong one.
+EXIT_ALARM_FINDING = 3
 
 #: The embedding model, and the dimension MAINLINE's schema is built for. Titan Text
 #: Embeddings V2 can emit 256/512/1024; the vector columns in the migration chain are
@@ -104,6 +164,23 @@ DEFAULT_CHAT_MODEL = "au.anthropic.claude-haiku-4-5-20251001-v1:0"
 #: different is a fact about the accounts, not an oversight — see docs/deploy/RUNBOOK.md.
 DEFAULT_REGION = "ap-southeast-2"
 DEFAULT_PROFILE = "mainline-dev"
+
+#: The alarms live where the demo is deployed — ``ap-southeast-1``, beside the CockroachDB
+#: Cloud cluster — NOT where Bedrock answers. The two regions differ, so the alarm reader
+#: takes its own region rather than inheriting ``--region`` and quietly reading an empty
+#: list out of the wrong one. An empty list from the wrong region and an empty list from an
+#: unapplied stack are indistinguishable, and one of them is a lie.
+DEFAULT_ALARM_REGION = "ap-southeast-1"
+
+#: ``var.name_prefix``-derived function name. The four alarms are ``${function_name}``
+#: followed by these suffixes — see ``infra/modules/demo-api/main.tf``. They are listed here
+#: so that a *missing* alarm is a finding rather than a shorter table nobody counts.
+DEFAULT_ALARM_PREFIX = "mainline-demo-api"
+ALARM_SUFFIXES = ("-errors", "-throttles", "-duration-p99", "-concurrency")
+
+#: What AWS puts in ``SubscriptionArn`` for a subscription nobody has clicked the
+#: confirmation link for. It is a literal string, not an ARN, and it is the whole tell.
+PENDING_CONFIRMATION = "PendingConfirmation"
 
 #: Kept short on purpose. The point is that the data plane answers, not that it writes an
 #: essay: two calls, well under a cent, on an account whose whole budget is a few dollars.
@@ -345,8 +422,180 @@ def probe_converse(
 
 
 # ═════════════════════════════════════════════════════════════════════════════════════
+# the fifth call — the alarm reader
+# ═════════════════════════════════════════════════════════════════════════════════════
+
+
+def _subscriptions_of(session: Any, region: str, mask: Masker, topic_arn: str) -> dict[str, Any]:
+    """Read one SNS topic's subscriptions and say whether any of them notifies a human.
+
+    Read-only. The endpoint — an e-mail address, a phone number or an HTTPS URL — is
+    **never recorded**. Its protocol and a SHA-256 prefix are, which is enough to tell two
+    subscriptions apart across two runs and far too little to be a contact list.
+    """
+    # Imported here, not at module scope, for the same reason boto3 is: `--help` has to
+    # work on a machine that has neither.
+    from botocore.exceptions import BotoCoreError, ClientError
+
+    summary: dict[str, Any] = {"topic_arn": mask(topic_arn), "subscriptions": []}
+    try:
+        sns = session.client("sns", region_name=region)
+        pages = sns.get_paginator("list_subscriptions_by_topic").paginate(TopicArn=topic_arn)
+        for page in pages:
+            for sub in page.get("Subscriptions", []):
+                arn = str(sub.get("SubscriptionArn", ""))
+                summary["subscriptions"].append(
+                    {
+                        "protocol": sub.get("Protocol"),
+                        "endpoint_sha256_prefix": sha256_hex(str(sub.get("Endpoint", "")))[:16],
+                        "confirmed": arn != PENDING_CONFIRMATION,
+                        "subscription_arn_state": (
+                            PENDING_CONFIRMATION if arn == PENDING_CONFIRMATION else "confirmed"
+                        ),
+                    }
+                )
+    # Narrow on purpose. A refused or throttled SNS read is recorded and the alarm table -
+    # the primary result - still prints. Anything OUTSIDE these two types is not something
+    # this function understands, so it propagates to Call.__exit__ and is recorded as a
+    # failure of the alarm read rather than swallowed into a footnote.
+    except (BotoCoreError, ClientError) as exc:
+        summary["read_failed"] = f"{type(exc).__name__}: {mask(str(exc))}"
+        summary["read_failed_note"] = (
+            "The subscriptions behind this topic could NOT be read, so whether anybody is "
+            "notified is UNKNOWN. Do not read this as 'nobody' and do not read it as "
+            "'somebody'."
+        )
+        return summary
+
+    confirmed = [s for s in summary["subscriptions"] if s["confirmed"]]
+    summary["subscription_count"] = len(summary["subscriptions"])
+    summary["confirmed_count"] = len(confirmed)
+    summary["notifies_anybody"] = bool(confirmed)
+    if summary["subscriptions"] and not confirmed:
+        summary["finding"] = (
+            "EVERY subscription on this topic is PendingConfirmation. The alarm has an "
+            "action, the action has a topic, the topic has a subscriber, and NOBODY IS "
+            "NOTIFIED. This is a control that looks present and is not."
+        )
+    return summary
+
+
+def probe_alarms(session: Any, region: str, mask: Masker, prefix: str) -> dict[str, Any]:
+    """``cloudwatch:DescribeAlarms`` over one name prefix — the only reader that can exist.
+
+    Records every alarm's state INCLUDING ``INSUFFICIENT_DATA``, its ``treat_missing_data``
+    (because that word decides what its state *means*), and whether anything is wired to
+    read it. ``call.record["ok"]`` reflects only whether **AWS answered**; whether what AWS
+    said is *healthy* is a separate key, so a caller can tell a broken credential from a
+    broken demo.
+    """
+    with Call("cloudwatch:DescribeAlarms", mask) as call:
+        call.record["alarm_region"] = region
+        call.record["alarm_name_prefix"] = prefix
+        expected = [f"{prefix}{suffix}" for suffix in ALARM_SUFFIXES]
+        call.record["expected_alarms"] = expected
+
+        cloudwatch = session.client("cloudwatch", region_name=region)
+        found: dict[str, dict[str, Any]] = {}
+        # Kept OUT of the record: masking is one-way, so the masked ARN in the record can
+        # never be handed back to SNS. The unmasked ARNs live in this local for the length
+        # of the call and are written nowhere.
+        raw_actions: set[str] = set()
+        composite = 0
+        pages = cloudwatch.get_paginator("describe_alarms").paginate(AlarmNamePrefix=prefix)
+        last_response: dict[str, Any] = {}
+        for page in pages:
+            last_response = page
+            composite += len(page.get("CompositeAlarms", []))
+            for alarm in page.get("MetricAlarms", []):
+                name = str(alarm.get("AlarmName", ""))
+                raw_actions.update(str(a) for a in alarm.get("AlarmActions", []))
+                actions = [mask(str(a)) for a in alarm.get("AlarmActions", [])]
+                found[name] = {
+                    "alarm_name": name,
+                    "state": alarm.get("StateValue"),
+                    "state_reason": mask(str(alarm.get("StateReason", ""))),
+                    "state_updated_utc": (
+                        alarm["StateUpdatedTimestamp"]
+                        .astimezone(UTC)
+                        .strftime("%Y-%m-%dT%H:%M:%SZ")
+                        if alarm.get("StateUpdatedTimestamp")
+                        else None
+                    ),
+                    "actions_enabled": alarm.get("ActionsEnabled"),
+                    "alarm_action_count": len(actions),
+                    "alarm_actions": actions,
+                    "metric_name": alarm.get("MetricName"),
+                    "namespace": alarm.get("Namespace"),
+                    "statistic": alarm.get("Statistic") or alarm.get("ExtendedStatistic"),
+                    "comparison_operator": alarm.get("ComparisonOperator"),
+                    "threshold": alarm.get("Threshold"),
+                    "period_seconds": alarm.get("Period"),
+                    "evaluation_periods": alarm.get("EvaluationPeriods"),
+                    "treat_missing_data": alarm.get("TreatMissingData"),
+                }
+        call.record.update(http_of(last_response))
+        call.record["composite_alarms_seen"] = composite
+        call.record["alarms_found"] = len(found)
+        call.record["alarms"] = [found[name] for name in sorted(found)]
+
+        missing = [name for name in expected if name not in found]
+        in_alarm = sorted(n for n, a in found.items() if a["state"] == "ALARM")
+        insufficient = sorted(n for n, a in found.items() if a["state"] == "INSUFFICIENT_DATA")
+        call.record["expected_missing"] = missing
+        call.record["in_alarm"] = in_alarm
+        call.record["insufficient_data"] = insufficient
+
+        # A reader is only real if some subscription is confirmed. Verify, do not believe.
+        topics = sorted(arn for arn in raw_actions if ":sns:" in arn)
+        call.record["sns_topics_referenced"] = len(topics)
+        call.record["sns"] = [_subscriptions_of(session, region, mask, arn) for arn in topics]
+        if not topics:
+            call.record["reader_note"] = (
+                "No alarm references an SNS topic: alarm_actions is empty, as the module "
+                "plans it. These alarms notify NOBODY. This program, run by an operator, "
+                "is the reader - there is no CI reader and none can be built, because no "
+                "AWS credential exists in any workflow in this repository."
+            )
+
+        if not found:
+            call.record["finding"] = (
+                f"NO alarm whose name begins {prefix!r} exists in {region}. This is NOT a "
+                "quiet system: it is an unapplied stack, or the wrong region, or the wrong "
+                "account. An empty table is not a green one."
+            )
+        elif missing:
+            call.record["finding"] = (
+                f"{len(missing)} of {len(expected)} expected alarms do not exist: "
+                f"{', '.join(missing)}."
+            )
+        elif in_alarm:
+            call.record["finding"] = f"IN ALARM: {', '.join(in_alarm)}."
+        else:
+            call.record["finding"] = (
+                f"All {len(expected)} alarms exist and none is in ALARM. "
+                f"{len(insufficient)} are INSUFFICIENT_DATA, which under "
+                "treat_missing_data=missing means NO DATAPOINTS, not health."
+            )
+        call.record["healthy"] = bool(found) and not missing and not in_alarm
+        call.record["state_semantics"] = (
+            "OK means the metric was published and stayed under the threshold. "
+            "INSUFFICIENT_DATA means the metric was not published at all - under "
+            "treat_missing_data=missing that is reported honestly instead of being "
+            "rendered as OK, which is what treat_missing_data=notBreaching did. "
+            "See docs/deploy/OBSERVABILITY.md section 3."
+        )
+    return call.record
+
+
+# ═════════════════════════════════════════════════════════════════════════════════════
 # the run
 # ═════════════════════════════════════════════════════════════════════════════════════
+
+
+def _call_named(calls: list[dict[str, Any]], api: str) -> dict[str, Any]:
+    """The call record for ``api``, or an empty dict if this mode did not make that call."""
+    return next((call for call in calls if call.get("api") == api), {})
 
 
 def run(args: argparse.Namespace) -> tuple[int, dict[str, Any]]:
@@ -374,9 +623,18 @@ def run(args: argparse.Namespace) -> tuple[int, dict[str, Any]]:
         "generated_at_utc": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "generated_by": "scripts/deploy/aws_live_probe.py",
         "what_this_proves": (
-            "That AWS Bedrock EXECUTES for this project, in this region, today - not that "
-            "it is designed for. Four calls were made against the live AWS APIs and every "
-            "response below is what came back."
+            (
+                "What the four declared CloudWatch alarms SAY right now, read from the live "
+                "account. Nothing about Bedrock: --alarms-only skipped both inference calls. "
+                "This is the alarm reader, and it is the only one that can exist - no AWS "
+                "credential is present in any workflow in this repository."
+            )
+            if args.alarms_only
+            else (
+                "That AWS Bedrock EXECUTES for this project, in this region, today - not "
+                "that it is designed for. Four calls were made against the live AWS APIs "
+                "and every response below is what came back."
+            )
         ),
         "supersedes": (
             "docs/STATE-OF-THE-BUILD.md 3.3 recorded 'ValidationException: Operation not "
@@ -401,26 +659,99 @@ def run(args: argparse.Namespace) -> tuple[int, dict[str, Any]]:
 
         evidence["target"]["botocore_version"] = botocore.__version__
 
-    calls = [
-        probe_identity(session, mask),
-        probe_models(session, args.region, mask, [args.embed_model, args.chat_model]),
-        probe_embedding(session, args.region, mask, args.embed_model, args.text),
-        probe_converse(session, args.region, mask, args.chat_model, args.prompt),
-    ]
+    calls = [probe_identity(session, mask)]
+    if not args.alarms_only:
+        calls += [
+            probe_models(session, args.region, mask, [args.embed_model, args.chat_model]),
+            probe_embedding(session, args.region, mask, args.embed_model, args.text),
+            probe_converse(session, args.region, mask, args.chat_model, args.prompt),
+        ]
+    # APPENDED, NEVER INSERTED. capture_tool_evidence.py cites #/calls/2 and #/calls/3 by
+    # index; the alarm read is index 4 when the Bedrock calls ran, and index 1 in
+    # --alarms-only mode, which is why that mode may not write to aws-live.json at all.
+    if args.alarms or args.alarms_only:
+        calls.append(probe_alarms(session, args.alarm_region, mask, args.alarm_prefix))
     evidence["calls"] = calls
     evidence["total_seconds"] = round(time.time() - started, 2)
 
     failed = [call["api"] for call in calls if not call["ok"]]
     evidence["calls_attempted"] = len(calls)
     evidence["calls_failed"] = failed
-    evidence["cost"] = (
-        "Two billable inference calls. Titan Text Embeddings V2 is charged per input token "
-        "and this probe sends a single short sentence; Claude Haiku 4.5 charged "
-        f"{calls[3].get('usage', {}).get('input_tokens')} in / "
-        f"{calls[3].get('usage', {}).get('output_tokens')} out. Well under USD 0.01 per run."
-    )
+
+    # Looked up by api name, NOT by index. The indices are a published interface for
+    # readers of the file; inside this program, indexing would break the moment a mode
+    # omitted a call — which --alarms-only does.
+    chat = _call_named(calls, "bedrock-runtime:Converse")
+    alarms = _call_named(calls, "cloudwatch:DescribeAlarms")
+
+    if args.alarms_only:
+        evidence["cost"] = (
+            "No billable inference call was made. sts:GetCallerIdentity and "
+            "cloudwatch:DescribeAlarms are both free and both read-only. USD 0.00."
+        )
+    else:
+        evidence["cost"] = (
+            "Two billable inference calls. Titan Text Embeddings V2 is charged per input "
+            "token and this probe sends a single short sentence; Claude Haiku 4.5 charged "
+            f"{chat.get('usage', {}).get('input_tokens')} in / "
+            f"{chat.get('usage', {}).get('output_tokens')} out. Well under USD 0.01 per run."
+        )
+
+    if args.alarms_only:
+        if failed:
+            evidence["verdict"] = "AWS CALL FAILED"
+            return EXIT_CALL_FAILED, evidence
+        # AWS answered. Whether the answer is good news is a DIFFERENT question and gets a
+        # different exit code, so a caller can route "fix my credentials" away from "wake
+        # somebody up about the demo".
+        evidence["verdict"] = (
+            "ALARMS HEALTHY" if alarms.get("healthy") else "ALARM FINDING - SEE calls[].finding"
+        )
+        return (EXIT_OK if alarms.get("healthy") else EXIT_ALARM_FINDING), evidence
+
     evidence["verdict"] = "AWS BEDROCK EXECUTED" if not failed else "AWS CALL FAILED"
     return (EXIT_OK if not failed else EXIT_CALL_FAILED), evidence
+
+
+def summarise_alarms(record: dict[str, Any]) -> None:
+    """Print every alarm and its state, INSUFFICIENT_DATA as loudly as ALARM.
+
+    A state column that reads ``OK OK OK OK`` on an idle demo is the failure mode this
+    whole function exists to prevent, so the meaning of each state is printed beside it
+    rather than left to the reader's memory of what ``treat_missing_data`` was set to.
+    """
+    meaning = {
+        "OK": "measured, under threshold",
+        "ALARM": "measured, OVER THRESHOLD",
+        "INSUFFICIENT_DATA": "NO DATAPOINTS - nothing called it, or missing_data=missing",
+    }
+    print()
+    print(
+        f"alarms        prefix {record.get('alarm_name_prefix')!r} in {record.get('alarm_region')}"
+    )
+    if not record.get("ok"):
+        print(f"  FAILED      {record.get('exception_type')}: {record.get('message', '')[:200]}")
+        return
+    for alarm in record.get("alarms", []):
+        state = str(alarm.get("state"))
+        print(
+            f"  {state:<18} {alarm.get('alarm_name'):<34} "
+            f"{alarm.get('statistic')} {alarm.get('comparison_operator')} "
+            f"{alarm.get('threshold')}  missing_data={alarm.get('treat_missing_data')}  "
+            f"actions={alarm.get('alarm_action_count')}"
+        )
+        print(f"  {'':<18} -> {meaning.get(state, 'unrecognised state')}")
+    for name in record.get("expected_missing", []):
+        print(f"  {'DOES NOT EXIST':<18} {name}")
+    for topic in record.get("sns", []):
+        for sub in topic.get("subscriptions", []):
+            flag = "confirmed" if sub.get("confirmed") else "UNCONFIRMED - NOTIFIES NOBODY"
+            print(f"  sns           {sub.get('protocol')} {flag}")
+        if topic.get("finding"):
+            print(f"  sns           {topic['finding']}")
+    if record.get("reader_note"):
+        print(f"  reader        {record['reader_note']}")
+    print(f"  finding       {record.get('finding')}")
 
 
 def summarise(evidence: dict[str, Any]) -> None:
@@ -450,6 +781,9 @@ def summarise(evidence: dict[str, Any]) -> None:
             f"tokens        in {usage['input_tokens']} / out {usage['output_tokens']} / "
             f"total {usage['total_tokens']}  stop={chat['stop_reason']}"
         )
+    alarms = _call_named(evidence["calls"], "cloudwatch:DescribeAlarms")
+    if alarms:
+        summarise_alarms(alarms)
     print(f"VERDICT       {evidence['verdict']}")
 
 
@@ -477,6 +811,30 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--text", default=DEFAULT_EMBED_TEXT, help="text to embed")
     parser.add_argument("--prompt", default=DEFAULT_PROMPT, help="prompt for the chat model")
     parser.add_argument("--out", type=Path, default=None, help="evidence path")
+    parser.add_argument(
+        "--alarms",
+        action="store_true",
+        help="also read the four CloudWatch alarms, appended as call index 4",
+    )
+    parser.add_argument(
+        "--alarms-only",
+        action="store_true",
+        help=(
+            "read identity and the alarms and nothing else: no Bedrock call, no charge. "
+            "Writes no evidence file unless --out is given, and refuses an --out that is "
+            "the Bedrock evidence file."
+        ),
+    )
+    parser.add_argument(
+        "--alarm-region",
+        default=DEFAULT_ALARM_REGION,
+        help=f"region the alarms live in (default: {DEFAULT_ALARM_REGION}, NOT --region)",
+    )
+    parser.add_argument(
+        "--alarm-prefix",
+        default=DEFAULT_ALARM_PREFIX,
+        help=f"alarm name prefix (default: {DEFAULT_ALARM_PREFIX})",
+    )
     return parser
 
 
@@ -491,7 +849,27 @@ def main(argv: list[str] | None = None) -> int:
         or os.environ.get("AWS_REGION")
         or DEFAULT_REGION
     )
-    out = args.out or (root / "evidence" / "deploy" / "aws-live.json")
+    bedrock_evidence = (root / "evidence" / "deploy" / "aws-live.json").resolve()
+
+    # THE GUARD. `aws-live.json` is cited by JSON pointer at #/calls/2 and #/calls/3 from
+    # scripts/submission/capture_tool_evidence.py. An --alarms-only run makes two calls, so
+    # letting it write that path would leave two submission citations pointing at calls
+    # that no longer exist — a green scanner over evidence that had been quietly replaced.
+    # Refusing costs one flag; the alternative costs a false claim in the submission.
+    if args.alarms_only:
+        out = args.out.resolve() if args.out else None
+        if out is not None and out == bedrock_evidence:
+            print(
+                "aws_live_probe: --alarms-only may not write "
+                f"{bedrock_evidence.as_posix()}. That file records the four Bedrock calls "
+                "and scripts/submission/capture_tool_evidence.py cites its calls 2 and 3 by "
+                "index; an alarm run has neither. Choose another --out, or omit --out and "
+                "read the table on stdout.",
+                file=sys.stderr,
+            )
+            return EXIT_USAGE
+    else:
+        out = args.out.resolve() if args.out else bedrock_evidence
 
     try:
         import boto3  # noqa: F401
@@ -500,9 +878,10 @@ def main(argv: list[str] | None = None) -> int:
         return EXIT_USAGE
 
     code, evidence = run(args)
-    write_evidence(out, evidence)
+    if out is not None:
+        write_evidence(out, evidence)
     summarise(evidence)
-    print(f"evidence      {out}")
+    print(f"evidence      {out if out is not None else 'not written (--alarms-only, no --out)'}")
     return code
 
 

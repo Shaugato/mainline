@@ -1,0 +1,311 @@
+{
+ "SPDX-FileCopyrightText": "2026 MAINLINE contributors",
+ "SPDX-License-Identifier": "CC-BY-4.0",
+ "generated_at": "2026-08-13T00:18:39Z",
+ "generated_by": "W5 (demo-correctness), on TRAPPOINT, from the queries recorded in `queries`. Every count below was read in this run; nothing is carried forward.",
+ "question": "/v1/health reported `migrations_applied: 0` on a cluster the submission says carries 271 migrations. Which ledger was it counting, and what does the other one say?",
+ "answer": "Two appliers keep two ledgers. `trappoint migrate up` writes trappoint.schema_migration (trappoint_migrate/runner.py holds the only INSERT into it in the tree). scripts/deploy/cloud_chain.py runs `trappoint migrate bootstrap` \u2014 which writes trappoint.schema_attestation, hence the non-null fingerprint \u2014 then applies the files itself and records ONE marker row in trappoint.deploy_chain. cloud_chain.py is what built Cloud mainline_demo, so schema_migration is empty there BY CONSTRUCTION and 0 was a true count of the wrong ledger. /v1/health now reads both in the same single round trip and names the applier.",
+ "appliers": [
+  {
+   "applier": "trappoint migrate up",
+   "ledger": "trappoint.schema_migration",
+   "writer": "packages/trappoint-migrate/src/trappoint_migrate/runner.py (the only INSERT into that table in the tree)"
+  },
+  {
+   "applier": "scripts/deploy/cloud_chain.py",
+   "ledger": "trappoint.deploy_chain",
+   "writer": "scripts/deploy/cloud_chain.py:MARKER_DDL + write_marker (UPSERT, marker_id = the database name)",
+   "also_writes": "trappoint.schema_attestation, via `trappoint migrate bootstrap`"
+  }
+ ],
+ "queries": [
+  "SELECT version()",
+  "SELECT table_name FROM information_schema.tables WHERE table_schema = 'trappoint' ORDER BY table_name",
+  "SELECT count(*) FROM trappoint.schema_migration",
+  "SELECT count(*) FROM trappoint.schema_migration WHERE state = 'applied'",
+  "SELECT count(*) FROM trappoint.schema_attestation",
+  "SELECT count(*) FROM trappoint.deploy_chain",
+  "SELECT marker_id, files, applied, failed, retried, total_seconds, applied_by, applied_at, encode(tree_fingerprint,'hex'), encode(live_fingerprint,'hex') FROM trappoint.deploy_chain WHERE marker_id = current_database()",
+  "mainline_demo_api.health.HEALTH_STATEMENT (verbatim, one round trip)",
+  "mainline_demo_api.health.health(dsn=...) end to end, for the v1_health block under each database"
+ ],
+ "behavioural_checks": [
+  {
+   "check": "the full statement really does fail whole on a database with no marker",
+   "how": "HEALTH_STATEMENT against w3_demo_api_d2a5ddd092e1",
+   "result": "raised 42P01 relation \"trappoint.deploy_chain\" does not exist"
+  },
+  {
+   "check": "that failure leaves no transaction to roll back, so the fallback can reuse the connection",
+   "how": "after the 42P01, on the same autocommit connection: SELECT 1, then conn.info.transaction_status",
+   "result": "SELECT 1 returned 1; transaction_status IDLE(0)"
+  },
+  {
+   "check": "the fallback answers, and names none of the marker columns",
+   "how": "HEALTH_STATEMENT_WITHOUT_DEPLOY_CHAIN on the same connection",
+   "result": "returned cluster_version, database, migrations_applied, schema_fingerprint, server_date"
+  },
+  {
+   "check": "a missing marker is therefore a 200, not a 503",
+   "how": "health.health(dsn=w3_demo_api_d2a5ddd092e1)",
+   "result": "200, deploy_chain_applied/files None, applied_by 'unrecorded'"
+  },
+  {
+   "check": "a marker keyed to another database cannot be reported as this one's",
+   "how": "health.health() against w_w5_marker_elsewhere, whose only marker row is marker_id='a_different_database'",
+   "result": "200, deploy_chain_applied/files None, applied_by 'unrecorded'"
+  },
+  {
+   "check": "every 503 branch carries the full reading key set, all None",
+   "how": "health.health() with no DSN; against a closed port; against w_w5_bare",
+   "result": "dsn_unset, unreachable and no_bookkeeping each returned all seven readings None, none missing"
+  },
+  {
+   "check": "the statement is one statement and the fallback is a strict prefix of it",
+   "how": "test_the_health_statement_is_one_statement_and_names_both_ledgers",
+   "result": "passed: 0 semicolons, deploy_chain absent from the fallback, full.startswith(short.rstrip())"
+  }
+ ],
+ "health_statement": "\nSELECT version()                                            AS cluster_version,\n       current_database()                                   AS database,\n       now()                                                AS server_date,\n       (SELECT encode(fingerprint, 'hex')\n          FROM trappoint.schema_attestation\n         ORDER BY ordinal DESC\n         LIMIT 1)                                           AS schema_fingerprint,\n       (SELECT count(*)\n          FROM trappoint.schema_migration\n         WHERE state = 'applied')                           AS migrations_applied,\n       (SELECT applied\n          FROM trappoint.deploy_chain\n         WHERE marker_id = current_database())              AS deploy_chain_applied,\n       (SELECT files\n          FROM trappoint.deploy_chain\n         WHERE marker_id = current_database())              AS deploy_chain_files,\n       (SELECT applied_by\n          FROM trappoint.deploy_chain\n         WHERE marker_id = current_database())              AS applied_by\n",
+ "health_statement_without_deploy_chain": "\nSELECT version()                                            AS cluster_version,\n       current_database()                                   AS database,\n       now()                                                AS server_date,\n       (SELECT encode(fingerprint, 'hex')\n          FROM trappoint.schema_attestation\n         ORDER BY ordinal DESC\n         LIMIT 1)                                           AS schema_fingerprint,\n       (SELECT count(*)\n          FROM trappoint.schema_migration\n         WHERE state = 'applied')                           AS migrations_applied\n",
+ "local": {
+  "node": "the pinned local CockroachDB on 127.0.0.1:26257, sslmode=disable, no credential",
+  "cluster_version": "CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)",
+  "databases": [
+   {
+    "database": "w_w5",
+    "built_by": "scripts/deploy/cloud_chain.py --dsn <the local node> --database w_w5 --recreate, run by W5 on 2026-08-13: VERDICT APPLIED, 271/271 applied, 0 failed, 0 retried. The marker's total_seconds (57.7) is the chain alone; the program's printed wall clock, which also covers `trappoint migrate bootstrap` and connection setup, was 68.4s. This is the shape Cloud mainline_demo is in.",
+    "trappoint_relations_present": [
+     "deploy_chain",
+     "schema_attestation",
+     "schema_lock",
+     "schema_migration"
+    ],
+    "ledgers": {
+     "schema_migration": true,
+     "schema_attestation": true,
+     "schema_lock": true,
+     "deploy_chain": true
+    },
+    "row_counts": {
+     "schema_migration_rows": 0,
+     "schema_migration_applied": 0,
+     "schema_attestation_rows": 1,
+     "deploy_chain_rows": 1
+    },
+    "deploy_chain_marker": {
+     "marker_id": "w_w5",
+     "files": 271,
+     "applied": 271,
+     "failed": 0,
+     "retried": 0,
+     "total_seconds": 57.7,
+     "applied_by": "scripts/deploy/cloud_chain.py",
+     "applied_at": "2026-08-12T23:54:58.271614Z",
+     "tree_fingerprint": "278093ae94ced0ab4a418f800345014921be7e653deb4825cc7b76acddbfb599",
+     "live_fingerprint": "732134a1f79b27e3c78f0767698b50163731064ebc48399548b89dc5fa6a2c07"
+    },
+    "v1_health": {
+     "status": 200,
+     "body": {
+      "ok": true,
+      "database": "w_w5",
+      "schema_fingerprint": "8cb8a7244a2750dedd8cfd35ba7adb686be981fd5cbba4ea09e29895304a5f03",
+      "migrations_applied": 0,
+      "deploy_chain_applied": 271,
+      "deploy_chain_files": 271,
+      "applied_by": "scripts/deploy/cloud_chain.py"
+     }
+    }
+   },
+   {
+    "database": "w_w5_migrate_up",
+    "built_by": "the real `trappoint migrate up` over the same 271-file tree, after `trappoint migrate bootstrap`. This is the OTHER applier, and the only database here whose trappoint.schema_migration is non-empty.",
+    "trappoint_relations_present": [
+     "schema_attestation",
+     "schema_lock",
+     "schema_migration"
+    ],
+    "ledgers": {
+     "schema_migration": true,
+     "schema_attestation": true,
+     "schema_lock": true,
+     "deploy_chain": false
+    },
+    "row_counts": {
+     "schema_migration_rows": 271,
+     "schema_migration_applied": 271,
+     "schema_attestation_rows": 272,
+     "deploy_chain_rows": null
+    },
+    "deploy_chain_marker": null,
+    "v1_health": {
+     "status": 200,
+     "body": {
+      "ok": true,
+      "database": "w_w5_migrate_up",
+      "schema_fingerprint": "c9eca97be6584f811e9d37a1cb00722e64b25d0afa4edeaa7558e71c0d0a59e4",
+      "migrations_applied": 271,
+      "deploy_chain_applied": null,
+      "deploy_chain_files": null,
+      "applied_by": "trappoint migrate up"
+     }
+    }
+   },
+   {
+    "database": "w3_demo_api_d2a5ddd092e1",
+    "built_by": "verticals/mainline/apps/demo-api/tests/conftest.py::_apply_chain - bootstrap, then each migration file executed directly, so it appears in neither ledger. This is the fixture the health tests run against.",
+    "trappoint_relations_present": [
+     "schema_attestation",
+     "schema_lock",
+     "schema_migration"
+    ],
+    "ledgers": {
+     "schema_migration": true,
+     "schema_attestation": true,
+     "schema_lock": true,
+     "deploy_chain": false
+    },
+    "row_counts": {
+     "schema_migration_rows": 0,
+     "schema_migration_applied": 0,
+     "schema_attestation_rows": 1,
+     "deploy_chain_rows": null
+    },
+    "deploy_chain_marker": null,
+    "v1_health": {
+     "status": 200,
+     "body": {
+      "ok": true,
+      "database": "w3_demo_api_d2a5ddd092e1",
+      "schema_fingerprint": "8cb8a7244a2750dedd8cfd35ba7adb686be981fd5cbba4ea09e29895304a5f03",
+      "migrations_applied": 0,
+      "deploy_chain_applied": null,
+      "deploy_chain_files": null,
+      "applied_by": "unrecorded"
+     }
+    }
+   },
+   {
+    "database": "w_w5_marker_elsewhere",
+    "built_by": "bootstrap plus cloud_chain.MARKER_DDL, with one marker row deliberately keyed to marker_id='a_different_database'. Built to test that the endpoint's `WHERE marker_id = current_database()` is load-bearing and cannot report another database's census as this one's.",
+    "trappoint_relations_present": [
+     "deploy_chain",
+     "schema_attestation",
+     "schema_lock",
+     "schema_migration"
+    ],
+    "ledgers": {
+     "schema_migration": true,
+     "schema_attestation": true,
+     "schema_lock": true,
+     "deploy_chain": true
+    },
+    "row_counts": {
+     "schema_migration_rows": 0,
+     "schema_migration_applied": 0,
+     "schema_attestation_rows": 1,
+     "deploy_chain_rows": 1
+    },
+    "deploy_chain_marker": null,
+    "v1_health": {
+     "status": 200,
+     "body": {
+      "ok": true,
+      "database": "w_w5_marker_elsewhere",
+      "schema_fingerprint": "8cb8a7244a2750dedd8cfd35ba7adb686be981fd5cbba4ea09e29895304a5f03",
+      "migrations_applied": 0,
+      "deploy_chain_applied": null,
+      "deploy_chain_files": null,
+      "applied_by": "unrecorded"
+     }
+    }
+   },
+   {
+    "database": "w_w5_bare",
+    "built_by": "CREATE DATABASE and nothing else. The no-bookkeeping 503.",
+    "trappoint_relations_present": [],
+    "ledgers": {
+     "schema_migration": false,
+     "schema_attestation": false,
+     "schema_lock": false,
+     "deploy_chain": false
+    },
+    "row_counts": {
+     "schema_migration_rows": null,
+     "schema_migration_applied": null,
+     "schema_attestation_rows": null,
+     "deploy_chain_rows": null
+    },
+    "deploy_chain_marker": null,
+    "v1_health": {
+     "status": 503,
+     "body": {
+      "ok": false,
+      "reason": "no_bookkeeping",
+      "detail": "the database answered but carries no trappoint bookkeeping (relation \"trappoint.schema_attestation\" does not exist). Run `trappoint migrate bootstrap` and the migration chain into it, or point $MAINLINE_DSN at the database that has one.",
+      "database": null,
+      "schema_fingerprint": null,
+      "migrations_applied": null,
+      "deploy_chain_applied": null,
+      "deploy_chain_files": null,
+      "applied_by": null
+     }
+    }
+   }
+  ]
+ },
+ "cloud": {
+  "database": "mainline_demo",
+  "dsn_source": "repo-root .env $COCKROACH_DSN, path segment rewritten to /mainline_demo. Never printed, here or anywhere.",
+  "read_only": "every statement ran inside BEGIN; SET TRANSACTION READ ONLY; ... COMMIT",
+  "cluster_version": "CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)",
+  "trappoint_relations_present": [
+   "deploy_chain",
+   "schema_attestation",
+   "schema_lock",
+   "schema_migration"
+  ],
+  "ledgers": {
+   "schema_migration": true,
+   "schema_attestation": true,
+   "schema_lock": true,
+   "deploy_chain": true
+  },
+  "row_counts": {
+   "schema_migration_rows": 0,
+   "schema_migration_applied": 0,
+   "schema_attestation_rows": 1,
+   "deploy_chain_rows": 1
+  },
+  "deploy_chain_marker": {
+   "marker_id": "mainline_demo",
+   "files": 271,
+   "applied": 271,
+   "failed": 0,
+   "retried": 0,
+   "total_seconds": 359.1,
+   "applied_by": "scripts/deploy/cloud_chain.py",
+   "applied_at": "2026-08-10T02:55:13.074389Z",
+   "tree_fingerprint": "e1135b40fab0f5100420dbd449204514f646ba4fc9682ac09e616676566a1e39",
+   "live_fingerprint": "06b0ad843fec829ed89d1ccecddc05415fa0b29fd5d7c13183d54f38ce24a79b"
+  },
+  "health_statement_seconds": 0.2327,
+  "health_statement_row": {
+   "cluster_version": "CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)",
+   "database": "mainline_demo",
+   "schema_fingerprint": "ec9b1ce70a8df066e5763056c5ad9376800ef5df9362f7d0502b1dc7e7450339",
+   "migrations_applied": 0,
+   "deploy_chain_applied": 271,
+   "deploy_chain_files": 271,
+   "applied_by": "scripts/deploy/cloud_chain.py"
+  },
+  "reachable": true,
+  "retry": {
+   "sqlstate": "40001",
+   "max_attempts": 6,
+   "attempts_used": 1
+  }
+ },
+ "credentials": "No DSN, password or token appears in this file. The local node has no credential; the Cloud DSN was read from the repo-root .env, used, and never written down."
+}

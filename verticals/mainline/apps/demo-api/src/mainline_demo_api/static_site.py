@@ -42,16 +42,41 @@ filesystem while the module loads, so an API-only artefact still imports, still 
 ``/v1/*`` and still answers ``/v1/health`` — an API that answers is more useful than a
 handler that will not start.
 
-THE FIVE ANSWERS
-----------------
+THE SIX ANSWERS
+---------------
 ===  ==================================================================================
 200  the file exists under the root
 403  the request path tried to leave the root — see below; this is decided BEFORE any
      filesystem read, so a traversal never becomes a 200 and never becomes a read
 404  a miss under ``/assets/`` or ``/bundle/``: those are file prefixes, not routes
 405  a method other than GET or HEAD
+413  the file is larger than the per-response byte ceiling — see below
 503  the web root was not bundled, or it was bundled without an ``index.html``
 ===  ==================================================================================
+
+WHAT ONE RESPONSE MAY CARRY, AND WHY THIS MODULE OWNS THE NUMBER
+----------------------------------------------------------------
+:data:`DEFAULT_MAX_RESPONSE_BYTES` is a ceiling on the bytes any single response may
+carry, overridable by ``$MAINLINE_MAX_RESPONSE_BYTES``. It lives *here*, rather than in
+:mod:`mainline_demo_api.app`, because both surfaces need it and this is the module the
+other one already imports — ``app`` imports ``static_site``, never the reverse, and this
+module still imports nothing outside the standard library.
+
+The reason it exists is the deployment shape, not a style preference. This origin is a
+Lambda Function URL with ``authorization_type = NONE``, and the largest object it can
+emit is the multiplier in a sustained-egress flood: at the measured 1,554,168 B for the
+console's largest source map, concurrency 10 for 30 days is roughly USD 33,000 of egress.
+The ceiling turns "the biggest thing this origin can emit" from whatever the build
+happened to produce into a **declared number**, and
+``tests/test_response_contract.py`` ratchets it against the tree that is actually built.
+
+**It bounds bytes PER REQUEST. It does not bound request RATE, and it is not a rate
+limit.** A flood of small responses is entirely unaffected by it; the only thing bounding
+rate on this deployment is the AWS account's concurrency ceiling. That sentence is here so
+nobody reads a 413 in a log as evidence of throttling.
+
+A refusal is a 413 problem document, in the same shape as every other error on both
+surfaces. Nothing here raises.
 
 Anything else that misses — ``/``, ``/permits/abc``, a stray link — is ``index.html``
 with ``Cache-Control: no-cache``. Hash routing means a deep link never reaches the
@@ -107,15 +132,18 @@ __all__ = [
     "ASSET_PREFIXES",
     "BUNDLE_CACHE_CONTROL",
     "DEFAULT_CACHE_CONTROL",
+    "DEFAULT_MAX_RESPONSE_BYTES",
     "DEFAULT_ROOT_NAME",
     "FALLBACK_MEDIA_TYPE",
     "IMMUTABLE_CACHE_CONTROL",
     "INDEX_CACHE_CONTROL",
     "INDEX_NAME",
     "MEDIA_TYPES",
+    "RESPONSE_BYTES_ENV",
     "WEB_ROOT_ENV",
     "Refused",
     "is_api_path",
+    "max_response_bytes",
     "media_type",
     "resolve",
     "serve",
@@ -127,6 +155,19 @@ API_PREFIX: Final = "/v1"
 
 #: The environment variable a deploy sets to point at an unpacked site.
 WEB_ROOT_ENV: Final = "MAINLINE_WEB_ROOT"
+
+#: The environment variable that overrides the per-response byte ceiling.
+RESPONSE_BYTES_ENV: Final = "MAINLINE_MAX_RESPONSE_BYTES"
+
+#: 2 MiB. Chosen so nothing legitimate breaks today and not one byte lower: the largest
+#: object in the built web tree measures 1,554,168 B (``assets/index-BjAGxrVJ.js.map``),
+#: which is 74.1 % of this. A ceiling under that number would 413 the console's own
+#: source map, and the first symptom would be DevTools quietly refusing to map a stack
+#: trace — a control that broke the thing it was protecting, discovered by nobody.
+#: Lowering it is a real lever — the deploy-safety plan costs 512 KiB at roughly a 3.6-fold
+#: reduction in the flood's multiplier — but it is a lever that must be pulled in the same
+#: change as a source-map strip, not before one.
+DEFAULT_MAX_RESPONSE_BYTES: Final = 2 * 1024 * 1024
 
 #: The directory name the bundler writes, relative to the package or to the task root.
 DEFAULT_ROOT_NAME: Final = "web"
@@ -168,6 +209,11 @@ MEDIA_TYPES: Final[Mapping[str, str]] = {
 
 FALLBACK_MEDIA_TYPE: Final = "application/octet-stream"
 
+#: How much of a caller-supplied request path the 413 refusal is allowed to echo. It is
+#: the one response `_within_ceiling` does not weigh, so its length may not be the
+#: caller's to choose. 200 is long enough to identify any path in the bundled site.
+_ECHO_LIMIT: Final = 200
+
 #: A segment shaped like a Windows drive specifier. `Path('web').joinpath('C:', 'x')` is
 #: `C:x` on Windows and the root is silently discarded, so this is refused by name rather
 #: than left to the containment check.
@@ -203,6 +249,36 @@ def web_root() -> Path:
         if candidate.is_dir():
             return candidate
     return candidates[0]
+
+
+def max_response_bytes() -> int:
+    """Return the byte ceiling one response may carry. Never raises.
+
+    ``$MAINLINE_MAX_RESPONSE_BYTES`` wins when it parses as a positive integer;
+    otherwise :data:`DEFAULT_MAX_RESPONSE_BYTES` applies.
+
+    **A value that does not parse is ignored rather than fatal, and that is a deliberate
+    trade.** The alternative — raising — turns one typo in a Terraform ``environment``
+    block into a handler that answers every request, including ``/v1/health``, with a
+    runtime-shaped 502 carrying a stack trace, i.e. a total outage caused by a cost
+    control. Falling back means a misconfigured deploy silently enforces 2 MiB instead of
+    the number somebody meant, so the cost of this choice is real and is paid here: the
+    ceiling actually in force is written into the body of every 413 it produces, which
+    makes the effective value readable from the refusal itself rather than inferable from
+    the environment.
+
+    It is read on each call, not captured at import. A Lambda's environment is fixed for
+    the life of a container, so this costs one dict lookup and buys a module that can be
+    tested without reloading it.
+    """
+    raw = os.environ.get(RESPONSE_BYTES_ENV)
+    if raw is None:
+        return DEFAULT_MAX_RESPONSE_BYTES
+    try:
+        value = int(raw.strip())
+    except ValueError:
+        return DEFAULT_MAX_RESPONSE_BYTES
+    return value if value > 0 else DEFAULT_MAX_RESPONSE_BYTES
 
 
 def is_api_path(path: str) -> bool:
@@ -303,6 +379,81 @@ def _problem(status: int, kind: str, detail: str, **extra: Any) -> dict[str, Any
     }
 
 
+def _too_large(
+    where: str, wire: int, ceiling: int, *, on_disk: int | None = None
+) -> dict[str, Any]:
+    """Refuse a response above the ceiling. Built as a literal, and never measured.
+
+    **This does not go through** :func:`_problem`, **and** :func:`_within_ceiling` **never
+    measures what it returns.** If either were otherwise, a ceiling smaller than this body
+    would send the refusal back into the check that produced it: recursion, or a 413
+    answered with a 413. A control that can refuse its own refusal answers nothing.
+
+    Being the one unmeasured response makes its size an obligation rather than an
+    observation, which is why *where* is truncated. It is the caller's own request path,
+    and a Function URL accepts a long one; echoing it whole would let a caller choose the
+    length of the only body this module does not check. Truncated it is fixed prose, three
+    integers and at most :data:`_ECHO_LIMIT` characters — a bound by construction, which is
+    the only kind available to a response that is never weighed. The amplification was
+    about 1:1 either way, so this closes a statement, not a flood.
+
+    *wire* is what would go out; *on_disk* is the file when the refusal came from one.
+    They differ whenever the body is base64, and reporting only the first would leave a
+    caller unable to tell whether the fix is a smaller file or a different media type.
+    """
+    if len(where) > _ECHO_LIMIT:
+        where = f"{where[:_ECHO_LIMIT]}… ({len(where)} characters, truncated)"
+    body = {
+        "error": {
+            "kind": "response_too_large",
+            "status": 413,
+            "detail": (
+                f"{where} would put {wire} bytes on the wire and the ceiling in force is "
+                f"{ceiling}. This bounds the bytes ONE response may carry; it is NOT a "
+                "rate limit and bounds nothing about how often this may be asked for. Set "
+                f"${RESPONSE_BYTES_ENV} to change it, or ship a smaller artefact — for the "
+                "console's source maps the smaller artefact is the intended answer."
+            ),
+            "path": where,
+            "bytes": wire,
+            "bytes_on_disk": on_disk,
+            "ceiling_bytes": ceiling,
+            "ceiling_env": RESPONSE_BYTES_ENV,
+        }
+    }
+    return {
+        "statusCode": 413,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store",
+            "x-mainline-api": "demo-static",
+        },
+        "body": json.dumps(body, sort_keys=True, separators=(",", ":")),
+        "isBase64Encoded": False,
+    }
+
+
+def _within_ceiling(response: dict[str, Any], request_path: str) -> dict[str, Any]:
+    """Measure the finished body and refuse it above the ceiling. The one measurement.
+
+    Putting the measurement at the exit rather than at each construction site is what
+    makes the property statable: *no response this module emits exceeds the ceiling*. The
+    first version of this control lived inside :func:`_file` alone, which left every problem
+    document — 403, 404, 405, 503, each of which echoes the caller's own request path —
+    unmeasured. That is exactly the shape of defect this repository refuses elsewhere: a
+    control present on the path somebody thought of and absent from the rest.
+
+    The body is measured as UTF-8 bytes. Base64 is ASCII, so for an encoded body that is
+    its character count; for a text body it is the file's own bytes. Either way it is what
+    AWS bills egress on, which is the number this ceiling exists to bound.
+    """
+    wire = len(str(response["body"]).encode("utf-8"))
+    ceiling = max_response_bytes()
+    if wire <= ceiling:
+        return response
+    return _too_large(request_path, wire, ceiling)
+
+
 def _file(path: Path, relative: str, *, head: bool) -> dict[str, Any]:
     """Answer 200 with *path*'s bytes, base64-encoded unless they are valid UTF-8 text.
 
@@ -311,7 +462,28 @@ def _file(path: Path, relative: str, *, head: bool) -> dict[str, Any]:
     has to say so. Text is sent as text because a judge running ``curl`` on the URL and a
     developer reading the CloudWatch log both benefit, and because base64 costs 33 % on
     every asset otherwise.
+
+    The ceiling is consulted twice here, and neither is the module's exit check:
+
+    * against ``stat().st_size`` **before the file is read** — an optimisation, not the
+      control. Base64 only ever grows a payload, so a file already over the ceiling cannot
+      produce a body under it, and reading it would be exactly the pointless work this
+      ceiling exists to refuse.
+    * against the **described** body afterwards, which is the only check that can see a
+      ``HEAD``. :func:`_within_ceiling` measures what is emitted, and a ``HEAD`` emits
+      nothing — so without this, a ``HEAD`` on a 1.6 MiB font would answer 200 with a
+      ``content-length`` the matching ``GET`` refuses to deliver. That is a lie told by
+      the cheaper method, and the caller most likely to send ``HEAD`` is the one probing
+      for exactly that discrepancy.
+
+    :func:`_within_ceiling` remains the control for everything else this module emits,
+    problem documents included.
     """
+    ceiling = max_response_bytes()
+    on_disk = path.stat().st_size
+    if on_disk > ceiling:
+        return _too_large(relative, on_disk, ceiling, on_disk=on_disk)
+
     content_type = media_type(path.name)
     raw = path.read_bytes()
     encoded = False
@@ -328,6 +500,14 @@ def _file(path: Path, relative: str, *, head: bool) -> dict[str, Any]:
             # sent as text.
             body = base64.b64encode(raw).decode("ascii")
             encoded = True
+
+    # Base64 is ASCII, so its character count is its byte count. Text was decoded from
+    # `raw`, so `len(raw)` is its wire length exactly — no second encode, and no chance of
+    # the two numbers disagreeing.
+    wire = len(body) if encoded else len(raw)
+    if wire > ceiling:
+        return _too_large(relative, wire, ceiling, on_disk=len(raw))
+
     return {
         "statusCode": 200,
         "headers": {
@@ -342,20 +522,30 @@ def _file(path: Path, relative: str, *, head: bool) -> dict[str, Any]:
     }
 
 
-def serve(  # noqa: PLR0911 - one return per HTTP status, and the statuses ARE the
-    # interface: 403 refused, 404 asset miss, 405 wrong method, 503 no bundle, 200 file,
-    # 200 index. Collapsing them would mean composing the status from a variable, which
-    # is exactly how a 403 becomes a 200 in a refactor nobody reviewed.
+def serve(method: str, request_path: str, *, root: Path | str | None = None) -> dict[str, Any]:
+    """Answer one non-``/v1`` request with a Lambda payload-format-2.0 response dict.
+
+    *root* defaults to :func:`web_root`. Never raises: every failure is a status and a
+    JSON body that names it.
+
+    This is a two-line function on purpose. It is the module's only exit, so it is the one
+    place where "no response this module emits exceeds the ceiling" can be made true of
+    *every* response rather than of the ones somebody remembered — see
+    :func:`_within_ceiling`.
+    """
+    return _within_ceiling(_answer(method, request_path, root=root), request_path)
+
+
+def _answer(  # noqa: PLR0911 - one return per HTTP status, and the statuses ARE the
+    # interface: 403 refused, 404 asset miss, 405 wrong method, 413 too large, 503 no
+    # bundle, 200 file, 200 index. Collapsing them would mean composing the status from a
+    # variable, which is exactly how a 403 becomes a 200 in a refactor nobody reviewed.
     method: str,
     request_path: str,
     *,
     root: Path | str | None = None,
 ) -> dict[str, Any]:
-    """Answer one non-``/v1`` request with a Lambda payload-format-2.0 response dict.
-
-    *root* defaults to :func:`web_root`. Never raises: every failure is a status and a
-    JSON body that names it.
-    """
+    """Decide the answer. :func:`serve` is the public entry point and measures the result."""
     upper = (method or "GET").upper()
     if upper not in ("GET", "HEAD"):
         return _problem(

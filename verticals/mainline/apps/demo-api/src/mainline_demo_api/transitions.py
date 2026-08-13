@@ -67,6 +67,44 @@ One judge pressing one button must not be able to brick the demo for the next. S
 mutating transition aimed at the demo subject is refused with ``423 Locked`` and a plain
 error that says which endpoint to use instead, unless ``MAINLINE_DEMO_ALLOW_MUTATION`` is
 set. The demo subject is driven through ``POST /v1/demo/gate-run``, which rolls back.
+
+AND THE GUARD FAILS CLOSED WHEN IT CANNOT SAY WHICH SUBJECT THAT IS
+-------------------------------------------------------------------
+That is the second half, and it is the half a 31-agent audit found missing. The guard's
+whole decision is ``subject_id == scenario.permit_id``, and ``scenario.permit_id`` comes
+from :func:`mainline_demo_api.scenario.from_env`, which reads ``MAINLINE_DEMO_PERMIT_ID``
+and **falls back to a uuid5 derivation nothing has ever seeded**. The demo Function URL
+carries ``authorization_type = NONE`` (``infra/envs/demo/main.tf:312``), so an absent
+environment variable did not merely misconfigure the guard — it armed it at an identifier
+no caller would ever send and left the four committing POSTs above reachable by any
+stranger, against a DSN role holding the matching UPDATE and EXECUTE grants.
+
+Measured on 2026-08-13 against a freshly seeded local node, with the variable unset and
+every request aimed at the identifier the seed actually minted:
+
+    materialise_checks -> 200   state dispositioned -> checks_materialised, head_seq 2 -> 3,
+    sign_disposition   -> 200   open_blocking 1 -> 0, +1 permit_event, +1 disposition,
+                                +1 exposure_receipt, +1 exposure_line
+
+— an anonymous caller closing the very obligation the gate proof turns on. Recorded in
+``evidence/deploy/demo-guard-armed.json``.
+
+So a comparison is not enough. **A write path that cannot establish which subject is the
+protected one refuses instead of permitting.** :func:`_demo_guard` therefore ESTABLISHES the
+demo subject — it asks the database whether ``scenario.permit_id`` is a row — before it is
+willing to conclude "this is some other subject, let it through". When that row is absent
+the deployment cannot say what it is protecting, and every mutating transition is refused
+with ``423 demo_subject_unidentified``. That refusal deliberately says a different sentence
+from ``demo_subject_write_protected``: asserting that a subject IS the demo subject when the
+deployment cannot name the demo subject would be a fabricated exhibit, and this module does
+not produce those.
+
+This closes the asymmetry rather than the instance. :func:`scenario.resolve` already refuses
+an unseeded history with ``ScenarioNotSeeded`` / ``422 demo_history_not_seeded``, so the READ
+path has always known that "the demo history is not here" is a thing it must say out loud;
+the WRITE path used to treat the same condition as permission. The same probe also catches a
+mistyped override, a deploy pointed at the wrong database and a Lambda whose environment was
+edited by hand — one closed class, not four remembered instances.
 """
 
 from __future__ import annotations
@@ -85,7 +123,7 @@ from psycopg.types.json import Jsonb
 
 from .gate_run import GATE_RUN_SCHEMA_ID, canonical_json, gate_run
 from .refusal import classify, diagnose, refusal_payload, rfc3339
-from .scenario import Scenario, ScenarioNotSeeded, from_env, positional
+from .scenario import ENV_PREFIX, Scenario, ScenarioNotSeeded, from_env, positional
 
 __all__ = [
     "CONTRACT_BASE",
@@ -258,21 +296,108 @@ def _prepare(conn: psycopg.Connection[Any]) -> None:
     conn.execute("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE")
 
 
-def _demo_guard(subject_id: uuid.UUID, scenario: Scenario) -> tuple[int, dict[str, Any]] | None:
-    if subject_id != scenario.permit_id:
+#: The existence question, and nothing else. Not ``resolve()``: that reads eight columns and
+#: two subqueries to DESCRIBE the demo history, and a guard that failed because a projection
+#: counter disagreed with an anti-join would be refusing writes for a reason that has nothing
+#: to do with whether it knows which subject to protect. The only fact this decision needs is
+#: whether the identifier the deployment calls the demo subject names a row here.
+_DEMO_SUBJECT_SQL: Final = "SELECT 1 FROM mainline.permit WHERE permit_id = %s"
+
+
+def _mutation_allowed() -> bool:
+    """Report whether the operator of THIS deployment has explicitly taken the lock off.
+
+    Read from the environment on every call rather than cached: on a warm Lambda the
+    configuration can change between invocations, and a guard that remembered the answer
+    from a cold start would be enforcing a policy the deployment has since withdrawn — or,
+    worse, one it has since imposed.
+    """
+    return os.environ.get("MAINLINE_DEMO_ALLOW_MUTATION", "").strip() not in ("", "0", "false")
+
+
+def _demo_subject_is_established(conn: psycopg.Connection[Any], scenario: Scenario) -> bool:
+    """Report whether the subject this deployment calls the demo subject is in this database.
+
+    One row-existence read, joining whatever transaction the caller already has open, so it
+    sees the same snapshot as the decision it is about to inform.
+
+    ``OperationalError`` is re-raised rather than answered. "There was nothing to ask" and
+    "the gate refused" are different findings and only one of them is about the product —
+    the distinction :func:`handle_transition` draws with its ``503 database_unreachable``,
+    and dressing an unreachable cluster as a ``423`` would put a refusal in front of a
+    reader that nothing refused. Every other driver error IS answered, with ``False``: a
+    guard that cannot read ``mainline.permit`` — no such relation, no such grant — has
+    established nothing, and the whole point of this function is that establishing nothing
+    means refusing.
+    """
+    try:
+        row = positional(conn, _DEMO_SUBJECT_SQL, (scenario.permit_id,)).fetchone()
+    except psycopg.OperationalError:
+        raise
+    except psycopg.Error:
+        return False
+    return row is not None
+
+
+def _demo_guard(
+    conn: psycopg.Connection[Any], subject_id: uuid.UUID, scenario: Scenario
+) -> tuple[int, dict[str, Any]] | None:
+    """Refuse a mutating transition the demo cannot afford, or ``None`` to let it through.
+
+    THE ORDER OF THE THREE QUESTIONS IS THE DESIGN.
+
+    1. Has this deployment's operator lifted the lock? Then nothing below applies, and no
+       statement is issued to decide that.
+    2. Is this the demo subject? Then refuse, and say exactly that. This branch touches no
+       row: the answer is a comparison of identifiers, which is what makes the refusal
+       stateable about a DEPLOYMENT — the guard holds at an identifier whose permit is in
+       another database entirely.
+    3. Only now, having concluded "some other subject", is the conclusion itself checked.
+       It rests entirely on ``scenario.permit_id`` being the right identifier, and that
+       value is an environment variable with a fallback nothing seeded, so the conclusion
+       is worth exactly as much as the premise. If the demo subject is not in this
+       database, the premise is unfounded and the write is refused.
+
+    Step 3 is the whole fix, and it costs one row-existence read on the path that was
+    already going to write. Nothing about it is a policy this module invented: the READ path
+    has always refused an unseeded history (``ScenarioNotSeeded`` / ``422``) rather than
+    guessing, and this is that same rule, finally applied to the path where guessing is
+    irreversible.
+    """
+    if _mutation_allowed():
         return None
-    if os.environ.get("MAINLINE_DEMO_ALLOW_MUTATION", "").strip() not in ("", "0", "false"):
+
+    if subject_id == scenario.permit_id:
+        return _error(
+            423,
+            "demo_subject_write_protected",
+            "This is the seeded demo subject, and it is a single shared copy that a "
+            "hundred judges read. Every transition on this path is irreversible on it — a "
+            "permit is never un-merged — so one caller must not be able to brick the demo "
+            "for the next. Drive the gate through POST /v1/demo/gate-run, which plays the "
+            "same four beats in one transaction and rolls all of it back. Set "
+            "MAINLINE_DEMO_ALLOW_MUTATION=1 in a deployment you own to lift this.",
+            subject_id=str(subject_id),
+            use_instead="POST /v1/demo/gate-run",
+        )
+
+    if _demo_subject_is_established(conn, scenario):
         return None
+
     return _error(
         423,
-        "demo_subject_write_protected",
-        "This is the seeded demo subject, and it is a single shared copy that a "
-        "hundred judges read. Every transition on this path is irreversible on it — a "
-        "permit is never un-merged — so one caller must not be able to brick the demo "
-        "for the next. Drive the gate through POST /v1/demo/gate-run, which plays the "
-        "same four beats in one transaction and rolls all of it back. Set "
-        "MAINLINE_DEMO_ALLOW_MUTATION=1 in a deployment you own to lift this.",
+        "demo_subject_unidentified",
+        f"This deployment cannot say which subject its demo protects: it is configured to "
+        f"protect {scenario.permit_id}, and no mainline.permit with that identifier is in "
+        "this database. The endpoints on this path commit irreversibly and this one is "
+        "reachable without authentication, so a guard that cannot name the subject it is "
+        "guarding refuses rather than assumes. Nothing was written. Set "
+        f"{ENV_PREFIX}PERMIT_ID to the permit this deployment actually seeded — an absent "
+        "value falls back to a uuid5 derivation that nothing seeds — or drive the gate "
+        "through POST /v1/demo/gate-run, which will report the same missing history as "
+        "422 demo_history_not_seeded.",
         subject_id=str(subject_id),
+        demo_subject_id=str(scenario.permit_id),
         use_instead="POST /v1/demo/gate-run",
     )
 
@@ -810,7 +935,7 @@ def _sign_disposition(
         return _error(404, "no_such_check", f"no mainline.blocking_check with check_id {check_id}")
     permit_id, site_id, gate_epoch, receipt_id = found
 
-    guard = _demo_guard(permit_id, scenario)
+    guard = _demo_guard(conn, permit_id, scenario)
     if guard is not None:
         conn.rollback()
         return guard
@@ -987,9 +1112,17 @@ def handle_transition(  # noqa: PLR0911 — one return per outcome; a shared exi
         # The demo subject is write-protected on the three permit-addressed transitions.
         # sign_disposition is addressed by check_id, so its guard runs after the check has
         # been resolved to its permit — inside `_sign_disposition`.
+        #
+        # The rollback is not decoration. `_demo_guard` may have issued the row-existence
+        # read that establishes the demo subject, and on a connection that is not in
+        # autocommit that read opened a transaction. This function's contract is that it
+        # leaves none in progress, whatever happened — a Lambda reuses this connection on
+        # the next invocation, and inheriting an idle-in-transaction session is how a demo
+        # starts answering 40001 to requests that never conflicted with anything.
         if mutates and param_name == "permit_id":
-            guard = _demo_guard(subject, scenario)
+            guard = _demo_guard(conn, subject, scenario)
             if guard is not None:
+                conn.rollback()
                 return guard
 
         if resource_key == "merge_permit":

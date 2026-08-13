@@ -23,8 +23,10 @@
 # everyone including the judges. Decision D1, docs/leads/ship-final.md sec 1.4.
 #
 # The variable admits exactly two values and its validation names both. It is a decision
-# recorded in HCL, not a knob: the `NONE` shape's cost ceiling is
-# `reserved_concurrent_executions`, and the README states the exposure plainly rather than
+# recorded in HCL, not a knob: the `NONE` shape's cost ceiling is the ACCOUNT's concurrency
+# quota - see `account_concurrency_ceiling`, measured at 10 - and NOT
+# `reserved_concurrent_executions`, which this file used to name here and which this
+# account refuses at any positive value. The README states the exposure plainly rather than
 # calling a public URL private.
 
 variable "function_name" {
@@ -68,11 +70,34 @@ variable "url_authorization_type" {
     only AWS Support can lift. `AWS_IAM` without a distribution is a URL that refuses
     everyone. See decision D1, docs/leads/ship-final.md sec 1.4.
 
-    WHAT BOUNDS THE `NONE` SHAPE, honestly: not authentication. It is
-    `reserved_concurrent_executions` (a hard cap, default 20), the handler's single
-    rolled-back transaction, the CockroachDB Basic spend limit, and the `-concurrency`
-    alarm. If the CloudFront hold lifts, set this to `AWS_IAM`, pass the distribution ARN,
-    and re-apply; nothing else in this module changes.
+    WHAT BOUNDS THE `NONE` SHAPE, honestly: not authentication, and not as many things as
+    this paragraph used to list. It named four bounds; exactly one of them bounds spend.
+
+      THE ACCOUNT CONCURRENCY CEILING - REAL, and the only one. 10, measured in both
+      regions (see `account_concurrency_ceiling`). It caps concurrency, hence request rate,
+      hence egress, hence the bill. It is also `Adjustable: true`, so it is a bound nobody
+      here chose and anybody here could remove.
+
+      `reserved_concurrent_executions` - NOT A BOUND. It defaulted to 20 above a ceiling of
+      10, so it never bound anything, and every positive value is refused at apply on this
+      account. It now defaults to -1. Its `0` setting IS a real stop, but as a kill switch
+      run deliberately, not as a standing cap.
+
+      The `-concurrency` alarm - NOT A BOUND, by construction. An alarm reports; it does
+      not stop. It defaulted to 20 against a metric that tops out at 10, so it could not
+      even report; it is now 8, below the ceiling, which makes it a working tripwire and
+      still not a bound.
+
+      The handler's single rolled-back transaction - REAL, but for DATABASE STATE, not
+      spend. The flood target is the static tree, which never opens a connection.
+
+      The CockroachDB Basic spend limit - REAL, and bounds the DATABASE side only. Same
+      reason: it is not in the path of the bytes.
+
+    The honest one-line version is that a public URL on this account is bounded by an AWS
+    default. `docs/deploy/COST-BOUND.md` carries the arithmetic and the menu of levers that
+    would add a second bound. If the CloudFront hold lifts, set this to `AWS_IAM`, pass the
+    distribution ARN, and re-apply; nothing else in this module changes.
   EOT
   type        = string
   default     = "NONE"
@@ -387,23 +412,72 @@ variable "timeout" {
 
 variable "reserved_concurrent_executions" {
   description = <<-EOT
-    Hard concurrency cap, and the only control here that actually STOPS a bill rather than
-    reporting one. 20 is the default and matches `concurrency_alarm_threshold`, so the
-    tripwire fires exactly when the cap starts biting.
+    Per-function reserved concurrency. `-1` is the default, and it means "reserve nothing,
+    draw from the account pool".
 
-    Two consequences worth knowing before changing it. (1) It reserves 20 of the account's
-    1 000 unreserved executions, which the four unrelated projects in this account share;
-    2 % is the price of a demo that cannot be turned into a bill. (2) Lambda emits the
-    per-function `ConcurrentExecutions` metric reliably for functions that HAVE reserved
-    concurrency, so setting this to -1 (unreserved) is also what leaves the concurrency
-    alarm sitting in INSUFFICIENT_DATA.
+    THIS DEFAULT USED TO BE 20, AND THE PARAGRAPH THAT JUSTIFIED IT DESCRIBED A DIFFERENT
+    ACCOUNT. It said the reservation took 20 "of the account's 1 000 unreserved
+    executions" and called that 2 %. Measured 2026-08-13 under `AWS_PROFILE=mainline-dev`,
+    in both regions this project touches:
+
+      aws lambda get-account-settings --region ap-southeast-1
+        AccountLimit.ConcurrentExecutions            10
+        AccountLimit.UnreservedConcurrentExecutions  10
+      aws lambda get-account-settings --region ap-southeast-2
+        AccountLimit.ConcurrentExecutions            10
+        AccountLimit.UnreservedConcurrentExecutions  10
+      aws service-quotas get-service-quota --service-code lambda \
+          --quota-code L-B99A9384 --region ap-southeast-1   (and --region ap-southeast-2)
+        QuotaName "Concurrent executions"   Value 10.0   Adjustable true
+
+    The account ceiling is TEN, not 1 000. The reservation was not 2 % of the account, it
+    was 200 % of it, and that one false sentence is why an unappliable default survived
+    review: it read as a small, prudent number because it was measured against an account
+    nobody here has.
+
+    WHAT THE CEILING OF 10 MEANS FOR THIS VARIABLE, in three parts.
+
+    (1) EVERY POSITIVE VALUE IS REFUSED OUTRIGHT ON THIS ACCOUNT. `PutFunctionConcurrency`
+        rejects a reservation that would drop the account's UNRESERVED concurrency below
+        its documented minimum. Unreserved here is already 10, so there is no positive
+        reservation this account can accept - not 20, not 5, not 1. The apply does not
+        degrade, it fails: `PutFunctionConcurrency` is the sixth of eleven API calls in
+        this apply, so five resources exist by the time it is refused.
+
+    (2) `0` IS STILL ACCEPTED, AND IT IS THE DOCUMENTED WAY TO STOP THE FUNCTION. Reserving
+        0 decreases nothing, so it does not trip the minimum that refuses every positive
+        value; it throttles every invocation before the handler runs. That makes 0 the kill
+        switch this account can still use. DOCUMENTED BEHAVIOUR, NOT MEASURED HERE:
+        confirming it requires a mutating call, and this module has been planned and never
+        applied. It is labelled that way on purpose.
+
+    (3) `-1` DOES NOT RAISE THE CEILING. `min(20, 10) = 10`. The account cap already held
+        this function at 10 concurrent executions, BELOW the 20 the module asked to
+        reserve, so the reservation was never the binding constraint - it was an
+        unappliable request sitting in front of a bound that does not need it. Moving to
+        -1 removes the request and leaves the identical physical bound standing. It does
+        not add one request per second of exposure, which is why `docs/deploy/COST-BOUND.md`
+        computes the worst case at concurrency 10 either way. The ceiling is
+        `Adjustable: true`, and every dollar of that worst case is LINEAR in it - raising
+        `L-B99A9384` multiplies the bill by the same factor, and there is no second bound
+        behind it on an `authorization_type = NONE` URL.
+
+    THE ONE THING THIS VARIABLE STILL BUYS THE ALARMS, and it is a cost of -1, not a
+    benefit: Lambda emits the per-function `ConcurrentExecutions` metric DEPENDABLY only
+    for functions that HAVE reserved concurrency. At -1 the per-function metric may not be
+    published at all, so a `-concurrency` alarm dimensioned on `FunctionName` can sit in
+    INSUFFICIENT_DATA and prove nothing. That is a real consequence of this default and it
+    is stated here rather than discovered in the console; the alarm is moved onto the
+    account-level metric because of it. See `concurrency_alarm_threshold` and
+    `account_concurrency_ceiling` below, and `aws_cloudwatch_metric_alarm.concurrency` in
+    main.tf.
   EOT
   type        = number
-  default     = 20
+  default     = -1
 
   validation {
     condition     = var.reserved_concurrent_executions == -1 || (var.reserved_concurrent_executions >= 0 && var.reserved_concurrent_executions <= 1000)
-    error_message = "reserved_concurrent_executions must be -1 (unreserved) or 0-1000. Note that 0 disables the function entirely."
+    error_message = "reserved_concurrent_executions must be -1 (unreserved) or 0-1000. That is the Lambda API's grammar, not this account's: on an account whose measured ceiling is 10 (see account_concurrency_ceiling) every POSITIVE value is refused at apply by PutFunctionConcurrency, so -1 and 0 are the only two that apply, and 0 stops the function entirely."
   }
 }
 
@@ -449,13 +523,105 @@ variable "duration_p99_threshold_ms" {
 }
 
 variable "concurrency_alarm_threshold" {
-  description = "Concurrent executions above which the demo is assumed to be under abuse rather than under judging. Default 20, matching the reserved-concurrency cap."
+  description = <<-EOT
+    Concurrent executions above which the demo is assumed to be under abuse rather than
+    under judging. Default 8.
+
+    IT WAS 20, AGAINST A METRIC WHOSE PHYSICAL CEILING IS 10. `ConcurrentExecutions` cannot
+    exceed the account's concurrency quota, measured at 10 in both ap-southeast-1 and
+    ap-southeast-2 on 2026-08-13 (see `account_concurrency_ceiling` for the two commands).
+    An alarm at 20 on a metric that tops out at 10 does not fire late; it CANNOT FIRE. It
+    is a control that looks present and is not - a red line on the dashboard, a green alarm
+    in `describe-alarms`, and nothing whatsoever between a public Function URL and the
+    bill.
+
+    THIS IS THE SAME DEFECT `duration_p99_threshold_ms` ALREADY HAS A PRECONDITION AGAINST,
+    ONE RESOURCE HIGHER IN main.tf. `aws_cloudwatch_metric_alarm.duration_p99` carries a
+    `lifecycle.precondition` refusing any threshold that is not strictly below
+    `timeout * 1000`, because Lambda caps the Duration datapoint at the timeout and an
+    alarm above it can never breach. The reasoning transfers exactly: Lambda caps
+    ConcurrentExecutions at the account ceiling, and an alarm at or above it can never
+    breach. The idiom was invented in this module and then not applied to its immediate
+    neighbour. `aws_cloudwatch_metric_alarm.concurrency` now carries the mirroring
+    precondition, comparing this variable against `account_concurrency_ceiling`.
+
+    WHY 8 AND NOT 9 OR 10. It must be STRICTLY BELOW the ceiling or it is not a tripwire,
+    and it needs enough headroom that the breach is visible before saturation rather than
+    at it: 8 of 10 is 80 % of the account's entire Lambda capacity in the region, which no
+    judging session reaches. A judging session is a handful of browsers making four
+    requests each. If this ever fires during judging, the correct reading is not "raise the
+    threshold" - it is that something is holding invocations open, and the threshold is
+    doing its job.
+
+    RAISING IT IS A PLAN-TIME ERROR, NOT A RUNTIME SURPRISE. Setting this to 10 or above is
+    refused by the precondition on the alarm with the ceiling named in the message. A
+    caller genuinely on an account with a higher ceiling raises `account_concurrency_ceiling`
+    to their measured value and this threshold with it; nobody edits the module.
+  EOT
   type        = number
-  default     = 20
+  default     = 8
 
   validation {
     condition     = var.concurrency_alarm_threshold >= 1
-    error_message = "concurrency_alarm_threshold must be at least 1."
+    error_message = "concurrency_alarm_threshold must be at least 1. It must ALSO be strictly below account_concurrency_ceiling, which is checked at plan time by a precondition on aws_cloudwatch_metric_alarm.concurrency rather than here, because a validation block cannot read a second variable before Terraform 1.9 and this module's floor is 1.6 - the same reason duration_p99_threshold_ms is checked against timeout there and not here."
+  }
+}
+
+variable "account_concurrency_ceiling" {
+  description = <<-EOT
+    The AWS Lambda concurrency ceiling of the account this module is applied into. Default
+    10, because that is what this account measures. It is the maximum value the
+    `ConcurrentExecutions` metric can physically take, and therefore the bound every
+    concurrency threshold in this module has to sit strictly below.
+
+    MEASURED 2026-08-13 under `AWS_PROFILE=mainline-dev`, two commands, both regions this
+    project touches, all four answers identical:
+
+      aws lambda get-account-settings --region ap-southeast-1
+        AccountLimit.ConcurrentExecutions            10
+        AccountLimit.UnreservedConcurrentExecutions  10
+      aws lambda get-account-settings --region ap-southeast-2
+        AccountLimit.ConcurrentExecutions            10
+        AccountLimit.UnreservedConcurrentExecutions  10
+      aws service-quotas get-service-quota --service-code lambda \
+          --quota-code L-B99A9384 --region ap-southeast-1
+        QuotaName "Concurrent executions"   Value 10.0   Adjustable true
+      aws service-quotas get-service-quota --service-code lambda \
+          --quota-code L-B99A9384 --region ap-southeast-2
+        QuotaName "Concurrent executions"   Value 10.0   Adjustable true
+
+    Ten is the default account limit for a new AWS account that has not been through a
+    quota increase; the more familiar 1 000 is what an aged account has. Assuming 1 000 is
+    exactly the mistake this variable exists to make impossible to repeat silently.
+
+    WHY IT IS A VARIABLE AND NOT A LOCAL. A `lifecycle.precondition` is only useful if both
+    sides are known at PLAN time. A `data` source lookup of the live quota would be known
+    only at apply on some code paths, would need `servicequotas:GetServiceQuota` in the
+    plan role, and would make the plan artefact depend on a live API call - and this
+    repository's central claim is that its plan is byte-reproducible. A plain number,
+    measured once and written down with the commands that produced it, is checkable by
+    reading and re-runnable by anyone with read-only credentials.
+
+    THE CONTRACT: `aws_cloudwatch_metric_alarm.concurrency` in main.tf reads this variable
+    in its `lifecycle.precondition` and refuses any `concurrency_alarm_threshold` that is
+    not strictly below it, with the ceiling named in the error message. That precondition
+    is the whole reason this variable exists.
+
+    A CALLER ON A DIFFERENT ACCOUNT SETS THIS HERE RATHER THAN PATCHING THE MODULE. Run the
+    two commands above against your own account and pass what they return. Raising this
+    number does not raise any limit - it only tells the module what your limit already is,
+    so the preconditions compare against the truth. And note which direction the money runs:
+    `L-B99A9384` is `Adjustable: true`, the demo's Function URL is
+    `authorization_type = NONE`, and the 30-day worst case in `docs/deploy/COST-BOUND.md`
+    is LINEAR in this number. A quota increase multiplies the worst case by the same
+    factor. Read that document before requesting one.
+  EOT
+  type        = number
+  default     = 10
+
+  validation {
+    condition     = var.account_concurrency_ceiling >= 1
+    error_message = "account_concurrency_ceiling must be at least 1. It is a measured account quota (aws lambda get-account-settings -> AccountLimit.ConcurrentExecutions, or aws service-quotas get-service-quota --service-code lambda --quota-code L-B99A9384), not a limit this module sets; a ceiling below 1 would describe an account on which no Lambda function can run at all."
   }
 }
 

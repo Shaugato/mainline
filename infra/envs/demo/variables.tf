@@ -9,6 +9,12 @@
 # *build output* — the file does not exist in a clean checkout, and `terraform plan` will
 # say so plainly rather than pretend. That is why `var.enable_api` exists.
 #
+# `lambda_reserved_concurrency` exists to KEEP that first sentence true. The module it
+# feeds defaults to a value AWS refuses on this account, so a root that passed nothing
+# would produce a plan that is valid, committed, reviewed — and dies six API calls into
+# the apply. A root variable is how the environment's measured facts override a module
+# default that was written for a different account.
+#
 # ── NO ACCOUNT ID IS SPELLED IN THIS FILE, AND THAT IS DECISION D2 ─────────────────────
 #
 # An earlier revision wrote the twelve-digit account number into three descriptions and
@@ -204,6 +210,95 @@ variable "lambda_architecture" {
   validation {
     condition     = contains(["arm64", "x86_64"], var.lambda_architecture)
     error_message = "lambda_architecture must be arm64 or x86_64."
+  }
+}
+
+variable "lambda_reserved_concurrency" {
+  description = <<-EOT
+    The Lambda's reserved concurrency, passed straight through to `module.api`'s
+    `reserved_concurrent_executions`. `-1` means "reserve nothing, draw from the account's
+    unreserved pool"; `0`-`1000` reserves that many for this function alone.
+
+    THE DEFAULT IS `-1` AND IT IS A MEASUREMENT, NOT A PREFERENCE. The module defaults to
+    20 and the committed plan carries `+ reserved_concurrent_executions = 20`. Twenty
+    cannot be applied on this account. Measured on 2026-08-13 from this machine under
+    `AWS_PROFILE=mainline-dev`, in BOTH regions this project touches:
+
+        aws lambda get-account-settings --region ap-southeast-1
+          AccountLimit.ConcurrentExecutions            10
+          AccountLimit.UnreservedConcurrentExecutions  10
+
+        aws lambda get-account-settings --region ap-southeast-2
+          AccountLimit.ConcurrentExecutions            10
+          AccountLimit.UnreservedConcurrentExecutions  10
+
+        aws service-quotas get-service-quota --service-code lambda \
+            --quota-code L-B99A9384 --region ap-southeast-1
+          QuotaName "Concurrent executions"   Value 10.0   Adjustable true
+
+    AWS refuses any POSITIVE reservation on an account whose ceiling is 10, because
+    granting it would push `UnreservedConcurrentExecutions` below the minimum AWS keeps
+    free for every other function in the account. `PutFunctionConcurrency` is the SIXTH of
+    the eleven API calls this apply makes, so the refusal does not arrive at the start: it
+    arrives with five resources already created, and the operator is left holding a
+    half-applied stack and an error message about a number rather than about a quota.
+
+    THIS DOES NOT RAISE THE COST CEILING, AND THE ARITHMETIC IS ONE LINE. `min(20, 10) =
+    10`. The account ceiling already caps this function at 10 concurrent executions, which
+    is BELOW the 20 the module asks to reserve — so the reservation was never the binding
+    constraint, and removing it removes an unappliable request while leaving exactly the
+    same physical bound in place. The worst case in
+    [`docs/deploy/COST-BOUND.md`](../../../docs/deploy/COST-BOUND.md) is computed at
+    concurrency 10 for precisely this reason: 10 is what the account permits, and 10 is
+    what the account permitted with the 20 still in the file. This change costs nothing
+    and unblocks everything; it is the only one in the deploy-safety wave of which both
+    halves of that sentence are true.
+
+    THE CEILING OF 10 IS `Adjustable: true`, AND THAT IS THE PART TO BE AFRAID OF. Every
+    dollar of the flood arithmetic is LINEAR in this number — the worst case is a byte
+    rate, the byte rate is concurrency divided by invocation latency, and raising
+    `L-B99A9384` from 10 to 100 multiplies the 30-day worst case by ten. Nothing stands
+    behind it: the Function URL is `authorization_type = NONE`, no CloudWatch alarm in
+    this stack has an action wired to a reader, and the account's three AWS Budgets are
+    already breached by unrelated projects and carry zero actions between them. **Nobody
+    requests a concurrency quota increase on this account without reading
+    `docs/deploy/COST-BOUND.md` first.** The sentence you are reading is the bound.
+
+    `0` REMAINS SETTABLE, AND IT IS THE KILL SWITCH. Reserving 0 decreases nothing — it
+    takes no capacity out of the unreserved pool — so it is the one reservation this
+    account can still accept, and it stops the function dead: every invocation is
+    throttled before the handler runs, the Function URL answers 429, and spend stops at
+    the moment the call returns. That is DOCUMENTED AWS behaviour and it is **not measured
+    on this account**, because measuring it requires `PutFunctionConcurrency`, a mutating
+    call this wave is forbidden to make. It ships labelled as documented rather than
+    asserted as measured. `scripts/deploy/kill_switch.{sh,ps1}` is the one-command form.
+
+    WHAT ELSE READS THIS VALUE — named before it was changed, because in this repository a
+    "harmless" default is routinely load-bearing for something else:
+
+      · `infra/modules/demo-api/main.tf` sets `aws_lambda_function
+        .reserved_concurrent_executions` from it. That is the only RESOURCE attribute it
+        reaches, and the only one whose change AWS charges for.
+      · The CloudWatch dashboard's markdown widget interpolates the number verbatim into
+        the sentence "The cost ceiling is `reserved_concurrent_executions = …`". At `-1`
+        that sentence names a control that no longer exists; the dashboard is
+        `infra/modules/demo-api/main.tf`'s to correct, not this file's, and it is on the
+        wave's list.
+      · Lambda emits the PER-FUNCTION `ConcurrentExecutions` metric dependably for
+        functions that HAVE reserved concurrency. At `-1` the `-concurrency` alarm can sit
+        in `INSUFFICIENT_DATA` and prove nothing — the module's own alarm description
+        already says so, in advance, which is the only reason this is a known cost rather
+        than a surprise. That alarm is not this root's to fix, but this variable is the
+        reason it must be, and leaving it unsaid would ship exactly the "control that
+        looks present and is not" the module's `lifecycle.precondition` idiom exists to
+        refuse.
+  EOT
+  type        = number
+  default     = -1
+
+  validation {
+    condition     = var.lambda_reserved_concurrency == -1 || (var.lambda_reserved_concurrency >= 0 && var.lambda_reserved_concurrency <= 1000)
+    error_message = "lambda_reserved_concurrency must be -1 (unreserved) or 0-1000, mirroring the validation on reserved_concurrent_executions in infra/modules/demo-api/variables.tf. On THIS account the measured concurrency ceiling is 10, so every positive value is refused at apply by PutFunctionConcurrency; -1 and 0 are the only two that apply, and 0 stops the function entirely."
   }
 }
 

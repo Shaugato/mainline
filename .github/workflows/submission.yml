@@ -26,6 +26,17 @@
 # request's HEAD is ahead of `origin/master` by construction and that row would be red for
 # a reason that has nothing to do with the submission.
 #
+# NO `continue-on-error`, NO `|| true`, AND THE LAST PAIR IN THE REPOSITORY WAS HERE.
+# On 2026-08-13 this file held the only remaining suppressions in `.github/workflows/`:
+# `continue-on-error: true` on three steps and a `|| true` on the command inside one of
+# them. All four are gone, and `set +e` survives in three steps for the opposite reason —
+# it is how an exit code is CAPTURED so it can be decided on, always lifted across exactly
+# one call and restored on the next line. The distinction is the whole point: `set +e`
+# without a decision afterwards is a suppression wearing a technique's clothes, and a
+# decision is what each of those three steps now ends with. Do not reintroduce either
+# construct, and do not reach the same place through an `if:` that skips a step — a check
+# that is absent on exactly the runs that would have been interesting is not a check.
+#
 # NO CREDENTIAL, NO NETWORK BEYOND THE CHECKOUT. Repository visibility is read from
 # $GITHUB_EVENT_PATH, which the runner writes for every event and which already carries
 # `repository.visibility` — no token, no `gh`, no API call. `--check-urls` is the gate's
@@ -143,16 +154,101 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Make the remote-tracking ref the gate compares against
-        # Best effort: on a fork's pull request this may not resolve, and the gate then
-        # reports NOT CHECKED rather than guessing.
-        continue-on-error: true
+        # THE ONE OUTCOME THIS STEP TOLERATES, NAMED — because until 2026-08-13 it
+        # tolerated all of them. It carried `continue-on-error: true`, which paints a green
+        # tick over a fetch that failed for a reason nobody had thought of just as readily
+        # as over the fork case the comment described. "Best effort" is not an assertion;
+        # this is.
+        #
+        # `remote_sync` compares HEAD against `origin/<branch>`, so that ref has to exist
+        # before the gate runs. A fetch that does not produce it is EXCUSED in exactly one
+        # situation: a pull request whose head repository is not this one. There `origin`
+        # is the base repository, the token is the restricted fork token, and the gate
+        # reporting NOT CHECKED is the honest answer rather than a guess.
+        #
+        # On a push, a dispatch, or a same-repository pull request there is no such excuse.
+        # `origin` IS this repository, the ref exists on it by definition, and a failure is
+        # a fault in the runner or in this file — red, and named as such, instead of a
+        # NOT CHECKED row a reader would misattribute to the submission.
+        #
+        # The two expressions are read through `env:` rather than interpolated into the
+        # script. `head.repo.full_name` is a string a stranger chooses when they fork.
+        id: remote_ref
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch || 'master' }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
         run: |
+          set -uo pipefail
+          # `-e` is lifted only across the call whose exit code is being read, and put back
+          # immediately — the same discipline as the two steps below.
+          set +e
           git fetch --no-tags origin \
-            "+refs/heads/${{ github.event.repository.default_branch || 'master' }}:refs/remotes/origin/${{ github.event.repository.default_branch || 'master' }}"
+            "+refs/heads/${DEFAULT_BRANCH}:refs/remotes/origin/${DEFAULT_BRANCH}"
+          status=$?
+          set -e
+          ref="refs/remotes/origin/${DEFAULT_BRANCH}"
+          if [ "${status}" -eq 0 ] && git rev-parse --verify --quiet "${ref}" > /dev/null; then
+            echo "resolved=true" >> "${GITHUB_OUTPUT}"
+            echo "${ref} -> $(git rev-parse "${ref}")"
+            exit 0
+          fi
+          echo "resolved=false" >> "${GITHUB_OUTPUT}"
+          if [ "${GITHUB_EVENT_NAME}" = "pull_request" ] \
+             && [ -n "${HEAD_REPO}" ] \
+             && [ "${HEAD_REPO}" != "${GITHUB_REPOSITORY}" ]; then
+            echo "::warning::git fetch exited ${status} and ${ref} does not resolve. The head of this pull request is ${HEAD_REPO}, which is not ${GITHUB_REPOSITORY}, so this is the fork case: the remote_sync row will report NOT CHECKED rather than guess, and that is the designed outcome."
+            exit 0
+          fi
+          echo "::error::git fetch exited ${status} and ${ref} does not resolve, on a ${GITHUB_EVENT_NAME} event against ${GITHUB_REPOSITORY} itself. That is not the fork case this step tolerates — origin is this repository here, so the ref exists by definition. Failing now, rather than letting remote_sync report NOT CHECKED for a reason that is an artefact of CI and not a fact about the submission."
+          exit 1
 
       - name: The table
         id: table
-        continue-on-error: true
+        # WHAT THIS STEP DECIDES, AND WHAT IT LEAVES TO THE STEP THAT IS NAMED FOR IT.
+        #
+        # It carried `continue-on-error: true` until 2026-08-13, on top of the `exit 0`
+        # that used to end the script. Two suppressions for one intent, and the intent was
+        # legitimate — the gate's VERDICT must not colour this lane before ${BLOCKING_FROM}
+        # — but `continue-on-error` does not express "the verdict is decided elsewhere".
+        # It expresses "nothing that happens here can ever be red", which also covered the
+        # unset variable, the failed write to ${GITHUB_OUTPUT} and the interpreter that
+        # never started. Those are now the step's own failures, and only those.
+        #
+        # The verdict is still not asserted here. It is recorded as `gate_status` and
+        # decided by `Report-only until D-3, blocking after` below, which is the only step
+        # that knows about the cutover. Both REPORTING exits are therefore accepted:
+        #
+        #     0  EXIT_READY      the table says yes
+        #     1  EXIT_NOT_READY  the table says no — still a table
+        #
+        # and 2 (EXIT_CANNOT_RUN) is a failure of this step, because
+        # check_submission_ready.py returns it from `main` BEFORE it prints anything
+        # (`--now` unparseable, `--repo` absent), so there is no table to report. A crash
+        # exits 1 like a refusal does, so the status cannot tell those apart; the
+        # non-empty check on the transcript can, and does. Same division of labour as
+        # `The machine record`: the status is not the whole assertion.
+        #
+        # THE TRANSCRIPT IS WRITTEN TO ${RUNNER_TEMP}, NOT INTO THE CHECKOUT, AND THAT IS
+        # NOT TIDINESS. `tee` creates its output file when the pipeline is set up — before
+        # the gate has read anything — so a transcript written next to the sources is an
+        # untracked path that exists while the gate is looking. It was, and the gate
+        # correctly said so, in run 31657320062 on 2026-08-13:
+        #
+        #     WARN  remote is in sync  in sync with origin/master, but 1 path(s) are
+        #                              uncommitted and will not be published:
+        #                              submission-ready.txt
+        #     NOT READY - 3 unresolved rows.
+        #
+        # Two of those three are owed by a human — no demo URL, no video URL. The third
+        # was this step's own artefact, and it counts: `remote_sync` is a blocking row, so
+        # the gate exits 1 on it. **After ${BLOCKING_FROM} that made this lane impossible
+        # to green.** Resolve the demo URL and the video URL and the gate would still have
+        # exited 1, on a file CI had just created, and the failure would have named a real
+        # check with a real message pointing at a path nobody wrote. The `remote_sync`
+        # assertion is not weakened by this move and no path is excluded from it: the
+        # artefact simply stops being inside the tree it is asking about.
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch || 'master' }}
         run: |
           set -uo pipefail
           # `-e` is on by default in an Actions `run:` block. Under `-e` with `pipefail`
@@ -161,12 +257,20 @@ jobs:
           # decision step with an empty value and no way to tell red from green.
           set +e
           python scripts/submission/check_submission_ready.py \
-            --branch "${{ github.event.repository.default_branch || 'master' }}" \
-            | tee submission-ready.txt
+            --branch "${DEFAULT_BRANCH}" \
+            | tee "${RUNNER_TEMP}/submission-ready.txt"
           status="${PIPESTATUS[0]}"
           set -e
           echo "gate_status=${status}" >> "${GITHUB_OUTPUT}"
-          exit 0
+          if [ "${status}" -gt 1 ]; then
+            echo "::error::check_submission_ready.py exited ${status}. EXIT_CANNOT_RUN is 2 and is returned before the table is printed, so this run produced no readiness table at all. This is not the gate saying no; it is the gate not having run."
+            exit 1
+          fi
+          if [ ! -s "${RUNNER_TEMP}/submission-ready.txt" ]; then
+            echo "::error::the gate exited ${status} and wrote nothing to submission-ready.txt. Both reporting exits — 0 EXIT_READY and 1 EXIT_NOT_READY — print the whole table before returning, so an empty transcript means the process died mid-report rather than reported anything. A traceback exits 1 exactly as a refusal does, which is why the status alone cannot tell them apart and this check exists."
+            exit 1
+          fi
+          echo "recorded gate_status=${status}; the verdict is decided by 'Report-only until D-3, blocking after' below"
 
       - name: The machine record
         # WHAT THIS STEP ASSERTS — and, as deliberately, what it does not.
@@ -199,26 +303,36 @@ jobs:
         # there is no record to keep. A crash exits 1 as well, and is caught by the parse
         # rather than by the status: a traceback does not produce loadable JSON. That is
         # why the status is not the whole assertion and the parse is not decoration.
+        #
+        # The record is written to ${RUNNER_TEMP} for the reason given at length on
+        # `The table`: a shell redirect creates its file before the gate reads anything, so
+        # a record written into the checkout is an untracked path the `remote_sync` row
+        # then reports — a blocking row, failed by CI's own output. Nothing is excluded
+        # from that check; the artefact is simply not in the tree it asks about.
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch || 'master' }}
         run: |
           set -uo pipefail
+          record="${RUNNER_TEMP}/submission-ready.json"
           # `-e` is on by default here; lift it only across the call whose exit code is
           # being read, exactly as the step above does, and put it back immediately.
           set +e
           python scripts/submission/check_submission_ready.py \
-            --branch "${{ github.event.repository.default_branch || 'master' }}" \
-            --json > submission-ready.json
+            --branch "${DEFAULT_BRANCH}" \
+            --json > "${record}"
           status=$?
           set -e
           if [ "${status}" -gt 1 ]; then
             echo "::error::check_submission_ready.py exited ${status}. EXIT_CANNOT_RUN is 2 and is returned before any JSON is printed, so no machine record was produced for this commit."
             exit 1
           fi
-          python - <<'PY'
+          RECORD="${record}" python - <<'PY'
           import json
+          import os
           import pathlib
           import sys
 
-          record = pathlib.Path("submission-ready.json")
+          record = pathlib.Path(os.environ["RECORD"])
           if not record.is_file() or record.stat().st_size == 0:
               sys.exit(f"::error::{record} is absent or empty; there is no machine record")
           try:
@@ -266,6 +380,16 @@ jobs:
           if [ -z "${GATE_STATUS}" ]; then
             # The table step did not record an exit code. That is not a pass: the same
             # rule the gate applies to its own NOTRUN rows applies to the gate itself.
+            #
+            # KEEP THIS BRANCH. As of 2026-08-13 it should be unreachable, and it is
+            # unreachable for the right reason: `The table` no longer carries
+            # `continue-on-error: true`, so a run in which it failed to write
+            # `gate_status` fails the job there and this step never starts. Before that
+            # change the branch was the only thing standing between a swallowed crash and
+            # a green lane, and it is the reasoning — not the suppression — that made it
+            # correct. Deleting it now would leave the argument undefended the next time
+            # somebody adds an `if:` or a `continue-on-error` upstream, which is precisely
+            # how the condition arose the first time.
             echo "::error::the readiness table recorded no exit code, so nothing is asserted"
             exit 1
           fi
@@ -282,13 +406,22 @@ jobs:
           exit 1
 
       - name: Keep the report
+        # `if: always()` uploads whatever the two steps above produced, including on a run
+        # they failed — a partial record is evidence about the failure. It reports; it
+        # does not suppress, and the job's conclusion is still whatever those steps decided.
+        #
+        # The paths are under `runner.temp` because that is where they are written, and
+        # they are written there so the gate's `remote_sync` row is not answering a
+        # question about CI's own output. `if-no-files-found: warn` and not `error`: the
+        # existence of each file is already asserted, by name, in the step that produces
+        # it, and a second red here would only ever fire on a run that is already failing.
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: submission-ready
           path: |
-            submission-ready.txt
-            submission-ready.json
+            ${{ runner.temp }}/submission-ready.txt
+            ${{ runner.temp }}/submission-ready.json
           if-no-files-found: warn
           retention-days: 14
 

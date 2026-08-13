@@ -297,10 +297,15 @@ module "api" {
   # "NONE"    the Function URL is public and IS the demo hostname. No `aws_lambda_
   #           permission` for `cloudfront.amazonaws.com` is created — the resource is
   #           `count = 0` inside the module, absent from the plan rather than present and
-  #           inert. What bounds the exposure is NOT authentication and the module's README
-  #           says so plainly: `reserved_concurrent_executions` (a hard cap), the handler's
-  #           single rolled-back transaction, the CockroachDB Basic spend limit, and the
-  #           `-concurrency` alarm.
+  #           inert. What bounds the exposure is NOT authentication, and the honest list is
+  #           SHORTER than the one this comment used to carry: the AWS account's measured
+  #           concurrency ceiling of 10 (see `lambda_reserved_concurrency` below — it is
+  #           the only bound on rate, and nobody chose it), the handler's single
+  #           rolled-back transaction (which bounds database STATE, not spend), and the
+  #           CockroachDB Basic spend limit (which bounds the database side only — the
+  #           flood target is the static tree in the zip, which never opens a connection).
+  #           `reserved_concurrent_executions` is NOT on that list any more and the
+  #           `-concurrency` alarm never was: an alarm reports, it does not stop.
   #
   # "AWS_IAM" an unsigned request gets 403 with an empty body, and the single
   #           `lambda:InvokeFunctionUrl` grant is created, scoped by SourceArn to the
@@ -310,6 +315,49 @@ module "api" {
   #           of two that can disagree. `AWS_IAM` with no distribution is not a hardened
   #           demo; it is a URL that answers 403 to everyone, including the judges.
   url_authorization_type = var.enable_cloudfront ? "AWS_IAM" : "NONE"
+
+  # ── THE ONE ATTRIBUTE THAT DECIDES WHETHER THIS PLAN CAN BE APPLIED AT ALL ───────────
+  #
+  # The module defaults this to 20. TWENTY CANNOT BE APPLIED ON THIS ACCOUNT, and that is
+  # a measurement taken on 2026-08-13 under `AWS_PROFILE=mainline-dev`, in both regions
+  # this project touches:
+  #
+  #     aws lambda get-account-settings --region ap-southeast-1
+  #       AccountLimit.ConcurrentExecutions            10
+  #       AccountLimit.UnreservedConcurrentExecutions  10
+  #     aws lambda get-account-settings --region ap-southeast-2
+  #       AccountLimit.ConcurrentExecutions            10
+  #       AccountLimit.UnreservedConcurrentExecutions  10
+  #     aws service-quotas get-service-quota --service-code lambda \
+  #         --quota-code L-B99A9384 --region ap-southeast-1
+  #       QuotaName "Concurrent executions"   Value 10.0   Adjustable true
+  #
+  # AWS refuses every POSITIVE reservation on an account whose ceiling is 10, because
+  # granting one would push `UnreservedConcurrentExecutions` below the minimum it keeps
+  # free. `PutFunctionConcurrency` is the SIXTH of this apply's eleven API calls, so the
+  # refusal lands with five resources already created — a half-applied stack, and an error
+  # about a number rather than about a quota. The plan artefact was never the defect; the
+  # account it targets cannot run it.
+  #
+  # THE COST CEILING IS UNCHANGED BY THIS LINE, and the arithmetic is `min(20, 10) = 10`.
+  # The account ceiling already caps this function at 10 — below the 20 the module asked
+  # to reserve — so the reservation was never the binding constraint. Passing -1 removes
+  # an unappliable request and leaves the identical physical bound standing. It does not
+  # raise exposure by one request per second, and `docs/deploy/COST-BOUND.md` computes the
+  # worst case at concurrency 10 for exactly that reason.
+  #
+  # AND THE CEILING IS `Adjustable: true`. Every dollar of that worst case is LINEAR in
+  # it: raising `L-B99A9384` from 10 to 100 multiplies the 30-day figure by ten, and there
+  # is no second bound behind it — this URL is `authorization_type = NONE`, no alarm here
+  # has a reader, and the account's budgets are already breached with zero actions on
+  # them. NOBODY REQUESTS A CONCURRENCY QUOTA INCREASE WITHOUT READING
+  # `docs/deploy/COST-BOUND.md` FIRST.
+  #
+  # `0` is still settable and is the documented kill switch — reserving 0 decreases
+  # nothing, so it is the one reservation this account can still accept, and it throttles
+  # every invocation before the handler runs. DOCUMENTED, NOT MEASURED HERE: confirming it
+  # needs `PutFunctionConcurrency`, a mutating call this wave does not make.
+  reserved_concurrent_executions = var.lambda_reserved_concurrency
 
   # The one reference back into `site`. It is consumed by `aws_lambda_permission`, which
   # is a different resource from `aws_lambda_function` and `aws_lambda_function_url` —

@@ -366,40 +366,139 @@ def test_an_undeclared_disposition_kind_is_422(
 
 # ═══════════════════════════════════════════════════════════════════════════════════════
 # the demo subject is write-protected
+#
+# THESE TESTS SET `MAINLINE_DEMO_PERMIT_ID` THEMSELVES — AND THAT USED TO BE THE HOLE.
+# `w4_database` points the environment at the permit the proof seeder just minted, so every
+# assertion below arms the guard before driving it. That is the right fixture for "does the
+# guard refuse", and it is exactly the wrong fixture for "is the guard armed in the first
+# place": a deployed Lambda whose environment lacks that variable falls back to a uuid5
+# derivation nothing has ever seeded, and until 2026-08-13 the guard silently permitted every
+# committing POST in that state. This section was green throughout.
+#
+# `test_the_guard_survives_the_loss_of_its_environment_variable` below is the repair to THIS
+# file's blind spot; the adversarial version — all four POSTs, on a real `db.connection()`,
+# with the row counts proven unmoved — is `test_demo_guard_anonymous.py`.
 # ═══════════════════════════════════════════════════════════════════════════════════════
 
 
-@pytest.mark.parametrize("resource", ["merge_permit", "suspend_permit", "materialise_checks"])
+@pytest.fixture
+def demo_check_id(w4_database: str) -> str:  # noqa: F811
+    """One obligation belonging to the seeded demo subject.
+
+    ``sign_disposition`` is addressed by the CHECK, not by the subject, so its guard runs
+    inside ``_sign_disposition`` after the check has been resolved to its permit. Without a
+    check that really belongs to the demo subject, the fourth committing POST cannot be
+    driven at it at all — which is how the parametrisation below came to cover three of the
+    four for as long as it did.
+    """
+    import os
+
+    with psycopg.connect(w4_database, autocommit=True) as probe:
+        row = probe.execute(
+            "SELECT check_id::STRING FROM mainline.blocking_check WHERE permit_id = %s "
+            "ORDER BY check_id LIMIT 1",
+            (os.environ["MAINLINE_DEMO_PERMIT_ID"],),
+        ).fetchone()
+    assert row is not None, "the seeded demo subject carries no mainline.blocking_check"
+    return str(row[0])
+
+
+#: A rationale long enough to clear `_RATIONALE_MIN`. `_sign_disposition` validates the body
+#: BEFORE it reaches the guard, so a short one would be a 422 that never exercised the guard.
+_GUARD_RATIONALE = (
+    "The recalled precursor is answered by a verified zero-energy isolation procedure "
+    "re-issued after the incident, and this permit's scope is covered by it in full. "
+    "Verification at zero is witnessed and recorded before any intrusive work begins."
+)
+
+
+def _demo_posts(permit_id: str, check_id: str) -> tuple[tuple[str, dict[str, str], Any], ...]:
+    """The four committing POSTs aimed at the demo subject, with bodies that are VALID."""
+    return (
+        ("merge_permit", {"permit_id": permit_id}, {}),
+        ("suspend_permit", {"permit_id": permit_id}, {"reason": "operator error"}),
+        ("materialise_checks", {"permit_id": permit_id}, {}),
+        (
+            "sign_disposition",
+            {"check_id": check_id},
+            {"kind": "applied", "rationale": _GUARD_RATIONALE},
+        ),
+    )
+
+
+@pytest.mark.parametrize(
+    "resource", ["merge_permit", "suspend_permit", "materialise_checks", "sign_disposition"]
+)
 def test_the_demo_subject_cannot_be_mutated_through_a_transition(
-    w4_conn: psycopg.Connection[Any], resource: str
+    w4_conn: psycopg.Connection[Any], demo_check_id: str, resource: str
 ) -> None:
-    """One judge must not be able to brick the demo for the next."""
+    """One judge must not be able to brick the demo for the next. All FOUR of them."""
     import os
 
     permit_id = os.environ["MAINLINE_DEMO_PERMIT_ID"]
-    status, payload = handle_transition(resource, {"permit_id": permit_id}, {}, w4_conn)
-    assert status == 423
+    posts = {key: (params, body) for key, params, body in _demo_posts(permit_id, demo_check_id)}
+    params, body = posts[resource]
+    status, payload = handle_transition(resource, params, body, w4_conn)
+    assert status == 423, payload
     assert payload["error"] == "demo_subject_write_protected"
     assert payload["use_instead"] == "POST /v1/demo/gate-run"
     assert "envelope_version" not in payload
 
 
-def test_the_demo_subject_is_unchanged_by_the_attempt(w4_conn: psycopg.Connection[Any]) -> None:
+def test_the_demo_subject_is_unchanged_by_the_attempt(
+    w4_conn: psycopg.Connection[Any], demo_check_id: str
+) -> None:
+    """All four attempts, then the subject read back. A refusal that wrote is not a refusal."""
     import os
 
     permit_id = os.environ["MAINLINE_DEMO_PERMIT_ID"]
-    before = w4_conn.execute(
-        "SELECT state::STRING, head_seq, open_blocking FROM mainline.permit WHERE permit_id = %s",
-        (permit_id,),
-    ).fetchone()
+    columns = (
+        "SELECT state::STRING, head_seq, gate_epoch, open_blocking, "
+        "  (SELECT count(*) FROM mainline.permit_event e WHERE e.permit_id = p.permit_id), "
+        "  (SELECT count(*) FROM mainline.merge_record m WHERE m.subject_id = p.permit_id), "
+        "  (SELECT count(*) FROM mainline.disposition d WHERE d.permit_id = p.permit_id) "
+        "FROM mainline.permit p WHERE p.permit_id = %s"
+    )
+    before = w4_conn.execute(columns, (permit_id,)).fetchone()
     w4_conn.rollback()
-    handle_transition("merge_permit", {"permit_id": permit_id}, {}, w4_conn)
-    after = w4_conn.execute(
-        "SELECT state::STRING, head_seq, open_blocking FROM mainline.permit WHERE permit_id = %s",
-        (permit_id,),
-    ).fetchone()
+    for resource, params, body in _demo_posts(permit_id, demo_check_id):
+        status, payload = handle_transition(resource, params, body, w4_conn)
+        assert status == 423, (resource, payload)
+    after = w4_conn.execute(columns, (permit_id,)).fetchone()
     w4_conn.rollback()
     assert before == after
+
+
+def test_the_guard_survives_the_loss_of_its_environment_variable(
+    w4_conn: psycopg.Connection[Any], demo_check_id: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Take `MAINLINE_DEMO_PERMIT_ID` away and drive all four at the seeded subject anyway.
+
+    THE TEST THIS FILE WAS MISSING. Every other assertion in this section arms the guard
+    first, so none of them could see that the guard is armed BY a variable and disarmed by
+    its absence. With the variable gone, ``scenario.permit_id`` is a uuid5 derivation
+    nothing seeds, and — measured against the code as it stood on 2026-08-13 —
+    ``materialise_checks`` and ``sign_disposition`` both answered 200 and committed on the
+    demo subject, moving it out of ``dispositioned`` and closing the obligation the gate
+    proof turns on.
+
+    The guard now refuses instead, with ``demo_subject_unidentified`` rather than
+    ``demo_subject_write_protected``: it cannot say this subject IS the demo subject when
+    the deployment cannot say which subject that is, and claiming otherwise would be a
+    fabricated exhibit.
+    """
+    import os
+
+    permit_id = os.environ["MAINLINE_DEMO_PERMIT_ID"]
+    monkeypatch.delenv("MAINLINE_DEMO_PERMIT_ID")
+
+    for resource, params, body in _demo_posts(permit_id, demo_check_id):
+        status, payload = handle_transition(resource, params, body, w4_conn)
+        w4_conn.rollback()
+        assert status == 423, (resource, status, payload)
+        assert payload["error"] == "demo_subject_unidentified", (resource, payload)
+        assert payload["use_instead"] == "POST /v1/demo/gate-run"
+        assert "envelope_version" not in payload
 
 
 # ═══════════════════════════════════════════════════════════════════════════════════════

@@ -40,12 +40,35 @@
 #                 a single distribution.
 #
 #      A public URL is a public gateway to a database and this module does not pretend
-#      otherwise. What actually bounds it is written down rather than assumed:
-#      `reserved_concurrent_executions` (default 20) is a hard cap that stops a bill rather
-#      than reporting one; the handler's write surface is one transaction that ends in
-#      ROLLBACK; the CockroachDB Basic cluster carries its own spend limit; and the
-#      `-concurrency` alarm below is the tripwire. That is a smaller claim than "invocable
-#      by one distribution and nothing else", and it is the true one for this account.
+#      otherwise. What actually bounds it is written down rather than assumed - and the
+#      honest list is SHORTER than the one this comment used to carry. It named four
+#      bounds; exactly one of them bounds spend:
+#
+#        THE ACCOUNT CONCURRENCY CEILING - REAL, and the only bound on rate. Measured at 10
+#        in both regions this project touches (`var.account_concurrency_ceiling`). It caps
+#        concurrency, hence request rate, hence egress, hence the bill. It is also
+#        `Adjustable: true`: a bound nobody here chose and anybody here could remove.
+#
+#        `reserved_concurrent_executions` - NOT A BOUND, and this comment used to call it
+#        "a hard cap that stops a bill rather than reporting one". It defaulted to 20 above
+#        a ceiling of 10, so `min(20, 10) = 10` and it never bound anything; every positive
+#        value is refused outright at apply on this account. It is -1 now. Its `0` setting
+#        IS a real stop, but as a kill switch run deliberately, not as a standing cap.
+#
+#        The `-concurrency` alarm below - NOT A BOUND, by construction. An alarm reports;
+#        it does not stop. It is a tripwire and it is now dimensioned and thresholded so
+#        that it can actually trip, which is a strictly smaller claim than "it bounds".
+#
+#        The handler's single rolled-back transaction - REAL, but for DATABASE STATE, not
+#        spend. The flood target is the static tree in the package, which never opens a
+#        connection.
+#
+#        The CockroachDB Basic spend limit - REAL, and bounds the DATABASE side only. Same
+#        reason: it is not in the path of the bytes.
+#
+#      That is a smaller claim than "invocable by one distribution and nothing else", and
+#      it is the true one for this account. `docs/deploy/COST-BOUND.md` carries the
+#      arithmetic and the menu of levers that would add a second bound.
 #
 #   2. THE DSN IS NOT A RESOURCE HERE. Terraform is given the SSM parameter's NAME. A
 #      Terraform-managed secret is a plaintext secret in the state file, and the state
@@ -371,10 +394,64 @@ resource "aws_lambda_permission" "cloudfront_invoke" {
 }
 
 # ── Observability: four alarms and a dashboard, all inside free tiers ───────────────
-
+#
 # CloudWatch's first ten alarms per account are free, and these are four of them. None has
-# an action by default (see `var.alarm_actions`); they exist to be READ - by the console,
-# by the dashboard, and by the hourly `demo-health` workflow, which calls `describe-alarms`.
+# an action by default (see `var.alarm_actions`); they exist to be READ.
+#
+# WHO ACTUALLY READS THEM. This block used to say they were read "by the hourly
+# `demo-health` workflow, which calls `describe-alarms`". IT DOES NOT, and no workflow in
+# this repository could. `.github/workflows/demo-health.yml` makes outbound HTTP requests
+# against `/v1/health` and declares `permissions: contents: read`; it contains no
+# `cloudwatch` call, no `aws-actions/configure-aws-credentials` step and no
+# `id-token: write`. THERE IS NO AWS CREDENTIAL IN ANY WORKFLOW IN THIS REPOSITORY - the
+# only `AWS_*` mention anywhere in `.github/workflows` is `aws-evidence.yml:193`, an
+# `env -u` that UNSETS every one of them on purpose, to prove the evidence verifier needs
+# no account at all. A CI-based alarm reader cannot be shipped because there is no CI
+# credential to read with, and a comment naming a reader that does not exist is worse than
+# naming none: it retires the question.
+#
+# The readers that actually exist, and nothing else:
+#
+#   * the CloudWatch console;
+#   * `aws_cloudwatch_dashboard.this` below - its fifth widget is an `alarm` widget over
+#     all four ARNs, which is why the dashboard is worth its one free slot;
+#   * `scripts/deploy/aws_live_probe.py`, run from a workstation that HAS a credential;
+#   * an SNS topic - and ONLY once `var.alarm_actions` is non-empty AND the subscription
+#     is CONFIRMED. An unconfirmed subscription is a control that looks present and is not,
+#     which is exactly why that variable defaults to empty rather than to a topic nobody
+#     has clicked the link in.
+#
+# THE RULE THIS SECTION FOLLOWS, stated once here so it is not re-derived per alarm:
+#
+#   ANY ALARM ON A METRIC WITH A KNOWN PHYSICAL CEILING CARRIES A PLAN-TIME
+#   `lifecycle.precondition` PLACING ITS THRESHOLD STRICTLY BELOW THAT CEILING.
+#
+# A threshold at or above a ceiling the metric cannot exceed does not fire late - it
+# CANNOT FIRE. It draws a red line on the dashboard, reports a green alarm to
+# `describe-alarms`, and stops nothing: a control that looks present and is not. Both
+# sides of every such comparison are plain variables here, so the check costs one plan
+# evaluation and no API call. Two of the four alarms below have such a ceiling and both
+# now carry the precondition:
+#
+#   duration_p99  threshold < var.timeout * 1000              Lambda terminates the
+#                                                             invocation at the timeout and
+#                                                             caps the Duration datapoint
+#                                                             there.
+#   concurrency   threshold < var.account_concurrency_ceiling Lambda throttles at the
+#                                                             account quota, so
+#                                                             ConcurrentExecutions is
+#                                                             capped there.
+#
+# `errors` and `throttles` carry none, and that is not an omission: both are `> 0` on
+# unbounded counters, so there is no ceiling for a threshold to sit under.
+#
+# AND ALL FOUR TREAT MISSING DATA AS `missing`, NOT `notBreaching`. GREEN MUST MEAN
+# MEASURED-AND-FINE, NEVER NOT-MEASURED. Under `notBreaching` an idle demo displays four
+# green alarms, and the one thing an operator reads off a green alarm - "I looked, it is
+# healthy" - is then false: nobody called the function, so nothing was measured. Under
+# `missing` an unexercised demo reads INSUFFICIENT_DATA, which is the true state and the
+# one that prompts the next question instead of closing it. The price of the honest
+# setting is that a demo nobody has visited does not show green. That is not a price.
 
 resource "aws_cloudwatch_metric_alarm" "errors" {
   alarm_name = "${var.function_name}-errors"
@@ -393,8 +470,10 @@ resource "aws_cloudwatch_metric_alarm" "errors" {
   threshold           = 0
   comparison_operator = "GreaterThanThreshold"
 
-  # No invocations is not a failure; it is a demo nobody is looking at yet.
-  treat_missing_data = "notBreaching"
+  # `missing`, not `notBreaching`. No invocations is not a failure - but it is not a pass
+  # either, and `notBreaching` reports it as one. An idle demo has no error rate to be fine
+  # about, so INSUFFICIENT_DATA is the true state. See the section header.
+  treat_missing_data = "missing"
 
   alarm_actions = var.alarm_actions
   ok_actions    = var.alarm_actions
@@ -404,8 +483,9 @@ resource "aws_cloudwatch_metric_alarm" "errors" {
 resource "aws_cloudwatch_metric_alarm" "throttles" {
   alarm_name = "${var.function_name}-throttles"
   alarm_description = join(" ", [
-    "The reserved-concurrency cap is refusing invocations.",
-    "Either the demo is under more load than a judging session produces, or reserved_concurrent_executions is set too low.",
+    "Lambda is refusing invocations: the concurrency ceiling is biting.",
+    "At reserved_concurrent_executions = ${var.reserved_concurrent_executions} there is no per-function reservation, so this means the ACCOUNT ceiling of ${var.account_concurrency_ceiling} in ${local.region} was reached - do not go looking for a per-function cap to raise.",
+    "Either the demo is under more load than a judging session produces, or something is holding invocations open; the -concurrency alarm at ${var.concurrency_alarm_threshold} should have fired first.",
     "A throttled Function URL invocation reaches the caller as HTTP 429 with no body from the handler, so this is user-visible and undiagnosable from the browser.",
   ])
 
@@ -417,7 +497,9 @@ resource "aws_cloudwatch_metric_alarm" "throttles" {
   evaluation_periods  = 1
   threshold           = 0
   comparison_operator = "GreaterThanThreshold"
-  treat_missing_data  = "notBreaching"
+
+  # `missing`: a demo nobody invoked cannot have been throttled. See the section header.
+  treat_missing_data = "missing"
 
   alarm_actions = var.alarm_actions
   ok_actions    = var.alarm_actions
@@ -444,7 +526,9 @@ resource "aws_cloudwatch_metric_alarm" "duration_p99" {
   evaluation_periods  = 1
   threshold           = var.duration_p99_threshold_ms
   comparison_operator = "GreaterThanThreshold"
-  treat_missing_data  = "notBreaching"
+
+  # `missing`: an idle demo has no p99 to be under the threshold. See the section header.
+  treat_missing_data = "missing"
 
   alarm_actions = var.alarm_actions
   ok_actions    = var.alarm_actions
@@ -466,25 +550,78 @@ resource "aws_cloudwatch_metric_alarm" "duration_p99" {
 resource "aws_cloudwatch_metric_alarm" "concurrency" {
   alarm_name = "${var.function_name}-concurrency"
   alarm_description = join(" ", [
-    "Abuse tripwire: more than ${var.concurrency_alarm_threshold} concurrent executions.",
+    "Abuse tripwire: more than ${var.concurrency_alarm_threshold} concurrent Lambda executions in ${local.region}, against a measured account ceiling of ${var.account_concurrency_ceiling}.",
     "A judging session is a handful of browsers making four requests each; this threshold is not reachable by legitimate use of the demo.",
-    "NOTE: Lambda emits per-function ConcurrentExecutions dependably for functions that have reserved concurrency;",
-    "with reserved_concurrent_executions = -1 this alarm can sit in INSUFFICIENT_DATA and prove nothing.",
+    "ACCOUNT-LEVEL, NOT PER-FUNCTION: no FunctionName dimension, because at reserved_concurrent_executions = ${var.reserved_concurrent_executions} Lambda does not dependably publish the per-function metric.",
+    "`aws lambda get-account-settings --region ${local.region}` reports AccountUsage.FunctionCount = 0, so this function is the only one in the region and the account aggregate IS its concurrency.",
+    "If a second function ever lands in ${local.region}, this becomes a genuine account aggregate and must be revisited.",
   ])
 
-  namespace           = "AWS/Lambda"
-  metric_name         = "ConcurrentExecutions"
-  dimensions          = { FunctionName = aws_lambda_function.this.function_name }
+  namespace   = "AWS/Lambda"
+  metric_name = "ConcurrentExecutions"
+
+  # THERE IS DELIBERATELY NO `dimensions` BLOCK, AND ITS ABSENCE IS THE FIX.
+  #
+  # An alarm dimensioned on `FunctionName` would be the same defect as a threshold above a
+  # ceiling, wearing a different hat: present in the plan, green in the console, and
+  # proving nothing. Lambda publishes the PER-FUNCTION `ConcurrentExecutions` metric
+  # dependably only for functions that HAVE reserved concurrency, and
+  # `var.reserved_concurrent_executions` is -1 by default because this account refuses
+  # every positive reservation (see that variable). A per-function alarm would therefore
+  # sit in INSUFFICIENT_DATA indefinitely. The old comment here SAID exactly that and then
+  # shipped the dimension anyway, which is a documented defect rather than a fixed one.
+  #
+  # With no dimension the alarm evaluates AWS/Lambda ConcurrentExecutions at the ACCOUNT
+  # level in this region, which Lambda always publishes. MEASURED 2026-08-13 under
+  # `AWS_PROFILE=mainline-dev`, and this is the whole justification:
+  #
+  #     aws lambda get-account-settings --region ap-southeast-1
+  #       AccountLimit.ConcurrentExecutions            10
+  #       AccountLimit.UnreservedConcurrentExecutions  10
+  #       AccountUsage.FunctionCount                    0
+  #     aws lambda list-functions --region ap-southeast-1 --query 'Functions[].FunctionName'
+  #       []
+  #
+  # ZERO functions exist in ap-southeast-1. This module creates the first one, so the
+  # account-level metric in this region IS this function's metric - not an approximation
+  # of it, the same number.
+  #
+  # THE INVALIDATING CONDITION, STATED BECAUSE IT IS NOT HYPOTHETICAL: the moment a SECOND
+  # Lambda function is created in ${local.region}, this alarm stops being this function's
+  # concurrency and becomes a true account aggregate. It would then breach on somebody
+  # else's traffic and stay silent while this function's own share sat below the line. If
+  # that day comes, the repair is a `metric_query` block that filters to this function, or
+  # a reserved concurrency on the other function - not a raised threshold. (ap-southeast-2
+  # already holds one unrelated function, which is exactly why this reasoning is
+  # region-scoped and why the count above was re-read rather than assumed.)
+
   statistic           = "Maximum"
   period              = 300
   evaluation_periods  = 1
   threshold           = var.concurrency_alarm_threshold
   comparison_operator = "GreaterThanThreshold"
-  treat_missing_data  = "notBreaching"
+
+  # `missing`: an idle demo has no concurrency to be fine about. See the section header.
+  treat_missing_data = "missing"
 
   alarm_actions = var.alarm_actions
   ok_actions    = var.alarm_actions
   tags          = local.tags
+
+  lifecycle {
+    precondition {
+      # THE SECTION HEADER'S RULE, APPLIED - and this is the resource that motivated
+      # writing the rule down. `ConcurrentExecutions` cannot exceed the account's Lambda
+      # concurrency quota: Lambda throttles at the ceiling, so the metric is capped there.
+      # An alarm at or above that cap can never breach. This is the IDENTICAL defect
+      # `duration_p99` refuses one resource higher, where the idiom was invented and then
+      # not applied to its immediate neighbour - the threshold shipped at 20 against a
+      # measured ceiling of 10 and bounded nothing whatsoever. Both sides are plain
+      # variables, so this is checked at PLAN time and costs nothing.
+      condition     = var.concurrency_alarm_threshold < var.account_concurrency_ceiling
+      error_message = "concurrency_alarm_threshold (${var.concurrency_alarm_threshold}) is not strictly below account_concurrency_ceiling (${var.account_concurrency_ceiling}). Lambda throttles at the account's concurrency quota, so the ConcurrentExecutions datapoint is capped at ${var.account_concurrency_ceiling} and an alarm at or above it could never breach - a control that looks present and is not: a red line on the dashboard, a green alarm in describe-alarms, and nothing at all between a public Function URL and the bill. The ceiling is MEASURED, not assumed: `aws lambda get-account-settings` reports AccountLimit.ConcurrentExecutions = ${var.account_concurrency_ceiling}, and `aws service-quotas get-service-quota --service-code lambda --quota-code L-B99A9384` reports the same value with Adjustable: true. Lower concurrency_alarm_threshold below ${var.account_concurrency_ceiling}, or - only if those two commands genuinely return more on your account - raise account_concurrency_ceiling to what they return. Raising the ceiling variable to silence this message without raising the real quota re-creates the exact defect it exists to refuse."
+    }
+  }
 }
 
 resource "aws_cloudwatch_dashboard" "this" {
@@ -507,7 +644,13 @@ resource "aws_cloudwatch_dashboard" "this" {
             "`${var.architecture}` / `python3.13` / ${var.memory_size} MB / ${var.timeout}s timeout, in `${local.region}`, beside the CockroachDB Cloud cluster.",
             (
               var.url_authorization_type == "NONE"
-              ? "Function URL authorisation: **NONE** - this URL is the public demo hostname and serves the console, the bundle and `/v1/*` from one origin. The cost ceiling is `reserved_concurrent_executions = ${var.reserved_concurrent_executions}`, not authentication."
+              # THIS SENTENCE USED TO NAME `reserved_concurrent_executions` AS THE COST
+              # CEILING. It is -1 by default now, and it was never a ceiling on this
+              # account: `min(20, 10) = 10`, so the account quota already bound this
+              # function below the reservation it asked for, and every positive value is
+              # refused at apply anyway. A dashboard header that names a control which does
+              # not exist is read by the one person checking whether a control exists.
+              ? "Function URL authorisation: **NONE** - this URL is the public demo hostname and serves the console, the bundle and `/v1/*` from one origin. **Authentication is not what bounds it, and neither is `reserved_concurrent_executions` (${var.reserved_concurrent_executions})**: the only bound on request rate is the account's measured Lambda concurrency ceiling of **${var.account_concurrency_ceiling}** in ${local.region}, which is `Adjustable: true` and which nobody here chose. The `-concurrency` alarm at ${var.concurrency_alarm_threshold} REPORTS; it does not stop. See `docs/deploy/COST-BOUND.md` before requesting a quota increase."
               : "Function URL authorisation: **AWS_IAM** - invocable only by the one CloudFront distribution named in the `lambda:InvokeFunctionUrl` grant."
             ),
             "Logs: `${local.log_group_name}` (${var.log_retention_days}-day retention).",
@@ -567,19 +710,32 @@ resource "aws_cloudwatch_dashboard" "this" {
         width  = 12
         height = 6
         properties = {
-          title   = "Concurrency and throttles"
+          title   = "Concurrency (account-level) and throttles"
           region  = local.region
           view    = "timeSeries"
           stacked = false
           period  = 300
           metrics = [
-            ["AWS/Lambda", "ConcurrentExecutions", "FunctionName", var.function_name, { stat = "Maximum", label = "concurrent (max)" }],
+            # NO `FunctionName` PAIR ON THE CONCURRENCY SERIES, for the same reason
+            # `aws_cloudwatch_metric_alarm.concurrency` carries no `dimensions` block: at
+            # `reserved_concurrent_executions = -1` the per-function metric is not
+            # dependably published, so this series would be an empty graph with a red
+            # tripwire line drawn across it. Plotting the series the ALARM evaluates is
+            # what makes the dashboard and the alarm answer the same question - a graph
+            # that disagrees with the alarm beside it is worse than no graph.
+            ["AWS/Lambda", "ConcurrentExecutions", { stat = "Maximum", label = "concurrent (max, account in ${local.region})" }],
+            # Throttles stays per-function: it is a per-function counter Lambda always
+            # publishes, and the alarm on it is per-function too.
             ["AWS/Lambda", "Throttles", "FunctionName", var.function_name, { stat = "Sum", label = "throttles", color = "#d13212" }],
           ]
           yAxis = { left = { min = 0 } }
           annotations = {
             horizontal = [
               { label = "abuse tripwire", value = var.concurrency_alarm_threshold, color = "#d13212" },
+              # The ceiling drawn beside the tripwire, so the gap between them is visible
+              # rather than asserted. The precondition on the alarm guarantees the tripwire
+              # line sits strictly below this one.
+              { label = "account concurrency ceiling (measured)", value = var.account_concurrency_ceiling, color = "#7f7f7f" },
             ]
           }
         }

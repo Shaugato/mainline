@@ -81,18 +81,26 @@ everyone, including the judges. So the module's central assumption inverts: the 
 URL **is** the hostname, and CloudFront becomes an optional upgrade.
 
 **This is a real widening and the module does not dress it up.** A `NONE` URL is a public
-gateway to a database. What actually bounds it is written down rather than assumed:
+gateway to a database. What actually bounds it is written down rather than assumed — and
+**this table used to be longer and wrong.** It listed five bounds and claimed
+`reserved_concurrent_executions = 20` was *"a hard cap, the only control here that stops a
+bill instead of reporting one"*. That sentence described an account nobody here has:
 
-| bound | value | what it stops |
+| claimed bound | real? | what it actually bounds |
 |---|---|---|
-| `reserved_concurrent_executions` | `20` | a hard cap. The only control here that stops a bill instead of reporting one. |
-| the handler's write surface | one txn, ends in `ROLLBACK` | the four beats leave no committed state; two judges cannot collide. |
-| CockroachDB Basic `spend_limit` | $25 / 100 M RU | the database half of the bill has its own ceiling. |
-| `<fn>-concurrency` alarm | `> 20` | the abuse tripwire, readable by `describe-alarms`. |
-| `<fn>-throttles` alarm | `> 0` | says the cap is biting; a throttled Function URL invocation is HTTP 429. |
+| **account concurrency ceiling** = **10** | **YES — and it is the only one** | concurrency, hence request rate, hence egress, hence the bill. Measured (`account_concurrency_ceiling`). Also `Adjustable: true`: a bound nobody here chose and anybody here could remove. |
+| `reserved_concurrent_executions` | **NO** | nothing. It defaulted to `20` above a ceiling of `10` — `min(20, 10) = 10` — so it never bound anything, and *every* positive value is refused outright at apply on this account. It is `-1` now. Its `0` setting **is** a real stop, but as a deliberately-run kill switch, not a standing cap. |
+| `<fn>-concurrency` alarm | **NO**, by construction | nothing — an alarm reports, it does not stop. It shipped at `> 20` against a metric that tops out at `10`, so it could not even report. It is `> 8` on the account-level metric now, which makes it a working tripwire and still not a bound. |
+| the handler's write surface | **YES**, for *state* | one txn ending in `ROLLBACK`: the four beats leave no committed state and two judges cannot collide. Not spend — the flood target is the static tree in the zip, which never opens a connection. |
+| CockroachDB Basic `spend_limit` | **YES**, database side only | $25 / 100 M RU. Same reason: not in the path of the bytes. |
+| `<fn>-throttles` alarm | **NO** | reports that the account ceiling is biting; a throttled Function URL invocation reaches the caller as HTTP 429. |
 
-That is a smaller claim than *"invocable by one distribution and nothing else"*, and it is
-the true one for this account.
+**One real bound on spend, and it is an AWS default nobody chose.** That is a much smaller
+claim than *"invocable by one distribution and nothing else"*, and it is the true one for
+this account. The arithmetic of what that costs in the worst case, and the menu of levers
+that would add a second bound, is [`docs/deploy/COST-BOUND.md`](../../../docs/deploy/COST-BOUND.md).
+Because the worst case is **linear** in the ceiling, nobody requests a concurrency quota
+increase on this account without reading that document first.
 
 ### What changes if the hold lifts
 
@@ -173,11 +181,12 @@ module "demo_api" {
 | `log_level` | `string` | `INFO` | Published as `$LOG_LEVEL` **and** wired into `logging_config.application_log_level`. |
 | `memory_size` | `number` | `512` | MB. CPU scales with it; the free tier is not the binding constraint. |
 | `timeout` | `number` | **`15`** | Seconds. Was 25. See [the timeout is 15 s](#the-timeout-is-15-s-and-the-number-is-arithmetic). Still capped at 29 so every configuration stays valid for CloudFront's 30 s origin read timeout. |
-| `reserved_concurrent_executions` | `number` | `20` | Hard cost cap. `-1` = unreserved (and see the concurrency-alarm caveat). |
+| `reserved_concurrent_executions` | `number` | **`-1`** | **Was `20`, and `20` cannot be applied on this account.** `-1` = reserve nothing, draw from the account pool. Not a cost cap and never was — `min(20, 10) = 10`. `0` is the documented kill switch. |
 | `log_retention_days` | `number` | `7` | CloudWatch retention. `0` (never expire) is not offered. **Unchanged by D1.** |
 | `duration_p99_threshold_ms` | `number` | **`12000`** | p99 alarm threshold, 80 % of the 15 s timeout. Moved *because* the timeout moved — a 20 000 ms threshold on a 15 000 ms ceiling can never breach. A plan-time precondition refuses any value not strictly below `timeout × 1000`. |
-| `concurrency_alarm_threshold` | `number` | `20` | Abuse tripwire. |
-| `alarm_actions` | `list(string)` | `[]` | SNS topics. Empty on purpose — the alarms exist to be *read*. |
+| `concurrency_alarm_threshold` | `number` | **`8`** | Abuse tripwire, on the **account-level** `ConcurrentExecutions` metric. **Was `20`, above a physical ceiling of `10`** — an alarm that could not fire. A plan-time precondition refuses any value not strictly below `account_concurrency_ceiling`. |
+| **`account_concurrency_ceiling`** | `number` | **`10`** | The account's measured Lambda concurrency quota — the maximum `ConcurrentExecutions` can physically take, and the bound every concurrency threshold here must sit strictly below. A variable and not a `data` lookup so both sides of the precondition are known at *plan* time and the plan stays byte-reproducible. A caller on another account sets it to what `get-account-settings` returns for theirs. |
+| `alarm_actions` | `list(string)` | `[]` | SNS topics. Empty on purpose — an unconfirmed subscription is a control that looks present and is not. The alarms exist to be *read*. |
 | `create_dashboard` | `bool` | `true` | First three dashboards per account are free. |
 | `extra_environment` | `map(string)` | `{}` | Merged in. Cannot carry `MAINLINE_DSN`, a Lambda reserved name, or a key this module sets — now including `MAINLINE_WEB_ROOT`, which has its own variable. |
 | `tags` | `map(string)` | `{}` | Merged **under** the mandatory three, which a caller cannot override. |
@@ -204,7 +213,7 @@ the reversal is explained at the top of `variables.tf` rather than quietly perfo
 | `dsn_parameter_arn` | `arn:aws:ssm:ap-southeast-1:…:parameter/mainline/demo/dsn` | the deploy script, so `put-parameter` writes to exactly the ARN the policy grants |
 | `architecture` | `arm64` | deploy report |
 | `package_sha256_base64` | `0h5puChORMwV9wzxVmRP2KKkuq/B/bl7Ba7RYIF/KMU=` | deploy report |
-| `alarm_names` | 4 names | the hourly `demo-health` workflow's `describe-alarms` check |
+| `alarm_names` | 4 names | `aws cloudwatch describe-alarms --alarm-names <these>`, from a workstation that **has** a credential — `scripts/deploy/aws_live_probe.py`. **Not** the `demo-health` workflow: it has no AWS credential and neither does any other workflow here. All four return `INSUFFICIENT_DATA` until the demo is exercised, by design. |
 | `dashboard_name` | `mainline-demo-api` or `null` | — |
 
 ---
@@ -314,8 +323,21 @@ url cors        []
 url invoke_mode BUFFERED
 ```
 
+**And the handler now agrees, which it did not before.** This reasoning used to hold only
+at the Terraform layer: the Function URL had no `cors` block, but the handler itself set
+`access-control-allow-origin` on the responses it built — so the header the infrastructure
+declined to add was added one layer down, and the argument above was true of the plan and
+false of the running demo. On an `authorization_type = NONE` URL that wildcard is the
+difference between *"any page on the internet may make a no-credentials request to this URL
+and **not read** the answer"* and *"…and **read** it"* — every `/v1/*` envelope, error
+detail and SQLSTATE, readable by script from anywhere. The handler no longer emits it
+(`mainline_demo_api.app`, and `tests/test_response_contract.py` asserts its absence), so
+**"no `cors` block, nothing to allow" is now consistent end to end** — one origin at the
+URL, one origin in the response, and no third place where a header could reappear.
+
 If a future caller ever serves the console from a second hostname, the repair is a `cors`
-block naming *that hostname*, in the same commit as the second hostname — never `*`.
+block naming *that hostname*, in the same commit as the second hostname — never `*` — and
+it belongs at *this* layer, not in the handler.
 
 ### The timeout is 15 s, and the number is arithmetic
 
@@ -636,25 +658,130 @@ through here would put the password back in Terraform state through the side doo
 
 The first ten CloudWatch alarms per account are free; these are four of them. None has an
 action by default: an SNS topic whose email subscription nobody confirmed is a control
-that looks present and is not. With no actions they still evaluate, still show state, and
-are still readable by `aws cloudwatch describe-alarms`, which is what the `demo-health`
-cron reads.
+that looks present and is not.
 
 | Alarm | Metric | Condition | Why |
 |---|---|---|---|
-| `<fn>-errors` | `Errors` Sum | `> 0` over 5 min | The handler is written never to raise: refusals are 200s with a `REFUSED` verdict, failures are JSON problem documents. An `Errors` datapoint means it raised anyway. |
-| `<fn>-throttles` | `Throttles` Sum | `> 0` over 5 min | The reserved-concurrency cap is biting. A throttled Function URL invocation reaches the caller as HTTP 429 with no body from the handler — user-visible and undiagnosable from the browser. |
-| `<fn>-duration-p99` | `Duration` p99 | `> 12 000 ms` | Approaching the 15 s timeout (80 % of it). On this stack that is nearly always the pgwire round trip, not the handler — `/v1/health` reports connect time separately. A plan-time precondition refuses a threshold at or above the timeout. |
-| `<fn>-concurrency` | `ConcurrentExecutions` Max | `> 20` | Abuse tripwire. A judging session is a few browsers making four requests each. |
+| `<fn>-errors` | `Errors` Sum, per function | `> 0` over 5 min | The handler is written never to raise: refusals are 200s with a `REFUSED` verdict, failures are JSON problem documents. An `Errors` datapoint means it raised anyway. |
+| `<fn>-throttles` | `Throttles` Sum, per function | `> 0` over 5 min | The account concurrency ceiling is biting. A throttled Function URL invocation reaches the caller as HTTP 429 with no body from the handler — user-visible and undiagnosable from the browser. |
+| `<fn>-duration-p99` | `Duration` p99, per function | `> 12 000 ms` | Approaching the 15 s timeout (80 % of it). On this stack that is nearly always the pgwire round trip, not the handler — `/v1/health` reports connect time separately. **Plan-time precondition:** threshold must be `< timeout × 1000`. |
+| `<fn>-concurrency` | `ConcurrentExecutions` Max, **account-level** | `> 8` | Abuse tripwire, against a measured ceiling of **10**. A judging session is a few browsers making four requests each. **Plan-time precondition:** threshold must be `< account_concurrency_ceiling`. |
 
-All four use `treat_missing_data = "notBreaching"`: no invocations is not a failure, it is
-a demo nobody is looking at yet.
+### The rule, stated once so it is not re-derived
 
-**Caveat on the concurrency alarm.** Lambda emits per-function `ConcurrentExecutions`
-dependably for functions that *have* reserved concurrency. `reserved_concurrent_executions`
-defaults to `20` — which is also the real cost cap, the only control here that stops a
-bill rather than reporting one — so the metric is emitted. Set it to `-1` and this alarm
-can sit in `INSUFFICIENT_DATA` and prove nothing.
+> **Any alarm on a metric with a known physical ceiling carries a plan-time
+> `lifecycle.precondition` placing its threshold strictly below that ceiling.**
+
+A threshold at or above a ceiling the metric cannot exceed does not fire *late* — it
+**cannot fire**. It draws a red line on the dashboard, reports a green alarm to
+`describe-alarms`, and stops nothing: *a control that looks present and is not.* Both sides
+of every such comparison are plain variables, so the check costs one plan evaluation and no
+API call.
+
+Two of the four alarms have such a ceiling and both now carry the precondition —
+`duration_p99` against `timeout × 1000` (Lambda caps the `Duration` datapoint at the
+timeout) and `concurrency` against `account_concurrency_ceiling` (Lambda throttles at the
+account quota, so `ConcurrentExecutions` is capped there). `errors` and `throttles` carry
+none, and that is not an omission: both are `> 0` on unbounded counters, so there is no
+ceiling for a threshold to sit under.
+
+**The concurrency alarm is the reason the rule is written down.** It shipped at `> 20`
+against a metric whose physical ceiling is `10` — the identical defect `duration_p99`'s own
+precondition already refused, one resource lower in the same file. The idiom was invented
+here and then not applied to its immediate neighbour. Measured, this machine, Terraform
+v1.14.8, against the real module:
+
+```console
+$ terraform plan -var thr=9      # strictly below the ceiling
+Plan: 11 to add, 0 to change, 0 to destroy.                       # exit 0
+
+$ terraform plan -var thr=10     # EQUAL to the ceiling — still cannot fire
+Error: Resource precondition failed                               # exit 1
+
+$ terraform plan -var thr=20     # the value that actually shipped
+Error: Resource precondition failed                               # exit 1
+  on .terraform/modules/api/main.tf line 620, in resource "aws_cloudwatch_metric_alarm" "concurrency":
+ 620:       condition     = var.concurrency_alarm_threshold < var.account_concurrency_ceiling
+    │ var.account_concurrency_ceiling is 10
+    │ var.concurrency_alarm_threshold is 20
+
+concurrency_alarm_threshold (20) is not strictly below account_concurrency_ceiling (10).
+Lambda throttles at the account's concurrency quota, so the ConcurrentExecutions datapoint
+is capped at 10 and an alarm at or above it could never breach - a control that looks
+present and is not: a red line on the dashboard, a green alarm in describe-alarms, and
+nothing at all between a public Function URL and the bill. ...
+```
+
+### The concurrency alarm is **account-level**, and that is a fix, not a shortcut
+
+It carries **no `FunctionName` dimension**. Lambda publishes the *per-function*
+`ConcurrentExecutions` metric dependably only for functions that **have** reserved
+concurrency, and `reserved_concurrent_executions` is `-1` (this account refuses every
+positive reservation). A per-function alarm would therefore sit in `INSUFFICIENT_DATA`
+indefinitely — the same defect as an unreachable threshold, wearing a different hat. The
+module's own variable description said so and the alarm shipped the dimension anyway, which
+documents a defect rather than fixing one.
+
+The justification for the account-level metric is **measured**, not assumed:
+
+```console
+$ aws lambda get-account-settings --region ap-southeast-1
+  AccountLimit.ConcurrentExecutions            10
+  AccountLimit.UnreservedConcurrentExecutions  10
+  AccountUsage.FunctionCount                    0
+
+$ aws lambda list-functions --region ap-southeast-1 --query 'Functions[].FunctionName'
+  []
+```
+
+**Zero functions exist in `ap-southeast-1`.** This module creates the first one, so the
+account-level metric in this region *is* this function's metric — not an approximation of
+it, the same number.
+
+**The invalidating condition, stated because it is not hypothetical.** The moment a
+*second* Lambda function is created in `ap-southeast-1`, this alarm stops being this
+function's concurrency and becomes a true account aggregate: it would breach on somebody
+else's traffic and stay silent while this function's own share sat below the line. If that
+day comes the repair is a `metric_query` block filtering to this function, or a reserved
+concurrency on the other function — **not a raised threshold.** (`ap-southeast-2` already
+holds one unrelated function, which is exactly why this reasoning is region-scoped and why
+the count above was re-read rather than assumed.)
+
+### All four treat missing data as `missing`, not `notBreaching`
+
+> **Green must mean measured-and-fine, never not-measured.**
+
+Under `notBreaching` an idle demo displays **four green alarms**, and the one thing an
+operator reads off a green alarm — *"I looked, it is healthy"* — is then false: nobody
+called the function, so nothing was measured. Under `missing` an unexercised demo reads
+`INSUFFICIENT_DATA`, which is the true state and the one that prompts the next question
+instead of closing it. The price of the honest setting is that a demo nobody has visited
+does not show green. That is not a price.
+
+A consequence for anyone asserting on these alarms: **`INSUFFICIENT_DATA` is not a pass.**
+Only `OK` is, and only after traffic.
+
+### Who reads the alarms — there is no CI reader, because there is no CI credential
+
+This section used to say the alarms were read *"by the hourly `demo-health` workflow, which
+calls `describe-alarms`"*. **It does not, and no workflow in this repository could.**
+`.github/workflows/demo-health.yml` makes outbound HTTP requests against `/v1/health` and
+declares `permissions: contents: read`; it contains no `cloudwatch` call, no
+`aws-actions/configure-aws-credentials` step and no `id-token: write`. **No workflow in this
+repository has an AWS credential at all** — the only `AWS_*` mention anywhere under
+`.github/workflows` is an `env -u` in `aws-evidence.yml` that *unsets* every one of them, on
+purpose, to prove the evidence verifier needs no account.
+
+A CI-based alarm reader cannot be shipped because there is no CI credential to read with,
+and a document naming a reader that does not exist is worse than naming none: it retires the
+question. The readers that actually exist:
+
+| Reader | Needs a credential? | Notes |
+|---|---|---|
+| the CloudWatch console | yes (a human session) | — |
+| the dashboard's alarm widget | yes | fifth widget, all four ARNs at a glance — why the dashboard earns its free slot |
+| `scripts/deploy/aws_live_probe.py` | yes | run from a workstation that **has** one |
+| an SNS topic via `var.alarm_actions` | n/a | **only** once the variable is non-empty *and* the subscription is `CONFIRMED`. An unconfirmed subscription is a control that looks present and is not — which is why the variable defaults to empty rather than to a topic nobody clicked the link in. |
 
 The dashboard carries a text header, invocations + errors, duration p50/p99 with the alarm
 threshold and the timeout drawn as annotations, concurrency + throttles, and an alarm-state
@@ -674,9 +801,20 @@ Everything is inside a perpetual free tier. Lambda: 1 M requests and 400 000 GB-
 free, against 512 MB × ~300 ms × 10 000 requests = 1 536 GB-s. Logs: 7-day retention, far
 under the 5 GB free ingest. Alarms: 4 of the first 10. Dashboard: 1 of the first 3. SSM
 Parameter Store Standard: free. Function URL: no charge beyond the invocation.
-**≈ $0.00/month**, and the reserved-concurrency cap means that stays true under abuse. The
-full itemisation, re-checked under D1, is in `docs/leads/ship-final.md` §2.1 — removing
-CloudFront and the site bucket from the request path made the bill *smaller*, not larger.
+**≈ $0.00/month under judging load.** The full itemisation, re-checked under D1, is in
+`docs/leads/ship-final.md` §2.1 — removing CloudFront and the site bucket from the request
+path made the bill *smaller*, not larger.
+
+> **That figure is the expected case, and it is not a bound.** This paragraph used to add
+> *"and the reserved-concurrency cap means that stays true under abuse"*, which was false
+> twice over: `reserved_concurrent_executions` is `-1`, and at `20` it never capped
+> anything either (`min(20, 10) = 10`). Under a **sustained flood** against a public
+> `authorization_type = NONE` URL the 30-day worst case is **four to five orders of
+> magnitude above $0.00**, because the flood target is the static tree in the package —
+> egress, which no alarm and no reservation here stops. The arithmetic, its measured
+> inputs and the menu of levers that would add a real bound are in
+> [`docs/deploy/COST-BOUND.md`](../../../docs/deploy/COST-BOUND.md). Read it before
+> treating the free-tier line above as a ceiling.
 
 **One line of that arithmetic did change under D1 and it is worth stating rather than
 burying.** Serving the SPA from this function means every static asset is now a Lambda
@@ -800,6 +938,22 @@ In the spirit of [`docs/HONESTY.md`](../../../docs/HONESTY.md):
   runs against live AWS credentials — `plan` reads, it does not create. **No worker in this
   domain runs `terraform apply`** (`docs/leads/ship-final.md` §2.2).
 * The `kms:Decrypt` grant has not been exercised against a live decrypt (see above).
+* **No alarm has ever evaluated.** `treat_missing_data = "missing"`, the account-level
+  dimensioning and the concurrency precondition are all proved at *plan* time — the
+  precondition by three real refusals at thresholds 9/10/20, the other two by reading the
+  planned attributes back out of `terraform show -json`. That the account-level
+  `ConcurrentExecutions` metric *is* this function's metric follows from
+  `AccountUsage.FunctionCount = 0` and an empty `list-functions` in `ap-southeast-1`, both
+  read today — but no datapoint has been published, because nothing has been applied.
+* **The modified dashboard body was not re-validated against `PutDashboard`.** The
+  concurrency widget's metric entry lost its `FunctionName` dimension pair to match the
+  alarm. `jsonencode` cannot emit malformed JSON, and CloudWatch's metric-array format
+  documents the dimension pairs as optional (a metric named with none references the
+  aggregate) — but the provider marks `dashboard_body` **unknown at plan time**, so the
+  planned bytes cannot be read back, and confirming the API accepts them needs
+  `aws cloudwatch put-dashboard`, a **mutating** call this wave is forbidden to make. The
+  earlier `{ "DashboardValidationMessages": [] }` transcript above validated a *different*
+  body. If the apply rejects this widget, this bullet is why.
 * **No Function URL has ever been created by this module**, so neither shape's runtime
   behaviour is measured: "a `NONE` URL answers the public" and "an `AWS_IAM` URL answers
   403 to an unsigned `curl`" are both AWS's documented behaviour, not observations of *this*

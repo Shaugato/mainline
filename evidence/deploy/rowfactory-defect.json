@@ -9,9 +9,32 @@
   "generated_on": "TRAPPOINT, Windows 11, CockroachDB v26.2.5 (local, pinned image), psycopg 3.3.4, python 3.13 (.venv)",
   "repo_head_at_start": "1d41442",
 
+  "amendment": {
+    "why_this_file_may_be_amended": "This is a hand-rolled evidence document, not a recorded transcript. A transcript is a machine's own account of a run and editing one forges evidence; this file is an argument about a defect, and an argument that has been overtaken by a measurement must say so. Nothing below the amendment is deleted or rewritten: the original claim, verdict, census and blocking_finding stand exactly as w1-rowfactory left them, and are superseded by pointer rather than by erasure. The reader can still see what was found, by whom, and what was not known at the time.",
+    "amended_by": "W1 (demo-correctness wave), the worker who owns refusal.py",
+    "amended_at": "2026-08-13",
+    "amended_on": "TRAPPOINT, Windows 11, CockroachDB v26.2.5 (local pinned image cockroachdb/cockroach:v26.2.5, container trappoint-crdb), psycopg 3.3.4, python 3.13 (.venv)",
+    "repo_head_at_amendment": "da77557",
+    "plan_governing_the_amendment": "docs/leads/demo-correctness-plan.md, worker W1",
+    "what_changed": "verdict: PARTIAL -> RESOLVED. The blocking_finding this file raised - refusal.py:235 - has been fixed at its cause and proven under both row factories. See resolution below."
+  },
+
   "claim": "scenario.resolve() and the four beats of gate_run() read their rows by POSITION while db.connection() opens every production connection with dict_row. The mismatch bound a column NAME as a query parameter and returned 500 to the headline demo beat. The three modules named in the brief are now factory-agnostic and proven so under both factories. A FOURTH module carrying the same defect - refusal.py, owned by no worker in this wave - still blocks the dict_row half of the end-to-end path and was not edited.",
 
-  "verdict": "PARTIAL - the three owned modules are FIXED and PROVEN; the end-to-end dict_row path remains BLOCKED by refusal.py:235",
+  "verdict": "RESOLVED - all four modules in the package are factory-agnostic and proven so under both row factories. The end-to-end dict_row path is no longer blocked at refusal.py. Measured 2026-08-13 at head da77557; the commands and their real output are under resolution.measurements below.",
+
+  "verdict_history": [
+    {
+      "at": "2026-08-13, head 1d41442, by w1-rowfactory",
+      "verdict": "PARTIAL - the three owned modules are FIXED and PROVEN; the end-to-end dict_row path remains BLOCKED by refusal.py:235",
+      "still_true": "every word of it, of the tree it was written against. refusal.py was not that worker's file and the finding was recorded rather than acted on, which is the discipline working as intended - the finding is what caused refusal.py to be given an owner in the next wave."
+    },
+    {
+      "at": "2026-08-13, head da77557, by W1 of the demo-correctness wave",
+      "verdict": "RESOLVED",
+      "what_made_it_resolvable": "refusal.py was enumerated as an owned path, so the fix could be made in the lane rather than recorded across it."
+    }
+  ],
 
   "the_defect": {
     "summary": "verticals/mainline/apps/demo-api/src/mainline_demo_api/db.py:309 opens every production connection with row_factory=dict_row. reads.py and health.py were written to that convention (row[\"name\"]). scenario.py, gate_run.py, transitions.py and refusal.py were not. Unpacking a dict yields its KEYS, so scenario.resolve()'s eight-name unpacking made check_id the literal seven-character string \"check_id\", which was then bound as $2 of _RECEIPT_SQL and rejected by the type parser one statement later.",
@@ -187,7 +210,8 @@
           "statement": "SELECT trappoint.explain_refusal(%s, %s, %s, %s), whose single column CockroachDB names explain_refusal",
           "under_dict_row": "KeyError: 0",
           "reached_by": "gate_run._record_refusal -> refusal.refusal_payload -> refusal._explain, on BEAT 2 and BEAT 3; and transitions._refused on every kernel refusal",
-          "status": "NOT EDITED. See blocking_finding below."
+          "status": "NOT EDITED. See blocking_finding below.",
+          "superseded_by": "resolution. The status above was true at head 1d41442 and is left standing as the record of what this census found. refusal.py IS now edited - see resolution.the_fix - and the file's positional row access count is 1, on a row a cursor was told to make a tuple."
         }
       ]
     }
@@ -342,13 +366,128 @@
     "correction": "one line - take the row's single VALUE rather than its index. The shape the other three modules now use is: row = scenario.positional(conn, \"SELECT trappoint.explain_refusal(%s, %s, %s, %s)\", (subject_kind, subject_id, constraint, Jsonb(attempt) if attempt else None)).fetchone(). Everything else in refusal.py is unaffected; it is the only positional row access in the file.",
     "why_it_was_not_fixed_here": "docs/leads/submission-final-plan2.md section 7 rule 5 - file ownership is absolute, and the remedy for needing a file you do not own is to record the finding, not to edit it. This worker's brief enumerated five owned paths and refusal.py is not among them. A silent edit outside the lane that another session then overwrote would leave this artefact claiming a fix that is not in the tree, which is the one failure mode the honesty discipline exists to prevent.",
     "consequence_if_left": "POST /v1/demo/gate-run continues to return 500 to every judge. The 22P02 becomes a KeyError, which is a different message for the same broken button.",
-    "verification_after_it_is_fixed": "python -m pytest verticals/mainline/apps/demo-api/tests/test_row_factory_contract.py -q must report 14 passed. No edit to that file is required; the three failing tests are correct as written and turn green when line 235 does."
+    "verification_after_it_is_fixed": "python -m pytest verticals/mainline/apps/demo-api/tests/test_row_factory_contract.py -q must report 14 passed. No edit to that file is required; the three failing tests are correct as written and turn green when line 235 does.",
+    "status_now": "CLOSED. The prediction above was run as written and is the strongest single piece of evidence in this file, because it was made BEFORE the fix by a worker who could not make it and was settled AFTER by a worker who did not edit the test: `python -m pytest verticals/mainline/apps/demo-api/tests/test_row_factory_contract.py -q` -> `14 passed in 91.62s`. test_row_factory_contract.py is unmodified in the working tree; `git status --porcelain` does not list it."
+  },
+
+  "resolution": {
+    "by": "W1 of the demo-correctness wave (docs/leads/demo-correctness-plan.md), owner of refusal.py",
+    "at": "2026-08-13, repo head da77557",
+    "summary": "The single positional row access at refusal.py:235 is gone, and the property that made it possible - a statement inheriting whatever row factory opened the connection - is gone from the whole file rather than from the one line that crashed.",
+
+    "the_fix": {
+      "file": "verticals/mainline/apps/demo-api/src/mainline_demo_api/refusal.py",
+      "diffstat": "1 file changed, 55 insertions(+), 7 deletions(-)",
+      "shape": "the same remedy the other three modules use - scenario.positional(conn, sql, params), which sets row_factory=tuple_row on the CURSOR and mutates nothing about the connection, so reads.py still receives dicts on the same warm container.",
+      "statements_routed": 5,
+      "statement_census_after": [
+        "refusal.py:260  positional(conn, \"SAVEPOINT trappoint_explain\")",
+        "refusal.py:262  positional(conn, _EXPLAIN_SQL, (...)).fetchone()",
+        "refusal.py:268  positional(conn, \"ROLLBACK TO SAVEPOINT trappoint_explain\")",
+        "refusal.py:269  positional(conn, \"RELEASE SAVEPOINT trappoint_explain\")",
+        "refusal.py:271  positional(conn, \"RELEASE SAVEPOINT trappoint_explain\")"
+      ],
+      "why_the_four_no_row_statements_were_routed_too": "SAVEPOINT, ROLLBACK TO and RELEASE return no rows, so none of them could be misread today. They go through the helper anyway because the property being removed from this module is INHERITING A FACTORY, not CRASHING. A later edit that adds a RETURNING clause to one of them must not be able to reintroduce the defect quietly.",
+      "why_not_row['explain_refusal']": "Keying the row by the column name would also have stopped the KeyError, and would have made refusal.py depend on a name CockroachDB chose for it. The sibling statements prove that is not safe: measurement_that_decided_the_fix_shape above records gate_run._FINGERPRINT_SQL returning ten columns all named `count`, of which a dict row keeps one. The test therefore runs the same call under an alias and requires the same answer, so the fix cannot silently become a name dependency.",
+      "the_savepoint_fence_is_unchanged": "_explain is called three times inside the one transaction gate_run holds open across four beats, and 0119a raises rather than emit a plausible reason set. The fence's four statements are the same four, in the same order, with the same control flow; only the cursor they run on changed.",
+      "one_docstring_correction_made_in_passing": "the module docstring said `All six statements this module issues`. There are five. Corrected to five rather than left as a number a reader could not reproduce by counting."
+    },
+
+    "the_test_that_was_missing_for_this_file": {
+      "file": "verticals/mainline/apps/demo-api/tests/test_refusal_row_factory.py",
+      "tests": 13,
+      "marker": "requires_cluster",
+      "design": "every claim is made twice - once through db.connection() (the REAL production factory; a hand-rolled psycopg.connect(..., row_factory=dict_row) would only assert that the file agrees with itself) and once through an explicit tuple_row connection - and the two answers are then required to be EQUAL.",
+      "the_negative_control": "two halves, because one alone would prove the wrong thing. test_the_decomposition_column_is_named_after_the_function reads cursor.description off refusal._EXPLAIN_SQL itself and FAILS if the column is ever renamed, so the measured premise this whole artefact rests on cannot drift silently. test_the_answer_does_not_depend_on_that_column_name then runs the same call with `AS renamed_on_purpose` and demands an identical answer, which is what proves refusal.py does not depend on the name the first test pins.",
+      "both_branches_of_explain_are_covered": "epoch_pin_permit reaches the decomposition and RETURNS a payload - the branch that carried the defect - and gate_closed_when_issued against a permit whose projected counter is zero RAISES P0001, which is the branch the SAVEPOINT exists for. Asserting only the branch that was broken would leave the other free to break next.",
+      "two_properties_a_fix_could_have_destroyed_quietly": [
+        "test_the_savepoint_fence_survives_a_raise_inside_one_open_transaction - three _explain calls in one transaction, the middle one raising, and the transaction still usable afterwards",
+        "test_building_a_refusal_leaves_the_connection_handing_out_dicts - a warm container's next GET must still get dicts, which is what fails if a fix mutates conn.row_factory in passing"
+      ],
+      "structural_ratchet_over_this_one_file": "test_no_statement_in_refusal_inherits_the_connection_s_row_factory walks the AST and bans conn.execute(...).fetch*(). Deliberately narrower than the package-wide ratchet: the behavioural tests only cover the statements a refusal happens to reach, and a statement added to refusal.py tomorrow would be covered by nothing until this fails. test_the_production_module_still_routes_through_positional is its complement - a ratchet that only bans a shape is satisfied by deleting the statement, so the replacement is required to be present."
+    },
+
+    "measurements": {
+      "python": "D:/CoackroachDBxAWS/mainline/.venv/Scripts/python.exe",
+      "cwd": "D:/CoackroachDBxAWS/mainline",
+      "node": "postgresql://root@127.0.0.1:26257 - the compose node, cockroachdb/cockroach:v26.2.5, brought up with `docker compose -f compose.yaml up -d --wait crdb` and aligned with `docker compose -f compose.yaml run --rm crdb-align` (gc.ttlseconds = 4500)",
+      "scratch_database": "w_w1 - this worker's own, created with CREATE DATABASE IF NOT EXISTS w_w1 and migrated by the repository's own applier",
+      "note_on_the_dsn": "The local node takes no password. No credential appears in this file, and none was printed to obtain any measurement in it.",
+
+      "the_chain_into_the_scratch_database": {
+        "command": "python <scratch>/probe_chain.py  (trappoint_migrate.bootstrap + discovery.discover over verticals/mainline/db/migrations, each file in its own autocommit statement - the same applier verticals/mainline/apps/demo-api/tests/conftest.py:231 uses)",
+        "output": "APPLIED 271  FAILED 0",
+        "why_it_is_recorded": "the first pytest run of the session skipped with `25 of 271 migrations did not apply into w3_demo_api_d2a5ddd092e1 ... relation \"mainline.change_request\" does not exist`. Applying the same chain into this worker's own database returned 271/271, which establishes the 25 as a CONCURRENCY artefact and not a chain defect: the shared fixture database is keyed by the fingerprint of the migration tree, so sibling sessions in this wave were mid-rebuild of the same database. The second run adopted a marker reading `migrations = 271` and passed. A skip is not a pass and the difference is worth writing down."
+      },
+
+      "the_defect_premise_re_measured_after_the_fix": {
+        "command": "python <scratch>/probe_refusal.py  (seeds w_w1 with the repository's own conftest._seed, then probes refusal.py directly)",
+        "output_verbatim": [
+          "SEEDED PERMIT: 0e3fc389-c7de-4f71-81b2-db3a6c4fb763",
+          "db.connection().row_factory: dict_row",
+          "DESCRIPTION NAMES: ['explain_refusal']",
+          "dict_row SHAPE: dict keys=['explain_refusal']",
+          "ORIGINAL SPELLING row[0]: KeyError: 0",
+          "_explain via db.connection(): diagnosis='declarative' why_not=None",
+          "_explain via tuple_row: diagnosis='declarative' why_not=None",
+          "_explain EQUAL ACROSS FACTORIES: True",
+          "refusal_payload[epoch_pin_permit] diagnosis: declarative",
+          "refusal_payload[epoch_pin_permit] EQUAL ACROSS FACTORIES: True",
+          "refusal_payload[gate_closed_when_issued] diagnosis: none",
+          "refusal_payload[gate_closed_when_issued] EQUAL ACROSS FACTORIES: True",
+          "FENCE declined why_not: TRAPPOINT: the projected counter is zero - this refusal is not reproducible against the cu",
+          "FENCE transaction survived: True",
+          "FENCE still usable: (1,)",
+          "connection factory after a refusal: dict_row",
+          "next GET shape: {'four': 4}"
+        ],
+        "how_to_read_it": "Line 3 and line 5 are the two halves of the premise, and they are STILL TRUE after the fix - that is the point. The column is still named explain_refusal, the production connection still hands back a one-key dict, and the ORIGINAL spelling `row[0] if row and isinstance(row[0], dict) else None` applied to that same row still raises KeyError: 0. Nothing about the database changed. What changed is that refusal.py no longer reads the row that way. A fix that made line 5 stop reproducing would have been a fix to the measurement rather than to the module.",
+        "the_last_two_lines": "refusal_payload[gate_closed_when_issued] returning diagnosis `none` is not a failure - it is the honest-incompleteness payload, reached because 0119a declined to decompose a refusal whose projected counter is zero, and both factories reach it identically. `connection factory after a refusal: dict_row` and `next GET shape: {'four': 4}` are the warm-container property: positional() set the factory on the cursor and left the connection alone."
+      },
+
+      "pytest_the_new_file": {
+        "command": ".venv/Scripts/python.exe -m pytest verticals/mainline/apps/demo-api/tests/test_refusal_row_factory.py -q",
+        "output": "13 passed in 3.41s",
+        "first_run_of_the_session": "skipped 11 of 13 - see the_chain_into_the_scratch_database above for why, and why it is recorded rather than quietly re-run",
+        "second_run": "13 passed in 7.55s (fixture adopted, marker migrations = 271)"
+      },
+
+      "pytest_the_prediction_this_file_made": {
+        "command": ".venv/Scripts/python.exe -m pytest verticals/mainline/apps/demo-api/tests/test_row_factory_contract.py -q",
+        "output": "14 passed in 91.62s (0:01:31)",
+        "before": "3 failed, 11 passed - all three failing with KeyError: 0 at mainline_demo_api/refusal.py:235, recorded under measurements.pytest.after_failures_new above",
+        "why_this_is_the_strongest_line_in_the_file": "the assertion was written by a worker who could not fix the module, and turned green for a worker who did not touch the assertion. test_row_factory_contract.py is not in `git status --porcelain`."
+      },
+
+      "mypy": {
+        "command": ".venv/Scripts/python.exe -m mypy --config-file pyproject.toml   (cwd verticals/mainline/apps/demo-api; strict = true, files = src/mainline_demo_api)",
+        "output": "Success: no issues found in 11 source files"
+      },
+
+      "ruff": {
+        "check": {
+          "command": ".venv/Scripts/python.exe -m ruff check <refusal.py> <test_refusal_row_factory.py>",
+          "output": "All checks passed!"
+        },
+        "format": {
+          "command": ".venv/Scripts/python.exe -m ruff format --check <refusal.py> <test_refusal_row_factory.py>",
+          "output": "2 files already formatted",
+          "one_line_ending_correction": "refusal.py's WORKING-TREE bytes were CRLF while the index held LF (`git ls-files --eol` reported i/lf w/crlf), which is the pre-existing artefact recorded under measurements.ruff.format.why_normalised above. Left alone it would have committed a 381-insertion/333-deletion whole-file diff for a 55-line change and failed the format lane, whose ruff.toml sets line-ending = \"lf\". The file was rewritten with LF endings and nothing else: `git diff --stat` went from `381 insertions(+), 333 deletions(-)` to `55 insertions(+), 7 deletions(-)` with no change to the semantic diff, and `git ls-files --eol` now reports i/lf w/lf. This is one owned file's bytes being made to match what git already had; it is NOT a format commit, and no other file in the tree was touched."
+        }
+      }
+    },
+
+    "what_this_does_and_does_not_prove": {
+      "proves": "refusal.py gives the same answer through db.connection() and through tuple_row, for both branches of _explain and both branches of refusal_payload; the SAVEPOINT fence still survives a raise inside one open transaction; and the connection a warm container reuses still hands out dicts afterwards. The package-wide contract suite that named this line now reports 14 passed.",
+      "does_not_prove": "that POST /v1/demo/gate-run returns 200 end to end. That is an acceptance-transcript claim, it is owned by W7, and it must be produced by re-running the prover against the real handler - never by hand, and never by amending evidence/deploy/acceptance.json, which is a RECORDED TRANSCRIPT and not a document like this one. Until that run happens, acceptance.json's NOT PROVEN stands.",
+      "the_coupling_that_is_not_negotiable": "This fix removes the KeyError that currently makes the four committing kernel POSTs inert on a Function URL with authorization_type = NONE. It must land on the same commit as W6's armed demo guard. Landing it alone would trade a 500 for an anonymous write surface, which is the exact near-miss docs/leads/demo-correctness-plan.md section 0.4 exists to describe."
+    }
   },
 
   "not_touched": {
     "db.py": "row_factory=dict_row at line 309 is deliberate and stays; reads.py's 43 name accesses and health.py's five depend on it",
     "reads.py": "43 row[\"name\"] accesses, zero positional - already correct under dict_row",
-    "refusal.py": "see blocking_finding",
+    "refusal.py": "see blocking_finding. NO LONGER TRUE as of the 2026-08-13 amendment: refusal.py was given an owner in the next wave and is fixed - see resolution. This entry is left in place because it is the record of what the ORIGINAL worker did and did not touch, and deleting it would hide the one-wave gap between finding the defect and being allowed to fix it.",
     "tests/conftest.py": "w3-receipt-ttl's file; its stale-fixture weakness is described in the lead's plan section 3 and is guarded around rather than edited",
     "tests/test_gate_run.py": "w4's file; its tuple_row-only convention is the reason this defect survived, and the new file adds the missing assertion beside it rather than rewriting it"
   },

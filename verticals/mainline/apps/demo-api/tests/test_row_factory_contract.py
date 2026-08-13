@@ -40,6 +40,27 @@ sets lose columns with no error to notice — ten values arriving as one. Positi
 convention under which those statements are readable at all, which is why the fix asks the
 CURSOR for tuples rather than renaming the columns.
 
+THE RATCHET IS THE WHOLE PACKAGE NOW, AND THE RULE IS "DECLARE", NOT "DON'T INHERIT".
+
+The first version of the structural test banned ``conn.execute(...).fetchone()`` in three
+named modules. That was right about those three and wrong as a general rule, because
+``reads.py`` makes 43 name-keyed accesses across the twelve GET resources and ``health.py``
+opens an explicit ``dict_row`` cursor: both inherit mapping rows deliberately and both are
+correct. Banning the shape everywhere would have demanded twelve resources be rewritten to
+buy nothing. So the rule the ratchet now enforces over EVERY module in
+``mainline_demo_api`` is that each reading site DECLARES the convention it is written
+against — ``scenario.positional()`` for position, an explicit ``row_factory=`` cursor or a
+name-only read for name — and that no module may declare position at one statement and
+nothing at another. That last clause is the one with a body count: it is exactly the state
+``refusal.py`` was in on 2026-08-12.
+
+The rule itself lives in ``scripts/qa/row_factory_ratchet.py`` and is imported from there
+rather than re-implemented here, for the same reason this file drives the repository's own
+seeder instead of its own: two copies of a rule are two rules. That script also runs
+repo-wide with no cluster in ``tests/unit/test_row_factory_ratchet.py``, which is where the
+package assertion below is repeated for the ``--crdb=none`` lane — this module is marked
+``requires_cluster``, so on a laptop with no node the structural half would otherwise skip.
+
 THE FIXTURE DATABASE IS THIS FILE'S OWN.
 
 ``w_w1_rowfactory``, seeded by ``scripts/proof/gate_refusal.py`` — the repository's own
@@ -54,7 +75,6 @@ guards itself rather than waiting.
 
 from __future__ import annotations
 
-import ast
 import importlib.util
 import os
 import sys
@@ -77,8 +97,6 @@ if str(_APP_SRC) not in sys.path:  # the app is not installed as a distribution 
 
 from mainline_demo_api import db as db_mod  # noqa: E402
 from mainline_demo_api import gate_run as gate_run_mod  # noqa: E402
-from mainline_demo_api import scenario as scenario_mod  # noqa: E402
-from mainline_demo_api import transitions as transitions_mod  # noqa: E402
 from mainline_demo_api.gate_run import gate_run  # noqa: E402
 from mainline_demo_api.scenario import ResolvedScenario, positional, resolve  # noqa: E402
 from mainline_demo_api.transitions import handle_transition  # noqa: E402
@@ -89,23 +107,34 @@ SCRATCH_DB = os.environ.get("MAINLINE_W1_DATABASE", "w_w1_rowfactory")
 #: The external reference ``scripts/proof/gate_refusal.py::seed_history`` gives its permit.
 _DEMO_EXTERNAL_REF = "PTW-PROOF-1"
 
-#: The diagnosis printed when the dict_row path dies inside a module this worker does not
-#: own. Recorded rather than worked around: `evidence/deploy/rowfactory-defect.json` names
-#: it, and this test turns green the moment that one line is corrected.
-_REFUSAL_BLOCKER = (
-    "gate_run() raised {exc} through the PRODUCTION dict_row connection. The three modules "
-    "this test's worker owns (scenario, gate_run, transitions) are factory-agnostic: the "
-    "tuple_row half of every assertion in this file passes. The remaining positional row "
-    "access in this package is mainline_demo_api/refusal.py:235:\n"
-    "    return (row[0] if row and isinstance(row[0], dict) else None), None\n"
-    "`_explain` runs `SELECT trappoint.explain_refusal(...)`, whose single column "
-    "CockroachDB names `explain_refusal`, so under dict_row `row[0]` is KeyError: 0. Beats "
-    "2 and 3 both reach it through refusal_payload(), so no path through the demo avoids "
-    "it. The correction is one line: take the row's single VALUE rather than its index, "
-    "e.g. via scenario.positional() as the other three modules now do. refusal.py is owned "
-    "by no worker in this wave, and this worker's brief does not list it, so it was NOT "
-    "edited. See evidence/deploy/rowfactory-defect.json -> blocking_finding."
-)
+#: The package the structural ratchet covers: every module, not a named three.
+_PACKAGE_SRC = _APP_SRC / "mainline_demo_api"
+
+#: Every module's reading convention, as this file requires it to be. The table is the
+#: point: a NEW module added to the package fails the enumeration check below until
+#: somebody decides which convention it is in and writes it down here. Each verdict is
+#: computed from the module's own statements by `scripts/qa/row_factory_ratchet.py`, so an
+#: entry cannot be a wish — it either matches what the code does or the test names both.
+#:
+#:   position  every reading site goes through `scenario.positional()`.
+#:   name      rows are mappings: an explicit `row_factory=dict_row` cursor (health), or
+#:             inherited from `db.connection()` and never indexed (reads, db).
+#:   silent    the module issues no row-reading statement at all. Worth asserting rather
+#:             than omitting: the day `app.py` grows a query, its convention becomes a
+#:             decision, and this line is what forces someone to make it.
+_EXPECTED_CONVENTIONS: dict[str, str] = {
+    "__init__.py": "silent",
+    "app.py": "silent",
+    "db.py": "name",
+    "envelope.py": "silent",
+    "gate_run.py": "position",
+    "health.py": "name",
+    "reads.py": "name",
+    "refusal.py": "position",
+    "scenario.py": "position",
+    "static_site.py": "silent",
+    "transitions.py": "position",
+}
 
 
 def _admin_dsn() -> str:
@@ -135,16 +164,36 @@ def _repo_root() -> Path:
     raise RuntimeError("no workspace root above this test file")
 
 
-def _gate_refusal_module() -> ModuleType:
-    """Import ``scripts/proof/gate_refusal.py`` by path — the repository's own seeder."""
-    path = _repo_root() / "scripts" / "proof" / "gate_refusal.py"
-    spec = importlib.util.spec_from_file_location("w1_gate_refusal_seed", path)
+def _by_path(name: str, path: Path) -> ModuleType:
+    """Import a `scripts/` module by path — `scripts/` is deliberately not a package."""
+    spec = importlib.util.spec_from_file_location(name, path)
     if spec is None or spec.loader is None:  # pragma: no cover - a broken checkout
         raise RuntimeError(f"cannot import {path}")
     module = importlib.util.module_from_spec(spec)
+    # Registered BEFORE execution: `dataclasses` resolves a class's own module out of
+    # `sys.modules` while processing it, and a module that is not there yet fails with
+    # `'NoneType' object has no attribute '__dict__'`.
     sys.modules[spec.name] = module
     spec.loader.exec_module(module)
     return module
+
+
+def _gate_refusal_module() -> ModuleType:
+    """Import ``scripts/proof/gate_refusal.py`` by path — the repository's own seeder."""
+    return _by_path("w1_gate_refusal_seed", _repo_root() / "scripts" / "proof" / "gate_refusal.py")
+
+
+def _ratchet() -> ModuleType:
+    """Import ``scripts/qa/row_factory_ratchet.py`` — where the RULE lives.
+
+    Imported rather than re-implemented. The structural claim this file makes about the
+    eleven modules of ``mainline_demo_api`` and the claim the repo-wide scanner makes about
+    the other 213 parsed files have to be the SAME claim, or the package could pass one and
+    fail the other and nobody would know which was the rule.
+    """
+    return _by_path(
+        "w2_row_factory_ratchet", _repo_root() / "scripts" / "qa" / "row_factory_ratchet.py"
+    )
 
 
 #: Ready means all four beats have something to do: the subject is in the one state from
@@ -305,7 +354,12 @@ def test_the_production_connection_really_is_dict_row(
     """
     assert production_conn.row_factory is dict_row
     assert production_conn.autocommit is True
-    row = production_conn.execute("SELECT 1 AS one").fetchone()
+    # `# rowshape:` is the ratchet's fourth way of declaring a convention, and this is the
+    # one statement in the package's tests that needs it: the whole point here is to read
+    # the connection's OWN shape without asking a cursor to override it, which is
+    # indistinguishable, structurally, from forgetting to. Declaring it keeps the
+    # isinstance() below an assertion ABOUT the premise rather than a guess at it.
+    row = production_conn.execute("SELECT 1 AS one").fetchone()  # rowshape: name
     assert isinstance(row, Mapping)
     assert row["one"] == 1
 
@@ -335,40 +389,70 @@ def test_a_dict_row_would_silently_collapse_these_result_sets(
 
 
 def test_no_statement_in_these_modules_inherits_the_connection_s_row_factory() -> None:
-    """The ratchet: ``conn.execute(...).fetchone()`` is the defect shape, and it is banned.
+    """The ratchet, over EVERY module in ``mainline_demo_api``: declare, or be named.
 
-    Structural rather than behavioural on purpose. The behavioural tests below only cover
-    the statements a gate run happens to reach; this covers every statement in the three
+    Structural rather than behavioural on purpose. The behavioural tests below cover only
+    the statements a gate run happens to reach; this covers every statement in all eleven
     modules, including the ones only a 404 or a 422 path executes.
+
+    Widened from the original three (``scenario``, ``gate_run``, ``transitions``) because
+    the original rule — ban ``conn.execute(...).fetchone()`` — is false as a general
+    statement about this package. ``reads.py`` and ``health.py`` inherit mapping rows on
+    purpose and are right to. What is banned is reading a row in a shape nobody declared:
+    indexing an inherited row by position, reading one row both ways, contradicting a
+    declaration, or declaring position at one statement and nothing at the next.
     """
-    offenders: dict[str, list[str]] = {}
-    for module in (scenario_mod, gate_run_mod, transitions_mod):
-        path = Path(module.__file__ or "")
-        tree = ast.parse(path.read_text(encoding="utf-8"))
-        hits = []
-        for node in ast.walk(tree):
-            if not isinstance(node, ast.Call):
-                continue
-            outer = node.func
-            if not (
-                isinstance(outer, ast.Attribute)
-                and outer.attr in ("fetchone", "fetchall", "fetchmany")
-            ):
-                continue
-            inner = outer.value
-            if (
-                isinstance(inner, ast.Call)
-                and isinstance(inner.func, ast.Attribute)
-                and inner.func.attr == "execute"
-            ):
-                hits.append(f"{path.name}:{node.lineno}")
-        if hits:
-            offenders[path.name] = hits
-    assert offenders == {}, (
-        "these fetches read whatever shape the CONNECTION was opened with, which is the "
-        f"defect this file exists for: {offenders}. Route them through "
-        "scenario.positional(conn, sql, params) so the statement declares the shape it is "
-        "written against."
+    ratchet = _ratchet()
+    report = ratchet.scan([_PACKAGE_SRC])
+    scanned = sorted(Path(path).name for path in report.conventions)
+    modules = sorted(path.name for path in _PACKAGE_SRC.glob("*.py"))
+    assert scanned == modules, (
+        f"the scanner saw {scanned} but the package holds {modules}. A structural claim "
+        "over a set the scanner did not actually read is the failure mode this whole file "
+        "exists to prevent, so the coverage is asserted before the verdict is."
+    )
+    assert report.findings == [], "\n".join(
+        [
+            (
+                f"{len(report.findings)} statement(s) in mainline_demo_api read a row in a "
+                "shape nobody declared. Each is named with its file, its line and its "
+                "correction:"
+            ),
+            *(finding.render() for finding in report.ordered()),
+            "",
+            (
+                "The rule is scripts/qa/row_factory_ratchet.py. db.connection() opens "
+                "row_factory=dict_row, so a statement that does not say what it expects "
+                "gets whatever the caller chose - which is how refusal.py:235 became "
+                "KeyError: 0 on beats 2 and 3 of every gate run, and how scenario.resolve "
+                "bound the seven-letter string 'check_id' as a uuid."
+            ),
+        ]
+    )
+
+
+def test_every_module_in_the_package_is_in_a_named_row_convention() -> None:
+    """Enumeration, so a new module cannot arrive without a convention.
+
+    ``test_no_statement_...`` above proves nothing is WRONG. This proves nothing is
+    UNCLASSIFIED, which is a different and weaker-looking claim that happens to be the one
+    with the history: ``refusal.py`` never chose a convention, and the reason nobody
+    noticed is that no test ever asked it to.
+    """
+    ratchet = _ratchet()
+    report = ratchet.scan([_PACKAGE_SRC])
+    measured = {
+        Path(path).name: convention.verdict for path, convention in report.conventions.items()
+    }
+    assert measured == _EXPECTED_CONVENTIONS, (
+        "the package's row-reading conventions have moved.\n"
+        f"  measured: {dict(sorted(measured.items()))}\n"
+        f"  expected: {dict(sorted(_EXPECTED_CONVENTIONS.items()))}\n"
+        "A module that changed from 'silent' grew its first query and must now say how it "
+        "reads it. A module that changed to 'mixed' declares position at one statement and "
+        "nothing at another - that is refusal.py's 2026-08-12 state and the failure above "
+        "will name the line. A module missing from the measured side was deleted; one "
+        "missing from the expected side is new. Update this table deliberately."
     )
 
 
@@ -424,7 +508,12 @@ def test_positional_does_not_mutate_the_connection_it_was_handed(
     before = production_conn.row_factory
     assert positional(production_conn, "SELECT 1, 2, 3").fetchone() == (1, 2, 3)
     assert production_conn.row_factory is before
-    assert production_conn.execute("SELECT 4 AS four").fetchone() == {"four": 4}
+    # Declared, and declared as the OTHER convention on purpose. This test is the one place
+    # in the package where reading position and name off one connection two lines apart is
+    # the assertion rather than the bug, and `# rowshape:` is how the ratchet is told which
+    # of the two a statement means. It is a declaration, not a suppression: change `name`
+    # to `position` here and the ratchet fails with `declared_shape_contradicted`.
+    assert production_conn.execute("SELECT 4 AS four").fetchone() == {"four": 4}  # rowshape: name
 
 
 # ═══════════════════════════════════════════════════════════════════════════════════════
@@ -475,14 +564,19 @@ def _run(conn: psycopg.Connection[Any]) -> dict[str, Any]:
     ``transitions._demo_gate_run`` clears the flag before calling; this mirrors that rather
     than opening a differently-configured connection, so what is under test is the path the
     Function URL actually takes.
+
+    There is deliberately no ``except KeyError`` here. One used to exist, to turn the known
+    ``refusal.py:235`` blocker into a legible sentence while that line was somebody else's
+    file. The line is fixed. Keeping the wrapper would now convert any genuine regression
+    into a prose assertion about a defect that no longer exists — which is worse than the
+    raw exception, because the raw exception carries a traceback pointing at the statement
+    that actually failed. Let the KeyError be a KeyError.
     """
     restore = conn.autocommit
     if conn.autocommit:
         conn.autocommit = False
     try:
         return gate_run(conn)
-    except KeyError as exc:
-        raise AssertionError(_REFUSAL_BLOCKER.format(exc=repr(exc))) from exc
     finally:
         conn.rollback()
         conn.autocommit = restore
@@ -558,13 +652,14 @@ def test_demo_gate_run_endpoint_through_the_production_connection(
     This is the call that returned 500 in ``evidence/deploy/acceptance.json``: the handler
     resolves the scenario, plays the beats and builds the envelope, all through the
     connection ``db.connection()`` opened.
+
+    Unwrapped, for the reason ``_run`` gives: the blocker this used to translate is fixed,
+    and a translation layer over a fixed defect only hides the next one.
     """
     try:
         status, payload = handle_transition(
             "demo_gate_run", {}, {"run_id": "w1-rowfactory-contract"}, production_conn
         )
-    except KeyError as exc:
-        raise AssertionError(_REFUSAL_BLOCKER.format(exc=repr(exc))) from exc
     finally:
         production_conn.rollback()
         production_conn.autocommit = True

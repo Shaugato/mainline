@@ -650,6 +650,27 @@ of the console, not a deploy mode.
 
 ## 8 · What it costs
 
+**There are two bills, and confusing them is the most expensive mistake available in this
+document.** The demo nobody attacks costs about two cents a month. The demo somebody floods
+is bounded by exactly one thing — an AWS account default of 10 concurrent executions — and
+that bound sits at four to five orders of magnitude higher.
+
+| | Steady state | Adversarial |
+|---|---|---|
+| Who is calling | judges, a health cron, us | anyone who finds an `on.aws` hostname |
+| What bounds it | the free tiers below | **the account concurrency ceiling of 10, and nothing else** |
+| 30 days | **≈ $0.02** | **USD 11,538 – 33,257** |
+| Measured in | §8.1 below | [`COST-BOUND.md`](COST-BOUND.md) |
+
+Both numbers are measured. Neither is a guess, and **neither is a substitute for the
+other.** An earlier version of this section ended *"round it to two cents a month, and call
+the worst case a dollar"* — a sentence that was wrong by a factor of about thirty thousand,
+and wrong in the direction that gets a founder's card charged. It is deleted rather than
+softened, because a reader who took it at face value would have had no reason to open
+`COST-BOUND.md` at all.
+
+### 8.1 · Steady state — ≈ $0.02/month
+
 Free tiers here are AWS's **perpetual** free tiers, not the 12-month new-account ones, so
 the arithmetic does not expire.
 
@@ -670,9 +691,15 @@ the arithmetic does not expire.
 | CloudWatch Synthetics | **not used** — see below | | **0.00** |
 | | | **Total** | **≈ $0.02** |
 
-**Round it to two cents a month, and call the worst case a dollar.** The founder's ceiling
-is ~USD 5/month; this is two orders of magnitude under it. Removing CloudFront and the site
-bucket from the request path made the bill *smaller*.
+**Round it to two cents a month.** The founder's ceiling is ~USD 5/month, and *this table*
+is two orders of magnitude under it. Removing CloudFront and the site bucket from the
+request path made this bill *smaller*.
+
+**What this table assumes, and where it stops.** Every row above is priced at demo volume —
+on the order of 10 000 requests a month, which is what judging plus an hourly cron
+produces. Not one of these lines has a ceiling in it. They are small because the traffic is
+small, and the traffic is small because nobody has decided otherwise. §8.2 is what happens
+when somebody does.
 
 The three refusals worth naming:
 
@@ -684,9 +711,56 @@ The three refusals worth naming:
   failures are visible in the repository the judges are already reading.
 * **No DynamoDB lock table.** Native S3 locking, since Terraform 1.10.
 
-The only line that can grow without a ceiling is CloudWatch Logs, which is why
-`log_retention_days` is validated against a short list and can never be `0`
-("never expire").
+Within the table, the line that grows without a ceiling on its own is CloudWatch Logs,
+which is why `log_retention_days` is validated against a short list and can never be `0`
+("never expire"). **Under §8.2 it is not the line that matters** — data transfer out is,
+and no variable in this repository bounds it.
+
+### 8.2 · Adversarial — bounded only by an account default of 10
+
+The demo URL is a Lambda Function URL with `authorization_type = NONE`. It is meant to be:
+the judges must open it without an account, and CloudFront — the usual answer — is refused
+on this account (Appendix A). So the origin answers everyone, and the only question is how
+fast.
+
+The answer, measured: **10**. `L-B99A9384` "Concurrent executions" reads `Value 10.0` in
+`ap-southeast-1`, and `ConcurrentExecutions` cannot physically exceed it. Multiplied by 30
+days and by the largest response the package can emit, that is **USD 11,538 – 33,257**.
+
+**The arithmetic, the inputs it is built from, and the menu of levers that change it are in
+[`docs/deploy/COST-BOUND.md`](COST-BOUND.md), and are not repeated here.** Read it before
+the apply, not after. Two things from it belong in this runbook because they are operating
+instructions rather than analysis:
+
+> **THE QUOTA IS `Adjustable: true`, AND NOBODY REQUESTS AN INCREASE.**
+>
+> ```
+> aws service-quotas get-service-quota --service-code lambda \
+>     --quota-code L-B99A9384 --region ap-southeast-1
+>   QuotaName  "Concurrent executions"   Value 10.0   Adjustable true
+> ```
+>
+> Every dollar in `COST-BOUND.md` scales very nearly linearly with that number. At 100 the
+> worst case is ≈ $325,000; at AWS's usual default of 1 000 it is ≈ $3.2 M. The ceiling of
+> 10 is **the only real bound this deployment has**, it arrived by accident, and it is one
+> support ticket away from being gone. Not for load testing, not "temporarily for judging".
+> A change that appears to need a higher ceiling is a change that is wrong.
+
+> **The kill switch is `reserved_concurrent_executions = 0`, and it is one command.**
+>
+> ```bash
+> scripts/deploy/kill_switch.sh --status                 # read-only
+> scripts/deploy/kill_switch.sh --stop --expect-account <id> --yes
+> ```
+>
+> It is the one reservation this account can still accept, and it stops the function
+> immediately. `COST-BOUND.md` §8 documents it, including what it does not do.
+
+**The AWS Budgets on this account stop nothing.** Three budgets — $10, $5 and $1 — all
+three already breached by unrelated projects, and `describe-budget-actions-for-budget`
+returns `{"Actions": []}` for each. They notify. There is no Budgets action that can
+disable a Lambda function; see `COST-BOUND.md` §3.6 for why, and for what the real backstop
+would cost in lag.
 
 ---
 

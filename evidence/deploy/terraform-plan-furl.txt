@@ -1,15 +1,15 @@
-data.aws_caller_identity.current: Reading...
-module.api[0].data.aws_iam_policy_document.assume_role: Reading...
 module.api[0].data.aws_region.current: Reading...
-module.api[0].data.aws_partition.current: Reading...
 module.api[0].data.aws_caller_identity.current: Reading...
+module.api[0].data.aws_partition.current: Reading...
+module.api[0].data.aws_iam_policy_document.assume_role: Reading...
+data.aws_caller_identity.current: Reading...
 module.api[0].data.aws_partition.current: Read complete after 0s [id=aws]
 module.api[0].data.aws_region.current: Read complete after 0s [id=ap-southeast-1]
 module.api[0].data.aws_iam_policy_document.assume_role: Read complete after 0s [id=3214165256]
-module.api[0].data.aws_caller_identity.current: Read complete after 0s [id=0229REDACTED8246]
+data.aws_caller_identity.current: Read complete after 1s [id=0229REDACTED8246]
+module.api[0].data.aws_caller_identity.current: Read complete after 1s [id=0229REDACTED8246]
 module.api[0].data.aws_iam_policy_document.dsn_access: Reading...
 module.api[0].data.aws_iam_policy_document.dsn_access: Read complete after 0s [id=3329886133]
-data.aws_caller_identity.current: Read complete after 1s [id=0229REDACTED8246]
 
 Terraform used the selected providers to generate the following execution
 plan. Resource actions are indicated with the following symbols:
@@ -52,13 +52,10 @@ Terraform will perform the following actions:
   # module.api[0].aws_cloudwatch_metric_alarm.concurrency will be created
   + resource "aws_cloudwatch_metric_alarm" "concurrency" {
       + actions_enabled                       = true
-      + alarm_description                     = "Abuse tripwire: more than 20 concurrent executions. A judging session is a handful of browsers making four requests each; this threshold is not reachable by legitimate use of the demo. NOTE: Lambda emits per-function ConcurrentExecutions dependably for functions that have reserved concurrency; with reserved_concurrent_executions = -1 this alarm can sit in INSUFFICIENT_DATA and prove nothing."
+      + alarm_description                     = "Abuse tripwire: more than 8 concurrent Lambda executions in ap-southeast-1, against a measured account ceiling of 10. A judging session is a handful of browsers making four requests each; this threshold is not reachable by legitimate use of the demo. ACCOUNT-LEVEL, NOT PER-FUNCTION: no FunctionName dimension, because at reserved_concurrent_executions = -1 Lambda does not dependably publish the per-function metric. `aws lambda get-account-settings --region ap-southeast-1` reports AccountUsage.FunctionCount = 0, so this function is the only one in the region and the account aggregate IS its concurrency. If a second function ever lands in ap-southeast-1, this becomes a genuine account aggregate and must be revisited."
       + alarm_name                            = "mainline-demo-api-concurrency"
       + arn                                   = (known after apply)
       + comparison_operator                   = "GreaterThanThreshold"
-      + dimensions                            = {
-          + "FunctionName" = "mainline-demo-api"
-        }
       + evaluate_low_sample_count_percentiles = (known after apply)
       + evaluation_periods                    = 1
       + id                                    = (known after apply)
@@ -77,8 +74,8 @@ Terraform will perform the following actions:
           + "managed_by" = "terraform"
           + "project"    = "mainline"
         }
-      + threshold                             = 20
-      + treat_missing_data                    = "notBreaching"
+      + threshold                             = 8
+      + treat_missing_data                    = "missing"
     }
 
   # module.api[0].aws_cloudwatch_metric_alarm.duration_p99 will be created
@@ -110,7 +107,7 @@ Terraform will perform the following actions:
           + "project"    = "mainline"
         }
       + threshold                             = 12000
-      + treat_missing_data                    = "notBreaching"
+      + treat_missing_data                    = "missing"
     }
 
   # module.api[0].aws_cloudwatch_metric_alarm.errors will be created
@@ -142,13 +139,13 @@ Terraform will perform the following actions:
           + "project"    = "mainline"
         }
       + threshold                             = 0
-      + treat_missing_data                    = "notBreaching"
+      + treat_missing_data                    = "missing"
     }
 
   # module.api[0].aws_cloudwatch_metric_alarm.throttles will be created
   + resource "aws_cloudwatch_metric_alarm" "throttles" {
       + actions_enabled                       = true
-      + alarm_description                     = "The reserved-concurrency cap is refusing invocations. Either the demo is under more load than a judging session produces, or reserved_concurrent_executions is set too low. A throttled Function URL invocation reaches the caller as HTTP 429 with no body from the handler, so this is user-visible and undiagnosable from the browser."
+      + alarm_description                     = "Lambda is refusing invocations: the concurrency ceiling is biting. At reserved_concurrent_executions = -1 there is no per-function reservation, so this means the ACCOUNT ceiling of 10 in ap-southeast-1 was reached - do not go looking for a per-function cap to raise. Either the demo is under more load than a judging session produces, or something is holding invocations open; the -concurrency alarm at 8 should have fired first. A throttled Function URL invocation reaches the caller as HTTP 429 with no body from the handler, so this is user-visible and undiagnosable from the browser."
       + alarm_name                            = "mainline-demo-api-throttles"
       + arn                                   = (known after apply)
       + comparison_operator                   = "GreaterThanThreshold"
@@ -174,7 +171,7 @@ Terraform will perform the following actions:
           + "project"    = "mainline"
         }
       + threshold                             = 0
-      + treat_missing_data                    = "notBreaching"
+      + treat_missing_data                    = "missing"
     }
 
   # module.api[0].aws_iam_role.this will be created
@@ -279,7 +276,7 @@ Terraform will perform the following actions:
       + qualified_arn                  = (known after apply)
       + qualified_invoke_arn           = (known after apply)
       + region                         = "ap-southeast-1"
-      + reserved_concurrent_executions = 20
+      + reserved_concurrent_executions = -1
       + response_streaming_invoke_arn  = (known after apply)
       + role                           = (known after apply)
       + runtime                        = "python3.13"

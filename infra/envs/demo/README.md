@@ -75,13 +75,62 @@ be updated; that is the trade the default declines to make on a support queue's 
 
 ---
 
+## The concurrency ceiling, and why this root passes `-1`
+
+`module.api` defaults `reserved_concurrent_executions` to **20**. Twenty cannot be applied
+on this AWS account. Measured 2026-08-13 under `AWS_PROFILE=mainline-dev`, in both regions
+this project touches:
+
+```
+aws lambda get-account-settings --region ap-southeast-1
+  AccountLimit.ConcurrentExecutions            10
+  AccountLimit.UnreservedConcurrentExecutions  10
+
+aws lambda get-account-settings --region ap-southeast-2
+  AccountLimit.ConcurrentExecutions            10
+  AccountLimit.UnreservedConcurrentExecutions  10
+
+aws service-quotas get-service-quota --service-code lambda \
+    --quota-code L-B99A9384 --region ap-southeast-1
+  QuotaName "Concurrent executions"   Value 10.0   Adjustable true
+```
+
+AWS refuses **any positive reservation** on an account whose ceiling is 10, because
+granting it would push `UnreservedConcurrentExecutions` below the minimum AWS keeps free.
+`PutFunctionConcurrency` is the **sixth of this apply's eleven API calls**, so the refusal
+does not arrive early and cheaply — it arrives with five resources already created, leaving
+a half-applied stack and an error about a number rather than about a quota. The plan
+artefact was never wrong; the account it targets could not run it.
+
+So `var.lambda_reserved_concurrency` exists, defaults to `-1`, and is passed straight
+through. Three things about it, in the order they matter:
+
+| | |
+|---|---|
+| **It changes no cost ceiling.** | `min(20, 10) = 10`. The account already capped this function at 10 — *below* the 20 the module asked to reserve — so the reservation was never the binding constraint. `-1` removes an unappliable request and leaves the identical physical bound in place. `docs/deploy/COST-BOUND.md` computes the worst case at concurrency 10 for exactly that reason, and computed the same number before this change. |
+| **The ceiling is `Adjustable: true`.** | Every dollar of that worst case is **linear** in it: 10 → 100 multiplies the 30-day figure by ten. Nothing stands behind it — the Function URL is `authorization_type = NONE`, no alarm in this stack has a reader wired to it, and the account's three budgets are already breached by unrelated projects with zero actions between them. **Do not request a concurrency quota increase without reading [`docs/deploy/COST-BOUND.md`](../../../docs/deploy/COST-BOUND.md) first.** |
+| **`0` is still settable, and is the kill switch.** | Reserving 0 *decreases* nothing, so it is the one reservation this account can still accept, and it throttles every invocation before the handler runs — 429 at the URL, spend stops. This is **documented AWS behaviour, not measured on this account**: confirming it requires `PutFunctionConcurrency`, a mutating call. It is labelled that way wherever it appears. `scripts/deploy/kill_switch.{sh,ps1}` is the one-command form. |
+
+One consequence is paid rather than avoided, and is written down instead of discovered:
+Lambda emits the per-function `ConcurrentExecutions` metric dependably for functions that
+*have* reserved concurrency, so at `-1` the `-concurrency` alarm can sit in
+`INSUFFICIENT_DATA`. The module's own alarm description says so in advance. Fixing that
+alarm belongs to `infra/modules/demo-api`, not to this root — but this variable is the
+reason it needs fixing, and an alarm that cannot fire is the "control that looks present
+and is not" the module's `lifecycle.precondition` idiom exists to refuse.
+
+**The resource set does not move.** This changes one attribute value; the plan still reads
+`Plan: 11 to add, 0 to change, 0 to destroy`.
+
+---
+
 ## The six files
 
 | File | What it holds |
 |---|---|
 | `versions.tf` | `terraform >= 1.10`, `aws >= 5.60 < 7.0`, and the reason for each floor |
 | `backend.tf` | S3 backend, `use_lockfile = true`, **no DynamoDB table**, bucket supplied at `init` |
-| `variables.tf` | Ten variables, every one with a working default; `enable_cloudfront` is the switch |
+| `variables.tf` | Eleven variables, every one with a working default; `enable_cloudfront` is the switch and `lambda_reserved_concurrency` is what makes the plan appliable |
 | `main.tf` | The provider, the two modules, and the wiring — including the cycle rules |
 | `outputs.tf` | What the deploy and teardown scripts read back; everything site-shaped is nullable |
 | `terraform.tfvars.example` | Copy-if-you-want. You do not need it; the defaults are what the deploy script uses. |
@@ -270,6 +319,28 @@ row is the intended refusal: with both switches off this root creates nothing, s
 `demo_url` has no source and says so rather than returning `""`. The first two plans are
 committed verbatim under `evidence/deploy/`.
 
+Re-measured 2026-08-13, same Terraform and same provider, after `lambda_reserved_concurrency`
+was introduced — the recipe is a throwaway `backend "local"` override pointed outside the
+repository, `terraform init -reconfigure`, `terraform plan`, then **delete the override**
+(a plain `terraform init -backend=false` is not enough on this tree, because `backend.tf`
+declares S3 and `plan` then refuses with "Changes to backend configurations require
+reinitialization"):
+
+```
+terraform validate                                    Success! The configuration is valid.
+terraform plan                                        + reserved_concurrent_executions = -1
+                                                      Plan: 11 to add, 0 to change, 0 to destroy.
+terraform plan -var lambda_reserved_concurrency=0     + reserved_concurrent_executions = 0
+                                                      Plan: 11 to add, 0 to change, 0 to destroy.
+terraform plan -var lambda_reserved_concurrency=1001  Error: Invalid value for variable
+terraform fmt -check -recursive infra/                (no output; exit 0)
+```
+
+Diffed against the same plan taken minutes earlier at the old value, the **only**
+substantive line that moved was `reserved_concurrent_executions` from `20` to `-1`. The
+resource set is byte-identical, which is the constraint: `Plan: 11 to add` is quoted
+verbatim in five documents this root does not own.
+
 ---
 
 ## Module contract
@@ -287,6 +358,7 @@ clauses exist *only* because the harness above found them; they are not style.
 | `architecture` | string | Must match the zip. A mismatch is a clean plan, a clean apply, and `ELFCLASS` on the first request. |
 | `dsn_parameter_name` | string | **Name only.** Terraform never holds the DSN. |
 | `cloudfront_distribution_arn` | string | The `SourceArn` on the one invoke grant. `""` when there is no distribution. |
+| `reserved_concurrent_executions` | number | **From `var.lambda_reserved_concurrency`, default `-1`.** The module's own default of 20 is unappliable here: the account's measured ceiling is 10, and AWS refuses every positive reservation against it. `min(20, 10) = 10`, so this raises no cost ceiling. See "The concurrency ceiling" above. |
 | `log_retention_days` | number | |
 | `tags` | map | |
 

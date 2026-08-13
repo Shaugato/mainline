@@ -49,10 +49,26 @@ rather than a fake envelope:
 404  the subject does not exist
 405  the path exists under a different method
 409  the row exists and its contract cannot express it — the field is named
+413  the body this handler built is larger than the per-response byte ceiling
 501  a POST whose implementation module is not deployed
 503  no DSN, or the database did not answer
 500  anything else, with the SQLSTATE when the driver gave one
 ===  ==================================================================================
+
+WHAT ONE RESPONSE MAY CARRY
+---------------------------
+Every response built here is measured against
+:func:`mainline_demo_api.static_site.max_response_bytes` and refused with **413** above
+it. The ceiling exists because this origin is a Function URL with
+``authorization_type = NONE``: the largest object it can emit is the multiplier in a
+sustained-egress flood, so it is a declared number rather than whatever the build
+happens to produce. The refusal is a problem document, never an exception — see
+:func:`_too_large`, which is deliberately not routed through :func:`_response` so that
+the refusal can never itself be refused.
+
+**It bounds bytes per request and nothing else.** Request *rate* is bounded only by the
+account's concurrency ceiling; a flood of small responses is untouched by this. Said
+plainly here so nobody reads a 413 as a rate limit.
 
 **A refused transition is NOT an error.** It arrives from ``transitions`` as an
 ``invoke`` envelope with ``outcome: "refused"`` and a specification refusal payload, and
@@ -260,19 +276,89 @@ def _body(event: Mapping[str, Any]) -> Any:
     return json.loads(raw)
 
 
+def _too_large(size: int, ceiling: int) -> dict[str, Any]:
+    """Refuse a response that exceeds the ceiling, with the same problem-document shape.
+
+    **This is built as a literal and never routed through** :func:`_response`. If it
+    were, a ceiling set below the length of this very body would send the refusal back
+    through the check that produced it — either recursing until the stack ends, or
+    answering a 413 with a 413. A refusal that can itself be refused is not a control.
+    Its size is bounded by construction: fixed prose plus three integers and one
+    variable name, ~500 bytes, with nothing caller-supplied in it.
+
+    ``ceiling_bytes`` is in the body on purpose. The number in force comes from an
+    environment variable that a deploy may set and a typo may mangle, so the enforcement
+    names what it enforced — the refusal is the only artefact that always tells the
+    truth about the value actually applied.
+    """
+    body = {
+        "error": {
+            "kind": "response_too_large",
+            "status": 413,
+            "detail": (
+                f"this response would carry {size} bytes and the ceiling in force is "
+                f"{ceiling}. The ceiling bounds the bytes ONE response may carry; it does "
+                "not bound the RATE at which responses may be requested. Raise it with "
+                f"${static_site.RESPONSE_BYTES_ENV} only after reading what the largest "
+                "object this origin can emit costs in a sustained flood."
+            ),
+            "bytes": size,
+            "ceiling_bytes": ceiling,
+            "ceiling_env": static_site.RESPONSE_BYTES_ENV,
+        }
+    }
+    return {
+        "statusCode": 413,
+        "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": _NO_STORE,
+            "x-mainline-api": "demo-read",
+        },
+        "body": dumps(body),
+        "isBase64Encoded": False,
+    }
+
+
 def _response(status: int, body: Any, *, cache: str) -> dict[str, Any]:
+    """Build one payload-format-2.0 response, refused above the per-response ceiling.
+
+    THERE IS NO ``access-control-allow-origin`` HEADER HERE, AND THAT IS THE POINT.
+    Under DECISION D1 the console and this API are ONE Lambda Function URL. The browser
+    that loads the console fetches ``/v1/*`` from the origin it was served from, so it
+    sends no ``Origin`` header and asks for no CORS permission — the header this
+    function used to set was read by nobody in the deployed stack.
+    ``infra/modules/demo-api/main.tf`` deliberately declares no ``cors`` block for that
+    reason, and this handler was contradicting it at runtime, where the handler wins.
+
+    What it did instead: this URL is ``authorization_type = NONE``, so a wildcard
+    ``access-control-allow-origin`` made every ``/v1/*`` body — envelopes, error details,
+    SQLSTATEs — readable by script from any page on the internet, not merely reachable
+    by one. Reachable and readable are different exposures and only the first was ever
+    argued for.
+
+    **What is lost, stated plainly:** a judge who curls this URL from a scratch HTML page
+    in a browser now hits the browser's own CORS check and sees a console error instead
+    of a body. ``curl`` itself, the console, and every non-browser client are unaffected,
+    because none of them enforce CORS. **The repair, if that ever matters,** is a ``cors``
+    block in the Terraform naming that specific hostname, added in the same commit as the
+    hostname it names — not a wildcard left standing against a caller nobody has yet had.
+    """
+    payload = dumps(body)
+    # `dumps` uses `ensure_ascii=False`, so a character is not a byte. Egress is billed
+    # in bytes and the ceiling is in bytes, so the string is encoded before it is
+    # measured; `len(payload)` would under-count every non-ASCII detail string.
+    size = len(payload.encode("utf-8"))
+    ceiling = static_site.max_response_bytes()
+    if size > ceiling:
+        return _too_large(size, ceiling)
     return {
         "statusCode": status,
         "headers": {
             "content-type": "application/json; charset=utf-8",
             "cache-control": cache,
-            # Under DECISION D1 the console and this API are ONE Lambda Function URL, so
-            # there is no cross-origin request to permit. This header exists for the
-            # judge who curls the Function URL directly from a scratch page.
-            "access-control-allow-origin": "*",
             "x-mainline-api": "demo-read",
         },
-        "body": dumps(body),
+        "body": payload,
         "isBase64Encoded": False,
     }
 

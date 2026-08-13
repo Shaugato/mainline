@@ -1,0 +1,226 @@
+{
+  "SPDX-FileCopyrightText": "2026 MAINLINE contributors",
+  "SPDX-License-Identifier": "CC-BY-4.0",
+  "$schema_note": "Hand-rolled evidence document. Not a contract artefact.",
+  "worker": "w6-demo-guard-armed",
+  "lead": "demo-correctness, docs/leads/demo-correctness-plan.md §0.4 and §2 (W6)",
+  "produced_at_utc": "2026-08-13T01:38:38Z",
+  "tree_at": "2adad9e66a4e50f2d40baa650e4844e746855ab6 (master) plus the uncommitted working tree of this wave; W1's refusal.py fix is present, and this change lands on the same commit as it",
+  "one_sentence": "With MAINLINE_DEMO_PERMIT_ID absent, transitions._demo_guard armed at a uuid5 identifier nothing has ever seeded and let an anonymous caller commit materialise_checks and sign_disposition against the seeded demo subject — measured, twice, on a freshly built local node; the guard now establishes the demo subject against the database before concluding 'some other subject', so the same four POSTs answer 423 and the subject and every row count are unmoved.",
+
+  "no_apply_was_run": {
+    "statement": "No `terraform apply` was executed by this worker, and nothing under infra/ was edited. The two Terraform files named below were READ ONLY, by a test that parses them.",
+    "aws_calls": "none",
+    "credentials_printed": "none"
+  },
+
+  "the_defect": {
+    "where": "verticals/mainline/apps/demo-api/src/mainline_demo_api/transitions.py, _demo_guard",
+    "shape_before": "if subject_id != scenario.permit_id: return None",
+    "why_that_is_not_enough": [
+      "scenario.permit_id comes from scenario.from_env(), which reads MAINLINE_DEMO_PERMIT_ID and FALLS BACK to demo_uuid('permit') = 077a6fdd-2167-559c-b2ff-8e3c8352504d, a uuid5 derivation nothing has ever seeded (scenario.py:205, EXPECTED['permit']).",
+      "So the guard is armed BY an environment variable and DISARMED BY ITS ABSENCE, silently. A deploy from different tfvars, a hand-edited Lambda configuration or a local run drops the variable and re-opens the hole with nothing anywhere saying so.",
+      "infra/envs/demo/main.tf:312 gives the Function URL authorization_type = NONE, so the caller of the four committing POSTs is an unauthenticated stranger, against a DSN role holding the matching UPDATE and EXECUTE grants.",
+      "scenario.resolve() already refuses an unseeded history with ScenarioNotSeeded / 422 demo_history_not_seeded. The READ path has always said 'the demo history is not here' out loud; the WRITE path treated the same condition as permission. That asymmetry was the bug."
+    ],
+    "already_fixed_elsewhere_and_not_re_done_here": "infra/modules/demo-api/variables.tf:250 defaults scenario_permit_id to dec0de00-0006-4000-8000-000000000001 and main.tf:131-132 publishes it under both MAINLINE_SCENARIO_PERMIT_ID and MAINLINE_DEMO_PERMIT_ID. That makes the guard arm TODAY. It is a configuration, and a configuration is disarmed by its own absence — which is what this worker owns."
+  },
+
+  "measurement_harness": {
+    "cluster": "CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28), local container trappoint-crdb on 127.0.0.1:26257",
+    "database": "w_w6, DROPped and rebuilt for each of the two runs below: 271 migrations applied, 0 failures, then seeded by scripts/proof/gate_refusal.py::seed_history — the repository's own seeder, so this measurement and the central proof drive one history rather than two that can drift",
+    "gc_ttlseconds": 4500,
+    "connection": "mainline_demo_api.db.connection(dsn=...) — the PRODUCTION factory, which opens with row_factory=dict_row and autocommit=True. A connection opened here with psycopg's default tuple_row would not exercise the path a Lambda takes.",
+    "environment": {
+      "MAINLINE_DEMO_PERMIT_ID": "UNSET — this is the whole point of the measurement",
+      "MAINLINE_DEMO_SITE_ID": "the seeded site",
+      "MAINLINE_DEMO_SIGNER_SUB": "proof.signer",
+      "MAINLINE_DEMO_COUNTERSIGNER_SUB": "proof.countersigner",
+      "MAINLINE_DEMO_ALLOW_MUTATION": "UNSET"
+    },
+    "guard_armed_at_during_both_runs": "077a6fdd-2167-559c-b2ff-8e3c8352504d (the uuid5 fallback)",
+    "requests": "All four committing POSTs, driven through transitions.handle_transition exactly as app.py:179-182 routes them, each with a VALID body — sign_disposition carries a 250-character rationale so that the 120-character API floor cannot be what refuses it. Snapshots are read from a SECOND connection, so what they report is what COMMITTED.",
+    "snapshot_statement": "one statement, scalar subqueries, so every count is read at one instant: p.state, p.head_seq, p.gate_epoch, p.open_blocking, and counts of mainline.permit_event, mainline.merge_record, mainline.disposition, mainline.exposure_receipt, mainline.exposure_line, mainline.blocking_check for that subject, plus a global count of mainline.permit"
+  },
+
+  "run_1_BEFORE_the_transitions_py_fix": {
+    "code_under_test": "transitions.py as committed at 2adad9e — _demo_guard(subject_id, scenario), no database probe",
+    "seeded_permit_id": "a7328748-e5df-4340-88b7-a522e031979d",
+    "seeded_check_id": "15f6d42b-b2f5-4684-ac86-2d3dda854d4f",
+    "before": {
+      "state": "dispositioned",
+      "head_seq": 2,
+      "gate_epoch": 1,
+      "open_blocking": 1,
+      "permit_event_rows": 2,
+      "merge_record_rows": 0,
+      "disposition_rows": 0,
+      "exposure_receipt_rows": 1,
+      "exposure_line_rows": 1,
+      "blocking_check_rows": 1,
+      "permit_rows_total": 1
+    },
+    "posts": [
+      {
+        "resource": "merge_permit",
+        "addressed_by": "permit_id",
+        "http_status": 409,
+        "guard_refused": false,
+        "what_actually_refused": "the DATABASE — the gate, on the open obligation. Not the guard, and not a property of the demo subject: the same request against a subject with no open obligation commits."
+      },
+      {
+        "resource": "suspend_permit",
+        "addressed_by": "permit_id",
+        "http_status": 409,
+        "guard_refused": false,
+        "what_actually_refused": "the DATABASE — 23503 on legal_edge, because dispositioned -> suspended is not a row in mainline.subject_transition. Again a function of the subject's state, not of the guard."
+      },
+      {
+        "resource": "materialise_checks",
+        "addressed_by": "permit_id",
+        "http_status": 200,
+        "guard_refused": false,
+        "outcome": "COMMITTED by an anonymous caller"
+      },
+      {
+        "resource": "sign_disposition",
+        "addressed_by": "check_id",
+        "http_status": 200,
+        "guard_refused": false,
+        "outcome": "COMMITTED by an anonymous caller"
+      }
+    ],
+    "after": {
+      "state": "checks_materialised",
+      "head_seq": 3,
+      "gate_epoch": 1,
+      "open_blocking": 0,
+      "permit_event_rows": 3,
+      "merge_record_rows": 0,
+      "disposition_rows": 1,
+      "exposure_receipt_rows": 2,
+      "exposure_line_rows": 2,
+      "blocking_check_rows": 1,
+      "permit_rows_total": 1
+    },
+    "changed": {
+      "state": ["dispositioned", "checks_materialised"],
+      "head_seq": [2, 3],
+      "open_blocking": [1, 0],
+      "permit_event_rows": [2, 3],
+      "disposition_rows": [0, 1],
+      "exposure_receipt_rows": [1, 2],
+      "exposure_line_rows": [1, 2]
+    },
+    "what_that_means": [
+      "THE GUARD REFUSED NOTHING. Zero of the four POSTs were stopped by _demo_guard. Two were stopped by the database for reasons that are properties of this subject's current state and would not hold for another; two committed.",
+      "open_blocking went 1 -> 0. That counter is the demo: the gate proof's REFUSAL beat exists because the subject has an open obligation, and an anonymous caller closed it.",
+      "state went dispositioned -> checks_materialised, which is the exact transition transitions.py's own docstring names as the one that 'would move it out of the state the gate run needs'.",
+      "With the obligation closed, a SECOND merge_permit from the same anonymous caller would no longer be refused — the 409 above is not a defence, it is a coincidence of ordering."
+    ]
+  },
+
+  "run_2_AFTER_the_transitions_py_fix": {
+    "code_under_test": "transitions.py with _demo_guard(conn, subject_id, scenario) and _demo_subject_is_established",
+    "seeded_permit_id": "5ae515c8-f752-41fb-b2e6-bba068970db5",
+    "seeded_check_id": "343b202b-4835-4573-8597-f1074102b713",
+    "note_on_the_identifier": "different from run 1 because the database was rebuilt and the seeder mints fresh identifiers. Both runs drive the identifier their own seed actually minted, which is the identifier a caller reading the deployment's own manifest would send.",
+    "before": {
+      "state": "dispositioned",
+      "head_seq": 2,
+      "gate_epoch": 1,
+      "open_blocking": 1,
+      "permit_event_rows": 2,
+      "merge_record_rows": 0,
+      "disposition_rows": 0,
+      "exposure_receipt_rows": 1,
+      "exposure_line_rows": 1,
+      "blocking_check_rows": 1,
+      "permit_rows_total": 1
+    },
+    "posts": [
+      { "resource": "merge_permit", "http_status": 423, "error": "demo_subject_unidentified" },
+      { "resource": "suspend_permit", "http_status": 423, "error": "demo_subject_unidentified" },
+      { "resource": "materialise_checks", "http_status": 423, "error": "demo_subject_unidentified" },
+      { "resource": "sign_disposition", "http_status": 423, "error": "demo_subject_unidentified" }
+    ],
+    "after": {
+      "state": "dispositioned",
+      "head_seq": 2,
+      "gate_epoch": 1,
+      "open_blocking": 1,
+      "permit_event_rows": 2,
+      "merge_record_rows": 0,
+      "disposition_rows": 0,
+      "exposure_receipt_rows": 1,
+      "exposure_line_rows": 1,
+      "blocking_check_rows": 1,
+      "permit_rows_total": 1
+    },
+    "changed": {},
+    "why_a_different_error_code_from_the_seeded_case": "423 demo_subject_unidentified, not 423 demo_subject_write_protected. The guard cannot assert that this subject IS the demo subject when the deployment cannot say which subject that is; saying so would be a fabricated exhibit. The message names the identifier it was configured to protect, says nothing was written, and points at both remedies: set MAINLINE_DEMO_PERMIT_ID, or drive POST /v1/demo/gate-run, which reports the same missing history as 422 demo_history_not_seeded."
+  },
+
+  "the_fix": {
+    "file": "verticals/mainline/apps/demo-api/src/mainline_demo_api/transitions.py",
+    "shape_after": "three questions, in this order: (1) has the operator lifted the lock (MAINLINE_DEMO_ALLOW_MUTATION)? (2) is this the demo subject — a comparison of identifiers, touching no row, which is what lets the refusal be stated about a DEPLOYMENT whose permit lives in another database; (3) only then, having concluded 'some other subject', is that conclusion itself checked, because it rests entirely on scenario.permit_id being the right identifier. SELECT 1 FROM mainline.permit WHERE permit_id = <scenario.permit_id>. No row means the deployment cannot name the subject it is protecting, and the write is refused.",
+    "cost": "one row-existence read, and only on the path that was already going to write. The demo-subject branch issues no statement at all.",
+    "operational_error_is_not_a_refusal": "psycopg.OperationalError is re-raised so handle_transition can answer 503 database_unreachable. 'There was nothing to ask' and 'the gate refused' are different findings; dressing an unreachable cluster as a 423 would put a refusal in front of a reader that nothing refused. Every other psycopg.Error answers False — a guard that cannot read mainline.permit has established nothing, and establishing nothing means refusing.",
+    "closed_class_not_fixed_instance": "the same probe catches a mistyped override, a deploy pointed at the wrong database, a Lambda whose environment was hand-edited, and the uuid5 fallback — four instances, one rule.",
+    "not_weakened": "the existing 423 demo_subject_write_protected, its message and its use_instead pointer are byte-for-byte unchanged, and MAINLINE_DEMO_ALLOW_MUTATION still lifts the lock for a deployment that owns its database."
+  },
+
+  "the_tests": {
+    "new_file": "verticals/mainline/apps/demo-api/tests/test_demo_guard_anonymous.py",
+    "the_test_that_had_to_fail_first": "test_the_four_posts_are_refused_with_the_permit_id_variable_unset",
+    "before_the_fix": {
+      "command": "MAINLINE_W4_DATABASE=w_w6 python -m pytest verticals/mainline/apps/demo-api/tests/test_demo_guard_anonymous.py -p no:randomly -q",
+      "result": "1 failed, 12 passed in 69.03s",
+      "failing_assertion_verbatim": "AssertionError: with MAINLINE_DEMO_PERMIT_ID unset the guard cannot say which subject it protects, and it let a committing POST through. That is the near-miss, reproduced: on a Function URL with authorization_type = NONE these four are reachable by anyone. Got: {'merge_permit': (409, None), 'suspend_permit': (409, None), 'materialise_checks': (200, None), 'sign_disposition': (200, None)}",
+      "why_this_matters": "a test that passes before the fix proves nothing. This one failed, and it failed by observing two commits against the shared demo subject rather than by disagreeing about a status code."
+    },
+    "after_the_fix": {
+      "command": "MAINLINE_W4_DATABASE=w_w6 python -m pytest verticals/mainline/apps/demo-api/tests/test_demo_guard_anonymous.py -p no:randomly -q",
+      "result": "13 passed in 0.71s"
+    },
+    "what_the_new_file_asserts": [
+      "all four committing POSTs at the seeded permit answer 423 demo_subject_write_protected, driven through handle_transition on a real db.connection() (dict_row, the production factory)",
+      "the subject's state, head_seq, gate_epoch and open_blocking, and the row counts of permit_event, merge_record, disposition, exposure_receipt, exposure_line and blocking_check, are identical before and after all four — read from a second session, so what is compared is what committed",
+      "the uuid5 fallback names no permit in this database, which is the premise the whole file rests on, measured rather than assumed",
+      "with MAINLINE_DEMO_PERMIT_ID unset, the four are still refused and still write nothing",
+      "the guard does not fail SHUT: a permit that is not the demo subject still reaches the transition and gets its ordinary 404",
+      "MAINLINE_DEMO_ALLOW_MUTATION still lifts the guard for a deployment that owns its database",
+      "the deployed identifier and the armed identifier are the same identifier — read from infra/modules/demo-api/variables.tf, not restated"
+    ],
+    "updated_file": "verticals/mainline/apps/demo-api/tests/test_transitions.py",
+    "what_changed_there": [
+      "the parametrised 423 test covered three of the four committing POSTs — sign_disposition is addressed by check_id and was absent. It now covers all four, through a fixture that reads a real obligation off the demo subject.",
+      "test_the_demo_subject_is_unchanged_by_the_attempt drove one endpoint and read three columns. It now drives all four and reads state, head_seq, gate_epoch, open_blocking and three row counts.",
+      "test_the_guard_survives_the_loss_of_its_environment_variable is new, and is the repair to this file's own blind spot: every other assertion in that section sets MAINLINE_DEMO_PERMIT_ID first, which is why the section was green throughout the near-miss.",
+      "the section header now records WHY the file could not have caught this, rather than leaving the next reader to rediscover it."
+    ],
+    "suite_after": "MAINLINE_W4_DATABASE=w_w6 pytest verticals/mainline/apps/demo-api/tests -q -> 289 passed, 1 skipped, 1 failed. The one failure is NameError: name 'ast' is not defined in tests/test_row_factory_contract.py:396 — another worker's file, mid-edit in this same working tree, missing an import. It is not caused by and does not bear on this change; scripts/qa/row_factory_ratchet.py run directly over mainline_demo_api reports 0 undeclared row reads across 10 parsed files, so the rule that test carries is satisfied by this module."
+  },
+
+  "the_deployed_identifier_and_the_armed_identifier": {
+    "read_from": "infra/modules/demo-api/variables.tf, by test_demo_guard_anonymous.py::_terraform_permit_id, which parses `variable \"scenario_permit_id\" { … default = \"…\" }` out of the file rather than restating the literal",
+    "why_parsed_and_not_restated": "restating it would make the assertion a comparison of two copies of the same typo. The file is what Terraform applies, so the file is what is read.",
+    "why_the_pattern_anchors_default_to_a_line_start": "the variable's own description heredoc QUOTES the superseded uuid5 value in prose. A regex that took the first UUID inside the block would read 077a6fdd-… and assert the opposite of what the test means.",
+    "default_found": "dec0de00-0006-4000-8000-000000000001",
+    "uuid5_fallback": "077a6fdd-2167-559c-b2ff-8e3c8352504d",
+    "they_differ": true,
+    "published_under_the_name_the_code_reads": "infra/modules/demo-api/main.tf sets MAINLINE_DEMO_PERMIT_ID = var.scenario_permit_id, and scenario.ENV_PREFIX + 'PERMIT_ID' == 'MAINLINE_DEMO_PERMIT_ID'. Publishing only MAINLINE_SCENARIO_PERMIT_ID would leave the override configured-looking and inert, which is the worst of the three possible states.",
+    "end_to_end": "with MAINLINE_DEMO_PERMIT_ID set to the value parsed out of variables.tf, from_env().permit_id equals it and POST merge_permit at that identifier answers 423 demo_subject_write_protected with subject_id echoing it. The permit itself is not in the local database and does not need to be: the guard decides on the identifier before it touches a row, which is what makes this a claim about the DEPLOYMENT that can be proven on a laptop."
+  },
+
+  "the_coupling_that_is_not_negotiable": {
+    "rule": "docs/leads/demo-correctness-plan.md §2: W1 and W6 land together or not at all.",
+    "why": "the anonymous write surface is inert TODAY only because of an unrelated KeyError on the refusal path (refusal.py:235, dict_row row indexed by position). W1 removes that accident. Landing W1 without W6 would remove the only thing making the hole harmless while leaving the hole; landing W6 without W1 leaves the 500 that keeps the demo NOT PROVEN.",
+    "state_at_the_time_of_this_measurement": "W1's refusal.py fix is present in this working tree. Both runs above were made with it in place, so run 1's two commits are what the code does with the KeyError already gone — which is the state the deploy would ship in."
+  },
+
+  "residual": [
+    "This closes the guard's own hole. It does not make the four committing POSTs authenticated — authorization_type = NONE is a deployment decision recorded in docs/verify/deploy/public-surface.md and owned elsewhere. What this change guarantees is that an anonymous caller cannot damage the demo subject, and cannot damage anything at all in a deployment that cannot say which subject its demo is.",
+    "docs/verify/deploy/public-surface.md:45,120,154 and evidence/deploy/verify/public-surface-probe.json still quote MAINLINE_DEMO_PERMIT_ID = 077a6fdd-… as the deployed value. Those are recorded transcripts of an earlier probe and are NOT edited here: a transcript changed by hand is forged evidence. The correction belongs in the document that supersedes them."
+  ]
+}

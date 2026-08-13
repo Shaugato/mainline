@@ -49,6 +49,33 @@ enable_api = true
 lambda_package_path = "../../../out/lambda/mainline-demo-api-arm64.zip"
 lambda_architecture = "arm64"
 
+# ── THE VALUE THAT DECIDES WHETHER THE APPLY RUNS AT ALL ──────────────────────────────
+#
+# -1 (the default) is a MEASUREMENT. The module underneath asks to reserve 20; on
+# 2026-08-13, in both regions this project touches:
+#
+#   aws lambda get-account-settings --region ap-southeast-1
+#     AccountLimit.ConcurrentExecutions  10   UnreservedConcurrentExecutions  10
+#   aws lambda get-account-settings --region ap-southeast-2
+#     AccountLimit.ConcurrentExecutions  10   UnreservedConcurrentExecutions  10
+#   aws service-quotas get-service-quota --service-code lambda \
+#       --quota-code L-B99A9384 --region ap-southeast-1
+#     Value 10.0   Adjustable true
+#
+# AWS refuses every positive reservation on a ceiling of 10, and PutFunctionConcurrency is
+# the SIXTH of eleven API calls — five resources exist by the time it is refused.
+#
+# min(20, 10) = 10. The account ceiling already capped this function at 10, so -1 REMOVES
+# AN UNAPPLIABLE RESERVATION AND CHANGES NO COST CEILING. It does not raise exposure.
+#
+# The quota is Adjustable: true, and the worst case is linear in it. Do not request an
+# increase without reading docs/deploy/COST-BOUND.md.
+#
+# 0 is still settable — reserving 0 decreases nothing — and is the documented kill switch:
+# every invocation throttled, 429 at the URL, spend stops. Documented AWS behaviour, NOT
+# measured on this account, because measuring it needs a mutating call.
+lambda_reserved_concurrency = -1
+
 # The NAME of the SSM SecureString. Never the value.
 dsn_parameter_name = "/mainline/demo/cockroach_dsn"
 

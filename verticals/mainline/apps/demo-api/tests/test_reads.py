@@ -23,21 +23,65 @@ Every test in this module needs a cluster and skips with the reason there is non
 from __future__ import annotations
 
 import hashlib
+import importlib.util
 import json
+import sys
 import uuid
+from types import ModuleType
 from typing import Any
+from urllib.parse import urlsplit, urlunsplit
 
+import psycopg
 import pytest
 from mainline_demo_api import app, envelope, health, reads
 from mainline_demo_api import db as demo_db
 
-from conftest import SchemaRegistry
+from conftest import MIGRATIONS_DIR, REPO_ROOT, SchemaRegistry
 
 pytestmark = pytest.mark.requires_cluster
 
 #: A lesson id for the staged propagation surface. Any UUID: no row is looked up, which
 #: is exactly the property the staged flag exists to declare.
 _LESSON_ID = "11111111-2222-4333-8444-555555555555"
+
+#: The deploy program that writes the second migration ledger `/v1/health` reads. Its DDL
+#: is borrowed rather than restated, so the marker table this suite builds is the marker
+#: table the deploy builds.
+CLOUD_CHAIN_PY = REPO_ROOT / "scripts" / "deploy" / "cloud_chain.py"
+
+
+def _load_cloud_chain() -> ModuleType:
+    """Load ``scripts/deploy/cloud_chain.py`` by path — ``scripts/`` is not a package.
+
+    Import-time it is stdlib plus ``psycopg`` and a handful of constants; everything that
+    touches a cluster, a secret or ``.env`` is behind ``main()``.
+
+    Registered in ``sys.modules`` BEFORE execution: ``cloud_chain`` declares dataclasses,
+    and ``dataclasses`` resolves a ``ClassVar`` annotation by looking its own module up in
+    ``sys.modules``. Without the registration that lookup returns ``None`` and the import
+    dies in the standard library with ``AttributeError: 'NoneType' object has no attribute
+    '__dict__'`` — measured, not anticipated.
+    """
+    name = "mainline_cloud_chain_for_tests"
+    cached = sys.modules.get(name)
+    if cached is not None:
+        return cached
+    spec = importlib.util.spec_from_file_location(name, CLOUD_CHAIN_PY)
+    assert spec is not None and spec.loader is not None, CLOUD_CHAIN_PY
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[name] = module
+    try:
+        spec.loader.exec_module(module)
+    except BaseException:
+        sys.modules.pop(name, None)
+        raise
+    return module
+
+
+def _dsn_for(admin: str, database: str) -> str:
+    """*admin* with its path segment replaced by *database*. No credential is touched."""
+    parts = urlsplit(admin)
+    return urlunsplit((parts.scheme, parts.netloc, f"/{database}", parts.query, parts.fragment))
 
 
 def _requests(seed: dict[str, str]) -> dict[str, tuple[dict[str, str], dict[str, str]]]:
@@ -683,18 +727,39 @@ def test_the_handler_serves_a_read_over_the_lambda_event_shape(
 def test_health_is_200_with_a_real_schema_fingerprint(
     demo_database: tuple[str, dict[str, str]], monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """The number the honesty chrome shows, and the number the GitHub Actions cron checks.
+    """The numbers the honesty chrome shows, and the numbers the GitHub Actions cron checks.
 
-    ``migrations_applied`` is **0 against this fixture, and that is correct**, not a bug
-    being tolerated. ``conftest._apply_chain`` executes each migration file directly so it
-    can continue past a failure and report the whole census; ``trappoint migrate up`` is
-    what writes ``trappoint.schema_migration``, and it is not what runs here. The deployed
-    cluster is migrated by W2 with the real command and reports 271.
+    TWO APPLIERS KEEP TWO LEDGERS, AND THIS FIXTURE WRITES TO NEITHER.
+    ``trappoint.schema_migration`` is written only by ``trappoint migrate up``
+    (``trappoint_migrate/runner.py`` holds the single ``INSERT`` into it in this tree);
+    ``trappoint.deploy_chain`` is written only by ``scripts/deploy/cloud_chain.py``.
+    ``conftest._apply_chain`` bootstraps and then executes each migration file itself, so
+    it can continue past a failure and report the whole census — and so it appears in
+    neither ledger. ``migrations_applied`` is therefore **0 here, and that is correct**,
+    not a bug being tolerated: it is the negative control for the whole endpoint, the
+    assertion that proves the number is read out of a ledger rather than counted off the
+    file tree.
 
-    The FINGERPRINT is real either way: ``trappoint migrate bootstrap`` writes the genesis
-    attestation, and that is the row this endpoint reads. So the assertion below is the
-    honest pair — a real fingerprint, and a bookkeeping count that says what the
-    bookkeeping table actually holds rather than what the file tree contains.
+    THE DEPLOYED CLUSTER REPORTS 0 IN THAT COLUMN TOO, and this docstring used to claim
+    the opposite — that it "is migrated by W2 with the real command and reports 271". It
+    is not and it does not. Cloud ``mainline_demo`` was built by ``cloud_chain.py``, which
+    records its census in ``trappoint.deploy_chain`` instead. Read out of Cloud read-only
+    on 2026-08-12 UTC: ``schema_migration`` holds **0 rows**, and the marker holds ``files
+    271, applied 271, failed 0, applied_by "scripts/deploy/cloud_chain.py", applied_at
+    2026-08-10T02:55:13Z``. Reproduced locally by re-running that same program against
+    this node (``--database w_w5 --recreate`` → ``VERDICT APPLIED``, 271/271, 0 failed),
+    where ``/v1/health`` answers ``migrations_applied 0`` with ``deploy_chain_applied
+    271`` beside it. Both transcripts are in ``evidence/deploy/migrations-ledger.json``,
+    and the shape is asserted in
+    :func:`test_health_reads_the_deploy_chain_marker_when_the_database_has_one`.
+
+    THIS DATABASE HAS NO MARKER AT ALL, which is the third case and the one the endpoint
+    has to survive: ``trappoint.deploy_chain`` does not exist here, CockroachDB resolves
+    every relation in a statement at plan time and fails the whole statement with ``42P01``
+    when one is missing, and a 503 out of that would turn a healthy database into an
+    outage. So the assertions below are the honest quartet — a real fingerprint from
+    ``trappoint migrate bootstrap``, a bookkeeping count that says what the bookkeeping
+    table holds, marker fields reported as ``None`` rather than invented, and **200**.
     """
     dsn, _ = demo_database
     monkeypatch.setenv("MAINLINE_DSN", dsn)
@@ -714,13 +779,153 @@ def test_health_is_200_with_a_real_schema_fingerprint(
             "reports what the bookkeeping table holds. A number here would mean this endpoint "
             "had counted files instead of reading the ledger."
         )
+        assert body["deploy_chain_applied"] is None, (
+            "there is no trappoint.deploy_chain in this database, so the only honest report "
+            "is no reading at all. A number here would mean the endpoint had found a marker "
+            "somewhere other than this database, or invented one."
+        )
+        assert body["deploy_chain_files"] is None
+        assert body["applied_by"] == "unrecorded", (
+            "neither ledger holds a row, so no applier left a record and the endpoint must "
+            "say so rather than guess. The fingerprint above is still real — bootstrap wrote "
+            "it — which is exactly why `ok` keys on the fingerprint and not on these counts."
+        )
+        assert set(body) == {
+            "ok",
+            "cluster_version",
+            "database",
+            "schema_fingerprint",
+            "migrations_applied",
+            "deploy_chain_applied",
+            "deploy_chain_files",
+            "applied_by",
+            "server_date",
+            "seconds",
+        }, (
+            "the 200 body's key set is a contract: every 503 branch in health.py carries the "
+            "same keys with None readings, so a caller cannot be written against a key that "
+            f"disappears. Got {sorted(body)}."
+        )
 
         response = app.handler(_event("GET", "/v1/health"))
         assert response["statusCode"] == 200
         assert response["headers"]["cache-control"] == "no-store"
-        assert json.loads(response["body"])["schema_fingerprint"] == body["schema_fingerprint"]
+        routed = json.loads(response["body"])
+        assert routed["schema_fingerprint"] == body["schema_fingerprint"]
+        assert routed["migrations_applied"] == 0
+        assert routed["deploy_chain_applied"] is None
+        assert routed["applied_by"] == "unrecorded"
     finally:
         demo_db.reset_dsn_cache()
+
+
+def test_health_reads_the_deploy_chain_marker_when_the_database_has_one(
+    admin_dsn: str,
+) -> None:
+    """The other applier's ledger, read out of a database the other applier's DDL built.
+
+    The fixture above covers a database with no marker. This covers the case the DEPLOYED
+    cluster is in, and it is the assertion that would fail if the marker subqueries were
+    dropped, misspelled, or keyed on something other than ``current_database()``.
+
+    Nothing here is a stand-in for the real thing where the real thing was affordable:
+    ``trappoint.schema_attestation`` and ``trappoint.schema_migration`` are created by the
+    real :func:`trappoint_migrate.bootstrap.bootstrap`, and ``trappoint.deploy_chain`` is
+    created by ``cloud_chain.MARKER_DDL`` — the very string the deploy program executes,
+    loaded out of the deploy program. Only the marker's numbers are the test's own, and
+    they are taken from the migration tree so that the assertion moves when the tree does.
+
+    Applying all 271 files here would be the fully real alternative, and it is what
+    ``evidence/deploy/migrations-ledger.json`` does once rather than on every test run:
+    two ``cloud_chain.py --database w_w5 --recreate`` runs against this node recorded
+    ``total_seconds`` 57.5 and 57.7 for the chain, inside a wall clock of 136.7 s and
+    68.4 s — the chain itself is steady, the wall clock also carries ``trappoint migrate
+    bootstrap`` and connection setup and so moves with machine load. Either figure is
+    minutes per test session, which is the cost this test declines to pay on every run.
+    """
+    from trappoint_migrate.bootstrap import bootstrap
+    from trappoint_migrate.runner import DEFAULT_SCHEMA_PREFIXES, actor
+
+    chain = _load_cloud_chain()
+    files = len(list(MIGRATIONS_DIR.glob("*.sql")))
+    assert files > 0, f"no migrations under {MIGRATIONS_DIR}"
+
+    # The literal cloud_chain.py writes into applied_by. Asserted against its source, so
+    # that the day the deploy program renames itself this test says so instead of quietly
+    # comparing against a string nothing writes any more.
+    applied_by = "scripts/deploy/cloud_chain.py"
+    assert applied_by in CLOUD_CHAIN_PY.read_text(encoding="utf-8")
+
+    database = "w5_deploy_chain_marker"
+    with psycopg.connect(admin_dsn, autocommit=True) as admin:
+        admin.execute(f"DROP DATABASE IF EXISTS {database} CASCADE")
+        admin.execute(f"CREATE DATABASE {database}")
+    dsn = _dsn_for(admin_dsn, database)
+    try:
+        with psycopg.connect(dsn, autocommit=True) as conn:
+            bootstrap(conn, applied_by=actor(), schema_prefixes=DEFAULT_SCHEMA_PREFIXES)
+            conn.execute(chain.MARKER_DDL)
+            conn.execute(
+                "UPSERT INTO trappoint.deploy_chain (marker_id, tree_fingerprint, "
+                "live_fingerprint, files, applied, failed, retried, total_seconds, "
+                "applied_at, applied_by) VALUES (%s, %s, %s, %s, %s, 0, 0, %s, now(), %s)",
+                (database, b"\x11" * 32, b"\x22" * 32, files, files, 136.7, applied_by),
+            )
+
+        demo_db.reset_dsn_cache()
+        status, body = health.health(dsn=dsn)
+        assert status == 200, body
+        assert body["ok"] is True
+        assert body["database"] == database
+        assert body["deploy_chain_applied"] == files
+        assert body["deploy_chain_files"] == files
+        assert body["applied_by"] == applied_by, (
+            "the endpoint must name the applier with the ledger's own word for it, not with "
+            "a string of its own choosing."
+        )
+        assert body["migrations_applied"] == 0, (
+            "the two ledgers are independent and this database was never touched by "
+            "`trappoint migrate up`. A number here would mean the endpoint had let the "
+            "marker's count leak into the column that names the other applier's table."
+        )
+        assert len(body["schema_fingerprint"]) == 64
+    finally:
+        demo_db.close()
+        demo_db.reset_dsn_cache()
+        with psycopg.connect(admin_dsn, autocommit=True) as admin:
+            admin.execute(f"DROP DATABASE IF EXISTS {database} CASCADE")
+
+
+def test_the_health_statement_is_one_statement_and_names_both_ledgers() -> None:
+    """One round trip is a cost decision, and the fallback is the same text minus a clause.
+
+    ``/v1/health`` is polled by a GitHub Actions cron every few minutes because the
+    CloudWatch Synthetics alternative was priced at $10.37/month — thirty times the rest
+    of the stack. That is why the statement is one statement: a second round trip is a
+    second wide-area latency on every poll, and Cloud is in ``aws-ap-southeast-1``.
+
+    The last assertion is the one that matters most. The fallback is COMPOSED from the
+    same text rather than written out again, so the four columns the two statements share
+    cannot drift apart and quietly start reporting different things depending on whether
+    the database happens to carry a marker.
+    """
+    full = health.HEALTH_STATEMENT
+    short = health.HEALTH_STATEMENT_WITHOUT_DEPLOY_CHAIN
+
+    assert ";" not in full, f"one statement, no semicolons: {full}"
+    assert full.count("SELECT version()") == 1
+    assert "trappoint.schema_attestation" in full
+    assert "trappoint.schema_migration" in full
+    assert "trappoint.deploy_chain" in full
+
+    assert "trappoint.deploy_chain" not in short, (
+        "the fallback exists to be run when that relation is missing, so naming it there "
+        "would make the 42P01 unrecoverable and turn a healthy database into a 503."
+    )
+    assert full.startswith(short.rstrip()), (
+        "the fallback must be a PREFIX of the full statement, not a second copy of it: "
+        "that is what makes the shared columns provably identical."
+    )
 
 
 def test_the_server_date_is_the_databases_clock_not_this_processs(

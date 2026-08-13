@@ -25,10 +25,43 @@ builds the smallest history in which the claim is decidable and it is the artefa
 repository's central proof runs on; re-implementing a 300-line seeder here would create a
 second history that could drift from the proven one. What the demo API needs is exactly
 what that proof needs, which is the point.
+
+THE ROW FACTORY, AND WHY THIS FILE IS SPLIT IN TWO ALONG IT
+-----------------------------------------------------------
+Until 2026-08-13 every connection below was ``psycopg.connect(dsn, autocommit=…)`` —
+psycopg's default ``tuple_row``. ``db.py:309`` opens every production connection with
+``row_factory=dict_row``. So this suite exercised one row factory and the Lambda ran the
+other, and ``evidence/deploy/rowfactory-defect.json`` names lines 249 and 256 of THIS file
+as the precise reason nothing caught it: the one contract spanning the two paths was never
+asserted by anybody, and a ``KeyError: 0`` reached a judge as a 500.
+
+Every connection here now answers one question explicitly, and the answer differs by what
+the test is claiming:
+
+* **A claim about PRODUCTION behaviour** — anything that calls :func:`gate_run` — takes its
+  connection from :func:`mainline_demo_api.db.connection`, the real factory, carrying
+  ``db.py``'s own choice. Re-opening with ``row_factory=dict_row`` by hand would only
+  assert that this file agrees with itself; it is ``db.py``'s choice and these statements
+  that have to agree. ``db.connection()`` returns an AUTOCOMMIT connection and ``gate_run``
+  refuses one, because the four beats sharing ONE transaction is the property being
+  demonstrated — so :func:`_demo_gate_run_connection` clears the flag exactly the way
+  ``transitions._demo_gate_run`` does, rather than opening a differently-configured
+  connection, and what is under test is the path the Function URL actually takes.
+* **A claim about the FIXTURE, or a probe of the database itself** — reading the demo
+  subject, counting databases, applying the chain, seeding, proving the receipt table is
+  append-only — keeps ``tuple_row``, now spelled out rather than inherited from psycopg's
+  default, because those statements are read by POSITION and several of them return a
+  column CockroachDB names ``count``. Each such connection carries a comment saying so.
+
+``_every_table_count`` sits across the line: it runs on the production connection but reads
+by position, so it asks the CURSOR for tuples the way ``scenario.positional()`` does. That
+is the production convention for exactly this situation and it makes the helper correct
+under either factory rather than under the one it happens to be handed.
 """
 
 from __future__ import annotations
 
+import contextlib
 import datetime as _dt
 import hashlib
 import importlib.util
@@ -45,6 +78,7 @@ from typing import Any
 
 import psycopg
 import pytest
+from psycopg.rows import tuple_row
 
 # `requires_cluster` only. `verticals/mainline/apps/demo-api/pyproject.toml` runs with
 # --strict-markers and registers exactly that one, so `integration` — which the repository
@@ -57,6 +91,7 @@ _APP_SRC = _HERE.parents[1] / "src"
 if str(_APP_SRC) not in sys.path:  # the app is not installed as a distribution yet
     sys.path.insert(0, str(_APP_SRC))
 
+from mainline_demo_api import db as demo_db  # noqa: E402
 from mainline_demo_api import scenario as scenario_mod  # noqa: E402
 from mainline_demo_api.gate_run import (  # noqa: E402
     ADMISSION_SQLSTATE,
@@ -246,8 +281,18 @@ class DemoSubject:
 
 
 def _subject(dsn: str) -> DemoSubject | None:
-    """Read the demo subject out of *dsn*, or ``None`` when there is not one to read."""
-    with psycopg.connect(dsn, autocommit=True) as probe:
+    """Read the demo subject out of *dsn*, or ``None`` when there is not one to read.
+
+    DELIBERATELY ``tuple_row``, AND NOT THE PRODUCTION CONNECTION. This function makes no
+    claim about ``gate_run``, ``handle_transition`` or the router: it is the fixture asking
+    the database whether there is anything to run four beats ON, so what it must agree with
+    is its own two statements, not ``db.py``. Both are read by POSITION and the first of
+    them — ``SELECT count(*) FROM information_schema.tables`` — returns a single column
+    CockroachDB names ``count``, so ``exists[0]`` is a ``KeyError`` under ``dict_row``:
+    character for character the defect this wave exists to close, which is reason enough to
+    spell the factory out here instead of inheriting psycopg's default and hoping.
+    """
+    with psycopg.connect(dsn, autocommit=True, row_factory=tuple_row) as probe:
         exists = probe.execute(
             "SELECT count(*) FROM information_schema.tables "
             "WHERE table_schema = 'mainline' AND table_name = 'permit'"
@@ -319,6 +364,10 @@ def reissue_exposure_receipt(
 
     ``None`` means no receipt has ever displayed this obligation, which is not a stale
     fixture but an unseeded one: the caller rebuilds.
+
+    *conn* must carry ``tuple_row``: ``source[0]`` below is read by position. Both call
+    sites supply one explicitly — :func:`_reissue` and the append-only test — because this
+    is fixture repair, not a path any Lambda takes.
     """
     source = conn.execute(_SOURCE_RECEIPT_SQL, (permit_id, check_id)).fetchone()
     if source is None:
@@ -338,10 +387,14 @@ def _reissue(dsn: str, subject: DemoSubject) -> uuid.UUID | None:
     through ``exposure_line`` — and the next run would re-issue again, forever. The retry
     loop is there because this DSN may be CockroachDB Cloud, where SERIALIZABLE returns
     ``40001 RETRY_SERIALIZABLE`` and a single-node Docker never does.
+
+    ``tuple_row``, deliberately: this repairs the FIXTURE and asserts nothing about the
+    production path. It is spelled out rather than inherited because
+    :func:`reissue_exposure_receipt` reads its source receipt by position.
     """
     assert subject.check_id is not None
     for attempt in range(3):
-        with psycopg.connect(dsn, autocommit=False) as conn:
+        with psycopg.connect(dsn, autocommit=False, row_factory=tuple_row) as conn:
             try:
                 receipt_id = reissue_exposure_receipt(conn, subject.permit_id, subject.check_id)
             except psycopg.errors.SerializationFailure:
@@ -375,9 +428,18 @@ def w4_database() -> Iterator[str]:
     now covers every input the four beats consume, and a dead receipt is REPAIRED — by
     issuing a new one, because ``mainline.exposure_receipt`` is append-only — rather than by
     paying 50 s to rebuild a database whose only stale row is that one.
+
+    EVERY CONNECTION THIS FIXTURE OPENS IS DELIBERATELY OFF THE PRODUCTION PATH. It builds
+    the world the four beats run in; it does not run them. It talks to the ADMIN database
+    rather than the demo one, it issues DDL no handler may issue, and it hands the
+    repository's own seeder a connection whose contract is with ``scripts/proof/gate_refusal.py``
+    and not with ``db.py``. ``tuple_row`` is therefore the right factory here and is spelled
+    out at each place a row is actually read by position.
     """
     admin = _admin_dsn()
     try:
+        # Reachability only: opened, proven, closed, no row ever read — so this one connect
+        # is the single place in the fixture where the row factory could not matter.
         psycopg.connect(admin, autocommit=True).close()
     except psycopg.OperationalError as exc:  # pragma: no cover - depends on the host
         pytest.skip(f"no CockroachDB at {admin.split('@')[-1].split('?')[0]}: {exc}")
@@ -385,7 +447,10 @@ def w4_database() -> Iterator[str]:
     dsn = _scratch_dsn()
     rebuild = os.environ.get("MAINLINE_W4_REBUILD", "").strip() not in ("", "0", "false")
 
-    with psycopg.connect(admin, autocommit=True) as probe:
+    # tuple_row, deliberately: `SELECT count(*)` returns one column CockroachDB names
+    # `count`, so `present_row[0]` below is a KeyError under dict_row. This asserts nothing
+    # about the API — it asks the cluster whether the scratch database exists at all.
+    with psycopg.connect(admin, autocommit=True, row_factory=tuple_row) as probe:
         present_row = probe.execute(
             "SELECT count(*) FROM [SHOW DATABASES] WHERE database_name = %s", (SCRATCH_DB,)
         ).fetchone()
@@ -400,6 +465,7 @@ def w4_database() -> Iterator[str]:
 
     usable = subject is not None and subject.beat_four_ready
     if not usable:
+        # DDL only — no row is read, and no handler may issue any of these three statements.
         with psycopg.connect(admin, autocommit=True) as probe:
             probe.execute(f'DROP DATABASE IF EXISTS "{SCRATCH_DB}" CASCADE')
             probe.execute(f'CREATE DATABASE "{SCRATCH_DB}"')
@@ -410,7 +476,11 @@ def w4_database() -> Iterator[str]:
             )
 
         proof = _gate_refusal_module()
-        with psycopg.connect(dsn, autocommit=True) as work:
+        # The migration chain and the seed both belong to `scripts/proof/gate_refusal.py`,
+        # which reads its own rows by position. Its connection is its contract, not db.py's:
+        # handing it dict_row would be asserting something about the proof script that this
+        # file has no business asserting, and would break it.
+        with psycopg.connect(dsn, autocommit=True, row_factory=tuple_row) as work:
             report = proof.apply_chain(
                 work,
                 dsn,
@@ -423,7 +493,7 @@ def w4_database() -> Iterator[str]:
                 f"{SCRATCH_DB}; the gate objects may be absent. First: "
                 f"{report.failures[0].version} [{report.failures[0].sqlstate}]"
             )
-        with psycopg.connect(dsn, autocommit=False) as conn:
+        with psycopg.connect(dsn, autocommit=False, row_factory=tuple_row) as conn:
             seed_history_into(conn)
         subject = _subject(dsn)
 
@@ -464,16 +534,77 @@ def w4_database() -> Iterator[str]:
                 os.environ[key] = value
 
 
+@contextlib.contextmanager
+def _demo_gate_run_connection(dsn: str) -> Iterator[psycopg.Connection[Any]]:
+    """The connection the Function URL actually takes, prepared the way the Lambda does.
+
+    :func:`mainline_demo_api.db.connection` is the REAL factory and the only thing that
+    carries ``db.py``'s own ``row_factory=dict_row``. A hand-rolled
+    ``psycopg.connect(dsn, row_factory=dict_row)`` would look identical and prove something
+    weaker: that this file agrees with itself. The contract that has to hold — and that
+    nothing asserted until 2026-08-13 — is between ``db.py``'s choice and the statements in
+    ``gate_run.py``, ``scenario.py`` and ``refusal.py``.
+
+    ``db.connection()`` returns an AUTOCOMMIT connection and ``gate_run`` refuses one,
+    because the four beats sharing ONE transaction is the property being demonstrated.
+    ``transitions._demo_gate_run`` clears the flag before calling; this mirrors that rather
+    than opening a differently-configured connection, so nothing about the connection under
+    test differs from the one a judge's POST arrives on.
+
+    The flag is restored and the module-scope connection dropped on the way out, so a test
+    cannot inherit an open transaction — or a cleared autocommit flag — from the one before
+    it. That matters concretely: ``test_gate_run_refuses_an_autocommit_connection`` asserts
+    the refusal on a connection whose ``autocommit`` is still ``True``.
+    """
+    conn = demo_db.connection(dsn=dsn)
+    restore = conn.autocommit
+    if conn.autocommit:
+        conn.autocommit = False
+    try:
+        yield conn
+    finally:
+        with contextlib.suppress(psycopg.Error):
+            conn.rollback()
+        conn.autocommit = restore
+        demo_db.close()
+
+
 @pytest.fixture
 def w4_conn(w4_database: str) -> Iterator[psycopg.Connection[Any]]:
-    with psycopg.connect(w4_database, autocommit=False) as connection:
+    """The production connection, ready for the four beats.
+
+    See :func:`_demo_gate_run_connection` for why it is obtained rather than opened.
+    """
+    with _demo_gate_run_connection(w4_database) as connection:
+        yield connection
+
+
+@pytest.fixture
+def w4_tuple_conn(w4_database: str) -> Iterator[psycopg.Connection[Any]]:
+    """A ``tuple_row`` connection for the tests that are about the FIXTURE, not the API.
+
+    Kept separate from :func:`w4_conn` rather than folded into it because the two are
+    asserting different things and the whole lesson of the row-factory defect is that a
+    suite which cannot tell those apart proves neither. What this one asserts is that
+    ``mainline.exposure_receipt`` refuses UPDATE and DELETE and that the fixture's repair
+    is therefore an INSERT — a property of the SCHEMA, read by position, on statements no
+    handler issues.
+    """
+    with psycopg.connect(w4_database, autocommit=False, row_factory=tuple_row) as connection:
         yield connection
 
 
 @pytest.fixture(scope="session")
 def run_once(w4_database: str) -> dict[str, Any]:
-    """One gate run, shared by the assertions about it. Runs the demo exactly as shipped."""
-    with psycopg.connect(w4_database, autocommit=False) as connection:
+    """One gate run, shared by the assertions about it. Runs the demo exactly as shipped.
+
+    "Exactly as shipped" is now literal: the connection is ``db.connection()``'s, with the
+    autocommit flag cleared the way ``transitions._demo_gate_run`` clears it. Every
+    assertion downstream of this fixture — the four beats, the refusal payloads, the
+    contract check — is therefore a statement about the payload the deployed Function URL
+    returns, and not about a payload that only this file's connection could produce.
+    """
+    with _demo_gate_run_connection(w4_database) as connection:
         return gate_run(connection)
 
 
@@ -585,12 +716,25 @@ def test_all_four_beats_share_one_transaction(run_once: dict[str, Any]) -> None:
 
 
 def _every_table_count(conn: psycopg.Connection[Any]) -> dict[str, int]:
-    """count(*) for every base table in the vertical's schemas, in ONE statement."""
-    tables = conn.execute(
-        "SELECT table_schema, table_name FROM information_schema.tables "
-        "WHERE table_schema IN ('mainline', 'mainline_meas', 'mainline_ops', 'trappoint') "
-        "AND table_type = 'BASE TABLE' ORDER BY table_schema, table_name"
-    ).fetchall()
+    """count(*) for every base table in the vertical's schemas, in ONE statement.
+
+    *conn* is the PRODUCTION connection — this helper brackets a real ``gate_run`` — but
+    both statements below are read by position, so each asks its CURSOR for tuples instead
+    of inheriting whatever the connection carries. That is ``scenario.positional()``'s
+    mechanism, and its reason applies here verbatim: the union's per-table ``count(*)``
+    columns are what a ``dict`` row collapses, and nothing about *conn* is mutated, so the
+    caller still holds ``db.py``'s factory afterwards. Written this way the helper is
+    correct under either factory rather than under the one it happens to be handed.
+    """
+    tables = (
+        conn.cursor(row_factory=tuple_row)
+        .execute(
+            "SELECT table_schema, table_name FROM information_schema.tables "
+            "WHERE table_schema IN ('mainline', 'mainline_meas', 'mainline_ops', 'trappoint') "
+            "AND table_type = 'BASE TABLE' ORDER BY table_schema, table_name"
+        )
+        .fetchall()
+    )
     conn.rollback()
     assert tables, "no base tables — the migration chain did not apply into this database"
     # S608 on both lines below: the identifiers come from information_schema on a database
@@ -601,7 +745,11 @@ def _every_table_count(conn: psycopg.Connection[Any]) -> dict[str, int]:
         f'SELECT \'{schema}.{name}\' AS t, count(*) AS n FROM "{schema}"."{name}"'  # noqa: S608
         for schema, name in tables
     )
-    rows = conn.execute(f"SELECT t, n FROM ({union}) ORDER BY t").fetchall()  # noqa: S608
+    rows = (
+        conn.cursor(row_factory=tuple_row)
+        .execute(f"SELECT t, n FROM ({union}) ORDER BY t")  # noqa: S608
+        .fetchall()
+    )
     conn.rollback()
     return {row[0]: int(row[1]) for row in rows}
 
@@ -650,13 +798,30 @@ def test_two_consecutive_runs_see_the_same_subject(w4_conn: psycopg.Connection[A
 
 
 def test_concurrent_runs_do_not_collide(w4_database: str) -> None:
-    """Two runs interleaved on two connections. Neither sees the other's writes."""
-    with (
-        psycopg.connect(w4_database, autocommit=False) as one,
-        psycopg.connect(w4_database, autocommit=False) as two,
-    ):
+    """Two runs interleaved on two connections. Neither sees the other's writes.
+
+    TWO CONTAINERS, NOT TWO CALLS TO ``connection()``. ``db.connection()`` is a per-execution-
+    environment SINGLETON — that is its whole design, one connection per warm container —
+    so calling it twice returns the same object and this test would silently become a test
+    of one connection. Two concurrent judges hit two Lambda execution environments, and what
+    each of those does on its cold start is ``db._open``. Opening through it rather than
+    through ``psycopg.connect(..., row_factory=dict_row)`` means these two connections carry
+    ``db.py``'s row factory, its ``connect_timeout`` and its ``application_name`` because
+    ``db.py`` says so, and follow it if it ever changes its mind.
+
+    ``_open`` returns autocommit connections, as production's do, so both have the flag
+    cleared here exactly as ``transitions._demo_gate_run`` clears it.
+    """
+    one, two = demo_db._open(w4_database), demo_db._open(w4_database)
+    assert one is not two, "db._open must hand out a second connection, not the singleton"
+    try:
+        one.autocommit = False
+        two.autocommit = False
         a = gate_run(one)
         b = gate_run(two)
+    finally:
+        one.close()
+        two.close()
     assert a["verdict"] == "PROVEN", a["failures"]
     assert b["verdict"] == "PROVEN", b["failures"]
     assert a["subject"] == b["subject"]
@@ -785,12 +950,26 @@ def test_scenario_not_seeded_is_not_a_refusal(w4_conn: psycopg.Connection[Any]) 
 
 
 def test_gate_run_refuses_an_autocommit_connection(w4_database: str) -> None:
-    """The four beats share one transaction. A connection that cannot hold one is refused."""
-    with (
-        psycopg.connect(w4_database, autocommit=True) as connection,
-        pytest.raises(ValueError, match="autocommit"),
-    ):
-        gate_run(connection)
+    """The four beats share one transaction. A connection that cannot hold one is refused.
+
+    Run against the PRODUCTION connection unmodified, because that connection is autocommit
+    — ``db._open`` passes ``autocommit=True`` — and this is therefore not a hypothetical
+    misuse but the exact state ``app.handler`` hands ``handle_transition`` on every POST.
+    The refusal asserted here is the reason ``transitions._demo_gate_run`` must clear the
+    flag, and the reason :func:`_demo_gate_run_connection` mirrors it. Delete that one line
+    in ``transitions.py`` and the demo answers 500 instead of running; this is the test that
+    says so, on the connection it would happen on.
+    """
+    connection = demo_db.connection(dsn=w4_database)
+    try:
+        assert connection.autocommit is True, (
+            "db.connection() no longer returns an autocommit connection, so this test is no "
+            "longer exercising the state the Function URL hands handle_transition"
+        )
+        with pytest.raises(ValueError, match="autocommit"):
+            gate_run(connection)
+    finally:
+        demo_db.close()
 
 
 # ═══════════════════════════════════════════════════════════════════════════════════════
@@ -863,7 +1042,7 @@ def test_the_fixture_yields_a_subject_beat_four_can_actually_run_on(w4_database:
 
 
 def test_an_expired_receipt_is_repaired_by_issuing_one_not_by_editing_one(
-    w4_conn: psycopg.Connection[Any], w4_database: str
+    w4_tuple_conn: psycopg.Connection[Any], w4_database: str
 ) -> None:
     """Why the repair is an INSERT: the receipt table refuses UPDATE and DELETE.
 
@@ -871,6 +1050,11 @@ def test_an_expired_receipt_is_repaired_by_issuing_one_not_by_editing_one(
     ``mainline.exposure_receipt``. That is asserted here against the running database rather
     than read off the migration, because the reason ``reissue_exposure_receipt`` clones a
     row instead of extending one is a property of the schema and not of this worker's taste.
+
+    ``w4_tuple_conn`` and not ``w4_conn``: nothing here goes near ``gate_run``, the four
+    statements below are the fixture's own repair read by position, and the UPDATE and
+    DELETE being probed are ones no handler is permitted to issue. A production connection
+    would be a costume, not a claim.
 
     Everything this test writes is rolled back.
     """
@@ -886,24 +1070,24 @@ def test_an_expired_receipt_is_repaired_by_issuing_one_not_by_editing_one(
         ),
         "DELETE FROM mainline.exposure_receipt WHERE receipt_id = %s",
     ):
-        w4_conn.execute("SAVEPOINT append_only_probe")
+        w4_tuple_conn.execute("SAVEPOINT append_only_probe")
         with pytest.raises(psycopg.Error) as raised:
-            w4_conn.execute(statement, (live_before,))
+            w4_tuple_conn.execute(statement, (live_before,))
         assert raised.value.sqlstate == "P0001", statement
-        w4_conn.execute("ROLLBACK TO SAVEPOINT append_only_probe")
-        w4_conn.execute("RELEASE SAVEPOINT append_only_probe")
+        w4_tuple_conn.execute("ROLLBACK TO SAVEPOINT append_only_probe")
+        w4_tuple_conn.execute("RELEASE SAVEPOINT append_only_probe")
 
-    issued = reissue_exposure_receipt(w4_conn, subject.permit_id, subject.check_id)
+    issued = reissue_exposure_receipt(w4_tuple_conn, subject.permit_id, subject.check_id)
     assert issued is not None and issued != live_before
-    row = w4_conn.execute(_DEMO_SUBJECT_SQL, (_DEMO_EXTERNAL_REF,)).fetchone()
+    row = w4_tuple_conn.execute(_DEMO_SUBJECT_SQL, (_DEMO_EXTERNAL_REF,)).fetchone()
     assert row is not None
     assert row[5] == issued, "the re-issued receipt is the one scenario._RECEIPT_SQL picks"
-    lines = w4_conn.execute(
+    lines = w4_tuple_conn.execute(
         "SELECT check_id FROM mainline.exposure_line WHERE receipt_id = %s", (issued,)
     ).fetchall()
     assert [line[0] for line in lines] == [subject.check_id], (
         "the clone carries the exposure line that binds it to the obligation; without it "
         "the disposition's fk_exposure has nothing to land on"
     )
-    w4_conn.rollback()
+    w4_tuple_conn.rollback()
     assert _subject(w4_database).live_receipt_id == live_before, "the probe left nothing behind"

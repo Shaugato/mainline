@@ -69,7 +69,7 @@ dev = [
 
 [tool.pytest.ini_options]
 minversion = "9.1"
-# THREE TEST ROOTS, AND THE THIRD IS NEW.
+# FOUR TEST ROOTS, AND THE FOURTH IS NEW.
 #
 # Until 2026-08-10 this said `["tests", "packages"]`. `verticals/*/packages/*/tests`
 # — 146 collected tests across `mainline-anchor`, `mainline-custody-patrol` and
@@ -82,10 +82,55 @@ minversion = "9.1"
 # pnpm workspace with `node_modules/`, and pointing pytest at its parent would make
 # collection walk a JavaScript dependency tree. `testpaths` has accepted shell-style
 # wildcards since pytest 7, and this file already requires 9.1.
+#
+# ── 2026-08-13: THE SAME DEFECT, ONE DIRECTORY LEVEL ACROSS, LEFT BEHIND ───────────
+# The 2026-08-10 fix reached `verticals/*/packages/*` and stopped there.
+# `verticals/*/apps/*` was never added, and MEASURED at that point:
+#
+#     pytest --collect-only -q                                    → 9324 tests
+#     pytest verticals/mainline/apps/demo-api/tests --collect-only -q →  228 tests
+#
+# and the 228 were not among the 9324. Among them was
+# `tests/test_row_factory_contract.py` — 627 lines written specifically to catch a
+# `dict_row`/`tuple_row` defect, carrying an explicit diagnosis naming
+# `refusal.py:235` — which had never executed in CI or in a default `pytest`
+# invocation. `evidence/deploy/acceptance.json` records the consequence the suite was
+# written to prevent: `500 … internal_error · KeyError: 0`, twice. **A test that is
+# not collected is not enforcement.** That sentence is why this line exists.
+#
+# WHY `apps/demo-api` AND NOT `apps/*` — THE NARROWEST CORRECT DECLARATION.
+# The app segment is exactly where this repository's Python/TypeScript boundary lies,
+# so it is the segment that must be named rather than globbed. Measured 2026-08-13,
+# `verticals/mainline/apps/` holds three entries and only one of them is Python:
+#
+#   console/tests   148 entries, ZERO `*.py` — a vitest suite (`setup.ts`, `browser/`,
+#                   `unit/`, `vectors/`). The bare glob `verticals/*/apps/*/tests`
+#                   would hand that directory to pytest, which is the same category
+#                   error as pointing `[tool.uv.workspace] members` at it — and the
+#                   comment above line 32 already refuses it there, for the same
+#                   reason and in the same words.
+#   steward         no `tests/` at all: prompts and runbooks.
+#   demo-api/tests  7 modules and 228 tests when this line landed; 8 and 243 by the end
+#                   of the wave, W1 having added `test_refusal_row_factory.py`. All
+#                   Python, with globally unique basenames across `tests/`, `packages/`
+#                   and `verticals/` (checked before this line landed — `prepend` import
+#                   mode names a module by its basename when the directory has no
+#                   `__init__.py`, so a collision would be an import error, not a silent
+#                   miss).
+#
+# The `*` stays on the VERTICAL, matching the line above it, so a second vertical
+# that ships a `demo-api` is collected with no edit here. It does not move to the app,
+# because "which app is Python" is not a fact a wildcard can know.
+#
+# WHAT KEEPS THIS FROM HAPPENING A THIRD TIME is not a wider glob — a wider glob is
+# what would have swallowed the console. It is the census in `docs/ci/test-collection.md`:
+# one command that lists every directory holding `test_*.py` and diffs it against what
+# a default `pytest` actually collects. Run it when a test root moves.
 testpaths = [
     "tests",
     "packages",
     "verticals/*/packages/*/tests",
+    "verticals/*/apps/demo-api/tests",
 ]
 addopts = [
     "--strict-markers",

@@ -930,22 +930,39 @@ AWS_ROWS: Final[tuple[Row, ...]] = (
             "MEASURED CORRECTION, and it is the kind that matters: an earlier census said "
             "this row's Function URL was 'AWS_IAM — never NONE'. THAT IS NOT WHAT THE "
             "COMMITTED PLAN DOES. var.url_authorization_type defaults to NONE and "
-            "evidence/deploy/terraform-plan-furl.txt:329 plans authorization_type = "
+            "evidence/deploy/terraform-plan-furl.txt:326 plans authorization_type = "
             '"NONE", because AWS_IAM is only a hardening if a CloudFront distribution '
             "exists to be granted lambda:InvokeFunctionUrl — and this account cannot "
             "create one (see the aws_cloudfront row). An AWS_IAM URL with no principal "
             "behind it is not a hardened demo, it is a demo nobody can reach. So the URL "
-            "is public and the module says so, and what actually bounds it is written "
-            "down instead of assumed: reserved_concurrent_executions caps the bill rather "
-            "than reporting it, the handler's write surface is one transaction that ends "
-            "in ROLLBACK, the Basic cluster carries its own spend limit, and the "
-            "concurrency alarm is the tripwire. That is a smaller claim than 'invocable by "
-            "one distribution and nothing else' and it is the true one for this account."
+            "is public and the module says so — and THE LIST OF WHAT BOUNDS IT IS NOW "
+            "SHORTER THAN THIS ROW ONCE CLAIMED. This census used to say "
+            "'reserved_concurrent_executions caps the bill'. It does not and it never "
+            "did on this account: `aws lambda get-account-settings` reports "
+            "AccountLimit.ConcurrentExecutions = 10 in both ap-southeast-1 and "
+            "ap-southeast-2, min(20, 10) = 10, and every POSITIVE reservation is refused "
+            "at apply — so the plan now carries "
+            "evidence/deploy/terraform-plan-furl.txt:279 "
+            "reserved_concurrent_executions = -1 and the reservation is not a control at "
+            "all. What is left is genuinely load-bearing and is written down instead of "
+            "assumed: the ACCOUNT concurrency ceiling of 10 (an AWS default nobody chose, "
+            "and `Adjustable: true` — raising it raises the worst case linearly), the "
+            "handler's write surface being one transaction that ends in ROLLBACK (which "
+            "bounds database STATE, not spend), and the Basic cluster's own spend limit "
+            "(which bounds the database side only — a flood's target is the static tree "
+            "inside the zip, which opens no connection). The -concurrency alarm at "
+            "evidence/deploy/terraform-plan-furl.txt:77 is a TRIPWIRE, not a bound: it "
+            "reports and does not stop, and it plans threshold = 8 against that ceiling "
+            "of 10 rather than the 20 it used to sit above. That is a smaller claim than "
+            "'invocable by one distribution and nothing else', smaller again than the one "
+            "this row carried yesterday, and it is the true one for this account."
         ),
         # Re-pointed 2026-08-12. This anchor named main.tf:257, which reads
-        # `timeout = var.timeout` — a citation that resolved and proved nothing. Line 310
-        # is the authorisation decision the row now turns on.
-        anchor="infra/modules/demo-api/main.tf:310",
+        # `timeout = var.timeout` — a citation that resolved and proved nothing.
+        # Re-pointed 2026-08-13: the deploy-safety wave rewrote this module and :310 slid
+        # onto a prose comment line. :333 is `authorization_type = var.url_authorization
+        # _type` — the authorisation decision itself, which is what the row turns on.
+        anchor="infra/modules/demo-api/main.tf:333",
         anchor_must_contain="authorization_type",
     ),
     Row(
@@ -1023,7 +1040,8 @@ AWS_ROWS: Final[tuple[Row, ...]] = (
         # unapplied Terraform sends a judge to the half that did NOT run. `_guard` is the
         # line that makes "metrics read, nothing provisioned" mechanical rather than a
         # promise: it raises before an out-of-list request is signed. The alarms and the
-        # dashboard at infra/modules/demo-api/main.tf:391 are still described in `how`.
+        # dashboard are still described in `how`; after the 2026-08-13 deploy-safety wave
+        # they start at infra/modules/demo-api/main.tf:456 (errors) and :627 (dashboard).
         # Re-pointed 2026-08-12: :248 had slid onto a fragment of an unrelated docstring
         # string literal. :299 is `def _guard`, the function this row's whole verdict
         # phrase rests on.
@@ -1072,7 +1090,9 @@ AWS_ROWS: Final[tuple[Row, ...]] = (
             "exactly one parameter ARN."
         ),
         # Re-pointed 2026-08-12: main.tf:146 was a bare `})` closing a locals block.
-        anchor="infra/modules/demo-api/main.tf:192",
+        # Re-pointed 2026-08-13: the deploy-safety wave rewrote this module and :192 slid
+        # onto a bare `}`. :215 is `actions = ["ssm:GetParameter"]`, the grant itself.
+        anchor="infra/modules/demo-api/main.tf:215",
         anchor_must_contain="ssm:GetParameter",
     ),
     Row(

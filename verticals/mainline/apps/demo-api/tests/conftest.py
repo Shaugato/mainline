@@ -67,6 +67,64 @@ import psycopg  # noqa: E402
 from psycopg.rows import dict_row  # noqa: E402
 from psycopg.types.json import Jsonb  # noqa: E402
 
+# ── `from conftest import …`, and why this file has to defend that name ─────────────
+#
+# `test_envelope.py`, `test_reads.py` and `test_routes_gate_run.py` each open with a
+# bare `from conftest import …`. That is a top-level absolute import, so it resolves
+# through `sys.modules["conftest"]` — ONE slot, shared by all 55 conftest.py files in
+# this repository, none of which sits in a package. pytest knows this and handles it
+# for the ordinary case: `PytestPluginManager._importconftest` does
+# `del sys.modules["conftest"]` before importing the next one, so the module a test
+# imports is the one pytest loaded a moment earlier for that test's own directory.
+#
+# THAT GUARANTEE HOLDS ONLY FOR A CONFTEST LOADED DURING DESCENT. When this directory
+# is named in `testpaths` — which, as of 2026-08-13, it is — it becomes an *initial
+# argument*, and pytest loads its conftest up front via `_try_load_conftest`. By the
+# time collection actually reaches these modules, `_importconftest` short-circuits on
+# `self.get_plugin(str(conftestpath))` and returns the cached plugin WITHOUT touching
+# `sys.modules` again, while every conftest imported during the intervening descent
+# through `tests/` and `packages/` has taken the slot in turn. Measured the moment the
+# testpath landed, before this hook existed:
+#
+#     ImportError: cannot import name 'RESOURCES_TS' from 'conftest'
+#         (D:\...\packages\trappoint-sql\tests\conftest.py)
+#
+# — three collection errors, in a suite that collects clean when invoked by path.
+# `packages/mainline-mcp/tests`, `tests/unit/moc_stream` and
+# `tests/integration/recall_lexical` do the same bare import and carry the same latent
+# fault; it is invisible to them only because they are reached by descent. Naming any
+# two of them on one command line reproduces it today.
+#
+# So the name is claimed for exactly as long as a collector under this directory is
+# being collected, and handed straight back. `pytest_collectstart` and
+# `pytest_collectreport` bracket `collector.collect()` in `runner.collect_one_node`,
+# which is where a Module's import happens, and a conftest's collection hooks fire only
+# for nodes beneath its own directory — so the window is precisely the import of this
+# directory's modules and nothing else in the session. Setting the name once at import time
+# would not survive the descent; leaving it set afterwards would inflict this same
+# defect on whatever collects next.
+_THIS_MODULE: Final = sys.modules[__name__]
+
+#: A stack, not a scalar: `Dir` and each `Module` under it are bracketed in turn.
+_DISPLACED_CONFTEST: Final[list[Any]] = []
+
+
+def pytest_collectstart(collector: pytest.Collector) -> None:  # noqa: ARG001 - hook signature
+    """Claim ``sys.modules["conftest"]`` for the duration of one node's collection."""
+    _DISPLACED_CONFTEST.append(sys.modules.get("conftest"))
+    sys.modules["conftest"] = _THIS_MODULE
+
+
+def pytest_collectreport(report: pytest.CollectReport) -> None:  # noqa: ARG001 - hook signature
+    """Hand the name back to whoever held it, so no later suite inherits this problem."""
+    if not _DISPLACED_CONFTEST:  # pragma: no cover - only if collection was interrupted
+        return
+    displaced = _DISPLACED_CONFTEST.pop()
+    if displaced is None:
+        sys.modules.pop("conftest", None)
+    else:
+        sys.modules["conftest"] = displaced
+
 
 def _repo_root(start: Path) -> Path:
     """The workspace root: the nearest ancestor holding both ``spec/`` and ``compose.yaml``."""
@@ -152,6 +210,65 @@ def admin_dsn(request: pytest.FixtureRequest) -> str:
         + ". Start the compose node (`docker compose up -d crdb`) or export MAINLINE_TEST_DSN. "
         "This session will NOT start a container of its own: the repository convention is "
         "--crdb=reuse and one shared node per session (packages/trappoint-testkit)."
+    )
+
+
+# ── The session's decision, made binding for every item under this directory ────────
+#
+# `admin_dsn` above consults `_testkit_state` and skips with the testkit's own reason,
+# which is correct — for the items that consume `admin_dsn`. It is not a property of
+# the SUITE, and two modules here do not consume it: `test_gate_run.py:383` and
+# `test_row_factory_contract.py:198` each build their own DSN from the four environment
+# names and then fall back to a hardcoded `127.0.0.1:26257`.
+#
+# Under `--crdb=none` the testkit clears those four names and installs
+# `cluster.ProcessGuard`, which blocks `docker`/`cockroach` from being SPAWNED. It does
+# not — and cannot — block a `psycopg.connect` to a node that is already listening. So
+# on any machine where the compose node happens to be up, those two modules dial it and
+# use a cluster the session explicitly declined to obtain.
+#
+# MEASURED 2026-08-13, the run in which this directory first reached the root
+# `testpaths`, with `cockroachdb/cockroach:v26.2.5` answering on 127.0.0.1:26257:
+#
+#     $ pytest --crdb=none -q
+#     …  [ 99%]
+#     +++++++++++++++++++++++++ Timeout +++++++++++++++++++++++++
+#     File ".../test_row_factory_contract.py", line 220, in w1_database
+#       report = proof.apply_chain(…)          # 271 migrations, inside a 120 s budget
+#     EXIT=1
+#
+# `pyproject.toml` sets `timeout = 120` and `timeout_method = "thread"`, and the thread
+# method ends the process with `os._exit`. So the whole 9583-test run died at 99% —
+# after twelve minutes — because a suite that had just become collectable ignored
+# `--crdb=none`. That is the thirteen-clusters failure mode in the repository-root
+# `conftest.py` docstring, re-entered through a newly-collected directory, and it is
+# exactly what the brief for this change meant by "no hang".
+#
+# The rule is therefore enforced where it can be stated once for the whole directory
+# rather than remembered per module. A conftest's `pytest_runtest_setup` fires only for
+# items beneath its own directory, so this binds this directory's modules and nothing
+# else in the session. A module added here later inherits it without knowing it exists,
+# which is the difference between a fixed instance and a closed class.
+#
+# It removes no coverage: `requires_cluster` items still run in every lane that HAS a
+# cluster (`--crdb=auto|reuse|spawn`), which is where they are supposed to prove things.
+# It converts "silently uses a node the session refused, then hangs" into "skipped, with
+# the reason named" — which is the property `ci.yml`'s step *"The suite, with every
+# cluster test SKIPPED FOR A NAMED REASON"* claims, and `release-proof.yml:296` already
+# treats a test that runs when something answers on a closed port as a control FAILURE.
+def pytest_runtest_setup(item: pytest.Item) -> None:
+    """Skip a cluster-backed item, by name, when the session obtained no cluster."""
+    if item.get_closest_marker("requires_cluster") is None:
+        return
+    state = _testkit_state(item.config)
+    if state is None or state.cluster is not None:
+        # No testkit (the standalone `admin_dsn` probe ladder still applies), or a real
+        # cluster was obtained and the item must run against it.
+        return
+    pytest.skip(
+        "the session obtained no CockroachDB, so this cluster-backed test is skipped "
+        "rather than allowed to reach a node the session declined to obtain. "
+        f"trappoint-testkit says: {state.skip_reason}"
     )
 
 

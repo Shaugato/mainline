@@ -291,6 +291,67 @@ _DOTTED = re.compile(r"\d+\.\d+(?:[eE][-+]?\d+)?")
 #: characters and a hyphen; ARNs are covered separately by :data:`_ARN_NUMERIC_ACCOUNT`.
 _ACCOUNT_ID = re.compile(r"(?<![0-9A-Za-z])(?<![0-9a-fA-F]{4}-)\d{12}(?![0-9A-Za-z])")
 
+# ── position, not value, is what tells a byte count from an account id ───────────────────
+#
+# ``evidence/deploy/verify/aws-quota-and-cost.json`` records
+# ``"AccountLimit.TotalCodeSize": 322122547200`` because a live ``lambda
+# get-account-settings`` returned it: Lambda's 300 GiB code-storage quota, 300 * 1024**3,
+# and twelve digits long.  The rule above fires on it, and on 2026-08-13 that one literal
+# was taking down three jobs of the ``aws-evidence`` lane — including the anti-vacuity
+# family, which correctly refuses to grade its plants while an unmutated ``evidence/`` is
+# already red.
+#
+# The rule must NOT be taught that number.  ``evidence/deploy/deploy-dry-run.json`` already
+# names why: *"a scanner carrying an exception for one such literal would carry it for
+# any."*  An allow-list is blind to the next twelve digits, and the next twelve digits may
+# be an account.  The evidence file must not be touched either — it is a recorded
+# measurement, and editing a measurement so a scanner passes is forging evidence.
+#
+# What separates the two is **where they sit**, and that fact is free.  An AWS account id is
+# an *identifier*: STS returns ``{"Account": "123456789012"}``, an ARN carries it as text,
+# prose quotes it.  In a JSON document every one of those is inside a string token — and a
+# key is a string token too.  A bare JSON number is a *quantity* by construction.  So for a
+# file that parses as JSON, :func:`_account_id_matches` runs the rule over string tokens
+# only, against each token's *decoded* value; every other suffix (``.txt``, ``.md``,
+# ``.sql``, ``.jsonl``, ``.csv``, ``.yaml``) and any ``.json`` that fails to parse keeps the
+# raw byte scan.  Nothing is exempted by value: ``322122547200`` written into a ``.md``, or
+# quoted in a ``.json``, still fires.
+#
+# Decoding is why this is strictly more sensitive than the raw-byte rule it replaced, rather
+# than a relaxation of it.  An account id written with JSON's ``\uXXXX`` escapes is an
+# account id to every reader of the artefact, but its bytes hold no run of twelve digits at
+# all, so the rule that shipped before this one could not see it and neither could a raw
+# scan restricted to string spans.  Reading each token as its reader reads it closes that,
+# and costs nothing, because the document has already been parsed to get here.
+#
+# The residual blind spot is an account id serialised as a JSON *number*, which no AWS API
+# and no producer in this fleet emits.  :data:`_JSON_KEYED_NUMBER` closes the half of it
+# that can be closed without guessing: twelve bare digits whose own key claims to be an
+# account are reported wherever they sit.  The key is matched **whole** after normalisation,
+# which is exactly why ``AccountLimit.TotalCodeSize`` — a key that contains the word
+# "Account" — is not one of them.
+
+#: Key names that assert their value *is* an account, normalised by :func:`_key_shape`.
+#: Membership is exact on the whole key, never a substring.
+_ACCOUNT_KEYS: Final[frozenset[str]] = frozenset(
+    {
+        "account",
+        "accountid",
+        "accountnumber",
+        "awsaccount",
+        "awsaccountid",
+        "calleraccount",
+        "calleraccountid",
+        "owneraccount",
+        "owneraccountid",
+    }
+)
+
+#: ``"<key>": <twelve bare digits>`` in JSON text.  The lookahead rejects a longer number
+#: whose first twelve digits would otherwise match, and the anchored ``":"`` stops the match
+#: from starting part-way through one.
+_JSON_KEYED_NUMBER = re.compile(r'"([^"\\]{1,64})"\s*:\s*(-?\d{12})(?![0-9.eE])')
+
 #: An ARN whose account field is populated with digits.  ``arn:aws:bedrock:ap-southeast-2::``
 #: (empty), ``…:<redacted>:`` and ``…:<account>:`` are all fine; a number is not.
 _ARN_NUMERIC_ACCOUNT = re.compile(r"arn:aws[a-z0-9-]*:[a-z0-9-]*:[a-z0-9-]*:(\d+):")
@@ -339,6 +400,84 @@ def _mask(text: str) -> str:
 
 def _line_of(text: str, offset: int) -> int:
     return text.count("\n", 0, offset) + 1
+
+
+def _key_shape(key: str) -> str:
+    """Fold a JSON key to comparable form: lowercase, punctuation dropped."""
+    return re.sub(r"[^a-z0-9]", "", key.lower())
+
+
+def _json_string_spans(text: str) -> list[tuple[int, int]]:
+    """Half-open spans of every string token in a JSON document, quotes included.
+
+    Outside a string token a ``"`` can only open one, so one pass with escape handling is
+    exact.  It runs over the raw text rather than the parsed object on purpose: a finding
+    has to keep the byte offset it was found at, or it cannot report the line it is on.
+    """
+    spans: list[tuple[int, int]] = []
+    i, n = 0, len(text)
+    while i < n:
+        if text[i] != '"':
+            i += 1
+            continue
+        start = i
+        i += 1
+        while i < n:
+            char = text[i]
+            i += 1
+            if char == "\\":
+                i += 1
+            elif char == '"':
+                break
+        spans.append((start, i))
+    return spans
+
+
+def _account_id_matches(text: str, suffix: str) -> list[tuple[int, str]]:
+    """Every 12-digit run in *text* that sits where an identifier sits.
+
+    Returns ``(offset_into_text, matched_digits)`` so a caller can still report the line.
+
+    For anything that is not a parsing ``.json`` document the scan is raw bytes over
+    :func:`_mask`\\ ed text — masking is length-preserving, so a match's offsets still
+    address the real bytes.  A ``.json`` file that does not parse is scanned this way too:
+    the extension is a claim, and a claim that failed is not a reason to look at less.
+
+    For a document that does parse, the scan runs over each string token's **decoded**
+    content and reports the token's own offset.  Decoding rather than pattern-matching the
+    raw bytes is what makes the rule about *what the string is* instead of *how it was
+    typed*: ``"\\u0031\\u0032…"`` is an account id to every reader of this artefact, and a
+    raw-byte scan — the rule that shipped before this one, and the one this replaced —
+    cannot see it.  A key is a string token, so a per-account map is not a hiding place
+    either.  What is deliberately not scanned is a bare JSON *number*, which is a quantity
+    by construction; that is the whole reason Lambda's 300 GiB quota stopped being reported
+    as an account, and :func:`_keyed_account_numbers` covers the part of it that can be
+    recovered without guessing.
+    """
+    if suffix != ".json":
+        return [(m.start(), m.group(0)) for m in _ACCOUNT_ID.finditer(_mask(text))]
+    try:
+        json.loads(text)
+    except json.JSONDecodeError:
+        return [(m.start(), m.group(0)) for m in _ACCOUNT_ID.finditer(_mask(text))]
+    found: list[tuple[int, str]] = []
+    for start, end in _json_string_spans(text):
+        token = text[start:end]
+        try:
+            decoded = json.loads(token)
+        except json.JSONDecodeError:
+            # An unterminated final token in a document that nonetheless parsed is not a
+            # shape this can produce, but reading the raw token is the conservative branch.
+            decoded = token
+        if not isinstance(decoded, str):
+            decoded = token
+        found.extend((start, m.group(0)) for m in _ACCOUNT_ID.finditer(_mask(decoded)))
+    return found
+
+
+def _keyed_account_numbers(text: str) -> list[re.Match[str]]:
+    """Bare 12-digit JSON numbers whose own key claims they are an account."""
+    return [m for m in _JSON_KEYED_NUMBER.finditer(text) if _key_shape(m.group(1)) in _ACCOUNT_KEYS]
 
 
 # ═══════════════════════════════════════════════════════════════════════════════════════
@@ -1226,16 +1365,26 @@ class Verifier:
         for path, text in self._evidence_text_files():
             scanned += 1
             rel = self._rel(path)
-            masked = _mask(text)
-            for match in _ACCOUNT_ID.finditer(masked):
+            suffix = path.suffix.lower()
+            for offset, digits in _account_id_matches(text, suffix):
                 self.result.fail(
                     "SEC-ACCOUNT-ID",
-                    f"{rel}:{_line_of(text, match.start())}",
-                    f"a bare 12-digit run {text[match.start() : match.end()]!r} survives "
-                    "UUID/digest/decimal masking and has the shape of an AWS account id. "
-                    "An account number is not a credential, and publishing one still "
-                    "enables cross-account enumeration",
+                    f"{rel}:{_line_of(text, offset)}",
+                    f"a 12-digit run {digits!r} sits where an identifier sits — quoted, or "
+                    "in prose — and survives UUID/digest/decimal masking, so it has the "
+                    "shape of an AWS account id. An account number is not a credential, and "
+                    "publishing one still enables cross-account enumeration",
                 )
+            if suffix == ".json":
+                for match in _keyed_account_numbers(text):
+                    self.result.fail(
+                        "SEC-ACCOUNT-ID",
+                        f"{rel}:{_line_of(text, match.start())}",
+                        f"the key {match.group(1)!r} carries the bare number "
+                        f"{match.group(2)}. Unquoted it reads as a quantity, but the key "
+                        "says it is an account, and twelve digits under that key is an "
+                        "account id whatever its JSON type",
+                    )
             for match in _ARN_NUMERIC_ACCOUNT.finditer(text):
                 self.result.fail(
                     "SEC-ARN-ACCOUNT",
@@ -1490,13 +1639,24 @@ class Verifier:
             )
         else:
             self.result.tick("SEC-CENSUS-NOTE")
+        # One definition of "account id", used in both places that look for one: the census
+        # is JSON, so it is read as JSON here exactly as it is in check_secrets. Routing it
+        # through the shared helpers is not a relaxation — the keyed-number rule below is
+        # coverage this check never had.
         blob = json.dumps(aws, ensure_ascii=False)
-        for match in _ACCOUNT_ID.finditer(_mask(blob)):
+        for _offset, digits in _account_id_matches(blob, ".json"):
             self.result.fail(
                 "SEC-CENSUS-NOTE",
                 self.AWS_CENSUS,
-                f"contains a 12-digit run {blob[match.start() : match.end()]!r} despite its "
-                "own note forbidding an account identifier",
+                f"contains a 12-digit run {digits!r} despite its own note forbidding an "
+                "account identifier",
+            )
+        for match in _keyed_account_numbers(blob):
+            self.result.fail(
+                "SEC-CENSUS-NOTE",
+                self.AWS_CENSUS,
+                f"gives the key {match.group(1)!r} the bare number {match.group(2)}, despite "
+                "its own note forbidding an account identifier",
             )
 
     def _check_verdict_source(self, aws: dict[str, Any], crdb: dict[str, Any]) -> None:
@@ -1895,6 +2055,26 @@ def _secret_plants() -> list[tuple[str, str, Any]]:
             "caller arn account 123456789012 was here\n", encoding="utf-8"
         )
 
+    def leak_account_quoted_in_json(ev: Path) -> None:
+        """The same leak, inside a JSON string.
+
+        Since 2026-08-13 a ``.json`` artefact is scanned as JSON rather than as bytes, so
+        that Lambda's 300 GiB quota stops reading as an account id.  This plant is what
+        keeps the path that fix created from going dark: without it the only demonstration
+        that ``SEC-ACCOUNT-ID`` still fires would run over a ``.txt`` file.
+        """
+        _edit_json(
+            ev / "aws" / "probe" / "bedrock-probe.json",
+            lambda d: d["payload"].__setitem__("probe_note", "caller was 123456789012"),
+        )
+
+    def leak_account_as_a_json_number(ev: Path) -> None:
+        """Twelve bare digits under a key that says they are an account."""
+        _edit_json(
+            ev / "aws" / "probe" / "bedrock-probe.json",
+            lambda d: d["payload"].__setitem__("account_id", 123456789012),
+        )
+
     def leak_arn(ev: Path) -> None:
         (ev / "aws" / "probe" / "leak.txt").write_text(
             "arn:aws:iam::210987654321:user/mainline-dev\n", encoding="utf-8"
@@ -1913,6 +2093,16 @@ def _secret_plants() -> list[tuple[str, str, Any]]:
 
     return [
         ("an account id is written into evidence/", "SEC-ACCOUNT-ID", leak_account),
+        (
+            "an account id is quoted in a JSON artefact",
+            "SEC-ACCOUNT-ID",
+            leak_account_quoted_in_json,
+        ),
+        (
+            "a bare number sits under an account key",
+            "SEC-ACCOUNT-ID",
+            leak_account_as_a_json_number,
+        ),
         ("an ARN keeps its account field", "SEC-ARN-ACCOUNT", leak_arn),
         ("a DSN keeps its password", "SEC-DSN-PASSWORD", leak_dsn),
         ("an access-key id appears", "SEC-ACCESS-KEY", leak_key),

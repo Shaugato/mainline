@@ -7,9 +7,16 @@
 # anyone who could not sign for `lambda:InvokeFunctionUrl`. Under decision D1 that
 # justification is gone and the real one is simpler and larger: with
 # `url_authorization_type = "NONE"` THIS URL IS THE DEMO, it goes in the submission form,
-# and a hostname that has to be secret to be safe was never safe. What bounds it is the
-# reserved-concurrency cap and the rolled-back transaction, both of which are unaffected by
-# who knows the URL.
+# and a hostname that has to be secret to be safe was never safe.
+#
+# THIS HEADER USED TO ADD "what bounds it is the reserved-concurrency cap and the
+# rolled-back transaction". Half of that was wrong: `reserved_concurrent_executions` is -1,
+# and at 20 it never bound anything either - the account ceiling of 10 was already lower
+# (`min(20, 10) = 10`), and this account refuses every positive reservation outright. What
+# bounds the RATE is the account's measured concurrency ceiling and nothing else; the
+# rolled-back transaction bounds database STATE, not spend. Both are indeed unaffected by
+# who knows the URL, which is the only part of the original sentence that survives. See
+# `docs/deploy/COST-BOUND.md`.
 #
 # `authorization_type` is echoed back so a caller does not have to infer which shape it
 # got. `terraform output -raw authorization_type` is the assertion the deploy report and
@@ -130,7 +137,23 @@ output "package_sha256_base64" {
 }
 
 output "alarm_names" {
-  description = "The four alarm names, for `aws cloudwatch describe-alarms --alarm-names` in the hourly `demo-health` workflow."
+  description = <<-EOT
+    The four alarm names, for `aws cloudwatch describe-alarms --alarm-names <these>`.
+
+    THIS DESCRIPTION USED TO SAY "in the hourly `demo-health` workflow". IT DOES NOT RUN
+    THERE. `.github/workflows/demo-health.yml` makes outbound HTTP requests against
+    `/v1/health` and declares `permissions: contents: read`; it has no `cloudwatch` call
+    and no credential, and NO workflow in this repository has an AWS credential to read
+    with (the only `AWS_*` mention in `.github/workflows` is an `env -u` in
+    `aws-evidence.yml` that unsets them all, deliberately). The reader is a workstation
+    that HAS a credential - `scripts/deploy/aws_live_probe.py` - plus the console and the
+    dashboard's alarm widget. See the observability header in main.tf.
+
+    All four now use `treat_missing_data = "missing"`, so `describe-alarms` answers
+    INSUFFICIENT_DATA on an unexercised demo rather than OK. That is the point: a caller
+    asserting on this output must treat OK as "measured and fine" and must NOT treat
+    INSUFFICIENT_DATA as a pass.
+  EOT
   value = [
     aws_cloudwatch_metric_alarm.errors.alarm_name,
     aws_cloudwatch_metric_alarm.throttles.alarm_name,
