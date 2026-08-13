@@ -189,6 +189,28 @@ WRITE_ALLOWLIST: dict[str, str] = {
         "machine has an authority source to project from. It is an oracle, not a service, and it "
         "writes rather than reads."
     ),
+    "scripts/proof/gate_refusal.py": (
+        "DM-9 amendment 2026-08-13. The gate proof's seed. It builds the smallest history in which "
+        "the refusal is decidable and writes every row of that history BY HAND — the file's own "
+        "comment is `Both happen here, unhelped` — so that the only variable in the run is the "
+        "gate. That is what makes the audit's negative control work: delete the gate and the "
+        "verdict turns NOT PROVEN with the clause named. Binding this one row through "
+        "queries/closure_write.sql would make the repository's strongest falsifiable result "
+        "dependent on the projector's recursive CTE, i.e. would add a second and unrelated way for "
+        "the proof to go red, which is a worse falsifiability property than the one it has. This "
+        "is the file's ONLY occurrence of the raw name in an executable position; every ancestry "
+        "READ in the proof goes through mainline.clause_blame_current inside fn_check_project."
+    ),
+    "verticals/mainline/db/seeds/demo/demo_world.sql": (
+        "DM-9 amendment 2026-08-13. The demo world's blame spine. The gate the demo demonstrates "
+        "refuses AGAINST a closure, so the seed must establish one — without it the merge refuses "
+        "P0001 for an unbacked cited clause version, which is a DIFFERENT refusal from the one the "
+        "demo is about. There is nowhere else to write it: the view is a DISTINCT ON projection "
+        "and is not insertable, and queries/closure_write.sql is a parameterised top-level "
+        "statement the projector binds ten positional values into, which a seed file that "
+        "scripts/deploy/seed_demo.py applies as ONE text cannot call. The seed's read path — its "
+        "`WHERE NOT EXISTS` idempotence probe — goes through mainline.clause_blame_current."
+    ),
 }
 
 WELD_ALLOWLIST: dict[str, str] = {

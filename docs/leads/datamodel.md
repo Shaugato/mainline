@@ -174,6 +174,34 @@ migration, query or view referencing `clause_blame_closure` outside `0038`, `003
 `queries/closure_write.sql`. — *`max(closure_gen)` discipline must be structural; one forgotten call
 site silently reads a superseded generation.*
 
+**DM-9 · the amendment ledger.** The grep is `scripts/grep_closure_readpath.py`, and it is not a
+substring scan: every occurrence is classified by the SQL context in front of it into `DEFINE`,
+`WRITE`, `READ` or `WELD` — anything else is a MENTION and is ignored — and each class has its own
+allowlist of **exact paths**, never patterns, each entry carrying its reason on the entry itself.
+Amendments are recorded here because the three files named in the rule above are not the whole
+truth and a rule whose text disagrees with its enforcement is a rule nobody can check. Every
+amendment below is a WRITE, a DEFINE or a WELD, **except three READs that exist to make the read
+path work at all** — and nothing in this ledger is a consumer of ancestry reading the closure
+directly, which is the property DM-9 actually protects.
+
+| class | file | why it may name the raw relation |
+|---|---|---|
+| DEFINE | `0038_clause_blame_closure.sql` + its refvertical twin | creates the table. |
+| READ | `0039_clause_blame_current.sql` + its refvertical twin | **is** the read path. |
+| READ | `0108_fn_closure_guard.sql`, its twin, and `templates/0107_…j2` | the density guard must see RAW generations. The view shows one generation per clause version, which is precisely the information the guard needs *not* to have; through the view it would be structurally unable to detect the gap it exists to detect. |
+| WELD | `0127_trg_closure_guard.sql`, `0128j_trg_refuse_mutation_…sql`, both twins, and `templates/0120_…j2` | a trigger cannot be welded onto a view. |
+| WRITE | `queries/closure_write.sql` | the projector's one statement; DM-9 names it. |
+| WRITE | `packages/trappoint-model/src/trappoint_model/refschema.py` | the reference model's oracle seeds an authority source to project from. |
+| WRITE | `scripts/proof/gate_refusal.py` — **added 2026-08-13** | the gate proof writes every row of its world by hand so that the only variable in the run is the gate, which is what makes the audit's negative control work. Binding this one row through `closure_write.sql` would make the repository's strongest falsifiable result depend on the projector's recursive CTE — a second, unrelated way for the proof to go red. It is the file's only executable use of the raw name; the proof's ancestry READ is `fn_check_project` over `clause_blame_current`. |
+| WRITE | `verticals/mainline/db/seeds/demo/demo_world.sql` — **added 2026-08-13** | the demo gate refuses *against* a closure, so the seed must establish one — without it the merge refuses `P0001` for an unbacked cited clause version, a different refusal from the one the demo is about. The view is a `DISTINCT ON` projection and is not insertable, and `closure_write.sql` is a parameterised statement the projector binds ten positional values into, which a seed applied as one text cannot call. |
+
+Both 2026-08-13 entries are **writes**, and a write cannot commit the error DM-9 exists to prevent:
+understating ancestral severity requires *reading* a superseded generation. Both remain policed
+inside the cluster by `fn_closure_guard` (`P0001` on a non-dense generation) and by `0128j`'s
+append-only weld (no `UPDATE`, no `DELETE`, for any writer including a DBA). The same commit moved
+`demo_world.sql`'s `WHERE NOT EXISTS` idempotence probe off the table and onto
+`mainline.clause_blame_current`, which is the only READ either file ever had.
+
 **DM-10 · Every constraint, index and policy is explicitly named; a test fails on any
 system-generated name in the `mainline*` schemas.** — *the constraint name is the courtroom exhibit;
 `check_permit_1` is not an exhibit.*

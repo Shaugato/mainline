@@ -966,6 +966,20 @@ def seed_history(conn: psycopg.Connection[Any]) -> History:  # noqa: PLR0915
     )
     # `fn_closure_guard` demands the FIRST generation for a clause version be zero, and
     # ledgers the closure in the same transaction. Both happen here, unhelped.
+    #
+    # NAMING `mainline.clause_blame_closure` HERE IS A RECORDED DM-9 AMENDMENT, NOT AN OVERSIGHT.
+    # `scripts/grep_closure_readpath.py` names this exact path in `WRITE_ALLOWLIST` with its
+    # reason, and `docs/leads/datamodel.md` DM-9 carries the matching entry. The rule DM-9 enforces
+    # is about the READ path — a reader that forgets `max(closure_gen)` gets a real row from a
+    # superseded generation, understating ancestral severity silently — and this proof performs no
+    # such read: the only ancestry it consumes is the `severity` that `fn_check_project` projects
+    # out of `mainline.clause_blame_current`, which is exactly the assertion at the bottom of
+    # PROJECTION. The write stays a write of a FIRST generation, and the cluster still polices it:
+    # `fn_closure_guard` (0108) refuses a non-dense generation with `P0001` and 0128j's append-only
+    # weld refuses any UPDATE or DELETE. It is written by hand rather than bound through
+    # `queries/closure_write.sql` because every row of this world is written by hand, so that the
+    # only variable in the run is the gate — which is the property the audit's negative control
+    # depends on.
     conn.execute(
         "INSERT INTO mainline.clause_blame_closure (clause_uuid, as_of_commit, closure_gen, "
         "site_id, ancestor_events, ancestor_count, max_severity, virulence, depth, truncated, "

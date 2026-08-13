@@ -317,6 +317,28 @@ ON CONFLICT DO NOTHING;
 -- INSERT trigger and it raises `P0001 closure generations must be dense and monotone` when a
 -- second run offers it generation 0 again. That is the guard working correctly — closure_gen 0
 -- has already been used for this (clause, commit) — so the seed must not offer the row at all.
+--
+-- THE PROBE READS THE VIEW (DM-9), AND HERE THAT IS EXACT RATHER THAN MERELY PERMITTED.
+-- `mainline.clause_blame_current` is `DISTINCT ON (clause_uuid, as_of_commit)` over these same
+-- rows, so it emits exactly one row for a pair the table holds at least one row for and no row for
+-- a pair it holds none for: `EXISTS` has the same value over either relation, for every state the
+-- table can be in. The reason to write the view anyway is that the equality above is a property of
+-- `EXISTS`, not of this query — the moment anyone extends this probe to read a COLUMN (`AND
+-- max_severity >= 4`, `AND ancestor_events @> …`) the two relations diverge, and the raw-table form
+-- answers from whichever generation the scan reached first. Once a recomputation has appended
+-- generation 1 that is a REAL row from a generation computed with LESS ancestry, so a LOWER
+-- `max_severity`, with no error and no warning. DM-9 removes the wrong query from the vocabulary
+-- rather than trusting the next editor of this seed to notice the difference.
+--
+-- THE INSERT BELOW NAMES THE RAW RELATION, AND THAT IS A RECORDED DM-9 AMENDMENT, NOT AN OVERSIGHT.
+-- There is nowhere else to write it: the view is a `DISTINCT ON` projection and is not insertable,
+-- and the sanctioned writer `verticals/mainline/db/queries/closure_write.sql` is a parameterised
+-- top-level statement into which the projector binds ten positional values — a seed file that
+-- `scripts/deploy/seed_demo.py` applies as ONE text cannot call it. `grep_closure_readpath.py`
+-- names this exact path in `WRITE_ALLOWLIST` with its reason, and `docs/leads/datamodel.md` DM-9
+-- carries the matching entry. The write is still policed inside the cluster: `fn_closure_guard`
+-- (0108) refuses a non-dense generation with `P0001`, and `0128j`'s append-only weld refuses any
+-- UPDATE or DELETE, so what this seed can do to the closure is append a first generation or fail.
 INSERT INTO mainline.clause_blame_closure (
   clause_uuid, as_of_commit, closure_gen, site_id,
   ancestor_events, ancestor_count, max_severity, virulence, depth, truncated,
@@ -331,7 +353,7 @@ SELECT
   1, 4, 'blood_major', 1, false,
   'verticals/mainline/db/seeds/demo/demo_world.sql', 'demo-1'
 WHERE NOT EXISTS (
-  SELECT 1 FROM mainline.clause_blame_closure
+  SELECT 1 FROM mainline.clause_blame_current
    WHERE clause_uuid = 'dec0de00-0004-4000-8000-000000000001'
      AND as_of_commit = digest('mainline-demo/commit/clause-v1', 'sha256')
 );
