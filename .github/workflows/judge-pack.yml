@@ -337,9 +337,21 @@ jobs:
           ARGV = ["envelope", "--require-cross-check", "--root", str(ROOT)]
 
 
+          # The copy keeps the judge package at its REPO-RELATIVE DEPTH, and that is not
+          # cosmetic. `cli.py` computes `REPO_ROOT = JUDGE_DIR.parents[3]` at import time.
+          # A copy at `/tmp/<dir>/judge` has two parents, so the module raises `IndexError`
+          # before argparse ever sees `--root` — every plant then exits 1 for a reason that
+          # is not its plant. Run 31661375603 is that failure, caught by the two controls
+          # below rather than by a human: `BASELINE COPY IS RED` plus five
+          # `RED FOR THE WRONG REASON`. It reproduces only where the temporary directory is
+          # shallow, which is why a Windows workstation ran it green.
+          REL = ("verticals", "mainline", "demo", "judge")
+
+
           def run(mutate):
               tmp = Path(tempfile.mkdtemp(prefix="envelope-plant-"))
-              dest = tmp / "judge"
+              dest = tmp.joinpath(*REL)
+              dest.parent.mkdir(parents=True, exist_ok=True)
               shutil.copytree(JUDGE, dest, ignore=shutil.ignore_patterns("__pycache__"))
               if mutate is not None:
                   mutate(dest)

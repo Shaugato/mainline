@@ -511,6 +511,44 @@ unmutated copy: exit 0
 and, separately, `envelope --require-cross-check` with `mainline_mcp` off the path exits
 **1**, where plain `envelope` exits **0** with the gap stated in its last line.
 
+**The control earned its keep on its first CI run, and that is the most useful thing on
+this page.** Run
+[31661375603](https://github.com/Shaugato/mainline/actions/runs/31661375603) — `failure`,
+with `red`, `anti-vacuity` and `not-run-is-not-a-pass` all green in the same run, and the
+job's first two steps green:
+
+```
+cross-check: ran — packages/mainline-mcp imported; constants compared
+envelope --require-cross-check exited 1 with mainline-mcp absent, as required
+```
+
+That first line is the **first time the judge pack's limits have ever been compared against
+the second implementation in CI**. Then the plant step:
+
+```
+unmutated copy: exit 1
+  plant: envelope.py REQUEST_TIMEOUT_SECONDS 20 -> 25 -> exit 1, names request_timeout_seconds/DISAGREES: False
+  … all five the same …
+BASELINE COPY IS RED: an unmutated copy of the judge package exits 1, so every plant
+below would be red for a reason that is not its plant.
+RED FOR THE WRONG REASON [envelope.py REQUEST_TIMEOUT_SECONDS 20 -> 25]: exit 1, but the
+output never named 'request_timeout_seconds' with a 'DISAGREES' verdict.
+```
+
+Every plant exited **1**. A control that asserted `returncode != 0` would have been green
+on all five. The cause was in the harness, not the plants: `cli.py` computes
+`REPO_ROOT = JUDGE_DIR.parents[3]` at import, the copy sat at `/tmp/<dir>/judge` which has
+two parents, and the module raised `IndexError` before argparse ever saw `--root`. **It
+reproduces only where the temporary directory is shallow, which is why a Windows
+workstation ran the same script green.** The copy now keeps the package at its
+repo-relative depth — `<tmp>/verticals/mainline/demo/judge`, whose `parents[3]` is `<tmp>`
+itself for any `<tmp>`, `/` included.
+
+Two things follow, and the second is the point of the whole page. The exit-code table above
+is a workstation measurement and stands. The *control* is what a shallow `/tmp` falsified,
+and it was caught by its own two clauses — the unmutated-copy check and the name-the-row
+check — rather than by anyone reading a log.
+
 ### 7.2 `aws-evidence`'s mutation family — the harness was already right; the blast radius was not
 
 The brief asked whether each plant fires **its own** invariant or merely some invariant.
