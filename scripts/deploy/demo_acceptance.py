@@ -847,9 +847,7 @@ def phase2(  # noqa: PLR0912, PLR0915 - one branch per assertion, and the assert
         invariant["unchanged"] = None
         invariant["bracketed"] = False
         missing = [
-            name
-            for name, snap in (("before_run_1", before), (final_when, final))
-            if snap is None
+            name for name, snap in (("before_run_1", before), (final_when, final)) if snap is None
         ]
         failures.append(
             f"the seeded permit was not read both before and after the gate runs — {missing} "
