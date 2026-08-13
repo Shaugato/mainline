@@ -256,13 +256,30 @@ verified is the Merkle structure: leaf recomputation, inclusion, consistency acr
 consecutive checkpoint pair, link-chain density from a zero genesis, canonicaliser
 identity, receipt coverage and bundle totality.
 
-**The table above is the committed census, and a live run on `2026-08-12` disagrees with
-it — in the bad direction.** The census is what the checker for this page compares against,
-so the rows stay as they are; the disagreement is printed here rather than absorbed,
-because a page that only updated when the news was good would be worth nothing:
+#### The canonicaliser drift: it was real, it is closed, and the closure is the interesting part
+
+**This paragraph described a live failure until `2026-08-13`. It no longer does, and the
+correction is printed rather than the old text quietly deleted**, because a page that
+erases its bad days keeps none of their evidence. Re-measured on `2026-08-13` at the tip of `master` recorded in
+[`docs/CI-STATE.md`](CI-STATE.md), on this workstation, with the console script rather than
+a module invocation:
 
 ```
 $ trappoint-verify verify --bundle evidence/reference-ledger/bundle.json
+PASS  check 10  canonicaliser_identity   canon_v1 source digest 260ed37ddc610f1f...
+                                         matches the bundle and every signed checkpoint
+16 checks | 9 passed | 0 failed | 7 not checked
+exit 2: everything that ran held, and 7 check(s) did not run. This is NOT a clean
+verification.
+```
+
+That is the census table above, exactly — nine passed, zero failed, seven not checked,
+exit `2`. The live run and the committed census agree again. **The table did not move; the
+tree moved back to it.**
+
+**What the drift was.** On `2026-08-12` the same command printed this instead:
+
+```
 FAIL  check 10  canonicaliser_identity   9 canonicaliser finding(s)
       - the bundle declares canon_src_sha256 260ed37ddc61…; the canonicaliser this
         verifier is running hashes to d09036a85b02…
@@ -272,14 +289,60 @@ FAIL  check 10  canonicaliser_identity   9 canonicaliser finding(s)
 exit 1: 1 finding(s). This bundle does not verify.
 ```
 
-A check the census recorded as passing now **fails**, and it fails for the reason it exists:
-the bundle carries the hash of the canonicaliser that produced it, and the canonicaliser in
-the tree has moved. **That is real drift and the mechanism caught it.** Two consequences
-worth stating plainly. The count of checks that *held* is one lower than the table says.
-And the exit code moved from `2` to `1` — from *nothing failed and this is not clean* to
-*something failed* — which is a different sentence about the same bundle. The repair is
-owed by the custody domain and is recorded in `docs/CI-STATE.md`; retaking the census is
-what will move the table.
+Every signed checkpoint carried a `canon:` line the running verifier could not reproduce.
+**The mechanism caught it, which is the whole reason it exists**, and for that day the
+count of checks that held was one lower than this page's table said, while the exit code
+meant *something failed* rather than *nothing failed and this is not clean*.
+
+**What caused it is the part worth keeping.** The commit whose subject is `style(ruff): the
+tree is formatted` — a machine sweep, nothing typed by hand — added **four blank lines** to each
+of the two shipped canonicalisers and changed nothing else. Four blank lines invalidated
+every checkpoint signature in the reference bundle. The file's own docstring had already
+said this would happen: *removing or modifying a shipped `canon_v*` is a breaking change to
+evidence, not to code, and CI refuses it.* CI did refuse it.
+
+**What closed it, and what would not have.** The commit whose subject is `fix(custody):
+canon_v1 restored to its pinned bytes, and fenced from the formatter` restored the pinned
+bytes and added the two files to `ruff.toml`'s `[format] exclude`. Both halves were needed: a revert
+the next `ruff format .` silently redoes is not a repair. **Re-pinning the registry to the
+formatter's output would also have turned `check 10` green, and would have been the wrong
+fix** — it admits a canonicaliser the registry never accepted and re-signs the bundle
+against it, which is exactly the laundering the check exists to detect. This page records
+that the cheap green was available and was not taken.
+
+**Where the fence does not reach, measured rather than assumed.** `ruff.toml` sets
+`exclude` under `[format]` and does **not** set `force-exclude`. Measured today:
+
+```
+$ ruff format --check .                                            # ruff 0.16.1
+  1443 files already formatted                                     # no canon file is named
+
+$ ruff format --check packages/trappoint-jcs/src/trappoint_jcs/canon_v1.py \
+                      packages/trappoint-verify/src/trappoint_verify/vendor/canon_v1.py
+  2 files would be reformatted
+```
+
+**Read those two commands together.** The tree is entirely clean under a directory sweep,
+and the *same formatter*, on the *same two files*, wants to rewrite both the moment their
+paths are typed out. Both numbers are from a fresh `git archive HEAD` LF export; this is a
+Windows checkout with no `.gitattributes`, and the same directory sweep on the working tree
+reports `226 files would be reformatted`, which is a line-ending artefact and not a fact
+about the code.
+
+**A directory sweep respects the exclude. A path named explicitly on the command line does
+not** — that is ruff's behaviour without `force-exclude`, and it means an editor's "format
+this file" action, or any hook that passes changed filenames, can still reintroduce exactly
+the drift this section is about. Nothing in CI does that today; there is no
+`.pre-commit-config.yaml` in this repository, and the `ci` lane runs the directory form. The
+residual risk is named here rather than argued away, and the file that would close it
+(`ruff.toml`, one key) belongs to the custody domain rather than to this page.
+
+**How this claim can be falsified.** Run the command at the top of this subsection. If
+`check 10` prints anything but `PASS` with digest `260ed37d…`, this subsection is wrong and
+the drift is back. The two independent readers are
+`scripts/custody/check_vendored_canon.py` (`3 passed, 0 failed`, re-run today, which also
+asserts the vendored twin byte-identical to the original) and `custody-chain`'s `check 10` on
+the runner, recorded with a run id in [`docs/CI-STATE.md`](CI-STATE.md).
 
 ### The test census
 
@@ -530,6 +593,71 @@ did not last week, and nothing guarantees they will next week.
 > the prose had not absorbed, which is the correct colour for that condition. The same
 > trap is still armed for every future run in that directory.
 
+### The suite that would have caught the demo's `500` has never been collected
+
+**This is the worst thing on this page and it was invisible to every count on it.** Every
+other admission here is a number that is bad. This one is a number that does not exist,
+because a suite that `pytest` never walks does not appear in any total as a zero — it
+appears as nothing at all, and nothing is what every census, every ratchet and every CI
+lane in this repository saw.
+
+`pyproject.toml` declares which directories `pytest` walks:
+
+```toml
+testpaths = ["tests", "packages", "verticals/*/packages/*/tests"]
+```
+
+The demo API's tests live under `verticals/mainline/apps/demo-api/tests`, and
+`verticals/*/packages/*/tests` resolves to four directories, every one of them under
+`verticals/mainline/packages/`. The app's tests are under `apps/`. They match no entry, so
+they are not walked. Measured on this workstation against one working tree, changing
+nothing but that declaration:
+
+```
+$ pytest --collect-only -q --override-ini='testpaths=tests packages verticals/*/packages/*/tests'
+9341 tests collected
+
+$ pytest --collect-only -q          # with verticals/*/apps/demo-api/tests added
+9630 tests collected
+
+$ pytest verticals/mainline/apps/demo-api/tests --collect-only -q
+289 tests collected
+```
+
+The difference between the first two is the third, exactly. The same absence is visible
+from the other side on the runner: the `ci` lane's `pytest --crdb=none` job, run
+`31657309517`, dispatched and read on `2026-08-13`, prints
+
+```
+5 failed, 8467 passed, 839 skipped, 13 deselected, 2 warnings in 267.96s (0:04:27)
+```
+
+and those four figures sum to a collection that has never contained a single demo-api test.
+
+**Among the files that were never collected is
+`verticals/mainline/apps/demo-api/tests/test_row_factory_contract.py`.** An earlier wave
+wrote it specifically to catch the defect that is, today, returning `500` from the demo's
+headline endpoint: it exercises both psycopg row factories, asserts equality on everything
+that is a function of what the database said, demonstrates that name-keyed access was *not*
+the fix, and carries an AST ratchet banning the construct that caused it. It was written,
+committed and reviewed. **It has never executed — not in CI, not in a default `pytest`
+invocation, not once.**
+
+**A test that is not collected is not enforcement. It is a memo.** The distinction is the
+whole subject of this page, and this is the sharpest instance of it the repository has
+produced: the difference between *having written the check* and *the check having run* is
+the difference between a claim and a fact, and for as long as that suite went uncollected
+this repository held the first while every artefact it published implied the second.
+
+Two consequences worth stating rather than leaving implicit. **The guard that would catch
+the next instance does not exist.** `ci` already carries two independent guards against a
+`-m` selector that collects nothing — a floor on declared reds and an empty-collection
+check — and neither can see this, because both watch the numerator. A directory outside
+`testpaths` is missing from the denominator. **And every "N tests pass" figure elsewhere in
+this document is a figure about the directories `testpaths` names**, which is a smaller
+claim than the one a reader will hear. That was true before this section existed; the only
+thing that has changed is that it is now written down.
+
 ### The conformance suite has still not been demonstrated
 
 With no database, the suite skips: 183 [src: qa/test-state.json#packages.packages/trappoint-conformance.runs.none.skipped].
@@ -644,6 +772,65 @@ number in this repository is a number about a lane that has not run" was true wh
 publish colours — several of them red, several green. This page prints no tally of that
 because the tally lives in [`docs/CI-STATE.md`](CI-STATE.md), a prose document and not a
 source a number may be drawn from here.
+
+### The demo has been driven end to end, twice, and the verdict is NOT PROVEN both times
+
+`evidence/deploy/acceptance.json` is the acceptance prover's transcript: the committed tree,
+unmodified, serving the real `mainline_demo_api.app.handler` against a demo-seeded database.
+It is not a plan and not a rehearsal, and it is the only artefact in this repository that
+exercises the product's central claim **over HTTP** rather than over a psycopg connection.
+
+**The transcript recorded at `2026-08-12T16:17:12Z` concluded `NOT PROVEN`:**
+
+```
+POST /v1/demo/gate-run (run 1) returned 500, expected 200 — internal_error ·
+    resource=demo_gate_run · KeyError: 0
+POST /v1/demo/gate-run (run 2) returned 500, expected 200 — internal_error ·
+    resource=demo_gate_run · KeyError: 0
+fewer than two gate runs completed, so repeatability — the property that makes this
+    demo safe for concurrent judges — was NOT established
+```
+
+**It was re-run at `2026-08-13T01:47:58Z` against a repaired handler. It still concludes
+`NOT PROVEN`, and the reason is a different and more serious one:**
+
+```
+verdict      NOT PROVEN
+url          http://127.0.0.1:8764     (target_is_local_emulator: true)
+
+run 1: beat 4 (admit): outcome is 'refused', the contract requires 'admitted'
+run 1: beat 4 (admit): sqlstate is '23503', the contract requires '00000'
+run 1: beat 4 (admit): the server itself reports matched_expectation=false
+run 1: the admission beat carries no clearance_digest: an ADMITTED with no
+       server-computed exhibit is an assertion, not evidence
+run 2: (the same four, independently)
+```
+
+**Read what moved and what did not.** The `500`s are gone and both runs now complete, so
+repeatability was measured rather than merely unestablished. Beats `1`, `2` and `3` — the
+read, the `23514` refusal and the `P0001` refusal under a forged projection — behave.
+**Beat `4` does not admit.** It is refused with `23503`, a foreign-key violation, and it
+carries no `clearance_digest`.
+
+**That is the half of the claim this page has always said matters most, failing.** The PROVEN
+section above says it in as many words: *a gate that always refuses is broken, not safe.* A
+demo that refuses all four beats would look impressive and prove nothing. So a `NOT PROVEN`
+whose only remaining failure is the admission is **not** a smaller result than the previous
+one — it is the same verdict resting on the more important beat.
+
+**The SQL-level proof and the HTTP-level proof now disagree, and this page will not average
+them.** `evidence/gate-refusal/proof-20260810T054407Z.json` records an `ADMITTED` at `00000`
+with a server-computed clearance digest, and nothing here retracts it: it was taken against
+the database directly and it holds. What the acceptance transcript establishes is that the
+demo's HTTP path does not currently reproduce it — a different statement about a different
+surface, and the surface a judge will actually press. **Until the two agree, only the first
+may be cited as proven, and only about the database.**
+
+**Two things about how this section may change.** The transcript moves by **re-running the
+prover**, never by editing the file: a recorded transcript edited to agree with a document has
+stopped being evidence and started being a forgery. And `target_is_local_emulator: true` is a
+field in the artefact rather than a footnote here — nothing in this repository has yet proved
+any of this against a deployed Lambda, because `terraform apply` has never been run.
 
 ### Other things this document will not pretend about
 

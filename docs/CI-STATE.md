@@ -5,41 +5,68 @@ SPDX-License-Identifier: CC-BY-4.0
 
 # CI state — what GitHub actually says
 
-**Re-measured 2026-08-12 by W10, at commit `1d41442` on `master`, on a repository that is
-PUBLIC.** Every conclusion below is a run id you can open without an account. Every cause
-is quoted from a real log I read in the same sitting I created it, not inferred from a
-plan.
+**Measured 2026-08-13 by W9 of the CI-TRUTH wave, at commit `53197f5` on `master`, on a
+repository that is PUBLIC.** All eighteen workflows were **dispatched in this sitting**,
+between `02:55:41Z` and `02:56:50Z`, against the public tip, **after every other worker in
+this wave had landed** — the dispatch was held until `origin/master` stopped moving for
+three consecutive minutes, and the SHA of every run below was checked against the tip
+afterwards. Every log was read **warm**, in the same sitting, with
+`gh run view <id> --log-failed`. Every run id opens without an account.
 
-This document replaces the version published at `47f8aa2`. **Six of that version's claims
-did not survive re-measurement** and are corrected in §5. (An unpublished intermediate
-revision existed in the working tree between the two; it is superseded by this one and
-never reached a commit.)
-
-**One caveat governs the whole page, and it is stated once here.** `1d41442` is the last
-commit on `master`. The repairs this wave produced — the egress fix, the lint work, the
-sharper reds, the honest teardown transcript — sit in the working tree and on the
-`w1/…`, `w2/…`, `w5/…`, `w7/…` branches, **uncommitted at the moment of measurement**. So
-this board is the state the wave *inherited plus what it could prove on a branch*, not the
-state it *left*. Every row measured on a branch says so, with the branch named. **The
-first task after the wave's commit is to re-dispatch the six lanes marked §2.1, §4.2 and
-§4.3 and replace their rows.** No row here is projected forward, and no repair is credited
-before a run id exists for it.
-
-**What a judge scanning the Actions tab needs to know first:** `master` shows **8 green
-and 10 red**, and **three of those reds assert nothing about this repository** — they are
-runner-network failures in jobs that never executed a single check. A red that means
-nothing costs a reader the same attention as a real one. Those three are now diagnosed and
-repaired on a branch (§2.1), and this page carries the **first measurement of the `ci`
-lane's real content since `b0fe884`** (§2.2). It is not flattering and it is not supposed
-to be.
+**No row on this page is inherited, projected, or measured on a branch.** The revision this
+replaces carried a caveat that governed the whole page: its rows sat on work that was not
+committed. That caveat does not survive here. §0.2 states the different, smaller one that
+does.
 
 ---
 
-## 0. Re-check it yourself
+## THE BOARD, STATED PLAINLY
+
+```
+18 workflows        10 GREEN        8 RED
+                                    ├─ 5 RED ON PURPOSE   schema · db · demo-health ·
+                                    │                     custody-chain · db-schema
+                                    └─ 3 RED ON A DEFECT  ci · aws-evidence ·
+                                                          nightly-differential
+
+3 things that ASSERT NOTHING, named here rather than counted as passes:
+    ci                   the PL-2 job, on a dispatch — push-gated; it did not run (§1.1)
+    aws-evidence         the mutation family         — aborts before it plants, so not one
+                                                       plant is tested (§3.2)
+    nightly-differential the gate/oracle comparison  — the harness dies before the
+                                                       comparison is made (§3.3)
+```
+
+**What a judge scanning the Actions tab needs first.** Five of the eight reds are lanes
+refusing to certify something this repository has not built yet, and **each one now says so
+in the first clause of the message GitHub renders**. That wording is the whole of what this
+worker changed in `schema.yml`, `ci.yml` and `demo-health.yml`: **no assertion was relaxed,
+no threshold moved, no job skipped.** The three reds that are defects are `ci` (one stale
+cassette index, plus three by-design custody rows), `aws-evidence` (a scanner
+false-positive on a 300 GiB byte count) and `nightly-differential` (its own test harness).
+
+Nothing here was made green by being quieter. Measured across the whole of
+`.github/workflows/` at `53197f5`:
+
+```
+$ git grep -nE "^\s*continue-on-error:" -- .github/workflows/     → no matches
+$ git grep -n "|| true"               -- .github/workflows/       → one live line:
+      db.yml:564:  run: docker rm -f trappoint-crdb || true
+```
+
+Every other textual hit is a comment recording where a suppression used to be. The survivor
+is a container-cleanup line whose only failure mode is "it was already gone".
+
+---
+
+## 0. Method, and the caveat that governs this page
+
+### 0.1 Re-check every number here yourself
 
 ```bash
 # every workflow's real conclusion on the default branch
-gh run list --branch master --limit 200 --json databaseId,workflowName,conclusion,createdAt \
+gh run list --branch master --limit 200 \
+  --json databaseId,workflowName,conclusion,createdAt,event \
   --jq 'group_by(.workflowName)[] | max_by(.createdAt) | "\(.workflowName)|\(.conclusion)|\(.databaseId)"'
 
 # one workflow's conclusion, job by job
@@ -49,743 +76,665 @@ gh run view <run-id> --json jobs --jq '.jobs[] | "\(.conclusion) :: \(.name)"'
 gh run view <run-id> --log-failed
 ```
 
-Every workflow in this repository declares `workflow_dispatch`, so any row here can be
-re-created rather than merely re-read.
+Every workflow in this repository declares `workflow_dispatch`, so every row here was
+**created** rather than found: `gh workflow run <name> --ref master`, eighteen times, then
+the logs read before they went anywhere. **Logs expire, and a recorded board is not
+evidence** — that is why the board was re-created rather than re-read. A run id is a claim
+that something happened; only a log somebody opened is a claim about *what*.
 
-**Logs expire within hours on this repository.** Every run cited from `2026-08-11`
-(`cloud-verify`, `nightly-differential`) now answers `log not found`. Where that is true
-this page says so and makes no claim about the cause.
+**One methodological warning, earned the hard way on this page.** An earlier draft of §2.5
+reported that `db-schema`'s `mi-red` had narrowed from five refusals to two. It had not.
+The "two" was an artefact of a `tail -25` on this author's own `gh run view` pipeline, which
+cut the first three lines off a five-line list. It was caught by re-running the same grep
+without the tail against three different runs, which agreed on five. **A quoted cause is
+only as good as the command that produced it, and the command belongs in the note.**
+
+### 0.2 The caveat that governs this page, stated once
+
+**This board is `53197f5` — the public tip — and it is the whole of what a stranger can
+check.** At the moment of measurement the working tree also carried **31 tracked files
+modified and not committed by workers other than this one** — two other waves running in
+parallel (demo-correctness and deploy-safety) and the one CI-TRUTH worker who did not land.
+(Measured as `git status --porcelain -uno`, minus this worker's own three files.)
+**Nothing on this page credits any of it.**
+
+That is a different caveat from the previous revision's, and the difference is the point:
+
+* the previous revision's rows were measured **on work that was not on `master`**, so a
+  reader could not reproduce them;
+* every row here is measured **on `master`**, so a reader can reproduce all of them. The
+  uncommitted work is named only where it would move a row, always as *"this is not on the
+  board"*, never as a row.
+
+**Exactly one red would move if that work landed:** `aws-evidence` (§3.2), whose scanner fix
+sits uncommitted in `scripts/aws/verify_evidence.py`. **A repair without a run id is a
+plan**, and this page counts plans as red.
+
+**This board was taken twice, and the first taking is not published.** A full eighteen-lane
+dispatch was made at `9221d0c`; while its logs were being read, four more commits landed on
+`master` — the envelope teeth, the `mypy` and `ruff` repairs, and two anti-vacuity
+documents. Every one of those changed a row. **The first board was discarded rather than
+patched**, because a board whose rows come from two different trees is a board a reader has
+to date row by row, which is the specific defect this revision exists to remove.
 
 ---
 
 ## 1. Every workflow, with its real conclusion
 
-Latest run per workflow on `master`. A lane whose `paths:` filter did not match the last
-few commits carries an older SHA — that is not staleness in the table, it is the lane
-truthfully not having been asked.
-
-| workflow | conclusion | run | at | §|
+| workflow | conclusion | run | kind | § |
 |---|---|---|---|---|
-| `boundary` | success | 31596449113 | `1d41442` | §6 |
-| `claims` | success | 31596451954 | `1d41442` | §6 |
-| `console` | success | 31605711724 | `1d41442` | §6 |
-| `judge-pack` | success | 31605705752 | `1d41442` | §6 |
-| `mutation-ratchet` | success | 31596662350 | `1d41442` | §6 |
-| `release-proof` | success | 31605714844 | `1d41442` | §6 |
-| `skills` | success | 31605708672 | `1d41442` | §6 |
-| `submission` | success | 31596458067 | `1d41442` | §4.1 |
-| `aws-evidence` | failure | 31596455267 | `1d41442` | §3.5 |
-| `ci` | failure | 31596249352 | `1d41442` | §2 |
-| `cloud-verify` | failure | 31520085557 | `ca912eb` | §4.3 |
-| `custody-chain` | failure | 31596645067 | `1d41442` | §3.1 |
-| `db` | failure | 31596634515 | `1d41442` | §2.1, §4.2 |
-| `db-schema` | failure | 31600802469 | `1d41442` | §3.3 |
-| `demo-health` | failure | 31614091734 | `1d41442` | §3.4 |
-| `nightly-differential` | failure | 31512623640 | `ca912eb` | §4.3 |
-| `schema` | failure | 31616006380 | `1d41442` | §3.2 |
-| `supply-chain` | failure | 31596446007 | `1d41442` | §2.1 |
+| `boundary` | success | [31662351225](https://github.com/Shaugato/mainline/actions/runs/31662351225) | — | §4 |
+| `claims` | success | [31662354680](https://github.com/Shaugato/mainline/actions/runs/31662354680) | — | §4 |
+| `cloud-verify` | success | [31662358004](https://github.com/Shaugato/mainline/actions/runs/31662358004) | — smaller claim than its name | §4.2 |
+| `console` | success | [31662361883](https://github.com/Shaugato/mainline/actions/runs/31662361883) | — | §4 |
+| `judge-pack` | success | [31662365372](https://github.com/Shaugato/mainline/actions/runs/31662365372) | — **and its envelope step is now falsifiable** | §5.2 |
+| `mutation-ratchet` | success | [31662368980](https://github.com/Shaugato/mainline/actions/runs/31662368980) | — | §4 |
+| `release-proof` | success | [31662372526](https://github.com/Shaugato/mainline/actions/runs/31662372526) | — | §4 |
+| `skills` | success | [31662376108](https://github.com/Shaugato/mainline/actions/runs/31662376108) | — | §4 |
+| `submission` | success | [31662344526](https://github.com/Shaugato/mainline/actions/runs/31662344526) | — | §4.1 |
+| `supply-chain` | success | [31662348026](https://github.com/Shaugato/mainline/actions/runs/31662348026) | — | §4 |
+| `schema` | failure | [31662337715](https://github.com/Shaugato/mainline/actions/runs/31662337715) | **RED ON PURPOSE** | §2.1 |
+| `db` | failure | [31662326715](https://github.com/Shaugato/mainline/actions/runs/31662326715) | **RED ON PURPOSE** — same cause | §2.2 |
+| `demo-health` | failure | [31662379410](https://github.com/Shaugato/mainline/actions/runs/31662379410) | **RED ON PURPOSE** | §2.3 |
+| `custody-chain` | failure | [31662333865](https://github.com/Shaugato/mainline/actions/runs/31662333865) | **RED ON PURPOSE** — two causes | §2.4 |
+| `db-schema` | failure | [31662330242](https://github.com/Shaugato/mainline/actions/runs/31662330242) | **RED ON PURPOSE** — five promotions owed | §2.5 |
+| `ci` | failure | [31662323414](https://github.com/Shaugato/mainline/actions/runs/31662323414) | defect — 10 of 12 jobs green | §3.1 |
+| `aws-evidence` | failure | [31662340980](https://github.com/Shaugato/mainline/actions/runs/31662340980) | defect — **and it silences a family** | §3.2 |
+| `nightly-differential` | failure | [31662319746](https://github.com/Shaugato/mainline/actions/runs/31662319746) | defect — **asserts nothing** | §3.3 |
 
-**Score: 8 green, 10 red, 0 never-run.** (A nineteenth entry, `Dependabot Updates`, is
-GitHub's own managed workflow and is not this repository's lane.)
+**Score: 10 green, 8 red, 0 never-run.** (A nineteenth entry, `Dependabot Updates`, is
+GitHub's own managed workflow, not this repository's lane.)
 
-Of the ten reds: **three were caused by the runner's network and assert nothing** — `ci`,
-`supply-chain`, `db` (§2.1); **five report a true incompleteness and are meant to stay
-red** — `aws-evidence`, `custody-chain`, `db-schema`, `demo-health`, `schema` (§3); and
-**two are untidy and unmeasured** — `cloud-verify`, `nightly-differential` (§4.3). A sixth
-declared red, the `g4alpha` gates, is not a workflow of its own and rides inside `ci`
-(§3.6).
+### 1.1 One red cannot be produced by a dispatch, and this page says which
+
+`ci`'s **PL-2** job is gated on `github.event_name == 'push' && github.ref ==
+'refs/heads/master'`. On dispatched run 31662323414 it reported **success**, because on any
+other event it emits a `::warning` instead of failing. **That green asserts nothing.** The
+by-design red it exists to raise is recorded in §7, from a push run, and this page will not
+launder a dispatch green into a claim that PL-2 held.
 
 ---
 
-## 2. `ci` — and the first run since `b0fe884` in which every job executed
+## 2. The five reds that are red on purpose
 
-### 2.1 Why nine `ci` jobs, three `supply-chain` jobs and `db` all died in the same place
+Every lane here **must stay red**, and every one now states in the first clause of the
+annotation GitHub renders that it is deliberate, plus the artefact that would end it.
 
-Run **31596249352**. Nine of twelve jobs failed. **Not one of the nine failed a repository
-check.** The same failure took out `supply-chain` (all three jobs, run 31596446007) and
-`db`'s single job (run 31596634515).
+### 2.1 `schema` — two objects the reference vertical references and nothing creates
 
-```
-actionlint / Install actionlint:
-  curl: (7) Failed to connect to release-assets.githubusercontent.com port 443
-  after 1 ms: Couldn't connect to server
-
-the other eight / Run ./.github/actions/setup-workspace:
-  ##[error]connect ECONNREFUSED 54.185.253.63:443
-```
-
-**The cause is now known, and it is not a regression in this repository.** From
-`step-security/harden-runner`'s own post-step agent log, quoted in
-`.github/actions/setup-workspace/action.yml`:
+Run [31662337715](https://github.com/Shaugato/mainline/actions/runs/31662337715). Three
+jobs red, one green (*anomaly coverage and manifest totality*), **one cause**. From the log,
+verbatim:
 
 ```
-Downloading uv from "https://github.com/astral-sh/uv/releases/download/0.12.3/…"
-Wed, 12 Aug 2026 12:26:48 GMT:domain not allowed: release-assets.githubusercontent.com.
+##[error]RED BY DESIGN, NOT A CI DEFECT: 2 object(s) referenced by
+packages/trappoint-sql/refvertical/sql and created by no file in it: trappoint_ref.clause,
+trappoint_ref.event. This lane refuses to be closed by narrowing the matrix, skipping a job
+or dropping the foreign key -- only a CREATE TABLE migration for each object named above
+turns it green, because two bindings that both render is the substrate claim and one
+binding is a template engine with an audience of one.
 ```
 
-GitHub now serves release-asset **bodies** from `release-assets.githubusercontent.com`.
-The older `objects.githubusercontent.com`, which every `allowed-endpoints` list in this
-repository named, no longer receives that redirect. `egress-policy: block` refused a
-connection it could not match — **correct behaviour by a control doing its job.**
-`supply-chain` had been green at `b0fe884` with no change to the workflow, to `uv.lock` or
-to the composite action in between: the destination moved underneath a correct deny-list.
+**What turns it green:** a `CREATE TABLE` migration for `trappoint_ref.event` and one for
+`trappoint_ref.clause`, at `packages/trappoint-sql/refvertical/sql/<nnnn>_<table>.sql`.
+Owner: KERNEL domain, `docs/leads/kernel.md` 1.1.
 
-Two repairs were considered and rejected, and are recorded so neither is re-proposed:
-`egress-policy: audit` retires the assertion instead of updating it, and a `uv-version`
-pin would not have worked — the URL in the log already carries an exact version, because
-`latest` had resolved against `api.github.com` one line earlier. **A version selects a
-tag; it does not select a host.**
+**This is the model red of the repository, because it refuses the cheap fixes.** Narrowing
+the matrix, skipping the job or dropping the foreign key would each close the lane by
+deleting the question, and the message now says so in one sentence so that nobody tries.
 
-### 2.2 What `ci` says once it can start
+Re-measured on this workstation, independently of the runner:
 
-Run **[31615364211](https://github.com/Shaugato/mainline/actions/runs/31615364211)**, on
-branch `w10-base` = `1d41442` + the endpoint repair and nothing else. **8 of 12 jobs
-green.** This is the only current measurement of this lane's content.
+```
+reference vertical: 22 tables created, 12 referenced, 2 with no producer
+  MISSING: trappoint_ref.clause consumed by 0066_disposition
+  MISSING: trappoint_ref.event  consumed by 0058_blocking_check
+109 .sql files scanned
+```
 
-| | job | |
+Two of the three red jobs — *unwelding matrix* and *the self-attesting gate* — are
+**COLLATERAL**: they never reached their own subjects. Their annotations carry the word
+**UNPROVEN**, because "did not run" and "ran and failed" are different findings:
+
+```
+##[error]RED BY DESIGN, NOT A CI DEFECT. 2 object(s) are referenced by … CockroachDB
+refused at 0058_blocking_check on trappoint_ref.event, the first of them. … This job did
+NOT fail on its own subject -- the unwelding matrix did not execute, so it is UNPROVEN by
+this run rather than failing. WHAT TURNS IT GREEN: a CREATE TABLE migration for each object
+named above. WHAT DOES NOT: narrowing the matrix, skipping this job, or dropping the
+foreign key -- each of those closes the lane by deleting the question.
+```
+
+### 2.2 `db` — the same finding, a second lane, and its old finding is paid
+
+Run [31662326715](https://github.com/Shaugato/mainline/actions/runs/31662326715). Census job
+green, migrate job red on the identical cause:
+
+```
+one version constant, and it lives in compose.yaml ............ success
+migrate + conform, on a node pinned to Cloud's gc.ttlseconds ... failure
+    trappoint migrate: REFUSED: 0058_blocking_check: [42P01]
+    relation "trappoint_ref.event" does not exist
+```
+
+**`db`'s previously recorded cause is gone.** The image census now reads
+
+```
+floating tag:     0  (ceiling 0)
+restated literal: 18 (ceiling 19)
+```
+
+so the `restated literal rose from 19 to 20` red that earlier boards carried is **paid**,
+and the floating-tag count is at zero against a ceiling of zero. The lane's own notice asks
+for the restated ceiling to come down to 18. **This page records that rather than doing it:
+lowering a ceiling changes an assertion, and changing an assertion is not a documentation
+task.**
+
+**What turns `db` green:** the two producers of §2.1, after which `db`'s `CONFORMANCE` step
+executes for the first time in this repository's history.
+
+**What `db` still does not do:** say *red by design* in its own message. Three workflows
+were in this worker's scope for that change and `db.yml` was not one of them, so a reader of
+the Actions tab still has to come here for `db`. Named, not hidden.
+
+### 2.3 `demo-health` — no demo is deployed, and the red names its cure
+
+Run [31662379410](https://github.com/Shaugato/mainline/actions/runs/31662379410). Verbatim:
+
+```
+##[error]no demo URL is published; this lane is red because the demo is not deployed, not
+because it is broken.
+
+RED BY DESIGN, NOT A CI DEFECT. THE ARTEFACT THAT WOULD MAKE THIS LANE GREEN IS ONE
+FIELD IN ONE FILE: docs/submission/SUBMISSION.json -> demo_url, holding the https URL
+of a deployed demo. Nothing else in this repository has to change.
+```
+
+The annotation continues, on the run summary page as well as in the log, with **the
+assertions it did not get to make** — `GET /` returning an HTML document, `GET /v1/health`
+returning `ok:true` with a `server_date` inside the freshness window, and the four beats of
+`POST /v1/demo/gate-run` with their SQLSTATEs (`00000`; `23514 gate_closed_when_issued`;
+`P0001 mainline.fn_permit_merge_gate`; `00000`), plus `persisted:false` and the server's own
+`PROVEN`. **A reader therefore learns the size of the hole, not only its name.**
+
+**What turns it green:** `docs/submission/SUBMISSION.json` → `demo_url` holding an `https`
+URL. No repository variable, no secret, no workflow edit. `terraform apply` has not been run;
+the plan is committed and the founder re-authorises before any apply.
+
+**And the lane can be proved sound today, with no deployment at all** — the red prints the
+command itself:
+
+```
+gh workflow run demo-health -f url=https://<a host that answers>
+```
+
+The dispatch input outranks the file, so such a run exercises every assertion above and
+never reaches the failing step. **An intentional red nobody can falsify is
+indistinguishable from a lane that has quietly stopped working**, which is why that command
+is in the error rather than in a comment.
+
+### 2.4 `custody-chain` — 7 of 16 checks have no implementation, and three K2 artefacts do not exist
+
+Run [31662333865](https://github.com/Shaugato/mainline/actions/runs/31662333865). **Five
+jobs green, two red, two independent by-design causes.**
+
+**Cause 1 — 7/16.** Verbatim:
+
+```
+NOT CHECKED — 7 of 16 checks did not run
+16 checks | 9 passed | 0 failed | 7 not checked
+##[error]Checks 4, 5, 6, 7, 8, 11, 12 did not run. Owner: verify-crypto. This lane is
+RED ON PURPOSE and stays red until the modules named in the annotations below exist.
+Nothing is skipped, excused or ratcheted to conceal it.
+```
+
+Each of the seven carries its own annotation naming the module, the test, and what it
+*would* have proved — log signature, RFC-3161 bracket, beacon, witness quorum, S3
+object-lock, gate self-attestation, WebAuthn re-verification. **What turns it green:** those
+seven runners under `packages/trappoint-verify/src/trappoint_verify/checks/`. The lane's own
+error text carries the words *RED ON PURPOSE*; that was verified in this run's log, not
+inferred from a source comment.
+
+**Cause 2 — the K2 exit criteria**, `3 failed, 10 passed, 2 skipped`:
+
+```
+K2.4 NOT MET — MISSING ARTEFACT: evidence/k2-checkpoint-cadence.json
+K2.5 NOT MET — MISSING ENTRY: spec/CHANGELOG.md carries no line naming
+               `wire/checkpoint.md` at v1.0.
+K2.6 NOT MET — MISSING ARTEFACT: evidence/k2-migration-attestation.json
+```
+
+Each names its owner and its cure — for K2.4, *"a file at that path carrying keys 'samples'
+(>= 30), 'p50_seconds', 'p95_seconds', 'max_seconds' and 'measured_at', written by observing
+consecutive checkpoint publications against a running sequencer"* — and each says why it is
+not faked: *"the ~60 s window of undetectable mutation is the single honest number the whole
+custody argument turns on. A number this test invented would be a number nobody measured."*
+
+**The canonicaliser drift earlier boards recorded here is gone**, and its absence is
+measured, not assumed — see §6.1.
+
+### 2.5 `db-schema` — the catalogue is green; `mi-red` refuses five promotions
+
+Run [31662330242](https://github.com/Shaugato/mainline/actions/runs/31662330242). Two of
+three jobs green — *the catalogue is committed, current and well-formed* and *the version
+comparison bites* — and `mi-red` red:
+
+```
+5 HELD (the red law refuses on these) · 2 RED (an owning test fails; the law holds) ·
+14 UNWITNESSED (no owning test resolves at all)
+REFUSED: MI06 is pending but its tests pass — promote it in mi_catalogue.yaml
+REFUSED: MI10 …   REFUSED: MI21 …   REFUSED: MI22 …   REFUSED: MI27 …
+scripts/mi_ratchet.py red exited 1 (0 held, 1 law broken, 2 cannot determine)
+```
+
+This is a **red-before-green integrity law doing its job**: an invariant marked `pending`
+whose owning tests all pass is either already enforced (and the catalogue is stale) or its
+tests witness nothing. The lane refuses to guess, and states its own falsifiability:
+
+> *"promote only if one of the tests above makes an object above REFUSE. A test that would
+> still pass with that object dropped witnesses nothing, and an `enforced` row recorded on
+> it is the false green PL-2 exists to forbid."*
+
+**What turns it green:** for each of MI06, MI10, MI21, MI22 and MI27, either a promotion in
+`mi_catalogue.yaml` backed by a test observed to make the enforcing object refuse, or an
+owning test that actually fails.
+
+**This set has not moved.** Identical across three runs on three commits — 31657335542 at
+`06f41f8`, 31660091618 at `9221d0c`, 31662330242 at `53197f5`. The earlier board's cause for
+this lane, a DM-9 violation, **is paid**; what is left is this, and it was here before.
+
+### 2.6 `ci`'s PL-2 job — by design, and it only fires on a push
+
+PL-2 asks for the URL of a `db` run in which the **`CONFORMANCE` step itself** went red. No
+such run exists, because `CONFORMANCE` has never executed (§2.2). Recording any other red
+`db` run would put a URL in a field that asks for a different observation. The annotation now
+carries all of that where a reader sees it:
+
+```
+::error title=RED BY DESIGN - PL-2: the db lane's red conform run URL is still UNRECORDED::
+RED BY DESIGN, NOT A CI DEFECT. … WHAT TURNS IT GREEN: the producer for trappoint_ref.event
+lands, the next db push-run on master reaches CONFORMANCE, that step is red, and THAT run's
+URL replaces the word UNRECORDED in docs/adr/0005-red-before-green.md. WHAT DOES NOT: any
+other red db run, deleting the line, or relaxing this check.
+```
+
+The push-run row is §7, because the dispatch that produced every other row on this page
+cannot exercise this job.
+
+---
+
+## 3. The three reds that are defects
+
+### 3.1 `ci` — 10 of 12 jobs green; one stale cassette index and three by-design rows
+
+Run [31662323414](https://github.com/Shaugato/mainline/actions/runs/31662323414).
+
+| job | verdict |
+|---|---|
+| every checker this lane invokes exists | success |
+| **actionlint** | **success** — all eighteen workflows, `shellcheck` over every `run:` |
+| PL-2 — the red run is recorded | success — **push-gated, asserts nothing here** (§1.1) |
+| import-linter contracts · and no package outside them | success |
+| REUSE — every file names its licence | success |
+| the lockfile is authoritative · workspace membership | success |
+| **mypy · and the target list is complete** | **success** |
+| **ruff format · the counted lint ratchet** | **success** |
+| the sequence ban, repository-wide | success |
+| RED BY DESIGN, and it must stay red | success — every declared red is still red |
+| pytest --crdb=none | **failure** |
+| CI summary | **failure** (aggregate) |
+
+**`ruff` and `mypy` are green for the first time on this board.** Confirmed independently on
+this workstation against a fresh LF export (`git archive HEAD | tar -x`), which is
+byte-for-byte what the runner checks out:
+
+```
+$ ruff format --check .        # ruff 0.16.1, on the LF export of 53197f5
+1443 files already formatted
+```
+
+**The same sweep on the Windows working tree reports 227 files.** That number is a
+line-ending artefact — this checkout has no `.gitattributes` — and appears here only so that
+nobody takes it for a fact about the code. **There must be no `ruff format .` sweep on this
+tree.**
+
+**`pytest --crdb=none`:** `4 failed, 8468 passed, 839 skipped, 13 deselected, 2 warnings in
+334.02s`. The four, named:
+
+| test | cause | classification |
 |---|---|---|
-| success | every checker this lane invokes exists | |
-| success | actionlint | *(green for the first time — §2.1's `curl` now reaches its host)* |
-| success | REUSE — every file names its licence | §6.2 |
-| success | import-linter contracts · and no package outside them | untested |
-| success | the sequence ban, repository-wide | §6.2 |
-| success | the lockfile is authoritative · workspace membership | untested |
-| success | PL-2 — the red run is recorded | untested |
-| success | RED BY DESIGN, and it must stay red | §6.2 — **falsified twice** |
-| failure | ruff format · the counted lint ratchet | §2.3 |
-| failure | mypy · and the target list is complete | §2.4 |
-| failure | pytest --crdb=none (no cluster, no credential, no network) | §2.5 |
-| failure | CI summary | downstream of the three above |
+| `test_k2_4_checkpoint_cadence_measured_and_deadman_defined` | K2.4 missing artefact | by design (§2.4) |
+| `test_k2_5_checkpoint_wire_format_tagged_v1_0_with_changelog_entry` | K2.5 missing entry | by design (§2.4) |
+| `test_k2_6_migration_attestation_chained_with_a_stable_fingerprint` | K2.6 missing artefact | by design (§2.4) |
+| `test_every_recorded_body_hashes_to_its_index_row` | `assert '11d32dd3a13f…7d6d2573735fe' == '136eec3462c2…993e7c8f9ffea'` | **defect** |
 
-**The branch was deleted; `ci.yml` belongs to W2 and the endpoint repair on it was mine
-for the experiment only.** When W2's `ci.yml` lands this run must be re-created. Nothing
-in §2.3–§2.5 depends on the endpoint list.
+**The last row is a finding this page records for the first time.**
+`packages/mainline-agentkit/tests/test_live_cassettes.py` asserts that every recorded
+cassette body hashes to its index row, and one does not. A recorded body that disagrees with
+its own index is either an edited transcript or a stale index. **It must not be closed by
+rewriting the index to match the body** — that makes the check tautological and destroys the
+only thing it was measuring. Owner: the agentkit domain. Red on its own subject.
 
-### 2.3 `ruff` — the format half is at zero, the lint half regressed by 17 rules
+**So `ci`'s red is now one real defect and three by-design custody rows.** The lint and type
+debt earlier boards recorded here is paid.
 
-**Both halves measured on the runner, in the same job, in run 31615364211.**
+### 3.2 `aws-evidence` — one false positive, three red jobs, one anti-vacuity family switched off
 
-```
-ruff format --check:   1433 files already formatted
-```
-
-**Zero unformatted files.** This settles a claim that has confused three revisions of this
-page: `ruff format --check .` on the founder's Windows workstation reports 243–245 files
-would be reformatted, and **that number is a CRLF artefact** of a checkout with
-`core.autocrlf=true` meeting `ruff.toml`'s `line-ending = "lf"`. Until today the "0" was
-only ever measured on a local LF worktree. It is now measured on the runner. **Do not
-quote the local format count as the tree's, and do not make the 249-file format commit
-that number seems to ask for.**
-
-The lint half is a real regression, introduced by `ca912eb`, and it is what fails the job:
+Run [31662340980](https://github.com/Shaugato/mainline/actions/runs/31662340980). All three
+jobs red on **one literal**:
 
 ```
-LINT REGRESSION  rule=BLE001   tree=scripts/               baseline=0   measured=2  [HARD GATE]
-LINT REGRESSION  rule=E402     tree=scripts/               baseline=0   measured=6  [HARD GATE]
-LINT REGRESSION  rule=N803     tree=packages/trappoint-*   baseline=0   measured=2  [HARD GATE]
-LINT REGRESSION  rule=N803     tree=tests/                 baseline=0   measured=2  [HARD GATE]
-LINT REGRESSION  rule=PTH123   tree=scripts/               baseline=0   measured=2  [HARD GATE]
-LINT REGRESSION  rule=PTH202   tree=scripts/               baseline=0   measured=1  [HARD GATE]
-LINT REGRESSION  rule=RUF001   tree=packages/trappoint-*   baseline=0   measured=1  [HARD GATE]
-LINT REGRESSION  rule=UP030    tree=scripts/               baseline=0   measured=5  [HARD GATE]
-LINT REGRESSION  rule=PLR0912  tree=scripts/               baseline=2   measured=7
-LINT REGRESSION  rule=PLR0915  tree=scripts/               baseline=1   measured=7
-LINT REGRESSION  rule=D102/D105/D107/D401  tree=packages/trappoint-*   +21 across four rules
-LINT REGRESSION  rule=E402     tree=tests/    1 -> 6      rule=ARG002  tree=tests/  1 -> 4
-LINT REGRESSION  rule=E501     tree=scripts/  1 -> 2
+##[error][SEC-ACCOUNT-ID] evidence/deploy/verify/aws-quota-and-cost.json:30: a bare 12-digit
+run '322122547200' survives UUID/digest/decimal masking and has the shape of an AWS account
+id. An account number is not a credential, and publishing one still enables cross-account
+enumeration
+1 failure(s) across 1 invariant(s): SEC-ACCOUNT-ID
 ```
 
-**17 rules, 8 of them hard gates** — counted from the runner log, `17` rows carrying
-`rule=` and `8` carrying `[HARD GATE]`. (A hard gate is a rule whose baseline is 0, so any
-hit at all is a breach. `docs/leads/ci-green-plan2.md` §3.3 says "7 hard gates" in prose
-while listing eight; the runner says eight and this page follows the runner.) Owners: W3
-(`scripts/`), W4 (`packages/`, `tests/`), W2
-(`qa/ruff-ratchet.json`, which **may fall and may never rise**). Two of these must not be
-"fixed" by renaming: `modelId` and `contentType` in `bedrock_backend.py` are boto3 API
-parameter names, and the `RUF001` hit in `tests/unit/domain/canon/test_idempotence.py` is
-a deliberate Unicode test vector — the ambiguity is the thing under test. Both need a
-`# noqa` that states the reason.
+`322122547200` is **Lambda's 300 GiB code-storage quota in bytes** — 300 × 1024³. It is
+twelve digits long and it is not an account id.
 
-### 2.4 `mypy`
+**The expensive consequence** is the third job, *the red half is red for the reason it
+claims*:
 
 ```
-packages/trappoint-recall/src/trappoint_recall/eval/bedrock_backend.py:1140:29: error:
-packages/trappoint-recall/src/trappoint_recall/eval/bedrock_backend.py:1141:28: error:
-packages/trappoint-recall/src/trappoint_recall/eval/bedrock_backend.py:1159:29: error:
-packages/trappoint-recall/src/trappoint_recall/eval/bedrock_backend.py:1160:28: error:
-Found 4 errors in 1 file (checked 661 source files)
+FAMILY red-for-the-wrong-reason: an unmutated copy of evidence/ already fails, so every
+plant below would be red for a reason that is not its plant
 ```
 
-One file, four errors, all in the Bedrock backend that `ca912eb` added. Owner: W4.
+**A false positive has switched off a whole anti-vacuity family.** The lane that exists to
+prove *"the red half is red for the reason it claims"* cannot plant a single defect. So this
+lane's red is real, **and its anti-vacuity claim is currently asserting nothing** — two
+separate facts, both true.
 
-### 2.5 `pytest --crdb=none` — 17 failed, and nine of them are one cause
+**What turns it green:** the scanner learning to tell a byte count from an account id, at
+cause, in `scripts/aws/verify_evidence.py`. **Not** an allow-list of one literal — *a scanner
+carrying an exception for one such literal would carry it for any* — and **never** by editing
+`evidence/deploy/verify/aws-quota-and-cost.json`, which is a recorded measurement. Editing
+evidence to please a scanner is forging evidence.
 
-```
-17 failed, 8455 passed, 839 skipped, 13 deselected, 2 warnings in 326.98s (0:05:26)
-```
+**A repair exists uncommitted and is therefore not on this board.** It has been exercised
+against a clean export, never on a runner: see §5.3.
 
-The previous revision of this page quoted `21 failed, 8280 passed` from run 31462708400
-and could not re-measure it. **This is the re-measurement.**
+### 3.3 `nightly-differential` — red on its own harness, so it says nothing about the gate
 
-**Nine of the seventeen are the canonicaliser drift**, and it is the same finding §3.1
-records against `custody-chain` — one drift, surfacing in three lanes:
-
-```
-FAILED tests/integration/custody/test_k2_exit.py::test_canonicaliser_registry_is_pinned_and_retained
-  canon_v1: packages/trappoint-jcs/src/trappoint_jcs/canon_v1.py hashes to
-  d09036a85b023c86e729a9307a834e2238910ee07798a45f4cae9d13887ad77a,
-  registry pins 260ed37ddc610f1fb94ddce98998fe4ae5ce883698ad5c7033839cd258dcd659
-```
-
-and it cascades through `packages/trappoint-verify/tests/test_structural_checks.py`,
-`test_no_network.py`, `test_checks_totality.py` and
-`packages/trappoint-ledger/tests/test_checkpoint_body.py`. The remaining eight are
-independent and each names its missing artefact:
+Run [31662319746](https://github.com/Shaugato/mainline/actions/runs/31662319746). One job
+green (*64 parallel merges of one subject*), **both differential jobs red**, on the same pair
+of harness errors:
 
 ```
-FAILED tests/integration/custody/test_k2_exit.py::test_k2_4_… — MISSING ARTEFACT: evidence/k2-checkpoint-cadence.json
-FAILED tests/integration/custody/test_k2_exit.py::test_k2_5_… — MISSING ENTRY: spec/CHANGELOG.md carries no line naming `wire/checkpoint.md` at v1.0
-FAILED tests/integration/custody/test_k2_exit.py::test_k2_6_… — MISSING ARTEFACT: evidence/k2-migration-attestation.json
-FAILED tests/integration/schema/test_mi_blame.py::test_dm9_the_closure_is_read_only_through_the_view
-FAILED tests/release/test_ruff_ratchet.py::test_the_ratchet_passes_on_the_real_tree   (§2.3, the same 17 rules)
-FAILED packages/mainline-agentkit/tests/test_live_cassettes.py::test_every_recorded_body_hashes_to_its_index_row
-FAILED packages/trappoint-migrate/tests/test_lockfile.py::test_the_committed_manifest_is_current — run `trappoint migrate lock --write`
+E  psycopg.OperationalError: sending prepared query failed: another command is already in
+   progress
+   .venv/lib/python3.13/site-packages/psycopg/cursor.py:117: OperationalError
+E  hypothesis.errors.FlakyStrategyDefinition: Inconsistent data generation! Data generation
+   behaved differently between test cases. Is your data generation depending on external
+   state?
+FAILED packages/trappoint-model/tests/test_read_committed.py::
+       test_gate_agrees_with_the_oracle_at_read_committed
+FAILED packages/trappoint-model/tests/test_differential.py::
+       test_gate_agrees_with_the_oracle_at_serializable
 ```
 
-**None of these is a flake and none is a threshold.** Each is a named artefact that does
-not exist or a recorded hash that no longer matches its source.
+**This is the worst red on the board and the count does not show it.** The lane's subject is
+*the database gate agrees with the reference oracle, at two isolation levels*. It never got
+there: a Hypothesis strategy is reading external state, and a psycopg cursor is being reused
+while a command is in flight. **The comparison between gate and oracle was not made, at
+either isolation level.**
+
+**Not a flake — a defect that reproduces.** The identical pair of errors was recorded at
+`06f41f8` (run 31657318276) and at `9221d0c` (run 31660134173).
+
+**What turns it green:** a fix at the cause — a strategy that does not depend on external
+state, one cursor per in-flight command. **What must not:** a retry, an `xfail`, or a
+narrowed example budget. Each would leave the gate/oracle comparison exactly as unmeasured
+as it is now, while painting the lane green.
 
 ---
 
-## 3. The reds that are meant to be red
+## 4. The ten greens, and what each green does and does not mean
 
-Five workflow lanes, plus one declared red that rides inside `ci` (§3.6). Each names the
-artefact that does not exist and the domain that owes it. **None of them may be made green
-by weakening anything.**
+`boundary`, `claims`, `cloud-verify`, `console`, `judge-pack`, `mutation-ratchet`,
+`release-proof`, `skills`, `submission`, `supply-chain`.
 
-### 3.1 `custody-chain` — 7 of 16 checks unimplemented, and one real drift
+A green is worth exactly what its lane can refuse; §5 audits that. Two greens need a
+sentence here first.
 
-Run 31596645067. Confirmed off CI with the verifier this workstation already has:
+### 4.1 `submission` is green, and the last suppression pair in the repository was in it
 
-```
-$ .venv/Scripts/trappoint-verify verify --bundle evidence/reference-ledger/bundle.json
-16 checks | 8 passed | 1 failed | 7 not checked
-exit 1: 1 finding(s). This bundle does not verify.
-```
+Run [31662344526](https://github.com/Shaugato/mainline/actions/runs/31662344526), three jobs
+green: *the submission gate can say no*, *submission readiness (report-only until D-3)*, *a
+stranger can clone it, and every file names a licence*.
 
-and re-confirmed on the runner inside run 31615364211's pytest job, which prints the same
-line: `16 checks | 8 passed | 1 failed | 7 not checked`.
+The step called *The machine record* used to carry `continue-on-error: true` **and** a
+`|| true` on the command inside it — two independent reasons it could not fail, which means
+it asserted nothing about the machine record. **Both are gone**; the repository-wide
+measurement is at the top of this page.
 
-The seven that **do not run** are the cryptographic half — log signature, RFC-3161
-bracket, beacon, witness quorum, S3 object-lock, gate self-attestation, WebAuthn
-re-verification. Each names its owner (`verify-crypto`) and prints what it *would* have
-proved. **Missing artefact: seven crypto check implementations. Owner: custody domain.**
+### 4.2 `cloud-verify` is green, and it has never touched CockroachDB Cloud in CI
 
-**The one FAILED check is not a not-implemented and is the more interesting half.**
-`canonicaliser_identity` reports nine findings: the bundle's signed `canon_src_sha256` is
-`260ed37d…` and the canonicaliser in the verifier now hashes to `d09036a8…`, so eight
-checkpoints' signed `canon:` lines disagree with the code that would recompute them.
-**That is exactly the drift the check exists to catch, and it is catching it.** It is
-reported rather than repaired because `packages/trappoint-verify` and
-`evidence/reference-ledger/` belong to the custody domain. **Missing artefact: either a
-regenerated reference bundle or a restored `canon_v1.py`. Owner: custody domain.**
-
-The CI run additionally fails `RFC 6962 merkle — vectors and properties`, `reference
-bundle regenerates to zero diff`, and an exhibit-vocabulary check whose message is itself
-the finding: `Quorum is q=1 over our own infrastructure, which is not adverse in the legal
-sense.`
-
-### 3.2 `schema` — the reference vertical has **two** missing producers, not one
-
-Run 31596641256, re-dispatched as 31616006380 with the same result. **The previous
-revision of this page named one object. The measured truth is two**, and CI has been
-saying so all along:
-
-```
-##[error]2 object(s) referenced by packages/trappoint-sql/refvertical/sql and created by
-nothing: trappoint_ref.clause, trappoint_ref.event
-
-##[error]MISSING PRODUCER: trappoint_ref.clause -- consumed by 0066_disposition (FOREIGN
-KEY target) -- expected: a CREATE TABLE migration in packages/trappoint-sql/refvertical/sql/
--- MAINLINE twin that already exists: verticals/mainline/db/migrations/0028_clause.sql
--- owner: KERNEL domain, docs/leads/kernel.md 1.1
-
-##[error]trappoint_ref.event is referenced by 0058_blocking_check and created by no file
-in packages/trappoint-sql/refvertical/sql. Owner: KERNEL domain, docs/leads/kernel.md 1.1
-```
-
-Reproduced locally against the pinned node in one command:
-
-```
-$ trappoint migrate up --dsn <local> --tree trappoint-ref \
-    --migrations packages/trappoint-sql/refvertical/sql ; echo $?
-trappoint migrate: REFUSED: 0058_blocking_check:
-  [42P01] relation "trappoint_ref.event" does not exist
-1
-```
-
-**Missing artefacts: two `CREATE TABLE` migrations, `trappoint_ref.clause` and
-`trappoint_ref.event`. Owner: KERNEL domain, `docs/leads/kernel.md` §1.1.**
-
-**This red has a consequence outside its own lane**, and `VERIFY.md` says so: the
-reference-vertical conformance path a stranger is invited to run halts here.
-`trappoint-conform --profile trappoint-ref` reports `0/45 · failed 6 · cannot_run 38 ·
-error 1`. **The MAINLINE path is unaffected and proves the central claim on its own** —
-`scripts/proof/gate_refusal.py` returns `271/271 applied, 0 failed … VERDICT PROVEN`.
-
-### 3.3 `db-schema` — the catalogue, and `mi-red` at 21 of 30
-
-Run 31600802469. Two jobs fail: `the catalogue is committed, current and well-formed` and
-`mi-red and mi-green`.
-
-**The MI ratchet stands at 21 of 30 pending, 9 enforced.** Re-derived on this machine
-today:
-
-```
-$ .venv/Scripts/python.exe scripts/mi_ratchet.py | tail -1
-21 pending / 9 enforced
-```
-
-**The red stays.** The test's own message is computed (`f"{len(pending)} of
-{len(catalogue)}"`), so it has always printed the true number; what was stale was the
-prose around it, and `ci.yml:702` now reads `21 of 30`. Nine invariants have been promoted
-since that string said `28 of 30`; an intentional red seven invariants out of date is an
-intentional red losing its precision.
-
-`mi-red`'s failure is not a count. It refuses three invariants — `MI22`, `MI26`, `MI27` —
-because they are recorded `pending` while every owning test passes, and it prints the
-reason a promotion would be false:
-
-```
-REVIEW: promote only if one of the tests above makes an object above REFUSE. A test
-that would still pass with that object dropped witnesses nothing, and an `enforced`
-row recorded on it is the false green PL-2 exists to forbid.
-```
-
-**Missing artefacts: 21 invariant implementations, and a current
-`verticals/mainline/db/invariants/mi_catalogue.yaml` projection. Owner: W6 for the
-workflow and the ratchet's wording; `dm-functions-triggers` and the kernel projection
-band for the invariants themselves.**
-
-### 3.4 `demo-health` — no demo is deployed
-
-Run 31614091734, and a new one every thirty minutes. The message is the best-worded red in
-the tree and the model the others were brought up to:
-
-```
-no demo URL is published; this lane is red because the demo is not deployed, not
-because it is broken. docs/submission/SUBMISSION.json holds demo_url=UNRESOLVED.
-terraform apply has not been run — the plan is committed and the founder reviews it
-before any apply. This job starts asserting, and can go green on its own, the moment
-that field holds a URL. Nothing else has to change: no repository variable, no secret,
-no edit to this workflow.
-```
-
-**Missing artefact: a deployed demo URL in `docs/submission/SUBMISSION.json`. Owner: the
-orchestrator — the cure is a deployment, not a workflow edit.**
-
-### 3.5 `aws-evidence` — the mask is now the finding
-
-Run 31596455267:
-
-```
-[SEC-ACCOUNT-ID] evidence/deploy/deploy-dry-run.json:409: a bare 12-digit run
-'999999999999' survives UUID/digest/decimal masking and has the shape of an AWS
-account id. An account number is not a credential, and publishing one still enables
-cross-account enumeration
-```
-
-**The account id was masked before the repository went public, and the mask itself trips
-the checker.** The checker is right and must not be weakened. The subtlety is that lines
-409/412 are a **recorded transcript of a real teardown dry-run**, in which `999999999999`
-was the deliberately-wrong `--expect-account` value that provoked the refusal. Editing the
-transcript to satisfy the scanner would turn real evidence into a forgery.
-
-**Missing artefact: a re-run of the teardown dry-run with a non-account-shaped
-expectation, recorded as it actually happened. Owner: W5.**
-
-**W5's repair exists and is uncommitted.** In the working tree at the time of writing,
-`evidence/deploy/deploy-dry-run.json` carries **zero** occurrences of `999999999999`
-(`git show HEAD:` on the same file carries two) and
-`evidence/deploy/terraform-plan-furl.json` carries zero occurrences of `000000000000`.
-`aws-evidence.yml`'s own header records the method: *"`verify_evidence.py` was NOT relaxed
-and no exclusion was added for the offending path — the dry-run was re-run with a
-non-numeric expectation."* **That repair has no run id yet**, so this page keeps the red
-and does not credit it. Re-dispatch `aws-evidence` after the wave's commit.
-
-At HEAD, `scripts/submission/audit_public_readiness.py` flags the same shape in
-`evidence/deploy/terraform-plan-furl.json`, where the mask is `000000000000`. Two checkers
-disagreed about whether twelve identical digits is a mask or a value. Both were
-defensible; **neither was silenced**, and the disagreement was recorded rather than
-resolved by a page that owns neither. It is resolved in the working tree by removing the
-digits, not by relaxing either checker.
-
-The lane's second failure is its own negative control refusing to run, which is correct
-and worth quoting because it is unusual:
-
-```
-FAMILY red-for-the-wrong-reason: an unmutated copy of evidence/ already fails, so
-every plant below would be red for a reason that is not its plant
-```
-
-A planted-violation harness that fires while the unmutated control is already red proves
-nothing. **It says so instead of counting the plants as caught.** §6.3 records that this
-exact shape occurs a second time, in `supply-chain`.
-
-### 3.6 `g4alpha` — the five recall gates, red by declaration
-
-Not a workflow of its own; five cases in `tests/eval/recall/test_g4alpha_gates.py`,
-carried by `ci`'s `RED BY DESIGN` job. Retro-recall on the offline fixture corpus does not
-meet the gates and is declared RED until K4. **Missing artefact: recall quality that meets
-the five gates. Owner: the recall domain, K4.**
+Run [31662358004](https://github.com/Shaugato/mainline/actions/runs/31662358004): success.
+The name invites a reading the lane does not support. **Nothing in this repository has ever
+run against CockroachDB Cloud in CI.** The lane verifies the artefacts and configuration a
+Cloud run would need, against the local pinned node. A useful claim, and a smaller one than
+the name suggests.
 
 ---
 
-## 4. The untidy reds
+## 5. Anti-vacuity — which greens are load-bearing, which are not
 
-### 4.1 The licence migration finished, and `submission` went green
+A green means *"this lane can say no, and today it said yes"* only if the lane has been seen
+saying no. This section carries forward the anti-vacuity verdicts this wave produced, **each
+re-measured on the runs above rather than quoted from a worker's summary**, and names what
+is still not falsifiable. The long form is [`docs/ci/anti-vacuity.md`](ci/anti-vacuity.md);
+what follows is what survived re-measurement at `53197f5`.
 
-The published revision of this page recorded
+### 5.1 PROVEN — the image pin is now a claim about the running server
+
+Earlier audits found that `custody-chain.yml`, `db-schema.yml` and `db.yml` read the pin out
+of `compose.yaml`, `docker run` it, then poll `SELECT 1`. **Nothing ever asked the running
+server what version it was**, so the assertion could catch a pin that failed to arrive but
+not a pin that was wrong when it was requested.
+
+Closed, with its own negative control. From `db-schema` run 31662330242, job *the version
+comparison bites — a neighbouring tag must fail it*, read at `9221d0c` and green again here:
 
 ```
-REFUSED [RATCHET] metric=non_spdx_spelling.FSL-1.1-ALv2 baseline=1213 measured=1254
+pin-truth:   tag v26.2.5 -> server said 'CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu,
+             built 2026/07/28 18:56:00, go1.25.5)' -> MATCHES the pin v26.2.5
+pin-control: tag v26.2.4 -> server said 'CockroachDB CCL v26.2.4 (x86_64-pc-linux-gnu,
+             built 2026/07/14 16:50:57, go1.25.5)' -> does not match the pin v26.2.5
+the comparison bites: v26.2.5 accepted and v26.2.4 rejected by the same pattern, in the
+same step, against two nodes that both answered SQL
 ```
 
-and called it "the **only** thing keeping `submission` red". **It is done.** Measured
-2026-08-12 on this workstation:
+**Two nodes, one comparison, opposite verdicts, in one step.** That is a claim, not a poll.
+The same job is green in `custody-chain` run 31662333865.
+
+### 5.2 PROVEN — `judge-pack`'s envelope step grew teeth, and this page had it as UNPROVEN one board ago
+
+**This row moved between the discarded board and this one, and the movement is the honest
+part.** At `9221d0c` the envelope step was measured as **unproven**: `judge-pack`'s run had
+four jobs, the `green` job ran `cli.py envelope` with no flag, printed eleven `ok`s and
+exited 0, and no input was known that could make it exit non-zero.
+
+At `53197f5` the same lane has **five** jobs, and the fifth is *the envelope step goes red
+for each row it prints*. From run 31662365372, verbatim:
 
 ```
-$ .venv/Scripts/python.exe scripts/qa/check_reuse.py ; echo $?
-  improved   metric=reuse_toml_patterns_matching_nothing baseline=5 measured=1
-OK — 7402 tracked files, 0 uncovered, 4 licence texts, no counted number rose.
-0
+unmutated copy: exit 0
+  plant: envelope.py REQUEST_TIMEOUT_SECONDS 20 -> 25   -> exit 1, names
+         request_timeout_seconds/DISAGREES: True
+  plant: envelope.py MAX_RESPONSE_BYTES 10240 -> 10241  -> exit 1, names
+         MAX_RESPONSE_BYTES/DISAGREEMENT: True
+  plant: QUESTIONS.yaml Q10 EXPLAIN padded past the 16384 cap -> exit 1, names
+         Q10/DOES NOT FIT: True
+  plant: QUESTIONS.yaml select_page_rows 25 -> 50       -> exit 1, names
+         select_page_rows/DISAGREES: True
+  plant: both judge-side files move to 10241 together   -> exit 1, names
+         MAX_RESPONSE_BYTES/DISAGREEMENT: True
+
+5 plants: an unmutated copy is green, every plant is red, and every red names the row its
+plant targets.
+working tree clean — every plant lived in a temporary copy
 ```
 
-**No baseline was lowered and no ratchet was re-frozen upward** — the count came down to
-meet the number that was already published, which is the only move a falling ratchet
-permits. `submission` is green on `master` at `1d41442`, run 31596458067.
+**Five plants, five reds, each naming the row it targets, and the control green.** That is a
+claim.
 
-### 4.2 `db`'s pin restatement — still owed, and never measured at HEAD
+**Two limits, kept from the audit that produced it and re-checked here.** The lane's `green`
+job still invokes `cli.py envelope` **without** `--require-cross-check`
+(`.github/workflows/judge-pack.yml:449`); only the teeth job passes the flag
+(`:249`, `:256`). And `validate --strict` still tolerates an absent cross-check — it prints
+`NOT RUN` and adds no warning. So **every `judge-pack` green recorded on this repository
+before the teeth landed carries `cross-check: NOT RUN`**, and any claim that the judge pack's
+limits were confirmed against a second implementation *in CI* is false for all of them.
 
-`cloud-verify.yml` and `release-proof.yml` write the CockroachDB image literal in order to
-compare it against `compose.yaml`, and `db`'s HARD check over six OWNED harness files
-refuses that correctly. The repair is unchanged: extract it the way
-`trappoint_migrate.crdb.pinned_image` already does — find the `trappoint:crdb-image-pin`
-marker, take the first `image:` line within the next three — which spells no image literal
-at all and takes the census `restated` count from 25 to 19 without a ceiling moving.
+### 5.3 BLOCKED — the mutation family, and what "proven against an export" is worth
 
-**`db` has not reached that check on any run at `1d41442`** — its only job died in
-`setup-uv` (§2.1). The finding is carried forward from run 31463897045 at `47f8aa2` rather
-than re-observed. **Owner: W1. Its next run is the measurement that matters.**
+`aws-evidence`'s *"the red half is red for the reason it claims"* aborts before it plants
+anything (§3.2). The family has been exercised against a **clean export carrying the
+uncommitted scanner fix**, not against `master`, so:
 
-`db.yml` deliberately does not absorb these lines into its census. An earlier attempt
-(`f229c1b`) taught the census to treat them as a self-policing guard and was reverted whole
-in `47f8aa2`, because `db.yml`'s own comment says an exclusion list "is a place to hide a
-real regression".
+* **the blast-radius step has never executed on a runner**;
+* **sixteen `aws-evidence` invariants have no plant at all** and are carried on a written
+  exemption list in `self_test` — named rather than hidden, which is the right shape, but a
+  named exemption is still an unexercised check;
+* **the blast-radius declaration is a measurement, not a derivation.** It records what each
+  plant fires today; it cannot say whether a sibling *should* fire, only that the set stopped
+  matching what a reviewer wrote down.
 
-### 4.3 `cloud-verify` and `nightly-differential` — red, at an older commit, logs expired
+Blocked, named, not counted as proven.
 
-Both last ran at `ca912eb` on `2026-08-11`, two commits behind `HEAD`, and
-`gh run view --log-failed` now answers `log not found` for each. The job names are readable
-and the causes are not:
+### 5.4 UNPROVEN — `nightly-differential`'s gate/oracle comparison
 
-* `cloud-verify` 31520085557 — `is there a Cloud cluster to verify against? (and can it say
-  no?)` and `a real 40001 RETRY_SERIALIZABLE, and the loop that must not swallow it` failed;
-  two jobs skipped behind them, including `SKIPPED — no Cloud cluster secret`.
-* `nightly-differential` 31512623640 — `differential · read-committed`, `differential ·
-  serializable` and `64 parallel merges of one subject` failed.
+Recorded here as well as in §3.3, because colour and vacuity have different answers. The lane
+is **red**, so no reader is misled by a green. But its subject — *the gate agrees with the
+oracle* — **was not measured at either isolation level**, and has not been across three
+commits. A red lane and an unmeasured claim are different findings; this page keeps them
+apart.
 
-**This page makes no claim about why.** Both need a live cluster this wave did not
-provision. What is still true of `nightly-differential` by construction is that the lane
-refuses to report green on a skip: a cluster is running in the job, so a skip means the
-suite could not reach it.
+### 5.5 Greens whose refusal capability was checked, and how far
 
----
-
-## 5. Claims in the published version of this document that did not survive
-
-The published version was measured at `47f8aa2`. Six of its claims are now false. They are
-listed rather than silently overwritten, because a page that only ever agrees with itself
-teaches a reader nothing about how much to trust it.
-
-### 5.1 "`claims`, `boundary` and `submission` are RED"
-
-**False.** All three are **green** at `1d41442` — runs 31596451954, 31596449113 and
-31596458067 — and green again on unmutated throwaway branches cut from it
-(W8: 31604450388, 31604455314, 31604458802), and green a third time after a plant was
-reverted (31607037059, 31607033539, 31607040186). `submission`'s cure is §4.1;
-`boundary`'s was the two lint findings the previous revision named, since paid.
-
-### 5.2 "`supply-chain` is green"
-
-**False, and it went the bad way.** It failed at `1d41442`, run 31596446007, all three
-jobs, for the §2.1 network cause. It is **green again** once that is repaired — run
-[31615368325](https://github.com/Shaugato/mainline/actions/runs/31615368325), 4 of 4 jobs
-— on a branch carrying only the endpoint fix.
-
-### 5.3 "`schema` — the reference vertical has no producer" (singular)
-
-**Understated.** CI names **two**: `trappoint_ref.clause` as well as `trappoint_ref.event`.
-Corrected in §3.2 with the log line.
-
-### 5.4 "REUSE is the only thing keeping `submission` red"
-
-**Survives as a diagnosis and is now spent as a finding**: the migration finished,
-`check_reuse.py` returns `OK — 7402 tracked files, 0 uncovered`, and `submission` is green
-(§4.1).
-
-### 5.5 "`ruff format` — 243/245 files would be reformatted"
-
-**A CRLF artefact of the founder's workstation, not a property of the tree.** The runner
-reports `1433 files already formatted` (run 31615364211, §2.3). The published revision
-carried the local number without that qualification. **The lint half, however, regressed by
-17 rules with 8 hard gates and is real** — also §2.3.
-
-### 5.6 "`supply-chain`'s proof is the weakest of any green lane"
-
-**False at `1d41442`, and this is the correction that matters most for §6.** The lane
-carries a step named `RED — four planted violations, each refused BY NAME` which writes the
-assertion to a file, runs it against four mutated copies of both witnesses, and requires
-each to be refused with a named title and a named needle. Its proof is now among the
-stronger ones. It has a different weakness, which is new and is recorded in §6.3.
-
-### 5.7 Two claims that survived re-measurement
-
-Kept here so the list is not read as a list of only failures.
-
-* **"`RED_SELECTOR` is half-connected; `pl2_red` is registered nowhere"** — repaired on
-  2026-08-10 and verified today. `pl2_red` is registered at `pyproject.toml:112` carrying
-  `scripts/mi_ratchet.py`'s `PL2_RED_MARKER_DESCRIPTION` verbatim, and applied to eight
-  cases. `-m "g4alpha or pl2_red"` collects `13/9324`; `hermetic-tests` runs the exact
-  complement. §6.2 proves the guard that keeps it that way.
-* **"The MI ratchet stands at 21 of 30, not 28 of 30"** — re-derived today,
-  `21 pending / 9 enforced`. Carried into §3.3 as current state rather than as a
-  correction. The surviving `28 of 30` strings live in superseded planning documents under
-  `docs/leads/`, which are records of what was planned and are not re-based.
-
----
-
-## 6. Anti-vacuity — which greens are load-bearing, and which are not proven
-
-**A green that cannot fail is worth less than an honest red, and the Actions tab is
-public.** Three workers did nothing this wave but try to break the green lanes: establish
-that the unmutated tree is green, plant one violation per promise, dispatch from a
-throwaway branch, and require the lane to go red *naming the plant*. **No plant was ever
-pushed to `master`**, and every plant branch was deleted after its log was read.
-
-The rule this section is written under: **possession of a job called `RED — …` is not a
-falsification.** Only a run id in which a lane went red for a planted reason is. A lane
-without one is named unproven, and that is a successful outcome for a worker rather than a
-failed one.
-
-### 6.1 Falsification, lane by lane
-
-| lane | falsified? | the strongest single experiment | run |
+| lane | the standing job whose subject is "this lane can say no" | run | how far this page checked |
 |---|---|---|---|
-| `boundary` | **yes** | E1/E2/E3/E4 each planted separately — no model IAM, no network path, no code path, no prompt path | 31605107711, 31605111824, 31605115674, 31605119482 |
-| `claims` | **yes** | one MNC-01 sentence appended to `README.md` → `[MNC-01-rls-vs-rogue-admin] README.md:298` | 31605707995 |
-| `submission` | **yes** | the gate must import with nothing installed — `import jsonschema` at module top | 31606023333 |
-| `judge-pack` | **yes**, 3 of 4 jobs | a negative loses `must_fail_because` | 31605910666 |
-| `release-proof` | **yes** | the gate weakened to a tautology → `VERDICT NOT PROVEN` with the failing clause named | 31604562363 |
-| `skills` | **yes** | the reference gate weakened; a merge claim; a dangling marketplace path | 31604638902 |
-| `console` | **yes** | a 3D import planted in the EVIDENCE register → `pnpm run ci` refuses | 31604695307 |
-| `mutation-ratchet` | **yes** | `--disable` made a no-op → `PL-2 FAILED: disabling R1_DEONTIC did not lower the kill rate`, both arms `wilson_lower = 0.909774` | [31615605021](https://github.com/Shaugato/mainline/actions/runs/31615605021) |
-| `supply-chain` | **yes**, twice | `boto3` added to `mainline-gate-svc`'s lock edge → `resolves model SDK distribution(s) ['boto3', 'botocore']` | [31615598216](https://github.com/Shaugato/mainline/actions/runs/31615598216) |
-| `supply-chain` | **yes** (the vacuity guard itself) | `mainline-domain` dropped → `did not name ['mainline-domain']`, refused by **both** witnesses independently | [31615601879](https://github.com/Shaugato/mainline/actions/runs/31615601879) |
-| `ci` (per job) | **partly** | §6.2 | |
-| `aws-evidence` | n/a — red | its own negative control is refusing to run, correctly (§3.5) | 31596455267 |
+| `db-schema` | *the version comparison bites — a neighbouring tag must fail it* | 31662330242 | **log read** (§5.1) |
+| `judge-pack` | *the envelope step goes red for each row it prints* | 31662365372 | **log read** (§5.2) |
+| `custody-chain` | *the version comparison bites — a neighbouring tag must fail it* | 31662333865 | conclusion only |
+| `judge-pack` | *the validator fires on every planted violation*; *a run with no cluster exits 3, never 0*; *the red half is red for the reason it claims* | 31662365372 | conclusion only |
+| `submission` | *the submission gate can say no* | 31662344526 | conclusion only |
+| `ci` | *RED BY DESIGN, and it must stay red* — an inverted job that fails if a declared red goes green | 31662323414 | conclusion only |
 
-Full evidence, with every plant, every quoted log line and every branch name:
-`docs/ci/anti-vacuity/w8-claims-boundary-submission.md`,
-`docs/ci/anti-vacuity/w9-judge-release-skills-console.md`,
-`docs/ci/anti-vacuity/w10-ci-supplychain-mutation.md`.
+**The last column is not decoration.** Two rows were checked by reading what the job printed;
+four by reading the conclusion of a job whose *name* claims a refusal. The four are weaker
+evidence and are labelled rather than promoted.
 
-### 6.2 `ci` is a lane where the question is per-job, and five jobs are unproven
+### 5.6 What this section does not claim
 
-`ci`'s summary tick answers nothing about any individual promise. Of the eight jobs green
-in run 31615364211:
-
-| job | falsified? | run |
-|---|---|---|
-| `RED BY DESIGN, and it must stay red` — the **floor** | **yes** | [31615590317](https://github.com/Shaugato/mainline/actions/runs/31615590317) |
-| `RED BY DESIGN` — the **empty-collection** guard | **yes** | [31615594567](https://github.com/Shaugato/mainline/actions/runs/31615594567) |
-| `the sequence ban, repository-wide` | **yes** | [31616522487](https://github.com/Shaugato/mainline/actions/runs/31616522487) |
-| `REUSE — every file names its licence` | **yes**, with a scope note below | [31616891891](https://github.com/Shaugato/mainline/actions/runs/31616891891) |
-| `every checker this lane invokes exists` | **UNPROVEN** | — |
-| `actionlint` | **UNPROVEN** | — |
-| `import-linter contracts · and no package outside them` | **UNPROVEN** | — |
-| `the lockfile is authoritative · workspace membership` | **UNPROVEN** | — |
-| `PL-2 — the red run is recorded` | **UNPROVEN** | — |
-
-**The two `RED BY DESIGN` results are the most important in this section**, because the
-failure they guard against has already happened in this repository once. `ci.yml`'s own
-header states the mechanism: *"a `-m` name that no test carries fails silently and green"*,
-and between the day the selector was written and 2026-08-10 it reached only the five
-`g4alpha` cases while eight tests printing `PL-2 RED, as intended.` failed inside the
-general regression lane, indistinguishable from a regression.
-
-Partial collapse — `RED_SELECTOR` reduced to `"g4alpha"`, the exact pre-2026-08-10 state:
-
-```
-selected 5 test(s) -> 5 red · 0 green · 0 not measured
-##[error]only 5 declared red(s) actually failed; the floor is 13
-```
-
-Total collapse — `RED_SELECTOR: "g4alpha_typo or pl2_redd"`, names no test carries:
-
-```
-pytest exited 5
-##[error]'-m g4alpha_typo or pl2_redd' collected NO tests, so this job would have
-reported 'every declared red is still red' over the empty set.
-```
-
-These are caught by **different code** — the floor counts `<failure>` elements in a JUnit
-report that a zero-collection run never writes — so neither guard is redundant. In the
-control run the same job was green with `13 failed, 9311 deselected in 18.00s`.
-**`RED_FLOOR` genuinely refuses.**
-
-`the sequence ban` was planted with a three-line migration containing
-`CREATE SEQUENCE mainline.w10_plant_seq;` and returned five separate named findings on it,
-including the planted one:
-
-```
-0999_w10_plant.sql:3: banned-token:create-sequence — 'CREATE SEQUENCE' — a sequence
-makes a gap ambiguous; the ledger is gap-free by CAS so a gap MEANS tampering
-```
-
-**A scope note on `REUSE`, because the first plant against it was ill-chosen and did not
-falsify anything.** An unlicensed file added under `docs/` left the job **green**, and
-that is correct: `REUSE.toml` carries blanket annotations over `docs/**`, `qa/**`,
-`evidence/**`, `packages/**`, `scripts/**`, `spec/**`, `skills/**`, `tests/**`,
-`verticals/**`, `infra/**` and `.github/**`, and the spec's `precedence = "closest"` means
-those annotations fill gaps without overriding the 2 602 headers on disk. So the job's real
-promise is *"every tracked file is **covered**"*, not *"every file **names** its licence"*,
-and **no new file inside an existing top-level tree can make it fail.** The falsification
-that does work plants a file at the repository root, outside every blanket — run
-31616891891, with `the sequence ban` green in the same run as its in-run control:
-
-```
-UNCOVERED — resolve a licence or annotate (1):
-    W10-PLANT-UNLICENSED.md
-REFUSED [RATCHET] metric=uncovered_by_top_level_directory.<root> baseline=0 measured=1 [HARD GATE: baseline is 0]
-```
-
-The metric name confirms the scope: coverage is ratcheted **per top-level directory**, and
-`<root>` is the only bucket with an empty blanket. **The plant that failed to falsify is
-reported here rather than dropped**, because a plant that lands in a covered directory and
-is then presented as a caught violation is the same error the `aws-evidence` control exists
-to catch.
-
-### 6.3 Two green steps that cannot be observed refusing
-
-Named because a reader of the Actions tab will otherwise credit them with more than they
-assert. Neither is a lane that lies; each is a place where a green tick means less than its
-name suggests.
-
-**`supply-chain`'s `GREEN — the assertion, over the REAL resolved set`.** In both plants
-of §6.1 this step was **skipped**, because the step above it —
-`RED — four planted violations` — copies the real witnesses and refuses if the *copies* are
-already dirty:
-
-```
-##[error]COPIES ARE NOT CLEAN: byte copies of the two witnesses are already refused, so
-no refusal below is attributable to a plant
-```
-
-That refusal is correct — the harness declined to claim it had caught a plant while its
-control was dirty, and it appended the real checker output so `boto3` and
-`mainline-domain` are still named in the log. But the consequence is that the step the
-§8.2 claim nominally rests on **has never been observed refusing and cannot be, on any
-input that would make it refuse.** Its green means "the red half passed", not "the real
-closure was checked today". Moving the red half after the green half, or giving the green
-half `if: always()`, fixes it. Owner: W1.
-
-**`boundary`'s three `RED — …` steps** (W8 §4.1): each is masked by a `pytest` step
-earlier in the same job that asserts a strict superset and fails first. Each was proven
-able to refuse only by disabling the step above it — runs 31605577907, 31607324400,
-31607357953. **This is redundancy, not vacuity; every property is enforced.** But the same
-sentence applies: a reader who sees `RED — …` green and concludes "that step watched
-something refuse today" is wrong.
-
-### 6.4 Promises measured as **unfalsifiable**, not merely untested
-
-Stronger than "unproven": each has a run id showing the lane **green over a real
-violation**.
-
-1. **`release-proof` — "the image pin agrees with `compose.yaml`", for any tag not shaped
-   `v<N>.<N>.<N>`.** Run 31605452346, **success**, with `compose.yaml` pinning
-   `cockroachdb/cockroach:latest-v26.2` while the job printed `using
-   cockroachdb/cockroach:v26.2.5` and called that agreement. Falsifiable only for
-   same-shaped tags (31605448626, failure). W1's rewrite of `release-proof.yml` fixes it.
-2. **`judge-pack` — the `envelope` cross-check.** Run 31605705752, success, printing
-   `cross-check: NOT RUN … This is not a pass.` `mainline_mcp` is not installed by this
-   lane, so the second implementation of the envelope **has never been consulted in CI**.
-3. **`console` — "the pin that was requested is the pin that arrived".** Run 31605487354,
-   success at `packageManager: pnpm@11.5.2` / `pnpm on PATH: 11.5.2`. The check compares a
-   field with the pnpm installed *from that field*. No edit to `package.json` can make it
-   red.
-4. **`submission`'s `The machine record` step** carries `continue-on-error: true` **and**
-   `|| true` on the same command and cannot fail the lane under any input. The repository
-   bans both constructs. Two other `continue-on-error` steps in that file are load-bearing
-   in a way a proven decision step makes safe; this one is not.
-
-### 6.5 Everything else this section does not claim
-
-* `supply-chain`'s `an SBOM for every distribution` and `pip-audit over the locked set`
-  stayed green in every run above and **nothing was planted against either**. Unproven.
-* `mutation-ratchet`'s three other measurement-did-not-happen conditions — a catalogue
-  class with no operator, a drifted paraphrase cassette, a class that produced no trial —
-  are **unproven**. Only "the injection point stopped injecting" was planted.
-* `boundary`'s fleet matrix has **no shipped subject**: `spec/agents/fleet.yaml` does not
-  exist, so `test_shipped_fleet_register_exists` skips on every run and the matrix is
-  asserted against a fixture. Green there means "a reference register satisfies the
-  matrix", not "the fleet we ship does".
-* `boundary`'s `E3-SBOM-CURRENT-ABSENT` and E1's two live IAM tests skip on every run.
-  Declared, visible in the log, and not a pass.
-* W9 lists six further promises verified to still bite but not independently planted.
-
-### 6.6 Checkers that prove themselves outside CI
-
-```
-$ .venv/Scripts/python.exe scripts/qa/check_reuse.py --self-test
-7 of 7 scenarios behaved as declared: the checker passes a complete tree and refuses
-each of the 6 planted violations.
-
-$ python -I -S scripts/submission/audit_public_readiness.py --self-test | tail -1
-SELF-TEST PASSED: 9 families, 9 fired, 0 missed; 35 disposition/strength assertions, 0 failed
-```
-
-and `tests/release/test_ruff_ratchet.py` records, in its own module docstring, the two runs
-in which the ratchet was neutered and the exact assertions that went red.
-
-Every plant branch from all three workers was deleted after its log was read. The public
-repository holds `master` and nothing this section created.
+It does not claim the remaining greens are vacuous. It claims they were **not audited on this
+board** — a different sentence, and the honest one. `boundary`, `claims`, `cloud-verify`,
+`console`, `mutation-ratchet`, `release-proof`, `skills` and `supply-chain` each passed;
+whether each can be made to fail was not re-established here.
 
 ---
 
-## 7. What this wave did **not** achieve
+## 6. Claims on earlier boards that did not survive re-measurement
 
-Stated plainly, because the honest floor is worth more than a flattering total.
+Each was true when written and is false at `53197f5`.
 
-1. **`demo-health` needs a deployment.** It is not a workflow edit. `terraform apply` has
-   not been run; the plan is committed and reviewed and the apply is the orchestrator's.
-2. **`schema` and `custody-chain` owe real artefacts** — two `CREATE TABLE` migrations
-   (§3.2) and seven crypto check implementations plus a canonicaliser reconciliation
-   (§3.1). This wave made them say so more precisely. It did not make them green and must
-   not.
-3. **`cloud-verify` and `nightly-differential` need a live cluster** this wave did not
-   provision. Their plumbing is repaired; their conclusions are next wave's measurement.
-4. **`db` was never measured at HEAD** (§4.2). Its finding is carried forward, not
-   re-observed.
-5. **The `ci` lane's repair is not on `master`.** Everything in §2.2–§2.5 was measured on a
-   branch carrying an endpoint fix to a file W2 owns. It must be re-created against W2's
-   `ci.yml`.
-6. **17 lint rules and 4 mypy errors are open** (§2.3, §2.4), and `qa/ruff-ratchet.json`
-   was not rebaselined to hide any of them. A residual that survives the wave is named
-   here, not baselined away.
-7. **Five `ci` jobs and two `supply-chain` jobs have no falsification** (§6.2, §6.5).
-8. **The `g4alpha` gates and the MI ratchet stay red by declaration** (§3.6, §3.3).
+### 6.1 "`custody-chain` — the canonicaliser has drifted from its pin" → **repaired**
 
-Nothing in this list is a ratchet to be raised or a check to be softened. Every one of them
-is a thing that does not exist yet, a line that is written twice and should be written
-once, or a runner that could not reach the internet.
+On the runner, in run 31662333865: `16 checks | 9 passed | 0 failed | 7 not checked`, with
+check 10 `PASS`. On this workstation, twice over:
+
+```
+$ sha256(packages/trappoint-jcs/src/trappoint_jcs/canon_v1.py)
+  260ed37ddc610f1fb94ddce98998fe4ae5ce883698ad5c7033839cd258dcd659   = the registry pin
+$ python scripts/custody/check_vendored_canon.py
+  canonicaliser registry: 3 passed, 0 failed, 0 skipped
+```
+
+The cause was a machine formatting sweep that added four blank lines to each shipped
+canonicaliser; the repair restored the bytes **and** excluded both files from `ruff format`.
+[`docs/HONESTY.md`](HONESTY.md) carries the full account, including the residual gap: the
+exclude is not `force-exclude`, so a path named explicitly on a command line is still
+formatted.
+
+### 6.2 "`db` is red because `restated literal rose from 19 to 20`" → **paid**
+
+`restated literal: 18 (ceiling 19)`, `floating tag: 0 (ceiling 0)` (§2.2).
+
+### 6.3 "`db-schema` is red on a DM-9 violation" → **paid; a different red is left**
+
+`mi-red` refuses on MI06, MI10, MI21, MI22, MI27 (§2.5).
+
+### 6.4 "`ci` is red on `ruff`, `mypy`, `pytest` and the summary" → **`ruff` and `mypy` green**
+
+Ten of twelve jobs green; `pytest` down from five failures to four, and three of the four are
+by-design custody rows (§3.1).
+
+### 6.5 "`judge-pack`'s envelope step cannot be shown to fail" → **it can, five ways** (§5.2)
+
+### 6.6 "`ruff format --check` reports 10 unformatted on the runner" → **0**
+
+`1443 files already formatted` on an LF export of `53197f5`, and the runner's `ruff format`
+job is green.
+
+### 6.7 Two claims that survived, and are listed because they were expected to move
+
+* **`nightly-differential` is red on its own test harness.** Unchanged across three commits
+  (§3.3).
+* **`aws-evidence` is red on `SEC-ACCOUNT-ID`.** Unchanged; the fix is uncommitted (§3.2).
+
+### 6.8 A claim this page made about itself, and then caught
+
+An earlier draft of §2.5 said `mi-red` had narrowed from five refusals to two. **False**, and
+the cause was this author's own `tail -25` truncating a five-line list. Corrected against
+three runs. Recorded because the mechanism that caught it — re-running the command instead of
+trusting the note — is the only mechanism this page has.
+
+---
+
+## 7. The row a dispatch cannot produce: `ci`'s PL-2 red on a push
+
+PL-2 is push-gated (§1.1, §2.6), so this row comes from the **push** run created by the
+commit that published this document.
+
+* **run:** [PUSH_RUN_ID](https://github.com/Shaugato/mainline/actions/runs/PUSH_RUN_ID) —
+  `ci`, event `push`, `master`
+* **verdict:** PUSH_VERDICT
+* **cause, quoted from the log:**
+
+```
+PUSH_CAUSE
+```
+
+**Consequence for the board.** `ci` is red on a push for one more reason than on a dispatch,
+and that reason is by design. It does not change §1: `ci` is red either way.
+
+---
+
+## 8. What this page did not achieve
+
+* **One CI-TRUTH worker did not land**, so one red this page records was expected to be paid
+  and is not: `aws-evidence` (§3.2). Its repair sits uncommitted. **Uncommitted is red.**
+* **`db.yml`'s red does not say "by design" in its own message.** Three workflows were in
+  scope for that change; `db.yml` was not, and its reader still has to come here.
+* **`db`'s census asks for a ceiling to come down to 18** and this page did not do it,
+  because changing an assertion is not a documentation task.
+* **`nightly-differential` has not compared the gate to the oracle across three commits**
+  (§3.3, §5.4). It is red, so nobody is misled — but the claim the lane exists to make is
+  unmeasured, and no worker in this wave owned it.
+* **A new defect was found and not fixed:** `test_every_recorded_body_hashes_to_its_index_row`
+  (§3.1), recorded with both hashes and left to the owning domain, because a recorded body
+  that disagrees with its index must be diagnosed, not reconciled by rewriting one side.
+* **Eight greens were not audited for vacuity** (§5.6).
+* **One cross-reference into this page is now stale and belongs to another owner.**
+  `.github/workflows/custody-chain.yml:693` cites "`docs/CI-STATE.md` 3.1" for the
+  seven-unimplemented-checks finding, which is §2.4 in this revision. The equivalent
+  reference in `ci.yml` was rewritten to cite the owning **domain document** instead of a
+  section number, for the reason the new text gives: this page is re-derived from a fresh
+  measurement every time the board moves, so a section number embedded in a workflow is a
+  cross-reference that rots silently. `custody-chain.yml` is not this worker's file;
+  reported, not edited.
+* **No lane's Cloud half has ever run in CI** (§4.2). Unchanged, and stated again so it is
+  not read out of the ten greens.
