@@ -428,7 +428,7 @@ the console's six promises.
 every CI line is quoted from a `gh run view --log` taken while the log was warm. Where a
 check could not be made falsifiable it is named as unproven rather than argued around.
 
-### 7.1 `cli.py envelope` — three of its four printed rows were decoration
+### 7.1 `cli.py envelope` printed three kinds of row, gated on one, and that one never ran
 
 The step at `judge-pack.yml`'s `green` job runs the command and asserts nothing about it.
 `cmd_envelope`'s exit rule was one line:
@@ -511,6 +511,18 @@ unmutated copy: exit 0
 and, separately, `envelope --require-cross-check` with `mainline_mcp` off the path exits
 **1**, where plain `envelope` exits **0** with the gap stated in its last line.
 
+Two branches of the new gate are not reachable by a lane plant and were exercised by hand
+rather than left as untested code in a file whose whole subject is being falsifiable:
+
+```
+pack drops `select_page_rows`   -> exit 1  select_page_rows … ABSENT from QUESTIONS.yaml
+pack invents `max_widgets: 7`   -> exit 1  max_widgets … UNMODELLED by envelope.py
+```
+
+The second is stricter than `validate` without `--strict`, which calls an unmodelled limit
+a `warn`. The lane always passes `--strict`, and a number the pack asserts that no scanner
+enforces is the same defect as a number the two files disagree about.
+
 **The control earned its keep on its first CI run, and that is the most useful thing on
 this page.** Run
 [31661375603](https://github.com/Shaugato/mainline/actions/runs/31661375603) — `failure`,
@@ -549,6 +561,23 @@ is a workstation measurement and stands. The *control* is what a shallow `/tmp` 
 and it was caught by its own two clauses — the unmutated-copy check and the name-the-row
 check — rather than by anyone reading a log.
 
+**Run [31661556631](https://github.com/Shaugato/mainline/actions/runs/31661556631) —
+`success`, all five jobs.** The envelope step is falsifiable in a warm CI log, and this is
+the artefact for that claim:
+
+```
+cross-check: ran — packages/mainline-mcp imported; constants compared
+envelope --require-cross-check exited 1 with mainline-mcp absent, as required
+unmutated copy: exit 0
+  plant: envelope.py REQUEST_TIMEOUT_SECONDS 20 -> 25 -> exit 1, names request_timeout_seconds/DISAGREES: True
+  plant: envelope.py MAX_RESPONSE_BYTES 10240 -> 10241 -> exit 1, names MAX_RESPONSE_BYTES/DISAGREEMENT: True
+  plant: QUESTIONS.yaml Q10 EXPLAIN padded past the 16384 cap -> exit 1, names Q10/DOES NOT FIT: True
+  plant: QUESTIONS.yaml select_page_rows 25 -> 50 -> exit 1, names select_page_rows/DISAGREES: True
+  plant: both judge-side files move to 10241 together -> exit 1, names MAX_RESPONSE_BYTES/DISAGREEMENT: True
+5 plants: an unmutated copy is green, every plant is red, and every red names the row its plant targets.
+working tree clean — every plant lived in a temporary copy
+```
+
 ### 7.2 `aws-evidence`'s mutation family — the harness was already right; the blast radius was not
 
 The brief asked whether each plant fires **its own** invariant or merely some invariant.
@@ -558,8 +587,11 @@ The brief asked whether each plant fires **its own** invariant or merely some in
 the sandbox's; and it fails on any declared invariant that has neither a plant nor a
 written exemption.
 
-The family was blocked by the `SEC-ACCOUNT-ID` false positive (the lead's §2). Measured on
-a clean export of `9221d0c`, the only failure is still that one:
+The family is still blocked by the `SEC-ACCOUNT-ID` false positive (the lead's §2). Run
+[31661375757](https://github.com/Shaugato/mainline/actions/runs/31661375757) — `failure`,
+three jobs, **one cause**, unchanged from the lead's measurement; the blast-radius step
+below never ran, because the `--self-test` step ahead of it fails first, which is the right
+order. Measured on a clean export of `9221d0c`, the only failure is still that one:
 
 ```
 [SEC-ACCOUNT-ID] evidence/deploy/verify/aws-quota-and-cost.json:30: a bare 12-digit run
@@ -647,21 +679,21 @@ exist is a leaked container on a shared runner and is now visible.
 
 ### 7.4 What is still unproven here
 
-* **The `envelope` step's cross-check has never run on `master`.** It runs in
-  `envelope-teeth` from this commit onward; before that, every recorded `judge-pack` green
-  carries `cross-check: NOT RUN` in its log, including run `31657327334`. Any claim that
-  the judge pack's limits have been confirmed against a second implementation **in CI** is
-  false for every run before this one.
+* **The `envelope` step's cross-check had never run on `master` before run
+  `31661375603`.** Every earlier `judge-pack` green carries `cross-check: NOT RUN` in its
+  log, run `31657327334` included. Any claim that the judge pack's limits were confirmed
+  against a second implementation **in CI** is false for every run before that one.
 * **`validate --strict` still tolerates the absent cross-check.** `cmd_validate` prints
   `NOT RUN` and adds no `warn`, so `--strict` does not promote it; only
   `--require-cross-check` fails on it, and the `green` job does not pass that flag.
   `verticals/mainline/demo/judge/pack.py` and `envelope.py` are not this worker's files;
   reported, not edited.
 * **`aws-evidence`'s family is proven against a corrected scanner, not against `master`.**
-  At `9221d0c` an unmutated `evidence/` still fails `SEC-ACCOUNT-ID`, so the family's job
-  is red for the control, not for a plant. The measurement above used a clean export of
-  `9221d0c` carrying the working-tree scanner fix; it is not a claim about a CI run until
-  that fix is committed.
+  On `master` an unmutated `evidence/` still fails `SEC-ACCOUNT-ID` — run
+  `31661375757`, three jobs, one cause — so the family's job is red for the control, not
+  for a plant. The measurement above used a clean export of `9221d0c` carrying the
+  scanner fix; it is not a claim about a CI run until that fix is committed, and the
+  blast-radius step has therefore **never executed on a runner**.
 * **Sixteen `aws-evidence` invariants have no plant** and are carried on a written
   exemption list in `self_test`. That list is named rather than hidden, which is the right
   shape, but a named exemption is still an unexercised check.

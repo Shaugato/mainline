@@ -502,6 +502,7 @@ repair, but no `ci` claim here has been observed against W2's actual `ci.yml`.
 | `supply-chain` | `w10-p-sc-model` | `boto3` into the gate's closure | [31615598216](https://github.com/Shaugato/mainline/actions/runs/31615598216) | **failure** — `resolves model SDK distribution(s) ['boto3', 'botocore']` |
 | `supply-chain` | `w10-p-sc-guard` | `mainline-domain` dropped | [31615601879](https://github.com/Shaugato/mainline/actions/runs/31615601879) | **failure** — `did not name ['mainline-domain']`, both witnesses |
 | `mutation-ratchet` | `w10-p-mut-noop` | `--disable` made a no-op | [31615605021](https://github.com/Shaugato/mainline/actions/runs/31615605021) | **failure** — `PL-2 FAILED: … did not lower the kill rate` |
+| `mutation-ratchet` | `master` | none — the recorded output §3.1 reads | [31657329516](https://github.com/Shaugato/mainline/actions/runs/31657329516) | **success** — and its `surviving KILL classes:` lines are what show `comparator_loosening` surviving in **both** arms (§3.1, added by W8 2026-08-13) |
 
 **Seven promises falsified with a named red; one plant that landed inside a REUSE.toml
 blanket and falsified nothing, reported rather than dropped (§1.5); five areas explicitly

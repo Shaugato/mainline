@@ -216,6 +216,17 @@ jobs:
           failures: list[str] = []
           only_own = 0
 
+          # The declaration is keyed by label, so two plants sharing one would silently
+          # share a declaration and the looser of the two would go unchecked.
+          labels = [label for label, _, _ in plants]
+          duplicated = sorted({label for label in labels if labels.count(label) > 1})
+          if duplicated:
+              failures.append(
+                  f"DUPLICATE PLANT LABEL(S) {duplicated}: this step keys its declaration by "
+                  "label, so two plants with one label share one declared blast radius and "
+                  "the wider of the two stops being checked. Give each plant its own label."
+              )
+
           with tempfile.TemporaryDirectory(prefix="aws-blast-radius-") as tmp:
               sandbox = Path(tmp) / "sandbox"
               shutil.copytree(ROOT / "evidence", sandbox / "evidence")
