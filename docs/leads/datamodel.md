@@ -196,11 +196,26 @@ directly, which is the property DM-9 actually protects.
 | WRITE | `verticals/mainline/db/seeds/demo/demo_world.sql` — **added 2026-08-13** | the demo gate refuses *against* a closure, so the seed must establish one — without it the merge refuses `P0001` for an unbacked cited clause version, a different refusal from the one the demo is about. The view is a `DISTINCT ON` projection and is not insertable, and `closure_write.sql` is a parameterised statement the projector binds ten positional values into, which a seed applied as one text cannot call. |
 
 Both 2026-08-13 entries are **writes**, and a write cannot commit the error DM-9 exists to prevent:
-understating ancestral severity requires *reading* a superseded generation. Both remain policed
-inside the cluster by `fn_closure_guard` (`P0001` on a non-dense generation) and by `0128j`'s
-append-only weld (no `UPDATE`, no `DELETE`, for any writer including a DBA). The same commit moved
-`demo_world.sql`'s `WHERE NOT EXISTS` idempotence probe off the table and onto
-`mainline.clause_blame_current`, which is the only READ either file ever had.
+understating ancestral severity requires *reading* a superseded generation. Both also remain
+policed inside the cluster, and the policing is stronger than generation density alone —
+**measured, not assumed**, on a live CockroachDB CCL v26.2.5 while this ledger was being written:
+
+* `fn_closure_guard` (`0108`) refuses a non-dense generation with `P0001`; and
+* the same guard refuses a generation whose severity would **decrease** — a replay of
+  `queries/closure_write.sql` over the demo world's real ancestry, offered after a fabricated
+  higher-severity generation, came back `P0001 MAINLINE: closure severity may not decrease without
+  a signed severity revision` (`0108_fn_closure_guard.sql:87`). Stated with its known limit rather
+  than as a clean win: `test_mi26_red_the_monotone_guard_accepts_an_unrelated_severity_revision` is
+  RED BY DESIGN because that branch counts revisions by TIME alone, uncorrelated to the clause — so
+  the guard bites an ordinary decrease, as measured, and does not yet bite one accompanied by an
+  unrelated revision. Owner of the fix is `kernel/projection-triggers`, not DM-9; and
+* `0128j`'s append-only weld refuses any `UPDATE` or `DELETE`, for any writer including a DBA.
+
+So a writer outside the projector can append a first generation, or a non-decreasing one, or fail.
+It cannot lower the severity a later reader sees — which is why the whole of DM-9's residual risk
+lives on the READ path, and why the READ is the site this commit moved rather than excused. The
+same commit routed `demo_world.sql`'s `WHERE NOT EXISTS` idempotence probe onto
+`mainline.clause_blame_current`; that probe was the only READ either file ever had.
 
 **DM-10 · Every constraint, index and policy is explicitly named; a test fails on any
 system-generated name in the `mainline*` schemas.** — *the constraint name is the courtroom exhibit;
