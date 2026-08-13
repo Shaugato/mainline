@@ -353,8 +353,10 @@ jobs:
           fi
 
       - name: Start a single-node CockroachDB
-        # MEASURED 2026-08-10 against cockroachdb/cockroach:v26.2.5 — `--listen-addr` is
-        # DELIBERATELY ABSENT and must stay absent:
+        # MEASURED 2026-08-10 against the pin `compose.yaml` names and the `image` step
+        # above resolves — the version is NOT restated here, because a comment naming a
+        # version is a comment that goes stale and then misleads, and `db.yml`'s census
+        # counts this file. `--listen-addr` is DELIBERATELY ABSENT and must stay absent:
         #
         #   $ docker run … start-single-node --insecure --listen-addr=0.0.0.0:26257 …
         #   error: hostname of listen_addr must be "127.0.0.1" or "localhost"
@@ -375,7 +377,11 @@ jobs:
           for attempt in $(seq 1 60); do
             if docker exec trappoint-schema-crdb ./cockroach sql --insecure --execute "SELECT 1" >/dev/null 2>&1; then
               echo "cluster answering SQL after ${attempt} attempt(s)"
-              docker exec trappoint-schema-crdb ./cockroach sql --insecure --execute "SELECT version()"
+              # The `SELECT version()` that was PRINTED here is gone, and the removal is
+              # the point of the step below rather than a tidy-up. A version printed and
+              # never compared has the shape of an assertion without being one: a reader
+              # scanning this log saw the right number and concluded the pin had been
+              # checked. Nothing was checked. The comparison now lives where it can fail.
               exit 0
             fi
             sleep 2
@@ -383,6 +389,65 @@ jobs:
           echo "::error::the cluster never answered SQL"
           docker logs trappoint-schema-crdb | tail -50
           exit 1
+
+      - name: The server that answered IS the pinned version
+        # ANTI-VACUITY, 2026-08-13. Every step above this one reads the pin, hands it to
+        # `docker run`, resolves a digest and polls `SELECT 1`. Not one of them ever asks
+        # the running server which version it is, so the whole sequence catches a pin that
+        # failed to ARRIVE — the container did not start, or did not answer pgwire — and
+        # nothing else. A tag resolving to different bytes than compose.yaml names went
+        # green identically: a moving tag, a layer already cached under that name, a
+        # container of this fixed name left behind by an earlier run, a registry
+        # substitution. mi-red and mi-green are claims about what a specific engine
+        # accepts and refuses; on a different engine they are measurements of something
+        # else wearing this lane's name.
+        #
+        # The expectation is DERIVED from the pin the `image` step resolved and is never
+        # written out here. `db.yml`'s census counts restated image literals across
+        # `.github/workflows/` against a ceiling being driven down, and a second copy of
+        # the version constant is the defect that census exists to refuse.
+        #
+        # `image-pin-bites` in this same lane is the negative control: it runs this
+        # comparison against a deliberately neighbouring tag and is red if it passes.
+        env:
+          PINNED_IMAGE: ${{ steps.image.outputs.image }}
+          CRDB_CONTAINER: trappoint-schema-crdb
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import os
+          import re
+          import subprocess
+          import sys
+
+          image = os.environ["PINNED_IMAGE"]
+          container = os.environ["CRDB_CONTAINER"]
+          tag = image.rsplit(":", 1)[-1]
+          wanted = tag[len("latest-") :] if tag.startswith("latest-") else tag
+
+          probe = subprocess.run(
+              ["docker", "exec", container, "./cockroach", "sql", "--insecure",
+               "--format=csv", "--execute", "SELECT version()"],
+              capture_output=True, text=True, check=False,
+          )
+          if probe.returncode != 0:
+              detail = (probe.stderr or probe.stdout).strip().replace("\n", " · ")
+              print("::error title=the node would not report its version::"
+                    "`SELECT version()` failed against a node that had just answered "
+                    f"`SELECT 1` — container {container}: {detail}")
+              sys.exit(1)
+          served = [row for row in probe.stdout.splitlines() if row.strip()][-1]
+          served = served.strip().strip('"')
+
+          if re.search(rf"(?<![0-9A-Za-z.]){re.escape(wanted)}(\.\d+)*(?![0-9A-Za-z.])", served):
+              print(f"compose.yaml asked for {wanted}; the server said: {served}")
+              sys.exit(0)
+          print("::error title=the running server is not the pinned version::compose.yaml "
+                f"asked for {wanted} (pin {image}); the node that answered reports "
+                f"{served!r}. mi-red and mi-green below would be measured against that "
+                "other engine, under this lane's name.")
+          sys.exit(1)
+          PY
 
       - uses: astral-sh/setup-uv@v5
         with:
@@ -742,3 +807,170 @@ jobs:
           else
             echo "no container named trappoint-schema-crdb exists; nothing to tear down"
           fi
+
+  # ── The negative control for the version assertion in `ratchet` ─────────────────────
+  #
+  # An assertion nobody has ever watched fail is the same vacuity in a newer coat. The
+  # `ratchet` job compares `SELECT version()` against the version derived from
+  # compose.yaml's pin; this job runs the SAME comparison — one compiled pattern, one
+  # function, used twice inside one step — against two nodes:
+  #
+  #   the pinned tag       MUST match      (or the comparison is broken, not the tree)
+  #   a NEIGHBOURING tag   MUST NOT match  (or the comparison cannot tell versions apart)
+  #
+  # The job is RED if the wrong node satisfies the comparison. A control that fails to
+  # fail is a failure, and it is reported as one, with the half that broke named.
+  #
+  # The control tag is DERIVED — the pin's patch component minus one — and never written
+  # down, for the same reason the expectation is not: `db.yml`'s census counts restated
+  # image literals across `.github/workflows/` against a ceiling being driven DOWN, and a
+  # literal here would push it back up and turn the `db` lane red. A released x.y.z
+  # implies x.y.(z-1) was released, so the derived tag exists; a .0 patch falls back to
+  # the previous minor, and when neither is derivable the job fails saying the control
+  # could not be exercised — which is the honest verdict, not a green.
+  image-pin-bites:
+    name: the version comparison bites — a neighbouring tag must fail it
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read the ONE version constant out of compose.yaml
+        id: image
+        run: |
+          set -euo pipefail
+          image="$(python3 - <<'PY'
+          import pathlib, re
+          lines = pathlib.Path("compose.yaml").read_text(encoding="utf-8").splitlines()
+          for i, line in enumerate(lines):
+              if "trappoint:crdb-image-pin" in line:
+                  for candidate in lines[i + 1 : i + 4]:
+                      m = re.match(r"^\s*image:\s*(\S+)\s*$", candidate)
+                      if m:
+                          print(m.group(1))
+                          raise SystemExit(0)
+          raise SystemExit("compose.yaml carries no marked image pin")
+          PY
+          )"
+          echo "image=${image}" >> "$GITHUB_OUTPUT"
+
+      - name: Two nodes, one comparison, opposite verdicts
+        env:
+          PINNED_IMAGE: ${{ steps.image.outputs.image }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import os
+          import re
+          import subprocess
+          import sys
+          import time
+
+          IMAGE = os.environ["PINNED_IMAGE"]
+          repository, _, tag = IMAGE.rpartition(":")
+          WANTED = tag[len("latest-") :] if tag.startswith("latest-") else tag
+
+          # THE comparison. Compiled once, applied to both nodes, so "the identical
+          # comparison" is a property of the code rather than of a copy-paste.
+          MATCH = re.compile(rf"(?<![0-9A-Za-z.]){re.escape(WANTED)}(\.\d+)*(?![0-9A-Za-z.])")
+
+          def version_of(container: str) -> str:
+              probe = subprocess.run(
+                  ["docker", "exec", container, "./cockroach", "sql", "--insecure",
+                   "--format=csv", "--execute", "SELECT version()"],
+                  capture_output=True, text=True, check=False,
+              )
+              if probe.returncode != 0:
+                  detail = (probe.stderr or probe.stdout).strip().replace("\n", " · ")
+                  raise SystemExit(f"SELECT version() failed on {container}: {detail}")
+              row = [line for line in probe.stdout.splitlines() if line.strip()][-1]
+              return row.strip().strip('"')
+
+          def start(container: str, image: str) -> None:
+              made = subprocess.run(
+                  ["docker", "run", "-d", "--name", container, image,
+                   "start-single-node", "--insecure", "--store=type=mem,size=1GiB"],
+                  capture_output=True, text=True, check=False,
+              )
+              if made.returncode != 0:
+                  detail = (made.stderr or made.stdout).strip().replace("\n", " · ")
+                  raise SystemExit(
+                      f"the negative control could not be exercised: {image} would not "
+                      f"start — {detail}. This job asserts nothing until it can."
+                  )
+              for _ in range(60):
+                  alive = subprocess.run(
+                      ["docker", "exec", container, "./cockroach", "sql", "--insecure",
+                       "--execute", "SELECT 1"],
+                      capture_output=True, text=True, check=False,
+                  )
+                  if alive.returncode == 0:
+                      return
+                  time.sleep(2)
+              raise SystemExit(
+                  f"the negative control could not be exercised: {image} never answered "
+                  "pgwire within 120 seconds"
+              )
+
+          # The deliberately wrong tag, derived from the pin and never restated.
+          parts = re.fullmatch(r"v(\d+)\.(\d+)\.(\d+)", WANTED)
+          if parts is None:
+              print("::error title=the negative control cannot be derived::the pin's tag is "
+                    f"not a vMAJOR.MINOR.PATCH triple — got {WANTED!r}. Deriving a "
+                    "neighbouring tag is how this control avoids restating the version "
+                    "constant; rewrite the derivation rather than hard-coding a tag.")
+              sys.exit(1)
+          major, minor, patch = (int(part) for part in parts.groups())
+          if patch > 0:
+              control_tag = f"v{major}.{minor}.{patch - 1}"
+          elif minor > 0:
+              control_tag = f"v{major}.{minor - 1}.0"
+          else:
+              print("::error title=the negative control cannot be derived::the pin is a "
+                    f".0.0 release ({WANTED}) and no neighbouring tag can be derived from "
+                    "it without inventing one.")
+              sys.exit(1)
+
+          NODES = (
+              ("pin-truth", IMAGE, True),
+              ("pin-control", f"{repository}:{control_tag}", False),
+          )
+
+          failures: list[str] = []
+          try:
+              for container, image, must_match in NODES:
+                  start(container, image)
+                  served = version_of(container)
+                  matched = MATCH.search(served) is not None
+                  print(f"{container}: tag {image.rsplit(':', 1)[-1]} -> server said "
+                        f"{served!r} -> {'MATCHES' if matched else 'does not match'} the "
+                        f"pin {WANTED}")
+                  if matched == must_match:
+                      continue
+                  if must_match:
+                      failures.append(
+                          f"the comparison REJECTED the pinned node itself: a node started "
+                          f"from {image} reports {served!r} and the pattern built from "
+                          f"{WANTED} did not find it. The version assertion in `ratchet` is "
+                          "broken, not the tree it asserts over."
+                      )
+                  else:
+                      failures.append(
+                          f"the comparison ACCEPTED a node started from {image}, whose "
+                          f"server reports {served!r}, while asserting {WANTED}. It cannot "
+                          "tell two versions apart, so every green the version assertion in "
+                          "`ratchet` has produced is worth nothing and it must be treated "
+                          "as unproven."
+                      )
+          finally:
+              for container, _image, _expected in NODES:
+                  subprocess.run(["docker", "rm", "-f", container],
+                                 capture_output=True, text=True, check=False)
+
+          if failures:
+              for line in failures:
+                  print(f"::error title=the version comparison does not bite::{line}")
+              sys.exit(1)
+          print(f"the comparison bites: {WANTED} accepted and {control_tag} rejected by the "
+                "same pattern, in the same step, against two nodes that both answered SQL")
+          PY
