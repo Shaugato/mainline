@@ -114,13 +114,14 @@ import hashlib
 import json
 import os
 import uuid
-from collections.abc import Mapping
+from collections.abc import Iterator, Mapping
 from datetime import UTC, datetime
 from typing import Any, Final
 
 import psycopg
 from psycopg.types.json import Jsonb
 
+from .credentials import resolve_credential_id
 from .gate_run import GATE_RUN_SCHEMA_ID, canonical_json, gate_run
 from .refusal import classify, diagnose, refusal_payload, rfc3339
 from .scenario import ENV_PREFIX, Scenario, ScenarioNotSeeded, from_env, positional
@@ -282,6 +283,66 @@ def _text(body: Mapping[str, Any], key: str, default: str | None, *, limit: int)
     return value
 
 
+@contextlib.contextmanager
+def _borrowed(conn: psycopg.Connection[Any]) -> Iterator[psycopg.Connection[Any]]:
+    """Clear *conn*'s ``autocommit`` for the length of one request, and hand it back on.
+
+    THE CONNECTION IS BORROWED, NOT OWNED, AND IT IS MODULE-SCOPE. ``db.connection()``
+    opens ONE psycopg connection per Lambda execution environment and keeps it: a fresh
+    pgwire connection to CockroachDB Cloud in Singapore costs a TLS handshake plus an auth
+    round trip — 3.15 s measured from Australia — so a connection per invocation would make
+    the demo feel broken. ``db._open`` opens that one connection with ``autocommit=True``,
+    and ``health.py`` publishes that fact in prose as the reason the health path is
+    structurally incapable of answering 503 on a marker-less database.
+
+    Every transition in this module needs the opposite for the length of its own work: one
+    transaction spanning several statements, which means the flag has to come off. Until
+    2026-08-13 it came off and never went back on — ``_prepare`` and ``_demo_gate_run`` each
+    flipped it on the shared connection and returned — so the guarantee ``health.py``
+    documents was silently withdrawn by the first gate run and every request after it
+    inherited the withdrawal. Measured on this tree, through ``handle_transition``, against
+    a seeded local node: one ``POST /v1/demo/gate-run`` answered 200 and left
+    ``conn.autocommit`` ``False``; the next ``SELECT 1`` therefore opened an implicit
+    transaction that nothing closed; and ``GET /v1/health`` answered
+    ``503 unreachable [25P02] current transaction is aborted, commands ignored until end of
+    transaction block``. On the deployed marker-carrying cluster the same leak strands the
+    warm connection ``INTRANS`` instead — an idle-in-transaction ``40001`` amplifier that
+    the health alarm cannot see, because there the health statement succeeds.
+
+    So the flag is taken and given back in ONE place, and this is that place. It is a
+    context manager rather than two hand-rolled ``try``/``finally`` blocks so that the
+    clear and the restore cannot drift apart again: there is now exactly one assignment to
+    ``conn.autocommit`` in this module, and it is inside the ``finally`` of the only
+    function that ever clears it. An early return, a raise, a 423 refusal and a ``40001``
+    all leave through the same door.
+    """
+    borrowed_autocommit = conn.autocommit
+    if borrowed_autocommit:
+        conn.autocommit = False
+    try:
+        yield conn
+    finally:
+        # THE ORDER IS LOAD-BEARING. psycopg refuses to change `autocommit` on a connection
+        # whose transaction status is not IDLE — `_check_intrans_gen` raises
+        # `ProgrammingError: can't change 'autocommit' now: connection in transaction status
+        # INTRANS` — so the rollback is what MAKES the restore possible, not a courtesy
+        # beside it. It is also this function's published contract restated: the connection
+        # is left with no transaction in progress, whatever happened. `rollback()` on an
+        # already-idle connection costs no round trip.
+        with contextlib.suppress(psycopg.Error):
+            conn.rollback()
+        if conn.autocommit != borrowed_autocommit:
+            # After that rollback the only way this assignment raises is a connection that
+            # is no longer usable — closed, or a socket that died mid-request — and on one
+            # of those the flag cannot be inherited by anybody: `db.connection()` proves the
+            # cached connection with `SELECT 1` on every acquisition and replaces it when
+            # that fails. Raising from here would replace whatever the caller was actually
+            # reporting with a bookkeeping complaint about a socket that is already gone.
+            # Narrow and named — `psycopg.Error`, never a bare or blanket except.
+            with contextlib.suppress(psycopg.Error):
+                conn.autocommit = borrowed_autocommit
+
+
 def _prepare(conn: psycopg.Connection[Any]) -> None:
     """Put *conn* in the one state every transition needs, and say so explicitly.
 
@@ -289,9 +350,28 @@ def _prepare(conn: psycopg.Connection[Any]) -> None:
     never inherited from a pool default. A procedure that silently ran at whatever the
     session offered would make the one line of the client that matters unauditable — and
     on a warm Lambda the session is by definition a reused one.
+
+    IT DOES NOT CLEAR ``autocommit``, AND THAT IS THE POINT. :func:`_borrowed` clears it
+    once, at the entry point, and gives it back; a second place that cleared it would be a
+    second place that could forget to. What is left here is a tripwire rather than a
+    branch: under :func:`handle_transition` the flag is already off by the time this runs,
+    so the ``raise`` below is unreachable in normal operation and fires only if a future
+    caller reaches a transition without borrowing the connection first. That is worth
+    reporting loudly, because a transition running in autocommit is not a slower
+    transition — it is a different one. ``_materialise_checks`` would commit its exposure
+    receipt, then commit each exposure line, and then fail to append the transition event,
+    leaving a receipt in the ledger for a transition that never happened. A defect in this
+    module reaches the caller as an exception, and it should.
     """
     if conn.autocommit:
-        conn.autocommit = False
+        raise RuntimeError(
+            "mainline_demo_api.transitions._prepare was handed a connection in autocommit. "
+            "Every transition in this module is ONE transaction — the exposure receipt and "
+            "its lines and the event that justifies them commit together or not at all — so "
+            "the flag must be off before the first statement. transitions._borrowed() is "
+            "what clears it, and handle_transition is what enters it. This is a defect in "
+            "this module, not a gate refusal, and it is not reported as one."
+        )
     conn.rollback()
     conn.execute("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE")
 
@@ -928,6 +1008,24 @@ def _sign_disposition(
     signer_sub = _text(body, "signer_sub", scenario.signer_sub, limit=256)
     countersigner_sub = _text(body, "countersigner_sub", scenario.countersigner_sub, limit=256)
 
+    # THE TWIN, closed 2026-08-13. `gate_run` was corrected to RESOLVE these two ids from
+    # `mainline.signing_credential` rather than derive them, because `_sha("cred","signer")`
+    # is `487adc50…` while `demo_world.sql` enrols `digest('mainline-demo/credential/…')` =
+    # `ff356d14…`, and beat 4 therefore failed `23503 disposition_signer_credential_id_fkey`
+    # against the database that actually deploys. THIS path was not corrected with it, and
+    # `test_credentials.py`'s ratchet only watches `gate_run.py` — so the identical defect
+    # survived here, on the endpoint a judge reaches by signing a disposition directly.
+    # That is the recurring shape once more: the instance was closed, the CLASS was not.
+    #
+    # Resolved BEFORE `_prepare` opens the transaction, for the reason gate_run.py:452-455
+    # records: resolving after would turn "this subject has no enrolled credential" into a
+    # foreign-key violation caught downstream and reported as though the GATE had refused.
+    # It had not. `CredentialUnresolvable` is a `ScenarioNotSeeded`, which this module's
+    # handler already answers as `422 demo_history_not_seeded` — a typed refusal naming the
+    # subject and the table, which is what an unseeded database actually deserves.
+    signer_credential_id = resolve_credential_id(conn, signer_sub)
+    countersigner_credential_id = resolve_credential_id(conn, countersigner_sub)
+
     _prepare(conn)
     found = positional(conn, _CHECK_SQL, (check_id,)).fetchone()
     if found is None:
@@ -968,9 +1066,9 @@ def _sign_disposition(
                 rationale,
                 _sha("evidence", str(disposition_id)),
                 signer_sub,
-                _sha("cred", "signer"),
+                signer_credential_id,
                 countersigner_sub,
-                _sha("cred", "cosigner"),
+                countersigner_credential_id,
                 _sha("authenticator", str(disposition_id)),
                 canonical_json({"challenge": disposition_id.hex, "type": "webauthn.get"})[0],
                 Jsonb({"authorisations": ["ISOLATION_AUTHORITY"]}),
@@ -1029,8 +1127,14 @@ def _sign_disposition(
 def _demo_gate_run(
     conn: psycopg.Connection[Any], body: Mapping[str, Any], scenario: Scenario
 ) -> tuple[int, dict[str, Any]]:
-    if conn.autocommit:
-        conn.autocommit = False
+    """Play the four beats and roll them back, inside the caller's borrowed connection.
+
+    ``gate_run`` refuses a connection in autocommit — the four beats sharing ONE
+    transaction is the property the demo exists to show — and this function used to buy
+    that by clearing the flag itself and never putting it back. :func:`_borrowed` now owns
+    both halves of that trade, so there is nothing to clear here and, more importantly,
+    nothing to forget to restore.
+    """
     run_id = body.get("run_id")
     if run_id is not None and not isinstance(run_id, str):
         raise ValueError("body member 'run_id' must be a string when supplied")
@@ -1079,8 +1183,10 @@ def handle_transition(  # noqa: PLR0911 — one return per outcome; a shared exi
         resource_key: a key from :data:`TRANSITION_RESOURCES`. Anything else is 404.
         path_params: the interpolated path parameters, e.g. ``{"permit_id": "..."}``.
         body: the decoded JSON body, or ``None`` for an empty one.
-        conn: a psycopg connection this function owns for the duration of the call. It is
-            left with no transaction in progress, whatever happened.
+        conn: a psycopg connection this function BORROWS for the duration of the call. It
+            is left with no transaction in progress and with its ``autocommit`` flag as it
+            arrived, whatever happened — see :func:`_borrowed` for why the second half of
+            that sentence had to be written down and enforced rather than assumed.
 
     Returns:
         ``(status, payload)``. For the five known resources with a well-formed request the
@@ -1092,6 +1198,8 @@ def handle_transition(  # noqa: PLR0911 — one return per outcome; a shared exi
     and it should.
     """
     if resource_key not in TRANSITION_RESOURCES:
+        # Nothing below has touched the connection, so there is nothing to borrow or hand
+        # back: an unknown resource key is decided entirely out of `TRANSITION_RESOURCES`.
         return _error(
             404,
             "unknown_resource",
@@ -1103,46 +1211,51 @@ def handle_transition(  # noqa: PLR0911 — one return per outcome; a shared exi
     scenario = from_env()
     param_name, _procedure, mutates = TRANSITION_RESOURCES[resource_key]
 
-    try:
-        if resource_key == "demo_gate_run" or param_name is None:
-            return _demo_gate_run(conn, payload, scenario)
+    # THE BORROW, AND THE ONLY ONE. Everything below runs with `autocommit` off because
+    # every transition here is one transaction; `_borrowed` puts the flag back on the way
+    # out of every one of the returns and raises inside it.
+    with _borrowed(conn):
+        try:
+            if resource_key == "demo_gate_run" or param_name is None:
+                return _demo_gate_run(conn, payload, scenario)
 
-        subject = _uuid_param(path_params, param_name)
+            subject = _uuid_param(path_params, param_name)
 
-        # The demo subject is write-protected on the three permit-addressed transitions.
-        # sign_disposition is addressed by check_id, so its guard runs after the check has
-        # been resolved to its permit — inside `_sign_disposition`.
-        #
-        # The rollback is not decoration. `_demo_guard` may have issued the row-existence
-        # read that establishes the demo subject, and on a connection that is not in
-        # autocommit that read opened a transaction. This function's contract is that it
-        # leaves none in progress, whatever happened — a Lambda reuses this connection on
-        # the next invocation, and inheriting an idle-in-transaction session is how a demo
-        # starts answering 40001 to requests that never conflicted with anything.
-        if mutates and param_name == "permit_id":
-            guard = _demo_guard(conn, subject, scenario)
-            if guard is not None:
-                conn.rollback()
-                return guard
+            # The demo subject is write-protected on the three permit-addressed
+            # transitions. sign_disposition is addressed by check_id, so its guard runs
+            # after the check has been resolved to its permit — inside `_sign_disposition`.
+            #
+            # The rollback is not decoration. `_demo_guard` may have issued the
+            # row-existence read that establishes the demo subject, and on a connection
+            # that is not in autocommit — which, inside this `with`, is every connection —
+            # that read opened a transaction. This function's contract is that it leaves
+            # none in progress, whatever happened: a Lambda reuses this connection on the
+            # next invocation, and inheriting an idle-in-transaction session is how a demo
+            # starts answering 40001 to requests that never conflicted with anything.
+            if mutates and param_name == "permit_id":
+                guard = _demo_guard(conn, subject, scenario)
+                if guard is not None:
+                    conn.rollback()
+                    return guard
 
-        if resource_key == "merge_permit":
-            return _merge_permit(conn, subject, payload, scenario)
-        if resource_key == "suspend_permit":
-            return _suspend_permit(conn, subject, payload, scenario)
-        if resource_key == "materialise_checks":
-            return _materialise_checks(conn, subject, payload, scenario)
-        return _sign_disposition(conn, subject, payload, scenario)
+            if resource_key == "merge_permit":
+                return _merge_permit(conn, subject, payload, scenario)
+            if resource_key == "suspend_permit":
+                return _suspend_permit(conn, subject, payload, scenario)
+            if resource_key == "materialise_checks":
+                return _materialise_checks(conn, subject, payload, scenario)
+            return _sign_disposition(conn, subject, payload, scenario)
 
-    except ValueError as exc:
-        conn.rollback()
-        return _error(422, "unprocessable_request", str(exc))
-    except ScenarioNotSeeded as exc:
-        conn.rollback()
-        return _error(422, "demo_history_not_seeded", exc.detail)
-    except psycopg.OperationalError as exc:
-        # No cluster is not a refusal. Keeping the two apart is what lets a red lane mean
-        # something: "the gate did not refuse" and "there was nothing to ask" are different
-        # findings and only one of them is about the product.
-        with contextlib.suppress(psycopg.Error):
+        except ValueError as exc:
             conn.rollback()
-        return _error(503, "database_unreachable", " ".join(str(exc).split())[:512])
+            return _error(422, "unprocessable_request", str(exc))
+        except ScenarioNotSeeded as exc:
+            conn.rollback()
+            return _error(422, "demo_history_not_seeded", exc.detail)
+        except psycopg.OperationalError as exc:
+            # No cluster is not a refusal. Keeping the two apart is what lets a red lane
+            # mean something: "the gate did not refuse" and "there was nothing to ask" are
+            # different findings and only one of them is about the product.
+            with contextlib.suppress(psycopg.Error):
+                conn.rollback()
+            return _error(503, "database_unreachable", " ".join(str(exc).split())[:512])
